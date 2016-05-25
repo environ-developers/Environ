@@ -1,0 +1,23 @@
+
+This example shows how to use pw.x to calculate the solvation energy
+and other related solvation quantities for a water molecule in a water solvent.
+
+The calculation is a standard geometry relaxation calculation,
+but in the presence of a continuum dielectric with the shape defined
+by the electronic density, according to the  model of Fattebert 
+and Gygi, Int J Quantum Chem 93, 139 (2003), revised by O. Andreussi, I. Dabo 
+and N. Marzari, J. Chem. Phys. 136, 064102 (2012) 
+
+Mind that for  Makov-Payne correction ( assume_isolated='makov-payne' keyword )
+is used for both the calculation in vacuum and in the solvent.
+
+Additional term of solvation can be computed by changing the specific keywords:
+-- env_surface_tension: surface tension of the solvent. If different from zero,  
+   a cavitation energy is computed according to a revised version of the formula in 
+   Scherlis et al. JCP 124, 074103, 2006 and Andreussi et al. J. Chem. Phys. 2012. 
+-- env_pressure: external pressure of the medium. If different from zero, a PV
+   energy term is added to the total energy, according to the method in 
+   Cococcioni et al. PRL 94, 145501, 2005.
+
+A rough explanation of the different keywords of the solvation model is 
+in the run_example.sh file.

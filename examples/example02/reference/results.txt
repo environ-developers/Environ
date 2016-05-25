@@ -1,0 +1,20 @@
+  Periodic boundary correction scheme = none 
+  Electrostatic Energy in vacuum      = -75.23704432  Ry        
+  Electrostatic Energy in solution    = -75.40805458  Ry        
+  Electrostatic Solvation Energy      = -53.6424983568 Kcal/mol  
+                                                         
+  Periodic boundary correction scheme = makov-payne 
+  Electrostatic Energy in vacuum      = -75.13322088  Ry        
+  Electrostatic Energy in solution    = -75.39937837  Ry        
+  Electrostatic Solvation Energy      = -83.4882814632 Kcal/mol  
+                                                         
+  Periodic boundary correction scheme = martyna-tuckerman 
+  Electrostatic Energy in vacuum      = -75.13323557  Ry        
+  Electrostatic Energy in solution    = -75.39937287  Ry        
+  Electrostatic Solvation Energy      = -83.4819482640 Kcal/mol  
+                                                         
+  Periodic boundary correction scheme = pcc 
+  Electrostatic Energy in vacuum      = -75.13324103  Ry        
+  Electrostatic Energy in solution    = -75.39938022  Ry        
+  Electrostatic Solvation Energy      = -83.4825411192 Kcal/mol  
+                                                         

@@ -1,0 +1,582 @@
+input_description -distribution {Quantum Espresso} -package Environ -program pw.x {
+
+    toc {}
+
+    intro {
+    	  Input data format: { } = optional, [ ] = it depends, | = or
+
+	  All quantities whose dimensions are not explicitly specified are in
+	  RYDBERG ATOMIC UNITS
+
+	  BEWARE: TABS, DOS <CR><LF> CHARACTERS ARE POTENTIAL SOURCES OF TROUBLE
+
+          Comment lines in namelists can be introduced by a "!", exactly as in fortran 
+	  code. Comments lines in ``cards'' can be introduced by either a "!" or a "#" 
+	  character in the first position of a line.
+
+	  With the notable exception of periodic boundary correction schemes, environment 
+	  effects are controlled by the following keywords specified in a separate 
+	  environ.in input file. 
+
+	  PBC correction schemes are defined via the assume_isolated keyword in the 
+	  standard pw input file. In addition to the standard values, assume_isolated can 
+	  be set to the following Environ-related options:
+	  
+	  assume_isolated .EQ. 'slabx|slaby|slabz' : slab boundary conditions, quadratic 
+	                  correction to the electrostatic potential, to remove pbc 
+	                  artifacts due to charged or dipolar slabs
+			  
+	  assume_isolated .EQ. 'pcc' : point-countercharge correction, quadratic 
+	                  correction to the electrostatic potential for isolated systems, 
+			  similar results to Makov-Payne
+
+	  Structure of the environ.in input file:
+	  ===============================================================================
+
+	  &Environ
+	    ...
+	  /
+	  
+	  [ EXTERNAL_CHARGES { bohr | angstrom }
+	     Q1 0.0 0.0 0.0 { spread_Q1 dim_Q1 axis_Q1 }
+	     Q2 0.5 0.0 0.0 { spread_Q2 dim_Q2 axis_Q2 } ]
+
+	  [ DIELECTRIC_REGIONS { bohr | angstrom }
+	     EPSst_E1 EPSopt_E1 0.0 0.0 0.0 width_E1 { spread_E1 dim_E1 axis_E1 }
+	     EPSst_E2 EPSopt_E2 0.0 0.0 0.0 width_E2 { spread_E2 dim_E2 axis_E2 } ]
+
+    }
+
+    namelist Environ {
+
+	label { This namelist is always needed ! }
+
+	var environ_type  -type CHARACTER {
+	    default { 'input' }
+	    info { 
+	    	 Set up all of the environment flags according to predefined types:
+		 
+		 'input': 
+		          Do not use predefined types, read the flags of the different contribution from input
+			  or use the defauls values (which correspond to no contributions).
+
+		 'vacuum': 
+		          All environment contributions (except PBC corrections) are turned off
+			  
+		 'water':
+		          Set up the optimized SCCS model for water solvation, including 
+			  continuum dielectric effects ( env_static_permittivity = 78.3 ) and 
+			  non-electrostatic contributions modelled via pressure ( env_pressure = -0.35 GPa )
+			  and surface tension ( env_surface_tension = 50 dyn/cm ) effects. Cavity parameters 
+			  are also set to the optimal values ( rhomax = 0.005; rhomin = 0.0001) derived in 
+			  O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+			  
+		 'water-cation':
+		          Set up the SCCS model tuned for water solvation of cations, according to 
+			  optimal set of parameters ( env_static_permittivity = 78.3; env_pressure = 0.125 GPa;
+			  env_static_permittivity = 5.0 dyn/cm; rhomax = 0.0035; rhomin = 0.0002 ) derived in 
+			  C. Dupont, O. Andreussi and N. Marzari, J. Chem. Phys. 139, 214110 (2013)
+
+		 'water-anion':
+		          Set up the SCCS model tuned for water solvation of anions, according to 
+			  optimal set of parameters ( env_static_permittivity = 78.3; env_pressure = 0.0 GPa;
+			  env_static_permittivity = 0.45 dyn/cm; rhomax = 0.0155; rhomin = 0.0024 ) derived in 
+			  C. Dupont, O. Andreussi and N. Marzari, J. Chem. Phys. 139, 214110 (2013)
+
+		 }
+	    status { OPTIONAL }
+	}
+
+	var verbose -type INTEGER { 
+	    default { 0 }
+	    info { 
+	    	 Control the amount of output written to specific output files, mostly useful for debugging purposes 
+
+		 verbose .EQ. 0  minimal information written to standard output 
+		 verbose .EQ. 1  additional information written to environ.debug file
+		 verbose .EQ. 2  dumping of main physical quantities on the real-space grid in the form of 
+		  	         *.cube files
+		 verbose .GE. 3  dumping of several intermediate physical quantites on the real-space grid
+		                 as this is done at every SCF step it will slow down the calculation significantly
+		 }
+	    status { OPTIONAL }
+	}
+
+	var environ_restart -type LOGICAL { 
+	    default { .false. }
+	    info { 
+	         compute environ contributions during the initialization step, useful for 'restart' calculations
+		 and systems with a good-enough initial guess
+		 }
+	    status { OPTIONAL }
+	}
+
+	var environ_thr -type REAL { 
+	    default { 1.d-1 }
+	    info { 
+	    	 Only include/update environment contributions when SCF accuracy is below this threshold.
+		 Since the environment region is defined in terms of the electronic density, the test is done 
+		 in order to avoid computing unphysical environment contributions, usually to skip the 
+		 environ calculation during the first couple of SCF step. 
+
+		 IMPORTANT: as the SCF accuracy is an extensive property (increases with the number of electrons in
+		 the system), the optimal environ_thr will also vary with system size.
+	    }
+	    status { IMPORTANT. The default value is only valid for small systems, while is too conservative for larger systems }
+	}
+
+	var stype -type INTEGER { 
+	    default { 1 }
+	    info { 
+	    	 The shape of the environment region is defined according to a specific switching function of the electronic
+		 density:
+		 
+		 stype .EQ. 0 : Original switching function from Fattebert and Gygi. 
+		                Requires two parameters: rhomax and tbeta
+		 stype .EQ. 1 : Optimally smooth switching function from the SCCS method of Andreussi et al. 
+		                Requires two parameters: rhomax and rhomin 
+
+	    }
+	    status { OPTIONAL }
+	}
+
+	var rhomax -type REAL { 
+	    default { 0.005 }
+	    info { 
+	    	 First parameter of the sw function, roughly corresponding to the density threshold of the solvation model
+ 	    }
+	    status { OPTIONAL }
+	}
+
+	var rhomin -type REAL { 
+	    default { 0.0001 }
+	    info { 
+	    	 Second parameter of the sw function when stype=1
+	    }
+	    status { OPTIONAL }
+	}
+
+	var tbeta -type REAL { 
+	    default { 4.8 }
+	    info { 
+	         Second parameter of the sw function when stype=0
+	    } 
+	    status { OPTIONAL }
+	}
+
+	var env_static_permittivity -type REAL { 
+	    default { 1.D0 }
+	    info { 
+	    	 Static dielectric permittivity of the elctrostatic part of the solvation model. 
+                 This keyword (like all the env_* keywords) is also the flag which controls the activation
+		 of the specific contribution: if set equal to one (=vacuum) no dielectric effects from the environment. 
+	    }
+	    status { REQUIRED }
+	}
+
+	var env_optical_permittivity -type REAL { 
+	    default { 1.D0 }
+	    info { 
+	         Optical dielectric permittivity of the continuum environment, only needed for TDDFPT calculations. 
+		 If set equal to one (=vacuum) no dielectric effects in linear response calculations. 
+	    }
+	    status { REQUIRED }
+	}
+
+	var eps_mode -type CHARACTER { 
+	    default { 'electronic' }
+	    info { 
+                 Choice of the density that controls the shape of the environment region
+		 for the calculation of the dielectric effects (all other effects are 
+		 defined on the electronic density alone)
+
+                 'electronic': dielectric depends self-consist. on electronic density
+
+                 'ionic': dielectric defined on a fictitious ionic density, generated
+                          as the sum of exponential functions centered on atomic 
+                          positions of width specified in input by solvationrad(ityp)
+
+                 'full':  similar to electronic, but an extra density is added to 
+                          represent the core electrons and the nuclei. This extra 
+                          density is defined as the sum of gaussian functions centered
+                          on atomic positions of width equal to atomicspread(ityp)
+			 
+		 'external': dielectric defined on the electronic density plus an 
+		          additional fictitious density defined by the neutral
+			  external charges 
+
+	    }
+	    status { REQUIRED }
+	}
+
+	dimension solvationrad -start 1 -end ntyp -type REAL { 
+	    default { 3.0 }
+	    info { 
+	    	 Only used if eps_mode .EQ. ionic (see eps_mode)
+		 Each atom type has a corresponding radius, which controls the shape of the dielectric region,
+		 according to the model of 
+		 V. M. Sanchez, M. Sued and D. A. Scherlis, J. Chem. Phys. 131, 174108 (2009)
+	    }
+	    status { OPTIONAL }
+	}
+
+	dimension atomicspread -start 1 -end ntyp -type REAL { 
+	    default { 0.5 }
+	    info { 
+	    	 In the calculation of electrostatic interactions in the continuum 
+		 dielectric environment, ionic charge densities are modelled as gaussians of fixed spread,
+		 as specified by atomicspread(ityp) for each atomic type.
+		 Results are identical to using point-like charges (as is usually done in PW), unless the gaussian 
+		 spreads are too large. The default value of 0.5 a.u. was derived to be safe enough in most
+		 common atom types. A too small value may require larger density cutoffs (ecutrho).
+
+		 IMPORTANT: atomicspread is also used, in combination with eps_mode .EQ. 'full' to fix problems 
+		 in the definition of the dielectric region due to missing core electrons. In this case, the 
+		 fictitious ionic density given by the sum of all atomic gaussians is added to the electronic
+		 density in the calculation of the dielectric function.
+		  
+	    }
+	    status { OPTIONAL }
+	}
+
+	var add_jellium -type LOGICAL { 
+	    default { .FALSE. }
+	    info { 
+	    	 Control if jellium polarization is included in the calculation of dielectric environment effects on
+		 charged solutes. The jellium contribution, although it formally needs to be considered, is a PBC 
+		 artifact and needs to be removed when applying periodic boundary correction schemes. Thus, in any 
+		 reasonable simulation there is no need to explicitly include the jellium contribution.  
+	    }
+	    status { OBSOLETE }
+	}
+
+	var mixtype -type CHARACTER { 
+	    default { 'linear' }
+	    info {
+	    	 Internal mixing schemes for the polarization density/potential:
+		 
+		 'linear': iterative approach with linear mixing of polarization density, usually good enough.
+		 
+		 'anderson': Anderson mixing of polarization density, local implementation, working but not carefully tested.
+		 
+		 'diis': Pulay's Direct Inversion in Iterative Subspace (DIIS) method on polarization density, 
+		 	 local implementation, working but not carefully tested.
+
+		 'pcg': Preconditioned conjugate gradient solver for the polarization potential,
+		 	following the work of G. Fisicaro et al. J. Chem. Phys. 144, 014103 (2016).
+
+		 'psd': Preconditioned steepest descent solver for the polarization potential.
+			 
+	    }
+	    status { OPTIONAL }
+	}
+
+	var mixrhopol -type REAL { 
+	    default { 0.5 }
+	    info { 
+	    	 Linear mixing parameter, usually does not affect results (and it shouldn't) and does not
+		 affect performances, large values work fine in most common applications.
+	    }
+	    status { OPTIONAL }
+	}
+
+	var tolrhopol -type REAL { 
+	    default { 1.D-10 }
+	    info {
+	    	 Accuracy on polarization charge iterations: higher accuracies will require more polarization cycles,
+		 but will ensure smoother SCF convergece. As polarization iterations are usually cheaper than SCF cycles,
+		 it is recommended to increase polarization accuracy whenever the SCF has problems converging.
+		 Values of tolrhopol up to 1.D-13 are plausible for difficult systems. (NOTE that too low density cutoffs 
+		 may also play a role in poor SCF convergece).
+
+	    }
+	    status { IMPORTANT }
+	}
+
+	var ndiis -type INTEGER { 
+	    default { 1 }
+	    info {
+	    	 If using DIIS as mixing scheme for polarization density ( mixtype .EQ. 'diis' ), ndiis controls the 
+		 dimension of the iterative subspace. New guess for the density keeps track of the previous ndiis guesses. 
+	    }
+	    status { OPTIONAL }
+	}
+
+	var env_surface_tension -type REAL { 
+	    default { 0.D0 }
+	    info { 
+	    	 Surface tension (gamma) of the environment in CGS units dyn/cm. 
+		 This keyword controls the activation of the surface-dependent contribution to the solute's Hamiltonian (gamma*S): 
+		 if set equal to 0.D0 no surface contribution from the environment. 
+		 
+		 This contribution may be straighforwardly used to compute cavitation free energies, as proposed by Scherlis et al. in
+		 J. Chem. Phys. 124, 074103 (2006). NOTE that the current implementation uses an improved definition of the 
+		 quantum-surface O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012). 
+		 This contribution can also be used as a simplified approach to the more general non-electrostatic contributions 
+		 to solvation, as in the SCCS approach. In this second case, env_surface_tension needs not to correspond to the 
+		 real surface tension of the solvent, but is used as a fitting parameter. 
+		 See O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+	    }
+	    status { REQUIRED }
+	}
+
+	var delta -type REAL { 
+	    default { 0.00001D0 }
+	    info { 
+	    	 Finite difference numerical parameter used in the calculation of the quantum surface of the solute
+	    }
+	    status { OPTIONAL }
+	}
+
+	var env_pressure -type REAL { 
+	    default { 0.D0 }
+	    info { 
+	    	 External pressure (P) of the environment in GPa. 
+		 This keyword controls the activation of the volume-dependet contribution to the solute's Hamiltonian (P*V):
+		 if set equal to 0.D0 no volume contribution from the environment.
+
+		 This contribution may be straightforwardly used to compute the electronic entalpy, i.e. to model finite systems
+		 under pressure, as proposed by M. Cococcioni et al. in Phys. Rev. Lett. 94, 145501 (2005).
+		 This contribution can also be used as a simplified approach to more complex and general non-electrostatic contributions
+		 to solvation, as in the SCCS approach. In this second case, env_pressure needs not correspond to the real external 
+		 pressure of the environment, but is used as a fitting parameter (and can assume negative values). 
+		 See O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+	    }
+	    status { REQUIRED }
+	}
+
+	var env_external_charges -type INTEGER { 
+	    default { 0 }
+	    info { 
+	    	 Number of fixed external charges. This keyword controls how many fixed external densities of charge need to be
+		 included in the simulation box. Shape, position and amount of charge of each external density need to be specified
+		 in the EXTERNAL_CHARGES card.
+	    }
+	    status { REQUIRED }
+	}
+
+	var env_dielectric_regions -type INTEGER { 
+	    default { 0 }
+	    info { 
+	    	 Number of fixed dielectric regions. This keyword controls how many regions of fixed permittivities (static and optical)
+		 need to be included in the simulation box. Shape, position and permittivities of each region need to be specified
+		 in the DIELECTRIC_REGIONS card.
+	    }
+	    status { REQUIRED }
+	}
+
+	var ifdtype -type INTEGER { 
+	    default { 1 }
+	    info { 
+	    	 The gradient of the dielectric function is computed in real-space using finite differences. 
+		 Different finite differences schemes have been implemented following 
+		 P. Holoborodko, Smooth noise robust differentiators, 2008
+		 http://www.holoborodko.com/pavel/numerical-methods/numerical-derivative/smooth-low-noise-differentiators
+		 Each scheme can exploit different numbers of points of the real-space grid (as defined by nfdpoint). 
+		 
+		 ifdtype .EQ. 1 : Central differences
+		 ifdtype .EQ. 2 : Low-noise Lanczos (m=2)
+		 ifdtype .EQ. 3 : Low-noise Lanczos (m=4)
+		 ifdtype .EQ. 4 : Smooth noise-robust (n=2) 
+		 ifdtype .EQ. 5 : Smooth noise-robust (n=4) 
+
+		 Central differences are used by default and have been tested more deeply. The other schemes work fine, 
+		 but are not deeply tested in terms of performances.
+
+	    }
+	    status { OPTIONAL }
+	}
+
+	var nfdpoint -type INTEGER { 
+	    default { 1 }
+	    info { 
+	    	 Number of point from the real-space grid, to be used by the different finite-difference schemes to compute gradients.
+		 Number of points = 2 * nfdpoint + 1
+		 e.g. ifdtype.EQ.1 .AND. nfdpoint.EQ.1 correspond to central differences with three points
+
+		 IMPORTANT: nfdpoint .EQ. 1 seems to be enough for most applications, but more refinied finite-difference schemes are 
+		 needed (nfdpoint.EQ.2 is enough) for energy conservation in MD simulations in continuum dielectric. 
+		 See test case reported in O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+	    }
+	    status { IMPORTANT }
+	}
+	
+    }
+
+
+    #
+    # card EXTERNAL_CHARGES
+    #
+
+    card EXTERNAL_CHARGES {
+
+	flag extcharge_unit -use optional {
+
+	    enum { bohr | angstrom }
+
+	    default { (DEPRECATED) bohr }
+
+	    info {
+	        bohr    : atomic positions are in cartesian coordinate, 
+	                  in atomic units (i.e. Bohr radii)
+	        
+	        angstrom: atomic positions are in cartesian coordinates, 
+                          in Angstrom
+
+	          }
+	}
+
+        syntax {
+     	    table epsregion_coordinates {
+		rows -start 1 -end nec {
+
+		    col Q -type REAL {
+			info { total charge of external object }
+		    }
+
+		    colgroup -type REAL {
+			info { 
+			    positions 
+			    
+			    NOTE: each atomic coordinate can also be specified 
+			          as a simple algebraic expression, see the
+			          description in the input file of PW.
+			}
+			col x
+			col y
+			col z
+		    }
+ 
+		    optional {
+			col spread -type REAL {						
+			    info {
+			    Gaussian spread of the external charge density 
+			    in atomic units   
+			    }
+			    default { 0.5 }
+			}
+			col dim -type INTEGER {						
+			    info {
+			    dimensionality of the charge density: 
+
+			    dim .EQ. 0 : point-like (gaussian shaped) charge density
+
+			    dim .EQ. 1 : linear (gaussian shaped) charge density
+
+			    dim .EQ. 2 : planar (gaussian shaped) charge density
+
+			    }
+			    default { 0 }
+			}
+			col axis -type INTEGER {						
+			    info {
+			    axis of the external charge density:
+
+			    if dim.EQ.0 : axis has no meaning/use
+
+			    if dim.EQ.1 : axis identifies the direction of the linear
+			    charge density: axis.EQ.1|2|3 means lines along x|y|z respectively
+
+			    if dim.EQ.2 : axis identifies the direction ortogonal to the planar 
+			    charge density: axis.EQ.1|2|3 means planes ortogonal to x|y|z
+			   
+			    }
+			    default { 3 }
+			}
+		    }
+		} 	
+	    }   
+   	}
+    }
+    #
+    # card DIELECTRIC_REGIONS
+    #
+
+    card DIELECTRIC_REGIONS {
+
+	flag epsregion_unit -use optional {
+
+	    enum { bohr | angstrom }
+
+	    default { (DEPRECATED) bohr }
+
+	    info {
+	        bohr    : positions are in cartesian coordinate, 
+	                  in atomic units (i.e. Bohr radii)
+	        
+	        angstrom: positions are in cartesian coordinates, 
+                          in Angstrom
+
+	          }
+	}
+
+        syntax {
+     	    table epsregion_coordinates {
+		rows -start 1 -end ndr {
+
+		    col EpsSt -type REAL {
+			info { static permittivity inside of dielectric region }
+		    }
+
+		    col EpsOpt -type REAL {
+			info { optical permittivity inside of dielectric region }
+		    }
+
+		    colgroup -type REAL {
+			info { 
+			    positions 
+			    
+			    NOTE: each coordinate can also be specified as a simple
+			          algebraic expression, see the description in the
+			          input file of PW.
+			}
+			col x
+			col y
+			col z
+		    }
+
+		    col width -type REAL {
+			info { width of the dielectric region in atomic units }
+		    }
+ 
+		    optional {
+			col spread -type REAL {						
+			    info { spread of the external charge density in atomic units }
+			    default { 0.5 }
+			}
+
+			col dim -type INTEGER {						
+			    info {
+			    dimensionality of the dielectric region: 
+
+			    dim .EQ. 0 : sphere-like (erfc shaped) region
+
+			    dim .EQ. 1 : cylinder-like (erfc shaped) region
+
+			    dim .EQ. 2 : planar (erfc shaped) region
+
+			    }
+			    default { 0 }
+			}
+
+			col axis -type INTEGER {						
+			    info {
+			    axis of the dielectric region:			    
+
+			    if dim.EQ.0 : axis has no meaning/use
+
+			    if dim.EQ.1 : axis identifies the direction of the linear
+			    charge density: axis.EQ.1|2|3 means lines along x|y|z respectively
+
+			    if dim.EQ.2 : axis identifies the direction ortogonal to the planar 
+			    charge density: axis.EQ.1|2|3 means planes ortogonal to x|y|z
+
+			    }
+			    default { 3 }
+			}
+		    }
+		} 	
+	    }   
+   	}
+    }
+}				

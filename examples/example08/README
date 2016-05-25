@@ -1,0 +1,8 @@
+
+This example shows how to use pw.x to calculate the solvation energy
+and other related solvation quantities for a water molecule in a water solvent.
+
+The calculation is exactly the same as in example01, but for the use of a 
+preconditioned conjugate gradient algorithm for the optimization of the polarization
+charge/potential.
+

@@ -1,0 +1,12 @@
+&lr_input
+  prefix = 'CH4_solvent',
+  outdir = '/scratch/itimrov/WORK_Environ/espresso_svn_11.03.2015/tempdir/',
+  itermax0 = 3000,
+  itermax =  20000,
+  extrapolation="osc"
+  epsil = 0.01
+  start = 0.0d0
+  increment = 0.001d0
+  end = 3.5d0
+  ipol = 4
+/
