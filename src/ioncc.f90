@@ -22,12 +22,13 @@ MODULE ioncc
   IMPLICIT NONE
 
   INTEGER :: naxis, shift, cell_max, cell_min, n1d
-  REAL( DP ) :: area, darea, axis_length, dx, xstern, deltastern
+  REAL( DP ) :: area, darea, axis_length, dx, xstern, deltastern, vavg
 
   REAL( DP ) :: kbt, invkbt, fsw
   
   REAL( DP ), ALLOCATABLE :: axis(:), switch(:), step(:)
   REAL( DP ), ALLOCATABLE :: axis1d(:), switch1d(:), step1d(:)
+  REAL( DP ), ALLOCATABLE :: rhoioncc1dref(:), rhotot1dref(:)
 
   SAVE
 
@@ -146,21 +147,8 @@ CONTAINS
     !
     IF (ALLOCATED(switch1d)) DEALLOCATE(switch1d)
     ALLOCATE(switch1d(n1d))
-    switch1d = 0.D0
-    xmin = xstern 
-    xmax = xstern + deltastern 
-    DO ia = 1, n1d
-      IF ( ABS(axis1d(ia)) .LE. xmin ) THEN
-        switch1d(ia) = 0.D0
-      ELSE !IF ( ABS(axis1d(ia)) .LT. xmax ) THEN
-!        arg = tpi * ( ABS(axis1d(ia)) - xmin)/(xmax - xmin)
-!        switch1d(ia) = ( arg - SIN( arg ) ) / tpi
-         arg = -5.D0/(ABS(axis1d(ia))-xmin)**2
-         switch1d(ia) = EXP(arg)
-!      ELSE
-!        switch1d(ia) = 1.D0
-      ENDIF
-    ENDDO
+    xmax = xstern + deltastern
+    CALL generate_switch( n1d, 2, xstern, xmax, 1.D0, axis1d, switch1d )
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, switch1d, 'switch1d.dat' )    
     !
     RETURN
@@ -240,48 +228,17 @@ CONTAINS
     ! ... Generate the 3D switching function, for Level 3 or higher ioncc density
     !
     IF ( env_ioncc_level .GE. 3 ) THEN
-      ALLOCATE(switch1dtmp(n1d))
-      xmin = xstern - 1.0 
-      xmax = xstern - 1.0 + deltastern 
-      DO ia = 1, n1d
-        IF ( ABS(axis1d(ia)) .LE. xmin ) THEN
-          switch1dtmp(ia) = 0.D0
-        ELSE !IF ( ABS(axis1d(ia)) .LT. xmax ) THEN
-!          arg = tpi * ( ABS(axis1d(ia)) - xmin)/(xmax - xmin)
-!          switch1dtmp(ia) = ( arg - SIN( arg ) ) / tpi
-          arg = -5.D0/(ABS(axis1d(ia))-xmin)**2
-          switch1dtmp(ia) = EXP(arg)
-!        ELSE
-!          switch1dtmp(ia) = 1.D0
-        ENDIF
-      ENDDO
-      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, switch1dtmp, 'switch1dtmp.dat' )
-      CALL write_1d( n1d, axis1d, switch1dtmp, 'switch1dtmp.dat' )
-      CALL write_1d( n1d, axis1d, switch1d, 'switch1d.dat' )
       switch = 0.D0
-      CALL planar_average( nnr, naxis, slab_axis, shift, .true., switch, switch1dtmp(cell_min:cell_max) )
 !!!      DO ir = 1, nnr
 !!!        switch( ir ) = ( 1.D0 - switch( ir ) ) *    &
 !!!          ( epsilonfunct( rhoelec( ir ), rhomin, rhopb, fsw, 2.D0, 1 ) - 1.D0 )
 !!!      END DO
-      !
-      ! ... Test switching function, smooth function until x=7
-      !
-!!!!      xmin = 6.D0
-!!!!      xmax = 6.D0 + 1.D0 
-!!!!      DO ir = 1, nnr
-!!!!        IF ( ABS(axis(ir)) .LT. xmin ) THEN
-!!!!          tmp = 0.D0
-!!!!        ELSE IF ( ABS(axis(ir)) .LT. xmax ) THEN
-!!!!          arg = tpi * ( ABS(axis(ir)) - xmin)/(xmax - xmin)
-!!!!          tmp = ( arg - SIN( arg ) ) / tpi
-!!!!        ELSE
-!!!!          tmp = 1.D0
-!!!!        ENDIF
-!!!!        switch( ir ) = ( 1.D0 - tmp ) * switch( ir )
-!!!!      ENDDO
+      ! ... test 3D switching function, converted from an homogeneous one in 1D, but shifted wrt level 2 switching function
+      xmin = xstern - 1.0 
+      xmax = xmin + deltastern
+      CALL generate_switch( nnr, 2, xmin, xmax, 1.D0, axis, switch )
+      IF ( verbose .GE. 1 ) CALL write_cube( nnr, switch, 'switch.cube' ) ! DEBUG, reset it to 3 or 2
     ENDIF
-    IF ( verbose .GE. 3 ) CALL write_cube( nnr, switch, 'switch.cube' )
     !
     ! ... Convert the total source charge into 1D ... 
     !
@@ -294,8 +251,6 @@ CONTAINS
     !
     tot_charge = SUM(rhotot1d(:))*darea
     tot_dipole = SUM(rhotot1d(:)*axis1d(:))*darea
-    WRITE(environ_unit,*)'tot_charge ',tot_charge
-    WRITE(environ_unit,*)'tot_dipole ',tot_dipole
     ALLOCATE( vzero1d(n1d) ) 
     vzero1d = 0.D0
     CALL v1d_of_rho1d( n1d, dx, rhotot1d, vzero1d )
@@ -313,14 +268,12 @@ CONTAINS
     rhoioncc1d = 0.D0
     IF ( env_ioncc_level .EQ. 1 ) THEN
       CALL planar_average( nnr, naxis, slab_axis, shift, .true., vioncc, vioncc1d(cell_min:cell_max) )
-      IF ( verbose .GE. 2 ) CALL write_cube( nnr, vioncc, 'vioncc.cube')
       CALL planar_average( nnr, naxis, slab_axis, shift, .true., rhoioncc, rhostern1d(cell_min:cell_max) )
-      IF ( verbose .GE. 2 ) CALL write_cube( nnr, rhoioncc, 'rhoioncc.cube')
     !
     ! ... Compute Level 2 ioncc (self-consistent 1D diffuse layer with switching function)
     !
     ELSE IF ( env_ioncc_level .EQ. 2 ) THEN
-      rhoioncc1d = rhostern1d * switch1d
+      rhoioncc1d = rhostern1d * switch1d ! remove and start from previous guess, unless at the fisrt iteration
       CALL calc_rhoioncc1d( n1d, 0.d0, axis1d, step1d, switch1d, rhotot1d, vioncc1d, rhoioncc1d )
       IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhoioncc1d, 'rhoioncc1d.dat' )   
       IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vioncc1d, 'vioncc1d.dat' ) 
@@ -332,10 +285,13 @@ CONTAINS
     !
     ELSE IF ( env_ioncc_level .EQ. 3 ) THEN  
       rhoioncc1d = rhostern1d
-      CALL calc_rhoioncc(nnr, nspin, n1d, axis1d, step1d, switch1d, switch, step, rhotot, rhoioncc1d, rhoioncc, vioncc ) 
+      CALL calc_rhoioncc( nnr, nspin, n1d,  xstern-2, xstern+1, 1.D0, xstern, &
+           & axis1d, step1d, rhoioncc1d, switch, rhotot, rhoioncc, vioncc ) 
     ELSE
       WRITE(stdout,*)'ERROR: specified ioncc level is not implemented'
     END IF 
+    IF ( verbose .GE. 2 ) CALL write_cube( nnr, vioncc, 'vioncc.cube')
+    IF ( verbose .GE. 2 ) CALL write_cube( nnr, rhoioncc, 'rhoioncc.cube')
     !
     CALL stop_clock( 'get_ioncc' ) 
     !
@@ -419,9 +375,9 @@ CONTAINS
     dv = 2.D0 * fpi * dipole / area
     vbound = ( v1 + v2 ) * 0.5D0
     !
-    IF ( verbose .GE. 1 ) WRITE(environ_unit,8003)i1,axis(i1),axis(i1+1),v0(i1),v0(i1+1),v1
-    IF ( verbose .GE. 1 ) WRITE(environ_unit,8003)i2,axis(i2-1),axis(i2),v0(i2-1),v0(i2),v2
-    IF ( verbose .GE. 1 ) WRITE(environ_unit,8005)vbound,dv,v1-dv/2.D0,v2+dv/2.D0
+    IF ( verbose .GE. 2 ) WRITE(environ_unit,8003)i1,axis(i1),axis(i1+1),v0(i1),v0(i1+1),v1
+    IF ( verbose .GE. 2 ) WRITE(environ_unit,8003)i2,axis(i2-1),axis(i2),v0(i2-1),v0(i2),v2
+    IF ( verbose .GE. 2 ) WRITE(environ_unit,8005)vbound,dv,v1-dv/2.D0,v2+dv/2.D0
     !
     ! ... Compute some constants needed for the calculation
     !
@@ -430,7 +386,7 @@ CONTAINS
     f3 = -2.D0 * zion * cion 
     f4 = zion * invkbt
     !
-    IF ( verbose .GE. 1 ) WRITE(environ_unit,8002)f1,f2,f3,f4
+    IF ( verbose .GE. 2 ) WRITE(environ_unit,8002)f1,f2,f3,f4
     !
     ! ... Compute the analytic potential and charge
     !
@@ -502,7 +458,7 @@ CONTAINS
     dipole_in = SUM(rhofix(:)*axis(:))*darea
     CALL v1d_of_rho1d( n, dx, rhofix, vfix )
     v1d0 = SUM(vfix(cell_min:cell_max))/DBLE(naxis)
-!    write(environ_unit,*)' v1d0 ',v1d0,' shift ',v0-v1d0
+    IF ( verbose .GE. 2 ) write(environ_unit,*)' v1d0 ',v1d0,' shift ',v0-v1d0
     IF ( verbose .GE. 3 ) CALL write_1d( n, axis, vfix, 'vfix1d.dat' )
     dv = 2.D0 * fpi * dipole_in / area
     !
@@ -520,9 +476,9 @@ CONTAINS
       rhotot = rhofix + rhozero + rhoin
       CALL v1d_of_rho1d( n, dx, rhotot, v ) 
       v(:) = v(:) + dv * step(:)
-!      IF ( verbose .GE. 3 ) CALL write_1d( n, axis, v, 'vtmp1d.dat' )
+      IF ( verbose .GE. 4 ) CALL write_1d( n, axis, v, 'vtmp1d.dat' )
       CALL generate_rhoioncc( n, 1, switch, v, rhoout )
-!      IF ( verbose .GE. 3 ) CALL write_1d( n, axis, rhoout, 'rhoout1d.dat' )
+      IF ( verbose .GE. 4 ) CALL write_1d( n, axis, rhoout, 'rhoout1d.dat' )
       charge_out = SUM(rhoout)*darea 
       mixlocal = mix
       IF ( ABS(charge_out-charge_in) .GT. 1.D-3 ) &
@@ -532,7 +488,7 @@ CONTAINS
       rho = mixlocal * rhoout + (1.D0 - mixlocal) * rhoin
       deltarho = SUM(residue(:)*residue(:))
       deltarho = SQRT(deltarho) / DBLE(n1d)
-!      IF ( verbose .GE. 2 ) WRITE(environ_unit,8201)iter,deltarho,charge_out
+      IF ( verbose .GE. 3 ) WRITE(environ_unit,8201)iter,deltarho,charge_out
       IF (deltarho.LT.tol) THEN
         IF ( verbose .GE. 1 ) WRITE(environ_unit,8202)
         EXIT
@@ -559,7 +515,118 @@ CONTAINS
   END SUBROUTINE calc_rhoioncc1d
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_rhoioncc(nnr, nspin, n1d, axis1d, step1d, switch1d, switch, step, rhofix, rhoioncc1d, rhoioncc, vioncc )
+  SUBROUTINE calc_rhoioncc3d( nnr, nspin, mix, tol, switch, vfix, rhozero, rhoioncc, vioncc, failed )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, PARAMETER :: maxiter = 100000
+    !
+    INTEGER, INTENT(IN) :: nnr, nspin
+    !
+    REAL( DP ), INTENT(IN) :: mix, tol
+    REAL( DP ), INTENT(IN) :: switch(nnr), vfix(nnr), rhozero(nnr)
+    REAL( DP ), INTENT(INOUT) :: rhoioncc(nnr)
+    REAL( DP ), INTENT(OUT) :: vioncc(nnr)
+    !
+    LOGICAL, INTENT(OUT) :: failed
+    !
+    INTEGER :: iter
+    !
+    REAL( DP ) :: charge, ehart, charge_iter, charge_out, mixlocal, deltarho, deltaold
+    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: rhoin, rhoout, residue
+    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: vperiodic 
+    REAL( DP ), ALLOCATABLE, DIMENSION(:,:) :: rhotot, vtot
+    !
+    failed = .FALSE.
+    !
+    ALLOCATE(rhotot(nnr,nspin))
+    ALLOCATE(vtot(nnr,nspin))
+    ALLOCATE(vperiodic(nnr))
+    rhotot = 0.D0
+    vtot = 0.D0
+    !
+    ! ... 3D Refinement, iterating on the difference of the 1D solution and the 3D solution
+    !     assume there is no difference (wishfull tihnking)
+    !
+    rhoioncc = 0.D0 
+    !
+    ALLOCATE(rhoin(nnr))
+    ALLOCATE(rhoout(nnr))
+    ALLOCATE(residue(nnr))
+    deltarho = 0.D0
+    DO iter = 1, maxiter
+      !
+      rhoin = rhoioncc
+      !
+      ! ... Compute the potential coming from the iterative charge
+      !
+      rhotot( :, 1 ) = rhoin( : )
+      IF ( nspin .EQ. 2 ) rhotot( :, 2 ) = 0.D0
+      vtot = 0.D0
+      CALL v_h_of_rho_r( rhotot, ehart, charge, vtot )
+      vperiodic = 0.D0
+      CALL calc_vperiodic( nnr, nspin, .FALSE., rhoin, vperiodic )
+      vtot( :, 1 ) = vtot( :, 1 ) + vperiodic( : ) + vfix( : ) 
+      IF ( verbose .GE. 4 ) CALL write_cube( nnr, vtot(:,1), 'vtottmp.cube') 
+      !
+      CALL generate_rhoioncc( nnr, 1, switch, vtot(:,1), rhoout )
+      !
+      rhoout = (rhoout - rhozero)
+      IF ( verbose .GE. 4 ) CALL write_cube( nnr, rhoout, 'rhoout.cube') ! DEBUG ONLY, CHANGE TO VERBOSE .GE. 4
+      !
+      residue = rhoout - rhoin
+      deltaold = deltarho
+      deltarho = SUM(residue(:)*residue(:))
+      CALL mp_sum( deltarho, intra_bgrp_comm )
+      deltarho = SQRT(deltarho)/DBLE(ntot)
+      charge_out = SUM(rhoout)*domega
+      CALL mp_sum( charge_out, intra_bgrp_comm )
+      ! 
+      ! ... If the predicted charge is very large, use a tiny mixing
+      !
+      mixlocal = mix * MIN(1.D0,ABS(1.D0/charge_out))
+      IF ( deltarho .GT. 1.D10 ) mixlocal = MIN(mixlocal*10.D0,0.1)
+      !
+      CALL mix_rhoioncc_gspace( nnr, 1, mixlocal, 1.D0, rhoout, rhoin, rhoioncc ) 
+!      rhoioncc = mixlocal * rhoout + ( 1.D0 - mixlocal ) * rhoin ! seems to be working only if passing through G-space...
+      IF ( verbose .GE. 1 ) WRITE(environ_unit,8101)iter,deltarho,deltarho/deltaold,charge_out,mixlocal
+      IF ( verbose .GE. 4 ) CALL write_cube( nnr, rhoioncc, 'rhoioncc.cube') ! DEBUG ONLY, CHANGE TO VERBOSE .GE. 4
+      !
+      IF (deltarho.LT.tol) THEN
+        IF ( verbose .GE. 1 ) WRITE(environ_unit,8102)
+        EXIT
+      ELSE IF ( iter .GT. 1 .AND. (deltarho/deltaold .GT. 1.D1) ) THEN
+        WRITE(stdout,8106)
+        failed = .TRUE.
+        RETURN
+      ELSE IF ( iter .EQ. maxiter ) THEN
+        WRITE(stdout,8103)
+      ENDIF
+      !
+    ENDDO
+    WRITE(stdout,8104)deltarho,iter 
+    DEALLOCATE(rhoin,rhoout,residue)
+    !
+    IF ( verbose .GE. 1 ) CALL write_cube( nnr, rhoioncc(:), 'rhoioncc.cube') ! DEBUG ONLY CHANGE TO VERBOSE .GE. 3
+    vioncc(:) = vtot( :, 1 )
+    !
+    DEALLOCATE(rhotot,vtot,vperiodic)
+    !
+    RETURN
+    !
+8101 FORMAT(1X,'iter = ',I5,' deltarho = ',E14.6,' drho/dold = ',E14.6,' charge_out = ',E14.6,' mixlocal = ',E14.6)
+8102 FORMAT(1X,'Level 3 ioncc charges are converged!')
+8103 FORMAT(1X,'Warning: Level 3 ioncc charges are not converged')
+8104 FORMAT(1X,'        L3 ioncc accuracy =',1PE8.1,', # of iterations = ',i5)
+8105 FORMAT(1X,'iter = ',I5,' charge_tmp = ',E14.6,' charge_ext = ',E14.6)
+8106 FORMAT(1X,'Warning: Level 3 ioncc charges are exploding, trying with a different mix')
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_rhoioncc3d
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE calc_rhoioncc( nnr, nspin, n1d,  x1dmin, x1dmax, spread1d, x1d, &
+                          & axis1d, step1d, rhoioncc1d, switch, rhofix, rhoioncc, vioncc )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -570,26 +637,34 @@ CONTAINS
     !
     INTEGER, INTENT(IN) :: nnr, nspin, n1d
     !
-    REAL( DP ), INTENT(IN) :: axis1d(n1d), step1d(n1d), switch1d(n1d)
-    REAL( DP ), INTENT(IN) :: switch(nnr), step(nnr), rhofix(nnr)
+    REAL( DP ), INTENT(IN) :: x1dmin, x1dmax, spread1d
+    REAL( DP ), INTENT(INOUT) :: x1d
+    !
+    REAL( DP ), INTENT(IN) :: axis1d(n1d), step1d(n1d)
     REAL( DP ), INTENT(INOUT) :: rhoioncc1d(n1d)
+    REAL( DP ), INTENT(IN) :: switch(nnr), rhofix(nnr)
     REAL( DP ), INTENT(INOUT) :: rhoioncc(nnr)
     REAL( DP ), INTENT(OUT) :: vioncc(nnr)
     !
-    INTEGER :: iter
+    INTEGER :: imix
+    ! 
+    LOGICAL :: failed
+    LOGICAL, SAVE :: first = .TRUE.
     !
-    REAL( DP ) :: vtot_avg, charge_tmp, charge_in, charge_out, charge_old, charge_ext, charge_zero, mixlocal, charge, ehart, deltarho, fact
-    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: vperiodic, vzero, vionccext, vfix
-    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: rhoin, rhoout, rhozero, residue
+    REAL( DP ) :: charge_in, charge_out, charge_zero, mixlocal, charge, ehart, deltarho, fact
+    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: rhozero
+    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: vperiodic, vfix, vzero
     REAL( DP ), ALLOCATABLE, DIMENSION(:,:) :: rhotot, vtot
     !
     REAL( DP ) :: rhotot1d(n1d), vioncc1d(n1d)
     !
+    REAL( DP ) :: x1dtest, xmax, tollocal, minx1derror
+    !
     ALLOCATE(rhotot(nnr,nspin))
+    ALLOCATE(rhozero(nnr))
     ALLOCATE(vtot(nnr,nspin))
     ALLOCATE(vperiodic(nnr))
     ALLOCATE(vzero(nnr))
-    ALLOCATE(rhozero(nnr))
     ALLOCATE(vfix(nnr))
     vtot = 0.D0
     vzero = 0.D0
@@ -606,104 +681,112 @@ CONTAINS
     vperiodic = 0.D0
     CALL calc_vperiodic( nnr, nspin, .FALSE., rhotot(:,1), vperiodic )
     vfix( : ) = vtot( :, 1 ) + vperiodic(:)  
+    vavg = SUM(vfix)/DBLE(ntot)
+    CALL mp_sum( vavg, intra_bgrp_comm )
+    write(environ_unit,*)'vavg ',vavg
     IF ( verbose .GE. 3 ) CALL write_cube( nnr, rhofix(:), 'rhofix.cube')
-    IF ( verbose .GE. 3 ) CALL write_cube( nnr, vfix(:), 'vfix.cube')
+    IF ( verbose .GE. 1 ) CALL write_cube( nnr, vfix(:), 'vfix.cube') ! DEBUG, reset to 3
     !
-    ! ... Compute the 1D solution (PROBABLY BETTER TO MOVE IT OUSIDE THIS ROUTINE)
-    !
-    vtot_avg = SUM(vfix)/DBLE(ntot)
-    CALL mp_sum( vtot_avg, intra_bgrp_comm )
-    write(environ_unit,*)'vtot_avg ',vtot_avg
     rhotot1d = 0.D0
-    CALL planar_average( nnr, naxis, slab_axis, shift, .false., rhotot, rhotot1d(cell_min:cell_max) )
-    CALL calc_rhoioncc1d( n1d, vtot_avg, axis1d, step1d, switch1d, rhotot1d, vioncc1d, rhoioncc1d )
+    CALL planar_average( nnr, naxis, slab_axis, shift, .false., rhotot(:,1), rhotot1d(cell_min:cell_max) )
+    !
+    ! ... If first step, need to find the optimal 1D solution
+    !
+    IF ( first ) THEN
+      first = .FALSE.
+      !
+      ! ... the initial guess is in the golden ratio between x1dmax and x1dmin
+      !
+      x1dtest = x1dmin + .61803399 * ( x1dmax - x1dmin ) 
+      xmax = x1dtest + deltastern
+      WRITE( environ_unit, * )'x1dmax = ',x1dmax,' x1dmin = ',x1dmin,' x1dtest = ',x1dtest
+      CALL generate_switch( n1d, 2, x1dtest, xmax, 1.D0, axis1d, switch1d )
+      IF ( verbose .GE. 1 ) CALL write_1d( n1d, axis1d, switch1d, 'switch1d_first.dat' )
+      CALL calc_rhoioncc1d( n1d, vavg, axis1d, step1d, switch1d, rhotot1d, vioncc1d, rhoioncc1d )
+      CALL planar_average( nnr, naxis, slab_axis, shift, .true., rhozero, rhoioncc1d(cell_min:cell_max) )
+      CALL planar_average( nnr, naxis, slab_axis, shift, .true., vzero, vioncc1d(cell_min:cell_max) )
+      IF ( verbose .GE. 1 ) CALL write_cube( nnr, rhozero(:), 'rhozero.cube') ! DEBUG, reset it to 3
+      IF ( verbose .GE. 1 ) CALL write_cube( nnr, vzero(:), 'vzero.cube') ! DEBUG, reset it to 3
+      charge_zero = SUM(rhozero)*domega
+      CALL mp_sum( charge_zero, intra_bgrp_comm )
+      !
+      ! ... try to converge level 3 with lower tol
+      !
+      vfix = vfix + vzero
+      mixlocal = mix * 5.D-2
+      tollocal = 1.D-6
+      DO imix = 1, 10
+        IF ( verbose .GE. 1 ) WRITE( environ_unit, 7001 ) mixlocal 
+        CALL calc_rhoioncc3d( nnr, nspin, mixlocal, tollocal, switch, vfix, rhozero, rhoioncc, vioncc, failed )
+        IF ( failed ) THEN
+          mixlocal = mixlocal * 0.5D0
+        ELSE
+          GOTO 201
+        ENDIF
+      ENDDO
+      WRITE( stdout, * )"ERROR: calc_rhoioncc failed to converged even with the smallest mix" 
+      STOP
+201   CONTINUE 
+      vfix = vfix - vzero
+      !
+      ! ... use the converged density to get the optimal x1d
+      !
+      ALLOCATE(rhoioncc1dref(n1d))
+      ALLOCATE(rhotot1dref(n1d))
+      rhoioncc1dref = 0.D0
+      CALL planar_average( nnr, naxis, slab_axis, shift, .false., rhoioncc, rhoioncc1dref(cell_min:cell_max) )
+      rhoioncc1dref = rhoioncc1dref + rhoioncc1d
+      rhotot1dref = rhotot1d
+      minx1derror = golden(x1dmin,x1dtest,x1dmax,tol,x1d)
+      DEALLOCATE(rhoioncc1dref)
+      DEALLOCATE(rhotot1dref)
+      !
+    END IF 
+    !
+    !
+    !
+    xmax = x1d + deltastern
+    CALL generate_switch(n1d,2,x1d,xmax,spread1d,axis1d,switch1d)
+    IF ( verbose .GE. 1 ) CALL write_1d( n1d, axis1d, switch1d, 'switch1d.dat' ) ! DEBUG, reset it to 3
+    !
+    ! ... Compute the 1D solution 
+    ! 
+    CALL calc_rhoioncc1d( n1d, vavg, axis1d, step1d, switch1d, rhotot1d, vioncc1d, rhoioncc1d )
     CALL planar_average( nnr, naxis, slab_axis, shift, .true., rhozero, rhoioncc1d(cell_min:cell_max) )
     CALL planar_average( nnr, naxis, slab_axis, shift, .true., vzero, vioncc1d(cell_min:cell_max) )
     charge_zero = SUM(rhozero)*domega
     CALL mp_sum( charge_zero, intra_bgrp_comm )
-    CALL write_cube( nnr, rhozero(:), 'rhozero.cube')
-    IF ( verbose .GE. 3 ) CALL write_cube( nnr, rhozero(:), 'rhozero.cube')
-    IF ( verbose .GE. 3 ) CALL write_cube( nnr, vzero(:), 'vzero.cube')
+    IF ( verbose .GE. 1 ) CALL write_cube( nnr, rhozero(:), 'rhozero.cube') ! DEBUG, reset it to 3
+    IF ( verbose .GE. 1 ) CALL write_cube( nnr, vzero(:), 'vzero.cube') ! DEBUG, reset it to 3
     !
-    ! ... 3D Refinement, iterating on the difference of the 1D solution and the 3D solution
-    !     assume there is no difference (wishfull tihnking)
+    ! ... Compute the 3D refinement, decreasing mixing if it explodes
     !
-    charge_out = 0.D0
-    rhoioncc = 0.D0 
-    !
-    ALLOCATE(rhoin(nnr))
-    ALLOCATE(rhoout(nnr))
-    ALLOCATE(residue(nnr))
-    DO iter = 1, maxiter
-      !
-      rhoin = rhoioncc
-      !
-      ! ... Compute the potential coming from the iterative charge
-      !
-      vtot = 0.D0
-      CALL v_h_of_rho_r( rhoin, ehart, charge, vtot )
-!      CALL write_cube( nnr, vtot, 'vtot.cube')
-      vperiodic = 0.D0
-      CALL calc_vperiodic( nnr, nspin, .FALSE., rhoin, vperiodic )
-!      CALL write_cube( nnr, vperiodic(:), 'vperiodic.cube')
-      vtot( :, 1 ) = vtot( :, 1 ) + vperiodic(:) + vfix(:) + vzero(:) 
-!      CALL write_cube( nnr, vtot(:,1), 'vtot_ext.cube')
-      !
-      CALL generate_rhoioncc( nnr, 1, switch, vtot(:,1), rhoout )
-      !
-      rhoout = (rhoout - rhozero)
-      CALL write_cube( nnr, rhoout(:), 'rhoout.cube')
-      !
-      residue = rhoout - rhoin
-      deltarho = SUM(residue(:)*residue(:))
-      CALL mp_sum( deltarho, intra_bgrp_comm )
-      deltarho = SQRT(deltarho)/DBLE(ntot)
-      charge_tmp = SUM(rhoout)*domega
-      CALL mp_sum( charge_tmp, intra_bgrp_comm )
-      ! 
-      ! ... If the estimated charge is very far from the correct one, use a tiny mixing
-      !
-!      IF ( ABS( charge_out ) .GT. 1.D-3 ) & 
-!      IF ( deltarho .GT. tol*1D3 ) &
-!      IF ( ABS( charge_tmp ) .GT. ABS( charge_old ) ) THEN
-!         mixlocal = mix * MIN(1.D0,ABS(1.D0/charge_tmp)) * 5.D-1
-!      ELSE
-!         mixlocal = mix * MIN(1.D0,ABS(1.D0/charge_tmp)) 
-!      ENDIF
-      IF ( iter .EQ. 1 ) charge_old=charge_tmp
-      charge_old = MIN(charge_old,ABS(charge_tmp))
-!      fact = MAX(5.D-2,MIN(1.D0,ABS(charge_old/charge_tmp))*1.D-1)
-      fact = 5.D-3 * MIN(1.D0,ABS(1.D0/charge_tmp))
-      mixlocal = mix * fact 
-      !
-      CALL mix_rhoioncc_gspace( nnr, 1, mixlocal, 1.D0, rhoout, rhoin, rhoioncc )
-!      rhoioncc = mixlocal * rhoout + ( 1.D0 - mixlocal ) * rhoin
-      charge_out = SUM(rhoioncc)*domega
-      CALL mp_sum( charge_out, intra_bgrp_comm )
-      IF ( verbose .GE. 1 ) WRITE(environ_unit,8101)iter,deltarho,charge_tmp,mixlocal,charge_out
-      !
-      IF (deltarho.LT.tol) THEN
-        IF ( verbose .GE. 1 ) WRITE(environ_unit,8102)
-        EXIT
-      ELSE IF ( iter .EQ. maxiter ) THEN
-        WRITE(stdout,8103)
+    vfix = vfix + vzero
+    mixlocal = mix * 5.D-2
+    DO imix = 1, 10
+      IF ( verbose .GE. 1 ) WRITE( environ_unit, 7001 ) mixlocal 
+      CALL calc_rhoioncc3d( nnr, nspin, mixlocal, tol, switch, vfix, rhozero, rhoioncc, vioncc, failed )
+      IF ( failed ) THEN
+        mixlocal = mixlocal * 0.5D0
+      ELSE
+        GOTO 200
       ENDIF
-      !
     ENDDO
-    CALL write_cube( nnr, rhoioncc(:), 'rhoout.cube')
-    WRITE(stdout,8104)deltarho,iter 
-    DEALLOCATE(rhoin,rhoout,residue)
-    DEALLOCATE(rhotot)
+    WRITE( stdout, * )"ERROR: calc_rhoioncc failed to converged even with the smallest mix" 
+    STOP
     !
-    vioncc(:) = vtot(:,1) - vzero(:)
+    ! ... Converged 3D refinement
+    !
+200 CONTINUE 
+    charge_out = SUM(rhoioncc)*domega
+    CALL mp_sum( charge_out, intra_bgrp_comm )
+    !
+    vioncc = vioncc + vzero + vperiodic
     !
     RETURN
     !
-8101 FORMAT(1X,'iter = ',I5,' deltarho = ',E14.6,' charge_tmp = ',E14.6,' mixlocal = ',E14.6,' charge_out = ',E14.6)
-8102 FORMAT(1X,'Level 3 ioncc charges are converged!')
-8103 FORMAT(1X,'Warning: Level 3 ioncc charges are not converged')
-8104 FORMAT(1X,'        L3 ioncc accuracy =',1PE8.1,', # of iterations = ',i5)
-8105 FORMAT(1X,'iter = ',I5,' charge_tmp = ',E14.6,' charge_ext = ',E14.6)
+7001 FORMAT(1X,'Trying to compute level 3 ioncc density with mixing =',E14.6)
+    !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_rhoioncc
 !--------------------------------------------------------------------
@@ -713,7 +796,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    REAL, PARAMETER :: max_arg = 2.D1
+    REAL( DP ), PARAMETER :: max_arg = 2.D1
     !
     INTEGER, INTENT(IN) :: n, type
     REAL( DP ), INTENT(IN) :: switch(n)
@@ -836,6 +919,61 @@ CONTAINS
       END SUBROUTINE generate_step
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+      SUBROUTINE generate_switch( n, ityp, xmin, xmax, smoothness, axis, switch )
+!--------------------------------------------------------------------
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: n, ityp
+      !
+      REAL( DP ), INTENT(IN) :: xmin, xmax, smoothness
+      REAL( DP ), INTENT(IN) :: axis(n)
+      REAL( DP ), INTENT(OUT) :: switch(n)
+      !
+      INTEGER :: i
+      !
+      REAL( DP ) :: arg, fact
+      !
+      switch = 0.D0
+      SELECT CASE( ityp )
+      CASE ( 1 ) 
+        fact = tpi / (xmax - xmin)
+        DO i = 1, n
+          IF ( ABS(axis(i)) .LE. xmin ) THEN
+            switch(i) = 0.D0
+          ELSE IF ( ABS(axis(i)) .LT. xmax ) THEN
+            arg = fact * ( ABS(axis(i)) - xmin )
+            switch(i) = ( arg - SIN( arg ) ) / tpi
+          ELSE
+            switch(i) = 1.D0
+          ENDIF   
+        ENDDO
+      CASE ( 2 )
+        DO i = 1, n
+          IF ( ABS(axis(i)) .GT. xmin ) THEN
+            arg = -smoothness/(ABS(axis(i))-xmin)**2
+            switch(i) = EXP(arg)
+          ENDIF
+        ENDDO
+      CASE ( 3 )
+        DO i = 1, n
+          IF ( ABS(axis(i)) .LE. xmin ) THEN
+            switch(i) = 0.D0
+          ELSE IF ( ABS(axis(i)) .LT. xmax ) THEN
+            arg = (ABS(axis(i))-xmax)*smoothness
+            switch(i) = EXP(arg)
+          ELSE 
+            switch(i) = 1.D0
+          ENDIF
+        ENDDO
+      END SELECT
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END SUBROUTINE generate_switch
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE v1d_of_rho1d( n, dx, rho, v )
 !--------------------------------------------------------------------
       !
@@ -923,7 +1061,9 @@ CONTAINS
 !--------------------------------------------------------------------
       END SUBROUTINE integral_function_1d
 !--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE mix_rhoioncc_gspace( nnr, nspin, alpha, beta, rhoout, rhoin, rhoioncc )
+!--------------------------------------------------------------------
 
       USE fft_base,       ONLY : dfftp
       USE fft_interfaces, ONLY : fwfft, invfft
@@ -933,15 +1073,15 @@ CONTAINS
       IMPLICIT NONE
 
       INTEGER, INTENT(IN) :: nnr, nspin
-      REAL*8, INTENT(IN) :: alpha, beta
+      REAL(DP), INTENT(IN) :: alpha, beta
       
-      REAL*8, DIMENSION(nnr,nspin), INTENT(IN) :: rhoout, rhoin
-      REAL*8, DIMENSION(nnr,nspin), INTENT(OUT) :: rhoioncc
+      REAL(DP), DIMENSION(nnr,nspin), INTENT(IN) :: rhoout, rhoin
+      REAL(DP), DIMENSION(nnr,nspin), INTENT(OUT) :: rhoioncc
       !
       COMPLEX( DP ), ALLOCATABLE :: rhooutg(:,:), rhoing(:,:), rhoionccg(:,:)
       COMPLEX( DP ), ALLOCATABLE :: aux( : )
       INTEGER :: is, ig
-      REAL*8 :: fac
+      REAL(DP) :: fac
  
       ALLOCATE( rhooutg(ngm,nspin), rhoing(ngm,nspin), rhoionccg(ngm,nspin))
       ALLOCATE( aux(nnr) )
@@ -977,9 +1117,85 @@ CONTAINS
       DEALLOCATE( rhooutg, rhoing, rhoionccg )
 
       RETURN
-
+!--------------------------------------------------------------------
       END SUBROUTINE mix_rhoioncc_gspace
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      SUBROUTINE x1derror( x1d , f )
+!--------------------------------------------------------------------
+      IMPLICIT NONE
 
+      REAL(DP) :: x1d
+      REAL(DP) :: f
+      REAL(DP) :: xmax
+      REAL(DP), DIMENSION(n1d) :: switchloc, rhoionccloc, vionccloc
+
+      xmax = x1d + deltastern
+      CALL generate_switch( n1d, 2, x1d, xmax, 1.D0, axis1d, switchloc )
+      CALL calc_rhoioncc1d( n1d, vavg, axis1d, step1d, switchloc, rhotot1dref, vionccloc, rhoionccloc )
+      
+      rhoionccloc = rhoionccloc - rhoioncc1dref
+      f = SQRT(SUM(rhoionccloc(:)**2))
+
+      RETURN
+!--------------------------------------------------------------------
+      END SUBROUTINE x1derror
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION golden(ax,bx,cx,tol,xmin)
+!--------------------------------------------------------------------
+      IMPLICIT NONE
+      REAL(DP) :: golden,ax,bx,cx,tol,xmin,R,C
+      PARAMETER (R=.61803399,C=1.-R)
+!Given a function f, and given a bracketing triplet of abscissas ax, bx, cx (such that bx is
+!between ax and cx, and f(bx) is less than both f(ax) and f(cx)), this routine performs
+!a golden section search for the minimum, isolating it to a fractional precision of about
+!tol. The abscissa of the minimum is returned as xmin, and the minimum function value
+!is returned as golden, the returned function value.
+!Parameters: The golden ratios.
+      REAL(DP) f1,f2,x0,x1,x2,x3
+        write( environ_unit, *)'golden search'
+      x0=ax
+      x3=cx
+      if(abs(cx-bx).gt.abs(bx-ax))then ! Make x0 to x1 the smaller segment,
+        x1=bx
+        x2=bx+C*(cx-bx) ! and fill in the new point to be tried.
+      else
+        x2=bx
+        x1=bx-C*(bx-ax)
+      endif
+      CALL x1derror(x1,f1) ! The initial function evaluations. Note that we never need to
+      CALL x1derror(x2,f2) ! evaluate the function at the original endpoints.
+1     if(abs(x3-x0).gt.tol*(abs(x1)+abs(x2))) then ! Do-while loop: we keep returning here.
+        write( environ_unit, *)x0,x1,x2,x3
+        write( environ_unit, *)f1,f2
+        if(f2.lt.f1)then ! One possible outcome,
+          x0=x1 ! its housekeeping,
+          x1=x2
+          x2=R*x1+C*x3
+          f1=f2
+          CALL x1derror(x2,f2) ! and a new function evaluation.
+        else ! The other outcome,
+          x3=x2
+          x2=x1
+          x1=R*x2+C*x0
+          f2=f1
+          CALL x1derror(x1,f1) ! and its new function evaluation.
+        endif
+        goto 1 ! Back to see if we are done.
+      endif
+      if(f1.lt.f2)then ! We are done. Output the best of the two current values.
+        golden=f1
+        xmin=x1
+      else
+        golden=f2
+        xmin=x2
+      endif
+      stop
+      return 
+!--------------------------------------------------------------------
+      END FUNCTION golden
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE ioncc
 !--------------------------------------------------------------------
