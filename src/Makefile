@@ -23,7 +23,9 @@ environ_main.o                        \
 environ_input.o                       \
 environ_makov_payne.o                 \
 generate_dielectric.o                 \
-environ_debug.o                         
+environ_debug.o                       \
+util.o                                \
+lbfgs.o
 
 all : libenviron.a
 

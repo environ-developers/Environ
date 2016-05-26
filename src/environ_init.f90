@@ -159,7 +159,7 @@ CONTAINS
           rhopolcc = 0.0_DP
         END IF
         !
-        CALL ioncc_initbase( nnr )
+        CALL ioncc_initbase( ifdtype, nfdpoint, nnr )
         !
       END IF          
       !
