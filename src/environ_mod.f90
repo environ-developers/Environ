@@ -122,6 +122,8 @@ MODULE environ_base
        nrep
   REAL (KIND=DP) ::                 &
        cion,                        &
+       cionmax,                     &
+       rion,                        &
        zion,                        &
        rhopb,                       &
        solvent_temperature
@@ -197,8 +199,8 @@ MODULE environ_base
                         mixtype_, ndiis_, mixrhopol_, tolrhopol_,   &
                         env_surface_tension_, delta_,               &
                         env_pressure_,                              &
-                        env_ioncc_level_, nrep_, cion_, zion_,      &
-                        rhopb_, solvent_temperature_,               &
+                        env_ioncc_level_, nrep_, cion_, cionmax_,   &
+                        rion_, zion_, rhopb_, solvent_temperature_, &
                         env_external_charges_, extcharge_charge_,   & 
                         extcharge_dim_, extcharge_axis_,            &
                         extcharge_pos_, extcharge_spread_,          & 
@@ -207,7 +209,7 @@ MODULE environ_base
                         epsregion_pos_, epsregion_spread_,          &
                         epsregion_width_ )       
         !
-        USE constants,       ONLY : rydberg_si, bohr_radius_si, amu_si
+        USE constants,       ONLY : rydberg_si, bohr_radius_si, amu_si, fpi
         USE control_flags,   ONLY : tddfpt
         IMPLICIT NONE
         LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
@@ -223,7 +225,8 @@ MODULE environ_base
                                tolrhopol_, alpha_, solvationrad_(:),            &
                                corespread_(:), atomicspread_(:),                &
                                env_surface_tension_, delta_, env_pressure_,     &
-                               cion_, zion_, rhopb_, solvent_temperature_,      &
+                               cion_, cionmax_, rion_, zion_, rhopb_,           &
+                               solvent_temperature_,                            &
                                extcharge_charge_(:), extcharge_spread_(:),      &
                                extcharge_pos_(:,:), epsregion_eps_(:,:),        &
                                epsregion_pos_(:,:), epsregion_spread_(:),       &
@@ -270,9 +273,17 @@ MODULE environ_base
         !
         nrep      = nrep_
         cion      = cion_ * bohr_radius_si**3 / amu_si
+        cionmax   = cionmax_ * bohr_radius_si**3 / amu_si
+        rion      = rion_
         zion      = zion_
         rhopb     = rhopb_
         solvent_temperature = solvent_temperature_
+        IF ( cion .LT. 0.D0 .OR. rion .LT. 0.D0) &
+          & call errore ('environ_base_init','cion and rion should be positive',1)
+        IF ( cion .GT. 0.D0 .AND. cionmax .LT. cion ) &
+          & call errore ('environ_base_init','cionmax should be at least greater than cion',1)
+        IF ( cionmax .EQ. 0.D0 .AND. rion .GT. 0.D0 ) &
+          & cionmax = 0.64D0 * 3.D0 / fpi / rion**3 
         !
         SELECT CASE (TRIM(environ_type_))
         ! if a specific environ is selected use hardcoded parameters

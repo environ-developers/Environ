@@ -169,6 +169,10 @@ MODULE environ_input
         ! number of replicas of unit cell along slab_axis
         REAL(DP) :: cion = 1.D0
         ! molar concentration of ionic countercharge (M=mol/L)
+        REAL(DP) :: cionmax = 1.D3
+        ! maximum molar concentration of ionic countercharge (M=mol/L)
+        REAL(DP) :: rion = 0.D0
+        ! mean atomic radius of ionic countercharge (a.u.)
         REAL(DP) :: zion = 1.D0
         ! valence of ionic countercharge
         REAL(DP) :: rhopb = 0.0001D0
@@ -200,7 +204,7 @@ MODULE environ_input
              mixtype, ndiis, mixrhopol, tolrhopol,                     &
              env_surface_tension, delta,                               &
              env_pressure,                                             &
-             env_ioncc_level, nrep, cion, zion, rhopb,                 &
+             env_ioncc_level, nrep, cion, cionmax, rion, zion, rhopb,  &
              solvent_temperature,                                      &
              env_external_charges, env_dielectric_regions
 
@@ -252,8 +256,8 @@ MODULE environ_input
                                 mixtype, ndiis, mixrhopol, tolrhopol,       &
                                 env_surface_tension, delta,                 &
                                 env_pressure,                               &
-                                env_ioncc_level, nrep, cion, zion, rhopb,   &
-                                solvent_temperature,                        &
+                                env_ioncc_level, nrep, cion, cionmax, rion, &  
+                                zion, rhopb, solvent_temperature,           &
                                 env_external_charges, extcharge_charge,     & 
                                 extcharge_dim, extcharge_axis,              &
                                 extcharge_pos, extcharge_spread,            & 
@@ -361,6 +365,8 @@ MODULE environ_input
        env_ioncc_level = 0
        nrep = 0
        cion = 1.0D0
+       cionmax = 1.0D3
+       rion = 0.D0
        zion = 1.0D0
        rhopb = 0.0001D0
        solvent_temperature = 300.0D0
@@ -420,6 +426,8 @@ MODULE environ_input
        CALL mp_bcast( env_ioncc_level,            ionode_id, intra_image_comm )
        CALL mp_bcast( nrep,                       ionode_id, intra_image_comm )
        CALL mp_bcast( cion,                       ionode_id, intra_image_comm )
+       CALL mp_bcast( cionmax,                    ionode_id, intra_image_comm )
+       CALL mp_bcast( rion,                       ionode_id, intra_image_comm )
        CALL mp_bcast( zion,                       ionode_id, intra_image_comm )
        CALL mp_bcast( rhopb,                      ionode_id, intra_image_comm )
        CALL mp_bcast( solvent_temperature,        ionode_id, intra_image_comm )
