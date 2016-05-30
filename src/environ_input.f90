@@ -78,7 +78,7 @@ MODULE environ_input
         ! vacuum = all the flags are off (perm=1.d0, surf=0.0, pres=0.0)
         ! water = parameters optimized for water solutions in Andreussi et al. 
         !         J. Chem. Phys. 136, 064102 (perm=78, surf=50, pres=-0.35)
-        ! input = do not use any predefined set, use paramters from input
+        ! input = do not use any predefined set, use parameters from input
 !
 ! Switching function parameters
 !
@@ -127,13 +127,13 @@ MODULE environ_input
         ! depending on periodic boundary corrections, one may need to explicitly
         ! polarize the compensatinig jellium background
 !
-! Numerical differentiators paramters
+! Numerical differentiators parameters
 !
         INTEGER  :: ifdtype = 1 
         ! type of numerical differentiator: 1=central differences, 
         ! 2=low-noise lanczos (m=2), 3=low-noise lanczos (m=4), 
         ! 4=smooth noise-robust (n=2), 5=smooth noise-robust (n=4)
-        INTEGER  :: nfdpoint = 1
+        INTEGER  :: nfdpoint = 2
         ! number of points used in the numerical differentiator 
         ! N = 2*nfdpoint+1
 !
