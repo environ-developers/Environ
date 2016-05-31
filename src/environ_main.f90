@@ -201,7 +201,8 @@ CONTAINS
                                 env_surface_tension, vcavity,         & 
                                 env_pressure, vpressure,              &
                                 env_periodicity, vperiodic,           &
-                                env_ioncc_level, vioncc,              &
+                                env_ioncc_level, stern_mode,          &
+                                vioncc, vgamma,                       &
                                 env_external_charges, vextcharge,     &
                                 env_dielectric_regions
       !
@@ -278,40 +279,52 @@ CONTAINS
          !
       END IF 
       !
-      !  if dielectric different from vacuum compute solvent term
-      !
-      IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN
-         !
-         deenviron =  deenviron -                                &
-                   SUM( vsolvent( : ) * rhoelec( : ) ) * domega 
-         !
-         IF ( env_static_permittivity .GT. 1.D0 .AND. TRIM(eps_mode) .NE. 'ionic' ) &
-         deenviron = deenviron -                                 &
-                   SUM( vepsilon( : ) * rhoelec( : ) ) * domega  
-         !
-         CALL calc_esolvent( nnr, nspin, rhoelec, esolvent )
-         !
-      END IF
-      !
-      !  if ionic countercharge is present compute extra term
+      !  if ionic countercharge is present compute extra terms
+      !  ioncc possibly includes dielectric and pbc correction terms
       !
       IF ( env_ioncc_level .GT. 0 ) THEN
          !
          deenviron = deenviron -                                 &
-                   SUM( vioncc( : ) * rhoelec( : ) ) * domega
+              SUM( vioncc( : ) * rhoelec( : ) ) * domega
+         !
+         IF ( env_ioncc_level .EQ. 3 .AND. TRIM(stern_mode) .NE. 'ionic' ) &
+              deenviron = deenviron -                                 &
+              SUM( vgamma( : ) * rhoelec( : ) ) * domega
+         !
+         IF ( env_static_permittivity .GT. 1.D0 .AND. TRIM(eps_mode) .NE. 'ionic' ) &
+              deenviron = deenviron -                                 &
+              SUM( vepsilon( : ) * rhoelec( : ) ) * domega
          !
          CALL calc_eioncc( nnr, rhoelec, eioncc )
          !
+      ELSE
+      !
+      !  if dielectric different from vacuum compute solvent term
+      !
+         IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN
+            !
+            deenviron =  deenviron -                                &
+                 SUM( vsolvent( : ) * rhoelec( : ) ) * domega
+            !
+            IF ( env_static_permittivity .GT. 1.D0 .AND. TRIM(eps_mode) .NE. 'ionic' ) &
+                 deenviron = deenviron -                                 &
+                 SUM( vepsilon( : ) * rhoelec( : ) ) * domega
+            !
+            CALL calc_esolvent( nnr, nspin, rhoelec, esolvent )
+            !
+         END IF
       !
       !  if periodic geometry compute boundary condition term
       !  note that this term must be computed after the solvent one
       !
-      ELSE IF ( env_periodicity .NE. 3 ) THEN 
-         !
-         deenviron =  deenviron -                                &
-                   SUM( vperiodic( : ) * rhoelec( : ) ) * domega 
-         !
-         CALL calc_eperiodic(nnr, rhoelec, eperiodic)
+         IF ( env_periodicity .NE. 3 ) THEN 
+            !
+            deenviron =  deenviron -                                &
+                 SUM( vperiodic( : ) * rhoelec( : ) ) * domega
+            !
+            CALL calc_eperiodic(nnr, rhoelec, eperiodic)
+            !
+         END IF
          !
       END IF 
       !

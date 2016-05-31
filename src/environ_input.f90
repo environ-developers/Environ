@@ -167,6 +167,21 @@ MODULE environ_input
         ! level of accuracy in ioncc
         INTEGER :: nrep = 0
         ! number of replicas of unit cell along slab_axis
+        CHARACTER( LEN = 256 ) :: stern_mode = 'electronic'
+        !  stern_mode method for calculating the density that sets
+        !  the onset of ionic countercharge
+        !  electronic = onset depends self-consist. on electronic density
+        !  ionic = onset defined on a fictitious ionic density, generated
+        !          as the sum of exponential functions centered on atomic
+        !          positions of width specified in input by solvationrad(ityp)
+        !  full  = similar to electronic, but an extra density is added to
+        !          represent the core electrons and the nuclei. This extra
+        !          density is defined as the sum of gaussian functions centered
+        !          on atomic positions of width equal to corespread(ityp)
+        REAL(DP) :: stern_distance = 0.D0
+        ! onset distance of countercharge, if ioncc_level = 1|2
+        REAL(DP) :: stern_spread = 0.5D0
+        ! spread of countercharge onset, if ioncc_level = 2
         REAL(DP) :: cion = 1.D0
         ! molar concentration of ionic countercharge (M=mol/L)
         REAL(DP) :: cionmax = 1.D3
@@ -204,8 +219,9 @@ MODULE environ_input
              mixtype, ndiis, mixrhopol, tolrhopol,                     &
              env_surface_tension, delta,                               &
              env_pressure,                                             &
-             env_ioncc_level, nrep, cion, cionmax, rion, zion, rhopb,  &
-             solvent_temperature,                                      &
+             env_ioncc_level, nrep,                                    &
+             stern_mode, stern_distance, stern_spread,                 &
+             cion, cionmax, rion, zion, rhopb, solvent_temperature,    &
              env_external_charges, env_dielectric_regions
 
   CONTAINS
@@ -256,8 +272,10 @@ MODULE environ_input
                                 mixtype, ndiis, mixrhopol, tolrhopol,       &
                                 env_surface_tension, delta,                 &
                                 env_pressure,                               &
-                                env_ioncc_level, nrep, cion, cionmax, rion, &  
-                                zion, rhopb, solvent_temperature,           &
+                                env_ioncc_level, nrep,                      &
+                                stern_mode, stern_distance, stern_spread,   &
+                                cion, cionmax, rion, zion, rhopb,           &
+                                solvent_temperature,                        &
                                 env_external_charges, extcharge_charge,     & 
                                 extcharge_dim, extcharge_axis,              &
                                 extcharge_pos, extcharge_spread,            & 
@@ -364,6 +382,9 @@ MODULE environ_input
        !
        env_ioncc_level = 0
        nrep = 0
+       stern_mode = 'electronic'
+       stern_distance = 0.D0
+       stern_spread = 0.5D0
        cion = 1.0D0
        cionmax = 1.0D3
        rion = 0.D0
@@ -425,6 +446,9 @@ MODULE environ_input
        !
        CALL mp_bcast( env_ioncc_level,            ionode_id, intra_image_comm )
        CALL mp_bcast( nrep,                       ionode_id, intra_image_comm )
+       CALL mp_bcast( stern_mode,                 ionode_id, intra_image_comm )
+       CALL mp_bcast( stern_distance,             ionode_id, intra_image_comm )
+       CALL mp_bcast( stern_spread,               ionode_id, intra_image_comm )
        CALL mp_bcast( cion,                       ionode_id, intra_image_comm )
        CALL mp_bcast( cionmax,                    ionode_id, intra_image_comm )
        CALL mp_bcast( rion,                       ionode_id, intra_image_comm )

@@ -43,7 +43,7 @@ CONTAINS
                                env_surface_tension, ecavity, vcavity,   &
                                env_pressure, epressure, vpressure,      &
                                env_periodicity, eperiodic, vperiodic,   &
-                               env_ioncc_level, eioncc, vioncc,         &
+                               env_ioncc_level, eioncc, vioncc, vgamma, &
                                rhoioncc, rhopolcc,                      &
                                env_external_charges, eextcharge,        &
                                vextcharge, rhoexternal,                 &
@@ -150,6 +150,9 @@ CONTAINS
         IF ( ALLOCATED( vioncc ) ) DEALLOCATE(vioncc)
         ALLOCATE( vioncc( nnr ) )
         vioncc = 0.0_DP
+        IF ( ALLOCATED( vgamma ) ) DEALLOCATE(vgamma)
+        ALLOCATE( vgamma( nnr ) )
+        vgamma = 0.0_DP
         IF ( ALLOCATED( rhoioncc ) ) DEALLOCATE(rhoioncc)
         ALLOCATE( rhoioncc( nnr ) )
         rhoioncc = 0.0_DP
@@ -455,6 +458,7 @@ CONTAINS
       IF ( ALLOCATED( vpressure ) )   DEALLOCATE( vpressure )
       IF ( ALLOCATED( vperiodic ) )   DEALLOCATE( vperiodic )
       IF ( ALLOCATED( vioncc ) )      DEALLOCATE( vioncc )
+      IF ( ALLOCATED( vgamma ) )      DEALLOCATE( vgamma )
       IF ( ALLOCATED( vextcharge ) )  DEALLOCATE( vextcharge )
       IF ( ALLOCATED( rhoexternal ) ) DEALLOCATE( rhoexternal )
       IF ( ALLOCATED( epsstatic ) )   DEALLOCATE( epsstatic )

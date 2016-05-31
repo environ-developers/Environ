@@ -120,7 +120,11 @@ MODULE environ_base
   INTEGER ::                        &
        env_ioncc_level,             &
        nrep
+  CHARACTER (LEN=256) ::            &
+       stern_mode
   REAL (KIND=DP) ::                 &
+       stern_distance,              &
+       stern_spread,                &
        cion,                        &
        cionmax,                     &
        rion,                        &
@@ -171,6 +175,7 @@ MODULE environ_base
        vpressure(:),                &
        vperiodic(:),                &
        vioncc(:),                   &
+       vgamma(:),                   &
        rhopol(:),                   &
        rhoioncc(:),                 &
        rhopolcc(:),                 &
@@ -199,8 +204,10 @@ MODULE environ_base
                         mixtype_, ndiis_, mixrhopol_, tolrhopol_,   &
                         env_surface_tension_, delta_,               &
                         env_pressure_,                              &
-                        env_ioncc_level_, nrep_, cion_, cionmax_,   &
-                        rion_, zion_, rhopb_, solvent_temperature_, &
+                        env_ioncc_level_, nrep_,                    &
+                        stern_mode_, stern_distance_, stern_spread_,&
+                        cion_, cionmax_, rion_, zion_, rhopb_,      &
+                        solvent_temperature_,                       &
                         env_external_charges_, extcharge_charge_,   & 
                         extcharge_dim_, extcharge_axis_,            &
                         extcharge_pos_, extcharge_spread_,          & 
@@ -225,14 +232,14 @@ MODULE environ_base
                                tolrhopol_, alpha_, solvationrad_(:),            &
                                corespread_(:), atomicspread_(:),                &
                                env_surface_tension_, delta_, env_pressure_,     &
-                               cion_, cionmax_, rion_, zion_, rhopb_,           &
-                               solvent_temperature_,                            &
+                               stern_distance_, stern_spread_, cion_, cionmax_, &
+                               rion_, zion_, rhopb_, solvent_temperature_,      &
                                extcharge_charge_(:), extcharge_spread_(:),      &
                                extcharge_pos_(:,:), epsregion_eps_(:,:),        &
                                epsregion_pos_(:,:), epsregion_spread_(:),       &
                                epsregion_width_(:)        
         CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type_, &
-                                              eps_mode_, mixtype_
+                                              eps_mode_, stern_mode_, mixtype_
         INTEGER :: i
         !
         environ_restart = environ_restart_
@@ -272,6 +279,9 @@ MODULE environ_base
         delta     = delta_
         !
         nrep      = nrep_
+        stern_mode = stern_mode_
+        stern_distance = stern_distance_
+        stern_spread = stern_spread_
         cion      = cion_ * bohr_radius_si**3 / amu_si
         cionmax   = cionmax_ * bohr_radius_si**3 / amu_si
         rion      = rion_
