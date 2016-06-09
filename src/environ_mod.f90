@@ -43,6 +43,17 @@ MODULE environ_base
   REAL (KIND=DP) ::                 &
        e2
   !
+  ! System parameters
+  !
+  INTEGER ::                        &
+       system_ntyp,                 &
+       system_dim,                  &
+       system_axis
+  REAL (KIND=DP) ::                 &
+       system_width
+  REAL (KIND=DP) ::                 &
+       system_pos(3)
+  !
   ! Switching function parameters
   !
   INTEGER ::                        &
@@ -136,6 +147,8 @@ MODULE environ_base
   !
   INTEGER ::                        &
        env_external_charges
+  INTEGER ::                        &
+       extcharge_origin
   INTEGER, ALLOCATABLE ::           &
        extcharge_dim(:),            &
        extcharge_axis(:)
@@ -148,6 +161,8 @@ MODULE environ_base
   !
   INTEGER ::                        &
        env_dielectric_regions
+  INTEGER ::                        &
+       epsregion_origin
   INTEGER, ALLOCATABLE ::           &
        epsregion_dim(:),            &
        epsregion_axis(:)
@@ -195,8 +210,10 @@ MODULE environ_base
      SUBROUTINE environ_base_init &
                       ( assume_isolated, environ_restart_,          &
                         verbose_, environ_thr_, environ_nskip_,     &
-                        environ_type_, stype_, rhomax_, rhomin_,    &
-                        tbeta_, env_static_permittivity_,           &
+                        environ_type_,                              &
+                        system_ntyp_, system_dim_, system_axis_,    &
+                        stype_, rhomax_, rhomin_, tbeta_,           &
+                        env_static_permittivity_,                   &
                         env_optical_permittivity_, eps_mode_,       &
                         alpha_, solvationrad_, corespread_,         & 
                         atomicspread_, add_jellium_,                &
@@ -208,23 +225,25 @@ MODULE environ_base
                         stern_mode_, stern_distance_, stern_spread_,&
                         cion_, cionmax_, rion_, zion_, rhopb_,      &
                         solvent_temperature_,                       &
-                        env_external_charges_, extcharge_charge_,   & 
-                        extcharge_dim_, extcharge_axis_,            &
-                        extcharge_pos_, extcharge_spread_,          & 
-                        env_dielectric_regions_, epsregion_eps_,    &
-                        epsregion_dim_, epsregion_axis_,            &
-                        epsregion_pos_, epsregion_spread_,          &
-                        epsregion_width_ )       
+                        env_external_charges_, extcharge_origin_,   &
+                        extcharge_charge_, extcharge_dim_,          &
+                        extcharge_axis_, extcharge_pos_,            &
+                        extcharge_spread_,                          &
+                        env_dielectric_regions_, epsregion_origin_, &
+                        epsregion_eps_, epsregion_dim_,             &
+                        epsregion_axis_, epsregion_pos_,            &
+                        epsregion_spread_, epsregion_width_ )
         !
         USE constants,       ONLY : rydberg_si, bohr_radius_si, amu_si, fpi
         USE control_flags,   ONLY : tddfpt
         IMPLICIT NONE
         LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
         INTEGER, INTENT(IN) :: verbose_, environ_nskip_, ifdtype_, nfdpoint_,   &
+                               system_ntyp_, system_dim_, system_axis_,         &
                                ndiis_, stype_, env_ioncc_level_, nrep_,         &
-                               env_external_charges_,                           &
+                               env_external_charges_, extcharge_origin_,        &
                                extcharge_dim_(:), extcharge_axis_(:),           &
-                               env_dielectric_regions_,                         &
+                               env_dielectric_regions_, epsregion_origin_,      &
                                epsregion_dim_(:), epsregion_axis_(:)
         REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta_,         &
                                env_static_permittivity_,                        &
@@ -246,6 +265,10 @@ MODULE environ_base
         verbose         = verbose_
         environ_thr     = environ_thr_
         environ_nskip   = environ_nskip_
+        !
+        system_ntyp = system_ntyp_
+        system_dim  = system_dim_
+        system_axis = system_axis_
         !
         stype    = stype_
         rhomax   = rhomax_
@@ -353,6 +376,7 @@ MODULE environ_base
         !
         env_external_charges = env_external_charges_
         IF ( env_external_charges .GT. 0 ) THEN
+          extcharge_origin = extcharge_origin_
           IF ( ALLOCATED( extcharge_dim ) ) DEALLOCATE( extcharge_dim )
           ALLOCATE( extcharge_dim( env_external_charges ) )
           extcharge_dim = extcharge_dim_
@@ -374,6 +398,7 @@ MODULE environ_base
         !
         env_dielectric_regions = env_dielectric_regions_
         IF ( env_dielectric_regions .GT. 0 ) THEN
+          epsregion_origin = epsregion_origin_
           IF ( ALLOCATED( epsregion_dim ) ) DEALLOCATE( epsregion_dim )
           ALLOCATE( epsregion_dim( env_dielectric_regions ) )
           epsregion_dim = epsregion_dim_

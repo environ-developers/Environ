@@ -281,7 +281,7 @@ CONTAINS
       !
       INTEGER, INTENT(IN) :: nat, nsp
       !  
-      ! ... Allocates ions paramters
+      ! ... Allocate ions paramters
       !
       nat_ = nat
       ntyp = nsp
@@ -308,9 +308,11 @@ CONTAINS
 !
       ! ... Declares modules
       USE kinds,             ONLY : DP
-      USE environ_base,      ONLY : env_periodicity,                &
-                                    use_smeared_ions, atomicspread, &
-                                    env_external_charges, verbose,  &
+      USE environ_base,      ONLY : env_periodicity,                      &
+                                    use_smeared_ions, atomicspread,       &
+                                    env_external_charges, verbose,        &
+                                    system_ntyp, system_dim, system_axis, &
+                                    system_pos, system_width,             &
                                     environ_unit
       USE environ_ions,      ONLY : ntyp, nat_ => nat, ityp_ => ityp, &
                                     zv_ => zv, tau_ => tau, rhoions, &
@@ -327,10 +329,10 @@ CONTAINS
       REAL ( DP ), INTENT( IN ) :: tau( 3, nat )
       REAL ( DP ), INTENT( IN ) :: alat
       !
-      INTEGER :: ia, dim, axis
-      REAL ( DP ) :: charge, spread, pos(3)
+      INTEGER :: ia, dim, axis, icor, max_ntyp
+      REAL ( DP ) :: charge, spread, dist, pos(3)
       !
-      ! ... Allocates ions paramters
+      ! ... Allocate ions parameters
       !
       ityp_ = ityp
       zv_   = zv
@@ -371,6 +373,41 @@ CONTAINS
       avg_pos(:) = avg_pos(:) / zvtot
       IF ( verbose .GT. 1 ) WRITE(environ_unit,202)avg_pos*alat
       !
+      ! ... System position and width, determined from atom types specified in input
+      !
+      max_ntyp = system_ntyp
+      IF ( system_ntyp .EQ. 0 ) max_ntyp = ntyp
+      !
+      charge = 0.D0
+      system_pos(:) = 0.D0
+      DO ia = 1, nat
+         !
+         IF ( ityp(ia) .GT. max_ntyp ) CYCLE
+         !
+         charge = charge + zv(ityp(ia))
+         system_pos(:) = system_pos(:) + tau(:,ia)*zv(ityp(ia))
+         !
+      ENDDO
+      system_pos(:) = system_pos(:) / charge
+      !
+      system_width = 0.D0
+      DO ia = 1, nat
+         !
+         IF ( ityp(ia) .GT. max_ntyp ) CYCLE
+         !
+         DO icor = 1, 3
+            !
+            IF ( ( system_dim .EQ. 1 .AND. icor .EQ. system_axis ) &
+              .OR. ( system_dim .EQ. 2 .AND. icor .NE. system_axis ) ) CYCLE
+            dist = dist + (tau(icor,ia)-system_pos(icor))**2
+            !
+         ENDDO
+         !
+         system_width = MAX(system_width,dist)
+         !
+      ENDDO
+      system_width = SQRT(system_width) * alat
+      !
       ! ... Initialize periodicity-correction ionic variables
       !
       IF ( env_periodicity .NE. 3 ) CALL periodic_initions( nnr, nat, ntyp, ityp, zv, tau, alat, rhoions )
@@ -407,7 +444,7 @@ CONTAINS
                                env_surface_tension, vcavity,         &
                                vpressure,                            &
                                env_periodicity, vperiodic,           &
-                               env_ioncc_level, vioncc,              &
+                               env_ioncc_level, vioncc, vgamma,      &
                                solvationrad, atomicspread,           &
                                env_external_charges, vextcharge,     &
                                rhoexternal, epsstatic, epsoptical,   &
@@ -427,7 +464,7 @@ CONTAINS
       LOGICAL, INTENT(IN) :: lflag
       LOGICAL :: opnd
       !
-      ! ... Deallocates environment variables allocated in input
+      ! ... Deallocate environment variables allocated in input
       !
       IF( lflag ) THEN
         !
@@ -442,7 +479,7 @@ CONTAINS
         !
       END IF 
       !
-      ! ... Deallocates environment variables
+      ! ... Deallocate environment variables
       !
       INQUIRE( unit=environ_unit, opened= opnd ) 
       IF ( opnd ) CLOSE(unit=environ_unit)

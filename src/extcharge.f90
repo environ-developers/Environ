@@ -18,10 +18,11 @@ MODULE extcharge
   USE environ_cell,   ONLY: domega
   USE environ_ions,   ONLY: avg_pos, rhoions
   USE environ_base,   ONLY: verbose, environ_unit,                   &
-                            env_external_charges, extcharge_dim,     &
-                            extcharge_axis, extcharge_pos,           &
-                            extcharge_spread, extcharge_charge,      &
-                            rhoexternal 
+                            system_pos, system_width,                &
+                            env_external_charges, extcharge_origin,  &
+                            extcharge_dim, extcharge_axis,           &
+                            extcharge_pos, extcharge_spread,         &
+                            extcharge_charge, rhoexternal 
   USE environ_debug,  ONLY: write_cube
   !
   IMPLICIT NONE
@@ -49,9 +50,10 @@ CONTAINS
     INTEGER, INTENT(IN) :: nnr
     REAL(DP) :: alat
     !
+    LOGICAL :: shift
     INTEGER :: iextcharge
     INTEGER :: axis, dim
-    REAL(DP) :: charge, spread, pos(3), pos0(3)
+    REAL(DP) :: charge, spread, norm, pos(3), pos0(3)
     !
     rhoexternal = 0.D0
     !
@@ -61,13 +63,31 @@ CONTAINS
     !
     ! Use the origin of the cell as default origin, removed other options
     !
-    pos0 = 0.D0
+    SELECT CASE ( extcharge_origin )
+    CASE ( 0 )
+       shift = .false.
+       pos0 = 0.D0
+    CASE ( 1 )
+       shift = .false.
+       pos0 = system_pos
+    CASE ( 2 )
+       shift = .true.
+       pos0 = system_pos
+    END SELECT
     !
     ! Generate gaussian densities (planar,lines or points, depending on dim)
     !
     DO iextcharge = 1, env_external_charges
-      ! 
-      pos(:) = extcharge_pos(:,iextcharge)/alat + pos0(:)
+      !
+      norm = SQRT(SUM(extcharge_pos(:,iextcharge)**2))
+      IF ( .NOT. shift ) THEN
+        pos(:) = extcharge_pos(:,iextcharge)/alat + pos0(:)
+      ELSE IF ( norm .NE. 0.D0 ) THEN
+        pos(:) = extcharge_pos(:,iextcharge)/alat*(1.D0+system_width/norm) + pos0(:)
+      ELSE
+        WRITE(stdout,*)'ERROR: ill-defined position of external charge'
+        STOP
+      ENDIF
       charge = extcharge_charge(iextcharge)
       spread = extcharge_spread(iextcharge)
       dim = extcharge_dim(iextcharge)

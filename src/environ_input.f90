@@ -33,6 +33,7 @@ MODULE environ_input
 ! Local parameters of external charges
 !
   LOGICAL :: taextchg = .false.
+  INTEGER :: extcharge_origin = 0
   INTEGER, ALLOCATABLE  :: extcharge_dim(:)
   INTEGER, ALLOCATABLE  :: extcharge_axis(:)
   REAL(DP), ALLOCATABLE :: extcharge_charge(:)
@@ -45,6 +46,7 @@ MODULE environ_input
 ! Local parameters of dielectric regions
 !
   LOGICAL :: taepsreg = .false.
+  INTEGER :: epsregion_origin = 0
   INTEGER, ALLOCATABLE  :: epsregion_dim(:)
   INTEGER, ALLOCATABLE  :: epsregion_axis(:)
   REAL(DP), ALLOCATABLE :: epsregion_eps(:,:)
@@ -79,6 +81,18 @@ MODULE environ_input
         ! water = parameters optimized for water solutions in Andreussi et al. 
         !         J. Chem. Phys. 136, 064102 (perm=78, surf=50, pres=-0.35)
         ! input = do not use any predefined set, use parameters from input
+!
+! System specification
+!
+        INTEGER :: system_ntyp = 0
+        ! specify the atom types that are used to determine the origin and
+        ! size of the system (types up to system_ntyp are used, all atoms are
+        ! used by default or if system_ntyp == 0)
+        INTEGER :: system_dim = 0
+        ! dimensionality of the system, used to determine size (only ortogonally to
+        ! periodic dimensions) and position (0 = 0D, 1 = 1D, 2 = 2D)
+        INTEGER :: system_axis = 3
+        ! main axis of 1D or 2D systems (1 = x, 2 = y, 3 = z)
 !
 ! Switching function parameters
 !
@@ -210,9 +224,11 @@ MODULE environ_input
 
         NAMELIST / environ /                                           &
              environ_restart, verbose, environ_thr, environ_nskip,     &
-             environ_type, stype, rhomax, rhomin, tbeta,               &
-             env_static_permittivity, eps_mode,                        &
-             env_optical_permittivity,                                 &
+             environ_type,                                             &
+             system_ntyp, system_dim, system_axis,                     &
+             stype, rhomax, rhomin, tbeta,                             &
+             env_static_permittivity, env_optical_permittivity,        &
+             eps_mode,                                                 &
              alpha, solvationrad, corespread, atomicspread,            &
              add_jellium,                                              &
              ifdtype, nfdpoint,                                        &
@@ -263,7 +279,9 @@ MODULE environ_input
        !
        CALL environ_base_init ( assume_isolated, environ_restart,           &
                                 verbose, environ_thr, environ_nskip,        &
-                                environ_type, stype, rhomax, rhomin, tbeta, &
+                                environ_type,                               &
+                                system_ntyp, system_dim, system_axis,       &
+                                stype, rhomax, rhomin, tbeta,               &
                                 env_static_permittivity,                    &
                                 env_optical_permittivity, eps_mode,         &
                                 alpha, solvationrad(1:ntyp),                &
@@ -276,13 +294,14 @@ MODULE environ_input
                                 stern_mode, stern_distance, stern_spread,   &
                                 cion, cionmax, rion, zion, rhopb,           &
                                 solvent_temperature,                        &
-                                env_external_charges, extcharge_charge,     & 
-                                extcharge_dim, extcharge_axis,              &
-                                extcharge_pos, extcharge_spread,            & 
-                                env_dielectric_regions, epsregion_eps,      &
-                                epsregion_dim, epsregion_axis,              &
-                                epsregion_pos, epsregion_spread,            &
-                                epsregion_width )
+                                env_external_charges, extcharge_origin,     &
+                                extcharge_charge, extcharge_dim,            &
+                                extcharge_axis, extcharge_pos,              &
+                                extcharge_spread,                           &
+                                env_dielectric_regions, epsregion_origin,   &
+                                epsregion_eps, epsregion_dim,               &
+                                epsregion_axis, epsregion_pos,              &
+                                epsregion_spread, epsregion_width )
        !
        CALL environ_initions_allocate( nat, ntyp )
        !
@@ -353,6 +372,10 @@ MODULE environ_input
        environ_nskip = 1
        environ_type  = 'input'
        !
+       system_ntyp = 0
+       system_dim = 0
+       system_axis = 3
+       !
        stype   = 1
        rhomax  = 0.005
        rhomin  = 0.0001
@@ -416,6 +439,10 @@ MODULE environ_input
        CALL mp_bcast( environ_thr,                ionode_id, intra_image_comm )
        CALL mp_bcast( environ_nskip,              ionode_id, intra_image_comm )
        CALL mp_bcast( environ_type,               ionode_id, intra_image_comm )
+       !
+       CALL mp_bcast( system_ntyp,                ionode_id, intra_image_comm )
+       CALL mp_bcast( system_dim,                 ionode_id, intra_image_comm )
+       CALL mp_bcast( system_axis,                ionode_id, intra_image_comm )
        !
        CALL mp_bcast( stype,                      ionode_id, intra_image_comm )
        CALL mp_bcast( rhomax,                     ionode_id, intra_image_comm )
@@ -535,13 +562,13 @@ MODULE environ_input
    !
    ! ... Description of the allowed input CARDS
    !
-   ! EXTERNAL_CHARGES (units_options)
+   ! EXTERNAL_CHARGES (unit_option origin_option)
    !
    !   set external fixed charge densities and their shape
    !
    ! Syntax:
    !
-   !    EXTERNAL_CHARGES (unit_option)
+   !    EXTERNAL_CHARGES (unit_option origin_option)
    !      charge(1)  x(1) y(1) z(1)  spread(1) dim(1)  axis(1)    
    !       ...       ...        ...      ...        ...
    !      charge(n)  x(n) y(n) z(n)  spread(n) dim(n)  axis(n)  
@@ -554,8 +581,11 @@ MODULE environ_input
    !
    ! Where:
    !  
-   !   units_option == bohr      position are given in Bohr
-   !   units_option == angstrom  position are given in Angstrom
+   !   unit_option == bohr       positions are given in Bohr (DEFAULT)
+   !   unit_option == angstrom   positions are given in Angstrom
+   !   origin_option == cell     positions are given wrt cell's origin (DEFAULT)
+   !   origin_option == bound    positions are given wrt system's bounding box
+   !   origin_option == system   positions are given wrt system's origin
    !
    !      charge(i) ( real )       total charge of the density
    !      x/y/z(i)  ( real )       cartesian position of the density
@@ -599,10 +629,24 @@ MODULE environ_input
                         & // input_line, 1 )
          ENDIF
          CALL infomsg( 'read_cards ', &
-            & 'DEPRECATED: no units specified in EXTERNAL_CHARGES card' )
+            & 'No units specified in EXTERNAL_CHARGES card' )
             external_charges = 'bohr'
          CALL infomsg( 'read_cards ', &
             & 'EXTERNAL_CHARGES: units set to '//TRIM(external_charges) )
+      ENDIF
+      !
+      IF ( matches( "CEL", input_line ) ) THEN
+         extcharge_origin = 0
+      ELSEIF ( matches( "SYS", input_line ) ) THEN
+         extcharge_origin = 1
+      ELSEIF ( matches( "BOUND", input_line ) ) THEN
+         extcharge_origin = 2
+      ELSE
+         CALL infomsg( 'read_cards ', &
+            & 'No origin specified in EXTERNAL_CHARGES card' )
+            extcharge_origin = 0
+         CALL infomsg( 'read_cards ', &
+            & 'EXTERNAL_CHARGES: origin set to cell origin')
       ENDIF
       !
       DO ie = 1, env_external_charges
@@ -697,13 +741,13 @@ MODULE environ_input
    !
    ! ... Description of the allowed input CARDS
    !
-   ! DIELECTRIC_REGIONS (units_options)
+   ! DIELECTRIC_REGIONS (unit_option origin_option)
    !
    !   set fixed dielectric regions and their shape
    !
    ! Syntax:
    !
-   !    DIELECTRIC_REGIONS (units_options)
+   !    DIELECTRIC_REGIONS (unit_option origin_option)
    !      epsilon0(1) epsilonopt(1) x(1) y(1) z(1)  width(1) spread(1) dim(1)  axis(1)    
    !       ...       ...        ...      ...        ...
    !      epsilon0(n) epsilonopt(n) x(n) y(n) z(n)  width(n) spread(n) dim(n)  axis(n)  
@@ -715,8 +759,11 @@ MODULE environ_input
    !
    ! Where:
    !  
-   !   units_option == bohr      position are given in Bohr
-   !   units_option == angstrom  position are given in Angstrom
+   !   unit_option == bohr       positions are given in Bohr (DEFAULT)
+   !   unit_option == angstrom   positions are given in Angstrom
+   !   origin_option == cell     positions are given wrt cell's origin (DEFAULT)
+   !   origin_option == bound    positions are given wrt system's bounding box
+   !   origin_option == system   positions are given wrt system's origin
    !
    !      epsilon0(i)   ( real )    static permittivity inside the region
    !      epsilonopt(i) ( real )    optical permittivity inside the region
@@ -762,10 +809,24 @@ MODULE environ_input
                         & // input_line, 1 )
          ENDIF
          CALL infomsg( 'read_cards ', &
-            & 'DEPRECATED: no units specified in DIELECTRIC_REGIONS card' )
-            dielectric_regions = 'angstrom'
+            & 'No units specified in DIELECTRIC_REGIONS card' )
+            dielectric_regions = 'bohr'
          CALL infomsg( 'read_cards ', &
             & 'DIELECTRIC_REGIONS: units set to '//TRIM(dielectric_regions) )
+      ENDIF
+      !
+      IF ( matches( "CEL", input_line ) ) THEN
+         epsregion_origin = 0
+      ELSEIF ( matches( "SYS", input_line ) ) THEN
+         epsregion_origin = 1
+      ELSEIF ( matches( "BOUND", input_line ) ) THEN
+         epsregion_origin = 2
+      ELSE
+         CALL infomsg( 'read_cards ', &
+            & 'No origin specified in DIELECTRIC_REGIONS card' )
+         epsregion_origin = 0
+         CALL infomsg( 'read_cards ', &
+            & 'DIELECTRIC_REGIONS: origin set to cell origin' )
       ENDIF
       !
       DO ie = 1, env_dielectric_regions
@@ -896,7 +957,7 @@ MODULE environ_input
         !
         ! ... positions in A: convert to a.u. 
         !
-        pos = pos / bohr_radius_angs 
+        pos = pos / bohr_radius_angs
         !
      CASE DEFAULT
         !

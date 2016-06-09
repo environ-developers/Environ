@@ -15,9 +15,11 @@ MODULE epsregion
   USE constants,      ONLY: sqrtpi, fpi, pi
   USE io_global,      ONLY: stdout
   USE environ_base,   ONLY: verbose, environ_unit,                   &
+                            system_pos, system_width,                &
                             env_static_permittivity,                 &
                             env_optical_permittivity,                &
-                            env_dielectric_regions, epsregion_eps,   &
+                            env_dielectric_regions,                  &
+                            epsregion_origin, epsregion_eps,         &
                             epsregion_dim, epsregion_axis,           &
                             epsregion_pos, epsregion_width,          &
                             epsregion_spread, epsstatic, epsoptical 
@@ -51,13 +53,28 @@ CONTAINS
   !
   ! ... Local variables
   !
+  LOGICAL :: shift
   INTEGER :: idr, dim, axis
-  REAL(DP) :: spread, width, charge
-  REAL(DP), DIMENSION(3) :: pos
+  REAL(DP) :: spread, width, charge, norm
+  REAL(DP), DIMENSION(3) :: pos, pos0
   !
   REAL(DP), DIMENSION(:), ALLOCATABLE :: epslocal
   !
   ALLOCATE(epslocal(nnr))
+  !
+  ! Use the origin of the cell as default origin, removed other options
+  !
+  SELECT CASE ( epsregion_origin )
+  CASE ( 0 )
+     shift = .false.
+     pos0 = 0.D0
+  CASE ( 1 )
+     shift = .false.
+     pos0 = system_pos
+  CASE ( 2 )
+     shift = .true.
+     pos0 = system_pos
+  END SELECT
   !
   ! ... Generate the dielectric regions (static) 
   !
@@ -65,11 +82,26 @@ CONTAINS
   !
   DO idr = 1, env_dielectric_regions
      !
-     pos(:) = epsregion_pos(:,idr)/alat
+     norm = SQRT(SUM(epsregion_pos(:,idr)**2))
+     IF ( .NOT. shift ) THEN
+       ! No bounding box 
+       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
+       width = epsregion_width(idr)
+     ELSE IF ( norm .NE. 0.D0 ) THEN
+       ! The region is not centered on the system, position is defined wrt to bounding box
+       ! but do not change the width of the region
+       pos(:) = epsregion_pos(:,idr)/alat*(1.D0+system_width/norm) + pos0(:)
+       width = epsregion_width(idr)
+     ELSE
+       ! The region is centered on the system, position is not changed
+       ! but the width is defined in addition to the system width
+       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
+       width = epsregion_width(idr) + system_width 
+     ENDIF
+     !
      dim = epsregion_dim(idr)
      axis = epsregion_axis(idr)
      spread = epsregion_spread(idr)
-     width = epsregion_width(idr)
      epslocal = 0.D0
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1.X QE-5.2.0
@@ -91,11 +123,26 @@ CONTAINS
   !
   DO idr = 1, env_dielectric_regions
      !
-     pos(:) = epsregion_pos(:,idr)/alat
+     norm = SQRT(SUM(epsregion_pos(:,idr)**2))
+     IF ( .NOT. shift ) THEN
+       ! No bounding box 
+       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
+       width = epsregion_width(idr)
+     ELSE IF ( norm .NE. 0.D0 ) THEN
+       ! The region is not centered on the system, position is defined wrt to bounding box
+       ! but do not change the width of the region
+       pos(:) = epsregion_pos(:,idr)/alat*(1.D0+system_width/norm) + pos0(:)
+       width = epsregion_width(idr)
+     ELSE
+       ! The region is centered on the system, position is not changed
+       ! but the width is defined in addition to the system width
+       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
+       width = epsregion_width(idr) + system_width 
+     ENDIF
+     !
      dim = epsregion_dim(idr)
      axis = epsregion_axis(idr)
      spread = epsregion_spread(idr)
-     width = epsregion_width(idr)
      epslocal = 0.D0
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1.X QE-5.2.0
