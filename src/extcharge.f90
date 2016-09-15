@@ -12,10 +12,11 @@ MODULE extcharge
 !--------------------------------------------------------------------
 
   USE kinds,          ONLY: DP
+  USE constants,      ONLY: pi, e2
   USE io_global,      ONLY: stdout
   USE mp,             ONLY: mp_sum
   USE mp_bands,       ONLY: intra_bgrp_comm
-  USE environ_cell,   ONLY: domega
+  USE environ_cell,   ONLY: domega, omega
   USE environ_ions,   ONLY: avg_pos, rhoions
   USE environ_base,   ONLY: verbose, environ_unit,                   &
                             env_external_charges, extcharge_dim,     &
@@ -28,7 +29,7 @@ MODULE extcharge
   ! 
   LOGICAL :: first = .TRUE.
   !
-  REAL(DP) :: eextself = 0.D0
+  REAL(DP) :: eextself = 0.D0, eextzero = 0.D0
   !
   SAVE
   !
@@ -95,11 +96,14 @@ CONTAINS
   SUBROUTINE calc_vextcharge(  nnr, nspin, vextcharge )
 !--------------------------------------------------------------------
     !
+    USE environ_base,  ONLY : atomicspread
+    USE environ_ions,  ONLY : nat, ityp, zv
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: nnr, nspin
     REAL( DP ), INTENT(OUT) :: vextcharge(nnr)
     !
+    INTEGER :: ia
     REAL( DP ) :: ehart, charge
     REAL( DP ), ALLOCATABLE :: vaux(:,:), rhoaux(:,:)
 
@@ -124,6 +128,14 @@ CONTAINS
     CALL mp_sum( eextself, intra_bgrp_comm )
     IF ( verbose .GE. 1 ) WRITE(environ_unit,*)&
       & 'External charge self energy',eextself
+
+    eextzero = 0.D0
+    DO ia = 1, nat
+       eextzero = eextzero + zv( ityp( ia ) ) * atomicspread( ityp( ia ) ) ** 2
+    ENDDO
+    eextzero = eextzero * pi / omega * charge * e2
+    IF ( verbose .GE. 1 ) WRITE(environ_unit,*)&
+      & 'External charge G=0 correction',eextzero
     
     CALL stop_clock( 'get_extcharge' ) 
 
@@ -155,7 +167,7 @@ CONTAINS
     !
     CALL mp_sum( eextcharge, intra_bgrp_comm )
     !
-    eextcharge = eextcharge + eextself
+    eextcharge = eextcharge + eextself + eextzero
     !
     RETURN
     !
