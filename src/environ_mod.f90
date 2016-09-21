@@ -52,6 +52,15 @@ MODULE environ_base
        rhomin,                      &
        tbeta
   !
+  ! Empty pockets parameters
+  !
+  REAL (KIND=DP) ::                 &
+       solvent_radius,              &
+       radial_scale,                &
+       radial_spread,               &
+       emptying_treshold,           &
+       emptying_spread
+  !
   ! Dielectric parameters (solvent)
   !
   REAL (KIND=DP) ::                 &
@@ -189,7 +198,10 @@ MODULE environ_base
                       ( assume_isolated, environ_restart_,          &
                         verbose_, environ_thr_, environ_nskip_,     &
                         environ_type_, stype_, rhomax_, rhomin_,    &
-                        tbeta_, env_static_permittivity_,           &
+                        tbeta_, solvent_radius_,                    &
+                        radial_scale_, radial_spread_,              &
+                        emptying_treshold_, emptying_spread_,       &
+                        env_static_permittivity_,                   &
                         env_optical_permittivity_, eps_mode_,       &
                         alpha_, solvationrad_, corespread_,         & 
                         atomicspread_, add_jellium_,                &
@@ -218,6 +230,8 @@ MODULE environ_base
                                env_dielectric_regions_,                         &
                                epsregion_dim_(:), epsregion_axis_(:)
         REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta_,         &
+                               solvent_radius_, radial_scale_, radial_spread_,  &
+                               emptying_treshold_, emptying_spread_,            &
                                env_static_permittivity_,                        &
                                env_optical_permittivity_, mixrhopol_,           &
                                tolrhopol_, alpha_, solvationrad_(:),            &
@@ -244,6 +258,12 @@ MODULE environ_base
         IF ( stype .EQ. 1 ) THEN
            tbeta  = LOG( rhomax / rhomin )
         END IF
+        !
+        solvent_radius    = solvent_radius_
+        radial_scale      = radial_scale_
+        radial_spread     = radial_spread_
+        emptying_treshold = emptying_treshold_
+        emptying_spread   = emptying_spread_
         !
         eps_mode = eps_mode_
         IF ( ALLOCATED(solvationrad) ) DEALLOCATE( solvationrad )
