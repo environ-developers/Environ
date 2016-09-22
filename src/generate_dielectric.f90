@@ -11,9 +11,189 @@ MODULE generate_f_of_rho
 !
 PRIVATE
 !
-PUBLIC :: epsilonfunct, depsilonfunct, generate_dielectric, generate_theta, generate_volume, generate_dvoldrho
+PUBLIC :: epsilonfunct, depsilonfunct, generate_dielectric, &
+          generate_theta, generate_volume, generate_dvoldrho
 !
 CONTAINS
+!--------------------------------------------------------------------
+      FUNCTION sfunct0( x, xthr, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Switching function 0: 1+(1-(x/xthr)^fact)/(1+(x/xthr)^fact)
+      !     goes from 1 to 0 when passing through the treshold
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : tpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: sfunct0
+      REAL( DP )             :: x, xthr, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      arg = ( ABS( x ) / xthr ) ** fact
+      sfunct0 = 0.5D0 * ( 1.D0 + ( 1.D0 - arg ) / ( 1.D0 + arg ) )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION sfunct0
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION dsfunct0( x, xthr, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Derivative of switching function 0
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : tpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: dsfunct0
+      REAL( DP )             :: x, xthr, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      arg = ( ABS( x ) / xthr ) ** fact
+      dsfunct0 = - fact * ABS( x ) ** ( fact - 1.D0 ) / xthr ** fact &
+               &  / ( 1.D0 + arg ) ** 2 
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION dsfunct0
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION sfunct1( x, xmax, xmin, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Switching function 1: x - sin(x)
+      !     goes from 1 to 0 when passing from xmin to xmax
+      !
+      !     NOTE: fact should be equal to LOG(xmax/xmin)
+      !     but is passed in input to save time
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : tpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: sfunct1
+      REAL( DP )             :: x, xmax, xmin, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      IF ( x .LE. xmin ) THEN
+        sfunct1 = 1.D0
+      ELSE IF ( x .LT. xmax ) THEN
+        arg = tpi * LOG( xmax / ABS( x ) ) / fact
+        sfunct1 = ( arg - SIN( arg ) ) / tpi 
+      ELSE
+        sfunct1 = 0.D0
+      ENDIF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION sfunct1
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION dsfunct1( x, xmax, xmin, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Derivative of switching function 1
+      !
+      !     NOTE: fact should be equal to LOG(xmax/xmin)
+      !     but is passed in input to save time
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : tpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: dsfunct1
+      REAL( DP )             :: x, xmax, xmin, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      IF ( x .LE. xmin ) THEN
+        dsfunct1 = 0.D0
+      ELSE IF ( x .LT. xmax ) THEN
+        arg = tpi * LOG(xmax/ABS(x)) / fact
+        dsfunct1 = ( COS( arg ) - 1.D0 ) / ABS(x) / fact
+      ELSE
+        dsfunct1 = 0.D0
+      ENDIF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION dsfunct1
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION sfunct2( x, xthr, spread )
+!--------------------------------------------------------------------
+      !
+      ! ... Switching function 2: erfc()
+      !     goes from 1 to 0 when passing through xthr
+      !
+      USE kinds,              ONLY : DP
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: sfunct2
+      REAL( DP )             :: x, xthr, spread
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      REAL( DP ), EXTERNAL   :: qe_erfc
+      !
+      arg = ( x - xthr ) / spread
+      sfunct2 = 0.5D0 * qe_erfc(arg)
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION sfunct2
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION dsfunct2( x, xthr, spread )
+!--------------------------------------------------------------------
+      !
+      ! ... Derivative of switching function 2
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : sqrtpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: dsfunct2
+      REAL( DP )             :: x, xthr, spread
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      REAL( DP ), EXTERNAL   :: qe_erfc
+      !
+      arg = ( x - xthr ) / spread
+      dsfunct2 = - EXP( -arg**2 ) / sqrtpi / spread
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION dsfunct2
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
       FUNCTION epsilonfunct( rho, rhomax, rhomin, tbeta, epszero,  &
                              ifunct )
