@@ -129,8 +129,8 @@ CONTAINS
       IF ( x .LE. xmin ) THEN
         dsfunct1 = 0.D0
       ELSE IF ( x .LT. xmax ) THEN
-        arg = tpi * LOG(xmax/ABS(x)) / fact
-        dsfunct1 = ( COS( arg ) - 1.D0 ) / ABS(x) / fact
+        arg = tpi * LOG( xmax / ABS( x ) ) / fact
+        dsfunct1 = ( COS( arg ) - 1.D0 ) / ABS( x ) / fact
       ELSE
         dsfunct1 = 0.D0
       ENDIF
@@ -139,6 +139,42 @@ CONTAINS
       !
 !--------------------------------------------------------------------
       END FUNCTION dsfunct1
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION d2sfunct1( x, xmax, xmin, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Derivative of switching function 1
+      !
+      !     NOTE: fact should be equal to LOG(xmax/xmin)
+      !     but is passed in input to save time
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : tpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: d2sfunct1
+      REAL( DP )             :: x, xmax, xmin, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      IF ( x .LE. xmin ) THEN
+        d2sfunct1 = 0.D0
+      ELSE IF ( x .LT. xmax ) THEN
+        arg = tpi * LOG( xmax / ABS( x ) ) / fact
+        d2sfunct1 = ( tpi * SIN( arg ) + fact * ( COS( arg ) - 1.D0 ) ) &
+                    / ( x * fact ) ** 2
+      ELSE
+        d2sfunct1 = 0.D0
+      ENDIF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION d2sfunct1
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       FUNCTION sfunct2( x, xthr, spread )
@@ -222,21 +258,11 @@ CONTAINS
       !
       CASE( 0 )
         !
-        epsilonfunct = 1.D0 + 0.5D0 * ( epszero - 1.D0 ) *       &
-          ( 1.D0 + ( 1.D0 - ( ABS( rho ) / rhomax ) ** tbeta )   &
-          / ( 1.D0 + ( ABS( rho ) / rhomax ) ** tbeta ) )
+        epsilonfunct = 1.D0 + ( epszero - 1.D0 ) * sfunct0( rho, rhomax, tbeta )
         !
       CASE( 1 )
         !
-        IF ( rho .LE. rhomin ) THEN 
-          epsilonfunct = epszero
-        ELSE IF ( rho .LT. rhomax ) THEN
-          arg = tpi * LOG(rhomax/ABS(rho)) / tbeta
-          epsilonfunct = EXP( LOG( epszero ) *                     &
-            ( arg - SIN( arg ) ) / tpi ) 
-        ELSE 
-          epsilonfunct = 1.D0
-        ENDIF
+        epsilonfunct = EXP( LOG( epszero ) * sfunct1( rho, rhomax, rhomin, tbeta ) )
         !
       CASE DEFAULT 
         !
@@ -279,22 +305,13 @@ CONTAINS
       !
       CASE( 0 )
         !
-        depsilonfunct = - tbeta * ( epszero - 1.D0 )               &
-          * ABS( rho ) ** ( tbeta - 1.D0 ) / rhomax ** tbeta       &
-          / ( 1.D0 + ( ABS( rho ) / rhomax ) ** tbeta ) ** 2
+        depsilonfunct = ( epszero - 1.D0 ) * dsfunct0( rho, rhomax, tbeta )
         !
       CASE( 1 )
         !
-        IF ( rho .LE. rhomin ) THEN 
-          depsilonfunct = 0.D0
-        ELSE IF ( rho .LT. rhomax ) THEN
-          arg = tpi * log(rhomax/ABS(rho)) / tbeta
-          depsilonfunct = - EXP( LOG( epszero ) *                  &
-            ( arg - SIN( arg ) ) / tpi ) * LOG( epszero ) *        & 
-            ( 1.D0 - COS( arg ) ) / ABS(rho) / tbeta 
-        ELSE 
-          depsilonfunct = 0.D0
-        ENDIF
+        depsilonfunct = LOG( epszero ) * &
+              dsfunct1( rho, rhomax, rhomin, tbeta ) * &
+              epsilonfunct( rho, rhomax, rhomin, tbeta, epszero, ifunct )
         !
       CASE DEFAULT 
         !
@@ -394,8 +411,9 @@ CONTAINS
       !
       INTEGER                     :: ir
       REAL( DP ), DIMENSION(nnr)  :: permittivity
+      REAL( DP ), DIMENSION(nnr)  :: rhoaug
       !
-      IF (optical_constant) THEN
+      IF ( optical_constant ) THEN
          !
          ! TDDFPT calculation
          !
@@ -416,15 +434,18 @@ CONTAINS
          ENDIF
          !
       ENDIF
-      ! 
+      !
+      rhoaug = rho
+      !
       DO ir = 1, nnr
         ! 
-        eps( ir )  =  epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
+        eps( ir )  =  epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
                                     permittivity( ir ), stype )
-        deps( ir ) = depsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
+        deps( ir ) = depsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
                                     permittivity( ir ), stype )
-        d2eps( ir ) = d2epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
+        d2eps( ir ) = d2epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
                                     permittivity( ir ), stype )
+        !
       END DO
       !
       RETURN
