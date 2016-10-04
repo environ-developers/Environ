@@ -104,8 +104,8 @@ MODULE environ_input
         ! size
         REAL(DP) :: radial_spread = 0.5D0
         ! spread of the step function used to evaluate occupied volume
-        REAL(DP) :: emptying_treshold = 0.875D0
-        ! treshold to decide whether to empty a continuum pocket or not, to be
+        REAL(DP) :: emptying_threshold = 0.875D0
+        ! threshold to decide whether to empty a continuum pocket or not, to be
         ! compare with the filled fraction
         REAL(DP) :: emptying_spread = 0.05D0
         ! spread of the switching function used to decide whether the dielectric
@@ -210,7 +210,7 @@ MODULE environ_input
              environ_restart, verbose, environ_thr, environ_nskip,     &
              environ_type, stype, rhomax, rhomin, tbeta,               &
              solvent_radius, radial_scale, radial_spread,              &
-             emptying_treshold, emptying_spread,                       &
+             emptying_threshold, emptying_spread,                      &
              env_static_permittivity, eps_mode,                        &
              env_optical_permittivity,                                 &
              alpha, solvationrad, corespread, atomicspread,            &
@@ -264,7 +264,7 @@ MODULE environ_input
                                 verbose, environ_thr, environ_nskip,        &
                                 environ_type, stype, rhomax, rhomin, tbeta, &
                                 solvent_radius, radial_scale, radial_spread,&
-                                emptying_treshold, emptying_spread,         &
+                                emptying_threshold, emptying_spread,        &
                                 env_static_permittivity,                    &
                                 env_optical_permittivity, eps_mode,         &
                                 alpha, solvationrad(1:ntyp),                &
@@ -357,11 +357,11 @@ MODULE environ_input
        rhomin  = 0.0001
        tbeta   = 4.8
        !
-       solvent_radius    = 0.D0
-       radial_scale      = 2.D0
-       radial_spread     = 0.5D0
-       emptying_treshold = 0.875D0
-       emptying_spread   = 0.05D0
+       solvent_radius     = 0.D0
+       radial_scale       = 2.D0
+       radial_spread      = 0.5D0
+       emptying_threshold = 0.875D0
+       emptying_spread    = 0.05D0
        !
        env_static_permittivity = 1.D0
        env_optical_permittivity = 1.D0
@@ -425,7 +425,7 @@ MODULE environ_input
        CALL mp_bcast( solvent_radius,             ionode_id, intra_image_comm )
        CALL mp_bcast( radial_scale,               ionode_id, intra_image_comm )
        CALL mp_bcast( radial_spread,              ionode_id, intra_image_comm )
-       CALL mp_bcast( emptying_treshold,          ionode_id, intra_image_comm )
+       CALL mp_bcast( emptying_threshold,         ionode_id, intra_image_comm )
        CALL mp_bcast( emptying_spread,            ionode_id, intra_image_comm )
        !
        CALL mp_bcast( env_static_permittivity,    ionode_id, intra_image_comm )
