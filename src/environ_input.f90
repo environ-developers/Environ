@@ -716,7 +716,7 @@ MODULE environ_input
    !
    ! Where:
    !  
-   !   units_option == bohr      position are given in Bohr
+   !   units_option == bohr      position are given in Bohr (default)
    !   units_option == angstrom  position are given in Angstrom
    !
    !      epsilon0(i)   ( real )    static permittivity inside the region
@@ -764,7 +764,7 @@ MODULE environ_input
          ENDIF
          CALL infomsg( 'read_cards ', &
             & 'DEPRECATED: no units specified in DIELECTRIC_REGIONS card' )
-            dielectric_regions = 'angstrom'
+            dielectric_regions = 'bohr'
          CALL infomsg( 'read_cards ', &
             & 'DIELECTRIC_REGIONS: units set to '//TRIM(dielectric_regions) )
       ENDIF
