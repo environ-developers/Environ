@@ -104,9 +104,10 @@ MODULE environ_input
         ! size
         REAL(DP) :: radial_spread = 0.5D0
         ! spread of the step function used to evaluate occupied volume
-        REAL(DP) :: emptying_threshold = 0.875D0
+        REAL(DP) :: emptying_threshold = 0.125D0
         ! threshold to decide whether to empty a continuum pocket or not, to be
-        ! compare with the filled fraction
+        ! compared with the filled fraction: if filled fraction .LE. threshold
+        ! THEN empty gridpoint
         REAL(DP) :: emptying_spread = 0.05D0
         ! spread of the switching function used to decide whether the dielectric
         ! should be emptied or not
@@ -360,7 +361,7 @@ MODULE environ_input
        solvent_radius     = 0.D0
        radial_scale       = 2.D0
        radial_spread      = 0.5D0
-       emptying_threshold = 0.875D0
+       emptying_threshold = 0.125D0
        emptying_spread    = 0.05D0
        !
        env_static_permittivity = 1.D0
