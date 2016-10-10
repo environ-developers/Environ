@@ -684,7 +684,7 @@ CONTAINS
       !
       width = solvent_radius * radial_scale
       spread = radial_spread
-      maxwidth = ( width + 3.D0 * spread ) / alat
+      maxwidth = ( width + 3.D0 * spread ) / alat ! factor 3.D0 corresponds to neglect fconv<=ERFC(3.D0)
       nr1c = INT(maxwidth/SQRT(SUM(at(:,1)**2))) + 1
       nr2c = INT(maxwidth/SQRT(SUM(at(:,2)**2))) + 1
       nr3c = INT(maxwidth/SQRT(SUM(at(:,3)**2))) + 1
@@ -723,11 +723,17 @@ CONTAINS
       !
       ! Step 4: Perform the convolution
       !
-      f = 0.D0
       ALLOCATE( i1( -nr1c : nr1c ) )
       ALLOCATE( i2( -nr2c : nr2c ) )
       ALLOCATE( i3( -nr3c : nr3c ) )
       DO ir = 1, ir_end
+         !
+         ! ... if the point is already empty we can skip it
+         !
+         IF ( f( ir ) .LT. 1.D-8 ) THEN
+            f( ir ) = 0.D0
+            CYCLE
+         ENDIF
          !
          ! ... three dimensional indexes
          !
@@ -741,6 +747,8 @@ CONTAINS
          i2(0) = j
          i3(0) = k
          !
+         ! ... map surrounding grid points
+         !
          DO i = -nr1c, nr1c
             i1(i) = i1(0) + i - FLOOR( DBLE( i1(0) + i ) / dfftp%nr1x ) * dfftp%nr1x 
          ENDDO
@@ -751,6 +759,9 @@ CONTAINS
             i3(k) = i3(0) + k - FLOOR( DBLE( i3(0) + k ) / dfftp%nr3x ) * dfftp%nr3x 
          ENDDO
          !
+         ! ... integrate
+         !
+         f( ir ) = 0.D0
          DO i = -nr1c, nr1c
             itmp = 1 + i1(i)
             DO j = -nr2c, nr2c
@@ -773,7 +784,7 @@ CONTAINS
       ! Step 5: compute the filling condition
       !
       g = 0.D0
-      DO ir = 1, nnr
+      DO ir = 1, ir_end
          !
          g( ir ) = sfunct2( f( ir ), emptying_threshold, emptying_spread )
          !
