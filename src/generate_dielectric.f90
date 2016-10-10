@@ -614,15 +614,14 @@ CONTAINS
                                  solvent_radius, radial_spread,    &
                                  radial_scale, emptying_threshold, &
                                  emptying_spread
-      USE environ_cell,   ONLY : ntot, domega, alat
-      USE io_global,      ONLY : ionode
+      USE environ_cell,   ONLY : ntot, domega, alat, at, omega
       USE mp,             ONLY : mp_sum
       USE mp_bands,       ONLY : intra_bgrp_comm
       USE fft_base,       ONLY : dfftp
 ! BACKWARD COMPATIBILITY !!!! NEED TO BUILD IT PROPERLY
       USE scatter_mod,    ONLY : gather_grid
 ! END BACKWARD COMPATIBILITY
-      USE generate_function, ONLY : generate_axis, generate_erfc
+      USE generate_function, ONLY : erfcvolume
       !
       IMPLICIT NONE
       !
@@ -631,17 +630,158 @@ CONTAINS
       !
       ! Local variables
       !
-      INTEGER :: ir
+      INTEGER :: inv_nr1, inv_nr2, inv_nr3
+      INTEGER :: ir, ir_end, idx0, i, j, k, ip, itmp, jtmp, jr
+      INTEGER :: nr1c, nr2c, nr3c
       INTEGER :: dim, axis
-      REAL( DP ) :: charge, width, spread, ztmp
+      REAL( DP ) :: width, spread, maxwidth, scale
+      REAL( DP ) :: r, r2, arg
+      REAL( DP ), EXTERNAL :: qe_erfc
       REAL( DP ), DIMENSION( 3 ) :: origin = 0.D0
       REAL( DP ), DIMENSION( 3 ) :: pos
+      REAL( DP ), DIMENSION( nnr ) :: f, g
+      REAL( DP ), DIMENSION( ntot ) :: ftot
+      REAL( DP ), DIMENSION( : ), ALLOCATABLE :: i1, i2, i3
+      REAL( DP ), DIMENSION( :, :, : ), ALLOCATABLE :: fconv
       !
-      dim = 0
-      axis = 1
-      charge = 1.D0
+      inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
+      inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
+      inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+      !
+      idx0 = 0
+      ir_end = nnr
+      !
+#if defined (__MPI)
+      DO i = 1, me_bgrp
+        idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
+      END DO
+      ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
+#endif  
+      !
+      ! Step 1: compute scaled dielectric function
+      !
+      f = 0.D0
+      !
+      DO ir = 1, ir_end
+         !
+         f( ir ) = sfunct1( rho( ir ), rhomax, rhomin, tbeta )
+         !
+      ENDDO
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, f, 'scaledeps.cube' )
+      !
+      ! ... Each processor needs to have the whole function
+      !
+#if defined (__MPI)
+      ftot = 0.D0
+      CALL gather_grid ( dfftp, f, ftot )
+      CALL mp_sum( ftot, intra_bgrp_comm )
+#else
+      ftot = f
+#endif
+      !
+      ! Step 2: Compute the size of the convolution grid
+      !
       width = solvent_radius * radial_scale
       spread = radial_spread
+      maxwidth = ( width + 3.D0 * spread ) / alat
+      nr1c = INT(maxwidth/SQRT(SUM(at(:,1)**2))) + 1
+      nr2c = INT(maxwidth/SQRT(SUM(at(:,2)**2))) + 1
+      nr3c = INT(maxwidth/SQRT(SUM(at(:,3)**2))) + 1
+      !
+      ! Step 3: Generate the convolution function on the conv. grid
+      !
+      ALLOCATE( fconv( 0 : nr1c, 0 : nr2c, 0 : nr3c ) )
+      fconv = 0.D0
+      DO i = 0, nr1c
+         DO j = 0, nr2c
+            DO k = 0, nr3c
+               r2 = 0.D0
+               DO ip = 1, 3
+                  r = DBLE( i )*inv_nr1*at(ip,1) + &
+                      DBLE( j )*inv_nr2*at(ip,2) + &
+                      DBLE( k )*inv_nr3*at(ip,3)
+                  r2 = r2 + r**2 
+               ENDDO
+               r = SQRT(r2) * alat
+               ! ERFC convolution function BEGIN
+               arg = ( r - width ) / spread
+               fconv(i,j,k) = qe_erfc(arg)
+               ! ERFC convolution function END
+            ENDDO
+         ENDDO         
+      ENDDO
+      !
+      ! ... Normalize convolution function and multiply by finite difference volume
+      !
+      ! ERFC convolution function BEGIN
+      dim = 0
+      axis = 1
+      scale = 0.5D0 / erfcvolume(dim,axis,width,spread,alat,omega,at) * domega
+      ! ERFC convolution function END
+      fconv = fconv * scale 
+      !
+      ! Step 4: Perform the convolution
+      !
+      f = 0.D0
+      ALLOCATE( i1( -nr1c : nr1c ) )
+      ALLOCATE( i2( -nr2c : nr2c ) )
+      ALLOCATE( i3( -nr3c : nr3c ) )
+      DO ir = 1, ir_end
+         !
+         ! ... three dimensional indexes
+         !
+         i = idx0 + ir - 1
+         k = i / (dfftp%nr1x*dfftp%nr2x)
+         i = i - (dfftp%nr1x*dfftp%nr2x)*k
+         j = i / dfftp%nr1x
+         i = i - dfftp%nr1x*j
+         !
+         i1(0) = i
+         i2(0) = j
+         i3(0) = k
+         !
+         DO i = -nr1c, nr1c
+            i1(i) = i1(0) + i - FLOOR( DBLE( i1(0) + i ) / dfftp%nr1x ) * dfftp%nr1x 
+         ENDDO
+         DO j = -nr2c, nr2c
+            i2(j) = i2(0) + j - FLOOR( DBLE( i2(0) + j ) / dfftp%nr2x ) * dfftp%nr2x 
+         ENDDO
+         DO k = -nr3c, nr3c
+            i3(k) = i3(0) + k - FLOOR( DBLE( i3(0) + k ) / dfftp%nr3x ) * dfftp%nr3x 
+         ENDDO
+         !
+         DO i = -nr1c, nr1c
+            itmp = 1 + i1(i)
+            DO j = -nr2c, nr2c
+               jtmp = itmp + i2(j) * dfftp%nr1x
+               DO k = -nr3c, nr3c
+                  jr = jtmp + i3(k) * dfftp%nr1x * dfftp%nr2x 
+                  f(ir) = f(ir) + ftot(jr) * fconv(ABS(i),ABS(j),ABS(k))
+               ENDDO
+            ENDDO
+         ENDDO
+         !
+      ENDDO
+      DEALLOCATE( fconv )
+      DEALLOCATE( i1 )
+      DEALLOCATE( i2 )
+      DEALLOCATE( i3 )
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, f, 'filledfrac.cube' )
+      !
+      ! Step 5: compute the filling condition
+      !
+      g = 0.D0
+      DO ir = 1, nnr
+         !
+         g( ir ) = sfunct2( f( ir ), emptying_threshold, emptying_spread )
+         !
+      ENDDO
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, g, 'rhoholes.cube' )
+      !
+      rho = rho + 2.D0 * rhomax * g
       !
       RETURN
       !
