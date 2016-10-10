@@ -9,6 +9,9 @@
 !
 MODULE generate_f_of_rho
 !
+USE environ_base,   ONLY : verbose, environ_unit
+USE environ_debug,  ONLY : write_cube
+!
 PRIVATE
 !
 PUBLIC :: epsilonfunct, depsilonfunct, generate_dielectric, &
@@ -20,7 +23,7 @@ CONTAINS
 !--------------------------------------------------------------------
       !
       ! ... Switching function 0: 1+(1-(x/xthr)^fact)/(1+(x/xthr)^fact)
-      !     goes from 1 to 0 when passing through the treshold
+      !     goes from 1 to 0 when passing through the threshold
       !
       USE kinds,              ONLY : DP
       USE constants,          ONLY : tpi
@@ -397,7 +400,8 @@ CONTAINS
                                  env_optical_permittivity,    &
                                  env_dielectric_regions,      &
                                  epsstatic, epsoptical,       &
-                                 tbeta, rhomax, rhomin, stype
+                                 tbeta, rhomax, rhomin, stype,&
+                                 solvent_radius
       !
       IMPLICIT NONE
       !
@@ -417,34 +421,47 @@ CONTAINS
          !
          ! TDDFPT calculation
          !
-         IF ( env_dielectric_regions .GT. 0 ) THEN
-            permittivity = epsoptical
-         ELSE ! omogeneous dielectric
+!DEBUG         IF ( env_dielectric_regions .GT. 0 ) THEN
+!DEBUG            permittivity = epsoptical
+!DEBUG         ELSE ! omogeneous dielectric
             permittivity = env_optical_permittivity
-         ENDIF
+!DEBUG         ENDIF
          !
       ELSE
          !
          ! Ground-state calculation
          !
-         IF ( env_dielectric_regions .GT. 0 ) THEN
-            permittivity = epsstatic
-         ELSE ! omogeneous dielectric
+!DEBUG         IF ( env_dielectric_regions .GT. 0 ) THEN
+!DEBUG            permittivity = epsstatic
+!DEBUG         ELSE ! omogeneous dielectric
             permittivity = env_static_permittivity
-         ENDIF
+!DEBUG         ENDIF
          !
       ENDIF
       !
       rhoaug = rho
       !
+      IF ( env_dielectric_regions .GT. 0 ) CALL fakerhodiel( nnr, rhoaug )
+      !
+      IF ( solvent_radius .GT. 0.D0 ) THEN
+         !
+         ! Augment dielectric density to empty
+         ! environment pockets smaller than solvent radius
+         !
+         CALL empty_pockets( nnr, rhoaug )
+         !
+      ENDIF
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, rhoaug, 'rhoaug.cube' )
+      !
       DO ir = 1, nnr
         ! 
-        eps( ir )  =  epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
-                                    permittivity( ir ), stype )
+        eps( ir ) = epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
+                                  permittivity( ir ), stype )
         deps( ir ) = depsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
                                     permittivity( ir ), stype )
         d2eps( ir ) = d2epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
-                                    permittivity( ir ), stype )
+                                      permittivity( ir ), stype )
         !
       END DO
       !
@@ -551,8 +568,8 @@ CONTAINS
       ! ... of the charge density
       !
       USE kinds,          ONLY : DP
-      USE environ_base,   ONLY : env_static_permittivity, & 
-                                 tbeta, rhomax, rhomin, stype 
+      USE environ_base,   ONLY : env_static_permittivity, &
+                                 tbeta, rhomax, rhomin, stype
       !
       IMPLICIT NONE
       !
@@ -584,5 +601,96 @@ CONTAINS
       !
 !--------------------------------------------------------------------
       END SUBROUTINE generate_dvoldrho
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      SUBROUTINE empty_pockets( nnr, rho )
+!--------------------------------------------------------------------
+      !
+      ! ... Calculates the dielectric constant as a function
+      ! ... of the charge density
+      !
+      USE kinds,          ONLY : DP
+      USE environ_base,   ONLY : tbeta, rhomax, rhomin, stype,     &
+                                 solvent_radius, radial_spread,    &
+                                 radial_scale, emptying_threshold, &
+                                 emptying_spread
+      USE environ_cell,   ONLY : ntot, domega, alat
+      USE io_global,      ONLY : ionode
+      USE mp,             ONLY : mp_sum
+      USE mp_bands,       ONLY : intra_bgrp_comm
+      USE fft_base,       ONLY : dfftp
+! BACKWARD COMPATIBILITY !!!! NEED TO BUILD IT PROPERLY
+      USE scatter_mod,    ONLY : gather_grid
+! END BACKWARD COMPATIBILITY
+      USE generate_function, ONLY : generate_axis, generate_erfc
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN)         :: nnr
+      REAL( DP ), INTENT(INOUT)   :: rho( nnr )
+      !
+      ! Local variables
+      !
+      INTEGER :: ir
+      INTEGER :: dim, axis
+      REAL( DP ) :: charge, width, spread, ztmp
+      REAL( DP ), DIMENSION( 3 ) :: origin = 0.D0
+      REAL( DP ), DIMENSION( 3 ) :: pos
+      !
+      dim = 0
+      axis = 1
+      charge = 1.D0
+      width = solvent_radius * radial_scale
+      spread = radial_spread
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END SUBROUTINE empty_pockets
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      SUBROUTINE fakerhodiel( nnr, rho )
+!--------------------------------------------------------------------
+      !
+      ! ... Calculates the dielectric constant as a function 
+      ! ... of the charge density, and the derivative of 
+      ! ... the dielectric constant wrt the charge density.
+      !
+      USE kinds,          ONLY : DP
+      USE environ_base,   ONLY : env_static_permittivity,     &
+                                 epsstatic, rhomax, rhomin,   &
+                                 verbose
+      USE environ_debug,  ONLY : write_cube
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN)         :: nnr
+      !
+      REAL( DP ), INTENT(OUT)     :: rho( nnr )
+      !
+      INTEGER :: ir
+      !
+      rho = 0.D0
+      !
+      DO ir = 1, nnr
+        !
+        IF ( epsstatic( ir ) .GE. env_static_permittivity ) THEN
+           rho( ir ) = rhomin
+        ELSE IF ( epsstatic( ir ) .LE. 1.D0 ) THEN
+           rho( ir ) = rhomax
+        ELSE
+           rho( ir ) = rhomin + ( rhomax - rhomin ) * &
+                & ( env_static_permittivity - epsstatic( ir ) ) / &
+                & ( env_static_permittivity - 1.D0 )
+        END IF
+        !
+      END DO
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, rho, 'rhofake.cube' )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END SUBROUTINE fakerhodiel
 !--------------------------------------------------------------------
 END MODULE generate_f_of_rho
