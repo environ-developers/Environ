@@ -401,7 +401,8 @@ CONTAINS
                                  env_dielectric_regions,      &
                                  epsstatic, epsoptical,       &
                                  tbeta, rhomax, rhomin, stype,&
-                                 solvent_radius
+                                 solvent_radius, radial_scale,&
+                                 radial_spread
       !
       IMPLICIT NONE
       !
@@ -416,6 +417,7 @@ CONTAINS
       INTEGER                     :: ir
       REAL( DP ), DIMENSION(nnr)  :: permittivity
       REAL( DP ), DIMENSION(nnr)  :: rhoaug
+      REAL( DP ), DIMENSION(nnr)  :: df1, df2, ftmp
       !
       IF ( optical_constant ) THEN
          !
@@ -448,7 +450,7 @@ CONTAINS
          ! Augment dielectric density to empty
          ! environment pockets smaller than solvent radius
          !
-         CALL empty_pockets( nnr, rhoaug )
+         CALL empty_pockets( nnr, rhoaug, df1, df2 )
          !
       ENDIF
       !
@@ -464,6 +466,18 @@ CONTAINS
                                       permittivity( ir ), stype )
         !
       END DO
+      !
+      IF ( solvent_radius .GT. 0.D0 ) THEN
+         !
+         ! Update the functional derivative of epsilon
+         !
+         ftmp = deps * df2
+         CALL compute_convolution( nnr, solvent_radius*radial_scale, radial_spread, ftmp, df2 )
+         deps(:) = deps(:) + df1(:) * df2(:)
+         !
+      ENDIF
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'deps.cube' )
       !
       RETURN
       !
@@ -603,7 +617,7 @@ CONTAINS
       END SUBROUTINE generate_dvoldrho
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE empty_pockets( nnr, rho )
+      SUBROUTINE empty_pockets( nnr, rho, df1, df2 )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the dielectric constant as a function
@@ -619,6 +633,7 @@ CONTAINS
       !
       INTEGER, INTENT(IN)         :: nnr
       REAL( DP ), INTENT(INOUT)   :: rho( nnr )
+      REAL( DP ), INTENT(OUT)     :: df1( nnr ), df2( nnr )
       !
       ! Local variables
       !
@@ -627,17 +642,20 @@ CONTAINS
       REAL( DP ) :: width, spread
       REAL( DP ), DIMENSION( nnr ) :: f, g
       !
-      ! Step 1: compute scaled dielectric function
+      ! Step 1: compute scaled dielectric function and its derivative
       !
       f = 0.D0
+      df1 = 0.D0
       !
       DO ir = 1, nnr ! WARNING: CHECK THAT nnr INSTEAD OF ir_end IS OK
          !
          f( ir ) = sfunct1( rho( ir ), rhomax, rhomin, tbeta )
+         df1( ir ) = dsfunct1( rho( ir ), rhomax, rhomin, tbeta )
          !
       ENDDO
       !
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, f, 'scaledeps.cube' )
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, df1, 'dscaledeps.cube' )
       !
       ! Step 2: compute filled fraction, i.e. convolution of scaledeps with erfc
       !
@@ -647,18 +665,22 @@ CONTAINS
       !
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, g, 'filledfrac.cube' )
       !
-      ! Step 3: compute the filling condition
+      ! Step 3: compute the filling condition and its derivative
       !
       f = 0.D0
+      df2 = 0.D0
       DO ir = 1, nnr ! WARNING: CHECK THAT nnr INSTEAD OF ir_end IS OK
          !
          f( ir ) = sfunct2( g( ir ), emptying_threshold, emptying_spread )
+         df2( ir ) = dsfunct2( g( ir ), emptying_threshold, emptying_spread ) 
          !
       ENDDO
       !
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, f, 'rhoholes.cube' )
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, df2, 'drhoholes.cube' )
       !
       rho = rho + 2.D0 * rhomax * f
+      df2 = 2.D0 * rhomax * df2
       !
       RETURN
       !
@@ -804,13 +826,13 @@ CONTAINS
          ! ... map surrounding grid points
          !
          DO i = -nr1c, nr1c
-            i1(i) = i1(0) + i - FLOOR( DBLE( i1(0) + i ) / DBLE( dfftp%nr1x ) ) * dfftp%nr1x 
+            i1(i) = i1(0) + i - FLOOR( DBLE( i1(0) + i ) / dfftp%nr1x ) * dfftp%nr1x 
          ENDDO
          DO j = -nr2c, nr2c
-            i2(j) = i2(0) + j - FLOOR( DBLE( i2(0) + j ) / DBLE( dfftp%nr2x ) ) * dfftp%nr2x 
+            i2(j) = i2(0) + j - FLOOR( DBLE( i2(0) + j ) / dfftp%nr2x ) * dfftp%nr2x 
          ENDDO
          DO k = -nr3c, nr3c
-            i3(k) = i3(0) + k - FLOOR( DBLE( i3(0) + k ) / DBLE( dfftp%nr3x ) ) * dfftp%nr3x 
+            i3(k) = i3(0) + k - FLOOR( DBLE( i3(0) + k ) / dfftp%nr3x ) * dfftp%nr3x 
          ENDDO
          !
          ! ... integrate
