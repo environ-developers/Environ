@@ -417,7 +417,9 @@ CONTAINS
       INTEGER                     :: ir
       REAL( DP ), DIMENSION(nnr)  :: permittivity
       REAL( DP ), DIMENSION(nnr)  :: rhoaug
+      REAL( DP ), DIMENSION(nnr)  :: rhofake
       REAL( DP ), DIMENSION(nnr)  :: df1, df2, ftmp
+      REAL( DP ) :: plus, minus, deltarho, depstmp
       !
       IF ( optical_constant ) THEN
          !
@@ -443,7 +445,12 @@ CONTAINS
       !
       rhoaug = rho
       !
-      IF ( env_dielectric_regions .GT. 0 ) CALL fakerhodiel( nnr, rhoaug )
+      IF ( env_dielectric_regions .GT. 0 ) THEN
+         !
+         CALL fakerhodiel( nnr, rhofake )
+         rhoaug = rhofake
+         !
+      ENDIF
       !
       IF ( solvent_radius .GT. 0.D0 ) THEN
          !
@@ -467,17 +474,41 @@ CONTAINS
         !
       END DO
       !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'deps0.cube' )
+      !
       IF ( solvent_radius .GT. 0.D0 ) THEN
          !
          ! Update the functional derivative of epsilon
          !
          ftmp = deps * df2
          CALL compute_convolution( nnr, solvent_radius*radial_scale, radial_spread, ftmp, df2 )
+         IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'df2conv.cube' )
          deps(:) = deps(:) + df1(:) * df2(:)
          !
       ENDIF
       !
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'deps.cube' )
+      !
+      deltarho = 0.000000001D0
+      DO ir = 62077, nnr, 14400 !nnr, 14400
+         rhoaug = rhofake
+         rhoaug( ir ) = rhofake( ir ) + deltarho
+         CALL empty_pockets( nnr, rhoaug, df1, df2 )
+!         DO ir = nnr
+         plus = epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, permittivity(ir),stype)
+         WRITE(environ_unit,*)'plus ',rhofake(ir),rhoaug(ir),plus
+!         ENDDO
+         rhoaug = rhofake
+         rhoaug( ir ) = rhofake( ir ) - deltarho
+         CALL empty_pockets( nnr, rhoaug, df1, df2 )
+!         DO ir = nnr
+            minus = epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, permittivity(ir),stype)
+!         ENDDO
+         WRITE(environ_unit,*)'minus ',rhofake(ir),rhoaug(ir),minus
+         depstmp = ( plus - minus ) / 2.D0 / deltarho
+         WRITE(environ_unit,'(1X,a,i8,3f20.10)')' ir = ',ir,deps(ir),depstmp,deps(ir)-depstmp 
+         FLUSH(environ_unit)
+      END DO
       !
       RETURN
       !
@@ -731,7 +762,6 @@ CONTAINS
       fout = 0.D0
       !
       ! ... Each processor needs to have the whole function
-      !
       !
       ntot = dfftp%nr1x * dfftp%nr2x * dfftp%nr3x ! NOT SURE IT NEEDS THE X VALUES
       !
