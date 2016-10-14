@@ -248,7 +248,7 @@ mv tmp.2 plugin_init_cell.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE environ_base,         ONLY : deenviron, esolvent,    & \
-                                 ecavity, epressure, eperiodic, eioncc,   & \
+                                 ecavity, epressure, econfine, eperiodic, eioncc,   & \
                                  eextcharge \
 USE environ_main,          ONLY : calc_eenviron \
 !Environ patch
@@ -258,9 +258,10 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF(use_environ) THEN \
        call calc_eenviron( dfftp%nnr, nspin, rhoin%of_r, deenviron, esolvent, & \
-                            ecavity, epressure, eperiodic, eioncc, eextcharge ) \
+                            ecavity, epressure, econfine, eperiodic, eioncc, eextcharge ) \
         ! \
-        plugin_etot = plugin_etot + deenviron + esolvent + ecavity + epressure + eperiodic + eioncc + eextcharge \
+        plugin_etot = plugin_etot + deenviron + esolvent + & \
+                      ecavity + epressure + econfine + eperiodic + eioncc + eextcharge \
         ! \
   END IF \
 !Environ patch

@@ -5,9 +5,9 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-! The different modules in this file contain all the Environ related variables 
+! The different modules in this file contain all the Environ related variables
 ! that need to be passed in and out. All module-specific variables are declared
-! inside the appropriate modules. 
+! inside the appropriate modules.
 !
 ! original version by O. Andreussi, I. Dabo, and N. Marzari (MIT)
 !
@@ -15,10 +15,10 @@
 MODULE environ_base
   !--------------------------------------------------------------------------
   !
-  ! ... this module contains all the main variables needed for the 
+  ! ... this module contains all the main variables needed for the
   ! ... environ module. This include the control and debug variables,
   ! ... all physical and numerical parameters,
-  ! ... the contributions to the energy and to the potential, 
+  ! ... the contributions to the energy and to the potential,
   ! ... and the polarization charge density (to be used to compute forces)
   !
   USE kinds, ONLY :  DP
@@ -27,7 +27,7 @@ MODULE environ_base
   ! Global parameters
   !
   INTEGER, PARAMETER ::             &
-       environ_unit = 11 
+       environ_unit = 11
   LOGICAL ::                        &
        environ_restart
   LOGICAL ::                        &
@@ -76,7 +76,7 @@ MODULE environ_base
   ! Makov Payne correction variables
   !
   LOGICAL ::                        &
-       add_jellium               
+       add_jellium
   !
   ! Numerical Differentiators parameters
   !
@@ -141,7 +141,7 @@ MODULE environ_base
   REAL (KIND=DP), ALLOCATABLE ::    &
        extcharge_charge(:),         &
        extcharge_spread(:),         &
-       extcharge_pos(:,:)      
+       extcharge_pos(:,:)
   !
   ! Dielectric regions parameters
   !
@@ -154,7 +154,7 @@ MODULE environ_base
        epsregion_eps(:,:),          &
        epsregion_width(:),          &
        epsregion_spread(:),         &
-       epsregion_pos(:,:)      
+       epsregion_pos(:,:)
   !
   ! Computed physical variables
   !
@@ -163,6 +163,7 @@ MODULE environ_base
        esolvent,                    &
        ecavity,                     &
        epressure,                   &
+       econfine,                    &
        eperiodic,                   &
        eioncc,                      &
        eextcharge
@@ -172,6 +173,8 @@ MODULE environ_base
        vepsilon(:),                 &
        vcavity(:),                  &
        vpressure(:),                &
+       vconfine(:),                 &
+       vtheta(:),                   &
        vperiodic(:),                &
        vioncc(:),                   &
        rhopol(:),                   &
@@ -196,7 +199,7 @@ MODULE environ_base
                         environ_type_, stype_, rhomax_, rhomin_,    &
                         tbeta_, env_static_permittivity_,           &
                         env_optical_permittivity_, eps_mode_,       &
-                        alpha_, solvationrad_, corespread_,         & 
+                        alpha_, solvationrad_, corespread_,         &
                         atomicspread_, add_jellium_,                &
                         ifdtype_, nfdpoint_,                        &
                         mixtype_, ndiis_, mixrhopol_, tolrhopol_,   &
@@ -205,13 +208,13 @@ MODULE environ_base
                         env_confine_,                               &
                         env_ioncc_level_, nrep_, cion_, zion_,      &
                         rhopb_, solvent_temperature_,               &
-                        env_external_charges_, extcharge_charge_,   & 
+                        env_external_charges_, extcharge_charge_,   &
                         extcharge_dim_, extcharge_axis_,            &
-                        extcharge_pos_, extcharge_spread_,          & 
+                        extcharge_pos_, extcharge_spread_,          &
                         env_dielectric_regions_, epsregion_eps_,    &
                         epsregion_dim_, epsregion_axis_,            &
                         epsregion_pos_, epsregion_spread_,          &
-                        epsregion_width_ )       
+                        epsregion_width_ )
         !
         USE constants,       ONLY : rydberg_si, bohr_radius_si, amu_si
         USE control_flags,   ONLY : tddfpt
@@ -234,7 +237,7 @@ MODULE environ_base
                                extcharge_charge_(:), extcharge_spread_(:),      &
                                extcharge_pos_(:,:), epsregion_eps_(:,:),        &
                                epsregion_pos_(:,:), epsregion_spread_(:),       &
-                               epsregion_width_(:)        
+                               epsregion_width_(:)
         CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type_, &
                                               eps_mode_, mixtype_
         INTEGER :: i
@@ -356,7 +359,7 @@ MODULE environ_base
           IF ( ALLOCATED( extcharge_charge ) ) DEALLOCATE( extcharge_charge )
           ALLOCATE( extcharge_charge( env_external_charges ) )
           extcharge_charge = extcharge_charge_
-          IF ( ALLOCATED( extcharge_pos ) ) DEALLOCATE( extcharge_pos ) 
+          IF ( ALLOCATED( extcharge_pos ) ) DEALLOCATE( extcharge_pos )
           ALLOCATE( extcharge_pos( 3, env_external_charges ) )
           DO i = 1, env_external_charges
             extcharge_pos(1:3,i) = extcharge_pos_(1:3,i)
@@ -379,14 +382,14 @@ MODULE environ_base
           epsregion_width = epsregion_width_
           IF ( ALLOCATED( epsregion_eps ) ) DEALLOCATE( epsregion_eps )
           ALLOCATE( epsregion_eps( 2, env_dielectric_regions ) )
-          IF ( ALLOCATED( epsregion_pos ) ) DEALLOCATE( epsregion_pos ) 
+          IF ( ALLOCATED( epsregion_pos ) ) DEALLOCATE( epsregion_pos )
           ALLOCATE( epsregion_pos( 3, env_dielectric_regions ) )
           DO i = 1, env_dielectric_regions
             epsregion_eps(1:2,i) = epsregion_eps_(1:2,i)
             epsregion_pos(1:3,i) = epsregion_pos_(1:3,i)
           END DO
         END IF
-        ! Need to add a check on periodic corrections 
+        ! Need to add a check on periodic corrections
         !
         slab_axis  = 0
         SELECT CASE( trim( assume_isolated ) )
@@ -412,7 +415,7 @@ MODULE environ_base
            !
         END SELECT
         !
-        ! The periodic-boundary correction methods 
+        ! The periodic-boundary correction methods
         ! slabx, slaby, slabz, pcc, and esm are
         ! not implemented in TDDFPT.
         !
@@ -422,8 +425,8 @@ MODULE environ_base
               & trim( assume_isolated ) /= 'none' ) &
               CALL errore ('environ_base_init', &
                        & 'The activated periodic-boundary correction method' // &
-                       & ' is not implemented in TDDFPT', 1 ) 
-        ENDIF 
+                       & ' is not implemented in TDDFPT', 1 )
+        ENDIF
         !
      END SUBROUTINE environ_base_init
      !
@@ -433,13 +436,13 @@ END MODULE environ_base
 MODULE environ_cell
   !--------------------------------------------------------------------------
   !
-  ! ... this module contains the cell parameters needed for the 
+  ! ... this module contains the cell parameters needed for the
   ! ... environ module
   !
   USE kinds, ONLY :  DP
   SAVE
   !
-  ! number of dense real space grid, volume of single grid point, 
+  ! number of dense real space grid, volume of single grid point,
   ! volume of cell, lattice spacing, cell vectors in unit of alat
   !
   INTEGER ::                        &
@@ -458,13 +461,13 @@ END MODULE environ_cell
 MODULE environ_ions
   !--------------------------------------------------------------------------
   !
-  ! ... this module contains the ions parameters needed for the 
+  ! ... this module contains the ions parameters needed for the
   ! ... environ module
   !
   USE kinds, ONLY :  DP
   SAVE
   !
-  ! number of atoms and number of different atomic types 
+  ! number of atoms and number of different atomic types
   !
   INTEGER ::                        &
        nat,                         &
@@ -477,7 +480,7 @@ MODULE environ_ions
   REAL (KIND=DP) ::                 &
        avg_pos(3)
   !
-  ! atom number - atom type label 
+  ! atom number - atom type label
   !
   INTEGER, ALLOCATABLE ::           &
        ityp(:)
