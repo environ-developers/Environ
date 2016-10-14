@@ -108,6 +108,11 @@ MODULE environ_base
   REAL (KIND=DP) ::                 &
        env_pressure
   !
+  ! Confining potential parameters
+  !
+  REAL (KIND=DP) ::                 &
+       env_confine
+  !
   ! Periodicity correction parameters
   !
   INTEGER ::                        &
@@ -197,6 +202,7 @@ MODULE environ_base
                         mixtype_, ndiis_, mixrhopol_, tolrhopol_,   &
                         env_surface_tension_, delta_,               &
                         env_pressure_,                              &
+                        env_confine_,                               &
                         env_ioncc_level_, nrep_, cion_, zion_,      &
                         rhopb_, solvent_temperature_,               &
                         env_external_charges_, extcharge_charge_,   & 
@@ -223,6 +229,7 @@ MODULE environ_base
                                tolrhopol_, alpha_, solvationrad_(:),            &
                                corespread_(:), atomicspread_(:),                &
                                env_surface_tension_, delta_, env_pressure_,     &
+                               env_confine_,                                    &
                                cion_, zion_, rhopb_, solvent_temperature_,      &
                                extcharge_charge_(:), extcharge_spread_(:),      &
                                extcharge_pos_(:,:), epsregion_eps_(:,:),        &
@@ -282,6 +289,7 @@ MODULE environ_base
            env_optical_permittivity = 1.D0
            env_surface_tension = 0.D0
            env_pressure = 0.D0
+           env_confine = 0.D0
            env_periodicity = 3
            env_ioncc_level = 0
         CASE ('water')
@@ -290,6 +298,7 @@ MODULE environ_base
            env_optical_permittivity = 1.776D0
            env_surface_tension = 50.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = -0.35D0*1.D9/rydberg_si*bohr_radius_si**3
+           env_confine = 0.D0
            env_periodicity = 3
            env_ioncc_level = 0
            rhomax = 0.005
@@ -301,6 +310,7 @@ MODULE environ_base
            env_optical_permittivity = 1.776D0
            env_surface_tension = 5.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = 0.125D0*1.D9/rydberg_si*bohr_radius_si**3
+           env_confine = 0.D0
            env_periodicity = 3
            env_ioncc_level = 0
            rhomax = 0.0035
@@ -312,6 +322,7 @@ MODULE environ_base
            env_optical_permittivity = 1.776D0
            env_surface_tension = 0.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = 0.450D0*1.D9/rydberg_si*bohr_radius_si**3
+           env_confine = 0.D0
            env_periodicity = 3
            env_ioncc_level = 0
            rhomax = 0.0155
@@ -324,6 +335,7 @@ MODULE environ_base
            env_surface_tension = &
              env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
+           env_confine = env_confine_
            env_periodicity = 3
            env_ioncc_level = env_ioncc_level_
         CASE DEFAULT
