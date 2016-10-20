@@ -53,10 +53,11 @@ CONTAINS
     CALL generate_volume( nnr, rho, vconfine )
     CALL generate_dvoldrho( nnr, rho, vtheta ) 
     !
-    ! ... Multiply by the input value of confinement
+    ! ... Place the confinement on the outside of the volume
+    !     and multiply by the input value of confinement
     !
-    vconfine = env_confine * vconfine
-    vtheta = env_confine * vtheta * rho
+    vconfine = env_confine * ( 1.D0 - vconfine ) 
+    vtheta = - env_confine * vtheta * rho
     !
     CALL stop_clock ('calc_vcon')
     !
