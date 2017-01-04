@@ -18,7 +18,7 @@ Rev. B 77, 115139 (2008)).
 The method has been coupled to the SCCS model in oder to remove periodic 
 boundary conditions in simulations of partially periodic systems in the 
 presence of a continuum solvent, as described by O. Andreussi and N. marzari
-submitted to J. Chem. Phys. (2013?).
+Phys. Rev. B 90, 245101 (2014).
 
 Note that the keyword eps_mode='full' is mandatory in this calculation, in 
 order to remove the artifact of the Pt valence density, which presents a hole
