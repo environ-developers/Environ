@@ -396,6 +396,8 @@ CONTAINS
       ! ... the dielectric constant wrt the charge density.
       !
       USE kinds,          ONLY : DP
+      USE mp,             ONLY : mp_sum
+      USE mp_bands,       ONLY : intra_bgrp_comm
       USE environ_base,   ONLY : env_static_permittivity,     &
                                  env_optical_permittivity,    &
                                  env_dielectric_regions,      &
@@ -414,12 +416,13 @@ CONTAINS
       REAL( DP ), INTENT(OUT)     :: d2eps( nnr )
       LOGICAL, INTENT(IN)         :: optical_constant
       !
-      INTEGER                     :: ir
+      INTEGER                     :: ir, jr
       REAL( DP ), DIMENSION(nnr)  :: permittivity
       REAL( DP ), DIMENSION(nnr)  :: rhoaug
       REAL( DP ), DIMENSION(nnr)  :: rhofake
       REAL( DP ), DIMENSION(nnr)  :: df1, df2, ftmp
-      REAL( DP ) :: plus, minus, deltarho, depstmp
+      REAL( DP ) :: deltarho, depsfd
+      REAL( DP ), DIMENSION(nnr)  :: plus, minus
       !
       IF ( optical_constant ) THEN
          !
@@ -452,6 +455,21 @@ CONTAINS
          !
       ENDIF
       !
+      DO ir = 1, nnr
+        ! 
+        eps( ir ) = epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
+                                  permittivity( ir ), stype )
+        deps( ir ) = depsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
+                                    permittivity( ir ), stype )
+        d2eps( ir ) = d2epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
+                                      permittivity( ir ), stype )
+        !
+      END DO
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, eps, 'eps_noaug.cube' )
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'deps_noaug.cube' )
+      !
       IF ( solvent_radius .GT. 0.D0 ) THEN
          !
          ! Augment dielectric density to empty
@@ -464,7 +482,7 @@ CONTAINS
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, rhoaug, 'rhoaug.cube' )
       !
       DO ir = 1, nnr
-        ! 
+        !
         eps( ir ) = epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
                                   permittivity( ir ), stype )
         deps( ir ) = depsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, &
@@ -474,6 +492,8 @@ CONTAINS
         !
       END DO
       !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, eps, 'eps.cube' )
+      !
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'deps0.cube' )
       !
       IF ( solvent_radius .GT. 0.D0 ) THEN
@@ -481,32 +501,34 @@ CONTAINS
          ! Update the functional derivative of epsilon
          !
          ftmp = deps * df2
-         CALL compute_convolution( nnr, solvent_radius*radial_scale, radial_spread, ftmp, df2 )
-         IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'df2conv.cube' )
+         CALL compute_convolution( nnr, solvent_radius*radial_scale, radial_spread, df1, ftmp, df2 )
+         IF ( verbose .GE. 3 ) CALL write_cube( nnr, df2, 'df2conv.cube' )
          deps(:) = deps(:) + df1(:) * df2(:)
          !
       ENDIF
       !
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, deps, 'deps.cube' )
       !
-      deltarho = 0.000000001D0
+      deltarho = 0.0000000001D0
       DO ir = 62077, nnr, 14400 !nnr, 14400
          rhoaug = rhofake
          rhoaug( ir ) = rhofake( ir ) + deltarho
          CALL empty_pockets( nnr, rhoaug, df1, df2 )
-!         DO ir = nnr
-         plus = epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, permittivity(ir),stype)
-         WRITE(environ_unit,*)'plus ',rhofake(ir),rhoaug(ir),plus
-!         ENDDO
+         plus = 0.D0
+         DO jr = 1, nnr
+            plus(jr) = epsilonfunct( rhoaug( jr ), rhomax, rhomin, tbeta, permittivity(jr),stype)
+         ENDDO
          rhoaug = rhofake
          rhoaug( ir ) = rhofake( ir ) - deltarho
          CALL empty_pockets( nnr, rhoaug, df1, df2 )
-!         DO ir = nnr
-            minus = epsilonfunct( rhoaug( ir ), rhomax, rhomin, tbeta, permittivity(ir),stype)
-!         ENDDO
-         WRITE(environ_unit,*)'minus ',rhofake(ir),rhoaug(ir),minus
-         depstmp = ( plus - minus ) / 2.D0 / deltarho
-         WRITE(environ_unit,'(1X,a,i8,3f20.10)')' ir = ',ir,deps(ir),depstmp,deps(ir)-depstmp 
+         minus = 0.D0
+         DO jr = 1, nnr
+            minus(jr) = epsilonfunct( rhoaug( jr ), rhomax, rhomin, tbeta, permittivity(jr),stype)
+         ENDDO
+         plus = ( plus - minus ) / 2.D0 / deltarho
+         depsfd = SUM( plus )
+         CALL mp_sum( depsfd, intra_bgrp_comm )
+         WRITE(environ_unit,'(1X,a,i8,3f20.10)')' ir = ',ir,deps(ir),depsfd,deps(ir)-depsfd
          FLUSH(environ_unit)
       END DO
       !
@@ -692,7 +714,7 @@ CONTAINS
       !
       width = solvent_radius * radial_scale
       spread = radial_spread
-      CALL compute_convolution( nnr, width, spread, f, g )
+      CALL compute_convolution( nnr, width, spread, f, f, g )
       !
       IF ( verbose .GE. 3 ) CALL write_cube( nnr, g, 'filledfrac.cube' )
       !
@@ -719,7 +741,7 @@ CONTAINS
       END SUBROUTINE empty_pockets
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE compute_convolution( nnr, width, spread, fin, fout )
+      SUBROUTINE compute_convolution( nnr, width, spread, fempty, fin, fout )
 !--------------------------------------------------------------------
       !
       ! ... Calculates on a subset of the real-space grid the 
@@ -741,6 +763,7 @@ CONTAINS
       !
       INTEGER, INTENT(IN)         :: nnr
       REAL( DP ), INTENT(IN)      :: width, spread
+      REAL( DP ), INTENT(IN)      :: fempty( nnr )
       REAL( DP ), INTENT(IN)      :: fin( nnr )
       REAL( DP ), INTENT(OUT)     :: fout( nnr )
       !
@@ -839,7 +862,7 @@ CONTAINS
          !
          ! ... if the point is already empty we can skip it
          !
-         IF ( fin( ir ) .LT. 1.D-8 ) CYCLE
+         IF ( ABS(fempty( ir )) .LT. 1.D-8 ) CYCLE
          !
          ! ... three dimensional indexes
          !
