@@ -501,8 +501,10 @@ CONTAINS
          ! Update the functional derivative of epsilon
          !
          ftmp = deps * df2
-         CALL compute_convolution( nnr, solvent_radius*radial_scale, radial_spread, df1, ftmp, df2 )
-         IF ( verbose .GE. 3 ) CALL write_cube( nnr, df2, 'df2conv.cube' )
+!         CALL compute_convolution( nnr, solvent_radius*radial_scale, radial_spread, df1, ftmp, df2 )
+!         IF ( verbose .GE. 3 ) CALL write_cube( nnr, df2, 'df2conv.cube' )
+         CALL compute_convolution_fft( nnr, solvent_radius*radial_scale, radial_spread, ftmp, df2 )
+         IF ( verbose .GE. 3 ) CALL write_cube( nnr, df2, 'df2conv_fft.cube' )
          deps(:) = deps(:) + df1(:) * df2(:)
          !
       ENDIF
@@ -714,9 +716,13 @@ CONTAINS
       !
       width = solvent_radius * radial_scale
       spread = radial_spread
-      CALL compute_convolution( nnr, width, spread, f, f, g )
+!!!      CALL compute_convolution( nnr, width, spread, f, f, g )
+!!!      !
+!!!      IF ( verbose .GE. 3 ) CALL write_cube( nnr, g, 'filledfrac.cube' )
       !
-      IF ( verbose .GE. 3 ) CALL write_cube( nnr, g, 'filledfrac.cube' )
+      CALL compute_convolution_fft( nnr, width, spread, f, g )
+      !
+      IF ( verbose .GE. 3 ) CALL write_cube( nnr, g, 'filledfrac_fft.cube' )
       !
       ! Step 3: compute the filling condition and its derivative
       !
@@ -744,7 +750,7 @@ CONTAINS
       SUBROUTINE compute_convolution( nnr, width, spread, fempty, fin, fout )
 !--------------------------------------------------------------------
       !
-      ! ... Calculates on a subset of the real-space grid the 
+      ! ... Calculates on a subset of the real-space grid the
       ! ... convolution of function fin with a fast-decaying function
       ! ... at this time the only fconv implemented is
       ! ... erfc( ( |r'-r| - width ) / spread )
@@ -913,6 +919,72 @@ CONTAINS
       !
 !--------------------------------------------------------------------
     END SUBROUTINE compute_convolution
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      SUBROUTINE compute_convolution_fft( nnr, width, spread, fin, fout )
+!--------------------------------------------------------------------
+      !
+      ! ... Calculates using reciprocal-space techniques the
+      ! ... convolution of function fin with a fast-decaying function
+      ! ... at this time the only fconv implemented is
+      ! ... erfc( ( |r'-r| - width ) / spread )
+      !
+      USE kinds,          ONLY : DP
+      USE cell_base,      ONLY : omega
+      USE mp,             ONLY : mp_sum
+      USE mp_bands,       ONLY : intra_bgrp_comm
+      USE fft_base,       ONLY : dfftp
+      USE fft_interfaces, ONLY : fwfft, invfft
+      USE control_flags,  ONLY : gamma_only
+      USE gvect,          ONLY : nl, nlm, ngm, gg, gstart
+      USE generate_function, ONLY : generate_erfc
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN)         :: nnr
+      REAL( DP ), INTENT(IN)      :: width, spread
+      REAL( DP ), INTENT(IN)      :: fin( nnr )
+      REAL( DP ), INTENT(OUT)     :: fout( nnr )
+      !
+      INTEGER :: dim, axis
+      REAL( DP ) :: charge, pos( 3 )
+      !
+      REAL( DP ), DIMENSION( nnr ) :: fconv
+      COMPLEX( DP ), DIMENSION( nnr ) :: auxr, auxg
+      !
+      fout = 0.D0
+      auxg = 0.D0
+      !
+      ! ERFC convolution function BEGIN
+      dim = 0
+      axis = 1
+      charge = 1.D0
+      pos = 0.D0
+      !
+      fconv = 0.D0
+      CALL generate_erfc( nnr, dim, axis, charge, width, spread, pos, fconv )
+      ! ERFC convolution function END
+      !
+      auxr(:) = CMPLX( fconv(:), 0.D0, kind=DP )
+      CALL fwfft('Dense', auxr, dfftp)
+      !
+      auxg(nl(1:ngm)) = auxr(nl(1:ngm))
+      !
+      auxr(:) = CMPLX( fin(:), 0.D0, kind=DP )
+      CALL fwfft('Dense', auxr, dfftp)
+      !
+      auxg(nl(1:ngm)) = auxg(nl(1:ngm)) * auxr(nl(1:ngm))
+      !
+      IF ( gamma_only ) auxg(nlm(1:ngm)) = CMPLX( REAL( auxg(nl(1:ngm)) ), -AIMAG( auxg(nl(1:ngm)) ) ,kind=DP)
+      !
+      CALL invfft('Dense',auxg, dfftp)
+      !
+      fout(:) = REAL( auxg(:) ) * omega
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE compute_convolution_fft
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       SUBROUTINE fakerhodiel( nnr, rho )
