@@ -44,7 +44,6 @@ CONTAINS
       !
       ! ... Each contribution to the potential is computed in its module
       !
-!test      USE test_solvent,  ONLY : calc_vsolvent_test
       USE solvent,       ONLY : calc_vsolvent
       USE periodic,      ONLY : calc_vperiodic
       USE cavity,        ONLY : calc_vcavity
@@ -134,7 +133,6 @@ CONTAINS
         vsolvent = 0.D0 
         vepsilon = 0.D0
         CALL calc_vsolvent( nnr, nspin, dr2, rhoelec, vsolvent, vepsilon )
-!test        CALL calc_vsolvent_test( nnr, nspin, dr2, rhoelec, vsolvent, vepsilon )
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vsolvent, 'vsolvent.cube' )
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vepsilon, 'vepsilon.cube' ) 
         vltot = vltot + vsolvent
