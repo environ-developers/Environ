@@ -5,8 +5,8 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-! Module to compute a cavitation potential, defined as the quantum surface 
-! of the system times the surface tension of the environment. 
+! Module to compute a cavitation potential, defined as the quantum surface
+! of the system times the surface tension of the environment.
 ! Original method developed in Scherlis et al, J. Chem. Phys. (2006),
 ! but formulas for the quantum surface were not correct and have been
 ! rederived by Andreussi et al., J. Chem. Phys. 136, 064102 (2012)
@@ -53,7 +53,7 @@ CONTAINS
     IF(ALLOCATED(theta)) DEALLOCATE(theta)
     ALLOCATE(theta(nnr))
     theta=0.D0
-    
+
     RETURN
 
 !----------------------------------------------------------------------------
@@ -79,7 +79,7 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the potential
-    ! 
+    !
     IMPLICIT NONE
     !
     ! ... Declares variables
@@ -106,12 +106,12 @@ CONTAINS
     IF ( verbose .GE. 4 ) CALL write_cube( nnr, theta, 'theta.cube' )
     !
     ! ... Computes gradient and hessian of the density
-    ! 
+    !
     ALLOCATE( grho ( 3, nnr ) )
     ALLOCATE( hrho ( 3, 3, nnr ) )
     CALL external_hessian ( rho, grho, hrho )
     !
-    ! ... Computes the cavitation potential 
+    ! ... Computes the cavitation potential
     !
     DO ir = 1, nnr
       grho2 = SUM( grho(:, ir) * grho (:, ir) )
@@ -126,12 +126,12 @@ CONTAINS
       END DO
       IF ( grho2 .GT. 1.D-12 ) &
         vcavity( ir ) = ( theta( ir ) / grho2 / SQRT(grho2) ) * factor
-    END DO      
+    END DO
     !
-    DEALLOCATE( grho ) 
-    DEALLOCATE( hrho ) 
+    DEALLOCATE( grho )
+    DEALLOCATE( hrho )
     !
-    ! ... Multiply the cavitation potential by the constant factor 
+    ! ... Multiply the cavitation potential by the constant factor
     !
     vcavity = env_surface_tension / delta * vcavity
     !
@@ -182,11 +182,11 @@ CONTAINS
       surface = surface + theta(ir)*mod_grho/delta
     ENDDO
     DEALLOCATE( grho )
-    surface = surface * domega 
+    surface = surface * domega
     !
     CALL mp_sum( surface, intra_bgrp_comm )
     !
-    ! ... Computes the cavitation energy 
+    ! ... Computes the cavitation energy
     !
     ecavity = env_surface_tension * surface * e2 / 2.D0
     !

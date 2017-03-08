@@ -19,7 +19,7 @@ MODULE environ_mp
   IMPLICIT NONE
   !
   REAL(DP) :: el_charge, el_dipole(0:3), el_quadrupole(3)
-  REAL(DP) :: sol_charge, sol_dipole(0:3), sol_quadrupole(3) 
+  REAL(DP) :: sol_charge, sol_dipole(0:3), sol_quadrupole(3)
   REAL(DP) :: pol_charge, pol_dipole(0:3), pol_quadrupole(3)
   REAL(DP) :: ion_charge, ion_dipole(0:3), ion_quadrupole_pc(3), ion_quadrupole_gauss(3)
   REAL(DP) :: tot_charge, tot_dipole(0:3), tot_quadrupole(3)
@@ -65,8 +65,8 @@ SUBROUTINE environ_makov_payne( nnr, nspin, rhoelec, x0, etot )
   !
   CALL compute_dipole( nnr, nspin, rhoelec, x0, el_dipole, el_quadrupole )
   !
-  ! ... Compute here the properties of the ion density, treating it 
-  !     as gaussians. Compute the correction needed to go from gaussian to 
+  ! ... Compute here the properties of the ion density, treating it
+  !     as gaussians. Compute the correction needed to go from gaussian to
   !     pointlike nuclei (only affect quadrupole moment)
   !
   CALL compute_dipole( nnr, 1, rhoions, x0, ion_dipole, ion_quadrupole_gauss )
@@ -94,7 +94,7 @@ SUBROUTINE environ_makov_payne( nnr, nspin, rhoelec, x0, etot )
   corr1 = - madelung(ibrav) / alat * sol_charge**2 / 2.0D0 * e2
   !
   aa = SUM(sol_quadrupole(:))
-  bb = SUM(sol_dipole(1:3)*sol_dipole(1:3)) 
+  bb = SUM(sol_dipole(1:3)*sol_dipole(1:3))
   !
   corr2 = ( 2.D0 / 3.D0 * pi )*( sol_charge*aa - bb ) / alat**3 * e2
   !
@@ -114,12 +114,12 @@ SUBROUTINE environ_makov_payne( nnr, nspin, rhoelec, x0, etot )
   ! ... Compute properties of cleaned polarization density
   !
   CALL compute_dipole( nnr, 1, rhoaux, x0, pol_dipole, pol_quadrupole )
-  pol_charge = pol_dipole(0) 
+  pol_charge = pol_dipole(0)
   !
   rhoaux = rhopol - rhopol_of_V + rhoelec(:,1)
   IF ( nspin .EQ. 2 ) rhoaux = rhoaux + rhoelec(:,2)
   !
-  ! ... Compute properties of full density (adding the ion contribution 
+  ! ... Compute properties of full density (adding the ion contribution
   !     at a second time as pointlike nuclei)
   !
   CALL compute_dipole( nnr, 1, rhoaux, x0, tot_dipole, tot_quadrupole )
@@ -132,8 +132,8 @@ SUBROUTINE environ_makov_payne( nnr, nspin, rhoelec, x0, etot )
   !
   ! ... Now compute Environ corrections
   !
-  corr_quad = ( pi * e2 / alat**3 ) * pol_charge * & 
-              & SUM( ion_quadrupole_gauss(:) - ion_quadrupole_pc(:) ) / 3.D0  
+  corr_quad = ( pi * e2 / alat**3 ) * pol_charge * &
+              & SUM( ion_quadrupole_gauss(:) - ion_quadrupole_pc(:) ) / 3.D0
   !
   WRITE( stdout, '(/,5X,"*******  ENVIRON-MAKOV-PAYNE CORRECTION  *******")' )
   !
@@ -151,8 +151,8 @@ SUBROUTINE environ_makov_payne( nnr, nspin, rhoelec, x0, etot )
   corr1_pol = -corr1 + corr1 / env_static_permittivity
   aa = SUM( - pol_quadrupole(:) - sol_quadrupole(:) ) / 2.D0 +  &
        & SUM(sol_quadrupole(:)) / 2.D0 / env_static_permittivity
-  bb = - sol_dipole(1)*pol_dipole(1) - sol_dipole(2)*pol_dipole(2) - & 
-       & sol_dipole(3)*pol_dipole(3) 
+  bb = - sol_dipole(1)*pol_dipole(1) - sol_dipole(2)*pol_dipole(2) - &
+       & sol_dipole(3)*pol_dipole(3)
   corr2_pol = ( 2.D0 / 3.D0 * pi )*( sol_charge*aa - bb ) / alat**3 * e2 + corr_quad
   !
   WRITE( stdout,'(/5X,"Environ correction     ",F14.8," Ry = ",F6.3, &

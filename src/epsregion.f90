@@ -22,7 +22,7 @@ MODULE epsregion
                             epsregion_origin, epsregion_eps,         &
                             epsregion_dim, epsregion_axis,           &
                             epsregion_pos, epsregion_width,          &
-                            epsregion_spread, epsstatic, epsoptical 
+                            epsregion_spread, epsstatic, epsoptical
   USE environ_debug,  ONLY: write_cube
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1.X and QE-5.2.0
@@ -32,7 +32,7 @@ MODULE epsregion
 ! END BACKWARD COMPATIBILITY
   !
   IMPLICIT NONE
-  ! 
+  !
   SAVE
   !
   PRIVATE
@@ -46,7 +46,7 @@ CONTAINS
 !--------------------------------------------------------------------
   !
   IMPLICIT NONE
-  !  
+  !
   INTEGER, INTENT(IN) :: nnr
   REAL(DP), INTENT(IN) :: alat, omega
   REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
@@ -76,7 +76,7 @@ CONTAINS
      pos0 = system_pos
   END SELECT
   !
-  ! ... Generate the dielectric regions (static) 
+  ! ... Generate the dielectric regions (static)
   !
   epsstatic = env_static_permittivity
   !
@@ -84,7 +84,7 @@ CONTAINS
      !
      norm = SQRT(SUM(epsregion_pos(:,idr)**2))
      IF ( .NOT. shift ) THEN
-       ! No bounding box 
+       ! No bounding box
        pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
        width = epsregion_width(idr)
      ELSE IF ( norm .NE. 0.D0 ) THEN
@@ -96,7 +96,7 @@ CONTAINS
        ! The region is centered on the system, position is not changed
        ! but the width is defined in addition to the system width
        pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
-       width = epsregion_width(idr) + system_width 
+       width = epsregion_width(idr) + system_width
      ENDIF
      !
      dim = epsregion_dim(idr)
@@ -112,12 +112,12 @@ CONTAINS
      CALL generate_erfc( nnr, dim, axis, charge, width, spread, pos, epslocal )
 ! END BACKWARD COMPATIBILITY
      epsstatic(:) = epsstatic(:) - ( epsstatic(:) - epsregion_eps(1,idr) ) * epslocal(:)
-     ! 
+     !
   END DO
   !
   IF ( verbose .GE. 3 ) CALL write_cube( nnr, epsstatic, 'epsstatic.cube' )
   !
-  ! ... Generate the dielectric regions (optical) 
+  ! ... Generate the dielectric regions (optical)
   !
   epsoptical = env_optical_permittivity
   !
@@ -125,7 +125,7 @@ CONTAINS
      !
      norm = SQRT(SUM(epsregion_pos(:,idr)**2))
      IF ( .NOT. shift ) THEN
-       ! No bounding box 
+       ! No bounding box
        pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
        width = epsregion_width(idr)
      ELSE IF ( norm .NE. 0.D0 ) THEN
@@ -137,7 +137,7 @@ CONTAINS
        ! The region is centered on the system, position is not changed
        ! but the width is defined in addition to the system width
        pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
-       width = epsregion_width(idr) + system_width 
+       width = epsregion_width(idr) + system_width
      ENDIF
      !
      dim = epsregion_dim(idr)
@@ -153,14 +153,14 @@ CONTAINS
      CALL generate_erfc( nnr, dim, axis, charge, width, spread, pos, epslocal )
 ! END BACKWARD COMPATIBILITY
      epsoptical(:) = epsoptical(:) - ( epsoptical(:) - epsregion_eps(2,idr) ) * epslocal(:)
-     ! 
+     !
   END DO
   !
   IF ( verbose .GE. 3 ) CALL write_cube( nnr, epsoptical, 'epsoptical.cube' )
   !
   DEALLOCATE(epslocal)
   !
-  RETURN  
+  RETURN
   !
 2000 FORMAT('ERROR: dielectric regions only available for QE-5.2.1 and later releases',i3)
   !

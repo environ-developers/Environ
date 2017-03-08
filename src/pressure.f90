@@ -5,7 +5,7 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-! Module to include an environment pressure potential, proportional to 
+! Module to include an environment pressure potential, proportional to
 ! the quantum volume of the system. The method was developed by
 ! Cococcioni et al. PRL 94, 145501 (2005).
 !
@@ -58,7 +58,7 @@ CONTAINS
     !
     CALL generate_dvoldrho( nnr, rho, dvoldrho )
     !
-    ! ... Multiply the derivative of the volume by the external pressure 
+    ! ... Multiply the derivative of the volume by the external pressure
     !
     vpressure = env_pressure * dvoldrho
     !
@@ -76,7 +76,7 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     ! ... Calculates the PV contribution to the energy
-    ! 
+    !
     IMPLICIT NONE
     !
     ! ... Declares variables
@@ -96,13 +96,13 @@ CONTAINS
     !
     CALL generate_volume( nnr, rho, volofrho )
     !
-    volume = SUM( volofrho ) * domega 
+    volume = SUM( volofrho ) * domega
     !
     DEALLOCATE( volofrho )
     !
     CALL mp_sum( volume, intra_bgrp_comm )
     !
-    ! ... Computes the PV energy 
+    ! ... Computes the PV energy
     !
     epressure = env_pressure * volume * e2 / 2.D0
     !

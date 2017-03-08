@@ -48,17 +48,17 @@ CONTAINS
         !
       CASE( 1 )
         !
-        IF ( rho .LE. rhomin ) THEN 
+        IF ( rho .LE. rhomin ) THEN
           epsilonfunct = epszero
         ELSE IF ( rho .LT. rhomax ) THEN
           arg = tpi * LOG(rhomax/ABS(rho)) / tbeta
           epsilonfunct = EXP( LOG( epszero ) *                     &
-            ( arg - SIN( arg ) ) / tpi ) 
-        ELSE 
+            ( arg - SIN( arg ) ) / tpi )
+        ELSE
           epsilonfunct = 1.D0
         ENDIF
         !
-      CASE DEFAULT 
+      CASE DEFAULT
         !
         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
         STOP
@@ -105,18 +105,18 @@ CONTAINS
         !
       CASE( 1 )
         !
-        IF ( rho .LE. rhomin ) THEN 
+        IF ( rho .LE. rhomin ) THEN
           depsilonfunct = 0.D0
         ELSE IF ( rho .LT. rhomax ) THEN
           arg = tpi * log(rhomax/ABS(rho)) / tbeta
           depsilonfunct = - EXP( LOG( epszero ) *                  &
-            ( arg - SIN( arg ) ) / tpi ) * LOG( epszero ) *        & 
-            ( 1.D0 - COS( arg ) ) / ABS(rho) / tbeta 
-        ELSE 
+            ( arg - SIN( arg ) ) / tpi ) * LOG( epszero ) *        &
+            ( 1.D0 - COS( arg ) ) / ABS(rho) / tbeta
+        ELSE
           depsilonfunct = 0.D0
         ENDIF
         !
-      CASE DEFAULT 
+      CASE DEFAULT
         !
         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
         STOP
@@ -162,20 +162,20 @@ CONTAINS
         !
       CASE( 1 )
         !
-        IF ( rho .LE. rhomin ) THEN 
+        IF ( rho .LE. rhomin ) THEN
           d2epsilonfunct = 0.D0
         ELSE IF ( rho .LT. rhomax ) THEN
           arg = tpi * LOG(rhomax/ABS(rho)) / tbeta
-          arg2 =  1.D0 - COS( arg ) 
+          arg2 =  1.D0 - COS( arg )
           d2epsilonfunct = EXP( LOG( epszero ) *                    &
-            ( arg - SIN( arg ) ) / tpi ) * LOG( epszero ) / tbeta * & 
+            ( arg - SIN( arg ) ) / tpi ) * LOG( epszero ) / tbeta * &
             ( LOG( epszero ) / tbeta * arg2 ** 2 + arg2 +           &
               tpi / tbeta * SIN( arg ) ) / rho**2
-        ELSE 
+        ELSE
           d2epsilonfunct = 0.D0
         ENDIF
         !
-      CASE DEFAULT 
+      CASE DEFAULT
         !
         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
         STOP
@@ -191,8 +191,8 @@ CONTAINS
       SUBROUTINE generate_dielectric( nnr, rho, eps, deps, d2eps, optical_constant )
 !--------------------------------------------------------------------
       !
-      ! ... Calculates the dielectric constant as a function 
-      ! ... of the charge density, and the derivative of 
+      ! ... Calculates the dielectric constant as a function
+      ! ... of the charge density, and the derivative of
       ! ... the dielectric constant wrt the charge density.
       !
       USE kinds,          ONLY : DP
@@ -236,9 +236,9 @@ CONTAINS
          ENDIF
          !
       ENDIF
-      ! 
+      !
       DO ir = 1, nnr
-        ! 
+        !
         eps( ir )  =  epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
                                     permittivity( ir ), stype )
         deps( ir ) = depsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
@@ -277,7 +277,7 @@ CONTAINS
       !
       theta = 0.D0
       !
-      epstmp = env_static_permittivity 
+      epstmp = env_static_permittivity
       IF ( env_static_permittivity .LE. 1.D0 ) epstmp = 2.D0
       fact = - 1.D0 / ( epstmp - 1.D0 )
       !
@@ -309,7 +309,7 @@ CONTAINS
       !
       USE kinds,          ONLY : DP
       USE environ_base,   ONLY : env_static_permittivity, &
-                                 tbeta, rhomax, rhomin, stype      
+                                 tbeta, rhomax, rhomin, stype
       !
       IMPLICIT NONE
       !
@@ -324,7 +324,7 @@ CONTAINS
       !
       volofrho = 0.D0
       !
-      epstmp = env_static_permittivity 
+      epstmp = env_static_permittivity
       IF ( env_static_permittivity .LE. 1.D0 ) epstmp = 2.D0
       fact = - 1.D0 / ( epstmp - 1.D0 )
       !
@@ -350,8 +350,8 @@ CONTAINS
       ! ... of the charge density
       !
       USE kinds,          ONLY : DP
-      USE environ_base,   ONLY : env_static_permittivity, & 
-                                 tbeta, rhomax, rhomin, stype 
+      USE environ_base,   ONLY : env_static_permittivity, &
+                                 tbeta, rhomax, rhomin, stype
       !
       IMPLICIT NONE
       !
@@ -366,7 +366,7 @@ CONTAINS
       !
       dvoldrho = 0.D0
       !
-      epstmp = env_static_permittivity 
+      epstmp = env_static_permittivity
       IF ( env_static_permittivity .LE. 1.D0 ) epstmp = 2.D0
       fact = - 1.D0 / ( epstmp - 1.D0 )
       !

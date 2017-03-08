@@ -31,14 +31,14 @@ CONTAINS
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1 QE-5.1.1 QE-5.1.2
 !      USE fft_base,       ONLY : grid_gather
-! Compatible with QE-5.2 QE-5.2.1 
+! Compatible with QE-5.2 QE-5.2.1
 !      USE fft_base,       ONLY : gather_grid
 ! Compatible with QE-5.3 svn
       USE scatter_mod,    ONLY : gather_grid
-! END BACKWARD COMPATIBILITY   
+! END BACKWARD COMPATIBILITY
       USE cell_base,      ONLY : at, alat
       USE ions_base,      ONLY : atm
-      USE environ_ions,   ONLY : nat, ityp, tau 
+      USE environ_ions,   ONLY : nat, ityp, tau
       !
       IMPLICIT NONE
       !
@@ -91,7 +91,7 @@ CONTAINS
         DO iat=1,nat
           typ=ityp(iat)
           num=get_atmnum(atm(typ))
-          WRITE(300,'(i5,4f12.6)')num,0.d0,tau(1,iat)*scale,& 
+          WRITE(300,'(i5,4f12.6)')num,0.d0,tau(1,iat)*scale,&
                                   tau(2,iat)*scale,tau(3,iat)*scale
         ENDDO
         count=0
@@ -105,7 +105,7 @@ CONTAINS
               IF (MOD(count,6).EQ.0) THEN
                 WRITE(300,'(e12.6,x)')tmp
               ELSE
-                WRITE(300,'(e12.6,x)',advance='no')tmp 
+                WRITE(300,'(e12.6,x)',advance='no')tmp
               ENDIF
             ENDDO
           ENDDO
@@ -122,20 +122,20 @@ CONTAINS
 !--------------------------------------------------------------------
       END SUBROUTINE write_cube
 !--------------------------------------------------------------------
-                                         
-!--------------------------------------------------------------------                             
-  FUNCTION get_atmnum(label) 
-!wgt  FUNCTION get_atmwgt(label)              
+
+!--------------------------------------------------------------------
+  FUNCTION get_atmnum(label)
+!wgt  FUNCTION get_atmwgt(label)
 !
 ! original version by O. Andreussi (MIT)
 !
-!--------------------------------------------------------------------            
+!--------------------------------------------------------------------
 
     INTEGER :: get_atmnum
 !wgt    REAL*8 :: get_atmwgt
 
     CHARACTER*(*), INTENT(IN) :: label
-    CHARACTER*3 :: tmplab           
+    CHARACTER*3 :: tmplab
 
     INTEGER :: num
     REAL*8 :: weigth
@@ -145,288 +145,288 @@ CONTAINS
     IF (tmplab(1:1).EQ.'a')  THEN
       IF (tmplab(2:2).EQ.'l') THEN
         num=13
-        weigth=26.981538          
+        weigth=26.981538
       ELSE IF (tmplab(2:2).EQ.'r') THEN
         num=18
-        weigth=39.948                  
+        weigth=39.948
       ELSE IF (tmplab(2:2).EQ.'g') THEN
         num=47
-        weigth=107.8682                
+        weigth=107.8682
       ELSE IF (tmplab(2:2).EQ.'s') THEN
         num=33
-        weigth=74.9216                 
+        weigth=74.9216
       ELSE IF (tmplab(2:2).EQ.'u') THEN
         num=79
-        weigth=196.96655               
+        weigth=196.96655
       ELSE IF (tmplab(2:2).EQ.'t') THEN
         num=85
-        weigth=210                     
-      ELSE                             
+        weigth=210
+      ELSE
         num=13
-        weigth=26.981538               
-      ENDIF                            
-    ELSE IF (tmplab(1:1).EQ.'b')  THEN 
-      IF (tmplab(2:2).EQ.'e') THEN     
+        weigth=26.981538
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'b')  THEN
+      IF (tmplab(2:2).EQ.'e') THEN
         num=4
-        weigth=9.012182                
+        weigth=9.012182
       ELSE IF (tmplab(2:2).EQ.'r') THEN
         num=35
-        weigth=79.904                  
+        weigth=79.904
       ELSE IF (tmplab(2:2).EQ.'a') THEN
         num=56
-        weigth=137.327                 
+        weigth=137.327
       ELSE IF (tmplab(2:2).EQ.'i') THEN
         num=83
-        weigth=208.98038               
-      ELSE                             
+        weigth=208.98038
+      ELSE
         num=5
-        weigth=10.811                  
-      ENDIF                            
-    ELSE IF (tmplab(1:1).EQ.'c')  THEN 
-      IF (tmplab(2:2).EQ.'a') THEN     
+        weigth=10.811
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'c')  THEN
+      IF (tmplab(2:2).EQ.'a') THEN
         num=20
-        weigth=40.078                  
+        weigth=40.078
       ELSE IF (tmplab(2:2).EQ.'r') THEN
         num=24
-        weigth=51.9961                 
+        weigth=51.9961
       ELSE IF (tmplab(2:2).EQ.'o') THEN
         num=27
-        weigth=58.9332                 
+        weigth=58.9332
       ELSE IF (tmplab(2:2).EQ.'l') THEN
         num=17
-        weigth=35.453                                        
-      ELSE IF (tmplab(2:2).EQ.'s') THEN            
-        num=55          
-        weigth=132.90545                                     
-      ELSE IF (tmplab(2:2).EQ.'d') THEN           
-        num=48           
-        weigth=112.411                                       
-      ELSE IF (tmplab(2:2).EQ.'u') THEN          
-        num=29            
-        weigth=63.546                                        
-      ELSE IF (tmplab(2:2).EQ.'e') THEN         
-        num=58             
-        weigth=140.116                                       
-      ELSE                                     
-        num=6              
-        weigth=12.0107                                       
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'f')  THEN                       
-      IF (tmplab(2:2).EQ.'e') THEN         
-        num=26                  
-        weigth=55.845                                        
-      ELSE IF (tmplab(2:2).EQ.'r') THEN      
-        num=87                
-        weigth=223                                           
-      ELSE                                  
-        num=9                 
-        weigth=18.9984032                                    
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'g')  THEN                       
-      IF (tmplab(2:2).EQ.'a') THEN           
-        num=31                
-        weigth=69.723                                        
-      ELSE IF (tmplab(2:2).EQ.'e') THEN     
-        num=32                 
-        weigth=72.64                                         
-      ELSE                                  
-        num=31                 
-        weigth=69.723                                        
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'h')  THEN                       
-      IF (tmplab(2:2).EQ.'e') THEN          
-        num=2                 
-        weigth=4.002602                                      
-      ELSE IF (tmplab(2:2).EQ.'g') THEN      
-        num=80                
-        weigth=200.59                                        
-      ELSE IF (tmplab(2:2).EQ.'f') THEN      
-        num=72                
-        weigth=178.49                                        
-      ELSE                                    
-        num=1               
-        weigth=1.00794                                       
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'i')  THEN                       
-      IF (tmplab(2:2).EQ.'n') THEN            
-        num=49               
-        weigth=114.818                                       
-      ELSE IF (tmplab(2:2).EQ.'r') THEN       
-        num=77               
-        weigth=192.217                                       
-      ELSE                                    
-        num=53               
-        weigth=126.90447                                     
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'k')  THEN                       
-      IF (tmplab(2:2).EQ.'r') THEN            
-        num=36               
-        weigth=83.798                                        
-      ELSE                                     
-        num=19              
-        weigth=39.0983                                       
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'l')  THEN                       
-      IF (tmplab(2:2).EQ.'i') THEN             
-        num=3              
-        weigth=6.941                                         
-      ELSE IF (tmplab(2:2).EQ.'a') THEN       
-        num=57               
-        weigth=138.9055                                      
-      ELSE                                    
-        num=3               
-        weigth=6.941                                         
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'m')  THEN                       
-      IF (tmplab(2:2).EQ.'g') THEN            
-        num=12               
-        weigth=24.3050                                       
-      ELSE IF (tmplab(2:2).EQ.'n') THEN      
-        num=25                
-        weigth=54.938049                                     
-      ELSE IF (tmplab(2:2).EQ.'o') THEN      
-        num=42                
-        weigth=95.94                                         
-      ELSE                                              
-        num=25                     
-        weigth=54.938049                                     
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'n')  THEN                       
-      IF (tmplab(2:2).EQ.'a') THEN                     
-        num=11                      
-        weigth=22.98977                                      
-      ELSE IF (tmplab(2:2).EQ.'i') THEN              
-        num=28                        
-        weigth=58.6934                                       
-      ELSE IF (tmplab(2:2).EQ.'b') THEN             
-        num=41                         
-        weigth=92.90638                                      
-      ELSE IF (tmplab(2:2).EQ.'e') THEN             
-        num=10                         
-        weigth=20.1797                                       
-      ELSE IF (tmplab(2:2).EQ.'d') THEN             
-        num=60                         
-        weigth=144.24                                        
-      ELSE                                        
-        num=7                           
-        weigth=14.0067                                       
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'o')  THEN                       
-      IF (tmplab(2:2).EQ.'s') THEN                
-        num=76                           
-        weigth=190.23                                        
-      ELSE                                              
-        num=8                                
-        weigth=15.9994                                       
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'p')  THEN                       
-      IF (tmplab(2:2).EQ.'d') THEN                      
-        num=46                                
-        weigth=106.42                                        
-      ELSE IF (tmplab(2:2).EQ.'t') THEN           
-        num=78                                      
-        weigth=195.078                                       
-      ELSE IF (tmplab(2:2).EQ.'b') THEN
-        num=82                                                 
-        weigth=207.2                                         
-      ELSE IF (tmplab(2:2).EQ.'o') THEN
-        num=84                                                 
-        weigth=209                                           
-      ELSE                             
-        num=15                                                 
-        weigth=30.973761                                     
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'r')  THEN                       
-      IF (tmplab(2:2).EQ.'b') THEN     
-        num=37                                                 
-        weigth=85.4678                                       
+        weigth=35.453
+      ELSE IF (tmplab(2:2).EQ.'s') THEN
+        num=55
+        weigth=132.90545
+      ELSE IF (tmplab(2:2).EQ.'d') THEN
+        num=48
+        weigth=112.411
       ELSE IF (tmplab(2:2).EQ.'u') THEN
-        num=44                                                 
-        weigth=101.07                                        
-      ELSE IF (tmplab(2:2).EQ.'h') THEN
-        num=45                                                 
-        weigth=102.90550                                     
+        num=29
+        weigth=63.546
       ELSE IF (tmplab(2:2).EQ.'e') THEN
-        num=75                                                 
-        weigth=186.207                                       
+        num=58
+        weigth=140.116
+      ELSE
+        num=6
+        weigth=12.0107
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'f')  THEN
+      IF (tmplab(2:2).EQ.'e') THEN
+        num=26
+        weigth=55.845
+      ELSE IF (tmplab(2:2).EQ.'r') THEN
+        num=87
+        weigth=223
+      ELSE
+        num=9
+        weigth=18.9984032
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'g')  THEN
+      IF (tmplab(2:2).EQ.'a') THEN
+        num=31
+        weigth=69.723
+      ELSE IF (tmplab(2:2).EQ.'e') THEN
+        num=32
+        weigth=72.64
+      ELSE
+        num=31
+        weigth=69.723
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'h')  THEN
+      IF (tmplab(2:2).EQ.'e') THEN
+        num=2
+        weigth=4.002602
+      ELSE IF (tmplab(2:2).EQ.'g') THEN
+        num=80
+        weigth=200.59
+      ELSE IF (tmplab(2:2).EQ.'f') THEN
+        num=72
+        weigth=178.49
+      ELSE
+        num=1
+        weigth=1.00794
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'i')  THEN
+      IF (tmplab(2:2).EQ.'n') THEN
+        num=49
+        weigth=114.818
+      ELSE IF (tmplab(2:2).EQ.'r') THEN
+        num=77
+        weigth=192.217
+      ELSE
+        num=53
+        weigth=126.90447
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'k')  THEN
+      IF (tmplab(2:2).EQ.'r') THEN
+        num=36
+        weigth=83.798
+      ELSE
+        num=19
+        weigth=39.0983
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'l')  THEN
+      IF (tmplab(2:2).EQ.'i') THEN
+        num=3
+        weigth=6.941
+      ELSE IF (tmplab(2:2).EQ.'a') THEN
+        num=57
+        weigth=138.9055
+      ELSE
+        num=3
+        weigth=6.941
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'m')  THEN
+      IF (tmplab(2:2).EQ.'g') THEN
+        num=12
+        weigth=24.3050
       ELSE IF (tmplab(2:2).EQ.'n') THEN
-        num=86                                                 
-        weigth=222                                           
-      ELSE                             
-        num=37                                                 
-        weigth=85.4678                                       
-      ENDIF                                                  
-    ELSE IF (tmplab(1:1).EQ.'s')  THEN                       
-      IF (tmplab(2:2).EQ.'i') THEN     
-        num=14                                                 
-        weigth=28.0855                                       
+        num=25
+        weigth=54.938049
+      ELSE IF (tmplab(2:2).EQ.'o') THEN
+        num=42
+        weigth=95.94
+      ELSE
+        num=25
+        weigth=54.938049
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'n')  THEN
+      IF (tmplab(2:2).EQ.'a') THEN
+        num=11
+        weigth=22.98977
+      ELSE IF (tmplab(2:2).EQ.'i') THEN
+        num=28
+        weigth=58.6934
+      ELSE IF (tmplab(2:2).EQ.'b') THEN
+        num=41
+        weigth=92.90638
       ELSE IF (tmplab(2:2).EQ.'e') THEN
-        num=34                           
+        num=10
+        weigth=20.1797
+      ELSE IF (tmplab(2:2).EQ.'d') THEN
+        num=60
+        weigth=144.24
+      ELSE
+        num=7
+        weigth=14.0067
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'o')  THEN
+      IF (tmplab(2:2).EQ.'s') THEN
+        num=76
+        weigth=190.23
+      ELSE
+        num=8
+        weigth=15.9994
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'p')  THEN
+      IF (tmplab(2:2).EQ.'d') THEN
+        num=46
+        weigth=106.42
+      ELSE IF (tmplab(2:2).EQ.'t') THEN
+        num=78
+        weigth=195.078
+      ELSE IF (tmplab(2:2).EQ.'b') THEN
+        num=82
+        weigth=207.2
+      ELSE IF (tmplab(2:2).EQ.'o') THEN
+        num=84
+        weigth=209
+      ELSE
+        num=15
+        weigth=30.973761
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'r')  THEN
+      IF (tmplab(2:2).EQ.'b') THEN
+        num=37
+        weigth=85.4678
+      ELSE IF (tmplab(2:2).EQ.'u') THEN
+        num=44
+        weigth=101.07
+      ELSE IF (tmplab(2:2).EQ.'h') THEN
+        num=45
+        weigth=102.90550
+      ELSE IF (tmplab(2:2).EQ.'e') THEN
+        num=75
+        weigth=186.207
+      ELSE IF (tmplab(2:2).EQ.'n') THEN
+        num=86
+        weigth=222
+      ELSE
+        num=37
+        weigth=85.4678
+      ENDIF
+    ELSE IF (tmplab(1:1).EQ.'s')  THEN
+      IF (tmplab(2:2).EQ.'i') THEN
+        num=14
+        weigth=28.0855
+      ELSE IF (tmplab(2:2).EQ.'e') THEN
+        num=34
         weigth=78.96
       ELSE IF (tmplab(2:2).EQ.'c') THEN
-        num=21                           
+        num=21
         weigth=44.955910
       ELSE IF (tmplab(2:2).EQ.'r') THEN
-        num=38                           
+        num=38
         weigth=87.62
       ELSE IF (tmplab(2:2).EQ.'n') THEN
-        num=50                           
+        num=50
         weigth=118.710
       ELSE IF (tmplab(2:2).EQ.'b') THEN
-        num=51                           
+        num=51
         weigth=121.760
       ELSE
-        num=16                           
+        num=16
         weigth=32.065
       ENDIF
     ELSE IF (tmplab(1:1).EQ.'t')  THEN
       IF (tmplab(2:2).EQ.'a') THEN
-        num=73                           
+        num=73
         weigth=180.9479
       ELSE IF (tmplab(2:2).EQ.'l') THEN
-        num=81                           
+        num=81
         weigth=204.3833
       ELSE IF (tmplab(2:2).EQ.'c') THEN
-        num=43                           
+        num=43
         weigth=98
       ELSE IF (tmplab(2:2).EQ.'i') THEN
-        num=22                           
+        num=22
         weigth=47.867
       ELSE IF (tmplab(2:2).EQ.'e') THEN
-        num=52                           
+        num=52
         weigth=127.60
       ELSE
-        num=22                           
+        num=22
         weigth=47.867
       ENDIF
     ELSE IF (tmplab(1:1).EQ.'u')  THEN
-      num=92                           
+      num=92
       weigth=238.02891
     ELSE IF (tmplab(1:1).EQ.'v')  THEN
-      num=23                           
+      num=23
       weigth=50.9415
     ELSE IF (tmplab(1:1).EQ.'w')  THEN
-      num=74                           
+      num=74
       weigth=183.84
     ELSE IF (tmplab(1:1).EQ.'x')  THEN
-      num=54                           
+      num=54
       weigth=131.293
     ELSE IF (tmplab(1:1).EQ.'y')  THEN
-      num=39                           
+      num=39
       weigth=88.90585
     ELSE IF (tmplab(1:1).EQ.'z')  THEN
       IF (tmplab(2:2).EQ.'n') THEN
-        num=30                           
+        num=30
         weigth=65.409
       ELSE IF (tmplab(2:2).EQ.'r') THEN
-        num=40                           
+        num=40
         weigth=91.224
       ELSE
-        num=30                           
+        num=30
         weigth=65.409
       ENDIF
     ELSE
-      num=0                           
+      num=0
       weigth=0
     ENDIF
 
@@ -441,7 +441,7 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE lowcase(string)
 !--------------------------------------------------------------------
-    
+
     CHARACTER*(*), INTENT(inout) :: string
 
     INTEGER :: i, length

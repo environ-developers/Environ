@@ -42,7 +42,7 @@ SUBROUTINE zbrac(func,x1,x2,success)
      ENDIF
   ENDDO
   success = .FALSE.
-  RETURN     
+  RETURN
 !--------------------------------------------------------------------
 END SUBROUTINE zbrac
 !--------------------------------------------------------------------
@@ -161,9 +161,9 @@ END SUBROUTINE zbrent
 	if (fb > fa) then
            fc = ax
            ax = bx
-           bx = fc 
-           fc = fa 
-           fa = fb 
+           bx = fc
+           fc = fa
+           fa = fb
            fb = fc
 	end if
 	cx=bx+GOLD*(bx-ax)
@@ -274,7 +274,7 @@ END SUBROUTINE zbrent
         golden=f2
         xmin=x2
       endif
-      return 
+      return
 !--------------------------------------------------------------------
       END FUNCTION golden
 !--------------------------------------------------------------------

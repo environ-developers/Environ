@@ -31,7 +31,7 @@ MODULE calc_rhopol
   PRIVATE
 
   PUBLIC :: iterative_rhopol, rhopol_of_v
-  
+
 CONTAINS
 
   SUBROUTINE rhopol_init(nnr, nspin)
@@ -46,14 +46,14 @@ CONTAINS
     CASE ('linear')
       ndiis = 1
     CASE ('anderson')
-      ndiis = 2 
+      ndiis = 2
     CASE ('diis')
       ndiis = MAX(2,ndiis)
     CASE default
       WRITE(*,*)'ERROR: wrong mixtype in Environ namelist'
-    END SELECT 
+    END SELECT
 
-    ALLOCATE( rhozero( nnr ) ) 
+    ALLOCATE( rhozero( nnr ) )
     ALLOCATE( vtot ( nnr, nspin ) )
     ALLOCATE( gvtot ( 3, nnr ) )
     ALLOCATE( rhotot ( nnr ) )
@@ -80,7 +80,7 @@ CONTAINS
 
     initialized = .FALSE.
 
-    IF ( ALLOCATED(rhozero) )  DEALLOCATE( rhozero ) 
+    IF ( ALLOCATED(rhozero) )  DEALLOCATE( rhozero )
     IF ( ALLOCATED(vtot) )     DEALLOCATE( vtot )
     IF ( ALLOCATED(gvtot) )    DEALLOCATE( gvtot )
     IF ( ALLOCATED(rhotot) )   DEALLOCATE( rhotot )
@@ -94,11 +94,11 @@ CONTAINS
   END SUBROUTINE rhopol_clean
 
   SUBROUTINE iterative_rhopol(nnr,nspin,maxiter,periodic,tol,mix,rho,eps,gradlogeps,rhoiter)
-  
+
     IMPLICIT NONE
 
     ! ... Declare variables
-    
+
     INTEGER, INTENT(IN)     :: nnr
     INTEGER, INTENT(IN)     :: nspin
     INTEGER, INTENT(IN)     :: maxiter
@@ -115,7 +115,7 @@ CONTAINS
     INTEGER  :: iter, ir, ind
     REAL(DP) :: total, totpol, totzero, totiter, deltarho, ehart, charge
 
-    CALL start_clock( 'get_rhopol' ) 
+    CALL start_clock( 'get_rhopol' )
 
     IF ( .NOT. initialized ) CALL rhopol_init(nnr,nspin)
 
@@ -141,24 +141,24 @@ CONTAINS
     IF ( verbose .GE. 3 ) CALL write_cube( nnr, vtot( :, 1), 'vsolute.cube' )
 
     DO iter = 1, maxiter
-       
+
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
        ind = MOD(iter-1,ndiis)+1
        rhoin(ind,:) = rhoiter(:)
-       
-       ! ...Compute total charge density 
 
-       rhotot = rhozero + rhoiter 
-       
-       ! ... Compute gradient of potential from total density 
+       ! ...Compute total charge density
+
+       rhotot = rhozero + rhoiter
+
+       ! ... Compute gradient of potential from total density
 
        CALL gradv_h_of_rho_r ( rhotot, gvtot )
 
        ! ... If partially periodic system add pbc correction to the gradient
-       
+
        IF ( env_periodicity .NE. 3 ) CALL calc_gradvperiodic( nnr, rhotot, gvtot )
 
-       ! ... Compute polarization charge from grad(V) and grad(eps) 
+       ! ... Compute polarization charge from grad(V) and grad(eps)
 
        rhoiter = 0.D0
        DO ir = 1, nnr
@@ -198,10 +198,10 @@ CONTAINS
 
     CALL rhopol_clean()
 
-    CALL stop_clock( 'get_rhopol' ) 
+    CALL stop_clock( 'get_rhopol' )
 
     RETURN
-    
+
 9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6)
 9002 FORMAT(' Iteration # ',i10)
@@ -219,7 +219,7 @@ CONTAINS
 
       USE  kinds,          ONLY : DP
       USE  environ_base,   ONLY : verbose
-        
+
       IMPLICIT NONE
 
       ! Declares variables
@@ -240,13 +240,13 @@ CONTAINS
       REAL(DP), ALLOCATABLE          :: cdiis( : )
 !      REAL(DP), ALLOCATABLE          :: diismat( : , : )
 
-      CALL start_clock( 'mixrhopol' ) 
+      CALL start_clock( 'mixrhopol' )
 
       IF (TRIM(mixing).EQ.'linear') THEN
 
         IF (verbose.GE.1) WRITE(11,'(1x,a,f12.6)')'Linear mixing, mix =  ',mix
 
-        ! ... Linear mixing of polarization charges 
+        ! ... Linear mixing of polarization charges
 
         rhopol(:) = mix * rhoout(1,:) + (1.D0-mix) * rhoin(1,:)
 
@@ -254,8 +254,8 @@ CONTAINS
 
         IF (verbose.GE.1) WRITE(11,'(1x,a,f12.6)')'Anderson mixing, mix = ',mix
 
-        ! ... Anderson mixing of polarization charges 
-  
+        ! ... Anderson mixing of polarization charges
+
         beta = SUM(residual(1,:)*(residual(1,:)-residual(2,:)))
         beta = beta/SUM(residual(1,:)*residual(2,:))
         rhopol = mix * ((1.D0-beta)*rhoout(1,:)+beta*rhoout(2,:))
@@ -266,11 +266,11 @@ CONTAINS
 
         IF (verbose.GE.1) WRITE(11,'(1x,a,i12)')'DIIS mixing, ndiis = ',ndiis
 
-        ! ... DIIS mixing of polarization charges 
-          
+        ! ... DIIS mixing of polarization charges
+
         ndim=MIN(iter,ndiis)
         DO i = 1,ndim
-          diismat(ind,i) = SUM(residual(ind,:)*residual(i,:)) 
+          diismat(ind,i) = SUM(residual(ind,:)*residual(i,:))
           diismat(i,ind) = diismat(ind,i)
         ENDDO
         IF (ndim.EQ.1) THEN
@@ -280,20 +280,20 @@ CONTAINS
           CALL solvediismat(ndiis,ndim,diismat,cdiis)
           rhopol = 0.D0
           DO i = 1, ndim
-            rhopol = rhopol + cdiis(i) * rhoout(i,:) 
+            rhopol = rhopol + cdiis(i) * rhoout(i,:)
           ENDDO
           DEALLOCATE(cdiis)
         ENDIF
-    
+
       ELSE
-        
+
         WRITE(*,*)'ERROR: unknown keyword for polarization mixing'
         STOP
 
       ENDIF
-        
+
 100   CONTINUE
-      CALL stop_clock( 'mixrhopol' ) 
+      CALL stop_clock( 'mixrhopol' )
       RETURN
 
       END SUBROUTINE mix_rhopol
@@ -303,7 +303,7 @@ CONTAINS
 !--------------------------------------------------------------------
 
       USE  kinds,         ONLY : DP
-        
+
       IMPLICIT NONE
 
       INTEGER, PARAMETER :: nb = 20
@@ -320,7 +320,7 @@ CONTAINS
 
       LOGICAL, SAVE :: first=.true.
       INTEGER :: lwork
-      
+
       lwork = nb * n
       c = 0.D0
       IF (l.LT.2) THEN
@@ -356,7 +356,7 @@ CONTAINS
 !--------------------------------------------------------------------
       SUBROUTINE rhopol_of_v(nnr,nspin,eps,gradlogeps,rhosolute,vsolvent,rhopol)
 !--------------------------------------------------------------------
-        
+
       IMPLICIT NONE
       !
       ! Input variables
@@ -375,17 +375,17 @@ CONTAINS
       INTEGER :: ir
       REAL(DP) :: charge, ehart
       REAL(DP), ALLOCATABLE, DIMENSION(:,:) :: rhoaux, vaux, gvtot
-        
+
       rhopol = 0.D0
-      
-      ALLOCATE( rhoaux( nnr, nspin ) ) 
-      rhoaux( :, 1 ) = rhosolute(:) 
+
+      ALLOCATE( rhoaux( nnr, nspin ) )
+      rhoaux( :, 1 ) = rhosolute(:)
       IF ( nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
-      
+
       ALLOCATE( vaux( nnr, nspin ) )
       vaux = 0.D0
-      CALL v_h_of_rho_r( rhoaux, ehart, charge, vaux )  
-      DEALLOCATE( rhoaux )  
+      CALL v_h_of_rho_r( rhoaux, ehart, charge, vaux )
+      DEALLOCATE( rhoaux )
       vaux( :, 1 ) = vaux( :, 1 ) + vsolvent(:)
 
       ALLOCATE( gvtot( 3, nnr ) )
@@ -394,7 +394,7 @@ CONTAINS
       DEALLOCATE( vaux )
 
       DO ir = 1, nnr
-         rhopol(ir) = SUM(gvtot(:,ir)*gradlogeps(:,ir)) / fpi / e2 
+         rhopol(ir) = SUM(gvtot(:,ir)*gradlogeps(:,ir)) / fpi / e2
       ENDDO
       DEALLOCATE( gvtot )
 
@@ -406,5 +406,5 @@ CONTAINS
 !--------------------------------------------------------------------
       END SUBROUTINE rhopol_of_v
 !--------------------------------------------------------------------
-      
+
 END MODULE calc_rhopol

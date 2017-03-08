@@ -12,7 +12,7 @@ MODULE solvent_tddfpt
       ! ... Module for calculation of the response "polarization" and "dielectric" potentials.
       ! ... Inspired by Environ/src/solvent.f90
       ! ... Written by I. Timrov 09/2013
-      !  
+      !
       USE kinds,              ONLY : DP
       USE constants,          ONLY : fpi
       USE fd_gradient,        ONLY : init_fd_gradient, calc_fd_gradient
@@ -35,11 +35,11 @@ MODULE solvent_tddfpt
                                gradlogeps(:,:), & ! gradient of logarithm of the dielectric function
                                drhopol(:),      & ! response polarization charge-density
                                drhoiter(:)        ! iterative response charge-density
-       
+
        SAVE
-       
+
        PRIVATE
-       
+
        PUBLIC :: solvent_initbase_tddfpt, solvent_clean_tddfpt, calc_vsolvent_tddfpt
 
 CONTAINS
@@ -85,7 +85,7 @@ CONTAINS
       RETURN
       !
 !--------------------------------------------------------------------
- END SUBROUTINE solvent_initbase_tddfpt 
+ END SUBROUTINE solvent_initbase_tddfpt
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
  SUBROUTINE solvent_clean_tddfpt()
@@ -107,7 +107,7 @@ CONTAINS
       RETURN
       !
 !---------------------------------------------------------------------------------
- END SUBROUTINE solvent_clean_tddfpt   
+ END SUBROUTINE solvent_clean_tddfpt
 !---------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------
  SUBROUTINE calc_vsolvent_tddfpt(nnr, nspin, rho_0, drho_elec, dv_pol, dv_epsilon)
@@ -144,10 +144,10 @@ CONTAINS
       ! ... Generate the dielectric function and its derivative
       ! ... from the unperturbed charge-density.
       ! ... They must be generated only once contrarily to the
-      ! ... ground-state SCF calculation. 
+      ! ... ground-state SCF calculation.
       !
-      IF ( .NOT. initialized ) THEN     
-         ! 
+      IF ( .NOT. initialized ) THEN
+         !
          ALLOCATE( rhodiel(nnr) )
          rhodiel = 0.D0
          !
@@ -170,18 +170,18 @@ CONTAINS
              !
              CALL errore('calc_vsolvent_tddfpt', &
                    & 'eps_mode = external is not supported', 1 )
-             ! 
+             !
          END SELECT
          !
          eps  = 0.D0
          deps = 0.D0
          d2eps = 0.D0
          CALL generate_dielectric( nnr, rhodiel, eps, deps, d2eps, .TRUE. )
-         !        
+         !
          DEALLOCATE( rhoions )
          DEALLOCATE( rhodiel )
-         ! 
-         initialized = .TRUE. 
+         !
+         initialized = .TRUE.
          !
       ENDIF
       !
@@ -197,14 +197,14 @@ CONTAINS
       CALL iterative_rhopol(nnr, nspin, maxiter, .FALSE., tolrhopol, &
                                  & mixrhopol, drho_elec, eps, gradlogeps, drhoiter)
       !
-      ! ... Sum up the two turms and obtain the final expression for the 
+      ! ... Sum up the two turms and obtain the final expression for the
       ! ... response polarization density
       !
       drhopol(:) = drhoiter(:) + (1.D0-eps(:))/eps(:) * drho_elec(:)
       !
-      ! ... Calculate the response "polarization" potential 
-      ! ... from the response polarization density 
-      ! ... Note: ehart and charge are computed, but they are not needed 
+      ! ... Calculate the response "polarization" potential
+      ! ... from the response polarization density
+      ! ... Note: ehart and charge are computed, but they are not needed
       !
       ALLOCATE( drhoaux( nnr, nspin ) )
       ALLOCATE( dvaux( nnr, nspin ) )
@@ -225,9 +225,9 @@ CONTAINS
       ALLOCATE( drhotot(nnr) )
       ALLOCATE( gdvtot(3,nnr) )
       !
-      ! ... Total response charge-density  
+      ! ... Total response charge-density
       !
-      drhotot = drho_elec + drhopol 
+      drhotot = drho_elec + drhopol
       !
       ! ... Calculate a gradient of the total response potential [like in Eq.(50)]
       !

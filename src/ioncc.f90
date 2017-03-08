@@ -9,9 +9,9 @@ MODULE ioncc
   USE mp_bands,       ONLY: intra_bgrp_comm
   USE environ_cell,   ONLY: domega, alat, omega, ntot, at
   USE environ_ions,   ONLY: avg_pos, rhoions
-  USE environ_base,   ONLY: verbose, e2, ir_end, environ_unit,           & 
+  USE environ_base,   ONLY: verbose, e2, ir_end, environ_unit,           &
                             env_ioncc_level, nrep, cion, cionmax, zion,  &
-                            solvent_temperature, rhoioncc, rhopolcc,     & 
+                            solvent_temperature, rhoioncc, rhopolcc,     &
                             env_static_permittivity, rhopol, slab_axis,  &
                             rhomin, rhopb
   USE generate_function, ONLY: planar_average
@@ -25,7 +25,7 @@ MODULE ioncc
   REAL( DP ) :: area, darea, axis_length, dx, xstern, deltastern
 
   REAL( DP ) :: kbt, invkbt, fsw
-  
+
   REAL( DP ), ALLOCATABLE :: axis(:), switch(:), step(:)
   REAL( DP ), ALLOCATABLE :: axis1d(:), switch1d(:), step1d(:)
 
@@ -68,7 +68,7 @@ CONTAINS
     IF (ALLOCATED(axis)) DEALLOCATE(axis)
     ALLOCATE(axis(nnr))
     axis = 0.D0
-    !    
+    !
     IF (ALLOCATED(switch)) DEALLOCATE(switch)
     ALLOCATE(switch(nnr))
     switch = 0.D0
@@ -110,7 +110,7 @@ CONTAINS
     cb(1) = cion ! bulk concentration
     cb(2) = cion
     !
-    ALLOCATE(mu(nsp)) 
+    ALLOCATE(mu(nsp))
     CALL calc_muioncc(nsp,cb,mu)
     !
     WRITE(environ_unit,*)nsp,cb,mu
@@ -146,7 +146,7 @@ CONTAINS
     SELECT CASE (slab_axis)
     CASE (1)
       naxis = n1
-    CASE (2) 
+    CASE (2)
       naxis = n2
     CASE (3)
       naxis = n3
@@ -163,8 +163,8 @@ CONTAINS
     dx = axis_length/DBLE(naxis)
     area = omega/axis_length
     darea = dx*area
-    shift = naxis/2 - NINT(avg_pos(slab_axis)*alat/dx) 
-    IF ( verbose .GE. 1 ) THEN 
+    shift = naxis/2 - NINT(avg_pos(slab_axis)*alat/dx)
+    IF ( verbose .GE. 1 ) THEN
       WRITE(environ_unit,8301)naxis,naxis/2,nrep,n1d
       WRITE(environ_unit,8302)cell_min,cell_max,dx,area
       WRITE(environ_unit,8303)darea,avg_pos(slab_axis)*alat,shift
@@ -180,7 +180,7 @@ CONTAINS
     IF (ALLOCATED(axis1d)) DEALLOCATE(axis1d)
     ALLOCATE(axis1d(n1d))
     axis1d = 0.D0
-    CALL planar_average( nnr, naxis, slab_axis, shift, .false., axis, axis1d(cell_min:cell_max) ) 
+    CALL planar_average( nnr, naxis, slab_axis, shift, .false., axis, axis1d(cell_min:cell_max) )
     !
     ! ... then generate the extended replicas
     !
@@ -188,7 +188,7 @@ CONTAINS
       imin = (irep-1)*naxis + 1
       imax = imin + naxis - 1
       axis1d(imin:imax) = axis1d(cell_min:cell_max) + ( irep - 2*nrep ) * axis_length
-    ENDDO  
+    ENDDO
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, axis1d, 'axis1d.dat' )
     !
     ! ... Generate the step function, to allow finite step in potential
@@ -203,7 +203,7 @@ CONTAINS
     IF (ALLOCATED(switch1d)) DEALLOCATE(switch1d)
     ALLOCATE(switch1d(n1d))
     CALL generate_switch(n1d,xstern,deltastern,axis1d,switch1d)
-    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, switch1d, 'switch1d.dat' )    
+    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, switch1d, 'switch1d.dat' )
     !
     RETURN
     !
@@ -258,13 +258,13 @@ CONTAINS
     INTEGER :: dim
     !
     !
-    CALL start_clock( 'get_ioncc' ) 
+    CALL start_clock( 'get_ioncc' )
     !
     ! ... Initialize the potential
     !
     vioncc = 0.D0
     IF ( env_ioncc_level .LT. 1 ) RETURN
-    ALLOCATE( vioncc1d(n1d) ) 
+    ALLOCATE( vioncc1d(n1d) )
     vioncc1d = 0.D0
     !
     ! ... Set the total density, only exclude the ioncc densities
@@ -276,34 +276,34 @@ CONTAINS
 !!! TESTING ONLY
     !
     ! ... Test desity, we build a uniform charge density thick 2.D0 a.u. around avg_pos
-    !     The total chage of the analytic system is 1 e 
+    !     The total chage of the analytic system is 1 e
     !
     rhotot = 0.D0
     charge = -1.d0
     spread = 0.5D0
-    dim = 2 
+    dim = 2
     pos = avg_pos
     CALL generate_gaussian( nnr, dim, slab_axis, charge, spread, pos, rhotot )
-    charge = SUM(rhotot)*domega 
-    CALL mp_sum( charge, intra_bgrp_comm ) 
+    charge = SUM(rhotot)*domega
+    CALL mp_sum( charge, intra_bgrp_comm )
     WRITE(environ_unit,*)'input charge = ',charge
 !!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    DO ir = 1, ir_end
 !!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT      IF ( ABS(axis(ir)) .LT. 1.D0 ) rhotot(ir) = -1.D0
 !!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    ENDDO
-!!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    charge = SUM(rhotot)*domega 
-!!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    CALL mp_sum( charge, intra_bgrp_comm ) 
-!!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    rhotot = rhotot / ABS(charge) 
+!!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    charge = SUM(rhotot)*domega
+!!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    CALL mp_sum( charge, intra_bgrp_comm )
+!!!OLD-POSSIBLY-DIFFICULT-TO-CONVERGE-WITH-FFT    rhotot = rhotot / ABS(charge)
 !!! TESTING ONLY
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!    rhotot = rhoelec + rhoions 
+!!!    rhotot = rhoelec + rhoions
 !!!    IF ( env_static_permittivity .GT. 1.D0 ) rhotot = rhotot + rhopol
     IF ( verbose .GE. 3 ) CALL write_cube( nnr, rhotot, 'rhotot.cube' )
     !
     ! ... Compute and store some basic quantities of the source charge density
     !
-    CALL setfix( nnr, nspin, n1d, rhotot ) 
+    CALL setfix( nnr, nspin, n1d, rhotot )
     !
     ! ... Generate the 3D switching function, for Level 3 or higher ioncc density
     !
@@ -312,13 +312,13 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!! TESTING ONLY !!!!!!!!!!!
-      ALLOCATE(switch1dtmp(n1d)) 
+      ALLOCATE(switch1dtmp(n1d))
       xtmp = xstern - 0.5D0
       CALL generate_switch(n1d, xtmp, deltastern, axis1d, switch1dtmp )
       IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, switch1dtmp, 'switch1dtmp.dat' )
       switch = 0.D0
       CALL planar_average( nnr, naxis, slab_axis, shift, .true., switch, switch1dtmp(cell_min:cell_max) )
-!!! TESTING ONLY !!!!!!!!!!! 
+!!! TESTING ONLY !!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -334,20 +334,20 @@ CONTAINS
     ALLOCATE( rhostern1d(n1d) )
     rhostern1d = 0.D0
     CALL calc_rhostern( n1d, charge_fix, dipole_fix, xstern, axis1d, step1d, vfix1d, vioncc1d, rhostern1d )
-    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhostern1d, 'rhostern1d.dat' )   
-    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vioncc1d, 'vstern1d.dat' ) 
+    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhostern1d, 'rhostern1d.dat' )
+    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vioncc1d, 'vstern1d.dat' )
     ALLOCATE( cstern1d(nsp,n1d) )
     cstern1d = 0.D0
     CALL calc_cstern( n1d, nsp, charge_fix, dipole_fix, xstern, axis1d, step1d, vfix1d, vioncc1d, cstern1d )
     IF ( ALLOCATED(switch1dtmp) ) DEALLOCATE(switch1dtmp)
-    ALLOCATE(switch1dtmp(n1d)) 
-    switch1dtmp = 1.D0 
+    ALLOCATE(switch1dtmp(n1d))
+    switch1dtmp = 1.D0
     CALL sum_cioncc( n1d, nsp, switch1dtmp, z, cstern1d, rhostern1d )
-    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhostern1d, 'rhostern1d_new.dat' )   
+    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhostern1d, 'rhostern1d_new.dat' )
     !
-    ALLOCATE( rhoioncc1d(n1d) ) 
+    ALLOCATE( rhoioncc1d(n1d) )
     rhoioncc1d = 0.D0
-    ALLOCATE( cioncc1d(nsp,n1d) ) 
+    ALLOCATE( cioncc1d(nsp,n1d) )
     cioncc1d = 0.D0
     IF ( env_ioncc_level .EQ. 1 ) THEN
       CALL planar_average( nnr, naxis, slab_axis, shift, .true., vioncc, vioncc1d(cell_min:cell_max) )
@@ -362,26 +362,26 @@ CONTAINS
 !      CALL calc_vioncc1d_lbfgs( n1d, nsp, vioncc1d, cioncc1d )
 !      CALL calc_fullioncc1d_lbfgs( n1d, nsp, vioncc1d, cioncc1d )
       CALL sum_cioncc( n1d, nsp, switch1d, z, cioncc1d, rhoioncc1d )
-      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhoioncc1d, 'rhoioncc1d.dat' )   
-      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vioncc1d, 'vioncc1d.dat' ) 
+      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhoioncc1d, 'rhoioncc1d.dat' )
+      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vioncc1d, 'vioncc1d.dat' )
       CALL planar_average( nnr, naxis, slab_axis, shift, .true., vioncc, vioncc1d(cell_min:cell_max) )
       CALL planar_average( nnr, naxis, slab_axis, shift, .true., rhoioncc, rhoioncc1d(cell_min:cell_max) )
     !
     ! ... Compute Level 3 ioncc (self-consistent internal 3D diffuse layer with electrons-based
     !      switching function plus self-consistent external 1D diffuse layer)
     !
-    ELSE IF ( env_ioncc_level .EQ. 3 ) THEN  
+    ELSE IF ( env_ioncc_level .EQ. 3 ) THEN
       CALL calc_vioncc1d_lbfgs( n1d, nsp, vioncc1d, cioncc1d )
-      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhoioncc1d, 'rhoioncc1d.dat' )   
-      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vioncc1d, 'vioncc1d.dat' ) 
+      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhoioncc1d, 'rhoioncc1d.dat' )
+      IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vioncc1d, 'vioncc1d.dat' )
       CALL planar_average( nnr, naxis, slab_axis, shift, .true., vioncc, vioncc1d(cell_min:cell_max) )
       vioncc = vioncc + vfix
-      CALL calc_vioncc_lbfgs( nnr, nsp, rhoioncc, vioncc ) 
+      CALL calc_vioncc_lbfgs( nnr, nsp, rhoioncc, vioncc )
     ELSE
       WRITE(stdout,*)'ERROR: specified ioncc level is not implemented'
-    END IF 
+    END IF
     !
-    CALL stop_clock( 'get_ioncc' ) 
+    CALL stop_clock( 'get_ioncc' )
     !
     CALL write_cube( nnr, vioncc(:), 'dump.cube' )
     !
@@ -411,36 +411,36 @@ CONTAINS
     INTEGER :: i, i1, i2
     REAL( DP ) :: ez, fact, vstern, const
     REAL( DP ) :: v1, v2, dv, vbound
-    REAL( DP ) :: arg, asinh, coth, acoth 
+    REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: f1, f2, f3, f4
     !
-    ! ... Given the total explicit charge, the value of the field at the boundary 
-    !     is obtained by Gauss's law  
-    ! (1) ez = - tpi * e2 * charge * axis_length / omega / env_static_permittivity 
+    ! ... Given the total explicit charge, the value of the field at the boundary
+    !     is obtained by Gauss's law
+    ! (1) ez = - tpi * e2 * charge * axis_length / omega / env_static_permittivity
     !
-    ! ... By integrating the Guy-Chapman model one has a relation that links the derivative 
+    ! ... By integrating the Guy-Chapman model one has a relation that links the derivative
     !     of the potential (the field) to the value of the potential
     ! (2) dv/dz = - ez = fact * SINH( v(z) * zion / 2 / kbt )
     !     where
-    ! (3) fact = - e2 * SQRT( 32 * pi * cd * kbt / e2 / env_static_permittivity ) 
+    ! (3) fact = - e2 * SQRT( 32 * pi * cd * kbt / e2 / env_static_permittivity )
     !
-    ! ... By combining (1) and (2) one can derive the analytic charge from the knowledge of the potential 
-    !     at the boundary, 
-    ! (4) charge_ext = fact * env_static_permittivity * omega / axis_lenght / tpi / e2 * SINH( vskin * zion / 2 / kbt ) 
+    ! ... By combining (1) and (2) one can derive the analytic charge from the knowledge of the potential
+    !     at the boundary,
+    ! (4) charge_ext = fact * env_static_permittivity * omega / axis_lenght / tpi / e2 * SINH( vskin * zion / 2 / kbt )
     !
-    ! ... or one can compute the value of the potential at the interface corresponding to a certain 
+    ! ... or one can compute the value of the potential at the interface corresponding to a certain
     !     explicit charge density,
     ! (5) vskin_analytic = 2.D0 * kbt / zion * ASINH( ez / fact )
     !
-    ! ... Eventually, by integrating Eq. (2) the analytic form of the potential is found 
+    ! ... Eventually, by integrating Eq. (2) the analytic form of the potential is found
     ! (6) vanalytic(z) = 4.D0 * kbt / zion * ACOTH( const * EXP( - z * fact * zion / kbt / 2.D0  ) )
     !     were the constant is determined by the condition that vanalytic(xskin) = vskin
     !
     ! ... Compute the physical properties of the interface
     !
-    ez = - tpi * e2 * charge / area / env_static_permittivity 
+    ez = - tpi * e2 * charge / area / env_static_permittivity
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / env_static_permittivity )
-    arg = ez/fact 
+    arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
     arg = vstern * 0.25D0 * invkbt * zion
@@ -453,7 +453,7 @@ CONTAINS
     !     Linear interpolate between gridpoints around x0 and average over both sides of slab
     !
     i1 = cell_min + naxis/2 + INT( x0 / dx )
-    i2 = cell_min + naxis/2 - 1 - INT( x0 / dx ) 
+    i2 = cell_min + naxis/2 - 1 - INT( x0 / dx )
     IF ( i1 .LE. 0 .OR. i1 .GT. n-1 .OR. i2 .LE. 1 .OR. i2 .GT. n ) THEN
       WRITE(stdout,8004)
       STOP
@@ -469,9 +469,9 @@ CONTAINS
     !
     ! ... Compute some constants needed for the calculation
     !
-    f1 = - fact * zion * invkbt * 0.5D0 
+    f1 = - fact * zion * invkbt * 0.5D0
     f2 = 4.D0 * kbt / zion
-    f3 = -2.D0 * zion * cion 
+    f3 = -2.D0 * zion * cion
     f4 = zion * invkbt
     !
 !    IF ( verbose .GE. 3 ) WRITE(environ_unit,8002)f1,f2,f3,f4
@@ -487,14 +487,14 @@ CONTAINS
         !
         v(i) = vstern - vbound
         !
-      ELSE 
+      ELSE
         !
         arg = const * EXP( ABS(axis(i)) * f1)
         IF ( ABS(arg) .GT. 1.D0 ) THEN
           acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-        ELSE 
+        ELSE
           acoth = 0.D0
-        END IF 
+        END IF
         v(i) =  f2 * acoth
         rho(i) = f3 * SINH( f4 * v(i) )
         !
@@ -511,7 +511,7 @@ CONTAINS
 8002 FORMAT(1X,'f1 = ',E14.6,' f2 = ',E14.6,' f3 = ',E14.6,' f4 = ',E14.6)
 8003 FORMAT(1X,'i = ',i4,' x1 = ',F14.6,' x2 = ',F14.6,' v1 = ',F14.6,' v2 = ',F14.6,' v = ',F14.6)
 8004 FORMAT(1X,'ERROR: stern layer is outside of 1d cell, need to use more nrep')
-8005 FORMAT(1X,'vbound = ',F14.6,' dv = ',F14.6,' v1_shifted = ',F14.6,' v2_shifted = ',F14.6) 
+8005 FORMAT(1X,'vbound = ',F14.6,' dv = ',F14.6,' v1_shifted = ',F14.6,' v2_shifted = ',F14.6)
 !--------------------------------------------------------------------
   END SUBROUTINE calc_rhostern
 !--------------------------------------------------------------------
@@ -534,36 +534,36 @@ CONTAINS
     INTEGER :: i, i1, i2
     REAL( DP ) :: ez, fact, vstern, const
     REAL( DP ) :: v1, v2, dv, vbound
-    REAL( DP ) :: arg, asinh, coth, acoth 
+    REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: f1, f2, f3, f4
     !
-    ! ... Given the total explicit charge, the value of the field at the boundary 
-    !     is obtained by Gauss's law  
-    ! (1) ez = - tpi * e2 * charge * axis_length / omega / env_static_permittivity 
+    ! ... Given the total explicit charge, the value of the field at the boundary
+    !     is obtained by Gauss's law
+    ! (1) ez = - tpi * e2 * charge * axis_length / omega / env_static_permittivity
     !
-    ! ... By integrating the Guy-Chapman model one has a relation that links the derivative 
+    ! ... By integrating the Guy-Chapman model one has a relation that links the derivative
     !     of the potential (the field) to the value of the potential
     ! (2) dv/dz = - ez = fact * SINH( v(z) * zion / 2 / kbt )
     !     where
-    ! (3) fact = - e2 * SQRT( 32 * pi * cd * kbt / e2 / env_static_permittivity ) 
+    ! (3) fact = - e2 * SQRT( 32 * pi * cd * kbt / e2 / env_static_permittivity )
     !
-    ! ... By combining (1) and (2) one can derive the analytic charge from the knowledge of the potential 
-    !     at the boundary, 
-    ! (4) charge_ext = fact * env_static_permittivity * omega / axis_lenght / tpi / e2 * SINH( vskin * zion / 2 / kbt ) 
+    ! ... By combining (1) and (2) one can derive the analytic charge from the knowledge of the potential
+    !     at the boundary,
+    ! (4) charge_ext = fact * env_static_permittivity * omega / axis_lenght / tpi / e2 * SINH( vskin * zion / 2 / kbt )
     !
-    ! ... or one can compute the value of the potential at the interface corresponding to a certain 
+    ! ... or one can compute the value of the potential at the interface corresponding to a certain
     !     explicit charge density,
     ! (5) vskin_analytic = 2.D0 * kbt / zion * ASINH( ez / fact )
     !
-    ! ... Eventually, by integrating Eq. (2) the analytic form of the potential is found 
+    ! ... Eventually, by integrating Eq. (2) the analytic form of the potential is found
     ! (6) vanalytic(z) = 4.D0 * kbt / zion * ACOTH( const * EXP( - z * fact * zion / kbt / 2.D0  ) )
     !     were the constant is determined by the condition that vanalytic(xskin) = vskin
     !
     ! ... Compute the physical properties of the interface
     !
-    ez = - tpi * e2 * charge / area / env_static_permittivity 
+    ez = - tpi * e2 * charge / area / env_static_permittivity
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / env_static_permittivity )
-    arg = ez/fact 
+    arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
     arg = vstern * 0.25D0 * invkbt * zion
@@ -576,7 +576,7 @@ CONTAINS
     !     Linear interpolate between gridpoints around x0 and average over both sides of slab
     !
     i1 = cell_min + naxis/2 + INT( x0 / dx )
-    i2 = cell_min + naxis/2 - 1 - INT( x0 / dx ) 
+    i2 = cell_min + naxis/2 - 1 - INT( x0 / dx )
     IF ( i1 .LE. 0 .OR. i1 .GT. n-1 .OR. i2 .LE. 1 .OR. i2 .GT. n ) THEN
       WRITE(stdout,8004)
       STOP
@@ -592,7 +592,7 @@ CONTAINS
     !
     ! ... Compute some constants needed for the calculation
     !
-    f1 = - fact * zion * invkbt * 0.5D0 
+    f1 = - fact * zion * invkbt * 0.5D0
     f2 = 4.D0 * kbt / zion
     f3 = cion / cionmax
     f4 = zion * invkbt
@@ -610,17 +610,17 @@ CONTAINS
         !
         v(i) = vstern - vbound
         !
-      ELSE 
+      ELSE
         !
         arg = const * EXP( ABS(axis(i)) * f1)
         IF ( ABS(arg) .GT. 1.D0 ) THEN
           acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-        ELSE 
+        ELSE
           acoth = 0.D0
-        END IF 
+        END IF
         v(i) =  f2 * acoth
-        c(1,i) = f3 * ( EXP( - f4 * v(i) ) ) ! - 1.D0 ) 
-        c(2,i) = f3 * ( EXP( f4 * v(i) ) ) ! - 1.D0 ) 
+        c(1,i) = f3 * ( EXP( - f4 * v(i) ) ) ! - 1.D0 )
+        c(2,i) = f3 * ( EXP( f4 * v(i) ) ) ! - 1.D0 )
         !
         ! ... Need to remove source potential from the outside
         !
@@ -635,7 +635,7 @@ CONTAINS
 8002 FORMAT(1X,'f1 = ',E14.6,' f2 = ',E14.6,' f3 = ',E14.6,' f4 = ',E14.6)
 8003 FORMAT(1X,'i = ',i4,' x1 = ',F14.6,' x2 = ',F14.6,' v1 = ',F14.6,' v2 = ',F14.6,' v = ',F14.6)
 8004 FORMAT(1X,'ERROR: stern layer is outside of 1d cell, need to use more nrep')
-8005 FORMAT(1X,'vbound = ',F14.6,' dv = ',F14.6,' v1_shifted = ',F14.6,' v2_shifted = ',F14.6) 
+8005 FORMAT(1X,'vbound = ',F14.6,' dv = ',F14.6,' v1_shifted = ',F14.6,' v2_shifted = ',F14.6)
 !--------------------------------------------------------------------
   END SUBROUTINE calc_cstern
 !--------------------------------------------------------------------
@@ -645,7 +645,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT( IN ) :: nnr, nspin, n1d 
+    INTEGER, INTENT( IN ) :: nnr, nspin, n1d
     REAL( DP ), DIMENSION( nnr ), INTENT( IN ) :: rho
     !
     ! ... Local variables
@@ -671,24 +671,24 @@ CONTAINS
     vfix( : ) = vtot( :, 1 ) + vperiodic(:)
     CALL write_cube( nnr, vfix, 'vfix.cube' )
     !
-    ! ... Convert the total source charge into 1D ... 
+    ! ... Convert the total source charge into 1D ...
     !
     IF ( ALLOCATED(rhofix1d) ) DEALLOCATE( rhofix1d )
     ALLOCATE( rhofix1d(n1d) )
     rhofix1d = 0.D0
-    CALL planar_average( nnr, naxis, slab_axis, shift, .false., rhofix, rhofix1d(cell_min:cell_max) ) 
+    CALL planar_average( nnr, naxis, slab_axis, shift, .false., rhofix, rhofix1d(cell_min:cell_max) )
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rhofix1d, 'rhofix1d.dat' )
     !
     ! ... and compute its non-periodic potential
     !
-    IF ( ALLOCATED( vfix1d ) ) DEALLOCATE( vfix1d ) 
-    ALLOCATE( vfix1d(n1d) ) 
+    IF ( ALLOCATED( vfix1d ) ) DEALLOCATE( vfix1d )
+    ALLOCATE( vfix1d(n1d) )
     vfix1d = 0.D0
     CALL v1d_of_rho1d( n1d, dx, rhofix1d, vfix1d )
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, vfix1d, 'vfix1d.dat' )
-    ! 
+    !
     ! ... Compute and store average total potentials
-    ! 
+    !
     vfix_avg = SUM(vfix)/DBLE(ntot)
     CALL mp_sum( vfix_avg, intra_bgrp_comm )
     vfix1d_avg = SUM(vfix1d(cell_min:cell_max))/DBLE(naxis)
@@ -706,7 +706,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE setfix
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE cleanfix( )
 !--------------------------------------------------------------------
@@ -724,7 +724,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE cleanfix
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE vioncc1d_fgeval(n,v,f,g)
 !--------------------------------------------------------------------
@@ -798,7 +798,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE vioncc1d_fgeval
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE vioncc1d_int_fgeval(n,v,f,g)
 !--------------------------------------------------------------------
@@ -828,7 +828,7 @@ CONTAINS
        DO j = -nfdpoint, nfdpoint
           g(i) = g(i) + icfd(j) * v(i+j)
        ENDDO
-       g(i) = g(i) / DBLE(ncfd) / dx 
+       g(i) = g(i) / DBLE(ncfd) / dx
     ENDDO
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g, 'gradv.dat' )
@@ -848,28 +848,28 @@ CONTAINS
     residue = 0.D0
     CALL sum_cioncc( n, nsp, switch1d, mu, c, residue )
     !
-    residue(:) = residue(:) + 0.5D0 / fpi / e2 * g(:)**2 - ( rhofix1d(:) + rhotmp(:) ) * v(:) + s(:) 
-!    residue(:) = residue(:) + 0.5D0 / fpi / e2 * g(:)**2 - rhotmp(:) * vtmp(:) + s(:) 
+    residue(:) = residue(:) + 0.5D0 / fpi / e2 * g(:)**2 - ( rhofix1d(:) + rhotmp(:) ) * v(:) + s(:)
+!    residue(:) = residue(:) + 0.5D0 / fpi / e2 * g(:)**2 - rhotmp(:) * vtmp(:) + s(:)
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, residue, 'residue.dat' )
     !
     f = SUM(residue)*dx
     !
     ! ...The gradient of the free energy: gradient of gradient (laplacian)
-    !    plus density 
+    !    plus density
     !
     l = 0.D0
     DO i = nfdpoint+1, n-nfdpoint
        DO j = -nfdpoint, nfdpoint
           l(i) = l(i) + icfd(j) * g(i+j)
        ENDDO
-       l(i) = l(i) / DBLE(ncfd) / dx 
+       l(i) = l(i) / DBLE(ncfd) / dx
     ENDDO
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, l, 'laplv.dat' )
     !
     g(:) = l(:) / fpi / e2 + ( rhotmp(:) + rhofix1d(:) )
-!    g(:) = l(:) / fpi / e2 + rhotmp(:) 
+!    g(:) = l(:) / fpi / e2 + rhotmp(:)
     g = - g * dx
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g, 'gradf.dat' )
@@ -878,7 +878,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE vioncc1d_int_fgeval
-!--------------------------------------------------------------------    
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE rhoioncc1d_fgeval(n,nsp,x,f,g)
 !--------------------------------------------------------------------
@@ -900,7 +900,7 @@ CONTAINS
     !
     DO isp = 1, nsp
        c(isp,:) = x(isp,:)**2
-!       c(isp,:) = ( ATAN(x(isp,:)) / pi + 0.5D0 ) 
+!       c(isp,:) = ( ATAN(x(isp,:)) / pi + 0.5D0 )
     ENDDO
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, c(1,:), 'c1_input.dat' )
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, c(2,:), 'c2_input.dat' )
@@ -961,15 +961,15 @@ CONTAINS
        !
     ENDDO
     !
-    g = g * 2.D0 
+    g = g * 2.D0
     !
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'gradf.dat' )      
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'gradf.dat' )
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE rhoioncc1d_fgeval
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE rhoioncc1d_int_fgeval(n,nsp,x,f,g)
 !--------------------------------------------------------------------
@@ -1033,7 +1033,7 @@ CONTAINS
        DO j = -nfdpoint, nfdpoint
           gtmp(i) = gtmp(i) + icfd(j) * vtmp(i+j)
        ENDDO
-       gtmp(i) = gtmp(i) / DBLE(ncfd) / dx 
+       gtmp(i) = gtmp(i) / DBLE(ncfd) / dx
     ENDDO
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp, 'gtmp.dat' )
@@ -1071,7 +1071,7 @@ CONTAINS
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, residue, 'sumctimesmu.dat')
     !
     residue(:) = residue(:) + 0.5D0 / fpi / e2 * gtmp(:)**2 - ( rhotmp(:) + rhofix1d(:) ) * vtmp(:) + s(:) &
-         & + lambda * ( rhotmp(:) + rhofix1d(:) ) 
+         & + lambda * ( rhotmp(:) + rhofix1d(:) )
     !
     f =  SUM(residue)*dx
     !
@@ -1080,7 +1080,7 @@ CONTAINS
 !!!TMP!!!       DO j = -nfdpoint, nfdpoint
 !!!TMP!!!          l(i) = l(i) + icfd(j) * gtmp(i+j)
 !!!TMP!!!       ENDDO
-!!!TMP!!!       l(i) = l(i) / DBLE(ncfd) / dx 
+!!!TMP!!!       l(i) = l(i) / DBLE(ncfd) / dx
 !!!TMP!!!    ENDDO
 !!!TMP!!!    gtmp(:) = l(:) / fpi / e2 + rhotmp(:)
 !!!TMP!!!    !
@@ -1097,8 +1097,8 @@ CONTAINS
     g = 0.D0
     CALL calc_dsioncc( n, nsp, switch1d, c, g )
     !
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'ds1.dat' )    
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'ds2.dat' )     
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'ds1.dat' )
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'ds2.dat' )
     !
     DO isp = 1, nsp
        g(isp,:) = g(isp,:) + ( mu(isp) - z(isp) * ( vtmp(:) - lambda ) ) * cionmax * switch1d(:)
@@ -1108,19 +1108,19 @@ CONTAINS
     g = g * dx
     !
     gtmp(:) = mu(1) * cionmax * switch1d(:)
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'mu.dat' )  
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'mu.dat' )
     !
     gtmp(:) = - z(1) * vtmp(:) * cionmax * switch1d(:)
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'zvtmp.dat' )  
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'zvtmp.dat' )
     !
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'gradf1.dat' )      
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'gradf2.dat' )      
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'gradf1.dat' )
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'gradf2.dat' )
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE rhoioncc1d_int_fgeval
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE fullioncc1d_int_fgeval(n,nsp,x,f,g)
 !--------------------------------------------------------------------
@@ -1142,7 +1142,7 @@ CONTAINS
     !    F = \int ( -0.5*|dv/dx|**2 + 4*pi*e2*(rhofix+rhoioncc)*v ) dx
     !
     DO isp = 1, nsp
-       c(isp,:) = x(isp,:)**2 ! + cb(isp)/cionmax 
+       c(isp,:) = x(isp,:)**2 ! + cb(isp)/cionmax
     ENDDO
     !
     vtmp(:) = x(nsp+1,:)
@@ -1169,7 +1169,7 @@ CONTAINS
        DO j = -nfdpoint, nfdpoint
           gtmp(i) = gtmp(i) + icfd(j) * vtmp(i+j)
        ENDDO
-       gtmp(i) = gtmp(i) / DBLE(ncfd) / dx 
+       gtmp(i) = gtmp(i) / DBLE(ncfd) / dx
     ENDDO
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp, 'gtmp.dat' )
@@ -1186,7 +1186,7 @@ CONTAINS
     CALL sum_cioncc( n, nsp, switch1d, mu, c, residue )
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, residue, 'sumctimesmu.dat')
     !
-    residue(:) = residue(:) + 0.5D0 / fpi / e2 * gtmp(:)**2 - rhotmp(:) * vtmp(:) + s(:) 
+    residue(:) = residue(:) + 0.5D0 / fpi / e2 * gtmp(:)**2 - rhotmp(:) * vtmp(:) + s(:)
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, residue, 'residue.dat' )
     !
@@ -1201,7 +1201,7 @@ CONTAINS
        DO j = -nfdpoint, nfdpoint
           l(i) = l(i) + icfd(j) * gtmp(i+j)
        ENDDO
-       l(i) = l(i) / DBLE(ncfd) / dx 
+       l(i) = l(i) / DBLE(ncfd) / dx
     ENDDO
     !
     IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, l(:), 'lapl.dat' )
@@ -1214,8 +1214,8 @@ CONTAINS
     !
     CALL calc_dsioncc( n, nsp, switch1d, c, g(1:nsp,:) )
     !
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'ds1.dat' )    
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'ds2.dat' )     
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'ds1.dat' )
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'ds2.dat' )
     !
     DO isp = 1, nsp
        g(isp,:) = g(isp,:) + ( mu(isp) - z(isp) * vtmp(:) ) * cionmax * switch1d(:)
@@ -1225,19 +1225,19 @@ CONTAINS
     g = g * dx
     !
     gtmp(:) = mu(1) * cionmax * switch1d(:)
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'mu.dat' )  
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'mu.dat' )
     !
     gtmp(:) = - z(1) * vtmp(:) * cionmax * switch1d(:)
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'zvtmp.dat' )  
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, gtmp(:), 'zvtmp.dat' )
     !
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'gradf1.dat' )      
-    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'gradf2.dat' )    
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(1,:), 'gradf1.dat' )
+    IF ( verbose .EQ. 4 ) CALL write_1d( n, axis1d, g(2,:), 'gradf2.dat' )
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE fullioncc1d_int_fgeval
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_fullioncc1d_lbfgs(  n1d, nsp, v, c )
 !--------------------------------------------------------------------
@@ -1257,18 +1257,18 @@ CONTAINS
     REAL( DP ) :: f, gfd, delta, xtmp, ftmp
     REAL( DP ), DIMENSION(n1d) :: rho
     REAL( DP ), DIMENSION( : , : ), ALLOCATABLE :: g, gtmp
-    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: diag, work 
+    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: diag, work
     REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: x
     !
     ! ... Initialize L-BFGS
-    ! 
+    !
     diagc0 = .FALSE.
     m = 20
     n = ( nsp + 1 ) * n1d
     length = n*(2*m+1)+2*m
     iprint(1) = -1
     iprint(2) = 0
-    IF ( verbose .EQ. 1 ) THEN 
+    IF ( verbose .EQ. 1 ) THEN
       iprint(1) = 0
     ENDIF
     ALLOCATE( x( nsp+1, n1d ) )
@@ -1290,7 +1290,7 @@ CONTAINS
     verbose = 2
     !
     ! ... Check gradient via finite differences
-    ! 
+    !
     delta = 0.000001D0
     ALLOCATE( gtmp( nsp+1, n1d ) )
     DO isp = 1, nsp+1
@@ -1319,7 +1319,7 @@ CONTAINS
            &'ERROR: lbfgs failed to converge in rhoioncc1d with iflag = ',iflag
          EXIT
          STOP
-      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop 
+      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop
          EXIT
       ELSE IF ( iflag .EQ. 1 ) THEN ! lbfgs is asking to evaluate f and g
          i = i + 1
@@ -1336,10 +1336,10 @@ CONTAINS
     !
     verbose = 4
     CALL fullioncc1d_int_fgeval(n1d,nsp,x,f,g)
-    verbose = 2 
+    verbose = 2
     !
     ! ... Check gradient via finite differences
-    ! 
+    !
     delta = 0.000001D0
     ALLOCATE( gtmp( nsp+1, n1d ) )
     DO isp = 1, nsp + 1
@@ -1370,14 +1370,14 @@ CONTAINS
     v = v + vfix1d
     !
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, v, 'v1d.dat' )
-    v = v - vfix1d - vfix_avg + vfix1d_avg 
+    v = v - vfix1d - vfix_avg + vfix1d_avg
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, v, 'vext1d.dat' )
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_fullioncc1d_lbfgs
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_rhoioncc1d_lbfgs(  n1d, nsp, v, c )
 !--------------------------------------------------------------------
@@ -1446,14 +1446,14 @@ CONTAINS
     IF ( verbose .GE. 3 ) CALL write_1d( n1d, axis1d, vzero1d, 'vzero1d.dat' )
     !
     ! ... Initialize L-BFGS
-    ! 
+    !
     diagc0 = .FALSE.
     m = 20
     n = nsp * n1d
     length = n*(2*m+1)+2*m
     iprint(1) = -1
     iprint(2) = 0
-    IF ( verbose .EQ. 1 ) THEN 
+    IF ( verbose .EQ. 1 ) THEN
       iprint(1) = 0
     ENDIF
     ALLOCATE( g( nsp, n1d ) )
@@ -1470,7 +1470,7 @@ CONTAINS
     verbose = 2
     !
     ! ... Check gradient via finite differences
-    ! 
+    !
     delta = 0.0000001D0
     ALLOCATE( gtmp( nsp, n1d ) )
     DO isp = 1, nsp
@@ -1499,14 +1499,14 @@ CONTAINS
     ALLOCATE( gx( nsp+1, n1d ) )
     ALLOCATE( gtmp( nsp, n1d ) )
     ALLOCATE( c2( nsp, n1d ) )
-    DO 
+    DO
       CALL lbfgs( n, m, c, f, g, diagc0, diag, iprint, tol, xtol, work, iflag)
       IF ( iflag .LT. 0 ) THEN ! linesearch failed for some reason
          WRITE(stdout,*)&
            &'ERROR: lbfgs failed to converge in rhoioncc1d with iflag = ',iflag
          EXIT
          STOP
-      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop 
+      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop
          EXIT
       ELSE IF ( iflag .EQ. 1 ) THEN ! lbfgs is asking to evaluate f and g
          i = i + 1
@@ -1514,7 +1514,7 @@ CONTAINS
          CALL rhoioncc1d_int_fgeval(n1d,nsp,c,f,g)
          !
          DO isp = 1 , nsp
-            c2(isp,:) = c(isp,:)**2 
+            c2(isp,:) = c(isp,:)**2
          ENDDO
          rho = 0.D0
          CALL sum_cioncc( n1d, nsp, switch1d, z, c2, rho )
@@ -1526,7 +1526,7 @@ CONTAINS
          CALL vioncc1d_int_fgeval( n1d, v, fvtmp, gv )
          !
          DO isp = 1 , nsp
-            x(isp,:) = c(isp,:) 
+            x(isp,:) = c(isp,:)
          ENDDO
          x(nsp+1,:) = v(:)
          CALL fullioncc1d_int_fgeval(n1d,nsp,x,fx,gx)
@@ -1549,10 +1549,10 @@ CONTAINS
     !
     verbose = 4
     CALL rhoioncc1d_int_fgeval(n1d,nsp,c,f,g)
-    verbose = 2 
+    verbose = 2
     !
     ! ... Check gradient via finite differences
-    ! 
+    !
     delta = 0.00000001D0
     ALLOCATE( gtmp( nsp, n1d ) )
     DO isp = 1, nsp
@@ -1574,26 +1574,26 @@ CONTAINS
     !
     ALLOCATE( c2( nsp, n ) )
     DO isp = 1, nsp
-       c2(isp,:) = c(isp,:)**2 
+       c2(isp,:) = c(isp,:)**2
     ENDDO
     rho = 0.D0
     CALL sum_cioncc( n1d, nsp, switch1d, z, c2, rho )
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, rho, 'rhoioncc1d.dat' )
-    DEALLOCATE( c2 ) 
+    DEALLOCATE( c2 )
     !
     CALL v1d_of_rho1d( n1d, dx, rho, v )
     v = v + vfix1d
     !
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, v, 'v1d.dat' )
     IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, v, 'v1d_first.dat' )
-!    v = v - vfix1d - vfix_avg + vfix1d_avg 
+!    v = v - vfix1d - vfix_avg + vfix1d_avg
 !    IF ( verbose .GE. 2 ) CALL write_1d( n1d, axis1d, v, 'vext1d.dat' )
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_rhoioncc1d_lbfgs
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_vioncc1d_lbfgs(  n, nsp, v, c )
 !--------------------------------------------------------------------
@@ -1638,13 +1638,13 @@ CONTAINS
 !    IF ( verbose .GE. 3 ) CALL write_1d( n, axis1d, vzero1d, 'vzero1d.dat' )
     !
     ! ... Initialize L-BFGS
-    ! 
+    !
     diagc0 = .FALSE.
     m = 20
     length = n*(2*m+1)+2*m
     iprint(1) = -1
     iprint(2) = 0
-    IF ( verbose .EQ. 1 ) THEN 
+    IF ( verbose .EQ. 1 ) THEN
       iprint(1) = 0
 !    ELSE IF ( verbose .GT. 1 ) THEN
 !      iprint(1) = 1
@@ -1659,10 +1659,10 @@ CONTAINS
     CALL write_1d( n, axis1d, v, 'v_start.dat' )
 !DEBUG!    verbose = 4
     CALL vioncc1d_fgeval(n,v,f,g)
-!DEBUG!    verbose = 2 
+!DEBUG!    verbose = 2
 !DEBUG!    !
 !DEBUG!    ! ... Check gradient via finite differences
-!DEBUG!    ! 
+!DEBUG!    !
 !DEBUG!    delta = 0.000001D0
 !DEBUG!    ALLOCATE( gtmp( n ) )
 !DEBUG!    DO i = 1, n
@@ -1681,31 +1681,31 @@ CONTAINS
     !
     i = 0
     iflag = 0
-    ALLOCATE( gtmp( n ) )  ! DEBUG ! 
-!DEBUG!    ALLOCATE( gc( nsp, n ) )  ! DEBUG ! 
-!DEBUG!    ALLOCATE( x( nsp+1, n ) )  ! DEBUG ! 
-!DEBUG!    ALLOCATE( gx( nsp+1, n ) )  ! DEBUG ! 
-    DO 
+    ALLOCATE( gtmp( n ) )  ! DEBUG !
+!DEBUG!    ALLOCATE( gc( nsp, n ) )  ! DEBUG !
+!DEBUG!    ALLOCATE( x( nsp+1, n ) )  ! DEBUG !
+!DEBUG!    ALLOCATE( gx( nsp+1, n ) )  ! DEBUG !
+    DO
       CALL lbfgs( n, m, v, f, g, diagc0, diag, iprint, tol, xtol, work, iflag)
       IF ( iflag .LT. 0 ) THEN ! linesearch failed for some reason
          WRITE(stdout,*)&
            &'ERROR: lbfgs failed to converge in rhoioncc1d with iflag = ',iflag
-         EXIT!STOP ! DEBUG ! 
-      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop 
+         EXIT!STOP ! DEBUG !
+      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop
          EXIT
       ELSE IF ( iflag .EQ. 1 ) THEN ! lbfgs is asking to evaluate f and g
          i = i + 1
          CALL vioncc1d_fgeval(n,v,f,g) ! DEBUG !
          CALL vioncc1d_int_fgeval(n,v,ftmp,gtmp)
          !
-!DEBUG!         CALL generate_cioncc( n, nsp, 1, switch1d, v, c ) ! DEBUG ! 
+!DEBUG!         CALL generate_cioncc( n, nsp, 1, switch1d, v, c ) ! DEBUG !
 !DEBUG!         DO isp = 1 , nsp ! DEBUG !
 !DEBUG!            c(isp,:) = SQRT(ABS(c(isp,:))) ! DEBUG !
-!DEBUG!            x(isp,:) = c(isp,:) ! DEBUG ! 
-!DEBUG!         ENDDO ! DEBUG ! 
-!DEBUG!         CALL rhoioncc1d_fgeval(n, nsp, c, fc, gc) ! DEBUG ! 
-!DEBUG!         CALL rhoioncc1d_int_fgeval(n, nsp, c, fctmp, gc)   ! DEBUG ! 
-!DEBUG!         x(nsp+1,:) = v(:) ! DEBUG ! 
+!DEBUG!            x(isp,:) = c(isp,:) ! DEBUG !
+!DEBUG!         ENDDO ! DEBUG !
+!DEBUG!         CALL rhoioncc1d_fgeval(n, nsp, c, fc, gc) ! DEBUG !
+!DEBUG!         CALL rhoioncc1d_int_fgeval(n, nsp, c, fctmp, gc)   ! DEBUG !
+!DEBUG!         x(nsp+1,:) = v(:) ! DEBUG !
 !DEBUG!         CALL fullioncc1d_int_fgeval(n,nsp,x,fx,gx) ! DEBUG !
          !
 !DEBUG!         WRITE(environ_unit,'(x,a,i8,5g20.10)')'vioncc_fgeval = ',i,fc,fctmp,ftmp,f,fx
@@ -1724,10 +1724,10 @@ CONTAINS
 !DEBUG!    !
 !DEBUG!    verbose = 4
 !DEBUG!    CALL vioncc1d_int_fgeval(n,v,f,g)
-!DEBUG!    verbose = 2 
+!DEBUG!    verbose = 2
 !DEBUG!    !
 !DEBUG!    ! ... Check gradient via finite differences
-!DEBUG!    ! 
+!DEBUG!    !
 !DEBUG!    delta = 0.000001D0
 !DEBUG!    ALLOCATE( gtmp( n ) )
 !DEBUG!    DO i = 1, n
@@ -1750,14 +1750,14 @@ CONTAINS
     !
     IF ( verbose .GE. 2 ) CALL write_1d( n, axis1d, v, 'v1d.dat' )
     IF ( verbose .GE. 2 ) CALL write_1d( n, axis1d, v, 'v1d_final.dat' )
-    v = v - vfix1d - vfix_avg + vfix1d_avg 
+    v = v - vfix1d - vfix_avg + vfix1d_avg
     IF ( verbose .GE. 2 ) CALL write_1d( n, axis1d, v, 'vext1d.dat' )
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_vioncc1d_lbfgs
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE setlocal( nnr, nspin, rhoin )
 !--------------------------------------------------------------------
@@ -1785,7 +1785,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE setlocal
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE cleanlocal( )
 !--------------------------------------------------------------------
@@ -1802,7 +1802,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE cleanlocal
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE ioncc_fgeval(n,v,f,g)
 !--------------------------------------------------------------------
@@ -1829,8 +1829,8 @@ CONTAINS
     !
     CALL generate_rhoioncc( n, 1, switch, vtmp, residue )
     !
-    residue = fpi * e2 * residue 
-    residue = residue + fpi * e2 * rhofix 
+    residue = fpi * e2 * residue
+    residue = residue + fpi * e2 * rhofix
 !    CALL write_cube( n, residue, 'residue_1.cube' )
     !
     ! ...The gradient of the error is 2 * residue \cdot (d/d\phi residue)
@@ -1856,7 +1856,7 @@ CONTAINS
     ! ... Compute the gradient of the residue wrt the components of v
     !
     CALL external_laplacian( residue, g )
-!    CALL calc_fd_laplacian( nfdpoint, icfd2, ncfd2, n, residue, g ) 
+!    CALL calc_fd_laplacian( nfdpoint, icfd2, ncfd2, n, residue, g )
 !    CALL write_cube( n, g, 'g.cube' )
     g(:) = g(:) + residue(:) * dresidue(:)
     g = g * 2.D0
@@ -1867,7 +1867,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE ioncc_fgeval
-!--------------------------------------------------------------------   
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE ioncc_heval(n,v,diag)
 !--------------------------------------------------------------------
@@ -1929,7 +1929,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE ioncc_heval
-!-------------------------------------------------------------------- 
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE ioncc_int_fgeval(n,nsp,v,f,g)
 !--------------------------------------------------------------------
@@ -1958,7 +1958,7 @@ CONTAINS
     !
     CALL sum_cioncc( n, nsp, switch, mu, c, residue )
     !
-    DO i = 1, n 
+    DO i = 1, n
        residue(i) = residue(i) + 0.5D0 / fpi / e2 * SUM(gradv(:,i)**2) - ( rhofix(i) + rho(i) ) * v(i) + s(i)
       ! residue(i) = residue(i) + 1.D0 / fpi / e2 * SUM(gradv(:,i)*gradvzero(:,i)) - (rho(i)-rhozero(i)) * vzero(i)
     ENDDO
@@ -1972,7 +1972,7 @@ CONTAINS
        WRITE(environ_unit,*)'gradv**2'
        WRITE(environ_unit,*)
        DO i = 1, n, nr1*nr2
-          WRITE(environ_unit,*)i/nr1/nr2*dx,0.5D0 / fpi / e2 * SUM(gradv(:,i)**2) 
+          WRITE(environ_unit,*)i/nr1/nr2*dx,0.5D0 / fpi / e2 * SUM(gradv(:,i)**2)
        ENDDO
        WRITE(environ_unit,*)
        !
@@ -2007,14 +2007,14 @@ CONTAINS
     ENDIF
     !
     g(:) = laplv(:) / fpi / e2 + ( rho(:) + rhofix(:) )
-   ! g(:) = g(:) + laplvzero(:) / fpi / e2 
+   ! g(:) = g(:) + laplvzero(:) / fpi / e2
     g = - g * domega
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE ioncc_int_fgeval
-!--------------------------------------------------------------------   
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE ioncc_mix_fgeval(n,nsp,alpha,v,f,g)
 !--------------------------------------------------------------------
@@ -2043,7 +2043,7 @@ CONTAINS
     !
     CALL sum_cioncc( n, nsp, switch, mu, c, residue )
     !
-    DO i = 1, n 
+    DO i = 1, n
        residue(i) = residue(i) + 0.5D0 / fpi / e2 * SUM(gradv(:,i)**2) - ( rhofix(i) + rho(i) ) * v(i) + s(i)
     ENDDO
     !
@@ -2053,7 +2053,7 @@ CONTAINS
     !
     residue = laplv(:) / fpi / e2 + ( rho(:) + rhofix(:) )
     !
-    g = 0.D0 
+    g = 0.D0
     !
     IF ( alpha .GT. 0.D0 ) THEN
        !
@@ -2063,7 +2063,7 @@ CONTAINS
        !
        CALL external_laplacian( residue, g )
        !
-       g(:) = 2.D0 * alpha * ( g(:) + residue * dresidue ) 
+       g(:) = 2.D0 * alpha * ( g(:) + residue * dresidue )
        !
     ENDIF
     !
@@ -2075,7 +2075,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE ioncc_mix_fgeval
-!--------------------------------------------------------------------   
+!--------------------------------------------------------------------
 !!!OLD!!!!--------------------------------------------------------------------
 !!!OLD!!!  SUBROUTINE ioncc_int_fgeval(n,v,f,g)
 !!!OLD!!!!--------------------------------------------------------------------
@@ -2112,13 +2112,13 @@ CONTAINS
 !!!OLD!!!    charge = SUM(rhofix+rhotmp)*domega
 !!!OLD!!!    CALL mp_sum( charge, intra_bgrp_comm )
 !!!OLD!!!    WRITE(environ_unit,*)'charge = ',charge
-!!!OLD!!!    DO i = 1, n 
+!!!OLD!!!    DO i = 1, n
 !!!OLD!!!       residue(i) = -0.5D0*SUM(gradv(:,i)**2)/fpi/e2 + &
-!!!OLD!!!            & (rhofix(i)+rhotmp(i))*(vtmp(i)-vavg) 
-!!!OLD!!!!            & rhofix(i)*(vtmp(i)-vavg) 
+!!!OLD!!!            & (rhofix(i)+rhotmp(i))*(vtmp(i)-vavg)
+!!!OLD!!!!            & rhofix(i)*(vtmp(i)-vavg)
 !!!OLD!!!    ENDDO
 !!!OLD!!!    !
-!!!OLD!!!    f = SUM(residue)*domega 
+!!!OLD!!!    f = SUM(residue)*domega
 !!!OLD!!!    CALL mp_sum( f, intra_bgrp_comm )
 !!!OLD!!!    WRITE(environ_unit,*)'fgeval: f = ',f
 !!!OLD!!!    !
@@ -2128,7 +2128,7 @@ CONTAINS
 !!!OLD!!!    g = 0.D0
 !!!OLD!!!    DO i = 1, 3
 !!!OLD!!!       CALL calc_fd_gradient( nfdpoint, icfd, ncfd, n, gradv(i,:), gradtmp )
-!!!OLD!!!       g(:) = g(:) + gradtmp(i,:) 
+!!!OLD!!!       g(:) = g(:) + gradtmp(i,:)
 !!!OLD!!!    ENDDO
 !!!OLD!!!    !
 !!!OLD!!!    CALL generate_drhoioncc( n, 1, switch, vtmp, dresidue )
@@ -2142,7 +2142,7 @@ CONTAINS
 !!!OLD!!!    !
 !!!OLD!!!!--------------------------------------------------------------------
 !!!OLD!!!  END SUBROUTINE ioncc_int_fgeval
-!!!OLD!!!!--------------------------------------------------------------------  
+!!!OLD!!!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_vioncc_lbfgs( n, nsp, rho, v )
 !--------------------------------------------------------------------
@@ -2167,21 +2167,21 @@ CONTAINS
     LOGICAL :: diagc0
     INTEGER :: m, length, iflag, iprint(2)
     REAL( DP ) :: f
-    REAL( DP ), DIMENSION( n ) :: g, diag 
-    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: gtot, diagtot, vtot, work 
+    REAL( DP ), DIMENSION( n ) :: g, diag
+    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: gtot, diagtot, vtot, work
     !
     INTEGER :: i, ntest, itest, istep
     REAL( DP ) :: vtmp, delta, gfd, hfd, ftmp, alpha
     REAL( DP ), DIMENSION( : ), ALLOCATABLE :: gtmp
     !
     ! ... Initialize L-BFGS
-    ! 
+    !
     diagc0 = .FALSE.
     m = 10
     length = ntot*(2*m+1)+2*m
     iprint(1) = -1
     iprint(2) = 0
-    IF ( verbose .EQ. 1 ) THEN 
+    IF ( verbose .EQ. 1 ) THEN
       iprint(1) = 0
     ENDIF
     ALLOCATE( work( length ) )
@@ -2197,11 +2197,11 @@ CONTAINS
     !
     IF ( ALLOCATED(gradvzero) ) DEALLOCATE(gradvzero)
     ALLOCATE(gradvzero(3,n))
-    CALL external_gradient( vzero, gradvzero ) 
+    CALL external_gradient( vzero, gradvzero )
     !
     IF ( ALLOCATED(rhozero) ) DEALLOCATE(rhozero)
     ALLOCATE(rhozero(n))
-    CALL generate_rhoioncc( n, 1, switch, vzero, rhozero ) 
+    CALL generate_rhoioncc( n, 1, switch, vzero, rhozero )
     !
     IF ( ALLOCATED(laplvzero) ) DEALLOCATE(laplvzero)
     ALLOCATE(laplvzero(n))
@@ -2211,7 +2211,7 @@ CONTAINS
     verbose = 4
     alpha = 1.D-6
     CALL ioncc_mix_fgeval(n,nsp,alpha,v,f,g)
-    verbose = 2 
+    verbose = 2
 #if defined (__MPI)
     CALL gather_grid ( dfftp, v, vtot )
     CALL gather_grid ( dfftp, g, gtot )
@@ -2241,7 +2241,7 @@ CONTAINS
     WRITE(environ_unit,*)
 !DEBUG!SINGLE-PROC~    !
 !DEBUG!SINGLE-PROC~    ! ... Check gradient via finite differences
-!DEBUG!SINGLE-PROC~    ! 
+!DEBUG!SINGLE-PROC~    !
 !DEBUG!SINGLE-PROC~    delta = 0.000001D0
 !DEBUG!SINGLE-PROC~    ALLOCATE( gtmp( n ) )
 !DEBUG!SINGLE-PROC~    DO i = 1, n, nr1*nr2
@@ -2261,7 +2261,7 @@ CONTAINS
 !    IF ( diagc0 ) CALL ioncc_int_heval(n,v,diag)
     !
     ! ... Check diagonal inverse hessian via finite differences
-    ! 
+    !
 !!!!    delta = 0.00001D0
 !!!!    ALLOCATE( gtmp( n ) )
 !!!!    ntest = 1000
@@ -2280,11 +2280,11 @@ CONTAINS
 !!!!      CALL flush(environ_unit)
 !!!!    ENDDO
 !!!!    DEALLOCATE( gtmp )
-    !    
+    !
     iflag = 0
     istep = 0
     ALLOCATE(gtmp(n))
-    DO 
+    DO
       IF ( me_bgrp .EQ. root_bgrp ) CALL lbfgs( ntot, m, vtot, f, gtot, diagc0, diagtot, iprint, tol, xtol, work, iflag)
 #if defined (__MPI)
       CALL mp_bcast( iflag, root_bgrp, intra_bgrp_comm )
@@ -2296,7 +2296,7 @@ CONTAINS
          WRITE(stdout,*)&
            &'ERROR: lbfgs failed to converge in rhoioncc1d with iflag = ',iflag
          EXIT!RETURN!STOP
-      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop 
+      ELSE IF ( iflag .EQ. 0 ) THEN ! Calculation converged, exit the loop
          EXIT
       ELSE IF ( iflag .EQ. 1 ) THEN ! lbfgs is asking to evaluate f and g
          istep = istep + 1
@@ -2306,7 +2306,7 @@ CONTAINS
          FLUSH(environ_unit)
       ELSE IF ( iflag .EQ. 2 ) THEN ! lbfgs is asking to estimate h^-1
 !         CALL ioncc_heval(n,v,diag)
-      ELSE IF ( iflag .GT. 2 ) THEN ! not supposed to happen 
+      ELSE IF ( iflag .GT. 2 ) THEN ! not supposed to happen
          WRITE(stdout,*)&
            &'ERROR: unexpected flag from lbfgs optimization, iflag = ',iflag
          RETURN!STOP
@@ -2357,7 +2357,7 @@ CONTAINS
     CALL generate_rhoioncc( n, 1, switch, v, rho )
     CALL write_cube( n, rho, 'rhoioncc.cube' )
     !
-    v = v - vfix  
+    v = v - vfix
     CALL write_cube( n, v, 'vioncc.cube' )
     !
     RETURN
@@ -2365,7 +2365,7 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_vioncc_lbfgs
 !--------------------------------------------------------------------
-!!!!!!--------------------------------------------------------------------  
+!!!!!!--------------------------------------------------------------------
 !!!!!  FUNCTION ioncc_feval(x)
 !!!!!!--------------------------------------------------------------------
 !!!!!    USE kinds, ONLY: DP
@@ -2379,7 +2379,7 @@ CONTAINS
 !!!!!    !
 !!!!!    REAL( DP ) :: charge, ehart
 !!!!!    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: vioncc1d, rhoioncc1d
-!!!!!    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: vzero, rhozero, vperiodic    
+!!!!!    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: vzero, rhozero, vperiodic
 !!!!!    !
 !!!!!    ! ... Allocate
 !!!!!    !
@@ -2421,7 +2421,7 @@ CONTAINS
 !!!!!    WRITE(environ_unit,*)'error of 1D charge = ',charge
 !!!!!    ioncc_feval = 1000.D0*charge**2
 !!!!!    !
-!!!!!    ! ... Compute the 3D correction 
+!!!!!    ! ... Compute the 3D correction
 !!!!!    !
 !!!!!    vtotlocal = 0.D0
 !!!!!    CALL v_h_of_rho_r( rhoinlocal, ehart, charge, vtotlocal )
@@ -2452,7 +2452,7 @@ CONTAINS
 !!!!!    !
 !!!!!!--------------------------------------------------------------------
 !!!!! END FUNCTION ioncc_feval
-!!!!!!--------------------------------------------------------------------  
+!!!!!!--------------------------------------------------------------------
 !!!!!!!--------------------------------------------------------------------
 !!!!!!  SUBROUTINE calc_rhoioncc( nnr, nspin, rhoioncc, vioncc )
 !!!!!!!--------------------------------------------------------------------
@@ -2492,7 +2492,7 @@ CONTAINS
 !!!!!!    ! ... 3D Refinement, iterating on the difference of the 1D solution and the 3D solution
 !!!!!!    !     assume there is no difference (wishfull tihnking)
 !!!!!!    !
-!!!!!!    rhoioncc = 0.D0 
+!!!!!!    rhoioncc = 0.D0
 !!!!!!    !
 !!!!!!    ALLOCATE(residue(nnr))
 !!!!!!!    DO iter = 1, 1!maxiter
@@ -2519,7 +2519,7 @@ CONTAINS
 !!!!!!!!!      ENDIF
 !!!!!!!!!      !
 !!!!!!!!!    ENDDO
-!!!!!!!!!    WRITE(stdout,8104)deltarho,iter 
+!!!!!!!!!    WRITE(stdout,8104)deltarho,iter
 !!!!!!!!!    DEALLOCATE(residue)
 !!!!!!!!!    !
 !!!!!!!!!    vioncc(:) = vtotlocal(:,1) - vfix(:)
@@ -2537,7 +2537,7 @@ CONTAINS
 !!!!!!  END SUBROUTINE calc_rhoioncc
 !!!!!!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_rhoioncc( n, type, switch, v, rho ) 
+  SUBROUTINE generate_rhoioncc( n, type, switch, v, rho )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -2552,27 +2552,27 @@ CONTAINS
     INTEGER :: i
     REAL( DP ) :: arg, fact, denom
     !
-    fact = -2.D0 * zion * cion 
+    fact = -2.D0 * zion * cion
     DO i = 1, n
       IF (ABS(switch(i)).LT.1.D-30) THEN
         rho(i) = 0.D0
-      ELSE 
+      ELSE
         arg = zion * invkbt * v(i)
         IF ( ABS(arg) .GT. max_arg ) arg = arg/ABS(arg)*max_arg ! try to avoid exploding charge
         IF ( type .EQ. 1 ) THEN
           IF ( cionmax .EQ. 0.D0 ) THEN
-            rho(i) = fact * sinh( arg ) * switch(i) 
-          ELSE 
+            rho(i) = fact * sinh( arg ) * switch(i)
+          ELSE
             IF ( ABS(arg) .LT. max_arg ) THEN
-              denom = 1.D0 + cion / cionmax * 2.D0 * ( cosh(arg) - 1.D0 ) 
+              denom = 1.D0 + cion / cionmax * 2.D0 * ( cosh(arg) - 1.D0 )
               rho(i) = fact * sinh( arg ) / denom * switch(i)
-            ELSE 
-              rho(i) = - cionmax * zion * switch(i) * arg/ABS(arg) 
+            ELSE
+              rho(i) = - cionmax * zion * switch(i) * arg/ABS(arg)
             ENDIF
-          ENDIF 
+          ENDIF
         ELSE IF ( type .EQ. 2 ) THEN
           rho(i) = fact * ( arg ) * switch(i)
-        END IF 
+        END IF
       ENDIF
     ENDDO
     !
@@ -2582,7 +2582,7 @@ CONTAINS
   END SUBROUTINE generate_rhoioncc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_drhoioncc( n, type, switch, v, drho ) 
+  SUBROUTINE generate_drhoioncc( n, type, switch, v, drho )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -2603,24 +2603,24 @@ CONTAINS
     DO i = 1, n
       IF (ABS(switch(i)).LT.1.D-30) THEN
         drho(i) = 0.D0
-      ELSE 
+      ELSE
         arg = zion * invkbt * v(i)
         IF ( ABS(arg) .GT. max_arg ) arg = arg/ABS(arg)*max_arg ! try to avoid exploding charge
         IF ( type .EQ. 1 ) THEN
           IF ( cionmax .EQ. 0.D0 ) THEN
-            drho(i) = fact * cosh( arg ) * switch(i) 
-          ELSE 
+            drho(i) = fact * cosh( arg ) * switch(i)
+          ELSE
             IF ( ABS(arg) .LT. max_arg ) THEN
               denom = 1.D0 + alpha * ( cosh(arg) - 1.D0 )
               numer = alpha + ( 1.D0 - alpha ) * cosh(arg)
-              drho(i) = fact * switch(i) * numer / denom ** 2  
-            ELSE 
+              drho(i) = fact * switch(i) * numer / denom ** 2
+            ELSE
               drho(i) = 0.D0
             ENDIF
-          ENDIF 
+          ENDIF
         ELSE IF ( type .EQ. 2 ) THEN
           drho(i) = fact * switch(i)
-        END IF 
+        END IF
       ENDIF
     ENDDO
     !
@@ -2630,7 +2630,7 @@ CONTAINS
   END SUBROUTINE generate_drhoioncc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_d2rhoioncc( n, type, switch, v, d2rho ) 
+  SUBROUTINE generate_d2rhoioncc( n, type, switch, v, d2rho )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -2646,29 +2646,29 @@ CONTAINS
     REAL( DP ) :: arg, fact, denom, numer, alpha
     !
     d2rho = 0.D0
-    fact = - 2.D0 * zion * cion * zion * invkbt * zion * invkbt 
+    fact = - 2.D0 * zion * cion * zion * invkbt * zion * invkbt
     IF ( cionmax .NE. 0.D0 ) alpha = 2.D0 * cion / cionmax
     DO i = 1, n
       IF (ABS(switch(i)).LT.1.D-30) THEN
         d2rho(i) = 0.D0
-      ELSE 
+      ELSE
         arg = zion * invkbt * v(i)
         IF ( ABS(arg) .GT. max_arg ) arg = arg/ABS(arg)*max_arg ! try to avoid exploding charge
         IF ( type .EQ. 1 ) THEN
           IF ( cionmax .EQ. 0.D0 ) THEN
-            d2rho(i) = fact * sinh( arg ) * switch(i) 
-          ELSE 
+            d2rho(i) = fact * sinh( arg ) * switch(i)
+          ELSE
             IF ( ABS(arg) .LT. max_arg ) THEN
               denom = 1.D0 + alpha * ( cosh(arg) - 1.D0 )
-              numer = 1.D0 - alpha * ( alpha + 2.D0 ) + alpha * ( alpha - 1.D0 ) * cosh(arg) 
-              d2rho(i) = fact * switch(i) * sinh(arg) * numer / ( denom )**3  
-            ELSE 
+              numer = 1.D0 - alpha * ( alpha + 2.D0 ) + alpha * ( alpha - 1.D0 ) * cosh(arg)
+              d2rho(i) = fact * switch(i) * sinh(arg) * numer / ( denom )**3
+            ELSE
               d2rho(i) = 0.D0
             ENDIF
-          ENDIF 
+          ENDIF
         ELSE IF ( type .EQ. 2 ) THEN
           d2rho(i) = 0.D0
-        END IF 
+        END IF
       ENDIF
     ENDDO
     !
@@ -2678,7 +2678,7 @@ CONTAINS
   END SUBROUTINE generate_d2rhoioncc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_cioncc( n, nsp, type, switch, v, c ) 
+  SUBROUTINE generate_cioncc( n, nsp, type, switch, v, c )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -2697,12 +2697,12 @@ CONTAINS
     ! c in output is the ioncc concentration divided by cionmax(r)=cionmax*switch(r)
     !
     c = 0.D0
-    DO isp = 1, nsp 
+    DO isp = 1, nsp
        fact = cb(isp) / cionmax
        DO i = 1, n
           IF (ABS(switch(i)).LT.1.D-30) THEN
              c(isp,i) = 0.D0
-          ELSE 
+          ELSE
              arg = - z(isp) * invkbt * v(i)
              IF ( arg .LT. -max_arg ) THEN
                 c(isp,i) = 0.D0 ! - fact
@@ -2712,17 +2712,17 @@ CONTAINS
              ENDIF
              IF ( type .EQ. 1 ) THEN
                 IF ( cionmax .EQ. 0.D0 ) THEN
-                   c(isp,i) = fact *  exp(arg) ! ( exp( arg ) - 1.D0 )   
-                ELSE 
+                   c(isp,i) = fact *  exp(arg) ! ( exp( arg ) - 1.D0 )
+                ELSE
                    IF ( arg .LT. max_arg ) THEN
-                      denom = 1.D0 + cb(isp) / cionmax * 2.D0 * ( cosh(arg) - 1.D0 ) 
-                      c(isp,i) = fact * exp( arg ) / denom ! ( exp( arg ) / denom - 1.D0 )  
-                   ELSE 
+                      denom = 1.D0 + cb(isp) / cionmax * 2.D0 * ( cosh(arg) - 1.D0 )
+                      c(isp,i) = fact * exp( arg ) / denom ! ( exp( arg ) / denom - 1.D0 )
+                   ELSE
                       c(isp,i) = 1.D0 ! - fact
                    ENDIF
                 ENDIF
              ELSE IF ( type .EQ. 2 ) THEN
-                c(isp,i) = fact * ( arg + 1.D0 ) ! arg 
+                c(isp,i) = fact * ( arg + 1.D0 ) ! arg
              END IF
           ENDIF
 20        CONTINUE
@@ -2735,7 +2735,7 @@ CONTAINS
   END SUBROUTINE generate_cioncc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_dcioncc( n, nsp, type, switch, v, dc ) 
+  SUBROUTINE generate_dcioncc( n, nsp, type, switch, v, dc )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -2754,13 +2754,13 @@ CONTAINS
     ! c in output is the ioncc concentration divided by cionmax(r)=cionmax*switch(r)
     !
     dc = 0.D0
-    DO isp = 1, nsp 
-       fact = - cb(isp) / cionmax * z(isp) * invkbt 
+    DO isp = 1, nsp
+       fact = - cb(isp) / cionmax * z(isp) * invkbt
        IF ( cionmax .NE. 0.D0 ) alpha = 2.D0 * cb(isp) / cionmax
        DO i = 1, n
           IF (ABS(switch(i)).LT.1.D-30) THEN
              dc(isp,i) = 0.D0
-          ELSE 
+          ELSE
              arg = - z(isp) * invkbt * v(i)
              IF ( arg .LT. -max_arg ) THEN
                 dc(isp,i) = 0.D0
@@ -2770,18 +2770,18 @@ CONTAINS
              ENDIF
              IF ( type .EQ. 1 ) THEN
                 IF ( cionmax .EQ. 0.D0 ) THEN
-                   dc(isp,i) = fact *  ( exp( arg ) )   
-                ELSE 
+                   dc(isp,i) = fact *  ( exp( arg ) )
+                ELSE
                    IF ( arg .LT. max_arg ) THEN
-                      denom = 1.D0 + alpha * ( cosh(arg) - 1.D0 ) 
-                      numer = alpha + ( 1.D0 - alpha ) * exp( arg ) 
-                      dc(isp,i) = fact * numer / denom ** 2  
-                   ELSE 
+                      denom = 1.D0 + alpha * ( cosh(arg) - 1.D0 )
+                      numer = alpha + ( 1.D0 - alpha ) * exp( arg )
+                      dc(isp,i) = fact * numer / denom ** 2
+                   ELSE
                       dc(isp,i) = 0.D0
                    ENDIF
                 ENDIF
              ELSE IF ( type .EQ. 2 ) THEN
-                dc(isp,i) = fact 
+                dc(isp,i) = fact
              END IF
           ENDIF
 20        CONTINUE
@@ -2813,12 +2813,12 @@ CONTAINS
        DO isp = 1, nsp
           IF ( c(isp,i) .LE. 0.D0 ) CYCLE
           s(i) = s(i) + c(isp,i)*LOG(c(isp,i))
-!          IF ( i .EQ. 1 ) write(environ_unit,*)'s(1) ',s(i),c(isp,1),LOG(c(isp,1))        
+!          IF ( i .EQ. 1 ) write(environ_unit,*)'s(1) ',s(i),c(isp,1),LOG(c(isp,1))
        ENDDO
        ctmp = 1.D0 - SUM( c(:,i) )
        IF ( ctmp .LE. 0.D0 ) CYCLE
        s(i) = s(i) + ctmp * LOG( ctmp )
-!       IF ( i .EQ. 1 ) write(environ_unit,*)'s(1) ',s(i),ctmp,LOG(ctmp)      
+!       IF ( i .EQ. 1 ) write(environ_unit,*)'s(1) ',s(i),ctmp,LOG(ctmp)
     ENDDO
     s = - kbt * cionmax * switch * s
     !
@@ -2854,7 +2854,7 @@ CONTAINS
           ds(isp,i) = ds(isp,i) - ( LOG( ctmp ) + 1.D0 )
        ENDDO
     ENDDO
-    DO isp = 1, nsp 
+    DO isp = 1, nsp
        ds(isp,:) = - kbt * cionmax * switch(:) * ds(isp,:)
     ENDDO
     !
@@ -3020,7 +3020,7 @@ CONTAINS
       REAL( DP ) :: xmin, xmax, arg
       !
       xmin = x0
-      xmax = x0 + delta 
+      xmax = x0 + delta
       DO i = 1, n
         IF ( ABS(axis(i)) .LT. xmin ) THEN
           switch(i) = 0.D0
@@ -3067,7 +3067,7 @@ CONTAINS
 !         v(i) = vlast + slope * dx * (( n - nfdpoint) - i )
 !      ENDDO
 !      vshift = ( v(1) + v(n) ) / 2.D0
-!      v = v - vshift 
+!      v = v - vshift
       !
       RETURN
       !
@@ -3093,7 +3093,7 @@ CONTAINS
       !
       REAL( DP ) :: ftmp(n)
       !
-      c(1) = 7.D0/6.D0 
+      c(1) = 7.D0/6.D0
       c(2) = 23.D0/24.D0 - 7.D0/6.D0
       c(3) = 1.D0 - 23.D0/24.D0
       !
@@ -3193,12 +3193,12 @@ CONTAINS
 !!!!!!      USE fft_interfaces, ONLY : fwfft, invfft
 !!!!!!      USE gvect,          ONLY : nl, nlm, ngm, gg, gstart
 !!!!!!      USE control_flags,  ONLY : gamma_only
-!!!!!! 
+!!!!!!
 !!!!!!      IMPLICIT NONE
 !!!!!!
 !!!!!!      INTEGER, INTENT(IN) :: nnr, nspin
 !!!!!!      REAL*8, INTENT(IN) :: mixlocal
-!!!!!!      
+!!!!!!
 !!!!!!      REAL*8, DIMENSION(nnr,nspin), INTENT(IN) :: rhoout, rhoin
 !!!!!!      REAL*8, DIMENSION(nnr,nspin), INTENT(OUT) :: rhoioncc
 !!!!!!      !
@@ -3206,15 +3206,15 @@ CONTAINS
 !!!!!!      COMPLEX( DP ), ALLOCATABLE :: aux( : )
 !!!!!!      INTEGER :: is, ig
 !!!!!!      REAL*8 :: fac
-!!!!!! 
+!!!!!!
 !!!!!!      ALLOCATE( rhooutg(ngm,nspin), rhoing(ngm,nspin), rhoionccg(ngm,nspin))
 !!!!!!      ALLOCATE( aux(nnr) )
 !!!!!!
 !!!!!!      DO is = 1, nspin
-!!!!!!        aux(:) = CMPLX(rhoout( : , is ),0.D0,kind=dp) 
+!!!!!!        aux(:) = CMPLX(rhoout( : , is ),0.D0,kind=dp)
 !!!!!!        CALL fwfft ('Dense', aux, dfftp)
 !!!!!!        rhooutg(:,is) = aux(nl(:))
-!!!!!!        aux(:) = CMPLX(rhoin( : , is ),0.D0,kind=dp) 
+!!!!!!        aux(:) = CMPLX(rhoin( : , is ),0.D0,kind=dp)
 !!!!!!        CALL fwfft ('Dense', aux, dfftp)
 !!!!!!        rhoing(:,is) = aux(nl(:))
 !!!!!!      END DO
@@ -3224,15 +3224,15 @@ CONTAINS
 !!!!!!        fac = mixlocal / (1.D0+gg(ig))
 !!!!!!        rhoionccg(ig,1) = fac * rhooutg(ig,1) + ( 1.D0 - fac ) * rhoing(ig,1)
 !!!!!!        IF ( nspin == 2 ) &
-!!!!!!          & rhoionccg(ig,2) = fac * rhooutg(ig,2) + ( 1.D0 - fac ) * rhoing(ig,2)   
+!!!!!!          & rhoionccg(ig,2) = fac * rhooutg(ig,2) + ( 1.D0 - fac ) * rhoing(ig,2)
 !!!!!!      ENDDO
-!!!!!!      
+!!!!!!
 !!!!!!      DO is = 1, nspin
 !!!!!!        aux(nl(1:ngm)) = rhoionccg(1:ngm,is)
 !!!!!!        IF ( gamma_only ) &
 !!!!!!          & aux(nlm(1:ngm)) = CMPLX(REAL(rhoionccg(1:ngm,is)),-AIMAG(rhoionccg(1:ngm,is)),KIND=dp)
 !!!!!!        CALL invfft ('Dense', aux, dfftp)
-!!!!!!        rhoioncc(:,is) = DBLE(aux(:))   
+!!!!!!        rhoioncc(:,is) = DBLE(aux(:))
 !!!!!!      ENDDO
 !!!!!!
 !!!!!!      DEALLOCATE( aux )
@@ -3242,7 +3242,7 @@ CONTAINS
 !!!!!!
 !!!!!!      END SUBROUTINE mix_rhoioncc_gspace
 !!!!!!
-!--------------------------------------------------------------------  
+!--------------------------------------------------------------------
   FUNCTION ioncc_charge(lambda)
 !--------------------------------------------------------------------
     !
@@ -3264,7 +3264,7 @@ CONTAINS
     ALLOCATE( rholocal( n1d ) )
     ALLOCATE( vlocal( n1d ) )
     vlocal = vzero1d - lambda
-    !    
+    !
     CALL generate_cioncc( n1d, nsp, 1, switch1d, vlocal, clocal )
     !
     CALL sum_cioncc( n1d, nsp, switch1d, z, clocal, rholocal )
@@ -3279,7 +3279,7 @@ CONTAINS
     !
 !--------------------------------------------------------------------
  END FUNCTION ioncc_charge
-!-------------------------------------------------------------------- 
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE ioncc
 !--------------------------------------------------------------------

@@ -36,7 +36,7 @@ MODULE calc_vpol
   PRIVATE
 
   PUBLIC :: iterative_vpol
-  
+
 CONTAINS
 
   SUBROUTINE vpol_init(nnr, nspin)
@@ -47,21 +47,21 @@ CONTAINS
 
     initialized = .TRUE.
 
-    ALLOCATE( residual( nnr ) ) 
+    ALLOCATE( residual( nnr ) )
     residual = 0.D0
     ALLOCATE( Ap( nnr ) )
     Ap = 0.D0
     ALLOCATE( Apin( nnr ) )
     Apin = 0.D0
-    ALLOCATE( p( nnr ) ) 
+    ALLOCATE( p( nnr ) )
     p = 0.D0
     ALLOCATE( pin( nnr ) )
     pin = 0.D0
-    ALLOCATE( vsolute( nnr ) ) 
+    ALLOCATE( vsolute( nnr ) )
     vsolute = 0.D0
-    ALLOCATE( vperiodic( nnr ) ) 
+    ALLOCATE( vperiodic( nnr ) )
     vperiodic = 0.D0
-    ALLOCATE( vaux( nnr, nspin ) ) 
+    ALLOCATE( vaux( nnr, nspin ) )
     vaux = 0.D0
 
     RETURN
@@ -89,11 +89,11 @@ CONTAINS
   END SUBROUTINE vpol_clean
 
   SUBROUTINE iterative_vpol(nnr,nspin,maxiter,periodic,tol,rho,invsqrteps,factsqrteps,rhopol,vsolvent)
-  
+
     IMPLICIT NONE
 
     ! ... Declare variables
-    
+
     INTEGER, INTENT(IN)     :: nnr
     INTEGER, INTENT(IN)     :: nspin
     INTEGER, INTENT(IN)     :: maxiter
@@ -113,7 +113,7 @@ CONTAINS
     REAL(DP), ALLOCATABLE :: gvaux(:,:),gvtmp(:,:)
     REAL(DP), ALLOCATABLE, SAVE :: vtot(:)
 
-    CALL start_clock( 'calc_vpol' ) 
+    CALL start_clock( 'calc_vpol' )
 
     IF ( .NOT. initialized ) CALL vpol_init(nnr,nspin)
 
@@ -131,7 +131,7 @@ CONTAINS
        vtot = 0.D0
     ELSE
        vsolvent = vtot ! this is the total potential from the previous step
-       residual = rho - factsqrteps * vsolvent ! not sure why using this 
+       residual = rho - factsqrteps * vsolvent ! not sure why using this
        ! apply the preconditioner to this modified residual
        Ap = residual * invsqrteps
        vaux = 0.D0
@@ -139,24 +139,24 @@ CONTAINS
        vperiodic = 0.D0
        CALL calc_vperiodic( nnr, nspin, .FALSE., Ap, vperiodic )
        p = ( vaux(:,1) + vperiodic(:) ) * invsqrteps(:)
-       ! now the new residual is given by 
-       residual = factsqrteps * ( vsolvent - p )  
+       ! now the new residual is given by
+       residual = factsqrteps * ( vsolvent - p )
        ! check if the guess is reasonable enough
        deltar = SUM(residual(:)*residual(:))
        CALL mp_sum( deltar , intra_bgrp_comm )
        deltar = SQRT(deltar/DBLE(ntot))
        IF ( deltar .LT. 1.D-02 ) THEN
-         vsolvent = p 
-       ELSE  
+         vsolvent = p
+       ELSE
          ! otherwise reset to the null guess
          IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)deltar
          residual = rho
          vsolvent = 0.D0
        ENDIF
     ENDIF
-    
+
     DO iter = 0, maxiter
-       
+
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
        Apin = Ap
        pin = p
@@ -179,7 +179,7 @@ CONTAINS
        !     A * s  = -sqrteps*laplsqrteps*s - fpi*residual
 
        Ap(:) = factsqrteps(:)*p(:) + residual(:)
-       
+
        ! ... Conjugate gradient or steepest descent input
 
        sr = SUM( p * residual )
@@ -188,16 +188,16 @@ CONTAINS
           WRITE(stdout,*)'ERROR: zero energy step in polarization potential iteration'
           STOP
        ENDIF
-       IF ( mixtype .EQ. 'pcg' .AND. iter .GT. 0 ) THEN 
+       IF ( mixtype .EQ. 'pcg' .AND. iter .GT. 0 ) THEN
          beta = sr / srin
          p = p + beta * pin
          Ap = Ap + beta * Apin
-       END IF 
-       
+       END IF
+
        ! ... Step downhill
-       
+
        pAp = SUM( p * Ap )
-       CALL mp_sum( pAp, intra_bgrp_comm ) 
+       CALL mp_sum( pAp, intra_bgrp_comm )
        alpha = sr / pAp
        vsolvent = vsolvent + alpha * p
        residual = residual - alpha * Ap
@@ -208,7 +208,7 @@ CONTAINS
        IF ( verbose .GE. 2 ) WRITE(environ_unit,*)'sr = ',sr,' srin = ',srin,' pAp = ',pAp
        IF ( verbose .GE. 4 ) CALL write_cube( nnr, vsolvent, 'vsolvtmp.cube' )
        IF ( verbose .GE. 4 ) CALL write_cube( nnr, residual, 'residtmp.cube' )
-       
+
        ! ... If polarization potential is converged exit
 
        deltar = SUM(residual(:)*residual(:))
@@ -224,7 +224,7 @@ CONTAINS
 
     ENDDO
     IF (.not.tddfpt.AND.verbose.GE.1) WRITE(stdout, 9000) deltar, iter
-    
+
     vtot = vsolvent
     vsolvent = vsolvent - vsolute
     IF ( verbose .GE. 3 ) CALL write_cube( nnr, vsolvent, 'vsolvent.cube' )
@@ -232,7 +232,7 @@ CONTAINS
 
     CALL stop_clock( 'calc_vpol' )
     RETURN
-    
+
 9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 9001 FORMAT(' Warning: bad guess with residual norm = ',E14.6,', reset to no guess')
 9002 FORMAT(' Iteration # ',i10)
