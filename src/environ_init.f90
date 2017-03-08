@@ -5,11 +5,11 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-! Subroutines to initialize and clean up the global ENVIRON variables 
-! Only variables that are required outside of the specific modules 
+! Subroutines to initialize and clean up the global ENVIRON variables
+! Only variables that are required outside of the specific modules
 ! are initiliazed here, module-specific variables should be initialized
 ! inside each module by the specific initiliazation subruotine
-! 
+!
 ! original version by O. Andreussii, I. Dabo and N. Marzari (MIT)
 !
 MODULE environ_init
@@ -25,20 +25,20 @@ CONTAINS
       SUBROUTINE environ_initbase( nnr, e2 )
 !--------------------------------------------------------------------
 !
-! Subroutine to initialize fundamental quantities needed by the 
-! environ modules. This subroutine is called by init_run.f90, thus 
+! Subroutine to initialize fundamental quantities needed by the
+! environ modules. This subroutine is called by init_run.f90, thus
 ! only once per pw.x execution.
 !
       ! ... Declares modules
-      !  
-      ! In environ_base all the control flags plus the variables 
+      !
+      ! In environ_base all the control flags plus the variables
       ! that need to be initialized
-      !  
+      !
       USE kinds,        ONLY : DP
-      USE environ_base, ONLY : verbose, environ_unit, e2_ => e2,        &     
+      USE environ_base, ONLY : verbose, environ_unit, e2_ => e2,        &
                                use_smeared_ions, vltot_zero, deenviron, &
                                env_static_permittivity, esolvent,       &
-                               vsolvent, vepsilon,                      &    
+                               vsolvent, vepsilon,                      &
                                rhopol, ifdtype, nfdpoint,               &
                                env_surface_tension, ecavity, vcavity,   &
                                env_pressure, epressure, vpressure,      &
@@ -48,7 +48,7 @@ CONTAINS
                                env_external_charges, eextcharge,        &
                                vextcharge, rhoexternal,                 &
                                env_dielectric_regions, epsstatic,       &
-                               epsoptical   
+                               epsoptical
       !
       ! Local base initialization subroutines for the different
       ! environ contributions
@@ -58,15 +58,15 @@ CONTAINS
       USE cavity,       ONLY : cavity_initbase
       USE ioncc,        ONLY : ioncc_initbase
       !
-      IMPLICIT NONE      
-      ! 
+      IMPLICIT NONE
+      !
       ! ... Input variable
       !
       INTEGER, INTENT(IN)     :: nnr
       REAL(DP), OPTIONAL, INTENT(IN) :: e2
       !
       ! ... Common initialization for simulations with Environ
-      ! 
+      !
       IF ( verbose .GE. 1 ) &
         OPEN(unit=environ_unit,file='environ.debug',status='unknown')
       !
@@ -113,7 +113,7 @@ CONTAINS
         !
         CALL cavity_initbase( nnr )
         !
-      END IF 
+      END IF
       !
       ! ... Pressure contribution
       !
@@ -134,7 +134,7 @@ CONTAINS
         use_smeared_ions = .TRUE.
         !
         IF ( ALLOCATED( vperiodic ) ) DEALLOCATE(vperiodic)
-        ALLOCATE( vperiodic( nnr ) ) 
+        ALLOCATE( vperiodic( nnr ) )
         vperiodic = 0.0_DP
         CALL periodic_initbase( nnr )
         !
@@ -143,7 +143,7 @@ CONTAINS
       ! ... Ionic Counter-Charge contribution
       !
       eioncc = 0.0_DP
-      IF ( env_ioncc_level .GT. 0 ) THEN 
+      IF ( env_ioncc_level .GT. 0 ) THEN
         !
         use_smeared_ions = .TRUE.
         !
@@ -157,14 +157,14 @@ CONTAINS
         ALLOCATE( rhoioncc( nnr ) )
         rhoioncc = 0.0_DP
         IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN
-          IF ( ALLOCATED( rhopolcc ) ) DEALLOCATE(rhopolcc) 
+          IF ( ALLOCATED( rhopolcc ) ) DEALLOCATE(rhopolcc)
           ALLOCATE( rhopolcc( nnr ) )
           rhopolcc = 0.0_DP
         END IF
         !
         CALL ioncc_initbase( ifdtype, nfdpoint, nnr )
         !
-      END IF          
+      END IF
       !
       ! ... External Charges contribution
       !
@@ -180,7 +180,7 @@ CONTAINS
         ALLOCATE( rhoexternal( nnr ) )
         rhoexternal = 0.0_DP
         !
-      END IF 
+      END IF
       !
       ! ... Dielectric regions, contribute to esolvent
       !
@@ -189,11 +189,11 @@ CONTAINS
         IF ( ALLOCATED(epsstatic) ) DEALLOCATE(epsstatic)
         ALLOCATE( epsstatic( nnr ) )
         epsstatic = 0.0_DP
-        IF ( ALLOCATED(epsoptical) ) DEALLOCATE(epsoptical) 
+        IF ( ALLOCATED(epsoptical) ) DEALLOCATE(epsoptical)
         ALLOCATE( epsoptical( nnr ) )
         epsoptical = 0.0_DP
         !
-      END IF 
+      END IF
       !
       RETURN
       !
@@ -204,7 +204,7 @@ CONTAINS
       SUBROUTINE environ_initcell( nnr, n1, n2, n3, ibrav_, omega_, alat_, at_ )
 !--------------------------------------------------------------------
 !
-! Initialize the cell-related quantities to be used in the Environ 
+! Initialize the cell-related quantities to be used in the Environ
 ! modules. This initialization is called by electrons.f90, thus it
 ! is performed at every step of electronic optimization.
 !
@@ -216,10 +216,10 @@ CONTAINS
       USE environ_cell,  ONLY : ibrav, omega, alat, domega, ntot, at
       ! ... Local cell-related initializations
       USE periodic,      ONLY : periodic_initcell
-      USE ioncc,         ONLY : ioncc_initcell           
-      USE epsregion,     ONLY : generate_epsregion        
+      USE ioncc,         ONLY : ioncc_initcell
+      USE epsregion,     ONLY : generate_epsregion
       !
-      IMPLICIT NONE      
+      IMPLICIT NONE
       !
       INTEGER, INTENT( IN )    :: nnr
       INTEGER, INTENT( IN )    :: n1, n2, n3
@@ -227,11 +227,11 @@ CONTAINS
       INTEGER, INTENT( IN )    :: ibrav_
                                   !  Bravais lattice type
       REAL( DP ), INTENT( IN ) :: omega_
-                                  !  Cell volume 
+                                  !  Cell volume
       REAL( DP ), INTENT( IN ) :: alat_
-                                  !  Lattice spacing 
+                                  !  Lattice spacing
       REAL( DP ), INTENT( IN ) :: at_(3,3)
-                                  !  Direct lattice primitive vectors 
+                                  !  Direct lattice primitive vectors
       !
       ! ... Allocates cell parameters
       !
@@ -270,9 +270,9 @@ CONTAINS
 !--------------------------------------------------------------------
       SUBROUTINE environ_initions_allocate( nat, nsp )
 !--------------------------------------------------------------------
-! Allocation and deallocatino of ions-related quantities are done at 
-! input processing and need to be done with a separate call, otherwise 
-! NEB will not work      
+! Allocation and deallocatino of ions-related quantities are done at
+! input processing and need to be done with a separate call, otherwise
+! NEB will not work
       ! ... Declares modules
       USE environ_ions,      ONLY : ntyp, nat_ => nat, ityp_ => ityp, &
                                     zv_ => zv, tau_ => tau
@@ -280,14 +280,14 @@ CONTAINS
       IMPLICIT NONE
       !
       INTEGER, INTENT(IN) :: nat, nsp
-      !  
+      !
       ! ... Allocate ions paramters
       !
       nat_ = nat
       ntyp = nsp
       IF ( ALLOCATED( ityp_) ) DEALLOCATE(ityp_)
       ALLOCATE( ityp_( nat ) )
-      IF ( ALLOCATED( zv_) ) DEALLOCATE(zv_) 
+      IF ( ALLOCATED( zv_) ) DEALLOCATE(zv_)
       ALLOCATE( zv_( ntyp ) )
       IF ( ALLOCATED( tau_ ) ) DEALLOCATE(tau_)
       ALLOCATE( tau_( 3, nat ) )
@@ -301,7 +301,7 @@ CONTAINS
       SUBROUTINE environ_initions( nnr, nat, nsp, ityp, zv, tau, alat )
 !--------------------------------------------------------------------
 !
-! Initialize the ions-related quantities to be used in the Environ 
+! Initialize the ions-related quantities to be used in the Environ
 ! modules. This initialization is called by electrons.f90, thus it
 ! is performed at every step of electronic optimization. It may not
 ! be the most efficient choice, but it is a safe choice.
@@ -321,7 +321,7 @@ CONTAINS
       USE extcharge,         ONLY : generate_extcharge
       USE generate_function, ONLY : generate_gaussian
       !
-      IMPLICIT NONE      
+      IMPLICIT NONE
       !
       INTEGER, INTENT( IN )     :: nnr, nat, nsp
       INTEGER, INTENT( IN )     :: ityp( nat )
@@ -350,9 +350,9 @@ CONTAINS
           pos( : ) = tau( :, ia)
           charge = - zv( ityp( ia ) )
           spread = atomicspread( ityp( ia ) )
-          dim = 0 
+          dim = 0
           axis = 1
-          CALL generate_gaussian( nnr, dim, axis, charge, spread, pos, rhoions ) 
+          CALL generate_gaussian( nnr, dim, axis, charge, spread, pos, rhoions )
         END DO
         !
       END IF
@@ -428,17 +428,17 @@ CONTAINS
       SUBROUTINE environ_clean(lflag)
 !--------------------------------------------------------------------
 !
-! Clean up all the Environ related allocated variables, and call 
-! clean up subroutines of specific Environ modules. The structure of 
-! this subroutine should mirror the one of the environ_init... 
+! Clean up all the Environ related allocated variables, and call
+! clean up subroutines of specific Environ modules. The structure of
+! this subroutine should mirror the one of the environ_init...
 ! subroutines above. This clean up is called by clean_pw.f90
 !
       ! ... Declares modules
-      !  
-      ! In environ_base all the control flags plus the variables 
+      !
+      ! In environ_base all the control flags plus the variables
       ! that need to be deallocated
-      !  
-      USE environ_base, ONLY : environ_unit, vltot_zero,             & 
+      !
+      USE environ_base, ONLY : environ_unit, vltot_zero,             &
                                env_static_permittivity, vsolvent,    &
                                vepsilon, rhopol,                     &
                                env_surface_tension, vcavity,         &
@@ -459,7 +459,7 @@ CONTAINS
       USE ioncc,          ONLY : ioncc_clean
       USE control_flags,  ONLY : tddfpt
       !
-      IMPLICIT NONE      
+      IMPLICIT NONE
       !
       LOGICAL, INTENT(IN) :: lflag
       LOGICAL :: opnd
@@ -477,11 +477,11 @@ CONTAINS
         IF ( ALLOCATED( zv ) )     DEALLOCATE( zv )
         IF ( ALLOCATED( tau ) )    DEALLOCATE( tau )
         !
-      END IF 
+      END IF
       !
       ! ... Deallocate environment variables
       !
-      INQUIRE( unit=environ_unit, opened= opnd ) 
+      INQUIRE( unit=environ_unit, opened= opnd )
       IF ( opnd ) CLOSE(unit=environ_unit)
       !
       IF ( ALLOCATED( vltot_zero ) )  DEALLOCATE( vltot_zero )
@@ -509,7 +509,7 @@ CONTAINS
       !
       ! ... internal clean up of environ modules
       !
-      IF ( env_static_permittivity .GT. 1.D0 & 
+      IF ( env_static_permittivity .GT. 1.D0 &
            .OR. env_dielectric_regions .GT. 0 ) CALL solvent_clean()
       IF ( env_surface_tension .GT. 0.D0 ) CALL cavity_clean()
       IF ( env_periodicity .NE. 3 ) CALL periodic_clean()
