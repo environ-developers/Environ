@@ -43,6 +43,11 @@ MODULE environ_base
   REAL (KIND=DP) ::                 &
        e2
   !
+  ! Electrostatic parameters
+  !
+  LOGICAL ::                        &
+       lelectrostatic
+  !
   ! System parameters
   !
   INTEGER ::                        &
@@ -87,26 +92,7 @@ MODULE environ_base
   ! Makov Payne correction variables
   !
   LOGICAL ::                        &
-       add_jellium               
-  !
-  ! Numerical Differentiators parameters
-  !
-  INTEGER ::                        &
-       ifdtype,                     &
-       nfdpoint,                    &
-       ncfd
-  INTEGER, ALLOCATABLE ::           &
-       icfd(:)
-  !
-  ! Iterative solvation parameters
-  !
-  CHARACTER (LEN=256) ::            &
-       mixtype
-  INTEGER ::                        &
-       ndiis
-  REAL (KIND=DP) ::                 &
-       tolrhopol,                   &
-       mixrhopol
+       add_jellium
   !
   ! Cavitation energy parameters
   !
@@ -176,24 +162,17 @@ MODULE environ_base
   !
   REAL (KIND=DP) ::                 &
        deenviron,                   &
-       esolvent,                    &
+       eelectrostatic,              &
        ecavity,                     &
        epressure,                   &
-       eperiodic,                   &
-       eioncc,                      &
        eextcharge
   REAL (KIND=DP), ALLOCATABLE ::    &
        vltot_zero(:),               &
-       vsolvent(:),                 &
+       velectrostatic(:),           &
        vepsilon(:),                 &
+       vgamma(:),                   &
        vcavity(:),                  &
        vpressure(:),                &
-       vperiodic(:),                &
-       vioncc(:),                   &
-       vgamma(:),                   &
-       rhopol(:),                   &
-       rhoioncc(:),                 &
-       rhopolcc(:),                 &
        vextcharge(:),               &
        rhoexternal(:),              &
        epsstatic(:),                &
@@ -207,18 +186,15 @@ MODULE environ_base
      ! ... the following routine copies input variables read in input
      ! ... to global variables kept in this module
      !
-     SUBROUTINE environ_base_init &
-                      ( assume_isolated, environ_restart_,          &
-                        verbose_, environ_thr_, environ_nskip_,     &
-                        environ_type_,                              &
+     SUBROUTINE set_environ_base &
+                      ( environ_restart_, verbose_, environ_thr_,   &
+                        environ_nskip_, environ_type_,              &
                         system_ntyp_, system_dim_, system_axis_,    &
                         stype_, rhomax_, rhomin_, tbeta_,           &
                         env_static_permittivity_,                   &
                         env_optical_permittivity_, eps_mode_,       &
                         alpha_, solvationrad_, corespread_,         & 
                         atomicspread_, add_jellium_,                &
-                        ifdtype_, nfdpoint_,                        &
-                        mixtype_, ndiis_, mixrhopol_, tolrhopol_,   &
                         env_surface_tension_, delta_,               &
                         env_pressure_,                              &
                         env_ioncc_level_, nrep_,                    &
@@ -237,19 +213,20 @@ MODULE environ_base
         USE constants,       ONLY : rydberg_si, bohr_radius_si, amu_si, fpi
         USE control_flags,   ONLY : tddfpt
         IMPLICIT NONE
+        CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
         LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
-        INTEGER, INTENT(IN) :: verbose_, environ_nskip_, ifdtype_, nfdpoint_,   &
+        INTEGER, INTENT(IN) :: verbose_, environ_nskip_,                        &
                                system_ntyp_, system_dim_, system_axis_,         &
-                               ndiis_, stype_, env_ioncc_level_, nrep_,         &
+                               stype_, env_ioncc_level_, nrep_,                 &
                                env_external_charges_, extcharge_origin_,        &
                                extcharge_dim_(:), extcharge_axis_(:),           &
                                env_dielectric_regions_, epsregion_origin_,      &
                                epsregion_dim_(:), epsregion_axis_(:)
         REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta_,         &
                                env_static_permittivity_,                        &
-                               env_optical_permittivity_, mixrhopol_,           &
-                               tolrhopol_, alpha_, solvationrad_(:),            &
-                               corespread_(:), atomicspread_(:),                &
+                               env_optical_permittivity_,                       &
+                               alpha_, solvationrad_(:), corespread_(:),        &
+                               atomicspread_(:),                                &
                                env_surface_tension_, delta_, env_pressure_,     &
                                stern_distance_, stern_spread_, cion_, cionmax_, &
                                rion_, zion_, rhopb_, solvent_temperature_,      &
@@ -258,7 +235,7 @@ MODULE environ_base
                                epsregion_pos_(:,:), epsregion_spread_(:),       &
                                epsregion_width_(:)        
         CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type_, &
-                                              eps_mode_, stern_mode_, mixtype_
+                                              eps_mode_, stern_mode_, 
         INTEGER :: i
         !
         environ_restart = environ_restart_
@@ -291,14 +268,6 @@ MODULE environ_base
         alpha = alpha_
         add_jellium = add_jellium_
         !
-        ifdtype   = ifdtype_
-        nfdpoint  = nfdpoint_
-        !
-        mixtype   = mixtype_
-        ndiis     = ndiis_
-        mixrhopol = mixrhopol_
-        tolrhopol = tolrhopol_
-        !
         delta     = delta_
         !
         nrep      = nrep_
@@ -311,10 +280,8 @@ MODULE environ_base
         zion      = zion_
         rhopb     = rhopb_
         solvent_temperature = solvent_temperature_
-        IF ( cion .LT. 0.D0 .OR. rion .LT. 0.D0) &
-          & call errore ('environ_base_init','cion and rion should be positive',1)
         IF ( cion .GT. 0.D0 .AND. cionmax .LT. cion ) &
-          & call errore ('environ_base_init','cionmax should be at least greater than cion',1)
+          & call errore (sub_name,'cionmax should be at least greater than cion',1)
         IF ( cionmax .EQ. 0.D0 .AND. rion .GT. 0.D0 ) &
           & cionmax = 0.64D0 * 3.D0 / fpi / rion**3 
         !
@@ -326,7 +293,6 @@ MODULE environ_base
            env_optical_permittivity = 1.D0
            env_surface_tension = 0.D0
            env_pressure = 0.D0
-           env_periodicity = 3
            env_ioncc_level = 0
         CASE ('water')
            ! water, experimental and SCCS tuned parameters
@@ -334,7 +300,6 @@ MODULE environ_base
            env_optical_permittivity = 1.776D0
            env_surface_tension = 50.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = -0.35D0*1.D9/rydberg_si*bohr_radius_si**3
-           env_periodicity = 3
            env_ioncc_level = 0
            rhomax = 0.005
            rhomin = 0.0001
@@ -345,7 +310,6 @@ MODULE environ_base
            env_optical_permittivity = 1.776D0
            env_surface_tension = 5.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = 0.125D0*1.D9/rydberg_si*bohr_radius_si**3
-           env_periodicity = 3
            env_ioncc_level = 0
            rhomax = 0.0035
            rhomin = 0.0002
@@ -356,7 +320,6 @@ MODULE environ_base
            env_optical_permittivity = 1.776D0
            env_surface_tension = 0.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = 0.450D0*1.D9/rydberg_si*bohr_radius_si**3
-           env_periodicity = 3
            env_ioncc_level = 0
            rhomax = 0.0155
            rhomin = 0.0024
@@ -368,10 +331,9 @@ MODULE environ_base
            env_surface_tension = &
              env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
-           env_periodicity = 3
            env_ioncc_level = env_ioncc_level_
         CASE DEFAULT
-           call errore ('environ_base_init','unrecognized value for environ_type',1)
+           call errore (sub_name,'unrecognized value for environ_type',1)
         END SELECT
         !
         env_external_charges = env_external_charges_
@@ -422,6 +384,7 @@ MODULE environ_base
         END IF
         ! Need to add a check on periodic corrections 
         !
+        env_periodicity = 3
         slab_axis  = 0
         SELECT CASE( trim( assume_isolated ) )
         !
@@ -454,12 +417,21 @@ MODULE environ_base
            IF ( trim( assume_isolated ) /= 'makov-payne'       .AND. &
               & trim( assume_isolated ) /= 'martyna-tuckerman' .AND. &
               & trim( assume_isolated ) /= 'none' ) &
-              CALL errore ('environ_base_init', &
+              CALL errore (sub_name, &
                        & 'The activated periodic-boundary correction method' // &
                        & ' is not implemented in TDDFPT', 1 ) 
-        ENDIF 
+        ENDIF
         !
-     END SUBROUTINE environ_base_init
+        ! Set the electrostatic flag
+        !
+        lelectrostatic = .FALSE.
+        IF ( env_static_permittivity .GT. 1.D0 .OR.
+             env_optical_permittivity .GT. 1.D0 .OR.
+             env_dielectric_regions .GT. 0 .OR.
+             env_periodicity .NE. 3 .OR.
+             env_ioncc_level .GT. 0 ) lelectrostatic = .TRUE.
+        !
+     END SUBROUTINE set_environ_base
      !
   !--------------------------------------------------------------------------
 END MODULE environ_base
