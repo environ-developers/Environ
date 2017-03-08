@@ -22,11 +22,11 @@ MODULE extcharge
                             env_external_charges, extcharge_origin,  &
                             extcharge_dim, extcharge_axis,           &
                             extcharge_pos, extcharge_spread,         &
-                            extcharge_charge, rhoexternal 
+                            extcharge_charge, rhoexternal
   USE environ_debug,  ONLY: write_cube
   !
   IMPLICIT NONE
-  ! 
+  !
   LOGICAL :: first = .TRUE.
   !
   REAL(DP) :: eextself = 0.D0
@@ -97,10 +97,10 @@ CONTAINS
       !
       IF ( dim .GE. 3 .OR. dim .LT. 0 ) THEN
         WRITE(stdout,*)'Warning: wrong extcharge_dim, doing nothing'
-        CYCLE  
+        CYCLE
       END IF
       !
-      CALL generate_gaussian( nnr, dim, axis, charge, spread, pos, rhoexternal ) 
+      CALL generate_gaussian( nnr, dim, axis, charge, spread, pos, rhoexternal )
       !
     ENDDO
     !
@@ -123,7 +123,7 @@ CONTAINS
     REAL( DP ) :: ehart, charge
     REAL( DP ), ALLOCATABLE :: vaux(:,:), rhoaux(:,:)
 
-    CALL start_clock( 'get_extcharge' ) 
+    CALL start_clock( 'get_extcharge' )
 
     IF ( .NOT. first ) RETURN
     first = .FALSE.
@@ -144,8 +144,8 @@ CONTAINS
     CALL mp_sum( eextself, intra_bgrp_comm )
     IF ( verbose .GE. 1 ) WRITE(environ_unit,*)&
       & 'External charge self energy',eextself
-    
-    CALL stop_clock( 'get_extcharge' ) 
+
+    CALL stop_clock( 'get_extcharge' )
 
     RETURN
 
@@ -196,7 +196,7 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, nspin, nat
     REAL(DP), INTENT(INOUT)   :: f( 3, nat )
     !
-    ! Since the external charges can only be placed independently of 
+    ! Since the external charges can only be placed independently of
     ! atomic positions there is no explicit contributions to the
     ! inter-atomic forces
     !
