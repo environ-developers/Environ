@@ -1,5 +1,5 @@
 This example shows how to use pw.x to model a charged slab in the presence of 
-a fixed, planar and smooth (gaussian profiled) distribution of charge (helmotz 
+a fixed, planar and smooth (gaussian profiled) distribution of charge (Helmholtz 
 plane). The example comprises two calculations, with and without a continuum
 solvent. 
 

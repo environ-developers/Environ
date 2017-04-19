@@ -132,9 +132,9 @@ for epsilon in 1 80 ; do
 
     $ECHO "  running the scf calculation in $label"
     $ECHO "  with $assume_isolated periodic boundary correction"
-    $ECHO "  and a fixed planar density of charge (helmotz layer)"
+    $ECHO "  and a fixed planar density of charge (Helmholtz layer)"
 
-    prefix=PtCO_helmotz_${label}
+    prefix=PtCO_Helmholtz_${label}
     input=${prefix}'.in'
     output=${prefix}'.out'
     cat > $input << EOF 
