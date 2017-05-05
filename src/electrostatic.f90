@@ -19,6 +19,7 @@ MODULE electrostatic
   ! ... electrostatic embedding.
   !
   USE environ_types
+  USE electrostatic_base
   !
   SAVE
 
@@ -45,6 +46,8 @@ CONTAINS
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
     TYPE( environ_density ), INTENT(OUT) :: potential
     !
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_velectrostatic'
+    !
     ! ... Local variables
     !
 
@@ -52,15 +55,15 @@ CONTAINS
 
     CALL start_clock( 'calc_velect' )
 
-    velectrostatic%of_r = 0.D0
+    potential%of_r = 0.D0
 
     ! ... Select the appropriate combination of problem and solver
 
-    SELECT CASE problem
+    SELECT CASE ( problem )
 
     CASE ( 'poisson' )
 
-       SELECT CASE solver
+       SELECT CASE ( solver )
 
        CASE ( 'direct' )
 
@@ -74,7 +77,7 @@ CONTAINS
 
     CASE ( 'free' )
 
-       SELECT CASE solver
+       SELECT CASE ( solver )
 
        CASE ( 'direct' )
 
@@ -102,7 +105,7 @@ CONTAINS
        IF ( .NOT. PRESENT( dielectric ) ) &
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
 
-       SELECT CASE solver
+       SELECT CASE ( solver )
 
        CASE ( 'direct' )
 
@@ -129,7 +132,7 @@ CONTAINS
        IF ( .NOT. PRESENT( electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
-       SELECT CASE solver
+       SELECT CASE ( solver )
 
        CASE ( 'direct' )
 
@@ -157,7 +160,7 @@ CONTAINS
        IF ( .NOT. PRESENT( electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
-       SELECT CASE solver
+       SELECT CASE ( solver )
 
        CASE ( 'direct' )
 
@@ -180,7 +183,7 @@ CONTAINS
 
        END SELECT
 
-    CASE ( default )
+    CASE DEFAULT
 
        CALL errore( sub_name, 'unexpected problem keyword', 1 )
 
@@ -227,13 +230,13 @@ CONTAINS
     !
     INTEGER, INTENT(IN) :: natoms
     TYPE( environ_charges ), INTENT(IN) :: charges
-    REAL(DP), INTENT(INOUT) :: forces( 3, nat )
+    REAL(DP), INTENT(INOUT) :: forces( 3, natoms )
     TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
     !
     ! ... Local variables
     !
-    REAL(DP)                :: ftmp( 3, nat )
+    REAL(DP)                :: ftmp( 3, natoms )
     !
     ftmp = 0.D0
     !
@@ -245,19 +248,19 @@ CONTAINS
   END SUBROUTINE calc_felectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_direct( density, potential )
+  SUBROUTINE poisson_direct( charges, potential )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    TYPE( environ_density ), INTENT(IN) :: density
+    TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(OUT) :: potential
     !
     REAL( DP ) :: edummy, cdummy
     !
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
-    CALL v_h_of_rho_r( density%of_r, edummy, cdummy, potential%of_r )
+    CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
     !
     RETURN
     !

@@ -78,7 +78,7 @@ MODULE electrostatic_base
   ! Boundary conditions
   !
   INTEGER, DIMENSION(3) ::         &
-       bc_index
+       bcindex
   REAL (DP), DIMENSION(3) ::       &
        bcplus,                     &
        bcminus
@@ -87,7 +87,7 @@ MODULE electrostatic_base
   !
   LOGICAL ::                       &
        need_gradient,              &
-       need_factqrt,               &
+       need_factsqrt,              &
        need_gradlog
   !
   ! Computed physical variables
@@ -161,9 +161,9 @@ MODULE electrostatic_base
       !
       SELECT CASE ( problem )
          !
-      CASE ( free )
+      CASE ( 'free' )
          !
-      CASE ( generalized )
+      CASE ( 'generalized' )
          !
          SELECT CASE ( solver )
             !
@@ -204,7 +204,7 @@ MODULE electrostatic_base
       ! Passes informations stored in electrostatic_base to environ_base
       ! and vice-versa
 
-      USE environ_base, ONLY :: lstatic, loptical, static, optical
+      USE environ_base, ONLY : lstatic, loptical, static, optical
 
       IMPLICIT NONE
 
