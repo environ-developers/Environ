@@ -113,13 +113,16 @@ mv tmp.1 plugin_int_forces.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_input, ONLY : read_environ \
+USE input_parameters, ONLY : nspin\
+USE input_parameters, ONLY : nat, ntyp, atom_label \
+USE input_parameters, ONLY : assume_isolated, ibrav \
+USE environ_input,    ONLY : read_environ \
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL read_environ(nat, ntyp, assume_isolated, ibrav) \
+   if (use_environ) CALL read_environ(1, nspin, nat, ntyp, atom_label, assume_isolated, ibrav) \
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -161,19 +164,27 @@ mv tmp.2 plugin_summary.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_base, ONLY : ir_end \
+USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id \
+USE    cell_base,    ONLY : at, alat, omega, ibrav \
 USE    environ_init, ONLY : environ_initbase \
 !Environ patch
 ' plugin_initbase.f90 > tmp.1
 
-sed '/Environ CALLS BEGIN/ a\
+sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
-  ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1)) \
-  IF ( use_environ ) CALL environ_initbase( dfftp%nnr ) \
+INTEGER :: ir_end \
 !Environ patch
 ' tmp.1 > tmp.2
 
-mv tmp.2 plugin_initbase.f90
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
+  ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1)) \
+  IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, & \
+                                          & dfftp%nnr, ir_end, intra_bgrp_comm, me_bgrp, root_bgrp_id ) \
+!Environ patch
+' tmp.2 > tmp.1
+
+mv tmp.1 plugin_initbase.f90
 
 # plugin_clock
 
@@ -247,9 +258,10 @@ mv tmp.2 plugin_init_cell.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,         ONLY : deenviron, esolvent,    & \
-                                 ecavity, epressure, eperiodic, eioncc,   & \
-                                 eextcharge \
+USE klist,                 ONLY : nelec \
+USE environ_base,          ONLY : deenviron, eelectrostatic, & \
+                                  ecavity, epressure \
+USE environ_init,          ONLY : environ_initelectrons \
 USE environ_main,          ONLY : calc_eenviron \
 !Environ patch
 ' plugin_scf_energy.f90 > tmp.1
@@ -257,10 +269,16 @@ USE environ_main,          ONLY : calc_eenviron \
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF(use_environ) THEN \
-       call calc_eenviron( dfftp%nnr, nspin, rhoin%of_r, deenviron, esolvent, & \
-                            ecavity, epressure, eperiodic, eioncc, eextcharge ) \
         ! \
-        plugin_etot = plugin_etot + deenviron + esolvent + ecavity + epressure + eperiodic + eioncc + eextcharge \
+        ! update electrons-related quantities in environ \
+        ! \
+        CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rhoin%of_r ) \
+        ! \
+        ! compute environ contributions to total energy \
+        ! \
+        CALL calc_eenviron( deenviron, eelectrostatic, ecavity, epressure ) \
+        ! \
+        plugin_etot = plugin_etot + deenviron + eelectrostatic + ecavity + epressure \
         ! \
   END IF \
 !Environ patch
@@ -272,13 +290,13 @@ mv tmp.2 plugin_scf_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,         ONLY : vltot_zero \
+USE environ_init,         ONLY : environ_initpotential \
 !Environ patch
 ' plugin_init_potential.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  IF(use_environ) vltot_zero = vltot \
+  IF(use_environ) CALL environ_initpotential( dfftp%nnr, vltot ) \
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -288,8 +306,8 @@ mv tmp.2 plugin_init_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,         ONLY : update_venviron, vltot_zero,    & \
-                                 environ_thr, environ_restart \
+USE environ_base,          ONLY : update_venviron, environ_thr, & \
+                                  environ_restart \
 USE environ_main,          ONLY : calc_venviron \
 !Environ patch
 ' plugin_scf_potential.f90 > tmp.1
@@ -299,9 +317,6 @@ sed '/Environ CALLS BEGIN/ a\
      IF(use_environ) THEN \
         ! \
         ! environ contribution to the local potential \
-        ! \
-        vltot = vltot_zero \
-        !vltot_zero = 0.0_dp \
         ! \
         IF ( dr2 .GT. 0.0_dp ) THEN \
            update_venviron = .NOT. conv_elec .AND. dr2 .LT. environ_thr \
@@ -314,9 +329,7 @@ sed '/Environ CALLS BEGIN/ a\
         ENDIF \
         ! \
         IF ( update_venviron ) WRITE( stdout, 9200 ) \
-        CALL calc_venviron( update_venviron, dfftp%nnr, nspin, dr2, rhoin%of_r, vltot ) \
-        ! \
-        !CALL sum_vrs( dfftp%nnr, nspin, vltot, vrs, vrs) \
+        CALL calc_venviron( update_venviron, dfftp%nnr, vltot ) \
         ! \
 9200 FORMAT(/"     add environment contribution to local potential") \
      ENDIF \
@@ -327,20 +340,20 @@ mv tmp.2 plugin_scf_potential.f90
 
 # makov_payne
 
-sed '/Environ MODULES BEGIN/ a\
-!Environ patch \
-USE environ_mp,  ONLY : environ_makov_payne \
-!Environ patch
-' makov_payne.f90 > tmp.1
-
-sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-     IF(use_environ) THEN \
-       CALL environ_makov_payne( dfftp%nnr, nspin, rho%of_r, x0, etot ) \
-     ENDIF \
-!Environ patch
-' tmp.1 > tmp.2
-
-mv tmp.2 makov_payne.f90
+# sed '/Environ MODULES BEGIN/ a\
+# !Environ patch \
+# USE environ_mp,  ONLY : environ_makov_payne \
+# !Environ patch
+# ' makov_payne.f90 > tmp.1
+# 
+# sed '/Environ CALLS BEGIN/ a\
+# !Environ patch \
+#      IF(use_environ) THEN \
+#        CALL environ_makov_payne( dfftp%nnr, nspin, rho%of_r, x0, etot ) \
+#      ENDIF \
+# !Environ patch
+# ' tmp.1 > tmp.2
+# 
+# mv tmp.2 makov_payne.f90
 
 rm tmp.1

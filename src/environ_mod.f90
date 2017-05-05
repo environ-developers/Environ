@@ -17,11 +17,11 @@ MODULE environ_base
   !
   ! ... this module contains all the main variables needed for the
   ! ... environ module. This include the control and debug variables,
-  ! ... all physical and numerical parameters,
-  ! ... the contributions to the energy and to the potential,
-  ! ... and the polarization charge density (to be used to compute forces)
+  ! ... all physical and numerical parameters, and
+  ! ... the contributions to the energy and to the potential.
   !
-  USE kinds, ONLY :  DP
+  USE environ_types
+  !
   SAVE
   !
   ! Global parameters
@@ -38,127 +38,110 @@ MODULE environ_base
        environ_thr
   INTEGER ::                        &
        environ_nskip
-  INTEGER ::                        &
-       ir_end
   REAL (KIND=DP) ::                 &
        e2
   !
-  ! Electrostatic parameters
+  ! Control flags
   !
-  LOGICAL ::                        &
+  LOGICAL ::                          &
+       lsolvent
+  LOGICAL ::                          &
        lelectrostatic
-  LOGICAL ::                        &
+  LOGICAL ::                          &
        lsoftcavity
+  LOGICAL ::                          &
+       lrigidcavity
+  LOGICAL ::                          &
+       lcoredensity
+  LOGICAL ::                          &
+       lsmearedions
   !
-  ! System parameters
+  ! Internal cell parameters
   !
-  INTEGER ::                        &
-       system_ntyp,                 &
-       system_dim,                  &
-       system_axis
-  REAL (KIND=DP) ::                 &
-       system_width
-  REAL (KIND=DP) ::                 &
-       system_pos(3)
+  TYPE( environ_cell ), TARGET ::     &
+       cell
   !
-  ! Switching function parameters
+  ! Internal parameters of ions
   !
-  INTEGER ::                        &
-       stype
-  REAL (KIND=DP) ::                 &
-       rhomax,                      &
-       rhomin,                      &
-       tbeta
+  TYPE( environ_ions ), TARGET ::  &
+       ions
+  !
+  ! Internal parameters of electrons
+  !
+  TYPE( environ_electrons ), TARGET ::  &
+       electrons
+  !
+  ! Internal parameters of external charges
+  !
+  TYPE( environ_externals ), TARGET ::  &
+       externals
+  !
+  ! Internal paramters of total charges
+  !
+  TYPE( environ_charges ), TARGET :: &
+       charges
+  !
+  ! Details of the selected system
+  !
+  TYPE( environ_system ), TARGET ::   &
+       system
+  !
+  ! Details of the continuum interface
+  !
+  TYPE( environ_boundary ), TARGET :: &
+       solvent
   !
   ! Dielectric parameters (solvent)
   !
+  LOGICAL ::                        &
+       lstatic
+  LOGICAL ::                        &
+       loptical
   REAL (KIND=DP) ::                 &
        env_static_permittivity,     &
        env_optical_permittivity
-  CHARACTER (LEN=256) ::            &
-       eps_mode
-  REAL (KIND=DP) ::                 &
-       alpha
-  REAL (KIND=DP), ALLOCATABLE ::    &
-       solvationrad(:)
-  REAL (KIND=DP), ALLOCATABLE ::    &
-       corespread(:)
+  TYPE( environ_dielectric ) ::     &
+       static,                      &
+       optical
   !
-  ! Smeared ions parameters
+  ! Ionic countercharge parameters
   !
   LOGICAL ::                        &
-       use_smeared_ions
-  REAL (KIND=DP), ALLOCATABLE ::    &
-       atomicspread(:)
-  !
-  ! Makov Payne correction variables
-  !
-  LOGICAL ::                        &
-       add_jellium
+       lelectrolyte
+  INTEGER ::                        &
+       env_ioncc_ntyp
+  TYPE( environ_electrolyte ) ::    &
+       electrolyte
   !
   ! Cavitation energy parameters
   !
+  LOGICAL ::                        &
+       lsurface
   REAL (KIND=DP) ::                 &
-       env_surface_tension,         &
-       delta
+       env_surface_tension
   !
   ! PV term parameters
   !
+  LOGICAL ::                        &
+       lvolume
   REAL (KIND=DP) ::                 &
        env_pressure
   !
   ! Periodicity correction parameters
   !
+  LOGICAL ::                        &
+       lperiodic
   INTEGER ::                        &
        env_periodicity
   INTEGER ::                        &
        slab_axis
   !
-  ! Ionic countercharge parameters
+  ! Temporary parameters
   !
+  LOGICAL ::                        &
+       add_jellium
   INTEGER ::                        &
-       env_ioncc_level,             &
        nrep
-  CHARACTER (LEN=256) ::            &
-       stern_mode
-  REAL (KIND=DP) ::                 &
-       stern_distance,              &
-       stern_spread,                &
-       cion,                        &
-       cionmax,                     &
-       rion,                        &
-       zion,                        &
-       rhopb,                       &
-       solvent_temperature
-  !
-  ! External charges parameters
-  !
-  INTEGER ::                        &
-       env_external_charges
-  INTEGER ::                        &
-       extcharge_origin
-  INTEGER, ALLOCATABLE ::           &
-       extcharge_dim(:),            &
-       extcharge_axis(:)
-  REAL (KIND=DP), ALLOCATABLE ::    &
-       extcharge_charge(:),         &
-       extcharge_spread(:),         &
-       extcharge_pos(:,:)
-  !
-  ! Dielectric regions parameters
-  !
-  INTEGER ::                        &
-       env_dielectric_regions
-  INTEGER ::                        &
-       epsregion_origin
-  INTEGER, ALLOCATABLE ::           &
-       epsregion_dim(:),            &
-       epsregion_axis(:)
-  REAL (KIND=DP), ALLOCATABLE ::    &
-       epsregion_eps(:,:),          &
-       epsregion_width(:),          &
-       epsregion_spread(:),         &
-       epsregion_pos(:,:)
   !
   ! Computed physical variables
   !
@@ -166,127 +149,105 @@ MODULE environ_base
        deenviron,                   &
        eelectrostatic,              &
        ecavity,                     &
-       epressure,                   &
-       eextcharge
-  REAL (KIND=DP), ALLOCATABLE ::    &
-       vltot_zero(:),               &
-       velectrostatic(:),           &
-       vsoftcavity(:),              &
-       vcavity(:),                  &
-       vpressure(:),                &
-       vextcharge(:),               &
-       rhoexternal(:),              &
-       epsstatic(:),                &
-       epsoptical(:),               &
-       gvtot0(:,:)
+       epressure
+  TYPE ( environ_density ) ::       &
+       vzero,                       &
+       velectrostatic,              &
+       vsoftcavity,                 &
+       vcavity,                     &
+       vpressure
+  TYPE ( environ_gradient ) ::      &
+       gelectrostatic
        ! gradient of the total electrostatic potential
        ! (elec + pol + ions) for the TDDFPT calculation
   !
   CONTAINS
      !
-     ! ... the following routine copies input variables read in input
-     ! ... to global variables kept in this module
+     ! ... the following routine copies variables read in input
+     ! ... to global variables and derived data types kept in this module
      !
      SUBROUTINE set_environ_base &
-                      ( environ_restart_, verbose_, environ_thr_,   &
-                        environ_nskip_, environ_type_,              &
+                      ( nelec, nspin,                               &
+                        nat, ntyp, atom_label, atomicspread,        &
+                        corespread, solvationrad,                   &
+                        assume_isolated, ibrav,                     &
+                        environ_restart_, verbose_, environ_thr_,   &
+                        environ_nskip_, environ_type,               &
                         system_ntyp_, system_dim_, system_axis_,    &
-                        stype_, rhomax_, rhomin_, tbeta_,           &
+                        stype_, rhomax_, rhomin_, tbeta,            &
                         env_static_permittivity_,                   &
-                        env_optical_permittivity_, eps_mode_,       &
-                        alpha_, solvationrad_, corespread_,         &
-                        atomicspread_, add_jellium_,                &
-                        env_surface_tension_, delta_,               &
+                        env_optical_permittivity_, solvent_mode,    &
+                        radius_mode, alpha,                         &
+                        eps_distance, eps_spread,                   &
+                        add_jellium_,                               &
+                        env_surface_tension_, delta,                &
                         env_pressure_,                              &
-                        env_ioncc_level_, nrep_,                    &
+                        env_ioncc_ntyp_, nrep_,                     &
                         stern_mode_, stern_distance_, stern_spread_,&
-                        cion_, cionmax_, rion_, zion_, rhopb_,      &
-                        solvent_temperature_,                       &
-                        env_external_charges_, extcharge_origin_,   &
-                        extcharge_charge_, extcharge_dim_,          &
-                        extcharge_axis_, extcharge_pos_,            &
-                        extcharge_spread_,                          &
-                        env_dielectric_regions_, epsregion_origin_, &
-                        epsregion_eps_, epsregion_dim_,             &
-                        epsregion_axis_, epsregion_pos_,            &
-                        epsregion_spread_, epsregion_width_ )
+                        cion, cionmax, rion, zion, rhopb,           &
+                        solvent_temperature,                        &
+                        env_external_charges,                       &
+                        extcharge_charge, extcharge_dim,            &
+                        extcharge_axis, extcharge_pos,              &
+                        extcharge_spread,                           &
+                        env_dielectric_regions,                     &
+                        epsregion_eps, epsregion_dim,               &
+                        epsregion_axis, epsregion_pos,              &
+                        epsregion_spread, epsregion_width )
         !
-        USE constants,       ONLY : rydberg_si, bohr_radius_si, amu_si, fpi
         USE control_flags,   ONLY : tddfpt
         IMPLICIT NONE
         CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
         LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
-        INTEGER, INTENT(IN) :: verbose_, environ_nskip_,                        &
+        INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp, ibrav,                  &
+                               verbose_, environ_nskip_,                        &
                                system_ntyp_, system_dim_, system_axis_,         &
-                               stype_, env_ioncc_level_, nrep_,                 &
-                               env_external_charges_, extcharge_origin_,        &
-                               extcharge_dim_(:), extcharge_axis_(:),           &
-                               env_dielectric_regions_, epsregion_origin_,      &
-                               epsregion_dim_(:), epsregion_axis_(:)
+                               stype_, env_ioncc_ntyp_, nrep_,                  &
+                               env_external_charges, extcharge_origin,          &
+                               extcharge_dim(:), extcharge_axis(:),             &
+                               env_dielectric_regions, epsregion_origin,        &
+                               epsregion_dim(:), epsregion_axis(:)
         REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta_,         &
                                env_static_permittivity_,                        &
                                env_optical_permittivity_,                       &
-                               alpha_, solvationrad_(:), corespread_(:),        &
-                               atomicspread_(:),                                &
-                               env_surface_tension_, delta_, env_pressure_,     &
-                               stern_distance_, stern_spread_, cion_, cionmax_, &
-                               rion_, zion_, rhopb_, solvent_temperature_,      &
-                               extcharge_charge_(:), extcharge_spread_(:),      &
-                               extcharge_pos_(:,:), epsregion_eps_(:,:),        &
-                               epsregion_pos_(:,:), epsregion_spread_(:),       &
-                               epsregion_width_(:)
-        CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type_, &
-                                              eps_mode_, stern_mode_,
+                               alpha, solvationrad(:), corespread(:),           &
+                               atomicspread(:),                                 &
+                               eps_distance, eps_spread,                        &
+                               env_surface_tension_, delta, env_pressure_,      &
+                               stern_distance, stern_spread, cion(:),           &
+                               cionmax(:), rion(:), zion(:), rhopb,             &
+                               solvent_temperature,                             &
+                               extcharge_charge(:), extcharge_spread(:),        &
+                               extcharge_pos(:,:), epsregion_eps_(:,:),         &
+                               epsregion_pos(:,:), epsregion_spread(:),         &
+                               epsregion_width(:)
+        CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type,      &
+                               solvent_mode, radius_mode, stern_mode
+        CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
         INTEGER :: i
+        INTEGER :: stype
+        REAL(DP) :: rhomax, rhomin
+        !
+        ! Create necessary local types
+        !
+        ! CALL create_environ_cell(cell) THIS IS NOT NEEDED AS THERE ARE NO POINTERS OR ALLOCATABLES
+        !
+        CALL create_environ_electrons(electrons)
+        !
+        CALL create_environ_ions(ions)
+        !
+        CALL create_environ_system(system)
+        !
+        ! General flags
         !
         environ_restart = environ_restart_
         verbose         = verbose_
         environ_thr     = environ_thr_
         environ_nskip   = environ_nskip_
         !
-        system_ntyp = system_ntyp_
-        system_dim  = system_dim_
-        system_axis = system_axis_
+        ! Set main environment flags
         !
-        stype    = stype_
-        rhomax   = rhomax_
-        rhomin   = rhomin_
-        tbeta    = tbeta_
-        IF ( stype .EQ. 1 ) THEN
-           tbeta  = LOG( rhomax / rhomin )
-        END IF
-        !
-        eps_mode = eps_mode_
-        IF ( ALLOCATED(solvationrad) ) DEALLOCATE( solvationrad )
-        ALLOCATE( solvationrad( SIZE(solvationrad_) ) )
-        solvationrad( : ) = solvationrad_( : )
-        IF ( ALLOCATED(corespread) ) DEALLOCATE( corespread )
-        ALLOCATE( corespread( SIZE(corespread_) ) )
-        corespread( : ) = corespread_( : )
-        IF ( ALLOCATED(atomicspread) ) DEALLOCATE( atomicspread )
-        ALLOCATE( atomicspread( SIZE(atomicspread_) ) )
-        atomicspread( : ) = atomicspread_( : )
-        alpha = alpha_
-        add_jellium = add_jellium_
-        !
-        delta     = delta_
-        !
-        nrep      = nrep_
-        stern_mode = stern_mode_
-        stern_distance = stern_distance_
-        stern_spread = stern_spread_
-        cion      = cion_ * bohr_radius_si**3 / amu_si
-        cionmax   = cionmax_ * bohr_radius_si**3 / amu_si
-        rion      = rion_
-        zion      = zion_
-        rhopb     = rhopb_
-        solvent_temperature = solvent_temperature_
-        IF ( cion .GT. 0.D0 .AND. cionmax .LT. cion ) &
-          & call errore (sub_name,'cionmax should be at least greater than cion',1)
-        IF ( cionmax .EQ. 0.D0 .AND. rion .GT. 0.D0 ) &
-          & cionmax = 0.64D0 * 3.D0 / fpi / rion**3
-        !
-        SELECT CASE (TRIM(environ_type_))
+        SELECT CASE (TRIM(environ_type))
         ! if a specific environ is selected use hardcoded parameters
         CASE ('vacuum')
            ! vacuum, all flags off
@@ -294,37 +255,40 @@ MODULE environ_base
            env_optical_permittivity = 1.D0
            env_surface_tension = 0.D0
            env_pressure = 0.D0
-           env_ioncc_level = 0
+           env_ioncc_ntyp = 0
+           stype = 1
+           rhomax = 0.005
+           rhomin = 0.0001
         CASE ('water')
            ! water, experimental and SCCS tuned parameters
            env_static_permittivity = 78.3D0
            env_optical_permittivity = 1.776D0
            env_surface_tension = 50.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = -0.35D0*1.D9/rydberg_si*bohr_radius_si**3
-           env_ioncc_level = 0
+           env_ioncc_ntyp = 0
+           stype = 1
            rhomax = 0.005
            rhomin = 0.0001
-           tbeta = LOG( rhomax / rhomin )
         CASE ('water-cation')
            ! water, experimental and SCCS tuned parameters for cations
            env_static_permittivity = 78.3D0
            env_optical_permittivity = 1.776D0
            env_surface_tension = 5.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = 0.125D0*1.D9/rydberg_si*bohr_radius_si**3
-           env_ioncc_level = 0
+           env_ioncc_ntyp = 0
+           stype = 1
            rhomax = 0.0035
            rhomin = 0.0002
-           tbeta = LOG( rhomax / rhomin )
         CASE ('water-anion')
            ! water, experimental and SCCS tuned parameters for anions
            env_static_permittivity = 78.3D0
            env_optical_permittivity = 1.776D0
            env_surface_tension = 0.D0*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = 0.450D0*1.D9/rydberg_si*bohr_radius_si**3
-           env_ioncc_level = 0
+           env_ioncc_ntyp = 0
+           stype = 1
            rhomax = 0.0155
            rhomin = 0.0024
-           tbeta = LOG( rhomax / rhomin )
         CASE ('input')
            ! take values from input, this is the default option
            env_static_permittivity = env_static_permittivity_
@@ -332,58 +296,15 @@ MODULE environ_base
            env_surface_tension = &
              env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
            env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
-           env_ioncc_level = env_ioncc_level_
+           env_ioncc_ntyp = env_ioncc_ntyp_
+           stype = stype_
+           rhomax = rhomax_
+           rhomin = rhomin_
         CASE DEFAULT
            call errore (sub_name,'unrecognized value for environ_type',1)
         END SELECT
         !
-        env_external_charges = env_external_charges_
-        IF ( env_external_charges .GT. 0 ) THEN
-          extcharge_origin = extcharge_origin_
-          IF ( ALLOCATED( extcharge_dim ) ) DEALLOCATE( extcharge_dim )
-          ALLOCATE( extcharge_dim( env_external_charges ) )
-          extcharge_dim = extcharge_dim_
-          IF ( ALLOCATED( extcharge_axis ) ) DEALLOCATE( extcharge_axis )
-          ALLOCATE( extcharge_axis( env_external_charges ) )
-          extcharge_axis = extcharge_axis_
-          IF ( ALLOCATED( extcharge_spread ) ) DEALLOCATE( extcharge_spread )
-          ALLOCATE( extcharge_spread( env_external_charges ) )
-          extcharge_spread = extcharge_spread_
-          IF ( ALLOCATED( extcharge_charge ) ) DEALLOCATE( extcharge_charge )
-          ALLOCATE( extcharge_charge( env_external_charges ) )
-          extcharge_charge = extcharge_charge_
-          IF ( ALLOCATED( extcharge_pos ) ) DEALLOCATE( extcharge_pos )
-          ALLOCATE( extcharge_pos( 3, env_external_charges ) )
-          DO i = 1, env_external_charges
-            extcharge_pos(1:3,i) = extcharge_pos_(1:3,i)
-          END DO
-        END IF
-        !
-        env_dielectric_regions = env_dielectric_regions_
-        IF ( env_dielectric_regions .GT. 0 ) THEN
-          epsregion_origin = epsregion_origin_
-          IF ( ALLOCATED( epsregion_dim ) ) DEALLOCATE( epsregion_dim )
-          ALLOCATE( epsregion_dim( env_dielectric_regions ) )
-          epsregion_dim = epsregion_dim_
-          IF ( ALLOCATED( epsregion_axis ) ) DEALLOCATE( epsregion_axis )
-          ALLOCATE( epsregion_axis( env_dielectric_regions ) )
-          epsregion_axis = epsregion_axis_
-          IF ( ALLOCATED( epsregion_spread ) ) DEALLOCATE( epsregion_spread )
-          ALLOCATE( epsregion_spread( env_dielectric_regions ) )
-          epsregion_spread = epsregion_spread_
-          IF ( ALLOCATED( epsregion_width ) ) DEALLOCATE( epsregion_width )
-          ALLOCATE( epsregion_width( env_dielectric_regions ) )
-          epsregion_width = epsregion_width_
-          IF ( ALLOCATED( epsregion_eps ) ) DEALLOCATE( epsregion_eps )
-          ALLOCATE( epsregion_eps( 2, env_dielectric_regions ) )
-          IF ( ALLOCATED( epsregion_pos ) ) DEALLOCATE( epsregion_pos )
-          ALLOCATE( epsregion_pos( 3, env_dielectric_regions ) )
-          DO i = 1, env_dielectric_regions
-            epsregion_eps(1:2,i) = epsregion_eps_(1:2,i)
-            epsregion_pos(1:3,i) = epsregion_pos_(1:3,i)
-          END DO
-        END IF
-        ! Need to add a check on periodic corrections
+        ! Set periodic flags according to the host code keyword
         !
         env_periodicity = 3
         slab_axis  = 0
@@ -410,6 +331,100 @@ MODULE environ_base
            !
         END SELECT
         !
+        ! Set basic logical flags
+        !
+        lstatic        = env_statit_permittivity .GT. 1.D0
+        loptical       = env_optical_permittivity .GT. 1.D0
+        IF ( env_dielectric_regions .GT. 0 ) THEN
+           DO i = 1, env_dielectric_regions
+              lstatic  = lstatic  .OR. ( epsregion_eps(1,i) .GT. 1.D0 )
+              loptical = loptical .OR. ( epsregion_eps(2,i) .GT. 1.D0 )
+           ENDDO
+        ENDIF
+        lsurface       = env_surface_tension .GT. 0.D0
+        lvolume        = env_pressure .NE. 0.D0
+        lexternals     = env_external_charges .GT. 0
+        lelectrolyte   = env_ioncc_ntyp .GT. 0
+        lperiodic      = env_periodicity .NE. 3
+        !
+        ! Derived flags
+        !
+        lsolvent       = lstatic .OR. loptical .OR. lsurface .OR. lvolume
+        lelectrostatic = lstatic .OR. loptical .OR. lelectrolyte .OR. &
+                         lexternals .OR. lperiodic
+        lsoftcavity    = ( lsolvent .AND. solvent_mode .NE. 'ionic' ) .OR. &
+                         ( lelectrolyte .AND. stern_mode .NE. 'ionic' )
+        lrigidcavity   = ( lsolvent .AND. solvent_mode .NE. 'electronic' ) .OR. &
+                         ( lelectrolyte .AND. stern_mode .NE. 'electronic' )
+        lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
+                         ( lelectrolyte .AND. stern_mode .EQ. 'full' )
+        lsmearedions   = lelectrostatic
+        !
+        ! Create optional types
+        !
+        IF ( lexternals ) CALL create_environ_externals(externals)
+        !
+        IF ( lsolvent ) CALL create_environ_boundary(solvent)
+        !
+        IF ( lelectrolyte ) CALL create_environ_electrolyte(electrolyte)
+        !
+        IF ( lstatic ) CALL create_environ_dielectric(static)
+        !
+        IF ( loptical ) CALL create_environ_dielectric(optical)
+        !
+        IF ( lelectostatic ) CALL create_environ_charges(charges)
+        !
+        ! Allocate and set basic properties of ions
+        !
+        CALL init_environ_ions_first( nat, ntyp, lsoftcavity, lcoredensity, lsmearedions, &
+             & radius_mode, atom_label, atomicspread, corespread, solvationrad, ions )
+        !
+        ! Set basic properties of electrons
+        !
+        CALL init_environ_electrons_first( nelec, nspin, electrons )
+        !
+        ! Set basic properties of the selected system
+        !
+        CALL init_environ_system( system_ntyp, system_dim, system_axis, ions, system )
+        !
+        ! Allocate and set basic properties of external charges
+        !
+        IF ( lexternals ) CALL init_environ_externals_first( env_external_charges, extcharge_dim, &
+             & extcharge_axis, extcharge_pos, extcharge_spread, extcharge_charge, externals )
+        !
+        ! Collect free charges if computing electrostatics
+        !
+        IF ( lelectrostatics ) CALL init_environ_charges_first( nelec, nat, env_external_charges, &
+             & ions, electrons, externals, charges )
+        !
+        ! Set the parameters of the solvent boundary
+        !
+        IF ( lsolvent ) &
+             CALL init_environ_boundary_first( lsurface, env_static_permittivity, solvent_mode, stype, &
+             & rhomax, rhomin, tbeta, eps_distance, eps_spread, alpha, delta, ions, solvent )
+        !
+        ! Set the parameters of the electrolyte and of its boundary
+        !
+        IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntypm,       &
+             & stern_mode, stype, rhomin, rhopb, tbeta, stern_distance, stern_spread,   &
+             & alpha, ions, solvent_temperature, cion, cionmax, rion, zion, electrolyte )
+        !
+        ! Set the parameters of the dielectric
+        !
+        IF ( lstatic ) CALL init_environ_dielectric_first( env_static_permittivity,   &
+             & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos,  &
+             & epsregion_width, epsregion_spread, epsregion_eps(1,:), solvent, static )
+        !
+        IF ( loptical ) CALL init_environ_dielectric_first( env_optical_permittivity,  &
+             & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos,   &
+             & epsregion_width, epsregion_spread, epsregion_eps(2,:), solvent, optical )
+        !
+        ! Obsolote keywords to be moved or removed
+        !
+        add_jellium = add_jellium_
+        !
+        nrep      = nrep_
+        !
         ! The periodic-boundary correction methods
         ! slabx, slaby, slabz, pcc, and esm are
         ! not implemented in TDDFPT.
@@ -423,85 +438,8 @@ MODULE environ_base
                        & ' is not implemented in TDDFPT', 1 )
         ENDIF
         !
-        ! Set the electrostatic flags
-        !
-        lelectrostatic = .FALSE.
-        IF ( env_static_permittivity .GT. 1.D0 .OR. &
-             env_optical_permittivity .GT. 1.D0 .OR. &
-             env_dielectric_regions .GT. 0 .OR. &
-             env_periodicity .NE. 3 .OR. &
-             env_ioncc_level .GT. 0 ) lelectrostatic = .TRUE.
-        !
-        lsoftcavity = .FALSE.
-        IF ( lelectrostatic ) THEN
-           IF ( eps_mode .NE. 'ionic' .OR. &
-                stern_mode .NE. 'ionic' ) lsoftcavity = .TRUE.
-        END IF
-        !
      END SUBROUTINE set_environ_base
      !
   !--------------------------------------------------------------------------
 END MODULE environ_base
-!----------------------------------------------------------------------------
-MODULE environ_cell
-  !--------------------------------------------------------------------------
-  !
-  ! ... this module contains the cell parameters needed for the
-  ! ... environ module
-  !
-  USE kinds, ONLY :  DP
-  SAVE
-  !
-  ! number of dense real space grid, volume of single grid point,
-  ! volume of cell, lattice spacing, cell vectors in unit of alat
-  !
-  INTEGER ::                        &
-       ntot,                        &
-       ibrav
-  REAL (KIND=DP) ::                 &
-       domega,                      &
-       omega,                       &
-       alat
-  REAL (KIND=DP) ::                 &
-       at(3,3)
-  !
-  !--------------------------------------------------------------------------
-END MODULE environ_cell
-!----------------------------------------------------------------------------
-MODULE environ_ions
-  !--------------------------------------------------------------------------
-  !
-  ! ... this module contains the ions parameters needed for the
-  ! ... environ module
-  !
-  USE kinds, ONLY :  DP
-  SAVE
-  !
-  ! number of atoms and number of different atomic types
-  !
-  INTEGER ::                        &
-       nat,                         &
-       ntyp
-  !
-  ! total ionic charge and center of charge
-  !
-  REAL (KIND=DP) ::                 &
-       zvtot
-  REAL (KIND=DP) ::                 &
-       avg_pos(3)
-  !
-  ! atom number - atom type label
-  !
-  INTEGER, ALLOCATABLE ::           &
-       ityp(:)
-  !
-  ! charge of atomic type, position of atomic number, smeared ions density
-  !
-  REAL (KIND=DP), ALLOCATABLE ::    &
-       zv(:),                       &
-       tau(:,:),                    &
-       rhoions(:)
-  !
-  !--------------------------------------------------------------------------
-END MODULE environ_ions
 !----------------------------------------------------------------------------

@@ -21,61 +21,18 @@ MODULE cavity
   ! ... The variables needed to introduce an environment with a surface tension
   !     around the system.
   !
-  USE kinds,         ONLY : DP
-  USE mp,            ONLY : mp_sum
-  USE mp_bands,      ONLY : intra_bgrp_comm
-  USE environ_cell,  ONLY : domega
-  USE environ_base,  ONLY : verbose, env_surface_tension, delta, e2
-  USE environ_debug, ONLY : write_cube
-  USE generate_f_of_rho, ONLY : generate_theta
+  USE environ_types
+  USE environ_base,  ONLY : verbose, env_surface_tension, e2
   !
   IMPLICIT NONE
   !
-  REAL( DP ), ALLOCATABLE :: theta( : )
-  !
-  SAVE
-
   PRIVATE
-
-  PUBLIC :: cavity_initbase, cavity_clean, calc_vcavity, calc_ecavity
-
+  !
+  PUBLIC :: calc_vcavity, calc_ecavity, calc_fcavity
+  !
 CONTAINS
-!----------------------------------------------------------------------------
-  SUBROUTINE cavity_initbase( nnr )
-!----------------------------------------------------------------------------
-
-    ! ... Local initialization
-
-    IMPLICIT NONE
-
-    INTEGER, INTENT(IN) :: nnr
-
-    IF(ALLOCATED(theta)) DEALLOCATE(theta)
-    ALLOCATE(theta(nnr))
-    theta=0.D0
-
-    RETURN
-
-!----------------------------------------------------------------------------
-  END SUBROUTINE cavity_initbase
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-  SUBROUTINE cavity_clean()
-!----------------------------------------------------------------------------
-
-    ! ... Local clean up
-
-    IMPLICIT NONE
-
-    IF(ALLOCATED(theta)) DEALLOCATE(theta)
-
-    RETURN
-
-!----------------------------------------------------------------------------
-  END SUBROUTINE cavity_clean
-!----------------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_vcavity( nnr, rho, vcavity )
+  SUBROUTINE calc_vcavity( boundary, potential )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the potential
@@ -84,52 +41,67 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)     :: nnr
-    REAL( DP ), INTENT(IN)  :: rho( nnr )
-    REAL( DP ), INTENT(OUT) :: vcavity( nnr )
+    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     ! ... Local variables
     !
     REAL( DP )              :: grho2, factor
     REAL( DP ), ALLOCATABLE :: grho( :, : )
     REAL( DP ), ALLOCATABLE :: hrho( :, :, : )
+    CHARACTER( LEN=80 )     :: sub_name = 'calc_vcavity'
     !
     ! ... Dummy variables
     !
     INTEGER                 :: ir, ipol, jpol
     !
+    INTEGER, POINTER        :: ir_end
+    REAL( DP ), POINTER     :: delta
+    REAL( DP ), DIMENSION(:), POINTER :: theta, vcavity, rho
+    !
     CALL start_clock ('calc_vcav')
     !
-    ! ... Computes step function
+    ir_end => boundary % theta % cell % ir_end
+    delta => boundary % deltatheta
+    theta => boundary % theta % of_r
+    vcavity => potential % of_r
     !
-    CALL generate_theta( nnr, rho, theta )
-    IF ( verbose .GE. 4 ) CALL write_cube( nnr, theta, 'theta.cube' )
-    !
-    ! ... Computes gradient and hessian of the density
-    !
-    ALLOCATE( grho ( 3, nnr ) )
-    ALLOCATE( hrho ( 3, 3, nnr ) )
-    CALL external_hessian ( rho, grho, hrho )
-    !
-    ! ... Computes the cavitation potential
-    !
-    DO ir = 1, nnr
-      grho2 = SUM( grho(:, ir) * grho (:, ir) )
-      factor = 0.D0
-      DO ipol = 1, 3
-        DO jpol = 1, 3
-          IF ( jpol .EQ. ipol ) CYCLE
-          factor = factor + &
-            grho(ipol, ir) * grho(jpol, ir) * hrho(ipol, jpol, ir) - &
-            grho(ipol, ir) * grho(ipol, ir) * hrho(jpol, jpol, ir)
-        END DO
-      END DO
-      IF ( grho2 .GT. 1.D-12 ) &
-        vcavity( ir ) = ( theta( ir ) / grho2 / SQRT(grho2) ) * factor
-    END DO
-    !
-    DEALLOCATE( grho )
-    DEALLOCATE( hrho )
+    IF ( boundary%mode .EQ. 'electrons' ) THEN
+       !
+       ! ... Computes gradient and hessian of the density
+       !
+       rho => boundary%electrons%density%of_r
+       ALLOCATE( grho ( 3, nnr ) )
+       ALLOCATE( hrho ( 3, 3, nnr ) )
+       CALL external_hessian ( rho, grho, hrho )
+       !
+       ! ... Computes the cavitation potential
+       !
+       DO ir = 1, ir_end
+          grho2 = SUM( grho(:, ir) * grho (:, ir) )
+          factor = 0.D0
+          DO ipol = 1, 3
+             DO jpol = 1, 3
+                IF ( jpol .EQ. ipol ) CYCLE
+                factor = factor + &
+                     grho(ipol, ir) * grho(jpol, ir) * hrho(ipol, jpol, ir) - &
+                     grho(ipol, ir) * grho(ipol, ir) * hrho(jpol, jpol, ir)
+             END DO
+          END DO
+          IF ( grho2 .GT. 1.D-12 ) &
+               vcavity( ir ) = ( theta( ir ) / grho2 / SQRT(grho2) ) * factor
+       END DO
+       !
+       DEALLOCATE( grho )
+       DEALLOCATE( hrho )
+       !
+    ELSE
+       !
+       ! ... Rigid cases to be implemented
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    ENDIF
     !
     ! ... Multiply the cavitation potential by the constant factor
     !
@@ -143,7 +115,7 @@ CONTAINS
   END SUBROUTINE calc_vcavity
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_ecavity( nnr, rho, ecavity )
+  SUBROUTINE calc_ecavity( boundary, ecavity )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the energy
@@ -152,39 +124,51 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)     :: nnr
-    REAL( DP ), INTENT(IN)  :: rho( nnr )
+    TYPE( environ_boundary ), INTENT(IN) :: boundary
     REAL( DP ), INTENT(OUT) :: ecavity
     !
     ! ... Local variables
     !
-    INTEGER                 :: ir
-    REAL( DP )              :: surface, mod_grho
-    REAL( DP ), ALLOCATABLE :: grho( :, : )
+    REAL( DP )              :: surface
+    TYPE( environ_cell ), POINTER :: cell
+    REAL( DP ), DIMENSION(:), POINTER :: theta, rho
+    !
+    TYPE( environ_density ) :: density
+    TYPE( environ_gradient ) :: gradient
+    !
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_ecavity'
     !
     CALL start_clock ('calc_ecav')
+    !
+    cell => boundary % theta % cell
+    theta => boundary % theta % of_r
     !
     ! ... Initializes the variables
     !
     surface  = 0.D0
     !
-    ! ... Computes step function
-    !
-    CALL generate_theta( nnr, rho, theta )
-    !
     ! ... Computes the molecular surface
     !
-    ALLOCATE( grho( 3, nnr ) )
-    grho = 0.D0
-    CALL external_gradient ( rho, grho )
-    DO ir = 1, nnr
-      mod_grho = SQRT(SUM(grho(:,ir)*grho(:,ir)))
-      surface = surface + theta(ir)*mod_grho/delta
-    ENDDO
-    DEALLOCATE( grho )
-    surface = surface * domega
-    !
-    CALL mp_sum( surface, intra_bgrp_comm )
+    IF ( boundary%mode .EQ. 'electrons' ) THEN
+       !
+       rho => boundary % electrons % density % of_r
+       !
+       CALL init_environ_gradient( cell, gradient )
+       CALL external_gradient( rho, gradient%of_r )
+       CALL update_gradient_modulus( gradient )
+       CALL init_environ_density( cell, density )
+       density%of_r = SQRT(gradient%modulus) * theta
+       surface = integrate_environ_density( density ) / delta
+       CALL destroy_environ_density( density )
+       CALL destroy_environ_gradient( gradient )
+       !
+    ELSE
+       !
+       ! ... Rigid cases to be implemented
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    ENDIF
     !
     ! ... Computes the cavitation energy
     !
@@ -196,6 +180,45 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_ecavity
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE calc_fcavity( nat, boundary, forces )
+!--------------------------------------------------------------------
+    !
+    ! ... Calculates the cavitation contribution to the energy
+    !
+    IMPLICIT NONE
+    !
+    ! ... Declares variables
+    !
+    INTEGER, INTENT(IN) :: nat
+    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    REAL( DP ), DIMENSION(3,nat), INTENT(INOUT) :: forces
+    !
+    REAL( DP ), DIMENSION(3,nat) :: fcavity
+    !
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_fcavity'
+    !
+    CALL start_clock ('calc_fcav')
+    !
+    fcavity = 0.D0
+    !
+    ! ... Computes the molecular surface
+    !
+    IF ( boundary%need_ions ) THEN
+       !
+       ! ... Rigid cases to be implemented
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    ENDIF
+    !
+    CALL stop_clock ('calc_fcav')
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_fcavity
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE cavity

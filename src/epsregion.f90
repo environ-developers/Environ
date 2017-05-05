@@ -8,28 +8,13 @@
 ! original version by O. Andreussi and N. Marzari
 !
 !--------------------------------------------------------------------
-MODULE epsregion
+MODULE dielectric
 !--------------------------------------------------------------------
 
-  USE kinds,          ONLY: DP
-  USE constants,      ONLY: sqrtpi, fpi, pi
-  USE io_global,      ONLY: stdout
-  USE environ_base,   ONLY: verbose, environ_unit,                   &
-                            system_pos, system_width,                &
-                            env_static_permittivity,                 &
-                            env_optical_permittivity,                &
-                            env_dielectric_regions,                  &
-                            epsregion_origin, epsregion_eps,         &
-                            epsregion_dim, epsregion_axis,           &
-                            epsregion_pos, epsregion_width,          &
-                            epsregion_spread, epsstatic, epsoptical
-  USE environ_debug,  ONLY: write_cube
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.1.X and QE-5.2.0
-!
-! Compatible with QE-5.2.1, QE-5.3.0 and svn
-  USE generate_function, ONLY: generate_erfc, erfcvolume
-! END BACKWARD COMPATIBILITY
+  USE environ_types
+  USE environ_base,     ONLY: verbose, environ_unit, ions
+  USE environ_debug,    ONLY: write_cube
+  USE functions,        ONLY: density_of_functions
   !
   IMPLICIT NONE
   !
@@ -37,135 +22,284 @@ MODULE epsregion
   !
   PRIVATE
   !
-  PUBLIC :: generate_epsregion
+  PUBLIC :: update_environ_dielectric
   !
 CONTAINS
   !
 !--------------------------------------------------------------------
-  SUBROUTINE generate_epsregion( nnr, alat, omega, at )
+  SUBROUTINE update_environ_dielectric( dielectric )
 !--------------------------------------------------------------------
   !
   IMPLICIT NONE
   !
-  INTEGER, INTENT(IN) :: nnr
-  REAL(DP), INTENT(IN) :: alat, omega
-  REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
+  TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
   !
   ! ... Local variables
   !
-  LOGICAL :: shift
-  INTEGER :: idr, dim, axis
-  REAL(DP) :: spread, width, charge, norm
-  REAL(DP), DIMENSION(3) :: pos, pos0
+  TYPE( environ_density ) :: local
+  TYPE( environ_cell ), POINTER :: cell
   !
-  REAL(DP), DIMENSION(:), ALLOCATABLE :: epslocal
+  CALL start_clock( 'dielectric' )
   !
-  ALLOCATE(epslocal(nnr))
+  cell => dielectric % epsilon % cell
   !
-  ! Use the origin of the cell as default origin, removed other options
-  !
-  SELECT CASE ( epsregion_origin )
-  CASE ( 0 )
-     shift = .false.
-     pos0 = 0.D0
-  CASE ( 1 )
-     shift = .false.
-     pos0 = system_pos
-  CASE ( 2 )
-     shift = .true.
-     pos0 = system_pos
-  END SELECT
-  !
-  ! ... Generate the dielectric regions (static)
-  !
-  epsstatic = env_static_permittivity
-  !
-  DO idr = 1, env_dielectric_regions
+  IF ( cell % update ) THEN
      !
-     norm = SQRT(SUM(epsregion_pos(:,idr)**2))
-     IF ( .NOT. shift ) THEN
-       ! No bounding box
-       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
-       width = epsregion_width(idr)
-     ELSE IF ( norm .NE. 0.D0 ) THEN
-       ! The region is not centered on the system, position is defined wrt to bounding box
-       ! but do not change the width of the region
-       pos(:) = epsregion_pos(:,idr)/alat*(1.D0+system_width/norm) + pos0(:)
-       width = epsregion_width(idr)
-     ELSE
-       ! The region is centered on the system, position is not changed
-       ! but the width is defined in addition to the system width
-       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
-       width = epsregion_width(idr) + system_width
+     ! ... Cells has changed, may need to update the background
+     !
+     dielectric % background % of_r(:) = dielectric % constant
+     !
+     IF ( dielectric % nregions .GT. 0 ) THEN
+        !
+        ! ... Recompute background dielectric and its derivative
+        !
+        CALL create_environ_density( local )
+        CALL init_environ_density( cell , local )
+        DO i = 1, dielectric % nregions
+           CALL density_of_functions( 1, dielectric%region(i), local )
+           dielectric % background % of_r(:) = dielectric % background % of_r(:) - &
+                  ( dielectric % background % of_r(:) - dielectric % region(i) % volume ) * local % of_r(:)
+        ENDDO
+        CALL destroy_environ_density( local )
+        !
+        IF ( verbose .GE. 3 ) CALL write_cube( ions, dielectric%background )
+        !
      ENDIF
      !
-     dim = epsregion_dim(idr)
-     axis = epsregion_axis(idr)
-     spread = epsregion_spread(idr)
-     epslocal = 0.D0
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.1.X QE-5.2.0
-!     WRITE(stdout,2000)
-!     STOP
-! Compatible with QE-5.2.1, QE-5.3.0 and svn
-     charge = erfcvolume(dim,axis,width,spread,alat,omega,at)
-     CALL generate_erfc( nnr, dim, axis, charge, width, spread, pos, epslocal )
-! END BACKWARD COMPATIBILITY
-     epsstatic(:) = epsstatic(:) - ( epsstatic(:) - epsregion_eps(1,idr) ) * epslocal(:)
+     ! ... Background has changed, need to update the dielectric when ready
      !
-  END DO
-  !
-  IF ( verbose .GE. 3 ) CALL write_cube( nnr, epsstatic, 'epsstatic.cube' )
-  !
-  ! ... Generate the dielectric regions (optical)
-  !
-  epsoptical = env_optical_permittivity
-  !
-  DO idr = 1, env_dielectric_regions
+     dielectric % update = .TRUE.
      !
-     norm = SQRT(SUM(epsregion_pos(:,idr)**2))
-     IF ( .NOT. shift ) THEN
-       ! No bounding box
-       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
-       width = epsregion_width(idr)
-     ELSE IF ( norm .NE. 0.D0 ) THEN
-       ! The region is not centered on the system, position is defined wrt to bounding box
-       ! but do not change the width of the region
-       pos(:) = epsregion_pos(:,idr)/alat*(1.D0+system_width/norm) + pos0(:)
-       width = epsregion_width(idr)
-     ELSE
-       ! The region is centered on the system, position is not changed
-       ! but the width is defined in addition to the system width
-       pos(:) = epsregion_pos(:,idr)/alat + pos0(:)
-       width = epsregion_width(idr) + system_width
+  ENDIF
+  !
+  ! ... Check if the boundary is under update (status = 1) or has been fully updated (status = 2)
+  !
+  IF ( dielectric % boundary % update_status .GT. 0 ) dielectric % update = .TRUE.
+  !
+  IF ( dielectric % update ) THEN
+     !
+     ! ... Update the dielectric in space and its derivatives if the boundary is ready
+     !
+     IF ( dielectric % boundary % update_status .EQ. 2 ) THEN
+        !
+!        dielectric % epsilon % of_r = 1.D0 + ( dielectric % background % of_r - 1.D0 ) * &
+!             & dielectric % boundary % scaled % of_r
+        dielectric % epsilon % of_r = dielectric % boundary % scaled % of_r
+        !
+        IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%nregions, &
+             & dielectric%epsilon, dielectric%gradient, dielectric%regions, dielectric%background, dielectric%boundary )
+        IF ( dielectric%need_factsqrt ) CALL generate_epsilon_factsqrt( dielectric%nregions, &
+             & dielectric%epsilon, dielectric%gradient, dielectric%regions, dielectric%background, dielectric%boundary )
+        IF ( dielectric%need_gradlog  ) CALL generate_epsilon_gradlog( dielectric%nregions, &
+             & dielectric%epsilon, dielectric%gradient, dielectric%regions, dielectric%background, dielectric%boundary )
+        dielectric % update = .FALSE.
+        !
      ENDIF
      !
-     dim = epsregion_dim(idr)
-     axis = epsregion_axis(idr)
-     spread = epsregion_spread(idr)
-     epslocal = 0.D0
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.1.X QE-5.2.0
-!     WRITE(stdout,2000)
-!     STOP
-! Compatible with QE-5.2.1, QE-5.3.0 and svn
-     charge = erfcvolume(dim,axis,width,spread,alat,omega,at)
-     CALL generate_erfc( nnr, dim, axis, charge, width, spread, pos, epslocal )
-! END BACKWARD COMPATIBILITY
-     epsoptical(:) = epsoptical(:) - ( epsoptical(:) - epsregion_eps(2,idr) ) * epslocal(:)
-     !
-  END DO
+  END IF
   !
-  IF ( verbose .GE. 3 ) CALL write_cube( nnr, epsoptical, 'epsoptical.cube' )
-  !
-  DEALLOCATE(epslocal)
+  CALL stop_clock( 'dielectric' )
   !
   RETURN
   !
-2000 FORMAT('ERROR: dielectric regions only available for QE-5.2.1 and later releases',i3)
-  !
 !--------------------------------------------------------------------
-  END SUBROUTINE generate_epsregion
+  END SUBROUTINE update_environ_dielectric
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE generate_epsilon_gradient( nregions, epsilon, gradient, &
+       & regions, background, boundary )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    USE electrostatic_base, ONLY : dielectric_core
+
+    INTEGER, INTENT(IN) :: nregions
+    TYPE( environ_density ), INTENT(IN) :: epsilon
+    TYPE( environ_gradient ), INTENT(OUT) :: gradient
+    TYPE( environ_functions ), OPTIONAL, INTENT(IN) :: regions(nregions)
+    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
+    TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
+
+    INTEGER, POINTER :: nnr
+    TYPE( environ_cell ), POINTER :: cell
+
+    nnr => epsilon%cell%nnr
+    cell => epsilon%cell
+
+    SELECT CASE ( dielectric_core )
+       !
+    CASE ( 'fft' )
+       !
+       CALL external_gradient(epsilon, gradient)
+       !
+    CASE ( 'fd' )
+       !
+       CALL calc_fd_gradient(nfdpoint, icfd, ncfd, nnr, epsilon%of_r, gradient%of_r)
+       !
+    CASE ( 'analytic' )
+       !
+!       CALL init_environ_gradient(cell,gbackground)
+       IF ( nregions .GT. 0 ) &
+            CALL errore(sub_name,'Option not yet implemented',1)
+!            & CALL gradient_of_functions(nregions,regions,gbackground)
+       !
+       IF ( boundary%mode .EQ. 'ions' ) THEN
+          CALL gradient_of_functions(boundary%ions%number, boundary%ions%soft_spheres, gradient)
+       ELSE
+          CALL external_gradient(boundary%density%of_r,gradient%of_r)
+          DO i = 1, 3
+             gradient%of_r(i,:) = boundary%dscaled%of_r(:) * gradient%of_r(i,:)
+          ENDDO
+       ENDIF
+!       CALL destroy_environ_gradient(gbackground)
+       !
+    CASE DEFAULT
+       !
+    END SELECT
+
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE generate_epsilon_gradient
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE generate_epsilon_gradlog( nregions, epsilon, gradlog, &
+       & regions, background, boundary )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    USE electrostatic_base, ONLY : dielectric_core
+
+    INTEGER, INTENT(IN) :: nregions
+    TYPE( environ_density ), INTENT(IN) :: epsilon
+    TYPE( environ_gradient ), INTENT(OUT) :: gradlog
+    TYPE( environ_functions ), OPTIONAL, INTENT(IN) :: regions(nregions)
+    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
+    TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
+
+    INTEGER, POINTER :: nnr
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: log_epsilon
+    CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_gradlog'
+
+    nnr => epsilon%cell%nnr
+    cell => epsilon%cell
+
+    SELECT CASE ( dielectric_core )
+       !
+    CASE ( 'fft' )
+       !
+       CALL init_environ_density( cell, log_epsilon )
+       log_epsilon%of_r = LOG( epsilon%of_r )
+       !
+       CALL external_gradient(log_epsilon%of_r, gradlog%of_r)
+       !
+       CALL destroy_environ_density( log_epsilon )
+       !
+    CASE ( 'fd' )
+       !
+       CALL init_environ_density( cell, log_epsilon )
+       log_epsilon%of_r = LOG( epsilon%of_r )
+       !
+       CALL calc_fd_gradient(nfdpoint, icfd, ncfd, nnr, log_epsilon%of_r, gradlog%of_r)
+       !
+       CALL destroy_environ_density( log_epsilon )
+       !
+    CASE ( 'analytic' )
+       !
+!       CALL init_environ_gradient(cell,gbackground)
+       IF ( nregions .GT. 0 ) &
+            CALL errore(sub_name,'Option not yet implemented',1)
+!            & CALL gradient_of_functions(nregions,regions,gbackground)
+       !
+       IF ( boundary%mode .EQ. 'ions' ) THEN
+          CALL gradient_of_functions(boundary%ions%number, boundary%ions%soft_spheres, gradlog)
+       ELSE
+          CALL external_gradient(boundary%density%of_r,gradlog%of_r)
+          DO i = 1, 3
+             gradlog%of_r(i,:) = boundary%dscaled%of_r(:) * gradlog%of_r(i,:)
+          ENDDO
+       ENDIF
+       !
+!       CALL destroy_environ_gradient(gbackground)
+       gradlog%of_r = gradlog%of_r / epsilon%of_r
+       !
+    CASE DEFAULT
+       !
+    END SELECT
+
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE generate_epsilon_gradlog
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE generate_epsilon_factsqrt( nregions, epsilon, factsqrt, &
+       & regions, background, boundary )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    USE electrostatic_base, ONLY : dielectric_core
+
+    INTEGER, INTENT(IN) :: nregions
+    TYPE( environ_density ), INTENT(IN) :: epsilon
+    TYPE( environ_density ), INTENT(INOUT) :: factsqrt
+    TYPE( environ_functions ), OPTIONAL, INTENT(IN) :: regions(nregions)
+    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
+    TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
+
+    INTEGER, POINTER :: nnr
+    TYPE( environ_cell ), POINTER :: cell
+    CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_factsqrt'
+
+    nnr => epsilon%cell%nnr
+    cell => epsilon%cell
+
+    SELECT CASE ( dielectric_core )
+       !
+    CASE ( 'fft' )
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    CASE ( 'fd' )
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    CASE ( 'analytic' )
+       !
+!       CALL init_environ_gradient(cell,gbackground)
+       IF ( nregions .GT. 0 ) &
+            CALL errore(sub_name,'Option not yet implemented',1)
+!            & CALL gradient_of_functions(nregions,regions,gbackground)
+       !
+       IF ( boundary%mode .EQ. 'ions' ) THEN
+          !
+          CALL gradient_of_functions(boundary%ions%number, boundary%ions%soft_spheres, gradient)
+          CALL laplacian_of_functions(boundary%ions%number, boundary%ions%soft_spheres, laplacian)
+          CALL update_gradient_modulus(gradient)
+          !
+          factsqrt%of_r(:) = laplacian%of_r(:) - 0.5D0 * gradient%modulus(:) / epsilon%of_r(:)
+          !
+       ELSE
+          !
+          CALL external_gradient(boundary%density%of_r,gradient%of_r)
+          CALL external_laplacian(boundary%density%of_r,laplacian%of_r)
+          CALL update_gradient_modulus(gradient)
+          !
+          factsqrt%of_r(:) = boundary%dscaled%of_r(:)*laplacian%of_r(:) + &
+               & gradient%modulus(:) * &
+               & (boundary%d2scaled%of_r(:)-0.5D0*boundary%dscaled%of_r(:)**2/epsilon%of_r(:))
+          !
+       ENDIF
+       factsqrt%of_r = factsqrt%of_r * 0.5D0 / e2 / fpi
+       !
+!       CALL destroy_environ_gradient(gbackground)
+       !
+    CASE DEFAULT
+       !
+    END SELECT
+
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE generate_epsilon_factsqrt
 !--------------------------------------------------------------------
 !
-END MODULE epsregion
+END MODULE dielectric

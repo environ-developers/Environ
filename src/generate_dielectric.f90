@@ -7,7 +7,7 @@
 !
 ! original version by O. Andreussi and N. Marzari
 !
-MODULE generate_f_of_rho
+MODULE generate_boundary
 !
 PRIVATE
 !
@@ -188,7 +188,7 @@ CONTAINS
       END FUNCTION d2epsilonfunct
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE generate_dielectric( nnr, rho, eps, deps, d2eps, optical_constant )
+      SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the dielectric constant as a function
@@ -196,192 +196,81 @@ CONTAINS
       ! ... the dielectric constant wrt the charge density.
       !
       USE kinds,          ONLY : DP
-      USE environ_base,   ONLY : env_static_permittivity,     &
-                                 env_optical_permittivity,    &
-                                 env_dielectric_regions,      &
-                                 epsstatic, epsoptical,       &
-                                 tbeta, rhomax, rhomin, stype
       !
       IMPLICIT NONE
       !
-      INTEGER, INTENT(IN)         :: nnr
+      TYPE( environ_density ), INTENT(IN) :: density
+      TYPE( environ_boundary ), INTENT(INOUT) :: boundary
       !
-      REAL( DP ), INTENT(IN)      :: rho( nnr )
-      REAL( DP ), INTENT(OUT)     :: eps( nnr )
-      REAL( DP ), INTENT(OUT)     :: deps( nnr )
-      REAL( DP ), INTENT(OUT)     :: d2eps( nnr )
-      LOGICAL, INTENT(IN)         :: optical_constant
+      INTEGER, POINTER :: ir_end, stype
+      REAL( DP ), POINTER :: constant, rhomax, rhomin, tbeta
+      REAL( DP ), DIMENSION(:), POINTER :: rho, eps, deps, d2eps
       !
-      INTEGER                     :: ir
-      REAL( DP ), DIMENSION(nnr)  :: permittivity
+      REAL( DP ), POINTER :: delta, factor
+      REAL( DP ), DIMENSION(:), POINTER :: theta
       !
-      IF (optical_constant) THEN
-         !
-         ! TDDFPT calculation
-         !
-         IF ( env_dielectric_regions .GT. 0 ) THEN
-            permittivity = epsoptical
-         ELSE ! omogeneous dielectric
-            permittivity = env_optical_permittivity
-         ENDIF
-         !
-      ELSE
-         !
-         ! Ground-state calculation
-         !
-         IF ( env_dielectric_regions .GT. 0 ) THEN
-            permittivity = epsstatic
-         ELSE ! omogeneous dielectric
-            permittivity = env_static_permittivity
-         ENDIF
-         !
+      INTEGER :: ir
+      REAL( DP ) :: rhotmp, theta_plus, theta_minus
+      !
+      CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_density'
+      !
+      IF ( .NOT. ASSOCIATED(density%cell,boundary%scaled%cell) ) &
+           & CALL errore(sub_name,'Inconsistent domains',1)
+      !
+      ir_end => density % cell % ir_end
+      rho => density % of_r
+      !
+      constant => boundary % constant ! SHOULD BE REMOVED
+      !
+      stype => boundary % type
+      eps => buondary % scaled % of_r
+      deps => boundary % dscaled % of_r
+      d2eps => boundary % d2scaled % of_r
+      !
+      IF ( stype .EQ. 1 ) THEN
+         rhomax => boundary % rhomax
+         rhomin => boundary % rhomin
+         tbeta => boundary % fact
+      ELSE IF ( stype .EQ. 2 ) THEN
+         rhomax => boundary % rhozero
+         rhomin => boundary % deltarho
+         tbeta => boundary % tbeta
       ENDIF
       !
-      DO ir = 1, nnr
+      IF ( boundary%need_theta ) THEN
+         factor => boundary % scaling_factor ! SHOULD NOT BE HERE
+         delta => boundary % deltatheta
+         theta => boundary % theta % of_r
+      ENDIF
+      !
+      DO ir = 1, ir_end
         !
-        eps( ir )  =  epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
-                                    permittivity( ir ), stype )
-        deps( ir ) = depsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
-                                    permittivity( ir ), stype )
+        eps( ir )   = epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
+                                    constant, stype )
+        deps( ir )  = depsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
+                                     constant, stype )
         d2eps( ir ) = d2epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
-                                    permittivity( ir ), stype )
-      END DO
-      !
-      RETURN
-      !
-!--------------------------------------------------------------------
-      END SUBROUTINE generate_dielectric
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-      SUBROUTINE generate_theta( nnr, rho, theta )
-!--------------------------------------------------------------------
-      !
-      ! ... Calculates the dielectric constant as a function
-      ! ... of the charge density
-      !
-      USE kinds,          ONLY : DP
-      USE environ_base,   ONLY : env_static_permittivity, &
-                                 tbeta, rhomax, rhomin, stype, delta
-      !
-      IMPLICIT NONE
-      !
-      INTEGER, INTENT(IN)         :: nnr
-      !
-      REAL( DP ), INTENT(IN)      :: rho( nnr )
-      REAL( DP ), INTENT(OUT)     :: theta( nnr )
-      !
-      INTEGER                     :: ir
-      !
-      REAL( DP )                  :: theta_plus, theta_minus
-      REAL( DP )                  :: fact, epstmp, rhotmp
-      !
-      theta = 0.D0
-      !
-      epstmp = env_static_permittivity
-      IF ( env_static_permittivity .LE. 1.D0 ) epstmp = 2.D0
-      fact = - 1.D0 / ( epstmp - 1.D0 )
-      !
-      DO ir = 1, nnr
+                                     constant, stype )
         !
-        rhotmp = rho( ir ) - delta/2.D0
-        theta_plus = epsilonfunct( rhotmp, rhomax, rhomin,     &
-                                   tbeta, epstmp, stype )
-        !
-        rhotmp = rho( ir ) + delta/2.D0
-        theta_minus = epsilonfunct( rhotmp, rhomax, rhomin,    &
-                                    tbeta, epstmp, stype )
-        !
-        theta( ir ) = ( theta_minus - theta_plus ) * fact
+        IF ( boundary % need_theta ) THEN
+           !
+           rhotmp = rho( ir ) - delta/2.D0
+           theta_plus = epsilonfunct( rhotmp, rhomax, rhomin, tbeta, &
+                                      constant, stype )
+           !
+           rhotmp = rho( ir ) + delta/2.D0
+           theta_minus = epsilonfunct( rhotmp, rhomax, rhomin, tbeta, &
+                                       constant, stype )
+           !
+           theta( ir ) = ( theta_minus - theta_plus ) * factor
+           !
+        ENDIF
         !
       END DO
       !
       RETURN
       !
 !--------------------------------------------------------------------
-      END SUBROUTINE generate_theta
+    END SUBROUTINE boundary_of_density
 !--------------------------------------------------------------------
-!--------------------------------------------------------------------
-      SUBROUTINE generate_volume( nnr, rho, volofrho )
-!--------------------------------------------------------------------
-      !
-      ! ... Calculates the dielectric constant as a function
-      ! ... of the charge density
-      !
-      USE kinds,          ONLY : DP
-      USE environ_base,   ONLY : env_static_permittivity, &
-                                 tbeta, rhomax, rhomin, stype
-      !
-      IMPLICIT NONE
-      !
-      INTEGER, INTENT(IN)         :: nnr
-      !
-      REAL( DP ), INTENT(IN)      :: rho( nnr )
-      REAL( DP ), INTENT(OUT)     :: volofrho( nnr )
-      !
-      INTEGER                     :: ir
-      !
-      REAL( DP )                  :: fact, epstmp
-      !
-      volofrho = 0.D0
-      !
-      epstmp = env_static_permittivity
-      IF ( env_static_permittivity .LE. 1.D0 ) epstmp = 2.D0
-      fact = - 1.D0 / ( epstmp - 1.D0 )
-      !
-      DO ir = 1, nnr
-        !
-        volofrho( ir ) = epsilonfunct( rho( ir ), rhomax, rhomin,     &
-                                   tbeta, epstmp, stype )
-        !
-      END DO
-      !
-      volofrho = 1.D0 + ( volofrho - 1.D0 ) * fact
-      !
-      RETURN
-      !
-!--------------------------------------------------------------------
-      END SUBROUTINE generate_volume
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-      SUBROUTINE generate_dvoldrho( nnr, rho, dvoldrho )
-!--------------------------------------------------------------------
-      !
-      ! ... Calculates the dielectric constant as a function
-      ! ... of the charge density
-      !
-      USE kinds,          ONLY : DP
-      USE environ_base,   ONLY : env_static_permittivity, &
-                                 tbeta, rhomax, rhomin, stype
-      !
-      IMPLICIT NONE
-      !
-      INTEGER, INTENT(IN)         :: nnr
-      !
-      REAL( DP ), INTENT(IN)      :: rho( nnr )
-      REAL( DP ), INTENT(OUT)     :: dvoldrho( nnr )
-      !
-      INTEGER                     :: ir
-      !
-      REAL( DP )                  :: fact, epstmp
-      !
-      dvoldrho = 0.D0
-      !
-      epstmp = env_static_permittivity
-      IF ( env_static_permittivity .LE. 1.D0 ) epstmp = 2.D0
-      fact = - 1.D0 / ( epstmp - 1.D0 )
-      !
-      DO ir = 1, nnr
-        !
-        dvoldrho( ir ) = depsilonfunct( rho( ir ), rhomax, rhomin, &
-                                    tbeta, epstmp, stype )
-        !
-      END DO
-      !
-      dvoldrho = dvoldrho * fact
-      !
-      RETURN
-      !
-!--------------------------------------------------------------------
-      END SUBROUTINE generate_dvoldrho
-!--------------------------------------------------------------------
-END MODULE generate_f_of_rho
+END MODULE generate_boundary

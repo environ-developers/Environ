@@ -316,7 +316,7 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE environ_input,    ONLY : read_environ \
 USE environ_base,     ONLY : atomicspread \
-USE input_parameters, ONLY : ion_radius \
+USE input_parameters, ONLY : ion_radius, atom_label \
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
 
@@ -329,7 +329,7 @@ INTEGER :: is \
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
    IF ( use_environ ) THEN \
-      CALL read_environ(nat, ntyp, assume_isolated, ibrav) \
+      CALL read_environ(nat, ntyp, atom_label, assume_isolated, ibrav) \
       ! \
       ! ... Overwrites atomicspread with ion_radius from the CP input \
       !     to avoid inconsistency \

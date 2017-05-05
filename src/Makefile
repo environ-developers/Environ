@@ -6,15 +6,10 @@ include ../../make.sys
 MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../../Modules $(MOD_FLAG).
 
 ENVIRONOBJS = \
+environ_types.o                       \
 solvent.o                             \
-solvent_tddfpt.o                      \
-calc_rhopol.o                         \
-calc_vpol.o                           \
 cavity.o                              \
 pressure.o                            \
-periodic.o                            \
-ioncc.o                               \
-extcharge.o                           \
 epsregion.o                           \
 environ_mod.o                         \
 environ_init.o                        \
@@ -24,8 +19,10 @@ environ_input.o                       \
 environ_makov_payne.o                 \
 generate_dielectric.o                 \
 environ_debug.o                       \
-util.o                                \
-lbfgs.o
+electrostatic.o                       \
+electrostatic_mod.o                   \
+boundary.o                            \
+functions.o 
 
 all : libenviron.a
 

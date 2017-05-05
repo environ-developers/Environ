@@ -18,7 +18,8 @@ MODULE electrostatic_base
   ! ... this module contains all the main variables needed for the
   ! ... electrostatic solvers.
   !
-  USE kinds, ONLY :  DP
+  USE environ_types
+  !
   SAVE
   !
   ! Global parameters
@@ -60,6 +61,11 @@ MODULE electrostatic_base
   CHARACTER (LEN=80) ::            &
        core
   !
+  ! Core used for numerical derivatives of dielectric
+  !
+  CHARACTER (LEN=80) ::            &
+       dielectric_core
+  !
   ! Finite differences' parameters
   !
   INTEGER ::                        &
@@ -76,6 +82,13 @@ MODULE electrostatic_base
   REAL (DP), DIMENSION(3) ::       &
        bcplus,                     &
        bcminus
+  !
+  ! Logical flags
+  !
+  LOGICAL ::                       &
+       need_gradient,              &
+       need_factqrt,               &
+       need_gradlog
   !
   ! Computed physical variables
   !
@@ -94,7 +107,7 @@ MODULE electrostatic_base
            solver_, auxiliary_, step_type_, step_,            &
            mix_type_, ndiis_, mix_,                           &
            preconditioner_, screening_type_, screening_,      &
-           core_, ifdtype_, nfdpoint_,                        &
+           core_, dielectric_core_, ifdtype_, nfdpoint_,      &
            bcindex_, bcplus_, bcminus_ )
       !
       IMPLICIT NONE
@@ -105,7 +118,7 @@ MODULE electrostatic_base
                              screening_, bcplus_(3), bcminus_(3)
       CHARACTER( LEN = * ), INTENT(IN) :: problem_, solver_, auxiliary_,  &
                              step_type_, mix_type_, preconditioner_,      &
-                             screening_type_, core_
+                             screening_type_, core_, dielectric_core_
       !
       INTEGER :: i
       !
@@ -127,6 +140,7 @@ MODULE electrostatic_base
       screening = screening_
       !
       core = core_
+      dielectric_core = dielectric_core_
       ifdtype = ifdtype_
       nfdpoint = nfdpoint_
       !
@@ -134,8 +148,71 @@ MODULE electrostatic_base
       bcplus = bcplus_
       bcminus = bcminus_
       !
+      ! Set finite differences tools
+      !
+      ALLOCATE( icfd(-nfdpoint:nfdpoint) )
+      CALL init_fd_gradient( ifdtype, nfdpoint, ncfd, icfd )
+      !
+      ! Set logical flags according to electrostatic set up
+      !
+      need_gradient = .FALSE.
+      need_factsqrt = .FALSE.
+      need_gradlog  = .FALSE.
+      !
+      SELECT CASE ( problem )
+         !
+      CASE ( free )
+         !
+      CASE ( generalized )
+         !
+         SELECT CASE ( solver )
+            !
+         CASE ( 'cg','sd','iterative' )
+            !
+            SELECT CASE ( auxiliary )
+               !
+            CASE ( 'none' )
+               !
+               SELECT CASE ( preconditioner )
+                  !
+               CASE ( 'sqrt' )
+                  !
+                  need_factsqrt = .TRUE.
+                  !
+               CASE ( 'left', 'none' )
+                  !
+                  need_gradient = .TRUE.
+                  !
+               END SELECT
+               !
+            CASE ( 'full' )
+               !
+               need_gradlog = .TRUE.
+               !
+            END SELECT
+            !
+         END SELECT
+         !
+      END SELECT
+      !
       RETURN
       !
     END SUBROUTINE set_electrostatic_base
+    !
+    SUBROUTINE set_electrostatic_environ()
+
+      ! Passes informations stored in electrostatic_base to environ_base
+      ! and vice-versa
+
+      USE environ_base, ONLY :: lstatic, loptical, static, optical
+
+      IMPLICIT NONE
+
+      IF ( lstatic ) CALL init_environ_dielectric_flags( need_gradient, need_factsqrt, need_gradlog, static )
+      IF ( loptical ) CALL init_environ_dielectric_flags( need_gradient, need_factsqrt, need_gradlog, optical )
+
+      RETURN
+
+    END SUBROUTINE set_electrostatic_environ
     !
 END MODULE electrostatic_base
