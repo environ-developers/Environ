@@ -41,8 +41,8 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    TYPE( environ_boundary ), INTENT(IN) :: boundary
-    TYPE( environ_density ), INTENT(INOUT) :: potential
+    TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
+    TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
     !
     ! ... Local variables
     !
@@ -55,13 +55,14 @@ CONTAINS
     !
     INTEGER                 :: ir, ipol, jpol
     !
-    INTEGER, POINTER        :: ir_end
+    INTEGER, POINTER        :: ir_end, nnr
     REAL( DP ), POINTER     :: delta
     REAL( DP ), DIMENSION(:), POINTER :: theta, vcavity, rho
     !
     CALL start_clock ('calc_vcav')
     !
     ir_end => boundary % theta % cell % ir_end
+    nnr => boundary % theta % cell % nnr
     delta => boundary % deltatheta
     theta => boundary % theta % of_r
     vcavity => potential % of_r
@@ -124,24 +125,26 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     REAL( DP ), INTENT(OUT) :: ecavity
     !
     ! ... Local variables
     !
     REAL( DP )              :: surface
-    TYPE( environ_cell ), POINTER :: cell
-    REAL( DP ), DIMENSION(:), POINTER :: theta, rho
-    !
     TYPE( environ_density ) :: density
     TYPE( environ_gradient ) :: gradient
     !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_ecavity'
     !
+    REAL( DP ), POINTER :: delta
+    TYPE( environ_cell ), POINTER :: cell
+    REAL( DP ), DIMENSION(:), POINTER :: theta, rho
+    !
     CALL start_clock ('calc_ecav')
     !
     cell => boundary % theta % cell
     theta => boundary % theta % of_r
+    delta => boundary % deltatheta
     !
     ! ... Initializes the variables
     !

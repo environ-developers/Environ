@@ -73,6 +73,8 @@ MODULE environ_base
   !
   ! Internal parameters of external charges
   !
+  LOGICAL ::                            &
+       lexternals
   TYPE( environ_externals ), TARGET ::  &
        externals
   !
@@ -173,7 +175,7 @@ MODULE environ_base
                         assume_isolated, ibrav,                     &
                         environ_restart_, verbose_, environ_thr_,   &
                         environ_nskip_, environ_type,               &
-                        system_ntyp_, system_dim_, system_axis_,    &
+                        system_ntyp, system_dim, system_axis,       &
                         stype_, rhomax_, rhomin_, tbeta,            &
                         env_static_permittivity_,                   &
                         env_optical_permittivity_, solvent_mode,    &
@@ -183,7 +185,7 @@ MODULE environ_base
                         env_surface_tension_, delta,                &
                         env_pressure_,                              &
                         env_ioncc_ntyp_, nrep_,                     &
-                        stern_mode_, stern_distance_, stern_spread_,&
+                        stern_mode, stern_distance, stern_spread,   &
                         cion, cionmax, rion, zion, rhopb,           &
                         solvent_temperature,                        &
                         env_external_charges,                       &
@@ -201,13 +203,13 @@ MODULE environ_base
         LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
         INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp, ibrav,                  &
                                verbose_, environ_nskip_,                        &
-                               system_ntyp_, system_dim_, system_axis_,         &
+                               system_ntyp, system_dim, system_axis,            &
                                stype_, env_ioncc_ntyp_, nrep_,                  &
-                               env_external_charges, extcharge_origin,          &
+                               env_external_charges,                            &
                                extcharge_dim(:), extcharge_axis(:),             &
-                               env_dielectric_regions, epsregion_origin,        &
+                               env_dielectric_regions,                          &
                                epsregion_dim(:), epsregion_axis(:)
-        REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta_,         &
+        REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta,          &
                                env_static_permittivity_,                        &
                                env_optical_permittivity_,                       &
                                alpha, solvationrad(:), corespread(:),           &
@@ -218,7 +220,7 @@ MODULE environ_base
                                cionmax(:), rion(:), zion(:), rhopb,             &
                                solvent_temperature,                             &
                                extcharge_charge(:), extcharge_spread(:),        &
-                               extcharge_pos(:,:), epsregion_eps_(:,:),         &
+                               extcharge_pos(:,:), epsregion_eps(:,:),         &
                                epsregion_pos(:,:), epsregion_spread(:),         &
                                epsregion_width(:)
         CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type,      &
@@ -333,7 +335,7 @@ MODULE environ_base
         !
         ! Set basic logical flags
         !
-        lstatic        = env_statit_permittivity .GT. 1.D0
+        lstatic        = env_static_permittivity .GT. 1.D0
         loptical       = env_optical_permittivity .GT. 1.D0
         IF ( env_dielectric_regions .GT. 0 ) THEN
            DO i = 1, env_dielectric_regions
@@ -372,7 +374,7 @@ MODULE environ_base
         !
         IF ( loptical ) CALL create_environ_dielectric(optical)
         !
-        IF ( lelectostatic ) CALL create_environ_charges(charges)
+        IF ( lelectrostatic ) CALL create_environ_charges(charges)
         !
         ! Allocate and set basic properties of ions
         !
@@ -387,25 +389,27 @@ MODULE environ_base
         !
         CALL init_environ_system( system_ntyp, system_dim, system_axis, ions, system )
         !
-        ! Allocate and set basic properties of external charges
-        !
-        IF ( lexternals ) CALL init_environ_externals_first( env_external_charges, extcharge_dim, &
-             & extcharge_axis, extcharge_pos, extcharge_spread, extcharge_charge, externals )
-        !
         ! Collect free charges if computing electrostatics
         !
-        IF ( lelectrostatics ) CALL init_environ_charges_first( nelec, nat, env_external_charges, &
-             & ions, electrons, externals, charges )
+        IF ( lelectrostatic ) CALL init_environ_charges_first( ions=ions, electrons=electrons, charges=charges )
+        !
+        ! Allocate and set basic properties of external charges
+        !
+        IF ( lexternals ) THEN
+           CALL init_environ_externals_first( env_external_charges, extcharge_dim, &
+                & extcharge_axis, extcharge_pos, extcharge_spread, extcharge_charge, externals )
+           CALL init_environ_charges_first( externals=externals, charges=charges )
+        ENDIF
         !
         ! Set the parameters of the solvent boundary
         !
         IF ( lsolvent ) &
-             CALL init_environ_boundary_first( lsurface, env_static_permittivity, solvent_mode, stype, &
-             & rhomax, rhomin, tbeta, eps_distance, eps_spread, alpha, delta, ions, solvent )
+             CALL init_environ_boundary_first( solvent_mode, env_static_permittivity, stype, &
+             & rhomax, rhomin, tbeta, lsurface, delta, alpha, ions, solvent )
         !
         ! Set the parameters of the electrolyte and of its boundary
         !
-        IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntypm,       &
+        IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp,        &
              & stern_mode, stype, rhomin, rhopb, tbeta, stern_distance, stern_spread,   &
              & alpha, ions, solvent_temperature, cion, cionmax, rion, zion, electrolyte )
         !
