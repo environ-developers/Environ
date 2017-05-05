@@ -37,8 +37,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      TYPE( environ_ions ), INTENT(IN) :: ions
-      TYPE( environ_density ), INTENT(IN) :: f
+      TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
+      TYPE( environ_density ), TARGET, INTENT(IN) :: f
       !
       INTEGER                  :: ir, ir1, ir2, ir3, num
       INTEGER                  :: ipol, iat, typ, count
@@ -53,6 +53,7 @@ CONTAINS
       REAL( DP ), POINTER :: alat
       REAL( DP ), DIMENSION(:,:), POINTER :: at
       !
+      INTEGER, POINTER :: nat
       INTEGER, DIMENSION(:), POINTER :: ityp
       REAL( DP ), DIMENSION(:,:), POINTER :: tau
       !
@@ -69,6 +70,7 @@ CONTAINS
       alat => f%cell%alat
       at => f%cell%at
       !
+      nat => ions%number
       ityp => ions%ityp
       tau => ions%tau
       !
@@ -111,9 +113,9 @@ CONTAINS
               tmp = DBLE( flocal( ir ) )
               IF (ABS(tmp).LT.1.D-99) tmp = 0.D0
               IF (MOD(count,6).EQ.0) THEN
-                WRITE(300,'(e12.6,x)')tmp
+                WRITE(300,'(e12.6,1x)')tmp
               ELSE
-                WRITE(300,'(e12.6,x)',advance='no')tmp
+                WRITE(300,'(e12.6,1x)',advance='no')tmp
               ENDIF
             ENDDO
           ENDDO

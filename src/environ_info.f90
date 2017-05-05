@@ -29,16 +29,16 @@ CONTAINS
       USE io_global,    ONLY : stdout
       USE environ_base, ONLY : e2
       USE environ_base, ONLY : lelectrostatic, eelectrostatic, &
-                               lcavity, ecavity, &
-                               lvolume, evolume
+                               lsurface, ecavity, &
+                               lvolume, epressure
       !
       IF ( e2 .EQ. 2.D0 ) THEN
         IF ( lelectrostatic ) WRITE( stdout, 9201 ) eelectrostatic
-        IF ( lcavity ) WRITE( stdout, 9202 ) ecavity
+        IF ( lsurface ) WRITE( stdout, 9202 ) ecavity
         IF ( lvolume ) WRITE( stdout, 9203 ) epressure
       ELSE IF ( e2 .EQ. 1.D0 ) THEN
         IF ( lelectrostatic ) WRITE( stdout, 9301 ) eelectrostatic
-        IF ( lcavity ) WRITE( stdout, 9302 ) ecavity
+        IF ( lsurface ) WRITE( stdout, 9302 ) ecavity
         IF ( lvolume ) WRITE( stdout, 9303 ) epressure
       ELSE
         WRITE(stdout,*)'ERROR: wrong value of e2 in Environ'
@@ -149,10 +149,7 @@ CONTAINS
       ! Write out the time informations of the Environ dependent
       ! calculations. Called by print_clock_pw.f90
       !
-      USE environ_base,   ONLY : env_static_permittivity, &
-                                 env_surface_tension,     &
-                                 env_pressure,            &
-                                 env_periodicity
+      USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume
       USE control_flags,  ONLY : tddfpt
       !
       IMPLICIT NONE
@@ -162,28 +159,21 @@ CONTAINS
       WRITE( stdout, * )
       WRITE( stdout, '(5X,"Environ routines")' )
       ! dielectric subroutines
-      IF ( env_static_permittivity .GT. 1.D0 &
-           .OR. env_dielectric_regions .GT. 0 ) THEN
+      IF ( lelectrostatic ) THEN
          CALL print_clock ('calc_eelect')
          CALL print_clock ('calc_velect')
          CALL print_clock ('dielectric')
          CALL print_clock ('calc_felect')
       END IF
       ! cavitation subroutines
-      IF ( env_surface_tension .GT. 0.D0 ) THEN
+      IF ( lsurface ) THEN
          CALL print_clock ('calc_ecav')
          CALL print_clock ('calc_vcav')
       END IF
       ! pressure subroutines
-      IF ( env_pressure .NE. 0.D0 ) THEN
+      IF ( lvolume ) THEN
          CALL print_clock ('calc_epre')
          CALL print_clock ('calc_vpre')
-      END IF
-      ! periodic subroutines
-      IF ( env_periodicity .NE. 3 ) THEN
-         CALL print_clock ('calc_epbc')
-         CALL print_clock ('calc_vpbc')
-         CALL print_clock ('calc_fpbc')
       END IF
       ! TDDFT
       IF (tddfpt) CALL print_clock ('calc_vsolvent_tddfpt')
