@@ -149,6 +149,8 @@ MODULE environ_input
         ! uff     = A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
         REAL(DP) :: alpha = 1.D0
         ! scaling factor for ionic radii when eps_mode = 'ionic'
+        REAL(DP) :: softness = 1.D0
+        ! spread of the rigid interfaces
         REAL(DP) :: solvationrad(nsx) = -3.D0
         ! solvationrad radius of the solvation shell for each species when the
         ! ionic dielectric function is adopted, in internal units (a.u.)
@@ -251,7 +253,7 @@ MODULE environ_input
              stype, rhomax, rhomin, tbeta,                             &
              env_static_permittivity, env_optical_permittivity,        &
              eps_mode, radius_mode,                                    &
-             alpha, solvationrad, corespread, atomicspread,            &
+             alpha, softness, solvationrad, corespread, atomicspread,  &
              eps_distance, eps_spread,                                 &
              add_jellium,                                              &
              env_surface_tension, delta,                               &
@@ -451,7 +453,7 @@ MODULE environ_input
                                 stype, rhomax, rhomin, tbeta,               &
                                 env_static_permittivity,                    &
                                 env_optical_permittivity, eps_mode,         &
-                                radius_mode, alpha,                         &
+                                radius_mode, alpha, softness,               &
                                 eps_distance, eps_spread,                   &
                                 add_jellium,                                &
                                 env_surface_tension, delta,                 &
@@ -578,6 +580,7 @@ MODULE environ_input
        eps_mode        = 'electronic'
        radius_mode     = 'uff'
        alpha           = 1.D0
+       softness        = 1.D0
        solvationrad(:) = -3.D0
        corespread(:)   = -0.5D0
        atomicspread(:) = -0.5D0
@@ -688,6 +691,7 @@ MODULE environ_input
        CALL mp_bcast( eps_mode,                   ionode_id, intra_image_comm )
        CALL mp_bcast( radius_mode,                ionode_id, intra_image_comm )
        CALL mp_bcast( alpha,                      ionode_id, intra_image_comm )
+       CALL mp_bcast( softness,                   ionode_id, intra_image_comm )
        CALL mp_bcast( solvationrad,               ionode_id, intra_image_comm )
        CALL mp_bcast( corespread,                 ionode_id, intra_image_comm )
        CALL mp_bcast( atomicspread,               ionode_id, intra_image_comm )
@@ -833,6 +837,8 @@ MODULE environ_input
                        & TRIM(radius_mode)//''' not allowed ', 1 )
        IF( alpha <= 0.0_DP ) &
           CALL errore( sub_name,' alpha out of range ', 1 )
+       IF( softness <= 0.0_DP ) &
+          CALL errore( sub_name,' softness out of range ', 1 )
        IF( eps_spread <= 0.0_DP ) &
           CALL errore( sub_name,' eps_spread out of range ', 1 )
        !

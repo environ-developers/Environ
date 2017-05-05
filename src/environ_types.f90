@@ -223,6 +223,8 @@ MODULE environ_types
 
      LOGICAL :: need_ions
      REAL( DP ) :: alpha ! solvent-dependent scaling factor
+     REAL( DP ) :: softness ! sharpness of the interface
+     TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: soft_spheres
      TYPE( environ_ions ), POINTER :: ions
 
      ! scaled switching function of interface
@@ -249,6 +251,10 @@ MODULE environ_types
   END TYPE environ_boundary
 
   TYPE environ_dielectric
+
+     ! Update status
+
+     LOGICAL :: update = .FALSE.
 
      ! Basic properties of the dielectric space from input
 
@@ -279,7 +285,7 @@ MODULE environ_types
      TYPE( environ_density ) :: factsqrt
 
      LOGICAL :: need_gradlog = .FALSE.
-     TYPE( environ_density ) :: gradlog
+     TYPE( environ_gradient ) :: gradlog
 
   END TYPE environ_dielectric
 
@@ -1246,6 +1252,8 @@ CONTAINS
 
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
 
+    CHARACTER( LEN=80 ) :: sub_name = 'create_environ_boundary'
+
     boundary%update_status = 0
 
     CALL create_environ_density( boundary%scaled )
@@ -1259,6 +1267,9 @@ CONTAINS
     boundary%need_theta = .FALSE.
     CALL create_environ_density( boundary%theta )
 
+    IF ( ALLOCATED( boundary%soft_spheres ) ) &
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
+
     CALL create_environ_density( boundary%density )
 
     RETURN
@@ -1266,7 +1277,8 @@ CONTAINS
   END SUBROUTINE create_environ_boundary
 
   SUBROUTINE init_environ_boundary_first( mode, constant, type, &
-             & rhomax, rhomin, tbeta, need_theta, delta, alpha, ions, boundary )
+       & rhomax, rhomin, tbeta, need_theta, delta, alpha, &
+       & softness, ions, boundary )
 
     IMPLICIT NONE
 
@@ -1277,8 +1289,12 @@ CONTAINS
     LOGICAL, INTENT(IN) :: need_theta
     REAL( DP ), INTENT(IN) :: delta
     REAL( DP ), INTENT(IN) :: alpha
+    REAL( DP ), INTENT(IN) :: softness
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+
+    INTEGER :: i
+    REAL( DP ) :: radius
 
     boundary%mode = mode
     boundary%type = type
@@ -1302,6 +1318,15 @@ CONTAINS
     boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
     IF ( boundary%need_ions ) boundary%ions => ions
     boundary%alpha = alpha
+    boundary%softness = softness
+    IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) THEN
+       ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
+       DO i = 1, boundary%ions%number
+          radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
+          boundary%soft_spheres(i) = environ_functions(2,0,1,radius,1.0_DP,boundary%softness,&
+                  & boundary%ions%tau(:,i))
+       ENDDO
+    ENDIF
 
     boundary%need_theta = need_theta
     boundary%deltatheta = delta
@@ -1344,6 +1369,8 @@ CONTAINS
           IF (.NOT.ASSOCIATED(boundary%ions)) &
                & CALL errore(sub_name,'Trying to destroy a non associated object',1)
           NULLIFY(boundary%ions)
+          IF ( .NOT. boundary%need_electrons ) &
+               & CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
        ELSE
           IF (ASSOCIATED(boundary%ions))&
                & CALL errore(sub_name,'Found an unexpected associated object',1)
@@ -1390,7 +1417,7 @@ CONTAINS
     dielectric%need_factsqrt = .FALSE.
     CALL create_environ_density( dielectric%factsqrt )
     dielectric%need_gradlog = .FALSE.
-    CALL create_environ_density( dielectric%gradlog )
+    CALL create_environ_gradient( dielectric%gradlog )
     RETURN
 
   END SUBROUTINE create_environ_dielectric
@@ -1508,7 +1535,7 @@ CONTAINS
 
     IF ( dielectric%need_gradient ) CALL init_environ_gradient( cell, dielectric%gradient )
     IF ( dielectric%need_factsqrt ) CALL init_environ_density( cell, dielectric%factsqrt )
-    IF ( dielectric%need_gradlog ) CALL init_environ_density( cell, dielectric%gradlog )
+    IF ( dielectric%need_gradlog ) CALL init_environ_gradient( cell, dielectric%gradlog )
 
     RETURN
 
@@ -1544,7 +1571,7 @@ CONTAINS
 
     IF ( dielectric%need_gradient ) CALL destroy_environ_gradient( dielectric%gradient )
     IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%factsqrt )
-    IF ( dielectric%need_gradlog ) CALL destroy_environ_density( dielectric%gradlog )
+    IF ( dielectric%need_gradlog ) CALL destroy_environ_gradient( dielectric%gradlog )
 
     RETURN
 
@@ -1570,14 +1597,14 @@ CONTAINS
   END SUBROUTINE create_environ_electrolyte
 
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
-             & tbeta, distance, spread, alpha, ions, temperature, cbulk, cmax, radius, &
-             & z, electrolyte )
+             & tbeta, distance, spread, alpha, softness, ions, temperature, cbulk, &
+             &  cmax, radius, z, electrolyte )
 
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: ntyp, stype
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
-    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, distance, spread, alpha, temperature
+    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, distance, spread, alpha, softness, temperature
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, cmax, radius, z
     TYPE( environ_ions ), INTENT(IN) :: ions
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
@@ -1591,7 +1618,7 @@ CONTAINS
     electrolyte%temperature = temperature
 
     CALL init_environ_boundary_first( mode, 1.D0, stype, rhomax, rhomin, tbeta, .FALSE., &
-         & 0.D0, alpha, ions, electrolyte%boundary )
+         & 0.D0, alpha, softness, ions, electrolyte%boundary )
 
     ALLOCATE( electrolyte%ioncctype(ntyp) )
 

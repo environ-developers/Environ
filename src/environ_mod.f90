@@ -179,7 +179,7 @@ MODULE environ_base
                         stype_, rhomax_, rhomin_, tbeta,            &
                         env_static_permittivity_,                   &
                         env_optical_permittivity_, solvent_mode,    &
-                        radius_mode, alpha,                         &
+                        radius_mode, alpha, softness,               &
                         eps_distance, eps_spread,                   &
                         add_jellium_,                               &
                         env_surface_tension_, delta,                &
@@ -212,7 +212,7 @@ MODULE environ_base
         REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta,          &
                                env_static_permittivity_,                        &
                                env_optical_permittivity_,                       &
-                               alpha, solvationrad(:), corespread(:),           &
+                               alpha, softness, solvationrad(:), corespread(:), &
                                atomicspread(:),                                 &
                                eps_distance, eps_spread,                        &
                                env_surface_tension_, delta, env_pressure_,      &
@@ -220,7 +220,7 @@ MODULE environ_base
                                cionmax(:), rion(:), zion(:), rhopb,             &
                                solvent_temperature,                             &
                                extcharge_charge(:), extcharge_spread(:),        &
-                               extcharge_pos(:,:), epsregion_eps(:,:),         &
+                               extcharge_pos(:,:), epsregion_eps(:,:),          &
                                epsregion_pos(:,:), epsregion_spread(:),         &
                                epsregion_width(:)
         CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type,      &
@@ -405,13 +405,14 @@ MODULE environ_base
         !
         IF ( lsolvent ) &
              CALL init_environ_boundary_first( solvent_mode, env_static_permittivity, stype, &
-             & rhomax, rhomin, tbeta, lsurface, delta, alpha, ions, solvent )
+             & rhomax, rhomin, tbeta, lsurface, delta, alpha, softness, ions, solvent )
         !
         ! Set the parameters of the electrolyte and of its boundary
         !
-        IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp,        &
-             & stern_mode, stype, rhomin, rhopb, tbeta, stern_distance, stern_spread,   &
-             & alpha, ions, solvent_temperature, cion, cionmax, rion, zion, electrolyte )
+        IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp,      &
+             & stern_mode, stype, rhomin, rhopb, tbeta, stern_distance, stern_spread, &
+             & alpha, softness, ions, solvent_temperature, cion, cionmax, rion, zion, &
+             & electrolyte )
         !
         ! Set the parameters of the dielectric
         !

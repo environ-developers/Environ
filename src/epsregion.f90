@@ -12,9 +12,10 @@ MODULE dielectric
 !--------------------------------------------------------------------
 
   USE environ_types
-  USE environ_base,     ONLY: verbose, environ_unit, ions
-  USE environ_debug,    ONLY: write_cube
-  USE functions,        ONLY: density_of_functions
+  USE environ_base,       ONLY: verbose, environ_unit, ions, e2
+  USE electrostatic_base, ONLY : dielectric_core, nfdpoint, icfd, ncfd
+  USE environ_debug,      ONLY: write_cube
+  USE functions,          ONLY: density_of_functions
   !
   IMPLICIT NONE
   !
@@ -36,6 +37,7 @@ CONTAINS
   !
   ! ... Local variables
   !
+  INTEGER :: i
   TYPE( environ_density ) :: local
   TYPE( environ_cell ), POINTER :: cell
   !
@@ -56,9 +58,9 @@ CONTAINS
         CALL create_environ_density( local )
         CALL init_environ_density( cell , local )
         DO i = 1, dielectric % nregions
-           CALL density_of_functions( 1, dielectric%region(i), local )
+           CALL density_of_functions( 1, dielectric%regions(i), local )
            dielectric % background % of_r(:) = dielectric % background % of_r(:) - &
-                  ( dielectric % background % of_r(:) - dielectric % region(i) % volume ) * local % of_r(:)
+                  ( dielectric % background % of_r(:) - dielectric % regions(i) % volume ) * local % of_r(:)
         ENDDO
         CALL destroy_environ_density( local )
         !
@@ -89,9 +91,9 @@ CONTAINS
         IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%nregions, &
              & dielectric%epsilon, dielectric%gradient, dielectric%regions, dielectric%background, dielectric%boundary )
         IF ( dielectric%need_factsqrt ) CALL generate_epsilon_factsqrt( dielectric%nregions, &
-             & dielectric%epsilon, dielectric%gradient, dielectric%regions, dielectric%background, dielectric%boundary )
+             & dielectric%epsilon, dielectric%factsqrt, dielectric%regions, dielectric%background, dielectric%boundary )
         IF ( dielectric%need_gradlog  ) CALL generate_epsilon_gradlog( dielectric%nregions, &
-             & dielectric%epsilon, dielectric%gradient, dielectric%regions, dielectric%background, dielectric%boundary )
+             & dielectric%epsilon, dielectric%gradlog, dielectric%regions, dielectric%background, dielectric%boundary )
         dielectric % update = .FALSE.
         !
      ENDIF
@@ -109,9 +111,10 @@ CONTAINS
   SUBROUTINE generate_epsilon_gradient( nregions, epsilon, gradient, &
        & regions, background, boundary )
 !--------------------------------------------------------------------
-    IMPLICIT NONE
 
     USE electrostatic_base, ONLY : dielectric_core
+
+    IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: nregions
     TYPE( environ_density ), INTENT(IN) :: epsilon
@@ -123,6 +126,9 @@ CONTAINS
     INTEGER, POINTER :: nnr
     TYPE( environ_cell ), POINTER :: cell
 
+    INTEGER :: i
+    CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_gradient'
+
     nnr => epsilon%cell%nnr
     cell => epsilon%cell
 
@@ -130,7 +136,7 @@ CONTAINS
        !
     CASE ( 'fft' )
        !
-       CALL external_gradient(epsilon, gradient)
+       CALL external_gradient(epsilon%of_r, gradient%of_r)
        !
     CASE ( 'fd' )
        !
@@ -144,7 +150,7 @@ CONTAINS
 !            & CALL gradient_of_functions(nregions,regions,gbackground)
        !
        IF ( boundary%mode .EQ. 'ions' ) THEN
-          CALL gradient_of_functions(boundary%ions%number, boundary%ions%soft_spheres, gradient)
+          CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradient)
        ELSE
           CALL external_gradient(boundary%density%of_r,gradient%of_r)
           DO i = 1, 3
@@ -165,9 +171,8 @@ CONTAINS
   SUBROUTINE generate_epsilon_gradlog( nregions, epsilon, gradlog, &
        & regions, background, boundary )
 !--------------------------------------------------------------------
-    IMPLICIT NONE
 
-    USE electrostatic_base, ONLY : dielectric_core
+    IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: nregions
     TYPE( environ_density ), INTENT(IN) :: epsilon
@@ -178,6 +183,8 @@ CONTAINS
 
     INTEGER, POINTER :: nnr
     TYPE( environ_cell ), POINTER :: cell
+
+    INTEGER :: i
     TYPE( environ_density ) :: log_epsilon
     CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_gradlog'
 
@@ -212,7 +219,7 @@ CONTAINS
 !            & CALL gradient_of_functions(nregions,regions,gbackground)
        !
        IF ( boundary%mode .EQ. 'ions' ) THEN
-          CALL gradient_of_functions(boundary%ions%number, boundary%ions%soft_spheres, gradlog)
+          CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradlog)
        ELSE
           CALL external_gradient(boundary%density%of_r,gradlog%of_r)
           DO i = 1, 3
@@ -220,8 +227,10 @@ CONTAINS
           ENDDO
        ENDIF
        !
-!       CALL destroy_environ_gradient(gbackground)
-       gradlog%of_r = gradlog%of_r / epsilon%of_r
+       !       CALL destroy_environ_gradient(gbackground)
+       DO i = 1, 3
+          gradlog%of_r(i,:) = gradlog%of_r(i,:) / epsilon%of_r(:)
+       ENDDO
        !
     CASE DEFAULT
        !
@@ -235,9 +244,8 @@ CONTAINS
   SUBROUTINE generate_epsilon_factsqrt( nregions, epsilon, factsqrt, &
        & regions, background, boundary )
 !--------------------------------------------------------------------
-    IMPLICIT NONE
 
-    USE electrostatic_base, ONLY : dielectric_core
+    IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: nregions
     TYPE( environ_density ), INTENT(IN) :: epsilon
@@ -248,6 +256,8 @@ CONTAINS
 
     INTEGER, POINTER :: nnr
     TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: laplacian
+    TYPE( environ_gradient ) :: gradient
     CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_factsqrt'
 
     nnr => epsilon%cell%nnr
@@ -265,6 +275,9 @@ CONTAINS
        !
     CASE ( 'analytic' )
        !
+       CALL init_environ_density( cell, laplacian )
+       CALL init_environ_gradient( cell, gradient )
+       !
 !       CALL init_environ_gradient(cell,gbackground)
        IF ( nregions .GT. 0 ) &
             CALL errore(sub_name,'Option not yet implemented',1)
@@ -272,8 +285,8 @@ CONTAINS
        !
        IF ( boundary%mode .EQ. 'ions' ) THEN
           !
-          CALL gradient_of_functions(boundary%ions%number, boundary%ions%soft_spheres, gradient)
-          CALL laplacian_of_functions(boundary%ions%number, boundary%ions%soft_spheres, laplacian)
+          CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradient)
+          CALL laplacian_of_functions(boundary%ions%number, boundary%soft_spheres, laplacian)
           CALL update_gradient_modulus(gradient)
           !
           factsqrt%of_r(:) = laplacian%of_r(:) - 0.5D0 * gradient%modulus(:) / epsilon%of_r(:)
@@ -291,6 +304,8 @@ CONTAINS
        ENDIF
        factsqrt%of_r = factsqrt%of_r * 0.5D0 / e2 / fpi
        !
+       CALL destroy_environ_gradient(gradient)
+       CALL destroy_environ_density(laplacian)
 !       CALL destroy_environ_gradient(gbackground)
        !
     CASE DEFAULT
