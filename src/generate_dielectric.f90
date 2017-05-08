@@ -8,11 +8,13 @@
 ! original version by O. Andreussi and N. Marzari
 !
 MODULE generate_boundary
-!
-PRIVATE
-!
-PUBLIC :: epsilonfunct, depsilonfunct, generate_dielectric, generate_theta, generate_volume, generate_dvoldrho
-!
+  !
+  USE environ_types
+  !
+  PRIVATE
+  !
+  PUBLIC :: epsilonfunct, depsilonfunct, generate_dielectric, generate_theta, generate_volume, generate_dvoldrho
+  !
 CONTAINS
 !--------------------------------------------------------------------
       FUNCTION epsilonfunct( rho, rhomax, rhomin, tbeta, epszero,  &
@@ -199,8 +201,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      TYPE( environ_density ), INTENT(IN) :: density
-      TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+      TYPE( environ_density ), TARGET, INTENT(IN) :: density
+      TYPE( environ_boundary ), TARGET, INTENT(INOUT) :: boundary
       !
       INTEGER, POINTER :: ir_end, stype
       REAL( DP ), POINTER :: constant, rhomax, rhomin, tbeta
@@ -223,7 +225,7 @@ CONTAINS
       constant => boundary % constant ! SHOULD BE REMOVED
       !
       stype => boundary % type
-      eps => buondary % scaled % of_r
+      eps => boundary % scaled % of_r
       deps => boundary % dscaled % of_r
       d2eps => boundary % d2scaled % of_r
       !

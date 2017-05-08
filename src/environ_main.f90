@@ -15,6 +15,7 @@
 !
 MODULE environ_main
   !
+  USE environ_types
   USE environ_base,   ONLY: ions
   USE environ_debug,  ONLY: write_cube
   !
@@ -33,7 +34,7 @@ CONTAINS
       !     grid and added to vtot.
       !
       USE kinds,         ONLY : DP
-      USE environ_base,  ONLY : verbose, vzero,                       &
+      USE environ_base,  ONLY : verbose, vzero, solvent,              &
                                 lelectrostatic, velectrostatic,       &
                                 lsoftcavity, vsoftcavity,             &
                                 lsurface, vcavity,                    &
@@ -140,8 +141,6 @@ CONTAINS
 
       END IF
 
-      DEALLOCATE( rhoelec )
-
       RETURN
 !--------------------------------------------------------------------
       END SUBROUTINE calc_venviron
@@ -156,10 +155,11 @@ CONTAINS
       !     automatically included in the energy computed as sum of
       !     Kohn-Sham eigenvalues.
       !
-      USE environ_base,  ONLY : electrons, lelectrostatic,            &
-                                velectrostatic, vsoftcavity,          &
+      USE environ_base,  ONLY : electrons, solvent,                   &
+                                lelectrostatic, velectrostatic,       &
+                                lsoftcavity, vsoftcavity,             &
                                 lsurface, vcavity,                    &
-                                lpressure, vpressure,                 &
+                                lvolume, vpressure,                   &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte
       !
@@ -195,7 +195,7 @@ CONTAINS
          !
          CALL calc_deenviron( electrons, vcavity, decavity )
          !
-         CALL calc_ecavity( boundary, ecavity )
+         CALL calc_ecavity( solvent, ecavity )
          !
          deenviron = deenviron + decavity
          !
@@ -207,7 +207,7 @@ CONTAINS
          !
          CALL calc_deenviron( electrons, vpressure, depressure )
          !
-         CALL calc_epressure( boundary, epressure )
+         CALL calc_epressure( solvent, epressure )
          !
          deenviron = deenviron + depressure
          !
@@ -233,11 +233,13 @@ CONTAINS
             !
             IF ( lelectrolyte ) THEN
                !
-               CALL calc_eelectrostatic( charges=charges, dielectric=static, electrolyte=electrolyte, energy=eelectrostatic )
+               CALL calc_eelectrostatic( charges=charges, dielectric=static, &
+                    & electrolyte=electrolyte, energy=eelectrostatic )
                !
             ELSE
                !
-               CALL calc_eelectrostatic( charges=charges, dielectric=static, energy=eelectrostatic )
+               CALL calc_eelectrostatic( charges=charges, dielectric=static, &
+                    & energy=eelectrostatic )
                !
             ENDIF
             !
@@ -245,7 +247,8 @@ CONTAINS
             !
             IF ( lelectrolyte ) THEN
                !
-               CALL calc_eelectrostatic( charges=charges, electrolyte=electrolyte, energy=eelectrostatic )
+               CALL calc_eelectrostatic( charges=charges, electrolyte=electrolyte, &
+                    & energy=eelectrostatic )
                !
             ELSE
                !
@@ -271,10 +274,10 @@ CONTAINS
         IMPLICIT NONE
 
         TYPE( environ_electrons ), INTENT(IN) :: electrons
-        TYPE( environ_density ), INTENT(IN) :: potential
+        TYPE( environ_density ), TARGET, INTENT(IN) :: potential
         REAL( DP ), INTENT(OUT) :: denergy
 
-        REAL( DP ), POINTER :: ir_end
+        INTEGER, POINTER :: ir_end
         CHARACTER( LEN=80 ) :: sub_name = 'calc_deenviron'
 
         denergy = 0.D0
@@ -286,7 +289,7 @@ CONTAINS
 
         denergy = SUM( electrons % density % of_r( 1 : ir_end ) * potential % of_r( 1 : ir_end ) )
 
-        CALL mp_sum( denergy, potential % cell % communicator )
+        CALL mp_sum( denergy, potential % cell % comm )
 
         denergy = denergy * potential % cell % domega
 
@@ -312,9 +315,9 @@ CONTAINS
       !
       ! ... Each contribution to the forces is computed in its module
       !
-      USE solvent,      ONLY : calc_felectrostatic
-      USE cavity,       ONLY : calc_fcavity
-      USE pressure,     ONLY : calc_fpressure
+      USE electrostatic, ONLY : calc_felectrostatic
+      USE cavity,        ONLY : calc_fcavity
+      USE pressure,      ONLY : calc_fpressure
       !
       IMPLICIT NONE
       !
@@ -329,11 +332,13 @@ CONTAINS
             !
             IF ( lelectrolyte ) THEN
                !
-               CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, electrolyte=electrolyte, forces=force_environ )
+               CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, &
+                    & electrolyte=electrolyte, forces=force_environ )
                !
             ELSE
                !
-               CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, forces=force_environ )
+               CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, &
+                    & forces=force_environ )
                !
             END IF
             !
@@ -341,7 +346,8 @@ CONTAINS
             !
             IF ( lelectrolyte ) THEN
                !
-               CALL calc_felectrostatic( natoms=nat, charges=charges, electrolyte=electrolyte, forces=force_environ )
+               CALL calc_felectrostatic( natoms=nat, charges=charges, electrolyte=electrolyte, &
+                    & forces=force_environ )
                !
             ELSE
                !
