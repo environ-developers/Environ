@@ -13,12 +13,14 @@
 ! original version by O. Andreussii, I. Dabo and N. Marzari (MIT)
 !
 MODULE environ_init
-!
-PRIVATE
-!
-PUBLIC :: environ_initbase, environ_initcell, environ_initions, &
+  !
+  USE environ_types
+  !
+  PRIVATE
+  !
+  PUBLIC :: environ_initbase, environ_initcell, environ_initions, &
      & environ_initelectrons, environ_initpotential, environ_clean
-
+  !
 CONTAINS
 !
 !--------------------------------------------------------------------
@@ -226,6 +228,8 @@ CONTAINS
                                     loptical, optical,           &
                                     lelectrolyte, electrolyte,    &
                                     lrigidcavity
+      USE boundary,          ONLY : update_environ_boundary
+      USE dielectric,        ONLY : update_environ_dielectric
       !
       IMPLICIT NONE
       !
@@ -292,6 +296,8 @@ CONTAINS
                                     loptical, optical,            &
                                     lelectrolyte, electrolyte,    &
                                     lsoftcavity
+      USE boundary,          ONLY : update_environ_boundary
+      USE dielectric,        ONLY : update_environ_dielectric
       !
       IMPLICIT NONE
       !

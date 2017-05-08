@@ -12,6 +12,9 @@ CONTAINS
 
   SUBROUTINE update_environ_boundary( bound )
 
+    USE functions, ONLY : density_of_functions
+    USE generate_boundary, ONLY : boundary_of_density
+
     IMPLICIT NONE
 
     TYPE( environ_boundary ), INTENT(INOUT) :: bound

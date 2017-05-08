@@ -113,6 +113,8 @@ CONTAINS
 !--------------------------------------------------------------------
 
     USE electrostatic_base, ONLY : dielectric_core
+    USE fd_gradient, ONLY: calc_fd_gradient
+    USE functions, ONLY: gradient_of_functions
 
     IMPLICIT NONE
 
@@ -171,6 +173,9 @@ CONTAINS
   SUBROUTINE generate_epsilon_gradlog( nregions, epsilon, gradlog, &
        & regions, background, boundary )
 !--------------------------------------------------------------------
+
+    USE fd_gradient, ONLY : calc_fd_gradient
+    USE functions, ONLY: gradient_of_functions
 
     IMPLICIT NONE
 
@@ -244,6 +249,8 @@ CONTAINS
   SUBROUTINE generate_epsilon_factsqrt( nregions, epsilon, factsqrt, &
        & regions, background, boundary )
 !--------------------------------------------------------------------
+
+    USE functions, ONLY: gradient_of_functions, laplacian_of_functions
 
     IMPLICIT NONE
 

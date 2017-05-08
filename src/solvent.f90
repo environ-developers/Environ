@@ -9,11 +9,11 @@
 ! Continuum Solvation (SCCS) model of Andreussi et al.
 !  J. Chem. Phys. 136, 064102 (2012).
 !
-! original version by O. Andreussi, I. Dabo and N. Marzari
+! original version by O. Andreussi and N. Marzari
 ! includes improved algorithms from G. Fisicaro and S. Goedecker
 !
 !--------------------------------------------------------------------
-MODULE solvent
+MODULE generalized
 !--------------------------------------------------------------------
 
   USE environ_types
@@ -64,7 +64,8 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 
      CASE ( 'left' )
 
-        CALL generalized_gradient_left( charges, dielectric, potential )
+        CALL errore(sub_name,'Option not yet implemented',1)
+!        CALL generalized_gradient_left( charges, dielectric, potential )
 
      CASE DEFAULT
 
@@ -76,11 +77,13 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 
      IF ( solver .EQ. 'iterative' ) THEN
 
-        CALL generalized_iterative( charges, dielectric, potential )
+        CALL errore(sub_name,'Option not yet implemented',1)
+!        CALL generalized_iterative( charges, dielectric, potential )
 
      ELSE
 
-        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
+        CALL errore(sub_name,'Option not yet implemented',1)
+!        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
 
      ENDIF
 
@@ -166,7 +169,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
        ! ... Apply operator to conjugate direction
 
        CALL external_gradient(p%of_r,g%of_r)
-       CALL exteranl_laplacian(p%of_r,l%of_r)
+       CALL external_laplacian(p%of_r,l%of_r)
        Ap%of_r(:) = eps%of_r(:)*l%of_r(:) + &
                   & gradeps%of_r(1,:)*g%of_r(1,:) + &
                   & gradeps%of_r(2,:)*g%of_r(2,:) + &
@@ -357,7 +360,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
        ! ... Apply preconditioner to new state
 
        z%of_r(:) = r%of_r(:) * invsqrt%of_r(:)
-       CALL external_potential( z, z )
+       CALL poisson_direct( z, z )
        z%of_r(:) = z%of_r(:) * invsqrt%of_r(:)
 
        rznew = scalar_product_environ_density( r, z )
@@ -507,5 +510,5 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!END SUBROUTINE generalized_gradient_template
 !!!TEMPLATE!!!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
-END MODULE solvent
+END MODULE generalized
 !--------------------------------------------------------------------

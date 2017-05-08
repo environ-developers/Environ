@@ -409,6 +409,7 @@ MODULE environ_input
      SUBROUTINE read_environ(nelec,nspin,nat,ntyp,atom_label,assume_isolated,ibrav)
        !
        USE environ_base, ONLY : set_environ_base
+       USE electrostatic_base, ONLY : set_electrostatic_base, set_electrostatic_environ
        !
        CHARACTER(len=80), INTENT(IN) :: assume_isolated
        INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp, ibrav

@@ -13,7 +13,7 @@ MODULE generate_boundary
   !
   PRIVATE
   !
-  PUBLIC :: epsilonfunct, depsilonfunct, generate_dielectric, generate_theta, generate_volume, generate_dvoldrho
+  PUBLIC :: epsilonfunct, depsilonfunct, d2epsilonfunct, boundary_of_density
   !
 CONTAINS
 !--------------------------------------------------------------------

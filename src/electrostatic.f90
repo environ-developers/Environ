@@ -37,6 +37,8 @@ CONTAINS
     ! ... Calculates the electrostatic embedding contribution to the
     !     Kohn-Sham potential
     !
+    USE generalized, ONLY : generalized_gradient
+    !
     IMPLICIT NONE
     !
     ! ... Declares variables

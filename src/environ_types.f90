@@ -2,6 +2,7 @@ MODULE environ_types
 
   USE kinds,       ONLY : DP
   USE constants,   ONLY : rydberg_si, bohr_radius_si, amu_si, fpi
+  USE mp,          ONLY : mp_sum
 
   TYPE environ_cell
 
@@ -1001,10 +1002,11 @@ CONTAINS
 
   END SUBROUTINE update_environ_electrons
 
-  SUBROUTINE destroy_environ_electrons( electrons )
+  SUBROUTINE destroy_environ_electrons( lflag, electrons )
 
     IMPLICIT NONE
 
+    LOGICAL, INTENT(IN) :: lflag
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
 
     CALL destroy_environ_density( electrons%density )

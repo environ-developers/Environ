@@ -112,6 +112,8 @@ MODULE electrostatic_base
            core_, dielectric_core_, ifdtype_, nfdpoint_,      &
            bcindex_, bcplus_, bcminus_ )
       !
+      USE fd_gradient, ONLY : init_fd_gradient
+      !
       IMPLICIT NONE
       !
       CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
@@ -196,6 +198,9 @@ MODULE electrostatic_base
          END SELECT
          !
       END SELECT
+      !
+      IF ( core .EQ. 'fd' .OR. dielectric_core .EQ. 'fd' ) &
+           & CALL init_fd_gradient(ifdtype, nfdpoint, ncfd, icfd )
       !
       RETURN
       !
