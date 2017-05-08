@@ -26,6 +26,8 @@ MODULE electrostatic_base
   !
   CHARACTER (LEN=80) ::            &
        problem
+  INTEGER ::                       &
+       maxiter = 200
   REAL (DP) ::                     &
        tolvelect,                  &
        tolrhoaux

@@ -67,6 +67,28 @@ MODULE environ_types
 
   END TYPE environ_gradient
 
+  TYPE environ_hessian
+
+     ! Optionally have an associated logical status
+
+     LOGICAL :: update = .FALSE.
+
+     ! Optionally have an associated label, used for printout and debugs
+
+     CHARACTER( LEN=80 ) :: label = " "
+
+     ! Each quantity in real-space is associated with its definition domain
+
+     TYPE( environ_cell ), POINTER :: cell => NULL()
+
+     ! The quantity in real-space, local to each processor
+
+     REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: of_r
+
+     REAL( DP ), DIMENSION(:), ALLOCATABLE :: laplacian
+
+  END TYPE environ_hessian
+
   TYPE environ_functions
 
      INTEGER :: type
@@ -549,6 +571,88 @@ CONTAINS
     RETURN
 
   END SUBROUTINE destroy_environ_gradient
+!----------------------------------------------------------------------------------------------------------------------------------------
+!- HESSIAN ------------------------------------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------------------------------------------
+  SUBROUTINE create_environ_hessian(hessian)
+
+    IMPLICIT NONE
+
+    TYPE( environ_hessian ), INTENT(INOUT) :: hessian
+    CHARACTER (LEN=80) :: sub_name = 'destroy_environ_hessian'
+
+    NULLIFY(hessian%cell)
+    IF ( ALLOCATED( hessian%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( hessian%laplacian ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+
+    RETURN
+
+  END SUBROUTINE create_environ_hessian
+
+  SUBROUTINE init_environ_hessian( cell, hessian )
+
+    IMPLICIT NONE
+
+    TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
+    TYPE( environ_hessian ), INTENT(INOUT) :: hessian
+    CHARACTER( LEN=80 ) :: sub_name = 'init_environ_hessian'
+
+    hessian%update = .FALSE.
+
+    IF ( ASSOCIATED( hessian%cell ) ) CALL errore(sub_name,'Trying to associate an associated object',1)
+    hessian%cell => cell
+
+    IF ( ALLOCATED( hessian%of_r ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
+    ALLOCATE(hessian%of_r(3,3,hessian%cell%nnr))
+    hessian%of_r = 0.D0
+
+    IF ( ALLOCATED( hessian%laplacian ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
+    ALLOCATE(hessian%laplacian(hessian%cell%nnr))
+    hessian%laplacian = 0.D0
+
+    RETURN
+
+  END SUBROUTINE init_environ_hessian
+
+  SUBROUTINE update_hessian_laplacian(hessian)
+
+    IMPLICIT NONE
+
+    TYPE( environ_hessian ), INTENT(INOUT) :: hessian
+    INTEGER, POINTER :: ir_end
+
+    ir_end => hessian % cell % ir_end
+    hessian%laplacian(1:ir_end) = hessian%of_r(1,1,1:ir_end)**2 + &
+         & hessian%of_r(2,2,1:ir_end)**2 + hessian%of_r(3,3,1:ir_end)**2 
+
+    RETURN
+
+  END SUBROUTINE update_hessian_laplacian
+
+  SUBROUTINE destroy_environ_hessian(hessian)
+
+    IMPLICIT NONE
+
+    TYPE( environ_hessian ), INTENT(INOUT) :: hessian
+    CHARACTER (LEN=80) :: sub_name = 'destroy_environ_hessian'
+
+    hessian%update = .FALSE.
+
+    IF (.NOT.ASSOCIATED(hessian%cell)) &
+         & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+    NULLIFY(hessian%cell)
+
+    IF (.NOT.ALLOCATED(hessian%of_r)) &
+         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+    DEALLOCATE( hessian%of_r )
+
+    IF (.NOT.ALLOCATED(hessian%laplacian)) &
+         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+    DEALLOCATE( hessian%laplacian )
+
+    RETURN
+
+  END SUBROUTINE destroy_environ_hessian
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- IONS ---------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------

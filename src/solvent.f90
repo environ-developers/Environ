@@ -16,9 +16,13 @@
 MODULE solvent
 !--------------------------------------------------------------------
 
-  USE kinds,     ONLY : DP
+  USE environ_types
+  USE environ_base, ONLY : verbose, environ_unit
+  USE electrostatic_base, ONLY : auxiliary, preconditioner, solver, &
+                                 maxiter, tolvelect
   USE io_global, ONLY : stdout
   USE constants, ONLY : pi, tpi, fpi
+  USE control_flags, ONLY : tddfpt
 
   IMPLICIT NONE
 
@@ -36,15 +40,19 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 
   IMPLICIT NONE
 
+  TYPE( environ_charges ), INTENT(IN) :: charges
+  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
+  TYPE( environ_density ), INTENT(INOUT) :: potential
+
   CHARACTER*20 :: sub_name = ' generalized_gradient '
 
   CALL start_clock( 'calc_vsolv' )
 
-  SELECT CASE auxiliary
+  SELECT CASE ( auxiliary )
 
   CASE ( 'none' )
 
-     SELECT CASE preconditioner
+     SELECT CASE ( preconditioner )
 
      CASE ( 'none' )
 
@@ -95,9 +103,9 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
   IMPLICIT NONE
 
-  TYPE( environ_charges ), INTENT(IN) :: charges
-  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
-  TYPE( environ_potential ), INTENT(INOUT) :: potential
+  TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+  TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
+  TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
   INTEGER, POINTER :: n
   TYPE( environ_cell ), POINTER :: cell
@@ -105,20 +113,23 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   TYPE( environ_gradient ), POINTER :: gradeps
 
   INTEGER :: iter
-  REAL( DP ) :: rz, rzold, alpha, beta, pAp
-  TYPE( environ_density ) :: r, z, p, Ap
+  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, deltar
+  TYPE( environ_density ) :: r, z, p, Ap, l
+  TYPE( environ_gradient ) :: g
+
+  CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_none'
 
   ! ... Check that fields have the same defintion domain
 
-  IF ( .NOT. ASSOCIATED(charges%total%cell,dielectric%epsilon%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-  IF ( .NOT. ASSOCIATED(charges%total%cell,potential%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-  cell => charges%total%cell
+  cell => charges%density%cell
 
   ! ... Aliases
 
-  b => charges % total
+  b => charges % density
   eps => dielectric % epsilon
   gradeps => dielectric % gradient
   x => potential
@@ -130,6 +141,9 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   CALL init_environ_density( cell, p )
   CALL init_environ_density( cell, Ap )
 
+  CALL init_environ_gradient( cell, g )
+  CALL init_environ_density( cell, l )
+
   ! ... Starting guess from new input and previous solution(s)
 
   x%of_r = 0.D0
@@ -137,7 +151,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   z = r ! no preconditioner
   p = z
   rzold = scalar_product_environ_density( r, z )
-  IF ( rz .LT. 1.D-30 ) THEN
+  IF ( rzold .LT. 1.D-30 ) THEN
      WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
      STOP
   ENDIF
@@ -147,14 +161,16 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   DO iter = 1, maxiter
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
+9002 FORMAT(' Iteration # ',i10)
 
        ! ... Apply operator to conjugate direction
 
-       CALL external_hessian(p,g,h)
-       Ap%of_r(:) = eps%of_r(:)*(h%of_r(1,1,:)**2+h%of_r(2,2,:)**2+h%of_r(3,3,:)**2) + &
-                  & graeps%of_r(1,:)*g%of_r(1,:) + &
-                  & graeps%of_r(2,:)*g%of_r(2,:) + &
-                  & graeps%of_r(3,:)*g%of_r(3,:)
+       CALL external_gradient(p%of_r,g%of_r)
+       CALL exteranl_laplacian(p%of_r,l%of_r)
+       Ap%of_r(:) = eps%of_r(:)*l%of_r(:) + &
+                  & gradeps%of_r(1,:)*g%of_r(1,:) + &
+                  & gradeps%of_r(2,:)*g%of_r(2,:) + &
+                  & gradeps%of_r(3,:)*g%of_r(3,:)
 
        ! ... Step downhill
 
@@ -167,12 +183,15 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
        ! ... If residual is small enough exit
 
        deltar = quadratic_mean_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tol
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolvelect
+9004   FORMAT(' deltarho = ',E14.6,' tol = ',E14.6)
        IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
-         IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-         EXIT
+          IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
+9005      FORMAT(' Charges are converged, exit!')
+          EXIT
        ELSE IF ( iter .EQ. maxiter ) THEN
          WRITE(stdout,9006)
+9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
        ! ... Apply preconditioner to new state
@@ -197,6 +216,15 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
     ENDDO
 
     IF (.not.tddfpt.AND.verbose.GE.1) WRITE(stdout, 9000) deltar, iter
+9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
+
+    CALL destroy_environ_density( l )
+    CALL destroy_environ_gradient( g )
+
+    CALL destroy_environ_density( r )
+    CALL destroy_environ_density( z )
+    CALL destroy_environ_density( p )
+    CALL destroy_environ_density( Ap )
 
   RETURN
 
@@ -209,34 +237,37 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
   IMPLICIT NONE
 
-  TYPE( environ_charges ), INTENT(IN) :: charges
-  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
-  TYPE( environ_potential ), INTENT(INOUT) :: potential
+  TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+  TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
+  TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
   INTEGER, POINTER :: n
   TYPE( environ_cell ), POINTER :: cell
-  TYPE( environ_density ), POINTER :: x, b, eps
+  TYPE( environ_density ), POINTER :: x, b, eps, factsqrt
   TYPE( environ_gradient ), POINTER :: gradeps
 
   INTEGER :: iter
-  REAL( DP ) :: rz, rzold, alpha, beta, pAp
-  TYPE( environ_density ) :: r, z, p, Ap
+  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, deltar
+  TYPE( environ_density ) :: r, z, p, Ap, invsqrt
+
+  CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_sqrt'
 
   ! ... Check that fields have the same defintion domain
 
-  IF ( .NOT. ASSOCIATED(charges%total%cell,dielectric%epsilon%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-  IF ( .NOT. ASSOCIATED(charges%total%cell,potential%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-  cell => charges%total%cell
+  cell => charges%density%cell
 
   ! ... Aliases
 
-  b => charges % total
+  b => charges % density
   eps => dielectric % epsilon
   factsqrt => dielectric % factsqrt
-  invsqrt => dielectric % invsqrt
   x => potential
+  CALL init_environ_density( cell, invsqrt )
+  invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
 
   ! ... Create and initialize local variables
 
@@ -257,7 +288,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
      CALL poisson_direct( z, z )
      z%of_r(:) = z%of_r(:) * invsqrt%of_r(:)
 
-     r%of_r(:) = factsqrt(:) * ( x%of_r(:) - p%of_r(:) )
+     r%of_r(:) = factsqrt%of_r(:) * ( x%of_r(:) - p%of_r(:) )
      deltar = quadratic_mean_environ_density( r )
      IF ( deltar .LT. 1.D-02 ) THEN
         x%of_r(:) = p%of_r(:)
@@ -281,11 +312,11 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
      CALL poisson_direct( z, z )
      z%of_r(:) = z%of_r(:) * invsqrt%of_r(:)
 
-  ELSE
+  ENDIF
 
   p = z
   rzold = scalar_product_environ_density( r, z )
-  IF ( rz .LT. 1.D-30 ) THEN
+  IF ( rzold .LT. 1.D-30 ) THEN
      WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
      STOP
   ENDIF
@@ -295,6 +326,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
   DO iter = 1, maxiter
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
+9002 FORMAT(' Iteration # ',i10)
 
        ! ... Apply operator to conjugate direction
 
@@ -311,12 +343,15 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
        ! ... If residual is small enough exit
 
        deltar = quadratic_mean_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tol
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolvelect
+       9004 FORMAT(' deltarho = ',E14.6,' tol = ',E14.6)
        IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
-         IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-         EXIT
+          IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
+          9005 FORMAT(' Charges are converged, exit!')
+          EXIT
        ELSE IF ( iter .EQ. maxiter ) THEN
          WRITE(stdout,9006)
+9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
        ! ... Apply preconditioner to new state
@@ -345,6 +380,13 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
     IF (.not.tddfpt.AND.verbose.GE.1) WRITE(stdout, 9000) deltar, iter
 9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
+    CALL destroy_environ_density( r )
+    CALL destroy_environ_density( z )
+    CALL destroy_environ_density( p )
+    CALL destroy_environ_density( Ap )
+
+    CALL destroy_environ_density(invsqrt)
+
   RETURN
 
 !--------------------------------------------------------------------
@@ -358,7 +400,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!  TYPE( environ_charges ), INTENT(IN) :: charges
 !!!TEMPLATE!!!  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
-!!!TEMPLATE!!!  TYPE( environ_potential ), INTENT(INOUT) :: potential
+!!!TEMPLATE!!!  TYPE( environ_density ), INTENT(INOUT) :: potential
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!  INTEGER, POINTER :: n
 !!!TEMPLATE!!!  TYPE( environ_cell ), POINTER :: cell
@@ -366,20 +408,20 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!  TYPE( environ_gradient ), POINTER :: gradeps
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!  INTEGER :: iter
-!!!TEMPLATE!!!  REAL( DP ) :: rz, rzold, alpha, beta, pAp
+!!!TEMPLATE!!!  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, deltar
 !!!TEMPLATE!!!  TYPE( environ_density ) :: r, z, p, Ap
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!  ! ... Check that fields have the same defintion domain
 !!!TEMPLATE!!!
-!!!TEMPLATE!!!  IF ( .NOT. ASSOCIATED(charges%total%cell,dielectric%epsilon%cell) ) &
+!!!TEMPLATE!!!  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
 !!!TEMPLATE!!!       & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-!!!TEMPLATE!!!  IF ( .NOT. ASSOCIATED(charges%total%cell,potential%cell) ) &
+!!!TEMPLATE!!!  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
 !!!TEMPLATE!!!       & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-!!!TEMPLATE!!!  cell => charges%total%cell
+!!!TEMPLATE!!!  cell => charges%density%cell
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!  ! ... Aliases
 !!!TEMPLATE!!!
-!!!TEMPLATE!!!  b => charges % total
+!!!TEMPLATE!!!  b => charges % density
 !!!TEMPLATE!!!  eps => dielectric % epsilon
 !!!TEMPLATE!!!  gradeps => dielectric % gradient
 !!!TEMPLATE!!!  x => potential
@@ -398,7 +440,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!  z = r ! no preconditioner
 !!!TEMPLATE!!!  p = z
 !!!TEMPLATE!!!  rzold = scalar_product_environ_density( r, z )
-!!!TEMPLATE!!!  IF ( rz .LT. 1.D-30 ) THEN
+!!!TEMPLATE!!!  IF ( rzold .LT. 1.D-30 ) THEN
 !!!TEMPLATE!!!     WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
 !!!TEMPLATE!!!     STOP
 !!!TEMPLATE!!!  ENDIF
@@ -413,9 +455,9 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!       CALL external_hessian(p,g,h)
 !!!TEMPLATE!!!       Ap%of_r(:) = eps%of_r(:)*(h%of_r(1,1,:)**2+h%of_r(2,2,:)**2+h%of_r(3,3,:)**2) + &
-!!!TEMPLATE!!!                  & graeps%of_r(1,:)*g%of_r(1,:) + &
-!!!TEMPLATE!!!                  & graeps%of_r(2,:)*g%of_r(2,:) + &
-!!!TEMPLATE!!!                  & graeps%of_r(3,:)*g%of_r(3,:)
+!!!TEMPLATE!!!                  & gradeps%of_r(1,:)*g%of_r(1,:) + &
+!!!TEMPLATE!!!                  & gradeps%of_r(2,:)*g%of_r(2,:) + &
+!!!TEMPLATE!!!                  & gradeps%of_r(3,:)*g%of_r(3,:)
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!       ! ... Step downhill
 !!!TEMPLATE!!!
@@ -428,7 +470,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!       ! ... If residual is small enough exit
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!       deltar = quadratic_mean_environ_density(r)
-!!!TEMPLATE!!!       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tol
+!!!TEMPLATE!!!       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolvelect
 !!!TEMPLATE!!!       IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
 !!!TEMPLATE!!!         IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
 !!!TEMPLATE!!!         EXIT
