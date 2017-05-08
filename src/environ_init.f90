@@ -17,7 +17,7 @@ MODULE environ_init
 PRIVATE
 !
 PUBLIC :: environ_initbase, environ_initcell, environ_initions, &
-     & environ_initelectrons, environ_clean
+     & environ_initelectrons, environ_initpotential, environ_clean
 
 CONTAINS
 !
@@ -75,7 +75,7 @@ CONTAINS
       e2_ = 2.D0
       IF ( PRESENT(e2) ) e2_ = e2
       !
-      CALL init_environ_cell( n1, n2, n3, ibrav, omega, at, nnr, ir_end, comm, me, root, cell )
+      CALL init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
       !
       ! ... Create local storage for base potential, that needs to be modified
       !
@@ -295,7 +295,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      INTEGER, INTENT( IN )     :: nelec, nspin, nnr
+      REAL( DP ), INTENT( IN )  :: nelec
+      INTEGER, INTENT( IN )     :: nspin, nnr
       REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
       !
       electrons%update = .TRUE.

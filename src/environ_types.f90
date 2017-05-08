@@ -149,6 +149,8 @@ MODULE environ_types
      INTEGER :: number = 0
      INTEGER :: nspin = 1
 
+     REAL( DP ) :: nelec
+
      TYPE( environ_density ) :: density
 
      REAL( DP ) :: charge = 0.0_DP
@@ -340,13 +342,13 @@ CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- CELL ---------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, omega, at, nnr, ir_end, comm, me, root, cell )
+  SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
 
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: n1, n2, n3, ibrav
     INTEGER, INTENT(IN) :: nnr, ir_end, comm, me, root
-    REAL( DP ), INTENT(IN) :: omega, at(3,3)
+    REAL( DP ), INTENT(IN) :: alat, omega, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
 
@@ -354,6 +356,7 @@ CONTAINS
     cell % n2 = n2
     cell % n3 = n3
     cell % ibrav = ibrav
+    cell % alat = alat
     cell % omega = omega
     cell % at = at
 
@@ -966,7 +969,8 @@ CONTAINS
 
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: nelec, nspin, nnr
+    REAL( DP ), INTENT(IN) :: nelec
+    INTEGER, INTENT(IN) :: nspin, nnr
     REAL( DP ), DIMENSION(nnr,nspin), INTENT(IN) :: rho
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
 
@@ -987,9 +991,10 @@ CONTAINS
 
     ! Update and check integral of electronic density
 
-    electrons%number = nelec
+    electrons%nelec = nelec
+    electrons%number = INT(nelec)
     electrons%charge = integrate_environ_density( electrons%density )
-    IF ( ABS(electrons%charge-DBLE(electrons%number)) .GT. tol ) &
+    IF ( ABS(electrons%charge-electrons%nelec) .GT. tol ) &
          & CALL errore(sub_name,'Missmatch in integrated electronic charge',1)
 
     RETURN

@@ -3,10 +3,8 @@
 # plugin_int_forces
 
 sed '/Environ MODULES BEGIN/ a\
-!Environ patch \
-  USE environ_base,  ONLY : env_static_permittivity, env_dielectric_regions, rhopol \
-  USE environ_base,  ONLY : env_external_charges, rhoexternal \
-  USE environ_main,  ONLY : calc_fenviron \
+!Environ patch\
+  USE environ_main,  ONLY : calc_fenviron\
 !Environ patch
 ' plugin_int_forces.f90 > tmp.1
 
@@ -17,93 +15,93 @@ sed '/Environ VARIABLES BEGIN/ a\
 ' tmp.1 > tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-  IF (use_environ) THEN \
-    ! \
-    ALLOCATE(force_tmp(3,nat)) \
-    ALLOCATE(force_environ(3,nat)) \
-    ! \
-    force_environ=0.0_dp \
-    ! \
-    IF(do_comp_mt) THEN \
-      force_tmp=0.0_dp \
-      ALLOCATE(auxr(dfftp%nnr)) \
-      ALLOCATE(auxg(ngm)) \
-      auxg = CMPLX(0.0_dp,0.0_dp) \
-      auxr = CMPLX(0.0_dp,0.0_dp) \
-      if(env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) & \
-        auxr = CMPLX(rhopol(:),0.0, kind=DP) \
-      if(env_external_charges .GT. 0) & \
-        auxr = auxr + CMPLX(rhoexternal(:),0.0, kind=DP) \
-      CALL fwfft ("Dense", auxr, dfftp) \
-      auxg(:)=auxr(nl(:)) \
-      CALL wg_corr_force(.false.,omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, & \
-                        1, auxg, force_tmp) \
-      force_environ = force_environ + force_tmp \
-      DEALLOCATE(auxr,auxg) \
-      IF ( iverbosity > 0 ) THEN \
-        WRITE( stdout, 9001 ) \
-        DO na = 1, nat \
-           WRITE( stdout, 9035 ) na, ityp(na), ( force_tmp(ipol,na), ipol = 1, 3 ) \
-        END DO \
-      ENDIF \
-    ENDIF \
-    ! ... Computes here the solvent contribution \
-    ! \
-    IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN \
-      force_tmp=0.0_dp \
-      CALL force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl, & \
-                     g, rhopol, nl, 1, gstart, gamma_only, vloc, & \
-                     force_tmp ) \
-      force_environ = force_environ + force_tmp \
-      IF ( iverbosity > 0 ) THEN \
-        WRITE( stdout, 9002 ) \
-        DO na = 1, nat \
-           WRITE( stdout, 9035 ) na, ityp(na), ( force_tmp(ipol,na), ipol = 1, 3 ) \
-        END DO \
-      ENDIF \
-    ENDIF \
-    ! \
-    ! ... Computes here the external charges contribution \
-    ! \
-    IF ( env_external_charges .GT. 0 ) THEN \
-      force_tmp = 0.0_DP \
-      CALL force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl, & \
-                   g, rhoexternal, nl, 1, gstart, gamma_only, vloc, & \
-                   force_tmp ) \
-      force_environ = force_environ + force_tmp \
-      IF ( iverbosity > 0 ) THEN \
-        WRITE( stdout, 9003 ) \
-        DO na = 1, nat \
-           WRITE( stdout, 9035 ) na, ityp(na), ( force_tmp(ipol,na), ipol = 1, 3 ) \
-        END DO \
-      ENDIF \
-    ENDIF \
-    ! \
-    ! ... Add the other environment contributions \
-    ! \
-    CALL calc_fenviron( dfftp%nnr, nspin, nat, force_environ ) \
-    ! \
-    DEALLOCATE(force_tmp) \
-    ! \
-    IF ( iverbosity > 0 ) THEN \
-      WRITE( stdout, 9004 ) \
-      DO na = 1, nat \
-         WRITE( stdout, 9035 ) na, ityp(na), ( force_environ(ipol,na), ipol = 1, 3 ) \
-      END DO \
-      WRITE( stdout, * ) \
-    ENDIF \
-    ! \
-    force = force_environ \
-    ! \
-    DEALLOCATE(force_environ) \
-  END IF \
-  ! \
-9001 FORMAT(5x,"The MT-Environ correction contrib. to forces") \
-9002 FORMAT(5x,"The dielectric solvent contribution to forces") \
-9003 FORMAT(5x,"The external charges contribution to forces") \
-9004 FORMAT(5x,"The global environment contribution to forces") \
-9035 FORMAT(5X,"atom ",I4," type ",I2,"   force = ",3F14.8) \
+!Environ patch\
+  IF (use_environ) THEN\
+    !\
+    ALLOCATE(force_tmp(3,nat))\
+    ALLOCATE(force_environ(3,nat))\
+    !\
+    force_environ=0.0_dp\
+    !\
+!!!TMP!!!    IF(do_comp_mt) THEN \
+!!!TMP!!!      force_tmp=0.0_dp \
+!!!TMP!!!      ALLOCATE(auxr(dfftp%nnr)) \
+!!!TMP!!!      ALLOCATE(auxg(ngm)) \
+!!!TMP!!!      auxg = CMPLX(0.0_dp,0.0_dp) \
+!!!TMP!!!      auxr = CMPLX(0.0_dp,0.0_dp) \
+!!!TMP!!!      if(env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) & \
+!!!TMP!!!        auxr = CMPLX(rhopol(:),0.0, kind=DP) \
+!!!TMP!!!      if(env_external_charges .GT. 0) & \
+!!!TMP!!!        auxr = auxr + CMPLX(rhoexternal(:),0.0, kind=DP) \
+!!!TMP!!!      CALL fwfft ("Dense", auxr, dfftp) \
+!!!TMP!!!      auxg(:)=auxr(nl(:)) \
+!!!TMP!!!      CALL wg_corr_force(.false.,omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, & \
+!!!TMP!!!                        1, auxg, force_tmp) \
+!!!TMP!!!      force_environ = force_environ + force_tmp \
+!!!TMP!!!      DEALLOCATE(auxr,auxg) \
+!!!TMP!!!      IF ( iverbosity > 0 ) THEN \
+!!!TMP!!!        WRITE( stdout, 9001 ) \
+!!!TMP!!!        DO na = 1, nat \
+!!!TMP!!!           WRITE( stdout, 9035 ) na, ityp(na), ( force_tmp(ipol,na), ipol = 1, 3 ) \
+!!!TMP!!!        END DO \
+!!!TMP!!!      ENDIF \
+!!!TMP!!!    ENDIF \
+!!!TMP!!!    ! ... Computes here the solvent contribution \
+!!!TMP!!!    ! \
+!!!TMP!!!    IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN \
+!!!TMP!!!      force_tmp=0.0_dp \
+!!!TMP!!!      CALL force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl, & \
+!!!TMP!!!                     g, rhopol, nl, 1, gstart, gamma_only, vloc, & \
+!!!TMP!!!                     force_tmp ) \
+!!!TMP!!!      force_environ = force_environ + force_tmp \
+!!!TMP!!!      IF ( iverbosity > 0 ) THEN \
+!!!TMP!!!        WRITE( stdout, 9002 ) \
+!!!TMP!!!        DO na = 1, nat \
+!!!TMP!!!           WRITE( stdout, 9035 ) na, ityp(na), ( force_tmp(ipol,na), ipol = 1, 3 ) \
+!!!TMP!!!        END DO \
+!!!TMP!!!      ENDIF \
+!!!TMP!!!    ENDIF \
+!!!TMP!!!    ! \
+!!!TMP!!!    ! ... Computes here the external charges contribution \
+!!!TMP!!!    ! \
+!!!TMP!!!    IF ( env_external_charges .GT. 0 ) THEN \
+!!!TMP!!!      force_tmp = 0.0_DP \
+!!!TMP!!!      CALL force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl, & \
+!!!TMP!!!                   g, rhoexternal, nl, 1, gstart, gamma_only, vloc, & \
+!!!TMP!!!                   force_tmp ) \
+!!!TMP!!!      force_environ = force_environ + force_tmp \
+!!!TMP!!!      IF ( iverbosity > 0 ) THEN \
+!!!TMP!!!        WRITE( stdout, 9003 ) \
+!!!TMP!!!        DO na = 1, nat \
+!!!TMP!!!           WRITE( stdout, 9035 ) na, ityp(na), ( force_tmp(ipol,na), ipol = 1, 3 ) \
+!!!TMP!!!        END DO \
+!!!TMP!!!      ENDIF \
+!!!TMP!!!    ENDIF \
+    !\
+    ! ... Add the other environment contributions\
+    !\
+    CALL calc_fenviron( nat, force_environ )\
+    !\
+    DEALLOCATE(force_tmp)\
+    !\
+    IF ( iverbosity > 0 ) THEN\
+      WRITE( stdout, 9004 )\
+      DO na = 1, nat\
+         WRITE( stdout, 9035 ) na, ityp(na), ( force_environ(ipol,na), ipol = 1, 3 )\
+      END DO\
+      WRITE( stdout, * )\
+    ENDIF\
+    !\
+    force = force_environ\
+    !\
+    DEALLOCATE(force_environ)\
+  END IF\
+  !\
+9001 FORMAT(5x,"The MT-Environ correction contrib. to forces")\
+9002 FORMAT(5x,"The dielectric solvent contribution to forces")\
+9003 FORMAT(5x,"The external charges contribution to forces")\
+9004 FORMAT(5x,"The global environment contribution to forces")\
+9035 FORMAT(5X,"atom ",I4," type ",I2,"   force = ",3F14.8)\
 !Environ patch
 ' tmp.2 > tmp.1
 
@@ -221,16 +219,15 @@ mv tmp.2 plugin_print_energies.f90
 # plugin_init_ions
 
 sed '/Environ MODULES BEGIN/ a\
-!Environ patch \
-USE cell_base,            ONLY : alat \
-USE ions_base,            ONLY : zv, nat, nsp, ityp, tau \
-USE environ_init,         ONLY : environ_initions \
+!Environ patch\
+USE ions_base,            ONLY : zv, nat, nsp, ityp, tau\
+USE environ_init,         ONLY : environ_initions\
 !Environ patch
 ' plugin_init_ions.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-  IF ( use_environ ) call environ_initions( dfftp%nnr, nat, nsp, ityp, zv, tau, alat ) \
+!Environ patch\
+  IF ( use_environ ) call environ_initions( dfftp%nnr, nat, nsp, ityp, zv, tau )\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -239,16 +236,15 @@ mv tmp.2 plugin_init_ions.f90
 # plugin_init_cell
 
 sed '/Environ MODULES BEGIN/ a\
-!Environ patch \
-USE cell_base,            ONLY : at, alat, omega, ibrav \
-USE environ_init,         ONLY : environ_initcell \
+!Environ patch\
+USE cell_base,            ONLY : at, omega\
+USE environ_init,         ONLY : environ_initcell\
 !Environ patch
 ' plugin_init_cell.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-  IF ( use_environ ) call environ_initcell( dfftp%nnr, dfftp%nr1, dfftp%nr2, dfftp%nr3, & \
-                           ibrav, omega, alat, at ) \
+!Environ patch\
+  IF ( use_environ ) call environ_initcell( omega, at )\
 !Environ patch
 ' tmp.1 > tmp.2
 
