@@ -37,10 +37,14 @@ CONTAINS
       !
       USE kinds,        ONLY : DP
       USE environ_base, ONLY : verbose, environ_unit, e2_ => e2,        &
+                               cell, electrons, charges,                &
                                vzero, deenviron,                        &
+                               lelectrostatic, eelectrostatic,          &
                                velectrostatic, vsoftcavity,             &
-                               lelectrostatic, lelectrolyte,            &
-                               lsolvent, lstatic, loptical,             &
+                               lelectrolyte, electrolyte,               &
+                               lsolvent, solvent, lstatic, static,      &
+                               loptical, optical,                       &
+                               lexternals, externals,                   &
                                lsurface, ecavity, vcavity,              &
                                lvolume, epressure, vpressure
       !
@@ -127,6 +131,8 @@ CONTAINS
       !
       IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
       !
+      IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
+      !
       RETURN
       !
 !--------------------------------------------------------------------
@@ -174,7 +180,7 @@ CONTAINS
                                 lstatic, loptical, static, optical, &
                                 lexternals, externals
       ! ... Cell-related updates
-      USE dielectric,     ONLY : update_dielectric_regions
+      USE dielectric,     ONLY : update_environ_dielectric
 !      USE extcharges,    ONLY : update_external_charges
       !
       IMPLICIT NONE
@@ -203,7 +209,7 @@ CONTAINS
    END SUBROUTINE environ_initcell
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE environ_initions( nnr, nat, nsp, ityp, zv, tau )
+      SUBROUTINE environ_initions( nnr, nat, ntyp, ityp, zv, tau )
 !--------------------------------------------------------------------
 !
 ! Initialize the ions-related quantities to be used in the Environ
@@ -214,13 +220,18 @@ CONTAINS
       ! ... Declares modules
       USE kinds,             ONLY : DP
       USE environ_base,      ONLY : verbose, environ_unit, cell, &
-                                  & ions, system
+                                    ions, electrons, system,     &
+                                    lsolvent, solvent,           &
+                                    lstatic, static,             &
+                                    loptical, optical,           &
+                                    lelectrolyte, electrolyte,    &
+                                    lrigidcavity
       !
       IMPLICIT NONE
       !
-      INTEGER, INTENT( IN )     :: nnr, nat, nsp
+      INTEGER, INTENT( IN )     :: nnr, nat, ntyp
       INTEGER, INTENT( IN )     :: ityp( nat )
-      REAL ( DP ), INTENT( IN ) :: zv( nsp )
+      REAL ( DP ), INTENT( IN ) :: zv( ntyp )
       REAL ( DP ), INTENT( IN ) :: tau( 3, nat )
       !
       INTEGER :: ia, dim, axis, icor, max_ntyp
@@ -276,8 +287,11 @@ CONTAINS
 !
       ! ... Declares modules
       USE kinds,             ONLY : DP
-      USE environ_base,      ONLY : verbose, environ_unit, cell, &
-                                  & ions, electrons, system
+      USE environ_base,      ONLY : electrons, lsolvent, solvent, &
+                                    lstatic, static,              &
+                                    loptical, optical,            &
+                                    lelectrolyte, electrolyte,    &
+                                    lsoftcavity
       !
       IMPLICIT NONE
       !
@@ -333,8 +347,13 @@ CONTAINS
       USE environ_base, ONLY : environ_unit, vzero,                  &
                                lelectrostatic, velectrostatic,       &
                                vsoftcavity,                          &
-                               vcavity,                              &
-                               vpressure
+                               lsurface, vcavity,                    &
+                               lvolume, vpressure,                   &
+                               ions, electrons, system, charges,     &
+                               lexternals, externals,                &
+                               lstatic, static, loptical, optical,   &
+                               lsolvent, solvent,                    &
+                               lelectrolyte, electrolyte
       !
       ! Local clean up subroutines for the different contributions
       !
@@ -350,19 +369,19 @@ CONTAINS
       INQUIRE( unit=environ_unit, opened= opnd )
       IF ( opnd ) CLOSE(unit=environ_unit)
       !
-      IF ( ALLOCATED( vzero ) )  DEALLOCATE( vzero )
+      CALL destroy_environ_density( vzero )
       !
       ! ... environ_base variables
       !
       IF ( lelectrostatic ) THEN
-         IF ( ALLOCATED( velectrostatic ) ) DEALLOCATE( velectrostatic )
-         IF ( ALLOCATED( vsoftcavity ) ) DEALLOCATE( vsoftcavity )
+         CALL destroy_environ_density( velectrostatic )
+         CALL destroy_environ_density( vsoftcavity )
       END IF
       IF ( lsurface ) THEN
-         IF ( ALLOCATED( vcavity ) ) DEALLOCATE( vcavity )
+         CALL destroy_environ_density( vcavity )
       END IF
       IF ( lvolume ) THEN
-         IF ( ALLOCATED( vpressure ) ) DEALLOCATE( vpressure )
+         CALL destroy_environ_density( vpressure )
       END IF
       !
       ! ... destroy derived types which were allocated in input

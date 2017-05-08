@@ -17,7 +17,7 @@ MODULE pressure
   !
   ! ... The variables needed to compute PV energy and potential corrections
   !
-  USE kinds,         ONLY : DP
+  USE environ_types
   USE environ_base,  ONLY : env_pressure, e2
   USE environ_debug, ONLY : write_cube
   !
@@ -40,6 +40,8 @@ CONTAINS
     !
     TYPE( environ_boundary ), INTENT(IN) :: boundary
     TYPE( environ_density ), INTENT(INOUT) :: potential
+    !
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_vpressure'
     !
     CALL start_clock ('calc_vpre')
     !
@@ -72,7 +74,7 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     REAL( DP ), INTENT(OUT) :: epressure
     !
     REAL( DP )              :: volume
@@ -80,13 +82,13 @@ CONTAINS
     !
     REAL( DP ), POINTER :: factor
     TYPE( environ_cell ), POINTER :: cell
-    TYPE( environ_density ), POINTER :: scaled
+    REAL( DP ), DIMENSION(:), POINTER :: scaled
     !
     CALL start_clock ('calc_epre')
     !
     cell => boundary % scaled % cell
     scaled => boundary % scaled % of_r
-    factor => boundart % scaling_factor
+    factor => boundary % scaling_factor
     !
     ! ... Computes step function and volume
     !

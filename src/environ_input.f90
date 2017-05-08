@@ -75,7 +75,7 @@ MODULE environ_input
         ! additional potentials
         CHARACTER( LEN = 80 ) :: environ_type = 'input'
         CHARACTER( LEN = 80 ) :: environ_type_allowed(5)
-        DATA enviton_type_allowed / 'vacuum', 'water', 'water-cation', &
+        DATA environ_type_allowed / 'vacuum', 'water', 'water-cation', &
           'water-anion', 'input' /
         ! keyword to set up all the environment parameters at once to a specific set
         ! vacuum = all the flags are off (perm=1.d0, surf=0.0, pres=0.0)
@@ -310,7 +310,7 @@ MODULE environ_input
         ! ioncc = in a nested scheme, solve the outer (ioncc) cycle in terms of the auxiliary charge
         CHARACTER( LEN = 80 ) :: step_type = 'optimal'
         CHARACTER( LEN = 80 ) :: step_type_allowed(3)
-        DATA step_allowed / 'optimal', 'input', 'random' /
+        DATA step_type_allowed / 'optimal', 'input', 'random' /
         ! how to choose the step size in gradient descent algorithms or iterative mixing
         ! optimal = step size that minimize the cost function on the descent direction
         ! input   = fixed step size as defined in input (step keyword)
@@ -333,7 +333,7 @@ MODULE environ_input
 ! Preconditioner's parameters
 !
         CHARACTER( LEN = 80 ) :: preconditioner = 'right'
-        CHARACTER( LEN = 80 ) :: preconditioner_allowed(4)
+        CHARACTER( LEN = 80 ) :: preconditioner_allowed(3)
         DATA preconditioner_allowed / 'none', 'sqrt', 'left' /
         ! type of preconditioner
         ! none      = no preconditioner
@@ -364,7 +364,7 @@ MODULE environ_input
 !
         CHARACTER( LEN = 80 ) :: dielectric_core = 'fd'
         CHARACTER( LEN = 80 ) :: dielectric_core_allowed(3)
-        DATA core_allowed / 'fft', 'fd', 'analytic' /
+        DATA dielectric_core_allowed / 'fft', 'fd', 'analytic' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
         ! fft       = fast Fourier transforms (default)
         ! fd        = finite differences in real space
@@ -382,7 +382,7 @@ MODULE environ_input
 !
 ! Boundary conditions
 !
-        INTEGER, DIMENSION(3) :: bc_index = (/ 0, 0, 0 /)
+        INTEGER, DIMENSION(3) :: bcindex = (/ 0, 0, 0 /)
         ! boundary conditions on each main axis
         ! 0 = periodic
         ! 1 = free ! SOME CASES ONLY
@@ -395,25 +395,24 @@ MODULE environ_input
         ! in internal units
 
         NAMELIST /electrostatic/                 &
-             problem, tolvelec, tolrhoaux,       &
+             problem, tolvelect, tolrhoaux,      &
              solver, auxiliary, step_type, step, &
              mix_type, mix, ndiis,               &
              preconditioner,                     &
              screening_type, screening,          &
              core, dielectric_core,              &
              ifdtype, nfdpoint,                  &
-             bc_index, bcplus, bcminus
+             bcindex, bcplus, bcminus
 
   CONTAINS
      !
      SUBROUTINE read_environ(nelec,nspin,nat,ntyp,atom_label,assume_isolated,ibrav)
        !
        USE environ_base, ONLY : set_environ_base
-       USE environ_init, ONLY : environ_initions_allocate
        !
        CHARACTER(len=80), INTENT(IN) :: assume_isolated
-       INTEGER, INTENT(IN) :: nat, ntyp, ibrav
-       CHARACTER(len=3), DIMENSION(*), INTENT(IN) :: atom_label
+       INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp, ibrav
+       CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
        !
        INTEGER, EXTERNAL :: find_free_unit
        !
@@ -462,7 +461,6 @@ MODULE environ_input
                                 stern_mode, stern_distance, stern_spread,   &
                                 cion, cionmax, rion, zion, rhopb,           &
                                 solvent_temperature,                        &
-                                env_periodicity, pbc_correction, cell_axis, &
                                 env_external_charges,                       &
                                 extcharge_charge, extcharge_dim,            &
                                 extcharge_axis, extcharge_pos,              &
@@ -651,9 +649,9 @@ MODULE environ_input
        ifdtype  = 1
        nfdpoint = 2
        !
-       bcindex = ( / 0, 0, 0 /)
-       bcplus  = ( / 0.D0, 0.D0, 0.D0 / )
-       bcminus = ( / 0.D0, 0.D0, 0.D0 / )
+       bcindex = (/ 0, 0, 0 /)
+       bcplus  = (/ 0.D0, 0.D0, 0.D0 /)
+       bcminus = (/ 0.D0, 0.D0, 0.D0 /)
        !
        RETURN
        !
@@ -765,7 +763,7 @@ MODULE environ_input
        !
        RETURN
        !
-     END SUBROUTINE environ_bcast
+     END SUBROUTINE electrostatic_bcast
      !
      !=----------------------------------------------------------------------=!
      !
