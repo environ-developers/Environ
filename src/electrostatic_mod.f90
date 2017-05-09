@@ -215,8 +215,17 @@ MODULE electrostatic_base
 
       IMPLICIT NONE
 
-      IF ( lstatic ) CALL init_environ_dielectric_flags( need_gradient, need_factsqrt, need_gradlog, static )
-      IF ( loptical ) CALL init_environ_dielectric_flags( need_gradient, need_factsqrt, need_gradlog, optical )
+      IF ( lstatic ) THEN
+         static%need_gradient = need_gradient
+         static%need_factsqrt = need_factsqrt
+         static%need_gradlog = need_gradlog
+      ENDIF
+
+      IF ( loptical ) THEN
+         optical%need_gradient = need_gradient
+         optical%need_factsqrt = need_factsqrt
+         optical%need_gradlog = need_gradlog
+      ENDIF
 
       RETURN
 

@@ -1,14 +1,123 @@
 MODULE boundary
 
   USE environ_types
+  USE functions
 
   IMPLICIT NONE
 
-  SAVE
+  PRIVATE
 
-  PUBLIC :: update_environ_boundary
+  PUBLIC :: create_environ_boundary, init_environ_boundary_first, &
+       & init_environ_boundary_second, update_environ_boundary, destroy_environ_boundary
 
 CONTAINS
+
+  SUBROUTINE create_environ_boundary(boundary)
+
+    IMPLICIT NONE
+
+    TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+
+    CHARACTER( LEN=80 ) :: sub_name = 'create_environ_boundary'
+
+    boundary%update_status = 0
+
+    CALL create_environ_density( boundary%scaled )
+    CALL create_environ_density( boundary%dscaled )
+    CALL create_environ_density( boundary%d2scaled )
+
+    boundary%need_electrons = .FALSE.
+    NULLIFY( boundary%electrons )
+    boundary%need_ions = .FALSE.
+    NULLIFY( boundary%ions   )
+    boundary%need_theta = .FALSE.
+    CALL create_environ_density( boundary%theta )
+
+    IF ( ALLOCATED( boundary%soft_spheres ) ) &
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
+
+    CALL create_environ_density( boundary%density )
+
+    RETURN
+
+  END SUBROUTINE create_environ_boundary
+
+  SUBROUTINE init_environ_boundary_first( mode, constant, type, &
+       & rhomax, rhomin, tbeta, need_theta, delta, alpha, &
+       & softness, ions, boundary )
+
+    IMPLICIT NONE
+
+    CHARACTER( LEN=80 ), INTENT(IN) :: mode
+    REAL( DP ), INTENT(IN) :: constant
+    INTEGER, INTENT(IN) :: type
+    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta
+    LOGICAL, INTENT(IN) :: need_theta
+    REAL( DP ), INTENT(IN) :: delta
+    REAL( DP ), INTENT(IN) :: alpha
+    REAL( DP ), INTENT(IN) :: softness
+    TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
+    TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+
+    INTEGER :: i
+    REAL( DP ) :: radius
+
+    boundary%mode = mode
+    boundary%type = type
+    boundary%rhomax = rhomax
+    boundary%rhomin = rhomin
+    boundary%fact = LOG( rhomax / rhomin )
+    boundary%rhozero = ( rhomax + rhomin ) * 0.5_DP
+    boundary%tbeta = tbeta
+    boundary%deltarho = rhomax - rhomin
+
+    IF ( constant .GT. 1.D0 ) THEN
+       boundary%constant = constant
+       boundary%scaling_factor = -1.D0/(constant-1.D0)
+    ELSE
+       boundary%constant = 2.D0
+       boundary%scaling_factor = -1.D0
+    ENDIF
+
+    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' )
+
+    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
+    IF ( boundary%need_ions ) boundary%ions => ions
+    boundary%alpha = alpha
+    boundary%softness = softness
+    IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) THEN
+       ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
+       DO i = 1, boundary%ions%number
+          radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
+          boundary%soft_spheres(i) = environ_functions(2,0,1,radius,1.0_DP,boundary%softness,&
+                  & boundary%ions%tau(:,i))
+       ENDDO
+    ENDIF
+
+    boundary%need_theta = need_theta
+    boundary%deltatheta = delta
+
+    RETURN
+
+  END SUBROUTINE init_environ_boundary_first
+
+  SUBROUTINE init_environ_boundary_second( cell, boundary )
+
+    IMPLICIT NONE
+
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+
+    CALL init_environ_density( cell, boundary%scaled )
+    CALL init_environ_density( cell, boundary%dscaled )
+    CALL init_environ_density( cell, boundary%d2scaled )
+
+    IF ( boundary%need_electrons ) CALL init_environ_density( cell, boundary%density )
+    IF ( boundary%need_theta) CALL init_environ_density( cell, boundary%theta )
+
+    RETURN
+
+  END SUBROUTINE init_environ_boundary_second
 
   SUBROUTINE update_environ_boundary( bound )
 
@@ -104,5 +213,45 @@ CONTAINS
     RETURN
 
   END SUBROUTINE update_environ_boundary
+
+  SUBROUTINE destroy_environ_boundary(lflag, boundary)
+
+    IMPLICIT NONE
+
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+    CHARACTER (LEN=80) :: sub_name = 'destroy_environ_boundary'
+
+    IF ( lflag ) THEN
+
+       ! These components were allocated first, destroy only if lflag = .TRUE.
+
+       IF ( boundary%need_ions ) THEN
+          IF (.NOT.ASSOCIATED(boundary%ions)) &
+               & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+          NULLIFY(boundary%ions)
+          IF ( .NOT. boundary%need_electrons ) &
+               & CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
+       ELSE
+          IF (ASSOCIATED(boundary%ions))&
+               & CALL errore(sub_name,'Found an unexpected associated object',1)
+       ENDIF
+
+       IF ( boundary%need_electrons ) THEN
+          IF (ASSOCIATED(boundary%electrons)) NULLIFY(boundary%electrons)
+       ENDIF
+
+    ENDIF
+
+    CALL destroy_environ_density( boundary%scaled )
+    CALL destroy_environ_density( boundary%dscaled )
+    CALL destroy_environ_density( boundary%d2scaled )
+
+    IF ( boundary%need_electrons ) CALL destroy_environ_density( boundary%density )
+    IF ( boundary%need_theta ) CALL destroy_environ_density( boundary%theta )
+
+    RETURN
+
+  END SUBROUTINE destroy_environ_boundary
 
 END MODULE boundary

@@ -1,8 +1,12 @@
-!!--------------------------------------------------------------------
-!MODULE ioncc
-!!--------------------------------------------------------------------
-!
-!  USE kinds,          ONLY: DP
+!--------------------------------------------------------------------
+MODULE electrolyte_utils
+!--------------------------------------------------------------------
+
+  USE environ_types
+
+  USE dielectric
+  USE boundary
+  
 !  USE constants,      ONLY: k_boltzmann_ry, pi, tpi, fpi
 !  USE io_global,      ONLY: stdout
 !  USE mp,             ONLY: mp_sum
@@ -18,9 +22,9 @@
 !  USE periodic,       ONLY: calc_vperiodic
 !  USE environ_debug,  ONLY: write_cube
 !  USE generate_f_of_rho, ONLY: epsilonfunct
-!
-!  IMPLICIT NONE
-!
+
+  IMPLICIT NONE
+
 !  INTEGER :: naxis, shift, cell_max, cell_min, n1d, nr1, nr2, nr3
 !  REAL( DP ) :: area, darea, axis_length, dx, xstern, deltastern
 !
@@ -43,16 +47,118 @@
 !
 !  INTEGER :: nsp
 !  REAL( DP ), ALLOCATABLE :: cb(:), z(:), mu(:)
-!
-!  SAVE
-!
-!  PRIVATE
-!
-!  PUBLIC :: ioncc_initbase, ioncc_initcell, ioncc_clean, calc_vioncc, &
-!            calc_eioncc, ioncc_charge
-!
-!CONTAINS
-!
+
+  PRIVATE
+
+  PUBLIC :: create_environ_electrolyte, init_environ_electrolyte_first, &
+       & init_environ_electrolyte_second, destroy_environ_electrolyte
+
+CONTAINS
+
+  SUBROUTINE create_environ_electrolyte( electrolyte )
+
+    IMPLICIT NONE
+
+    TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
+
+    CHARACTER( LEN=80 ) :: sub_name = 'create_environ_electrolyte'
+
+    CALL create_environ_boundary( electrolyte%boundary )
+    CALL create_environ_density( electrolyte%density )
+
+    IF ( ALLOCATED( electrolyte%ioncctype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+
+    RETURN
+
+  END SUBROUTINE create_environ_electrolyte
+
+  SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
+             & tbeta, distance, spread, alpha, softness, ions, temperature, cbulk, &
+             &  cmax, radius, z, electrolyte )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: ntyp, stype
+    CHARACTER( LEN=80 ), INTENT(IN) :: mode
+    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, distance, spread, alpha, softness, temperature
+    REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, cmax, radius, z
+    TYPE( environ_ions ), INTENT(IN) :: ions
+    TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
+
+    INTEGER :: ityp
+    REAL( DP ) :: neutral
+    CHARACTER( LEN=80 ) :: sub_name = 'init_environ_electrolyte_first'
+
+    electrolyte%ntyp = ntyp
+
+    electrolyte%temperature = temperature
+
+    CALL init_environ_boundary_first( mode, 1.D0, stype, rhomax, rhomin, tbeta, .FALSE., &
+         & 0.D0, alpha, softness, ions, electrolyte%boundary )
+
+    ALLOCATE( electrolyte%ioncctype(ntyp) )
+
+    neutral = 0.D0
+    DO ityp = 1, ntyp
+       ! If the radius is provided in input, compute cmax from it
+       electrolyte%ioncctype(ityp)%cmax = cmax(ityp) * bohr_radius_si**3 / amu_si
+       IF ( cmax(ityp) .EQ. 0.D0 .AND. radius(ityp) .GT. 0.D0 ) &
+            & electrolyte%ioncctype(ityp)%cmax  = 0.64D0 * 3.D0 / fpi / radius(ityp)**3
+       ! Double check that the bulk and max concentrations in input are compatible
+       IF ( cbulk(ityp) .GT. 0.D0 .AND. cmax(ityp) .LT. cbulk(ityp) ) &
+            & call errore (sub_name,'cmax should be at least greater than cbulk',1)
+       electrolyte%ioncctype(ityp)%cbulk = cbulk(ityp) * bohr_radius_si**3 / amu_si
+       electrolyte%ioncctype(ityp)%radius = radius(ityp)
+       electrolyte%ioncctype(ityp)%z = z(ityp)
+       neutral = neutral + cbulk(ityp)*z(ityp)
+    END DO
+
+    IF ( neutral .GT. 1.D-8 ) CALL errore(sub_name,'Bulk electrolyte is not neutral',1)
+
+    RETURN
+
+  END SUBROUTINE init_environ_electrolyte_first
+
+  SUBROUTINE init_environ_electrolyte_second( cell, electrolyte )
+
+    IMPLICIT NONE
+
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
+
+    CALL init_environ_boundary_second( cell, electrolyte%boundary )
+
+    CALL init_environ_density( cell, electrolyte%density )
+
+    RETURN
+
+  END SUBROUTINE init_environ_electrolyte_second
+
+  SUBROUTINE destroy_environ_electrolyte( lflag, electrolyte )
+
+    IMPLICIT NONE
+
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
+    CHARACTER( LEN=80 ) :: sub_name = 'destroy_environ_electrolyte'
+
+    IF ( lflag ) THEN
+
+       ! These components were allocated first, destroy only if lflag = .TRUE.
+
+       IF ( .NOT. ALLOCATED( electrolyte%ioncctype ) ) &
+            & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+       DEALLOCATE( electrolyte%ioncctype )
+
+    ENDIF
+
+    CALL destroy_environ_boundary( lflag, electrolyte%boundary )
+    CALL destroy_environ_density( electrolyte%density )
+
+    RETURN
+
+  END SUBROUTINE destroy_environ_electrolyte
+
 !!--------------------------------------------------------------------
 !  SUBROUTINE ioncc_initbase( ifdtype_, nfdpoint_, nnr )
 !!--------------------------------------------------------------------
@@ -3280,6 +3386,6 @@
 !!--------------------------------------------------------------------
 ! END FUNCTION ioncc_charge
 !!--------------------------------------------------------------------
-!!--------------------------------------------------------------------
-!END MODULE ioncc
-!!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+END MODULE electrolyte_utils
+!--------------------------------------------------------------------

@@ -12,10 +12,10 @@ MODULE dielectric
 !--------------------------------------------------------------------
 
   USE environ_types
-  USE environ_base,       ONLY: verbose, environ_unit, ions, e2
+  USE environ_base,       ONLY : verbose, environ_unit, ions, e2
   USE electrostatic_base, ONLY : dielectric_core, nfdpoint, icfd, ncfd
-  USE environ_debug,      ONLY: write_cube
-  USE functions,          ONLY: density_of_functions
+  USE environ_debug,      ONLY : write_cube
+  USE functions
   !
   IMPLICIT NONE
   !
@@ -23,13 +23,88 @@ MODULE dielectric
   !
   PRIVATE
   !
-  PUBLIC :: update_environ_dielectric
+  PUBLIC :: create_environ_dielectric, init_environ_dielectric_first, &
+       & init_environ_dielectric_second, &
+       & update_environ_dielectric, destroy_environ_dielectric
   !
 CONTAINS
   !
-!--------------------------------------------------------------------
+  SUBROUTINE create_environ_dielectric(dielectric)
+
+    IMPLICIT NONE
+
+    TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
+
+    CHARACTER( LEN=80 ) :: sub_name = 'create_environ_dielectric'
+
+    dielectric%constant = 1.0_DP
+
+    IF ( ALLOCATED( dielectric%regions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+
+    CALL create_environ_density( dielectric%background  )
+    CALL create_environ_density( dielectric%epsilon     )
+
+    NULLIFY( dielectric%boundary )
+
+    dielectric%need_gradient = .FALSE.
+    CALL create_environ_gradient( dielectric%gradient )
+    dielectric%need_factsqrt = .FALSE.
+    CALL create_environ_density( dielectric%factsqrt )
+    dielectric%need_gradlog = .FALSE.
+    CALL create_environ_gradient( dielectric%gradlog )
+    RETURN
+
+  END SUBROUTINE create_environ_dielectric
+
+  SUBROUTINE init_environ_dielectric_first( constant, nregions, &
+             & epsregion_dim, epsregion_axis, epsregion_pos, epsregion_width, &
+             & epsregion_spread, epsregion_eps, boundary, dielectric )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: nregions
+    INTEGER, DIMENSION(nregions), INTENT(IN) :: epsregion_dim, epsregion_axis
+    REAL( DP ) :: constant
+    REAL( DP ), DIMENSION(nregions), INTENT(IN) :: epsregion_width, epsregion_spread, epsregion_eps
+    REAL( DP ), DIMENSION(3,nregions), INTENT(IN) :: epsregion_pos
+    TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
+    TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
+
+    dielectric%constant = constant
+
+    dielectric%nregions = nregions
+    IF ( dielectric%nregions .GT. 0 ) &
+         & CALL create_environ_functions( dielectric%nregions, 2, epsregion_dim, &
+         & epsregion_axis, epsregion_pos, epsregion_spread, epsregion_width, &
+         & epsregion_eps, dielectric%regions )
+
+    dielectric%boundary => boundary
+
+    RETURN
+
+  END SUBROUTINE init_environ_dielectric_first
+
+  SUBROUTINE init_environ_dielectric_second( cell, dielectric )
+
+    IMPLICIT NONE
+
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
+
+    CHARACTER( LEN=80 ) :: sub_name = 'init_environ_dielectric_second'
+
+    CALL init_environ_density( cell, dielectric%background )
+    CALL init_environ_density( cell, dielectric%epsilon )
+
+    IF ( dielectric%need_gradient ) CALL init_environ_gradient( cell, dielectric%gradient )
+    IF ( dielectric%need_factsqrt ) CALL init_environ_density( cell, dielectric%factsqrt )
+    IF ( dielectric%need_gradlog ) CALL init_environ_gradient( cell, dielectric%gradlog )
+
+    RETURN
+
+  END SUBROUTINE init_environ_dielectric_second
+
   SUBROUTINE update_environ_dielectric( dielectric )
-!--------------------------------------------------------------------
   !
   IMPLICIT NONE
   !
@@ -104,9 +179,44 @@ CONTAINS
   !
   RETURN
   !
-!--------------------------------------------------------------------
   END SUBROUTINE update_environ_dielectric
-!--------------------------------------------------------------------
+
+  SUBROUTINE destroy_environ_dielectric(lflag,dielectric)
+
+    IMPLICIT NONE
+
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
+    CHARACTER (LEN=80) :: sub_name = 'destroy_environ_dielectric'
+
+    IF ( lflag ) THEN
+
+       ! These components were allocated first, destroy only if lflag = .TRUE.
+
+       IF ( dielectric%nregions .GT. 0 ) THEN
+          CALL destroy_environ_functions( dielectric%nregions, dielectric%regions )
+       ELSE
+          IF ( ALLOCATED(dielectric%regions) ) &
+               & CALL errore(sub_name,'Found unexpected allocated object',1)
+       END IF
+
+       IF (.NOT.ASSOCIATED(dielectric%boundary)) &
+            & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+       NULLIFY( dielectric%boundary )
+
+    END IF
+
+    CALL destroy_environ_density( dielectric%background )
+    CALL destroy_environ_density( dielectric%epsilon )
+
+    IF ( dielectric%need_gradient ) CALL destroy_environ_gradient( dielectric%gradient )
+    IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%factsqrt )
+    IF ( dielectric%need_gradlog ) CALL destroy_environ_gradient( dielectric%gradlog )
+
+    RETURN
+
+  END SUBROUTINE destroy_environ_dielectric
+
 !--------------------------------------------------------------------
   SUBROUTINE generate_epsilon_gradient( nregions, epsilon, gradient, &
        & regions, background, boundary )

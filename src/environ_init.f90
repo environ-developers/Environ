@@ -16,6 +16,13 @@ MODULE environ_init
   !
   USE environ_types
   !
+  USE ions_utils
+  USE boundary
+  USE dielectric
+  USE electrolyte_utils
+  USE functions
+  USE externals_utils
+  !
   PRIVATE
   !
   PUBLIC :: environ_initbase, environ_initcell, environ_initions, &

@@ -5,9 +5,66 @@ MODULE functions
 
   PRIVATE
 
-  PUBLIC :: density_of_functions, gradient_of_functions, laplacian_of_functions
+  PUBLIC :: create_environ_functions, destroy_environ_functions, &
+       & density_of_functions, gradient_of_functions, laplacian_of_functions
 
 CONTAINS
+
+  SUBROUTINE create_environ_functions( n, type, dimm, axis, pos, width, spreadd, volume, f )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: n
+    INTEGER, INTENT(IN) :: type
+    INTEGER, DIMENSION(:), INTENT(IN) :: dimm, axis
+    REAL( DP ), DIMENSION(n), INTENT(IN) :: width, spreadd, volume
+    REAL( DP ), DIMENSION(3,n), TARGET, INTENT(IN) :: pos
+    TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: f
+
+    INTEGER :: i
+
+    ALLOCATE( f(n) )
+    DO i = 1, n
+       f(i)%type = type
+       f(i)%dim  = dimm(i)
+       f(i)%axis = axis(i)
+       f(i)%spread = spreadd(i)
+       f(i)%width = width(i)
+       f(i)%volume = volume(i)
+       f(i)%pos => pos(:,i)
+    ENDDO
+
+    RETURN
+
+  END SUBROUTINE create_environ_functions
+
+  SUBROUTINE destroy_environ_functions( n, f )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: n
+    TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: f
+
+    CHARACTER( LEN=80 ) :: sub_name = 'destroy_environ_functions'
+
+    INTEGER :: i
+
+    IF ( .NOT. ALLOCATED( f ) ) &
+         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+    IF ( SIZE(f) .NE. n ) &
+         & CALL errore(sub_name,'Inconsistent size of allocated object',1)
+
+    DO i = 1, n
+       IF ( .NOT. ASSOCIATED( f(i)%pos ) ) &
+            & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+       NULLIFY( f(i)%pos )
+    ENDDO
+
+    DEALLOCATE( f )
+
+    RETURN
+
+  END SUBROUTINE destroy_environ_functions
 
   SUBROUTINE density_of_functions( nfunctions, functions, density )
 

@@ -198,6 +198,12 @@ MODULE environ_base
                         epsregion_spread, epsregion_width )
         !
         USE control_flags,   ONLY : tddfpt
+        USE ions_utils
+        USE externals_utils
+        USE boundary
+        USE dielectric
+        USE electrolyte_utils
+        !
         IMPLICIT NONE
         CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
         LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
