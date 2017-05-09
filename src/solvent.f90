@@ -19,14 +19,13 @@ MODULE generalized
   USE environ_types
   USE environ_base, ONLY : verbose, environ_unit
   USE electrostatic_base, ONLY : auxiliary, preconditioner, solver, &
-                                 maxiter, tolvelect
+       maxiter, tolvelect
   USE io_global, ONLY : stdout
   USE constants, ONLY : pi, tpi, fpi
   USE control_flags, ONLY : tddfpt
+  USE poisson, ONLY : poisson_direct
 
   IMPLICIT NONE
-
-  SAVE
 
   PRIVATE
 

@@ -22,7 +22,8 @@ environ_debug.o                       \
 electrostatic.o                       \
 electrostatic_mod.o                   \
 boundary.o                            \
-functions.o 
+functions.o                           \
+poisson.o 
 
 all : libenviron.a
 

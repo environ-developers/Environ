@@ -37,6 +37,7 @@ CONTAINS
     ! ... Calculates the electrostatic embedding contribution to the
     !     Kohn-Sham potential
     !
+    USE poisson, ONLY : poisson_direct
     USE generalized, ONLY : generalized_gradient
     !
     IMPLICIT NONE
@@ -248,26 +249,6 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_felectrostatic
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE poisson_direct( charges, potential )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( environ_charges ), INTENT(IN) :: charges
-    TYPE( environ_density ), INTENT(OUT) :: potential
-    !
-    REAL( DP ) :: edummy, cdummy
-    !
-    ! TO IMPLEMENT THE CASE OF nspin .NE. 1
-    !
-    CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE poisson_direct
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE electrostatic
