@@ -17,10 +17,9 @@ MODULE generalized
 !--------------------------------------------------------------------
 
   USE environ_types
-  USE environ_base, ONLY : verbose, environ_unit
+  USE environ_output
   USE electrostatic_base, ONLY : auxiliary, preconditioner, solver, &
        maxiter, tolvelect
-  USE io_global, ONLY : stdout
   USE constants, ONLY : pi, tpi, fpi
   USE control_flags, ONLY : tddfpt
   USE poisson, ONLY : poisson_direct
@@ -154,7 +153,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   p = z
   rzold = scalar_product_environ_density( r, z )
   IF ( rzold .LT. 1.D-30 ) THEN
-     WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
+     WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
      STOP
   ENDIF
 
@@ -192,7 +191,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 9005      FORMAT(' Charges are converged, exit!')
           EXIT
        ELSE IF ( iter .EQ. maxiter ) THEN
-         WRITE(stdout,9006)
+         WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
@@ -202,7 +201,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
        rznew = scalar_product_environ_density( r, z )
        IF ( rznew .LT. 1.D-30 ) THEN
-          WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
+          WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
           STOP
        ENDIF
 
@@ -217,7 +216,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(stdout, 9000) deltar, iter
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
 9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( l )
@@ -319,7 +318,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
   p = z
   rzold = scalar_product_environ_density( r, z )
   IF ( rzold .LT. 1.D-30 ) THEN
-     WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
+     WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
      STOP
   ENDIF
 
@@ -352,7 +351,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
           9005 FORMAT(' Charges are converged, exit!')
           EXIT
        ELSE IF ( iter .EQ. maxiter ) THEN
-         WRITE(stdout,9006)
+         WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
@@ -364,7 +363,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
        rznew = scalar_product_environ_density( r, z )
        IF ( rznew .LT. 1.D-30 ) THEN
-          WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
+          WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
           STOP
        ENDIF
 
@@ -379,7 +378,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(stdout, 9000) deltar, iter
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
 9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( r )
@@ -443,7 +442,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!  p = z
 !!!TEMPLATE!!!  rzold = scalar_product_environ_density( r, z )
 !!!TEMPLATE!!!  IF ( rzold .LT. 1.D-30 ) THEN
-!!!TEMPLATE!!!     WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
+!!!TEMPLATE!!!     WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
 !!!TEMPLATE!!!     STOP
 !!!TEMPLATE!!!  ENDIF
 !!!TEMPLATE!!!
@@ -477,7 +476,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!         IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
 !!!TEMPLATE!!!         EXIT
 !!!TEMPLATE!!!       ELSE IF ( iter .EQ. maxiter ) THEN
-!!!TEMPLATE!!!         WRITE(stdout,9006)
+!!!TEMPLATE!!!         WRITE(program_unit,9006)
 !!!TEMPLATE!!!       ENDIF
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!       ! ... Apply preconditioner to new state
@@ -486,7 +485,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!       rznew = scalar_product_environ_density( r, z )
 !!!TEMPLATE!!!       IF ( rznew .LT. 1.D-30 ) THEN
-!!!TEMPLATE!!!          WRITE(stdout,*)'ERROR: null step in gradient descent iteration'
+!!!TEMPLATE!!!          WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
 !!!TEMPLATE!!!          STOP
 !!!TEMPLATE!!!       ENDIF
 !!!TEMPLATE!!!
@@ -501,7 +500,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!    ENDDO
 !!!TEMPLATE!!!
-!!!TEMPLATE!!!    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(stdout, 9000) deltar, iter
+!!!TEMPLATE!!!    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!  RETURN
 !!!TEMPLATE!!!

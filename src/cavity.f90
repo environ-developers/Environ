@@ -22,7 +22,8 @@ MODULE cavity
   !     around the system.
   !
   USE environ_types
-  USE environ_base,  ONLY : verbose, env_surface_tension, e2
+  USE environ_output
+  USE environ_base,  ONLY : env_surface_tension, e2
   !
   IMPLICIT NONE
   !

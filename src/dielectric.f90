@@ -12,10 +12,10 @@ MODULE dielectric
 !--------------------------------------------------------------------
 
   USE environ_types
-  USE environ_base,       ONLY : verbose, environ_unit, ions, e2
-  USE electrostatic_base, ONLY : dielectric_core, nfdpoint, icfd, ncfd
-  USE environ_debug,      ONLY : write_cube
+  USE environ_output
   USE functions
+  USE environ_base, ONLY : e2
+  USE electrostatic_base, ONLY : dielectric_core, nfdpoint, icfd, ncfd
   !
   IMPLICIT NONE
   !
@@ -58,7 +58,8 @@ CONTAINS
 
   SUBROUTINE init_environ_dielectric_first( constant, nregions, &
              & epsregion_dim, epsregion_axis, epsregion_pos, epsregion_width, &
-             & epsregion_spread, epsregion_eps, boundary, dielectric )
+             & epsregion_spread, epsregion_eps, boundary, need_gradient, &
+             & need_factsqrt, need_gradlog, dielectric )
 
     IMPLICIT NONE
 
@@ -67,6 +68,7 @@ CONTAINS
     REAL( DP ) :: constant
     REAL( DP ), DIMENSION(nregions), INTENT(IN) :: epsregion_width, epsregion_spread, epsregion_eps
     REAL( DP ), DIMENSION(3,nregions), INTENT(IN) :: epsregion_pos
+    LOGICAL, INTENT(IN) :: need_gradient, need_factsqrt, need_gradlog
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
 
@@ -79,6 +81,10 @@ CONTAINS
          & epsregion_eps, dielectric%regions )
 
     dielectric%boundary => boundary
+
+    dielectric%need_gradient = need_gradient
+    dielectric%need_factsqrt = need_factsqrt
+    dielectric%need_gradlog = need_gradlog
 
     RETURN
 
@@ -139,7 +145,7 @@ CONTAINS
         ENDDO
         CALL destroy_environ_density( local )
         !
-        IF ( verbose .GE. 3 ) CALL write_cube( ions, dielectric%background )
+        IF ( verbose .GE. 3 ) CALL write_cube( dielectric%background )
         !
      ENDIF
      !
@@ -222,7 +228,6 @@ CONTAINS
        & regions, background, boundary )
 !--------------------------------------------------------------------
 
-    USE electrostatic_base, ONLY : dielectric_core
     USE fd_gradient, ONLY: calc_fd_gradient
     USE functions, ONLY: gradient_of_functions
 

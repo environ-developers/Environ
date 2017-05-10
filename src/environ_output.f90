@@ -11,14 +11,59 @@
 ! Original version by Oliviero Andreussi and Nicola Marzari
 !
 !--------------------------------------------------------------------
-MODULE environ_info
+MODULE environ_output
 !--------------------------------------------------------------------
 
-PRIVATE
+  USE environ_types
 
-PUBLIC :: environ_print_energies, environ_summary, environ_clock
+  SAVE
+
+  LOGICAL :: ionode = .TRUE.
+  INTEGER :: ionode_id
+
+  INTEGER :: comm
+
+  INTEGER :: program_unit
+  INTEGER :: environ_unit
+  INTEGER :: verbose
+
+  CHARACTER( LEN = 2 ) :: prog
+
+  PRIVATE
+
+  PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, &
+       & verbose, prog, set_environ_output, environ_print_energies, &
+       & environ_summary, environ_clock, write_cube
 
 CONTAINS
+!--------------------------------------------------------------------
+  SUBROUTINE set_environ_output( prog_, ionode_, ionode_id_, comm_, program_unit_ )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    CHARACTER( LEN=2 ), INTENT(IN) :: prog_
+    LOGICAL, INTENT(IN) :: ionode_
+    INTEGER, INTENT(IN) :: ionode_id_
+    INTEGER, INTENT(IN) :: comm_
+    INTEGER, INTENT(IN) :: program_unit_
+
+    INTEGER, EXTERNAL :: find_free_unit
+
+    ionode = ionode_
+    ionode_id = ionode_id_
+    comm = comm_
+
+    program_unit = program_unit_
+    environ_unit = find_free_unit()
+
+    prog = prog_
+
+    RETURN
+
+!--------------------------------------------------------------------
+  END SUBROUTINE set_environ_output
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
@@ -26,22 +71,21 @@ CONTAINS
       ! Write out the different Environ contributions to the energy.
       ! Called by electrons.f90
       !
-      USE io_global,    ONLY : stdout
       USE environ_base, ONLY : e2
       USE environ_base, ONLY : lelectrostatic, eelectrostatic, &
                                lsurface, ecavity, &
                                lvolume, epressure
       !
-      IF ( e2 .EQ. 2.D0 ) THEN
-        IF ( lelectrostatic ) WRITE( stdout, 9201 ) eelectrostatic
-        IF ( lsurface ) WRITE( stdout, 9202 ) ecavity
-        IF ( lvolume ) WRITE( stdout, 9203 ) epressure
-      ELSE IF ( e2 .EQ. 1.D0 ) THEN
-        IF ( lelectrostatic ) WRITE( stdout, 9301 ) eelectrostatic
-        IF ( lsurface ) WRITE( stdout, 9302 ) ecavity
-        IF ( lvolume ) WRITE( stdout, 9303 ) epressure
+      IF ( prog .EQ. 'PW' ) THEN
+        IF ( lelectrostatic ) WRITE( program_unit, 9201 ) eelectrostatic
+        IF ( lsurface ) WRITE( program_unit, 9202 ) ecavity
+        IF ( lvolume ) WRITE( program_unit, 9203 ) epressure
+      ELSE IF ( prog .EQ. 'CP' ) THEN
+        IF ( lelectrostatic ) WRITE( program_unit, 9301 ) eelectrostatic
+        IF ( lsurface ) WRITE( program_unit, 9302 ) ecavity
+        IF ( lvolume ) WRITE( program_unit, 9303 ) epressure
       ELSE
-        WRITE(stdout,*)'ERROR: wrong value of e2 in Environ'
+        WRITE(program_unit,*)'ERROR: wrong value of e2 in Environ'
         STOP
       ENDIF
       !
@@ -65,7 +109,6 @@ CONTAINS
       ! summarizing the input keywords (some info also on internal
       ! vs input units). Called by summary.f90
       !
-      USE io_global,        ONLY : stdout, ionode
       USE constants,        ONLY : rydberg_si, bohr_radius_si
       USE environ_base,     ONLY : environ_thr, solvent,                &
                                    env_static_permittivity,             &
@@ -79,41 +122,41 @@ CONTAINS
       !
       IF( ionode ) THEN
         !
-        WRITE( stdout, * )
+        WRITE( program_unit, * )
         !
-        WRITE( UNIT = stdout,                                          &
+        WRITE( UNIT = program_unit,                                          &
                FMT = '(/,5x, "Environ Module",                         &
                       &/,5x, "==============")' )
-        WRITE( stdout, '(/5X,"Please cite",&
+        WRITE( program_unit, '(/5X,"Please cite",&
          &/9X,"""O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, ",&
          &    "064102 (2012);""", &
          &/5X,"in publications or presentations arising from this work.",&
          &/)' )
         !
-        WRITE( UNIT = stdout, FMT = 9001 ) environ_thr
+        WRITE( UNIT = program_unit, FMT = 9001 ) environ_thr
         !
         IF ( solvent%type .EQ. 0 ) THEN
-          WRITE( UNIT = stdout, FMT = 9002 ) 'Fatteber-Gygi'
-          WRITE( UNIT = stdout, FMT = 9003 ) solvent%rhozero, solvent%tbeta
+          WRITE( UNIT = program_unit, FMT = 9002 ) 'Fatteber-Gygi'
+          WRITE( UNIT = program_unit, FMT = 9003 ) solvent%rhozero, solvent%tbeta
         ELSE IF ( solvent%type .EQ. 1 ) THEN
-          WRITE( UNIT = stdout, FMT = 9002 ) 'SCCS'
-          WRITE( UNIT = stdout, FMT = 9004 ) solvent%rhomax, solvent%rhomin
+          WRITE( UNIT = program_unit, FMT = 9002 ) 'SCCS'
+          WRITE( UNIT = program_unit, FMT = 9004 ) solvent%rhomax, solvent%rhomin
         ENDIF
         !
         IF ( env_static_permittivity .GT. 1.D0 ) THEN
-           WRITE( UNIT = stdout, FMT = 9005 ) env_static_permittivity
+           WRITE( UNIT = program_unit, FMT = 9005 ) env_static_permittivity
            IF (tddfpt) &
-         & WRITE( UNIT = stdout, FMT = 9006 ) env_optical_permittivity
-           WRITE( UNIT = stdout, FMT = 9007 ) TRIM( solvent%mode )
+         & WRITE( UNIT = program_unit, FMT = 9006 ) env_optical_permittivity
+           WRITE( UNIT = program_unit, FMT = 9007 ) TRIM( solvent%mode )
         END IF
         !
-        IF ( env_surface_tension .GT. 0.D0 ) WRITE( UNIT = stdout, FMT = 9010 )      &
+        IF ( env_surface_tension .GT. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9010 )      &
            env_surface_tension/1.D-3/bohr_radius_si**2*rydberg_si, env_surface_tension, solvent%deltatheta
         !
-        IF ( env_pressure .NE. 0.D0 ) WRITE( UNIT = stdout, FMT = 9011 )&
+        IF ( env_pressure .NE. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9011 )&
            env_pressure*rydberg_si/bohr_radius_si**3*1.D-9, env_pressure
         !
-        WRITE( stdout, * )
+        WRITE( program_unit, * )
         !
       END IF
       !
@@ -143,7 +186,7 @@ CONTAINS
       END SUBROUTINE environ_summary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE environ_clock( stdout )
+      SUBROUTINE environ_clock( )
 !--------------------------------------------------------------------
       !
       ! Write out the time informations of the Environ dependent
@@ -154,10 +197,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      INTEGER, INTENT(IN) :: stdout
-      !
-      WRITE( stdout, * )
-      WRITE( stdout, '(5X,"Environ routines")' )
+      WRITE( program_unit, * )
+      WRITE( program_unit, '(5X,"Environ routines")' )
       ! dielectric subroutines
       IF ( lelectrostatic ) THEN
          CALL print_clock ('calc_eelect')
@@ -183,7 +224,127 @@ CONTAINS
 !--------------------------------------------------------------------
       END SUBROUTINE environ_clock
 !--------------------------------------------------------------------
-!
 !--------------------------------------------------------------------
-END MODULE environ_info
+      SUBROUTINE write_cube( f, ions )
+!--------------------------------------------------------------------
+      !
+      USE kinds,          ONLY : DP
+      USE mp,             ONLY : mp_sum
+      USE fft_base,       ONLY : dfftp
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.1 QE-5.1.1 QE-5.1.2
+!      USE fft_base,       ONLY : grid_gather
+! Compatible with QE-5.2 QE-5.2.1
+!      USE fft_base,       ONLY : gather_grid
+! Compatible with QE-5.3 svn
+      USE scatter_mod,    ONLY : gather_grid
+! END BACKWARD COMPATIBILITY
+      !
+      IMPLICIT NONE
+      !
+      TYPE( environ_density ), TARGET, INTENT(IN) :: f
+      TYPE( environ_ions ), TARGET, OPTIONAL, INTENT(IN) :: ions
+      !
+      INTEGER                  :: ir, ir1, ir2, ir3, num
+      INTEGER                  :: ipol, iat, typ, count
+      INTEGER                  :: nr1x, nr2x, nr3x
+      INTEGER                  :: nr1, nr2, nr3
+      !
+      REAL( DP )               :: tmp, scale
+      REAL( DP ), ALLOCATABLE  :: flocal( : )
+      REAL( DP ), DIMENSION(3) :: origin
+      !
+      CHARACTER( LEN=80 ) :: filename
+      REAL( DP ), POINTER :: alat
+      REAL( DP ), DIMENSION(:,:), POINTER :: at
+      !
+      INTEGER :: nat
+      INTEGER, DIMENSION(:), POINTER :: ityp
+      REAL( DP ), DIMENSION(:,:), POINTER :: tau
+      !
+      nr1x = dfftp%nr1x
+      nr2x = dfftp%nr2x
+      nr3x = dfftp%nr3x
+      !
+      nr1 = dfftp%nr1
+      nr2 = dfftp%nr2
+      nr3 = dfftp%nr3
+      !
+      filename = f%label
+      !
+      alat => f%cell%alat
+      at => f%cell%at
+      !
+      IF ( PRESENT( ions ) ) THEN
+         nat = ions%number
+         ityp => ions%ityp
+         tau => ions%tau
+      ELSE
+         nat = 1
+      ENDIF
+      !
+      ALLOCATE( flocal( nr1x*nr2x*nr3x ) )
+#ifdef __MPI
+      flocal = 0.D0
+!Compatible with QE-5.1 QE-5.1.1 QE-5.1.2
+!      CALL grid_gather( f, flocal )
+!Compatible with QE-svn
+      CALL gather_grid( dfftp, f%of_r, flocal )
+      CALL mp_sum( flocal, comm )
+#else
+      flocal = f%of_r
+#endif
+      !
+      IF( ionode ) THEN
+        !
+        OPEN( 300, file = TRIM( filename ), status = 'unknown' )
+        !
+        origin=0.d0
+        scale=alat!*0.52917720859d0
+        WRITE(300,*)'CUBE FILE GENERATED BY PW.X'
+        WRITE(300,*)'OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z'
+        WRITE(300,'(i5,3f12.6)')nat,origin(1),origin(2),origin(3)
+        WRITE(300,'(i5,3f12.6)')nr1,(at(ipol,1)/DBLE(nr1)*scale,ipol=1,3)
+        WRITE(300,'(i5,3f12.6)')nr2,(at(ipol,2)/DBLE(nr2)*scale,ipol=1,3)
+        WRITE(300,'(i5,3f12.6)')nr3,(at(ipol,3)/DBLE(nr3)*scale,ipol=1,3)
+        IF ( PRESENT( ions ) ) THEN
+           DO iat=1,nat
+              typ=ityp(iat)
+              num=ions%iontype(typ)%atmnum
+              WRITE(300,'(i5,4f12.6)')num,0.d0,tau(1,iat)*scale,&
+                   tau(2,iat)*scale,tau(3,iat)*scale
+           ENDDO
+        ELSE
+           WRITE(300,'(i5,4f12.6)')1,0.d0,0.d0,0.d0,0.d0
+        ENDIF
+        count=0
+        DO ir1=1,nr1
+          DO ir2=1,nr2
+            DO ir3=1,nr3
+              count=count+1
+              ir = ir1 + ( ir2 -1 ) * nr1 + ( ir3 - 1 ) * nr1 * nr2
+              tmp = DBLE( flocal( ir ) )
+              IF (ABS(tmp).LT.1.D-99) tmp = 0.D0
+              IF (MOD(count,6).EQ.0) THEN
+                WRITE(300,'(e12.6,1x)')tmp
+              ELSE
+                WRITE(300,'(e12.6,1x)',advance='no')tmp
+              ENDIF
+            ENDDO
+          ENDDO
+        ENDDO
+        !
+        CLOSE( 300 )
+        !
+      END IF
+      !
+      DEALLOCATE( flocal )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END SUBROUTINE write_cube
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+END MODULE environ_output
 !--------------------------------------------------------------------

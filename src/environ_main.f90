@@ -16,8 +16,7 @@
 MODULE environ_main
   !
   USE environ_types
-  USE environ_base,   ONLY: ions
-  USE environ_debug,  ONLY: write_cube
+  USE environ_output
   !
 PRIVATE
 !
@@ -34,7 +33,7 @@ CONTAINS
       !     grid and added to vtot.
       !
       USE kinds,         ONLY : DP
-      USE environ_base,  ONLY : verbose, vzero, solvent,              &
+      USE environ_base,  ONLY : vzero, solvent,                       &
                                 lelectrostatic, velectrostatic,       &
                                 lsoftcavity, vsoftcavity,             &
                                 lsurface, vcavity,                    &
@@ -76,7 +75,7 @@ CONTAINS
 
         vcavity % of_r = 0.D0
         CALL calc_vcavity( solvent, vcavity )
-        IF ( verbose .GE. 3 ) CALL write_cube( ions, vcavity )
+        IF ( verbose .GE. 3 ) CALL write_cube( vcavity )
         vtot = vtot + vcavity % of_r
 
       ENDIF
@@ -87,7 +86,7 @@ CONTAINS
 
         vpressure % of_r = 0.D0
         CALL calc_vpressure( solvent, vpressure )
-        IF ( verbose .GE. 3 ) CALL write_cube( ions, vpressure )
+        IF ( verbose .GE. 3 ) CALL write_cube( vpressure )
         vtot = vtot + vpressure % of_r
 
       ENDIF
@@ -131,11 +130,11 @@ CONTAINS
 
          ENDIF
 
-         IF ( verbose .GE. 3 ) CALL write_cube( ions, velectrostatic )
+         IF ( verbose .GE. 3 ) CALL write_cube( velectrostatic )
          vtot = vtot + velectrostatic % of_r
 
          IF ( lsoftcavity ) THEN
-            IF ( verbose .GE. 3 ) CALL write_cube( ions, vsoftcavity )
+            IF ( verbose .GE. 3 ) CALL write_cube( vsoftcavity )
             vtot = vtot + vsoftcavity % of_r
          END IF
 

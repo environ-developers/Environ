@@ -17,10 +17,11 @@ MODULE environ_input
   USE kinds,      ONLY : DP
   USE parameters, ONLY : nsx
   !
-  USE io_global,  ONLY : ionode, ionode_id, stdout
   USE parser,     ONLY : field_count, read_line, get_field, parse_unit
   USE mp,         ONLY : mp_bcast
-  USE mp_images,  ONLY : intra_image_comm
+  !
+  USE environ_output, ONLY : ionode, ionode_id, comm, program_unit, &
+       & verbose_ => verbose, environ_unit
   !
   IMPLICIT NONE
   !
@@ -408,8 +409,8 @@ MODULE environ_input
      !
      SUBROUTINE read_environ(nelec,nspin,nat,ntyp,atom_label,assume_isolated,ibrav)
        !
-       USE environ_base, ONLY : set_environ_base
-       USE electrostatic_base, ONLY : set_electrostatic_base, set_electrostatic_environ
+       USE environ_init, ONLY : set_environ_base
+       USE electrostatic_base, ONLY : set_electrostatic_base
        !
        CHARACTER(len=80), INTENT(IN) :: assume_isolated
        INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp, ibrav
@@ -440,14 +441,27 @@ MODULE environ_input
        !
        CLOSE( environ_unit_input )
        !
+       ! ... Set verbosity and open debug file
+       !
+       verbose_ = verbose
+       !
+       IF ( verbose_ .GE. 1 ) &
+        OPEN(unit=environ_unit,file='environ.debug',status='unknown')
+       !
        ! ... Set module variables according to input
        !
+       CALL set_electrostatic_base ( problem, tolvelect, tolrhoaux, solver, &
+                                     auxiliary, step_type, step, mix_type,  &
+                                     ndiis, mix, preconditioner,            &
+                                     screening_type, screening, core,       &
+                                     dielectric_core, ifdtype, nfdpoint,    &
+                                     bcindex, bcplus, bcminus )
        !
        CALL set_environ_base  ( nelec, nspin,                               &
                                 nat, ntyp, atom_label, atomicspread,        &
                                 corespread, solvationrad,                   &
                                 assume_isolated, ibrav,                     &
-                                environ_restart, verbose, environ_thr,      &
+                                environ_restart, environ_thr,               &
                                 environ_nskip, environ_type,                &
                                 system_ntyp, system_dim, system_axis,       &
                                 stype, rhomax, rhomin, tbeta,               &
@@ -470,15 +484,6 @@ MODULE environ_input
                                 epsregion_eps, epsregion_dim,               &
                                 epsregion_axis, epsregion_pos,              &
                                 epsregion_spread, epsregion_width )
-       !
-       CALL set_electrostatic_base ( problem, tolvelect, tolrhoaux, solver, &
-                                     auxiliary, step_type, step, mix_type,  &
-                                     ndiis, mix, preconditioner,            &
-                                     screening_type, screening, core,       &
-                                     dielectric_core, ifdtype, nfdpoint,    &
-                                     bcindex, bcplus, bcminus )
-       !
-       CALL set_electrostatic_environ ( )
        !
        RETURN
        !
@@ -510,7 +515,7 @@ MODULE environ_input
        !
        ios = 0
        IF( ionode ) READ( environ_unit_input, environ, iostat = ios )
-       CALL mp_bcast( ios, ionode_id, intra_image_comm )
+       CALL mp_bcast( ios, ionode_id, comm )
        IF( ios /= 0 ) CALL errore( ' read_environ ', &
                                  & ' reading namelist environ ', ABS(ios) )
        !
@@ -530,7 +535,7 @@ MODULE environ_input
        !
        ios = 0
        IF( ionode ) READ( environ_unit_input, electrostatic, iostat = ios )
-       CALL mp_bcast( ios, ionode_id, intra_image_comm )
+       CALL mp_bcast( ios, ionode_id, comm )
        IF( ios /= 0 ) CALL errore( ' read_environ ', &
                                  & ' reading namelist electrostatic ', ABS(ios) )
        !
@@ -670,57 +675,57 @@ MODULE environ_input
        !
        IMPLICIT NONE
        !
-       CALL mp_bcast( environ_restart,            ionode_id, intra_image_comm )
-       CALL mp_bcast( verbose,                    ionode_id, intra_image_comm )
-       CALL mp_bcast( environ_thr,                ionode_id, intra_image_comm )
-       CALL mp_bcast( environ_nskip,              ionode_id, intra_image_comm )
-       CALL mp_bcast( environ_type,               ionode_id, intra_image_comm )
+       CALL mp_bcast( environ_restart,            ionode_id, comm )
+       CALL mp_bcast( verbose,                    ionode_id, comm )
+       CALL mp_bcast( environ_thr,                ionode_id, comm )
+       CALL mp_bcast( environ_nskip,              ionode_id, comm )
+       CALL mp_bcast( environ_type,               ionode_id, comm )
        !
-       CALL mp_bcast( system_ntyp,                ionode_id, intra_image_comm )
-       CALL mp_bcast( system_dim,                 ionode_id, intra_image_comm )
-       CALL mp_bcast( system_axis,                ionode_id, intra_image_comm )
+       CALL mp_bcast( system_ntyp,                ionode_id, comm )
+       CALL mp_bcast( system_dim,                 ionode_id, comm )
+       CALL mp_bcast( system_axis,                ionode_id, comm )
        !
-       CALL mp_bcast( stype,                      ionode_id, intra_image_comm )
-       CALL mp_bcast( rhomax,                     ionode_id, intra_image_comm )
-       CALL mp_bcast( rhomin,                     ionode_id, intra_image_comm )
-       CALL mp_bcast( tbeta,                      ionode_id, intra_image_comm )
+       CALL mp_bcast( stype,                      ionode_id, comm )
+       CALL mp_bcast( rhomax,                     ionode_id, comm )
+       CALL mp_bcast( rhomin,                     ionode_id, comm )
+       CALL mp_bcast( tbeta,                      ionode_id, comm )
        !
-       CALL mp_bcast( env_static_permittivity,    ionode_id, intra_image_comm )
-       CALL mp_bcast( env_optical_permittivity,   ionode_id, intra_image_comm )
-       CALL mp_bcast( eps_mode,                   ionode_id, intra_image_comm )
-       CALL mp_bcast( radius_mode,                ionode_id, intra_image_comm )
-       CALL mp_bcast( alpha,                      ionode_id, intra_image_comm )
-       CALL mp_bcast( softness,                   ionode_id, intra_image_comm )
-       CALL mp_bcast( solvationrad,               ionode_id, intra_image_comm )
-       CALL mp_bcast( corespread,                 ionode_id, intra_image_comm )
-       CALL mp_bcast( atomicspread,               ionode_id, intra_image_comm )
-       CALL mp_bcast( eps_distance,               ionode_id, intra_image_comm )
-       CALL mp_bcast( eps_spread,                 ionode_id, intra_image_comm )
-       CALL mp_bcast( add_jellium,                ionode_id, intra_image_comm )
+       CALL mp_bcast( env_static_permittivity,    ionode_id, comm )
+       CALL mp_bcast( env_optical_permittivity,   ionode_id, comm )
+       CALL mp_bcast( eps_mode,                   ionode_id, comm )
+       CALL mp_bcast( radius_mode,                ionode_id, comm )
+       CALL mp_bcast( alpha,                      ionode_id, comm )
+       CALL mp_bcast( softness,                   ionode_id, comm )
+       CALL mp_bcast( solvationrad,               ionode_id, comm )
+       CALL mp_bcast( corespread,                 ionode_id, comm )
+       CALL mp_bcast( atomicspread,               ionode_id, comm )
+       CALL mp_bcast( eps_distance,               ionode_id, comm )
+       CALL mp_bcast( eps_spread,                 ionode_id, comm )
+       CALL mp_bcast( add_jellium,                ionode_id, comm )
        !
-       CALL mp_bcast( env_surface_tension,        ionode_id, intra_image_comm )
-       CALL mp_bcast( delta,                      ionode_id, intra_image_comm )
+       CALL mp_bcast( env_surface_tension,        ionode_id, comm )
+       CALL mp_bcast( delta,                      ionode_id, comm )
        !
-       CALL mp_bcast( env_pressure,               ionode_id, intra_image_comm )
+       CALL mp_bcast( env_pressure,               ionode_id, comm )
        !
-       CALL mp_bcast( env_ioncc_ntyp,             ionode_id, intra_image_comm )
-       CALL mp_bcast( nrep,                       ionode_id, intra_image_comm )
-       CALL mp_bcast( stern_mode,                 ionode_id, intra_image_comm )
-       CALL mp_bcast( stern_distance,             ionode_id, intra_image_comm )
-       CALL mp_bcast( stern_spread,               ionode_id, intra_image_comm )
-       CALL mp_bcast( cion,                       ionode_id, intra_image_comm )
-       CALL mp_bcast( cionmax,                    ionode_id, intra_image_comm )
-       CALL mp_bcast( rion,                       ionode_id, intra_image_comm )
-       CALL mp_bcast( zion,                       ionode_id, intra_image_comm )
-       CALL mp_bcast( rhopb,                      ionode_id, intra_image_comm )
-       CALL mp_bcast( solvent_temperature,        ionode_id, intra_image_comm )
+       CALL mp_bcast( env_ioncc_ntyp,             ionode_id, comm )
+       CALL mp_bcast( nrep,                       ionode_id, comm )
+       CALL mp_bcast( stern_mode,                 ionode_id, comm )
+       CALL mp_bcast( stern_distance,             ionode_id, comm )
+       CALL mp_bcast( stern_spread,               ionode_id, comm )
+       CALL mp_bcast( cion,                       ionode_id, comm )
+       CALL mp_bcast( cionmax,                    ionode_id, comm )
+       CALL mp_bcast( rion,                       ionode_id, comm )
+       CALL mp_bcast( zion,                       ionode_id, comm )
+       CALL mp_bcast( rhopb,                      ionode_id, comm )
+       CALL mp_bcast( solvent_temperature,        ionode_id, comm )
        !
-       CALL mp_bcast( env_periodicity,            ionode_id, intra_image_comm )
-       CALL mp_bcast( pbc_correction,             ionode_id, intra_image_comm )
-       CALL mp_bcast( cell_axis,                  ionode_id, intra_image_comm )
+       CALL mp_bcast( env_periodicity,            ionode_id, comm )
+       CALL mp_bcast( pbc_correction,             ionode_id, comm )
+       CALL mp_bcast( cell_axis,                  ionode_id, comm )
        !
-       CALL mp_bcast( env_external_charges,       ionode_id, intra_image_comm )
-       CALL mp_bcast( env_dielectric_regions,     ionode_id, intra_image_comm )
+       CALL mp_bcast( env_external_charges,       ionode_id, comm )
+       CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
        !
        RETURN
        !
@@ -738,29 +743,29 @@ MODULE environ_input
        !
        IMPLICIT NONE
        !
-       CALL mp_bcast( problem,                    ionode_id, intra_image_comm )
-       CALL mp_bcast( tolvelect,                  ionode_id, intra_image_comm )
-       CALL mp_bcast( tolrhoaux,                  ionode_id, intra_image_comm )
+       CALL mp_bcast( problem,                    ionode_id, comm )
+       CALL mp_bcast( tolvelect,                  ionode_id, comm )
+       CALL mp_bcast( tolrhoaux,                  ionode_id, comm )
        !
-       CALL mp_bcast( solver,                     ionode_id, intra_image_comm )
-       CALL mp_bcast( auxiliary,                  ionode_id, intra_image_comm )
-       CALL mp_bcast( step_type,                  ionode_id, intra_image_comm )
-       CALL mp_bcast( step,                       ionode_id, intra_image_comm )
-       CALL mp_bcast( mix_type,                   ionode_id, intra_image_comm )
-       CALL mp_bcast( mix,                        ionode_id, intra_image_comm )
-       CALL mp_bcast( ndiis,                      ionode_id, intra_image_comm )
+       CALL mp_bcast( solver,                     ionode_id, comm )
+       CALL mp_bcast( auxiliary,                  ionode_id, comm )
+       CALL mp_bcast( step_type,                  ionode_id, comm )
+       CALL mp_bcast( step,                       ionode_id, comm )
+       CALL mp_bcast( mix_type,                   ionode_id, comm )
+       CALL mp_bcast( mix,                        ionode_id, comm )
+       CALL mp_bcast( ndiis,                      ionode_id, comm )
        !
-       CALL mp_bcast( preconditioner,             ionode_id, intra_image_comm )
-       CALL mp_bcast( screening_type,             ionode_id, intra_image_comm )
-       CALL mp_bcast( screening,                  ionode_id, intra_image_comm )
+       CALL mp_bcast( preconditioner,             ionode_id, comm )
+       CALL mp_bcast( screening_type,             ionode_id, comm )
+       CALL mp_bcast( screening,                  ionode_id, comm )
        !
-       CALL mp_bcast( core,                       ionode_id, intra_image_comm )
-       CALL mp_bcast( ifdtype,                    ionode_id, intra_image_comm )
-       CALL mp_bcast( nfdpoint,                   ionode_id, intra_image_comm )
+       CALL mp_bcast( core,                       ionode_id, comm )
+       CALL mp_bcast( ifdtype,                    ionode_id, comm )
+       CALL mp_bcast( nfdpoint,                   ionode_id, comm )
        !
-       CALL mp_bcast( bcindex,                    ionode_id, intra_image_comm )
-       CALL mp_bcast( bcplus,                     ionode_id, intra_image_comm )
-       CALL mp_bcast( bcminus,                    ionode_id, intra_image_comm )
+       CALL mp_bcast( bcindex,                    ionode_id, comm )
+       CALL mp_bcast( bcplus,                     ionode_id, comm )
+       CALL mp_bcast( bcminus,                    ionode_id, comm )
        !
        RETURN
        !
@@ -1083,7 +1088,7 @@ MODULE environ_input
        ELSE
           !
           IF ( ionode ) &
-             WRITE( stdout,'(A)') 'Warning: card '//trim(input_line)//' ignored'
+             WRITE( program_unit,'(A)') 'Warning: card '//trim(input_line)//' ignored'
           !
        ENDIF
        !

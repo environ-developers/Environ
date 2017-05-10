@@ -18,8 +18,8 @@ MODULE pressure
   ! ... The variables needed to compute PV energy and potential corrections
   !
   USE environ_types
+  USE environ_output
   USE environ_base,  ONLY : env_pressure, e2
-  USE environ_debug, ONLY : write_cube
   !
   IMPLICIT NONE
   !

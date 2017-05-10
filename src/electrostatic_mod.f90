@@ -206,29 +206,4 @@ MODULE electrostatic_base
       !
     END SUBROUTINE set_electrostatic_base
     !
-    SUBROUTINE set_electrostatic_environ()
-
-      ! Passes informations stored in electrostatic_base to environ_base
-      ! and vice-versa
-
-      USE environ_base, ONLY : lstatic, loptical, static, optical
-
-      IMPLICIT NONE
-
-      IF ( lstatic ) THEN
-         static%need_gradient = need_gradient
-         static%need_factsqrt = need_factsqrt
-         static%need_gradlog = need_gradlog
-      ENDIF
-
-      IF ( loptical ) THEN
-         optical%need_gradient = need_gradient
-         optical%need_factsqrt = need_factsqrt
-         optical%need_gradlog = need_gradlog
-      ENDIF
-
-      RETURN
-
-    END SUBROUTINE set_electrostatic_environ
-    !
 END MODULE electrostatic_base

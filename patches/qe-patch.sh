@@ -110,17 +110,23 @@ mv tmp.1 plugin_int_forces.f90
 # plugin_read_input
 
 sed '/Environ MODULES BEGIN/ a\
-!Environ patch \
+!Environ patch\
+USE io_global,  ONLY : ionode, ionode_id, stdout\
+USE mp_images,  ONLY : intra_image_comm\
 USE input_parameters, ONLY : nspin\
-USE input_parameters, ONLY : nat, ntyp, atom_label \
-USE input_parameters, ONLY : assume_isolated, ibrav \
-USE environ_input,    ONLY : read_environ \
+USE input_parameters, ONLY : nat, ntyp, atom_label\
+USE input_parameters, ONLY : assume_isolated, ibrav\
+USE environ_input,    ONLY : read_environ\
+USE environ_output,   ONLY : set_environ_output\
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-   if (use_environ) CALL read_environ(1, nspin, nat, ntyp, atom_label, assume_isolated, ibrav) \
+!Environ patch\
+   IF (use_environ) THEN\
+      CALL set_environ_output("PW", ionode, ionode_id, intra_image_comm, stdout)\
+      CALL read_environ(1, nspin, nat, ntyp, atom_label, assume_isolated, ibrav)\
+   ENDIF\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -146,7 +152,7 @@ mv tmp.2 plugin_clean.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_info, ONLY : environ_summary \
+USE    environ_output, ONLY : environ_summary \
 !Environ patch
 ' plugin_summary.f90 > tmp.1
 
@@ -188,13 +194,13 @@ mv tmp.1 plugin_initbase.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_info, ONLY : environ_clock \
+USE    environ_output, ONLY : environ_clock \
 !Environ patch
 ' plugin_clock.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL environ_clock(stdout) \
+   if(use_environ) CALL environ_clock() \
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -204,7 +210,7 @@ mv tmp.2 plugin_clock.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_info, ONLY : environ_print_energies \
+USE    environ_output, ONLY : environ_print_energies \
 !Environ patch
 ' plugin_print_energies.f90 > tmp.1
 
