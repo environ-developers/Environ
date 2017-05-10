@@ -10,6 +10,7 @@
 MODULE generate_boundary
   !
   USE environ_types
+  USE constants, ONLY : tpi
   !
   PRIVATE
   !
@@ -23,9 +24,6 @@ CONTAINS
       !
       ! ... Calculates the density-dependent dielectric constant
       ! ... ifunct = 0 => original Fattebert and Gygi function
-      !
-      USE kinds,              ONLY : DP
-      USE constants,          ONLY : tpi
       !
       IMPLICIT NONE
       !
@@ -80,9 +78,6 @@ CONTAINS
       ! ... Calculates the derivative of the
       ! ... density-dependent dielectric constant
       ! ... ifunct = 0 => original Fattebert and Gygi function
-      !
-      USE kinds,              ONLY : DP
-      USE constants,          ONLY : tpi
       !
       IMPLICIT NONE
       !
@@ -139,9 +134,6 @@ CONTAINS
       ! ... density-dependent dielectric constant
       ! ... ifunct = 0 => original Fattebert and Gygi function
       !
-      USE kinds,              ONLY : DP
-      USE constants,          ONLY : tpi
-      !
       IMPLICIT NONE
       !
       REAL( DP )             :: d2epsilonfunct
@@ -196,8 +188,6 @@ CONTAINS
       ! ... Calculates the dielectric constant as a function
       ! ... of the charge density, and the derivative of
       ! ... the dielectric constant wrt the charge density.
-      !
-      USE kinds,          ONLY : DP
       !
       IMPLICIT NONE
       !
