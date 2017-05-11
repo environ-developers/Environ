@@ -228,7 +228,6 @@ CONTAINS
       SUBROUTINE write_cube( f, ions )
 !--------------------------------------------------------------------
       !
-      USE kinds,          ONLY : DP
       USE mp,             ONLY : mp_sum
       USE fft_base,       ONLY : dfftp
 ! BACKWARD COMPATIBILITY

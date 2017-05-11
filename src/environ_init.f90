@@ -16,12 +16,10 @@ MODULE environ_init
   !
   USE environ_base
   USE environ_output
-  !
   USE ions_utils
   USE boundary
   USE dielectric
   USE electrolyte_utils
-  USE functions
   USE externals_utils
   !
   USE control_flags,  ONLY : tddfpt
@@ -334,7 +332,6 @@ CONTAINS
       ! In environ_base all the control flags plus the variables
       ! that need to be initialized
       !
-      USE kinds,        ONLY : DP
       USE environ_base, ONLY : e2_ => e2,                               &
                                cell, electrons, charges,                &
                                vzero, deenviron,                        &
@@ -441,7 +438,6 @@ CONTAINS
 ! Save local potential that will be overwritten by environ
 !
       ! ... Declares modules
-      USE kinds,         ONLY : DP
       USE environ_base,  ONLY : vzero
       !
       IMPLICIT NONE
@@ -471,7 +467,6 @@ CONTAINS
 ! is performed at every step of electronic optimization.
 !
       ! ... Declares modules
-      USE kinds,         ONLY : DP
       USE environ_base,  ONLY : cell, lstatic, loptical, static, optical, &
                                 lexternals, externals
       ! ... Cell-related updates
@@ -513,7 +508,6 @@ CONTAINS
 ! be the most efficient choice, but it is a safe choice.
 !
       ! ... Declares modules
-      USE kinds,             ONLY : DP
       USE environ_base,      ONLY : cell, ions, electrons, system,  &
                                     lsolvent, solvent,              &
                                     lstatic, static,                &
@@ -582,7 +576,6 @@ CONTAINS
 ! is performed at every step of electronic optimization.
 !
       ! ... Declares modules
-      USE kinds,             ONLY : DP
       USE environ_base,      ONLY : electrons, lsolvent, solvent, &
                                     lstatic, static,              &
                                     loptical, optical,            &

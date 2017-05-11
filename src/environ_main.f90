@@ -32,7 +32,6 @@ CONTAINS
       !     The potentials are all computed on the dense real-space
       !     grid and added to vtot.
       !
-      USE kinds,         ONLY : DP
       USE environ_base,  ONLY : vzero, solvent,                       &
                                 lelectrostatic, velectrostatic,       &
                                 lsoftcavity, vsoftcavity,             &
@@ -268,8 +267,6 @@ CONTAINS
       SUBROUTINE calc_deenviron( electrons, potential, denergy )
 !--------------------------------------------------------------------
 
-        USE mp,            ONLY : mp_sum
-
         IMPLICIT NONE
 
         TYPE( environ_electrons ), INTENT(IN) :: electrons
@@ -284,11 +281,7 @@ CONTAINS
         IF ( electrons % density % cell % ir_end .NE. potential % cell % ir_end ) &
              & CALL errore(sub_name,'Missmatch in vectors sizes',1)
 
-        ir_end => potential % cell % ir_end
-
-        denergy = SUM( electrons % density % of_r( 1 : ir_end ) * potential % of_r( 1 : ir_end ) )
-
-        CALL mp_sum( denergy, potential % cell % comm )
+        denergy = scalar_product_environ_density(electrons%density,potential)
 
         denergy = denergy * potential % cell % domega
 
