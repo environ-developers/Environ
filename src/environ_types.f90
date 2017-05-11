@@ -1,7 +1,7 @@
 MODULE environ_types
 
   USE kinds,             ONLY : DP
-  USE constants,         ONLY : rydberg_si, bohr_radius_si, amu_si, fpi
+  USE constants,         ONLY : rydberg_si, bohr_radius_si, amu_si, fpi, tpi
   USE mp,                ONLY : mp_sum
   USE control_flags,     ONLY : tddfpt
 

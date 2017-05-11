@@ -29,6 +29,9 @@ MODULE environ_output
 
   CHARACTER( LEN = 2 ) :: prog
 
+  INTEGER, PARAMETER :: nbibliography = 1
+  CHARACTER( LEN = 80 ), DIMENSION( nbibliography ) :: bibliography
+
   PRIVATE
 
   PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, &
@@ -36,6 +39,18 @@ MODULE environ_output
        & environ_summary, environ_clock, write_cube
 
 CONTAINS
+!--------------------------------------------------------------------
+  SUBROUTINE set_bibliography()
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    bibliography(1) = "O. Andreussi, I. Dabo and N. Marzari, J. &
+                      & Chem. Phys. 136, 064102 (2012)"
+
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE set_bibliography
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE set_environ_output( prog_, ionode_, ionode_id_, comm_, program_unit_ )
 !--------------------------------------------------------------------
@@ -49,6 +64,8 @@ CONTAINS
     INTEGER, INTENT(IN) :: program_unit_
 
     INTEGER, EXTERNAL :: find_free_unit
+
+    CALL set_bibliography()
 
     ionode = ionode_
     ionode_id = ionode_id_
@@ -108,11 +125,15 @@ CONTAINS
       ! summarizing the input keywords (some info also on internal
       ! vs input units). Called by summary.f90
       !
-      USE environ_base,     ONLY : environ_thr, solvent,                &
-                                   env_static_permittivity,             &
-                                   env_optical_permittivity,            &
-                                   env_surface_tension,                 &
-                                   env_pressure
+      USE environ_base,       ONLY : environ_thr, solvent,             &
+                                     env_static_permittivity,          &
+                                     env_optical_permittivity,         &
+                                     env_surface_tension,              &
+                                     env_pressure, lelectrostatic
+      USE electrostatic_base, ONLY : problem, solver, auxiliary,       &
+                                     tolvelect, tolrhoaux,             &
+                                     core, dielectric_core,            &
+                                     ifdtype, nfdpoint
       !
       IMPLICIT NONE
       !
@@ -124,11 +145,7 @@ CONTAINS
             WRITE( program_unit, * )
             !
             WRITE( UNIT = program_unit, FMT = 9000 )
-            WRITE( UNIT = program_unit, '(/5X,"Please cite",&
-                 &/9X,"""O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, ",&
-                 &    "064102 (2012);""", &
-                 &/5X,"in publications or presentations arising from this work.",&
-                 &/)' )
+            WRITE( UNIT = program_unit, FMT = 8000 ) bibliography(1)
             !
             ! ... Environ Summary
             !
@@ -179,12 +196,15 @@ CONTAINS
                !
             END IF
             !
-            WRITE( UNIT = program_unit, * )
+            WRITE( UNIT = program_unit, FMT = 8001 )
             !
          END IF
          !
       END IF
       !
+8000  FORMAT(/,5x,'Plese cite',/,9x,A80,&
+             /,5x,'in publications or presentations arising from this work.',/)
+8001  FORMAT(/)
 9000  FORMAT(/,5x,'Environ module',/,5x,'==============')
 9001  FORMAT( '     compensation onset threshold      = ',  E24.4,' ' )
 9002  FORMAT( '     switching function adopted        = ',  A24,' ' )
