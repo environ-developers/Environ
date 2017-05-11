@@ -26,6 +26,7 @@ MODULE environ_output
   INTEGER :: program_unit
   INTEGER :: environ_unit
   INTEGER :: verbose
+  INTEGER :: depth = 0
 
   CHARACTER( LEN = 2 ) :: prog
 
@@ -82,6 +83,171 @@ CONTAINS
   END SUBROUTINE set_environ_output
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE print_environ_cell( cell, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1000 )
+       WRITE( UNIT = environ_unit, FMT = 1001 )cell%ibrav,cell%alat,cell%omega
+       IF ( verbosity .GE. 2 ) THEN
+          WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
+          WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
+          WRITE( UNIT = environ_unit, FMT = 1004 )cell%nnr
+          IF ( verbosity .GE. 3 ) THEN
+             WRITE( UNIT = environ_unit, FMT = 1005 )cell%me,cell%root,cell%comm
+          END IF
+       END IF
+    END IF
+
+    RETURN
+
+1000 FORMAT(/,4('%'),' CELL ',70('%'))
+1001 FORMAT(1x,'bravais lattice index     = ',I3,' ' &
+          /,1x,'lattice spacing           = ',F12.6,' ' &
+          /,1x,'cell volume               = ',F12.6,' ' )
+1002 FORMAT(1x,'simulation cell axes      = ',3(F12.6),' '&
+          /,1x,'                            ',3(F12.6),' '&
+          /,1x,'                            ',3(F12.6),' ')
+1003 FORMAT(1x,'real space grid dim.      = ',3I4,' ')
+1004 FORMAT(1x,'size of r-space per proc. = ',I10,' ')
+1005 FORMAT(1x,'current processor index   = ',I10,' '&
+          /,1x,'index of root processor   = ',I10,' '&
+          /,1x,'communicator index        = ',I10,' ')
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_cell
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_density( density, local_verbose, local_depth, local_ions )
+!--------------------------------------------------------------------
+
+    USE environ_base, ONLY : ions
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: density
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+    TYPE( environ_ions ), INTENT(IN), OPTIONAL :: local_ions
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1100 )
+       WRITE( UNIT = environ_unit, FMT = 1101 )TRIM(ADJUSTL(density%label))
+       WRITE( UNIT = environ_unit, FMT = 1102 )integrate_environ_density(density)
+       ! MAY ADD MAXVAL AND MINVAL
+       IF ( verbosity .GE. 2 ) THEN
+          CALL print_environ_cell( density%cell, passed_verbosity, passed_depth )
+          IF ( PRESENT(local_ions) ) THEN
+             CALL write_cube( density, local_ions )
+          ELSE
+             CALL write_cube( density, ions )
+          END IF
+       END IF
+    END IF
+
+    RETURN
+
+1100 FORMAT(/,4('%'),' DENSITY ',67('%'))
+1101 FORMAT(1x,'density label             = ',A80)
+1102 FORMAT(1x,'integral of density       = ',G20.10)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_gradient( gradient, local_verbose, local_depth, local_ions )
+!--------------------------------------------------------------------
+
+    USE environ_base, ONLY : ions
+
+    IMPLICIT NONE
+
+    TYPE( environ_gradient ), INTENT(IN) :: gradient
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+    TYPE( environ_ions ), INTENT(IN), OPTIONAL :: local_ions
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1200 )
+       WRITE( UNIT = environ_unit, FMT = 1201 )TRIM(ADJUSTL(gradient%label))
+       ! MAY ADD MAXVAL AND MINVAL
+       IF ( verbosity .GE. 2 ) THEN
+          CALL print_environ_cell( gradient%cell, passed_verbosity, passed_depth )
+       END IF
+    END IF
+
+    RETURN
+
+1200 FORMAT(/,4('%'),' GRADIENT ',66('%'))
+1201 FORMAT(1x,'gradient label             = ',A80)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_gradient
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
       !
@@ -92,18 +258,20 @@ CONTAINS
                                lsurface, ecavity, &
                                lvolume, epressure
       !
-      IF ( prog .EQ. 'PW' ) THEN
-        IF ( lelectrostatic ) WRITE( program_unit, 9201 ) eelectrostatic
-        IF ( lsurface ) WRITE( program_unit, 9202 ) ecavity
-        IF ( lvolume ) WRITE( program_unit, 9203 ) epressure
-      ELSE IF ( prog .EQ. 'CP' ) THEN
-        IF ( lelectrostatic ) WRITE( program_unit, 9301 ) eelectrostatic
-        IF ( lsurface ) WRITE( program_unit, 9302 ) ecavity
-        IF ( lvolume ) WRITE( program_unit, 9303 ) epressure
-      ELSE
-        WRITE(program_unit,*)'ERROR: wrong program in Environ'
-        STOP
-      ENDIF
+      IF ( ionode ) THEN
+         IF ( prog .EQ. 'PW' ) THEN
+            IF ( lelectrostatic ) WRITE( program_unit, 9201 ) eelectrostatic
+            IF ( lsurface ) WRITE( program_unit, 9202 ) ecavity
+            IF ( lvolume ) WRITE( program_unit, 9203 ) epressure
+         ELSE IF ( prog .EQ. 'CP' ) THEN
+            IF ( lelectrostatic ) WRITE( program_unit, 9301 ) eelectrostatic
+            IF ( lsurface ) WRITE( program_unit, 9302 ) ecavity
+            IF ( lvolume ) WRITE( program_unit, 9303 ) epressure
+         ELSE
+            WRITE(program_unit,*)'ERROR: wrong program in Environ'
+            STOP
+         END IF
+      END IF
       !
       RETURN
       !
