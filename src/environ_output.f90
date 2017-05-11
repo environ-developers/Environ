@@ -234,9 +234,15 @@ CONTAINS
     IF ( ionode .AND. verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1200 )
        WRITE( UNIT = environ_unit, FMT = 1201 )TRIM(ADJUSTL(gradient%label))
+       WRITE( UNIT = environ_unit, FMT = 1201 )integrate_environ_density(gradient%modulus)
        ! MAY ADD MAXVAL AND MINVAL
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_cell( gradient%cell, passed_verbosity, passed_depth )
+          IF ( PRESENT(local_ions) ) THEN
+             CALL write_cube( gradient%modulus, local_ions )
+          ELSE
+             CALL write_cube( gradient%modulus, ions )
+          END IF
        END IF
     END IF
 
@@ -244,6 +250,7 @@ CONTAINS
 
 1200 FORMAT(/,4('%'),' GRADIENT ',66('%'))
 1201 FORMAT(1x,'gradient label             = ',A80)
+1202 FORMAT(1x,'integral of square modul.  = ',G20.10)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_gradient
 !--------------------------------------------------------------------

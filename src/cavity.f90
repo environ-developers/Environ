@@ -161,7 +161,7 @@ CONTAINS
        CALL external_gradient( rho, gradient%of_r )
        CALL update_gradient_modulus( gradient )
        CALL init_environ_density( cell, density )
-       density%of_r = SQRT(gradient%modulus) * theta
+       density%of_r = SQRT(gradient%modulus%of_r) * theta
        surface = integrate_environ_density( density ) / delta
        CALL destroy_environ_density( density )
        CALL destroy_environ_gradient( gradient )

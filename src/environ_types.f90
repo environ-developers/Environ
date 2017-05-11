@@ -65,7 +65,7 @@ MODULE environ_types
 
      REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: of_r
 
-     REAL( DP ), DIMENSION(:), ALLOCATABLE :: modulus
+     TYPE( environ_density ) :: modulus
 
   END TYPE environ_gradient
 
@@ -507,9 +507,9 @@ CONTAINS
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     CHARACTER (LEN=80) :: sub_name = 'destroy_environ_density'
 
-    NULLIFY(gradient%cell)
+    NULLIFY( gradient%cell )
     IF ( ALLOCATED( gradient%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    IF ( ALLOCATED( gradient%modulus ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    CALL create_environ_density( gradient%modulus )
 
     RETURN
 
@@ -532,9 +532,7 @@ CONTAINS
     ALLOCATE(gradient%of_r(3,gradient%cell%nnr))
     gradient%of_r = 0.D0
 
-    IF ( ALLOCATED( gradient%modulus ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
-    ALLOCATE(gradient%modulus(gradient%cell%nnr))
-    gradient%modulus = 0.D0
+    CALL init_environ_density( cell, gradient%modulus )
 
     RETURN
 
@@ -548,7 +546,7 @@ CONTAINS
     INTEGER, POINTER :: ir_end
 
     ir_end => gradient % cell % ir_end
-    gradient%modulus(1:ir_end) = gradient%of_r(1,1:ir_end)**2 + &
+    gradient%modulus%of_r(1:ir_end) = gradient%of_r(1,1:ir_end)**2 + &
          & gradient%of_r(2,1:ir_end)**2 + gradient%of_r(3,1:ir_end)**2 
 
     RETURN
@@ -572,9 +570,7 @@ CONTAINS
          & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
     DEALLOCATE( gradient%of_r )
 
-    IF (.NOT.ALLOCATED(gradient%modulus)) &
-         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
-    DEALLOCATE( gradient%modulus )
+    CALL destroy_environ_density( gradient%modulus )
 
     RETURN
 

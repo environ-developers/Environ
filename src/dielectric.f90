@@ -411,7 +411,7 @@ CONTAINS
           CALL laplacian_of_functions(boundary%ions%number, boundary%soft_spheres, laplacian)
           CALL update_gradient_modulus(gradient)
           !
-          factsqrt%of_r(:) = laplacian%of_r(:) - 0.5D0 * gradient%modulus(:) / epsilon%of_r(:)
+          factsqrt%of_r(:) = laplacian%of_r(:) - 0.5D0 * gradient%modulus%of_r(:) / epsilon%of_r(:)
           !
        ELSE
           !
@@ -420,7 +420,7 @@ CONTAINS
           CALL update_gradient_modulus(gradient)
           !
           factsqrt%of_r(:) = boundary%dscaled%of_r(:)*laplacian%of_r(:) + &
-               & gradient%modulus(:) * &
+               & gradient%modulus%of_r(:) * &
                & (boundary%d2scaled%of_r(:)-0.5D0*boundary%dscaled%of_r(:)**2/epsilon%of_r(:))
           !
        ENDIF
