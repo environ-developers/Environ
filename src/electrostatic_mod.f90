@@ -92,13 +92,6 @@ MODULE electrostatic_base
        need_factsqrt,              &
        need_gradlog
   !
-  ! Computed physical variables
-  !
-  REAL (KIND=DP), ALLOCATABLE ::   &
-       rhoaux(:),                  &
-       rhopol(:),                  &
-       rhoioncc(:)
-  !
   CONTAINS
     !
     ! ... the following routine copies input variables read in input

@@ -10,7 +10,6 @@
 MODULE generate_boundary
   !
   USE environ_types
-  USE constants, ONLY : tpi
   !
   PRIVATE
   !

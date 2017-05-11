@@ -450,12 +450,17 @@ MODULE environ_input
        !
        ! ... Set module variables according to input
        !
+       !
+       ! ... Set electrostatic first as it does not depend on anything else
+       !
        CALL set_electrostatic_base ( problem, tolvelect, tolrhoaux, solver, &
                                      auxiliary, step_type, step, mix_type,  &
                                      ndiis, mix, preconditioner,            &
                                      screening_type, screening, core,       &
                                      dielectric_core, ifdtype, nfdpoint,    &
                                      bcindex, bcplus, bcminus )
+       !
+       ! ... Then set environ base
        !
        CALL set_environ_base  ( nelec, nspin,                               &
                                 nat, ntyp, atom_label, atomicspread,        &

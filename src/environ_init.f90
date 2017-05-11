@@ -14,15 +14,15 @@
 !
 MODULE environ_init
   !
-  USE environ_base
+  USE environ_types
   USE environ_output
+  USE environ_base
+  !
   USE ions_utils
   USE boundary
   USE dielectric
   USE electrolyte_utils
   USE externals_utils
-  !
-  USE control_flags,  ONLY : tddfpt
   !
   PRIVATE
   !

@@ -18,11 +18,9 @@ MODULE generalized
 
   USE environ_types
   USE environ_output
+  USE poisson, ONLY : poisson_direct
   USE electrostatic_base, ONLY : auxiliary, preconditioner, solver, &
        maxiter, tolvelect
-  USE constants, ONLY : pi, tpi, fpi
-  USE control_flags, ONLY : tddfpt
-  USE poisson, ONLY : poisson_direct
 
   IMPLICIT NONE
 

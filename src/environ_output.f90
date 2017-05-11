@@ -71,7 +71,6 @@ CONTAINS
       ! Write out the different Environ contributions to the energy.
       ! Called by electrons.f90
       !
-      USE environ_base, ONLY : e2
       USE environ_base, ONLY : lelectrostatic, eelectrostatic, &
                                lsurface, ecavity, &
                                lvolume, epressure
@@ -85,7 +84,7 @@ CONTAINS
         IF ( lsurface ) WRITE( program_unit, 9302 ) ecavity
         IF ( lvolume ) WRITE( program_unit, 9303 ) epressure
       ELSE
-        WRITE(program_unit,*)'ERROR: wrong value of e2 in Environ'
+        WRITE(program_unit,*)'ERROR: wrong program in Environ'
         STOP
       ENDIF
       !
@@ -109,78 +108,109 @@ CONTAINS
       ! summarizing the input keywords (some info also on internal
       ! vs input units). Called by summary.f90
       !
-      USE constants,        ONLY : rydberg_si, bohr_radius_si
       USE environ_base,     ONLY : environ_thr, solvent,                &
                                    env_static_permittivity,             &
                                    env_optical_permittivity,            &
                                    env_surface_tension,                 &
                                    env_pressure
-      USE control_flags,     ONLY : tddfpt
       !
       IMPLICIT NONE
       !
       !
       IF( ionode ) THEN
-        !
-        WRITE( program_unit, * )
-        !
-        WRITE( UNIT = program_unit,                                          &
-               FMT = '(/,5x, "Environ Module",                         &
-                      &/,5x, "==============")' )
-        WRITE( program_unit, '(/5X,"Please cite",&
-         &/9X,"""O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, ",&
-         &    "064102 (2012);""", &
-         &/5X,"in publications or presentations arising from this work.",&
-         &/)' )
-        !
-        WRITE( UNIT = program_unit, FMT = 9001 ) environ_thr
-        !
-        IF ( solvent%type .EQ. 0 ) THEN
-          WRITE( UNIT = program_unit, FMT = 9002 ) 'Fatteber-Gygi'
-          WRITE( UNIT = program_unit, FMT = 9003 ) solvent%rhozero, solvent%tbeta
-        ELSE IF ( solvent%type .EQ. 1 ) THEN
-          WRITE( UNIT = program_unit, FMT = 9002 ) 'SCCS'
-          WRITE( UNIT = program_unit, FMT = 9004 ) solvent%rhomax, solvent%rhomin
-        ENDIF
-        !
-        IF ( env_static_permittivity .GT. 1.D0 ) THEN
-           WRITE( UNIT = program_unit, FMT = 9005 ) env_static_permittivity
-           IF (tddfpt) &
-         & WRITE( UNIT = program_unit, FMT = 9006 ) env_optical_permittivity
-           WRITE( UNIT = program_unit, FMT = 9007 ) TRIM( solvent%mode )
-        END IF
-        !
-        IF ( env_surface_tension .GT. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9010 )      &
-           env_surface_tension/1.D-3/bohr_radius_si**2*rydberg_si, env_surface_tension, solvent%deltatheta
-        !
-        IF ( env_pressure .NE. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9011 )&
-           env_pressure*rydberg_si/bohr_radius_si**3*1.D-9, env_pressure
-        !
-        WRITE( program_unit, * )
-        !
+         !
+         IF ( prog .EQ. 'PW' ) THEN
+            !
+            WRITE( program_unit, * )
+            !
+            WRITE( UNIT = program_unit, FMT = 9000 )
+            WRITE( UNIT = program_unit, '(/5X,"Please cite",&
+                 &/9X,"""O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, ",&
+                 &    "064102 (2012);""", &
+                 &/5X,"in publications or presentations arising from this work.",&
+                 &/)' )
+            !
+            ! ... Environ Summary
+            !
+            WRITE( UNIT = program_unit, FMT = 9001 ) environ_thr
+            !
+            IF ( solvent%type .EQ. 0 ) THEN
+               WRITE( UNIT = program_unit, FMT = 9002 ) 'Fatteber-Gygi'
+               WRITE( UNIT = program_unit, FMT = 9003 ) solvent%rhozero, solvent%tbeta
+            ELSE IF ( solvent%type .EQ. 1 ) THEN
+               WRITE( UNIT = program_unit, FMT = 9002 ) 'SCCS'
+               WRITE( UNIT = program_unit, FMT = 9004 ) solvent%rhomax, solvent%rhomin
+            ENDIF
+            !
+            IF ( env_static_permittivity .GT. 1.D0 ) THEN
+               WRITE( UNIT = program_unit, FMT = 9005 ) env_static_permittivity
+               IF (tddfpt) &
+                    & WRITE( UNIT = program_unit, FMT = 9006 ) env_optical_permittivity
+               WRITE( UNIT = program_unit, FMT = 9007 ) TRIM( solvent%mode )
+            END IF
+            !
+            IF ( env_surface_tension .GT. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9010 )      &
+                 env_surface_tension/1.D-3/bohr_radius_si**2*rydberg_si, env_surface_tension, solvent%deltatheta
+            !
+            IF ( env_pressure .NE. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9011 )&
+                 env_pressure*rydberg_si/bohr_radius_si**3*1.D-9, env_pressure
+            !
+            ! ... Electrostatic Summary
+            !
+            IF ( lelectrostatic ) THEN
+               !
+               WRITE( UNIT = program_unit, FMT = 9100 )
+               !
+               WRITE( UNIT = program_unit, FMT = 9101 )problem, solver, auxiliary
+               !
+               WRITE( UNIT = program_unit, FMT = 9102 )tolvelect, tolrhoaux
+               !
+               WRITE( UNIT = program_unit, FMT = 9103 )core, dielectric_core
+               !
+               IF ( core .EQ. 'fd' .OR. dielectric_core .EQ. 'fd' ) THEN
+                  IF ( ifdtype .EQ. 1 ) THEN
+                     WRITE( UNIT = program_unit, FMT = 9104 ) 'central diff.',nfdpoint
+                  ELSE IF (ifdtype .EQ. 2 .OR. ifdtype .EQ. 3 ) THEN
+                     WRITE( UNIT = program_unit, FMT = 9104 ) 'lanczos diff.',nfdpoint
+                  ELSE IF (ifdtype .EQ.4 .OR. ifdtype .EQ. 5 ) THEN
+                     WRITE( UNIT = program_unit, FMT = 9104 ) 'noise-robust diff.',nfdpoint
+                  END IF
+               END IF
+               !
+            END IF
+            !
+            WRITE( UNIT = program_unit, * )
+            !
+         END IF
+         !
       END IF
       !
-9001 FORMAT( '     compensation onset threshold      = ',  E24.4,' ' )
-9002 FORMAT( '     switching function adopted        = ',  A24,' ' )
-9003 FORMAT( '     solvation density threshold       = ',  E24.4,' ' &
-            /'     smoothness exponent (2 x beta)    = ',  F24.2,' ')
-9004 FORMAT( '     density limit for vacuum region   = ',  E24.4,' ' &
-            /'     density limit for bulk solvent    = ',  E24.4,' ')
-9005 FORMAT( '     static permittivity               = ',  F24.2,' ')
-9006 FORMAT( '     optical permittivity              = ',  F24.4,' ')
-9007 FORMAT( '     epsilon calculation mode          = ',  A24,' ' )
-9008 FORMAT( '     type of numerical differentiator  = ',  A24,' ' &
-            /'     number of points in num. diff.    = ',  I24,' ' )
-9009 FORMAT( '     required accuracy                 = ',  E24.4,' ' &
-            /'     linear mixing parameter           = ',  F24.2,' ' )
-9010 FORMAT( '     surface tension in input (dyn/cm) = ',  F24.2,' ' &
-            /'     surface tension in internal units = ',  E24.4,' ' &
-            /'     delta parameter for surface depth = ',  E24.4,' ' )
-9011 FORMAT( '     external pressure in input (GPa)  = ',  F24.2,' ' &
-            /'     external pressure in inter. units = ',  E24.4,' ' )
-9012 FORMAT( '     correction slab geom. along axis  = ',  I24,' ' )
-9013 FORMAT( '     number of external charged items  = ',  I24,' ' )
-9014 FORMAT( '     number of dielectric regions      = ',  I24,' ' )
+9000  FORMAT(/,5x,'Environ module',/,5x,'==============')
+9001  FORMAT( '     compensation onset threshold      = ',  E24.4,' ' )
+9002  FORMAT( '     switching function adopted        = ',  A24,' ' )
+9003  FORMAT( '     solvation density threshold       = ',  E24.4,' ' &
+             /'     smoothness exponent (2 x beta)    = ',  F24.2,' ' )
+9004  FORMAT( '     density limit for vacuum region   = ',  E24.4,' ' &
+             /'     density limit for bulk solvent    = ',  E24.4,' ' )
+9005  FORMAT( '     static permittivity               = ',  F24.2,' ' )
+9006  FORMAT( '     optical permittivity              = ',  F24.4,' ' )
+9007  FORMAT( '     epsilon calculation mode          = ',  A24,' ' )
+9010  FORMAT( '     surface tension in input (dyn/cm) = ',  F24.2,' ' &
+             /'     surface tension in internal units = ',  E24.4,' ' &
+             /'     delta parameter for surface depth = ',  E24.4,' ' )
+9011  FORMAT( '     external pressure in input (GPa)  = ',  F24.2,' ' &
+             /'     external pressure in inter. units = ',  E24.4,' ' )
+9012  FORMAT( '     correction slab geom. along axis  = ',  I24,' ' )
+9100  FORMAT(/,5x,'Electrostatic setup',/,5x,'-------------------')
+9101  FORMAT( '     electrostatic problem to solve    = ',  A24,' ' &
+             /'     numerical solver adopted          = ',  A24,' ' &
+             /'     type of auxiliary density adopted = ',  A24,' ' )
+9102  FORMAT( '     required accuracy on potential    = ',  F24.4,' ' &
+             /'     required accuracy on aux. charge  = ',  F24.4,' ' )
+9103  FORMAT( '     type of core tool for poisson     = ',  A24,' ' &
+             /'     type of core tool for eps deriv   = ',  A24,' ' )
+9104  FORMAT( '     type of numerical differentiator  = ',  A24,' ' &
+             /'     number of points in num. diff.    = ',  I24,' ' )
 
 !--------------------------------------------------------------------
       END SUBROUTINE environ_summary
@@ -193,7 +223,6 @@ CONTAINS
       ! calculations. Called by print_clock_pw.f90
       !
       USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume
-      USE control_flags,  ONLY : tddfpt
       !
       IMPLICIT NONE
       !
@@ -228,7 +257,6 @@ CONTAINS
       SUBROUTINE write_cube( f, ions )
 !--------------------------------------------------------------------
       !
-      USE mp,             ONLY : mp_sum
       USE fft_base,       ONLY : dfftp
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1 QE-5.1.1 QE-5.1.2
