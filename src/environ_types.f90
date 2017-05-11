@@ -389,12 +389,19 @@ CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- DENSITY ------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE create_environ_density(density)
+  SUBROUTINE create_environ_density(density,label)
 
     IMPLICIT NONE
 
     TYPE( environ_density ), INTENT(INOUT) :: density
+    CHARACTER( LEN=80 ), INTENT(IN), OPTIONAL :: label
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_density'
+
+    IF ( PRESENT(label) ) THEN
+       density%label = label
+    ELSE
+       density%label = "density"
+    END IF
 
     NULLIFY(density%cell)
     IF ( ALLOCATED( density%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
@@ -500,16 +507,27 @@ CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- GRADIENT -----------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE create_environ_gradient(gradient)
+  SUBROUTINE create_environ_gradient(gradient,label)
 
     IMPLICIT NONE
 
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
+    CHARACTER (LEN=80), INTENT(IN), OPTIONAL :: label
+
     CHARACTER (LEN=80) :: sub_name = 'destroy_environ_density'
+    CHARACTER (LEN=80) :: modulus_label
+
+    IF ( PRESENT(label) ) THEN
+       gradient%label = label
+       modulus_label = TRIM(ADJUSTL(label))//"_modulus"
+    ELSE
+       gradient%label = "gradient"
+       modulus_label = "gradient_modulus"
+    END IF
 
     NULLIFY( gradient%cell )
     IF ( ALLOCATED( gradient%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    CALL create_environ_density( gradient%modulus )
+    CALL create_environ_density( gradient%modulus, modulus_label )
 
     RETURN
 
@@ -547,7 +565,7 @@ CONTAINS
 
     ir_end => gradient % cell % ir_end
     gradient%modulus%of_r(1:ir_end) = gradient%of_r(1,1:ir_end)**2 + &
-         & gradient%of_r(2,1:ir_end)**2 + gradient%of_r(3,1:ir_end)**2 
+         & gradient%of_r(2,1:ir_end)**2 + gradient%of_r(3,1:ir_end)**2
 
     RETURN
 
@@ -578,12 +596,19 @@ CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- HESSIAN ------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE create_environ_hessian(hessian)
+  SUBROUTINE create_environ_hessian(hessian,label)
 
     IMPLICIT NONE
 
     TYPE( environ_hessian ), INTENT(INOUT) :: hessian
+    CHARACTER (LEN=80), OPTIONAL, INTENT(IN) :: label
     CHARACTER (LEN=80) :: sub_name = 'destroy_environ_hessian'
+
+    IF ( PRESENT(label) ) THEN
+       hessian%label = label
+    ELSE
+       hessian%label = "hessian"
+    END IF
 
     NULLIFY(hessian%cell)
     IF ( ALLOCATED( hessian%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
@@ -670,7 +695,7 @@ CONTAINS
     electrons%number = 0
     electrons%nspin  = 1
     electrons%charge = 0.D0
-    CALL create_environ_density( electrons%density )
+    CALL create_environ_density( electrons%density, "electrons" )
 
     RETURN
 
@@ -883,7 +908,7 @@ CONTAINS
 
     charges%ntot = 0
     charges%ztot = 0.D0
-    CALL create_environ_density( charges%density )
+    CALL create_environ_density( charges%density, "charges" )
 
     RETURN
 

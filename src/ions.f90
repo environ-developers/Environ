@@ -33,11 +33,11 @@ CONTAINS
 
     ions%use_smeared_ions = .FALSE.
     IF ( ALLOCATED( ions%smeared_ions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    CALL create_environ_density( ions%density )
+    CALL create_environ_density( ions%density, "smeared_ions" )
 
     ions%use_core_electrons = .FALSE.
     IF ( ALLOCATED( ions%core_electrons ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    CALL create_environ_density( ions%core )
+    CALL create_environ_density( ions%core, "core_electrons" )
 
     RETURN
 

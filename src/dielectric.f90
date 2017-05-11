@@ -41,17 +41,17 @@ CONTAINS
 
     IF ( ALLOCATED( dielectric%regions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
 
-    CALL create_environ_density( dielectric%background  )
-    CALL create_environ_density( dielectric%epsilon     )
+    CALL create_environ_density( dielectric%background, "background"  )
+    CALL create_environ_density( dielectric%epsilon, "epsilon" )
 
     NULLIFY( dielectric%boundary )
 
     dielectric%need_gradient = .FALSE.
-    CALL create_environ_gradient( dielectric%gradient )
+    CALL create_environ_gradient( dielectric%gradient, "epsilon_gradient" )
     dielectric%need_factsqrt = .FALSE.
-    CALL create_environ_density( dielectric%factsqrt )
+    CALL create_environ_density( dielectric%factsqrt, "epsilon_factsqrt" )
     dielectric%need_gradlog = .FALSE.
-    CALL create_environ_gradient( dielectric%gradlog )
+    CALL create_environ_gradient( dielectric%gradlog, "epsilong_gradlog" )
     RETURN
 
   END SUBROUTINE create_environ_dielectric
@@ -136,7 +136,6 @@ CONTAINS
         !
         ! ... Recompute background dielectric and its derivative
         !
-        CALL create_environ_density( local )
         CALL init_environ_density( cell , local )
         DO i = 1, dielectric % nregions
            CALL density_of_functions( 1, dielectric%regions(i), local )

@@ -44,7 +44,7 @@ MODULE externals_utils
     externals%update = .FALSE.
     externals%number = 0
     IF ( ALLOCATED( externals%functions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    CALL create_environ_density( externals%density )
+    CALL create_environ_density( externals%density, "externals" )
     externals%charge = 0.D0
 
     RETURN

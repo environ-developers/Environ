@@ -22,21 +22,21 @@ CONTAINS
 
     boundary%update_status = 0
 
-    CALL create_environ_density( boundary%scaled )
-    CALL create_environ_density( boundary%dscaled )
-    CALL create_environ_density( boundary%d2scaled )
+    CALL create_environ_density( boundary%scaled, "boundary" )
+    CALL create_environ_density( boundary%dscaled, "dboundary" )
+    CALL create_environ_density( boundary%d2scaled, "d2boundary" )
 
     boundary%need_electrons = .FALSE.
     NULLIFY( boundary%electrons )
     boundary%need_ions = .FALSE.
     NULLIFY( boundary%ions   )
     boundary%need_theta = .FALSE.
-    CALL create_environ_density( boundary%theta )
+    CALL create_environ_density( boundary%theta, "theta" )
 
     IF ( ALLOCATED( boundary%soft_spheres ) ) &
          & CALL errore(sub_name,'Trying to create an already allocated object',1)
 
-    CALL create_environ_density( boundary%density )
+    CALL create_environ_density( boundary%density, "density" )
 
     RETURN
 
