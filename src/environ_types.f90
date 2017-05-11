@@ -446,12 +446,14 @@ CONTAINS
 
     TYPE( environ_density ), INTENT(IN) :: density1, density2
 
+    INTEGER, POINTER :: ir_end
     REAL( DP ) :: scalar_product
     CHARACTER( LEN=80 ) :: fun_name = 'scalar_product_environ_density'
 
     IF ( .NOT.ASSOCIATED(density1%cell,density2%cell) ) &
-        & CALL errore(fun_name,'operation on fields with inconsistent domains',1)
-    scalar_product = DOT_PRODUCT(density1%of_r,density2%of_r)
+         & CALL errore(fun_name,'operation on fields with inconsistent domains',1)
+    ir_end => density1 % cell % ir_end
+    scalar_product = DOT_PRODUCT(density1%of_r(1:ir_end),density2%of_r(1:ir_end))
     CALL mp_sum( scalar_product, density1%cell%comm )
     scalar_product = scalar_product * density1%cell%domega
 
