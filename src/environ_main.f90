@@ -174,10 +174,6 @@ CONTAINS
       REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, ecavity, &
                                  epressure
       !
-      ! ... Local variables
-      !
-      REAL( DP ) :: decavity, depressure, deelectrostatic, desoftcavity
-      !
       ! ... Initializes the variables
       !
       deenviron      = 0.D0
@@ -191,11 +187,10 @@ CONTAINS
       !
       IF ( lsurface ) THEN
          !
-         CALL calc_deenviron( electrons, vcavity, decavity )
+         deenviron = deenviron + &
+              & scalar_product_environ_density(electrons%density,vcavity)
          !
          CALL calc_ecavity( solvent, ecavity )
-         !
-         deenviron = deenviron + decavity
          !
       END IF
       !
@@ -203,11 +198,10 @@ CONTAINS
       !
       IF ( lvolume ) THEN
          !
-         CALL calc_deenviron( electrons, vpressure, depressure )
+         deenviron = deenviron + &
+              & scalar_product_environ_density(electrons%density,vpressure)
          !
          CALL calc_epressure( solvent, epressure )
-         !
-         deenviron = deenviron + depressure
          !
       END IF
       !
@@ -215,17 +209,11 @@ CONTAINS
       !
       IF ( lelectrostatic ) THEN
          !
-         CALL calc_deenviron( electrons, velectrostatic, deelectrostatic )
+         deenviron = deenviron + &
+              & scalar_product_environ_density(electrons%density,velectrostatic)
          !
-         deenviron = deenviron + deelectrostatic
-         !
-         IF ( lsoftcavity ) THEN
-            !
-            CALL calc_deenviron( electrons, vsoftcavity, desoftcavity )
-            !
-            deenviron = deenviron + desoftcavity
-            !
-         ENDIF
+         IF ( lsoftcavity ) deenviron = deenviron + &
+              & scalar_product_environ_density(electrons%density,vsoftcavity)
          !
          IF ( lstatic ) THEN
             !
@@ -262,33 +250,6 @@ CONTAINS
       !
 !--------------------------------------------------------------------
       END SUBROUTINE calc_eenviron
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-      SUBROUTINE calc_deenviron( electrons, potential, denergy )
-!--------------------------------------------------------------------
-
-        IMPLICIT NONE
-
-        TYPE( environ_electrons ), INTENT(IN) :: electrons
-        TYPE( environ_density ), TARGET, INTENT(IN) :: potential
-        REAL( DP ), INTENT(OUT) :: denergy
-
-        INTEGER, POINTER :: ir_end
-        CHARACTER( LEN=80 ) :: sub_name = 'calc_deenviron'
-
-        denergy = 0.D0
-
-        IF ( electrons % density % cell % ir_end .NE. potential % cell % ir_end ) &
-             & CALL errore(sub_name,'Missmatch in vectors sizes',1)
-
-        denergy = scalar_product_environ_density(electrons%density,potential)
-
-        denergy = denergy * potential % cell % domega
-
-        RETURN
-
-!--------------------------------------------------------------------
-      END SUBROUTINE calc_deenviron
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       SUBROUTINE calc_fenviron( nat, force_environ )

@@ -452,6 +452,7 @@ CONTAINS
         & CALL errore(fun_name,'operation on fields with inconsistent domains',1)
     scalar_product = DOT_PRODUCT(density1%of_r,density2%of_r)
     CALL mp_sum( scalar_product, density1%cell%comm )
+    scalar_product = scalar_product * density1%cell%domega
 
     RETURN
 
