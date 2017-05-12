@@ -99,6 +99,9 @@ CONTAINS
           CALL generate_erfc(nnr, dim, axis, charge, width, spread, pos, density%of_r)
        CASE ( 3 ) ! Exponential
           CALL generate_exponential(nnr, spread, pos, density%of_r)
+          !
+          ! TO IMPLEMENT THE DISTINCTION BETWEEN NORMALIZED ERFC AND MAXED ERFC
+          !
        END SELECT
     END DO
 

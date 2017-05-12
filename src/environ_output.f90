@@ -255,6 +255,86 @@ CONTAINS
   END SUBROUTINE print_environ_gradient
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE print_environ_functions( nfunctions, functions, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: nfunctions
+    TYPE( environ_functions ), DIMENSION(nfunctions), INTENT(IN) :: functions
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+    INTEGER :: ifunctions
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_functions'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1300 )
+       WRITE( UNIT = environ_unit, FMT = 1301 )nfunctions
+       DO ifunctions = 1, nfunctions
+          SELECT CASE (functions(ifunctions)%type )
+          CASE ( 1 )
+             WRITE( UNIT = environ_unit, FMT = 1302 )functions(ifunctions)%dim,&
+                  & functions(ifunctions)%axis,functions(ifunctions)%spread,&
+                  & functions(ifunctions)%volume
+          CASE ( 2 )
+             WRITE( UNIT = environ_unit, FMT = 1303 )functions(ifunctions)%dim,&
+                  & functions(ifunctions)%axis,functions(ifunctions)%width,&
+                  & functions(ifunctions)%spread,functions(ifunctions)%volume
+          CASE ( 3 )
+             WRITE( UNIT = environ_unit, FMT = 1304 )functions(ifunctions)%spread,&
+                  & functions(ifunctions)%volume
+          CASE DEFAULT
+             CALL errore(sub_name,'Unexpected function type',1)
+          END SELECT
+          IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 1305 )&
+               & functions(ifunctions)%pos
+       END DO
+    END IF
+
+    RETURN
+
+1300 FORMAT(/,4('%'),' FUNCTIONS ',65('%'))
+1301 FORMAT(1x,'number of functions        = ',I10)
+1302 FORMAT(1x,'Gaussian function, type    = 1 '&
+          /,1x,'dimensionality             = ',I1,' '&
+          /,1x,'axis                       = ',I1,' '&
+          /,1x,'spread                     = ',F12.6,' '&
+          /,1x,'integral                   = ',F12.6,' ')
+1303 FORMAT(1x,'ERFC function, type        = 2 '&
+          /,1x,'dimensionality             = ',I1,' '&
+          /,1x,'axis                       = ',I1,' '&
+          /,1x,'width                      = ',F12.6,' '&
+          /,1x,'spread                     = ',F12.6,' '&
+          /,1x,'integral                   = ',F12.6,' ')
+1304 FORMAT(1x,'exponential function, type = 3 '&
+          /,1x,'spread                     = ',F12.6,' '&
+          /,1x,'integral                   = ',F12.6,' ')
+1305 FORMAT(1x,'position                   = ',3(F14.7),' ')
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_functions
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
       !
