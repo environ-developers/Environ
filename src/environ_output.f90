@@ -562,6 +562,63 @@ CONTAINS
   END SUBROUTINE print_environ_externals
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE print_environ_charges( charges, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_charges ), INTENT(IN) :: charges
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_charges'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1800 )
+       WRITE( UNIT = environ_unit, FMT = 1801 )charges%number
+       WRITE( UNIT = environ_unit, FMT = 1802 )charges%charge
+       IF ( verbosity .GE. 2 ) THEN
+          CALL print_environ_density(charges%density,passed_verbosity,passed_depth)
+          IF ( charges % include_ions ) &
+               & CALL print_environ_ions(charges%ions,passed_verbosity,passed_depth)
+          IF ( charges % include_electrons ) &
+               & CALL print_environ_electrons(charges%electrons,passed_verbosity,passed_depth)
+          IF ( charges % include_externals ) &
+               & CALL print_environ_externals(charges%externals,passed_verbosity,passed_depth)
+          IF ( charges % include_auxiliary ) &
+               & CALL print_environ_density(charges%auxiliary,passed_verbosity,passed_depth)
+       ENDIF
+    END IF
+
+    RETURN
+
+1800 FORMAT(/,4('%'),' CHARGES ',67('%'))
+1801 FORMAT(1x,'total number of charges    = ',I10)
+1802 FORMAT(1x,'total charge               = ',F14.7)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_charges
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
       !

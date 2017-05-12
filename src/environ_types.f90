@@ -177,35 +177,27 @@ MODULE environ_types
      ! Ionic charges
 
      LOGICAL :: include_ions = .FALSE.
-     INTEGER :: nions = 0
-     REAL( DP ) :: zions = 0.0_DP
      TYPE( environ_ions ), POINTER :: ions => NULL()
 
      ! Electrons
 
      LOGICAL :: include_electrons = .FALSE.
-     INTEGER :: nelectrons = 0
-     REAL( DP ) :: zelectrons = 0.0_DP
      TYPE( environ_electrons ), POINTER :: electrons => NULL()
 
      ! External charges
 
      LOGICAL :: include_externals = .FALSE.
-     INTEGER :: nexternals = 0
-     REAL( DP ) :: zexternals = 0.0_DP
      TYPE( environ_externals ), POINTER :: externals => NULL()
 
      ! Auxiliary charges
 
      LOGICAL :: include_auxiliary = .FALSE.
-     INTEGER :: nauxiliary = 0
-     REAL( DP ) :: zauxiliary = 0.0_DP
      TYPE( environ_density ), POINTER :: auxiliary => NULL()
 
      ! Total smooth free charge
 
-     INTEGER :: ntot = 0
-     REAL( DP ) :: ztot = 0.0_DP
+     INTEGER :: number = 0
+     REAL( DP ) :: charge = 0.0_DP
      TYPE( environ_density ) :: density
 
   END TYPE environ_charges
@@ -887,27 +879,19 @@ CONTAINS
     TYPE( environ_charges ) :: charges
 
     charges%include_ions = .FALSE.
-    charges%nions = 0
-    charges%zions = 0.D0
     NULLIFY( charges%ions )
 
     charges%include_electrons = .FALSE.
-    charges%nelectrons = 0
-    charges%zelectrons = 0.D0
     NULLIFY( charges%electrons )
 
     charges%include_externals = .FALSE.
-    charges%nexternals = 0
-    charges%zexternals = 0.D0
     NULLIFY( charges%externals )
 
     charges%include_auxiliary = .FALSE.
-    charges%nauxiliary = 0
-    charges%zauxiliary = 0.D0
     NULLIFY( charges%auxiliary )
 
-    charges%ntot = 0
-    charges%ztot = 0.D0
+    charges%number = 0
+    charges%charge = 0.D0
     CALL create_environ_density( charges%density, "charges" )
 
     RETURN
@@ -926,25 +910,21 @@ CONTAINS
 
     IF ( PRESENT(ions) ) THEN
        charges%include_ions = .TRUE.
-       charges%nions = ions%number
        charges%ions => ions
     END IF
 
     IF ( PRESENT(electrons) ) THEN
        charges%include_electrons = .TRUE.
-       charges%nelectrons = electrons%number
        charges%electrons => electrons
     ENDIF
 
     IF ( PRESENT(externals) ) THEN
        charges%include_externals = .TRUE.
-       charges%nexternals = externals%number
        charges%externals => externals
     ENDIF
 
     IF ( PRESENT(auxiliary) ) THEN
        charges%include_auxiliary = .TRUE.
-       charges%nauxiliary = 1
        charges%auxiliary => auxiliary
     ENDIF
 
@@ -970,32 +950,46 @@ CONTAINS
 
     TYPE( environ_charges ), INTENT( INOUT ) :: charges
 
-    charges % ntot = 0.D0
+    REAL( DP ) :: local_charge
+    CHARACTER( LEN = 80 ) :: sub_name = 'update_environ_charges'
+
+    charges % number = 0
     charges % density % of_r = 0.D0
 
     IF ( charges % include_electrons ) THEN
-       charges % ntot = charges % ntot + charges % nelectrons
-       IF ( charges % nelectrons .GT. 0 ) charges % density % of_r = &
-            & charges % density % of_r + charges % electrons % density % of_r
+       IF ( .NOT. ASSOCIATED( charges % electrons ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       charges % number = charges % number + charges % electrons % number
+       charges % charge = charges % charge + charges % electrons % charge
+       charges % density % of_r = charges % density % of_r + charges % electrons % density % of_r
     ENDIF
 
     IF ( charges % include_ions ) THEN
-       charges % ntot = charges % ntot + charges % nions
-       IF ( charges % nions .GT. 0 ) charges % density % of_r = &
-            & charges % density % of_r + charges % ions % density % of_r
+       IF ( .NOT. ASSOCIATED( charges % ions ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       charges % number = charges % number + charges % ions % number
+       charges % charge = charges % charge + charges % ions % charge
+       charges % density % of_r = charges % density % of_r + charges % ions % density % of_r
     ENDIF
 
     IF ( charges % include_externals ) THEN
-       charges % ntot = charges % ntot + charges % nexternals
-       IF ( charges % nexternals .GT. 0 ) charges % density % of_r = &
-            & charges % density % of_r + charges % externals % density % of_r
+       IF ( .NOT. ASSOCIATED( charges % externals ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       charges % number = charges % number + charges % externals % number
+       charges % charge = charges % charge + charges % externals  % charge
+       charges % density % of_r = charges % density % of_r + charges % externals % density % of_r
     ENDIF
 
     IF ( charges % include_auxiliary ) THEN
-       charges % ntot = charges % ntot + charges % nauxiliary
-       IF ( charges % nauxiliary .GT. 0 ) charges % density % of_r = &
-            & charges % density % of_r + charges % auxiliary % of_r
+       IF ( .NOT. ASSOCIATED( charges % auxiliary ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       charges % number = charges % number + 1
+       charges % charge = charges % charge + integrate_environ_density(charges%auxiliary)
+       charges % density % of_r = charges % density % of_r + charges % auxiliary % of_r
     ENDIF
+
+    local_charge = integrate_environ_density(charges%density)
+    IF ( local_charge .NE. charges%charge ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
 
     RETURN
 
