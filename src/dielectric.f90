@@ -36,22 +36,28 @@ CONTAINS
     TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
 
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_dielectric'
+    CHARACTER( LEN=80 ) :: label = ' '
 
     dielectric%constant = 1.0_DP
 
     IF ( ALLOCATED( dielectric%regions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
 
-    CALL create_environ_density( dielectric%background, "background"  )
-    CALL create_environ_density( dielectric%epsilon, "epsilon" )
+    label = 'background'
+    CALL create_environ_density( dielectric%background, label  )
+    label = 'epsilon'
+    CALL create_environ_density( dielectric%epsilon, label )
 
     NULLIFY( dielectric%boundary )
 
     dielectric%need_gradient = .FALSE.
-    CALL create_environ_gradient( dielectric%gradient, "epsilon_gradient" )
+    label = 'epsilon_gradient'
+    CALL create_environ_gradient( dielectric%gradient, label )
     dielectric%need_factsqrt = .FALSE.
-    CALL create_environ_density( dielectric%factsqrt, "epsilon_factsqrt" )
+    label = 'epsilon_gradient'
+    CALL create_environ_density( dielectric%factsqrt, label )
     dielectric%need_gradlog = .FALSE.
-    CALL create_environ_gradient( dielectric%gradlog, "epsilong_gradlog" )
+    label = 'epsilon_gradient'
+    CALL create_environ_gradient( dielectric%gradlog, label )
     RETURN
 
   END SUBROUTINE create_environ_dielectric

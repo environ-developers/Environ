@@ -363,6 +363,8 @@ CONTAINS
       REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
       REAL(DP), OPTIONAL, INTENT(IN) :: e2
       !
+      CHARACTER( LEN = 80 ) :: label = ' '
+      !
       ! ... Common initialization for simulations with Environ
       !
       e2_ = 2.D0
@@ -372,7 +374,8 @@ CONTAINS
       !
       ! ... Create local storage for base potential, that needs to be modified
       !
-      CALL create_environ_density( vzero )
+      label = 'vzero'
+      CALL create_environ_density( vzero, label )
       CALL init_environ_density( cell, vzero )
       !
       deenviron = 0.0_DP
@@ -382,10 +385,12 @@ CONTAINS
       eelectrostatic  = 0.0_DP
       IF ( lelectrostatic ) THEN
          !
-         CALL create_environ_density( velectrostatic )
+         label = 'velectrostatic'
+         CALL create_environ_density( velectrostatic, label )
          CALL init_environ_density( cell, velectrostatic )
          !
-         CALL create_environ_density( vsoftcavity )
+         label = 'vsoftcavity'
+         CALL create_environ_density( vsoftcavity, label )
          CALL init_environ_density( cell, vsoftcavity )
          !
       END IF
@@ -395,7 +400,8 @@ CONTAINS
       ecavity  = 0.0_DP
       IF ( lsurface ) THEN
          !
-         CALL create_environ_density( vcavity )
+         label = 'vcavity'
+         CALL create_environ_density( vcavity, label )
          CALL init_environ_density( cell, vcavity )
          !
       END IF
@@ -405,7 +411,8 @@ CONTAINS
       epressure  = 0.0_DP
       IF ( lvolume ) THEN
          !
-         CALL create_environ_density( vpressure )
+         label = 'vpressure'
+         CALL create_environ_density( vpressure, label )
          CALL init_environ_density( cell, vpressure )
          !
       ENDIF
@@ -536,10 +543,12 @@ CONTAINS
       ! ... Update ions parameters
       !
       CALL update_environ_ions( nat, tau, ions )
+      CALL print_environ_ions( ions )
       !
       ! ... Update system parameters
       !
       CALL update_environ_system( system )
+      CALL print_environ_system( system )
       !
       ! ... Update rigid environ properties, defined on ions
       !
@@ -548,15 +557,27 @@ CONTAINS
          IF ( lsolvent ) THEN
             !
             CALL update_environ_boundary( solvent )
+            IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
             !
             ! ... Update quantities that depend on the solvent boundary
             !
-            IF ( lstatic ) CALL update_environ_dielectric( static )
-            IF ( loptical ) CALL update_environ_dielectric( optical )
+            IF ( lstatic ) THEN
+               CALL update_environ_dielectric( static )
+               IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
+            END IF
+            !
+            IF ( loptical ) THEN
+               CALL update_environ_dielectric( optical )
+               IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
+            END IF
             !
          ENDIF
          !
-         IF ( lelectrolyte ) CALL update_environ_boundary( electrolyte%boundary )
+         IF ( lelectrolyte ) THEN
+            CALL update_environ_boundary( electrolyte%boundary )
+            IF ( electrolyte % boundary % update_status .EQ. 2 ) &
+                 & CALL print_environ_boundary( electrolyte%boundary )
+         END IF
          !
       END IF
       !
@@ -595,6 +616,7 @@ CONTAINS
       ! ... Update electrons parameters
       !
       CALL update_environ_electrons( nelec, nspin, nnr, rho, electrons )
+      CALL print_environ_electrons( electrons )
       !
       ! ... Update soft environ properties, defined on electrons
       !
@@ -603,15 +625,27 @@ CONTAINS
          IF ( lsolvent ) THEN
             !
             CALL update_environ_boundary( solvent )
+            IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
             !
             ! ... Update quantities that depend on the solvent boundary
             !
-            IF ( lstatic ) CALL update_environ_dielectric( static )
-            IF ( loptical ) CALL update_environ_dielectric( optical )
+            IF ( lstatic ) THEN
+               CALL update_environ_dielectric( static )
+               IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
+            END IF
             !
-         ENDIF
+            IF ( loptical ) THEN
+               CALL update_environ_dielectric( optical )
+               IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
+            END IF
+            !
+         END IF
          !
-         IF ( lelectrolyte ) CALL update_environ_boundary( electrolyte%boundary )
+         IF ( lelectrolyte ) THEN
+            CALL update_environ_boundary( electrolyte%boundary )
+            IF ( electrolyte % boundary % update_status .EQ. 2 ) &
+                 & CALL print_environ_boundary( electrolyte%boundary )
+         END IF
          !
       END IF
       !

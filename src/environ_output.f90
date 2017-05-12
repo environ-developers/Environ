@@ -26,7 +26,7 @@ MODULE environ_output
   INTEGER :: program_unit
   INTEGER :: environ_unit
   INTEGER :: verbose
-  INTEGER :: depth = 0
+  INTEGER :: depth = 1
 
   CHARACTER( LEN = 2 ) :: prog
 
@@ -37,7 +37,12 @@ MODULE environ_output
 
   PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, &
        & verbose, prog, set_environ_output, environ_print_energies, &
-       & environ_summary, environ_clock, write_cube
+       & environ_summary, environ_clock, write_cube, &
+       & print_environ_density, print_environ_gradient, &
+       & print_environ_functions, print_environ_iontype, &
+       & print_environ_ions, print_environ_electrons, &
+       & print_environ_externals, print_environ_system, &
+       & print_environ_boundary, print_environ_dielectric
 
 CONTAINS
 !--------------------------------------------------------------------
@@ -45,7 +50,7 @@ CONTAINS
 !--------------------------------------------------------------------
     IMPLICIT NONE
 
-    bibliography(1) = "O. Andreussi, I. Dabo and N. Marzari, J. &
+    bibliography(1) = "O. Andreussi, I. Dabo and N. Marzari, J.&
                       & Chem. Phys. 136, 064102 (2012)"
 
     RETURN
@@ -105,10 +110,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -118,7 +123,7 @@ CONTAINS
        IF ( verbosity .GE. 2 ) THEN
           WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
           WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
-          WRITE( UNIT = environ_unit, FMT = 1004 )cell%nnr
+          WRITE( UNIT = environ_unit, FMT = 1004 )cell%ntot,cell%nnr,cell%domega
           IF ( verbosity .GE. 3 ) THEN
              WRITE( UNIT = environ_unit, FMT = 1005 )cell%me,cell%root,cell%comm
           END IF
@@ -128,14 +133,16 @@ CONTAINS
     RETURN
 
 1000 FORMAT(/,4('%'),' CELL ',70('%'))
-1001 FORMAT(1x,'bravais lattice index     = ',I3,' ' &
-          /,1x,'lattice spacing           = ',F12.6,' ' &
-          /,1x,'cell volume               = ',F12.6,' ' )
+1001 FORMAT(1x,'bravais lattice index     = ',I3,' '&
+          /,1x,'lattice spacing           = ',F12.6,' '&
+          /,1x,'cell volume               = ',F12.6,' ')
 1002 FORMAT(1x,'simulation cell axes      = ',3(F12.6),' '&
           /,1x,'                            ',3(F12.6),' '&
           /,1x,'                            ',3(F12.6),' ')
-1003 FORMAT(1x,'real space grid dim.      = ',3I4,' ')
-1004 FORMAT(1x,'size of r-space per proc. = ',I10,' ')
+1003 FORMAT(1x,'real space grid dim.s     = ',3I4,' ')
+1004 FORMAT(1x,'total size of grid        = ',I10,' '&
+          /,1x,'size of r-space per proc. = ',I10,' '&
+          /,1x,'finite element volume     = ',F12.6,' ')
 1005 FORMAT(1x,'current processor index   = ',I10,' '&
           /,1x,'index of root processor   = ',I10,' '&
           /,1x,'communicator index        = ',I10,' ')
@@ -168,33 +175,40 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
     IF ( ionode .AND. verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1100 )
-       WRITE( UNIT = environ_unit, FMT = 1101 )TRIM(ADJUSTL(density%label))
+       WRITE( UNIT = environ_unit, FMT = 1101 )ADJUSTL(density%label)
        WRITE( UNIT = environ_unit, FMT = 1102 )integrate_environ_density(density)
        ! MAY ADD MAXVAL AND MINVAL
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_cell( density%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
+             WRITE(environ_unit,*)'present local ions'
              CALL write_cube( density, local_ions )
-          ELSE
+          ELSE IF ( ions%initialized ) THEN
+             WRITE(environ_unit,*)'using stored ions'
              CALL write_cube( density, ions )
+          ELSE
+             WRITE(environ_unit,*)'no ions'
+             CALL write_cube( density )
           END IF
        END IF
     END IF
 
+    FLUSH( environ_unit )
+
     RETURN
 
 1100 FORMAT(/,4('%'),' DENSITY ',67('%'))
-1101 FORMAT(1x,'density label             = ',A80)
-1102 FORMAT(1x,'integral of density       = ',G20.10)
+1101 FORMAT(1x,'density label              = ',A80)
+1102 FORMAT(1x,'integral of density        = ',G20.10)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_density
 !--------------------------------------------------------------------
@@ -224,10 +238,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -240,17 +254,21 @@ CONTAINS
           CALL print_environ_cell( gradient%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
              CALL write_cube( gradient%modulus, local_ions )
-          ELSE
+          ELSE IF ( ASSOCIATED(ions%tau) ) THEN
              CALL write_cube( gradient%modulus, ions )
+          ELSE
+             CALL write_cube( gradient%modulus )
           END IF
        END IF
     END IF
 
+    FLUSH( environ_unit )
+
     RETURN
 
 1200 FORMAT(/,4('%'),' GRADIENT ',66('%'))
-1201 FORMAT(1x,'gradient label             = ',A80)
-1202 FORMAT(1x,'integral of square modul.  = ',G20.10)
+1201 FORMAT(1x,'gradient label              = ',A80)
+1202 FORMAT(1x,'integral of square modul.   = ',G20.10)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_gradient
 !--------------------------------------------------------------------
@@ -281,10 +299,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -312,6 +330,8 @@ CONTAINS
                & functions(ifunctions)%pos
        END DO
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -365,10 +385,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -383,6 +403,8 @@ CONTAINS
                & iontype(ityp)%solvationrad
        END DO
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -419,10 +441,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -449,6 +471,8 @@ CONTAINS
           END IF
        END IF
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -485,10 +509,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -500,6 +524,8 @@ CONTAINS
        IF ( verbosity .GE. 2 ) &
             & CALL print_environ_density(electrons%density,passed_verbosity,passed_depth)
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -535,10 +561,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -552,6 +578,8 @@ CONTAINS
           CALL print_environ_density(externals%density,passed_verbosity,passed_depth)
        ENDIF
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -586,10 +614,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -609,6 +637,8 @@ CONTAINS
                & CALL print_environ_density(charges%auxiliary,passed_verbosity,passed_depth)
        ENDIF
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -643,29 +673,36 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
     IF ( ionode .AND. verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1900 )
-       WRITE( UNIT = environ_unit, FMT = 1901 )system%ntyp
-       WRITE( UNIT = environ_unit, FMT = 1902 )system%dim,system%axis
-       WRITE( UNIT = environ_unit, FMT = 1903 )system%pos,system%width
+       IF ( system%ntyp .EQ. 0 ) THEN
+          WRITE( UNIT = environ_unit, FMT = 1901 )
+       ELSE
+          WRITE( UNIT = environ_unit, FMT = 1902 )system%ntyp
+       END IF
+       WRITE( UNIT = environ_unit, FMT = 1903 )system%dim,system%axis
+       WRITE( UNIT = environ_unit, FMT = 1904 )system%pos,system%width
        IF ( verbosity .GE. 2 ) &
           & CALL print_environ_ions(system % ions, passed_verbosity, passed_depth )
     END IF
 
+    FLUSH( environ_unit )
+
     RETURN
 
 1900 FORMAT(/,4('%'),' SYSTEM ',68('%'))
-1901 FORMAT(1x,'system is built from the first ',I3,' ionic types')
-1902 FORMAT(1x,'system defined dimension   = ',I2,' '&
+1901 FORMAT(1x,'system is built from all present ionic types')
+1902 FORMAT(1x,'system is built from the first ',I3,' ionic types')
+1903 FORMAT(1x,'system defined dimension   = ',I2,' '&
           /,1x,'system defined axis        = ',I2,' ')
-1903 FORMAT(1x,'system center              = ',3F14.7,' '&
+1904 FORMAT(1x,'system center              = ',3F14.7,' '&
           /,1x,'system width               = ',F14.7,' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_system
@@ -695,10 +732,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -737,6 +774,8 @@ CONTAINS
           IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%theta,passed_verbosity,passed_depth)
        ENDIF
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -785,10 +824,10 @@ CONTAINS
     IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
 
     IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = MAX(0,verbosity - depth)
+       passed_verbosity = verbosity - verbose - depth
        passed_depth = depth
     END IF
 
@@ -812,6 +851,8 @@ CONTAINS
        END IF
 
     END IF
+
+    FLUSH( environ_unit )
 
     RETURN
 
@@ -874,7 +915,7 @@ CONTAINS
       ! summarizing the input keywords (some info also on internal
       ! vs input units). Called by summary.f90
       !
-      USE environ_base,       ONLY : environ_thr, solvent,             &
+      USE environ_base,       ONLY : environ_thr, lsolvent, solvent,   &
                                      env_static_permittivity,          &
                                      env_optical_permittivity,         &
                                      env_surface_tension,              &
@@ -900,12 +941,14 @@ CONTAINS
             !
             WRITE( UNIT = program_unit, FMT = 9001 ) environ_thr
             !
-            IF ( solvent%type .EQ. 0 ) THEN
-               WRITE( UNIT = program_unit, FMT = 9002 ) 'Fatteber-Gygi'
-               WRITE( UNIT = program_unit, FMT = 9003 ) solvent%rhozero, solvent%tbeta
-            ELSE IF ( solvent%type .EQ. 1 ) THEN
-               WRITE( UNIT = program_unit, FMT = 9002 ) 'SCCS'
-               WRITE( UNIT = program_unit, FMT = 9004 ) solvent%rhomax, solvent%rhomin
+            IF ( lsolvent ) THEN
+               IF ( solvent%type .EQ. 0 ) THEN
+                  WRITE( UNIT = program_unit, FMT = 9002 ) 'Fatteber-Gygi'
+                  WRITE( UNIT = program_unit, FMT = 9003 ) solvent%rhozero, solvent%tbeta
+               ELSE IF ( solvent%type .EQ. 1 ) THEN
+                  WRITE( UNIT = program_unit, FMT = 9002 ) 'SCCS'
+                  WRITE( UNIT = program_unit, FMT = 9004 ) solvent%rhomax, solvent%rhomin
+               ENDIF
             ENDIF
             !
             IF ( env_static_permittivity .GT. 1.D0 ) THEN
@@ -954,7 +997,7 @@ CONTAINS
 8000  FORMAT(/,5x,'Plese cite',/,9x,A80,&
              /,5x,'in publications or presentations arising from this work.',/)
 8001  FORMAT(/)
-9000  FORMAT(/,5x,'Environ module',/,5x,'==============')
+9000  FORMAT(/,5x,'Environ Module',/,5x,'==============')
 9001  FORMAT( '     compensation onset threshold      = ',  E24.4,' ' )
 9002  FORMAT( '     switching function adopted        = ',  A24,' ' )
 9003  FORMAT( '     solvation density threshold       = ',  E24.4,' ' &
@@ -970,7 +1013,7 @@ CONTAINS
 9011  FORMAT( '     external pressure in input (GPa)  = ',  F24.2,' ' &
              /'     external pressure in inter. units = ',  E24.4,' ' )
 9012  FORMAT( '     correction slab geom. along axis  = ',  I24,' ' )
-9100  FORMAT(/,5x,'Electrostatic setup',/,5x,'-------------------')
+9100  FORMAT(/,5x,'Electrostatic Setup',/,5x,'-------------------')
 9101  FORMAT( '     electrostatic problem to solve    = ',  A24,' ' &
              /'     numerical solver adopted          = ',  A24,' ' &
              /'     type of auxiliary density adopted = ',  A24,' ' )
@@ -1050,7 +1093,7 @@ CONTAINS
       REAL( DP ), ALLOCATABLE  :: flocal( : )
       REAL( DP ), DIMENSION(3) :: origin
       !
-      CHARACTER( LEN=80 ) :: filename
+      CHARACTER( LEN=100 ) :: filename
       REAL( DP ), POINTER :: alat
       REAL( DP ), DIMENSION(:,:), POINTER :: at
       !
@@ -1066,7 +1109,7 @@ CONTAINS
       nr2 = dfftp%nr2
       nr3 = dfftp%nr3
       !
-      filename = f%label
+      filename = TRIM(ADJUSTL(f%label))//".cube"
       !
       alat => f%cell%alat
       at => f%cell%at

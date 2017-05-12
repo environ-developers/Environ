@@ -62,9 +62,10 @@ CONTAINS
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
 
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_electrolyte'
+    CHARACTER( LEN=80 ) :: label = 'electrolyte'
 
     CALL create_environ_boundary( electrolyte%boundary )
-    CALL create_environ_density( electrolyte%density, "electrolyte" )
+    CALL create_environ_density( electrolyte%density, label )
 
     IF ( ALLOCATED( electrolyte%ioncctype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
 

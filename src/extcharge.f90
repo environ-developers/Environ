@@ -40,11 +40,12 @@ MODULE externals_utils
 
     TYPE( environ_externals ), INTENT(INOUT) :: externals
     CHARACTER (LEN=80) :: sub_name = 'create_environ_externals'
+    CHARACTER( LEN=80 ) :: label = 'externals'
 
     externals%update = .FALSE.
     externals%number = 0
     IF ( ALLOCATED( externals%functions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    CALL create_environ_density( externals%density, "externals" )
+    CALL create_environ_density( externals%density, label )
     externals%charge = 0.D0
 
     RETURN

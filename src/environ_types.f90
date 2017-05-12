@@ -35,7 +35,7 @@ MODULE environ_types
 
      ! Optionally have an associated label, used for printout and debugs
 
-     CHARACTER( LEN=80 ) :: label = " "
+     CHARACTER( LEN=80 ) :: label = ' '
 
      ! Each quantity in real-space is associated with its definition domain
 
@@ -55,7 +55,7 @@ MODULE environ_types
 
      ! Optionally have an associated label, used for printout and debugs
 
-     CHARACTER( LEN=80 ) :: label = " "
+     CHARACTER( LEN=80 ) :: label = ' '
 
      ! Each quantity in real-space is associated with its definition domain
 
@@ -77,7 +77,7 @@ MODULE environ_types
 
      ! Optionally have an associated label, used for printout and debugs
 
-     CHARACTER( LEN=80 ) :: label = " "
+     CHARACTER( LEN=80 ) :: label = ' '
 
      ! Each quantity in real-space is associated with its definition domain
 
@@ -117,6 +117,7 @@ MODULE environ_types
 
   TYPE environ_ions
 
+     LOGICAL :: initialized = .FALSE.
      LOGICAL :: update = .FALSE.
      INTEGER :: number = 0
      REAL( DP ), DIMENSION(3) :: center
@@ -360,6 +361,9 @@ CONTAINS
     cell % me   = me
     cell % root = root
 
+    cell % ntot = cell % n1 * cell % n2 * cell % n3
+    cell % domega = cell % omega / cell % ntot
+
     RETURN
 
   END SUBROUTINE init_environ_cell
@@ -375,24 +379,27 @@ CONTAINS
     cell % omega = omega
     cell % at = at
 
+    cell % domega = cell % omega / cell % ntot
+
     RETURN
 
   END SUBROUTINE update_environ_cell
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- DENSITY ------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------
-  SUBROUTINE create_environ_density(density,label)
+  SUBROUTINE create_environ_density(density,local_label)
 
     IMPLICIT NONE
 
     TYPE( environ_density ), INTENT(INOUT) :: density
-    CHARACTER( LEN=80 ), INTENT(IN), OPTIONAL :: label
+    CHARACTER( LEN=80 ), INTENT(IN), OPTIONAL :: local_label
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_density'
 
-    IF ( PRESENT(label) ) THEN
-       density%label = label
+    CHARACTER ( LEN=80 ) :: label = 'density'
+    IF ( PRESENT(local_label) ) THEN
+       density%label = local_label
     ELSE
-       density%label = "density"
+       density%label = label
     END IF
 
     NULLIFY(density%cell)
@@ -511,10 +518,10 @@ CONTAINS
 
     IF ( PRESENT(label) ) THEN
        gradient%label = label
-       modulus_label = TRIM(ADJUSTL(label))//"_modulus"
+       modulus_label = TRIM(ADJUSTL(label))//'_modulus'
     ELSE
-       gradient%label = "gradient"
-       modulus_label = "gradient_modulus"
+       gradient%label = 'gradient'
+       modulus_label = 'gradient_modulus'
     END IF
 
     NULLIFY( gradient%cell )
@@ -599,7 +606,7 @@ CONTAINS
     IF ( PRESENT(label) ) THEN
        hessian%label = label
     ELSE
-       hessian%label = "hessian"
+       hessian%label = 'hessian'
     END IF
 
     NULLIFY(hessian%cell)
@@ -682,12 +689,13 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
+    CHARACTER( LEN = 80 ) :: label = 'electrons'
 
     electrons%update = .FALSE.
     electrons%number = 0
     electrons%nspin  = 1
     electrons%charge = 0.D0
-    CALL create_environ_density( electrons%density, "electrons" )
+    CALL create_environ_density( electrons%density,label )
 
     RETURN
 
@@ -746,11 +754,12 @@ CONTAINS
 
     ! Update and check integral of electronic density
 
-    electrons%nelec = nelec
-    electrons%number = INT(nelec)
     electrons%charge = integrate_environ_density( electrons%density )
+!    electrons%nelec = nelec
+    electrons%nelec = electrons%charge
+    electrons%number = INT(nelec)
     IF ( ABS(electrons%charge-electrons%nelec) .GT. tol ) &
-         & CALL errore(sub_name,'Missmatch in integrated electronic charge',1)
+             & CALL errore(sub_name,'Missmatch in integrated electronic charge',1)
 
     RETURN
 
@@ -877,6 +886,7 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE( environ_charges ) :: charges
+    CHARACTER( LEN = 80 ) :: label = 'charges'
 
     charges%include_ions = .FALSE.
     NULLIFY( charges%ions )
@@ -892,7 +902,7 @@ CONTAINS
 
     charges%number = 0
     charges%charge = 0.D0
-    CALL create_environ_density( charges%density, "charges" )
+    CALL create_environ_density( charges%density, label )
 
     RETURN
 

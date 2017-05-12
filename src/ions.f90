@@ -23,6 +23,7 @@ CONTAINS
 
     TYPE( environ_ions ), INTENT(INOUT) :: ions
     CHARACTER (LEN=80) :: sub_name = 'create_environ_ions'
+    CHARACTER (LEN=80) :: label = ' '
 
     ions%update = .FALSE.
 
@@ -33,11 +34,13 @@ CONTAINS
 
     ions%use_smeared_ions = .FALSE.
     IF ( ALLOCATED( ions%smeared_ions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    CALL create_environ_density( ions%density, "smeared_ions" )
+    label = 'smeared_ions'
+    CALL create_environ_density( ions%density, label )
 
     ions%use_core_electrons = .FALSE.
     IF ( ALLOCATED( ions%core_electrons ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    CALL create_environ_density( ions%core, "core_electrons" )
+    label = 'core_electrons'
+    CALL create_environ_density( ions%core, label )
 
     RETURN
 
@@ -74,8 +77,11 @@ CONTAINS
 
     ! Allocate the basic vectors, cannot initialize them here
 
+    ions%initialized = .FALSE.
     ALLOCATE( ions%tau( 3, nat ) )
+    ions%tau = 0.D0
     ALLOCATE( ions%ityp( nat ) )
+    ions%ityp = 0
 
     ! Set ions types, note that also valence charges cannot be initialized here
 
@@ -194,6 +200,8 @@ CONTAINS
        ENDIF
 
     ENDIF
+
+    ions%initialized = .TRUE.
 
     RETURN
 

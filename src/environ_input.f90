@@ -333,7 +333,7 @@ MODULE environ_input
 !
 ! Preconditioner's parameters
 !
-        CHARACTER( LEN = 80 ) :: preconditioner = 'right'
+        CHARACTER( LEN = 80 ) :: preconditioner = 'left'
         CHARACTER( LEN = 80 ) :: preconditioner_allowed(3)
         DATA preconditioner_allowed / 'none', 'sqrt', 'left' /
         ! type of preconditioner
@@ -651,7 +651,7 @@ MODULE environ_input
        ndiis = 1
        mix = 0.3D0
        !
-       preconditioner = 'right'
+       preconditioner = 'left'
        screening_type = 'none'
        screening = 0.D0
        !

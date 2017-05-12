@@ -19,24 +19,30 @@ CONTAINS
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
 
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_boundary'
+    CHARACTER( LEN=80 ) :: label = ' '
 
     boundary%update_status = 0
 
-    CALL create_environ_density( boundary%scaled, "boundary" )
-    CALL create_environ_density( boundary%dscaled, "dboundary" )
-    CALL create_environ_density( boundary%d2scaled, "d2boundary" )
+    label = 'boundary'
+    CALL create_environ_density( boundary%scaled, label )
+    label = 'dboundary'
+    CALL create_environ_density( boundary%dscaled, label )
+    label = 'd2boundary'
+    CALL create_environ_density( boundary%d2scaled, label )
 
     boundary%need_electrons = .FALSE.
     NULLIFY( boundary%electrons )
     boundary%need_ions = .FALSE.
     NULLIFY( boundary%ions   )
     boundary%need_theta = .FALSE.
-    CALL create_environ_density( boundary%theta, "theta" )
+    label = 'theta'
+    CALL create_environ_density( boundary%theta, label )
 
     IF ( ALLOCATED( boundary%soft_spheres ) ) &
          & CALL errore(sub_name,'Trying to create an already allocated object',1)
 
-    CALL create_environ_density( boundary%density, "density" )
+    label = 'density'
+    CALL create_environ_density( boundary%density, label )
 
     RETURN
 
