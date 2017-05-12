@@ -461,6 +461,107 @@ CONTAINS
   END SUBROUTINE print_environ_ions
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE print_environ_electrons( electrons, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_electrons ), INTENT(IN) :: electrons
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_electrons'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1600 )
+       WRITE( UNIT = environ_unit, FMT = 1601 )electrons%number
+       WRITE( UNIT = environ_unit, FMT = 1602 )electrons%charge
+       WRITE( UNIT = environ_unit, FMT = 1603 )electrons%nspin
+       IF ( verbosity .GE. 2 ) &
+            & CALL print_environ_density(electrons%density,passed_verbosity,passed_depth)
+    END IF
+
+    RETURN
+
+1600 FORMAT(/,4('%'),' ELECTRONS ',65('%'))
+1601 FORMAT(1x,'number of electrons        = ',I10)
+1602 FORMAT(1x,'total electronic charge    = ',F14.7)
+1603 FORMAT(1x,'number of spin components  = ',I2)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_electrons
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_externals( externals, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_externals ), INTENT(IN) :: externals
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_externals'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1700 )
+       WRITE( UNIT = environ_unit, FMT = 1701 )externals%number
+       WRITE( UNIT = environ_unit, FMT = 1702 )externals%charge
+       IF ( verbosity .GE. 2 ) THEN
+          CALL print_environ_functions(externals%number,externals%functions,&
+               & passed_verbosity,passed_depth)
+          CALL print_environ_density(externals%density,passed_verbosity,passed_depth)
+       ENDIF
+    END IF
+
+    RETURN
+
+1700 FORMAT(/,4('%'),' EXTERNALS ',65('%'))
+1701 FORMAT(1x,'number of external charges = ',I10)
+1702 FORMAT(1x,'total external charge      = ',F14.7)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_externals
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
       !
