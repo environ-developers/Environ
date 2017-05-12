@@ -294,16 +294,17 @@ CONTAINS
        DO ifunctions = 1, nfunctions
           SELECT CASE (functions(ifunctions)%type )
           CASE ( 1 )
-             WRITE( UNIT = environ_unit, FMT = 1302 )functions(ifunctions)%dim,&
-                  & functions(ifunctions)%axis,functions(ifunctions)%spread,&
-                  & functions(ifunctions)%volume
-          CASE ( 2 )
-             WRITE( UNIT = environ_unit, FMT = 1303 )functions(ifunctions)%dim,&
-                  & functions(ifunctions)%axis,functions(ifunctions)%width,&
+             WRITE( UNIT = environ_unit, FMT = 1302 )ifunctions,&
+                  & functions(ifunctions)%dim,functions(ifunctions)%axis,&
                   & functions(ifunctions)%spread,functions(ifunctions)%volume
-          CASE ( 3 )
-             WRITE( UNIT = environ_unit, FMT = 1304 )functions(ifunctions)%spread,&
+          CASE ( 2 )
+             WRITE( UNIT = environ_unit, FMT = 1303 )ifunctions,&
+                  & functions(ifunctions)%dim,functions(ifunctions)%axis,&
+                  & functions(ifunctions)%width,functions(ifunctions)%spread,&
                   & functions(ifunctions)%volume
+          CASE ( 3 )
+             WRITE( UNIT = environ_unit, FMT = 1304 )ifunctions,&
+                  & functions(ifunctions)%spread,functions(ifunctions)%volume
           CASE DEFAULT
              CALL errore(sub_name,'Unexpected function type',1)
           END SELECT
@@ -317,22 +318,147 @@ CONTAINS
 1300 FORMAT(/,4('%'),' FUNCTIONS ',65('%'))
 1301 FORMAT(1x,'number of functions        = ',I10)
 1302 FORMAT(1x,'Gaussian function, type    = 1 '&
+          /,1x,'number                     = ',I3,' '&
           /,1x,'dimensionality             = ',I1,' '&
           /,1x,'axis                       = ',I1,' '&
           /,1x,'spread                     = ',F12.6,' '&
           /,1x,'integral                   = ',F12.6,' ')
 1303 FORMAT(1x,'ERFC function, type        = 2 '&
+          /,1x,'number                     = ',I3,' '&
           /,1x,'dimensionality             = ',I1,' '&
           /,1x,'axis                       = ',I1,' '&
           /,1x,'width                      = ',F12.6,' '&
           /,1x,'spread                     = ',F12.6,' '&
           /,1x,'integral                   = ',F12.6,' ')
 1304 FORMAT(1x,'exponential function, type = 3 '&
+          /,1x,'number                     = ',I3,' '&
           /,1x,'spread                     = ',F12.6,' '&
           /,1x,'integral                   = ',F12.6,' ')
 1305 FORMAT(1x,'position                   = ',3(F14.7),' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_functions
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_iontype( ntyp, iontype, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: ntyp
+    TYPE( environ_iontype ), DIMENSION(ntyp), INTENT(IN) :: iontype
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+    INTEGER :: ityp
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_iontype'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1400 )
+       WRITE( UNIT = environ_unit, FMT = 1401 )ntyp
+       DO ityp = 1, ntyp
+          WRITE( UNIT = environ_unit, FMT = 1402 )ityp,iontype(ityp)%index,&
+               & iontype(ityp)%label,iontype(ityp)%atmnum,iontype(ityp)%zv
+          IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 1403 )&
+               & iontype(ityp)%atomicspread,iontype(ityp)%corespread,&
+               & iontype(ityp)%solvationrad
+       END DO
+    END IF
+
+    RETURN
+
+1400 FORMAT(/,4('%'),' IONTYPES ',66('%'))
+1401 FORMAT(1x,'number of ionic types      = ',I10)
+1402 FORMAT(1x,'iontype = ',I2,' index = ',I2,' label = ',A3,' atomic num = ',I2,' charge = ',F7.2)
+1403 FORMAT(1x,'atomic spread = ',F7.2,' core spread = ',F7.2,' solvation radius = ',F7.2)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_iontype
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_ions( ions, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_ions ), INTENT(IN) :: ions
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    INTEGER :: i
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_ions'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1500 )
+       WRITE( UNIT = environ_unit, FMT = 1501 )ions%number
+       WRITE( UNIT = environ_unit, FMT = 1502 )ions%charge
+       WRITE( UNIT = environ_unit, FMT = 1503 )ions%center
+       DO i = 1, ions%number
+          WRITE( UNIT = environ_unit, FMT = 1504 )i,ions%ityp(i),ions%tau(:,i)
+       END DO
+       IF ( verbosity .GE. 2 ) THEN
+          CALL print_environ_iontype(ions%ntyp,ions%iontype,passed_verbosity,passed_depth)
+          IF ( ions%use_smeared_ions ) THEN
+             CALL print_environ_density(ions%density,passed_verbosity,passed_depth)
+             IF ( verbosity .GE. 3 ) &
+                  & CALL print_environ_functions(ions%number,&
+                  & ions%smeared_ions,passed_verbosity,passed_depth)
+          END IF
+          IF ( ions%use_core_electrons ) THEN
+             IF ( verbosity .GE. 3 ) CALL print_environ_density(ions%core,passed_verbosity,passed_depth)
+             IF ( verbosity .GE. 4 ) CALL print_environ_functions(ions%number,&
+                  & ions%core_electrons,passed_verbosity,passed_depth)
+          END IF
+       END IF
+    END IF
+
+    RETURN
+
+1500 FORMAT(/,4('%'),' IONS ',70('%'))
+1501 FORMAT(1x,'number of ions             = ',I10)
+1502 FORMAT(1x,'total ionic charge         = ',F14.7)
+1503 FORMAT(1x,'ionic center of charge     = ',3(F14.7))
+1504 FORMAT(1x,'ion ',I3,' type = ',I2,' coordinates = ',3(F14.7))
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_ions
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
