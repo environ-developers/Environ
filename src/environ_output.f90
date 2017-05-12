@@ -619,6 +619,216 @@ CONTAINS
   END SUBROUTINE print_environ_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE print_environ_system( system, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_system ), INTENT(IN) :: system
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_system'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1900 )
+       WRITE( UNIT = environ_unit, FMT = 1901 )system%ntyp
+       WRITE( UNIT = environ_unit, FMT = 1902 )system%dim,system%axis
+       WRITE( UNIT = environ_unit, FMT = 1903 )system%pos,system%width
+       IF ( verbosity .GE. 2 ) &
+          & CALL print_environ_ions(system % ions, passed_verbosity, passed_depth )
+    END IF
+
+    RETURN
+
+1900 FORMAT(/,4('%'),' SYSTEM ',68('%'))
+1901 FORMAT(1x,'system is built from the first ',I3,' ionic types')
+1902 FORMAT(1x,'system defined dimension   = ',I2,' '&
+          /,1x,'system defined axis        = ',I2,' ')
+1903 FORMAT(1x,'system center              = ',3F14.7,' '&
+          /,1x,'system width               = ',F14.7,' ')
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_system
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_boundary( boundary, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_boundary'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 2000 )
+       WRITE( UNIT = environ_unit, FMT = 2001 )boundary%mode
+       IF ( boundary % need_electrons ) THEN
+          WRITE( UNIT = environ_unit, FMT = 2002 ) boundary % type
+          SELECT CASE ( boundary % type )
+          CASE ( 1 )
+             WRITE( UNIT = environ_unit, FMT = 2003 ) boundary % rhomax, boundary % rhomin
+             IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % fact
+          CASE ( 2 )
+             WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % rhozero, boundary % tbeta
+          END SELECT
+          IF ( verbosity .GE. 2 ) THEN
+             CALL print_environ_density(boundary%density,passed_verbosity,passed_depth)
+             IF ( boundary % need_ions ) THEN
+                WRITE( UNIT = environ_unit, FMT = 2006 )
+                IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%ions%core)
+             END IF
+             IF ( verbosity .GE. 3 ) &
+                  & CALL print_environ_electrons(boundary%electrons,passed_verbosity,passed_depth)
+          END IF
+       ELSE
+          WRITE( UNIT = environ_unit, FMT = 2007 ) boundary%alpha, boundary%softness
+          IF ( verbosity .GE. 2 ) &
+               & CALL print_environ_functions(boundary%ions%number,boundary%soft_spheres,&
+               & passed_verbosity,passed_depth)
+       END IF
+       IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
+       IF ( boundary%need_theta ) THEN
+          WRITE( UNIT = environ_unit, FMT = 2008 ) boundary % deltatheta
+          IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%theta,passed_verbosity,passed_depth)
+       ENDIF
+    END IF
+
+    RETURN
+
+2000 FORMAT(/,4('%'),' BOUNDARY ',66('%'))
+2001 FORMAT(1x,'boundary mode              = ',A20,' ')
+2002 FORMAT(1x,'boundary is built as a function of a smooth density'&
+          /,1x,'function type              = ',I2,' ')
+2003 FORMAT(1x,'using the optimal SCCS function with parameters '&
+          /,1x,'rhomax                     = ',F14.7,' '&
+          /,1x,'rhomin                     = ',F14.7,' ')
+2004 FORMAT(1x,'log(rhomax/rhomin)         = ',F14.7,' ')
+2005 FORMAT(1x,'using the Fattebert-Gygi function with parameters '&
+          /,1x,'rhozero                    = ',F14.7,' '&
+          /,1x,'2*beta                     = ',F14.7,' ')
+2006 FORMAT(1x,'adding fictitious core-electrons')
+2007 FORMAT(1x,'boundary is built from soft-spheres centered on ionic positions'&
+          /,1x,'solvent-dependent scaling  = ',F14.7,' '&
+          /,1x,'softness parameter         = ',F14.7,' ')
+2008 FORMAT(1x,'also need the surface term of this boundary'&
+          /,1x,'fd parameter for surface   = ',F14.7,' ')
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_boundary
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_dielectric( dielectric, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_dielectric ), INTENT(IN) :: dielectric
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_dielectric'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = MAX(0,verbosity - local_depth)
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = MAX(0,verbosity - depth)
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 2100 )
+       IF ( dielectric % nregions .EQ. 0 ) THEN
+          WRITE( UNIT = environ_unit, FMT = 2101 )dielectric%constant
+       ELSE
+          WRITE( UNIT = environ_unit, FMT = 2102 )dielectric%constant,dielectric%nregions
+          CALL print_environ_functions(dielectric%nregions,dielectric%regions,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%background,passed_verbosity,passed_depth)
+       END IF
+       CALL print_environ_boundary(dielectric%boundary,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%epsilon,passed_verbosity,passed_depth)
+       WRITE( UNIT = environ_unit, FMT = 2103 )dielectric%need_gradient,&
+            & dielectric%need_factsqrt,dielectric%need_gradlog
+       IF ( verbosity .GE. 3 ) THEN
+          IF ( dielectric%need_gradient ) CALL print_environ_gradient(dielectric%gradient,passed_verbosity,passed_depth)
+          IF ( dielectric%need_factsqrt ) CALL print_environ_density(dielectric%factsqrt,passed_verbosity,passed_depth)
+          IF ( dielectric%need_gradlog ) CALL print_environ_gradient(dielectric%gradlog,passed_verbosity,passed_depth)
+       END IF
+
+    END IF
+
+    RETURN
+
+2100 FORMAT(/,4('%'),' DIELECTRIC ',65('%'))
+2101 FORMAT(1x,'dielectric build on homogeneous background'&
+          /,1x,'environment bulk permitt.  = ',F14.7,' ')
+2102 FORMAT(1x,'dielectric build in the presence of dielectric regions'&
+          /,1x,'environment bulk permitt.  = ',F14.7,' '&
+          /,1x,'number of dielec. regions  = ',I4,' ')
+2103 FORMAT(1x,'dielectric flags'&
+          /,1x,'need gradient              = ',L2,' '&
+          /,1x,'need factor depend. sqrt   = ',L2,' '&
+          /,1x,'need gradient of logarithm = ',L2,' ')
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_dielectric
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
       !
