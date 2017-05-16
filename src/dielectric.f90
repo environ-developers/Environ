@@ -24,7 +24,7 @@ MODULE dielectric
   PRIVATE
   !
   PUBLIC :: create_environ_dielectric, init_environ_dielectric_first, &
-       & init_environ_dielectric_second, &
+       & set_dielectric_regions, init_environ_dielectric_second, &
        & update_environ_dielectric, destroy_environ_dielectric
   !
 CONTAINS
@@ -62,29 +62,17 @@ CONTAINS
 
   END SUBROUTINE create_environ_dielectric
 
-  SUBROUTINE init_environ_dielectric_first( constant, nregions, &
-             & epsregion_dim, epsregion_axis, epsregion_pos, epsregion_width, &
-             & epsregion_spread, epsregion_eps, boundary, need_gradient, &
-             & need_factsqrt, need_gradlog, dielectric )
+  SUBROUTINE init_environ_dielectric_first( constant, boundary, &
+             & need_gradient, need_factsqrt, need_gradlog, dielectric )
 
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: nregions
-    INTEGER, DIMENSION(nregions), INTENT(IN) :: epsregion_dim, epsregion_axis
     REAL( DP ) :: constant
-    REAL( DP ), DIMENSION(nregions), INTENT(IN) :: epsregion_width, epsregion_spread, epsregion_eps
-    REAL( DP ), DIMENSION(3,nregions), INTENT(IN) :: epsregion_pos
     LOGICAL, INTENT(IN) :: need_gradient, need_factsqrt, need_gradlog
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
 
     dielectric%constant = constant
-
-    dielectric%nregions = nregions
-    IF ( dielectric%nregions .GT. 0 ) &
-         & CALL create_environ_functions( dielectric%nregions, 2, epsregion_dim, &
-         & epsregion_axis, epsregion_pos, epsregion_spread, epsregion_width, &
-         & epsregion_eps, dielectric%regions )
 
     dielectric%boundary => boundary
 
@@ -95,6 +83,27 @@ CONTAINS
     RETURN
 
   END SUBROUTINE init_environ_dielectric_first
+
+  SUBROUTINE set_dielectric_regions( nregions, epsregion_dim, epsregion_axis, &
+       & epsregion_pos, epsregion_width, epsregion_spread, epsregion_eps, dielectric )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: nregions
+    INTEGER, DIMENSION(nregions), INTENT(IN) :: epsregion_dim, epsregion_axis
+    REAL( DP ), DIMENSION(nregions), INTENT(IN) :: epsregion_width, epsregion_spread, epsregion_eps
+    REAL( DP ), DIMENSION(3,nregions), INTENT(IN) :: epsregion_pos
+    TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
+
+    dielectric%nregions = nregions
+    IF ( dielectric%nregions .GT. 0 ) &
+         & CALL create_environ_functions( dielectric%nregions, 2, epsregion_dim, &
+         & epsregion_axis, epsregion_pos, epsregion_spread, epsregion_width, &
+         & epsregion_eps, dielectric%regions )
+
+    RETURN
+
+  END SUBROUTINE set_dielectric_regions
 
   SUBROUTINE init_environ_dielectric_second( cell, dielectric )
 

@@ -271,9 +271,10 @@ CONTAINS
     !
     ! Set the parameters of the solvent boundary
     !
-    IF ( lsolvent ) &
-         CALL init_environ_boundary_first( solvent_mode, env_static_permittivity, stype, &
-         & rhomax, rhomin, tbeta, lsurface, delta, alpha, softness, ions, solvent )
+    IF ( lsolvent ) THEN
+       CALL init_environ_boundary_first( solvent_mode, env_static_permittivity, stype, &
+            & rhomax, rhomin, tbeta, lsurface, delta, alpha, softness, ions, solvent )
+    ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
@@ -284,15 +285,21 @@ CONTAINS
     !
     ! Set the parameters of the dielectric
     !
-    IF ( lstatic ) CALL init_environ_dielectric_first( env_static_permittivity,   &
-         & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos,  &
-         & epsregion_width, epsregion_spread, epsregion_eps(1,:), solvent,        &
+    IF ( lstatic ) THEN
+       CALL init_environ_dielectric_first( env_static_permittivity, solvent, &
          & need_gradient, need_factsqrt, need_gradlog, static )
+       IF ( env_dielectric_regions .GT. 0 ) CALL set_dielectric_regions( &
+         & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
+         & epsregion_width, epsregion_spread, epsregion_eps(1,:), static )
+    END IF
     !
-    IF ( loptical ) CALL init_environ_dielectric_first( env_optical_permittivity,  &
-         & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos,   &
-         & epsregion_width, epsregion_spread, epsregion_eps(2,:), solvent,         &
+    IF ( loptical ) THEN
+       CALL init_environ_dielectric_first( env_optical_permittivity, solvent, &
          & need_gradient, need_factsqrt, need_gradlog, optical )
+       IF ( env_dielectric_regions .GT. 0 ) CALL set_dielectric_regions( &
+         & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
+         & epsregion_width, epsregion_spread, epsregion_eps(2,:), optical )
+    END IF
     !
     ! Obsolote keywords to be moved or removed
     !
@@ -650,6 +657,7 @@ CONTAINS
       END IF
       !
       electrons%update = .FALSE.
+      STOP
       !
       RETURN
       !
