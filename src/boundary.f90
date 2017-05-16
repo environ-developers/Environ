@@ -50,7 +50,7 @@ CONTAINS
 
   SUBROUTINE init_environ_boundary_first( mode, constant, type, &
        & rhomax, rhomin, tbeta, need_theta, delta, alpha, &
-       & softness, ions, boundary )
+       & softness, electrons, ions, boundary )
 
     IMPLICIT NONE
 
@@ -62,6 +62,7 @@ CONTAINS
     REAL( DP ), INTENT(IN) :: delta
     REAL( DP ), INTENT(IN) :: alpha
     REAL( DP ), INTENT(IN) :: softness
+    TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
 
@@ -86,6 +87,7 @@ CONTAINS
     ENDIF
 
     boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' )
+    IF ( boundary%need_electrons ) boundary%electrons => electrons
 
     boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
     IF ( boundary%need_ions ) boundary%ions => ions
@@ -133,9 +135,13 @@ CONTAINS
 
     TYPE( environ_boundary ), INTENT(INOUT) :: bound
 
+    LOGICAL :: update_anything
     CHARACTER( LEN=80 ) :: sub_name = 'update_environ_boundary'
 
-    IF ( .NOT. bound % ions % update .AND. .NOT. bound % electrons % update ) THEN
+    update_anything = .FALSE.
+    IF ( bound % need_ions ) update_anything = bound % ions % update
+    IF ( bound % need_electrons ) update_anything = update_anything .OR. bound % electrons % update
+    IF ( .NOT. update_anything ) THEN
        !
        ! ... Nothing is under update, change update_status and exit
        !
@@ -173,7 +179,7 @@ CONTAINS
           !
        ENDIF
 
-    CASE ( 'electrons' )
+    CASE ( 'electronic' )
 
        IF ( bound % electrons % update ) THEN
           !
@@ -190,7 +196,7 @@ CONTAINS
           !
        ENDIF
 
-    CASE ( 'ions' )
+    CASE ( 'ionic' )
 
        IF ( bound % ions % update ) THEN
           !

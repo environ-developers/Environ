@@ -273,15 +273,15 @@ CONTAINS
     !
     IF ( lsolvent ) THEN
        CALL init_environ_boundary_first( solvent_mode, env_static_permittivity, stype, &
-            & rhomax, rhomin, tbeta, lsurface, delta, alpha, softness, ions, solvent )
+            & rhomax, rhomin, tbeta, lsurface, delta, alpha, softness, electrons, ions, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
     IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp,      &
          & stern_mode, stype, rhomin, rhopb, tbeta, stern_distance, stern_spread, &
-         & alpha, softness, ions, solvent_temperature, cion, cionmax, rion, zion, &
-         & electrolyte )
+         & alpha, softness, electrons, ions, solvent_temperature, cion, cionmax, &
+         & rion, zion, electrolyte )
     !
     ! Set the parameters of the dielectric
     !
