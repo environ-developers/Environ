@@ -133,19 +133,19 @@ CONTAINS
     RETURN
 
 1000 FORMAT(/,4('%'),' CELL ',70('%'))
-1001 FORMAT(1x,'bravais lattice index     = ',I3,' '&
-          /,1x,'lattice spacing           = ',F12.6,' '&
-          /,1x,'cell volume               = ',F12.6,' ')
-1002 FORMAT(1x,'simulation cell axes      = ',3(F12.6),' '&
-          /,1x,'                            ',3(F12.6),' '&
-          /,1x,'                            ',3(F12.6),' ')
-1003 FORMAT(1x,'real space grid dim.s     = ',3I4,' ')
-1004 FORMAT(1x,'total size of grid        = ',I10,' '&
-          /,1x,'size of r-space per proc. = ',I10,' '&
-          /,1x,'finite element volume     = ',F12.6,' ')
-1005 FORMAT(1x,'current processor index   = ',I10,' '&
-          /,1x,'index of root processor   = ',I10,' '&
-          /,1x,'communicator index        = ',I10,' ')
+1001 FORMAT(1x,'bravais lattice index      = ',I3,' '&
+          /,1x,'lattice spacing            = ',F12.6,' '&
+          /,1x,'cell volume                = ',F12.6,' ')
+1002 FORMAT(1x,'simulation cell axes       = ',3(F12.6),' '&
+          /,1x,'                             ',3(F12.6),' '&
+          /,1x,'                             ',3(F12.6),' ')
+1003 FORMAT(1x,'real space grid dim.s      = ',3I4,' ')
+1004 FORMAT(1x,'total size of grid         = ',I10,' '&
+          /,1x,'size of r-space per proc.  = ',I10,' '&
+          /,1x,'finite element volume      = ',F12.6,' ')
+1005 FORMAT(1x,'current processor index    = ',I10,' '&
+          /,1x,'index of root processor    = ',I10,' '&
+          /,1x,'communicator index         = ',I10,' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_cell
 !--------------------------------------------------------------------
