@@ -48,14 +48,13 @@ CONTAINS
 
   END SUBROUTINE create_environ_boundary
 
-  SUBROUTINE init_environ_boundary_first( mode, constant, type, &
+  SUBROUTINE init_environ_boundary_first( mode, type, &
        & rhomax, rhomin, tbeta, need_theta, delta, alpha, &
        & softness, electrons, ions, boundary )
 
     IMPLICIT NONE
 
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
-    REAL( DP ), INTENT(IN) :: constant
     INTEGER, INTENT(IN) :: type
     REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta
     LOGICAL, INTENT(IN) :: need_theta
@@ -77,14 +76,6 @@ CONTAINS
     boundary%rhozero = ( rhomax + rhomin ) * 0.5_DP
     boundary%tbeta = tbeta
     boundary%deltarho = rhomax - rhomin
-
-    IF ( constant .GT. 1.D0 ) THEN
-       boundary%constant = constant
-       boundary%scaling_factor = -1.D0/(constant-1.D0)
-    ELSE
-       boundary%constant = 2.D0
-       boundary%scaling_factor = -1.D0
-    ENDIF
 
     boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' )
     IF ( boundary%need_electrons ) boundary%electrons => electrons

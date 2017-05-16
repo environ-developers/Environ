@@ -272,8 +272,8 @@ CONTAINS
     ! Set the parameters of the solvent boundary
     !
     IF ( lsolvent ) THEN
-       CALL init_environ_boundary_first( solvent_mode, env_static_permittivity, stype, &
-            & rhomax, rhomin, tbeta, lsurface, delta, alpha, softness, electrons, ions, solvent )
+       CALL init_environ_boundary_first( solvent_mode, stype, rhomax, rhomin, tbeta, &
+            & lsurface, delta, alpha, softness, electrons, ions, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary

@@ -80,25 +80,11 @@ CONTAINS
     REAL( DP )              :: volume
     TYPE( environ_density ) :: volofrho
     !
-    REAL( DP ), POINTER :: factor
-    TYPE( environ_cell ), POINTER :: cell
-    REAL( DP ), DIMENSION(:), POINTER :: scaled
-    !
     CALL start_clock ('calc_epre')
-    !
-    cell => boundary % scaled % cell
-    scaled => boundary % scaled % of_r
-    factor => boundary % scaling_factor
     !
     ! ... Computes step function and volume
     !
-    CALL init_environ_density( cell, volofrho )
-    !
-    volofrho%of_r = 1.D0 + ( scaled - 1.D0 ) * factor
-    !
-    volume = integrate_environ_density( volofrho )
-    !
-    CALL destroy_environ_density( volofrho )
+    volume = integrate_environ_density( boundary % scaled )
     !
     ! ... Computes the PV energy
     !

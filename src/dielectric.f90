@@ -46,6 +46,8 @@ CONTAINS
     CALL create_environ_density( dielectric%background, label  )
     label = 'epsilon'
     CALL create_environ_density( dielectric%epsilon, label )
+    label = 'depsilon'
+    CALL create_environ_density( dielectric%depsilon, label )
 
     NULLIFY( dielectric%boundary )
 
@@ -116,6 +118,7 @@ CONTAINS
 
     CALL init_environ_density( cell, dielectric%background )
     CALL init_environ_density( cell, dielectric%epsilon )
+    CALL init_environ_density( cell, dielectric%depsilon )
 
     IF ( dielectric%need_gradient ) CALL init_environ_gradient( cell, dielectric%gradient )
     IF ( dielectric%need_factsqrt ) CALL init_environ_density( cell, dielectric%factsqrt )
@@ -179,7 +182,7 @@ CONTAINS
      !
      IF ( dielectric % boundary % update_status .EQ. 2 ) THEN
         !
-        CALL epsilon_of_boundary( dielectric%boundary%type, dielectric%boundary%scaled, dielectric%background, dielectric%epsilon )
+        CALL epsilon_of_boundary( dielectric%boundary, dielectric%background, dielectric%epsilon, dielectric%depsilon )
         !
         !        IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%epsilon, dielectric%gradient, &
         !             &dielectric%background, dielectric%boundary )
@@ -199,25 +202,27 @@ CONTAINS
   !
   END SUBROUTINE update_environ_dielectric
 
-  SUBROUTINE epsilon_of_boundary( type, scaled, background, epsilon )
+  SUBROUTINE epsilon_of_boundary( boundary, background, epsilon, depsilon )
 
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: type
-    TYPE(environ_density), INTENT(IN) :: scaled, background
-    TYPE(environ_density), INTENT(INOUT) :: epsilon
+    TYPE(environ_boundary), INTENT(IN) :: boundary
+    TYPE(environ_density), INTENT(IN) :: background
+    TYPE(environ_density), INTENT(INOUT) :: epsilon, depsilon
 
     CHARACTER ( LEN=80 ) :: sub_name = 'epsilon_of_boundary'
 
-    SELECT CASE ( type )
+    SELECT CASE ( boundary%type )
 
     CASE ( 0 )
 
-       epsilon % of_r = 1.D0 + ( background % of_r - 1.D0 ) * scaled % of_r
+       epsilon % of_r = 1.D0 + ( background % of_r - 1.D0 ) * boundary % scaled % of_r
+       depsilon % of_r = ( background % of_r - 1.D0 ) * boundary % dscaled % of_r
 
     CASE ( 1 )
 
-       epsilon % of_r = EXP( LOG( background % of_r ) * ( 1.D0 - scaled % of_r ) )
+       epsilon % of_r = EXP( LOG( background % of_r ) * ( 1.D0 - boundary % scaled % of_r ) )
+       depsilon % of_r = - epsilon % of_r * LOG( background % of_r ) * boundary % dscaled % of_r
 
     CASE DEFAULT
 
@@ -256,6 +261,7 @@ CONTAINS
 
     CALL destroy_environ_density( dielectric%background )
     CALL destroy_environ_density( dielectric%epsilon )
+    CALL destroy_environ_density( dielectric%depsilon )
 
     IF ( dielectric%need_gradient ) CALL destroy_environ_gradient( dielectric%gradient )
     IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%factsqrt )

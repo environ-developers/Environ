@@ -13,12 +13,212 @@ MODULE generate_boundary
   !
   PRIVATE
   !
-  PUBLIC :: epsilonfunct, depsilonfunct, d2epsilonfunct, boundary_of_density
+  PUBLIC :: boundfunct, dboundfunct, d2boundfunct, boundary_of_density
   !
 CONTAINS
 !--------------------------------------------------------------------
-      FUNCTION epsilonfunct( rho, rhomax, rhomin, tbeta, epszero,  &
-                             ifunct )
+      FUNCTION sfunct0( x, xthr, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Switching function 0: 1+(1-(x/xthr)^fact)/(1+(x/xthr)^fact)
+      !     goes from 1 to 0 when passing through the threshold
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: sfunct0
+      REAL( DP )             :: x, xthr, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      arg = ( ABS( x ) / xthr ) ** fact
+      sfunct0 = 0.5D0 * ( 1.D0 + ( 1.D0 - arg ) / ( 1.D0 + arg ) )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION sfunct0
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION dsfunct0( x, xthr, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Derivative of switching function 0
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: dsfunct0
+      REAL( DP )             :: x, xthr, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      arg = ( ABS( x ) / xthr ) ** fact
+      dsfunct0 = - fact * ABS( x ) ** ( fact - 1.D0 ) / xthr ** fact &
+               &  / ( 1.D0 + arg ) ** 2
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION dsfunct0
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION sfunct1( x, xmax, xmin, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Switching function 1: x - sin(x)
+      !     goes from 1 to 0 when passing from xmin to xmax
+      !
+      !     NOTE: fact should be equal to LOG(xmax/xmin)
+      !     but is passed in input to save time
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: sfunct1
+      REAL( DP )             :: x, xmax, xmin, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      IF ( x .LE. xmin ) THEN
+        sfunct1 = 1.D0
+      ELSE IF ( x .LT. xmax ) THEN
+        arg = tpi * LOG( xmax / ABS( x ) ) / fact
+        sfunct1 = ( arg - SIN( arg ) ) / tpi
+      ELSE
+        sfunct1 = 0.D0
+      ENDIF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION sfunct1
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION dsfunct1( x, xmax, xmin, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Derivative of switching function 1
+      !
+      !     NOTE: fact should be equal to LOG(xmax/xmin)
+      !     but is passed in input to save time
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : tpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: dsfunct1
+      REAL( DP )             :: x, xmax, xmin, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      IF ( x .LE. xmin ) THEN
+        dsfunct1 = 0.D0
+      ELSE IF ( x .LT. xmax ) THEN
+        arg = tpi * LOG( xmax / ABS( x ) ) / fact
+        dsfunct1 = ( 1.D0 - COS( arg ) ) / ABS( x ) / fact
+      ELSE
+        dsfunct1 = 0.D0
+      ENDIF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION dsfunct1
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION d2sfunct1( x, xmax, xmin, fact )
+!--------------------------------------------------------------------
+      !
+      ! ... Second derivative of switching function 1
+      !
+      !     NOTE: fact should be equal to LOG(xmax/xmin)
+      !     but is passed in input to save time
+      !
+      USE kinds,              ONLY : DP
+      USE constants,          ONLY : tpi
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: d2sfunct1
+      REAL( DP )             :: x, xmax, xmin, fact
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      IF ( x .LE. xmin ) THEN
+        d2sfunct1 = 0.D0
+      ELSE IF ( x .LT. xmax ) THEN
+        arg = tpi * LOG( xmax / ABS( x ) ) / fact
+        d2sfunct1 = ( tpi * SIN( arg ) + fact * ( COS( arg ) - 1.D0 ) ) &
+                    / ( x * fact ) ** 2
+      ELSE
+        d2sfunct1 = 0.D0
+      ENDIF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION d2sfunct1
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION sfunct2( x, xthr, spread )
+!--------------------------------------------------------------------
+      !
+      ! ... Switching function 2: erfc()
+      !     goes from 1 to 0 when passing through xthr
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: sfunct2
+      REAL( DP )             :: x, xthr, spread
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      REAL( DP ), EXTERNAL   :: qe_erfc
+      !
+      arg = ( x - xthr ) / spread
+      sfunct2 = 0.5D0 * qe_erfc(arg)
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION sfunct2
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION dsfunct2( x, xthr, spread )
+!--------------------------------------------------------------------
+      !
+      ! ... Derivative of switching function 2
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: dsfunct2
+      REAL( DP )             :: x, xthr, spread
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      REAL( DP ), EXTERNAL   :: qe_erfc
+      !
+      arg = ( x - xthr ) / spread
+      dsfunct2 = - EXP( -arg**2 ) / sqrtpi / spread
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION dsfunct2
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION boundfunct( rho, rhomax, rhomin, tbeta, ifunct )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the density-dependent dielectric constant
@@ -26,12 +226,11 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP )             :: epsilonfunct
+      REAL( DP )             :: boundfunct
       REAL( DP )             :: rho
       REAL( DP )             :: rhomax
       REAL( DP )             :: rhomin
       REAL( DP )             :: tbeta
-      REAL( DP )             :: epszero
       !
       INTEGER                :: ifunct
       !
@@ -40,38 +239,27 @@ CONTAINS
       SELECT CASE( ifunct )
       !
       CASE( 0 )
-        !
-        epsilonfunct = 1.D0 + 0.5D0 * ( epszero - 1.D0 ) *       &
-          ( 1.D0 + ( 1.D0 - ( ABS( rho ) / rhomax ) ** tbeta )   &
-          / ( 1.D0 + ( ABS( rho ) / rhomax ) ** tbeta ) )
-        !
+         !
+         boundfunct = sfunct0( rho, rhomax, tbeta )
+         !
       CASE( 1 )
-        !
-        IF ( rho .LE. rhomin ) THEN
-          epsilonfunct = epszero
-        ELSE IF ( rho .LT. rhomax ) THEN
-          arg = tpi * LOG(rhomax/ABS(rho)) / tbeta
-          epsilonfunct = EXP( LOG( epszero ) *                     &
-            ( arg - SIN( arg ) ) / tpi )
-        ELSE
-          epsilonfunct = 1.D0
-        ENDIF
-        !
+         !
+         boundfunct = sfunct1( rho, rhomax, rhomin, tbeta )
+         !
       CASE DEFAULT
-        !
-        WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
-        STOP
-        !
+         !
+         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
+         STOP
+         !
       END SELECT
       !
       RETURN
       !
 !--------------------------------------------------------------------
-      END FUNCTION epsilonfunct
+      END FUNCTION boundfunct
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      FUNCTION depsilonfunct( rho, rhomax, rhomin, tbeta, epszero, &
-                              ifunct )
+      FUNCTION dboundfunct( rho, rhomax, rhomin, tbeta, ifunct )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the derivative of the
@@ -80,12 +268,11 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP )             :: depsilonfunct
+      REAL( DP )             :: dboundfunct
       REAL( DP )             :: rho
       REAL( DP )             :: rhomax
       REAL( DP )             :: rhomin
       REAL( DP )             :: tbeta
-      REAL( DP )             :: epszero
       !
       INTEGER                :: ifunct
       !
@@ -94,39 +281,27 @@ CONTAINS
       SELECT CASE( ifunct )
       !
       CASE( 0 )
-        !
-        depsilonfunct = - tbeta * ( epszero - 1.D0 )               &
-          * ABS( rho ) ** ( tbeta - 1.D0 ) / rhomax ** tbeta       &
-          / ( 1.D0 + ( ABS( rho ) / rhomax ) ** tbeta ) ** 2
-        !
+         !
+         dboundfunct = dsfunct0( rho, rhomax, tbeta )
+         !
       CASE( 1 )
-        !
-        IF ( rho .LE. rhomin ) THEN
-          depsilonfunct = 0.D0
-        ELSE IF ( rho .LT. rhomax ) THEN
-          arg = tpi * log(rhomax/ABS(rho)) / tbeta
-          depsilonfunct = - EXP( LOG( epszero ) *                  &
-            ( arg - SIN( arg ) ) / tpi ) * LOG( epszero ) *        &
-            ( 1.D0 - COS( arg ) ) / ABS(rho) / tbeta
-        ELSE
-          depsilonfunct = 0.D0
-        ENDIF
-        !
+         !
+         dboundfunct = dsfunct1( rho, rhomax, rhomin, tbeta )
+         !
       CASE DEFAULT
-        !
-        WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
-        STOP
-        !
+         !
+         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
+         STOP
+         !
       END SELECT
       !
       RETURN
       !
 !--------------------------------------------------------------------
-      END FUNCTION depsilonfunct
+      END FUNCTION dboundfunct
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      FUNCTION d2epsilonfunct( rho, rhomax, rhomin, tbeta, epszero, &
-                              ifunct )
+      FUNCTION d2boundfunct( rho, rhomax, rhomin, tbeta, ifunct )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the derivative of the
@@ -135,12 +310,11 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP )             :: d2epsilonfunct
+      REAL( DP )             :: d2boundfunct
       REAL( DP )             :: rho
       REAL( DP )             :: rhomax
       REAL( DP )             :: rhomin
       REAL( DP )             :: tbeta
-      REAL( DP )             :: epszero
       !
       INTEGER                :: ifunct
       !
@@ -149,25 +323,14 @@ CONTAINS
       SELECT CASE( ifunct )
       !
       CASE( 0 )
-        !
-        WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
-        STOP
-        !
+         !
+         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
+         STOP
+         !
       CASE( 1 )
-        !
-        IF ( rho .LE. rhomin ) THEN
-          d2epsilonfunct = 0.D0
-        ELSE IF ( rho .LT. rhomax ) THEN
-          arg = tpi * LOG(rhomax/ABS(rho)) / tbeta
-          arg2 =  1.D0 - COS( arg )
-          d2epsilonfunct = EXP( LOG( epszero ) *                    &
-            ( arg - SIN( arg ) ) / tpi ) * LOG( epszero ) / tbeta * &
-            ( LOG( epszero ) / tbeta * arg2 ** 2 + arg2 +           &
-              tpi / tbeta * SIN( arg ) ) / rho**2
-        ELSE
-          d2epsilonfunct = 0.D0
-        ENDIF
-        !
+         !
+         d2boundfunct = d2sfunct1( rho, rhomax, rhomin, tbeta )
+         !
       CASE DEFAULT
         !
         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
@@ -178,7 +341,7 @@ CONTAINS
       RETURN
       !
 !--------------------------------------------------------------------
-      END FUNCTION d2epsilonfunct
+      END FUNCTION d2boundfunct
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       SUBROUTINE boundary_of_density( density, boundary )
@@ -211,8 +374,6 @@ CONTAINS
       ir_end => density % cell % ir_end
       rho => density % of_r
       !
-      constant => boundary % constant ! SHOULD BE REMOVED
-      !
       stype => boundary % type
       eps => boundary % scaled % of_r
       deps => boundary % dscaled % of_r
@@ -229,31 +390,25 @@ CONTAINS
       ENDIF
       !
       IF ( boundary%need_theta ) THEN
-         factor => boundary % scaling_factor ! SHOULD NOT BE HERE
          delta => boundary % deltatheta
          theta => boundary % theta % of_r
       ENDIF
       !
       DO ir = 1, ir_end
         !
-        eps( ir )   = epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
-                                    constant, stype )
-        deps( ir )  = depsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
-                                     constant, stype )
-        d2eps( ir ) = d2epsilonfunct( rho( ir ), rhomax, rhomin, tbeta, &
-                                     constant, stype )
+        eps( ir )   = boundfunct( rho( ir ), rhomax, rhomin, tbeta, stype )
+        deps( ir )  = dboundfunct( rho( ir ), rhomax, rhomin, tbeta, stype )
+        d2eps( ir ) = d2boundfunct( rho( ir ), rhomax, rhomin, tbeta, stype )
         !
         IF ( boundary % need_theta ) THEN
            !
            rhotmp = rho( ir ) - delta/2.D0
-           theta_plus = epsilonfunct( rhotmp, rhomax, rhomin, tbeta, &
-                                      constant, stype )
+           theta_plus = boundfunct( rhotmp, rhomax, rhomin, tbeta, stype )
            !
            rhotmp = rho( ir ) + delta/2.D0
-           theta_minus = epsilonfunct( rhotmp, rhomax, rhomin, tbeta, &
-                                       constant, stype )
+           theta_minus = boundfunct( rhotmp, rhomax, rhomin, tbeta, stype )
            !
-           theta( ir ) = ( theta_minus - theta_plus ) * factor
+           theta( ir ) = theta_minus - theta_plus
            !
         ENDIF
         !

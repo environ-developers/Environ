@@ -1,7 +1,7 @@
 MODULE environ_types
 
   USE kinds,             ONLY : DP
-  USE constants,         ONLY : rydberg_si, bohr_radius_si, amu_si, fpi, tpi
+  USE constants,         ONLY : rydberg_si, bohr_radius_si, amu_si, fpi, tpi, sqrtpi
   USE mp,                ONLY : mp_sum
   USE control_flags,     ONLY : tddfpt
 
@@ -248,13 +248,6 @@ MODULE environ_types
 
      ! scaled switching function of interface
      ! varying from 1 (QM region) to 0 (environment region)
-     ! WARNING::: for consistency with previous version
-     ! for the time being this is instead the dielectric function
-     ! and we store here the bulk dielectric constant and the
-     ! scaling factor
-
-     REAL( DP ) :: constant
-     REAL( DP ) :: scaling_factor
 
      TYPE( environ_density ) :: scaled
      TYPE( environ_density ) :: dscaled
@@ -293,6 +286,7 @@ MODULE environ_types
      ! properties of space
 
      TYPE( environ_density ) :: epsilon
+     TYPE( environ_density ) :: depsilon
 
      ! Quantities related to the dielectric permittivity and
      ! thay may be needed by the different solvers

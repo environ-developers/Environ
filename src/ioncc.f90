@@ -95,7 +95,7 @@ CONTAINS
 
     electrolyte%temperature = temperature
 
-    CALL init_environ_boundary_first( mode, 1.D0, stype, rhomax, rhomin, tbeta, .FALSE., &
+    CALL init_environ_boundary_first( mode, stype, rhomax, rhomin, tbeta, .FALSE., &
          & 0.D0, alpha, softness, electrons, ions, electrolyte%boundary )
 
     ALLOCATE( electrolyte%ioncctype(ntyp) )
