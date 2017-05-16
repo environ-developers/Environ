@@ -179,16 +179,14 @@ CONTAINS
      !
      IF ( dielectric % boundary % update_status .EQ. 2 ) THEN
         !
-!        dielectric % epsilon % of_r = 1.D0 + ( dielectric % background % of_r - 1.D0 ) * &
-!             & dielectric % boundary % scaled % of_r
-        dielectric % epsilon % of_r = dielectric % boundary % scaled % of_r
+        CALL epsilon_of_boundary( dielectric%boundary%type, dielectric%boundary%scaled, dielectric%background, dielectric%epsilon )
         !
-        IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%nregions, &
-             & dielectric%epsilon, dielectric%gradient, dielectric%regions, dielectric%background, dielectric%boundary )
-        IF ( dielectric%need_factsqrt ) CALL generate_epsilon_factsqrt( dielectric%nregions, &
-             & dielectric%epsilon, dielectric%factsqrt, dielectric%regions, dielectric%background, dielectric%boundary )
-        IF ( dielectric%need_gradlog  ) CALL generate_epsilon_gradlog( dielectric%nregions, &
-             & dielectric%epsilon, dielectric%gradlog, dielectric%regions, dielectric%background, dielectric%boundary )
+        !        IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%epsilon, dielectric%gradient, &
+        !             &dielectric%background, dielectric%boundary )
+        !        IF ( dielectric%need_factsqrt ) CALL generate_epsilon_factsqrt( dielectric%epsilon, dielectric%factsqrt, &
+        !             & dielectric%background, dielectric%boundary )
+        !        IF ( dielectric%need_gradlog  ) CALL generate_epsilon_gradlog( dielectric%epsilon, dielectric%gradlog, &
+        !             & dielectric%background, dielectric%boundary )
         dielectric % update = .FALSE.
         !
      ENDIF
@@ -200,6 +198,36 @@ CONTAINS
   RETURN
   !
   END SUBROUTINE update_environ_dielectric
+
+  SUBROUTINE epsilon_of_boundary( type, scaled, background, epsilon )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: type
+    TYPE(environ_density), INTENT(IN) :: scaled, background
+    TYPE(environ_density), INTENT(INOUT) :: epsilon
+
+    CHARACTER ( LEN=80 ) :: sub_name = 'epsilon_of_boundary'
+
+    SELECT CASE ( type )
+
+    CASE ( 0 )
+
+       epsilon % of_r = 1.D0 + ( background % of_r - 1.D0 ) * scaled % of_r
+
+    CASE ( 1 )
+
+       epsilon % of_r = EXP( LOG( background % of_r ) * ( 1.D0 - scaled % of_r ) )
+
+    CASE DEFAULT
+
+       CALL errore(sub_name,'Unkown boundary type',1)
+
+    END SELECT
+
+    RETURN
+
+  END SUBROUTINE epsilon_of_boundary
 
   SUBROUTINE destroy_environ_dielectric(lflag,dielectric)
 
@@ -238,8 +266,8 @@ CONTAINS
   END SUBROUTINE destroy_environ_dielectric
 
 !--------------------------------------------------------------------
-  SUBROUTINE generate_epsilon_gradient( nregions, epsilon, gradient, &
-       & regions, background, boundary )
+  SUBROUTINE generate_epsilon_gradient( epsilon, gradient, &
+       & background, boundary )
 !--------------------------------------------------------------------
 
     USE fd_gradient, ONLY: calc_fd_gradient
@@ -247,10 +275,8 @@ CONTAINS
 
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: nregions
     TYPE( environ_density ), INTENT(IN) :: epsilon
     TYPE( environ_gradient ), INTENT(OUT) :: gradient
-    TYPE( environ_functions ), OPTIONAL, INTENT(IN) :: regions(nregions)
     TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
     TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
 
@@ -276,9 +302,6 @@ CONTAINS
     CASE ( 'analytic' )
        !
 !       CALL init_environ_gradient(cell,gbackground)
-       IF ( nregions .GT. 0 ) &
-            CALL errore(sub_name,'Option not yet implemented',1)
-!            & CALL gradient_of_functions(nregions,regions,gbackground)
        !
        IF ( boundary%mode .EQ. 'ions' ) THEN
           CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradient)
@@ -299,8 +322,8 @@ CONTAINS
   END SUBROUTINE generate_epsilon_gradient
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_epsilon_gradlog( nregions, epsilon, gradlog, &
-       & regions, background, boundary )
+  SUBROUTINE generate_epsilon_gradlog( epsilon, gradlog, &
+       & background, boundary )
 !--------------------------------------------------------------------
 
     USE fd_gradient, ONLY : calc_fd_gradient
@@ -308,10 +331,8 @@ CONTAINS
 
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: nregions
     TYPE( environ_density ), INTENT(IN) :: epsilon
     TYPE( environ_gradient ), INTENT(OUT) :: gradlog
-    TYPE( environ_functions ), OPTIONAL, INTENT(IN) :: regions(nregions)
     TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
     TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
 
@@ -348,9 +369,6 @@ CONTAINS
     CASE ( 'analytic' )
        !
 !       CALL init_environ_gradient(cell,gbackground)
-       IF ( nregions .GT. 0 ) &
-            CALL errore(sub_name,'Option not yet implemented',1)
-!            & CALL gradient_of_functions(nregions,regions,gbackground)
        !
        IF ( boundary%mode .EQ. 'ions' ) THEN
           CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradlog)
@@ -375,18 +393,16 @@ CONTAINS
   END SUBROUTINE generate_epsilon_gradlog
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_epsilon_factsqrt( nregions, epsilon, factsqrt, &
-       & regions, background, boundary )
+  SUBROUTINE generate_epsilon_factsqrt( epsilon, factsqrt, &
+       & background, boundary )
 !--------------------------------------------------------------------
 
     USE functions, ONLY: gradient_of_functions, laplacian_of_functions
 
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: nregions
     TYPE( environ_density ), INTENT(IN) :: epsilon
     TYPE( environ_density ), INTENT(INOUT) :: factsqrt
-    TYPE( environ_functions ), OPTIONAL, INTENT(IN) :: regions(nregions)
     TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
     TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
 
@@ -415,9 +431,6 @@ CONTAINS
        CALL init_environ_gradient( cell, gradient )
        !
 !       CALL init_environ_gradient(cell,gbackground)
-       IF ( nregions .GT. 0 ) &
-            CALL errore(sub_name,'Option not yet implemented',1)
-!            & CALL gradient_of_functions(nregions,regions,gbackground)
        !
        IF ( boundary%mode .EQ. 'ions' ) THEN
           !
