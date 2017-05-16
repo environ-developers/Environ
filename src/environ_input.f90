@@ -179,6 +179,11 @@ MODULE environ_input
         REAL(DP) :: env_pressure = 0.D0
         ! external pressure for PV energy, if equal to zero no pressure term 
 !
+! PV energy parameters
+!
+        REAL(DP) :: env_confine = 0.D0
+        ! confining step of potential, if equal to zero no confining potential
+!
 ! Ionic countercharge parameters
 !
         INTEGER :: env_ioncc_level = 0
@@ -220,6 +225,7 @@ MODULE environ_input
              mixtype, ndiis, mixrhopol, tolrhopol,                     &
              env_surface_tension, delta,                               &
              env_pressure,                                             &
+             env_confine,                                              &
              env_ioncc_level, nrep, cion, zion, rhopb,                 &
              solvent_temperature,                                      &
              env_external_charges, env_dielectric_regions
@@ -274,6 +280,7 @@ MODULE environ_input
                                 mixtype, ndiis, mixrhopol, tolrhopol,       &
                                 env_surface_tension, delta,                 &
                                 env_pressure,                               &
+                                env_confine,                                &
                                 env_ioncc_level, nrep, cion, zion, rhopb,   &
                                 solvent_temperature,                        &
                                 env_external_charges, extcharge_charge,     & 
@@ -386,6 +393,8 @@ MODULE environ_input
        !
        env_pressure = 0.D0
        !
+       env_confine = 0.D0
+       !
        env_ioncc_level = 0
        nrep = 0
        cion = 1.0D0
@@ -450,6 +459,8 @@ MODULE environ_input
        CALL mp_bcast( delta,                      ionode_id, intra_image_comm )
        !
        CALL mp_bcast( env_pressure,               ionode_id, intra_image_comm )
+       !
+       CALL mp_bcast( env_confine,                ionode_id, intra_image_comm )
        !
        CALL mp_bcast( env_ioncc_level,            ionode_id, intra_image_comm )
        CALL mp_bcast( nrep,                       ionode_id, intra_image_comm )

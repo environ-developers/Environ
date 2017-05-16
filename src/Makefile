@@ -12,6 +12,7 @@ calc_rhopol.o                         \
 calc_vpol.o                           \
 cavity.o                              \
 pressure.o                            \
+confine.o                             \
 periodic.o                            \
 ioncc.o                               \
 extcharge.o                           \
