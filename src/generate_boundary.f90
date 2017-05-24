@@ -240,11 +240,11 @@ CONTAINS
       !
       CASE( 0 )
          !
-         boundfunct = sfunct0( rho, rhomax, tbeta )
+         boundfunct = 1.D0 - sfunct0( rho, rhomax, tbeta )
          !
       CASE( 1 )
          !
-         boundfunct = sfunct1( rho, rhomax, rhomin, tbeta )
+         boundfunct = 1.D0 - sfunct1( rho, rhomax, rhomin, tbeta )
          !
       CASE DEFAULT
          !
@@ -282,11 +282,11 @@ CONTAINS
       !
       CASE( 0 )
          !
-         dboundfunct = dsfunct0( rho, rhomax, tbeta )
+         dboundfunct = - dsfunct0( rho, rhomax, tbeta )
          !
       CASE( 1 )
          !
-         dboundfunct = dsfunct1( rho, rhomax, rhomin, tbeta )
+         dboundfunct = - dsfunct1( rho, rhomax, rhomin, tbeta )
          !
       CASE DEFAULT
          !
@@ -329,7 +329,7 @@ CONTAINS
          !
       CASE( 1 )
          !
-         d2boundfunct = d2sfunct1( rho, rhomax, rhomin, tbeta )
+         d2boundfunct = - d2sfunct1( rho, rhomax, rhomin, tbeta )
          !
       CASE DEFAULT
         !

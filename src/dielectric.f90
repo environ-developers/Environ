@@ -55,10 +55,10 @@ CONTAINS
     label = 'epsilon_gradient'
     CALL create_environ_gradient( dielectric%gradient, label )
     dielectric%need_factsqrt = .FALSE.
-    label = 'epsilon_gradient'
+    label = 'epsilon_factsqrt'
     CALL create_environ_density( dielectric%factsqrt, label )
     dielectric%need_gradlog = .FALSE.
-    label = 'epsilon_gradient'
+    label = 'epsilon_gradlog'
     CALL create_environ_gradient( dielectric%gradlog, label )
     RETURN
 
