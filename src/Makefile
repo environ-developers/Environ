@@ -24,7 +24,8 @@ electrostatic_mod.o                   \
 boundary.o                            \
 functions.o                           \
 ions.o                                \
-poisson.o 
+poisson.o                             \
+softcavity.o
 
 all : libenviron.a
 

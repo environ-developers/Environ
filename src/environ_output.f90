@@ -895,6 +895,7 @@ CONTAINS
        END IF
        CALL print_environ_boundary(dielectric%boundary,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%epsilon,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%depsilon,passed_verbosity,passed_depth)
        WRITE( UNIT = environ_unit, FMT = 2103 )dielectric%need_gradient,&
             & dielectric%need_factsqrt,dielectric%need_gradlog
        IF ( verbosity .GE. 3 ) THEN

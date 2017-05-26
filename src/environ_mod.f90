@@ -158,6 +158,7 @@ MODULE environ_base
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &
+       vreference,                  &
        vsoftcavity,                 &
        vcavity,                     &
        vpressure

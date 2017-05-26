@@ -141,7 +141,7 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
   charges % include_auxiliary = .FALSE.
   CALL update_environ_charges( charges )
-  total = integrate_environ_density( charges%density )
+  total = charges % charge
 
   ! ... Set up auxiliary charge
 
@@ -199,13 +199,13 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
     IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
-    ! ... Compute polarization potential
+    ! ... Compute total electrostatic potential
 
     CALL update_environ_auxiliary( charges % auxiliary )
 
-    CALL poisson_direct( charges % auxiliary % density, potential )
+    CALL update_environ_charges( charges )
 
-    charges % include_auxiliary = .FALSE.
+    CALL poisson_direct( charges, potential )
 
     ! ... Destroy local variables
 

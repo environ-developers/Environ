@@ -26,9 +26,56 @@ MODULE electrostatic
   PRIVATE
 
   PUBLIC :: calc_velectrostatic, calc_eelectrostatic, &
-            calc_felectrostatic
+            calc_felectrostatic, calc_vreference
 
 CONTAINS
+!--------------------------------------------------------------------
+  SUBROUTINE calc_vreference( charges, potential )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
+    TYPE( environ_density ), INTENT(INOUT) :: potential
+
+    CHARACTER ( LEN = 80 ) :: local_problem
+    CHARACTER ( LEN = 80 ) :: local_solver
+
+    LOGICAL :: include_externals, include_auxiliary
+
+    ! ... Compute reference potential, in the future need to pass the
+    !     same set up used by the calling program
+
+    local_problem = problem
+    problem = 'poisson'
+    local_solver = solver
+    solver = 'direct'
+
+    ! ... Remove external charges, if present
+
+    include_externals = charges % include_externals
+    charges % include_externals = .FALSE.
+
+    ! ... Remove auxiliary charges, if present and activated
+
+    include_auxiliary = charges % include_auxiliary
+    charges % include_auxiliary = .FALSE.
+
+    CALL calc_velectrostatic( charges = charges, potential = potential )
+
+    ! ... Reset flags
+
+    charges % include_externals = include_externals
+    charges % include_auxiliary = include_auxiliary
+
+    ! ... Reset electrostatic controls
+
+    problem = local_problem
+    solver = local_solver
+
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_vreference
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_velectrostatic( charges, dielectric, electrolyte, &
                                 & potential )

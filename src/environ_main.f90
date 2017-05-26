@@ -34,6 +34,7 @@ CONTAINS
       !
       USE environ_base,  ONLY : vzero, solvent,                       &
                                 lelectrostatic, velectrostatic,       &
+                                vreference,                           &
                                 lsoftcavity, vsoftcavity,             &
                                 lsurface, vcavity,                    &
                                 lvolume, vpressure,                   &
@@ -44,7 +45,8 @@ CONTAINS
       !
       USE cavity,        ONLY : calc_vcavity
       USE pressure,      ONLY : calc_vpressure
-      USE electrostatic, ONLY : calc_velectrostatic
+      USE electrostatic, ONLY : calc_velectrostatic, calc_vreference
+      USE softcavity,    ONLY : calc_vsoftcavity
       !
       IMPLICIT NONE
       !
@@ -62,7 +64,7 @@ CONTAINS
         IF ( lsurface ) vtot = vtot + vcavity % of_r
         IF ( lvolume ) vtot = vtot + vpressure % of_r
         IF ( lelectrostatic ) THEN
-           vtot = vtot + velectrostatic % of_r
+           vtot = vtot + velectrostatic % of_r - vreference % of_r
            IF ( lsoftcavity ) vtot = vtot + vsoftcavity % of_r
         ENDIF
         RETURN
@@ -94,21 +96,26 @@ CONTAINS
 
       IF ( lelectrostatic ) THEN
 
+         ! ... Electrostatics is also computed inside the calling program, need to remove the reference
+
+         CALL calc_vreference( charges, vreference )
+         IF ( verbose .GE. 3 ) CALL print_environ_density( vreference )
+
          IF ( lstatic ) THEN
 
             IF ( lelectrolyte ) THEN
 
                CALL calc_velectrostatic( charges=charges, dielectric=static,  &
                     & electrolyte=electrolyte, potential=velectrostatic )
-!               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, &
-!                    & dielectric=static, electrolyte=electrolyte, potential=vsoftcavity )
+!               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, dielectric=static, &
+!                    & electrolyte=electrolyte, velectrostatic=velectrostatic, vsoftcavity=vsoftcavity )
 
             ELSE
 
                CALL calc_velectrostatic( charges=charges, dielectric=static, &
                     & potential=velectrostatic )
-!               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, &
-!                    & dielectric=static, potential=vsoftcavity )
+               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, dielectric=static, &
+                    & velectrostatic=velectrostatic, vsoftcavity=vsoftcavity )
 
             ENDIF
 
@@ -118,8 +125,8 @@ CONTAINS
 
                CALL calc_velectrostatic( charges=charges, electrolyte=electrolyte, &
                     & potential=velectrostatic )
-!               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, &
-!                    & electrolyte=electrolyte, potential=vsoftcavity )
+!               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, electrolyte=electrolyte, &
+!                    & velectrostatic=velectrostatic, vsoftcavity=vsoftcavity )
 
             ELSE
 
@@ -130,7 +137,7 @@ CONTAINS
          ENDIF
 
          IF ( verbose .GE. 3 ) CALL print_environ_density( velectrostatic )
-         vtot = vtot + velectrostatic % of_r
+         vtot = vtot + velectrostatic % of_r - vreference % of_r
 
          IF ( lsoftcavity ) THEN
             IF ( verbose .GE. 3 ) CALL print_environ_density( vsoftcavity )
@@ -210,7 +217,8 @@ CONTAINS
       IF ( lelectrostatic ) THEN
          !
          deenviron = deenviron + &
-              & scalar_product_environ_density(electrons%density,velectrostatic)
+              & scalar_product_environ_density(electrons%density,velectrostatic) - &
+              & scalar_product_environ_density(electrons%density,vreference)
          !
          IF ( lsoftcavity ) deenviron = deenviron + &
               & scalar_product_environ_density(electrons%density,vsoftcavity)

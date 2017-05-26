@@ -122,7 +122,7 @@ CONTAINS
         dsfunct1 = 0.D0
       ELSE IF ( x .LT. xmax ) THEN
         arg = tpi * LOG( xmax / ABS( x ) ) / fact
-        dsfunct1 = ( 1.D0 - COS( arg ) ) / ABS( x ) / fact
+        dsfunct1 = ( COS( arg ) - 1.D0 ) / ABS( x ) / fact ! in fact should not use ABS( x )
       ELSE
         dsfunct1 = 0.D0
       ENDIF

@@ -350,7 +350,7 @@ CONTAINS
                                cell, electrons, charges,                &
                                vzero, deenviron,                        &
                                lelectrostatic, eelectrostatic,          &
-                               velectrostatic, vsoftcavity,             &
+                               velectrostatic, vreference, vsoftcavity, &
                                lelectrolyte, electrolyte,               &
                                lsolvent, solvent, lstatic, static,      &
                                loptical, optical,                       &
@@ -402,6 +402,10 @@ CONTAINS
          label = 'velectrostatic'
          CALL create_environ_density( velectrostatic, label )
          CALL init_environ_density( cell, velectrostatic )
+         !
+         label = 'vreference'
+         CALL create_environ_density( vreference, label )
+         CALL init_environ_density( cell, vreference )
          !
          label = 'vsoftcavity'
          CALL create_environ_density( vsoftcavity, label )
@@ -688,7 +692,7 @@ CONTAINS
       !
       USE environ_base, ONLY : vzero,                                &
                                lelectrostatic, velectrostatic,       &
-                               vsoftcavity,                          &
+                               vreference, vsoftcavity,              &
                                lsurface, vcavity,                    &
                                lvolume, vpressure,                   &
                                ions, electrons, system, charges,     &
@@ -715,6 +719,7 @@ CONTAINS
       !
       IF ( lelectrostatic ) THEN
          CALL destroy_environ_density( velectrostatic )
+         CALL destroy_environ_density( vreference )
          CALL destroy_environ_density( vsoftcavity )
       END IF
       IF ( lsurface ) THEN
