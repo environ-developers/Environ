@@ -74,7 +74,7 @@ CONTAINS
 
         vcavity % of_r = 0.D0
         CALL calc_vcavity( solvent, vcavity )
-        IF ( verbose .GE. 3 ) CALL write_cube( vcavity )
+        IF ( verbose .GE. 3 ) CALL print_environ_density( vcavity )
         vtot = vtot + vcavity % of_r
 
       ENDIF
@@ -85,7 +85,7 @@ CONTAINS
 
         vpressure % of_r = 0.D0
         CALL calc_vpressure( solvent, vpressure )
-        IF ( verbose .GE. 3 ) CALL write_cube( vpressure )
+        IF ( verbose .GE. 3 ) CALL print_environ_density( vpressure )
         vtot = vtot + vpressure % of_r
 
       ENDIF
@@ -129,11 +129,11 @@ CONTAINS
 
          ENDIF
 
-         IF ( verbose .GE. 3 ) CALL write_cube( velectrostatic )
+         IF ( verbose .GE. 3 ) CALL print_environ_density( velectrostatic )
          vtot = vtot + velectrostatic % of_r
 
          IF ( lsoftcavity ) THEN
-            IF ( verbose .GE. 3 ) CALL write_cube( vsoftcavity )
+            IF ( verbose .GE. 3 ) CALL print_environ_density( vsoftcavity )
             vtot = vtot + vsoftcavity % of_r
          END IF
 

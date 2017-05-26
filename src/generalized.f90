@@ -119,6 +119,9 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_iterative'
 
+  IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
+9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
+
   ! ... Check that fields have the same defintion domain
 
   IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
@@ -193,8 +196,8 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
-9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
+9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     ! ... Compute polarization potential
 

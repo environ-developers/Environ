@@ -162,7 +162,7 @@ CONTAINS
         ENDDO
         CALL destroy_environ_density( local )
         !
-        IF ( verbose .GE. 3 ) CALL write_cube( dielectric%background )
+        IF ( verbose .GE. 3 ) CALL print_environ_density( dielectric%background )
         !
      ENDIF
      !
