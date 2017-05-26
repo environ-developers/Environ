@@ -90,7 +90,8 @@ MODULE electrostatic_base
   LOGICAL ::                       &
        need_gradient,              &
        need_factsqrt,              &
-       need_gradlog
+       need_gradlog,               &
+       need_auxiliary
   !
   CONTAINS
     !
@@ -194,6 +195,8 @@ MODULE electrostatic_base
       !
       IF ( core .EQ. 'fd' .OR. dielectric_core .EQ. 'fd' ) &
            & CALL init_fd_gradient(ifdtype, nfdpoint, ncfd, icfd )
+      !
+      need_auxiliary = auxiliary .NE. 'none'
       !
       RETURN
       !

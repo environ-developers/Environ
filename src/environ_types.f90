@@ -173,6 +173,20 @@ MODULE environ_types
 
   END TYPE environ_externals
 
+  TYPE environ_auxiliary
+
+     LOGICAL :: update = .FALSE.
+     INTEGER :: number = 0
+
+     TYPE( environ_density ) :: density
+
+     TYPE( environ_density ) :: fixed
+     TYPE( environ_density ) :: iterative
+
+     REAL( DP ) :: charge = 0.0_DP
+
+  END TYPE environ_auxiliary
+
   TYPE environ_charges
 
      ! Ionic charges
@@ -193,7 +207,7 @@ MODULE environ_types
      ! Auxiliary charges
 
      LOGICAL :: include_auxiliary = .FALSE.
-     TYPE( environ_density ), POINTER :: auxiliary => NULL()
+     TYPE( environ_auxiliary ), POINTER :: auxiliary => NULL()
 
      ! Total smooth free charge
 
@@ -471,7 +485,7 @@ CONTAINS
 
     quadratic_mean = DOT_PRODUCT(density%of_r,density%of_r)
     CALL mp_sum( quadratic_mean, density%cell%comm )
-    quadratic_mean = SQRT( quadratic_mean / density % cell % ntot )
+    quadratic_mean = SQRT( quadratic_mean ) / density % cell % ntot
 
     RETURN
 
@@ -586,6 +600,30 @@ CONTAINS
     RETURN
 
   END SUBROUTINE destroy_environ_gradient
+
+  SUBROUTINE scalar_product_environ_gradient( gradA, gradB, dens )
+
+    IMPLICIT NONE
+
+    TYPE( environ_gradient ), INTENT(IN) :: gradA, gradB
+    TYPE( environ_density ), INTENT(INOUT) :: dens
+
+    INTEGER :: ir
+    CHARACTER( LEN=80 ) :: sub_name = 'scalar_product_environ_gradient'
+
+    dens%of_r = 0.D0
+    IF ( .NOT. ASSOCIATED(gradA%cell,gradB%cell) ) &
+         & CALL errore(sub_name,'Missmatch in domain of input gradients',1)
+    IF ( .NOT. ASSOCIATED(gradA%cell,dens%cell) ) &
+         & CALL errore(sub_name,'Missmatch in domain of input and output',1)
+
+    DO ir = 1, dens%cell%ir_end
+       dens%of_r(ir) = SUM(gradA%of_r(:,ir)*gradB%of_r(:,ir))
+    END DO
+
+    RETURN
+
+  END SUBROUTINE scalar_product_environ_gradient
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- HESSIAN ------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------
@@ -873,6 +911,75 @@ CONTAINS
 
   END SUBROUTINE destroy_environ_system
 !----------------------------------------------------------------------------------------------------------------------------------------
+!- AUXILIARY ----------------------------------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_auxiliary(auxiliary)
+
+    IMPLICIT NONE
+
+    TYPE( environ_auxiliary ), INTENT(INOUT) :: auxiliary
+    CHARACTER (LEN=80) :: sub_name = 'create_environ_auxiliary'
+    CHARACTER( LEN=80 ) :: label
+
+    auxiliary%update = .FALSE.
+    auxiliary%number = 0
+    label = 'auxiliary'
+    CALL create_environ_density( auxiliary%density, label )
+    label = 'aux-fixed'
+    CALL create_environ_density( auxiliary%fixed, label )
+    label = 'aux-iterative'
+    CALL create_environ_density( auxiliary%iterative, label )
+    auxiliary%charge = 0.D0
+
+    RETURN
+
+  END SUBROUTINE create_environ_auxiliary
+
+  SUBROUTINE init_environ_auxiliary( cell, auxiliary )
+
+    IMPLICIT NONE
+
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( environ_auxiliary ), INTENT(INOUT) :: auxiliary
+
+    INTEGER :: i
+
+    auxiliary%number = 1
+    CALL init_environ_density( cell, auxiliary%density )
+    CALL init_environ_density( cell, auxiliary%fixed )
+    CALL init_environ_density( cell, auxiliary%iterative )
+
+    RETURN
+
+  END SUBROUTINE init_environ_auxiliary
+
+  SUBROUTINE update_environ_auxiliary( auxiliary )
+
+    IMPLICIT NONE
+
+    TYPE( environ_auxiliary ), INTENT(INOUT) :: auxiliary
+
+    auxiliary%density%of_r = auxiliary%fixed%of_r + auxiliary%iterative%of_r
+    auxiliary%charge = integrate_environ_density(auxiliary%density)
+
+    RETURN
+
+  END SUBROUTINE update_environ_auxiliary
+
+  SUBROUTINE destroy_environ_auxiliary( auxiliary )
+
+    IMPLICIT NONE
+
+    TYPE( environ_auxiliary ), INTENT(INOUT) :: auxiliary
+
+    CALL destroy_environ_density( auxiliary%density )
+    CALL destroy_environ_density( auxiliary%fixed )
+    CALL destroy_environ_density( auxiliary%iterative )
+
+    RETURN
+
+  END SUBROUTINE destroy_environ_auxiliary
+!----------------------------------------------------------------------------------------------------------------------------------------
 !- CHARGES ------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------
   SUBROUTINE create_environ_charges(charges)
@@ -910,7 +1017,7 @@ CONTAINS
     TYPE( environ_electrons ), OPTIONAL, TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ),      OPTIONAL, TARGET, INTENT(IN) :: ions
     TYPE( environ_externals ), OPTIONAL, TARGET, INTENT(IN) :: externals
-    TYPE( environ_density ),   OPTIONAL, TARGET, INTENT(IN) :: auxiliary
+    TYPE( environ_auxiliary ), OPTIONAL, TARGET, INTENT(IN) :: auxiliary
 
     IF ( PRESENT(ions) ) THEN
        charges%include_ions = .TRUE.
@@ -958,6 +1065,7 @@ CONTAINS
     CHARACTER( LEN = 80 ) :: sub_name = 'update_environ_charges'
 
     charges % number = 0
+    charges % charge = 0.D0
     charges % density % of_r = 0.D0
 
     IF ( charges % include_electrons ) THEN
@@ -987,13 +1095,13 @@ CONTAINS
     IF ( charges % include_auxiliary ) THEN
        IF ( .NOT. ASSOCIATED( charges % auxiliary ) ) &
             & CALL errore(sub_name,'Missing expected charge component',1)
-       charges % number = charges % number + 1
-       charges % charge = charges % charge + integrate_environ_density(charges%auxiliary)
-       charges % density % of_r = charges % density % of_r + charges % auxiliary % of_r
+       charges % number = charges % number + charges % auxiliary % number
+       charges % charge = charges % charge + charges % auxiliary % charge
+       charges % density % of_r = charges % density % of_r + charges % auxiliary % density % of_r
     ENDIF
 
     local_charge = integrate_environ_density(charges%density)
-    IF ( local_charge .NE. charges%charge ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
+    IF ( ABS(local_charge-charges%charge) .GT. 1.D-8 ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
 
     RETURN
 

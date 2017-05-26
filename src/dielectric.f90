@@ -184,12 +184,12 @@ CONTAINS
         !
         CALL epsilon_of_boundary( dielectric%boundary, dielectric%background, dielectric%epsilon, dielectric%depsilon )
         !
-        !        IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%epsilon, dielectric%gradient, &
-        !             &dielectric%background, dielectric%boundary )
-        !        IF ( dielectric%need_factsqrt ) CALL generate_epsilon_factsqrt( dielectric%epsilon, dielectric%factsqrt, &
-        !             & dielectric%background, dielectric%boundary )
-        !        IF ( dielectric%need_gradlog  ) CALL generate_epsilon_gradlog( dielectric%epsilon, dielectric%gradlog, &
-        !             & dielectric%background, dielectric%boundary )
+        IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%epsilon, dielectric%gradient, &
+             &dielectric%background, dielectric%boundary )
+        IF ( dielectric%need_factsqrt ) CALL generate_epsilon_factsqrt( dielectric%epsilon, dielectric%factsqrt, &
+             & dielectric%background, dielectric%boundary )
+        IF ( dielectric%need_gradlog  ) CALL generate_epsilon_gradlog( dielectric%epsilon, dielectric%gradlog, &
+             & dielectric%background, dielectric%boundary )
         dielectric % update = .FALSE.
         !
      ENDIF
@@ -282,7 +282,7 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE( environ_density ), INTENT(IN) :: epsilon
-    TYPE( environ_gradient ), INTENT(OUT) :: gradient
+    TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
     TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
 
@@ -307,8 +307,6 @@ CONTAINS
        !
     CASE ( 'analytic' )
        !
-!       CALL init_environ_gradient(cell,gbackground)
-       !
        IF ( boundary%mode .EQ. 'ions' ) THEN
           CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradient)
        ELSE
@@ -317,7 +315,6 @@ CONTAINS
              gradient%of_r(i,:) = boundary%dscaled%of_r(:) * gradient%of_r(i,:)
           ENDDO
        ENDIF
-!       CALL destroy_environ_gradient(gbackground)
        !
     CASE DEFAULT
        !
@@ -338,7 +335,7 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE( environ_density ), INTENT(IN) :: epsilon
-    TYPE( environ_gradient ), INTENT(OUT) :: gradlog
+    TYPE( environ_gradient ), INTENT(INOUT) :: gradlog
     TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
     TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
 
@@ -347,6 +344,7 @@ CONTAINS
 
     INTEGER :: i
     TYPE( environ_density ) :: log_epsilon
+    CHARACTER( LEN=80 ) :: label
     CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_gradlog'
 
     nnr => epsilon%cell%nnr
@@ -365,16 +363,17 @@ CONTAINS
        !
     CASE ( 'fd' )
        !
+       label='logeps'
+       CALL create_environ_density( log_epsilon, label )
        CALL init_environ_density( cell, log_epsilon )
        log_epsilon%of_r = LOG( epsilon%of_r )
        !
        CALL calc_fd_gradient(nfdpoint, icfd, ncfd, nnr, log_epsilon%of_r, gradlog%of_r)
+       CALL update_gradient_modulus(gradlog)
        !
        CALL destroy_environ_density( log_epsilon )
        !
     CASE ( 'analytic' )
-       !
-!       CALL init_environ_gradient(cell,gbackground)
        !
        IF ( boundary%mode .EQ. 'ions' ) THEN
           CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradlog)
@@ -385,7 +384,6 @@ CONTAINS
           ENDDO
        ENDIF
        !
-       !       CALL destroy_environ_gradient(gbackground)
        DO i = 1, 3
           gradlog%of_r(i,:) = gradlog%of_r(i,:) / epsilon%of_r(:)
        ENDDO
@@ -436,8 +434,6 @@ CONTAINS
        CALL init_environ_density( cell, laplacian )
        CALL init_environ_gradient( cell, gradient )
        !
-!       CALL init_environ_gradient(cell,gbackground)
-       !
        IF ( boundary%mode .EQ. 'ions' ) THEN
           !
           CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradient)
@@ -461,7 +457,6 @@ CONTAINS
        !
        CALL destroy_environ_gradient(gradient)
        CALL destroy_environ_density(laplacian)
-!       CALL destroy_environ_gradient(gbackground)
        !
     CASE DEFAULT
        !

@@ -44,10 +44,10 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
-    TYPE( environ_density ), INTENT(OUT) :: potential
+    TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_velectrostatic'
     !
@@ -205,7 +205,7 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     REAL( DP ), INTENT(OUT) :: energy
     TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
@@ -232,7 +232,7 @@ CONTAINS
     ! ... Declares variables
     !
     INTEGER, INTENT(IN) :: natoms
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     REAL(DP), INTENT(INOUT) :: forces( 3, natoms )
     TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte

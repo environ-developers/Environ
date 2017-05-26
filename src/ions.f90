@@ -145,7 +145,7 @@ CONTAINS
 
     DO i = 1, ions%ntyp
 
-       ions%iontype(i)%zv = zv(i)
+       ions%iontype(i)%zv = -zv(i)
 
     ENDDO
 
@@ -195,7 +195,7 @@ CONTAINS
           DO i = 1, ions%number
              ions%core_electrons(i) = environ_functions(1,1,0,0.0_DP,&
                   & ions%iontype(ions%ityp(i))%corespread,&
-                  & ions%iontype(ions%ityp(i))%zv,ions%tau(:,i))
+                  & -ions%iontype(ions%ityp(i))%zv,ions%tau(:,i))
           ENDDO
        ENDIF
 

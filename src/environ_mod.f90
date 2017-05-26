@@ -74,6 +74,13 @@ MODULE environ_base
   TYPE( environ_externals ), TARGET ::  &
        externals
   !
+  ! Internal parameters of auxiliary charges
+  !
+  LOGICAL ::                            &
+       lauxiliary
+  TYPE( environ_auxiliary ), TARGET ::  &
+       auxiliary
+  !
   ! Internal paramters of total charges
   !
   TYPE( environ_charges ), TARGET :: &

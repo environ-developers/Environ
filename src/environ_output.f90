@@ -590,6 +590,59 @@ CONTAINS
   END SUBROUTINE print_environ_externals
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE print_environ_auxiliary( auxiliary, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_auxiliary ), INTENT(IN) :: auxiliary
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_auxiliary'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = verbosity - verbose - local_depth
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = verbosity - verbose - depth
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 2200 )
+       WRITE( UNIT = environ_unit, FMT = 2201 )auxiliary%charge
+       IF ( verbosity .GE. 2 ) THEN
+          CALL print_environ_density(auxiliary%density,passed_verbosity,passed_depth)
+       ENDIF
+       IF ( verbosity .GE. 3 ) THEN
+          CALL print_environ_density(auxiliary%iterative,passed_verbosity,passed_depth)
+          CALL print_environ_density(auxiliary%fixed,passed_verbosity,passed_depth)
+       ENDIF
+    END IF
+
+    FLUSH( environ_unit )
+
+    RETURN
+
+2200 FORMAT(/,4('%'),' AUXILIARY ',65('%'))
+2201 FORMAT(1x,'total auxiliary charge      = ',F14.7)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_auxiliary
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE print_environ_charges( charges, local_verbose, local_depth )
 !--------------------------------------------------------------------
 
@@ -634,7 +687,7 @@ CONTAINS
           IF ( charges % include_externals ) &
                & CALL print_environ_externals(charges%externals,passed_verbosity,passed_depth)
           IF ( charges % include_auxiliary ) &
-               & CALL print_environ_density(charges%auxiliary,passed_verbosity,passed_depth)
+               & CALL print_environ_auxiliary(charges%auxiliary,passed_verbosity,passed_depth)
        ENDIF
     END IF
 

@@ -65,7 +65,7 @@ CONTAINS
     ! ... the following routine copies variables read in input
     ! ... to global variables and derived data types kept in this module
     !
-    USE electrostatic_base, ONLY : need_gradient, need_gradlog, need_factsqrt
+    USE electrostatic_base, ONLY : need_gradient, need_gradlog, need_factsqrt, need_auxiliary
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
@@ -216,6 +216,7 @@ CONTAINS
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_ioncc_ntyp .GT. 0
     lperiodic      = env_periodicity .NE. 3
+    lauxiliary     = need_auxiliary
     !
     ! Derived flags
     !
@@ -244,6 +245,8 @@ CONTAINS
     !
     IF ( lelectrostatic ) CALL create_environ_charges(charges)
     !
+    IF ( lauxiliary ) CALL create_environ_auxiliary(auxiliary)
+    !
     ! Allocate and set basic properties of ions
     !
     CALL init_environ_ions_first( nat, ntyp, lsoftcavity, lcoredensity, lsmearedions, &
@@ -268,6 +271,10 @@ CONTAINS
             & extcharge_axis, extcharge_pos, extcharge_spread, extcharge_charge, externals )
        CALL init_environ_charges_first( externals=externals, charges=charges )
     ENDIF
+    !
+    ! If needed, link auxiliary charges
+    !
+    IF ( lauxiliary ) CALL init_environ_charges_first( auxiliary=auxiliary, charges=charges )
     !
     ! Set the parameters of the solvent boundary
     !
@@ -437,6 +444,8 @@ CONTAINS
       IF ( lelectrolyte ) CALL init_environ_electrolyte_second( cell, electrolyte )
       !
       IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
+      !
+      IF ( lauxiliary ) CALL init_environ_auxiliary( cell, auxiliary )
       !
       IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
       !
@@ -657,7 +666,6 @@ CONTAINS
       END IF
       !
       electrons%update = .FALSE.
-      STOP
       !
       RETURN
       !
@@ -719,6 +727,7 @@ CONTAINS
       ! ... destroy derived types which were allocated in input
       !
       IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
+      IF ( lauxiliary ) CALL destroy_environ_auxiliary( auxiliary )
       IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
       IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
       IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )

@@ -18,9 +18,10 @@ MODULE generalized
 
   USE environ_types
   USE environ_output
-  USE poisson, ONLY : poisson_direct
+  USE poisson, ONLY : poisson_direct, poisson_gradient_direct
   USE electrostatic_base, ONLY : auxiliary, preconditioner, solver, &
        maxiter, tolvelect
+  USE environ_base, ONLY : e2
 
   IMPLICIT NONE
 
@@ -36,11 +37,11 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 
   IMPLICIT NONE
 
-  TYPE( environ_charges ), INTENT(IN) :: charges
+  TYPE( environ_charges ), INTENT(INOUT) :: charges
   TYPE( environ_dielectric ), INTENT(IN) :: dielectric
   TYPE( environ_density ), INTENT(INOUT) :: potential
 
-  CHARACTER*20 :: sub_name = ' generalized_gradient '
+  CHARACTER*20 :: sub_name = 'generalized_gradient'
 
   CALL start_clock( 'calc_vsolv' )
 
@@ -73,8 +74,7 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 
      IF ( solver .EQ. 'iterative' ) THEN
 
-        CALL errore(sub_name,'Option not yet implemented',1)
-!        CALL generalized_iterative( charges, dielectric, potential )
+        CALL generalized_iterative( charges, dielectric, potential )
 
      ELSE
 
@@ -97,6 +97,124 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 END SUBROUTINE generalized_gradient
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+SUBROUTINE generalized_iterative( charges, dielectric, potential )
+!--------------------------------------------------------------------
+
+  USE electrostatic_base, ONLY : mix, tolrhoaux
+
+  IMPLICIT NONE
+
+  TYPE( environ_charges ), TARGET, INTENT(INOUT) :: charges
+  TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
+  TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+
+  TYPE( environ_cell ), POINTER :: cell
+  TYPE( environ_density ), POINTER :: eps, rhoiter, rhozero
+  TYPE( environ_gradient ), POINTER :: gradlogeps
+
+  INTEGER :: iter
+  REAL( DP ) :: total, totpol, totzero, totiter, deltar
+  TYPE( environ_density ) :: residual
+  TYPE( environ_gradient ) :: gradpoisson
+
+  CHARACTER( LEN=80 ) :: sub_name = 'generalized_iterative'
+
+  ! ... Check that fields have the same defintion domain
+
+  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
+       & CALL errore(sub_name,'Inconsistent cells of input fields',1)
+  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
+       & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
+  cell => charges%density%cell
+
+  ! ... Aliases
+
+  eps => dielectric % epsilon
+  gradlogeps => dielectric % gradlog
+  rhoiter => charges % auxiliary % iterative
+  rhozero => charges % auxiliary % fixed
+
+  ! ... Solute only
+
+  charges % include_auxiliary = .FALSE.
+  CALL update_environ_charges( charges )
+  total = integrate_environ_density( charges%density )
+
+  ! ... Set up auxiliary charge
+
+  totpol = total * ( 1.D0 - dielectric % constant ) / dielectric % constant
+  rhozero % of_r = charges % density % of_r * ( 1.D0 - eps % of_r ) / eps % of_r
+  totzero = integrate_environ_density( rhozero )
+  totiter = integrate_environ_density( rhoiter )
+  IF ( verbose .GE. 1 ) WRITE(environ_unit,9001) totiter
+9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6)
+  charges % include_auxiliary = .TRUE.
+
+  ! ... Create local variables
+
+  CALL init_environ_density( cell, residual )
+  CALL init_environ_gradient( cell, gradpoisson )
+
+  ! ... Start iterative algorithm
+
+  DO iter = 1, maxiter
+
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
+9002 FORMAT(' Iteration # ',i10)
+
+       CALL update_environ_auxiliary( charges % auxiliary )
+
+       CALL update_environ_charges( charges )
+
+       CALL poisson_gradient_direct( charges, gradpoisson )
+
+       CALL scalar_product_environ_gradient( gradlogeps, gradpoisson, residual )
+
+       residual % of_r = residual % of_r / fpi / e2 - rhoiter % of_r
+
+       rhoiter % of_r = rhoiter % of_r + mix * residual % of_r
+
+       ! ... If residual is small enough exit
+
+       deltar = quadratic_mean_environ_density( residual )
+       totiter = integrate_environ_density( rhoiter )
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolrhoaux
+9004   FORMAT(' deltarho = ',E14.6,' tol = ',E14.6)
+       IF ( verbose .GE. 2 ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
+9003   FORMAT(' Total iterative polarization charge = ',4F13.6)
+       IF ( deltar .LT. tolrhoaux .AND. iter .GT. 0 ) THEN
+          IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
+9005      FORMAT(' Charges are converged, exit!')
+          EXIT
+       ELSE IF ( iter .EQ. maxiter ) THEN
+         WRITE(program_unit,9006)
+9006     FORMAT(' Warning: Polarization charge not converged')
+       ENDIF
+
+    ENDDO
+
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
+9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
+
+    ! ... Compute polarization potential
+
+    CALL update_environ_auxiliary( charges % auxiliary )
+
+    CALL poisson_direct( charges % auxiliary % density, potential )
+
+    charges % include_auxiliary = .FALSE.
+
+    ! ... Destroy local variables
+
+    CALL destroy_environ_density( residual )
+    CALL destroy_environ_gradient( gradpoisson )
+
+  RETURN
+
+!--------------------------------------------------------------------
+END SUBROUTINE generalized_iterative
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
 SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 !--------------------------------------------------------------------
 
@@ -106,7 +224,6 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
-  INTEGER, POINTER :: n
   TYPE( environ_cell ), POINTER :: cell
   TYPE( environ_density ), POINTER :: x, b, eps
   TYPE( environ_gradient ), POINTER :: gradeps
@@ -240,7 +357,6 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
-  INTEGER, POINTER :: n
   TYPE( environ_cell ), POINTER :: cell
   TYPE( environ_density ), POINTER :: x, b, eps, factsqrt
   TYPE( environ_gradient ), POINTER :: gradeps
@@ -401,7 +517,6 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
 !!!TEMPLATE!!!  TYPE( environ_density ), INTENT(INOUT) :: potential
 !!!TEMPLATE!!!
-!!!TEMPLATE!!!  INTEGER, POINTER :: n
 !!!TEMPLATE!!!  TYPE( environ_cell ), POINTER :: cell
 !!!TEMPLATE!!!  TYPE( environ_density ), POINTER :: x, b, eps
 !!!TEMPLATE!!!  TYPE( environ_gradient ), POINTER :: gradeps
