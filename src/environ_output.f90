@@ -42,7 +42,8 @@ MODULE environ_output
        & print_environ_functions, print_environ_iontype, &
        & print_environ_ions, print_environ_electrons, &
        & print_environ_externals, print_environ_system, &
-       & print_environ_boundary, print_environ_dielectric
+       & print_environ_boundary, print_environ_dielectric, &
+       & print_environ_charges
 
 CONTAINS
 !--------------------------------------------------------------------

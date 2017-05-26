@@ -19,6 +19,7 @@ MODULE electrostatic
   ! ... electrostatic embedding.
   !
   USE environ_types
+  USE environ_output
   USE electrostatic_base
   !
   SAVE
@@ -26,7 +27,7 @@ MODULE electrostatic
   PRIVATE
 
   PUBLIC :: calc_velectrostatic, calc_eelectrostatic, &
-            calc_felectrostatic, calc_vreference
+            calc_felectrostatic, calc_vreference, calc_ereference
 
 CONTAINS
 !--------------------------------------------------------------------
@@ -41,6 +42,8 @@ CONTAINS
     CHARACTER ( LEN = 80 ) :: local_solver
 
     LOGICAL :: include_externals, include_auxiliary
+
+    potential % of_r = 0.D0
 
     ! ... Compute reference potential, in the future need to pass the
     !     same set up used by the calling program
@@ -60,12 +63,16 @@ CONTAINS
     include_auxiliary = charges % include_auxiliary
     charges % include_auxiliary = .FALSE.
 
+    CALL update_environ_charges( charges )
+
     CALL calc_velectrostatic( charges = charges, potential = potential )
 
     ! ... Reset flags
 
     charges % include_externals = include_externals
     charges % include_auxiliary = include_auxiliary
+
+    CALL update_environ_charges( charges )
 
     ! ... Reset electrostatic controls
 
@@ -247,22 +254,89 @@ CONTAINS
   END SUBROUTINE calc_velectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_eelectrostatic( charges, energy, dielectric, electrolyte )
+  SUBROUTINE calc_ereference( charges, potential, energy )
 !--------------------------------------------------------------------
-    !
-    ! ... Declares variables
-    !
+    IMPLICIT NONE
+
     TYPE( environ_charges ), INTENT(INOUT) :: charges
+    TYPE( environ_density ), INTENT(IN) :: potential
+    REAL( DP ), INTENT(OUT) :: energy
+
+    CHARACTER ( LEN = 80 ) :: local_problem
+    CHARACTER ( LEN = 80 ) :: local_solver
+
+    LOGICAL :: include_externals, include_auxiliary
+
+    energy = 0.D0
+
+    ! ... Compute reference energy, in the future need to pass the
+    !     same set up used by the calling program
+
+    local_problem = problem
+    problem = 'poisson'
+    local_solver = solver
+    solver = 'direct'
+
+    ! ... Remove external charges, if present
+
+    include_externals = charges % include_externals
+    charges % include_externals = .FALSE.
+
+    ! ... Remove auxiliary charges, if present and activated
+
+    include_auxiliary = charges % include_auxiliary
+    charges % include_auxiliary = .FALSE.
+
+    CALL calc_eelectrostatic( charges = charges, potential = potential, energy = energy )
+
+    ! ... Reset flags
+
+    charges % include_externals = include_externals
+    charges % include_auxiliary = include_auxiliary
+
+    ! ... Reset electrostatic controls
+
+    problem = local_problem
+    solver = local_solver
+
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_ereference
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE calc_eelectrostatic( charges, energy, dielectric, potential, electrolyte )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
+    TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
     TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
-    !
+
+    LOGICAL :: include_auxiliary
+
     CALL start_clock ('calc_eelect')
-    !
+
     energy = 0.D0
-    !
+
+    ! ... Remove auxiliary charges, if present
+
+    include_auxiliary = charges % include_auxiliary
+    charges % include_auxiliary = .FALSE.
+
+    CALL update_environ_charges( charges )
+
+    energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
+
+    ! ... Reset flags
+
+    charges % include_auxiliary = include_auxiliary
+
+    CALL update_environ_charges( charges )
+
     CALL stop_clock ('calc_eelect')
-    !
+
     RETURN
 !--------------------------------------------------------------------
   END SUBROUTINE calc_eelectrostatic

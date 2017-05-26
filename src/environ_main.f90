@@ -162,6 +162,7 @@ CONTAINS
       !
       USE environ_base,  ONLY : electrons, solvent,                   &
                                 lelectrostatic, velectrostatic,       &
+                                vreference,                           &
                                 lsoftcavity, vsoftcavity,             &
                                 lsurface, vcavity,                    &
                                 lvolume, vpressure,                   &
@@ -170,7 +171,7 @@ CONTAINS
       !
       ! ... Each contribution to the energy is computed in its module
       !
-      USE electrostatic, ONLY : calc_eelectrostatic
+      USE electrostatic, ONLY : calc_eelectrostatic, calc_ereference
       USE cavity,        ONLY : calc_ecavity
       USE pressure,      ONLY : calc_epressure
       !
@@ -180,6 +181,7 @@ CONTAINS
       !
       REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, ecavity, &
                                  epressure
+      REAL( DP ) :: ereference
       !
       ! ... Initializes the variables
       !
@@ -194,7 +196,7 @@ CONTAINS
       !
       IF ( lsurface ) THEN
          !
-         deenviron = deenviron + &
+         deenviron = deenviron - &
               & scalar_product_environ_density(electrons%density,vcavity)
          !
          CALL calc_ecavity( solvent, ecavity )
@@ -205,7 +207,7 @@ CONTAINS
       !
       IF ( lvolume ) THEN
          !
-         deenviron = deenviron + &
+         deenviron = deenviron - &
               & scalar_product_environ_density(electrons%density,vpressure)
          !
          CALL calc_epressure( solvent, epressure )
@@ -217,10 +219,14 @@ CONTAINS
       IF ( lelectrostatic ) THEN
          !
          deenviron = deenviron + &
-              & scalar_product_environ_density(electrons%density,velectrostatic) - &
               & scalar_product_environ_density(electrons%density,vreference)
          !
-         IF ( lsoftcavity ) deenviron = deenviron + &
+         CALL calc_ereference( charges=charges, potential=vreference, energy=ereference )
+         !
+         deenviron = deenviron - &
+              & scalar_product_environ_density(electrons%density,velectrostatic)
+         !
+         IF ( lsoftcavity ) deenviron = deenviron - &
               & scalar_product_environ_density(electrons%density,vsoftcavity)
          !
          IF ( lstatic ) THEN
@@ -228,12 +234,12 @@ CONTAINS
             IF ( lelectrolyte ) THEN
                !
                CALL calc_eelectrostatic( charges=charges, dielectric=static, &
-                    & electrolyte=electrolyte, energy=eelectrostatic )
+                    & electrolyte=electrolyte, potential=velectrostatic, energy=eelectrostatic )
                !
             ELSE
                !
                CALL calc_eelectrostatic( charges=charges, dielectric=static, &
-                    & energy=eelectrostatic )
+                    & potential=velectrostatic, energy=eelectrostatic )
                !
             ENDIF
             !
@@ -242,15 +248,17 @@ CONTAINS
             IF ( lelectrolyte ) THEN
                !
                CALL calc_eelectrostatic( charges=charges, electrolyte=electrolyte, &
-                    & energy=eelectrostatic )
+                    & potential=velectrostatic, energy=eelectrostatic )
                !
             ELSE
                !
-               CALL calc_eelectrostatic( charges=charges, energy=eelectrostatic )
+               CALL calc_eelectrostatic( charges=charges, potential=velectrostatic, energy=eelectrostatic )
                !
             ENDIF
             !
          ENDIF
+         !
+         eelectrostatic = eelectrostatic - ereference
          !
       END IF
       !
