@@ -360,9 +360,24 @@ CONTAINS
     !
     ! ... Local variables
     !
-    REAL(DP)                :: ftmp( 3, natoms )
+    REAL(DP)            :: ftmp( 3, natoms )
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_felectrostatic'
+    !
+    ! ... Contribution from the interaction of ionic density with
+    !     modified electrostatic potential
     !
     ftmp = 0.D0
+    SELECT CASE ( auxiliary )
+    CASE ('full')
+       charges%include_ions = .FALSE.
+       charges%include_electrons = .FALSE.
+       CALL update_environ_charges( charges )
+       CALL external_force_lc(charges%density%of_r,ftmp)
+    CASE ('none')
+       CALL errore(sub_name,'Option not yet implemented',1)
+    CASE DEFAULT
+       CALL errore(sub_name,'Option not yet implemented',1)
+    END SELECT
     !
     forces = forces + ftmp
     !
