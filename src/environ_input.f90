@@ -102,15 +102,16 @@ MODULE environ_input
 !
 ! Switching function parameters
 !
-        INTEGER :: stype = 1
+        INTEGER :: stype = 2
         ! type of switching functions used in the solvation models
         !    0: original Fattebert-Gygi
-        !    1: ultrasoft dielectric function as defined in Andreussi et al.
+        !    1: ultrasoft switching function (only exponential part used for non-electrostatic)
+        !    2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
         REAL(DP) :: rhomax = 0.005
         ! first parameter of the sw function, roughly corresponding
         ! to the density threshold of the solvation model
         REAL(DP) :: rhomin = 0.0001
-        ! second parameter of the sw function when stype=1
+        ! second parameter of the sw function when stype=1 or 2
         REAL(DP) :: tbeta = 4.8
         ! second parameter of the sw function when stype=0
 !
@@ -172,8 +173,6 @@ MODULE environ_input
 !
         REAL(DP) :: env_surface_tension = 0.D0
         ! solvent surface tension, if equal to zero no cavitation term
-        REAL(DP) :: delta = 0.00001D0
-        ! finite difference parameter to compute the molecular surface
 !
 ! PV energy parameters
 !
@@ -257,7 +256,7 @@ MODULE environ_input
              alpha, softness, solvationrad, corespread, atomicspread,  &
              eps_distance, eps_spread,                                 &
              add_jellium,                                              &
-             env_surface_tension, delta,                               &
+             env_surface_tension,                                      &
              env_pressure,                                             &
              env_ioncc_ntyp, nrep,                                     &
              stern_mode, stern_distance, stern_spread,                 &
@@ -475,7 +474,7 @@ MODULE environ_input
                                 radius_mode, alpha, softness,               &
                                 eps_distance, eps_spread,                   &
                                 add_jellium,                                &
-                                env_surface_tension, delta,                 &
+                                env_surface_tension,                        &
                                 env_pressure,                               &
                                 env_ioncc_ntyp, nrep,                       &
                                 stern_mode, stern_distance, stern_spread,   &
@@ -579,7 +578,7 @@ MODULE environ_input
        system_dim = 0
        system_axis = 3
        !
-       stype   = 1
+       stype   = 2
        rhomax  = 0.005
        rhomin  = 0.0001
        tbeta   = 4.8
@@ -589,7 +588,7 @@ MODULE environ_input
        eps_mode        = 'electronic'
        radius_mode     = 'uff'
        alpha           = 1.D0
-       softness        = 1.D0
+       softness        = 0.5D0
        solvationrad(:) = -3.D0
        corespread(:)   = -0.5D0
        atomicspread(:) = -0.5D0
@@ -598,7 +597,6 @@ MODULE environ_input
        add_jellium = .false.
        !
        env_surface_tension = 0.D0
-       delta = 0.00001D0
        !
        env_pressure = 0.D0
        !
@@ -709,7 +707,6 @@ MODULE environ_input
        CALL mp_bcast( add_jellium,                ionode_id, comm )
        !
        CALL mp_bcast( env_surface_tension,        ionode_id, comm )
-       CALL mp_bcast( delta,                      ionode_id, comm )
        !
        CALL mp_bcast( env_pressure,               ionode_id, comm )
        !
@@ -815,7 +812,7 @@ MODULE environ_input
        IF( system_axis < 1 .OR. system_axis > 3 ) &
           CALL errore( sub_name,' system_axis out of range ', 1 )
        !
-       IF( stype > 1 ) &
+       IF( stype > 2 ) &
           CALL errore( sub_name,' stype out of range ', 1 )
        IF( rhomax < 0.0_DP ) &
           CALL errore( sub_name,' rhomax out of range ', 1 )
@@ -853,8 +850,6 @@ MODULE environ_input
        !
        IF( env_surface_tension < 0.0_DP ) &
           CALL errore( sub_name,' env_surface_tension out of range ', 1 )
-       IF( delta <= 0.0_DP ) &
-          CALL errore( sub_name,' delta out of range ', 1 )
        !
        IF( env_pressure < 0.0_DP ) &
           CALL errore( sub_name,' env_pressure out of range ', 1 )

@@ -13,7 +13,7 @@ MODULE generate_boundary
   !
   PRIVATE
   !
-  PUBLIC :: boundfunct, dboundfunct, d2boundfunct, boundary_of_density
+  PUBLIC :: boundary_of_density
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -218,7 +218,7 @@ CONTAINS
       END FUNCTION dsfunct2
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      FUNCTION boundfunct( rho, rhomax, rhomin, tbeta, ifunct )
+      FUNCTION boundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the density-dependent dielectric constant
@@ -226,15 +226,18 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP )             :: boundfunct
-      REAL( DP )             :: rho
-      REAL( DP )             :: rhomax
-      REAL( DP )             :: rhomin
-      REAL( DP )             :: tbeta
+      REAL( DP ) :: boundfunct
+      REAL( DP ) :: rho
+      REAL( DP ) :: rhomax
+      REAL( DP ) :: rhomin
+      REAL( DP ) :: tbeta
+      REAL( DP ) :: const
       !
-      INTEGER                :: ifunct
+      INTEGER :: ifunct
       !
-      REAL( DP )             :: arg
+      REAL( DP ) :: arg
+      !
+      CHARACTER( LEN=80 ) :: fun_name = 'boundfunct'
       !
       SELECT CASE( ifunct )
       !
@@ -246,10 +249,14 @@ CONTAINS
          !
          boundfunct = 1.D0 - sfunct1( rho, rhomax, rhomin, tbeta )
          !
+      CASE( 2 )
+         !
+         boundfunct = ( const - EXP( LOG( const ) * sfunct1( rho, rhomax, rhomin, tbeta ) ) ) &
+              &  / ( const - 1.D0 )
+         !
       CASE DEFAULT
          !
-         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
-         STOP
+         CALL errore(fun_name,'Unknown boundary type',1)
          !
       END SELECT
       !
@@ -259,7 +266,7 @@ CONTAINS
       END FUNCTION boundfunct
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      FUNCTION dboundfunct( rho, rhomax, rhomin, tbeta, ifunct )
+      FUNCTION dboundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the derivative of the
@@ -268,15 +275,18 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP )             :: dboundfunct
-      REAL( DP )             :: rho
-      REAL( DP )             :: rhomax
-      REAL( DP )             :: rhomin
-      REAL( DP )             :: tbeta
+      REAL( DP ) :: dboundfunct
+      REAL( DP ) :: rho
+      REAL( DP ) :: rhomax
+      REAL( DP ) :: rhomin
+      REAL( DP ) :: tbeta
+      REAL( DP ) :: const
       !
-      INTEGER                :: ifunct
+      INTEGER :: ifunct
       !
-      REAL( DP )             :: arg
+      REAL( DP ) :: arg
+      !
+      CHARACTER( LEN=80 ) :: fun_name
       !
       SELECT CASE( ifunct )
       !
@@ -288,10 +298,14 @@ CONTAINS
          !
          dboundfunct = - dsfunct1( rho, rhomax, rhomin, tbeta )
          !
+      CASE( 2 )
+         !
+         dboundfunct = - EXP( LOG( const ) * sfunct1( rho, rhomax, rhomin, tbeta ) ) / &
+              & ( const - 1.D0 ) * LOG( const ) * dsfunct1( rho, rhomax, rhomin, tbeta )
+         !
       CASE DEFAULT
          !
-         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
-         STOP
+         CALL errore(fun_name,'Unknown boundary type',1)
          !
       END SELECT
       !
@@ -301,7 +315,7 @@ CONTAINS
       END FUNCTION dboundfunct
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      FUNCTION d2boundfunct( rho, rhomax, rhomin, tbeta, ifunct )
+      FUNCTION d2boundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the derivative of the
@@ -310,32 +324,39 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP )             :: d2boundfunct
-      REAL( DP )             :: rho
-      REAL( DP )             :: rhomax
-      REAL( DP )             :: rhomin
-      REAL( DP )             :: tbeta
+      REAL( DP ) :: d2boundfunct
+      REAL( DP ) :: rho
+      REAL( DP ) :: rhomax
+      REAL( DP ) :: rhomin
+      REAL( DP ) :: tbeta
+      REAL( DP ) :: const
       !
-      INTEGER                :: ifunct
+      INTEGER :: ifunct
       !
-      REAL( DP )             :: arg, arg2
+      REAL( DP ) :: arg, arg2
+      !
+      CHARACTER( LEN=80 ) :: fun_name
       !
       SELECT CASE( ifunct )
       !
       CASE( 0 )
          !
-         WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
-         STOP
+         CALL errore(fun_name,'Second derivative not implemented',1)
          !
       CASE( 1 )
          !
          d2boundfunct = - d2sfunct1( rho, rhomax, rhomin, tbeta )
          !
+      CASE( 2 )
+         !
+         d2boundfunct = - EXP( LOG( const ) * sfunct1( rho, rhomax, rhomin, tbeta ) ) / &
+              & ( const - 1.D0 ) * LOG( const ) * ( LOG( const ) * dsfunct1( rho, rhomax, rhomin, tbeta )**2 + &
+              & d2sfunct1( rho, rhomax, rhomin, tbeta ) )
+         !
       CASE DEFAULT
-        !
-        WRITE(*,*)'ERROR: solvent type unknown, stype=',ifunct
-        STOP
-        !
+         !
+         CALL errore(fun_name,'Unknown boundary type',1)
+         !
       END SELECT
       !
       RETURN
@@ -357,14 +378,10 @@ CONTAINS
       TYPE( environ_boundary ), TARGET, INTENT(INOUT) :: boundary
       !
       INTEGER, POINTER :: ir_end, stype
-      REAL( DP ), POINTER :: constant, rhomax, rhomin, tbeta
+      REAL( DP ), POINTER :: const, rhomax, rhomin, tbeta
       REAL( DP ), DIMENSION(:), POINTER :: rho, eps, deps, d2eps
       !
-      REAL( DP ), POINTER :: delta, factor
-      REAL( DP ), DIMENSION(:), POINTER :: theta
-      !
       INTEGER :: ir
-      REAL( DP ) :: rhotmp, theta_plus, theta_minus
       !
       CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_density'
       !
@@ -379,14 +396,16 @@ CONTAINS
       deps => boundary % dscaled % of_r
       d2eps => boundary % d2scaled % of_r
       !
-      IF ( stype .EQ. 1 ) THEN
+      IF ( stype .EQ. 1 .OR. stype .EQ. 2 ) THEN
          rhomax => boundary % rhomax
          rhomin => boundary % rhomin
          tbeta => boundary % fact
-      ELSE IF ( stype .EQ. 2 ) THEN
+         const => boundary % const
+      ELSE IF ( stype .EQ. 0 ) THEN
          rhomax => boundary % rhozero
          rhomin => boundary % deltarho
          tbeta => boundary % tbeta
+         const => boundary % const
       ENDIF
       !
       IF ( boundary%need_theta ) THEN
@@ -396,21 +415,9 @@ CONTAINS
       !
       DO ir = 1, ir_end
         !
-        eps( ir )   = boundfunct( rho( ir ), rhomax, rhomin, tbeta, stype )
-        deps( ir )  = dboundfunct( rho( ir ), rhomax, rhomin, tbeta, stype )
-        d2eps( ir ) = d2boundfunct( rho( ir ), rhomax, rhomin, tbeta, stype )
-        !
-        IF ( boundary % need_theta ) THEN
-           !
-           rhotmp = rho( ir ) - delta/2.D0
-           theta_plus = boundfunct( rhotmp, rhomax, rhomin, tbeta, stype )
-           !
-           rhotmp = rho( ir ) + delta/2.D0
-           theta_minus = boundfunct( rhotmp, rhomax, rhomin, tbeta, stype )
-           !
-           theta( ir ) = theta_minus - theta_plus
-           !
-        ENDIF
+        eps( ir )   = boundfunct( rho( ir ), rhomax, rhomin, tbeta, const, stype )
+        deps( ir )  = dboundfunct( rho( ir ), rhomax, rhomin, tbeta, const, stype )
+        d2eps( ir ) = d2boundfunct( rho( ir ), rhomax, rhomin, tbeta, const, stype )
         !
       END DO
       !

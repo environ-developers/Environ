@@ -34,9 +34,6 @@ CONTAINS
     NULLIFY( boundary%electrons )
     boundary%need_ions = .FALSE.
     NULLIFY( boundary%ions   )
-    boundary%need_theta = .FALSE.
-    label = 'theta'
-    CALL create_environ_density( boundary%theta, label )
 
     IF ( ALLOCATED( boundary%soft_spheres ) ) &
          & CALL errore(sub_name,'Trying to create an already allocated object',1)
@@ -49,7 +46,7 @@ CONTAINS
   END SUBROUTINE create_environ_boundary
 
   SUBROUTINE init_environ_boundary_first( mode, type, &
-       & rhomax, rhomin, tbeta, need_theta, delta, alpha, &
+       & rhomax, rhomin, tbeta, alpha, &
        & softness, electrons, ions, boundary )
 
     IMPLICIT NONE
@@ -57,8 +54,6 @@ CONTAINS
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
     INTEGER, INTENT(IN) :: type
     REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta
-    LOGICAL, INTENT(IN) :: need_theta
-    REAL( DP ), INTENT(IN) :: delta
     REAL( DP ), INTENT(IN) :: alpha
     REAL( DP ), INTENT(IN) :: softness
     TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
@@ -93,9 +88,6 @@ CONTAINS
        ENDDO
     ENDIF
 
-    boundary%need_theta = need_theta
-    boundary%deltatheta = delta
-
     RETURN
 
   END SUBROUTINE init_environ_boundary_first
@@ -112,7 +104,6 @@ CONTAINS
     CALL init_environ_density( cell, boundary%d2scaled )
 
     IF ( boundary%need_electrons ) CALL init_environ_density( cell, boundary%density )
-    IF ( boundary%need_theta) CALL init_environ_density( cell, boundary%theta )
 
     RETURN
 
@@ -250,7 +241,6 @@ CONTAINS
     CALL destroy_environ_density( boundary%d2scaled )
 
     IF ( boundary%need_electrons ) CALL destroy_environ_density( boundary%density )
-    IF ( boundary%need_theta ) CALL destroy_environ_density( boundary%theta )
 
     RETURN
 

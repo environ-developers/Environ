@@ -267,13 +267,6 @@ MODULE environ_types
      TYPE( environ_density ) :: dscaled
      TYPE( environ_density ) :: d2scaled
 
-     ! surface function of interface, computed from the finite
-     ! difference of two scaled swtiching functions
-
-     LOGICAL :: need_theta
-     REAL( DP ) :: deltatheta
-     TYPE( environ_density ) :: theta
-
   END TYPE environ_boundary
 
   TYPE environ_dielectric
