@@ -102,6 +102,8 @@ MODULE environ_base
        lstatic
   LOGICAL ::                        &
        loptical
+  LOGICAL ::                        &
+       ldielectric
   REAL (KIND=DP) ::                 &
        env_static_permittivity,     &
        env_optical_permittivity

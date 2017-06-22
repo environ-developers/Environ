@@ -220,8 +220,9 @@ CONTAINS
     !
     ! Derived flags
     !
-    lsolvent       = lstatic .OR. loptical .OR. lsurface .OR. lvolume
-    lelectrostatic = lstatic .OR. loptical .OR. lelectrolyte .OR. &
+    ldielectric    = lstatic .OR. loptical
+    lsolvent       = ldielectric .OR. lsurface .OR. lvolume
+    lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
          lexternals .OR. lperiodic
     lsoftcavity    = ( lsolvent .AND. solvent_mode .NE. 'ionic' ) .OR. &
          ( lelectrolyte .AND. stern_mode .NE. 'ionic' )
