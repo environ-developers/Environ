@@ -324,10 +324,20 @@ CONTAINS
           CASE ( 3 )
              WRITE( UNIT = environ_unit, FMT = 1304 )ifunctions,&
                   & functions(ifunctions)%spread,functions(ifunctions)%volume
+          CASE ( 4 )
+             WRITE( UNIT = environ_unit, FMT = 1305 )ifunctions,&
+                  & functions(ifunctions)%dim,functions(ifunctions)%axis,&
+                  & functions(ifunctions)%width,functions(ifunctions)%spread,&
+                  & functions(ifunctions)%volume
+          CASE ( 5 )
+             WRITE( UNIT = environ_unit, FMT = 1306 )ifunctions,&
+                  & functions(ifunctions)%dim,functions(ifunctions)%axis,&
+                  & functions(ifunctions)%width,functions(ifunctions)%spread,&
+                  & functions(ifunctions)%volume
           CASE DEFAULT
              CALL errore(sub_name,'Unexpected function type',1)
           END SELECT
-          IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 1305 )&
+          IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 1307 )&
                & functions(ifunctions)%pos
        END DO
     END IF
@@ -355,7 +365,21 @@ CONTAINS
           /,1x,'number                     = ',I3,' '&
           /,1x,'spread                     = ',F12.6,' '&
           /,1x,'integral                   = ',F12.6,' ')
-1305 FORMAT(1x,'position                   = ',3(F14.7),' ')
+1305 FORMAT(1x,'Scaled ERFC function, type = 4 '&
+          /,1x,'number                     = ',I3,' '&
+          /,1x,'dimensionality             = ',I1,' '&
+          /,1x,'axis                       = ',I1,' '&
+          /,1x,'width                      = ',F12.6,' '&
+          /,1x,'spread                     = ',F12.6,' '&
+          /,1x,'max value                  = ',F12.6,' ')
+1306 FORMAT(1x,'Scaled ERF function, type  = 5 '&
+          /,1x,'number                     = ',I3,' '&
+          /,1x,'dimensionality             = ',I1,' '&
+          /,1x,'axis                       = ',I1,' '&
+          /,1x,'width                      = ',F12.6,' '&
+          /,1x,'spread                     = ',F12.6,' '&
+          /,1x,'max value                  = ',F12.6,' ')
+1307 FORMAT(1x,'position                   = ',3(F14.7),' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_functions
 !--------------------------------------------------------------------
@@ -935,6 +959,8 @@ CONTAINS
                                lsurface, ecavity, &
                                lvolume, epressure
       !
+      CHARACTER( LEN=80 ) :: sub_name = 'environ_print_energies'
+      !
       IF ( ionode ) THEN
          IF ( prog .EQ. 'PW' ) THEN
             IF ( lelectrostatic ) WRITE( program_unit, 9201 ) eelectrostatic
@@ -945,8 +971,7 @@ CONTAINS
             IF ( lsurface ) WRITE( program_unit, 9302 ) ecavity
             IF ( lvolume ) WRITE( program_unit, 9303 ) epressure
          ELSE
-            WRITE(program_unit,*)'ERROR: wrong program in Environ'
-            STOP
+            CALL errore(sub_name,'Wrong program calling Environ',1)
          END IF
       END IF
       !

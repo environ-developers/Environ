@@ -75,13 +75,19 @@ CONTAINS
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: density
 
     INTEGER :: i
+    REAL( DP ) :: local_charge
     CHARACTER( LEN=80 ) :: sub_name = 'density_of_functions'
 
     INTEGER, POINTER :: type, dim, axis, nnr
+    REAL( DP ), POINTER :: alat, omega, at(:,:)
     REAL( DP ), POINTER :: charge, spread, width
     REAL( DP ), DIMENSION(:), POINTER :: pos
 
     density%of_r = 0.D0
+
+    alat => density%cell%alat
+    omega => density%cell%omega
+    at => density%cell%at
 
     DO i = 1, nfunctions
        type   => functions(i)%type
@@ -95,13 +101,17 @@ CONTAINS
        SELECT CASE ( type )
        CASE ( 1 ) ! Gaussian
           CALL generate_gaussian(nnr, dim, axis, charge, spread, pos, density%of_r)
-       CASE ( 2 ) ! Erfc
+       CASE ( 2 ) ! ERFC(X) that integrates to charge
           CALL generate_erfc(nnr, dim, axis, charge, width, spread, pos, density%of_r)
        CASE ( 3 ) ! Exponential
           CALL generate_exponential(nnr, spread, pos, density%of_r)
-          !
-          ! TO IMPLEMENT THE DISTINCTION BETWEEN NORMALIZED ERFC AND MAXED ERFC
-          !
+       CASE ( 4 ) ! ERFC(X)/2 from charge to 0
+          local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
+          CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
+       CASE ( 5 ) ! ERFC(-x))/2 from 0 to charge
+          local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
+          CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
+          density % of_r = charge - density % of_r
        END SELECT
     END DO
 

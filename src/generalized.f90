@@ -270,10 +270,8 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   z = r ! no preconditioner
   p = z
   rzold = scalar_product_environ_density( r, z )
-  IF ( rzold .LT. 1.D-30 ) THEN
-     WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
-     STOP
-  ENDIF
+  IF ( rzold .LT. 1.D-30 ) &
+       & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
   ! ... Start gradient descent
 
@@ -318,10 +316,8 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
        z = r ! no preconditioner
 
        rznew = scalar_product_environ_density( r, z )
-       IF ( rznew .LT. 1.D-30 ) THEN
-          WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
-          STOP
-       ENDIF
+       IF ( rznew .LT. 1.D-30 ) &
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
        ! ... Conjugate gradient or steepest descent input
 
@@ -434,10 +430,8 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
   p = z
   rzold = scalar_product_environ_density( r, z )
-  IF ( rzold .LT. 1.D-30 ) THEN
-     WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
-     STOP
-  ENDIF
+  IF ( rzold .LT. 1.D-30 ) &
+       & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
   ! ... Start gradient descent
 
@@ -479,10 +473,8 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
        z%of_r(:) = z%of_r(:) * invsqrt%of_r(:)
 
        rznew = scalar_product_environ_density( r, z )
-       IF ( rznew .LT. 1.D-30 ) THEN
-          WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
-          STOP
-       ENDIF
+       IF ( rznew .LT. 1.D-30 ) &
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
        ! ... Conjugate gradient or steepest descent input
 
