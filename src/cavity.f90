@@ -87,15 +87,20 @@ CONTAINS
     !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_ecavity'
     !
-    TYPE( environ_density ), POINTER :: modulus
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: sqrt_modulus
     !
     CALL start_clock ('calc_ecav')
     !
-    modulus => boundary % gradient % modulus
+    cell => boundary % gradient % cell
+    CALL init_environ_density( cell, sqrt_modulus )
+    sqrt_modulus % of_r = SQRT( boundary % gradient % modulus % of_r )
     !
     ! ... Computes the molecular surface
     !
-    surface = integrate_environ_density( modulus )
+    surface = integrate_environ_density( sqrt_modulus )
+    !
+    CALL destroy_environ_density( sqrt_modulus )
     !
     ! ... Computes the cavitation energy
     !

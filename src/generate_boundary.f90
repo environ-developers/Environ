@@ -10,6 +10,7 @@
 MODULE generate_boundary
   !
   USE environ_types
+  USE environ_output
   !
   PRIVATE
   !
@@ -512,6 +513,9 @@ CONTAINS
             END DO
             lapleps(:) = ( hess(1,1,:) + hess(2,2,:) + hess(3,3,:) ) * deps(:) + &
                  & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
+            DO ipol = 1, 3
+               gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
+            ENDDO
             !
          END SELECT
          !

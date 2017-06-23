@@ -97,8 +97,10 @@ CONTAINS
     boundary%fact = LOG( rhomax / rhomin )
     boundary%rhozero = ( rhomax + rhomin ) * 0.5_DP
     boundary%tbeta = tbeta
-    boundary%const = const
     boundary%deltarho = rhomax - rhomin
+
+    boundary%const = const
+    IF ( const .EQ. 1.D0 ) boundary%const = 2.D0
 
     boundary%alpha = alpha
     boundary%softness = softness
