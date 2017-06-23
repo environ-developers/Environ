@@ -45,15 +45,11 @@ CONTAINS
     !
     CALL start_clock ('calc_vpre')
     !
-    IF ( boundary%mode .EQ. 'electrons' ) THEN
+    IF ( boundary%need_electrons ) THEN
        !
        ! ... Multiply the derivative of the volume by the external pressure
        !
-       potential%of_r = env_pressure * boundary%dscaled%of_r / boundary%fact
-       !
-    ELSE
-       !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       potential%of_r = env_pressure * boundary%dscaled%of_r
        !
     ENDIF
     !
