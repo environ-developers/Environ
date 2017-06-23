@@ -13,7 +13,7 @@ MODULE generate_boundary
   !
   PRIVATE
   !
-  PUBLIC :: boundary_of_density
+  PUBLIC :: boundary_of_density, boundary_of_functions
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -368,6 +368,9 @@ CONTAINS
       SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
       !
+      USE electrostatic_base, ONLY : dielectric_core, nfdpoint, icfd, ncfd
+      USE fd_gradient, ONLY : calc_fd_gradient
+      !
       ! ... Calculates the dielectric constant as a function
       ! ... of the charge density, and the derivative of
       ! ... the dielectric constant wrt the charge density.
@@ -377,11 +380,16 @@ CONTAINS
       TYPE( environ_density ), TARGET, INTENT(IN) :: density
       TYPE( environ_boundary ), TARGET, INTENT(INOUT) :: boundary
       !
-      INTEGER, POINTER :: ir_end, stype
+      INTEGER, POINTER :: ir_end, nnr, stype, deriv
       REAL( DP ), POINTER :: const, rhomax, rhomin, tbeta
       REAL( DP ), DIMENSION(:), POINTER :: rho, eps, deps, d2eps
+      REAL( DP ), DIMENSION(:), POINTER :: lapleps, dsurface
+      REAL( DP ), DIMENSION(:,:), POINTER :: gradeps
       !
-      INTEGER :: ir
+      REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: hess
+      !
+      INTEGER :: ir, ipol, jpol
+      REAL( DP ) :: gmod
       !
       CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_density'
       !
@@ -389,6 +397,7 @@ CONTAINS
            & CALL errore(sub_name,'Inconsistent domains',1)
       !
       ir_end => density % cell % ir_end
+      nnr => density % cell % nnr
       rho => density % of_r
       !
       stype => boundary % type
@@ -408,11 +417,6 @@ CONTAINS
          const => boundary % const
       ENDIF
       !
-      IF ( boundary%need_theta ) THEN
-         delta => boundary % deltatheta
-         theta => boundary % theta % of_r
-      ENDIF
-      !
       DO ir = 1, ir_end
         !
         eps( ir )   = boundfunct( rho( ir ), rhomax, rhomin, tbeta, const, stype )
@@ -421,9 +425,149 @@ CONTAINS
         !
       END DO
       !
+      ! ... Compute boundary derivatives, if needed
+      !
+      deriv => boundary % deriv
+      !
+      IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) THEN
+         !
+         gradeps => boundary%gradient%of_r
+         IF ( deriv .GE. 2 ) lapleps => boundary%laplacian%of_r
+         !
+         SELECT CASE ( dielectric_core )
+            !
+         CASE ( 'fft' )
+            !
+            CALL external_gradient( eps, gradeps )
+            !
+            IF ( deriv .EQ. 2 ) CALL external_laplacian( eps, lapleps )
+            !
+         CASE ( 'fd' )
+            !
+            CALL calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, eps, gradeps )
+            IF ( deriv .GE. 2 ) CALL external_laplacian( eps, lapleps )
+            !
+         CASE ( 'analytic' )
+            !
+            CALL external_gradient( rho , gradeps )
+            IF ( deriv .EQ. 2 ) THEN
+               CALL external_laplacian( rho, lapleps )
+               lapleps(:) = lapleps(:) * deps(:) + &
+                    & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
+            ENDIF
+            DO ipol = 1, 3
+               gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
+            ENDDO
+            !
+         END SELECT
+         !
+         CALL update_gradient_modulus( boundary%gradient )
+         !
+      ELSE IF ( deriv .EQ. 3 ) THEN
+         !
+         gradeps => boundary%gradient%of_r
+         lapleps => boundary%laplacian%of_r
+         dsurface => boundary%dsurface%of_r
+         !
+         ALLOCATE( hess( 3, 3, nnr ) )
+         !
+         SELECT CASE ( dielectric_core )
+            !
+         CASE ( 'fft', 'fd' )
+            !
+            CALL external_hessian( eps, gradeps, hess )
+            CALL update_gradient_modulus( boundary%gradient )
+            lapleps(:) = hess(1,1,:) + hess(2,2,:) + hess(3,3,:)
+            DO ir = 1, nnr
+               dsurface(ir) = 0.D0
+               gmod = SUM( gradeps(:,ir)**2 )
+               IF ( gmod .LT. 1.D-12 ) CYCLE
+               DO ipol = 1, 3
+                  DO jpol = 1,3
+                     IF ( ipol .EQ. jpol ) CYCLE
+                     dsurface(ir) = dsurface(ir) + &
+                          gradeps(ipol, ir) * gradeps(jpol, ir) * hess(ipol, jpol, ir) - &
+                          gradeps(ipol, ir) * gradeps(ipol, ir) * hess(jpol, jpol, ir)
+                  ENDDO
+               ENDDO
+               dsurface( ir ) = dsurface( ir ) / gmod / SQRT(gmod)
+            END DO
+            !
+         CASE ( 'analytic' )
+            !
+            CALL external_hessian( rho, gradeps, hess )
+            DO ir = 1, nnr
+               dsurface(ir) = 0.D0
+               gmod = SUM( gradeps(:,ir)**2 )
+               IF ( gmod .LT. 1.D-12 ) CYCLE
+               DO ipol = 1, 3
+                  DO jpol = 1,3
+                     IF ( ipol .EQ. jpol ) CYCLE
+                     dsurface(ir) = dsurface(ir) + &
+                          gradeps(ipol, ir) * gradeps(jpol, ir) * hess(ipol, jpol, ir) - &
+                          gradeps(ipol, ir) * gradeps(ipol, ir) * hess(jpol, jpol, ir)
+                  ENDDO
+               ENDDO
+               dsurface( ir ) = dsurface( ir ) / gmod / SQRT(gmod)
+            END DO
+            lapleps(:) = ( hess(1,1,:) + hess(2,2,:) + hess(3,3,:) ) * deps(:) + &
+                 & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
+            !
+         END SELECT
+         !
+         CALL update_gradient_modulus( boundary%gradient )
+         !
+         DEALLOCATE( hess )
+         !
+      END IF
+      !
       RETURN
       !
 !--------------------------------------------------------------------
     END SUBROUTINE boundary_of_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE boundary_of_functions( nsoft_spheres, soft_spheres, boundary )
+!--------------------------------------------------------------------
+      !
+      ! ... Calculates the dielectric constant as a function
+      ! ... of the charge density, and the derivative of
+      ! ... the dielectric constant wrt the charge density.
+      !
+      USE functions, ONLY: density_of_functions
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: nsoft_spheres
+      TYPE( environ_functions ), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
+      TYPE( environ_boundary ), TARGET, INTENT(INOUT) :: boundary
+      !
+      TYPE( environ_cell ), POINTER :: cell
+      !
+      INTEGER :: i
+      CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_functions'
+      TYPE( environ_density ) :: local
+      !
+      cell => boundary % scaled % cell
+      !
+      boundary % scaled % of_r = 1.D0
+      !
+      CALL init_environ_density(cell,local)
+      DO i = 1, nsoft_spheres
+         CALL density_of_functions( 1, soft_spheres(i), local)
+         boundary % scaled % of_r = boundary % scaled % of_r * local % of_r
+      END DO
+      CALL destroy_environ_density(local)
+      !
+      boundary % scaled % of_r = 1.D0 - boundary % scaled % of_r
+      !
+      ! HERE NEED TO COMPUTE THE GRADIENT OF EPSILON
+      !
+      ! HERE NEED TO COMPUTE THE LAPLACIAN OF EPSILON
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE boundary_of_functions
 !--------------------------------------------------------------------
 END MODULE generate_boundary

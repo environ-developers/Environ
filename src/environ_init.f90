@@ -47,7 +47,7 @@ CONTAINS
        & radius_mode, alpha, softness,               &
        & eps_distance, eps_spread,                   &
        & add_jellium_,                               &
-       & env_surface_tension_, delta,                &
+       & env_surface_tension_,                       &
        & env_pressure_,                              &
        & env_ioncc_ntyp_, nrep_,                     &
        & stern_mode, stern_distance, stern_spread,   &
@@ -84,7 +84,7 @@ CONTAINS
          alpha, softness, solvationrad(:), corespread(:), &
          atomicspread(:),                                 &
          eps_distance, eps_spread,                        &
-         env_surface_tension_, delta, env_pressure_,      &
+         env_surface_tension_, env_pressure_,             &
          stern_distance, stern_spread, cion(:),           &
          cionmax(:), rion(:), zion(:), rhopb,             &
          solvent_temperature,                             &
@@ -280,16 +280,17 @@ CONTAINS
     ! Set the parameters of the solvent boundary
     !
     IF ( lsolvent ) THEN
-       CALL init_environ_boundary_first( solvent_mode, stype, rhomax, rhomin, tbeta, &
-            & lsurface, delta, alpha, softness, electrons, ions, solvent )
+       CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
+            & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
+            & electrons, ions, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
-    IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp,      &
-         & stern_mode, stype, rhomin, rhopb, tbeta, stern_distance, stern_spread, &
-         & alpha, softness, electrons, ions, solvent_temperature, cion, cionmax, &
-         & rion, zion, electrolyte )
+    IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
+         & stern_mode, stype, rhomin, rhopb, tbeta, env_static_permittivity, &
+         & stern_distance, stern_spread, alpha, softness, electrons, ions, &
+         & solvent_temperature, cion, cionmax, rion, zion, electrolyte )
     !
     ! Set the parameters of the dielectric
     !
@@ -542,7 +543,8 @@ CONTAINS
                                     loptical, optical,              &
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity
-      USE boundary,          ONLY : update_environ_boundary
+      USE boundary,          ONLY : update_environ_boundary,        &
+                                    set_soft_spheres
       USE dielectric,        ONLY : update_environ_dielectric
       !
       IMPLICIT NONE
@@ -560,6 +562,7 @@ CONTAINS
       ! ... Second step of initialization, need to be moved out of here
       !
       CALL init_environ_ions_second( nat, ntyp, ityp, zv, cell, ions )
+      IF ( lsolvent ) CALL set_soft_spheres( solvent )
       !
       ! ... Update ions parameters
       !

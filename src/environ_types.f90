@@ -240,13 +240,6 @@ MODULE environ_types
 
      INTEGER :: update_status = 0
 
-     ! Parameters for the density-dependent interface
-
-     INTEGER :: type
-     REAL( DP ) :: rhomax, rhomin, fact
-     REAL( DP ) :: rhozero, deltarho, tbeta
-     TYPE( environ_density ) :: density
-
      ! Parameters for the electrons-dependent interface
 
      LOGICAL :: need_electrons
@@ -255,17 +248,34 @@ MODULE environ_types
      ! Parameters for the ions-dependent interface
 
      LOGICAL :: need_ions
-     REAL( DP ) :: alpha ! solvent-dependent scaling factor
-     REAL( DP ) :: softness ! sharpness of the interface
-     TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: soft_spheres
      TYPE( environ_ions ), POINTER :: ions
 
      ! scaled switching function of interface
      ! varying from 1 (QM region) to 0 (environment region)
 
      TYPE( environ_density ) :: scaled
+
+     INTEGER :: deriv = 0
+     TYPE( environ_gradient ) :: gradient
+     TYPE( environ_density ) :: laplacian
+     TYPE( environ_density ) :: dsurface
+
+     ! Components needed for boundary of density
+
+     INTEGER :: type
+     REAL( DP ) :: rhomax, rhomin, fact
+     REAL( DP ) :: rhozero, deltarho, tbeta
+     REAL( DP ) :: const
+     TYPE( environ_density ) :: density
+
      TYPE( environ_density ) :: dscaled
      TYPE( environ_density ) :: d2scaled
+
+     ! Components needed for boundary of functions
+
+     REAL( DP ) :: alpha ! solvent-dependent scaling factor
+     REAL( DP ) :: softness ! sharpness of the interface
+     TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: soft_spheres
 
   END TYPE environ_boundary
 

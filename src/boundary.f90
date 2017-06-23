@@ -8,7 +8,8 @@ MODULE boundary
   PRIVATE
 
   PUBLIC :: create_environ_boundary, init_environ_boundary_first, &
-       & init_environ_boundary_second, update_environ_boundary, destroy_environ_boundary
+       & init_environ_boundary_second, set_soft_spheres, &
+       & update_environ_boundary, destroy_environ_boundary
 
 CONTAINS
 
@@ -25,68 +26,84 @@ CONTAINS
 
     label = 'boundary'
     CALL create_environ_density( boundary%scaled, label )
-    label = 'dboundary'
-    CALL create_environ_density( boundary%dscaled, label )
-    label = 'd2boundary'
-    CALL create_environ_density( boundary%d2scaled, label )
 
     boundary%need_electrons = .FALSE.
     NULLIFY( boundary%electrons )
     boundary%need_ions = .FALSE.
     NULLIFY( boundary%ions   )
 
-    IF ( ALLOCATED( boundary%soft_spheres ) ) &
-         & CALL errore(sub_name,'Trying to create an already allocated object',1)
+    ! Optional components
+
+    boundary%deriv = 0
+    label = 'gradboundary'
+    CALL create_environ_gradient( boundary%gradient, label )
+    label = 'laplboundary'
+    CALL create_environ_density( boundary%laplacian, label )
+    label = 'dsurface'
+    CALL create_environ_density( boundary%dsurface, label )
+
+    ! Components required for boundary of density
 
     label = 'density'
     CALL create_environ_density( boundary%density, label )
+    label = 'dboundary'
+    CALL create_environ_density( boundary%dscaled, label )
+    label = 'd2boundary'
+    CALL create_environ_density( boundary%d2scaled, label )
+
+    ! Components required for boundary of functions
+
+    IF ( ALLOCATED( boundary%soft_spheres ) ) &
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
 
     RETURN
 
   END SUBROUTINE create_environ_boundary
 
-  SUBROUTINE init_environ_boundary_first( mode, type, &
-       & rhomax, rhomin, tbeta, alpha, &
+  SUBROUTINE init_environ_boundary_first( need_gradient, need_laplacian, &
+       & need_hessian, mode, type, rhomax, rhomin, tbeta, const, alpha, &
        & softness, electrons, ions, boundary )
 
     IMPLICIT NONE
 
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
     INTEGER, INTENT(IN) :: type
-    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta
+    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, const
+    LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
     REAL( DP ), INTENT(IN) :: alpha
     REAL( DP ), INTENT(IN) :: softness
     TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
 
-    INTEGER :: i
-    REAL( DP ) :: radius
+    IF ( need_hessian ) THEN
+       boundary%deriv = 3
+    ELSE IF ( need_laplacian ) THEN
+       boundary%deriv = 2
+    ELSE IF ( need_gradient ) THEN
+       boundary%deriv = 1
+    ENDIF
 
     boundary%mode = mode
+
+    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' )
+    IF ( boundary%need_electrons ) boundary%electrons => electrons
+    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
+    IF ( boundary%need_ions ) boundary%ions => ions
+
     boundary%type = type
     boundary%rhomax = rhomax
     boundary%rhomin = rhomin
     boundary%fact = LOG( rhomax / rhomin )
     boundary%rhozero = ( rhomax + rhomin ) * 0.5_DP
     boundary%tbeta = tbeta
+    boundary%const = const
     boundary%deltarho = rhomax - rhomin
 
-    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' )
-    IF ( boundary%need_electrons ) boundary%electrons => electrons
-
-    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
-    IF ( boundary%need_ions ) boundary%ions => ions
     boundary%alpha = alpha
     boundary%softness = softness
-    IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) THEN
-       ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
-       DO i = 1, boundary%ions%number
-          radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
-          boundary%soft_spheres(i) = environ_functions(2,0,1,radius,1.0_DP,boundary%softness,&
-                  & boundary%ions%tau(:,i))
-       ENDDO
-    ENDIF
+    IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) &
+         & ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
 
     RETURN
 
@@ -100,18 +117,44 @@ CONTAINS
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
 
     CALL init_environ_density( cell, boundary%scaled )
-    CALL init_environ_density( cell, boundary%dscaled )
-    CALL init_environ_density( cell, boundary%d2scaled )
 
-    IF ( boundary%need_electrons ) CALL init_environ_density( cell, boundary%density )
+    IF ( boundary%mode .NE. 'ionic' ) THEN
+       CALL init_environ_density( cell, boundary%density )
+       CALL init_environ_density( cell, boundary%dscaled )
+       CALL init_environ_density( cell, boundary%d2scaled )
+    END IF
+    IF ( boundary%deriv .GE. 1 ) CALL init_environ_gradient( cell, boundary%gradient )
+    IF ( boundary%deriv .GE. 2 ) CALL init_environ_density( cell, boundary%laplacian )
+    IF ( boundary%deriv .GE. 3 ) CALL init_environ_density( cell, boundary%dsurface )
 
     RETURN
 
   END SUBROUTINE init_environ_boundary_second
 
+  SUBROUTINE set_soft_spheres( boundary )
+
+    IMPLICIT NONE
+
+    TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+
+    INTEGER :: i
+    REAL( DP ) :: radius
+
+    IF ( boundary % mode .NE. 'ionic' ) RETURN
+
+    DO i = 1, boundary%ions%number
+       radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
+       boundary%soft_spheres(i) = environ_functions(5,1,0,radius,boundary%softness,1.D0,&
+            & boundary%ions%tau(:,i))
+    ENDDO
+
+    RETURN
+
+  END SUBROUTINE set_soft_spheres
+
   SUBROUTINE update_environ_boundary( bound )
 
-    USE generate_boundary, ONLY : boundary_of_density
+    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions
 
     IMPLICIT NONE
 
@@ -119,6 +162,12 @@ CONTAINS
 
     LOGICAL :: update_anything
     CHARACTER( LEN=80 ) :: sub_name = 'update_environ_boundary'
+
+    INTEGER :: i
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: local
+
+    cell => bound%density%cell
 
     update_anything = .FALSE.
     IF ( bound % need_ions ) update_anything = bound % ions % update
@@ -184,7 +233,7 @@ CONTAINS
           !
           ! ... Only ions are needed, fully update the boundary
           !
-          ! COMPUTE ION-DEPENDENT CAVITY
+          CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
           !
           bound % update_status = 2 ! boundary has changed and is ready
           !
@@ -237,10 +286,14 @@ CONTAINS
     ENDIF
 
     CALL destroy_environ_density( boundary%scaled )
-    CALL destroy_environ_density( boundary%dscaled )
-    CALL destroy_environ_density( boundary%d2scaled )
-
-    IF ( boundary%need_electrons ) CALL destroy_environ_density( boundary%density )
+    IF ( boundary%mode .NE. 'ionic' ) THEN
+       CALL destroy_environ_density( boundary%density )
+       CALL destroy_environ_density( boundary%dscaled )
+       CALL destroy_environ_density( boundary%d2scaled )
+    ENDIF
+    IF ( boundary%deriv .GE. 1 ) CALL destroy_environ_gradient( boundary%gradient )
+    IF ( boundary%deriv .GE. 2 ) CALL destroy_environ_density( boundary%laplacian )
+    IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_density( boundary%dsurface )
 
     RETURN
 

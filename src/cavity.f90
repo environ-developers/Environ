@@ -45,69 +45,21 @@ CONTAINS
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
     !
-    ! ... Local variables
-    !
-    REAL( DP )              :: grho2, factor
-    REAL( DP ), ALLOCATABLE :: grho( :, : )
-    REAL( DP ), ALLOCATABLE :: hrho( :, :, : )
     CHARACTER( LEN=80 )     :: sub_name = 'calc_vcavity'
     !
-    ! ... Dummy variables
-    !
-    INTEGER                 :: ir, ipol, jpol
-    !
-    INTEGER, POINTER        :: ir_end, nnr
-    REAL( DP ), POINTER     :: delta
-    REAL( DP ), DIMENSION(:), POINTER :: theta, vcavity, rho
+    REAL( DP ), DIMENSION(:), POINTER :: dsurface, dscaled, vcavity
     !
     CALL start_clock ('calc_vcav')
     !
-    ir_end => boundary % theta % cell % ir_end
-    nnr => boundary % theta % cell % nnr
-    delta => boundary % deltatheta
-    theta => boundary % theta % of_r
+    dsurface => boundary % dsurface % of_r
+    dscaled => boundary % dscaled % of_r
     vcavity => potential % of_r
     !
-    IF ( boundary%mode .EQ. 'electrons' ) THEN
+    IF ( boundary%need_electrons ) THEN
        !
-       ! ... Computes gradient and hessian of the density
+       vcavity = env_surface_tension * dsurface * dscaled
        !
-       rho => boundary%electrons%density%of_r
-       ALLOCATE( grho ( 3, nnr ) )
-       ALLOCATE( hrho ( 3, 3, nnr ) )
-       CALL external_hessian ( rho, grho, hrho )
-       !
-       ! ... Computes the cavitation potential
-       !
-       DO ir = 1, ir_end
-          grho2 = SUM( grho(:, ir) * grho (:, ir) )
-          factor = 0.D0
-          DO ipol = 1, 3
-             DO jpol = 1, 3
-                IF ( jpol .EQ. ipol ) CYCLE
-                factor = factor + &
-                     grho(ipol, ir) * grho(jpol, ir) * hrho(ipol, jpol, ir) - &
-                     grho(ipol, ir) * grho(ipol, ir) * hrho(jpol, jpol, ir)
-             END DO
-          END DO
-          IF ( grho2 .GT. 1.D-12 ) &
-               vcavity( ir ) = ( theta( ir ) / grho2 / SQRT(grho2) ) * factor
-       END DO
-       !
-       DEALLOCATE( grho )
-       DEALLOCATE( hrho )
-       !
-    ELSE
-       !
-       ! ... Rigid cases to be implemented
-       !
-       CALL errore(sub_name,'Option not yet implemented',1)
-       !
-    ENDIF
-    !
-    ! ... Multiply the cavitation potential by the constant factor
-    !
-    vcavity = env_surface_tension / delta * vcavity
+    END IF
     !
     CALL stop_clock ('calc_vcav')
     !
@@ -131,48 +83,19 @@ CONTAINS
     !
     ! ... Local variables
     !
-    REAL( DP )              :: surface
-    TYPE( environ_density ) :: density
-    TYPE( environ_gradient ) :: gradient
+    REAL( DP ) :: surface
     !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_ecavity'
     !
-    REAL( DP ), POINTER :: delta
-    TYPE( environ_cell ), POINTER :: cell
-    REAL( DP ), DIMENSION(:), POINTER :: theta, rho
+    TYPE( environ_density ), POINTER :: modulus
     !
     CALL start_clock ('calc_ecav')
     !
-    cell => boundary % theta % cell
-    theta => boundary % theta % of_r
-    delta => boundary % deltatheta
-    !
-    ! ... Initializes the variables
-    !
-    surface  = 0.D0
+    modulus => boundary % gradient % modulus
     !
     ! ... Computes the molecular surface
     !
-    IF ( boundary%mode .EQ. 'electrons' ) THEN
-       !
-       rho => boundary % electrons % density % of_r
-       !
-       CALL init_environ_gradient( cell, gradient )
-       CALL external_gradient( rho, gradient%of_r )
-       CALL update_gradient_modulus( gradient )
-       CALL init_environ_density( cell, density )
-       density%of_r = SQRT(gradient%modulus%of_r) * theta
-       surface = integrate_environ_density( density ) / delta
-       CALL destroy_environ_density( density )
-       CALL destroy_environ_gradient( gradient )
-       !
-    ELSE
-       !
-       ! ... Rigid cases to be implemented
-       !
-       CALL errore(sub_name,'Option not yet implemented',1)
-       !
-    ENDIF
+    surface = integrate_environ_density( modulus )
     !
     ! ... Computes the cavitation energy
     !

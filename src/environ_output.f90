@@ -847,10 +847,6 @@ CONTAINS
        IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
-       IF ( boundary%need_theta ) THEN
-          WRITE( UNIT = environ_unit, FMT = 2008 ) boundary % deltatheta
-          IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%theta,passed_verbosity,passed_depth)
-       ENDIF
     END IF
 
     FLUSH( environ_unit )
@@ -1039,7 +1035,7 @@ CONTAINS
             END IF
             !
             IF ( env_surface_tension .GT. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9010 )      &
-                 env_surface_tension/1.D-3/bohr_radius_si**2*rydberg_si, env_surface_tension, solvent%deltatheta
+                 env_surface_tension/1.D-3/bohr_radius_si**2*rydberg_si, env_surface_tension
             !
             IF ( env_pressure .NE. 0.D0 ) WRITE( UNIT = program_unit, FMT = 9011 )&
                  env_pressure*rydberg_si/bohr_radius_si**3*1.D-9, env_pressure
@@ -1088,8 +1084,7 @@ CONTAINS
 9006  FORMAT( '     optical permittivity              = ',  F24.4,' ' )
 9007  FORMAT( '     epsilon calculation mode          = ',  A24,' ' )
 9010  FORMAT( '     surface tension in input (dyn/cm) = ',  F24.2,' ' &
-             /'     surface tension in internal units = ',  E24.4,' ' &
-             /'     delta parameter for surface depth = ',  E24.4,' ' )
+             /'     surface tension in internal units = ',  E24.4,' ' )
 9011  FORMAT( '     external pressure in input (GPa)  = ',  F24.2,' ' &
              /'     external pressure in inter. units = ',  E24.4,' ' )
 9012  FORMAT( '     correction slab geom. along axis  = ',  I24,' ' )

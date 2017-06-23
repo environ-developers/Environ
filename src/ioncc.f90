@@ -74,14 +74,14 @@ CONTAINS
   END SUBROUTINE create_environ_electrolyte
 
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
-             & tbeta, distance, spread, alpha, softness, electrons, ions, &
+             & tbeta, const, distance, spread, alpha, softness, electrons, ions, &
              & temperature, cbulk, cmax, radius, z, electrolyte )
 
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: ntyp, stype
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
-    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, distance, spread, alpha, softness, temperature
+    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, alpha, softness, temperature
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, cmax, radius, z
     TYPE( environ_electrons ), INTENT(IN) :: electrons
     TYPE( environ_ions ), INTENT(IN) :: ions
@@ -95,8 +95,9 @@ CONTAINS
 
     electrolyte%temperature = temperature
 
-    CALL init_environ_boundary_first( mode, stype, rhomax, rhomin, tbeta, .FALSE., &
-         & 0.D0, alpha, softness, electrons, ions, electrolyte%boundary )
+    CALL init_environ_boundary_first( .TRUE., .TRUE., .FALSE., mode, stype, &
+         & rhomax, rhomin, tbeta, const, alpha, softness, electrons, ions, &
+         & electrolyte%boundary )
 
     ALLOCATE( electrolyte%ioncctype(ntyp) )
 
