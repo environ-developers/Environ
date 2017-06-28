@@ -369,7 +369,7 @@ CONTAINS
       SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
       !
-      USE electrostatic_base, ONLY : dielectric_core, nfdpoint, icfd, ncfd
+      USE electrostatic_base, ONLY : boundary_core, nfdpoint, icfd, ncfd
       USE fd_gradient, ONLY : calc_fd_gradient
       !
       ! ... Calculates the dielectric constant as a function
@@ -427,69 +427,38 @@ CONTAINS
       !
       deriv => boundary % deriv
       !
-      IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) THEN
+      IF ( deriv .GE. 1 ) gradeps => boundary%gradient%of_r
+      IF ( deriv .GE. 2 ) lapleps => boundary%laplacian%of_r
+      IF ( deriv .GE. 3 ) dsurface => boundary%dsurface%of_r
+      !
+      SELECT CASE ( boundary_core )
          !
-         gradeps => boundary%gradient%of_r
-         IF ( deriv .GE. 2 ) lapleps => boundary%laplacian%of_r
+      CASE ( 'fft' )
          !
-         SELECT CASE ( dielectric_core )
-            !
-         CASE ( 'fft' )
-            !
-            CALL external_gradient( eps, gradeps )
-            !
-            IF ( deriv .EQ. 2 ) CALL external_laplacian( eps, lapleps )
-            !
-         CASE ( 'analytic', 'fd' )
-            !
-            CALL external_gradient( rho , gradeps )
-            IF ( deriv .EQ. 2 ) THEN
-               CALL external_laplacian( rho, lapleps )
-               lapleps(:) = lapleps(:) * deps(:) + &
-                    & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
-            ENDIF
-            IF ( dielectric_core .EQ. 'analytic' ) THEN
+         IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( eps, gradeps )
+         IF ( deriv .EQ. 2 ) CALL external_laplacian( eps, lapleps )
+         IF ( deriv .EQ. 3 ) CALL calc_dsurface( nnr, ir_end, eps, gradeps, lapleps, dsurface )
+         !
+      CASE ( 'analytic', 'fd' )
+         !
+         IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( rho , gradeps )
+         IF ( deriv .EQ. 2 ) CALL external_laplacian( rho, lapleps )
+         IF ( deriv .EQ. 3 ) CALL calc_dsurface( nnr, ir_end, rho, gradeps, lapleps, dsurface )
+         IF ( deriv .GT. 1 ) lapleps(:) = lapleps(:) * deps(:) + &
+              & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
+         IF ( deriv .GE. 1 ) THEN
+            IF ( boundary_core .EQ. 'analytic' ) THEN
                DO ipol = 1, 3
                   gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
                ENDDO
-            ELSE IF ( dielectric_core .EQ. 'fd' ) THEN
+            ELSE IF ( boundary_core .EQ. 'fd' ) THEN
                CALL calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, eps, gradeps )
             ENDIF
-            !
-         END SELECT
+         ENDIF
          !
-         CALL update_gradient_modulus( boundary%gradient )
-         !
-      ELSE IF ( deriv .EQ. 3 ) THEN
-         !
-         gradeps => boundary%gradient%of_r
-         lapleps => boundary%laplacian%of_r
-         dsurface => boundary%dsurface%of_r
-         !
-         SELECT CASE ( dielectric_core )
-            !
-         CASE ( 'fft' )
-            !
-            CALL calc_dsurface( nnr, ir_end, eps, gradeps, lapleps, dsurface )
-            !
-         CASE ( 'analytic', 'fd' )
-            !
-            CALL calc_dsurface( nnr, ir_end, rho, gradeps, lapleps, dsurface )
-            lapleps(:) = ( lapleps(:) ) * deps(:) + &
-                 & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
-            IF ( dielectric_core .EQ. 'analytic' ) THEN
-               DO ipol = 1, 3
-                  gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
-               ENDDO
-            ELSE IF ( dielectric_core .EQ. 'fd' ) THEN
-               CALL calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, eps, gradeps )
-            END IF
-            !
-         END SELECT
-         !
-         CALL update_gradient_modulus( boundary%gradient )
-         !
-      END IF
+      END SELECT
+      !
+      IF ( deriv .GE. 1 ) CALL update_gradient_modulus( boundary%gradient )
       !
       RETURN
       !

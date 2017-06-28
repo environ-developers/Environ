@@ -15,7 +15,6 @@ MODULE dielectric
   USE environ_output
   USE functions
   USE environ_base, ONLY : e2
-  USE electrostatic_base, ONLY : dielectric_core, nfdpoint, icfd, ncfd
   !
   IMPLICIT NONE
   !

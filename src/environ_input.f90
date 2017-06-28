@@ -362,9 +362,9 @@ MODULE environ_input
 !
 ! Numerical core's parameters
 !
-        CHARACTER( LEN = 80 ) :: dielectric_core = 'fd'
-        CHARACTER( LEN = 80 ) :: dielectric_core_allowed(3)
-        DATA dielectric_core_allowed / 'fft', 'fd', 'analytic' /
+        CHARACTER( LEN = 80 ) :: boundary_core = 'fd'
+        CHARACTER( LEN = 80 ) :: boundary_core_allowed(3)
+        DATA boundary_core_allowed / 'fft', 'fd', 'analytic' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
         ! fft       = fast Fourier transforms (default)
         ! fd        = finite differences in real space
@@ -400,7 +400,7 @@ MODULE environ_input
              mix_type, mix, ndiis,               &
              preconditioner,                     &
              screening_type, screening,          &
-             core, dielectric_core,              &
+             core, boundary_core,                &
              ifdtype, nfdpoint,                  &
              bcindex, bcplus, bcminus
 
@@ -456,7 +456,7 @@ MODULE environ_input
                                      auxiliary, step_type, step, mix_type,  &
                                      ndiis, mix, preconditioner,            &
                                      screening_type, screening, core,       &
-                                     dielectric_core, ifdtype, nfdpoint,    &
+                                     boundary_core, ifdtype, nfdpoint,      &
                                      bcindex, bcplus, bcminus )
        !
        ! ... Then set environ base
@@ -654,7 +654,7 @@ MODULE environ_input
        screening = 0.D0
        !
        core = 'fft'
-       dielectric_core = 'fd'
+       boundary_core = 'fd'
        ifdtype  = 1
        nfdpoint = 2
        !
@@ -986,11 +986,11 @@ MODULE environ_input
           & TRIM(core)//''' not allowed ', 1 )
        !
        allowed = .FALSE.
-       DO i = 1, SIZE( dielectric_core_allowed )
-          IF( TRIM(dielectric_core) == dielectric_core_allowed(i) ) allowed = .TRUE.
+       DO i = 1, SIZE( boundary_core_allowed )
+          IF( TRIM(boundary_core) == boundary_core_allowed(i) ) allowed = .TRUE.
        END DO
        IF( .NOT. allowed ) &
-          CALL errore( sub_name, ' dielectric_core '''// &
+          CALL errore( sub_name, ' boundary_core '''// &
           & TRIM(core)//''' not allowed ', 1 )
        !
        IF( ifdtype < 1 ) &
@@ -1025,7 +1025,7 @@ MODULE environ_input
           solver = 'lbfgs'
        END IF
        !
-       IF ( eps_mode .EQ. 'ionic' ) dielectric_core = 'analytic'
+       IF ( eps_mode .EQ. 'ionic' ) boundary_core = 'analytic'
        !
        IF ( env_periodicity == 0 ) THEN
           bcindex = 1

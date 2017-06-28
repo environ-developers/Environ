@@ -998,7 +998,7 @@ CONTAINS
                                      env_pressure, lelectrostatic
       USE electrostatic_base, ONLY : problem, solver, auxiliary,       &
                                      tolvelect, tolrhoaux,             &
-                                     core, dielectric_core,            &
+                                     core, boundary_core,              &
                                      ifdtype, nfdpoint
       !
       IMPLICIT NONE
@@ -1050,9 +1050,9 @@ CONTAINS
                !
                WRITE( UNIT = program_unit, FMT = 9102 )tolvelect, tolrhoaux
                !
-               WRITE( UNIT = program_unit, FMT = 9103 )core, dielectric_core
+               WRITE( UNIT = program_unit, FMT = 9103 )core, boundary_core
                !
-               IF ( core .EQ. 'fd' .OR. dielectric_core .EQ. 'fd' ) THEN
+               IF ( core .EQ. 'fd' .OR. boundary_core .EQ. 'fd' ) THEN
                   IF ( ifdtype .EQ. 1 ) THEN
                      WRITE( UNIT = program_unit, FMT = 9104 ) 'central diff.',nfdpoint
                   ELSE IF (ifdtype .EQ. 2 .OR. ifdtype .EQ. 3 ) THEN
@@ -1095,7 +1095,7 @@ CONTAINS
 9102  FORMAT( '     required accuracy on potential    = ',  F24.4,' ' &
              /'     required accuracy on aux. charge  = ',  F24.4,' ' )
 9103  FORMAT( '     type of core tool for poisson     = ',  A24,' ' &
-             /'     type of core tool for eps deriv   = ',  A24,' ' )
+             /'     type of core tool for s(r) deriv  = ',  A24,' ' )
 9104  FORMAT( '     type of numerical differentiator  = ',  A24,' ' &
              /'     number of points in num. diff.    = ',  I24,' ' )
 

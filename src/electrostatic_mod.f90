@@ -66,7 +66,7 @@ MODULE electrostatic_base
   ! Core used for numerical derivatives of dielectric
   !
   CHARACTER (LEN=80) ::            &
-       dielectric_core
+       boundary_core
   !
   ! Finite differences' parameters
   !
@@ -103,7 +103,7 @@ MODULE electrostatic_base
            solver_, auxiliary_, step_type_, step_,            &
            mix_type_, ndiis_, mix_,                           &
            preconditioner_, screening_type_, screening_,      &
-           core_, dielectric_core_, ifdtype_, nfdpoint_,      &
+           core_, boundary_core_, ifdtype_, nfdpoint_,        &
            bcindex_, bcplus_, bcminus_ )
       !
       USE fd_gradient, ONLY : init_fd_gradient
@@ -116,7 +116,7 @@ MODULE electrostatic_base
                              screening_, bcplus_(3), bcminus_(3)
       CHARACTER( LEN = * ), INTENT(IN) :: problem_, solver_, auxiliary_,  &
                              step_type_, mix_type_, preconditioner_,      &
-                             screening_type_, core_, dielectric_core_
+                             screening_type_, core_, boundary_core_
       !
       INTEGER :: i
       !
@@ -138,7 +138,7 @@ MODULE electrostatic_base
       screening = screening_
       !
       core = core_
-      dielectric_core = dielectric_core_
+      boundary_core = boundary_core_
       ifdtype = ifdtype_
       nfdpoint = nfdpoint_
       !
@@ -193,7 +193,7 @@ MODULE electrostatic_base
          !
       END SELECT
       !
-      IF ( core .EQ. 'fd' .OR. dielectric_core .EQ. 'fd' ) &
+      IF ( core .EQ. 'fd' .OR. boundary_core .EQ. 'fd' ) &
            & CALL init_fd_gradient(ifdtype, nfdpoint, ncfd, icfd )
       !
       need_auxiliary = auxiliary .NE. 'none'
