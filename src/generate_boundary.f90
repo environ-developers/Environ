@@ -387,10 +387,7 @@ CONTAINS
       REAL( DP ), DIMENSION(:), POINTER :: lapleps, dsurface
       REAL( DP ), DIMENSION(:,:), POINTER :: gradeps
       !
-      REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: hess
-      !
-      INTEGER :: ir, ipol, jpol
-      REAL( DP ) :: gmod
+      INTEGER :: ir, ipol
       !
       CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_density'
       !
@@ -443,12 +440,7 @@ CONTAINS
             !
             IF ( deriv .EQ. 2 ) CALL external_laplacian( eps, lapleps )
             !
-         CASE ( 'fd' )
-            !
-            CALL calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, eps, gradeps )
-            IF ( deriv .GE. 2 ) CALL external_laplacian( eps, lapleps )
-            !
-         CASE ( 'analytic' )
+         CASE ( 'analytic', 'fd' )
             !
             CALL external_gradient( rho , gradeps )
             IF ( deriv .EQ. 2 ) THEN
@@ -456,9 +448,13 @@ CONTAINS
                lapleps(:) = lapleps(:) * deps(:) + &
                     & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
             ENDIF
-            DO ipol = 1, 3
-               gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
-            ENDDO
+            IF ( dielectric_core .EQ. 'analytic' ) THEN
+               DO ipol = 1, 3
+                  gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
+               ENDDO
+            ELSE IF ( dielectric_core .EQ. 'fd' ) THEN
+               CALL calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, eps, gradeps )
+            ENDIF
             !
          END SELECT
          !
@@ -470,58 +466,28 @@ CONTAINS
          lapleps => boundary%laplacian%of_r
          dsurface => boundary%dsurface%of_r
          !
-         ALLOCATE( hess( 3, 3, nnr ) )
-         !
          SELECT CASE ( dielectric_core )
             !
-         CASE ( 'fft', 'fd' )
+         CASE ( 'fft' )
             !
-            CALL external_hessian( eps, gradeps, hess )
-            CALL update_gradient_modulus( boundary%gradient )
-            lapleps(:) = hess(1,1,:) + hess(2,2,:) + hess(3,3,:)
-            DO ir = 1, nnr
-               dsurface(ir) = 0.D0
-               gmod = SUM( gradeps(:,ir)**2 )
-               IF ( gmod .LT. 1.D-12 ) CYCLE
-               DO ipol = 1, 3
-                  DO jpol = 1,3
-                     IF ( ipol .EQ. jpol ) CYCLE
-                     dsurface(ir) = dsurface(ir) + &
-                          gradeps(ipol, ir) * gradeps(jpol, ir) * hess(ipol, jpol, ir) - &
-                          gradeps(ipol, ir) * gradeps(ipol, ir) * hess(jpol, jpol, ir)
-                  ENDDO
-               ENDDO
-               dsurface( ir ) = dsurface( ir ) / gmod / SQRT(gmod)
-            END DO
+            CALL calc_dsurface( nnr, ir_end, eps, gradeps, lapleps, dsurface )
             !
-         CASE ( 'analytic' )
+         CASE ( 'analytic', 'fd' )
             !
-            CALL external_hessian( rho, gradeps, hess )
-            DO ir = 1, nnr
-               dsurface(ir) = 0.D0
-               gmod = SUM( gradeps(:,ir)**2 )
-               IF ( gmod .LT. 1.D-12 ) CYCLE
-               DO ipol = 1, 3
-                  DO jpol = 1,3
-                     IF ( ipol .EQ. jpol ) CYCLE
-                     dsurface(ir) = dsurface(ir) + &
-                          gradeps(ipol, ir) * gradeps(jpol, ir) * hess(ipol, jpol, ir) - &
-                          gradeps(ipol, ir) * gradeps(ipol, ir) * hess(jpol, jpol, ir)
-                  ENDDO
-               ENDDO
-               dsurface( ir ) = dsurface( ir ) / gmod / SQRT(gmod)
-            END DO
-            lapleps(:) = ( hess(1,1,:) + hess(2,2,:) + hess(3,3,:) ) * deps(:) + &
+            CALL calc_dsurface( nnr, ir_end, rho, gradeps, lapleps, dsurface )
+            lapleps(:) = ( lapleps(:) ) * deps(:) + &
                  & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
-            DO ipol = 1, 3
-               gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
-            ENDDO
+            IF ( dielectric_core .EQ. 'analytic' ) THEN
+               DO ipol = 1, 3
+                  gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
+               ENDDO
+            ELSE IF ( dielectric_core .EQ. 'fd' ) THEN
+               CALL calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, eps, gradeps )
+            END IF
             !
          END SELECT
          !
          CALL update_gradient_modulus( boundary%gradient )
-         !
-         DEALLOCATE( hess )
          !
       END IF
       !
@@ -529,6 +495,44 @@ CONTAINS
       !
 !--------------------------------------------------------------------
     END SUBROUTINE boundary_of_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE calc_dsurface( n, iend, x, grad, lapl, dsurface )
+!--------------------------------------------------------------------
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: n, iend
+      REAL( DP ), DIMENSION( n ), INTENT(IN) :: x
+      REAL( DP ), DIMENSION( 3, n ), INTENT(OUT) :: grad
+      REAL( DP ), DIMENSION( n ), INTENT(OUT) :: lapl
+      REAL( DP ), DIMENSION( n ), INTENT(OUT) :: dsurface
+      !
+      INTEGER :: ipol, jpol, i
+      REAL( DP ) :: gmod
+      REAL( DP ), DIMENSION( 3, 3, n ) :: hess
+      !
+      CALL external_hessian( x, grad, hess )
+      lapl(:) = hess(1,1,:) + hess(2,2,:) + hess(3,3,:)
+      DO i = 1, iend
+         dsurface(i) = 0.D0
+         gmod = SUM( grad(:,i)**2 )
+         IF ( gmod .LT. 1.D-12 ) CYCLE
+         DO ipol = 1, 3
+            DO jpol = 1,3
+               IF ( ipol .EQ. jpol ) CYCLE
+               dsurface(i) = dsurface(i) + &
+                    grad(ipol, i) * grad(jpol, i) * hess(ipol, jpol, i) - &
+                    grad(ipol, i) * grad(ipol, i) * hess(jpol, jpol, i)
+            ENDDO
+         ENDDO
+         dsurface( i ) = dsurface( i ) / gmod / SQRT(gmod)
+      END DO
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE calc_dsurface
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
     SUBROUTINE boundary_of_functions( nsoft_spheres, soft_spheres, boundary )

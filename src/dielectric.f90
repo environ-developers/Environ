@@ -182,14 +182,8 @@ CONTAINS
      !
      IF ( dielectric % boundary % update_status .EQ. 2 ) THEN
         !
-        CALL epsilon_of_boundary( dielectric%boundary, dielectric%background, dielectric%epsilon, dielectric%depsilon )
+        CALL dielectric_of_boundary( dielectric )
         !
-        IF ( dielectric%need_gradient ) CALL generate_epsilon_gradient( dielectric%epsilon, dielectric%gradient, &
-             &dielectric%background, dielectric%boundary )
-        IF ( dielectric%need_factsqrt ) CALL generate_epsilon_factsqrt( dielectric%epsilon, dielectric%factsqrt, &
-             & dielectric%background, dielectric%boundary )
-        IF ( dielectric%need_gradlog  ) CALL generate_epsilon_gradlog( dielectric%epsilon, dielectric%gradlog, &
-             & dielectric%background, dielectric%boundary )
         dielectric % update = .FALSE.
         !
      ENDIF
@@ -202,27 +196,73 @@ CONTAINS
   !
   END SUBROUTINE update_environ_dielectric
 
-  SUBROUTINE epsilon_of_boundary( boundary, background, epsilon, depsilon )
+  SUBROUTINE dielectric_of_boundary( dielectric )
+
+    USE fd_gradient, ONLY : calc_fd_gradient
 
     IMPLICIT NONE
 
-    TYPE(environ_boundary), INTENT(IN) :: boundary
-    TYPE(environ_density), INTENT(IN) :: background
-    TYPE(environ_density), INTENT(INOUT) :: epsilon, depsilon
+    TYPE(environ_dielectric), TARGET, INTENT(INOUT) :: dielectric
+
+    INTEGER :: ipol
+    INTEGER, POINTER :: nnr
+    REAL( DP ), DIMENSION( : ), POINTER :: factsqrteps, eps, deps, const
+    REAL( DP ), DIMENSION( : ), POINTER :: scaled, gradscaledmod, laplscaled
+    REAL( DP ), DIMENSION( :, : ), POINTER :: gradeps, gradlogeps, gradscaled
+
+    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: dlogeps
+    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: d2eps
 
     CHARACTER ( LEN=80 ) :: sub_name = 'epsilon_of_boundary'
 
-    SELECT CASE ( boundary%type )
+    ! Aliases and sanity checks
 
-    CASE ( 0 )
+    nnr => dielectric%epsilon%cell%nnr
+    eps => dielectric % epsilon % of_r
+    deps => dielectric % depsilon % of_r
+    const => dielectric % background % of_r
+    scaled => dielectric % boundary % scaled % of_r
+    IF ( dielectric % need_gradient ) THEN
+       IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
+            & CALL errore(sub_name,'Missing required gradient of boundary',1)
+       gradscaled => dielectric % boundary % gradient % of_r
+       gradeps => dielectric % gradient % of_r
+    ENDIF
+    IF ( dielectric % need_gradlog ) THEN
+       IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
+            & CALL errore(sub_name,'Missing required gradient of boundary',1)
+       gradscaled => dielectric % boundary % gradient % of_r
+       gradlogeps => dielectric % gradlog % of_r
+       ALLOCATE( dlogeps( nnr ) )
+    ENDIF
+    IF ( dielectric % need_factsqrt ) THEN
+       IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
+            & CALL errore(sub_name,'Missing required gradient of boundary',1)
+       gradscaledmod => dielectric % boundary % gradient % modulus % of_r
+       IF ( .NOT. ALLOCATED( dielectric % boundary % laplacian % of_r ) ) &
+            & CALL errore(sub_name,'Missing required laplacian of boundary',1)
+       laplscaled => dielectric % boundary % laplacian % of_r
+       factsqrteps => dielectric % factsqrt % of_r
+       ALLOCATE( d2eps( nnr ) )
+    ENDIF
 
-       epsilon % of_r = 1.D0 + ( background % of_r - 1.D0 ) * boundary % scaled % of_r
-       depsilon % of_r = ( background % of_r - 1.D0 ) * boundary % dscaled % of_r
+    ! Compute epsilon(r) and its derivative wrt boundary
+
+    SELECT CASE ( dielectric%boundary%type )
+
+    CASE ( 0, 2 )
+
+       eps = 1.D0 + ( const - 1.D0 ) * ( 1.D0 - scaled )
+       deps = ( 1.D0 - const )
+       IF ( dielectric % need_gradlog ) dlogeps = deps / eps
+       IF ( dielectric % need_factsqrt ) d2eps = 0.D0
 
     CASE ( 1 )
 
-       epsilon % of_r = EXP( LOG( background % of_r ) * ( 1.D0 - boundary % scaled % of_r ) )
-       depsilon % of_r = - epsilon % of_r * LOG( background % of_r ) * boundary % dscaled % of_r
+       eps = EXP( LOG( const ) * ( 1.D0 - scaled ) )
+       deps = - eps * LOG( const )
+       IF ( dielectric % need_gradlog ) dlogeps = - LOG( const )
+       IF ( dielectric % need_factsqrt ) d2eps = eps * LOG( const )**2
 
     CASE DEFAULT
 
@@ -230,9 +270,30 @@ CONTAINS
 
     END SELECT
 
+    ! If needed, compute derived quantites
+
+    IF ( dielectric % need_gradient ) THEN
+       DO ipol = 1, 3
+          gradeps( ipol, : ) = deps( : ) * gradscaled( ipol, : )
+       ENDDO
+       CALL update_gradient_modulus( dielectric%gradient )
+    END IF
+    IF ( dielectric % need_gradlog ) THEN
+       DO ipol = 1, 3
+          gradlogeps( ipol, : ) = dlogeps( : ) * gradscaled( ipol, : )
+       ENDDO
+       CALL update_gradient_modulus( dielectric%gradlog )
+       DEALLOCATE( dlogeps )
+    ENDIF
+    IF ( dielectric % need_factsqrt ) THEN
+       factsqrteps(:) = 0.5D0 * ( ( d2eps( : ) - deps(:)**2 * 0.5D0 / eps(:) ) * gradscaledmod(:) + &
+            & deps(:) * laplscaled(:) )
+       DEALLOCATE( d2eps )
+    ENDIF
+
     RETURN
 
-  END SUBROUTINE epsilon_of_boundary
+  END SUBROUTINE dielectric_of_boundary
 
   SUBROUTINE destroy_environ_dielectric(lflag,dielectric)
 
@@ -271,200 +332,4 @@ CONTAINS
 
   END SUBROUTINE destroy_environ_dielectric
 
-!--------------------------------------------------------------------
-  SUBROUTINE generate_epsilon_gradient( epsilon, gradient, &
-       & background, boundary )
-!--------------------------------------------------------------------
-
-    USE fd_gradient, ONLY: calc_fd_gradient
-    USE functions, ONLY: gradient_of_functions
-
-    IMPLICIT NONE
-
-    TYPE( environ_density ), INTENT(IN) :: epsilon
-    TYPE( environ_gradient ), INTENT(INOUT) :: gradient
-    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
-    TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
-
-    INTEGER, POINTER :: nnr
-    TYPE( environ_cell ), POINTER :: cell
-
-    INTEGER :: i
-    CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_gradient'
-
-    nnr => epsilon%cell%nnr
-    cell => epsilon%cell
-
-    SELECT CASE ( dielectric_core )
-       !
-    CASE ( 'fft' )
-       !
-       CALL external_gradient(epsilon%of_r, gradient%of_r)
-       !
-    CASE ( 'fd' )
-       !
-       CALL calc_fd_gradient(nfdpoint, icfd, ncfd, nnr, epsilon%of_r, gradient%of_r)
-       !
-    CASE ( 'analytic' )
-       !
-       IF ( boundary%mode .EQ. 'ions' ) THEN
-          CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradient)
-       ELSE
-          CALL external_gradient(boundary%density%of_r,gradient%of_r)
-          DO i = 1, 3
-             gradient%of_r(i,:) = boundary%dscaled%of_r(:) * gradient%of_r(i,:)
-          ENDDO
-       ENDIF
-       !
-    CASE DEFAULT
-       !
-    END SELECT
-
-    RETURN
-!--------------------------------------------------------------------
-  END SUBROUTINE generate_epsilon_gradient
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE generate_epsilon_gradlog( epsilon, gradlog, &
-       & background, boundary )
-!--------------------------------------------------------------------
-
-    USE fd_gradient, ONLY : calc_fd_gradient
-    USE functions, ONLY: gradient_of_functions
-
-    IMPLICIT NONE
-
-    TYPE( environ_density ), INTENT(IN) :: epsilon
-    TYPE( environ_gradient ), INTENT(INOUT) :: gradlog
-    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
-    TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
-
-    INTEGER, POINTER :: nnr
-    TYPE( environ_cell ), POINTER :: cell
-
-    INTEGER :: i
-    TYPE( environ_density ) :: log_epsilon
-    CHARACTER( LEN=80 ) :: label
-    CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_gradlog'
-
-    nnr => epsilon%cell%nnr
-    cell => epsilon%cell
-
-    SELECT CASE ( dielectric_core )
-       !
-    CASE ( 'fft' )
-       !
-       CALL init_environ_density( cell, log_epsilon )
-       log_epsilon%of_r = LOG( epsilon%of_r )
-       !
-       CALL external_gradient(log_epsilon%of_r, gradlog%of_r)
-       !
-       CALL destroy_environ_density( log_epsilon )
-       !
-    CASE ( 'fd' )
-       !
-       label='logeps'
-       CALL create_environ_density( log_epsilon, label )
-       CALL init_environ_density( cell, log_epsilon )
-       log_epsilon%of_r = LOG( epsilon%of_r )
-       !
-       CALL calc_fd_gradient(nfdpoint, icfd, ncfd, nnr, log_epsilon%of_r, gradlog%of_r)
-       CALL update_gradient_modulus(gradlog)
-       !
-       CALL destroy_environ_density( log_epsilon )
-       !
-    CASE ( 'analytic' )
-       !
-       IF ( boundary%mode .EQ. 'ions' ) THEN
-          CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradlog)
-       ELSE
-          CALL external_gradient(boundary%density%of_r,gradlog%of_r)
-          DO i = 1, 3
-             gradlog%of_r(i,:) = boundary%dscaled%of_r(:) * gradlog%of_r(i,:)
-          ENDDO
-       ENDIF
-       !
-       DO i = 1, 3
-          gradlog%of_r(i,:) = gradlog%of_r(i,:) / epsilon%of_r(:)
-       ENDDO
-       !
-    CASE DEFAULT
-       !
-    END SELECT
-
-    RETURN
-!--------------------------------------------------------------------
-  END SUBROUTINE generate_epsilon_gradlog
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE generate_epsilon_factsqrt( epsilon, factsqrt, &
-       & background, boundary )
-!--------------------------------------------------------------------
-
-    USE functions, ONLY: gradient_of_functions, laplacian_of_functions
-
-    IMPLICIT NONE
-
-    TYPE( environ_density ), INTENT(IN) :: epsilon
-    TYPE( environ_density ), INTENT(INOUT) :: factsqrt
-    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: background
-    TYPE( environ_boundary ), OPTIONAL, INTENT(IN) :: boundary
-
-    INTEGER, POINTER :: nnr
-    TYPE( environ_cell ), POINTER :: cell
-    TYPE( environ_density ) :: laplacian
-    TYPE( environ_gradient ) :: gradient
-    CHARACTER( LEN=80 ) :: sub_name = 'generate_epsilon_factsqrt'
-
-    nnr => epsilon%cell%nnr
-    cell => epsilon%cell
-
-    SELECT CASE ( dielectric_core )
-       !
-    CASE ( 'fft' )
-       !
-       CALL errore(sub_name,'Option not yet implemented',1)
-       !
-    CASE ( 'fd' )
-       !
-       CALL errore(sub_name,'Option not yet implemented',1)
-       !
-    CASE ( 'analytic' )
-       !
-       CALL init_environ_density( cell, laplacian )
-       CALL init_environ_gradient( cell, gradient )
-       !
-       IF ( boundary%mode .EQ. 'ions' ) THEN
-          !
-          CALL gradient_of_functions(boundary%ions%number, boundary%soft_spheres, gradient)
-          CALL laplacian_of_functions(boundary%ions%number, boundary%soft_spheres, laplacian)
-          CALL update_gradient_modulus(gradient)
-          !
-          factsqrt%of_r(:) = laplacian%of_r(:) - 0.5D0 * gradient%modulus%of_r(:) / epsilon%of_r(:)
-          !
-       ELSE
-          !
-          CALL external_gradient(boundary%density%of_r,gradient%of_r)
-          CALL external_laplacian(boundary%density%of_r,laplacian%of_r)
-          CALL update_gradient_modulus(gradient)
-          !
-          factsqrt%of_r(:) = boundary%dscaled%of_r(:)*laplacian%of_r(:) + &
-               & gradient%modulus%of_r(:) * &
-               & (boundary%d2scaled%of_r(:)-0.5D0*boundary%dscaled%of_r(:)**2/epsilon%of_r(:))
-          !
-       ENDIF
-       factsqrt%of_r = factsqrt%of_r * 0.5D0 / e2 / fpi
-       !
-       CALL destroy_environ_gradient(gradient)
-       CALL destroy_environ_density(laplacian)
-       !
-    CASE DEFAULT
-       !
-    END SELECT
-
-    RETURN
-!--------------------------------------------------------------------
-  END SUBROUTINE generate_epsilon_factsqrt
-!--------------------------------------------------------------------
-!
 END MODULE dielectric

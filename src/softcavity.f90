@@ -33,7 +33,7 @@ CONTAINS
           CALL init_environ_gradient( cell, gradient )
           CALL external_gradient( velectrostatic%of_r, gradient%of_r )
           CALL update_gradient_modulus( gradient )
-          vsoftcavity % of_r = - gradient % modulus % of_r * dielectric % depsilon % of_r
+          vsoftcavity % of_r = - gradient % modulus % of_r * dielectric % depsilon % of_r * dielectric % boundary % dscaled % of_r
           vsoftcavity % of_r = vsoftcavity % of_r * 0.5D0 / fpi / e2
           CALL destroy_environ_gradient( gradient )
        END IF

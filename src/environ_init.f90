@@ -126,37 +126,37 @@ CONTAINS
        env_surface_tension = 0.D0
        env_pressure = 0.D0
        env_ioncc_ntyp = 0
-       stype = 1
+       stype = 2
        rhomax = 0.005
        rhomin = 0.0001
     CASE ('water')
        ! water, experimental and SCCS tuned parameters
        env_static_permittivity = 78.3D0
-       env_optical_permittivity = 1.776D0
+       env_optical_permittivity = 1.D0 ! 1.776D0
        env_surface_tension = 50.D0*1.D-3*bohr_radius_si**2/rydberg_si
        env_pressure = -0.35D0*1.D9/rydberg_si*bohr_radius_si**3
        env_ioncc_ntyp = 0
-       stype = 1
+       stype = 2
        rhomax = 0.005
        rhomin = 0.0001
     CASE ('water-cation')
        ! water, experimental and SCCS tuned parameters for cations
        env_static_permittivity = 78.3D0
-       env_optical_permittivity = 1.776D0
+       env_optical_permittivity = 1.D0 ! 1.776D0
        env_surface_tension = 5.D0*1.D-3*bohr_radius_si**2/rydberg_si
        env_pressure = 0.125D0*1.D9/rydberg_si*bohr_radius_si**3
        env_ioncc_ntyp = 0
-       stype = 1
+       stype = 2
        rhomax = 0.0035
        rhomin = 0.0002
     CASE ('water-anion')
        ! water, experimental and SCCS tuned parameters for anions
        env_static_permittivity = 78.3D0
-       env_optical_permittivity = 1.776D0
+       env_optical_permittivity = 1.D0 ! 1.776D0
        env_surface_tension = 0.D0*1.D-3*bohr_radius_si**2/rydberg_si
        env_pressure = 0.450D0*1.D9/rydberg_si*bohr_radius_si**3
        env_ioncc_ntyp = 0
-       stype = 1
+       stype = 2
        rhomax = 0.0155
        rhomin = 0.0024
     CASE ('input')
