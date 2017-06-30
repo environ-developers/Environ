@@ -686,7 +686,7 @@ CONTAINS
 
     ir_end => hessian % cell % ir_end
     hessian%laplacian(1:ir_end) = hessian%of_r(1,1,1:ir_end)**2 + &
-         & hessian%of_r(2,2,1:ir_end)**2 + hessian%of_r(3,3,1:ir_end)**2 
+         & hessian%of_r(2,2,1:ir_end)**2 + hessian%of_r(3,3,1:ir_end)**2
 
     RETURN
 
