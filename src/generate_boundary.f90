@@ -437,13 +437,13 @@ CONTAINS
          !
          IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( eps, gradeps )
          IF ( deriv .EQ. 2 ) CALL external_laplacian( eps, lapleps )
-         IF ( deriv .EQ. 3 ) CALL calc_dsurface( nnr, ir_end, eps, gradeps, lapleps, dsurface )
+         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, eps, gradeps, lapleps, dsurface )
          !
       CASE ( 'analytic', 'fd' )
          !
          IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( rho , gradeps )
          IF ( deriv .EQ. 2 ) CALL external_laplacian( rho, lapleps )
-         IF ( deriv .EQ. 3 ) CALL calc_dsurface( nnr, ir_end, rho, gradeps, lapleps, dsurface )
+         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, rho, gradeps, lapleps, dsurface )
          IF ( deriv .GT. 1 ) lapleps(:) = lapleps(:) * deps(:) + &
               & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
          IF ( deriv .GE. 1 ) THEN
@@ -466,7 +466,7 @@ CONTAINS
     END SUBROUTINE boundary_of_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-    SUBROUTINE calc_dsurface( n, iend, x, grad, lapl, dsurface )
+    SUBROUTINE external_dsurface( n, iend, x, grad, lapl, dsurface )
 !--------------------------------------------------------------------
       !
       IMPLICIT NONE
@@ -477,12 +477,31 @@ CONTAINS
       REAL( DP ), DIMENSION( n ), INTENT(OUT) :: lapl
       REAL( DP ), DIMENSION( n ), INTENT(OUT) :: dsurface
       !
-      INTEGER :: ipol, jpol, i
-      REAL( DP ) :: gmod
       REAL( DP ), DIMENSION( 3, 3, n ) :: hess
       !
       CALL external_hessian( x, grad, hess )
       lapl(:) = hess(1,1,:) + hess(2,2,:) + hess(3,3,:)
+      CALL calc_dsurface( n, iend, grad, hess, dsurface )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE external_dsurface
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE calc_dsurface( n, iend, grad, hess, dsurface )
+!--------------------------------------------------------------------
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: n, iend
+      REAL( DP ), DIMENSION( 3, n ), INTENT(IN) :: grad
+      REAL( DP ), DIMENSION( 3, 3, n ), INTENT(IN) :: hess
+      REAL( DP ), DIMENSION( n ), INTENT(OUT) :: dsurface
+      !
+      INTEGER :: ipol, jpol, i
+      REAL( DP ) :: gmod
+      !
       DO i = 1, iend
          dsurface(i) = 0.D0
          gmod = SUM( grad(:,i)**2 )
@@ -511,7 +530,9 @@ CONTAINS
       ! ... of the charge density, and the derivative of
       ! ... the dielectric constant wrt the charge density.
       !
-      USE functions, ONLY: density_of_functions
+      USE electrostatic_base, ONLY : boundary_core
+      USE functions, ONLY: density_of_functions, gradient_of_functions, &
+                         & laplacian_of_functions, hessian_of_functions
       !
       IMPLICIT NONE
       !
@@ -519,32 +540,272 @@ CONTAINS
       TYPE( environ_functions ), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
       TYPE( environ_boundary ), TARGET, INTENT(INOUT) :: boundary
       !
+      INTEGER, POINTER :: nnr, ir_end, deriv
       TYPE( environ_cell ), POINTER :: cell
       !
       INTEGER :: i
       CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_functions'
-      TYPE( environ_density ) :: local
+      !
+      TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
+      TYPE( environ_gradient ), DIMENSION(:), ALLOCATABLE :: gradlocal
+      TYPE( environ_density), DIMENSION(:), ALLOCATABLE :: lapllocal
+      TYPE( environ_hessian), DIMENSION(:), ALLOCATABLE :: hesslocal
+      !
+      ! Aliases and allocations
       !
       cell => boundary % scaled % cell
+      nnr => cell % nnr
+      ir_end => cell % ir_end
+      !
+      ALLOCATE( local( nsoft_spheres ) )
+      !
+      ! Compute soft spheres and generate boundary
       !
       boundary % scaled % of_r = 1.D0
       !
-      CALL init_environ_density(cell,local)
       DO i = 1, nsoft_spheres
-         CALL density_of_functions( 1, soft_spheres(i), local)
-         boundary % scaled % of_r = boundary % scaled % of_r * local % of_r
-      END DO
-      CALL destroy_environ_density(local)
+         !
+         CALL init_environ_density( cell, local(i) )
+         !
+         CALL density_of_functions( 1, soft_spheres(i), local(i) )
+         !
+         boundary % scaled % of_r = boundary % scaled % of_r * local(i) % of_r
+         !
+      ENDDO
       !
       boundary % scaled % of_r = 1.D0 - boundary % scaled % of_r
       !
-      ! HERE NEED TO COMPUTE THE GRADIENT OF EPSILON
+      CALL print_environ_density( boundary%scaled, 3 )
       !
-      ! HERE NEED TO COMPUTE THE LAPLACIAN OF EPSILON
+      ! Generate boundary derivatives, if needed
+      !
+      deriv => boundary % deriv
+      !
+      SELECT CASE ( boundary_core )
+         !
+      CASE ( 'fft' )
+         !
+         IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( boundary%scaled%of_r, &
+              & boundary%gradient%of_r )
+         IF ( deriv .EQ. 2 ) CALL external_laplacian( boundary%scaled%of_r, boundary%laplacian%of_r )
+         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, boundary%scaled%of_r, &
+              & boundary%gradient%of_r, boundary%laplacian%of_r, boundary%dsurface%of_r )
+         !
+      CASE ( 'analytic', 'highmem' )
+         !
+         IF ( deriv .GE. 1 ) ALLOCATE( gradlocal( nsoft_spheres ) )
+         IF ( deriv .EQ. 2 ) ALLOCATE( lapllocal( nsoft_spheres ) )
+         IF ( deriv .EQ. 3 ) ALLOCATE( hesslocal( nsoft_spheres ) )
+         !
+         ! Compute and temporarily store soft spheres derivatives
+         !
+         DO i = 1, nsoft_spheres
+            !
+            IF ( deriv .GE. 1 ) CALL init_environ_gradient( cell, gradlocal(i) )
+            IF ( deriv .EQ. 2 ) CALL init_environ_density( cell, lapllocal(i) )
+            IF ( deriv .EQ. 3 ) CALL init_environ_hessian( cell, hesslocal(i) )
+            !
+            IF ( deriv .GE. 1 ) CALL gradient_of_functions( 1, soft_spheres(i), gradlocal(i) )
+            IF ( deriv .EQ. 2 ) CALL laplacian_of_functions( 1, soft_spheres(i), lapllocal(i) )
+            IF ( deriv .EQ. 3 ) CALL hessian_of_functions( 1, soft_spheres(i), hesslocal(i) )
+            !
+         END DO
+         !
+         IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) &
+              & CALL calc_gradient_of_boundary_highmem(nsoft_spheres,local, &
+              & gradlocal,boundary%gradient )
+         IF ( deriv .EQ. 2 ) CALL calc_laplacian_of_boundary_highmem(nsoft_spheres, &
+              & local,gradlocal,lapllocal,boundary%laplacian )
+         IF ( deriv .EQ. 3 ) CALL calc_dsurface_of_boundary_highmem(nsoft_spheres, &
+              & local,gradlocal,hesslocal,boundary%gradient,boundary%laplacian, &
+              & boundary%dsurface )
+         !
+         ! Destroy and deallocate
+         !
+         DO i = 1, nsoft_spheres
+            IF ( deriv .GE. 1 ) CALL destroy_environ_gradient( gradlocal(i) )
+            IF ( deriv .EQ. 2 ) CALL destroy_environ_density( lapllocal(i) )
+            IF ( deriv .EQ. 3 ) CALL destroy_environ_hessian( hesslocal(i) )
+         ENDDO
+         IF ( deriv .GE. 1 ) DEALLOCATE( gradlocal )
+         IF ( deriv .EQ. 2 ) DEALLOCATE( lapllocal )
+         IF ( deriv .EQ. 3 ) DEALLOCATE( hesslocal )
+         !
+      END SELECT
+      !
+      IF ( deriv .GE. 1 ) CALL update_gradient_modulus( boundary%gradient )
+      !
+      DO i = 1, nsoft_spheres
+         CALL destroy_environ_density( local(i) )
+      ENDDO
+      DEALLOCATE( local )
+      !
+      CALL print_environ_gradient( boundary%gradient, 3 )
+      !
+      STOP
       !
       RETURN
       !
 !--------------------------------------------------------------------
     END SUBROUTINE boundary_of_functions
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE calc_partial_of_boundary_highmem(n,i,local,gradlocal,partial)
+!--------------------------------------------------------------------
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: n, i
+      TYPE( environ_density ), DIMENSION(n), INTENT(IN) :: local
+      TYPE( environ_gradient ), DIMENSION(n), INTENT(IN) :: gradlocal
+      TYPE( environ_gradient ), INTENT(INOUT) :: partial
+      !
+      INTEGER :: j, ipol
+      CHARACTER( LEN=80 ) :: sub_name = 'calc_partial_of_boundary_highmem'
+      !
+      IF ( i .GT. n ) CALL errore(sub_name,'Index out of bound',1)
+      !
+      DO ipol = 1, 3
+         partial % of_r( ipol, : ) = gradlocal(i) % of_r( ipol, : )
+         DO j = 1, n
+            IF ( j .EQ. i ) CYCLE
+            partial % of_r( ipol, : ) = partial % of_r( ipol, : ) * local(j) % of_r( : )
+         ENDDO
+      ENDDO
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE calc_partial_of_boundary_highmem
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE calc_gradient_of_boundary_highmem(n,local,gradlocal,gradient)
+!--------------------------------------------------------------------
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: n
+      TYPE( environ_density ), DIMENSION(n), INTENT(IN) :: local
+      TYPE( environ_gradient ), DIMENSION(n), INTENT(IN) :: gradlocal
+      TYPE( environ_gradient ), INTENT(INOUT) :: gradient
+      !
+      INTEGER :: i, j, ipol
+      TYPE( environ_cell ), POINTER :: cell
+      TYPE( environ_gradient ) :: partial
+      !
+      cell => gradient % cell
+      !
+      CALL init_environ_gradient( cell, partial )
+      !
+      gradient % of_r = 0.D0
+      DO i = 1, n
+         CALL calc_partial_of_boundary_highmem(n,i,local,gradlocal,partial)
+         gradient % of_r  = gradient % of_r + partial % of_r
+      ENDDO
+      !
+      CALL destroy_environ_gradient( partial )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE calc_gradient_of_boundary_highmem
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE calc_laplacian_of_boundary_highmem(n,local,gradlocal,lapllocal,laplacian)
+!--------------------------------------------------------------------
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: n
+      TYPE( environ_density ), DIMENSION(n), INTENT(IN) :: local
+      TYPE( environ_gradient ), DIMENSION(n), INTENT(IN) :: gradlocal
+      TYPE( environ_density ), DIMENSION(n), INTENT(IN) :: lapllocal
+      TYPE( environ_density ), INTENT(INOUT) :: laplacian
+      !
+      INTEGER :: i, j, k, ipol
+      TYPE( environ_cell), POINTER :: cell
+      TYPE( environ_density ) :: tmp
+      !
+      cell => laplacian % cell
+      CALL init_environ_density( cell, tmp )
+      !
+      laplacian % of_r = 0.D0
+      DO i = 1, n
+         DO j = 1, n
+            IF ( j .EQ. i ) THEN
+               tmp % of_r = lapllocal(i) % of_r
+            ELSE
+               CALL scalar_product_environ_gradient( gradlocal(i), gradlocal(j), tmp )
+            ENDIF
+            DO k = 1, n
+               IF ( k .EQ. j .OR. k .EQ. i ) CYCLE
+               tmp % of_r = tmp % of_r * local(k) % of_r
+            ENDDO
+            laplacian % of_r = laplacian % of_r + tmp % of_r
+         ENDDO
+      ENDDO
+      !
+      CALL destroy_environ_density( tmp )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE calc_laplacian_of_boundary_highmem
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE calc_dsurface_of_boundary_highmem(n,local,gradlocal,hesslocal,gradient,laplacian,dsurface)
+!--------------------------------------------------------------------
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: n
+      TYPE( environ_density ), DIMENSION(n), INTENT(IN) :: local
+      TYPE( environ_gradient ), DIMENSION(n), INTENT(IN) :: gradlocal
+      TYPE( environ_hessian ), DIMENSION(n), INTENT(IN) :: hesslocal
+      TYPE( environ_gradient ), INTENT(INOUT) :: gradient
+      TYPE( environ_density ), INTENT(INOUT) :: laplacian, dsurface
+      !
+      INTEGER :: i, j, k, ipol, jpol
+      TYPE( environ_cell), POINTER :: cell
+      TYPE( environ_density ) :: dens
+      TYPE( environ_gradient ) :: partial
+      TYPE( environ_hessian ) :: hess
+      !
+      cell => laplacian % cell
+      CALL init_environ_density( cell, dens )
+      CALL init_environ_gradient( cell, partial )
+      CALL init_environ_hessian( cell, hess )
+      !
+      gradient % of_r = 0.D0
+      DO i = 1, n
+         CALL calc_partial_of_boundary_highmem(n,i,local,gradlocal,partial)
+         gradient % of_r  = gradient % of_r + partial % of_r
+         DO j = 1, n
+            DO ipol = 1, 3
+               DO jpol = 1, 3
+                  IF ( j .EQ. i ) THEN
+                     dens % of_r( : ) = hesslocal(i) % of_r( ipol, jpol, : )
+                  ELSE
+                     dens % of_r( : ) = gradlocal(i) % of_r( ipol, : ) * gradlocal(j) % of_r( jpol, : )
+                  ENDIF
+                  DO k = 1, n
+                     IF ( k .EQ. j .OR. k .EQ. i ) CYCLE
+                     dens % of_r = dens % of_r * local(k) % of_r
+                  ENDDO
+                  hess % of_r( ipol, jpol, : ) = hess % of_r( ipol, jpol, : ) + dens % of_r( : )
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
+      !
+      ! Final operations
+      !
+      laplacian % of_r = hess % of_r( 1, 1, : ) + hess % of_r( 2, 2, : ) + hess % of_r( 3, 3, : )
+      CALL calc_dsurface( cell%nnr, cell%ir_end, gradient%of_r, hess%of_r, dsurface%of_r )
+      !
+      CALL destroy_environ_density( dens )
+      CALL destroy_environ_gradient( partial )
+      CALL destroy_environ_hessian( hess )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE calc_dsurface_of_boundary_highmem
 !--------------------------------------------------------------------
 END MODULE generate_boundary
