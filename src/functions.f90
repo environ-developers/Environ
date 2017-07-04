@@ -208,7 +208,7 @@ CONTAINS
        CASE ( 1 ) ! Gaussian
           CALL errore(sub_name,'Options not yet implemented',1)
        CASE ( 2 ) ! Erfc
-          CALL generate_laplerfc(nnr, dim, axis, local_charge, width, spread, pos, laplacian%of_r)
+          CALL generate_laplerfc(nnr, dim, axis, charge, width, spread, pos, laplacian%of_r)
        CASE ( 3 ) ! Exponential
           CALL errore(sub_name,'Options not yet implemented',1)
        CASE ( 4 ) ! Erfc
@@ -260,7 +260,7 @@ CONTAINS
        CASE ( 1 ) ! Gaussian
           CALL errore(sub_name,'Options not yet implemented',1)
        CASE ( 2 ) ! Erfc
-          CALL generate_hesserfc(nnr, dim, axis, local_charge, width, spread, pos, hessian%of_r)
+          CALL generate_hesserfc(nnr, dim, axis, charge, width, spread, pos, hessian%of_r)
        CASE ( 3 ) ! Exponential
           CALL errore(sub_name,'Options not yet implemented',1)
        CASE ( 4 ) ! Erfc

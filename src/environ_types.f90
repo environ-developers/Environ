@@ -87,7 +87,7 @@ MODULE environ_types
 
      REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: of_r
 
-     REAL( DP ), DIMENSION(:), ALLOCATABLE :: laplacian
+     TYPE( environ_density ) :: laplacian
 
   END TYPE environ_hessian
 
@@ -638,15 +638,20 @@ CONTAINS
     CHARACTER (LEN=80), OPTIONAL, INTENT(IN) :: label
     CHARACTER (LEN=80) :: sub_name = 'destroy_environ_hessian'
 
+    CHARACTER (LEN=80) :: laplacian_label
+
     IF ( PRESENT(label) ) THEN
        hessian%label = label
+       laplacian_label = label//'_laplacian'
     ELSE
        hessian%label = 'hessian'
+       laplacian_label = 'hessian_laplacian'
     END IF
 
     NULLIFY(hessian%cell)
     IF ( ALLOCATED( hessian%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    IF ( ALLOCATED( hessian%laplacian ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+
+    CALL create_environ_density( hessian%laplacian, laplacian_label )
 
     RETURN
 
@@ -669,9 +674,7 @@ CONTAINS
     ALLOCATE(hessian%of_r(3,3,hessian%cell%nnr))
     hessian%of_r = 0.D0
 
-    IF ( ALLOCATED( hessian%laplacian ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
-    ALLOCATE(hessian%laplacian(hessian%cell%nnr))
-    hessian%laplacian = 0.D0
+    CALL init_environ_density( cell, hessian%laplacian )
 
     RETURN
 
@@ -685,8 +688,8 @@ CONTAINS
     INTEGER, POINTER :: ir_end
 
     ir_end => hessian % cell % ir_end
-    hessian%laplacian(1:ir_end) = hessian%of_r(1,1,1:ir_end)**2 + &
-         & hessian%of_r(2,2,1:ir_end)**2 + hessian%of_r(3,3,1:ir_end)**2
+    hessian%laplacian%of_r(1:ir_end) = hessian%of_r(1,1,1:ir_end) + &
+         & hessian%of_r(2,2,1:ir_end) + hessian%of_r(3,3,1:ir_end)
 
     RETURN
 
@@ -709,9 +712,7 @@ CONTAINS
          & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
     DEALLOCATE( hessian%of_r )
 
-    IF (.NOT.ALLOCATED(hessian%laplacian)) &
-         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
-    DEALLOCATE( hessian%laplacian )
+    CALL destroy_environ_density(hessian%laplacian)
 
     RETURN
 

@@ -494,6 +494,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
+      REAL( DP ), PARAMETER :: toldsurface = 1.D-20
+      !
       INTEGER, INTENT(IN) :: n, iend
       REAL( DP ), DIMENSION( 3, n ), INTENT(IN) :: grad
       REAL( DP ), DIMENSION( 3, 3, n ), INTENT(IN) :: hess
@@ -505,7 +507,7 @@ CONTAINS
       DO i = 1, iend
          dsurface(i) = 0.D0
          gmod = SUM( grad(:,i)**2 )
-         IF ( gmod .LT. 1.D-12 ) CYCLE
+         IF ( gmod .LT. toldsurface ) CYCLE
          DO ipol = 1, 3
             DO jpol = 1,3
                IF ( ipol .EQ. jpol ) CYCLE
@@ -639,10 +641,6 @@ CONTAINS
          CALL destroy_environ_density( local(i) )
       ENDDO
       DEALLOCATE( local )
-      !
-      CALL print_environ_gradient( boundary%gradient, 3 )
-      !
-      STOP
       !
       RETURN
       !
