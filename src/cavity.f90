@@ -52,11 +52,11 @@ CONTAINS
     CALL start_clock ('calc_vcav')
     !
     dsurface => boundary % dsurface % of_r
-    dscaled => boundary % dscaled % of_r
     vcavity => potential % of_r
     !
     IF ( boundary%need_electrons ) THEN
        !
+       dscaled => boundary % dscaled % of_r
        vcavity = env_surface_tension * dsurface * dscaled
        !
     END IF

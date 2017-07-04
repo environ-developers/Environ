@@ -838,6 +838,8 @@ CONTAINS
              IF ( verbosity .GE. 3 ) &
                   & CALL print_environ_electrons(boundary%electrons,passed_verbosity,passed_depth)
           END IF
+          IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
        ELSE
           WRITE( UNIT = environ_unit, FMT = 2007 ) boundary%alpha, boundary%softness
           IF ( verbosity .GE. 2 ) &
@@ -845,8 +847,12 @@ CONTAINS
                & passed_verbosity,passed_depth)
        END IF
        IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 .AND. boundary%deriv .GE. 1 ) &
+            & CALL print_environ_gradient(boundary%gradient,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 .AND. boundary%deriv .GE. 2 ) &
+            & CALL print_environ_density(boundary%laplacian,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 .AND. boundary%deriv .EQ. 3 ) &
+            & CALL print_environ_density(boundary%dsurface,passed_verbosity,passed_depth)
     END IF
 
     FLUSH( environ_unit )
