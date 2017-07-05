@@ -161,9 +161,7 @@ MODULE environ_base
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
-       vsoftcavity,                 &
-       vcavity,                     &
-       vpressure
+       vsoftcavity
   TYPE ( environ_gradient ) ::      &
        gelectrostatic
   ! gradient of the total electrostatic potential

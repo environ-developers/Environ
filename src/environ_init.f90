@@ -352,13 +352,13 @@ CONTAINS
                                cell, electrons, charges,                &
                                vzero, deenviron,                        &
                                lelectrostatic, eelectrostatic,          &
-                               velectrostatic, vreference, vsoftcavity, &
+                               velectrostatic, vreference,              &
+                               lsoftcavity, vsoftcavity,                &
                                lelectrolyte, electrolyte,               &
                                lsolvent, solvent, lstatic, static,      &
                                loptical, optical,                       &
                                lexternals, externals,                   &
-                               lsurface, ecavity, vcavity,              &
-                               lvolume, epressure, vpressure
+                               lsurface, ecavity, lvolume, epressure
       !
       ! Local base initialization subroutines for the different
       ! environ contributions
@@ -409,6 +409,12 @@ CONTAINS
          CALL create_environ_density( vreference, label )
          CALL init_environ_density( cell, vreference )
          !
+      END IF
+      !
+      ! ... Contribution to the potential due to boundary
+      !
+      IF ( lsoftcavity ) THEN
+         !
          label = 'vsoftcavity'
          CALL create_environ_density( vsoftcavity, label )
          CALL init_environ_density( cell, vsoftcavity )
@@ -418,24 +424,10 @@ CONTAINS
       ! ... Cavity contribution
       !
       ecavity  = 0.0_DP
-      IF ( lsurface ) THEN
-         !
-         label = 'vcavity'
-         CALL create_environ_density( vcavity, label )
-         CALL init_environ_density( cell, vcavity )
-         !
-      END IF
       !
       ! ... Pressure contribution
       !
       epressure  = 0.0_DP
-      IF ( lvolume ) THEN
-         !
-         label = 'vpressure'
-         CALL create_environ_density( vpressure, label )
-         CALL init_environ_density( cell, vpressure )
-         !
-      ENDIF
       !
       ! ... Second step of initialization of some environ derived type
       !
@@ -696,9 +688,7 @@ CONTAINS
       !
       USE environ_base, ONLY : vzero,                                &
                                lelectrostatic, velectrostatic,       &
-                               vreference, vsoftcavity,              &
-                               lsurface, vcavity,                    &
-                               lvolume, vpressure,                   &
+                               vreference, lsoftcavity, vsoftcavity, &
                                ions, electrons, system, charges,     &
                                lexternals, externals,                &
                                lstatic, static, loptical, optical,   &
@@ -724,14 +714,9 @@ CONTAINS
       IF ( lelectrostatic ) THEN
          CALL destroy_environ_density( velectrostatic )
          CALL destroy_environ_density( vreference )
-         CALL destroy_environ_density( vsoftcavity )
       END IF
-      IF ( lsurface ) THEN
-         CALL destroy_environ_density( vcavity )
-      END IF
-      IF ( lvolume ) THEN
-         CALL destroy_environ_density( vpressure )
-      END IF
+      IF ( lsoftcavity ) &
+           & CALL destroy_environ_density( vsoftcavity )
       !
       ! ... destroy derived types which were allocated in input
       !

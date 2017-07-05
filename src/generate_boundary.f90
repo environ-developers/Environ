@@ -11,10 +11,11 @@ MODULE generate_boundary
   !
   USE environ_types
   USE environ_output
+  USE electrostatic_base, ONLY : boundary_core, nfdpoint, icfd, ncfd
   !
   PRIVATE
   !
-  PUBLIC :: boundary_of_density, boundary_of_functions
+  PUBLIC :: boundary_of_density, boundary_of_functions, calc_dboundary_dions
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -107,9 +108,6 @@ CONTAINS
       !     NOTE: fact should be equal to LOG(xmax/xmin)
       !     but is passed in input to save time
       !
-      USE kinds,              ONLY : DP
-      USE constants,          ONLY : tpi
-      !
       IMPLICIT NONE
       !
       REAL( DP )             :: dsfunct1
@@ -141,9 +139,6 @@ CONTAINS
       !
       !     NOTE: fact should be equal to LOG(xmax/xmin)
       !     but is passed in input to save time
-      !
-      USE kinds,              ONLY : DP
-      USE constants,          ONLY : tpi
       !
       IMPLICIT NONE
       !
@@ -369,7 +364,6 @@ CONTAINS
       SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
       !
-      USE electrostatic_base, ONLY : boundary_core, nfdpoint, icfd, ncfd
       USE fd_gradient, ONLY : calc_fd_gradient
       !
       ! ... Calculates the dielectric constant as a function
@@ -423,6 +417,8 @@ CONTAINS
         !
       END DO
       !
+      boundary % volume = integrate_environ_density( boundary % scaled )
+      !
       ! ... Compute boundary derivatives, if needed
       !
       deriv => boundary % deriv
@@ -458,7 +454,12 @@ CONTAINS
          !
       END SELECT
       !
-      IF ( deriv .GE. 1 ) CALL update_gradient_modulus( boundary%gradient )
+      ! ... Final updates
+      !
+      IF ( deriv .GE. 1 ) THEN
+         CALL update_gradient_modulus( boundary%gradient )
+         boundary % surface = integrate_environ_density( boundary%gradient%modulus )
+      END IF
       !
       RETURN
       !
@@ -532,7 +533,6 @@ CONTAINS
       ! ... of the charge density, and the derivative of
       ! ... the dielectric constant wrt the charge density.
       !
-      USE electrostatic_base, ONLY : boundary_core
       USE functions, ONLY: density_of_functions, gradient_of_functions, &
                          & laplacian_of_functions, hessian_of_functions
       !
@@ -576,6 +576,8 @@ CONTAINS
       ENDDO
       !
       boundary % scaled % of_r = 1.D0 - boundary % scaled % of_r
+      !
+      boundary % volume = integrate_environ_density( boundary % scaled )
       !
       CALL print_environ_density( boundary%scaled, 3 )
       !
@@ -635,7 +637,12 @@ CONTAINS
          !
       END SELECT
       !
-      IF ( deriv .GE. 1 ) CALL update_gradient_modulus( boundary%gradient )
+      ! Final updates
+      !
+      IF ( deriv .GE. 1 ) THEN
+         CALL update_gradient_modulus( boundary%gradient )
+         boundary % surface = integrate_environ_density( boundary%gradient%modulus )
+      END IF
       !
       DO i = 1, nsoft_spheres
          CALL destroy_environ_density( local(i) )
@@ -806,4 +813,86 @@ CONTAINS
 !--------------------------------------------------------------------
     END SUBROUTINE calc_dsurface_of_boundary_highmem
 !--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE calc_dboundary_dions( index, boundary, partial )
+!--------------------------------------------------------------------
+      !
+      USE functions, ONLY: density_of_functions, gradient_of_functions
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP ), PARAMETER :: tolspuriousforce = 1.D-5
+      !
+      INTEGER, INTENT(IN) :: index
+      TYPE( environ_boundary ), INTENT(IN) :: boundary
+      TYPE( environ_gradient ), INTENT(INOUT) :: partial
+      !
+      TYPE( environ_cell ), POINTER :: cell
+      !
+      INTEGER :: i, ipol
+      REAL( DP ) :: spurious_force
+      TYPE( environ_density ) :: local
+      !
+      CHARACTER( LEN=80 ) :: sub_name='calc_dboundary_dions'
+      !
+      ! ... Exit if boundary is only defined on electronic density
+      !
+      IF ( boundary % mode .EQ. 'electronic' ) RETURN
+      !
+      ! ... Aliases and sanity checks
+      !
+      cell => partial % cell
+      !
+      IF ( index .GT. boundary % ions % number ) &
+           & CALL errore(sub_name,'Index greater than number of ions',1)
+      IF ( index .LE. 0 ) &
+           & CALL errore(sub_name,'Index of ion is zero or lower',1)
+      IF ( boundary % mode .EQ. 'ionic' .AND. .NOT. ALLOCATED( boundary % soft_spheres ) ) &
+           & CALL errore(sub_name,'Missing details of ionic boundary',1)
+      IF ( boundary % mode .EQ. 'full' .AND. .NOT. ALLOCATED( boundary % ions % core_electrons ) ) &
+           & CALL errore(sub_name,'Missing details of core electrons',1)
+      IF ( boundary % mode .EQ. 'full' .AND. .NOT. ASSOCIATED( boundary % dscaled % cell, cell ) ) &
+           & CALL errore(sub_name,'Mismatch or unassociated boundary derivative',1)
+      !
+      IF ( boundary % mode .EQ. 'ionic' ) THEN
+         !
+         SELECT CASE ( boundary_core )
+            !
+         CASE( 'fft', 'analytic', 'highmem' )
+            !
+            CALL gradient_of_functions( 1, boundary%soft_spheres(index), partial )
+            !
+            CALL init_environ_density( cell, local )
+            !
+            DO i = 1, boundary % ions % number
+               IF ( i .EQ. index ) CYCLE
+               CALL density_of_functions( 1, boundary%soft_spheres(i), local )
+               DO ipol = 1, 3
+                  partial % of_r( ipol, : ) = partial % of_r( ipol, : ) * local % of_r( : )
+               ENDDO
+            ENDDO
+            !
+            CALL destroy_environ_density( local )
+            !
+         END SELECT
+         !
+      ELSE IF ( boundary % mode .EQ. 'full' ) THEN
+         !
+         CALL gradient_of_functions( 1, boundary%ions%core_electrons(index), partial )
+         DO ipol = 1, 3
+            partial % of_r( ipol, : ) = - partial % of_r( ipol, : ) * boundary % dscaled % of_r( : )
+         END DO
+         CALL update_gradient_modulus( partial )
+         spurious_force = integrate_environ_density( partial%modulus )
+         IF ( spurious_force .GT. tolspuriousforce ) &
+              & CALL errore(sub_name,'Unphysical forces due to core electrons are too high',1)
+         !
+      END IF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE calc_dboundary_dions
+!--------------------------------------------------------------------
+
 END MODULE generate_boundary

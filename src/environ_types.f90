@@ -260,6 +260,11 @@ MODULE environ_types
      TYPE( environ_density ) :: laplacian
      TYPE( environ_density ) :: dsurface
 
+     ! global properties of the boundary
+
+     REAL( DP ) :: volume
+     REAL( DP ) :: surface
+
      ! Components needed for boundary of density
 
      INTEGER :: type
@@ -483,10 +488,12 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE( environ_density ), INTENT(IN) :: density
+    INTEGER, POINTER :: ir_end
 
     REAL( DP ) :: quadratic_mean
 
-    quadratic_mean = DOT_PRODUCT(density%of_r,density%of_r)
+    ir_end => density % cell % ir_end
+    quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
     CALL mp_sum( quadratic_mean, density%cell%comm )
     quadratic_mean = SQRT( quadratic_mean ) / density % cell % ntot
 
@@ -574,8 +581,8 @@ CONTAINS
     INTEGER, POINTER :: ir_end
 
     ir_end => gradient % cell % ir_end
-    gradient%modulus%of_r(1:ir_end) = gradient%of_r(1,1:ir_end)**2 + &
-         & gradient%of_r(2,1:ir_end)**2 + gradient%of_r(3,1:ir_end)**2
+    gradient%modulus%of_r(1:ir_end) = SQRT(gradient%of_r(1,1:ir_end)**2 + &
+         & gradient%of_r(2,1:ir_end)**2 + gradient%of_r(3,1:ir_end)**2)
 
     RETURN
 
@@ -627,6 +634,36 @@ CONTAINS
     RETURN
 
   END SUBROUTINE scalar_product_environ_gradient
+
+  FUNCTION scalar_product_environ_gradient_density( gradient, density ) RESULT(res)
+
+    IMPLICIT NONE
+
+    TYPE( environ_gradient ), INTENT(IN) :: gradient
+    TYPE( environ_density ), INTENT(IN) :: density
+
+    REAL( DP ), DIMENSION( 3 ) :: res
+
+    INTEGER, POINTER :: ir_end
+
+    INTEGER :: ipol
+    REAL( DP ) :: scalar_product
+    CHARACTER( LEN=80 ) :: sub_name = 'scalar_product_environ_gradient_density'
+
+    res = 0.D0
+    IF ( .NOT. ASSOCIATED(gradient%cell,density%cell) ) &
+         & CALL errore(sub_name,'Missmatch in domain of input vectors',1)
+    ir_end => density%cell%ir_end
+
+    DO ipol = 1, 3
+       scalar_product = DOT_PRODUCT( gradient%of_r(ipol,1:ir_end),density%of_r(1:ir_end) )
+       CALL mp_sum( scalar_product, density % cell % comm )
+       res(ipol) = scalar_product * density % cell % domega
+    END DO
+
+    RETURN
+
+  END FUNCTION scalar_product_environ_gradient_density
 !----------------------------------------------------------------------------------------------------------------------------------------
 !- HESSIAN ------------------------------------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------------------------------------------

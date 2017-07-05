@@ -25,11 +25,11 @@ MODULE pressure
   !
   PRIVATE
   !
-  PUBLIC :: calc_vpressure, calc_epressure, calc_fpressure
+  PUBLIC :: calc_depressure_dboundary, calc_epressure
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_vpressure( boundary, potential )
+  SUBROUTINE calc_depressure_dboundary( boundary, de_dboundary )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the PV contribution to the potential
@@ -39,26 +39,18 @@ CONTAINS
     ! ... Declares variables
     !
     TYPE( environ_boundary ), INTENT(IN) :: boundary
-    TYPE( environ_density ), INTENT(INOUT) :: potential
+    TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
     !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_vpressure'
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_dpressure_dboundary'
     !
-    CALL start_clock ('calc_vpre')
+    ! ... The functional derivative of the volume term is just unity
     !
-    IF ( boundary%need_electrons ) THEN
-       !
-       ! ... Multiply the derivative of the volume by the external pressure
-       !
-       potential%of_r = env_pressure * boundary%dscaled%of_r
-       !
-    ENDIF
-    !
-    CALL stop_clock ('calc_vpre')
+    de_dboundary%of_r = de_dboundary%of_r + env_pressure
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_vpressure
+  END SUBROUTINE calc_depressure_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_epressure( boundary, epressure )
@@ -73,64 +65,14 @@ CONTAINS
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     REAL( DP ), INTENT(OUT) :: epressure
     !
-    REAL( DP )              :: volume
-    TYPE( environ_density ) :: volofrho
-    !
-    CALL start_clock ('calc_epre')
-    !
-    ! ... Computes step function and volume
-    !
-    volume = integrate_environ_density( boundary % scaled )
-    !
     ! ... Computes the PV energy
     !
-    epressure = env_pressure * volume * e2 / 2.D0
-    !
-    CALL stop_clock ('calc_epre')
+    epressure = env_pressure * boundary%volume * e2 / 2.D0
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_epressure
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE calc_fpressure( nat, boundary, forces )
-!--------------------------------------------------------------------
-    !
-    ! ... Calculates the cavitation contribution to the energy
-    !
-    IMPLICIT NONE
-    !
-    ! ... Declares variables
-    !
-    INTEGER, INTENT(IN) :: nat
-    TYPE( environ_boundary ), INTENT(IN) :: boundary
-    REAL( DP ), DIMENSION(3,nat), INTENT(INOUT) :: forces
-    !
-    REAL( DP ), DIMENSION(3,nat) :: fpressure
-    !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_fpressure'
-    !
-    CALL start_clock ('calc_fpre')
-    !
-    fpressure = 0.D0
-    !
-    ! ... Computes
-    !
-    IF ( boundary%need_ions ) THEN
-       !
-       ! ... Rigid cases to be implemented
-       !
-       CALL errore(sub_name,'Option not yet implemented',1)
-       !
-    ENDIF
-    !
-    CALL stop_clock ('calc_fpre')
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE calc_fpressure
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE pressure

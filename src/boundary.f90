@@ -26,6 +26,8 @@ CONTAINS
 
     label = 'boundary'
     CALL create_environ_density( boundary%scaled, label )
+    boundary%volume = 0.D0
+    boundary%surface = 0.D0
 
     boundary%need_electrons = .FALSE.
     NULLIFY( boundary%electrons )

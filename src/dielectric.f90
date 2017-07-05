@@ -24,7 +24,8 @@ MODULE dielectric
   !
   PUBLIC :: create_environ_dielectric, init_environ_dielectric_first, &
        & set_dielectric_regions, init_environ_dielectric_second, &
-       & update_environ_dielectric, destroy_environ_dielectric
+       & update_environ_dielectric, calc_dedielectric_dboundary, &
+       & destroy_environ_dielectric
   !
 CONTAINS
   !
@@ -285,7 +286,7 @@ CONTAINS
        DEALLOCATE( dlogeps )
     ENDIF
     IF ( dielectric % need_factsqrt ) THEN
-       factsqrteps(:) = 0.5D0 * ( ( d2eps( : ) - deps(:)**2 * 0.5D0 / eps(:) ) * gradscaledmod(:) + &
+       factsqrteps(:) = 0.5D0 * ( ( d2eps( : ) - deps(:)**2 * 0.5D0 / eps(:) ) * gradscaledmod(:)**2 + &
             & deps(:) * laplscaled(:) )
        DEALLOCATE( d2eps )
     ENDIF
@@ -293,6 +294,33 @@ CONTAINS
     RETURN
 
   END SUBROUTINE dielectric_of_boundary
+
+  SUBROUTINE calc_dedielectric_dboundary( dielectric, velectrostatic, de_dboundary )
+
+    IMPLICIT NONE
+
+    TYPE( environ_dielectric ), INTENT(IN) :: dielectric
+    TYPE( environ_density ), INTENT(IN) :: velectrostatic
+    TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
+
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_gradient ) :: gradient
+
+    cell => de_dboundary%cell
+    CALL init_environ_gradient( cell, gradient )
+
+    CALL external_gradient( velectrostatic%of_r, gradient%of_r )
+    CALL update_gradient_modulus( gradient )
+
+    de_dboundary % of_r = de_dboundary % of_r - &
+         & gradient % modulus % of_r**2 * dielectric % depsilon % of_r * &
+         & 0.5D0 / fpi / e2
+
+    CALL destroy_environ_gradient( gradient )
+
+    RETURN
+
+  END SUBROUTINE calc_dedielectric_dboundary
 
   SUBROUTINE destroy_environ_dielectric(lflag,dielectric)
 

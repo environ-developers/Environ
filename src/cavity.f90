@@ -29,11 +29,11 @@ MODULE cavity
   !
   PRIVATE
   !
-  PUBLIC :: calc_vcavity, calc_ecavity, calc_fcavity
+  PUBLIC :: calc_decavity_dboundary, calc_ecavity
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_vcavity( boundary, potential )
+  SUBROUTINE calc_decavity_dboundary( boundary, de_dboundary )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the potential
@@ -43,30 +43,17 @@ CONTAINS
     ! ... Declares variables
     !
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
-    TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+    TYPE( environ_density ), TARGET, INTENT(INOUT) :: de_dboundary
     !
-    CHARACTER( LEN=80 )     :: sub_name = 'calc_vcavity'
+    CHARACTER( LEN=80 )     :: sub_name = 'calc_dcavity_dboundary'
     !
-    REAL( DP ), DIMENSION(:), POINTER :: dsurface, dscaled, vcavity
-    !
-    CALL start_clock ('calc_vcav')
-    !
-    dsurface => boundary % dsurface % of_r
-    vcavity => potential % of_r
-    !
-    IF ( boundary%need_electrons ) THEN
-       !
-       dscaled => boundary % dscaled % of_r
-       vcavity = env_surface_tension * dsurface * dscaled
-       !
-    END IF
-    !
-    CALL stop_clock ('calc_vcav')
+    de_dboundary % of_r = de_dboundary % of_r + &
+         & env_surface_tension * boundary % dsurface % of_r
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_vcavity
+  END SUBROUTINE calc_decavity_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_ecavity( boundary, ecavity )
@@ -83,74 +70,16 @@ CONTAINS
     !
     ! ... Local variables
     !
-    REAL( DP ) :: surface
-    !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_ecavity'
-    !
-    TYPE( environ_cell ), POINTER :: cell
-    TYPE( environ_density ) :: sqrt_modulus
-    !
-    CALL start_clock ('calc_ecav')
-    !
-    cell => boundary % gradient % cell
-    CALL init_environ_density( cell, sqrt_modulus )
-    sqrt_modulus % of_r = SQRT( boundary % gradient % modulus % of_r )
-    !
-    ! ... Computes the molecular surface
-    !
-    surface = integrate_environ_density( sqrt_modulus )
-    !
-    CALL destroy_environ_density( sqrt_modulus )
     !
     ! ... Computes the cavitation energy
     !
-    ecavity = env_surface_tension * surface * e2 / 2.D0
-    !
-    CALL stop_clock ('calc_ecav')
+    ecavity = env_surface_tension * boundary%surface * e2 / 2.D0
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_ecavity
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE calc_fcavity( nat, boundary, forces )
-!--------------------------------------------------------------------
-    !
-    ! ... Calculates the cavitation contribution to the energy
-    !
-    IMPLICIT NONE
-    !
-    ! ... Declares variables
-    !
-    INTEGER, INTENT(IN) :: nat
-    TYPE( environ_boundary ), INTENT(IN) :: boundary
-    REAL( DP ), DIMENSION(3,nat), INTENT(INOUT) :: forces
-    !
-    REAL( DP ), DIMENSION(3,nat) :: fcavity
-    !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_fcavity'
-    !
-    CALL start_clock ('calc_fcav')
-    !
-    fcavity = 0.D0
-    !
-    ! ... Computes the molecular surface
-    !
-    IF ( boundary%need_ions ) THEN
-       !
-       ! ... Rigid cases to be implemented
-       !
-       CALL errore(sub_name,'Option not yet implemented',1)
-       !
-    ENDIF
-    !
-    CALL stop_clock ('calc_fcav')
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE calc_fcavity
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE cavity

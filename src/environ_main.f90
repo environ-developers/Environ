@@ -36,17 +36,16 @@ CONTAINS
                                 lelectrostatic, velectrostatic,       &
                                 vreference,                           &
                                 lsoftcavity, vsoftcavity,             &
-                                lsurface, vcavity,                    &
-                                lvolume, vpressure,                   &
+                                lsurface, lvolume,                    &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte
       !
       ! ... Each contribution to the potential is computed in its module
       !
-      USE cavity,        ONLY : calc_vcavity
-      USE pressure,      ONLY : calc_vpressure
       USE electrostatic, ONLY : calc_velectrostatic, calc_vreference
-      USE softcavity,    ONLY : calc_vsoftcavity
+      USE cavity,        ONLY : calc_decavity_dboundary
+      USE pressure,      ONLY : calc_depressure_dboundary
+      USE dielectric,    ONLY : calc_dedielectric_dboundary
       !
       IMPLICIT NONE
       !
@@ -61,36 +60,10 @@ CONTAINS
       vtot = vzero % of_r
 
       IF ( .NOT. update ) THEN
-        IF ( lsurface ) vtot = vtot + vcavity % of_r
-        IF ( lvolume ) vtot = vtot + vpressure % of_r
-        IF ( lelectrostatic ) THEN
-           vtot = vtot + velectrostatic % of_r - vreference % of_r
-           IF ( lsoftcavity ) vtot = vtot + vsoftcavity % of_r
-        ENDIF
+        IF ( lelectrostatic ) vtot = vtot + velectrostatic % of_r - vreference % of_r
+        IF ( lsoftcavity ) vtot = vtot + vsoftcavity % of_r
         RETURN
       END IF
-
-      ! ... If surface tension greater than zero, calculates cavity contribution
-
-      IF ( lsurface ) THEN
-
-        vcavity % of_r = 0.D0
-        CALL calc_vcavity( solvent, vcavity )
-        IF ( verbose .GE. 3 ) CALL print_environ_density( vcavity )
-        vtot = vtot + vcavity % of_r
-
-      ENDIF
-
-      ! ... If external pressure different from zero, calculates PV contribution
-
-      IF ( lvolume ) THEN
-
-        vpressure % of_r = 0.D0
-        CALL calc_vpressure( solvent, vpressure )
-        IF ( verbose .GE. 3 ) CALL print_environ_density( vpressure )
-        vtot = vtot + vpressure % of_r
-
-      ENDIF
 
       ! ... If any form of electrostatic embedding is present, calculate its contribution
 
@@ -102,49 +75,53 @@ CONTAINS
          IF ( verbose .GE. 3 ) CALL print_environ_density( vreference )
 
          IF ( lstatic ) THEN
-
             IF ( lelectrolyte ) THEN
-
                CALL calc_velectrostatic( charges=charges, dielectric=static,  &
                     & electrolyte=electrolyte, potential=velectrostatic )
-!               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, dielectric=static, &
-!                    & electrolyte=electrolyte, velectrostatic=velectrostatic, vsoftcavity=vsoftcavity )
-
             ELSE
-
                CALL calc_velectrostatic( charges=charges, dielectric=static, &
                     & potential=velectrostatic )
-               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, dielectric=static, &
-                    & velectrostatic=velectrostatic, vsoftcavity=vsoftcavity )
-
             ENDIF
-
          ELSE
-
             IF ( lelectrolyte ) THEN
-
                CALL calc_velectrostatic( charges=charges, electrolyte=electrolyte, &
                     & potential=velectrostatic )
-!               IF ( lsoftcavity ) CALL calc_vsoftcavity( charges=charges, electrolyte=electrolyte, &
-!                    & velectrostatic=velectrostatic, vsoftcavity=vsoftcavity )
-
             ELSE
-
                CALL calc_velectrostatic( charges=charges, potential=velectrostatic )
-
             ENDIF
-
          ENDIF
 
          IF ( verbose .GE. 3 ) CALL print_environ_density( velectrostatic )
          vtot = vtot + velectrostatic % of_r - vreference % of_r
 
-         IF ( lsoftcavity ) THEN
-            IF ( verbose .GE. 3 ) CALL print_environ_density( vsoftcavity )
-            vtot = vtot + vsoftcavity % of_r
-         END IF
+      END IF
+
+      ! ... Compute the total potential depending on the boundary
+
+      IF ( lsoftcavity ) THEN
+
+         vsoftcavity % of_r = 0.D0
+
+         ! ... If surface tension greater than zero, calculates cavity contribution
+
+         IF ( lsurface ) CALL calc_decavity_dboundary( solvent, vsoftcavity )
+
+         ! ... If external pressure different from zero, calculates PV contribution
+
+         IF ( lvolume ) CALL calc_depressure_dboundary( solvent, vsoftcavity )
+
+         ! ... If dielectric embedding, calcultes dielectric contribution
+
+         IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, vsoftcavity )
+
+         ! ... Multiply for the derivative of the boundary wrt electronic density
+
+         vsoftcavity % of_r = vsoftcavity % of_r * solvent % dscaled % of_r
+         IF ( verbose .GE. 3 ) CALL print_environ_density( vsoftcavity )
+         vtot = vtot + vsoftcavity % of_r
 
       END IF
+
 
       RETURN
 !--------------------------------------------------------------------
@@ -164,8 +141,7 @@ CONTAINS
                                 lelectrostatic, velectrostatic,       &
                                 vreference,                           &
                                 lsoftcavity, vsoftcavity,             &
-                                lsurface, vcavity,                    &
-                                lvolume, vpressure,                   &
+                                lsurface, lvolume,                    &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte
       !
@@ -192,28 +168,6 @@ CONTAINS
       !
       ! ... Calculates the energy corrections
       !
-      !  if surface tension different from zero compute cavitation energy
-      !
-      IF ( lsurface ) THEN
-         !
-         deenviron = deenviron - &
-              & scalar_product_environ_density(electrons%density,vcavity)
-         !
-         CALL calc_ecavity( solvent, ecavity )
-         !
-      END IF
-      !
-      !  if pressure different from zero compute PV energy
-      !
-      IF ( lvolume ) THEN
-         !
-         deenviron = deenviron - &
-              & scalar_product_environ_density(electrons%density,vpressure)
-         !
-         CALL calc_epressure( solvent, epressure )
-         !
-      END IF
-      !
       ! if electrostatic is on compute electrostatic energy
       !
       IF ( lelectrostatic ) THEN
@@ -226,41 +180,37 @@ CONTAINS
          deenviron = deenviron - &
               & scalar_product_environ_density(electrons%density,velectrostatic)
          !
-         IF ( lsoftcavity ) deenviron = deenviron - &
-              & scalar_product_environ_density(electrons%density,vsoftcavity)
-         !
          IF ( lstatic ) THEN
-            !
             IF ( lelectrolyte ) THEN
-               !
                CALL calc_eelectrostatic( charges=charges, dielectric=static, &
                     & electrolyte=electrolyte, potential=velectrostatic, energy=eelectrostatic )
-               !
             ELSE
-               !
                CALL calc_eelectrostatic( charges=charges, dielectric=static, &
                     & potential=velectrostatic, energy=eelectrostatic )
-               !
             ENDIF
-            !
          ELSE
-            !
             IF ( lelectrolyte ) THEN
-               !
                CALL calc_eelectrostatic( charges=charges, electrolyte=electrolyte, &
                     & potential=velectrostatic, energy=eelectrostatic )
-               !
             ELSE
-               !
                CALL calc_eelectrostatic( charges=charges, potential=velectrostatic, energy=eelectrostatic )
-               !
             ENDIF
-            !
          ENDIF
          !
          eelectrostatic = eelectrostatic - ereference
          !
       END IF
+      !
+      IF ( lsoftcavity ) deenviron = deenviron - &
+              & scalar_product_environ_density(electrons%density,vsoftcavity)
+      !
+      !  if surface tension different from zero compute cavitation energy
+      !
+      IF ( lsurface ) CALL calc_ecavity( solvent, ecavity )
+      !
+      !  if pressure different from zero compute PV energy
+      !
+      IF ( lvolume ) CALL calc_epressure( solvent, epressure )
       !
       RETURN
       !
@@ -276,75 +226,101 @@ CONTAINS
       !     have an effect on atomic forces.
       !
       USE kinds,        ONLY : DP
-      USE environ_base, ONLY : lelectrostatic, charges,           &
-                               lstatic, static,                   &
+      USE environ_base, ONLY : lelectrostatic, velectrostatic,    &
+                               charges, lstatic, static,          &
                                lelectrolyte, electrolyte,         &
                                lrigidcavity, lsurface, lvolume,   &
-                               solvent
+                               lsolvent, solvent
       !
       ! ... Each contribution to the forces is computed in its module
       !
-      USE electrostatic, ONLY : calc_felectrostatic
-      USE cavity,        ONLY : calc_fcavity
-      USE pressure,      ONLY : calc_fpressure
+      USE electrostatic,     ONLY : calc_felectrostatic
+      USE cavity,            ONLY : calc_decavity_dboundary
+      USE pressure,          ONLY : calc_depressure_dboundary
+      USE dielectric,        ONLY : calc_dedielectric_dboundary
+      USE generate_boundary, ONLY : calc_dboundary_dions
+
       !
       IMPLICIT NONE
       !
       INTEGER, INTENT(IN) :: nat
       REAL( DP ), INTENT(INOUT) :: force_environ( 3, nat )
       !
+      TYPE( environ_cell ), POINTER :: cell
+      !
+      INTEGER :: i
+      TYPE( environ_density ) :: vrigidcavity
+      TYPE( environ_gradient ) :: partial
+      !
       force_environ = 0.D0
       !
       IF ( lelectrostatic ) THEN
          !
          IF ( lstatic ) THEN
-            !
             IF ( lelectrolyte ) THEN
-               !
                CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, &
                     & electrolyte=electrolyte, forces=force_environ )
-               !
             ELSE
-               !
                CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, &
                     & forces=force_environ )
-               !
             END IF
-            !
          ELSE
-            !
             IF ( lelectrolyte ) THEN
-               !
                CALL calc_felectrostatic( natoms=nat, charges=charges, electrolyte=electrolyte, &
                     & forces=force_environ )
-               !
             ELSE
-               !
                CALL calc_felectrostatic( natoms=nat, charges=charges, forces=force_environ )
-               !
             END IF
-            !
          END IF
          !
       END IF
       !
+      ! ... Compute the total forces depending on the boundary
+      !
       IF ( lrigidcavity ) THEN
          !
-         IF ( lsurface ) THEN
-            !
-            CALL calc_fcavity( nat, solvent, force_environ )
-            !
-         END IF
+         IF ( lsolvent ) THEN
+            cell => solvent % scaled % cell
+         ELSE IF ( lelectrolyte ) THEN
+            cell => electrolyte % density % cell
+         ELSE
+            RETURN
+         ENDIF
          !
-         IF ( lvolume ) THEN
+         CALL init_environ_density( cell, vrigidcavity )
+         !
+         ! ... If surface tension greater than zero, calculates cavity contribution
+         !
+         IF ( lsurface ) CALL calc_decavity_dboundary( solvent, vrigidcavity )
+         !
+         ! ... If external pressure different from zero, calculates PV contribution
+         !
+         IF ( lvolume ) CALL calc_depressure_dboundary( solvent, vrigidcavity )
+         !
+         ! ... If dielectric embedding, calcultes dielectric contribution
+         !
+         IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, vrigidcavity )
+         !
+         ! ... Multiply for the derivative of the boundary wrt ionic positions
+         !
+         CALL init_environ_gradient( cell, partial )
+         !
+         DO i = 1, nat
             !
-            CALL calc_fpressure( nat, solvent, force_environ )
+            CALL calc_dboundary_dions( i, solvent, partial )
             !
-         END IF
+            force_environ( :, i ) = scalar_product_environ_gradient_density( partial, vrigidcavity )
+            !
+         ENDDO
+         !
+         CALL destroy_environ_gradient( partial )
+         !
+         CALL destroy_environ_density( vrigidcavity )
          !
       END IF
       !
       RETURN
+      !
 !--------------------------------------------------------------------
       END SUBROUTINE calc_fenviron
 !--------------------------------------------------------------------
