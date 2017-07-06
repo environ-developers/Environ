@@ -309,7 +309,7 @@ CONTAINS
             !
             CALL calc_dboundary_dions( i, solvent, partial )
             !
-            force_environ( :, i ) = scalar_product_environ_gradient_density( partial, vrigidcavity )
+            force_environ( :, i ) = - scalar_product_environ_gradient_density( partial, vrigidcavity )
             !
          ENDDO
          !

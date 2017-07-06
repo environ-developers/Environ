@@ -579,8 +579,6 @@ CONTAINS
       !
       boundary % volume = integrate_environ_density( boundary % scaled )
       !
-      CALL print_environ_density( boundary%scaled, 3 )
-      !
       ! Generate boundary derivatives, if needed
       !
       deriv => boundary % deriv
