@@ -1128,16 +1128,6 @@ CONTAINS
          CALL print_clock ('dielectric')
          CALL print_clock ('calc_felect')
       END IF
-      ! cavitation subroutines
-      IF ( lsurface ) THEN
-         CALL print_clock ('calc_ecav')
-         CALL print_clock ('calc_vcav')
-      END IF
-      ! pressure subroutines
-      IF ( lvolume ) THEN
-         CALL print_clock ('calc_epre')
-         CALL print_clock ('calc_vpre')
-      END IF
       ! TDDFT
       IF (tddfpt) CALL print_clock ('calc_vsolvent_tddfpt')
       !
