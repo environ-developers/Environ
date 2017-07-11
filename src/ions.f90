@@ -361,6 +361,8 @@ CONTAINS
 
     END SELECT
 
+    iontype%solvationrad = iontype%solvationrad / bohr_radius_angs
+
     RETURN
 
   END SUBROUTINE set_iontype_defaults

@@ -102,14 +102,14 @@ CONTAINS
        SELECT CASE ( type )
        CASE ( 1 ) ! Gaussian
           CALL generate_gaussian(nnr, dim, axis, charge, spread, pos, density%of_r)
-       CASE ( 2 ) ! ERFC(X) that integrates to charge
+       CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
           CALL generate_erfc(nnr, dim, axis, charge, width, spread, pos, density%of_r)
        CASE ( 3 ) ! Exponential
           CALL generate_exponential(nnr, spread, pos, density%of_r)
-       CASE ( 4 ) ! ERFC(X)/2 from charge to 0
+       CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
           local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
-       CASE ( 5 ) ! ERFC(-x))/2 from 0 to charge
+       CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
           local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
           density % of_r = density % of_r + charge
@@ -155,14 +155,14 @@ CONTAINS
        SELECT CASE ( type )
        CASE ( 1 ) ! Gaussian
           CALL generate_gradgaussian(nnr, dim, axis, charge, spread, pos, gradient%of_r)
-       CASE ( 2 ) ! Erfc
+       CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
           CALL generate_graderfc(nnr, dim, axis, charge, width, spread, pos, gradient%of_r)
        CASE ( 3 ) ! Exponential
           CALL generate_gradexponential(nnr, spread, pos, gradient%of_r)
-       CASE ( 4 ) ! Erfc
+       CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
           local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_graderfc(nnr, dim, axis, local_charge, width, spread, pos, gradient%of_r)
-       CASE ( 5 ) ! Erfc
+       CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
           local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_graderfc(nnr, dim, axis, local_charge, width, spread, pos, gradient%of_r)
        END SELECT
@@ -207,14 +207,14 @@ CONTAINS
        SELECT CASE ( type )
        CASE ( 1 ) ! Gaussian
           CALL errore(sub_name,'Options not yet implemented',1)
-       CASE ( 2 ) ! Erfc
+       CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
           CALL generate_laplerfc(nnr, dim, axis, charge, width, spread, pos, laplacian%of_r)
        CASE ( 3 ) ! Exponential
           CALL errore(sub_name,'Options not yet implemented',1)
-       CASE ( 4 ) ! Erfc
+       CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
           local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_laplerfc(nnr, dim, axis, local_charge, width, spread, pos, laplacian%of_r)
-       CASE ( 5 ) ! Erfc
+       CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
           local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_laplerfc(nnr, dim, axis, local_charge, width, spread, pos, laplacian%of_r)
        END SELECT
@@ -259,14 +259,14 @@ CONTAINS
        SELECT CASE ( type )
        CASE ( 1 ) ! Gaussian
           CALL errore(sub_name,'Options not yet implemented',1)
-       CASE ( 2 ) ! Erfc
+       CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
           CALL generate_hesserfc(nnr, dim, axis, charge, width, spread, pos, hessian%of_r)
        CASE ( 3 ) ! Exponential
           CALL errore(sub_name,'Options not yet implemented',1)
-       CASE ( 4 ) ! Erfc
+       CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
           local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_hesserfc(nnr, dim, axis, local_charge, width, spread, pos, hessian%of_r)
-       CASE ( 5 ) ! Erfc
+       CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
           local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
           CALL generate_hesserfc(nnr, dim, axis, local_charge, width, spread, pos, hessian%of_r)
        END SELECT

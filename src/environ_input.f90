@@ -362,13 +362,14 @@ MODULE environ_input
 !
 ! Numerical core's parameters
 !
-        CHARACTER( LEN = 80 ) :: boundary_core = 'fd'
-        CHARACTER( LEN = 80 ) :: boundary_core_allowed(3)
-        DATA boundary_core_allowed / 'fft', 'fd', 'analytic' /
+        CHARACTER( LEN = 80 ) :: boundary_core = 'fft'
+        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
+        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
         ! fft       = fast Fourier transforms (default)
         ! fd        = finite differences in real space
         ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
+        ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
 !
 ! Finite differences' parameters
 !
@@ -540,8 +541,6 @@ MODULE environ_input
        ios = 0
        IF( ionode ) READ( environ_unit_input, electrostatic, iostat = ios )
        CALL mp_bcast( ios, ionode_id, comm )
-       IF( ios /= 0 ) CALL errore( ' read_environ ', &
-                                 & ' reading namelist electrostatic ', ABS(ios) )
        !
        ! ... Broadcast &ELECTROSTATIC variables
        !
@@ -654,7 +653,7 @@ MODULE environ_input
        screening = 0.D0
        !
        core = 'fft'
-       boundary_core = 'fd'
+       boundary_core = 'fft'
        ifdtype  = 1
        nfdpoint = 2
        !

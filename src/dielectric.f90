@@ -111,12 +111,13 @@ CONTAINS
 
     IMPLICIT NONE
 
-    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( environ_cell ), INTENT(INOUT) :: cell
     TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
 
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_dielectric_second'
 
     CALL init_environ_density( cell, dielectric%background )
+    dielectric % background % of_r(:) = dielectric % constant
     CALL init_environ_density( cell, dielectric%epsilon )
     CALL init_environ_density( cell, dielectric%depsilon )
 
@@ -148,11 +149,11 @@ CONTAINS
      !
      ! ... Cells has changed, may need to update the background
      !
-     dielectric % background % of_r(:) = dielectric % constant
-     !
      IF ( dielectric % nregions .GT. 0 ) THEN
         !
         ! ... Recompute background dielectric and its derivative
+        !
+        dielectric % background % of_r(:) = dielectric % constant
         !
         CALL init_environ_density( cell , local )
         DO i = 1, dielectric % nregions
@@ -164,11 +165,11 @@ CONTAINS
         !
         IF ( verbose .GE. 3 ) CALL print_environ_density( dielectric%background )
         !
+        ! ... Background has changed, need to update the dielectric when ready
+        !
+        dielectric % update = .TRUE.
+        !
      ENDIF
-     !
-     ! ... Background has changed, need to update the dielectric when ready
-     !
-     dielectric % update = .TRUE.
      !
   ENDIF
   !
@@ -197,8 +198,6 @@ CONTAINS
   END SUBROUTINE update_environ_dielectric
 
   SUBROUTINE dielectric_of_boundary( dielectric )
-
-    USE fd_gradient, ONLY : calc_fd_gradient
 
     IMPLICIT NONE
 
@@ -307,8 +306,8 @@ CONTAINS
     TYPE( environ_gradient ) :: gradient
 
     cell => de_dboundary%cell
-    CALL init_environ_gradient( cell, gradient )
 
+    CALL init_environ_gradient( cell, gradient )
     CALL external_gradient( velectrostatic%of_r, gradient%of_r )
     CALL update_gradient_modulus( gradient )
 

@@ -63,13 +63,13 @@ CONTAINS
   END SUBROUTINE create_environ_boundary
 
   SUBROUTINE init_environ_boundary_first( need_gradient, need_laplacian, &
-       & need_hessian, mode, type, rhomax, rhomin, tbeta, const, alpha, &
+       & need_hessian, mode, stype, rhomax, rhomin, tbeta, const, alpha, &
        & softness, electrons, ions, boundary )
 
     IMPLICIT NONE
 
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
-    INTEGER, INTENT(IN) :: type
+    INTEGER, INTENT(IN) :: stype
     REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, const
     LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
     REAL( DP ), INTENT(IN) :: alpha
@@ -93,7 +93,7 @@ CONTAINS
     boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
     IF ( boundary%need_ions ) boundary%ions => ions
 
-    boundary%type = type
+    boundary%type = stype
     boundary%rhomax = rhomax
     boundary%rhomin = rhomin
     boundary%fact = LOG( rhomax / rhomin )
@@ -273,11 +273,11 @@ CONTAINS
        ! These components were allocated first, destroy only if lflag = .TRUE.
 
        IF ( boundary%need_ions ) THEN
+          IF ( .NOT. boundary%need_electrons ) &
+               & CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
           IF (.NOT.ASSOCIATED(boundary%ions)) &
                & CALL errore(sub_name,'Trying to destroy a non associated object',1)
           NULLIFY(boundary%ions)
-          IF ( .NOT. boundary%need_electrons ) &
-               & CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
        ELSE
           IF (ASSOCIATED(boundary%ions))&
                & CALL errore(sub_name,'Found an unexpected associated object',1)

@@ -39,6 +39,7 @@ MODULE environ_output
        & verbose, prog, set_environ_output, environ_print_energies, &
        & environ_summary, environ_clock, write_cube, &
        & print_environ_density, print_environ_gradient, &
+       & print_environ_hessian, &
        & print_environ_functions, print_environ_iontype, &
        & print_environ_ions, print_environ_electrons, &
        & print_environ_externals, print_environ_system, &
@@ -226,6 +227,9 @@ CONTAINS
     INTEGER, INTENT(IN), OPTIONAL :: local_depth
     TYPE( environ_ions ), INTENT(IN), OPTIONAL :: local_ions
 
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: dens
+
     INTEGER :: verbosity, passed_verbosity, passed_depth
 
     IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
@@ -261,6 +265,20 @@ CONTAINS
              CALL write_cube( gradient%modulus )
           END IF
        END IF
+       IF ( verbosity .GE. 3 ) THEN
+          cell => gradient % cell
+          CALL init_environ_density( cell, dens )
+          dens % label = TRIM(ADJUSTL(gradient % label))//'_x'
+          dens % of_r( : ) = gradient % of_r( 1, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          dens % label = TRIM(ADJUSTL(gradient % label))//'_y'
+          dens % of_r( : ) = gradient % of_r( 2, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          dens % label = TRIM(ADJUSTL(gradient % label))//'_z'
+          dens % of_r( : ) = gradient % of_r( 3, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          CALL destroy_environ_density( dens )
+       ENDIF
     END IF
 
     FLUSH( environ_unit )
@@ -272,6 +290,92 @@ CONTAINS
 1202 FORMAT(1x,'integral of square modul.  = ',G20.10)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_gradient
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE print_environ_hessian( hessian, local_verbose, local_depth, local_ions )
+!--------------------------------------------------------------------
+
+    USE environ_base, ONLY : ions
+
+    IMPLICIT NONE
+
+    TYPE( environ_hessian ), INTENT(IN) :: hessian
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+    TYPE( environ_ions ), INTENT(IN), OPTIONAL :: local_ions
+
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: dens
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = verbosity - verbose - local_depth
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = verbosity - verbose - depth
+       passed_depth = depth
+    END IF
+
+    IF ( ionode .AND. verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1250 )
+       WRITE( UNIT = environ_unit, FMT = 1251 )ADJUSTL(hessian%label)
+       WRITE( UNIT = environ_unit, FMT = 1252 )integrate_environ_density(hessian%laplacian)
+       ! MAY ADD MAXVAL AND MINVAL
+       IF ( verbosity .GE. 2 ) THEN
+          CALL print_environ_cell( hessian%cell, passed_verbosity, passed_depth )
+          IF ( PRESENT(local_ions) ) THEN
+             CALL write_cube( hessian%laplacian, local_ions )
+          ELSE IF ( ASSOCIATED(ions%tau) ) THEN
+             CALL write_cube( hessian%laplacian, ions )
+          ELSE
+             CALL write_cube( hessian%laplacian )
+          END IF
+       END IF
+       IF ( verbosity .GE. 3 ) THEN
+          cell => hessian % cell
+          CALL init_environ_density( cell, dens )
+          dens % label = TRIM(ADJUSTL( hessian % label ))//'_xx'
+          dens % of_r( : ) = hessian % of_r( 1, 1, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          dens % label = TRIM(ADJUSTL( hessian % label ))//'_xy'
+          dens % of_r( : ) = hessian % of_r( 1, 2, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          dens % label = TRIM(ADJUSTL( hessian % label ))//'_xz'
+          dens % of_r( : ) = hessian % of_r( 1, 3, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          dens % label = TRIM(ADJUSTL( hessian % label ))//'_yy'
+          dens % of_r( : ) = hessian % of_r( 2, 2, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          dens % label = TRIM(ADJUSTL( hessian % label ))//'_yz'
+          dens % of_r( : ) = hessian % of_r( 2, 3, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          dens % label = TRIM(ADJUSTL( hessian % label ))//'_zz'
+          dens % of_r( : ) = hessian % of_r( 3, 3, : )
+          CALL print_environ_density( dens, passed_verbosity, passed_depth )
+          CALL destroy_environ_density( dens )
+       ENDIF
+    END IF
+
+    FLUSH( environ_unit )
+
+    RETURN
+
+1250 FORMAT(/,4('%'),' HESSIAN ',67('%'))
+1251 FORMAT(1x,'hessian label              = ',A80)
+1252 FORMAT(1x,'integral of laplacian      = ',G20.10)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_hessian
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE print_environ_functions( nfunctions, functions, local_verbose, local_depth )

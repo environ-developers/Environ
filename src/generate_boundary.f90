@@ -575,10 +575,6 @@ CONTAINS
          !
       ENDDO
       !
-      boundary % scaled % of_r = 1.D0 - boundary % scaled % of_r
-      !
-      boundary % volume = integrate_environ_density( boundary % scaled )
-      !
       ! Generate boundary derivatives, if needed
       !
       deriv => boundary % deriv
@@ -637,9 +633,22 @@ CONTAINS
       !
       ! Final updates
       !
+      boundary % scaled % of_r = 1.D0 - boundary % scaled % of_r
+      !
+      boundary % volume = integrate_environ_density( boundary % scaled )
+      !
       IF ( deriv .GE. 1 ) THEN
+         !
+         boundary % gradient % of_r = - boundary % gradient % of_r
+         !
          CALL update_gradient_modulus( boundary%gradient )
+         !
          boundary % surface = integrate_environ_density( boundary%gradient%modulus )
+         !
+         IF ( deriv .EQ. 2 ) boundary % laplacian % of_r = - boundary % laplacian % of_r
+         !
+         IF ( deriv .EQ. 3 ) boundary % dsurface % of_r = - boundary % dsurface % of_r
+         !
       END IF
       !
       DO i = 1, nsoft_spheres
@@ -777,8 +786,8 @@ CONTAINS
       !
       gradient % of_r = 0.D0
       DO i = 1, n
-         CALL calc_partial_of_boundary_highmem(n,i,local,gradlocal,partial)
-         gradient % of_r  = gradient % of_r + partial % of_r
+         CALL calc_partial_of_boundary_highmem( n, i, local, gradlocal, partial )
+         gradient % of_r = gradient % of_r + partial % of_r
          DO j = 1, n
             DO ipol = 1, 3
                DO jpol = 1, 3
@@ -856,7 +865,7 @@ CONTAINS
          !
          SELECT CASE ( boundary_core )
             !
-         CASE( 'fft', 'analytic', 'highmem' )
+         CASE( 'fft', 'fd', 'analytic', 'highmem' )
             !
             CALL gradient_of_functions( 1, boundary%soft_spheres(index), partial )
             !
