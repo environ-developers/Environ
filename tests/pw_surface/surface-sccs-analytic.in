@@ -1,0 +1,12 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_surface_tension = 100. 
+   !
+ /
+ &ELECTROSTATIC
+   !
+   boundary_core = 'analytic'   
+   !
+ /

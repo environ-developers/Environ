@@ -33,3 +33,9 @@ results/
 
 # Emacs temporary backups
 *~
+
+# Tests
+userconfig
+test.err.*
+test.out.*
+

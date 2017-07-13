@@ -1,0 +1,17 @@
+[PW]
+exe = XXXXXX/tests/run-pw.sh
+extract_program = XXXXXX/tests/extract-pw.sh
+inputs_args = ('*.in', '')
+run_cmd_template = cp tc.args environ.in; tc.program -input tc.input > tc.output 2> tc.error
+tolerance = ( (1.0e-6, None, 'e1'),
+              (1.5, None, 'n1'),
+              (1.0e-3, None, 'f1'),
+              (1.0e-1, None, 'p1') )
+skip_program = grep
+skip_args = 'not yet implemented'
+
+[user]
+benchmark = GIT
+date_fmt = %y%m%d
+diff = vimdiff
+

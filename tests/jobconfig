@@ -1,0 +1,14 @@
+[pw_surface/]
+program = PW
+inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-stype0.in'), ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-stype2.in'), ('pw.in', 'surface-sccs-analytic.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), 
+
+[pw_volume/]
+program = PW
+inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-sccs-stype0.in'), ('pw.in', 'volume-sccs-stype1.in'), ('pw.in', 'volume-sccs-stype2.in'), ('pw.in', 'volume-ss-default.in') 
+
+[pw_*/]
+program = PW
+
+[categories]
+pw_all = pw_*?? 
+_default_ = pw_*?? 
