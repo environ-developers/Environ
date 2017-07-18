@@ -285,8 +285,8 @@ CONTAINS
        DEALLOCATE( dlogeps )
     ENDIF
     IF ( dielectric % need_factsqrt ) THEN
-       factsqrteps(:) = 0.5D0 * ( ( d2eps( : ) - deps(:)**2 * 0.5D0 / eps(:) ) * gradscaledmod(:)**2 + &
-            & deps(:) * laplscaled(:) )
+       factsqrteps = ( d2eps - 0.5D0 * deps**2 / eps ) * gradscaledmod**2 + deps * laplscaled
+       factsqrteps = factsqrteps * 0.5D0 / e2 / fpi
        DEALLOCATE( d2eps )
     ENDIF
 

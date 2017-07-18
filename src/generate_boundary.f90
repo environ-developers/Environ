@@ -153,7 +153,7 @@ CONTAINS
         d2sfunct1 = 0.D0
       ELSE IF ( x .LT. xmax ) THEN
         arg = tpi * LOG( xmax / ABS( x ) ) / fact
-        d2sfunct1 = ( tpi * SIN( arg ) + fact * ( COS( arg ) - 1.D0 ) ) &
+        d2sfunct1 = ( tpi * SIN( arg ) + fact * ( 1.D0 - COS( arg ) ) ) &
                     / ( x * fact ) ** 2
       ELSE
         d2sfunct1 = 0.D0
