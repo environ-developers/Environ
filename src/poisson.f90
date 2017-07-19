@@ -32,6 +32,8 @@ CONTAINS
     !
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
+    potential % of_r = 0.D0
+    !
     CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
     !
     RETURN
@@ -48,11 +50,25 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: local
+    !
     REAL( DP ) :: edummy, cdummy
+    CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density'
     !
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
-    CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, potential%of_r )
+    IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
+         & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
+    cell => charges % cell
+    !
+    CALL init_environ_density( cell, local )
+    !
+    CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+    !
+    potential % of_r = local % of_r
+    !
+    CALL destroy_environ_density( local )
     !
     RETURN
     !

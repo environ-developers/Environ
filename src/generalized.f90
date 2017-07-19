@@ -238,6 +238,9 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_none'
 
+  IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
+9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
+
   ! ... Check that fields have the same defintion domain
 
   IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
@@ -270,7 +273,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   z = r ! no preconditioner
   p = z
   rzold = scalar_product_environ_density( r, z )
-  IF ( rzold .LT. 1.D-30 ) &
+  IF ( ABS(rzold) .LT. 1.D-30 ) &
        & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
   ! ... Start gradient descent
@@ -316,7 +319,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
        z = r ! no preconditioner
 
        rznew = scalar_product_environ_density( r, z )
-       IF ( rznew .LT. 1.D-30 ) &
+       IF ( ABS(rznew) .LT. 1.D-30 ) &
             & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
        ! ... Conjugate gradient or steepest descent input
@@ -330,8 +333,8 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
-9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
+9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( l )
     CALL destroy_environ_gradient( g )
@@ -366,6 +369,9 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_sqrt'
 
+  IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
+9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
+
   ! ... Check that fields have the same defintion domain
 
   IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
@@ -394,18 +400,24 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
   IF ( x%update ) THEN
 
-     r%of_r(:) = b%of_r(:) - factsqrt%of_r(:) * x%of_r(:)
+     r%of_r = b%of_r - factsqrt%of_r * x%of_r
 
      ! ... Preconditioning step
 
-     z%of_r(:) = r%of_r(:) * invsqrt%of_r(:)
+     z%of_r = r%of_r * invsqrt%of_r
      CALL poisson_direct( z, z )
-     z%of_r(:) = z%of_r(:) * invsqrt%of_r(:)
+     z%of_r = z%of_r * invsqrt%of_r
 
-     r%of_r(:) = factsqrt%of_r(:) * ( x%of_r(:) - p%of_r(:) )
+     rzold = scalar_product_environ_density( r, z )
+     IF ( ABS(rzold) .LT. 1.D-30 ) &
+          & CALL errore(sub_name,'Null step in gradient descent iteration',1)
+
+     r%of_r = factsqrt%of_r * ( x%of_r - z%of_r )
      deltar = quadratic_mean_environ_density( r )
      IF ( deltar .LT. 1.D-02 ) THEN
-        x%of_r(:) = p%of_r(:)
+        IF ( verbose .GE. 1 ) WRITE(environ_unit,9008)deltar
+9008    FORMAT(' Sqrt-preconditioned input guess with residual norm = ',E14.6)
+        x%of_r = z%of_r
      ELSE
         IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)deltar
 9001    FORMAT(' Warning: bad guess with residual norm = ',E14.6,', reset to no guess')
@@ -419,30 +431,41 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
      x%update = .TRUE.
      x%of_r = 0.D0
      r = b
-
-     ! ... Preconditioning step
-
-     z%of_r(:) = r%of_r(:) * invsqrt%of_r(:)
-     CALL poisson_direct( z, z )
-     z%of_r(:) = z%of_r(:) * invsqrt%of_r(:)
+     rzold = 0.D0
 
   ENDIF
-
-  p = z
-  rzold = scalar_product_environ_density( r, z )
-  IF ( rzold .LT. 1.D-30 ) &
-       & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
   ! ... Start gradient descent
 
   DO iter = 1, maxiter
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
-9002 FORMAT(' Iteration # ',i10)
+9002   FORMAT(' Iteration # ',i10)
+
+       ! ... Apply preconditioner to new state
+
+       z%of_r = r%of_r * invsqrt%of_r
+       CALL poisson_direct( z, z )
+       z%of_r = z%of_r * invsqrt%of_r
+
+       rznew = scalar_product_environ_density( r, z )
+       IF ( ABS(rznew) .LT. 1.D-30 ) &
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
+
+       ! ... Conjugate gradient or steepest descent input
+
+       IF ( solver .EQ. 'cg' .AND. ABS(rzold) .GT. 1.D-30 ) THEN
+          beta = rznew / rzold
+          p%of_r = z%of_r + beta * p%of_r
+       ELSE
+          beta = 0.D0
+          p%of_r = z%of_r
+       END IF
+       rzold = rznew
 
        ! ... Apply operator to conjugate direction
 
-       Ap%of_r(:) = factsqrt%of_r(:) * p%of_r(:) + r%of_r(:)
+       Ap%of_r = factsqrt%of_r * z%of_r + r%of_r + beta * Ap%of_r
 
        ! ... Step downhill
 
@@ -451,6 +474,9 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
        x%of_r = x%of_r + alpha * p%of_r
        r%of_r = r%of_r - alpha * Ap%of_r
+
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,*)'alpha = ',alpha,' beta = ',beta
+       IF ( verbose .GE. 2 ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' pAp = ',pAp
 
        ! ... If residual is small enough exit
 
@@ -464,31 +490,12 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
        ELSE IF ( iter .EQ. maxiter ) THEN
          WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
-       ENDIF
-
-       ! ... Apply preconditioner to new state
-
-       z%of_r(:) = r%of_r(:) * invsqrt%of_r(:)
-       CALL poisson_direct( z, z )
-       z%of_r(:) = z%of_r(:) * invsqrt%of_r(:)
-
-       rznew = scalar_product_environ_density( r, z )
-       IF ( rznew .LT. 1.D-30 ) &
-            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
-
-       ! ... Conjugate gradient or steepest descent input
-
-       IF ( solver .EQ. 'cg' ) THEN
-          p%of_r = z%of_r + rznew / rzold * p%of_r
-       ELSE
-          p = z
-       END IF
-       rzold = rznew
+      ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
-9000 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
+9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( r )
     CALL destroy_environ_density( z )
@@ -592,7 +599,7 @@ END SUBROUTINE generalized_gradient_sqrt
 !!!TEMPLATE!!!       z = r ! no preconditioner
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!       rznew = scalar_product_environ_density( r, z )
-!!!TEMPLATE!!!       IF ( rznew .LT. 1.D-30 ) THEN
+!!!TEMPLATE!!!       IF ( ABS(rznew) .LT. 1.D-30 ) THEN
 !!!TEMPLATE!!!          WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
 !!!TEMPLATE!!!          STOP
 !!!TEMPLATE!!!       ENDIF

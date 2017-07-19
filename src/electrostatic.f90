@@ -112,8 +112,6 @@ CONTAINS
 
     CALL start_clock( 'calc_velect' )
 
-    potential%of_r = 0.D0
-
     ! ... Select the appropriate combination of problem and solver
 
     SELECT CASE ( problem )
