@@ -258,18 +258,19 @@ CONTAINS
          !
          IF ( lstatic ) THEN
             IF ( lelectrolyte ) THEN
-               CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, &
-                    & electrolyte=electrolyte, forces=force_environ )
+               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+                    & dielectric=static, electrolyte=electrolyte, forces=force_environ )
             ELSE
-               CALL calc_felectrostatic( natoms=nat, charges=charges, dielectric=static, &
-                    & forces=force_environ )
+               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+                    & dielectric=static, forces=force_environ )
             END IF
          ELSE
             IF ( lelectrolyte ) THEN
-               CALL calc_felectrostatic( natoms=nat, charges=charges, electrolyte=electrolyte, &
-                    & forces=force_environ )
+               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+                    & electrolyte=electrolyte, forces=force_environ )
             ELSE
-               CALL calc_felectrostatic( natoms=nat, charges=charges, forces=force_environ )
+               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+                    & forces=force_environ )
             END IF
          END IF
          !

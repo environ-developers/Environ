@@ -21,6 +21,7 @@ MODULE electrostatic
   USE environ_types
   USE environ_output
   USE electrostatic_base
+  USE environ_base, ONLY : e2
   !
   SAVE
 
@@ -340,7 +341,7 @@ CONTAINS
   END SUBROUTINE calc_eelectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_felectrostatic( natoms, charges, forces, dielectric, electrolyte )
+  SUBROUTINE calc_felectrostatic( natoms, charges, forces, potential, dielectric, electrolyte )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the electrostatic embedding contribution to
@@ -353,6 +354,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: natoms
     TYPE( environ_charges ), INTENT(INOUT) :: charges
     REAL(DP), INTENT(INOUT) :: forces( 3, natoms )
+    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: potential
     TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
     !
@@ -360,22 +362,64 @@ CONTAINS
     !
     REAL(DP)            :: ftmp( 3, natoms )
     CHARACTER( LEN=80 ) :: sub_name = 'calc_felectrostatic'
+    LOGICAL             :: include_ions, include_electrons
+    TYPE( environ_density ) :: aux
+    TYPE( environ_gradient ) :: gradaux
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    ! ... Sanity checks and aliases
+    !
+    cell => charges % density % cell
     !
     ! ... Contribution from the interaction of ionic density with
     !     modified electrostatic potential
+    !     is equivalent to the interaction of ionic potential with
+    !     auxiliary charge
     !
     ftmp = 0.D0
+    !
+    CALL init_environ_density( cell, aux )
+    !
     SELECT CASE ( auxiliary )
+       !
     CASE ('full')
-       charges%include_ions = .FALSE.
-       charges%include_electrons = .FALSE.
-       CALL update_environ_charges( charges )
-       CALL external_force_lc(charges%density%of_r,ftmp)
+       !
+       IF ( charges % include_auxiliary ) THEN
+          IF ( .NOT. ASSOCIATED( charges % auxiliary ) ) &
+               & CALL errore(sub_name,'Missing expected charge component',1)
+          aux % of_r = charges % auxiliary % density % of_r
+       ENDIF
+       !
     CASE ('none')
-       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+       IF ( PRESENT( dielectric ) ) THEN
+          IF ( .NOT. ALLOCATED( dielectric%gradlog%of_r ) ) &
+               & CALL errore(sub_name,'Missing gradient of logarithm of dielectric',1)
+          IF ( .NOT. PRESENT( potential ) ) CALL errore(sub_name,'Missing required input',1)
+          CALL init_environ_gradient( cell, gradaux )
+          CALL external_gradient( potential%of_r, gradaux%of_r )
+          CALL scalar_product_environ_gradient( dielectric%gradlog, gradaux, aux )
+          CALL destroy_environ_gradient( gradaux )
+          aux % of_r = aux % of_r / fpi / e2 + charges % density % of_r * &
+               & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
+       ENDIF
+       !
     CASE DEFAULT
-       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+       CALL errore(sub_name,'Unexpected option for auxiliary keyword',1)
+       !
     END SELECT
+    !
+    IF ( charges % include_externals ) THEN
+       IF ( .NOT. ASSOCIATED( charges % externals ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       aux % of_r = aux % of_r + charges % externals % density % of_r
+    ENDIF
+    !
+    CALL external_force_lc(aux%of_r,ftmp)
+    !
+    CALL destroy_environ_density( aux )
     !
     forces = forces + ftmp
     !

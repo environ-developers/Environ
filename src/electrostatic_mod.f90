@@ -171,6 +171,8 @@ MODULE electrostatic_base
                !
             CASE ( 'none' )
                !
+               need_gradlog = .TRUE. ! THIS IS DUE TO THE CALCULATION OF FORCES, REQUIRING POLARIZATION CHARGE
+               !
                SELECT CASE ( preconditioner )
                   !
                CASE ( 'sqrt' )
