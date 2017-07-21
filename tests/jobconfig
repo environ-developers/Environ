@@ -1,6 +1,10 @@
+[pw_dielectric/]
+program = PW
+inputs_args = ('pw.in', 'dielectric-sccs-default.in'), ('pw.in', 'dielectric-sccs-iter-aux.in'), ('pw.in', 'dielectric-sccs-psd.in'), ('pw.in', 'dielectric-sccs-stype1.in'), ('pw.in', 'dielectric-ss-default.in'), ('pw.in', 'dielectric-ss-iter-aux.in')
+
 [pw_surface/]
 program = PW
-inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-stype0.in'), ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-stype2.in'), ('pw.in', 'surface-sccs-analytic.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), 
+inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-stype0.in'), ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-stype2.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in') 
 
 [pw_volume/]
 program = PW

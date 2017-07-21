@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13547M) starts on 13Jul2017 at 13: 6:22 
+     Program PWSCF v.6.1 (svn rev. 13547M) starts on 21Jul2017 at 18:26:15 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -126,7 +126,7 @@
      negative rho (up, down):  7.936E-04 0.000E+00
      Starting wfc are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is        5.8 secs
+     total cpu time spent up to now is        5.3 secs
 
      Self-consistent Calculation
 
@@ -138,7 +138,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       10.5 secs
+     total cpu time spent up to now is        9.7 secs
 
      total energy              =     -33.90252005 Ry
      Harris-Foulkes estimate   =     -34.58697711 Ry
@@ -154,7 +154,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       15.4 secs
+     total cpu time spent up to now is       14.3 secs
 
      total energy              =     -34.05078633 Ry
      Harris-Foulkes estimate   =     -34.29467392 Ry
@@ -170,7 +170,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       19.7 secs
+     total cpu time spent up to now is       18.4 secs
 
      total energy              =     -34.10942945 Ry
      Harris-Foulkes estimate   =     -34.21544421 Ry
@@ -184,7 +184,7 @@
 
      negative rho (up, down):  2.267E-04 0.000E+00
 
-     total cpu time spent up to now is       24.0 secs
+     total cpu time spent up to now is       22.2 secs
 
      End of self-consistent calculation
 
@@ -220,55 +220,55 @@
 
      Writing output data file pwscf.save
 
-     init_run     :      5.15s CPU      5.61s WALL (       1 calls)
-     electrons    :     16.83s CPU     18.38s WALL (       1 calls)
-     forces       :      1.66s CPU      1.83s WALL (       1 calls)
+     init_run     :      4.80s CPU      5.12s WALL (       1 calls)
+     electrons    :     15.94s CPU     17.11s WALL (       1 calls)
+     forces       :      1.54s CPU      1.67s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.10s CPU      0.10s WALL (       1 calls)
-     potinit      :      2.31s CPU      2.50s WALL (       1 calls)
+     wfcinit      :      0.09s CPU      0.09s WALL (       1 calls)
+     potinit      :      2.18s CPU      2.33s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.71s CPU      0.72s WALL (       4 calls)
-     sum_band     :      4.57s CPU      4.89s WALL (       4 calls)
-     v_of_rho     :      7.96s CPU      8.64s WALL (       5 calls)
-     newd         :      2.60s CPU      3.18s WALL (       5 calls)
-     mix_rho      :      0.61s CPU      0.69s WALL (       4 calls)
+     c_bands      :      0.67s CPU      0.67s WALL (       4 calls)
+     sum_band     :      4.24s CPU      4.33s WALL (       4 calls)
+     v_of_rho     :      7.46s CPU      7.97s WALL (       5 calls)
+     newd         :      2.44s CPU      2.94s WALL (       5 calls)
+     mix_rho      :      0.59s CPU      0.66s WALL (       4 calls)
 
      Called by c_bands:
-     init_us_2    :      0.07s CPU      0.08s WALL (       9 calls)
-     regterg      :      0.61s CPU      0.62s WALL (       4 calls)
+     init_us_2    :      0.07s CPU      0.07s WALL (       9 calls)
+     regterg      :      0.58s CPU      0.57s WALL (       4 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      3.33s CPU      3.61s WALL (       4 calls)
+     addusdens    :      3.09s CPU      3.14s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.63s CPU      0.64s WALL (      13 calls)
+     h_psi        :      0.60s CPU      0.60s WALL (      13 calls)
      s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
      g_psi        :      0.01s CPU      0.01s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
-     h_psi:pot    :      0.62s CPU      0.62s WALL (      13 calls)
+     h_psi:pot    :      0.59s CPU      0.58s WALL (      13 calls)
      h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
-     vloc_psi     :      0.60s CPU      0.61s WALL (      13 calls)
+     vloc_psi     :      0.57s CPU      0.57s WALL (      13 calls)
      add_vuspsi   :      0.01s CPU      0.01s WALL (      13 calls)
 
      General routines
      calbec       :      0.01s CPU      0.01s WALL (      21 calls)
-     fft          :      5.01s CPU      5.11s WALL (      78 calls)
-     ffts         :      0.11s CPU      0.11s WALL (       9 calls)
-     fftw         :      0.42s CPU      0.42s WALL (      62 calls)
-     interpolate  :      0.81s CPU      0.89s WALL (       9 calls)
+     fft          :      4.71s CPU      4.75s WALL (      78 calls)
+     ffts         :      0.09s CPU      0.09s WALL (       9 calls)
+     fftw         :      0.39s CPU      0.40s WALL (      62 calls)
+     interpolate  :      0.75s CPU      0.82s WALL (       9 calls)
 
 
      Environ routines
 
-     PWSCF        :    23.90s CPU        26.23s WALL
+     PWSCF        :    22.52s CPU        24.28s WALL
 
 
-   This run was terminated on:  13: 6:49  13Jul2017            
+   This run was terminated on:  18:26:40  21Jul2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -298,9 +298,9 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -311,9 +311,9 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -324,9 +324,9 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -337,6 +337,6 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 

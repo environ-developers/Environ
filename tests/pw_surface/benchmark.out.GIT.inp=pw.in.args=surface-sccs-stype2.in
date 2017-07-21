@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13547M) starts on 13Jul2017 at 13: 2:34 
+     Program PWSCF v.6.1 (svn rev. 13547M) starts on 21Jul2017 at 18:23: 3 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -126,7 +126,7 @@
      negative rho (up, down):  7.936E-04 0.000E+00
      Starting wfc are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is        8.6 secs
+     total cpu time spent up to now is        5.4 secs
 
      Self-consistent Calculation
 
@@ -138,137 +138,137 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       16.5 secs
+     total cpu time spent up to now is       11.5 secs
 
-     total energy              =     -34.03866560 Ry
+     total energy              =     -34.03884946 Ry
      Harris-Foulkes estimate   =     -34.58697711 Ry
      estimated scf accuracy    <       0.68458994 Ry
-     cavitation energy         =       0.02369494 Ry
+     cavitation energy         =       0.02351109 Ry
      correction to one-el term =       0.00000000 Ry
 
      iteration #  2     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
      ethr =  8.56E-03,  avg # of iterations =  2.0
 
-     negative rho (up, down):  3.140E-03 0.000E+00
+     negative rho (up, down):  3.139E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       23.2 secs
+     total cpu time spent up to now is       17.9 secs
 
-     total energy              =     -34.14212681 Ry
-     Harris-Foulkes estimate   =     -34.38384247 Ry
-     estimated scf accuracy    <       0.45228765 Ry
-     cavitation energy         =       0.02556030 Ry
-     correction to one-el term =      -0.00977754 Ry
+     total energy              =     -34.14251952 Ry
+     Harris-Foulkes estimate   =     -34.38380725 Ry
+     estimated scf accuracy    <       0.45216772 Ry
+     cavitation energy         =       0.02526359 Ry
+     correction to one-el term =      -0.00985411 Ry
 
      iteration #  3     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
      ethr =  5.65E-03,  avg # of iterations =  2.0
 
-     negative rho (up, down):  3.133E-04 0.000E+00
+     negative rho (up, down):  3.126E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       30.1 secs
+     total cpu time spent up to now is       23.7 secs
 
-     total energy              =     -34.24064240 Ry
-     Harris-Foulkes estimate   =     -34.26794609 Ry
-     estimated scf accuracy    <       0.01626318 Ry
-     cavitation energy         =       0.02414717 Ry
-     correction to one-el term =      -0.00563700 Ry
+     total energy              =     -34.24090232 Ry
+     Harris-Foulkes estimate   =     -34.26786693 Ry
+     estimated scf accuracy    <       0.01630050 Ry
+     cavitation energy         =       0.02387671 Ry
+     correction to one-el term =      -0.00572894 Ry
 
      iteration #  4     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
-     ethr =  2.03E-04,  avg # of iterations =  2.0
+     ethr =  2.04E-04,  avg # of iterations =  2.0
 
-     negative rho (up, down):  2.177E-04 0.000E+00
+     negative rho (up, down):  2.178E-04 0.000E+00
 
-     total cpu time spent up to now is       36.5 secs
+     total cpu time spent up to now is       29.1 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 ( 11060 PWs)   bands (ev):
 
-   -24.9280 -12.8129  -8.9725  -6.9558
+   -24.9256 -12.8107  -8.9702  -6.9535
 
-     highest occupied level (ev):    -6.9558
+     highest occupied level (ev):    -6.9535
 
-!    total energy              =     -34.24377471 Ry
-     Harris-Foulkes estimate   =     -34.26227560 Ry
-     estimated scf accuracy    <       0.00019104 Ry
+!    total energy              =     -34.24403740 Ry
+     Harris-Foulkes estimate   =     -34.26225793 Ry
+     estimated scf accuracy    <       0.00019529 Ry
 
      The total energy is the sum of the following terms:
 
-     one-electron contribution =     -63.77680279 Ry
-     hartree contribution      =      33.34212080 Ry
-     xc contribution           =      -8.38488944 Ry
+     one-electron contribution =     -63.77592749 Ry
+     hartree contribution      =      33.34106983 Ry
+     xc contribution           =      -8.38469241 Ry
      ewald contribution        =       4.55735774 Ry
-     cavitation energy         =       0.02414717 Ry
-     correction to one-el term =      -0.00570820 Ry
+     cavitation energy         =       0.02387671 Ry
+     correction to one-el term =      -0.00572178 Ry
 
      convergence has been achieved in   4 iterations
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =     0.00343177   -0.01783057   -0.00000230
-     atom    2 type  1   force =    -0.01480421    0.00636559    0.00000095
-     atom    3 type  1   force =     0.01137244    0.01146498    0.00000135
+     atom    1 type  2   force =     0.00344587   -0.01790295   -0.00000212
+     atom    2 type  1   force =    -0.01477005    0.00641092    0.00000109
+     atom    3 type  1   force =     0.01132417    0.01149203    0.00000103
 
-     Total force =     0.029158     Total SCF correction =     0.022947
+     Total force =     0.029188     Total SCF correction =     0.022928
      SCF correction compared to forces is large: reduce conv_thr to get better values
 
      Writing output data file pwscf.save
 
-     init_run     :      6.41s CPU      8.43s WALL (       1 calls)
-     electrons    :     24.82s CPU     28.08s WALL (       1 calls)
-     forces       :      1.65s CPU      1.81s WALL (       1 calls)
+     init_run     :      4.87s CPU      5.23s WALL (       1 calls)
+     electrons    :     22.39s CPU     23.98s WALL (       1 calls)
+     forces       :      1.52s CPU      1.64s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.13s CPU      0.16s WALL (       1 calls)
-     potinit      :      2.85s CPU      3.82s WALL (       1 calls)
+     wfcinit      :      0.09s CPU      0.09s WALL (       1 calls)
+     potinit      :      2.19s CPU      2.34s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.84s CPU      0.98s WALL (       4 calls)
-     sum_band     :      4.75s CPU      5.36s WALL (       4 calls)
-     v_of_rho     :      8.73s CPU     10.20s WALL (       5 calls)
-     newd         :      2.90s CPU      3.93s WALL (       5 calls)
-     mix_rho      :      0.70s CPU      0.93s WALL (       4 calls)
+     c_bands      :      0.67s CPU      0.67s WALL (       4 calls)
+     sum_band     :      4.24s CPU      4.32s WALL (       4 calls)
+     v_of_rho     :      7.51s CPU      8.02s WALL (       5 calls)
+     newd         :      2.42s CPU      2.91s WALL (       5 calls)
+     mix_rho      :      0.59s CPU      0.68s WALL (       4 calls)
 
      Called by c_bands:
-     init_us_2    :      0.08s CPU      0.10s WALL (       9 calls)
-     regterg      :      0.73s CPU      0.84s WALL (       4 calls)
+     init_us_2    :      0.07s CPU      0.08s WALL (       9 calls)
+     regterg      :      0.57s CPU      0.57s WALL (       4 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      3.47s CPU      3.95s WALL (       4 calls)
+     addusdens    :      3.08s CPU      3.12s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.77s CPU      0.90s WALL (      13 calls)
+     h_psi        :      0.59s CPU      0.58s WALL (      13 calls)
      s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
      g_psi        :      0.01s CPU      0.01s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
-     h_psi:pot    :      0.76s CPU      0.89s WALL (      13 calls)
+     h_psi:pot    :      0.57s CPU      0.57s WALL (      13 calls)
      h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
-     vloc_psi     :      0.73s CPU      0.87s WALL (      13 calls)
+     vloc_psi     :      0.55s CPU      0.56s WALL (      13 calls)
      add_vuspsi   :      0.01s CPU      0.01s WALL (      13 calls)
 
      General routines
      calbec       :      0.01s CPU      0.01s WALL (      21 calls)
-     fft          :      8.04s CPU      8.68s WALL (     118 calls)
-     ffts         :      0.12s CPU      0.13s WALL (       9 calls)
-     fftw         :      0.51s CPU      0.60s WALL (      62 calls)
-     interpolate  :      0.89s CPU      1.07s WALL (       9 calls)
+     fft          :      7.11s CPU      7.15s WALL (     118 calls)
+     ffts         :      0.09s CPU      0.09s WALL (       9 calls)
+     fftw         :      0.38s CPU      0.38s WALL (      62 calls)
+     interpolate  :      0.75s CPU      0.81s WALL (       9 calls)
 
 
      Environ routines
 
-     PWSCF        :    33.15s CPU        38.77s WALL
+     PWSCF        :    29.02s CPU        31.24s WALL
 
 
-   This run was terminated on:  13: 3:13  13Jul2017            
+   This run was terminated on:  18:23:35  21Jul2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -298,9 +298,9 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -311,9 +311,9 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -324,9 +324,9 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -337,6 +337,6 @@
  boundary mode              = electronic           
  boundary is built as a function of a smooth density
  function type              =  2 
- using the Fattebert-Gygi function with parameters 
- rhozero                    =      0.0025500 
- 2*beta                     =      4.8000002 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 

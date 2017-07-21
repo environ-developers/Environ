@@ -1,0 +1,15 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_static_permittivity = 100. 
+   !
+   eps_mode = 'ionic'
+   !
+ /
+ &ELECTROSTATIC
+   !
+   solver = 'iteratve'
+   auxiliary = 'full'
+   !
+ /
