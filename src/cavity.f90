@@ -133,7 +133,7 @@ CONTAINS
     !
     ! ... Multiply the cavitation potential by the constant factor 
     !
-    vcavity = env_surface_tension / delta * vcavity
+    vcavity = env_surface_tension * vcavity
     !
     CALL stop_clock ('calc_vcav')
     !
@@ -179,7 +179,7 @@ CONTAINS
     CALL external_gradient ( rho, grho )
     DO ir = 1, nnr
       mod_grho = SQRT(SUM(grho(:,ir)*grho(:,ir)))
-      surface = surface + theta(ir)*mod_grho/delta
+      surface = surface + theta(ir)*mod_grho
     ENDDO
     DEALLOCATE( grho )
     surface = surface * domega 

@@ -282,16 +282,9 @@ CONTAINS
       fact = - 1.D0 / ( epstmp - 1.D0 )
       !
       DO ir = 1, nnr
-        !
-        rhotmp = rho( ir ) - delta/2.D0
-        theta_plus = epsilonfunct( rhotmp, rhomax, rhomin,     &
-                                   tbeta, epstmp, stype )
-        !
-        rhotmp = rho( ir ) + delta/2.D0
-        theta_minus = epsilonfunct( rhotmp, rhomax, rhomin,    &
-                                    tbeta, epstmp, stype )
-        !
-        theta( ir ) = ( theta_minus - theta_plus ) * fact
+         !
+         theta( ir ) = depsilonfunct(rho(ir), rhomax, rhomin,     &
+                                   tbeta, epstmp, stype ) * fact
         !
       END DO
       !
