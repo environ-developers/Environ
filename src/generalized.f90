@@ -20,7 +20,7 @@ MODULE generalized
   USE environ_output
   USE poisson, ONLY : poisson_direct, poisson_gradient_direct
   USE electrostatic_base, ONLY : auxiliary, preconditioner, solver, &
-       maxiter, tolvelect, tolrhoaux, mix
+       maxstep, tolvelect, tolrhoaux, mix
   USE environ_base, ONLY : e2
 
   IMPLICIT NONE
@@ -110,7 +110,7 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
   TYPE( environ_gradient ), POINTER :: gradlogeps
 
   INTEGER :: iter
-  REAL( DP ) :: total, totpol, totzero, totiter, deltar
+  REAL( DP ) :: total, totpol, totzero, totiter, delta_qm, delta_en
   TYPE( environ_density ) :: residual
   TYPE( environ_gradient ) :: gradpoisson
 
@@ -157,7 +157,7 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
   ! ... Start iterative algorithm
 
-  DO iter = 1, maxiter
+  DO iter = 1, maxstep
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 9002 FORMAT(' Iteration # ',i10)
@@ -176,24 +176,25 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
        ! ... If residual is small enough exit
 
-       deltar = quadratic_mean_environ_density( residual )
+       delta_qm = quadratic_mean_environ_density( residual )
+       delta_en = euclidean_norm_environ_density( residual )
        totiter = integrate_environ_density( rhoiter )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolrhoaux
-9004   FORMAT(' deltarho = ',E14.6,' tol = ',E14.6)
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( verbose .GE. 2 ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
 9003   FORMAT(' Total iterative polarization charge = ',4F13.6)
-       IF ( deltar .LT. tolrhoaux .AND. iter .GT. 0 ) THEN
+       IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, exit!')
           EXIT
-       ELSE IF ( iter .EQ. maxiter ) THEN
+       ELSE IF ( iter .EQ. maxstep ) THEN
          WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     ! ... Compute total electrostatic potential
@@ -229,7 +230,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   TYPE( environ_gradient ), POINTER :: gradeps
 
   INTEGER :: iter
-  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, deltar
+  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en
   TYPE( environ_density ) :: r, z, p, Ap, l
   TYPE( environ_gradient ) :: g
 
@@ -282,7 +283,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
   ! ... Start gradient descent
 
-  DO iter = 1, maxiter
+  DO iter = 1, maxstep
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 9002   FORMAT(' Iteration # ',i10)
@@ -328,21 +329,22 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
        ! ... If residual is small enough exit
 
-       deltar = quadratic_mean_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolvelect
-9004   FORMAT(' deltarho = ',E14.6,' tol = ',E14.6)
-       IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
+       delta_qm = quadratic_mean_environ_density( r )
+       delta_en = euclidean_norm_environ_density( r )
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
+       IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, exit!')
           EXIT
-       ELSE IF ( iter .EQ. maxiter ) THEN
+       ELSE IF ( iter .EQ. maxstep ) THEN
          WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( l )
@@ -373,7 +375,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
   TYPE( environ_gradient ), POINTER :: gradeps
 
   INTEGER :: iter
-  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, deltar
+  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en
   TYPE( environ_density ) :: r, z, p, Ap, invsqrt
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_sqrt'
@@ -422,13 +424,14 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
           & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
      r%of_r = factsqrt%of_r * ( x%of_r - z%of_r )
-     deltar = quadratic_mean_environ_density( r )
-     IF ( deltar .LT. 1.D-02 ) THEN
-        IF ( verbose .GE. 1 ) WRITE(environ_unit,9008)deltar
+     delta_en = euclidean_norm_environ_density( r )
+     delta_qm = quadratic_mean_environ_density( r )
+     IF ( delta_en .LT. 1.D-02 ) THEN
+        IF ( verbose .GE. 1 ) WRITE(environ_unit,9008)delta_en
 9008    FORMAT(' Sqrt-preconditioned input guess with residual norm = ',E14.6)
         x%of_r = z%of_r
      ELSE
-        IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)deltar
+        IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)delta_en
 9001    FORMAT(' Warning: bad guess with residual norm = ',E14.6,', reset to no guess')
         x%update = .FALSE.
      ENDIF
@@ -446,7 +449,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
   ! ... Start gradient descent
 
-  DO iter = 1, maxiter
+  DO iter = 1, maxstep
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 9002   FORMAT(' Iteration # ',i10)
@@ -488,21 +491,22 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
        ! ... If residual is small enough exit
 
-       deltar = quadratic_mean_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolvelect
-       9004 FORMAT(' deltarho = ',E14.6,' tol = ',E14.6)
-       IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
+       delta_qm = quadratic_mean_environ_density( r )
+       delta_en = euclidean_norm_environ_density( r )
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
+       IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-          9005 FORMAT(' Charges are converged, exit!')
+9005      FORMAT(' Charges are converged, exit!')
           EXIT
-       ELSE IF ( iter .EQ. maxiter ) THEN
+       ELSE IF ( iter .EQ. maxstep ) THEN
          WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
-      ENDIF
+       ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( r )
@@ -532,7 +536,7 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
   TYPE( environ_gradient ), POINTER :: gradeps
 
   INTEGER :: iter
-  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, deltar
+  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_en, delta_qm
   TYPE( environ_density ) :: r, z, p, Ap
   TYPE( environ_gradient ) :: g
 
@@ -591,13 +595,13 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
 !!!     r%of_r(:) = gradeps%of_r(1,:)*g%of_r(1,:) + &
 !!!               & gradeps%of_r(2,:)*g%of_r(2,:) + &
 !!!               & gradeps%of_r(3,:)*g%of_r(3,:)
-!!!     deltar = quadratic_mean_environ_density( r )
-!!!     IF ( deltar .LT. 1.D-02 ) THEN
-!!!        IF ( verbose .GE. 1 ) WRITE(environ_unit,9008)deltar
+!!!     delta_qm = quadratic_mean_environ_density( r )
+!!!     IF ( delta_qm .LT. 1.D-02 ) THEN
+!!!        IF ( verbose .GE. 1 ) WRITE(environ_unit,9008)delta_qm
 !!!9008    FORMAT(' Sqrt-preconditioned input guess with residual norm = ',E14.6)
 !!!        x%of_r = z%of_r
 !!!     ELSE
-!!!        IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)deltar
+!!!        IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)delta_qm
 !!!9001    FORMAT(' Warning: bad guess with residual norm = ',E14.6,', reset to no guess')
 !!!        x%update = .FALSE.
 !!!     ENDIF
@@ -615,7 +619,7 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
 
   ! ... Start gradient descent
 
-  DO iter = 1, maxiter
+  DO iter = 1, maxstep
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 9002 FORMAT(' Iteration # ',i10)
@@ -661,21 +665,22 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
 
        ! ... If residual is small enough exit
 
-       deltar = quadratic_mean_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolvelect
-9004   FORMAT(' deltarho = ',E14.6,' tol = ',E14.6)
-       IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
+       delta_qm = quadratic_mean_environ_density( r )
+       delta_en = euclidean_norm_environ_density( r )
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
+       IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, exit!')
           EXIT
-       ELSE IF ( iter .EQ. maxiter ) THEN
+       ELSE IF ( iter .EQ. maxstep ) THEN
          WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) deltar, iter
+    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_gradient( g )
@@ -744,7 +749,7 @@ END SUBROUTINE generalized_gradient_left
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!  ! ... Start gradient descent
 !!!TEMPLATE!!!
-!!!TEMPLATE!!!  DO iter = 1, maxiter
+!!!TEMPLATE!!!  DO iter = 1, maxstep
 !!!TEMPLATE!!!
 !!!TEMPLATE!!!       IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 !!!TEMPLATE!!!
@@ -771,7 +776,7 @@ END SUBROUTINE generalized_gradient_left
 !!!TEMPLATE!!!       IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
 !!!TEMPLATE!!!         IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
 !!!TEMPLATE!!!         EXIT
-!!!TEMPLATE!!!       ELSE IF ( iter .EQ. maxiter ) THEN
+!!!TEMPLATE!!!       ELSE IF ( iter .EQ. maxstep ) THEN
 !!!TEMPLATE!!!         WRITE(program_unit,9006)
 !!!TEMPLATE!!!       ENDIF
 !!!TEMPLATE!!!

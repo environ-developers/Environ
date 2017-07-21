@@ -282,9 +282,9 @@ MODULE environ_input
         ! modpb       = modified poisson-boltzmann equation (non-linear)
         ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
         ! linmodpb    = linearized modified poisson-boltzmann equation
-        REAL(DP) :: tolvelect = 1.D-6
+        REAL(DP) :: tolvelect = 1.D-4
         ! convergence threshold for electrostatic potential
-        REAL(DP) :: tolrhoaux = 1.D-10
+        REAL(DP) :: tolrhoaux = 1.D-6
         ! convergence threshold for auxiliary charge
 !
 ! Driver's parameters
@@ -317,6 +317,8 @@ MODULE environ_input
         ! random  = random step size within zero and twice the optima value
         REAL(DP) :: step = 0.3
         ! step size to be used if step_type = 'input' (inherits the tasks of the old mixrhopol)
+        INTEGER :: maxstep = 200
+        ! maximum number of steps to be performed by gradient or iterative solvers
 !
 ! Iterative driver's parameters (OBSOLETE)
 !
@@ -332,7 +334,7 @@ MODULE environ_input
 !
 ! Preconditioner's parameters
 !
-        CHARACTER( LEN = 80 ) :: preconditioner = 'left'
+        CHARACTER( LEN = 80 ) :: preconditioner = 'sqrt'
         CHARACTER( LEN = 80 ) :: preconditioner_allowed(3)
         DATA preconditioner_allowed / 'none', 'sqrt', 'left' /
         ! type of preconditioner
@@ -362,7 +364,7 @@ MODULE environ_input
 !
 ! Numerical core's parameters
 !
-        CHARACTER( LEN = 80 ) :: boundary_core = 'fft'
+        CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
         CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
         DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
@@ -398,6 +400,7 @@ MODULE environ_input
         NAMELIST /electrostatic/                 &
              problem, tolvelect, tolrhoaux,      &
              solver, auxiliary, step_type, step, &
+             maxstep,                            &
              mix_type, mix, ndiis,               &
              preconditioner,                     &
              screening_type, screening,          &
@@ -454,8 +457,8 @@ MODULE environ_input
        ! ... Set electrostatic first as it does not depend on anything else
        !
        CALL set_electrostatic_base ( problem, tolvelect, tolrhoaux, solver, &
-                                     auxiliary, step_type, step, mix_type,  &
-                                     ndiis, mix, preconditioner,            &
+                                     auxiliary, step_type, step, maxstep,   &
+                                     mix_type, ndiis, mix, preconditioner,  &
                                      screening_type, screening, core,       &
                                      boundary_core, ifdtype, nfdpoint,      &
                                      bcindex, bcplus, bcminus )
@@ -539,6 +542,10 @@ MODULE environ_input
        ! ... Read the &ELECTROSTATIC namelist
        !
        ios = 0
+       !
+       ! HERE NEED TO ADD AN IF TO ONLY READ THE NAMELIST IF
+       ! ELECTROSTATIC IS ACTIVATED
+       !
        IF( ionode ) READ( environ_unit_input, electrostatic, iostat = ios )
        CALL mp_bcast( ios, ionode_id, comm )
        !
@@ -636,24 +643,25 @@ MODULE environ_input
        !
        !
        problem = 'poisson'
-       tolvelect = 1.D-6
-       tolrhoaux = 1.D-10
+       tolvelect = 1.D-4
+       tolrhoaux = 1.D-6
        !
        solver = 'cg'
        auxiliary = 'none'
        step_type = 'optimal'
        step = 0.3D0
+       maxstep = 200
        !
        mix_type = 'linear'
        ndiis = 1
        mix = 0.3D0
        !
-       preconditioner = 'left'
+       preconditioner = 'sqrt'
        screening_type = 'none'
        screening = 0.D0
        !
        core = 'fft'
-       boundary_core = 'fft'
+       boundary_core = 'analytic'
        ifdtype  = 1
        nfdpoint = 2
        !
@@ -752,6 +760,8 @@ MODULE environ_input
        CALL mp_bcast( auxiliary,                  ionode_id, comm )
        CALL mp_bcast( step_type,                  ionode_id, comm )
        CALL mp_bcast( step,                       ionode_id, comm )
+       CALL mp_bcast( maxstep,                    ionode_id, comm )
+       !
        CALL mp_bcast( mix_type,                   ionode_id, comm )
        CALL mp_bcast( mix,                        ionode_id, comm )
        CALL mp_bcast( ndiis,                      ionode_id, comm )
@@ -946,6 +956,8 @@ MODULE environ_input
           & TRIM(step_type)//''' not allowed ', 1 )
        IF( step <= 0.0_DP ) &
           CALL errore( sub_name,' step out of range ', 1 )
+       IF( maxstep <= 1 ) &
+          CALL errore( sub_name,' maxstep out of range ', 1 )
        !
        allowed = .FALSE.
        DO i = 1, SIZE( mix_type_allowed )

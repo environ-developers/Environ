@@ -927,16 +927,18 @@ CONTAINS
        IF ( boundary % need_electrons ) THEN
           WRITE( UNIT = environ_unit, FMT = 2002 ) boundary % type
           SELECT CASE ( boundary % type )
+          CASE ( 0 )
+             WRITE( UNIT = environ_unit, FMT = 2003 ) boundary % rhozero, boundary % tbeta
           CASE ( 1 )
-             WRITE( UNIT = environ_unit, FMT = 2003 ) boundary % rhomax, boundary % rhomin
-             IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % fact
+             WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % rhomax, boundary % rhomin
+             IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % fact
           CASE ( 2 )
-             WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % rhozero, boundary % tbeta
+             WRITE( UNIT = environ_unit, FMT = 2006 ) boundary % rhomax, boundary % rhomin
           END SELECT
           IF ( verbosity .GE. 2 ) THEN
              CALL print_environ_density(boundary%density,passed_verbosity,passed_depth)
              IF ( boundary % need_ions ) THEN
-                WRITE( UNIT = environ_unit, FMT = 2006 )
+                WRITE( UNIT = environ_unit, FMT = 2007 )
                 IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%ions%core)
              END IF
              IF ( verbosity .GE. 3 ) &
@@ -945,7 +947,7 @@ CONTAINS
           IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
        ELSE
-          WRITE( UNIT = environ_unit, FMT = 2007 ) boundary%alpha, boundary%softness
+          WRITE( UNIT = environ_unit, FMT = 2008 ) boundary%alpha, boundary%softness
           IF ( verbosity .GE. 2 ) &
                & CALL print_environ_functions(boundary%ions%number,boundary%soft_spheres,&
                & passed_verbosity,passed_depth)
@@ -967,18 +969,21 @@ CONTAINS
 2001 FORMAT(1x,'boundary mode              = ',A20,' ')
 2002 FORMAT(1x,'boundary is built as a function of a smooth density'&
           /,1x,'function type              = ',I2,' ')
-2003 FORMAT(1x,'using the optimal SCCS function with parameters '&
-          /,1x,'rhomax                     = ',F14.7,' '&
-          /,1x,'rhomin                     = ',F14.7,' ')
-2004 FORMAT(1x,'log(rhomax/rhomin)         = ',F14.7,' ')
-2005 FORMAT(1x,'using the Fattebert-Gygi function with parameters '&
+2003 FORMAT(1x,'using the Fattebert-Gygi function with parameters '&
           /,1x,'rhozero                    = ',F14.7,' '&
           /,1x,'2*beta                     = ',F14.7,' ')
-2006 FORMAT(1x,'adding fictitious core-electrons')
-2007 FORMAT(1x,'boundary is built from soft-spheres centered on ionic positions'&
+2004 FORMAT(1x,'using the optimal SCCS function with parameters '&
+          /,1x,'rhomax                     = ',F14.7,' '&
+          /,1x,'rhomin                     = ',F14.7,' ')
+2005 FORMAT(1x,'log(rhomax/rhomin)         = ',F14.7,' ')
+2006 FORMAT(1x,'using the modified SCCS function with parameters '&
+          /,1x,'rhomax                     = ',F14.7,' '&
+          /,1x,'rhomin                     = ',F14.7,' ')
+2007 FORMAT(1x,'adding fictitious core-electrons')
+2008 FORMAT(1x,'boundary is built from soft-spheres centered on ionic positions'&
           /,1x,'solvent-dependent scaling  = ',F14.7,' '&
           /,1x,'softness parameter         = ',F14.7,' ')
-2008 FORMAT(1x,'also need the surface term of this boundary'&
+2009 FORMAT(1x,'also need the surface term of this boundary'&
           /,1x,'fd parameter for surface   = ',F14.7,' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_boundary

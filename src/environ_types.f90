@@ -484,6 +484,23 @@ CONTAINS
 
   END FUNCTION scalar_product_environ_density
 
+  FUNCTION euclidean_norm_environ_density(density) RESULT(euclidean_norm)
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: density
+    INTEGER, POINTER :: ir_end
+
+    REAL( DP ) :: euclidean_norm
+
+    ir_end => density % cell % ir_end
+    euclidean_norm = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
+    CALL mp_sum( euclidean_norm, density%cell%comm )
+
+    RETURN
+
+  END FUNCTION euclidean_norm_environ_density
+
   FUNCTION quadratic_mean_environ_density(density) RESULT(quadratic_mean)
 
     IMPLICIT NONE
@@ -496,7 +513,7 @@ CONTAINS
     ir_end => density % cell % ir_end
     quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
     CALL mp_sum( quadratic_mean, density%cell%comm )
-    quadratic_mean = SQRT( quadratic_mean ) / density % cell % ntot
+    quadratic_mean = SQRT( quadratic_mean / density % cell % ntot )
 
     RETURN
 

@@ -26,8 +26,6 @@ MODULE electrostatic_base
   !
   CHARACTER (LEN=80) ::            &
        problem
-  INTEGER ::                       &
-       maxiter = 200
   REAL (DP) ::                     &
        tolvelect,                  &
        tolrhoaux
@@ -40,6 +38,8 @@ MODULE electrostatic_base
        step_type
   REAL (DP) ::                     &
        step
+  INTEGER ::                       &
+       maxstep
   !
   ! Iterative driver's parameters (OBSOLETE)
   !
@@ -100,7 +100,7 @@ MODULE electrostatic_base
     !
     SUBROUTINE set_electrostatic_base &
          ( problem_, tolvelect_, tolrhoaux_,                  &
-           solver_, auxiliary_, step_type_, step_,            &
+           solver_, auxiliary_, step_type_, step_, maxstep_,  &
            mix_type_, ndiis_, mix_,                           &
            preconditioner_, screening_type_, screening_,      &
            core_, boundary_core_, ifdtype_, nfdpoint_,        &
@@ -111,7 +111,8 @@ MODULE electrostatic_base
       IMPLICIT NONE
       !
       CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
-      INTEGER, INTENT(IN) :: ndiis_, ifdtype_, nfdpoint_, bcindex_(3)
+      INTEGER, INTENT(IN) :: maxstep_, ndiis_, ifdtype_, nfdpoint_,       &
+                             bcindex_(3)
       REAL(DP), INTENT(IN) :: tolvelect_, tolrhoaux_, step_, mix_,        &
                              screening_, bcplus_(3), bcminus_(3)
       CHARACTER( LEN = * ), INTENT(IN) :: problem_, solver_, auxiliary_,  &
@@ -128,6 +129,7 @@ MODULE electrostatic_base
       auxiliary = auxiliary_
       step_type = step_type_
       step = step_
+      maxstep = maxstep_
       !
       mix_type = mix_type_
       ndiis = ndiis_
