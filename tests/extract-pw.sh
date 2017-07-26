@@ -1,4 +1,5 @@
-# Copyright (C) 2001 Quantum ESPRESSO
+# Copyright (C) 2017 ENVIRON (www.quantum-environment.org)
+# Copyright (C) 2001-2016 Quantum ESPRESSO
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

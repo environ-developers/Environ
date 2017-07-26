@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+# Copyright (C) 2017 ENVIRON (www.quantum-environment.org)
 # Copyright (C) 2001-2016 Quantum ESPRESSO group
 # 
 # This program is free software; you can redistribute it and/or

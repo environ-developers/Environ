@@ -1,4 +1,12 @@
 #!/bin/bash
+# Copyright (C) 2017 ENVIRON (www.quantum-environment.org)
+# Copyright (C) 2001-2016 Quantum ESPRESSO group
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License. See the file `License' in the root directory
+# of the present distribution.
 
 include ./ENVIRONMENT
 
