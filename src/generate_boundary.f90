@@ -11,7 +11,7 @@ MODULE generate_boundary
   !
   USE environ_types
   USE environ_output
-  USE electrostatic_base, ONLY : boundary_core, nfdpoint, icfd, ncfd
+  USE electrostatic_base, ONLY : boundary_core, fd
   !
   PRIVATE
   !
@@ -448,7 +448,7 @@ CONTAINS
                   gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
                ENDDO
             ELSE IF ( boundary_core .EQ. 'fd' ) THEN
-               CALL calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, eps, gradeps )
+               CALL calc_fd_gradient( fd%nfdpoint, fd%icfd, fd%ncfd, nnr, eps, gradeps )
             ENDIF
          ENDIF
          !

@@ -3,6 +3,7 @@ MODULE poisson
 !--------------------------------------------------------------------
 
   USE environ_types
+  USE electrostatic_types
 
   IMPLICIT NONE
 
@@ -20,21 +21,38 @@ MODULE poisson
 
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_direct_charges( charges, potential )
+  SUBROUTINE poisson_direct_charges( core, charges, potential )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
+    TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     REAL( DP ) :: edummy, cdummy
+    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_direct_charges'
     !
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
     potential % of_r = 0.D0
     !
-    CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
+    IF ( core % use_qe_fft ) THEN
+       CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
+    ELSE IF ( core % use_oned_analytic ) THEN
+       CALL errore(sub_name,'Option not yet implemented',1)
+    ELSE
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+    ENDIF
+    !
+!    IF ( core % need_correction ) THEN
+!       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+!       CASE ( '1da', 'oned_analytic' )
+!          CALL calc_vperiodic( core%correction%oned_analytic, charges, potential )
+!       CASE DEFAULT
+!          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+!       END SELECT
+!    ENDIF
     !
     RETURN
     !
@@ -42,11 +60,12 @@ CONTAINS
   END SUBROUTINE poisson_direct_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_direct_density( charges, potential )
+  SUBROUTINE poisson_direct_density( core, charges, potential )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
+    TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_density ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
@@ -64,7 +83,13 @@ CONTAINS
     !
     CALL init_environ_density( cell, local )
     !
-    CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+    IF ( core % use_qe_fft ) THEN
+       CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+    ELSE IF ( core % use_oned_analytic ) THEN
+       CALL errore(sub_name,'Option not yet implemented',1)
+    ELSE
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+    ENDIF
     !
     potential % of_r = local % of_r
     !
@@ -76,17 +101,26 @@ CONTAINS
   END SUBROUTINE poisson_direct_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_gradient_direct_charges( charges, gradient )
+  SUBROUTINE poisson_gradient_direct_charges( core, charges, gradient )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
+    TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     !
+    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_charges'
+    !
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
-    CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
+    IF ( core % use_qe_fft ) THEN
+       CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
+    ELSE IF ( core % use_oned_analytic ) THEN
+       CALL errore(sub_name,'Option not yet implemented',1)
+    ELSE
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+    ENDIF
     !
     RETURN
     !
@@ -94,17 +128,26 @@ CONTAINS
   END SUBROUTINE poisson_gradient_direct_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_gradient_direct_density( charges, gradient )
+  SUBROUTINE poisson_gradient_direct_density( core, charges, gradient )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
+    TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_density ), INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     !
+    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_density'
+    !
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
-    CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
+    IF ( core % use_qe_fft ) THEN
+       CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
+    ELSE IF ( core % use_oned_analytic ) THEN
+       CALL errore(sub_name,'Option not yet implemented',1)
+    ELSE
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+    ENDIF
     !
     RETURN
     !

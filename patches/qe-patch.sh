@@ -125,7 +125,7 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
       CALL set_environ_output("PW", ionode, ionode_id, intra_image_comm, stdout)\
-      CALL read_environ(1, nspin, nat, ntyp, atom_label, assume_isolated, ibrav)\
+      CALL read_environ("PW",1, nspin, nat, ntyp, atom_label, assume_isolated)\
    ENDIF\
 !Environ patch
 ' tmp.1 > tmp.2

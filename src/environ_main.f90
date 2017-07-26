@@ -16,6 +16,7 @@
 MODULE environ_main
   !
   USE environ_types
+  USE electrostatic_types
   USE environ_output
   !
 PRIVATE
@@ -39,6 +40,7 @@ CONTAINS
                                 lsurface, lvolume,                    &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte
+      USE electrostatic_base, ONLY : reference, outer
       !
       ! ... Each contribution to the potential is computed in its module
       !
@@ -71,23 +73,23 @@ CONTAINS
 
          ! ... Electrostatics is also computed inside the calling program, need to remove the reference
 
-         CALL calc_vreference( charges, vreference )
+         CALL calc_vreference( reference, charges, vreference )
          IF ( verbose .GE. 3 ) CALL print_environ_density( vreference )
 
          IF ( lstatic ) THEN
             IF ( lelectrolyte ) THEN
-               CALL calc_velectrostatic( charges=charges, dielectric=static,  &
+               CALL calc_velectrostatic( setup = outer, charges=charges, dielectric=static,  &
                     & electrolyte=electrolyte, potential=velectrostatic )
             ELSE
-               CALL calc_velectrostatic( charges=charges, dielectric=static, &
+               CALL calc_velectrostatic( setup = outer, charges=charges, dielectric=static, &
                     & potential=velectrostatic )
             ENDIF
          ELSE
             IF ( lelectrolyte ) THEN
-               CALL calc_velectrostatic( charges=charges, electrolyte=electrolyte, &
+               CALL calc_velectrostatic( setup = outer, charges=charges, electrolyte=electrolyte, &
                     & potential=velectrostatic )
             ELSE
-               CALL calc_velectrostatic( charges=charges, potential=velectrostatic )
+               CALL calc_velectrostatic( setup = outer, charges=charges, potential=velectrostatic )
             ENDIF
          ENDIF
 

@@ -10,7 +10,7 @@
 ! are initiliazed here, module-specific variables should be initialized
 ! inside each module by the specific initiliazation subruotine
 !
-! original version by O. Andreussii, I. Dabo and N. Marzari (MIT)
+! original version by O. Andreussi, I. Dabo and N. Marzari (MIT)
 !
 MODULE environ_init
   !
@@ -37,7 +37,6 @@ CONTAINS
        ( nelec, nspin,                               &
        & nat, ntyp, atom_label, atomicspread,        &
        & corespread, solvationrad,                   &
-       & assume_isolated, ibrav,                     &
        & environ_restart_, environ_thr_,             &
        & environ_nskip_, environ_type,               &
        & system_ntyp, system_dim, system_axis,       &
@@ -65,12 +64,13 @@ CONTAINS
     ! ... the following routine copies variables read in input
     ! ... to global variables and derived data types kept in this module
     !
-    USE electrostatic_base, ONLY : need_gradient, need_gradlog, need_factsqrt, need_auxiliary
+    USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
+         & need_gradlog, need_factsqrt, need_auxiliary
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
     LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
-    INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp, ibrav,                  &
+    INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
          stype_, env_ioncc_ntyp_, nrep_,                  &
@@ -78,7 +78,8 @@ CONTAINS
          extcharge_dim(:), extcharge_axis(:),             &
          env_dielectric_regions,                          &
          epsregion_dim(:), epsregion_axis(:)
-    REAL(DP), INTENT(IN) :: environ_thr_, rhomax_, rhomin_, tbeta,          &
+    REAL(DP), INTENT(IN) :: environ_thr_, rhomax_,        &
+         rhomin_, tbeta,                                  &
          env_static_permittivity_,                        &
          env_optical_permittivity_,                       &
          alpha, softness, solvationrad(:), corespread(:), &
@@ -92,7 +93,7 @@ CONTAINS
          extcharge_pos(:,:), epsregion_eps(:,:),          &
          epsregion_pos(:,:), epsregion_spread(:),         &
          epsregion_width(:)
-    CHARACTER( LEN = * ), INTENT(IN) :: assume_isolated, environ_type,      &
+    CHARACTER( LEN = * ), INTENT(IN) :: environ_type,     &
          solvent_mode, radius_mode, stern_mode
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
@@ -174,33 +175,6 @@ CONTAINS
        call errore (sub_name,'unrecognized value for environ_type',1)
     END SELECT
     !
-    ! Set periodic flags according to the host code keyword
-    !
-    env_periodicity = 3
-    slab_axis  = 0
-    SELECT CASE( trim( assume_isolated ) )
-       !
-    CASE( 'slabx' )
-       !
-       env_periodicity = 2
-       slab_axis       = 1
-       !
-    CASE( 'slaby' )
-       !
-       env_periodicity = 2
-       slab_axis       = 2
-       !
-    CASE( 'slabz' )
-       !
-       env_periodicity = 2
-       slab_axis       = 3
-       !
-    CASE( 'pcc' )
-       !
-       env_periodicity = 0
-       !
-    END SELECT
-    !
     ! Set basic logical flags
     !
     lstatic        = env_static_permittivity .GT. 1.D0
@@ -215,7 +189,7 @@ CONTAINS
     lvolume        = env_pressure .NE. 0.D0
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_ioncc_ntyp .GT. 0
-    lperiodic      = env_periodicity .NE. 3
+    lperiodic      = need_pbc_correction
     lauxiliary     = need_auxiliary
     !
     ! Derived flags
@@ -316,19 +290,6 @@ CONTAINS
     !
     nrep      = nrep_
     !
-    ! The periodic-boundary correction methods
-    ! slabx, slaby, slabz, pcc, and esm are
-    ! not implemented in TDDFPT.
-    !
-    IF (tddfpt) THEN
-       IF ( trim( assume_isolated ) /= 'makov-payne'       .AND. &
-            & trim( assume_isolated ) /= 'martyna-tuckerman' .AND. &
-            & trim( assume_isolated ) /= 'none' ) &
-            CALL errore (sub_name, &
-            & 'The activated periodic-boundary correction method' // &
-            & ' is not implemented in TDDFPT', 1 )
-    ENDIF
-    !
     RETURN
     !
 !--------------------------------------------------------------------
@@ -359,6 +320,8 @@ CONTAINS
                                loptical, optical,                       &
                                lexternals, externals,                   &
                                lsurface, ecavity, lvolume, epressure
+      !
+      USE electrostatic_init, ONLY : electrostatic_initbase
       !
       ! Local base initialization subroutines for the different
       ! environ contributions
@@ -408,6 +371,8 @@ CONTAINS
          label = 'vreference'
          CALL create_environ_density( vreference, label )
          CALL init_environ_density( cell, vreference )
+         !
+         CALL electrostatic_initbase( cell )
          !
       END IF
       !
@@ -695,6 +660,8 @@ CONTAINS
                                lsolvent, solvent,                    &
                                lelectrolyte, electrolyte
       !
+      USE electrostatic_init, ONLY : electrostatic_clean
+      !
       ! Local clean up subroutines for the different contributions
       !
       IMPLICIT NONE
@@ -714,6 +681,7 @@ CONTAINS
       IF ( lelectrostatic ) THEN
          CALL destroy_environ_density( velectrostatic )
          CALL destroy_environ_density( vreference )
+         CALL electrostatic_clean( lflag )
       END IF
       IF ( lsoftcavity ) &
            & CALL destroy_environ_density( vsoftcavity )

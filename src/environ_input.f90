@@ -217,22 +217,6 @@ MODULE environ_input
         REAL(DP) :: solvent_temperature = 300.D0
         ! temperature of the solution
 !
-! Periodic correction keywords
-!
-        INTEGER :: env_periodicity = 3
-        ! dimensionality of the simulation cell
-        ! periodic boundary conditions on 3/2/1/0 sides of the cell
-        CHARACTER( LEN = 80 ) :: pbc_correction = 'parabolic'
-        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(1)
-        DATA pbc_correction_allowed / 'parabolic' /
-        ! type of periodic boundary condition correction to be used
-        ! parabolic = point-counter-charge type of correction
-        INTEGER :: cell_axis = 3
-        ! choice of the sides with periodic boundary conditions
-        ! 1 = x, 2 = y, 3 = z, where
-        ! if env_periodicity = 2, cell_axis is orthogonal to 2D plane
-        ! if env_periodicity = 1, cell_axis is along the 1D direction
-!
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
 !
@@ -261,7 +245,6 @@ MODULE environ_input
              env_ioncc_ntyp, nrep,                                     &
              stern_mode, stern_distance, stern_spread,                 &
              cion, cionmax, rion, zion, rhopb, solvent_temperature,    &
-             env_periodicity, pbc_correction, cell_axis,               &
              env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
@@ -271,21 +254,17 @@ MODULE environ_input
 ! Global parameters
 !
         CHARACTER( LEN = 80 ) :: problem = 'poisson'
-        CHARACTER( LEN = 80 ) :: problem_allowed(7)
-        DATA problem_allowed / 'poisson', 'free', 'generalized', 'pb', 'modpb', &
-          'linpb', 'linmodpb' /
+        CHARACTER( LEN = 80 ) :: problem_allowed(6)
+        DATA problem_allowed / 'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb' /
         ! type of electrostatic problem:
-        ! poisson     = standard poisson equation with pbc (default, no electrostatic correction)
-        ! free        = standard poitton equation with free bc
+        ! poisson     = standard poisson equation, with or without boundary conditions (default)
         ! generalized = generalized poisson equation
         ! pb          = poisson-boltzmann equation (non-linear)
         ! modpb       = modified poisson-boltzmann equation (non-linear)
         ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
         ! linmodpb    = linearized modified poisson-boltzmann equation
-        REAL(DP) :: tolvelect = 1.D-4
-        ! convergence threshold for electrostatic potential
-        REAL(DP) :: tolrhoaux = 1.D-6
-        ! convergence threshold for auxiliary charge
+        REAL(DP) :: tol = 1.D-4
+        ! convergence threshold for electrostatic potential or auxiliary charge
 !
 ! Driver's parameters
 !
@@ -293,13 +272,13 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: solver_allowed(7)
         DATA solver_allowed / 'cg', 'sd', 'iterative', 'lbfgs', 'newton', 'nested', 'direct' /
         ! type of numerical solver
+        ! direct    = for simple problems with analytic or direct solution
         ! cg        = conjugate gradient (default)
         ! sd        = steepest descent
-        ! iterative = fixed-point search (OBSOLETE)
+        ! iterative = fixed-point search
         ! lbfgs     = low-memory bfgs
         ! newton    = newton's method (only for non-linear problem)
         ! nested    = double iterations (only for non-linear problem)
-        ! direct    = for simple problems with analytic or direct solution
         CHARACTER( LEN = 80 ) :: auxiliary = 'none'
         CHARACTER( LEN = 80 ) :: auxiliary_allowed(4)
         DATA auxiliary_allowed / 'none', 'full', 'pol', 'ioncc' /
@@ -383,40 +362,42 @@ MODULE environ_input
         ! number of points used in the numerical differentiator
         ! N = 2*nfdpoint+1
 !
-! Boundary conditions
+! Periodic correction keywords
 !
-        INTEGER, DIMENSION(3) :: bcindex = (/ 0, 0, 0 /)
-        ! boundary conditions on each main axis
-        ! 0 = periodic
-        ! 1 = free ! SOME CASES ONLY
-        ! 2 = dirichelet  ! TO IMPLEMENT
-        ! 3 = von neumann ! TO IMPLEMENT
-        ! 4 = electrochem ! TO IMPLEMENT
-        REAL(DP), DIMENSION(3) :: bcplus  = (/ 0.D0, 0.D0, 0.D0 /)
-        REAL(DP), DIMENSION(3) :: bcminus = (/ 0.D0, 0.D0, 0.D0 /)
-        ! values of the fixed boundary conditions at the positive and negative boundaries
-        ! in internal units
+        INTEGER :: pbc_dim = -3
+        ! dimensionality of the simulation cell
+        ! periodic boundary conditions on 3/2/1/0 sides of the cell
+        CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
+        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(2)
+        DATA pbc_correction_allowed / 'none', 'parabolic' /
+        ! type of periodic boundary condition correction to be used
+        ! parabolic = point-counter-charge type of correction
+        INTEGER :: pbc_axis = 3
+        ! choice of the sides with periodic boundary conditions
+        ! 1 = x, 2 = y, 3 = z, where
+        ! if env_periodicity = 2, cell_axis is orthogonal to 2D plane
+        ! if env_periodicity = 1, cell_axis is along the 1D direction
 
         NAMELIST /electrostatic/                 &
-             problem, tolvelect, tolrhoaux,      &
-             solver, auxiliary, step_type, step, &
-             maxstep,                            &
+             problem, tol, solver, auxiliary,    &
+             step_type, step, maxstep,           &
              mix_type, mix, ndiis,               &
              preconditioner,                     &
              screening_type, screening,          &
              core, boundary_core,                &
              ifdtype, nfdpoint,                  &
-             bcindex, bcplus, bcminus
+             pbc_dim, pbc_correction, pbc_axis
 
   CONTAINS
      !
-     SUBROUTINE read_environ(nelec,nspin,nat,ntyp,atom_label,assume_isolated,ibrav)
+     SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,assume_isolated)
        !
        USE environ_init, ONLY : set_environ_base
-       USE electrostatic_base, ONLY : set_electrostatic_base
+       USE electrostatic_init, ONLY : set_electrostatic_base
        !
+       CHARACTER(len=2), INTENT(IN) :: prog
        CHARACTER(len=80), INTENT(IN) :: assume_isolated
-       INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp, ibrav
+       INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp
        CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
        !
        INTEGER, EXTERNAL :: find_free_unit
@@ -456,19 +437,19 @@ MODULE environ_input
        !
        ! ... Set electrostatic first as it does not depend on anything else
        !
-       CALL set_electrostatic_base ( problem, tolvelect, tolrhoaux, solver, &
-                                     auxiliary, step_type, step, maxstep,   &
-                                     mix_type, ndiis, mix, preconditioner,  &
+       CALL set_electrostatic_base ( problem, tol, solver, auxiliary,       &
+                                     step_type, step, maxstep, mix_type,    &
+                                     ndiis, mix, preconditioner,            &
                                      screening_type, screening, core,       &
                                      boundary_core, ifdtype, nfdpoint,      &
-                                     bcindex, bcplus, bcminus )
+                                     assume_isolated, pbc_correction,       &
+                                     pbc_dim, pbc_axis, prog )
        !
        ! ... Then set environ base
        !
        CALL set_environ_base  ( nelec, nspin,                               &
                                 nat, ntyp, atom_label, atomicspread,        &
                                 corespread, solvationrad,                   &
-                                assume_isolated, ibrav,                     &
                                 environ_restart, environ_thr,               &
                                 environ_nskip, environ_type,                &
                                 system_ntyp, system_dim, system_axis,       &
@@ -548,6 +529,8 @@ MODULE environ_input
        !
        IF( ionode ) READ( environ_unit_input, electrostatic, iostat = ios )
        CALL mp_bcast( ios, ionode_id, comm )
+       IF( ios /= 0 ) CALL errore( ' read_environ ', &
+                                 & ' reading namelist electrostatic ', ABS(ios) )
        !
        ! ... Broadcast &ELECTROSTATIC variables
        !
@@ -618,10 +601,6 @@ MODULE environ_input
        rhopb = 0.0001D0
        solvent_temperature = 300.0D0
        !
-       env_periodicity = 3          !!! using assume_isolated instead
-       pbc_correction = 'parabolic' !!! using assume_isolated instead
-       cell_axis = 3                !!! using assume_isolated instead
-       !
        env_external_charges = 0
        env_dielectric_regions = 0
        !
@@ -643,8 +622,7 @@ MODULE environ_input
        !
        !
        problem = 'poisson'
-       tolvelect = 1.D-4
-       tolrhoaux = 1.D-6
+       tol = 1.D-4
        !
        solver = 'cg'
        auxiliary = 'none'
@@ -665,9 +643,9 @@ MODULE environ_input
        ifdtype  = 1
        nfdpoint = 2
        !
-       bcindex = (/ 0, 0, 0 /)
-       bcplus  = (/ 0.D0, 0.D0, 0.D0 /)
-       bcminus = (/ 0.D0, 0.D0, 0.D0 /)
+       pbc_dim = -3
+       pbc_correction = 'none'
+       pbc_axis = 3
        !
        RETURN
        !
@@ -729,10 +707,6 @@ MODULE environ_input
        CALL mp_bcast( rhopb,                      ionode_id, comm )
        CALL mp_bcast( solvent_temperature,        ionode_id, comm )
        !
-       CALL mp_bcast( env_periodicity,            ionode_id, comm )
-       CALL mp_bcast( pbc_correction,             ionode_id, comm )
-       CALL mp_bcast( cell_axis,                  ionode_id, comm )
-       !
        CALL mp_bcast( env_external_charges,       ionode_id, comm )
        CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
        !
@@ -753,8 +727,7 @@ MODULE environ_input
        IMPLICIT NONE
        !
        CALL mp_bcast( problem,                    ionode_id, comm )
-       CALL mp_bcast( tolvelect,                  ionode_id, comm )
-       CALL mp_bcast( tolrhoaux,                  ionode_id, comm )
+       CALL mp_bcast( tol,                        ionode_id, comm )
        !
        CALL mp_bcast( solver,                     ionode_id, comm )
        CALL mp_bcast( auxiliary,                  ionode_id, comm )
@@ -774,9 +747,9 @@ MODULE environ_input
        CALL mp_bcast( ifdtype,                    ionode_id, comm )
        CALL mp_bcast( nfdpoint,                   ionode_id, comm )
        !
-       CALL mp_bcast( bcindex,                    ionode_id, comm )
-       CALL mp_bcast( bcplus,                     ionode_id, comm )
-       CALL mp_bcast( bcminus,                    ionode_id, comm )
+       CALL mp_bcast( pbc_dim,                    ionode_id, comm )
+       CALL mp_bcast( pbc_axis,                   ionode_id, comm )
+       CALL mp_bcast( pbc_correction,             ionode_id, comm )
        !
        RETURN
        !
@@ -883,18 +856,6 @@ MODULE environ_input
        IF( solvent_temperature < 0.0_DP ) &
           CALL errore( sub_name,' solvent_temperature out of range ', 1 )
        !
-       IF( env_periodicity < 0 .OR. env_periodicity > 3 ) &
-          CALL errore( sub_name,' env_periodicity out of range ', 1 )
-       IF( cell_axis < 1 .OR. cell_axis > 3 ) &
-          CALL errore( sub_name,' cell_axis out of range ', 1 )
-       allowed = .FALSE.
-       DO i = 1, SIZE( pbc_correction_allowed )
-          IF( TRIM(pbc_correction) == pbc_correction_allowed(i) ) allowed = .TRUE.
-       END DO
-       IF( .NOT. allowed ) &
-          CALL errore( sub_name, ' pbc_correction '''// &
-                       & TRIM(pbc_correction)//''' not allowed ', 1 )
-       !
        IF ( env_external_charges < 0 ) &
           CALL errore( sub_name,' env_external_charges out of range ', 1 )
        !
@@ -928,10 +889,8 @@ MODULE environ_input
        IF( .NOT. allowed ) &
           CALL errore( sub_name, ' problem '''// &
           & TRIM(problem)//''' not allowed ', 1 )
-       IF( tolvelect <= 0.0_DP ) &
-          CALL errore( sub_name,' tolvelect out of range ', 1 )
-       IF( tolrhoaux <= 0.0_DP ) &
-          CALL errore( sub_name,' tolrhoaux out of range ', 1 )
+       IF( tol <= 0.0_DP ) &
+          CALL errore( sub_name,' tolerance out of range ', 1 )
        !
        allowed = .FALSE.
        DO i = 1, SIZE( solver_allowed )
@@ -1009,6 +968,18 @@ MODULE environ_input
        IF( nfdpoint < 1 ) &
           CALL errore( sub_name,' nfdpoint out of range ', 1 )
        !
+       IF( pbc_dim < -3 .OR. pbc_dim > 3 ) &
+          CALL errore( sub_name,' pbc_dim out of range ', 1 )
+       IF( pbc_axis < 1 .OR. pbc_axis > 3 ) &
+          CALL errore( sub_name,' cell_axis out of range ', 1 )
+       allowed = .FALSE.
+       DO i = 1, SIZE( pbc_correction_allowed )
+          IF( TRIM(pbc_correction) == pbc_correction_allowed(i) ) allowed = .TRUE.
+       END DO
+       IF( .NOT. allowed ) &
+          CALL errore( sub_name, ' pbc_correction '''// &
+                       & TRIM(pbc_correction)//''' not allowed ', 1 )
+       !
        RETURN
        !
      END SUBROUTINE electrostatic_checkin
@@ -1037,16 +1008,6 @@ MODULE environ_input
        END IF
        !
        IF ( eps_mode .EQ. 'ionic' ) boundary_core = 'analytic'
-       !
-       IF ( env_periodicity == 0 ) THEN
-          bcindex = 1
-       ELSE IF ( env_periodicity == 1 ) THEN
-          bcindex = 1
-          bcindex( cell_axis ) = 0
-       ELSE IF ( env_periodicity == 2 ) THEN
-          bcindex = 0
-          bcindex( cell_axis ) = 1
-       ENDIF
        !
        RETURN
        !

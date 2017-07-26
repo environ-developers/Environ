@@ -20,7 +20,9 @@ environ_makov_payne.o                 \
 generate_dielectric.o                 \
 environ_debug.o                       \
 electrostatic.o                       \
+electrostatic_init.o                  \
 electrostatic_mod.o                   \
+electrostatic_types.o                 \
 boundary.o                            \
 functions.o                           \
 ions.o                                \

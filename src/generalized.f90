@@ -17,10 +17,9 @@ MODULE generalized
 !--------------------------------------------------------------------
 
   USE environ_types
+  USE electrostatic_types
   USE environ_output
   USE poisson, ONLY : poisson_direct, poisson_gradient_direct
-  USE electrostatic_base, ONLY : auxiliary, preconditioner, solver, &
-       maxstep, tolvelect, tolrhoaux, mix
   USE environ_base, ONLY : e2
 
   IMPLICIT NONE
@@ -32,11 +31,13 @@ MODULE generalized
 CONTAINS
 
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient( charges, dielectric, potential )
+SUBROUTINE generalized_gradient( solver, core, charges, dielectric, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
+  TYPE( electrostatic_solver ), INTENT(IN) :: solver
+  TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_charges ), INTENT(INOUT) :: charges
   TYPE( environ_dielectric ), INTENT(IN) :: dielectric
   TYPE( environ_density ), INTENT(INOUT) :: potential
@@ -45,48 +46,55 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 
   CALL start_clock( 'calc_vsolv' )
 
-  SELECT CASE ( auxiliary )
+  IF ( solver % use_gradient ) THEN
 
-  CASE ( 'none' )
+     IF ( solver % auxiliary .EQ. 'none' ) THEN
 
-     SELECT CASE ( preconditioner )
+        SELECT CASE ( solver % gradient % preconditioner )
 
-     CASE ( 'none' )
+        CASE ( 'none' )
 
-        CALL generalized_gradient_none( charges, dielectric, potential )
+           CALL generalized_gradient_none( solver % gradient, core, charges, dielectric, potential )
 
-     CASE ( 'sqrt' )
+        CASE ( 'sqrt' )
 
-        CALL generalized_gradient_sqrt( charges, dielectric, potential )
+           CALL generalized_gradient_sqrt( solver % gradient, core, charges, dielectric, potential )
 
-     CASE ( 'left' )
+        CASE ( 'left' )
 
-        CALL generalized_gradient_left( charges, dielectric, potential )
+           CALL generalized_gradient_left( solver % gradient, core, charges, dielectric, potential )
 
-     CASE DEFAULT
+        CASE DEFAULT
 
-        CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
+           CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
 
-     END SELECT
-
-  CASE ( 'full' )
-
-     IF ( solver .EQ. 'iterative' ) THEN
-
-        CALL generalized_iterative( charges, dielectric, potential )
+        END SELECT
 
      ELSE
 
         CALL errore(sub_name,'Option not yet implemented',1)
 !        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
 
+     END IF
+
+  ELSE IF ( solver % use_iterative ) THEN
+
+     IF ( solver % auxiliary .EQ. 'full' ) THEN
+
+        CALL generalized_iterative( solver % iterative, core, charges, dielectric, potential )
+
+     ELSE
+
+        CALL errore(sub_name,'Option not yet implemented',1)
+!        CALL generalized_iterative_velect( charges, dielectric, potential )
+
      ENDIF
 
-  CASE DEFAULT
+  ELSE
 
      CALL errore( sub_name, 'unexpected auxiliary keyword', 1 )
 
-  END SELECT
+  END IF
 
   CALL stop_clock( 'calc_vsolv' )
 
@@ -96,11 +104,13 @@ SUBROUTINE generalized_gradient( charges, dielectric, potential )
 END SUBROUTINE generalized_gradient
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_iterative( charges, dielectric, potential )
+SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
+  TYPE( iterative_solver ), TARGET, INTENT(IN) :: iterative
+  TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_charges ), TARGET, INTENT(INOUT) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
@@ -115,6 +125,13 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
   TYPE( environ_gradient ) :: gradpoisson
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_iterative'
+
+  INTEGER, POINTER :: maxiter
+  REAL( DP ), POINTER :: tolrhoaux, mix
+
+  maxiter => iterative % maxiter
+  mix => iterative % mix
+  tolrhoaux => iterative % tol
 
   IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -157,7 +174,7 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
   ! ... Start iterative algorithm
 
-  DO iter = 1, maxstep
+  DO iter = 1, maxiter
 
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 9002 FORMAT(' Iteration # ',i10)
@@ -166,7 +183,7 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
        CALL update_environ_charges( charges )
 
-       CALL poisson_gradient_direct( charges, gradpoisson )
+       CALL poisson_gradient_direct( core, charges, gradpoisson )
 
        CALL scalar_product_environ_gradient( gradlogeps, gradpoisson, residual )
 
@@ -179,15 +196,15 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
        delta_qm = quadratic_mean_environ_density( residual )
        delta_en = euclidean_norm_environ_density( residual )
        totiter = integrate_environ_density( rhoiter )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( verbose .GE. 2 ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
 9003   FORMAT(' Total iterative polarization charge = ',4F13.6)
-       IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
+       IF ( delta_en .LT. tolrhoaux .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, exit!')
           EXIT
-       ELSE IF ( iter .EQ. maxstep ) THEN
+       ELSE IF ( iter .EQ. maxiter ) THEN
          WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
@@ -203,7 +220,7 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 
     CALL update_environ_charges( charges )
 
-    CALL poisson_direct( charges, potential )
+    CALL poisson_direct( core, charges, potential )
 
     ! ... Destroy local variables
 
@@ -216,11 +233,13 @@ SUBROUTINE generalized_iterative( charges, dielectric, potential )
 END SUBROUTINE generalized_iterative
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
+SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
+  TYPE( gradient_solver ), TARGET, INTENT(IN) :: gradient
+  TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
@@ -235,6 +254,14 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
   TYPE( environ_gradient ) :: g
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_none'
+
+  LOGICAL, POINTER :: lconjugate
+  INTEGER, POINTER :: maxstep
+  REAL( DP ), POINTER :: tolvelect
+
+  lconjugate => gradient % lconjugate
+  maxstep => gradient % maxstep
+  tolvelect => gradient % tol
 
   IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -298,7 +325,7 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 
        ! ... Conjugate gradient or steepest descent input
 
-       IF ( solver .EQ. 'cg' .AND. ABS(rzold) .GT. 1.D-30 ) THEN
+       IF ( lconjugate .AND. ABS(rzold) .GT. 1.D-30 ) THEN
           beta = rznew / rzold
        ELSE
           beta = 0.D0
@@ -361,11 +388,13 @@ SUBROUTINE generalized_gradient_none( charges, dielectric, potential )
 END SUBROUTINE generalized_gradient_none
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
+SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
+  TYPE( gradient_solver ), TARGET, INTENT(IN) :: gradient
+  TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
@@ -379,6 +408,14 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
   TYPE( environ_density ) :: r, z, p, Ap, invsqrt
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_sqrt'
+
+  LOGICAL, POINTER :: lconjugate
+  INTEGER, POINTER :: maxstep
+  REAL( DP ), POINTER :: tolvelect
+
+  lconjugate => gradient % lconjugate
+  maxstep => gradient % maxstep
+  tolvelect => gradient % tol
 
   IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -416,7 +453,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
      ! ... Preconditioning step
 
      z%of_r = r%of_r * invsqrt%of_r
-     CALL poisson_direct( z, z )
+     CALL poisson_direct( core, z, z )
      z%of_r = z%of_r * invsqrt%of_r
 
      rzold = scalar_product_environ_density( r, z )
@@ -457,7 +494,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
        ! ... Apply preconditioner to new state
 
        z%of_r = r%of_r * invsqrt%of_r
-       CALL poisson_direct( z, z )
+       CALL poisson_direct( core, z, z )
        z%of_r = z%of_r * invsqrt%of_r
 
        rznew = scalar_product_environ_density( r, z )
@@ -466,7 +503,7 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 
        ! ... Conjugate gradient or steepest descent input
 
-       IF ( solver .EQ. 'cg' .AND. ABS(rzold) .GT. 1.D-30 ) THEN
+       IF ( lconjugate .AND. ABS(rzold) .GT. 1.D-30 ) THEN
           beta = rznew / rzold
        ELSE
           beta = 0.D0
@@ -522,11 +559,13 @@ SUBROUTINE generalized_gradient_sqrt( charges, dielectric, potential )
 END SUBROUTINE generalized_gradient_sqrt
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
+SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
+  TYPE( gradient_solver ), TARGET, INTENT(IN) :: gradient
+  TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
@@ -540,7 +579,15 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
   TYPE( environ_density ) :: r, z, p, Ap
   TYPE( environ_gradient ) :: g
 
-  CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_none'
+  CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_left'
+
+  LOGICAL, POINTER :: lconjugate
+  INTEGER, POINTER :: maxstep
+  REAL( DP ), POINTER :: tolvelect
+
+  lconjugate => gradient % lconjugate
+  maxstep => gradient % maxstep
+  tolvelect => gradient % tol
 
   IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -583,7 +630,7 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
 !!!     ! ... Preconditioning step
 !!!
 !!!     z%of_r = r%of_r / eps%of_r
-!!!     CALL poisson_direct( z, z )
+!!!     CALL poisson_direct( core, z, z )
 !!!
 !!!     rzold = scalar_product_environ_density( r, z )
 !!!     IF ( ABS(rzold) .LT. 1.D-30 ) &
@@ -627,7 +674,7 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
        ! ... Apply preconditioner to new state
 
        z%of_r = r%of_r / eps%of_r
-       CALL poisson_direct( z, z )
+       CALL poisson_direct( core, z, z )
 
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
@@ -635,7 +682,7 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
 
        ! ... Conjugate gradient or steepest descent input
 
-       IF ( solver .EQ. 'cg' .AND. ABS(rzold) .GT. 1.D-30 ) THEN
+       IF ( lconjugate .AND. ABS(rzold) .GT. 1.D-30 ) THEN
           beta = rznew / rzold
        ELSE
           beta = 0.D0
@@ -695,119 +742,6 @@ SUBROUTINE generalized_gradient_left( charges, dielectric, potential )
 !--------------------------------------------------------------------
 END SUBROUTINE generalized_gradient_left
 !--------------------------------------------------------------------
-!!!TEMPLATE!!!!--------------------------------------------------------------------
-!!!TEMPLATE!!!SUBROUTINE generalized_gradient_template( charges, dielectric, potential )
-!!!TEMPLATE!!!!--------------------------------------------------------------------
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  IMPLICIT NONE
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  TYPE( environ_charges ), INTENT(IN) :: charges
-!!!TEMPLATE!!!  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
-!!!TEMPLATE!!!  TYPE( environ_density ), INTENT(INOUT) :: potential
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  TYPE( environ_cell ), POINTER :: cell
-!!!TEMPLATE!!!  TYPE( environ_density ), POINTER :: x, b, eps
-!!!TEMPLATE!!!  TYPE( environ_gradient ), POINTER :: gradeps
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  INTEGER :: iter
-!!!TEMPLATE!!!  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, deltar
-!!!TEMPLATE!!!  TYPE( environ_density ) :: r, z, p, Ap
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  ! ... Check that fields have the same defintion domain
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
-!!!TEMPLATE!!!       & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-!!!TEMPLATE!!!  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
-!!!TEMPLATE!!!       & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-!!!TEMPLATE!!!  cell => charges%density%cell
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  ! ... Aliases
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  b => charges % density
-!!!TEMPLATE!!!  eps => dielectric % epsilon
-!!!TEMPLATE!!!  gradeps => dielectric % gradient
-!!!TEMPLATE!!!  x => potential
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  ! ... Create and initialize local variables
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  CALL init_environ_density( cell, r )
-!!!TEMPLATE!!!  CALL init_environ_density( cell, z )
-!!!TEMPLATE!!!  CALL init_environ_density( cell, p )
-!!!TEMPLATE!!!  CALL init_environ_density( cell, Ap )
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  ! ... Starting guess from new input and previous solution(s)
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  x%of_r = 0.D0
-!!!TEMPLATE!!!  r = b
-!!!TEMPLATE!!!  z = r ! no preconditioner
-!!!TEMPLATE!!!  p = z
-!!!TEMPLATE!!!  rzold = scalar_product_environ_density( r, z )
-!!!TEMPLATE!!!  IF ( rzold .LT. 1.D-30 ) THEN
-!!!TEMPLATE!!!     WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
-!!!TEMPLATE!!!     STOP
-!!!TEMPLATE!!!  ENDIF
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  ! ... Start gradient descent
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  DO iter = 1, maxstep
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       ! ... Apply operator to conjugate direction
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       CALL external_hessian(p,g,h)
-!!!TEMPLATE!!!       Ap%of_r(:) = eps%of_r(:)*(h%of_r(1,1,:)**2+h%of_r(2,2,:)**2+h%of_r(3,3,:)**2) + &
-!!!TEMPLATE!!!                  & gradeps%of_r(1,:)*g%of_r(1,:) + &
-!!!TEMPLATE!!!                  & gradeps%of_r(2,:)*g%of_r(2,:) + &
-!!!TEMPLATE!!!                  & gradeps%of_r(3,:)*g%of_r(3,:)
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       ! ... Step downhill
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       pAp = scalar_product_environ_density( p, Ap )
-!!!TEMPLATE!!!       alpha = rzold / pAp
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       x%of_r = x%of_r + alpha * p%of_r
-!!!TEMPLATE!!!       r%of_r = r%of_r - alpha * Ap%of_r
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       ! ... If residual is small enough exit
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       deltar = quadratic_mean_environ_density(r)
-!!!TEMPLATE!!!       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)deltar,tolvelect
-!!!TEMPLATE!!!       IF ( deltar .LT. tolvelect .AND. iter .GT. 0 ) THEN
-!!!TEMPLATE!!!         IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-!!!TEMPLATE!!!         EXIT
-!!!TEMPLATE!!!       ELSE IF ( iter .EQ. maxstep ) THEN
-!!!TEMPLATE!!!         WRITE(program_unit,9006)
-!!!TEMPLATE!!!       ENDIF
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       ! ... Apply preconditioner to new state
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       z = r ! no preconditioner
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       rznew = scalar_product_environ_density( r, z )
-!!!TEMPLATE!!!       IF ( ABS(rznew) .LT. 1.D-30 ) THEN
-!!!TEMPLATE!!!          WRITE(program_unit,*)'ERROR: null step in gradient descent iteration'
-!!!TEMPLATE!!!          STOP
-!!!TEMPLATE!!!       ENDIF
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       ! ... Conjugate gradient or steepest descent input
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!       IF ( solver .EQ. 'cg' ) THEN
-!!!TEMPLATE!!!          p%of_r = z%of_r + rznew / rzold * p%of_r
-!!!TEMPLATE!!!       ELSE
-!!!TEMPLATE!!!          p = z
-!!!TEMPLATE!!!       END IF
-!!!TEMPLATE!!!       rzold = rznew
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!    ENDDO
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9000) deltar, iter
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!  RETURN
-!!!TEMPLATE!!!
-!!!TEMPLATE!!!!--------------------------------------------------------------------
-!!!TEMPLATE!!!END SUBROUTINE generalized_gradient_template
-!!!TEMPLATE!!!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE generalized
 !--------------------------------------------------------------------

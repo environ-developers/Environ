@@ -1115,10 +1115,7 @@ CONTAINS
                                      env_optical_permittivity,         &
                                      env_surface_tension,              &
                                      env_pressure, lelectrostatic
-      USE electrostatic_base, ONLY : problem, solver, auxiliary,       &
-                                     tolvelect, tolrhoaux,             &
-                                     core, boundary_core,              &
-                                     ifdtype, nfdpoint
+      USE electrostatic_base, ONLY : outer, boundary_core, lfd, fd
       !
       IMPLICIT NONE
       !
@@ -1165,19 +1162,17 @@ CONTAINS
                !
                WRITE( UNIT = program_unit, FMT = 9100 )
                !
-               WRITE( UNIT = program_unit, FMT = 9101 )problem, solver, auxiliary
+               WRITE( UNIT = program_unit, FMT = 9101 )outer%problem, outer%solver%type, outer%solver%auxiliary
                !
-               WRITE( UNIT = program_unit, FMT = 9102 )tolvelect, tolrhoaux
+               WRITE( UNIT = program_unit, FMT = 9102 )outer%core%type, boundary_core
                !
-               WRITE( UNIT = program_unit, FMT = 9103 )core, boundary_core
-               !
-               IF ( core .EQ. 'fd' .OR. boundary_core .EQ. 'fd' ) THEN
-                  IF ( ifdtype .EQ. 1 ) THEN
-                     WRITE( UNIT = program_unit, FMT = 9104 ) 'central diff.',nfdpoint
-                  ELSE IF (ifdtype .EQ. 2 .OR. ifdtype .EQ. 3 ) THEN
-                     WRITE( UNIT = program_unit, FMT = 9104 ) 'lanczos diff.',nfdpoint
-                  ELSE IF (ifdtype .EQ.4 .OR. ifdtype .EQ. 5 ) THEN
-                     WRITE( UNIT = program_unit, FMT = 9104 ) 'noise-robust diff.',nfdpoint
+               IF ( lfd ) THEN
+                  IF ( fd%ifdtype .EQ. 1 ) THEN
+                     WRITE( UNIT = program_unit, FMT = 9103 ) 'central diff.',fd%nfdpoint
+                  ELSE IF (fd%ifdtype .EQ. 2 .OR. fd%ifdtype .EQ. 3 ) THEN
+                     WRITE( UNIT = program_unit, FMT = 9103 ) 'lanczos diff.',fd%nfdpoint
+                  ELSE IF (fd%ifdtype .EQ.4 .OR. fd%ifdtype .EQ. 5 ) THEN
+                     WRITE( UNIT = program_unit, FMT = 9103 ) 'noise-robust diff.',fd%nfdpoint
                   END IF
                END IF
                !
@@ -1211,11 +1206,9 @@ CONTAINS
 9101  FORMAT( '     electrostatic problem to solve    = ',  A24,' ' &
              /'     numerical solver adopted          = ',  A24,' ' &
              /'     type of auxiliary density adopted = ',  A24,' ' )
-9102  FORMAT( '     required accuracy on potential    = ',  F24.4,' ' &
-             /'     required accuracy on aux. charge  = ',  F24.4,' ' )
-9103  FORMAT( '     type of core tool for poisson     = ',  A24,' ' &
+9102  FORMAT( '     type of core tool for poisson     = ',  A24,' ' &
              /'     type of core tool for s(r) deriv  = ',  A24,' ' )
-9104  FORMAT( '     type of numerical differentiator  = ',  A24,' ' &
+9103  FORMAT( '     type of numerical differentiator  = ',  A24,' ' &
              /'     number of points in num. diff.    = ',  I24,' ' )
 
 !--------------------------------------------------------------------
