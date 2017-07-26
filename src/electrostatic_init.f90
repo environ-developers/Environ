@@ -214,8 +214,8 @@ CONTAINS
     need_factsqrt = .FALSE.
     need_gradlog  = .FALSE.
     !
-    CALL set_electrostatic_flags( reference, need_auxiliary, need_gradient, need_factsqrt, need_gradlog )
-    CALL set_electrostatic_flags( outer, need_auxiliary, need_gradient, need_factsqrt, need_gradlog )
+    CALL set_electrostatic_flags( reference, need_auxiliary, need_gradient, need_gradlog, need_factsqrt )
+    CALL set_electrostatic_flags( outer, need_auxiliary, need_gradient, need_gradlog, need_factsqrt )
     !
     RETURN
     !

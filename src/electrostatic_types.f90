@@ -235,6 +235,7 @@ CONTAINS
     ! double check that one and only one solver is specified
 
     number = 0
+    IF ( solver % use_direct ) number = number + 1
     IF ( solver % use_gradient ) number = number + 1
     IF ( solver % use_iterative ) number = number + 1
     IF ( number .NE. 1 ) CALL errore( sub_name, 'Too few or too many solvers are active', 1 )
