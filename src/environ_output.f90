@@ -580,10 +580,13 @@ CONTAINS
     IF ( ionode .AND. verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1500 )
        WRITE( UNIT = environ_unit, FMT = 1501 )ions%number
-       WRITE( UNIT = environ_unit, FMT = 1502 )ions%charge
-       WRITE( UNIT = environ_unit, FMT = 1503 )ions%center
+       WRITE( UNIT = environ_unit, FMT = 1502 )ions%center
+       WRITE( UNIT = environ_unit, FMT = 1503 )ions%charge
+       WRITE( UNIT = environ_unit, FMT = 1504 )ions%dipole
+       WRITE( UNIT = environ_unit, FMT = 1505 )ions%quadrupole_pc
+       IF ( ions%use_smeared_ions ) WRITE( UNIT = environ_unit, FMT = 1506 )ions%quadrupole_gauss
        DO i = 1, ions%number
-          WRITE( UNIT = environ_unit, FMT = 1504 )i,ions%ityp(i),ions%tau(:,i)
+          WRITE( UNIT = environ_unit, FMT = 1507 )i,ions%ityp(i),ions%tau(:,i)*ions%alat
        END DO
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_iontype(ions%ntyp,ions%iontype,passed_verbosity,passed_depth)
@@ -607,9 +610,12 @@ CONTAINS
 
 1500 FORMAT(/,4('%'),' IONS ',70('%'))
 1501 FORMAT(1x,'number of ions             = ',I10)
-1502 FORMAT(1x,'total ionic charge         = ',F14.7)
-1503 FORMAT(1x,'ionic center of charge     = ',3(F14.7))
-1504 FORMAT(1x,'ion ',I3,' type = ',I2,' coordinates = ',3(F14.7))
+1502 FORMAT(1x,'ionic center of charge     = ',3(F14.7))
+1503 FORMAT(1x,'total ionic charge         = ',F14.7)
+1504 FORMAT(1x,'ionic dipole               = ',F14.7)
+1505 FORMAT(1x,'ionic quadrupole (pc)      = ',F14.7)
+1506 FORMAT(1x,'ionic quadrupole (gauss)   = ',F14.7)
+1507 FORMAT(1x,'ion ',I3,' type = ',I2,' coordinates = ',3(F14.7))
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_ions
 !--------------------------------------------------------------------

@@ -71,6 +71,9 @@ CONTAINS
     INTEGER :: i
 
     ions%center = 0.D0
+    ions%dipole = 0.D0
+    ions%quadrupole_pc = 0.D0
+    ions%quadrupole_gauss = 0.D0
 
     ions%number = nat
     ions%ntyp = ntyp
@@ -82,6 +85,7 @@ CONTAINS
     ions%tau = 0.D0
     ALLOCATE( ions%ityp( nat ) )
     ions%ityp = 0
+    ions%alat = 0.D0
 
     ! Set ions types, note that also valence charges cannot be initialized here
 
@@ -141,6 +145,7 @@ CONTAINS
     IF ( ions%number .NE. nat ) CALL errore(sub_name,'Mismatch in number of atoms',1)
     IF ( ions%ntyp .NE. ntyp ) CALL errore(sub_name,'Mismatch in number of atom types',1)
 
+    ions%alat = cell % alat ! This is needed because the ionic positions are scaled by alat
     ions%ityp = ityp
 
     DO i = 1, ions%ntyp
@@ -244,6 +249,22 @@ CONTAINS
     ! If needed, generate a fictitious ion density using gaussians
 
     IF ( ions%use_smeared_ions ) CALL density_of_functions(ions%number,ions%smeared_ions,ions%density)
+
+    ! Compute quadrupole moment of point-like (and gaussian) nuclei
+
+    ions % dipole = 0.D0 ! This is due to the choice of ionic center
+    ions % quadrupole_pc = 0.D0
+
+    DO i = 1, ions%number
+
+       ions % quadrupole_pc(:) = ions % quadrupole_pc(:) - &
+            & ions % iontype ( ions % ityp(i) ) % zv * &
+            & ( ( ions % tau(:,i) - ions % center(:) ) * ions % alat )**2
+
+    END DO
+
+    IF ( ions % use_smeared_ions ) CALL compute_dipole( ions%density%cell%nnr, 1, ions%density, &
+         & ions%center, ions%dipole, ions%quadrupole_gauss )
 
     RETURN
 

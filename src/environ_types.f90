@@ -2,7 +2,7 @@ MODULE environ_types
 
   USE kinds,             ONLY : DP
   USE constants,         ONLY : rydberg_si, bohr_radius_si, bohr_radius_angs, &
-                              & amu_si, fpi, tpi, sqrtpi
+                              & amu_si, fpi, tpi, pi, sqrtpi
   USE mp,                ONLY : mp_sum
   USE control_flags,     ONLY : tddfpt
 
@@ -16,6 +16,7 @@ MODULE environ_types
      REAL( DP ) :: alat
      REAL( DP ) :: omega
      REAL( DP ) :: domega
+     REAL( DP ) :: origin( 3 )
      REAL( DP ), DIMENSION( 3, 3 ) :: at
 
      ! Properties of the processor-specific partition
@@ -122,6 +123,8 @@ MODULE environ_types
      LOGICAL :: update = .FALSE.
      INTEGER :: number = 0
      REAL( DP ), DIMENSION(3) :: center
+     REAL( DP ) :: alat
+     REAL( DP ), DIMENSION(3) :: dipole
 
      ! Specifications of point-like ions
 
@@ -129,6 +132,7 @@ MODULE environ_types
      INTEGER, DIMENSION(:), ALLOCATABLE :: ityp
      REAL( DP ), DIMENSION(:,:), POINTER :: tau
      TYPE( environ_iontype ), DIMENSION(:), ALLOCATABLE :: iontype
+     REAL( DP ), DIMENSION(3) :: quadrupole_pc
 
      ! Parameters of the fictitious gaussian ionic density
      ! needed by electrostatic calculations
@@ -136,6 +140,7 @@ MODULE environ_types
      LOGICAL :: use_smeared_ions = .FALSE.
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: smeared_ions
      TYPE( environ_density ) :: density
+     REAL( DP ), DIMENSION(3) :: quadrupole_gauss
 
      ! Parameters of the density of core electrons
 
@@ -380,6 +385,8 @@ CONTAINS
 
     cell % ntot = cell % n1 * cell % n2 * cell % n3
     cell % domega = cell % omega / cell % ntot
+
+    cell % origin = 0.D0
 
     RETURN
 
