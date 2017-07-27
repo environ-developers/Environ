@@ -140,6 +140,7 @@ MODULE environ_types
      LOGICAL :: use_smeared_ions = .FALSE.
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: smeared_ions
      TYPE( environ_density ) :: density
+     REAL( DP ) :: quadrupole_correction
      REAL( DP ), DIMENSION(3) :: quadrupole_gauss
 
      ! Parameters of the density of core electrons

@@ -74,6 +74,7 @@ CONTAINS
     ions%dipole = 0.D0
     ions%quadrupole_pc = 0.D0
     ions%quadrupole_gauss = 0.D0
+    ions%quadrupole_correction = 0.D0
 
     ions%number = nat
     ions%ntyp = ntyp
@@ -252,19 +253,22 @@ CONTAINS
 
     ! Compute quadrupole moment of point-like (and gaussian) nuclei
 
-    ions % dipole = 0.D0 ! This is due to the choice of ionic center
-    ions % quadrupole_pc = 0.D0
+    ions%dipole = 0.D0 ! This is due to the choice of ionic center
+    ions%quadrupole_pc = 0.D0
+    ions%quadrupole_correction = 0.D0
 
     DO i = 1, ions%number
 
-       ions % quadrupole_pc(:) = ions % quadrupole_pc(:) - &
-            & ions % iontype ( ions % ityp(i) ) % zv * &
-            & ( ( ions % tau(:,i) - ions % center(:) ) * ions % alat )**2
+       ions%quadrupole_pc(:) = ions%quadrupole_pc(:) + &
+            & ions%iontype(ions%ityp(i))%zv * &
+            & ( ( ions%tau(:,i) - ions%center(:) ) * ions%alat )**2
+       IF ( ions%use_smeared_ions ) ions%quadrupole_correction = &
+            & ions%quadrupole_correction + ions%iontype(ions%ityp(i))%zv * &
+            & ions%iontype(ions%ityp(i))%atomicspread**2 * 0.5D0
 
     END DO
 
-    IF ( ions % use_smeared_ions ) CALL compute_dipole( ions%density%cell%nnr, 1, ions%density, &
-         & ions%center, ions%dipole, ions%quadrupole_gauss )
+    IF ( ions%use_smeared_ions ) ions%quadrupole_gauss(:) = ions%quadrupole_pc(:) + ions%quadrupole_correction
 
     RETURN
 

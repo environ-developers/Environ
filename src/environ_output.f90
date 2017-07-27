@@ -612,9 +612,9 @@ CONTAINS
 1501 FORMAT(1x,'number of ions             = ',I10)
 1502 FORMAT(1x,'ionic center of charge     = ',3(F14.7))
 1503 FORMAT(1x,'total ionic charge         = ',F14.7)
-1504 FORMAT(1x,'ionic dipole               = ',F14.7)
-1505 FORMAT(1x,'ionic quadrupole (pc)      = ',F14.7)
-1506 FORMAT(1x,'ionic quadrupole (gauss)   = ',F14.7)
+1504 FORMAT(1x,'ionic dipole               = ',3(F14.7))
+1505 FORMAT(1x,'ionic quadrupole (pc)      = ',3(F14.7))
+1506 FORMAT(1x,'ionic quadrupole (gauss)   = ',3(F14.7))
 1507 FORMAT(1x,'ion ',I3,' type = ',I2,' coordinates = ',3(F14.7))
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_ions
