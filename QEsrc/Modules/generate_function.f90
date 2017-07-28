@@ -39,18 +39,12 @@ CONTAINS
       !
       ! ... Local variables
       !
-      INTEGER                   :: i, ir, ir_end
+      INTEGER                   :: i, j, k, ir, ir_end
       INTEGER                   :: idx, idx0, narea
       !
-      idx0 = 0
-      ir_end = nnr
+      ! idx0 = starting index of real-space FFT arrays for this processor
       !
-#if defined (__MPI)
-      DO i = 1, me_bgrp
-        idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-      END DO
-      ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#endif
+      idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
       !
       narea = dfftp%nr1*dfftp%nr2*dfftp%nr3 / naxis
       !
@@ -60,22 +54,29 @@ CONTAINS
         f1d = 0.D0
       END IF
       !
-      DO ir = 1, ir_end
+      DO ir = 1, dfftp%nr1x*dfftp%nr2x*dfftp%npl
          !
-         ! ... find the index along the selected axis
+         ! ... three dimensional indexes
          !
-         i = idx0 + ir - 1
-         idx = i / (dfftp%nr1x*dfftp%nr2x)
-         IF ( idx .GE. dfftp%nr3 ) CYCLE
-         IF ( axis .LT. 3 ) THEN
-           i = i - (dfftp%nr1x*dfftp%nr2x)*idx
-           idx = i / dfftp%nr1x
-           IF ( idx .GE. dfftp%nr2 ) CYCLE
-         END IF
-         IF ( axis .EQ. 1 ) THEN
-            idx = i - dfftp%nr1x*idx
-            IF ( idx .GE. dfftp%nr1 ) CYCLE
-         END IF
+         idx = idx0 + ir - 1
+         k   = idx / (dfftp%nr1x*dfftp%nr2x)
+         idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+         j   = idx / dfftp%nr1x
+         idx = idx - dfftp%nr1x*j
+         i   = idx
+         !
+         ! ... do not include points outside the physical range
+         !
+         IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+         !
+         SELECT CASE ( axis )
+         CASE ( 1 )
+            idx = i
+         CASE ( 2 )
+            idx = j
+         CASE ( 3 )
+            idx = k
+         END SELECT
          !
          idx = idx + 1 + shift
          !
@@ -127,7 +128,7 @@ CONTAINS
       ! ... Local variables
       !
       INTEGER                   :: i, j, k, ir, ir_end, ip
-      INTEGER                   :: idx0
+      INTEGER                   :: idx, idx0
       !
       REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
       REAL( DP )                :: scale, spr2, dist, length
@@ -137,20 +138,6 @@ CONTAINS
       inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
       inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
       inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-      !
-      idx0 = 0
-      !
-#if defined (__MPI)
-      DO i = 1, me_bgrp
-        idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-      END DO
-#endif
-      !
-#if defined (__MPI)
-      ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#else
-      ir_end = nnr
-#endif
       !
       IF (axis.LT.1.OR.axis.GT.3) &
            WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
@@ -169,18 +156,24 @@ CONTAINS
       ALLOCATE( rholocal( nnr ) )
       rholocal = 0.D0
       !
-      DO ir = 1, ir_end
+      ! idx0 = starting index of real-space FFT arrays for this processor
+      !
+      idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+      !
+      DO ir = 1, dfftp%nr1x*dfftp%nr2x*dfftp%npl
          !
          ! ... three dimensional indexes
          !
-         i = idx0 + ir - 1
-         k = i / (dfftp%nr1x*dfftp%nr2x)
-         IF ( k .GE. dfftp%nr3 ) CYCLE
-         i = i - (dfftp%nr1x*dfftp%nr2x)*k
-         j = i / dfftp%nr1x
-         IF ( j .GE. dfftp%nr2 ) CYCLE
-         i = i - dfftp%nr1x*j
-         IF ( i .GE. dfftp%nr1 ) CYCLE
+         idx = idx0 + ir - 1
+         k   = idx / (dfftp%nr1x*dfftp%nr2x)
+         idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+         j   = idx / dfftp%nr1x
+         idx = idx - dfftp%nr1x*j
+         i   = idx
+         !
+         ! ... do not include points outside the physical range
+         !
+         IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
          !
          DO ip = 1, 3
             r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -601,7 +594,7 @@ CONTAINS
                     DBLE( k )*inv_nr3*at(ip,3)
          END DO
          !
-         r(:) = pos(:) - r(:)
+         r(:) = r(:) - pos(:)
          !
          !  ... possibly 2D or 1D gaussians
          !
@@ -726,7 +719,7 @@ CONTAINS
                     DBLE( k )*inv_nr3*at(ip,3)
          END DO
          !
-         r(:) = pos(:) - r(:)
+         r(:) = r(:) - pos(:)
          !
          !  ... possibly 2D or 1D erfc
          !
@@ -743,11 +736,12 @@ CONTAINS
          s(:) = MATMUL( r(:), bg(:,:) )
          s(:) = s(:) - ANINT(s(:))
          r(:) = MATMUL( at(:,:), s(:) )
+         r = r * alat
          !
          dist = SQRT(SUM( r * r ))
-         arg = ( dist * alat - width ) / spread
+         arg = ( dist - width ) / spread
          !
-         gradrholocal( :, ir ) = EXP( - arg**2 ) * r(:) / dist
+         gradrholocal( :, ir ) = - EXP( - arg**2 ) * r(:) / dist
          chargelocal = chargelocal + qe_erfc(arg)
          !
       END DO
@@ -769,6 +763,262 @@ CONTAINS
       !
 !----------------------------------------------------------------------
       END SUBROUTINE generate_graderfc
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+      SUBROUTINE generate_laplerfc( nnr, dim, axis, charge, width, spread, pos, laplrho )
+!----------------------------------------------------------------------
+      !
+      USE kinds,            ONLY : DP
+      USE constants,        ONLY : sqrtpi
+      USE io_global,        ONLY : stdout
+      USE cell_base,        ONLY : at, bg, alat, omega
+      USE fft_base,         ONLY : dfftp
+      USE mp,               ONLY : mp_sum
+      USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
+      !
+      IMPLICIT NONE
+      !
+      ! ... Declares variables
+      !
+      INTEGER, INTENT(IN)       :: nnr, dim, axis
+      REAL( DP ), INTENT(IN)    :: charge, width, spread
+      REAL( DP ), INTENT(IN)    :: pos( 3 )
+      REAL( DP ), INTENT(INOUT) :: laplrho( nnr )
+      !
+      ! ... Local variables
+      !
+      INTEGER                   :: i, j, k, ir, ir_end, ip
+      INTEGER                   :: idx0, ntot
+      !
+      REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+      REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
+      REAL( DP )                :: r( 3 ), s( 3 )
+      REAL( DP ), ALLOCATABLE   :: laplrholocal ( : )
+      REAL( DP ), EXTERNAL      :: qe_erfc
+      !
+      inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
+      inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
+      inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+      !
+      idx0 = 0
+      ir_end = nnr
+      !
+#if defined (__MPI)
+      DO i = 1, me_bgrp
+        idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
+      END DO
+      ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
+#endif
+      !
+      ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
+      !
+      IF (axis.LT.1.OR.axis.GT.3) &
+           WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
+      chargeanalytic = erfcvolume(dim,axis,width,spread,alat,omega,at)
+      !
+      ! ... scaling factor, take into account rescaling of generated density
+      !     to obtain the correct integrated total charge
+      !
+      scale = charge / chargeanalytic / sqrtpi / spread
+      !
+      ALLOCATE( laplrholocal( nnr ) )
+      laplrholocal = 0.D0
+      chargelocal = 0.D0
+      !
+      DO ir = 1, ir_end
+         !
+         ! ... three dimensional indexes
+         !
+         i = idx0 + ir - 1
+         k = i / (dfftp%nr1x*dfftp%nr2x)
+         IF ( k .GE. dfftp%nr3 ) CYCLE
+         i = i - (dfftp%nr1x*dfftp%nr2x)*k
+         j = i / dfftp%nr1x
+         IF ( j .GE. dfftp%nr2 ) CYCLE
+         i = i - dfftp%nr1x*j
+         IF ( i .GE. dfftp%nr1 ) CYCLE
+         !
+         DO ip = 1, 3
+            r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
+                    DBLE( j )*inv_nr2*at(ip,2) + &
+                    DBLE( k )*inv_nr3*at(ip,3)
+         END DO
+         !
+         r(:) = r(:) - pos(:)
+         !
+         !  ... possibly 2D or 1D erfc
+         !
+         IF ( dim .EQ. 1) THEN
+           r(axis) = 0.D0
+         ELSE IF ( dim .EQ. 2 ) THEN
+           DO i = 1, 3
+             IF ( i .NE. axis ) r(i) = 0.D0
+           ENDDO
+         END IF
+         !
+         ! ... minimum image convention
+         !
+         s(:) = MATMUL( r(:), bg(:,:) )
+         s(:) = s(:) - ANINT(s(:))
+         r(:) = MATMUL( at(:,:), s(:) )
+         r = r * alat
+         !
+         dist = SQRT(SUM( r * r ))
+         arg = ( dist - width ) / spread
+         !
+         laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - arg / spread ) * 2.D0
+         chargelocal = chargelocal + qe_erfc(arg)
+         !
+      END DO
+      !
+      ! ... double check that the integral of the generated charge corresponds to
+      !     what is expected
+      !
+      CALL mp_sum( chargelocal, intra_bgrp_comm )
+      chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
+      IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
+        WRITE(stdout,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
+      !
+      laplrholocal = laplrholocal * scale
+      !
+      laplrho = laplrho + laplrholocal
+      DEALLOCATE( laplrholocal )
+      !
+      RETURN
+      !
+!----------------------------------------------------------------------
+      END SUBROUTINE generate_laplerfc
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+      SUBROUTINE generate_hesserfc( nnr, dim, axis, charge, width, spread, pos, hessrho )
+!----------------------------------------------------------------------
+      !
+      USE kinds,            ONLY : DP
+      USE constants,        ONLY : sqrtpi
+      USE io_global,        ONLY : stdout
+      USE cell_base,        ONLY : at, bg, alat, omega
+      USE fft_base,         ONLY : dfftp
+      USE mp,               ONLY : mp_sum
+      USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
+      !
+      IMPLICIT NONE
+      !
+      ! ... Declares variables
+      !
+      INTEGER, INTENT(IN)       :: nnr, dim, axis
+      REAL( DP ), INTENT(IN)    :: charge, width, spread
+      REAL( DP ), INTENT(IN)    :: pos( 3 )
+      REAL( DP ), INTENT(INOUT) :: hessrho( 3, 3, nnr )
+      !
+      ! ... Local variables
+      !
+      INTEGER                   :: i, j, k, ir, ir_end, ip, jp
+      INTEGER                   :: idx0, ntot
+      !
+      REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+      REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal, tmp
+      REAL( DP )                :: r( 3 ), s( 3 )
+      REAL( DP ), ALLOCATABLE   :: hessrholocal ( :, :, : )
+      REAL( DP ), EXTERNAL      :: qe_erfc
+      !
+      inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
+      inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
+      inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+      !
+      idx0 = 0
+      ir_end = nnr
+      !
+#if defined (__MPI)
+      DO i = 1, me_bgrp
+        idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
+      END DO
+      ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
+#endif
+      !
+      ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
+      !
+      IF (axis.LT.1.OR.axis.GT.3) &
+           WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
+      chargeanalytic = erfcvolume(dim,axis,width,spread,alat,omega,at)
+      !
+      ! ... scaling factor, take into account rescaling of generated density
+      !     to obtain the correct integrated total charge
+      !
+      scale = charge / chargeanalytic / sqrtpi / spread
+      !
+      ALLOCATE( hessrholocal( 3, 3, nnr ) )
+      hessrholocal = 0.D0
+      chargelocal = 0.D0
+      !
+      DO ir = 1, ir_end
+         !
+         ! ... three dimensional indexes
+         !
+         i = idx0 + ir - 1
+         k = i / (dfftp%nr1x*dfftp%nr2x)
+         IF ( k .GE. dfftp%nr3 ) CYCLE
+         i = i - (dfftp%nr1x*dfftp%nr2x)*k
+         j = i / dfftp%nr1x
+         IF ( j .GE. dfftp%nr2 ) CYCLE
+         i = i - dfftp%nr1x*j
+         IF ( i .GE. dfftp%nr1 ) CYCLE
+         !
+         DO ip = 1, 3
+            r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
+                    DBLE( j )*inv_nr2*at(ip,2) + &
+                    DBLE( k )*inv_nr3*at(ip,3)
+         END DO
+         !
+         r(:) = r(:) - pos(:)
+         !
+         !  ... possibly 2D or 1D erfc
+         !
+         IF ( dim .EQ. 1) THEN
+           r(axis) = 0.D0
+         ELSE IF ( dim .EQ. 2 ) THEN
+           DO i = 1, 3
+             IF ( i .NE. axis ) r(i) = 0.D0
+           ENDDO
+         END IF
+         !
+         ! ... minimum image convention
+         !
+         s(:) = MATMUL( r(:), bg(:,:) )
+         s(:) = s(:) - ANINT(s(:))
+         r(:) = MATMUL( at(:,:), s(:) )
+         r = r * alat
+         !
+         dist = SQRT(SUM( r * r ))
+         arg = ( dist - width ) / spread
+         !
+         DO ip = 1, 3
+            DO jp = 1, 3
+               tmp = - r(ip) * r(jp) * ( 1.D0 / dist + 2.D0 * arg / spread )
+               IF ( ip .EQ. jp ) tmp = tmp + dist
+               hessrholocal( ip, jp, ir ) = - EXP( - arg**2 ) * tmp / dist**2
+            ENDDO
+         ENDDO
+         chargelocal = chargelocal + qe_erfc(arg)
+         !
+      END DO
+      !
+      ! ... double check that the integral of the generated charge corresponds to
+      !     what is expected
+      !
+      CALL mp_sum( chargelocal, intra_bgrp_comm )
+      chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
+      IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
+        WRITE(stdout,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
+      !
+      hessrholocal = hessrholocal * scale
+      !
+      hessrho = hessrho + hessrholocal
+      DEALLOCATE( hessrholocal )
+      !
+      RETURN
+      !
+!----------------------------------------------------------------------
+      END SUBROUTINE generate_hesserfc
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
    SUBROUTINE generate_axis( nnr, icor, pos, axis )
