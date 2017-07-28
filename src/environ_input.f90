@@ -268,7 +268,7 @@ MODULE environ_input
 !
 ! Driver's parameters
 !
-        CHARACTER( LEN = 80 ) :: solver = 'cg'
+        CHARACTER( LEN = 80 ) :: solver = 'direct'
         CHARACTER( LEN = 80 ) :: solver_allowed(7)
         DATA solver_allowed / 'cg', 'sd', 'iterative', 'lbfgs', 'newton', 'nested', 'direct' /
         ! type of numerical solver
@@ -624,7 +624,7 @@ MODULE environ_input
        problem = 'poisson'
        tol = 1.D-4
        !
-       solver = 'cg'
+       solver = 'direct'
        auxiliary = 'none'
        step_type = 'optimal'
        step = 0.3D0
@@ -999,8 +999,10 @@ MODULE environ_input
        CHARACTER(LEN=20) :: sub_name = ' fixelect '
        !
        IF ( env_static_permittivity > 1.D0 &
-            .OR. env_dielectric_regions > 0 ) &
+            .OR. env_dielectric_regions > 0 ) THEN
           problem = 'generalized'
+          solver = 'cg'
+       ENDIF
        !
        IF ( env_ioncc_ntyp > 0 ) THEN
           problem = 'modpb'

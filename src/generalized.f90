@@ -26,7 +26,7 @@ MODULE generalized
 
   PRIVATE
 
-  PUBLIC :: generalized_gradient
+  PUBLIC :: generalized_gradient, generalized_energy
 
 CONTAINS
 
@@ -102,6 +102,43 @@ SUBROUTINE generalized_gradient( solver, core, charges, dielectric, potential )
 
 !--------------------------------------------------------------------
 END SUBROUTINE generalized_gradient
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
+!--------------------------------------------------------------------
+
+  IMPLICIT NONE
+
+  TYPE( electrostatic_core ), INTENT(IN) :: core
+  TYPE( environ_charges ), INTENT(INOUT) :: charges
+  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
+  TYPE( environ_density ), INTENT(IN) :: potential
+  REAL( DP ), INTENT(OUT) :: energy
+
+  LOGICAL :: include_auxiliary
+  CHARACTER*20 :: sub_name = 'generalized_energy'
+
+  CALL start_clock( 'calc_esolv' )
+
+  energy = 0.D0
+
+  include_auxiliary = charges % include_auxiliary
+  charges % include_auxiliary = .FALSE.
+
+  CALL update_environ_charges( charges )
+
+  energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
+
+  charges % include_auxiliary = include_auxiliary
+
+  CALL update_environ_charges( charges )
+
+  CALL stop_clock( 'calc_esolv' )
+
+  RETURN
+
+!--------------------------------------------------------------------
+END SUBROUTINE generalized_energy
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential )

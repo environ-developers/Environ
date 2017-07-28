@@ -82,8 +82,8 @@ MODULE electrostatic_types
 
   TYPE oned_analytic_core
 
-     INTEGER :: n, d, axis
-     REAL( DP ) :: size, origin(3)
+     INTEGER :: n, d, p, axis
+     REAL( DP ) :: size, omega, alat, origin(3)
      REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: x
 
   END TYPE oned_analytic_core
@@ -334,13 +334,14 @@ CONTAINS
 
     CHARACTER( LEN = 80 ) :: sub_name = 'init_oned_analytic_core_first'
 
+    IF ( dim .EQ. 3 .OR. dim .LT. 0 ) &
+         & CALL errore(sub_name,'Wrong dimensions for analytic one dimensional core',1)
     oned_analytic % d = dim
+    oned_analytic % p = 3 - dim
 
-    IF ( dim .EQ. 3 .OR. dim .LT. 0 ) THEN
-       CALL errore(sub_name,'Wrong dimensions for analytic one dimensional core',1)
-    ELSE
-       oned_analytic % axis = axis
-    END IF
+    IF ( ( dim .EQ. 1 .OR. dim .EQ. 2 ) .AND. ( axis .GT. 3 .OR. axis .LT. 1 ) ) &
+         & CALL errore(sub_name,'Wrong choice of axis for analytic one dimensional core',1)
+    oned_analytic % axis = axis
 
     RETURN
 
@@ -359,13 +360,15 @@ CONTAINS
 
     oned_analytic % n = cell % nnr
     oned_analytic % origin = cell % origin
+    oned_analytic % alat = cell % alat
+    oned_analytic % omega = cell % omega
 
-    ALLOCATE( oned_analytic % x( oned_analytic % d , oned_analytic % n ) )
+    ALLOCATE( oned_analytic % x( oned_analytic % p , oned_analytic % n ) )
     IF ( oned_analytic % d .EQ. 0 ) THEN
-       oned_analytic % size = cell % omega * cell % alat**3
+       oned_analytic % size = cell % omega
        CALL generate_distance( oned_analytic % n, oned_analytic % origin, oned_analytic % x )
     ELSE IF ( oned_analytic % d .EQ. 1 ) THEN
-       oned_analytic % size = cell % omega / cell % at( oned_analytic % axis, oned_analytic % axis ) * cell % alat**2
+       oned_analytic % size = cell % omega / cell % at( oned_analytic % axis, oned_analytic % axis ) / cell % alat
        CALL errore( sub_name, 'Option not yet implemented', 1 )
     ELSE IF ( oned_analytic % d .EQ. 2 ) THEN
        oned_analytic % size = cell % at( oned_analytic % axis, oned_analytic % axis ) * cell % alat

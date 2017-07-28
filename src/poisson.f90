@@ -4,12 +4,13 @@ MODULE poisson
 
   USE environ_types
   USE electrostatic_types
+  USE periodic
 
   IMPLICIT NONE
 
   PRIVATE
 
-  PUBLIC :: poisson_direct, poisson_gradient_direct
+  PUBLIC :: poisson_direct, poisson_gradient_direct, poisson_energy
 
   INTERFACE poisson_direct
      MODULE PROCEDURE poisson_direct_charges, poisson_direct_density
@@ -18,6 +19,10 @@ MODULE poisson
   INTERFACE poisson_gradient_direct
      MODULE PROCEDURE poisson_gradient_direct_charges, poisson_gradient_direct_density
   END INTERFACE poisson_gradient_direct
+
+  INTERFACE poisson_energy
+     MODULE PROCEDURE poisson_energy_charges, poisson_energy_density
+  END INTERFACE poisson_energy
 
 CONTAINS
 !--------------------------------------------------------------------
@@ -38,20 +43,33 @@ CONTAINS
     potential % of_r = 0.D0
     !
     IF ( core % use_qe_fft ) THEN
+       !
        CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
+       !
     ELSE IF ( core % use_oned_analytic ) THEN
+       !
        CALL errore(sub_name,'Option not yet implemented',1)
+       !
     ELSE
+       !
        CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
     ENDIF
     !
 !    IF ( core % need_correction ) THEN
+!       !
 !       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+!          !
 !       CASE ( '1da', 'oned_analytic' )
+!          !
 !          CALL calc_vperiodic( core%correction%oned_analytic, charges, potential )
+!          !
 !       CASE DEFAULT
+!          !
 !          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+!          !
 !       END SELECT
+!       !
 !    ENDIF
     !
     RETURN
@@ -115,11 +133,17 @@ CONTAINS
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
     IF ( core % use_qe_fft ) THEN
+       !
        CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
+       !
     ELSE IF ( core % use_oned_analytic ) THEN
+       !
        CALL errore(sub_name,'Option not yet implemented',1)
+       !
     ELSE
+       !
        CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
     ENDIF
     !
     RETURN
@@ -142,17 +166,107 @@ CONTAINS
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
     IF ( core % use_qe_fft ) THEN
+       !
        CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
+       !
     ELSE IF ( core % use_oned_analytic ) THEN
+       !
        CALL errore(sub_name,'Option not yet implemented',1)
+       !
     ELSE
+       !
        CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
     ENDIF
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE poisson_gradient_direct_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE poisson_energy_charges( core, charges, potential, energy )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( electrostatic_core ), INTENT(IN) :: core
+    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(IN) :: potential
+    REAL( DP ), INTENT(OUT) :: energy
+    !
+    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_charges'
+    !
+    energy = 0.d0
+    !
+    IF ( core % use_qe_fft ) THEN
+       !
+       energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
+       !
+    ELSE IF ( core % use_oned_analytic ) THEN
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    ELSE
+       !
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
+    ENDIF
+    !
+!    IF ( core % need_correction ) THEN
+!       !
+!       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+!          !
+!       CASE ( '1da', 'oned_analytic' )
+!          !
+!          CALL calc_eperiodic( core%correction%oned_analytic, charges, energy )
+!          !
+!       CASE DEFAULT
+!          !
+!          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+!          !
+!       END SELECT
+!       !
+!    ENDIF
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE poisson_energy_charges
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE poisson_energy_density( core, charges, potential, energy )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( electrostatic_core ), INTENT(IN) :: core
+    TYPE( environ_density ), INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(IN) :: potential
+    REAL( DP ), INTENT(OUT) :: energy
+    !
+    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_density'
+    !
+    energy = 0.D0
+    !
+    IF ( core % use_qe_fft ) THEN
+       !
+       energy = 0.5D0 * scalar_product_environ_density( charges, potential )
+       !
+    ELSE IF ( core % use_oned_analytic ) THEN
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    ELSE
+       !
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
+    ENDIF
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE poisson_energy_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE poisson

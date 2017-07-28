@@ -107,7 +107,7 @@ CONTAINS
 
        SELECT CASE ( setup % solver % type )
 
-       CASE ( 'direct' )
+       CASE ( 'direct', 'default' )
 
           CALL poisson_direct( setup % core, charges, potential )
 
@@ -129,7 +129,7 @@ CONTAINS
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL generalized_direct()
 
-       CASE ( 'cg', 'sd', 'iterative' )
+       CASE ( 'cg', 'sd', 'iterative', 'default' )
 
           CALL generalized_gradient( setup % solver, setup % core, charges, dielectric, potential )
 
@@ -214,35 +214,33 @@ CONTAINS
   END SUBROUTINE calc_velectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_ereference( charges, potential, energy )
+  SUBROUTINE calc_ereference( setup, charges, potential, energy )
 !--------------------------------------------------------------------
     IMPLICIT NONE
 
+    TYPE( electrostatic_setup ), INTENT(IN) :: setup
     TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
 
     LOGICAL :: include_externals, include_auxiliary
 
-    energy = 0.D0
-
     ! ... Remove external charges, if present
 
     include_externals = charges % include_externals
     charges % include_externals = .FALSE.
-
-    ! ... Remove auxiliary charges, if present and activated
 
     include_auxiliary = charges % include_auxiliary
     charges % include_auxiliary = .FALSE.
 
     CALL update_environ_charges( charges )
 
-    CALL calc_eelectrostatic( charges = charges, potential = potential, energy = energy )
+    CALL calc_eelectrostatic( setup = setup, charges = charges, potential = potential, energy = energy )
 
     ! ... Reset flags
 
     charges % include_externals = include_externals
+
     charges % include_auxiliary = include_auxiliary
 
     CALL update_environ_charges( charges )
@@ -252,10 +250,15 @@ CONTAINS
   END SUBROUTINE calc_ereference
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_eelectrostatic( charges, energy, dielectric, potential, electrolyte )
+  SUBROUTINE calc_eelectrostatic( setup, charges, energy, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
+
+    USE poisson, ONLY : poisson_energy
+    USE generalized, ONLY: generalized_energy
+
     IMPLICIT NONE
 
+    TYPE( electrostatic_setup ), INTENT(IN) :: setup
     TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
@@ -263,25 +266,46 @@ CONTAINS
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
 
     LOGICAL :: include_auxiliary
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_eelectrostatic'
 
     CALL start_clock ('calc_eelect')
 
-    energy = 0.D0
+    ! ... Select the right expression
 
-    ! ... Remove auxiliary charges, if present
+    SELECT CASE ( setup % problem )
 
-    include_auxiliary = charges % include_auxiliary
-    charges % include_auxiliary = .FALSE.
+    CASE ( 'poisson' )
 
-    CALL update_environ_charges( charges )
+       CALL poisson_energy( setup % core, charges, potential, energy )
 
-    energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
+    CASE ( 'generalized' )
 
-    ! ... Reset flags
+       IF ( .NOT. PRESENT( dielectric ) ) &
+            CALL errore( sub_name, 'missing details of dielectric medium', 1 )
 
-    charges % include_auxiliary = include_auxiliary
+       CALL generalized_energy( setup % core, charges, dielectric, potential, energy )
 
-    CALL update_environ_charges( charges )
+    CASE ( 'linpb', 'linmodpb' )
+
+       IF ( .NOT. PRESENT( electrolyte ) ) &
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+
+       CALL errore( sub_name, 'option not yet implemented', 1 )
+!       CALL linpb_energy()
+
+    CASE ( 'pb', 'modpb' )
+
+       IF ( .NOT. PRESENT( electrolyte ) ) &
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+
+       CALL errore( sub_name, 'option not yet implemented', 1 )
+!       CALL pb_energy()
+
+    CASE DEFAULT
+
+       CALL errore( sub_name, 'unexpected problem keyword', 1 )
+
+    END SELECT
 
     CALL stop_clock ('calc_eelect')
 

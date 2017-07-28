@@ -182,7 +182,7 @@ CONTAINS
        CALL init_electrostatic_solver( type = solver_type, auxiliary = auxiliary, &
             & iterative = iterative, solver = outer_solver )
     CASE DEFAULT
-       CALL errore(sub_name,'Unexpected value for electrostatic core_type keyword',1)
+       CALL errore(sub_name,'Unexpected value for electrostatic solver keyword',1)
     END SELECT
     !
     ! Set up active solvers

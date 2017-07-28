@@ -146,6 +146,7 @@ CONTAINS
                                 lsurface, lvolume,                    &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte
+      USE electrostatic_base, ONLY : reference, outer
       !
       ! ... Each contribution to the energy is computed in its module
       !
@@ -177,25 +178,26 @@ CONTAINS
          deenviron = deenviron + &
               & scalar_product_environ_density(electrons%density,vreference)
          !
-         CALL calc_ereference( charges=charges, potential=vreference, energy=ereference )
+         CALL calc_ereference( setup=reference, charges=charges, potential=vreference, energy=ereference )
          !
          deenviron = deenviron - &
               & scalar_product_environ_density(electrons%density,velectrostatic)
          !
          IF ( lstatic ) THEN
             IF ( lelectrolyte ) THEN
-               CALL calc_eelectrostatic( charges=charges, dielectric=static, &
+               CALL calc_eelectrostatic( setup=outer, charges=charges, dielectric=static, &
                     & electrolyte=electrolyte, potential=velectrostatic, energy=eelectrostatic )
             ELSE
-               CALL calc_eelectrostatic( charges=charges, dielectric=static, &
+               CALL calc_eelectrostatic( setup=outer, charges=charges, dielectric=static, &
                     & potential=velectrostatic, energy=eelectrostatic )
             ENDIF
          ELSE
             IF ( lelectrolyte ) THEN
-               CALL calc_eelectrostatic( charges=charges, electrolyte=electrolyte, &
+               CALL calc_eelectrostatic( setup=outer, charges=charges, electrolyte=electrolyte, &
                     & potential=velectrostatic, energy=eelectrostatic )
             ELSE
-               CALL calc_eelectrostatic( charges=charges, potential=velectrostatic, energy=eelectrostatic )
+               CALL calc_eelectrostatic( setup=outer, charges=charges, potential=velectrostatic, &
+                    & energy=eelectrostatic )
             ENDIF
          ENDIF
          !
