@@ -94,6 +94,24 @@ MODULE environ_input
         REAL(DP) :: tbeta = 4.8
         ! second parameter of the sw function when stype=0
 !
+! Empty pockets parameters
+!
+        REAL(DP) :: solvent_radius = 0.D0
+        ! size of the solvent, used to decide whether to empty a continuum
+        ! pocket or not. If set equal to 0.D0, use the standard algorithm
+        REAL(DP) :: radial_scale = 2.D0
+        ! compute the filled fraction on a spherical volume scaled wrt solvent
+        ! size
+        REAL(DP) :: radial_spread = 0.5D0
+        ! spread of the step function used to evaluate occupied volume
+        REAL(DP) :: emptying_threshold = 0.125D0
+        ! threshold to decide whether to empty a continuum pocket or not, to be
+        ! compared with the filled fraction: if filled fraction .LE. threshold
+        ! THEN empty gridpoint
+        REAL(DP) :: emptying_spread = 0.05D0
+        ! spread of the switching function used to decide whether the dielectric
+        ! should be emptied or not
+!
 ! Dielectric solvent parameters
 !
         REAL(DP) :: env_static_permittivity = 1.D0
@@ -161,6 +179,11 @@ MODULE environ_input
         REAL(DP) :: env_pressure = 0.D0
         ! external pressure for PV energy, if equal to zero no pressure term 
 !
+! PV energy parameters
+!
+        REAL(DP) :: env_confine = 0.D0
+        ! confining step of potential, if equal to zero no confining potential
+!
 ! Ionic countercharge parameters
 !
         INTEGER :: env_ioncc_level = 0
@@ -192,6 +215,8 @@ MODULE environ_input
         NAMELIST / environ /                                           &
              environ_restart, verbose, environ_thr, environ_nskip,     &
              environ_type, stype, rhomax, rhomin, tbeta,               &
+             solvent_radius, radial_scale, radial_spread,              &
+             emptying_threshold, emptying_spread,                      &
              env_static_permittivity, eps_mode,                        &
              env_optical_permittivity,                                 &
              alpha, solvationrad, corespread, atomicspread,            &
@@ -200,6 +225,7 @@ MODULE environ_input
              mixtype, ndiis, mixrhopol, tolrhopol,                     &
              env_surface_tension, delta,                               &
              env_pressure,                                             &
+             env_confine,                                              &
              env_ioncc_level, nrep, cion, zion, rhopb,                 &
              solvent_temperature,                                      &
              env_external_charges, env_dielectric_regions
@@ -244,6 +270,8 @@ MODULE environ_input
        CALL environ_base_init ( assume_isolated, environ_restart,           &
                                 verbose, environ_thr, environ_nskip,        &
                                 environ_type, stype, rhomax, rhomin, tbeta, &
+                                solvent_radius, radial_scale, radial_spread,&
+                                emptying_threshold, emptying_spread,        &
                                 env_static_permittivity,                    &
                                 env_optical_permittivity, eps_mode,         &
                                 alpha, solvationrad(1:ntyp),                &
@@ -252,6 +280,7 @@ MODULE environ_input
                                 mixtype, ndiis, mixrhopol, tolrhopol,       &
                                 env_surface_tension, delta,                 &
                                 env_pressure,                               &
+                                env_confine,                                &
                                 env_ioncc_level, nrep, cion, zion, rhopb,   &
                                 solvent_temperature,                        &
                                 env_external_charges, extcharge_charge,     & 
@@ -336,6 +365,12 @@ MODULE environ_input
        rhomin  = 0.0001
        tbeta   = 4.8
        !
+       solvent_radius     = 0.D0
+       radial_scale       = 2.D0
+       radial_spread      = 0.5D0
+       emptying_threshold = 0.125D0
+       emptying_spread    = 0.05D0
+       !
        env_static_permittivity = 1.D0
        env_optical_permittivity = 1.D0
        eps_mode        = 'electronic'
@@ -357,6 +392,8 @@ MODULE environ_input
        delta = 0.00001D0
        !
        env_pressure = 0.D0
+       !
+       env_confine = 0.D0
        !
        env_ioncc_level = 0
        nrep = 0
@@ -395,6 +432,12 @@ MODULE environ_input
        CALL mp_bcast( rhomin,                     ionode_id, intra_image_comm )
        CALL mp_bcast( tbeta,                      ionode_id, intra_image_comm )
        !
+       CALL mp_bcast( solvent_radius,             ionode_id, intra_image_comm )
+       CALL mp_bcast( radial_scale,               ionode_id, intra_image_comm )
+       CALL mp_bcast( radial_spread,              ionode_id, intra_image_comm )
+       CALL mp_bcast( emptying_threshold,         ionode_id, intra_image_comm )
+       CALL mp_bcast( emptying_spread,            ionode_id, intra_image_comm )
+       !
        CALL mp_bcast( env_static_permittivity,    ionode_id, intra_image_comm )
        CALL mp_bcast( env_optical_permittivity,   ionode_id, intra_image_comm )
        CALL mp_bcast( eps_mode,                   ionode_id, intra_image_comm )
@@ -416,6 +459,8 @@ MODULE environ_input
        CALL mp_bcast( delta,                      ionode_id, intra_image_comm )
        !
        CALL mp_bcast( env_pressure,               ionode_id, intra_image_comm )
+       !
+       CALL mp_bcast( env_confine,                ionode_id, intra_image_comm )
        !
        CALL mp_bcast( env_ioncc_level,            ionode_id, intra_image_comm )
        CALL mp_bcast( nrep,                       ionode_id, intra_image_comm )
@@ -683,7 +728,7 @@ MODULE environ_input
    !
    ! Where:
    !  
-   !   units_option == bohr      position are given in Bohr
+   !   units_option == bohr      position are given in Bohr (default)
    !   units_option == angstrom  position are given in Angstrom
    !
    !      epsilon0(i)   ( real )    static permittivity inside the region
@@ -731,7 +776,7 @@ MODULE environ_input
          ENDIF
          CALL infomsg( 'read_cards ', &
             & 'DEPRECATED: no units specified in DIELECTRIC_REGIONS card' )
-            dielectric_regions = 'angstrom'
+            dielectric_regions = 'bohr'
          CALL infomsg( 'read_cards ', &
             & 'DIELECTRIC_REGIONS: units set to '//TRIM(dielectric_regions) )
       ENDIF

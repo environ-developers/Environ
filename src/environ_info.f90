@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 ! This module contains all the subroutines related to the printout
-! of Environ informations and results. 
+! of Environ informations and results.
 !
 ! Original version by Oliviero Andreussi and Nicola Marzari
 !
@@ -23,7 +23,7 @@ CONTAINS
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
       !
-      ! Write out the different Environ contributions to the energy. 
+      ! Write out the different Environ contributions to the energy.
       ! Called by electrons.f90
       !
       USE io_global,    ONLY : stdout
@@ -32,15 +32,17 @@ CONTAINS
                                env_static_permittivity, esolvent,       &
                                env_surface_tension, ecavity,            &
                                env_pressure, epressure,                 &
+                               env_confine, econfine,                   &
                                env_periodicity, eperiodic,              &
                                env_external_charges, eextcharge,        &
                                env_dielectric_regions
       !
-      IF ( e2 .EQ. 2.D0 ) THEN 
-        IF ( env_static_permittivity .GT. 1.D0 & 
+      IF ( e2 .EQ. 2.D0 ) THEN
+        IF ( env_static_permittivity .GT. 1.D0 &
              .OR. env_dielectric_regions .GT. 0 ) WRITE( stdout, 9201 ) esolvent
         IF ( env_surface_tension .GT. 0.D0 ) WRITE( stdout, 9202 ) ecavity
         IF ( env_pressure .NE. 0.D0 ) WRITE( stdout, 9203 ) epressure
+        IF ( env_confine .NE. 0.D0 ) WRITE( stdout, 9207 ) econfine
         IF ( env_ioncc_level .GT. 0 ) THEN
            WRITE( stdout, 9205 ) eioncc
         ELSE IF ( env_periodicity .NE. 3 ) THEN
@@ -48,10 +50,11 @@ CONTAINS
         ENDIF
         IF ( env_external_charges .GT. 0 ) WRITE( stdout, 9206 ) eextcharge
       ELSE IF ( e2 .EQ. 1.D0 ) THEN
-        IF ( env_static_permittivity .GT. 1.D0 & 
+        IF ( env_static_permittivity .GT. 1.D0 &
              .OR. env_dielectric_regions .GT. 0 ) WRITE( stdout, 9301 ) esolvent
         IF ( env_surface_tension .GT. 0.D0 ) WRITE( stdout, 9302 ) ecavity
         IF ( env_pressure .NE. 0.D0 ) WRITE( stdout, 9303 ) epressure
+        IF ( env_confine .NE. 0.D0 ) WRITE( stdout, 9307 ) econfine
         IF ( env_ioncc_level .GT. 0 ) THEN
            WRITE( stdout, 9305 ) eioncc
         ELSE IF ( env_periodicity .NE. 3 ) THEN
@@ -71,12 +74,14 @@ CONTAINS
 9204 FORMAT( '     periodic energy correct.  =',F17.8,' Ry')
 9205 FORMAT( '     ionic charge energy       =',F17.8,' Ry')
 9206 FORMAT( '     external charges energy   =',F17.8,' Ry')
+9207 FORMAT( '     confining energy          =',F17.8,' Ry')
 9301 FORMAT( '            solvation energy = ',F14.5,' Hartree a.u.')
 9302 FORMAT( '           cavitation energy = ',F14.5,' Hartree a.u.')
 9303 FORMAT( '                   PV energy = ',F14.5,' Hartree a.u.')
 9304 FORMAT( '    periodic energy correct. = ',F14.5,' Hartree a.u.')
 9305 FORMAT( '         ionic charge energy = ',F14.5,' Hartree a.u.')
 9306 FORMAT( '   exexternal charges energy = ',F14.5,' Hartree a.u.')
+9307 FORMAT( '            confining energy = ',F14.5,' Hartree a.u.')
       !
 ! ---------------------------------------------------------------------
       END SUBROUTINE environ_print_energies
@@ -85,8 +90,8 @@ CONTAINS
       SUBROUTINE environ_summary( )
 ! ---------------------------------------------------------------------
       !
-      ! Write out the main parameters of Environ calculations, 
-      ! summarizing the input keywords (some info also on internal 
+      ! Write out the main parameters of Environ calculations,
+      ! summarizing the input keywords (some info also on internal
       ! vs input units). Called by summary.f90
       !
       USE io_global,        ONLY : stdout, ionode
@@ -97,6 +102,7 @@ CONTAINS
                                    env_optical_permittivity,                &
                                    ifdtype, nfdpoint, tolrhopol, mixrhopol, &
                                    env_surface_tension, delta, env_pressure,&
+                                   env_confine,                             &
                                    env_periodicity, slab_axis,              &
                                    env_external_charges,                    &
                                    env_dielectric_regions
@@ -128,26 +134,29 @@ CONTAINS
         ENDIF
         !
         IF ( env_static_permittivity .GT. 1.D0 &
-             .OR. env_dielectric_regions .GT. 0 ) THEN 
+             .OR. env_dielectric_regions .GT. 0 ) THEN
            WRITE( UNIT = stdout, FMT = 9005 ) env_static_permittivity
            IF (tddfpt) &
          & WRITE( UNIT = stdout, FMT = 9006 ) env_optical_permittivity
-           WRITE( UNIT = stdout, FMT = 9007 ) TRIM( eps_mode ) 
+           WRITE( UNIT = stdout, FMT = 9007 ) TRIM( eps_mode )
            IF ( ifdtype .EQ. 1 ) THEN
-             WRITE( UNIT = stdout, FMT = 9008 ) 'central diff.',nfdpoint 
+             WRITE( UNIT = stdout, FMT = 9008 ) 'central diff.',nfdpoint
            ELSE IF (ifdtype .EQ. 2 .OR. ifdtype .EQ. 3 ) THEN
-             WRITE( UNIT = stdout, FMT = 9008 ) 'lanczos diff.',nfdpoint    
+             WRITE( UNIT = stdout, FMT = 9008 ) 'lanczos diff.',nfdpoint
            ELSE IF (ifdtype .EQ.4 .OR. ifdtype .EQ. 5 ) THEN
-             WRITE( UNIT = stdout, FMT = 9008 ) 'noise-robust diff.',nfdpoint 
+             WRITE( UNIT = stdout, FMT = 9008 ) 'noise-robust diff.',nfdpoint
            END IF
-           WRITE( UNIT = stdout, FMT = 9009 ) tolrhopol, mixrhopol 
+           WRITE( UNIT = stdout, FMT = 9009 ) tolrhopol, mixrhopol
         END IF
         !
-        IF ( env_surface_tension .GT. 0.D0 ) WRITE( UNIT = stdout, FMT = 9010 )      &  
+        IF ( env_surface_tension .GT. 0.D0 ) WRITE( UNIT = stdout, FMT = 9010 )      &
            env_surface_tension/1.D-3/bohr_radius_si**2*rydberg_si, env_surface_tension, delta
         !
-        IF ( env_pressure .NE. 0.D0 ) WRITE( UNIT = stdout, FMT = 9011 )&  
-           env_pressure*rydberg_si/bohr_radius_si**3*1.D-9, env_pressure 
+        IF ( env_pressure .NE. 0.D0 ) WRITE( UNIT = stdout, FMT = 9011 )&
+             env_pressure*rydberg_si/bohr_radius_si**3*1.D-9, env_pressure
+        !
+        IF ( env_confine .NE. 0.D0 ) WRITE( UNIT = stdout, FMT = 9015 )&
+           env_confine
         !
         IF ( env_periodicity .EQ. 2 ) WRITE( UNIT = stdout, FMT = 9012 )&
            slab_axis
@@ -183,6 +192,7 @@ CONTAINS
 9012 FORMAT( '     correction slab geom. along axis  = ',  I24,' ' )
 9013 FORMAT( '     number of external charged items  = ',  I24,' ' )
 9014 FORMAT( '     number of dielectric regions      = ',  I24,' ' )
+9015 FORMAT( '     confining potential in input (Ry) = ',  F24.2,' ' )
 
 !--------------------------------------------------------------------
       END SUBROUTINE environ_summary
@@ -191,12 +201,13 @@ CONTAINS
       SUBROUTINE environ_clock( stdout )
 !--------------------------------------------------------------------
       !
-      ! Write out the time informations of the Environ dependent 
-      ! calculations. Called by print_clock_pw.f90 
-      ! 
+      ! Write out the time informations of the Environ dependent
+      ! calculations. Called by print_clock_pw.f90
+      !
       USE environ_base,   ONLY : env_static_permittivity, &
                                  env_surface_tension,     &
                                  env_pressure,            &
+                                 env_confine,             &
                                  env_periodicity,         &
                                  env_external_charges,    &
                                  env_dielectric_regions
@@ -209,15 +220,15 @@ CONTAINS
       WRITE( stdout, * )
       WRITE( stdout, '(5X,"Environ routines")' )
       ! dielectric subroutines
-      IF ( env_static_permittivity .GT. 1.D0 & 
+      IF ( env_static_permittivity .GT. 1.D0 &
            .OR. env_dielectric_regions .GT. 0 ) THEN
          CALL print_clock ('calc_esolv')
          CALL print_clock ('calc_vsolv')
-         CALL print_clock ('dielectric') 
+         CALL print_clock ('dielectric')
          CALL print_clock ('get_rhopol')
          CALL print_clock ('calc_veps' )
-         CALL print_clock ('calc_fsolv') 
-      END IF 
+         CALL print_clock ('calc_fsolv')
+      END IF
       ! cavitation subroutines
       IF ( env_surface_tension .GT. 0.D0 ) THEN
          CALL print_clock ('calc_ecav')
@@ -227,6 +238,11 @@ CONTAINS
       IF ( env_pressure .NE. 0.D0 ) THEN
          CALL print_clock ('calc_epre')
          CALL print_clock ('calc_vpre')
+      END IF
+      ! confine subroutines
+      IF ( env_confine .NE. 0.D0 ) THEN
+         CALL print_clock ('calc_econ')
+         CALL print_clock ('calc_vcon')
       END IF
       ! periodic subroutines
       IF ( env_periodicity .NE. 3 ) THEN

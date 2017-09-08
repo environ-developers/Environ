@@ -26,17 +26,18 @@ CONTAINS
       SUBROUTINE calc_venviron( update, nnr, nspin, dr2, rho, vltot )
 !--------------------------------------------------------------------
       !
-      ! ... Calculates the environ contribution to the local 
-      !     potential. All the Environ modules need to be called here. 
-      !     The potentials are all computed on the dense real-space 
+      ! ... Calculates the environ contribution to the local
+      !     potential. All the Environ modules need to be called here.
+      !     The potentials are all computed on the dense real-space
       !     grid and added to vltot.
-      ! 
+      !
       USE kinds,         ONLY : DP
       USE environ_ions,  ONLY : rhoions
       USE environ_base,  ONLY : use_smeared_ions, rhopol
       USE environ_base,  ONLY : verbose, eps_mode, env_static_permittivity, &
                                 vsolvent, vepsilon, env_surface_tension,    &
-                                vcavity, env_pressure, vpressure,           & 
+                                vcavity, env_pressure, vpressure,           &
+                                env_confine, vconfine, vtheta,              &
                                 env_periodicity, vperiodic,                 &
                                 env_ioncc_level, vioncc,                    &
                                 env_external_charges, vextcharge,           &
@@ -49,6 +50,7 @@ CONTAINS
       USE periodic,      ONLY : calc_vperiodic
       USE cavity,        ONLY : calc_vcavity
       USE pressure,      ONLY : calc_vpressure
+      USE confine,       ONLY : calc_vconfine
       USE ioncc,         ONLY : calc_vioncc
       USE extcharge,     ONLY : calc_vextcharge
       !
@@ -74,19 +76,20 @@ CONTAINS
       IF ( .NOT. update ) THEN
         IF ( env_surface_tension .GT. 0.D0 ) vltot = vltot + vcavity
         IF ( env_pressure .NE. 0.D0 ) vltot = vltot + vpressure
+        IF ( env_confine .NE. 0.D0 ) vltot = vltot + vconfine + vtheta
         IF ( env_external_charges .GT. 0 ) vltot = vltot + vextcharge
         IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN
-           vltot = vltot + vsolvent 
+           vltot = vltot + vsolvent
            IF ( env_static_permittivity .GT. 1.D0 .AND. TRIM(eps_mode) .NE. 'ionic' ) &
-           vltot = vltot + vepsilon 
+           vltot = vltot + vepsilon
         ENDIF
-        IF ( env_ioncc_level .GT. 0 ) THEN 
+        IF ( env_ioncc_level .GT. 0 ) THEN
            vltot = vltot + vioncc
         ELSE IF ( env_periodicity .NE. 3 ) THEN
            vltot = vltot + vperiodic
-        END IF 
+        END IF
         RETURN
-      END IF   
+      END IF
 
       ! ... Initializes variables, only spinless density is needed
 
@@ -95,8 +98,8 @@ CONTAINS
       IF( nspin==2 ) rhoelec( : ) = rhoelec( : ) + rho( : , 2 )
       IF ( verbose .GE. 4 ) CALL write_cube( nnr, rhoelec, 'rhoelec.cube' )
 
-      ! ... If surface tension greater than zero, calculates cavity contribution 
-      
+      ! ... If surface tension greater than zero, calculates cavity contribution
+
       IF ( env_surface_tension .GT. 0.D0 ) THEN
 
         vcavity = 0.D0
@@ -104,10 +107,10 @@ CONTAINS
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vcavity, 'vcavity.cube' )
         vltot = vltot + vcavity
 
-      ENDIF   
+      ENDIF
 
-      ! ... If external pressure different from zero, calculates PV contribution 
-      
+      ! ... If external pressure different from zero, calculates PV contribution
+
       IF ( env_pressure .NE. 0.D0 ) THEN
 
         vpressure = 0.D0
@@ -115,28 +118,42 @@ CONTAINS
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vpressure, 'vpressure.cube' )
         vltot = vltot + vpressure
 
-      ENDIF   
+      ENDIF
+
+
+      ! ... If confining potential is present, compute its contributions
+
+      IF ( env_confine .NE. 0.D0 ) THEN
+
+        vconfine = 0.D0
+        vtheta = 0.D0
+        CALL calc_vconfine( nnr, rhoelec, vconfine, vtheta )
+        IF ( verbose .GE. 3 ) CALL write_cube( nnr, vconfine, 'vconfine.cube' )
+        IF ( verbose .GE. 3 ) CALL write_cube( nnr, vtheta, 'vtheta.cube' )
+        vltot = vltot + vconfine + vtheta
+
+      ENDIF
 
       ! ... If external charges are present in the system
-        
+
       IF ( env_external_charges .GT. 0 ) THEN
-         
+
         CALL calc_vextcharge( nnr, nspin, vextcharge )
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vextcharge, 'vextcharge.cube')
         vltot = vltot + vextcharge
-     
+
       END IF
-      
+
       ! ... If dielectric is not vacuum, calculates solvent contributions
 
       IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN
-         
-        vsolvent = 0.D0 
+
+        vsolvent = 0.D0
         vepsilon = 0.D0
         CALL calc_vsolvent( nnr, nspin, dr2, rhoelec, vsolvent, vepsilon )
 !test        CALL calc_vsolvent_test( nnr, nspin, dr2, rhoelec, vsolvent, vepsilon )
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vsolvent, 'vsolvent.cube' )
-        IF ( verbose .GE. 3 ) CALL write_cube( nnr, vepsilon, 'vepsilon.cube' ) 
+        IF ( verbose .GE. 3 ) CALL write_cube( nnr, vepsilon, 'vepsilon.cube' )
         vltot = vltot + vsolvent
         IF ( env_static_permittivity .GT. 1.D0 .AND. TRIM(eps_mode) .NE. 'ionic' ) &
         vltot = vltot + vepsilon
@@ -158,16 +175,16 @@ CONTAINS
       IF ( env_ioncc_level .GT. 0 ) THEN
 
         vioncc = 0.D0
-        CALL calc_vioncc( nnr, nspin, rhotot, vioncc ) 
+        CALL calc_vioncc( nnr, nspin, rhotot, vioncc )
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vioncc, 'vioncc.cube' )
         vltot = vltot + vioncc
 
       ! ... If not in 3D periodic boundary conditions, add corrective potential
       !     note that this term must be computed after the solvent one
       !     since it changes the charge distribution inside the cell
-      
+
       ELSE IF ( env_periodicity .NE. 3 ) THEN
-         
+
         vperiodic = 0.D0
         CALL calc_vperiodic( nnr, nspin, .TRUE., rhotot, vperiodic )
         IF ( verbose .GE. 3 ) CALL write_cube( nnr, vperiodic, 'vperiodic.cube' )
@@ -184,22 +201,23 @@ CONTAINS
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       SUBROUTINE calc_eenviron( nnr, nspin, rho, deenviron, esolvent, &
-                      ecavity, epressure, eperiodic, eioncc, eextcharge )
+           ecavity, epressure, econfine, eperiodic, eioncc, eextcharge )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the environ contribution to the Energy.
-      !     We must remove \int v_environ * rhoelec that is 
-      !     automatically included in the energy computed as sum of 
+      !     We must remove \int v_environ * rhoelec that is
+      !     automatically included in the energy computed as sum of
       !     Kohn-Sham eigenvalues.
-      ! 
+      !
       USE kinds,         ONLY : DP
       USE mp,            ONLY : mp_sum
       USE mp_bands,      ONLY : intra_bgrp_comm
       USE environ_cell,  ONLY : domega
       USE environ_base,  ONLY : env_static_permittivity, eps_mode,    &
-                                vsolvent, vepsilon,                   & 
-                                env_surface_tension, vcavity,         & 
+                                vsolvent, vepsilon,                   &
+                                env_surface_tension, vcavity,         &
                                 env_pressure, vpressure,              &
+                                env_confine, vconfine, vtheta,        &
                                 env_periodicity, vperiodic,           &
                                 env_ioncc_level, vioncc,              &
                                 env_external_charges, vextcharge,     &
@@ -211,6 +229,7 @@ CONTAINS
       USE periodic,      ONLY : calc_eperiodic
       USE cavity,        ONLY : calc_ecavity
       USE pressure,      ONLY : calc_epressure
+      USE confine,       ONLY : calc_econfine
       USE ioncc,         ONLY : calc_eioncc
       USE extcharge,     ONLY : calc_eextcharge
       !
@@ -220,9 +239,9 @@ CONTAINS
       !
       INTEGER, INTENT(IN)     :: nnr, nspin
       REAL( DP ), INTENT(IN)  :: rho( nnr, nspin )
-      REAL( DP ), INTENT(OUT) :: deenviron, esolvent, ecavity, &
-                                 epressure, eperiodic, eioncc, &
-                                 eextcharge
+      REAL( DP ), INTENT(OUT) :: deenviron, esolvent, ecavity,   &
+                                 epressure, econfine, eperiodic, &
+                                 eioncc, eextcharge
       !
       ! ... Local variables
       !
@@ -231,9 +250,10 @@ CONTAINS
       ! ... Initializes the variables
       !
       deenviron  = 0.D0
-      esolvent   = 0.D0 
+      esolvent   = 0.D0
       ecavity    = 0.D0
       epressure  = 0.D0
+      econfine   = 0.D0
       eioncc     = 0.D0
       eextcharge = 0.D0
       !
@@ -250,7 +270,7 @@ CONTAINS
       IF ( env_surface_tension .GT. 0.D0 ) THEN
          !
          deenviron = deenviron -                                 &
-                   SUM( vcavity( : ) * rhoelec( : ) ) * domega  
+                   SUM( vcavity( : ) * rhoelec( : ) ) * domega
          !
          CALL calc_ecavity( nnr, rhoelec, ecavity )
          !
@@ -267,6 +287,20 @@ CONTAINS
          !
       END IF
       !
+      !  if confining potential is present, remove the cavity-dependent term
+      !
+      IF ( env_confine .NE. 0.D0 ) THEN
+         !
+         deenviron = deenviron -                                 &
+                   SUM( vconfine( : ) * rhoelec( : ) ) * domega
+         !
+         deenviron = deenviron -                                 &
+                   SUM( vtheta( : ) * rhoelec( : ) ) * domega
+         !
+         CALL calc_econfine( nnr, rhoelec, econfine )
+         !
+      END IF
+      !
       !  if external charges are present, compute their contribution
       !
       IF ( env_external_charges .GT. 0) THEN
@@ -276,18 +310,18 @@ CONTAINS
          !
          CALL calc_eextcharge( nnr, rhoelec, eextcharge )
          !
-      END IF 
+      END IF
       !
       !  if dielectric different from vacuum compute solvent term
       !
       IF ( env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0 ) THEN
          !
          deenviron =  deenviron -                                &
-                   SUM( vsolvent( : ) * rhoelec( : ) ) * domega 
+                   SUM( vsolvent( : ) * rhoelec( : ) ) * domega
          !
          IF ( env_static_permittivity .GT. 1.D0 .AND. TRIM(eps_mode) .NE. 'ionic' ) &
          deenviron = deenviron -                                 &
-                   SUM( vepsilon( : ) * rhoelec( : ) ) * domega  
+                   SUM( vepsilon( : ) * rhoelec( : ) ) * domega
          !
          CALL calc_esolvent( nnr, nspin, rhoelec, esolvent )
          !
@@ -306,14 +340,14 @@ CONTAINS
       !  if periodic geometry compute boundary condition term
       !  note that this term must be computed after the solvent one
       !
-      ELSE IF ( env_periodicity .NE. 3 ) THEN 
+      ELSE IF ( env_periodicity .NE. 3 ) THEN
          !
          deenviron =  deenviron -                                &
-                   SUM( vperiodic( : ) * rhoelec( : ) ) * domega 
+                   SUM( vperiodic( : ) * rhoelec( : ) ) * domega
          !
          CALL calc_eperiodic(nnr, rhoelec, eperiodic)
          !
-      END IF 
+      END IF
       !
       DEALLOCATE ( rhoelec )
       !
@@ -331,9 +365,9 @@ CONTAINS
       ! ... Calculates the environ contribution to the forces.
       !     Due to Hellman-Feynman only a few of Environ modules
       !     have an effect on atomic forces.
-      ! 
+      !
       USE kinds,        ONLY : DP
-      USE environ_base, ONLY : env_static_permittivity, & 
+      USE environ_base, ONLY : env_static_permittivity, &
                                env_periodicity, eps_mode,&
                                env_external_charges
       !
@@ -353,7 +387,7 @@ CONTAINS
       !
       IF ( env_static_permittivity .GT. 1.D0 ) THEN
         !
-        ! if the medium dielectric is defined on the 
+        ! if the medium dielectric is defined on the
         ! ionic density, trow away already computed contribution
         ! and compute here the correct forces
         !
@@ -372,14 +406,14 @@ CONTAINS
         !
       END IF
       !
-      ! if external charges defined wrt the center of charge, 
+      ! if external charges defined wrt the center of charge,
       ! compute the extra contribution to inter-atomic forces
       !
       IF ( env_external_charges .GT. 0 ) THEN
         !
         CALL calc_fextcharge( nnr, nspin, nat, force_environ )
         !
-      END IF 
+      END IF
       !
       RETURN
 !--------------------------------------------------------------------
