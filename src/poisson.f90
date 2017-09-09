@@ -56,21 +56,21 @@ CONTAINS
        !
     ENDIF
     !
-!    IF ( core % need_correction ) THEN
-!       !
-!       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
-!          !
-!       CASE ( '1da', 'oned_analytic' )
-!          !
-!          CALL calc_vperiodic( core%correction%oned_analytic, charges, potential )
-!          !
-!       CASE DEFAULT
-!          !
-!          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
-!          !
-!       END SELECT
-!       !
-!    ENDIF
+    IF ( core % need_correction ) THEN
+       !
+       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+          !
+       CASE ( '1da', 'oned_analytic' )
+          !
+          CALL calc_vperiodic( core%correction%oned_analytic, charges, potential )
+          !
+       CASE DEFAULT
+          !
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+          !
+       END SELECT
+       !
+    ENDIF
     !
     RETURN
     !
@@ -191,7 +191,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
     !
@@ -213,21 +213,21 @@ CONTAINS
        !
     ENDIF
     !
-!    IF ( core % need_correction ) THEN
-!       !
-!       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
-!          !
-!       CASE ( '1da', 'oned_analytic' )
-!          !
-!          CALL calc_eperiodic( core%correction%oned_analytic, charges, energy )
-!          !
-!       CASE DEFAULT
-!          !
-!          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
-!          !
-!       END SELECT
-!       !
-!    ENDIF
+    IF ( core % need_correction ) THEN
+       !
+       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+          !
+       CASE ( '1da', 'oned_analytic' )
+          !
+          CALL calc_eperiodic( core%correction%oned_analytic, charges, potential, energy )
+          !
+       CASE DEFAULT
+          !
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+          !
+       END SELECT
+       !
+    ENDIF
     !
     RETURN
     !

@@ -349,8 +349,6 @@ CONTAINS
 
   SUBROUTINE init_oned_analytic_core_second( cell, oned_analytic )
 
-    USE generate_function, ONLY : generate_axis, generate_distance
-
     IMPLICIT NONE
 
     TYPE( environ_cell ), INTENT(IN) :: cell
@@ -359,25 +357,60 @@ CONTAINS
     CHARACTER( LEN = 80 ) :: sub_name = 'init_oned_analytic_core_second'
 
     oned_analytic % n = cell % nnr
-    oned_analytic % origin = cell % origin
     oned_analytic % alat = cell % alat
+    oned_analytic % origin = cell % origin
     oned_analytic % omega = cell % omega
 
     ALLOCATE( oned_analytic % x( oned_analytic % p , oned_analytic % n ) )
+
+    RETURN
+
+  END SUBROUTINE init_oned_analytic_core_second
+
+  SUBROUTINE update_oned_analytic_core_cell( omega, at, oned_analytic )
+
+    IMPLICIT NONE
+
+    REAL( DP ), INTENT(IN) :: omega
+    REAL( DP ), DIMENSION( 3, 3 ), INTENT(IN) :: at
+    TYPE( oned_analytic_core ), INTENT(INOUT) :: oned_analytic
+
+    oned_analytic % omega = omega
     IF ( oned_analytic % d .EQ. 0 ) THEN
-       oned_analytic % size = cell % omega
+       oned_analytic % size = omega
+    ELSE IF ( oned_analytic % d .EQ. 1 ) THEN
+       oned_analytic % size = omega / at( oned_analytic % axis, oned_analytic % axis ) / oned_analytic % alat
+    ELSE IF ( oned_analytic % d .EQ. 2 ) THEN
+       oned_analytic % size = at( oned_analytic % axis, oned_analytic % axis ) * oned_analytic % alat
+    ENDIF
+
+    RETURN
+
+  END SUBROUTINE update_oned_analytic_core_cell
+
+  SUBROUTINE update_oned_analytic_core_origin( origin, oned_analytic )
+
+    USE generate_function, ONLY : generate_axis, generate_distance
+
+    IMPLICIT NONE
+
+    REAL( DP ), DIMENSION( 3 ), INTENT(IN) :: origin
+    TYPE( oned_analytic_core ), INTENT(INOUT) :: oned_analytic
+
+    CHARACTER( LEN = 80 ) :: sub_name = 'update_oned_analytic_core_origin'
+
+    oned_analytic % origin = origin
+    IF ( oned_analytic % d .EQ. 0 ) THEN
        CALL generate_distance( oned_analytic % n, oned_analytic % origin, oned_analytic % x )
     ELSE IF ( oned_analytic % d .EQ. 1 ) THEN
-       oned_analytic % size = cell % omega / cell % at( oned_analytic % axis, oned_analytic % axis ) / cell % alat
        CALL errore( sub_name, 'Option not yet implemented', 1 )
     ELSE IF ( oned_analytic % d .EQ. 2 ) THEN
-       oned_analytic % size = cell % at( oned_analytic % axis, oned_analytic % axis ) * cell % alat
        CALL generate_axis( oned_analytic % n, oned_analytic % axis, oned_analytic % origin, oned_analytic % x(1,:) )
     ENDIF
 
     RETURN
 
-  END SUBROUTINE init_oned_analytic_core_second
+  END SUBROUTINE update_oned_analytic_core_origin
 
   SUBROUTINE destroy_oned_analytic_core( lflag, oned_analytic )
 

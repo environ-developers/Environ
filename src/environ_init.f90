@@ -454,9 +454,10 @@ CONTAINS
 !
       ! ... Declares modules
       USE environ_base,  ONLY : cell, lstatic, loptical, static, optical, &
-                                lexternals, externals
+                                lexternals, externals, lelectrostatic
       ! ... Cell-related updates
       USE dielectric,     ONLY : update_environ_dielectric
+      USE electrostatic_init,  ONLY : electrostatic_initcell
 !      USE extcharges,    ONLY : update_external_charges
       !
       IMPLICIT NONE
@@ -476,6 +477,8 @@ CONTAINS
       IF ( loptical ) CALL update_environ_dielectric( optical )
       !
 !      IF ( lexternals ) CALL update_environ_externals( externals )
+      !
+      IF ( lelectrostatic ) CALL electrostatic_initcell( cell )
       !
       cell%update = .FALSE.
       !
@@ -499,10 +502,12 @@ CONTAINS
                                     lstatic, static,                &
                                     loptical, optical,              &
                                     lelectrolyte, electrolyte,      &
-                                    lrigidcavity
+                                    lrigidcavity,                   &
+                                    lelectrostatic
       USE boundary,          ONLY : update_environ_boundary,        &
                                     set_soft_spheres
       USE dielectric,        ONLY : update_environ_dielectric
+      USE electrostatic_init,     ONLY : electrostatic_initions
       !
       IMPLICIT NONE
       !
@@ -561,6 +566,8 @@ CONTAINS
          END IF
          !
       END IF
+      !
+      IF ( lelectrostatic ) CALL electrostatic_initions( system )
       !
       ions%update = .FALSE.
       !

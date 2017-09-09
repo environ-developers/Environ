@@ -17,7 +17,8 @@ MODULE electrostatic_init
 
   PRIVATE
 
-  PUBLIC :: set_electrostatic_base, electrostatic_initbase, electrostatic_clean
+  PUBLIC :: set_electrostatic_base, electrostatic_initbase, electrostatic_initcell, &
+       & electrostatic_initions, electrostatic_clean
 
 CONTAINS
   !
@@ -236,6 +237,36 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE electrostatic_initbase
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE electrostatic_initcell( cell )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    !
+    IF ( loned_analytic ) CALL update_oned_analytic_core_cell( cell%omega, cell%at, oned_analytic )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE electrostatic_initcell
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE electrostatic_initions( system )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_system ), INTENT(IN) :: system
+    !
+    IF ( loned_analytic ) CALL update_oned_analytic_core_origin( system%pos, oned_analytic )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE electrostatic_initions
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE electrostatic_clean( lflag )

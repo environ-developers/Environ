@@ -124,7 +124,6 @@ MODULE environ_types
      INTEGER :: number = 0
      REAL( DP ), DIMENSION(3) :: center
      REAL( DP ) :: alat
-     REAL( DP ), DIMENSION(3) :: dipole
 
      ! Specifications of point-like ions
 
@@ -132,7 +131,6 @@ MODULE environ_types
      INTEGER, DIMENSION(:), ALLOCATABLE :: ityp
      REAL( DP ), DIMENSION(:,:), POINTER :: tau
      TYPE( environ_iontype ), DIMENSION(:), ALLOCATABLE :: iontype
-     REAL( DP ), DIMENSION(3) :: quadrupole_pc
 
      ! Parameters of the fictitious gaussian ionic density
      ! needed by electrostatic calculations
@@ -140,8 +138,6 @@ MODULE environ_types
      LOGICAL :: use_smeared_ions = .FALSE.
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: smeared_ions
      TYPE( environ_density ) :: density
-     REAL( DP ) :: quadrupole_correction
-     REAL( DP ), DIMENSION(3) :: quadrupole_gauss
 
      ! Parameters of the density of core electrons
 
@@ -150,6 +146,10 @@ MODULE environ_types
      TYPE( environ_density ) :: core
 
      REAL( DP ) :: charge = 0.0_DP
+     REAL( DP ) :: quadrupole_correction
+     REAL( DP ), DIMENSION(3) :: dipole
+     REAL( DP ), DIMENSION(3) :: quadrupole_pc
+     REAL( DP ), DIMENSION(3) :: quadrupole_gauss
 
   END TYPE environ_ions
 
