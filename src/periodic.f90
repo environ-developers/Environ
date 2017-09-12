@@ -192,69 +192,36 @@ CONTAINS
   SUBROUTINE calc_eperiodic( oned_analytic, charges, potential, energy )
 !---------------------------------------------------------------------------
     !
-    ! ... Compute contribution to the total energy of the system
+    ! ... HERE ONLY COMPUTES THE CORRECTION DUE TO GAUSSIAN NUCLEI, NEED TO MOVE
+    !     OUT OF HERE AND REMOVE THIS REOUTINE
     !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_charges ), TARGET, INTENT(INOUT) :: charges
-    TYPE( environ_density ), INTENT(IN) :: potential
+    TYPE( environ_density ), INTENT(IN) :: potential !!! we do not need this !!!
     REAL(DP), INTENT(INOUT) :: energy
     !
-    REAL(DP) :: fact, etmp
-    REAL(DP) :: tot_charge
-    !
-    INTEGER, POINTER :: env_periodicity
     REAL(DP), POINTER :: omega
+    !
+    REAL(DP) :: etmp
+    REAL(DP) :: tot_charge
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_eperiodic'
     !
     CALL start_clock ('calc_epbc')
     !
-    ! ... Aliases and sanity check
+    ! ... Aliases
     !
-    IF ( .NOT. ASSOCIATED( charges%density%cell, potential%cell ) ) &
-         & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
-    IF ( potential % cell % nnr .NE. oned_analytic % n ) &
-         & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
-    !
-    env_periodicity => oned_analytic % d
-    omega => oned_analytic % omega
+    omega => charges % density % cell % omega
     !
     ! ... Correct for point-like ions
     !
     tot_charge = integrate_environ_density( charges % density )
     !
-    IF ( env_periodicity .EQ. 2 ) THEN
-       fact = e2 * tpi / omega
-    ELSE IF ( env_periodicity .EQ. 0 ) THEN
-       fact = 3.D0 * e2 * tpi / omega
-    ENDIF
-    !
-    etmp = - 0.5D0 * charges % ions % quadrupole_correction * fact * tot_charge
+    etmp = 0.5D0 * charges % ions % quadrupole_correction * tot_charge * e2 * tpi / omega
     !
     energy = energy + etmp
-!    !
-!    ! ... Polarization correction for gaussian nuclei
-!    !
-!    IF ( env_static_permittivity .GT. 1.D0 ) THEN
-!      IF ( env_periodicity .EQ. 2 ) THEN
-!        qtmp = (quadrupole_ions_gauss(slab_axis) - quadrupole_ions_pc(slab_axis))
-!      ELSE IF ( env_periodicity .EQ. 0 ) THEN
-!        qtmp = SUM(quadrupole_ions_gauss(:) - quadrupole_ions_pc(:))/3.D0
-!      END IF
-!      etmp = - fact *  SUM(rhopol(:)) * domega * qtmp
-!      CALL mp_sum( etmp, intra_bgrp_comm )
-!      eperiodic = eperiodic + etmp
-!    END IF
-!    !
-!    ! ... If external charges are present, add correction for pbc
-!    !
-!    IF ( env_external_charges .GT. 0 ) THEN
-!      etmp = 0.5D0 * SUM( vperiodic( : ) * rhoexternal( : ) ) * domega
-!      CALL mp_sum( etmp, intra_bgrp_comm )
-!      eperiodic = eperiodic + etmp
-!    END IF
     !
     CALL stop_clock ('calc_epbc')
     !
