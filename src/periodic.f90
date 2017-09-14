@@ -98,7 +98,7 @@ CONTAINS
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
-    tot_quadrupole = quadrupole - charges % ions % quadrupole_gauss + charges % ions % quadrupole_pc
+    tot_quadrupole = quadrupole ! - charges % ions % quadrupole_gauss + charges % ions % quadrupole_pc
     !
     x0 = avg_pos*alat ! axis_shift*alat
     xd = avg_pos*alat
@@ -219,7 +219,7 @@ CONTAINS
     !
     tot_charge = integrate_environ_density( charges % density )
     !
-    etmp = 0.5D0 * charges % ions % quadrupole_correction * tot_charge * e2 * tpi / omega
+    etmp = charges % ions % quadrupole_correction * tot_charge * e2 * tpi / omega
     !
     energy = energy + etmp
     !
