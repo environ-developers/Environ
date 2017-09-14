@@ -62,6 +62,8 @@ MODULE environ_input
 !
 ! Global parameters
 !
+        LOGICAL  :: oldenviron = .FALSE.
+        ! use legacy code to compare exact numbers with Environ_0.2
         LOGICAL  :: environ_restart = .FALSE.
         ! restart a previous calculation: environ contributions are computed during
         ! initialization
@@ -231,8 +233,8 @@ MODULE environ_input
         ! number of fixed dielectric regions in the calculation
 
         NAMELIST /environ/                                             &
-             environ_restart, verbose, environ_thr, environ_nskip,     &
-             environ_type,                                             &
+             oldenviron, environ_restart, verbose, environ_thr,        &
+             environ_nskip, environ_type,                              &
              system_ntyp, system_dim, system_axis,                     &
              stype, rhomax, rhomin, tbeta,                             &
              env_static_permittivity, env_optical_permittivity,        &
@@ -450,7 +452,7 @@ MODULE environ_input
        CALL set_environ_base  ( nelec, nspin,                               &
                                 nat, ntyp, atom_label, atomicspread,        &
                                 corespread, solvationrad,                   &
-                                environ_restart, environ_thr,               &
+                                oldenviron, environ_restart, environ_thr,   &
                                 environ_nskip, environ_type,                &
                                 system_ntyp, system_dim, system_axis,       &
                                 stype, rhomax, rhomin, tbeta,               &
@@ -556,7 +558,7 @@ MODULE environ_input
        !
        IMPLICIT NONE
        !
-       !
+       oldenviron = .false.
        environ_restart = .false.
        verbose       = 0
        environ_thr   = 1.D-1
@@ -663,6 +665,7 @@ MODULE environ_input
        !
        IMPLICIT NONE
        !
+       CALL mp_bcast( oldenviron,                 ionode_id, comm )
        CALL mp_bcast( environ_restart,            ionode_id, comm )
        CALL mp_bcast( verbose,                    ionode_id, comm )
        CALL mp_bcast( environ_thr,                ionode_id, comm )
@@ -771,6 +774,8 @@ MODULE environ_input
        INTEGER           :: i
        LOGICAL           :: allowed = .FALSE.
        !
+       IF ( oldenviron ) &
+          CALL infomsg( sub_name,' use some old legacy code for environ' )
        IF ( environ_restart ) &
           CALL infomsg( sub_name,' environ restarting' )
        IF( verbose < 0 ) &

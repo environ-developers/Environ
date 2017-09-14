@@ -37,7 +37,7 @@ CONTAINS
        ( nelec, nspin,                               &
        & nat, ntyp, atom_label, atomicspread,        &
        & corespread, solvationrad,                   &
-       & environ_restart_, environ_thr_,             &
+       & oldenviron_, environ_restart_, environ_thr_,&
        & environ_nskip_, environ_type,               &
        & system_ntyp, system_dim, system_axis,       &
        & stype_, rhomax_, rhomin_, tbeta,            &
@@ -69,7 +69,7 @@ CONTAINS
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
-    LOGICAL, INTENT(IN) :: environ_restart_, add_jellium_
+    LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, add_jellium_
     INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
@@ -112,6 +112,7 @@ CONTAINS
     !
     ! General flags
     !
+    oldenviron      = oldenviron_
     environ_restart = environ_restart_
     environ_thr     = environ_thr_
     environ_nskip   = environ_nskip_

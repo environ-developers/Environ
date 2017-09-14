@@ -27,6 +27,8 @@ MODULE environ_base
   ! Global parameters
   !
   LOGICAL ::                        &
+       oldenviron
+  LOGICAL ::                        &
        environ_restart
   LOGICAL ::                        &
        update_venviron

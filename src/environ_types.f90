@@ -527,6 +527,24 @@ CONTAINS
 
   END FUNCTION quadratic_mean_environ_density
 
+  FUNCTION quadratic_mean_environ_density_old(density) RESULT(quadratic_mean)
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: density
+    INTEGER, POINTER :: ir_end
+
+    REAL( DP ) :: quadratic_mean
+
+    ir_end => density % cell % ir_end
+    quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
+    CALL mp_sum( quadratic_mean, density%cell%comm )
+    quadratic_mean = SQRT( quadratic_mean ) / density % cell % ntot
+
+    RETURN
+
+  END FUNCTION quadratic_mean_environ_density_old
+
   SUBROUTINE destroy_environ_density(density)
 
     IMPLICIT NONE
