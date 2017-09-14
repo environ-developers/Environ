@@ -236,6 +236,8 @@ CONTAINS
                                lrigidcavity, lsurface, lvolume,   &
                                lsolvent, solvent
       !
+      USE electrostatic_base, ONLY : outer
+      !
       ! ... Each contribution to the forces is computed in its module
       !
       USE electrostatic,     ONLY : calc_felectrostatic
@@ -262,18 +264,18 @@ CONTAINS
          !
          IF ( lstatic ) THEN
             IF ( lelectrolyte ) THEN
-               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
                     & dielectric=static, electrolyte=electrolyte, forces=force_environ )
             ELSE
-               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
                     & dielectric=static, forces=force_environ )
             END IF
          ELSE
             IF ( lelectrolyte ) THEN
-               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
                     & electrolyte=electrolyte, forces=force_environ )
             ELSE
-               CALL calc_felectrostatic( natoms=nat, charges=charges, potential=velectrostatic, &
+               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
                     & forces=force_environ )
             END IF
          END IF

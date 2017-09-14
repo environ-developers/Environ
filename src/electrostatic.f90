@@ -314,8 +314,10 @@ CONTAINS
   END SUBROUTINE calc_eelectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_felectrostatic( natoms, charges, forces, potential, dielectric, electrolyte )
+  SUBROUTINE calc_felectrostatic( setup, natoms, charges, forces, potential, dielectric, electrolyte )
 !--------------------------------------------------------------------
+    !
+    USE periodic, ONLY : calc_fperiodic
     !
     ! ... Calculates the electrostatic embedding contribution to
     !     interatomic forces
@@ -324,6 +326,7 @@ CONTAINS
     !
     ! ... Declares variables
     !
+    TYPE( electrostatic_setup ), INTENT(IN) :: setup
     INTEGER, INTENT(IN) :: natoms
     TYPE( environ_charges ), INTENT(INOUT) :: charges
     REAL(DP), INTENT(INOUT) :: forces( 3, natoms )
@@ -341,6 +344,8 @@ CONTAINS
     !
     TYPE( environ_cell ), POINTER :: cell
     !
+    CALL start_clock ('calc_felect')
+    !
     ! ... Sanity checks and aliases
     !
     cell => charges % density % cell
@@ -351,33 +356,66 @@ CONTAINS
     !
     ftmp = 0.D0
     !
-    CALL init_environ_density( cell, aux )
+    ! ... Select the right expression
     !
-    IF ( charges % include_auxiliary ) THEN
-       IF ( .NOT. ASSOCIATED( charges % auxiliary ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
-       aux % of_r = charges % auxiliary % density % of_r
-    ELSE IF ( PRESENT( dielectric ) ) THEN
-       IF ( .NOT. ALLOCATED( dielectric%gradlog%of_r ) ) &
-            & CALL errore(sub_name,'Missing gradient of logarithm of dielectric',1)
-       IF ( .NOT. PRESENT( potential ) ) CALL errore(sub_name,'Missing required input',1)
-       CALL init_environ_gradient( cell, gradaux )
-       CALL external_gradient( potential%of_r, gradaux%of_r )
-       CALL scalar_product_environ_gradient( dielectric%gradlog, gradaux, aux )
-       CALL destroy_environ_gradient( gradaux )
-       aux % of_r = aux % of_r / fpi / e2 + charges % density % of_r * &
-            & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
-    ENDIF
+    SELECT CASE ( setup % problem )
+       !
+    CASE ( 'poisson', 'generalized' )
+       !
+       CALL init_environ_density( cell, aux )
+       !
+       IF ( charges % include_auxiliary ) THEN
+          IF ( .NOT. ASSOCIATED( charges % auxiliary ) ) &
+               & CALL errore(sub_name,'Missing expected charge component',1)
+          aux % of_r = charges % auxiliary % density % of_r
+       ELSE IF ( PRESENT( dielectric ) ) THEN
+          IF ( .NOT. ALLOCATED( dielectric%gradlog%of_r ) ) &
+               & CALL errore(sub_name,'Missing gradient of logarithm of dielectric',1)
+          IF ( .NOT. PRESENT( potential ) ) CALL errore(sub_name,'Missing required input',1)
+          CALL init_environ_gradient( cell, gradaux )
+          CALL external_gradient( potential%of_r, gradaux%of_r )
+          CALL scalar_product_environ_gradient( dielectric%gradlog, gradaux, aux )
+          CALL destroy_environ_gradient( gradaux )
+          aux % of_r = aux % of_r / fpi / e2 + charges % density % of_r * &
+               & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
+       ENDIF
+       !
+       IF ( charges % include_externals ) THEN
+          IF ( .NOT. ASSOCIATED( charges % externals ) ) &
+               & CALL errore(sub_name,'Missing expected charge component',1)
+          aux % of_r = aux % of_r + charges % externals % density % of_r
+       ENDIF
+       !
+       CALL external_force_lc(aux%of_r,ftmp)
+       !
+       CALL destroy_environ_density( aux )
+       !
+       IF ( setup % core % need_correction ) CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, ftmp )
+       !
+    CASE ( 'linpb', 'linmodpb' )
+
+       IF ( .NOT. PRESENT( electrolyte ) ) &
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+
+       CALL errore( sub_name, 'option not yet implemented', 1 )
+!       CALL linpb_forces()
+
+    CASE ( 'pb', 'modpb' )
+
+       IF ( .NOT. PRESENT( electrolyte ) ) &
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+
+       CALL errore( sub_name, 'option not yet implemented', 1 )
+!       CALL pb_forces()
+
+    CASE DEFAULT
+
+       CALL errore( sub_name, 'unexpected problem keyword', 1 )
+
+    END SELECT
+
+    CALL stop_clock ('calc_felect')
     !
-    IF ( charges % include_externals ) THEN
-       IF ( .NOT. ASSOCIATED( charges % externals ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
-       aux % of_r = aux % of_r + charges % externals % density % of_r
-    ENDIF
-    !
-    CALL external_force_lc(aux%of_r,ftmp)
-    !
-    CALL destroy_environ_density( aux )
     !
     forces = forces + ftmp
     !

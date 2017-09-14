@@ -33,7 +33,7 @@ MODULE periodic
   !
   PRIVATE
   !
-  PUBLIC :: calc_vperiodic, calc_eperiodic !, calc_gradvperiodic, calc_fperiodic
+  PUBLIC :: calc_vperiodic, calc_eperiodic, calc_fperiodic !, calc_gradvperiodic
   !
 CONTAINS
 !---------------------------------------------------------------------------
@@ -98,7 +98,7 @@ CONTAINS
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
-    tot_quadrupole = quadrupole ! - charges % ions % quadrupole_gauss + charges % ions % quadrupole_pc
+    tot_quadrupole = quadrupole
     !
     x0 = avg_pos*alat ! axis_shift*alat
     xd = avg_pos*alat
@@ -229,43 +229,80 @@ CONTAINS
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_eperiodic
 !---------------------------------------------------------------------------
-!!---------------------------------------------------------------------------
-!  SUBROUTINE calc_fperiodic( nnr, nat, f )
-!!---------------------------------------------------------------------------
-!    !
-!    ! ... Compute contribution to the atomic forces
-!    !
-!    USE environ_base,  ONLY : atomicspread, vperiodic
-!    USE environ_ions,  ONLY : ntyp, ityp, zv, tau
-!    USE environ_base,  ONLY : env_static_permittivity, rhopol, atomicspread
-!    !
-!    IMPLICIT NONE
-!    !
-!    INTEGER, INTENT(IN)   :: nnr
-!    INTEGER, INTENT(IN)   :: nat
-!    REAL(DP), INTENT(OUT) :: f( 3, nat )
-!    !
-!    INTEGER  :: ipol, ia
-!    REAL(DP) :: pos(3), spread, charge, fact
-!    REAL(DP) :: ftmp( 3, nat )
-!    REAL(DP), ALLOCATABLE :: grhoion( :, : )
-!    !
-!    CALL start_clock ('calc_fpbc')
-!    !
-!    ! ... Interatomic forces, point-like nuclei
-!    !
-!    fact = e2*tpi*2.D0/omega
-!    ftmp = 0.D0
-!    DO ia = 1, nat
-!      IF ( env_periodicity .EQ. 2 ) THEN
-!        pos( slab_axis )  = ( tau( slab_axis, ia ) - avg_pos( slab_axis ) ) * alat
-!        ftmp( slab_axis, ia ) = ( -tot_charge * pos( slab_axis ) + tot_dipole( slab_axis ) ) * fact
-!      ELSE IF ( env_periodicity .EQ. 0 ) THEN
-!        pos( : )  = ( tau( :, ia ) - avg_pos(:) ) * alat
-!        ftmp( :, ia ) = ( - tot_charge * pos( : ) + tot_dipole( : ) ) * fact / 3.D0
-!      END IF
-!      ftmp( :, ia ) = ftmp( :, ia ) * zv( ityp ( ia ) )
-!    END DO
+!---------------------------------------------------------------------------
+  SUBROUTINE calc_fperiodic( oned_analytic, natoms, charges, f )
+!---------------------------------------------------------------------------
+    !
+    ! ... Compute contribution to the atomic forces
+    !
+    IMPLICIT NONE
+    !
+    TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
+    INTEGER, INTENT(IN)   :: natoms
+    TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+    REAL(DP), INTENT(OUT) :: f( 3, natoms )
+    !
+    INTEGER, POINTER :: nnr
+    INTEGER, DIMENSION(:), POINTER :: ityp
+    REAL( DP ), DIMENSION(:), POINTER :: avg_pos
+    REAL( DP ), DIMENSION(:), POINTER :: rhotot
+    REAL( DP ), DIMENSION(:,:), POINTER :: tau
+    !
+    INTEGER, POINTER :: env_periodicity
+    INTEGER, POINTER :: slab_axis
+    REAL( DP ), POINTER :: alat, omega
+    REAL( DP ), DIMENSION(:), POINTER :: axis_shift
+    !
+    INTEGER  :: i
+    REAL(DP) :: dipole(0:3), quadrupole(3)
+    REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+    REAL(DP) :: pos(3), spread, charge, fact
+    REAL(DP) :: ftmp( 3, natoms )
+    !
+    CHARACTER ( LEN = 80 ) :: sub_name = 'calc_fperiodic'
+    !
+    CALL start_clock ('calc_fpbc')
+    !
+    ! ... Aliases and sanity checks
+    !
+    IF ( charges % density % cell % nnr .NE. oned_analytic % n ) &
+         & CALL errore(sub_name,'Missmatch in domains of charges and solver',1)
+    IF ( natoms .NE. charges % ions % number ) &
+         & CALL errore(sub_name,'Missmatch in numbers of atoms passed in input and stored',1)
+    !
+    nnr => charges % density % cell % nnr
+    rhotot => charges % density % of_r
+    avg_pos => charges % ions % center
+    tau => charges % ions % tau
+    ityp => charges % ions % ityp
+    !
+    alat => oned_analytic % alat
+    omega => oned_analytic % omega
+    env_periodicity => oned_analytic % d
+    slab_axis => oned_analytic % axis
+    axis_shift => oned_analytic % origin
+    !
+    ! ... Compute dipole of the system with respect to the center of charge
+    !
+    CALL compute_dipole( nnr, 1, rhotot, avg_pos, dipole, quadrupole )
+    !
+    tot_charge = dipole(0)
+    tot_dipole = dipole(1:3)
+    tot_quadrupole = quadrupole
+    !
+    ! ... Interatomic forces, point-like nuclei
+    !
+    ftmp = 0.D0
+    DO i = 1, natoms
+       pos(:) = ( tau( :, i ) - avg_pos( : ) ) * alat
+       fact = charges % ions % iontype( ityp ( i ) ) % zv * e2 * fpi / omega
+      IF ( env_periodicity .EQ. 2 ) THEN
+        ftmp( slab_axis, i ) = tot_charge * pos( slab_axis ) - tot_dipole( slab_axis )
+      ELSE IF ( env_periodicity .EQ. 0 ) THEN
+        ftmp( :, i ) = ( tot_charge * pos( : ) - tot_dipole( : ) ) / 3.D0
+      END IF
+      ftmp( :, i ) = ftmp( :, i ) * fact
+    END DO
 !    !
 !    ! ... Polarization correction for gaussian nuclei !!!! STILL NEED TO TEST IT!!!!
 !    !
@@ -277,15 +314,15 @@ CONTAINS
 !        END DO
 !      END IF
 !    END IF
-!    !
-!    f = f + ftmp ! plus or minus? plus should be correct
-!    !
-!    CALL stop_clock ('calc_fpbc')
-!    !
-!    RETURN
-!!---------------------------------------------------------------------------
-!  END SUBROUTINE calc_fperiodic
-!!---------------------------------------------------------------------------
+    !
+    f = f + ftmp
+    !
+    CALL stop_clock ('calc_fpbc')
+    !
+    RETURN
+!---------------------------------------------------------------------------
+  END SUBROUTINE calc_fperiodic
+!---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 END MODULE periodic
 !---------------------------------------------------------------------------
