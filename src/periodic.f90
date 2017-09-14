@@ -46,81 +46,93 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-    TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+    TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     INTEGER, POINTER :: nnr
-    REAL( DP ), DIMENSION(:), POINTER :: avg_pos
     REAL( DP ), DIMENSION(:), POINTER :: rhotot, vperiodic
     TYPE( environ_cell ), POINTER :: cell
     !
     INTEGER, POINTER :: env_periodicity
     INTEGER, POINTER :: slab_axis
     REAL( DP ), POINTER :: alat, omega, axis_length
-    REAL( DP ), DIMENSION(:), POINTER :: axis_shift
+    REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
     INTEGER :: icor
+    REAL(DP) :: fact, const
     REAL(DP) :: dipole(0:3), quadrupole(3)
-    REAL(DP) :: f(3), x0(3), dx(3), xd(3), fact, const
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     TYPE( environ_density ), TARGET :: local
-    !
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vperiodic'
     !
     CALL start_clock ('calc_vpbc')
     !
     ! ... Aliases and sanity checks
     !
-    IF ( .NOT. ASSOCIATED( potential%cell, charges%density%cell ) ) &
+    IF ( .NOT. ASSOCIATED( potential%cell, charges%cell ) ) &
          & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
     IF ( potential % cell % nnr .NE. oned_analytic % n ) &
          & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
     cell => potential % cell
     nnr => cell % nnr
-    avg_pos => charges % ions % center
-    rhotot => charges % density % of_r
+    rhotot => charges % of_r
     !
     alat => oned_analytic % alat
     omega => oned_analytic % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size
-    axis_shift => oned_analytic % origin
+    origin => oned_analytic % origin
     axis => oned_analytic % x
     !
     CALL init_environ_density( cell, local )
     vperiodic => local % of_r
     !
-    ! ... Compute dipole of the system with respect to the center of charge
+    ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, avg_pos, dipole, quadrupole )
+    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
     tot_quadrupole = quadrupole
     !
-    x0 = avg_pos*alat ! axis_shift*alat
-    xd = avg_pos*alat
+    ! ... Compute quadratic PBC correction
     !
-    ! ... Compute slab correction
-    !
-    dx = xd - x0
-    f(1:3) = tot_dipole(1:3) + tot_charge * dx(1:3)
     fact = e2 * tpi / omega
     !
-    IF ( env_periodicity .EQ. 2 ) THEN
-      vperiodic(:) = (-tot_charge*axis(1,:)**2 + 2.D0*f(slab_axis)*axis(1,:))
-      const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
-      vperiodic = fact * vperiodic + const
-    ELSE IF ( env_periodicity .EQ. 0 ) THEN
-      vperiodic = 0.D0
-      DO icor = 1, 3
-        vperiodic(:) = vperiodic(:) - tot_charge*axis(icor,:)**2 + 2.D0*f(icor)*axis(icor,:)
-      ENDDO
-      const = madelung(1) * tot_charge / alat * e2 - fact * SUM(tot_quadrupole(:)) / 3.D0
-      vperiodic = fact / 3.D0 * vperiodic + const
-    ENDIF
+    SELECT CASE ( env_periodicity )
+       !
+    CASE ( 0 )
+       !
+       const = madelung(1) * tot_charge / alat * e2 - fact * SUM(tot_quadrupole(:)) / 3.D0
+       vperiodic = 0.D0
+       DO icor = 1, 3
+          vperiodic(:) = vperiodic(:) - tot_charge * axis(icor,:)**2 + &
+               & 2.D0 * tot_dipole(icor) * axis(icor,:)
+       ENDDO
+       vperiodic = fact / 3.D0 * vperiodic + const
+       !
+    CASE ( 1 )
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    CASE ( 2 )
+       !
+       const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
+       vperiodic(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
+       vperiodic = fact * vperiodic + const
+       !
+    CASE ( 3 )
+       !
+       const = 0.D0
+       vperiodic = 0.D0
+       !
+    CASE DEFAULT
+       !
+       CALL errore(sub_name,'Unexpected option in dimensionality of PBC correction',1)
+       !
+    END SELECT
     !
     potential % of_r = potential % of_r + vperiodic
     !
@@ -189,17 +201,16 @@ CONTAINS
 !  END SUBROUTINE calc_gradvperiodic
 !!---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_eperiodic( oned_analytic, charges, potential, energy )
+  SUBROUTINE calc_eperiodic( oned_analytic, charges, energy )
 !---------------------------------------------------------------------------
     !
     ! ... HERE ONLY COMPUTES THE CORRECTION DUE TO GAUSSIAN NUCLEI, NEED TO MOVE
-    !     OUT OF HERE AND REMOVE THIS REOUTINE
+    !     OUT OF HERE AND REMOVE THIS ROUTINE
     !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_charges ), TARGET, INTENT(INOUT) :: charges
-    TYPE( environ_density ), INTENT(IN) :: potential !!! we do not need this !!!
     REAL(DP), INTENT(INOUT) :: energy
     !
     REAL(DP), POINTER :: omega
@@ -213,7 +224,7 @@ CONTAINS
     !
     ! ... Aliases
     !
-    omega => charges % density % cell % omega
+    omega => oned_analytic % omega
     !
     ! ... Correct for point-like ions
     !
@@ -244,14 +255,13 @@ CONTAINS
     !
     INTEGER, POINTER :: nnr
     INTEGER, DIMENSION(:), POINTER :: ityp
-    REAL( DP ), DIMENSION(:), POINTER :: avg_pos
     REAL( DP ), DIMENSION(:), POINTER :: rhotot
     REAL( DP ), DIMENSION(:,:), POINTER :: tau
     !
     INTEGER, POINTER :: env_periodicity
     INTEGER, POINTER :: slab_axis
     REAL( DP ), POINTER :: alat, omega
-    REAL( DP ), DIMENSION(:), POINTER :: axis_shift
+    REAL( DP ), DIMENSION(:), POINTER :: origin
     !
     INTEGER  :: i
     REAL(DP) :: dipole(0:3), quadrupole(3)
@@ -272,7 +282,6 @@ CONTAINS
     !
     nnr => charges % density % cell % nnr
     rhotot => charges % density % of_r
-    avg_pos => charges % ions % center
     tau => charges % ions % tau
     ityp => charges % ions % ityp
     !
@@ -280,28 +289,52 @@ CONTAINS
     omega => oned_analytic % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
-    axis_shift => oned_analytic % origin
+    origin => oned_analytic % origin
     !
-    ! ... Compute dipole of the system with respect to the center of charge
+    ! ... Compute multipoles of the system with respect to the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, avg_pos, dipole, quadrupole )
+    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
     tot_quadrupole = quadrupole
     !
-    ! ... Interatomic forces, point-like nuclei
+    ! ... Interatomic forces, quadrupole is not needed, thus the same
+    !     expression holds for point-like and gaussian nuclei
     !
     ftmp = 0.D0
+    !
     DO i = 1, natoms
-       pos(:) = ( tau( :, i ) - avg_pos( : ) ) * alat
+       !
+       pos(:) = ( tau( :, i ) - origin( : ) ) * alat
        fact = charges % ions % iontype( ityp ( i ) ) % zv * e2 * fpi / omega
-      IF ( env_periodicity .EQ. 2 ) THEN
-        ftmp( slab_axis, i ) = tot_charge * pos( slab_axis ) - tot_dipole( slab_axis )
-      ELSE IF ( env_periodicity .EQ. 0 ) THEN
-        ftmp( :, i ) = ( tot_charge * pos( : ) - tot_dipole( : ) ) / 3.D0
-      END IF
-      ftmp( :, i ) = ftmp( :, i ) * fact
+       !
+       SELECT CASE ( env_periodicity )
+          !
+       CASE ( 0 )
+          !
+          ftmp( :, i ) = ( tot_charge * pos( : ) - tot_dipole( : ) ) / 3.D0
+          !
+       CASE ( 1 )
+          !
+          CALL errore(sub_name,'Option not yet implemented',1)
+          !
+       CASE ( 2 )
+          !
+          ftmp( slab_axis, i ) = tot_charge * pos( slab_axis ) - tot_dipole( slab_axis )
+          !
+       CASE ( 3 )
+          !
+          ftmp = 0.D0
+          !
+       CASE DEFAULT
+          !
+          CALL errore(sub_name,'Unexpected',1)
+          !
+       END SELECT
+       !
+       ftmp( :, i ) = ftmp( :, i ) * fact
+       !
     END DO
 !    !
 !    ! ... Polarization correction for gaussian nuclei !!!! STILL NEED TO TEST IT!!!!

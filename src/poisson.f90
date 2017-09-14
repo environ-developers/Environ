@@ -62,7 +62,7 @@ CONTAINS
           !
        CASE ( '1da', 'oned_analytic' )
           !
-          CALL calc_vperiodic( core%correction%oned_analytic, charges, potential )
+          CALL calc_vperiodic( core%correction%oned_analytic, charges%density, potential )
           !
        CASE DEFAULT
           !
@@ -99,15 +99,44 @@ CONTAINS
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
     cell => charges % cell
     !
+    ! ... Using a local variable for the potential because the
+    !     routine may be called with the same argument for charges and potential
+    !
     CALL init_environ_density( cell, local )
     !
     IF ( core % use_qe_fft ) THEN
+       !
        CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+       !
     ELSE IF ( core % use_oned_analytic ) THEN
+       !
        CALL errore(sub_name,'Option not yet implemented',1)
+       !
     ELSE
+       !
        CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
     ENDIF
+    !
+    ! ... PBC corrections, if needed
+    !
+    IF ( core % need_correction ) THEN
+       !
+       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+          !
+       CASE ( '1da', 'oned_analytic' )
+          !
+          CALL calc_vperiodic( core%correction%oned_analytic, charges, local )
+          !
+       CASE DEFAULT
+          !
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+          !
+       END SELECT
+       !
+    ENDIF
+    !
+    ! ... Only update the potential at the end
     !
     potential % of_r = local % of_r
     !
@@ -219,7 +248,7 @@ CONTAINS
           !
        CASE ( '1da', 'oned_analytic' )
           !
-          CALL calc_eperiodic( core%correction%oned_analytic, charges, potential, energy )
+          CALL calc_eperiodic( core%correction%oned_analytic, charges, energy )
           !
        CASE DEFAULT
           !
@@ -260,6 +289,26 @@ CONTAINS
     ELSE
        !
        CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
+    ENDIF
+    !
+    IF ( core % need_correction ) THEN
+       !
+       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+          !
+       CASE ( '1da', 'oned_analytic' )
+          !
+          ! WARNING
+          ! THE CORRECTION FOR PBC IS ONLY POSSIBLE WHEN INFORMATIONS
+          ! ABOUT THE POINT-LIKE NUCLEI ARE PASSED
+          !
+          CALL errore(sub_name,'Option not yet implemented',1)
+          !
+       CASE DEFAULT
+          !
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+          !
+       END SELECT
        !
     ENDIF
     !
