@@ -19,8 +19,8 @@ MODULE generalized
   USE environ_types
   USE electrostatic_types
   USE environ_output
-  USE poisson, ONLY : poisson_direct, poisson_gradient_direct
-  USE environ_base, ONLY : e2
+  USE poisson, ONLY : poisson_direct, poisson_gradient_direct, poisson_energy
+  USE environ_base, ONLY : e2, oldenviron
 
   IMPLICIT NONE
 
@@ -127,7 +127,7 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
   CALL update_environ_charges( charges )
 
-  energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
+  CALL poisson_energy( core, charges, potential, energy )
 
   charges % include_auxiliary = include_auxiliary
 
@@ -230,8 +230,9 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
        ! ... If residual is small enough exit
 
-       delta_qm = quadratic_mean_environ_density( residual )
        delta_en = euclidean_norm_environ_density( residual )
+       IF ( oldenviron ) delta_en = quadratic_mean_environ_density_old( residual )
+       delta_qm = quadratic_mean_environ_density( residual )
        totiter = integrate_environ_density( rhoiter )
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)

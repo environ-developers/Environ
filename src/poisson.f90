@@ -175,6 +175,22 @@ CONTAINS
        !
     ENDIF
     !
+    IF ( core % need_correction ) THEN
+       !
+       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+          !
+       CASE ( '1da', 'oned_analytic' )
+          !
+          CALL calc_gradvperiodic( core%correction%oned_analytic, charges%density, gradient )
+          !
+       CASE DEFAULT
+          !
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+          !
+       END SELECT
+       !
+    ENDIF
+    !
     RETURN
     !
 !--------------------------------------------------------------------
@@ -205,6 +221,22 @@ CONTAINS
     ELSE
        !
        CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
+    ENDIF
+    !
+    IF ( core % need_correction ) THEN
+       !
+       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+          !
+       CASE ( '1da', 'oned_analytic' )
+          !
+          CALL calc_gradvperiodic( core%correction%oned_analytic, charges, gradient )
+          !
+       CASE DEFAULT
+          !
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+          !
+       END SELECT
        !
     ENDIF
     !

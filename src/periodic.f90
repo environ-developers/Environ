@@ -33,7 +33,7 @@ MODULE periodic
   !
   PRIVATE
   !
-  PUBLIC :: calc_vperiodic, calc_eperiodic, calc_fperiodic !, calc_gradvperiodic
+  PUBLIC :: calc_vperiodic, calc_eperiodic, calc_fperiodic, calc_gradvperiodic
   !
 CONTAINS
 !---------------------------------------------------------------------------
@@ -144,62 +144,110 @@ CONTAINS
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_vperiodic
 !---------------------------------------------------------------------------
-!!---------------------------------------------------------------------------
-!  SUBROUTINE calc_gradvperiodic( nnr, rhotot, gvtot )
-!!---------------------------------------------------------------------------
-!    !
-!    ! NOTE THAT IN THIS SUBROUTINE THE IONIC DENSITY IS IMPLICIT (AND THUS
-!    ! SPREAD GAUSSIANS). SINCE THE GRADIENT OF THE CORRECTIVE POTENTIAL DOES
-!    ! NOT DEPEND ON THE QUADRUPOLE MOMENT OF RHOTOT, IT SHOULD BE INDEPENDENT
-!    ! ON THE SHAPE OF THE IONIC DENSITY, PROVIDED THAT THE IONIC DIPOLE IS
-!    ! SET TO ZERO.
-!    !
-!    IMPLICIT NONE
-!    !
-!    INTEGER,  INTENT(IN)  :: nnr
-!    REAL(DP), INTENT(IN)  :: rhotot(nnr)
-!    REAL(DP), INTENT(INOUT) :: gvtot(3,nnr)
-!    !
-!    INTEGER :: icor
-!    !
-!    REAL(DP) :: dipole(0:3), quadrupole(3), f(3), xd(3), x0(3), dx(3)
-!    REAL(DP), ALLOCATABLE :: gvperiodic(:,:)
-!    !
-!    ALLOCATE( gvperiodic( 3, nnr ) )
-!    gvperiodic = 0.D0
-!
-!    ! ... Compute dipole of the system with respect to the center of charge
-!
-!    CALL compute_dipole( nnr, 1, rhotot, avg_pos, dipole, quadrupole )
-!
-!    x0 = axis_shift*alat
-!    xd = avg_pos*alat
-!
-!    ! ... Compute gradient of periodic images correction
-!
-!    dx = xd - x0
-!    f(1:3) = dipole(1:3)+dipole(0)*dx(1:3)
-!    IF ( env_periodicity .EQ. 2 ) THEN
-!      gvperiodic(slab_axis,:) = e2*tpi*2.D0/omega*(-dipole(0)*axis(:) + f(slab_axis))
-!    ELSE IF ( env_periodicity .EQ. 0 ) THEN
-!      DO icor = 1,3
-!        gvperiodic(icor,:) = e2*tpi*2.D0/3.D0/omega*(-dipole(0)*distance(icor,:) + f(icor))
-!      ENDDO
-!    END IF
-!
-!    ! ... Sum the periodic contribution to the total gradient of the potential
-!
-!    DO icor = 1,3
-!      gvtot(icor,:) = gvtot(icor,:) + gvperiodic(icor,:)
-!    ENDDO
-!
-!    DEALLOCATE(gvperiodic)
-!    !
-!    RETURN
-!
-!!---------------------------------------------------------------------------
-!  END SUBROUTINE calc_gradvperiodic
-!!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+  SUBROUTINE calc_gradvperiodic( oned_analytic, charges, gvtot )
+!---------------------------------------------------------------------------
+    !
+    ! NOTE THAT IN THIS SUBROUTINE THE IONIC DENSITY IS IMPLICIT (AND THUS
+    ! SPREAD GAUSSIANS). SINCE THE GRADIENT OF THE CORRECTIVE POTENTIAL DOES
+    ! NOT DEPEND ON THE QUADRUPOLE MOMENT OF RHOTOT, IT SHOULD BE INDEPENDENT
+    ! ON THE SHAPE OF THE IONIC DENSITY.
+    !
+    IMPLICIT NONE
+    !
+    TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
+    TYPE( environ_density ), TARGET, INTENT(IN) :: charges
+    TYPE( environ_gradient ), INTENT(INOUT) :: gvtot
+    !
+    INTEGER,  POINTER  :: nnr
+    REAL(DP), DIMENSION(:), POINTER  :: rhotot
+    REAL(DP), DIMENSION(:,:), POINTER :: gvperiodic
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    INTEGER, POINTER :: env_periodicity
+    INTEGER, POINTER :: slab_axis
+    REAL( DP ), POINTER :: omega
+    REAL( DP ), DIMENSION(:), POINTER :: origin
+    REAL( DP ), DIMENSION(:,:), POINTER :: axis
+    !
+    INTEGER :: icor
+    REAL(DP) :: fact
+    REAL(DP) :: dipole(0:3), quadrupole(3)
+    REAL(DP) :: tot_charge, tot_dipole(3)
+    TYPE( environ_gradient ), TARGET :: glocal
+    !
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvperiodic'
+    !
+    ! ... Aliases and sanity checks
+    !
+    IF ( .NOT. ASSOCIATED( gvtot%cell, charges%cell ) ) &
+         & CALL errore(sub_name,'Missmatch in domains of gradient and charges',1)
+    IF ( gvtot % cell % nnr .NE. oned_analytic % n ) &
+         & CALL errore(sub_name,'Missmatch in domains of gradient and solver',1)
+    !
+    cell => gvtot % cell
+    nnr => cell % nnr
+    rhotot => charges % of_r
+    !
+    omega => oned_analytic % omega
+    env_periodicity => oned_analytic % d
+    slab_axis => oned_analytic % axis
+    origin => oned_analytic % origin
+    axis => oned_analytic % x
+    !
+    CALL init_environ_gradient( cell, glocal )
+    gvperiodic => glocal % of_r
+    !
+    ! ... Compute dipole of the system with respect to the center of charge
+    !
+    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+    !
+    tot_charge = dipole(0)
+    tot_dipole = dipole(1:3)
+    !
+    ! ... Compute gradient of periodic images correction
+    !
+    fact = e2 * fpi / omega
+    !
+    SELECT CASE ( env_periodicity )
+       !
+    CASE ( 0 )
+       !
+       DO icor = 1,3
+          gvperiodic(icor,:) = ( tot_dipole(icor) - tot_charge * axis(icor,:) ) / 3.D0
+       ENDDO
+       !
+    CASE ( 1 )
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    CASE ( 2 )
+       !
+       gvperiodic(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
+       !
+    CASE( 3 )
+       !
+       gvperiodic = 0.D0
+       !
+    CASE DEFAULT
+       !
+       CALL errore(sub_name,'Unexpected option',1)
+       !
+    END SELECT
+    !
+    gvperiodic = gvperiodic * fact
+    !
+    ! ... Sum the periodic contribution to the total gradient of the potential
+    !
+    gvtot % of_r = gvtot % of_r + gvperiodic
+    !
+    CALL destroy_environ_gradient( glocal )
+    !
+    RETURN
+    !
+!---------------------------------------------------------------------------
+  END SUBROUTINE calc_gradvperiodic
+!---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
   SUBROUTINE calc_eperiodic( oned_analytic, charges, energy )
 !---------------------------------------------------------------------------
@@ -237,6 +285,7 @@ CONTAINS
     CALL stop_clock ('calc_epbc')
     !
     RETURN
+    !
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_eperiodic
 !---------------------------------------------------------------------------
@@ -264,9 +313,9 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: origin
     !
     INTEGER  :: i
+    REAL(DP) :: fact, pos(3)
     REAL(DP) :: dipole(0:3), quadrupole(3)
-    REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
-    REAL(DP) :: pos(3), spread, charge, fact
+    REAL(DP) :: tot_charge, tot_dipole(3)
     REAL(DP) :: ftmp( 3, natoms )
     !
     CHARACTER ( LEN = 80 ) :: sub_name = 'calc_fperiodic'
@@ -297,17 +346,16 @@ CONTAINS
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
-    tot_quadrupole = quadrupole
     !
     ! ... Interatomic forces, quadrupole is not needed, thus the same
     !     expression holds for point-like and gaussian nuclei
     !
+    fact = e2 * fpi / omega
     ftmp = 0.D0
     !
     DO i = 1, natoms
        !
        pos(:) = ( tau( :, i ) - origin( : ) ) * alat
-       fact = charges % ions % iontype( ityp ( i ) ) % zv * e2 * fpi / omega
        !
        SELECT CASE ( env_periodicity )
           !
@@ -333,7 +381,7 @@ CONTAINS
           !
        END SELECT
        !
-       ftmp( :, i ) = ftmp( :, i ) * fact
+       ftmp( :, i ) = ftmp( :, i ) * fact * charges % ions % iontype( ityp ( i ) ) % zv
        !
     END DO
 !    !
