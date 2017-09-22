@@ -116,6 +116,7 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
   REAL( DP ), INTENT(OUT) :: energy
 
   LOGICAL :: include_auxiliary
+  REAL( DP ) :: pol_charge, etmp
   CHARACTER*20 :: sub_name = 'generalized_energy'
 
   CALL start_clock( 'calc_esolv' )
@@ -128,6 +129,34 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
   CALL update_environ_charges( charges )
 
   CALL poisson_energy( core, charges, potential, energy )
+
+  ! Adding correction for point-like nuclei: only affects simulations of charged
+  ! systems, it does not affect forces, but shift the energy depending on the
+  ! fictitious Gaussian spread of the nuclei
+
+  IF ( core % need_correction ) THEN
+
+     etmp = 0.D0
+
+  ELSE
+
+     IF ( include_auxiliary ) THEN
+
+        pol_charge = integrate_environ_density( charges % auxiliary % density )
+
+        etmp = - charges % ions % quadrupole_correction * pol_charge * e2 * pi &
+             & / charges % density % cell % omega
+
+     ELSE
+
+        WRITE(program_unit,1100)
+1100    FORMAT('WARNING: missing polarization energy correction for Gaussian nuclei')
+
+     ENDIF
+
+  ENDIF
+
+  energy = energy + etmp
 
   charges % include_auxiliary = include_auxiliary
 
