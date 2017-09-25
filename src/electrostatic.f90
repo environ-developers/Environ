@@ -40,7 +40,7 @@ CONTAINS
     TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
 
-    LOGICAL :: include_externals, include_auxiliary
+    LOGICAL :: include_externals
 
     potential % of_r = 0.D0
 
@@ -49,11 +49,6 @@ CONTAINS
     include_externals = charges % include_externals
     charges % include_externals = .FALSE.
 
-    ! ... Remove auxiliary charges, if present and activated
-
-    include_auxiliary = charges % include_auxiliary
-    charges % include_auxiliary = .FALSE.
-
     CALL update_environ_charges( charges )
 
     CALL calc_velectrostatic( setup = setup, charges = charges, potential = potential )
@@ -61,7 +56,6 @@ CONTAINS
     ! ... Reset flags
 
     charges % include_externals = include_externals
-    charges % include_auxiliary = include_auxiliary
 
     CALL update_environ_charges( charges )
 
@@ -223,15 +217,12 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
 
-    LOGICAL :: include_externals, include_auxiliary
+    LOGICAL :: include_externals
 
     ! ... Remove external charges, if present
 
     include_externals = charges % include_externals
     charges % include_externals = .FALSE.
-
-    include_auxiliary = charges % include_auxiliary
-    charges % include_auxiliary = .FALSE.
 
     CALL update_environ_charges( charges )
 
@@ -240,8 +231,6 @@ CONTAINS
     ! ... Reset flags
 
     charges % include_externals = include_externals
-
-    charges % include_auxiliary = include_auxiliary
 
     CALL update_environ_charges( charges )
 
@@ -265,7 +254,6 @@ CONTAINS
     TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
 
-    LOGICAL :: include_auxiliary
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_eelectrostatic'
 
     CALL start_clock ('calc_eelect')

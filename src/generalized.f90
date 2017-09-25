@@ -28,10 +28,14 @@ MODULE generalized
 
   PUBLIC :: generalized_gradient, generalized_energy
 
+  INTERFACE generalized_gradient
+     MODULE PROCEDURE generalized_gradient_charges, generalized_gradient_density
+  END INTERFACE generalized_gradient
+
 CONTAINS
 
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient( solver, core, charges, dielectric, potential )
+SUBROUTINE generalized_gradient_charges( solver, core, charges, dielectric, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
@@ -39,6 +43,79 @@ SUBROUTINE generalized_gradient( solver, core, charges, dielectric, potential )
   TYPE( electrostatic_solver ), INTENT(IN) :: solver
   TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_charges ), INTENT(INOUT) :: charges
+  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
+  TYPE( environ_density ), INTENT(INOUT) :: potential
+
+  CHARACTER*20 :: sub_name = 'generalized_gradient'
+
+  CALL start_clock( 'calc_vsolv' )
+
+  IF ( solver % use_gradient ) THEN
+
+     IF ( solver % auxiliary .EQ. 'none' ) THEN
+
+        SELECT CASE ( solver % gradient % preconditioner )
+
+        CASE ( 'none' )
+
+           CALL generalized_gradient_none( solver % gradient, core, charges%density, dielectric, potential )
+
+        CASE ( 'sqrt' )
+
+           CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, dielectric, potential )
+
+        CASE ( 'left' )
+
+           CALL generalized_gradient_left( solver % gradient, core, charges%density, dielectric, potential )
+
+        CASE DEFAULT
+
+           CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
+
+        END SELECT
+
+     ELSE
+
+        CALL errore(sub_name,'Option not yet implemented',1)
+!        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
+
+     END IF
+
+  ELSE IF ( solver % use_iterative ) THEN
+
+     IF ( solver % auxiliary .EQ. 'full' ) THEN
+
+        CALL generalized_iterative( solver % iterative, core, charges%density, dielectric, potential, charges%auxiliary )
+
+     ELSE
+
+        CALL errore(sub_name,'Option not yet implemented',1)
+!        CALL generalized_iterative_velect( charges, dielectric, potential )
+
+     ENDIF
+
+  ELSE
+
+     CALL errore( sub_name, 'unexpected auxiliary keyword', 1 )
+
+  END IF
+
+  CALL stop_clock( 'calc_vsolv' )
+
+  RETURN
+
+!--------------------------------------------------------------------
+END SUBROUTINE generalized_gradient_charges
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, potential )
+!--------------------------------------------------------------------
+
+  IMPLICIT NONE
+
+  TYPE( electrostatic_solver ), INTENT(IN) :: solver
+  TYPE( electrostatic_core ), INTENT(IN) :: core
+  TYPE( environ_density ), INTENT(INOUT) :: charges
   TYPE( environ_dielectric ), INTENT(IN) :: dielectric
   TYPE( environ_density ), INTENT(INOUT) :: potential
 
@@ -101,7 +178,7 @@ SUBROUTINE generalized_gradient( solver, core, charges, dielectric, potential )
   RETURN
 
 !--------------------------------------------------------------------
-END SUBROUTINE generalized_gradient
+END SUBROUTINE generalized_gradient_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
@@ -115,18 +192,12 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
   TYPE( environ_density ), INTENT(IN) :: potential
   REAL( DP ), INTENT(OUT) :: energy
 
-  LOGICAL :: include_auxiliary
   REAL( DP ) :: pol_charge, etmp
   CHARACTER*20 :: sub_name = 'generalized_energy'
 
   CALL start_clock( 'calc_esolv' )
 
   energy = 0.D0
-
-  include_auxiliary = charges % include_auxiliary
-  charges % include_auxiliary = .FALSE.
-
-  CALL update_environ_charges( charges )
 
   CALL poisson_energy( core, charges, potential, energy )
 
@@ -140,7 +211,7 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
   ELSE
 
-     IF ( include_auxiliary ) THEN
+     IF ( charges % include_auxiliary ) THEN
 
         pol_charge = integrate_environ_density( charges % auxiliary % density )
 
@@ -158,10 +229,6 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
   energy = energy + etmp
 
-  charges % include_auxiliary = include_auxiliary
-
-  CALL update_environ_charges( charges )
-
   CALL stop_clock( 'calc_esolv' )
 
   RETURN
@@ -170,25 +237,27 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 END SUBROUTINE generalized_energy
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential )
+SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential, auxiliary )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
   TYPE( iterative_solver ), TARGET, INTENT(IN) :: iterative
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), TARGET, INTENT(INOUT) :: charges
+  TYPE( environ_density ), TARGET, INTENT(INOUT) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+  TYPE( environ_auxiliary ), TARGET, INTENT(INOUT), OPTIONAL :: auxiliary
 
   TYPE( environ_cell ), POINTER :: cell
-  TYPE( environ_density ), POINTER :: eps, rhoiter, rhozero
+  TYPE( environ_density ), POINTER :: eps, rhoiter, rhozero, rhotot
   TYPE( environ_gradient ), POINTER :: gradlogeps
 
   INTEGER :: iter
   REAL( DP ) :: total, totpol, totzero, totiter, delta_qm, delta_en
   TYPE( environ_density ) :: residual
   TYPE( environ_gradient ) :: gradpoisson
+  TYPE( environ_auxiliary ), TARGET :: rhoaux
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_iterative'
 
@@ -204,34 +273,40 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
   ! ... Check that fields have the same defintion domain
 
-  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-  cell => charges%density%cell
+  cell => charges%cell
+
+  ! ... If auxiliary charge is not passed, initialize it
+
+  IF ( .NOT. PRESENT( auxiliary ) ) THEN
+     CALL create_environ_auxiliary( rhoaux )
+     CALL init_environ_auxiliary( cell, rhoaux )
+     rhoiter => rhoaux % iterative
+     rhozero => rhoaux % fixed
+     rhotot => rhoaux % density
+  ELSE
+     rhoiter => auxiliary % iterative
+     rhozero => auxiliary % fixed
+     rhotot => auxiliary % density
+  ENDIF
 
   ! ... Aliases
 
   eps => dielectric % epsilon
   gradlogeps => dielectric % gradlog
-  rhoiter => charges % auxiliary % iterative
-  rhozero => charges % auxiliary % fixed
-
-  ! ... Solute only
-
-  charges % include_auxiliary = .FALSE.
-  CALL update_environ_charges( charges )
-  total = charges % charge
 
   ! ... Set up auxiliary charge
 
+  total = integrate_environ_density( charges )
   totpol = total * ( 1.D0 - dielectric % constant ) / dielectric % constant
-  rhozero % of_r = charges % density % of_r * ( 1.D0 - eps % of_r ) / eps % of_r
+  rhozero % of_r = charges % of_r * ( 1.D0 - eps % of_r ) / eps % of_r
   totzero = integrate_environ_density( rhozero )
   totiter = integrate_environ_density( rhoiter )
   IF ( verbose .GE. 1 ) WRITE(environ_unit,9001) totiter
 9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6)
-  charges % include_auxiliary = .TRUE.
 
   ! ... Create local variables
 
@@ -245,11 +320,9 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 9002 FORMAT(' Iteration # ',i10)
 
-       CALL update_environ_auxiliary( charges % auxiliary )
+       rhotot % of_r = charges % of_r + rhozero % of_r + rhoiter % of_r
 
-       CALL update_environ_charges( charges )
-
-       CALL poisson_gradient_direct( core, charges, gradpoisson )
+       CALL poisson_gradient_direct( core, rhotot, gradpoisson )
 
        CALL scalar_product_environ_gradient( gradlogeps, gradpoisson, residual )
 
@@ -283,11 +356,15 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
     ! ... Compute total electrostatic potential
 
-    CALL update_environ_auxiliary( charges % auxiliary )
+    rhotot % of_r = charges % of_r + rhozero % of_r + rhoiter % of_r
 
-    CALL update_environ_charges( charges )
+    CALL poisson_direct( core, rhotot, potential )
 
-    CALL poisson_direct( core, charges, potential )
+    IF ( .NOT. PRESENT ( auxiliary ) ) THEN
+       CALL destroy_environ_auxiliary( rhoaux )
+    ELSE
+       CALL update_environ_auxiliary( auxiliary )
+    ENDIF
 
     ! ... Destroy local variables
 
@@ -307,7 +384,7 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
 
   TYPE( gradient_solver ), TARGET, INTENT(IN) :: gradient
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+  TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
@@ -335,15 +412,15 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
 
   ! ... Check that fields have the same defintion domain
 
-  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-  cell => charges%density%cell
+  cell => charges%cell
 
   ! ... Aliases
 
-  b => charges % density
+  b => charges
   eps => dielectric % epsilon
   gradeps => dielectric % gradient
   x => potential
@@ -462,7 +539,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
   TYPE( gradient_solver ), TARGET, INTENT(IN) :: gradient
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+  TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
@@ -489,15 +566,15 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
   ! ... Check that fields have the same defintion domain
 
-  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-  cell => charges%density%cell
+  cell => charges%cell
 
   ! ... Aliases
 
-  b => charges % density
+  b => charges
   eps => dielectric % epsilon
   factsqrt => dielectric % factsqrt
   x => potential
@@ -633,7 +710,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
 
   TYPE( gradient_solver ), TARGET, INTENT(IN) :: gradient
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+  TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
@@ -661,15 +738,15 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
 
   ! ... Check that fields have the same defintion domain
 
-  IF ( .NOT. ASSOCIATED(charges%density%cell,dielectric%epsilon%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells of input fields',1)
-  IF ( .NOT. ASSOCIATED(charges%density%cell,potential%cell) ) &
+  IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
        & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
-  cell => charges%density%cell
+  cell => charges%cell
 
   ! ... Aliases
 
-  b => charges % density
+  b => charges
   eps => dielectric % epsilon
   gradeps => dielectric % gradient
   x => potential

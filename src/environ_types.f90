@@ -1180,9 +1180,8 @@ CONTAINS
     IF ( charges % include_auxiliary ) THEN
        IF ( .NOT. ASSOCIATED( charges % auxiliary ) ) &
             & CALL errore(sub_name,'Missing expected charge component',1)
-       charges % number = charges % number + charges % auxiliary % number
-       charges % charge = charges % charge + charges % auxiliary % charge
-       charges % density % of_r = charges % density % of_r + charges % auxiliary % density % of_r
+       ! AUXILIARY CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
+       CALL update_environ_auxiliary( charges % auxiliary )
     ENDIF
 
     local_charge = integrate_environ_density(charges%density)
