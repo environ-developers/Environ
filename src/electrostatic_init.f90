@@ -82,7 +82,7 @@ CONTAINS
     !
     ! first check keywords specfied in input
     !
-    IF ( pbc_dim_ .GT. 0 ) THEN
+    IF ( pbc_dim_ .GE. 0 ) THEN
        !
        pbc_dim = pbc_dim_
        pbc_axis = pbc_axis_

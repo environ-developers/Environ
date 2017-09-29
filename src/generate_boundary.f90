@@ -282,7 +282,7 @@ CONTAINS
       !
       REAL( DP ) :: arg
       !
-      CHARACTER( LEN=80 ) :: fun_name
+      CHARACTER( LEN=80 ) :: fun_name = 'dboundfunct'
       !
       SELECT CASE( ifunct )
       !
@@ -331,13 +331,13 @@ CONTAINS
       !
       REAL( DP ) :: arg, arg2
       !
-      CHARACTER( LEN=80 ) :: fun_name
+      CHARACTER( LEN=80 ) :: fun_name = 'd2boundfunct'
       !
       SELECT CASE( ifunct )
       !
       CASE( 0 )
          !
-         CALL errore(fun_name,'Second derivative not implemented',1)
+         CALL errore(fun_name,'Option not yet implemented',1)
          !
       CASE( 1 )
          !

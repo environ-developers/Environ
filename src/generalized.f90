@@ -123,6 +123,8 @@ SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, pote
 
   CALL start_clock( 'calc_vsolv' )
 
+  potential % of_r = 0.D0
+
   IF ( solver % use_gradient ) THEN
 
      IF ( solver % auxiliary .EQ. 'none' ) THEN
@@ -192,10 +194,15 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
   TYPE( environ_density ), INTENT(IN) :: potential
   REAL( DP ), INTENT(OUT) :: energy
 
-  REAL( DP ) :: pol_charge, etmp
+  REAL( DP ) :: degauss, eself
   CHARACTER*20 :: sub_name = 'generalized_energy'
 
   CALL start_clock( 'calc_esolv' )
+
+  ! Aliases and sanity checks
+
+  IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
+       & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
 
   energy = 0.D0
 
@@ -207,15 +214,13 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
   IF ( core % need_correction ) THEN
 
-     etmp = 0.D0
+     degauss = 0.D0
 
   ELSE
 
      IF ( charges % include_auxiliary ) THEN
 
-        pol_charge = integrate_environ_density( charges % auxiliary % density )
-
-        etmp = - charges % ions % quadrupole_correction * pol_charge * e2 * pi &
+        degauss = - charges % ions % quadrupole_correction * charges % auxiliary % charge * e2 * pi &
              & / charges % density % cell % omega
 
      ELSE
@@ -227,7 +232,11 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
   ENDIF
 
-  energy = energy + etmp
+  ! Compute spurious self-polarization energy
+
+  eself = 0.D0
+
+  energy = energy + eself + degauss
 
   CALL stop_clock( 'calc_esolv' )
 

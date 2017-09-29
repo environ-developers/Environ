@@ -75,6 +75,7 @@ CONTAINS
     ions%quadrupole_pc = 0.D0
     ions%quadrupole_gauss = 0.D0
     ions%quadrupole_correction = 0.D0
+    ions%selfenergy_correction = 0.D0
 
     ions%number = nat
     ions%ntyp = ntyp
@@ -256,15 +257,21 @@ CONTAINS
     ions%dipole = 0.D0 ! This is due to the choice of ionic center
     ions%quadrupole_pc = 0.D0
     ions%quadrupole_correction = 0.D0
+    ions%selfenergy_correction = 0.D0
 
     DO i = 1, ions%number
 
        ions%quadrupole_pc(:) = ions%quadrupole_pc(:) + &
             & ions%iontype(ions%ityp(i))%zv * &
             & ( ( ions%tau(:,i) - ions%center(:) ) * ions%alat )**2
-       IF ( ions%use_smeared_ions ) ions%quadrupole_correction = &
+       IF ( ions%use_smeared_ions ) THEN
+          ions%quadrupole_correction = &
             & ions%quadrupole_correction + ions%iontype(ions%ityp(i))%zv * &
             & ions%iontype(ions%ityp(i))%atomicspread**2 * 0.5D0
+          ions%selfenergy_correction = &
+            & ions%selfenergy_correction + ions%iontype(ions%ityp(i))%zv**2 / &
+            & ions%iontype(ions%ityp(i))%atomicspread * SQRT( 2.D0 / pi )
+       END IF
 
     END DO
 

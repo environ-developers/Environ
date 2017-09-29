@@ -147,6 +147,7 @@ MODULE environ_types
 
      REAL( DP ) :: charge = 0.0_DP
      REAL( DP ) :: quadrupole_correction
+     REAL( DP ) :: selfenergy_correction
      REAL( DP ), DIMENSION(3) :: dipole
      REAL( DP ), DIMENSION(3) :: quadrupole_pc
      REAL( DP ), DIMENSION(3) :: quadrupole_gauss

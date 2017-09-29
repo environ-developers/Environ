@@ -33,7 +33,7 @@ MODULE periodic
   !
   PRIVATE
   !
-  PUBLIC :: calc_vperiodic, calc_eperiodic, calc_fperiodic, calc_gradvperiodic
+  PUBLIC :: calc_vperiodic, calc_fperiodic, calc_gradvperiodic
   !
 CONTAINS
 !---------------------------------------------------------------------------
@@ -249,47 +249,6 @@ CONTAINS
   END SUBROUTINE calc_gradvperiodic
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_eperiodic( oned_analytic, charges, energy )
-!---------------------------------------------------------------------------
-    !
-    ! ... HERE ONLY COMPUTES THE CORRECTION DUE TO GAUSSIAN NUCLEI, NEED TO MOVE
-    !     OUT OF HERE AND REMOVE THIS ROUTINE
-    !
-    IMPLICIT NONE
-    !
-    TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-    TYPE( environ_charges ), TARGET, INTENT(INOUT) :: charges
-    REAL(DP), INTENT(INOUT) :: energy
-    !
-    REAL(DP), POINTER :: omega
-    !
-    REAL(DP) :: etmp
-    REAL(DP) :: tot_charge
-    !
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_eperiodic'
-    !
-    CALL start_clock ('calc_epbc')
-    !
-    ! ... Aliases
-    !
-    omega => oned_analytic % omega
-    !
-    ! ... Correct for point-like ions
-    !
-    tot_charge = integrate_environ_density( charges % density )
-    !
-    etmp = charges % ions % quadrupole_correction * tot_charge * e2 * tpi / omega
-    !
-    energy = energy + etmp
-    !
-    CALL stop_clock ('calc_epbc')
-    !
-    RETURN
-    !
-!---------------------------------------------------------------------------
-  END SUBROUTINE calc_eperiodic
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
   SUBROUTINE calc_fperiodic( oned_analytic, natoms, charges, f )
 !---------------------------------------------------------------------------
     !
@@ -384,17 +343,6 @@ CONTAINS
        ftmp( :, i ) = ftmp( :, i ) * fact * charges % ions % iontype( ityp ( i ) ) % zv
        !
     END DO
-!    !
-!    ! ... Polarization correction for gaussian nuclei !!!! STILL NEED TO TEST IT!!!!
-!    !
-!    IF ( env_static_permittivity .GT. 1.D0 ) THEN
-!      IF ( env_periodicity .EQ. 0 ) THEN !THE CORRECTION FOR SLAB IS ZERO (MAYBE)!
-!        DO ia = 1, nat
-!          ftmp( :, ia ) = ftmp( :, ia ) - fact / 2.D0 *  SUM(rhopol(:)) * domega * &
-!             & ( zv( ityp ( ia ) ) * atomicspread( ityp (ia ) ) / sqrtpi ) / 3.D0
-!        END DO
-!      END IF
-!    END IF
     !
     f = f + ftmp
     !

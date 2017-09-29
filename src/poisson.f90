@@ -5,6 +5,7 @@ MODULE poisson
   USE environ_types
   USE electrostatic_types
   USE periodic
+  USE environ_base, ONLY : e2, oldenviron
 
   IMPLICIT NONE
 
@@ -256,6 +257,7 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
     !
+    REAL( DP ) :: degauss, eself
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_charges'
     !
     energy = 0.d0
@@ -274,21 +276,28 @@ CONTAINS
        !
     ENDIF
     !
-    IF ( core % need_correction ) THEN
+    ! Remove self-interaction and correct energy of Gaussian ions
+    !
+    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
        !
-       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+       eself = charges % ions % selfenergy_correction * e2
+       !
+       IF ( core % need_correction ) THEN
           !
-       CASE ( '1da', 'oned_analytic' )
+          degauss = 0.D0
           !
-          CALL calc_eperiodic( core%correction%oned_analytic, charges, energy )
+       ELSE
           !
-       CASE DEFAULT
+          degauss = - charges % ions % quadrupole_correction * charges % charge * e2 * tpi &
+               & / charges % density % cell % omega
           !
-          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
-          !
-       END SELECT
+       ENDIF
+       !
+       degauss = degauss ! we are missing the difference in interaction of electrons with gaussian vs. pc nuclei
        !
     ENDIF
+    !
+    energy = energy + eself + degauss
     !
     RETURN
     !
@@ -306,6 +315,7 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
     !
+    REAL( DP ) :: degauss, eself
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_density'
     !
     energy = 0.D0
@@ -324,25 +334,15 @@ CONTAINS
        !
     ENDIF
     !
-    IF ( core % need_correction ) THEN
-       !
-       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
-          !
-       CASE ( '1da', 'oned_analytic' )
-          !
-          ! WARNING
-          ! THE CORRECTION FOR PBC IS ONLY POSSIBLE WHEN INFORMATIONS
-          ! ABOUT THE POINT-LIKE NUCLEI ARE PASSED
-          !
-          CALL errore(sub_name,'Option not yet implemented',1)
-          !
-       CASE DEFAULT
-          !
-          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
-          !
-       END SELECT
-       !
-    ENDIF
+    ! Remove self-interaction and correct energy of Gaussian ions
+    ! WARNING: THESE CORRECTIONS ARE ONLY POSSIBLE WHEN INFORMATIONS
+    ! ABOUT THE POINT-LIKE NUCLEI ARE PASSED
+    !
+    eself = 0.D0
+    !
+    degauss = 0.D0
+    !
+    energy = energy + eself + degauss
     !
     RETURN
     !
