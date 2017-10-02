@@ -1,0 +1,13 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_static_permittivity = 100.
+   !
+ /
+ !
+ &ELECTROSTATIC
+   pbc_dim = 0
+   pbc_axis = 3
+   pbc_correction = 'parabolic'
+ /
