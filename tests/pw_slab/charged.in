@@ -20,7 +20,7 @@
    degauss = 0.03
    smearing = 'mv'
    nbnd = 80
-   tot_charge = 0
+   tot_charge = 1
    !
 /
  &ELECTRONS

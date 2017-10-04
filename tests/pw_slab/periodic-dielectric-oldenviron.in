@@ -14,7 +14,7 @@
    pbc_correction = 'parabolic'
    auxiliary = 'full'
    solver = 'iterative'
-   tol = 1.d-7
+   tol = 1.d-11
    mix = 0.5
    boundary_core = 'fd'
  /

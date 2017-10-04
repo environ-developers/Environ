@@ -4,11 +4,11 @@ inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('charged.in', 'peri
 
 [pw_slab/]
 program = PW
-inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('neutral.in', 'periodic-dielectric-oldenviron.in')
+inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('neutral.in', 'periodic-dielectric-oldenviron.in'), ('charged.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-dielectric-oldenviron.in')
 
 [pw_dielectric/]
 program = PW
-inputs_args = ('pw.in', 'dielectric-sccs-default.in'), ('pw.in', 'dielectric-sccs-iter-aux.in'), ('pw.in', 'dielectric-sccs-psd.in'), ('pw.in', 'dielectric-sccs-stype1.in'), ('pw.in', 'dielectric-ss-default.in'), ('pw.in', 'dielectric-ss-iter-aux.in')
+inputs_args = ('neutral.in', 'dielectric-sccs-default.in'), ('neutral.in', 'dielectric-sccs-iter-aux.in'), ('neutral.in', 'dielectric-sccs-psd.in'), ('neutral.in', 'dielectric-sccs-stype1.in'), ('neutral.in', 'dielectric-ss-default.in'), ('neutral.in', 'dielectric-ss-iter-aux.in'), ('charged.in', 'dielectric-sccs-default.in'), ('charged.in', 'dielectric-sccs-iter-aux.in'), ('charged.in', 'dielectric-sccs-psd.in'), ('charged.in', 'dielectric-sccs-stype1.in'), ('charged.in', 'dielectric-ss-default.in'), ('charged.in', 'dielectric-ss-iter-aux.in')
 
 [pw_surface/]
 program = PW
