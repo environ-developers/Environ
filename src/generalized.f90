@@ -20,7 +20,8 @@ MODULE generalized
   USE electrostatic_types
   USE environ_output
   USE poisson, ONLY : poisson_direct, poisson_gradient_direct, poisson_energy
-  USE environ_base, ONLY : e2, oldenviron
+  USE environ_base, ONLY : e2, oldenviron, add_jellium
+  USE periodic, ONLY : calc_v0periodic
 
   IMPLICIT NONE
 
@@ -218,6 +219,9 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
   ELSE
 
+     ! If using PBC, polarization charge should be neutral, as jellium polarization should also
+     ! accounted for, thus the correction for Gaussian nuclei should be almost negligible
+
      IF ( charges % include_auxiliary ) THEN
 
         degauss = - charges % ions % quadrupole_correction * charges % auxiliary % charge * e2 * pi &
@@ -225,8 +229,7 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
      ELSE
 
-        WRITE(program_unit,1100)
-1100    FORMAT('WARNING: missing polarization energy correction for Gaussian nuclei')
+        degauss = 0.D0
 
      ENDIF
 
@@ -263,7 +266,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
   TYPE( environ_gradient ), POINTER :: gradlogeps
 
   INTEGER :: iter
-  REAL( DP ) :: total, totpol, totzero, totiter, delta_qm, delta_en
+  REAL( DP ) :: total, totpol, totzero, totiter, delta_qm, delta_en, jellium
   TYPE( environ_density ) :: residual
   TYPE( environ_gradient ) :: gradpoisson
   TYPE( environ_auxiliary ), TARGET :: rhoaux
@@ -311,11 +314,13 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
   total = integrate_environ_density( charges )
   totpol = total * ( 1.D0 - dielectric % constant ) / dielectric % constant
-  rhozero % of_r = charges % of_r * ( 1.D0 - eps % of_r ) / eps % of_r
+  jellium = 0.D0
+  IF ( add_jellium ) jellium =  total / cell % omega
+  rhozero % of_r = ( charges % of_r - jellium ) * ( 1.D0 - eps % of_r ) / eps % of_r
   totzero = integrate_environ_density( rhozero )
   totiter = integrate_environ_density( rhoiter )
-  IF ( verbose .GE. 1 ) WRITE(environ_unit,9001) totiter
-9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6)
+  IF ( verbose .GE. 1 ) WRITE(environ_unit,9001) totiter, jellium
+9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6, ' jellium = ',F13.6)
 
   ! ... Create local variables
 
@@ -329,7 +334,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
        IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
 9002 FORMAT(' Iteration # ',i10)
 
-       rhotot % of_r = charges % of_r + rhozero % of_r + rhoiter % of_r
+       rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
 
        CALL poisson_gradient_direct( core, rhotot, gradpoisson )
 
@@ -365,7 +370,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
     ! ... Compute total electrostatic potential
 
-    rhotot % of_r = charges % of_r + rhozero % of_r + rhoiter % of_r
+    rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
 
     CALL poisson_direct( core, rhotot, potential )
 
@@ -557,7 +562,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
   TYPE( environ_gradient ), POINTER :: gradeps
 
   INTEGER :: iter
-  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en
+  REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, jellium, shift
   TYPE( environ_density ) :: r, z, p, Ap, invsqrt
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_sqrt'
@@ -589,6 +594,8 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
   x => potential
   CALL init_environ_density( cell, invsqrt )
   invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
+  jellium = 0.D0
+  IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
 
   ! ... Create and initialize local variables
 
@@ -601,7 +608,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
   IF ( x%update ) THEN
 
-     r%of_r = b%of_r - factsqrt%of_r * x%of_r
+     r%of_r = ( b%of_r - jellium ) - factsqrt%of_r * x%of_r
 
      ! ... Preconditioning step
 
@@ -632,7 +639,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
      x%update = .TRUE.
      x%of_r = 0.D0
-     r%of_r = b%of_r
+     r%of_r = b%of_r - jellium
      rzold = 0.D0
 
   ENDIF
@@ -690,11 +697,37 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 9005      FORMAT(' Charges are converged, exit!')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
-         WRITE(program_unit,9006)
-9006     FORMAT(' Warning: Polarization charge not converged')
+          WRITE(program_unit,9006)
+9006      FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
     ENDDO
+
+    ! Set the average of the potential to the physical correct value
+
+    shift = 0.D0
+
+    IF ( core % need_correction ) THEN
+
+       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+
+       CASE ( '1da', 'oned_analytic' )
+
+          CALL calc_v0periodic( core%correction%oned_analytic, charges, shift )
+
+       CASE DEFAULT
+
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
+
+       END SELECT
+
+    ELSE
+
+       shift = 0.D0
+
+    END IF
+
+    x % of_r = x % of_r - integrate_environ_density( x ) / cell % omega + shift
 
     IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
