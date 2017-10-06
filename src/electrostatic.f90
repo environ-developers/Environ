@@ -21,7 +21,7 @@ MODULE electrostatic
   USE environ_types
   USE electrostatic_types
   USE environ_output
-  USE environ_base, ONLY : e2
+  USE environ_base, ONLY : e2, add_jellium
   !
   SAVE
 
@@ -324,7 +324,7 @@ CONTAINS
     !
     ! ... Local variables
     !
-    REAL(DP)            :: ftmp( 3, natoms )
+    REAL(DP)            :: ftmp( 3, natoms ), jellium
     CHARACTER( LEN=80 ) :: sub_name = 'calc_felectrostatic'
     !
     TYPE( environ_density ) :: aux
@@ -364,7 +364,9 @@ CONTAINS
           CALL external_gradient( potential%of_r, gradaux%of_r )
           CALL scalar_product_environ_gradient( dielectric%gradlog, gradaux, aux )
           CALL destroy_environ_gradient( gradaux )
-          aux % of_r = aux % of_r / fpi / e2 + charges % density % of_r * &
+          jellium = 0.D0
+          IF ( add_jellium ) jellium = charges % charge / cell % omega
+          aux % of_r = aux % of_r / fpi / e2 + ( charges % density % of_r - jellium ) * &
                & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
        ENDIF
        !

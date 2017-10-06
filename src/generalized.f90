@@ -229,7 +229,16 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
      ELSE
 
-        degauss = 0.D0
+        IF ( add_jellium ) THEN
+
+           degauss = 0.D0
+
+        ELSE
+
+           degauss = - charges % ions % quadrupole_correction * e2 * pi / charges % density % cell % omega &
+                & * ( 1.D0 - dielectric % constant ) / dielectric % constant * charges % charge
+
+        ENDIF
 
      ENDIF
 
