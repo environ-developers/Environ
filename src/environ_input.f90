@@ -747,12 +747,13 @@ MODULE environ_input
        CALL mp_bcast( screening,                  ionode_id, comm )
        !
        CALL mp_bcast( core,                       ionode_id, comm )
+       CALL mp_bcast( boundary_core,              ionode_id, comm )
        CALL mp_bcast( ifdtype,                    ionode_id, comm )
        CALL mp_bcast( nfdpoint,                   ionode_id, comm )
        !
        CALL mp_bcast( pbc_dim,                    ionode_id, comm )
-       CALL mp_bcast( pbc_axis,                   ionode_id, comm )
        CALL mp_bcast( pbc_correction,             ionode_id, comm )
+       CALL mp_bcast( pbc_axis,                   ionode_id, comm )
        !
        RETURN
        !
@@ -837,9 +838,6 @@ MODULE environ_input
        !
        IF( env_surface_tension < 0.0_DP ) &
           CALL errore( sub_name,' env_surface_tension out of range ', 1 )
-       !
-       IF( env_pressure < 0.0_DP ) &
-          CALL errore( sub_name,' env_pressure out of range ', 1 )
        !
        IF( env_ioncc_ntyp < 0 .OR. env_ioncc_ntyp .EQ. 1 ) &
           CALL errore( sub_name,' env_ioncc_ntyp out of range ', 1 )
