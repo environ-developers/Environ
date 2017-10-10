@@ -109,6 +109,11 @@ MODULE environ_input
 !
         LOGICAL :: env_electrostatic = .false.
         ! generic keyword that flags the need to read the electrostatic namelist
+        REAL(DP) :: atomicspread(nsx) = -0.5D0
+        ! gaussian spreads of the atomic density of charge, in internal units (a.u.)
+        LOGICAL :: add_jellium = .false.
+        ! depending on periodic boundary corrections, one may need to explicitly
+        ! polarize the compensatinig jellium background
 !
 ! Dielectric solvent parameters
 !
@@ -118,11 +123,6 @@ MODULE environ_input
         REAL(DP) :: env_optical_permittivity = 1.D0
         ! optical dielectric permittivity of the solvation model. If set equal
         ! to one (=vacuum) no dielectric effects. Needed only for the TDDFTPT.
-        REAL(DP) :: atomicspread(nsx) = -0.5D0
-        ! gaussian spreads of the atomic density of charge, in internal units (a.u.)
-        LOGICAL :: add_jellium = .false.
-        ! depending on periodic boundary corrections, one may need to explicitly
-        ! polarize the compensatinig jellium background
 !
 ! Cavitation energy parameters
 !
@@ -166,9 +166,8 @@ MODULE environ_input
              oldenviron, environ_restart, verbose, environ_thr,        &
              environ_nskip, environ_type,                              &
              system_ntyp, system_dim, system_axis,                     &
-             env_electrostatic,                                        &
+             env_electrostatic, atomicspread, add_jellium,             &
              env_static_permittivity, env_optical_permittivity,        &
-             atomicspread, add_jellium,                                &
              env_surface_tension,                                      &
              env_pressure,                                             &
              env_ioncc_ntyp, cion, cionmax, rion, zion,                &
@@ -629,11 +628,11 @@ MODULE environ_input
        system_axis = 3
        !
        env_electrostatic = .false.
+       atomicspread(:) = -0.5D0
+       add_jellium = .false.
        !
        env_static_permittivity = 1.D0
        env_optical_permittivity = 1.D0
-       atomicspread(:) = -0.5D0
-       add_jellium = .false.
        !
        env_surface_tension = 0.D0
        !
@@ -760,11 +759,11 @@ MODULE environ_input
        CALL mp_bcast( system_axis,                ionode_id, comm )
        !
        CALL mp_bcast( env_electrostatic,          ionode_id, comm )
+       CALL mp_bcast( atomicspread,               ionode_id, comm )
+       CALL mp_bcast( add_jellium,                ionode_id, comm )
        !
        CALL mp_bcast( env_static_permittivity,    ionode_id, comm )
        CALL mp_bcast( env_optical_permittivity,   ionode_id, comm )
-       CALL mp_bcast( atomicspread,               ionode_id, comm )
-       CALL mp_bcast( add_jellium,                ionode_id, comm )
        !
        CALL mp_bcast( env_surface_tension,        ionode_id, comm )
        !
