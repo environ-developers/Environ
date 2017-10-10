@@ -76,6 +76,9 @@ MODULE environ_input
         INTEGER  :: environ_nskip = 1
         ! how many steps should environ skip before starting to compute the
         ! additional potentials
+!
+! Predefined environ types
+!
         CHARACTER( LEN = 80 ) :: environ_type = 'input'
         CHARACTER( LEN = 80 ) :: environ_type_allowed(5)
         DATA environ_type_allowed / 'vacuum', 'water', 'water-cation', &
@@ -91,7 +94,7 @@ MODULE environ_input
         ! input = do not use any predefined set, use parameters from input
 !
 ! System specification
-        !
+!
         INTEGER :: system_ntyp = 0
         ! specify the atom types that are used to determine the origin and
         ! size of the system (types up to system_ntyp are used, all atoms are
@@ -102,20 +105,10 @@ MODULE environ_input
         INTEGER :: system_axis = 3
         ! main axis of 1D or 2D systems (1 = x, 2 = y, 3 = z)
 !
-! Switching function parameters
+! Generic keyword to specify modification of electrostatic embedding (e.g. PBC correction)
 !
-        INTEGER :: stype = 2
-        ! type of switching functions used in the solvation models
-        !    0: original Fattebert-Gygi
-        !    1: ultrasoft switching function (only exponential part used for non-electrostatic)
-        !    2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
-        REAL(DP) :: rhomax = 0.005
-        ! first parameter of the sw function, roughly corresponding
-        ! to the density threshold of the solvation model
-        REAL(DP) :: rhomin = 0.0001
-        ! second parameter of the sw function when stype=1 or 2
-        REAL(DP) :: tbeta = 4.8
-        ! second parameter of the sw function when stype=0
+        LOGICAL :: env_electrostatic = .false.
+        ! generic keyword that flags the need to read the electrostatic namelist
 !
 ! Dielectric solvent parameters
 !
@@ -125,48 +118,8 @@ MODULE environ_input
         REAL(DP) :: env_optical_permittivity = 1.D0
         ! optical dielectric permittivity of the solvation model. If set equal
         ! to one (=vacuum) no dielectric effects. Needed only for the TDDFTPT.
-        CHARACTER( LEN = 80 ) :: eps_mode = 'electronic'
-        CHARACTER( LEN = 80 ) :: eps_mode_allowed(8)
-        DATA eps_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
-                              & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
-        ! eps_mode method for calculating the density that sets
-        ! the dielectric constant
-        ! electronic = dielectric depends self-consist. on electronic density
-        ! ionic = dielectric defined on a fictitious ionic density, generated
-        !         as the sum of exponential functions centered on atomic
-        !         positions of width specified in input by solvationrad(ityp)
-        ! full  = similar to electronic, but an extra density is added to
-        !         represent the core electrons and the nuclei. This extra
-        !         density is defined as the sum of gaussian functions centered
-        !         on atomic positions of width equal to corespread(ityp)
-        ! system = simplified regular dielectric defined to be outside a distance
-        !         eps_distance from the specified system
-        ! elec-sys = similar to electronic, but on top of the system dielectric
-        ! ionic-sys = similar to ionic, but on top of the system dielectric
-        ! full-sys = similar to full, but on top of the system dielectric
-        CHARACTER( LEN = 80 ) :: radius_mode = 'uff'
-        CHARACTER( LEN = 80 ) :: radius_mode_allowed(3)
-        DATA radius_mode_allowed / 'pauling', 'bondi', 'uff' /
-        ! type of hardcoded solvation radii to be used when eps_mode = 'ionic'
-        ! pauling = R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
-        ! bondi   = A. Bondi, J. Phys. Chem. 68, 441 (1964)
-        ! uff     = A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
-        REAL(DP) :: alpha = 1.D0
-        ! scaling factor for ionic radii when eps_mode = 'ionic'
-        REAL(DP) :: softness = 1.D0
-        ! spread of the rigid interfaces
-        REAL(DP) :: solvationrad(nsx) = -3.D0
-        ! solvationrad radius of the solvation shell for each species when the
-        ! ionic dielectric function is adopted, in internal units (a.u.)
-        REAL(DP) :: corespread(nsx) = -0.5D0
-        ! gaussian spreads of the core electrons, in internal units (a.u.), to
-        ! be used when eps_mode = 'full'
         REAL(DP) :: atomicspread(nsx) = -0.5D0
         ! gaussian spreads of the atomic density of charge, in internal units (a.u.)
-        REAL(DP) :: eps_distance = 1.D0
-        ! distance from the system where the dielectric starts if required from eps_mode
-        REAL(DP) :: eps_spread = 0.5D0
-        ! spread of the dielectric interface if defined on system position and width
         LOGICAL :: add_jellium = .false.
         ! depending on periodic boundary corrections, one may need to explicitly
         ! polarize the compensatinig jellium background
@@ -185,27 +138,6 @@ MODULE environ_input
 !
         INTEGER :: env_ioncc_ntyp = 0
         ! number of counter-charge species in the electrolyte ( if != 0 must be >= 2 )
-        INTEGER :: nrep = 0
-        ! number of replicas of unit cell along slab_axis
-        CHARACTER( LEN = 80 ) :: stern_mode = 'electronic'
-        CHARACTER( LEN = 80 ) :: stern_mode_allowed(8)
-        DATA stern_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
-                                & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
-        ! stern_mode method for calculating the density that sets
-        ! the onset of ionic countercharge
-        ! electronic = onset depends self-consist. on electronic density
-        ! ionic = onset defined on a fictitious ionic density, generated
-        !         as the sum of exponential functions centered on atomic
-        !         positions of width specified in input by solvationrad(ityp)
-        ! full  = similar to electronic, but an extra density is added to
-        !         represent the core electrons and the nuclei. This extra
-        !         density is defined as the sum of gaussian functions centered
-        !         on atomic positions of width equal to corespread(ityp)
-        ! system-derived see above for eps_mode
-        REAL(DP) :: stern_distance = 0.D0
-        ! onset distance of countercharge, if ioncc_level = 1|2
-        REAL(DP) :: stern_spread = 0.5D0
-        ! spread of countercharge onset, if ioncc_level = 2
         REAL(DP) :: cion(nsx) = 1.D0
         ! molar concentration of ionic countercharge (M=mol/L)
         REAL(DP) :: cionmax(nsx) = 1.D3
@@ -214,8 +146,6 @@ MODULE environ_input
         ! mean atomic radius of ionic countercharge (a.u.)
         REAL(DP) :: zion(nsx) = 1.D0
         ! valence of ionic countercharge
-        REAL(DP) :: rhopb = 0.0001D0
-        ! density threshold for the onset of ionic countercharge
         REAL(DP) :: solvent_temperature = 300.D0
         ! temperature of the solution
 !
@@ -236,18 +166,142 @@ MODULE environ_input
              oldenviron, environ_restart, verbose, environ_thr,        &
              environ_nskip, environ_type,                              &
              system_ntyp, system_dim, system_axis,                     &
-             stype, rhomax, rhomin, tbeta,                             &
+             env_electrostatic,                                        &
              env_static_permittivity, env_optical_permittivity,        &
-             eps_mode, radius_mode,                                    &
-             alpha, softness, solvationrad, corespread, atomicspread,  &
-             eps_distance, eps_spread,                                 &
-             add_jellium,                                              &
+             atomicspread, add_jellium,                                &
              env_surface_tension,                                      &
              env_pressure,                                             &
-             env_ioncc_ntyp, nrep,                                     &
-             stern_mode, stern_distance, stern_spread,                 &
-             cion, cionmax, rion, zion, rhopb, solvent_temperature,    &
+             env_ioncc_ntyp, cion, cionmax, rion, zion,                &
+             solvent_temperature,                                      &
              env_external_charges, env_dielectric_regions
+!
+!=----------------------------------------------------------------------------=!
+!  BOUNDARY Namelist Input Parameters
+!=----------------------------------------------------------------------------=!
+!
+! Global parameters
+!
+        CHARACTER( LEN = 80 ) :: boundary_mode = 'electronic'
+        CHARACTER( LEN = 80 ) :: boundary_mode_allowed(8)
+        DATA boundary_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
+                              & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
+        ! eps_mode method for calculating the density that sets
+        ! the dielectric constant
+        ! electronic = dielectric depends self-consist. on electronic density
+        ! ionic = dielectric defined on a fictitious ionic density, generated
+        !         as the sum of exponential functions centered on atomic
+        !         positions of width specified in input by solvationrad(ityp)
+        ! full  = similar to electronic, but an extra density is added to
+        !         represent the core electrons and the nuclei. This extra
+        !         density is defined as the sum of gaussian functions centered
+        !         on atomic positions of width equal to corespread(ityp)
+        ! system = simplified regular dielectric defined to be outside a distance
+        !         eps_distance from the specified system
+        ! elec-sys = similar to electronic, but on top of the system dielectric
+        ! ionic-sys = similar to ionic, but on top of the system dielectric
+        ! full-sys = similar to full, but on top of the system dielectric
+!
+! Rigid boundary (ionic) parameters
+!
+        CHARACTER( LEN = 80 ) :: radius_mode = 'uff'
+        CHARACTER( LEN = 80 ) :: radius_mode_allowed(3)
+        DATA radius_mode_allowed / 'pauling', 'bondi', 'uff' /
+        ! type of hardcoded solvation radii to be used when boundary_mode = 'ionic'
+        ! pauling = R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
+        ! bondi   = A. Bondi, J. Phys. Chem. 68, 441 (1964)
+        ! uff     = A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
+        REAL(DP) :: alpha = 1.D0
+        ! scaling factor for ionic radii when boundary_mode = 'ionic'
+        REAL(DP) :: softness = 0.5D0
+        ! spread of the rigid interfaces
+        REAL(DP) :: solvationrad(nsx) = -3.D0
+        ! solvationrad radius of the solvation shell for each species when the
+        ! ionic dielectric function is adopted, in internal units (a.u.)
+!
+! Soft boundary (electronic) parameters
+!
+        INTEGER :: stype = 2
+        ! type of switching functions used in the solvation models
+        !    0: original Fattebert-Gygi
+        !    1: ultrasoft switching function (only exponential part used for non-electrostatic)
+        !    2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
+        REAL(DP) :: rhomax = 0.005
+        ! first parameter of the sw function, roughly corresponding
+        ! to the density threshold of the solvation model
+        REAL(DP) :: rhomin = 0.0001
+        ! second parameter of the sw function when stype=1 or 2
+        REAL(DP) :: tbeta = 4.8
+        ! second parameter of the sw function when stype=0
+!
+! Full boundary parameters
+!
+        REAL(DP) :: corespread(nsx) = -0.5D0
+        ! gaussian spreads of the core electrons, in internal units (a.u.), to
+        ! be used when boundary_mode = 'full'
+!
+! Simplified boundary (system) parameters
+!
+        REAL(DP) :: boundary_distance = 1.D0
+        ! distance from the system where the boundary starts if required from boundary_mode
+        REAL(DP) :: boundary_spread = 0.5D0
+        ! spread of the boundary interface if defined on system position and width
+!
+! Stern boundary parameters
+!
+        CHARACTER( LEN = 80 ) :: stern_mode = 'electronic'
+        CHARACTER( LEN = 80 ) :: stern_mode_allowed(8)
+        DATA stern_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
+                                & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
+        ! stern_mode method for calculating the density that sets
+        ! the onset of ionic countercharge
+        ! electronic = onset depends self-consist. on electronic density
+        ! ionic = onset defined on a fictitious ionic density, generated
+        !         as the sum of exponential functions centered on atomic
+        !         positions of width specified in input by solvationrad(ityp)
+        ! full  = similar to electronic, but an extra density is added to
+        !         represent the core electrons and the nuclei. This extra
+        !         density is defined as the sum of gaussian functions centered
+        !         on atomic positions of width equal to corespread(ityp)
+        ! system-derived see above for eps_mode
+        REAL(DP) :: stern_distance = 0.D0
+        ! onset distance of countercharge, if ioncc_level = 1|2
+        REAL(DP) :: stern_spread = 0.5D0
+        ! spread of countercharge onset, if ioncc_level = 2
+        REAL(DP) :: rhopb = 0.0001D0
+        ! density threshold for the onset of ionic countercharge
+!
+! Numerical core's parameters
+!
+        CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
+        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
+        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
+        ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
+        ! fft       = fast Fourier transforms (default)
+        ! fd        = finite differences in real space
+        ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
+        ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
+!
+! Finite differences' parameters
+!
+        INTEGER  :: ifdtype = 1
+        ! type of numerical differentiator: 1=central differences,
+        ! 2=low-noise lanczos (m=2), 3=low-noise lanczos (m=4),
+        ! 4=smooth noise-robust (n=2), 5=smooth noise-robust (n=4)
+        INTEGER  :: nfdpoint = 2
+        ! number of points used in the numerical differentiator
+        ! N = 2*nfdpoint+1
+
+        NAMELIST /boundary/                      &
+             boundary_mode,                      &
+             radius_mode, alpha, softness,       &
+             solvationrad,                       &
+             stype, rhomax, rhomin, tbeta,       &
+             corespread,                         &
+             boundary_distance, boundary_spread, &
+             stern_mode, stern_distance,         &
+             stern_spread, rhopb,                &
+             boundary_core,                      &
+             ifdtype, nfdpoint
 !
 !=----------------------------------------------------------------------------=!
 !  ELECTROSTATIC Namelist Input Parameters
@@ -336,33 +390,11 @@ MODULE environ_input
 ! Numerical core's parameters
 !
         CHARACTER( LEN = 80 ) :: core = 'fft'
-        CHARACTER( LEN = 80 ) :: core_allowed(2)
-        DATA core_allowed / 'fft', 'fd' /
+        CHARACTER( LEN = 80 ) :: core_allowed(1)
+        DATA core_allowed / 'fft' /
         ! choice of the core numerical methods to be exploited for the different operations
         ! fft = fast Fourier transforms (default)
-        ! fd  = finite differences in real space
         ! to be implemented : wavelets (from big-DFT) and multigrid
-!
-! Numerical core's parameters
-!
-        CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
-        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
-        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
-        ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
-        ! fft       = fast Fourier transforms (default)
-        ! fd        = finite differences in real space
-        ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
-        ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
-!
-! Finite differences' parameters
-!
-        INTEGER  :: ifdtype = 1
-        ! type of numerical differentiator: 1=central differences,
-        ! 2=low-noise lanczos (m=2), 3=low-noise lanczos (m=4),
-        ! 4=smooth noise-robust (n=2), 5=smooth noise-robust (n=4)
-        INTEGER  :: nfdpoint = 2
-        ! number of points used in the numerical differentiator
-        ! N = 2*nfdpoint+1
 !
 ! Periodic correction keywords
 !
@@ -377,8 +409,8 @@ MODULE environ_input
         INTEGER :: pbc_axis = 3
         ! choice of the sides with periodic boundary conditions
         ! 1 = x, 2 = y, 3 = z, where
-        ! if env_periodicity = 2, cell_axis is orthogonal to 2D plane
-        ! if env_periodicity = 1, cell_axis is along the 1D direction
+        ! if pbc_dim = 2, cell_axis is orthogonal to 2D plane
+        ! if pbc_dim = 1, cell_axis is along the 1D direction
 
         NAMELIST /electrostatic/                 &
              problem, tol, solver, auxiliary,    &
@@ -386,8 +418,7 @@ MODULE environ_input
              mix_type, mix, ndiis,               &
              preconditioner,                     &
              screening_type, screening,          &
-             core, boundary_core,                &
-             ifdtype, nfdpoint,                  &
+             core,                               &
              pbc_dim, pbc_correction, pbc_axis
 
   CONTAINS
@@ -457,13 +488,14 @@ MODULE environ_input
                                 system_ntyp, system_dim, system_axis,       &
                                 stype, rhomax, rhomin, tbeta,               &
                                 env_static_permittivity,                    &
-                                env_optical_permittivity, eps_mode,         &
+                                env_optical_permittivity,                   &
+                                boundary_mode,                              &
                                 radius_mode, alpha, softness,               &
-                                eps_distance, eps_spread,                   &
+                                boundary_distance, boundary_spread,         &
                                 add_jellium,                                &
                                 env_surface_tension,                        &
                                 env_pressure,                               &
-                                env_ioncc_ntyp, nrep,                       &
+                                env_ioncc_ntyp,                             &
                                 stern_mode, stern_distance, stern_spread,   &
                                 cion, cionmax, rion, zion, rhopb,           &
                                 solvent_temperature,                        &
@@ -494,11 +526,14 @@ MODULE environ_input
        !
        INTEGER, INTENT(IN) :: environ_unit_input
        !
+       LOGICAL :: lboundary, lelectrostatic
        INTEGER :: ios
        !
        ! ... Set the defauls
        !
        CALL environ_defaults()
+       !
+       CALL boundary_defaults()
        !
        CALL electrostatic_defaults()
        !
@@ -518,18 +553,42 @@ MODULE environ_input
        !
        CALL environ_checkin()
        !
-       ! ... Fix some &ELECTROSTATIC defaults depending on the &ENVIRON input
+       ! ... Fix some &BOUNDARY defaults depending on &ENVIRON
        !
-       CALL fixelect()
+       CALL fix_boundary(lboundary)
        !
-       ! ... Read the &ELECTROSTATIC namelist
+       ! ... Read the &BOUNDARY namelist only if needed
        !
        ios = 0
+       IF( ionode ) THEN
+          IF ( lboundary ) READ( environ_unit_input, boundary, iostat = ios )
+       END IF
+       CALL mp_bcast( ios, ionode_id, comm )
+       IF( ios /= 0 ) CALL errore( ' read_environ ', &
+                                 & ' reading namelist boundary ', ABS(ios) )       !
        !
-       ! HERE NEED TO ADD AN IF TO ONLY READ THE NAMELIST IF
-       ! ELECTROSTATIC IS ACTIVATED
+       ! ... Broadcast &BOUNDARY variables
        !
-       IF( ionode ) READ( environ_unit_input, electrostatic, iostat = ios )
+       CALL boundary_bcast()
+       !
+       ! ... Check &BOUNDARY variables
+       !
+       CALL boundary_checkin()
+       !
+       ! ... Set predefined envinron_types, also according to the boundary
+       !
+       CALL set_environ_type()
+       !
+       ! ... Fix some &ELECTROSTATIC defaults depending on &ENVIRON and &BOUNDARY
+       !
+       CALL fix_electrostatic(lelectrostatic)
+       !
+       ! ... Read the &ELECTROSTATIC namelist only if needed
+       !
+       ios = 0
+       IF( ionode ) THEN
+          IF ( lelectrostatic ) READ( environ_unit_input, electrostatic, iostat = ios )
+       END IF
        CALL mp_bcast( ios, ionode_id, comm )
        IF( ios /= 0 ) CALL errore( ' read_environ ', &
                                  & ' reading namelist electrostatic ', ABS(ios) )
@@ -569,22 +628,11 @@ MODULE environ_input
        system_dim = 0
        system_axis = 3
        !
-       stype   = 2
-       rhomax  = 0.005
-       rhomin  = 0.0001
-       tbeta   = 4.8
+       env_electrostatic = .false.
        !
        env_static_permittivity = 1.D0
        env_optical_permittivity = 1.D0
-       eps_mode        = 'electronic'
-       radius_mode     = 'uff'
-       alpha           = 1.D0
-       softness        = 0.5D0
-       solvationrad(:) = -3.D0
-       corespread(:)   = -0.5D0
        atomicspread(:) = -0.5D0
-       eps_distance    = 1.D0
-       eps_spread      = 0.5D0
        add_jellium = .false.
        !
        env_surface_tension = 0.D0
@@ -592,15 +640,10 @@ MODULE environ_input
        env_pressure = 0.D0
        !
        env_ioncc_ntyp = 0
-       nrep = 0
-       stern_mode = 'electronic'
-       stern_distance = 0.D0
-       stern_spread = 0.5D0
        cion(:) = 1.0D0
        cionmax(:) = 1.0D3
        rion(:) = 0.D0
        zion(:) = 0.D0
-       rhopb = 0.0001D0
        solvent_temperature = 300.0D0
        !
        env_external_charges = 0
@@ -608,7 +651,50 @@ MODULE environ_input
        !
        RETURN
        !
-     END SUBROUTINE
+     END SUBROUTINE environ_defaults
+     !
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !  Variables initialization for Namelist BOUNDARY
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !-----------------------------------------------------------------------
+     SUBROUTINE boundary_defaults( )
+       !-----------------------------------------------------------------------
+       !
+       IMPLICIT NONE
+       !
+       boundary_mode = 'electronic'
+       !
+       radius_mode     = 'uff'
+       alpha           = 1.D0
+       softness        = 0.5D0
+       solvationrad(:) = -3.D0
+       !
+       stype   = 2
+       rhomax  = 0.005
+       rhomin  = 0.0001
+       tbeta   = 4.8
+       !
+       corespread(:)   = -0.5D0
+       !
+       boundary_distance = 1.D0
+       boundary_spread   = 0.5D0
+       !
+       stern_mode = 'electronic'
+       stern_distance = 0.D0
+       stern_spread = 0.5D0
+       rhopb = 0.0001D0
+       !
+       boundary_core = 'analytic'
+       ifdtype  = 1
+       nfdpoint = 2
+       !
+       RETURN
+       !
+     END SUBROUTINE boundary_defaults
      !
      !=----------------------------------------------------------------------=!
      !
@@ -641,9 +727,6 @@ MODULE environ_input
        screening = 0.D0
        !
        core = 'fft'
-       boundary_core = 'analytic'
-       ifdtype  = 1
-       nfdpoint = 2
        !
        pbc_dim = -3
        pbc_correction = 'none'
@@ -676,22 +759,11 @@ MODULE environ_input
        CALL mp_bcast( system_dim,                 ionode_id, comm )
        CALL mp_bcast( system_axis,                ionode_id, comm )
        !
-       CALL mp_bcast( stype,                      ionode_id, comm )
-       CALL mp_bcast( rhomax,                     ionode_id, comm )
-       CALL mp_bcast( rhomin,                     ionode_id, comm )
-       CALL mp_bcast( tbeta,                      ionode_id, comm )
+       CALL mp_bcast( env_electrostatic,          ionode_id, comm )
        !
        CALL mp_bcast( env_static_permittivity,    ionode_id, comm )
        CALL mp_bcast( env_optical_permittivity,   ionode_id, comm )
-       CALL mp_bcast( eps_mode,                   ionode_id, comm )
-       CALL mp_bcast( radius_mode,                ionode_id, comm )
-       CALL mp_bcast( alpha,                      ionode_id, comm )
-       CALL mp_bcast( softness,                   ionode_id, comm )
-       CALL mp_bcast( solvationrad,               ionode_id, comm )
-       CALL mp_bcast( corespread,                 ionode_id, comm )
        CALL mp_bcast( atomicspread,               ionode_id, comm )
-       CALL mp_bcast( eps_distance,               ionode_id, comm )
-       CALL mp_bcast( eps_spread,                 ionode_id, comm )
        CALL mp_bcast( add_jellium,                ionode_id, comm )
        !
        CALL mp_bcast( env_surface_tension,        ionode_id, comm )
@@ -699,15 +771,10 @@ MODULE environ_input
        CALL mp_bcast( env_pressure,               ionode_id, comm )
        !
        CALL mp_bcast( env_ioncc_ntyp,             ionode_id, comm )
-       CALL mp_bcast( nrep,                       ionode_id, comm )
-       CALL mp_bcast( stern_mode,                 ionode_id, comm )
-       CALL mp_bcast( stern_distance,             ionode_id, comm )
-       CALL mp_bcast( stern_spread,               ionode_id, comm )
        CALL mp_bcast( cion,                       ionode_id, comm )
        CALL mp_bcast( cionmax,                    ionode_id, comm )
        CALL mp_bcast( rion,                       ionode_id, comm )
        CALL mp_bcast( zion,                       ionode_id, comm )
-       CALL mp_bcast( rhopb,                      ionode_id, comm )
        CALL mp_bcast( solvent_temperature,        ionode_id, comm )
        !
        CALL mp_bcast( env_external_charges,       ionode_id, comm )
@@ -716,6 +783,48 @@ MODULE environ_input
        RETURN
        !
      END SUBROUTINE environ_bcast
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !  Broadcast variables values for Namelist BOUNDARY
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !-----------------------------------------------------------------------
+     SUBROUTINE boundary_bcast()
+       !-----------------------------------------------------------------------
+       !
+       IMPLICIT NONE
+       !
+       CALL mp_bcast( boundary_mode,              ionode_id, comm )
+       !
+       CALL mp_bcast( stype,                      ionode_id, comm )
+       CALL mp_bcast( rhomax,                     ionode_id, comm )
+       CALL mp_bcast( rhomin,                     ionode_id, comm )
+       CALL mp_bcast( tbeta,                      ionode_id, comm )
+       !
+       CALL mp_bcast( radius_mode,                ionode_id, comm )
+       CALL mp_bcast( alpha,                      ionode_id, comm )
+       CALL mp_bcast( softness,                   ionode_id, comm )
+       CALL mp_bcast( solvationrad,               ionode_id, comm )
+       !
+       CALL mp_bcast( boundary_distance,          ionode_id, comm )
+       CALL mp_bcast( boundary_spread,            ionode_id, comm )
+       !
+       CALL mp_bcast( corespread,                 ionode_id, comm )
+       !
+       CALL mp_bcast( stern_mode,                 ionode_id, comm )
+       CALL mp_bcast( stern_distance,             ionode_id, comm )
+       CALL mp_bcast( stern_spread,               ionode_id, comm )
+       CALL mp_bcast( rhopb,                      ionode_id, comm )
+       !
+       CALL mp_bcast( boundary_core,              ionode_id, comm )
+       CALL mp_bcast( ifdtype,                    ionode_id, comm )
+       CALL mp_bcast( nfdpoint,                   ionode_id, comm )
+       !
+       RETURN
+       !
+     END SUBROUTINE boundary_bcast
      !
      !=----------------------------------------------------------------------=!
      !
@@ -747,9 +856,6 @@ MODULE environ_input
        CALL mp_bcast( screening,                  ionode_id, comm )
        !
        CALL mp_bcast( core,                       ionode_id, comm )
-       CALL mp_bcast( boundary_core,              ionode_id, comm )
-       CALL mp_bcast( ifdtype,                    ionode_id, comm )
-       CALL mp_bcast( nfdpoint,                   ionode_id, comm )
        !
        CALL mp_bcast( pbc_dim,                    ionode_id, comm )
        CALL mp_bcast( pbc_correction,             ionode_id, comm )
@@ -800,6 +906,53 @@ MODULE environ_input
        IF( system_axis < 1 .OR. system_axis > 3 ) &
           CALL errore( sub_name,' system_axis out of range ', 1 )
        !
+       IF( env_static_permittivity < 1.0_DP ) &
+          CALL errore( sub_name,' env_static_permittivity out of range ', 1 )
+       IF( env_optical_permittivity < 1.0_DP ) &
+          CALL errore( sub_name,' env_optical_permittivity out of range ', 1 )
+       !
+       IF( env_surface_tension < 0.0_DP ) &
+          CALL errore( sub_name,' env_surface_tension out of range ', 1 )
+       !
+       IF( env_ioncc_ntyp < 0 .OR. env_ioncc_ntyp .EQ. 1 ) &
+          CALL errore( sub_name,' env_ioncc_ntyp out of range ', 1 )
+       IF( solvent_temperature < 0.0_DP ) &
+          CALL errore( sub_name,' solvent_temperature out of range ', 1 )
+       !
+       IF ( env_external_charges < 0 ) &
+          CALL errore( sub_name,' env_external_charges out of range ', 1 )
+       !
+       IF ( env_dielectric_regions < 0 ) &
+          CALL errore( sub_name,' env_dielectric_regions out of range ', 1 )
+       !
+       RETURN
+       !
+     END SUBROUTINE environ_checkin
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !  Check input values for Namelist BOUNDARY
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !-----------------------------------------------------------------------
+     SUBROUTINE boundary_checkin()
+       !-----------------------------------------------------------------------
+       !
+       IMPLICIT NONE
+       !
+       CHARACTER(LEN=20) :: sub_name = ' boundary_checkin '
+       INTEGER           :: i
+       LOGICAL           :: allowed = .FALSE.
+       !
+       allowed = .FALSE.
+       DO i = 1, SIZE( boundary_mode_allowed )
+          IF( TRIM(boundary_mode) == boundary_mode_allowed(i) ) allowed = .TRUE.
+       END DO
+       IF( .NOT. allowed ) &
+          CALL errore( sub_name, ' boundary_mode '''// &
+                       & TRIM(boundary_mode)//''' not allowed ', 1 )
+       !
        IF( stype > 2 ) &
           CALL errore( sub_name,' stype out of range ', 1 )
        IF( rhomax < 0.0_DP ) &
@@ -811,17 +964,6 @@ MODULE environ_input
        IF( tbeta < 0.0_DP ) &
             CALL errore( sub_name,' tbeta out of range ', 1 )
        !
-       IF( env_static_permittivity < 1.0_DP ) &
-          CALL errore( sub_name,' env_static_permittivity out of range ', 1 )
-       IF( env_optical_permittivity < 1.0_DP ) &
-          CALL errore( sub_name,' env_optical_permittivity out of range ', 1 )
-       allowed = .FALSE.
-       DO i = 1, SIZE( eps_mode_allowed )
-          IF( TRIM(eps_mode) == eps_mode_allowed(i) ) allowed = .TRUE.
-       END DO
-       IF( .NOT. allowed ) &
-          CALL errore( sub_name, ' eps_mode '''// &
-                       & TRIM(eps_mode)//''' not allowed ', 1 )
        allowed = .FALSE.
        DO i = 1, SIZE( radius_mode_allowed )
           IF( TRIM(radius_mode) == radius_mode_allowed(i) ) allowed = .TRUE.
@@ -833,16 +975,10 @@ MODULE environ_input
           CALL errore( sub_name,' alpha out of range ', 1 )
        IF( softness <= 0.0_DP ) &
           CALL errore( sub_name,' softness out of range ', 1 )
-       IF( eps_spread <= 0.0_DP ) &
-          CALL errore( sub_name,' eps_spread out of range ', 1 )
        !
-       IF( env_surface_tension < 0.0_DP ) &
-          CALL errore( sub_name,' env_surface_tension out of range ', 1 )
+       IF( boundary_spread <= 0.0_DP ) &
+          CALL errore( sub_name,' boundary_spread out of range ', 1 )
        !
-       IF( env_ioncc_ntyp < 0 .OR. env_ioncc_ntyp .EQ. 1 ) &
-          CALL errore( sub_name,' env_ioncc_ntyp out of range ', 1 )
-       IF( nrep < 0 ) &
-          CALL errore( sub_name,' nrep out of range ', 1 )
        allowed = .FALSE.
        DO i = 1, SIZE( stern_mode_allowed )
           IF( TRIM(stern_mode) == stern_mode_allowed(i) ) allowed = .TRUE.
@@ -856,18 +992,23 @@ MODULE environ_input
           CALL errore( sub_name,' stern_spread out of range ', 1 )
        IF( rhopb <= 0.0_DP ) &
           CALL errore( sub_name,' rhopb out of range ', 1 )
-       IF( solvent_temperature < 0.0_DP ) &
-          CALL errore( sub_name,' solvent_temperature out of range ', 1 )
        !
-       IF ( env_external_charges < 0 ) &
-          CALL errore( sub_name,' env_external_charges out of range ', 1 )
+       allowed = .FALSE.
+       DO i = 1, SIZE( boundary_core_allowed )
+          IF( TRIM(boundary_core) == boundary_core_allowed(i) ) allowed = .TRUE.
+       END DO
+       IF( .NOT. allowed ) &
+          CALL errore( sub_name, ' boundary_core '''// &
+          & TRIM(core)//''' not allowed ', 1 )
        !
-       IF ( env_dielectric_regions < 0 ) &
-          CALL errore( sub_name,' env_dielectric_regions out of range ', 1 )
+       IF( ifdtype < 1 ) &
+          CALL errore( sub_name,' ifdtype out of range ', 1 )
+       IF( nfdpoint < 1 ) &
+          CALL errore( sub_name,' nfdpoint out of range ', 1 )
        !
        RETURN
        !
-     END SUBROUTINE
+     END SUBROUTINE boundary_checkin
      !
      !=----------------------------------------------------------------------=!
      !
@@ -958,19 +1099,6 @@ MODULE environ_input
           CALL errore( sub_name, ' core '''// &
           & TRIM(core)//''' not allowed ', 1 )
        !
-       allowed = .FALSE.
-       DO i = 1, SIZE( boundary_core_allowed )
-          IF( TRIM(boundary_core) == boundary_core_allowed(i) ) allowed = .TRUE.
-       END DO
-       IF( .NOT. allowed ) &
-          CALL errore( sub_name, ' boundary_core '''// &
-          & TRIM(core)//''' not allowed ', 1 )
-       !
-       IF( ifdtype < 1 ) &
-          CALL errore( sub_name,' ifdtype out of range ', 1 )
-       IF( nfdpoint < 1 ) &
-          CALL errore( sub_name,' nfdpoint out of range ', 1 )
-       !
        IF( pbc_dim < -3 .OR. pbc_dim > 3 ) &
           CALL errore( sub_name,' pbc_dim out of range ', 1 )
        IF( pbc_axis < 1 .OR. pbc_axis > 3 ) &
@@ -989,17 +1117,166 @@ MODULE environ_input
      !
      !=----------------------------------------------------------------------=!
      !
+     !  Check if BOUNDARY needs to be read and reset defaults
+     !  according to the ENVIRON namelist
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !-----------------------------------------------------------------------
+     SUBROUTINE fix_boundary( lboundary )
+       !-----------------------------------------------------------------------
+       !
+       IMPLICIT NONE
+       !
+       LOGICAL, INTENT(OUT) :: lboundary
+       !
+       CHARACTER(LEN=20) :: sub_name = ' fix_boundary '
+       !
+       lboundary = .FALSE.
+       !
+       IF ( environ_type .NE. 'input' .AND. environ_type .NE. 'vacuum' ) &
+            & lboundary = .TRUE.
+       IF ( env_static_permittivity .GT. 1.D0 .OR. env_optical_permittivity .GT. 1.D0 ) &
+            & lboundary = .TRUE.
+       IF ( env_surface_tension .GT. 0.D0 ) lboundary = .TRUE.
+       IF ( env_pressure .NE. 0.D0 ) lboundary = .TRUE.
+       IF ( env_ioncc_ntyp .GT. 0 ) lboundary = .TRUE.
+       IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
+       !
+       IF ( boundary_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
+          IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic boundary_mode'
+          boundary_core = 'analytic'
+       ENDIF
+       !
+       RETURN
+       !
+     END SUBROUTINE fix_boundary
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !  Set values according to the environ_type keyword and boundary mode
+     !
+     !=----------------------------------------------------------------------=!
+     !
+     !-----------------------------------------------------------------------
+     SUBROUTINE set_environ_type( )
+       !-----------------------------------------------------------------------
+       !
+       IMPLICIT NONE
+       !
+       CHARACTER(LEN=20) :: sub_name = ' set_environ_type '
+       !
+       ! Skip set up if read environ keywords from input
+       !
+       IF ( TRIM(ADJUSTL(environ_type)) .EQ. 'input' ) RETURN
+       !
+       ! Vacuum case is straightforward, all flags are off
+       !
+       IF ( TRIM(ADJUSTL(environ_type)) .EQ. 'vacuum' ) THEN
+          env_static_permittivity = 1.D0
+          env_optical_permittivity = 1.D0
+          env_surface_tension = 0.D0
+          env_pressure = 0.D0
+          env_external_charges = 0    !! NOT SURE THESE SHOULD
+          env_dielectric_regions = 0  !! BE SET IN THE DEFINITION
+          env_ioncc_ntyp = 0          !! OF THE VACUUM
+          env_electrostatic = .false. !! ENVIRON_TYPE
+          RETURN
+       ENDIF
+       !
+       ! First set global physically meaningful parameters
+       !
+       SELECT CASE ( TRIM(ADJUSTL(environ_type)) )
+          !
+       CASE ('water', 'water-cation', 'water-anion' )
+          ! water experimental permittivities
+          env_static_permittivity = 78.3D0
+          env_optical_permittivity = 1.D0 ! 1.776D0
+       CASE DEFAULT
+          call errore (sub_name,'unrecognized value for environ_type',1)
+       END SELECT
+       !
+       ! Depending on the boundary mode, set fitted parameters
+       !
+       IF ( TRIM(ADJUSTL(boundary_mode)) .EQ. 'electronic' .OR. &
+          & TRIM(ADJUSTL(boundary_mode)) .EQ. 'full' ) THEN
+          !
+          ! Self-consistent continuum solvation (SCCS)
+          !
+          stype = 2
+          !
+          SELECT CASE ( TRIM(ADJUSTL(environ_type)) )
+             !
+          CASE ( 'water' )
+             ! SCCS for neutrals
+             env_surface_tension = 50.D0
+             env_pressure = -0.35D0
+             rhomax = 0.005
+             rhomin = 0.0001
+          CASE ( 'water-cation' )
+             ! SCCS for cations
+             env_surface_tension = 5.D0
+             env_pressure = 0.125D0
+             rhomax = 0.0035
+             rhomin = 0.0002
+          CASE( 'water-anion' )
+             ! SCCS for cations
+             env_surface_tension = 0.D0
+             env_pressure = 0.450D0
+             rhomax = 0.0155
+             rhomin = 0.0024
+          END SELECT
+          !
+       ELSE IF ( boundary_mode .EQ. 'ionic' ) THEN
+          !
+          ! Soft-sphere continuum solvation
+          !
+          radius_mode = 'uff'
+          softness = 0.5D0
+          env_surface_tension = 50.D0 !! NOTE THAT WE ARE USING THE
+          env_pressure = -0.35D0      !! SET FOR CLUSTERS, AS IN SCCS
+          !
+          SELECT CASE ( TRIM(ADJUSTL(environ_type)) )
+             !
+          CASE ( 'water' )
+             ! SS for neutrals
+             alpha = 1.16
+          CASE ( 'water-cation' )
+             ! SS for cations
+             alpha = 1.10
+          CASE( 'water-anion' )
+             ! SS for anions
+             alpha = 0.98
+          END SELECT
+          !
+       END IF
+       !
+       RETURN
+       !
+     END SUBROUTINE set_environ_type
+     !
+     !
+     !=----------------------------------------------------------------------=!
+     !
      !  Set values according to the ENVIRON namelist
      !
      !=----------------------------------------------------------------------=!
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE fixelect( )
+     SUBROUTINE fix_electrostatic(lelectrostatic)
        !-----------------------------------------------------------------------
        !
        IMPLICIT NONE
        !
-       CHARACTER(LEN=20) :: sub_name = ' fixelect '
+       LOGICAL, INTENT(OUT) :: lelectrostatic
+       !
+       CHARACTER(LEN=20) :: sub_name = ' fix_electrostatic '
+       !
+       lelectrostatic = env_electrostatic
+       IF ( env_static_permittivity .GT. 1.D0 .OR. env_optical_permittivity .GT. 1.D0 ) &
+            & lelectrostatic = .TRUE.
+       IF ( env_external_charges .GT. 0 ) lelectrostatic = .TRUE.
+       IF ( env_dielectric_regions .GT. 0 ) lelectrostatic = .TRUE.
        !
        IF ( env_static_permittivity > 1.D0 &
             .OR. env_dielectric_regions > 0 ) THEN
@@ -1012,11 +1289,9 @@ MODULE environ_input
           solver = 'lbfgs'
        END IF
        !
-       IF ( eps_mode .EQ. 'ionic' ) boundary_core = 'analytic'
-       !
        RETURN
        !
-     END SUBROUTINE
+     END SUBROUTINE fix_electrostatic
      !
      !=----------------------------------------------------------------------=!
      !

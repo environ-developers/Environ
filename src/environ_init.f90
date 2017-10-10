@@ -48,7 +48,7 @@ CONTAINS
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
-       & env_ioncc_ntyp_, nrep_,                     &
+       & env_ioncc_ntyp_,                            &
        & stern_mode, stern_distance, stern_spread,   &
        & cion, cionmax, rion, zion, rhopb,           &
        & solvent_temperature,                        &
@@ -73,7 +73,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
-         stype_, env_ioncc_ntyp_, nrep_,                  &
+         stype_, env_ioncc_ntyp_,                         &
          env_external_charges,                            &
          extcharge_dim(:), extcharge_axis(:),             &
          env_dielectric_regions,                          &
@@ -117,64 +117,17 @@ CONTAINS
     environ_thr     = environ_thr_
     environ_nskip   = environ_nskip_
     !
-    ! Set main environment flags
+    ! Set main environment flags, convert to internal units
     !
-    SELECT CASE (TRIM(environ_type))
-       ! if a specific environ is selected use hardcoded parameters
-    CASE ('vacuum')
-       ! vacuum, all flags off
-       env_static_permittivity = 1.D0
-       env_optical_permittivity = 1.D0
-       env_surface_tension = 0.D0
-       env_pressure = 0.D0
-       env_ioncc_ntyp = 0
-       stype = 2
-       rhomax = 0.005
-       rhomin = 0.0001
-    CASE ('water')
-       ! water, experimental and SCCS tuned parameters
-       env_static_permittivity = 78.3D0
-       env_optical_permittivity = 1.D0 ! 1.776D0
-       env_surface_tension = 50.D0*1.D-3*bohr_radius_si**2/rydberg_si
-       env_pressure = -0.35D0*1.D9/rydberg_si*bohr_radius_si**3
-       env_ioncc_ntyp = 0
-       stype = 2
-       rhomax = 0.005
-       rhomin = 0.0001
-    CASE ('water-cation')
-       ! water, experimental and SCCS tuned parameters for cations
-       env_static_permittivity = 78.3D0
-       env_optical_permittivity = 1.D0 ! 1.776D0
-       env_surface_tension = 5.D0*1.D-3*bohr_radius_si**2/rydberg_si
-       env_pressure = 0.125D0*1.D9/rydberg_si*bohr_radius_si**3
-       env_ioncc_ntyp = 0
-       stype = 2
-       rhomax = 0.0035
-       rhomin = 0.0002
-    CASE ('water-anion')
-       ! water, experimental and SCCS tuned parameters for anions
-       env_static_permittivity = 78.3D0
-       env_optical_permittivity = 1.D0 ! 1.776D0
-       env_surface_tension = 0.D0*1.D-3*bohr_radius_si**2/rydberg_si
-       env_pressure = 0.450D0*1.D9/rydberg_si*bohr_radius_si**3
-       env_ioncc_ntyp = 0
-       stype = 2
-       rhomax = 0.0155
-       rhomin = 0.0024
-    CASE ('input')
-       ! take values from input, this is the default option
-       env_static_permittivity = env_static_permittivity_
-       env_optical_permittivity = env_optical_permittivity_
-       env_surface_tension = &
-            env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
-       env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
-       env_ioncc_ntyp = env_ioncc_ntyp_
-       stype = stype_
-       rhomax = rhomax_
-       rhomin = rhomin_
-    CASE DEFAULT
-       call errore (sub_name,'unrecognized value for environ_type',1)
-    END SELECT
+    env_static_permittivity = env_static_permittivity_
+    env_optical_permittivity = env_optical_permittivity_
+    env_surface_tension = &
+         env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
+    env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
+    env_ioncc_ntyp = env_ioncc_ntyp_
+    stype = stype_
+    rhomax = rhomax_
+    rhomin = rhomin_
     !
     ! Set basic logical flags
     !
@@ -288,8 +241,6 @@ CONTAINS
     ! Obsolote keywords to be moved or removed
     !
     add_jellium = add_jellium_
-    !
-    nrep      = nrep_
     !
     RETURN
     !
