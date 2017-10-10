@@ -436,6 +436,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
+      REAL( DP ), PARAMETER :: tol = 1.D-10
+      !
       ! ... Declares variables
       !
       INTEGER, INTENT(IN)       :: nnr
@@ -504,7 +506,7 @@ CONTAINS
          !
          dist = SQRT(SUM( r * r )) * alat
          arg = dist - spread
-         IF ( dist .GT. 1.D-6 .AND. ABS( arg ) .LT. exp_arg_limit ) THEN
+         IF ( dist .GT. tol .AND. ABS( arg ) .LT. exp_arg_limit ) THEN
            gradrholocal( :, ir ) = r(:) * alat / dist * EXP( - arg )
          ELSE
            gradrholocal( :, ir ) = 0.D0
@@ -653,6 +655,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
+      REAL( DP ), PARAMETER :: tol = 1.D-10
+      !
       ! ... Declares variables
       !
       INTEGER, INTENT(IN)       :: nnr, dim, axis
@@ -741,7 +745,7 @@ CONTAINS
          dist = SQRT(SUM( r * r ))
          arg = ( dist - width ) / spread
          !
-         gradrholocal( :, ir ) = - EXP( - arg**2 ) * r(:) / dist
+         IF ( dist .GT. tol ) gradrholocal( :, ir ) = - EXP( - arg**2 ) * r(:) / dist
          chargelocal = chargelocal + qe_erfc(arg)
          !
       END DO
@@ -777,6 +781,8 @@ CONTAINS
       USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
       !
       IMPLICIT NONE
+      !
+      REAL( DP ), PARAMETER :: tol = 1.D-10
       !
       ! ... Declares variables
       !
@@ -866,7 +872,7 @@ CONTAINS
          dist = SQRT(SUM( r * r ))
          arg = ( dist - width ) / spread
          !
-         laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - arg / spread ) * 2.D0
+         IF ( dist .GT. tol ) laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - arg / spread ) * 2.D0
          chargelocal = chargelocal + qe_erfc(arg)
          !
       END DO
@@ -902,6 +908,8 @@ CONTAINS
       USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
       !
       IMPLICIT NONE
+      !
+      REAL( DP ), PARAMETER :: tol = 1.D-10
       !
       ! ... Declares variables
       !
@@ -991,13 +999,15 @@ CONTAINS
          dist = SQRT(SUM( r * r ))
          arg = ( dist - width ) / spread
          !
-         DO ip = 1, 3
-            DO jp = 1, 3
-               tmp = - r(ip) * r(jp) * ( 1.D0 / dist + 2.D0 * arg / spread )
-               IF ( ip .EQ. jp ) tmp = tmp + dist
-               hessrholocal( ip, jp, ir ) = - EXP( - arg**2 ) * tmp / dist**2
+         IF ( dist .GT. tol ) THEN
+            DO ip = 1, 3
+               DO jp = 1, 3
+                  tmp = - r(ip) * r(jp) * ( 1.D0 / dist + 2.D0 * arg / spread )
+                  IF ( ip .EQ. jp ) tmp = tmp + dist
+                  hessrholocal( ip, jp, ir ) = - EXP( - arg**2 ) * tmp / dist**2
+               ENDDO
             ENDDO
-         ENDDO
+         END IF
          chargelocal = chargelocal + qe_erfc(arg)
          !
       END DO
