@@ -1,3 +1,7 @@
+[pw_water/]
+program = PW
+inputs_args = ('neutral.in', 'water-neutral-sccs-default.in'), ('neutral.in', 'water-neutral-ss-default.in'), ('cation.in', 'water-cation-sccs-default.in'), ('cation.in', 'water-cation-ss-default.in'), ('anion.in', 'water-anion-sccs-default.in'), ('anion.in', 'water-anion-ss-default.in')
+
 [pw_periodic/]
 program = PW
 inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-dielectric-default.in'), ('neutral.in', 'periodic-dielectric-oldenviron.in'), ('charged.in', 'periodic-dielectric-oldenviron.in')

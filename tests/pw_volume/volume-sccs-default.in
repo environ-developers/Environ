@@ -5,5 +5,5 @@
    env_pressure = 10. 
    !
  /
- &ELECTROSTATIC
+ &BOUNDARY
  /

@@ -5,5 +5,7 @@
    env_static_permittivity = 100. 
    !
  /
+ &BOUNDARY
+ /
  &ELECTROSTATIC
  /

@@ -5,9 +5,10 @@
    env_static_permittivity = 100.
    !
  /
- !
+ &BOUNDARY
+ /
  &ELECTROSTATIC
-   pbc_dim = 0
+   pbc_dim = 2
    pbc_axis = 3
    pbc_correction = 'parabolic'
  /

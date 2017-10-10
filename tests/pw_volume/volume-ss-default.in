@@ -3,8 +3,10 @@
    verbose = 1
    environ_thr = 1.d2
    env_pressure = 10. 
-   eps_mode = 'ionic'
    !
  /
- &ELECTROSTATIC
+ &BOUNDARY
+   !
+   boundary_mode = 'ionic'
+   !
  /

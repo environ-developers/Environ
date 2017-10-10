@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on  4Oct2017 at 12:32:51 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on 10Oct2017 at 11:36:38 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -171,7 +171,7 @@
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfc are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is      110.2 secs
+     total cpu time spent up to now is       82.8 secs
 
      Self-consistent Calculation
 
@@ -182,10 +182,9 @@
      negative rho (up, down):  1.277E-04 0.000E+00
 
      add environment contribution to local potential
- Warning: Polarization charge not converged
-     polarization accuracy =     NaN, # of iterations = 201
+     polarization accuracy = 9.7E-05, # of iterations =  19
 
-     total cpu time spent up to now is      219.4 secs
+     total cpu time spent up to now is       96.4 secs
 
      total energy              =     -80.23903180 Ry
      Harris-Foulkes estimate   =     -83.01879009 Ry
@@ -195,13 +194,163 @@
 
      iteration #  2     ecut=    30.00 Ry     beta=0.70
      Davidson diagonalization with overlap
+     ethr =  1.00E-02,  avg # of iterations =  4.0
 
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-     Error in routine rdiaghg (11):
-     eigenvectors failed to converge
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     negative rho (up, down):  7.187E-04 0.000E+00
 
-     stopping ...
+     add environment contribution to local potential
+     polarization accuracy = 7.7E-05, # of iterations =  16
+
+     total cpu time spent up to now is      109.2 secs
+
+     total energy              =     -81.01421861 Ry
+     Harris-Foulkes estimate   =     -75.68954515 Ry
+     estimated scf accuracy    <       1.57942216 Ry
+     electrostatic embedding   =      -0.20219806 Ry
+     correction to one-el term =      -5.96152089 Ry
+
+     iteration #  3     ecut=    30.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  6.58E-03,  avg # of iterations =  3.0
+
+     negative rho (up, down):  2.645E-04 0.000E+00
+
+     add environment contribution to local potential
+     polarization accuracy = 8.7E-05, # of iterations =  14
+
+     total cpu time spent up to now is      120.9 secs
+
+     total energy              =     -81.36913424 Ry
+     Harris-Foulkes estimate   =     -75.94260134 Ry
+     estimated scf accuracy    <       0.18947872 Ry
+     electrostatic embedding   =      -0.16953514 Ry
+     correction to one-el term =      -5.36078340 Ry
+
+     iteration #  4     ecut=    30.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  7.89E-04,  avg # of iterations =  4.0
+
+     negative rho (up, down):  1.165E-04 0.000E+00
+
+     add environment contribution to local potential
+     polarization accuracy = 6.6E-05, # of iterations =  11
+
+     total cpu time spent up to now is      130.7 secs
+
+     total energy              =     -81.40791834 Ry
+     Harris-Foulkes estimate   =     -76.37312512 Ry
+     estimated scf accuracy    <       0.02177015 Ry
+     electrostatic embedding   =      -0.14414037 Ry
+     correction to one-el term =      -4.90186347 Ry
+
+     iteration #  5     ecut=    30.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  9.07E-05,  avg # of iterations =  4.0
+
+     negative rho (up, down):  2.673E-04 0.000E+00
+
+     total cpu time spent up to now is      134.9 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 ( 11060 PWs)   bands (ev):
+
+   -28.8791 -23.0557 -18.5040 -15.9443 -14.6125 -13.3312 -11.5614 -10.8656
+    -9.3999  -9.3926  -9.2524  -7.3052
+
+     highest occupied level (ev):    -7.3052
+
+!    total energy              =     -81.40548627 Ry
+     Harris-Foulkes estimate   =     -76.79508983 Ry
+     estimated scf accuracy    <       0.00173129 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =    -240.92680309 Ry
+     hartree contribution      =     122.71695462 Ry
+     xc contribution           =     -22.89178283 Ry
+     ewald contribution        =      64.30784006 Ry
+     electrostatic embedding   =      -0.13684248 Ry
+     correction to one-el term =      -4.47485254 Ry
+
+     convergence has been achieved in   5 iterations
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.22558368    0.00000765    0.10486205
+     atom    2 type  1   force =    -0.03364437   -0.00000444   -0.08476836
+     atom    3 type  3   force =    -0.14474638   -0.00000637    0.04773176
+     atom    4 type  2   force =     0.01975477   -0.03097350    0.00823988
+     atom    5 type  2   force =    -0.03513386   -0.00000257    0.01182123
+     atom    6 type  2   force =     0.01975828    0.03098258    0.00824407
+     atom    7 type  4   force =    -0.09357399   -0.00002568   -0.00638533
+     atom    8 type  2   force =     0.00638729    0.00000728   -0.05469123
+     atom    9 type  2   force =     0.04224290    0.00000964    0.04042502
+     atom   10 type  2   force =    -0.00662832    0.00000541   -0.07547908
+
+     Total force =     0.344427     Total SCF correction =     0.098480
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     Writing output data file pwscf.save
+
+     init_run     :     80.34s CPU     82.53s WALL (       1 calls)
+     electrons    :     48.24s CPU     52.20s WALL (       1 calls)
+     forces       :    291.64s CPU    301.95s WALL (       1 calls)
+
+     Called by init_run:
+     wfcinit      :      0.26s CPU      0.26s WALL (       1 calls)
+     potinit      :      1.99s CPU      2.12s WALL (       1 calls)
+
+     Called by electrons:
+     c_bands      :      2.37s CPU      2.24s WALL (       5 calls)
+     sum_band     :      7.28s CPU      7.39s WALL (       5 calls)
+     v_of_rho     :      7.98s CPU      8.60s WALL (       6 calls)
+     newd         :      3.86s CPU      5.52s WALL (       6 calls)
+     mix_rho      :      0.66s CPU      0.74s WALL (       5 calls)
+
+     Called by c_bands:
+     init_us_2    :      0.10s CPU      0.13s WALL (      11 calls)
+     regterg      :      2.23s CPU      2.08s WALL (       5 calls)
+
+     Called by sum_band:
+     sum_band:bec :      0.00s CPU      0.00s WALL (       5 calls)
+     addusdens    :      5.74s CPU      5.78s WALL (       5 calls)
+
+     Called by *egterg:
+     h_psi        :      2.06s CPU      2.01s WALL (      23 calls)
+     s_psi        :      0.11s CPU      0.04s WALL (      23 calls)
+     g_psi        :      0.02s CPU      0.02s WALL (      17 calls)
+     rdiaghg      :      0.01s CPU      0.01s WALL (      22 calls)
+
+     Called by h_psi:
+     h_psi:pot    :      2.03s CPU      1.99s WALL (      23 calls)
+     h_psi:calbec :      0.05s CPU      0.05s WALL (      23 calls)
+     vloc_psi     :      1.85s CPU      1.89s WALL (      23 calls)
+     add_vuspsi   :      0.13s CPU      0.04s WALL (      23 calls)
+
+     General routines
+     calbec       :      0.08s CPU      0.08s WALL (      32 calls)
+     fft          :     21.30s CPU     21.59s WALL (     355 calls)
+     ffts         :      0.11s CPU      0.11s WALL (      11 calls)
+     fftw         :      1.53s CPU      1.55s WALL (     244 calls)
+     interpolate  :      0.93s CPU      1.02s WALL (      11 calls)
+     davcio       :      0.01s CPU      0.01s WALL (       1 calls)
+
+
+     Environ routines
+     calc_eelect  :      0.02s CPU      0.02s WALL (      10 calls)
+     calc_velect  :     27.18s CPU     29.07s WALL (       8 calls)
+     dielectric   :      0.25s CPU      0.28s WALL (       2 calls)
+     calc_felect  :      0.58s CPU      0.59s WALL (       1 calls)
+
+     PWSCF        :  7m 0.51s CPU     7m17.15s WALL
+
+
+   This run was terminated on:  11:43:55  10Oct2017            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=
 
 %%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of ions             =         10
@@ -250,402 +399,155 @@
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Starting from polarization: rhoiter =      0.000000 jellium =      0.000000
  Iteration #          1
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.540136E-02 delta_en =   0.504138E+02 tol =   0.100000E-03
  Iteration #          2
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.208029E-02 delta_en =   0.747814E+01 tol =   0.100000E-03
  Iteration #          3
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.161648E-02 delta_en =   0.451529E+01 tol =   0.100000E-03
  Iteration #          4
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.117485E-02 delta_en =   0.238510E+01 tol =   0.100000E-03
  Iteration #          5
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.757136E-03 delta_en =   0.990584E+00 tol =   0.100000E-03
  Iteration #          6
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.496871E-03 delta_en =   0.426609E+00 tol =   0.100000E-03
  Iteration #          7
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.354671E-03 delta_en =   0.217368E+00 tol =   0.100000E-03
  Iteration #          8
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.259423E-03 delta_en =   0.116295E+00 tol =   0.100000E-03
  Iteration #          9
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.184013E-03 delta_en =   0.585117E-01 tol =   0.100000E-03
  Iteration #         10
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.126712E-03 delta_en =   0.277447E-01 tol =   0.100000E-03
  Iteration #         11
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.876702E-04 delta_en =   0.132815E-01 tol =   0.100000E-03
  Iteration #         12
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.629271E-04 delta_en =   0.684256E-02 tol =   0.100000E-03
  Iteration #         13
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.467050E-04 delta_en =   0.376939E-02 tol =   0.100000E-03
  Iteration #         14
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.348540E-04 delta_en =   0.209917E-02 tol =   0.100000E-03
  Iteration #         15
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.256316E-04 delta_en =   0.113526E-02 tol =   0.100000E-03
  Iteration #         16
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.185774E-04 delta_en =   0.596370E-03 tol =   0.100000E-03
  Iteration #         17
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.134748E-04 delta_en =   0.313754E-03 tol =   0.100000E-03
  Iteration #         18
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.994904E-05 delta_en =   0.171043E-03 tol =   0.100000E-03
  Iteration #         19
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         20
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         21
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         22
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         23
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         24
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         25
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         26
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         27
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         28
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         29
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         30
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         31
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         32
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         33
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         34
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         35
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         36
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         37
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         38
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         39
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         40
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         41
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         42
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         43
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         44
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         45
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         46
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         47
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         48
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         49
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         50
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         51
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         52
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         53
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         54
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         55
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         56
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         57
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         58
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         59
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         60
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         61
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         62
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         63
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         64
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         65
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         66
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         67
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         68
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         69
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         70
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         71
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         72
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         73
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         74
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         75
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         76
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         77
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         78
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         79
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         80
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         81
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         82
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         83
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         84
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         85
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         86
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         87
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         88
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         89
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         90
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         91
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         92
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         93
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         94
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         95
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         96
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         97
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         98
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         99
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        100
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        101
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        102
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        103
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        104
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        105
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        106
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        107
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        108
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        109
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        110
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        111
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        112
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        113
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        114
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        115
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        116
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        117
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        118
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        119
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        120
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        121
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        122
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        123
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        124
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        125
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        126
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        127
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        128
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        129
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        130
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        131
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        132
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        133
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        134
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        135
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        136
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        137
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        138
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        139
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        140
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        141
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        142
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        143
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        144
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        145
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        146
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        147
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        148
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        149
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        150
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        151
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        152
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        153
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        154
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        155
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        156
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        157
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        158
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        159
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        160
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        161
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        162
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        163
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        164
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        165
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        166
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        167
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        168
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        169
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        170
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        171
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        172
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        173
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        174
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        175
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        176
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        177
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        178
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        179
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        180
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        181
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        182
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        183
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        184
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        185
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        186
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        187
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        188
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        189
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        190
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        191
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        192
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        193
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        194
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        195
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        196
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        197
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        198
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        199
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        200
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+ delta_qm =   0.750704E-05 delta_en =   0.973827E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      1.986707 jellium =      0.000000
+ Iteration #          1
+ delta_qm =   0.962903E-03 delta_en =   0.160217E+01 tol =   0.100000E-03
+ Iteration #          2
+ delta_qm =   0.538026E-03 delta_en =   0.500207E+00 tol =   0.100000E-03
+ Iteration #          3
+ delta_qm =   0.354617E-03 delta_en =   0.217301E+00 tol =   0.100000E-03
+ Iteration #          4
+ delta_qm =   0.261369E-03 delta_en =   0.118046E+00 tol =   0.100000E-03
+ Iteration #          5
+ delta_qm =   0.197795E-03 delta_en =   0.676046E-01 tol =   0.100000E-03
+ Iteration #          6
+ delta_qm =   0.149682E-03 delta_en =   0.387152E-01 tol =   0.100000E-03
+ Iteration #          7
+ delta_qm =   0.112592E-03 delta_en =   0.219059E-01 tol =   0.100000E-03
+ Iteration #          8
+ delta_qm =   0.834535E-04 delta_en =   0.120346E-01 tol =   0.100000E-03
+ Iteration #          9
+ delta_qm =   0.605941E-04 delta_en =   0.634460E-02 tol =   0.100000E-03
+ Iteration #         10
+ delta_qm =   0.433863E-04 delta_en =   0.325274E-02 tol =   0.100000E-03
+ Iteration #         11
+ delta_qm =   0.312243E-04 delta_en =   0.168473E-02 tol =   0.100000E-03
+ Iteration #         12
+ delta_qm =   0.229645E-04 delta_en =   0.911295E-03 tol =   0.100000E-03
+ Iteration #         13
+ delta_qm =   0.171872E-04 delta_en =   0.510451E-03 tol =   0.100000E-03
+ Iteration #         14
+ delta_qm =   0.128123E-04 delta_en =   0.283660E-03 tol =   0.100000E-03
+ Iteration #         15
+ delta_qm =   0.934156E-05 delta_en =   0.150793E-03 tol =   0.100000E-03
+ Iteration #         16
+ delta_qm =   0.665517E-05 delta_en =   0.765353E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      1.886550 jellium =      0.000000
+ Iteration #          1
+ delta_qm =   0.671459E-03 delta_en =   0.779082E+00 tol =   0.100000E-03
+ Iteration #          2
+ delta_qm =   0.318783E-03 delta_en =   0.175604E+00 tol =   0.100000E-03
+ Iteration #          3
+ delta_qm =   0.221083E-03 delta_en =   0.844603E-01 tol =   0.100000E-03
+ Iteration #          4
+ delta_qm =   0.164700E-03 delta_en =   0.468737E-01 tol =   0.100000E-03
+ Iteration #          5
+ delta_qm =   0.118975E-03 delta_en =   0.244598E-01 tol =   0.100000E-03
+ Iteration #          6
+ delta_qm =   0.860923E-04 delta_en =   0.128077E-01 tol =   0.100000E-03
+ Iteration #          7
+ delta_qm =   0.635058E-04 delta_en =   0.696901E-02 tol =   0.100000E-03
+ Iteration #          8
+ delta_qm =   0.469441E-04 delta_en =   0.380808E-02 tol =   0.100000E-03
+ Iteration #          9
+ delta_qm =   0.340637E-04 delta_en =   0.200506E-02 tol =   0.100000E-03
+ Iteration #         10
+ delta_qm =   0.242215E-04 delta_en =   0.101378E-02 tol =   0.100000E-03
+ Iteration #         11
+ delta_qm =   0.172043E-04 delta_en =   0.511468E-03 tol =   0.100000E-03
+ Iteration #         12
+ delta_qm =   0.125201E-04 delta_en =   0.270870E-03 tol =   0.100000E-03
+ Iteration #         13
+ delta_qm =   0.938136E-05 delta_en =   0.152081E-03 tol =   0.100000E-03
+ Iteration #         14
+ delta_qm =   0.707976E-05 delta_en =   0.866125E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      1.712559 jellium =      0.000000
+ Iteration #          1
+ delta_qm =   0.341243E-03 delta_en =   0.201220E+00 tol =   0.100000E-03
+ Iteration #          2
+ delta_qm =   0.137200E-03 delta_en =   0.325276E-01 tol =   0.100000E-03
+ Iteration #          3
+ delta_qm =   0.103764E-03 delta_en =   0.186055E-01 tol =   0.100000E-03
+ Iteration #          4
+ delta_qm =   0.758729E-04 delta_en =   0.994757E-02 tol =   0.100000E-03
+ Iteration #          5
+ delta_qm =   0.503742E-04 delta_en =   0.438490E-02 tol =   0.100000E-03
+ Iteration #          6
+ delta_qm =   0.339717E-04 delta_en =   0.199425E-02 tol =   0.100000E-03
+ Iteration #          7
+ delta_qm =   0.243233E-04 delta_en =   0.102233E-02 tol =   0.100000E-03
+ Iteration #          8
+ delta_qm =   0.177020E-04 delta_en =   0.541487E-03 tol =   0.100000E-03
+ Iteration #          9
+ delta_qm =   0.126188E-04 delta_en =   0.275155E-03 tol =   0.100000E-03
+ Iteration #         10
+ delta_qm =   0.882829E-05 delta_en =   0.134678E-03 tol =   0.100000E-03
+ Iteration #         11
+ delta_qm =   0.619822E-05 delta_en =   0.663863E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1

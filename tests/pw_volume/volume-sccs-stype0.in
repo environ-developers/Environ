@@ -3,8 +3,10 @@
    verbose = 1
    environ_thr = 1.d2
    env_pressure = 10. 
-   stype = 0
    !
  /
- &ELECTROSTATIC
+ &BOUNDARY
+   !
+   stype = 0
+   !
  /

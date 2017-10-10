@@ -3,17 +3,22 @@
    verbose = 1
    environ_thr = 1.d2
    env_static_permittivity = 100.
-   stype = 1
    oldenviron = .true.
    !
  /
- !
+ &BOUNDARY
+   !
+   stype = 1
+   boundary_core = 'fd'
+   !
+ /
  &ELECTROSTATIC
+   !
    pbc_correction = 'parabolic'
    pbc_dim = 0
    auxiliary = 'full'
    solver = 'iterative'
    tol = 1.d-7
    mix = 0.5
-   boundary_core = 'fd'
+   !
  /

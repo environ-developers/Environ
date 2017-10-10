@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on  4Oct2017 at 12:30:13 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on 10Oct2017 at 11:30:11 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -171,7 +171,7 @@
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfc are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is      105.2 secs
+     total cpu time spent up to now is      107.6 secs
 
      Self-consistent Calculation
 
@@ -182,26 +182,175 @@
      negative rho (up, down):  1.277E-04 0.000E+00
 
      add environment contribution to local potential
- Warning: Polarization charge not converged
-     polarization accuracy =     NaN, # of iterations = 201
+     polarization accuracy = 4.7E-05, # of iterations =  16
 
-     total cpu time spent up to now is      158.1 secs
+     total cpu time spent up to now is      116.2 secs
 
-     total energy              =     -80.23903180 Ry
+     total energy              =     -80.23660198 Ry
      Harris-Foulkes estimate   =     -83.01879009 Ry
      estimated scf accuracy    <       3.73442311 Ry
-     electrostatic embedding   =       0.00000000 Ry
+     electrostatic embedding   =       0.00242983 Ry
      correction to one-el term =       0.00000000 Ry
 
      iteration #  2     ecut=    30.00 Ry     beta=0.70
      Davidson diagonalization with overlap
+     ethr =  1.00E-02,  avg # of iterations =  4.0
 
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-     Error in routine rdiaghg (11):
-     eigenvectors failed to converge
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     negative rho (up, down):  7.190E-04 0.000E+00
 
-     stopping ...
+     add environment contribution to local potential
+     polarization accuracy = 8.3E-05, # of iterations =  15
+
+     total cpu time spent up to now is      124.8 secs
+
+     total energy              =     -81.01537866 Ry
+     Harris-Foulkes estimate   =     -75.67892750 Ry
+     estimated scf accuracy    <       1.58001553 Ry
+     electrostatic embedding   =      -0.20341748 Ry
+     correction to one-el term =      -5.97230416 Ry
+
+     iteration #  3     ecut=    30.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  6.58E-03,  avg # of iterations =  3.0
+
+     negative rho (up, down):  2.647E-04 0.000E+00
+
+     add environment contribution to local potential
+     polarization accuracy = 7.5E-05, # of iterations =  15
+
+     total cpu time spent up to now is      133.3 secs
+
+     total energy              =     -81.37032951 Ry
+     Harris-Foulkes estimate   =     -75.92877915 Ry
+     estimated scf accuracy    <       0.18943142 Ry
+     electrostatic embedding   =      -0.17080350 Ry
+     correction to one-el term =      -5.37451665 Ry
+
+     iteration #  4     ecut=    30.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  7.89E-04,  avg # of iterations =  4.0
+
+     negative rho (up, down):  1.171E-04 0.000E+00
+
+     add environment contribution to local potential
+     polarization accuracy = 7.1E-05, # of iterations =  15
+
+     total cpu time spent up to now is      141.4 secs
+
+     total energy              =     -81.40917176 Ry
+     Harris-Foulkes estimate   =     -76.35906245 Ry
+     estimated scf accuracy    <       0.02186753 Ry
+     electrostatic embedding   =      -0.14544666 Ry
+     correction to one-el term =      -4.91592085 Ry
+
+     iteration #  5     ecut=    30.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  9.11E-05,  avg # of iterations =  4.0
+
+     negative rho (up, down):  2.672E-04 0.000E+00
+
+     total cpu time spent up to now is      145.5 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 ( 11060 PWs)   bands (ev):
+
+   -28.8752 -23.0512 -18.5008 -15.9406 -14.6085 -13.3272 -11.5583 -10.8625
+    -9.3973  -9.3898  -9.2495  -7.3015
+
+     highest occupied level (ev):    -7.3015
+
+!    total energy              =     -81.40673818 Ry
+     Harris-Foulkes estimate   =     -76.78380018 Ry
+     estimated scf accuracy    <       0.00174022 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =    -240.91215197 Ry
+     hartree contribution      =     122.71295260 Ry
+     xc contribution           =     -22.89113497 Ry
+     ewald contribution        =      64.30784006 Ry
+     electrostatic embedding   =      -0.13812514 Ry
+     correction to one-el term =      -4.48611876 Ry
+
+     convergence has been achieved in   5 iterations
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.22554989    0.00000736    0.10481178
+     atom    2 type  1   force =    -0.03371985   -0.00000674   -0.08417819
+     atom    3 type  3   force =    -0.14410512   -0.00000712    0.04736161
+     atom    4 type  2   force =     0.01983915   -0.03114293    0.00847753
+     atom    5 type  2   force =    -0.03527199   -0.00000275    0.01206541
+     atom    6 type  2   force =     0.01984329    0.03115312    0.00848218
+     atom    7 type  4   force =    -0.09457327   -0.00002483   -0.00696983
+     atom    8 type  2   force =     0.00653421    0.00000777   -0.05488721
+     atom    9 type  2   force =     0.04255417    0.00001001    0.04052574
+     atom   10 type  2   force =    -0.00665047    0.00000610   -0.07568901
+
+     Total force =     0.344421     Total SCF correction =     0.099051
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     Writing output data file pwscf.save
+
+     init_run     :    105.06s CPU    107.39s WALL (       1 calls)
+     electrons    :     34.49s CPU     38.01s WALL (       1 calls)
+     forces       :    236.42s CPU    240.80s WALL (       1 calls)
+
+     Called by init_run:
+     wfcinit      :      0.25s CPU      0.25s WALL (       1 calls)
+     potinit      :      1.99s CPU      2.12s WALL (       1 calls)
+
+     Called by electrons:
+     c_bands      :      2.34s CPU      2.19s WALL (       5 calls)
+     sum_band     :      7.23s CPU      7.29s WALL (       5 calls)
+     v_of_rho     :      8.01s CPU      8.62s WALL (       6 calls)
+     newd         :      3.80s CPU      5.37s WALL (       6 calls)
+     mix_rho      :      0.65s CPU      0.73s WALL (       5 calls)
+
+     Called by c_bands:
+     init_us_2    :      0.09s CPU      0.14s WALL (      11 calls)
+     regterg      :      2.20s CPU      2.02s WALL (       5 calls)
+
+     Called by sum_band:
+     sum_band:bec :      0.00s CPU      0.00s WALL (       5 calls)
+     addusdens    :      5.73s CPU      5.75s WALL (       5 calls)
+
+     Called by *egterg:
+     h_psi        :      2.03s CPU      1.96s WALL (      23 calls)
+     s_psi        :      0.11s CPU      0.04s WALL (      23 calls)
+     g_psi        :      0.02s CPU      0.02s WALL (      17 calls)
+     rdiaghg      :      0.01s CPU      0.01s WALL (      22 calls)
+
+     Called by h_psi:
+     h_psi:pot    :      2.00s CPU      1.93s WALL (      23 calls)
+     h_psi:calbec :      0.06s CPU      0.06s WALL (      23 calls)
+     vloc_psi     :      1.82s CPU      1.83s WALL (      23 calls)
+     add_vuspsi   :      0.13s CPU      0.04s WALL (      23 calls)
+
+     General routines
+     calbec       :      0.08s CPU      0.08s WALL (      32 calls)
+     fft          :     14.45s CPU     14.56s WALL (     239 calls)
+     ffts         :      0.11s CPU      0.11s WALL (      11 calls)
+     fftw         :      1.49s CPU      1.50s WALL (     244 calls)
+     interpolate  :      0.91s CPU      0.99s WALL (      11 calls)
+     davcio       :      0.01s CPU      0.07s WALL (       1 calls)
+
+
+     Environ routines
+     calc_eelect  :      0.02s CPU      0.02s WALL (      10 calls)
+     calc_velect  :     13.68s CPU     15.29s WALL (       8 calls)
+     dielectric   :      0.32s CPU      0.36s WALL (       2 calls)
+     calc_felect  :      1.03s CPU      1.09s WALL (       1 calls)
+
+     PWSCF        :  6m16.26s CPU     6m26.80s WALL
+
+
+   This run was terminated on:  11:36:38  10Oct2017            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=
 
 %%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of ions             =         10
@@ -249,602 +398,218 @@
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Iteration #          1
-  pAp =  NaN  rzold =  89.20106676918627  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  95.4218310326157  rzold =  89.20106676918627  alpha =  0.9348077458154923
+ delta_qm =   0.319336E-01 delta_en =   0.176214E+04 tol =   0.100000E-03
  Iteration #          2
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  606.1638651335296  rzold =  55.81151000401406  alpha =  0.09207330428995392
+ delta_qm =   0.435098E-02 delta_en =   0.327128E+02 tol =   0.100000E-03
  Iteration #          3
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  2.1045111999037966  rzold =  0.3938408537670997  alpha =  0.18714124865912013
+ delta_qm =   0.195693E-02 delta_en =   0.661751E+01 tol =   0.100000E-03
  Iteration #          4
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.31012852407905717  rzold =  0.04673168510648631  alpha =  0.15068489828614923
+ delta_qm =   0.142397E-02 delta_en =   0.350386E+01 tol =   0.100000E-03
  Iteration #          5
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.03266099344878183  rzold =  0.008215188820631257  alpha =  0.25152905509485235
+ delta_qm =   0.946608E-03 delta_en =   0.154840E+01 tol =   0.100000E-03
  Iteration #          6
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.00833248845062164  rzold =  0.002907062995994983  alpha =  0.34888293133824905
+ delta_qm =   0.492900E-03 delta_en =   0.419818E+00 tol =   0.100000E-03
  Iteration #          7
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.00511267992018464  rzold =  0.0011479369858385152  alpha =  0.22452745013559514
+ delta_qm =   0.327525E-03 delta_en =   0.185368E+00 tol =   0.100000E-03
  Iteration #          8
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.001869737665599671  rzold =  0.00047377004412780155  alpha =  0.25338851157809444
+ delta_qm =   0.238001E-03 delta_en =   0.978818E-01 tol =   0.100000E-03
  Iteration #          9
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.00027570318028154525  rzold =  0.00016218939314941756  alpha =  0.5882753800075553
+ delta_qm =   0.145822E-03 delta_en =   0.367444E-01 tol =   0.100000E-03
  Iteration #         10
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.00033872571996873215  rzold =  0.00013311074227555385  alpha =  0.3929750072945194
+ delta_qm =   0.709418E-04 delta_en =   0.869657E-02 tol =   0.100000E-03
  Iteration #         11
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.00009087031329580358  rzold =  0.00003259188751900599  alpha =  0.35866375207612594
+ delta_qm =   0.450482E-04 delta_en =   0.350670E-02 tol =   0.100000E-03
  Iteration #         12
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.00001690205664953907  rzold =  0.000005748601775165484  alpha =  0.3401125611138129
+ delta_qm =   0.290665E-04 delta_en =   0.145993E-02 tol =   0.100000E-03
  Iteration #         13
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.000004503206117852002  rzold =  0.000001822357210106511  alpha =  0.40467994633471555
+ delta_qm =   0.187945E-04 delta_en =   0.610387E-03 tol =   0.100000E-03
  Iteration #         14
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.000003060369546288384  rzold =  0.0000010569893103765622  alpha =  0.34537963288076723
+ delta_qm =   0.119453E-04 delta_en =   0.246570E-03 tol =   0.100000E-03
  Iteration #         15
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  0.0000012312104690896806  rzold =  4.2257215036348256E-7  alpha =  0.3432168268321496
+ delta_qm =   0.761691E-05 delta_en =   0.100254E-03 tol =   0.100000E-03
  Iteration #         16
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         17
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         18
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         19
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         20
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         21
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         22
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         23
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         24
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         25
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         26
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         27
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         28
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         29
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         30
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         31
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         32
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         33
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         34
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         35
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         36
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         37
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         38
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         39
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         40
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         41
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         42
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         43
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         44
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         45
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         46
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         47
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         48
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         49
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         50
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         51
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         52
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         53
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         54
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         55
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         56
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         57
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         58
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         59
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         60
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         61
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         62
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         63
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         64
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         65
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         66
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         67
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         68
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         69
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         70
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         71
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         72
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         73
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         74
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         75
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         76
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         77
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         78
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         79
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         80
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         81
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         82
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         83
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         84
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         85
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         86
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         87
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         88
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         89
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         90
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         91
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         92
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         93
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         94
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         95
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         96
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         97
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         98
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #         99
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        100
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        101
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        102
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        103
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        104
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        105
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        106
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        107
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        108
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        109
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        110
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        111
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        112
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        113
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        114
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        115
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        116
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        117
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        118
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        119
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        120
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        121
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        122
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        123
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        124
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        125
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        126
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        127
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        128
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        129
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        130
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        131
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        132
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        133
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        134
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        135
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        136
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        137
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        138
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        139
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        140
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        141
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        142
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        143
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        144
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        145
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        146
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        147
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        148
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        149
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        150
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        151
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        152
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        153
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        154
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        155
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        156
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        157
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        158
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        159
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        160
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        161
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        162
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        163
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        164
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        165
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        166
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        167
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        168
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        169
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        170
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        171
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        172
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        173
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        174
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        175
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        176
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        177
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        178
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        179
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        180
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        181
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        182
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        183
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        184
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        185
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        186
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        187
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        188
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        189
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        190
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        191
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        192
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        193
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        194
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        195
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        196
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        197
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        198
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        199
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
- Iteration #        200
-  pAp =  NaN  rzold =  NaN  alpha =  NaN
- delta_qm =            NaN delta_en =            NaN tol =   0.100000E-03
+  pAp =  5.964582987499164E-7  rzold =  1.7446881813203158E-7  alpha =  0.2925079900769107
+ delta_qm =   0.523295E-05 delta_en =   0.473191E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Warning: bad guess with residual norm =   0.127058E+04, reset to no guess
+ Iteration #          1
+  pAp =  98.86912400533244  rzold =  93.26877836485791  alpha =  0.9433559698559433
+ delta_qm =   0.306213E-01 delta_en =   0.162028E+04 tol =   0.100000E-03
+ Iteration #          2
+  pAp =  561.3570798479333  rzold =  51.373431300833694  alpha =  0.09151649305777047
+ delta_qm =   0.382282E-02 delta_en =   0.252529E+02 tol =   0.100000E-03
+ Iteration #          3
+  pAp =  1.9642601001471576  rzold =  0.3111733924968748  alpha =  0.15841761102491592
+ delta_qm =   0.190904E-02 delta_en =   0.629757E+01 tol =   0.100000E-03
+ Iteration #          4
+  pAp =  0.2622817897044213  rzold =  0.03969700407063046  alpha =  0.15135249807227194
+ delta_qm =   0.145126E-02 delta_en =   0.363943E+01 tol =   0.100000E-03
+ Iteration #          5
+  pAp =  0.01879170316790908  rzold =  0.006053158456212687  alpha =  0.322118671316061
+ delta_qm =   0.895452E-03 delta_en =   0.138557E+01 tol =   0.100000E-03
+ Iteration #          6
+  pAp =  0.009204229991049294  rzold =  0.00287813594546805  alpha =  0.3126970912577054
+ delta_qm =   0.471660E-03 delta_en =   0.384416E+00 tol =   0.100000E-03
+ Iteration #          7
+  pAp =  0.0054272784676173075  rzold =  0.0011161870643662559  alpha =  0.20566239064867553
+ delta_qm =   0.341374E-03 delta_en =   0.201375E+00 tol =   0.100000E-03
+ Iteration #          8
+  pAp =  0.001214233979571816  rzold =  0.00041679442091050774  alpha =  0.3432570887675907
+ delta_qm =   0.238341E-03 delta_en =   0.981617E-01 tol =   0.100000E-03
+ Iteration #          9
+  pAp =  0.0003589755106189874  rzold =  0.00020308291587584434  alpha =  0.5657291649941945
+ delta_qm =   0.136496E-03 delta_en =   0.321945E-01 tol =   0.100000E-03
+ Iteration #         10
+  pAp =  0.00037092252511005693  rzold =  0.00013301103666795518  alpha =  0.3585951988989865
+ delta_qm =   0.645596E-04 delta_en =   0.720220E-02 tol =   0.100000E-03
+ Iteration #         11
+  pAp =  0.00006352932133106395  rzold =  0.000022945177688338674  alpha =  0.3611746073717171
+ delta_qm =   0.442956E-04 delta_en =   0.339050E-02 tol =   0.100000E-03
+ Iteration #         12
+  pAp =  0.000012613342183469318  rzold =  0.000004729513980462608  alpha =  0.37496120470440997
+ delta_qm =   0.279515E-04 delta_en =   0.135006E-02 tol =   0.100000E-03
+ Iteration #         13
+  pAp =  0.00000270622815653486  rzold =  0.0000014782057595839688  alpha =  0.5462236271596221
+ delta_qm =   0.153398E-04 delta_en =   0.406614E-03 tol =   0.100000E-03
+ Iteration #         14
+  pAp =  0.0000021081234818245427  rzold =  7.129981599204773E-7  alpha =  0.3382146093754386
+ delta_qm =   0.104500E-04 delta_en =   0.188700E-03 tol =   0.100000E-03
+ Iteration #         15
+  pAp =  0.0000016300014670973738  rzold =  4.3135848328648017E-7  alpha =  0.2646368681217337
+ delta_qm =   0.693309E-05 delta_en =   0.830611E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Warning: bad guess with residual norm =   0.128586E+04, reset to no guess
+ Iteration #          1
+  pAp =  98.26125231226267  rzold =  93.7827809601364  alpha =  0.9544228142147608
+ delta_qm =   0.275057E-01 delta_en =   0.130734E+04 tol =   0.100000E-03
+ Iteration #          2
+  pAp =  465.57636238020604  rzold =  42.07436294891051  alpha =  0.09037048774085121
+ delta_qm =   0.358352E-02 delta_en =   0.221903E+02 tol =   0.100000E-03
+ Iteration #          3
+  pAp =  1.4771238891446645  rzold =  0.2509367369266019  alpha =  0.169881984016864
+ delta_qm =   0.180128E-02 delta_en =   0.560667E+01 tol =   0.100000E-03
+ Iteration #          4
+  pAp =  0.2477380479138316  rzold =  0.03678062227382699  alpha =  0.14846577900952881
+ delta_qm =   0.135733E-02 delta_en =   0.318355E+01 tol =   0.100000E-03
+ Iteration #          5
+  pAp =  0.017989033287647862  rzold =  0.005525218248370736  alpha =  0.3071437002768024
+ delta_qm =   0.863690E-03 delta_en =   0.128902E+01 tol =   0.100000E-03
+ Iteration #          6
+  pAp =  0.006346372390285066  rzold =  0.002330282579895849  alpha =  0.3671833981036177
+ delta_qm =   0.434723E-03 delta_en =   0.326565E+00 tol =   0.100000E-03
+ Iteration #          7
+  pAp =  0.0017284237685825413  rzold =  0.0006378423093248636  alpha =  0.36903120688276003
+ delta_qm =   0.279617E-03 delta_en =   0.135104E+00 tol =   0.100000E-03
+ Iteration #          8
+  pAp =  0.0007241701105179786  rzold =  0.00026187844856396766  alpha =  0.36162559702533614
+ delta_qm =   0.202432E-03 delta_en =   0.708115E-01 tol =   0.100000E-03
+ Iteration #          9
+  pAp =  0.0009301719582849642  rzold =  0.00027327794675736065  alpha =  0.2937929318587781
+ delta_qm =   0.129145E-03 delta_en =   0.288201E-01 tol =   0.100000E-03
+ Iteration #         10
+  pAp =  0.00040088231790974484  rzold =  0.00013065659436048945  alpha =  0.32592256760475435
+ delta_qm =   0.630331E-04 delta_en =   0.686565E-02 tol =   0.100000E-03
+ Iteration #         11
+  pAp =  0.00007393439644904411  rzold =  0.000024498745727927995  alpha =  0.33135789165213014
+ delta_qm =   0.447439E-04 delta_en =   0.345949E-02 tol =   0.100000E-03
+ Iteration #         12
+  pAp =  0.000015802097719976122  rzold =  0.000005309301253153011  alpha =  0.3359871168522956
+ delta_qm =   0.292638E-04 delta_en =   0.147981E-02 tol =   0.100000E-03
+ Iteration #         13
+  pAp =  0.000004125824901390434  rzold =  0.0000017416730570183035  alpha =  0.42213935361904154
+ delta_qm =   0.181298E-04 delta_en =   0.567973E-03 tol =   0.100000E-03
+ Iteration #         14
+  pAp =  0.000002783849816599857  rzold =  0.0000010370515206217884  alpha =  0.37252423404378326
+ delta_qm =   0.112035E-04 delta_en =   0.216897E-03 tol =   0.100000E-03
+ Iteration #         15
+  pAp =  8.719694118965684E-7  rzold =  3.55723024469901E-7  alpha =  0.40795355848112747
+ delta_qm =   0.658596E-05 delta_en =   0.749517E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Warning: bad guess with residual norm =   0.133566E+04, reset to no guess
+ Iteration #          1
+  pAp =  97.45817649484975  rzold =  93.56651846776207  alpha =  0.9600684296889821
+ delta_qm =   0.257286E-01 delta_en =   0.114386E+04 tol =   0.100000E-03
+ Iteration #          2
+  pAp =  406.1975898298604  rzold =  36.65824443966376  alpha =  0.09024732139601913
+ delta_qm =   0.369374E-02 delta_en =   0.235763E+02 tol =   0.100000E-03
+ Iteration #          3
+  pAp =  1.6534417790143188  rzold =  0.2781454353099569  alpha =  0.1682220921475507
+ delta_qm =   0.177210E-02 delta_en =   0.542648E+01 tol =   0.100000E-03
+ Iteration #          4
+  pAp =  0.2742373805909795  rzold =  0.04029779580372339  alpha =  0.14694494133834687
+ delta_qm =   0.131777E-02 delta_en =   0.300070E+01 tol =   0.100000E-03
+ Iteration #          5
+  pAp =  0.01883310872141451  rzold =  0.005555751232372969  alpha =  0.2949991589044302
+ delta_qm =   0.860764E-03 delta_en =   0.128030E+01 tol =   0.100000E-03
+ Iteration #          6
+  pAp =  0.00593815746711846  rzold =  0.002202556488324942  alpha =  0.37091581025279735
+ delta_qm =   0.448347E-03 delta_en =   0.347354E+00 tol =   0.100000E-03
+ Iteration #          7
+  pAp =  0.0022256260795060338  rzold =  0.0007165572960842262  alpha =  0.3219576292183197
+ delta_qm =   0.297109E-03 delta_en =   0.152537E+00 tol =   0.100000E-03
+ Iteration #          8
+  pAp =  0.0016071175595470321  rzold =  0.00038367333895160855  alpha =  0.23873383541384943
+ delta_qm =   0.224485E-03 delta_en =   0.870802E-01 tol =   0.100000E-03
+ Iteration #          9
+  pAp =  0.0004649139183023266  rzold =  0.00021669885322852045  alpha =  0.4661053255187865
+ delta_qm =   0.131989E-03 delta_en =   0.301038E-01 tol =   0.100000E-03
+ Iteration #         10
+  pAp =  0.00032097378351275213  rzold =  0.00012042069002520599  alpha =  0.375172977391849
+ delta_qm =   0.620668E-04 delta_en =   0.665675E-02 tol =   0.100000E-03
+ Iteration #         11
+  pAp =  0.0000743323206335879  rzold =  0.000024502601429026404  alpha =  0.32963590024060985
+ delta_qm =   0.442052E-04 delta_en =   0.337668E-02 tol =   0.100000E-03
+ Iteration #         12
+  pAp =  0.000016574688320081363  rzold =  0.000005436110227441888  alpha =  0.327976618471653
+ delta_qm =   0.289827E-04 delta_en =   0.145152E-02 tol =   0.100000E-03
+ Iteration #         13
+  pAp =  0.000003927898724339929  rzold =  0.0000016796587532886552  alpha =  0.4276227243030347
+ delta_qm =   0.179628E-04 delta_en =   0.557560E-03 tol =   0.100000E-03
+ Iteration #         14
+  pAp =  0.0000026704132527288724  rzold =  0.0000010010261312418515  alpha =  0.3748581348669205
+ delta_qm =   0.111345E-04 delta_en =   0.214233E-03 tol =   0.100000E-03
+ Iteration #         15
+  pAp =  8.662361753103699E-7  rzold =  3.578327605512911E-7  alpha =  0.41308914445079675
+ delta_qm =   0.639466E-05 delta_en =   0.706608E-04 tol =   0.100000E-03
+ Charges are converged, exit!
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         24
+ total electronic charge    =     24.0000000
+ number of spin components  =  1

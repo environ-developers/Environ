@@ -5,7 +5,7 @@
    env_surface_tension = 100. 
    !
  /
- &ELECTROSTATIC
+ &BOUNDARY
    !
    boundary_core = 'fft'   
    !

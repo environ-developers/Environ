@@ -4,7 +4,10 @@
    environ_thr = 1.d2
    env_static_permittivity = 100. 
    !
-   eps_mode = 'ionic'
+ /
+ &BOUNDARY
+   !
+   boundary_mode = 'ionic'
    !
  /
  &ELECTROSTATIC
