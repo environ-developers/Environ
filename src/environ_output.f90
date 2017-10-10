@@ -119,15 +119,15 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1000 )
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1000 )
        WRITE( UNIT = environ_unit, FMT = 1001 )cell%ibrav,cell%alat,cell%omega
        IF ( verbosity .GE. 2 ) THEN
-          WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
-          WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
-          WRITE( UNIT = environ_unit, FMT = 1004 )cell%ntot,cell%nnr,cell%domega
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1004 )cell%ntot,cell%nnr,cell%domega
           IF ( verbosity .GE. 3 ) THEN
-             WRITE( UNIT = environ_unit, FMT = 1005 )cell%me,cell%root,cell%comm
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1005 )cell%me,cell%root,cell%comm
           END IF
        END IF
     END IF
@@ -165,6 +165,7 @@ CONTAINS
     TYPE( environ_ions ), INTENT(IN), OPTIONAL :: local_ions
 
     INTEGER :: verbosity, passed_verbosity, passed_depth
+    REAL( DP ) :: integral
 
     IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
 
@@ -184,21 +185,22 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1100 )
-       WRITE( UNIT = environ_unit, FMT = 1101 )ADJUSTL(density%label)
-       WRITE( UNIT = environ_unit, FMT = 1102 )integrate_environ_density(density)
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1100 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1101 )ADJUSTL(density%label)
+       integral = integrate_environ_density(density)
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1102 )integral
        ! MAY ADD MAXVAL AND MINVAL
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_cell( density%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
-             WRITE(environ_unit,*)'present local ions'
+             IF ( ionode ) WRITE(environ_unit,*)'present local ions'
              CALL write_cube( density, local_ions )
           ELSE IF ( ions%initialized ) THEN
-             WRITE(environ_unit,*)'using stored ions'
+             IF ( ionode ) WRITE(environ_unit,*)'using stored ions'
              CALL write_cube( density, ions )
           ELSE
-             WRITE(environ_unit,*)'no ions'
+             IF ( ionode ) WRITE(environ_unit,*)'no ions'
              CALL write_cube( density )
           END IF
        END IF
@@ -231,6 +233,7 @@ CONTAINS
     TYPE( environ_density ) :: dens
 
     INTEGER :: verbosity, passed_verbosity, passed_depth
+    REAL( DP ) :: integral
 
     IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
 
@@ -250,10 +253,11 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1200 )
-       WRITE( UNIT = environ_unit, FMT = 1201 )ADJUSTL(gradient%label)
-       WRITE( UNIT = environ_unit, FMT = 1202 )integrate_environ_density(gradient%modulus)
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1200 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1201 )ADJUSTL(gradient%label)
+       integral = integrate_environ_density(gradient%modulus)
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1202 )integral
        ! MAY ADD MAXVAL AND MINVAL
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_cell( gradient%cell, passed_verbosity, passed_depth )
@@ -308,6 +312,7 @@ CONTAINS
     TYPE( environ_density ) :: dens
 
     INTEGER :: verbosity, passed_verbosity, passed_depth
+    REAL( DP ) :: integral
 
     IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
 
@@ -327,10 +332,11 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1250 )
-       WRITE( UNIT = environ_unit, FMT = 1251 )ADJUSTL(hessian%label)
-       WRITE( UNIT = environ_unit, FMT = 1252 )integrate_environ_density(hessian%laplacian)
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1250 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1251 )ADJUSTL(hessian%label)
+       integral = integrate_environ_density(hessian%laplacian)
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1252 )integral
        ! MAY ADD MAXVAL AND MINVAL
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_cell( hessian%cell, passed_verbosity, passed_depth )
@@ -411,37 +417,37 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1300 )
-       WRITE( UNIT = environ_unit, FMT = 1301 )nfunctions
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1300 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1301 )nfunctions
        DO ifunctions = 1, nfunctions
           SELECT CASE (functions(ifunctions)%type )
           CASE ( 1 )
-             WRITE( UNIT = environ_unit, FMT = 1302 )ifunctions,&
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1302 )ifunctions,&
                   & functions(ifunctions)%dim,functions(ifunctions)%axis,&
                   & functions(ifunctions)%spread,functions(ifunctions)%volume
           CASE ( 2 )
-             WRITE( UNIT = environ_unit, FMT = 1303 )ifunctions,&
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1303 )ifunctions,&
                   & functions(ifunctions)%dim,functions(ifunctions)%axis,&
                   & functions(ifunctions)%width,functions(ifunctions)%spread,&
                   & functions(ifunctions)%volume
           CASE ( 3 )
-             WRITE( UNIT = environ_unit, FMT = 1304 )ifunctions,&
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1304 )ifunctions,&
                   & functions(ifunctions)%spread,functions(ifunctions)%volume
           CASE ( 4 )
-             WRITE( UNIT = environ_unit, FMT = 1305 )ifunctions,&
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1305 )ifunctions,&
                   & functions(ifunctions)%dim,functions(ifunctions)%axis,&
                   & functions(ifunctions)%width,functions(ifunctions)%spread,&
                   & functions(ifunctions)%volume
           CASE ( 5 )
-             WRITE( UNIT = environ_unit, FMT = 1306 )ifunctions,&
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1306 )ifunctions,&
                   & functions(ifunctions)%dim,functions(ifunctions)%axis,&
                   & functions(ifunctions)%width,functions(ifunctions)%spread,&
                   & functions(ifunctions)%volume
           CASE DEFAULT
              CALL errore(sub_name,'Unexpected function type',1)
           END SELECT
-          IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 1307 )&
+          IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1307 )&
                & functions(ifunctions)%pos
        END DO
     END IF
@@ -521,13 +527,13 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1400 )
-       WRITE( UNIT = environ_unit, FMT = 1401 )ntyp
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1400 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1401 )ntyp
        DO ityp = 1, ntyp
-          WRITE( UNIT = environ_unit, FMT = 1402 )ityp,iontype(ityp)%index,&
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1402 )ityp,iontype(ityp)%index,&
                & iontype(ityp)%label,iontype(ityp)%atmnum,iontype(ityp)%zv
-          IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 1403 )&
+          IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1403 )&
                & iontype(ityp)%atomicspread,iontype(ityp)%corespread,&
                & iontype(ityp)%solvationrad
        END DO
@@ -577,16 +583,16 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1500 )
-       WRITE( UNIT = environ_unit, FMT = 1501 )ions%number
-       WRITE( UNIT = environ_unit, FMT = 1502 )ions%center
-       WRITE( UNIT = environ_unit, FMT = 1503 )ions%charge
-       WRITE( UNIT = environ_unit, FMT = 1504 )ions%dipole
-       WRITE( UNIT = environ_unit, FMT = 1505 )ions%quadrupole_pc
-       IF ( ions%use_smeared_ions ) WRITE( UNIT = environ_unit, FMT = 1506 )ions%quadrupole_gauss
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1500 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1501 )ions%number
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1502 )ions%center
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1503 )ions%charge
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1504 )ions%dipole
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1505 )ions%quadrupole_pc
+       IF ( ions%use_smeared_ions .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1506 )ions%quadrupole_gauss
        DO i = 1, ions%number
-          WRITE( UNIT = environ_unit, FMT = 1507 )i,ions%ityp(i),ions%tau(:,i)*ions%alat
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1507 )i,ions%ityp(i),ions%tau(:,i)*ions%alat
        END DO
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_iontype(ions%ntyp,ions%iontype,passed_verbosity,passed_depth)
@@ -651,11 +657,11 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1600 )
-       WRITE( UNIT = environ_unit, FMT = 1601 )electrons%number
-       WRITE( UNIT = environ_unit, FMT = 1602 )electrons%charge
-       WRITE( UNIT = environ_unit, FMT = 1603 )electrons%nspin
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1600 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1601 )electrons%number
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1602 )electrons%charge
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1603 )electrons%nspin
        IF ( verbosity .GE. 2 ) &
             & CALL print_environ_density(electrons%density,passed_verbosity,passed_depth)
     END IF
@@ -703,10 +709,10 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1700 )
-       WRITE( UNIT = environ_unit, FMT = 1701 )externals%number
-       WRITE( UNIT = environ_unit, FMT = 1702 )externals%charge
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1700 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1701 )externals%number
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1702 )externals%charge
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_functions(externals%number,externals%functions,&
                & passed_verbosity,passed_depth)
@@ -756,9 +762,9 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 2200 )
-       WRITE( UNIT = environ_unit, FMT = 2201 )auxiliary%charge
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2200 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2201 )auxiliary%charge
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_density(auxiliary%density,passed_verbosity,passed_depth)
        ENDIF
@@ -809,10 +815,10 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1800 )
-       WRITE( UNIT = environ_unit, FMT = 1801 )charges%number
-       WRITE( UNIT = environ_unit, FMT = 1802 )charges%charge
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1800 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1801 )charges%number
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1802 )charges%charge
        IF ( verbosity .GE. 2 ) THEN
           CALL print_environ_density(charges%density,passed_verbosity,passed_depth)
           IF ( charges % include_ions ) &
@@ -868,15 +874,15 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 1900 )
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1900 )
        IF ( system%ntyp .EQ. 0 ) THEN
-          WRITE( UNIT = environ_unit, FMT = 1901 )
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1901 )
        ELSE
-          WRITE( UNIT = environ_unit, FMT = 1902 )system%ntyp
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1902 )system%ntyp
        END IF
-       WRITE( UNIT = environ_unit, FMT = 1903 )system%dim,system%axis
-       WRITE( UNIT = environ_unit, FMT = 1904 )system%pos,system%width
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1903 )system%dim,system%axis
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1904 )system%pos,system%width
        IF ( verbosity .GE. 2 ) &
           & CALL print_environ_ions(system % ions, passed_verbosity, passed_depth )
     END IF
@@ -927,24 +933,24 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 2000 )
-       WRITE( UNIT = environ_unit, FMT = 2001 )boundary%mode
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2000 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2001 )boundary%mode
        IF ( boundary % need_electrons ) THEN
-          WRITE( UNIT = environ_unit, FMT = 2002 ) boundary % type
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2002 ) boundary % type
           SELECT CASE ( boundary % type )
           CASE ( 0 )
-             WRITE( UNIT = environ_unit, FMT = 2003 ) boundary % rhozero, boundary % tbeta
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2003 ) boundary % rhozero, boundary % tbeta
           CASE ( 1 )
-             WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % rhomax, boundary % rhomin
-             IF ( verbosity .GE. 2 ) WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % fact
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % rhomax, boundary % rhomin
+             IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % fact
           CASE ( 2 )
-             WRITE( UNIT = environ_unit, FMT = 2006 ) boundary % rhomax, boundary % rhomin
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2006 ) boundary % rhomax, boundary % rhomin
           END SELECT
           IF ( verbosity .GE. 2 ) THEN
              CALL print_environ_density(boundary%density,passed_verbosity,passed_depth)
              IF ( boundary % need_ions ) THEN
-                WRITE( UNIT = environ_unit, FMT = 2007 )
+                IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2007 )
                 IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%ions%core)
              END IF
              IF ( verbosity .GE. 3 ) &
@@ -1026,19 +1032,19 @@ CONTAINS
        passed_depth = depth
     END IF
 
-    IF ( ionode .AND. verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose ) WRITE( UNIT = environ_unit, FMT = 2100 )
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2100 )
        IF ( dielectric % nregions .EQ. 0 ) THEN
-          WRITE( UNIT = environ_unit, FMT = 2101 )dielectric%constant
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2101 )dielectric%constant
        ELSE
-          WRITE( UNIT = environ_unit, FMT = 2102 )dielectric%constant,dielectric%nregions
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2102 )dielectric%constant,dielectric%nregions
           CALL print_environ_functions(dielectric%nregions,dielectric%regions,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%background,passed_verbosity,passed_depth)
        END IF
        CALL print_environ_boundary(dielectric%boundary,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%epsilon,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%depsilon,passed_verbosity,passed_depth)
-       WRITE( UNIT = environ_unit, FMT = 2103 )dielectric%need_gradient,&
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2103 )dielectric%need_gradient,&
             & dielectric%need_factsqrt,dielectric%need_gradlog
        IF ( verbosity .GE. 3 ) THEN
           IF ( dielectric%need_gradient ) CALL print_environ_gradient(dielectric%gradient,passed_verbosity,passed_depth)
