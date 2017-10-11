@@ -328,7 +328,7 @@ CONTAINS
   END SUBROUTINE calc_gradvperiodic
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_fperiodic( oned_analytic, natoms, charges, f )
+  SUBROUTINE calc_fperiodic( oned_analytic, natoms, charges, auxiliary, f )
 !---------------------------------------------------------------------------
     !
     ! ... Compute contribution to the atomic forces
@@ -338,6 +338,7 @@ CONTAINS
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     INTEGER, INTENT(IN)   :: natoms
     TYPE( environ_charges ), TARGET, INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(IN) :: auxiliary
     REAL(DP), INTENT(OUT) :: f( 3, natoms )
     !
     INTEGER, POINTER :: nnr
@@ -368,7 +369,6 @@ CONTAINS
          & CALL errore(sub_name,'Missmatch in numbers of atoms passed in input and stored',1)
     !
     nnr => charges % density % cell % nnr
-    rhotot => charges % density % of_r
     tau => charges % ions % tau
     ityp => charges % ions % ityp
     !
@@ -378,9 +378,13 @@ CONTAINS
     slab_axis => oned_analytic % axis
     origin => oned_analytic % origin
     !
+    ALLOCATE( rhotot( nnr ) )
+    rhotot = charges % density % of_r + auxiliary % of_r
+    !
     ! ... Compute multipoles of the system with respect to the chosen origin
     !
     CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+    DEALLOCATE( rhotot )
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)

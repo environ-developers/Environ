@@ -370,6 +370,8 @@ CONTAINS
                & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
        ENDIF
        !
+       IF ( setup % core % need_correction ) CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, aux, ftmp )
+       !
        IF ( charges % include_externals ) THEN
           IF ( .NOT. ASSOCIATED( charges % externals ) ) &
                & CALL errore(sub_name,'Missing expected charge component',1)
@@ -379,8 +381,6 @@ CONTAINS
        CALL external_force_lc(aux%of_r,ftmp)
        !
        CALL destroy_environ_density( aux )
-       !
-       IF ( setup % core % need_correction ) CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, ftmp )
        !
     CASE ( 'linpb', 'linmodpb' )
 
