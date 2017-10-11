@@ -959,7 +959,7 @@ CONTAINS
           IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
        ELSE
-          WRITE( UNIT = environ_unit, FMT = 2008 ) boundary%alpha, boundary%softness
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2008 ) boundary%alpha, boundary%softness
           IF ( verbosity .GE. 2 ) &
                & CALL print_environ_functions(boundary%ions%number,boundary%soft_spheres,&
                & passed_verbosity,passed_depth)
