@@ -3,7 +3,6 @@
    calculation = 'scf'
    restart_mode = 'from_scratch'
    tprnfor = .TRUE.
-   pseudo_dir = '../../../pseudo/'
    !
  /
  &SYSTEM
@@ -32,7 +31,7 @@ K_POINTS gamma
 ATOMIC_SPECIES
 C 1 C.pbe-rrkjus.UPF
 O 1 O.pbe-rrkjus.UPF
-Pt 1 Pt.pbe-n-rrkjus.UPF
+Pt 1 Pt.pbe-n-rrkjus_psl.0.1.UPF
 ATOMIC_POSITIONS (bohr)
 C        5.335084148   4.646723426  12.901029877
 O        5.335009643   4.619623254  15.079854269
