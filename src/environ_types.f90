@@ -47,6 +47,14 @@ MODULE environ_types
 
      REAL( DP ), DIMENSION(:), ALLOCATABLE :: of_r
 
+     ! Multipole moments of the quantity
+
+     REAL( DP ) :: charge
+
+     REAL( DP ), DIMENSION(3) :: dipole
+
+     REAL( DP ), DIMENSION(3) :: quadrupole
+
   END TYPE environ_density
 
   TYPE environ_gradient
@@ -422,6 +430,7 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_density'
 
     CHARACTER ( LEN=80 ) :: label = 'density'
+
     IF ( PRESENT(local_label) ) THEN
        density%label = local_label
     ELSE
@@ -451,6 +460,10 @@ CONTAINS
     IF ( ALLOCATED( density%of_r ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
     ALLOCATE(density%of_r(density%cell%nnr))
     density%of_r = 0.D0
+
+    density%charge = 0.D0
+    density%dipole = 0.D0
+    density%quadrupole = 0.D0
 
     RETURN
 
@@ -545,6 +558,57 @@ CONTAINS
     RETURN
 
   END FUNCTION quadratic_mean_environ_density_old
+
+  SUBROUTINE update_environ_density(density)
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(INOUT) :: density
+
+    REAL( DP ), DIMENSION(0:3) :: dipole
+    REAL( DP ), DIMENSION(3) :: quadrupole
+
+    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
+
+    density % charge = dipole(0)
+    density % dipole = dipole(1:3)
+    density % quadrupole = quadrupole
+
+    RETURN
+
+  END SUBROUTINE update_environ_density
+
+  FUNCTION dipole_of_origin( density, origin ) RESULT( dipole )
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: density
+    REAL( DP ), DIMENSION( 3 ) :: origin
+
+    REAL( DP ), DIMENSION( 3 ) :: dipole
+
+    dipole = density % dipole + density % charge * ( density % cell % origin - origin )
+
+    RETURN
+
+  END FUNCTION dipole_of_origin
+
+  FUNCTION quadrupole_of_origin( density, origin ) RESULT( quadrupole )
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: density
+    REAL( DP ), DIMENSION( 3 ) :: origin
+
+    REAL( DP ), DIMENSION( 3 ) :: quadrupole
+
+    quadrupole = density % quadrupole + &
+         & density % charge * ( density % cell % origin - origin )**2 + &
+         & 2.D0 * density % dipole * ( density % cell % origin - origin )
+
+    RETURN
+
+  END FUNCTION quadrupole_of_origin
 
   SUBROUTINE destroy_environ_density(density)
 
