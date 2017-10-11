@@ -77,6 +77,7 @@ MODULE electrostatic_types
   TYPE qe_fft_core
 
      INTEGER :: index
+     LOGICAL :: use_internal_pbc_corr = .false.
 
   END TYPE qe_fft_core
 
@@ -300,13 +301,23 @@ CONTAINS
 
   END SUBROUTINE destroy_fd_core
 
-  SUBROUTINE init_qe_fft_core( qe_fft )
+  SUBROUTINE init_qe_fft_core( qe_fft, assume_isolated )
 
     IMPLICIT NONE
 
     TYPE( qe_fft_core ), INTENT(INOUT) :: qe_fft
+    CHARACTER( LEN = * ), INTENT(IN), OPTIONAL :: assume_isolated
 
     qe_fft % index = 1
+
+    qe_fft % use_internal_pbc_corr = .FALSE.
+    IF ( PRESENT( assume_isolated ) ) THEN
+       SELECT CASE( TRIM( ADJUSTL(assume_isolated) ) )
+       CASE( 'mt', 'martyna-tuckermann', 'm-t' )
+          qe_fft % use_internal_pbc_corr = .TRUE.
+       CASE DEFAULT
+       END SELECT
+    END IF
 
     RETURN
 

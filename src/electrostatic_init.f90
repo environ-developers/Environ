@@ -149,7 +149,7 @@ CONTAINS
     ! Set up active numerical cores
     !
     IF ( lfd ) CALL init_fd_core( ifdtype, nfdpoint, fd )
-    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft )
+    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, assume_isolated )
     IF ( loned_analytic ) CALL init_oned_analytic_core_first( pbc_dim, pbc_axis, oned_analytic )
     !
     ! Initial setup of solver flags

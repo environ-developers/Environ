@@ -278,18 +278,25 @@ CONTAINS
     !
     ! Remove self-interaction and correct energy of Gaussian ions
     !
+    eself = 0.D0
+    degauss = 0.D0
+    !
     IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
        !
        eself = charges % ions % selfenergy_correction * e2
        !
-       IF ( core % need_correction ) THEN
+       IF ( core % use_qe_fft ) THEN
           !
-          degauss = 0.D0
-          !
-       ELSE
-          !
-          degauss = - charges % ions % quadrupole_correction * charges % charge * e2 * tpi &
-               & / charges % density % cell % omega
+          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+             !
+             degauss = 0.D0
+             !
+          ELSE
+             !
+             degauss = - charges % ions % quadrupole_correction * charges % charge * e2 * tpi &
+                  & / charges % density % cell % omega
+             !
+          END IF
           !
        ENDIF
        !

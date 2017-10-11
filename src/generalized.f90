@@ -213,40 +213,51 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
   ! systems, it does not affect forces, but shift the energy depending on the
   ! fictitious Gaussian spread of the nuclei
 
-  IF ( core % need_correction ) THEN
+  eself = 0.D0
+  degauss = 0.D0
 
-     degauss = 0.D0
+  IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
 
-  ELSE
+     ! Compute spurious self-polarization energy
 
-     ! If using PBC, polarization charge should be neutral, as jellium polarization should also
-     ! accounted for, thus the correction for Gaussian nuclei should be almost negligible
+     eself = 0.D0
 
-     IF ( charges % include_auxiliary ) THEN
+     IF ( core % use_qe_fft ) THEN
 
-        degauss = - charges % ions % quadrupole_correction * charges % auxiliary % charge * e2 * pi &
-             & / charges % density % cell % omega
-
-     ELSE
-
-        IF ( add_jellium ) THEN
+        IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
 
            degauss = 0.D0
 
         ELSE
 
-           degauss = - charges % ions % quadrupole_correction * e2 * pi / charges % density % cell % omega &
-                & * ( 1.D0 - dielectric % constant ) / dielectric % constant * charges % charge
+        ! If using PBC, polarization charge should be neutral, as jellium polarization should also
+        ! accounted for, thus the correction for Gaussian nuclei should be almost negligible
+
+           IF ( charges % include_auxiliary ) THEN
+
+              degauss = - charges % ions % quadrupole_correction * charges % auxiliary % charge * e2 * pi &
+                   & / charges % density % cell % omega
+
+           ELSE
+
+              IF ( add_jellium ) THEN
+
+                 degauss = 0.D0
+
+              ELSE
+
+                 degauss = - charges % ions % quadrupole_correction * e2 * pi / charges % density % cell % omega &
+                      & * ( 1.D0 - dielectric % constant ) / dielectric % constant * charges % charge
+
+              ENDIF
+
+           ENDIF
 
         ENDIF
 
      ENDIF
 
   ENDIF
-
-  ! Compute spurious self-polarization energy
-
-  eself = 0.D0
 
   energy = energy + eself + degauss
 
@@ -712,31 +723,21 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
     ENDDO
 
-    ! Set the average of the potential to the physical correct value
+    ! In PBC the potential need to have zero average
 
     shift = 0.D0
 
-    IF ( core % need_correction ) THEN
+    IF ( core % use_qe_fft ) THEN
 
-       SELECT CASE ( TRIM( ADJUSTL( core%correction%type ) ) )
+       IF ( .NOT. ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) ) THEN
 
-       CASE ( '1da', 'oned_analytic' )
+          shift = - integrate_environ_density( x ) / cell % omega
 
-          CALL calc_v0periodic( core%correction%oned_analytic, charges, shift )
-
-       CASE DEFAULT
-
-          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
-
-       END SELECT
-
-    ELSE
-
-       shift = 0.D0
+       END IF
 
     END IF
 
-    x % of_r = x % of_r - integrate_environ_density( x ) / cell % omega + shift
+    x % of_r = x % of_r + shift
 
     IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
