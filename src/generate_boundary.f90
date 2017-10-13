@@ -645,7 +645,7 @@ CONTAINS
          !
          boundary % surface = integrate_environ_density( boundary%gradient%modulus )
          !
-         IF ( deriv .EQ. 2 ) boundary % laplacian % of_r = - boundary % laplacian % of_r
+         IF ( deriv .GE. 2 ) boundary % laplacian % of_r = - boundary % laplacian % of_r
          !
          IF ( deriv .EQ. 3 ) boundary % dsurface % of_r = - boundary % dsurface % of_r
          !

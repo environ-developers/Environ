@@ -1239,13 +1239,13 @@ MODULE environ_input
              !
           CASE ( 'water' )
              ! SS for neutrals
-             alpha = 1.16
+             alpha = 1.16D0
           CASE ( 'water-cation' )
              ! SS for cations
-             alpha = 1.10
+             alpha = 1.10D0
           CASE( 'water-anion' )
              ! SS for anions
-             alpha = 0.98
+             alpha = 0.98D0
           END SELECT
           !
        END IF
