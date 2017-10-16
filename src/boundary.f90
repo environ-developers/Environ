@@ -64,7 +64,8 @@ CONTAINS
 
   SUBROUTINE init_environ_boundary_first( need_gradient, need_laplacian, &
        & need_hessian, mode, stype, rhomax, rhomin, tbeta, const, alpha, &
-       & softness, electrons, ions, boundary )
+       & softness, solvent_radius, radial_scale, radial_spread,          &
+       & emptying_threshold, emptying_spread, electrons, ions, boundary )
 
     IMPLICIT NONE
 
@@ -74,6 +75,9 @@ CONTAINS
     LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
     REAL( DP ), INTENT(IN) :: alpha
     REAL( DP ), INTENT(IN) :: softness
+    REAL( DP ), INTENT(IN) :: solvent_radius
+    REAL( DP ), INTENT(IN) :: radial_scale, radial_spread
+    REAL( DP ), INTENT(IN) :: emptying_threshold, emptying_spread
     TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
@@ -108,6 +112,12 @@ CONTAINS
     boundary%softness = softness
     IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) &
          & ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
+
+    boundary%solvent_radius = solvent_radius
+    boundary%radial_scale = radial_scale
+    boundary%radial_spread = radial_spread
+    boundary%emptying_threshold = emptying_threshold
+    boundary%emptying_spread = emptying_spread
 
     RETURN
 

@@ -298,6 +298,12 @@ MODULE environ_types
      REAL( DP ) :: softness ! sharpness of the interface
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: soft_spheres
 
+     ! Copmonents needed for solvent-aware boundary
+
+     REAL( DP ) :: solvent_radius
+     REAL( DP ) :: radial_scale, radial_spread
+     REAL( DP ) :: emptying_threshold, emptying_spread
+
   END TYPE environ_boundary
 
   TYPE environ_dielectric
