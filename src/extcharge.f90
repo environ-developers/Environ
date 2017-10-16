@@ -13,18 +13,6 @@ MODULE externals_utils
 
   USE environ_types
   USE functions
-!  USE io_global,      ONLY: stdout
-!  USE mp,             ONLY: mp_sum
-!  USE mp_bands,       ONLY: intra_bgrp_comm
-!  USE environ_cell,   ONLY: domega
-!  USE environ_ions,   ONLY: avg_pos, rhoions
-!  USE environ_base,   ONLY: verbose, environ_unit,                   &
-!                            system_pos, system_width,                &
-!                            env_external_charges, extcharge_origin,  &
-!                            extcharge_dim, extcharge_axis,           &
-!                            extcharge_pos, extcharge_spread,         &
-!                            extcharge_charge, rhoexternal
-!  USE environ_debug,  ONLY: write_cube
   !
   IMPLICIT NONE
   !
@@ -39,8 +27,8 @@ MODULE externals_utils
     IMPLICIT NONE
 
     TYPE( environ_externals ), INTENT(INOUT) :: externals
-    CHARACTER (LEN=80) :: sub_name = 'create_environ_externals'
-    CHARACTER( LEN=80 ) :: label = 'externals'
+    CHARACTER ( LEN=80 ) :: sub_name = 'create_environ_externals'
+    CHARACTER ( LEN=80 ) :: label = 'externals'
 
     externals%update = .FALSE.
     externals%number = 0
@@ -69,6 +57,7 @@ MODULE externals_utils
     ALLOCATE(externals%functions(externals%number))
     DO i = 1, externals%number
        ALLOCATE(externals%functions(i)%pos(3))
+       externals%functions(i)%type   = 1
        externals%functions(i)%dim    = dims(i)
        externals%functions(i)%axis   = axis(i)
        externals%functions(i)%pos(:) = pos(:,i)
@@ -120,77 +109,6 @@ MODULE externals_utils
     RETURN
 
   END SUBROUTINE destroy_environ_externals
-!!--------------------------------------------------------------------
-!  SUBROUTINE calc_vextcharge(  nnr, nspin, vextcharge )
-!!--------------------------------------------------------------------
-!    !
-!    IMPLICIT NONE
-!    !
-!    INTEGER, INTENT(IN) :: nnr, nspin
-!    REAL( DP ), INTENT(OUT) :: vextcharge(nnr)
-!    !
-!    REAL( DP ) :: ehart, charge
-!    REAL( DP ), ALLOCATABLE :: vaux(:,:), rhoaux(:,:)
-!
-!    CALL start_clock( 'get_extcharge' )
-!
-!    IF ( .NOT. first ) RETURN
-!    first = .FALSE.
-!    vextcharge = 0.D0
-!
-!    ALLOCATE( rhoaux( nnr, nspin ) )
-!    ALLOCATE( vaux( nnr, nspin ) )
-!    rhoaux( :, 1 ) = rhoexternal(:)
-!    IF ( nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
-!    vaux = 0.D0
-!    CALL v_h_of_rho_r( rhoaux, ehart, charge, vaux )
-!    vextcharge(:) = vaux( :, 1 )
-!    DEALLOCATE( rhoaux )
-!    IF ( verbose .GE. 2 ) CALL write_cube( nnr, vextcharge, 'vextcharge.cube' )
-!    DEALLOCATE( vaux )
-!
-!    eextself = 0.5 * SUM( vextcharge( : ) * rhoexternal( : ) ) * domega
-!    CALL mp_sum( eextself, intra_bgrp_comm )
-!    IF ( verbose .GE. 1 ) WRITE(environ_unit,*)&
-!      & 'External charge self energy',eextself
-!
-!    CALL stop_clock( 'get_extcharge' )
-!
-!    RETURN
-!
-!!--------------------------------------------------------------------
-!  END SUBROUTINE calc_vextcharge
-!!--------------------------------------------------------------------
-!!--------------------------------------------------------------------
-!  SUBROUTINE calc_eextcharge(  nnr, rho, eextcharge )
-!!--------------------------------------------------------------------
-!    !
-!    USE environ_base,  ONLY : vextcharge
-!    !
-!    IMPLICIT NONE
-!    !
-!    INTEGER, INTENT(IN) :: nnr
-!    REAL( DP ), INTENT(IN) :: rho(nnr)
-!    REAL( DP ), INTENT(OUT) :: eextcharge
-!    !
-!    REAL( DP ), ALLOCATABLE :: rhotot(:)
-!    !
-!    ALLOCATE(rhotot(nnr))
-!    rhotot = rhoions + rho
-!    !
-!    eextcharge = SUM( vextcharge(:) * rhotot( : ) ) * domega
-!    !
-!    DEALLOCATE(rhotot)
-!    !
-!    CALL mp_sum( eextcharge, intra_bgrp_comm )
-!    !
-!    eextcharge = eextcharge + eextself
-!    !
-!    RETURN
-!    !
-!!--------------------------------------------------------------------
-!  END SUBROUTINE calc_eextcharge
-!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE externals_utils
 !--------------------------------------------------------------------
