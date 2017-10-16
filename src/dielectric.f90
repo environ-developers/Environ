@@ -44,6 +44,11 @@ CONTAINS
 
     label = 'background'
     CALL create_environ_density( dielectric%background, label  )
+    label = 'gradbackground'
+    CALL create_environ_gradient( dielectric%gradbackground, label  )
+    label = 'laplbackground'
+    CALL create_environ_density( dielectric%laplbackground, label  )
+
     label = 'epsilon'
     CALL create_environ_density( dielectric%epsilon, label )
     label = 'depsilon'
@@ -118,6 +123,9 @@ CONTAINS
 
     CALL init_environ_density( cell, dielectric%background )
     dielectric % background % of_r(:) = dielectric % constant
+    CALL init_environ_gradient( cell, dielectric%gradbackground )
+    IF ( dielectric%need_factsqrt ) CALL init_environ_density( cell, dielectric%laplbackground )
+
     CALL init_environ_density( cell, dielectric%epsilon )
     CALL init_environ_density( cell, dielectric%depsilon )
 
@@ -347,6 +355,9 @@ CONTAINS
     END IF
 
     CALL destroy_environ_density( dielectric%background )
+    CALL destroy_environ_gradient( dielectric%gradbackground )
+    IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%laplbackground )
+
     CALL destroy_environ_density( dielectric%epsilon )
     CALL destroy_environ_density( dielectric%depsilon )
 
