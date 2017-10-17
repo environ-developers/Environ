@@ -304,6 +304,11 @@ MODULE environ_types
      REAL( DP ) :: radial_scale, radial_spread
      REAL( DP ) :: emptying_threshold, emptying_spread
 
+     TYPE( environ_density ) :: local
+     TYPE( environ_density ) :: probe
+     TYPE( environ_density ) :: emptying
+     TYPE( environ_density ) :: demptying
+
   END TYPE environ_boundary
 
   TYPE environ_dielectric

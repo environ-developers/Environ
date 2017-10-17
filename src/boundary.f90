@@ -58,6 +58,17 @@ CONTAINS
     IF ( ALLOCATED( boundary%soft_spheres ) ) &
          & CALL errore(sub_name,'Trying to create an already allocated object',1)
 
+    ! Components required for solvent-aware interface
+
+    label = 'local'
+    CALL create_environ_density( boundary%local, label )
+    label = 'probe'
+    CALL create_environ_density( boundary%probe, label )
+    label = 'emptying'
+    CALL create_environ_density( boundary%emptying, label )
+    label = 'demptying'
+    CALL create_environ_density( boundary%emptying, label )
+
     RETURN
 
   END SUBROUTINE create_environ_boundary
@@ -140,6 +151,13 @@ CONTAINS
     IF ( boundary%deriv .GE. 1 ) CALL init_environ_gradient( cell, boundary%gradient )
     IF ( boundary%deriv .GE. 2 ) CALL init_environ_density( cell, boundary%laplacian )
     IF ( boundary%deriv .GE. 3 ) CALL init_environ_density( cell, boundary%dsurface )
+
+    IF ( boundary%solvent_radius .GT. 0.D0 ) THEN
+       CALL init_environ_density( cell, boundary%local )
+       CALL init_environ_density( cell, boundary%probe )
+       CALL init_environ_density( cell, boundary%emptying )
+       CALL init_environ_density( cell, boundary%demptying )
+    ENDIF
 
     RETURN
 
@@ -308,6 +326,13 @@ CONTAINS
     IF ( boundary%deriv .GE. 1 ) CALL destroy_environ_gradient( boundary%gradient )
     IF ( boundary%deriv .GE. 2 ) CALL destroy_environ_density( boundary%laplacian )
     IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_density( boundary%dsurface )
+
+    IF ( boundary%solvent_radius .GT. 0.D0 ) THEN
+       CALL destroy_environ_density( boundary%local )
+       CALL destroy_environ_density( boundary%probe )
+       CALL destroy_environ_density( boundary%emptying )
+       CALL destroy_environ_density( boundary%demptying )
+    ENDIF
 
     RETURN
 
