@@ -15,7 +15,8 @@ MODULE generate_boundary
   !
   PRIVATE
   !
-  PUBLIC :: boundary_of_density, boundary_of_functions, calc_dboundary_dions
+  PUBLIC :: boundary_of_density, boundary_of_functions, calc_dboundary_dions, &
+       & solvent_aware_boundary, solvent_aware_de_dboundary
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -569,7 +570,7 @@ CONTAINS
          !
          CALL init_environ_density( cell, local(i) )
          !
-         CALL density_of_functions( 1, soft_spheres(i), local(i) )
+         CALL density_of_functions( soft_spheres(i), local(i) )
          !
          boundary % scaled % of_r = boundary % scaled % of_r * local(i) % of_r
          !
@@ -873,7 +874,7 @@ CONTAINS
             !
             DO i = 1, boundary % ions % number
                IF ( i .EQ. index ) CYCLE
-               CALL density_of_functions( 1, boundary%soft_spheres(i), local )
+               CALL density_of_functions( boundary%soft_spheres(i), local, .TRUE. )
                DO ipol = 1, 3
                   partial % of_r( ipol, : ) = partial % of_r( ipol, : ) * local % of_r( : )
                ENDDO
@@ -901,5 +902,121 @@ CONTAINS
 !--------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
 !--------------------------------------------------------------------
-
+!--------------------------------------------------------------------
+    SUBROUTINE solvent_aware_boundary( boundary )
+!--------------------------------------------------------------------
+      !
+      ! ... Fill voids of the continuum interface that are too small
+      ! ... to fit a solvent molecule
+      !
+      USE functions, ONLY: density_of_functions
+      USE generate_function, ONLY : compute_convolution_fft
+      !
+      IMPLICIT NONE
+      !
+      TYPE( environ_boundary ), INTENT(INOUT), TARGET :: boundary
+      !
+      ! Local variables
+      !
+      INTEGER, POINTER :: nnr, ir_end
+      REAL( DP ), POINTER :: thr, spr
+      TYPE( environ_cell ), POINTER :: cell
+      !
+      INTEGER :: ir
+      TYPE( environ_density ) :: filled_fraction
+      !
+      ! Aliases and sanity checks
+      !
+      cell => boundary % scaled % cell
+      nnr => boundary % scaled % cell % nnr
+      ir_end => boundary % scaled % cell % ir_end
+      !
+      thr => boundary % filling_threshold
+      spr => boundary % filling_spread
+      !
+      CALL init_environ_density( cell, filled_fraction )
+      !
+      ! Step 0: save local interface function for later use
+      !
+      boundary % local % of_r = boundary % scaled % of_r
+      !
+      ! Step 1: compute the convolution function, this may be made moved out of here
+      !
+      CALL density_of_functions( boundary%solvent_probe, boundary%probe, .TRUE. )
+      !
+      ! Step 2: compute filled fraction, i.e. convolution of local boundary with probe
+      !
+      CALL compute_convolution_fft( nnr, boundary%local%of_r, boundary%probe%of_r, filled_fraction%of_r )
+      !
+      ! Step 3: compute the filling function and its derivative
+      !
+      boundary % filling % of_r = 0.D0
+      boundary % dfilling % of_r = 0.D0
+      DO ir = 1, ir_end
+         boundary % filling % of_r( ir ) = 1.D0 - sfunct2( filled_fraction % of_r( ir ), thr, spr )
+         boundary % dfilling % of_r( ir ) = - dsfunct2( filled_fraction % of_r( ir ), thr, spr )
+      ENDDO
+      !
+      ! Step 4: update the interface function
+      !
+      boundary % scaled % of_r = boundary % scaled % of_r + &
+           & ( 1.D0 - boundary % scaled % of_r ) * boundary % filling % of_r
+      !
+      CALL destroy_environ_density( filled_fraction )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE solvent_aware_boundary
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE solvent_aware_de_dboundary( boundary, de_dboundary )
+!--------------------------------------------------------------------
+      !
+      ! ... Fill voids of the continuum interface that are too small
+      ! ... to fit a solvent molecule
+      !
+      USE generate_function, ONLY : compute_convolution_fft
+      !
+      IMPLICIT NONE
+      !
+      TYPE( environ_boundary ), INTENT(INOUT), TARGET :: boundary
+      TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
+      !
+      ! Local variables
+      !
+      INTEGER, POINTER :: nnr, ir_end
+      REAL( DP ), POINTER :: thr, spr
+      TYPE( environ_cell ), POINTER :: cell
+      !
+      TYPE( environ_density ) :: local
+      !
+      ! Aliases and sanity checks
+      !
+      cell => boundary % scaled % cell
+      nnr => boundary % scaled % cell % nnr
+      !
+      CALL init_environ_density( cell, local )
+      !
+      ! Step 1: compute (1-s)*de_dboudary*dfilling
+      !
+      local % of_r = ( 1.D0 - boundary % scaled % of_r ) * de_dboundary % of_r * boundary % dfilling % of_r
+      !
+      ! Step 2: compute convolution with the probe function
+      !
+      CALL compute_convolution_fft( nnr, boundary%probe%of_r, local%of_r, local%of_r )
+      !
+      ! Step 3: update the functional derivative of the energy wrt boundary
+      !
+      de_dboundary % of_r = de_dboundary % of_r * ( 1.D0 - boundary % filling % of_r ) + &
+           & local % of_r
+      !
+      CALL destroy_environ_density( local )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE solvent_aware_de_dboundary
+!--------------------------------------------------------------------
+    !
 END MODULE generate_boundary

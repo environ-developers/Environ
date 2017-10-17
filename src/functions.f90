@@ -9,6 +9,10 @@ MODULE functions
        & density_of_functions, gradient_of_functions, laplacian_of_functions, &
        & hessian_of_functions
 
+  INTERFACE density_of_functions
+     MODULE PROCEDURE density_of_functions_scalar, density_of_functions_array
+  END INTERFACE density_of_functions
+
 CONTAINS
 
   SUBROUTINE create_environ_functions( n, type, dimm, axis, pos, width, spreadd, volume, f )
@@ -67,13 +71,13 @@ CONTAINS
 
   END SUBROUTINE destroy_environ_functions
 
-  SUBROUTINE density_of_functions( nfunctions, functions, density )
+  SUBROUTINE density_of_functions_scalar( functions, density, zero )
 
     IMPLICIT NONE
 
-    INTEGER, INTENT(IN) :: nfunctions
-    TYPE( environ_functions ), DIMENSION(nfunctions), TARGET, INTENT(IN) :: functions
+    TYPE( environ_functions ), TARGET, INTENT(IN) :: functions
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: density
+    LOGICAL, INTENT(IN), OPTIONAL :: zero
 
     INTEGER :: i
     REAL( DP ) :: local_charge
@@ -84,41 +88,62 @@ CONTAINS
     REAL( DP ), POINTER :: charge, spread, width
     REAL( DP ), DIMENSION(:), POINTER :: pos
 
-    density%of_r = 0.D0
+    IF ( PRESENT( zero ) .AND. zero ) density%of_r = 0.D0
 
     alat => density%cell%alat
     omega => density%cell%omega
     at => density%cell%at
 
+    type   => functions%type
+    pos    => functions%pos
+    spread => functions%spread
+    charge => functions%volume
+    width  => functions%width
+    dim    => functions%dim
+    axis   => functions%axis
+    nnr    => density%cell%nnr
+    SELECT CASE ( type )
+    CASE ( 1 ) ! Gaussian
+       CALL generate_gaussian(nnr, dim, axis, charge, spread, pos, density%of_r)
+    CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
+       CALL generate_erfc(nnr, dim, axis, charge, width, spread, pos, density%of_r)
+    CASE ( 3 ) ! Exponential
+       CALL generate_exponential(nnr, spread, pos, density%of_r)
+    CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
+       local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
+       CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
+    CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
+       local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
+       CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
+       density % of_r = density % of_r + charge
+    END SELECT
+
+    RETURN
+
+  END SUBROUTINE density_of_functions_scalar
+
+  SUBROUTINE density_of_functions_array( nfunctions, functions, density, zero )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: nfunctions
+    TYPE( environ_functions ), DIMENSION(nfunctions), TARGET, INTENT(IN) :: functions
+    TYPE( environ_density ), TARGET, INTENT(INOUT) :: density
+    LOGICAL, INTENT(IN), OPTIONAL :: zero
+
+    INTEGER :: i
+    REAL( DP ) :: local_charge
+    CHARACTER( LEN=80 ) :: sub_name = 'density_of_functions'
+
+    IF ( PRESENT( zero ) .AND. zero ) density%of_r = 0.D0
+
     DO i = 1, nfunctions
-       type   => functions(i)%type
-       pos    => functions(i)%pos
-       spread => functions(i)%spread
-       charge => functions(i)%volume
-       width  => functions(i)%width
-       dim    => functions(i)%dim
-       axis   => functions(i)%axis
-       nnr    => density%cell%nnr
-       SELECT CASE ( type )
-       CASE ( 1 ) ! Gaussian
-          CALL generate_gaussian(nnr, dim, axis, charge, spread, pos, density%of_r)
-       CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
-          CALL generate_erfc(nnr, dim, axis, charge, width, spread, pos, density%of_r)
-       CASE ( 3 ) ! Exponential
-          CALL generate_exponential(nnr, spread, pos, density%of_r)
-       CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
-          local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
-          CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
-       CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
-          local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
-          CALL generate_erfc(nnr, dim, axis, local_charge, width, spread, pos, density%of_r)
-          density % of_r = density % of_r + charge
-       END SELECT
+       CALL density_of_functions_scalar(functions(i),density)
     END DO
 
     RETURN
 
-  END SUBROUTINE density_of_functions
+  END SUBROUTINE density_of_functions_array
 
   SUBROUTINE gradient_of_functions( nfunctions, functions, gradient )
 

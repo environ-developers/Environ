@@ -19,6 +19,52 @@ MODULE generate_function
   IMPLICIT NONE
 
 CONTAINS
+!--------------------------------------------------------------------
+      SUBROUTINE compute_convolution_fft( nnr, fa, fb, fc )
+!--------------------------------------------------------------------
+      !
+      ! ... Calculates using reciprocal-space techniques the
+      ! ... convolution of function fa with function fb and put
+      ! ... the result in function fc
+      !
+      USE kinds,          ONLY : DP
+      USE cell_base,      ONLY : omega
+      USE fft_base,       ONLY : dfftp
+      USE fft_interfaces, ONLY : fwfft, invfft
+      USE control_flags,  ONLY : gamma_only
+      USE gvect,          ONLY : nl, nlm, ngm, gg, gstart
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN)         :: nnr
+      REAL( DP ), INTENT(IN)      :: fa( nnr ), fb( nnr )
+      REAL( DP ), INTENT(OUT)     :: fc( nnr )
+      !
+      COMPLEX( DP ), DIMENSION( nnr ) :: auxr, auxg
+      !
+      auxg = 0.D0
+      !
+      auxr(:) = CMPLX( fa(:), 0.D0, kind=DP )
+      CALL fwfft('Dense', auxr, dfftp)
+      !
+      auxg(nl(1:ngm)) = auxr(nl(1:ngm))
+      !
+      auxr(:) = CMPLX( fb(:), 0.D0, kind=DP )
+      CALL fwfft('Dense', auxr, dfftp)
+      !
+      auxg(nl(1:ngm)) = auxg(nl(1:ngm)) * auxr(nl(1:ngm))
+      !
+      IF ( gamma_only ) auxg(nlm(1:ngm)) = CMPLX( REAL( auxg(nl(1:ngm)) ), -AIMAG( auxg(nl(1:ngm)) ) ,kind=DP)
+      !
+      CALL invfft('Dense',auxg, dfftp)
+      !
+      fc(:) = REAL( auxg(:) ) * omega
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE compute_convolution_fft
+!--------------------------------------------------------------------
 !----------------------------------------------------------------------
       SUBROUTINE planar_average( nnr, naxis, axis, shift, reverse, f, f1d )
 !----------------------------------------------------------------------

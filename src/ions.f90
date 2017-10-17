@@ -250,7 +250,7 @@ CONTAINS
 
     ! If needed, generate a fictitious ion density using gaussians
 
-    IF ( ions%use_smeared_ions ) CALL density_of_functions(ions%number,ions%smeared_ions,ions%density)
+    IF ( ions%use_smeared_ions ) CALL density_of_functions(ions%number,ions%smeared_ions,ions%density,.TRUE.)
 
     ! Compute quadrupole moment of point-like (and gaussian) nuclei
 

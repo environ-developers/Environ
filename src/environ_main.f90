@@ -48,6 +48,7 @@ CONTAINS
       USE cavity,        ONLY : calc_decavity_dboundary
       USE pressure,      ONLY : calc_depressure_dboundary
       USE dielectric,    ONLY : calc_dedielectric_dboundary
+      USE generate_boundary, ONLY : solvent_aware_de_dboundary
       !
       IMPLICIT NONE
       !
@@ -115,6 +116,10 @@ CONTAINS
          ! ... If dielectric embedding, calcultes dielectric contribution
 
          IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, vsoftcavity )
+
+         ! ... If solvent-aware interface correct the potential
+
+         IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, vsoftcavity )
 
          ! ... Multiply for the derivative of the boundary wrt electronic density
 
@@ -244,8 +249,7 @@ CONTAINS
       USE cavity,            ONLY : calc_decavity_dboundary
       USE pressure,          ONLY : calc_depressure_dboundary
       USE dielectric,        ONLY : calc_dedielectric_dboundary
-      USE generate_boundary, ONLY : calc_dboundary_dions
-
+      USE generate_boundary, ONLY : calc_dboundary_dions, solvent_aware_de_dboundary
       !
       IMPLICIT NONE
       !
@@ -307,6 +311,10 @@ CONTAINS
          ! ... If dielectric embedding, calcultes dielectric contribution
          !
          IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, vrigidcavity )
+         !
+         ! ... If solvent-aware interface correct the potential
+         !
+         IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, vrigidcavity )
          !
          ! ... Multiply for the derivative of the boundary wrt ionic positions
          !

@@ -248,20 +248,20 @@ MODULE environ_input
 ! Solvent-aware boundary parameters
 !
         REAL(DP) :: solvent_radius = 0.D0
-        ! size of the solvent, used to decide whether to empty a continuum
-        ! pocket or not. If set equal to 0.D0, use the standard algorithm
+        ! size of the solvent, used to decide whether to fill a continuum
+        ! void or not. If set equal to 0.D0, use the standard algorithm
         REAL(DP) :: radial_scale = 2.D0
         ! compute the filled fraction on a spherical volume scaled wrt solvent
         ! size
         REAL(DP) :: radial_spread = 0.5D0
         ! spread of the step function used to evaluate occupied volume
-        REAL(DP) :: emptying_threshold = 0.125D0
-        ! threshold to decide whether to empty a continuum pocket or not, to be
-        ! compared with the filled fraction: if filled fraction .LE. threshold
-        ! THEN empty gridpoint
-        REAL(DP) :: emptying_spread = 0.05D0
+        REAL(DP) :: filling_threshold = 0.125D0
+        ! threshold to decide whether to fill a continuum void or not, to be
+        ! compared with the filled fraction: if filled fraction .GT. threshold
+        ! THEN fill gridpoint
+        REAL(DP) :: filling_spread = 0.05D0
         ! spread of the switching function used to decide whether the dielectric
-        ! should be emptied or not
+        ! void should be filled or not
 !
 ! Stern boundary parameters
 !
@@ -316,8 +316,8 @@ MODULE environ_input
              corespread,                         &
              boundary_distance, boundary_spread, &
              solvent_radius, radial_scale,       &
-             radial_spread, emptying_threshold,  &
-             emptying_spread,                    &
+             radial_spread, filling_threshold,   &
+             filling_spread,                     &
              stern_mode, stern_distance,         &
              stern_spread, rhopb,                &
              boundary_core,                      &
@@ -513,8 +513,8 @@ MODULE environ_input
                                 radius_mode, alpha, softness,               &
                                 boundary_distance, boundary_spread,         &
                                 solvent_radius, radial_scale,               &
-                                radial_spread, emptying_threshold,          &
-                                emptying_spread,                            &
+                                radial_spread, filling_threshold,           &
+                                filling_spread,                             &
                                 add_jellium,                                &
                                 env_surface_tension,                        &
                                 env_pressure,                               &
@@ -709,8 +709,8 @@ MODULE environ_input
        solvent_radius     = 0.D0
        radial_scale       = 2.D0
        radial_spread      = 0.5D0
-       emptying_threshold = 0.125D0
-       emptying_spread    = 0.05D0
+       filling_threshold  = 0.125D0
+       filling_spread     = 0.05D0
        !
        stern_mode = 'electronic'
        stern_distance = 0.D0
@@ -845,8 +845,8 @@ MODULE environ_input
        CALL mp_bcast( solvent_radius,             ionode_id, comm )
        CALL mp_bcast( radial_scale,               ionode_id, comm )
        CALL mp_bcast( radial_spread,              ionode_id, comm )
-       CALL mp_bcast( emptying_threshold,         ionode_id, comm )
-       CALL mp_bcast( emptying_spread,            ionode_id, comm )
+       CALL mp_bcast( filling_threshold,          ionode_id, comm )
+       CALL mp_bcast( filling_spread,             ionode_id, comm )
        !
        CALL mp_bcast( stern_mode,                 ionode_id, comm )
        CALL mp_bcast( stern_distance,             ionode_id, comm )
@@ -1020,10 +1020,10 @@ MODULE environ_input
           CALL errore( sub_name, 'radial_scale out of range ', 1 )
        IF ( radial_spread <= 0.0_DP ) &
           CALL errore( sub_name, 'radial_spread out of range ', 1 )
-       IF ( emptying_threshold <= 0.0_DP ) &
-          CALL errore( sub_name, 'emptying_threshold out of range ', 1 )
-       IF ( emptying_spread <= 0.0_DP ) &
-          CALL errore( sub_name, 'emptying_spread out of range ', 1 )
+       IF ( filling_threshold <= 0.0_DP ) &
+          CALL errore( sub_name, 'filling_threshold out of range ', 1 )
+       IF ( filling_spread <= 0.0_DP ) &
+          CALL errore( sub_name, 'filling_spread out of range ', 1 )
        !
        allowed = .FALSE.
        DO i = 1, SIZE( stern_mode_allowed )

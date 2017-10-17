@@ -65,10 +65,10 @@ CONTAINS
     CALL create_environ_density( boundary%local, label )
     label = 'probe'
     CALL create_environ_density( boundary%probe, label )
-    label = 'emptying'
-    CALL create_environ_density( boundary%emptying, label )
-    label = 'demptying'
-    CALL create_environ_density( boundary%emptying, label )
+    label = 'filling'
+    CALL create_environ_density( boundary%filling, label )
+    label = 'dfilling'
+    CALL create_environ_density( boundary%filling, label )
 
     RETURN
 
@@ -77,7 +77,7 @@ CONTAINS
   SUBROUTINE init_environ_boundary_first( need_gradient, need_laplacian, &
        & need_hessian, mode, stype, rhomax, rhomin, tbeta, const, alpha, &
        & softness, solvent_radius, radial_scale, radial_spread,          &
-       & emptying_threshold, emptying_spread, electrons, ions, boundary )
+       & filling_threshold, filling_spread, electrons, ions, boundary )
 
     IMPLICIT NONE
 
@@ -89,7 +89,7 @@ CONTAINS
     REAL( DP ), INTENT(IN) :: softness
     REAL( DP ), INTENT(IN) :: solvent_radius
     REAL( DP ), INTENT(IN) :: radial_scale, radial_spread
-    REAL( DP ), INTENT(IN) :: emptying_threshold, emptying_spread
+    REAL( DP ), INTENT(IN) :: filling_threshold, filling_spread
     TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
@@ -136,8 +136,8 @@ CONTAINS
     boundary%solvent_probe%spread = radial_spread
     boundary%solvent_probe%width = solvent_radius * radial_scale
 
-    boundary%emptying_threshold = emptying_threshold
-    boundary%emptying_spread = emptying_spread
+    boundary%filling_threshold = filling_threshold
+    boundary%filling_spread = filling_spread
 
     RETURN
 
@@ -164,8 +164,8 @@ CONTAINS
     IF ( boundary%solvent_aware ) THEN
        CALL init_environ_density( cell, boundary%local )
        CALL init_environ_density( cell, boundary%probe )
-       CALL init_environ_density( cell, boundary%emptying )
-       CALL init_environ_density( cell, boundary%demptying )
+       CALL init_environ_density( cell, boundary%filling )
+       CALL init_environ_density( cell, boundary%dfilling )
     ENDIF
 
     RETURN
@@ -195,7 +195,7 @@ CONTAINS
 
   SUBROUTINE update_environ_boundary( bound )
 
-    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions
+    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions, solvent_aware_boundary
 
     IMPLICIT NONE
 
@@ -230,7 +230,7 @@ CONTAINS
           !
           ! ... Compute the ionic part
           !
-          CALL density_of_functions( bound%ions%number, bound%ions%core_electrons, bound%ions%core )
+          CALL density_of_functions( bound%ions%number, bound%ions%core_electrons, bound%ions%core, .TRUE. )
           !
           bound % update_status = 1 ! waiting to finish update
           !
@@ -293,6 +293,10 @@ CONTAINS
 
     END SELECT
 
+    ! Solvent-aware interface
+
+    IF ( bound % update_status .EQ. 2 .AND. bound % solvent_aware ) CALL solvent_aware_boundary( bound )
+
     RETURN
 
   END SUBROUTINE update_environ_boundary
@@ -339,8 +343,8 @@ CONTAINS
     IF ( boundary%solvent_aware ) THEN
        CALL destroy_environ_density( boundary%local )
        CALL destroy_environ_density( boundary%probe )
-       CALL destroy_environ_density( boundary%emptying )
-       CALL destroy_environ_density( boundary%demptying )
+       CALL destroy_environ_density( boundary%filling )
+       CALL destroy_environ_density( boundary%dfilling )
     ENDIF
 
     RETURN

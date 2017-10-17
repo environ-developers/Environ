@@ -302,12 +302,12 @@ MODULE environ_types
 
      LOGICAL :: solvent_aware
      TYPE( environ_functions ) :: solvent_probe
-     REAL( DP ) :: emptying_threshold, emptying_spread
+     REAL( DP ) :: filling_threshold, filling_spread
 
      TYPE( environ_density ) :: local
      TYPE( environ_density ) :: probe
-     TYPE( environ_density ) :: emptying
-     TYPE( environ_density ) :: demptying
+     TYPE( environ_density ) :: filling
+     TYPE( environ_density ) :: dfilling
 
   END TYPE environ_boundary
 

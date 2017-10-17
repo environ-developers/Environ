@@ -89,7 +89,7 @@ MODULE externals_utils
 
     TYPE( environ_externals ), INTENT(INOUT) :: externals
 
-    CALL density_of_functions( externals%number, externals%functions, externals%density )
+    CALL density_of_functions( externals%number, externals%functions, externals%density, .TRUE. )
 
     RETURN
 

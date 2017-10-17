@@ -213,7 +213,7 @@ CONTAINS
 
     DO i = 1, dielectric % nregions
 
-       CALL density_of_functions( 1, dielectric%regions(i), local )
+       CALL density_of_functions( dielectric%regions(i), local, .TRUE. )
        dielectric % background % of_r(:) = dielectric % background % of_r(:) - &
             & ( dielectric % background % of_r(:) - dielectric % regions(i) % volume ) * local % of_r(:)
        CALL gradient_of_functions( 1, dielectric%regions(i), gradlocal )

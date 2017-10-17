@@ -45,8 +45,8 @@ CONTAINS
        & env_optical_permittivity_, solvent_mode,    &
        & radius_mode, alpha, softness,               &
        & solvent_radius, radial_scale,               &
-       & radial_spread, emptying_threshold,          &
-       & emptying_spread,                            &
+       & radial_spread, filling_threshold,           &
+       & filling_spread,                             &
        & eps_distance, eps_spread,                   &
        & add_jellium_,                               &
        & env_surface_tension_,                       &
@@ -87,7 +87,7 @@ CONTAINS
          env_optical_permittivity_,                       &
          alpha, softness,                                 &
          solvent_radius, radial_scale, radial_spread,     &
-         emptying_threshold, emptying_spread,             &
+         filling_threshold, filling_spread,               &
          solvationrad(:), corespread(:), atomicspread(:), &
          eps_distance, eps_spread,                        &
          env_surface_tension_, env_pressure_,             &
@@ -215,7 +215,7 @@ CONTAINS
     IF ( lsolvent ) THEN
        CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
-            & solvent_radius, radial_scale, radial_spread, emptying_threshold, emptying_spread, &
+            & solvent_radius, radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, solvent )
     ENDIF
     !
@@ -224,7 +224,7 @@ CONTAINS
     IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
          & stern_mode, stype, rhomin, rhopb, tbeta, env_static_permittivity, &
          & stern_distance, stern_spread, alpha, softness, solvent_radius, &
-         & radial_scale, radial_spread, emptying_threshold, emptying_spread, &
+         & radial_scale, radial_spread, filling_threshold, filling_spread, &
          & electrons, ions, solvent_temperature, cion, cionmax, rion, zion, electrolyte )
     !
     ! Set the parameters of the dielectric
