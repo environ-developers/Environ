@@ -60,6 +60,7 @@ CONTAINS
 
     ! Components required for solvent-aware interface
 
+    boundary%solvent_aware = .FALSE.
     label = 'local'
     CALL create_environ_density( boundary%local, label )
     label = 'probe'
@@ -124,9 +125,17 @@ CONTAINS
     IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) &
          & ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
 
-    boundary%solvent_radius = solvent_radius
-    boundary%radial_scale = radial_scale
-    boundary%radial_spread = radial_spread
+    boundary%solvent_aware = solvent_radius .GT. 0.D0
+
+    boundary%solvent_probe%type = 4
+    boundary%solvent_probe%pos = 0.D0
+    boundary%solvent_probe%volume = 1.D0
+    boundary%solvent_probe%dim = 0
+    boundary%solvent_probe%axis = 1
+
+    boundary%solvent_probe%spread = radial_spread
+    boundary%solvent_probe%width = solvent_radius * radial_scale
+
     boundary%emptying_threshold = emptying_threshold
     boundary%emptying_spread = emptying_spread
 
@@ -152,7 +161,7 @@ CONTAINS
     IF ( boundary%deriv .GE. 2 ) CALL init_environ_density( cell, boundary%laplacian )
     IF ( boundary%deriv .GE. 3 ) CALL init_environ_density( cell, boundary%dsurface )
 
-    IF ( boundary%solvent_radius .GT. 0.D0 ) THEN
+    IF ( boundary%solvent_aware ) THEN
        CALL init_environ_density( cell, boundary%local )
        CALL init_environ_density( cell, boundary%probe )
        CALL init_environ_density( cell, boundary%emptying )
@@ -327,7 +336,7 @@ CONTAINS
     IF ( boundary%deriv .GE. 2 ) CALL destroy_environ_density( boundary%laplacian )
     IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_density( boundary%dsurface )
 
-    IF ( boundary%solvent_radius .GT. 0.D0 ) THEN
+    IF ( boundary%solvent_aware ) THEN
        CALL destroy_environ_density( boundary%local )
        CALL destroy_environ_density( boundary%probe )
        CALL destroy_environ_density( boundary%emptying )

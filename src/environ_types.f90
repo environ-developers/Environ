@@ -300,8 +300,8 @@ MODULE environ_types
 
      ! Copmonents needed for solvent-aware boundary
 
-     REAL( DP ) :: solvent_radius
-     REAL( DP ) :: radial_scale, radial_spread
+     LOGICAL :: solvent_aware
+     TYPE( environ_functions ) :: solvent_probe
      REAL( DP ) :: emptying_threshold, emptying_spread
 
      TYPE( environ_density ) :: local
