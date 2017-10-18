@@ -37,7 +37,8 @@ CONTAINS
                                 lelectrostatic, velectrostatic,       &
                                 vreference,                           &
                                 lsoftcavity, vsoftcavity,             &
-                                lsurface, lvolume,                    &
+                                lsurface, env_surface_tension,        &
+                                lvolume, env_pressure,                &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte
       USE electrostatic_base, ONLY : reference, outer
@@ -107,11 +108,11 @@ CONTAINS
 
          ! ... If surface tension greater than zero, calculates cavity contribution
 
-         IF ( lsurface ) CALL calc_decavity_dboundary( solvent, vsoftcavity )
+         IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, vsoftcavity )
 
          ! ... If external pressure different from zero, calculates PV contribution
 
-         IF ( lvolume ) CALL calc_depressure_dboundary( solvent, vsoftcavity )
+         IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, vsoftcavity )
 
          ! ... If dielectric embedding, calcultes dielectric contribution
 
@@ -128,7 +129,6 @@ CONTAINS
          vtot = vtot + vsoftcavity % of_r
 
       END IF
-
 
       RETURN
 !--------------------------------------------------------------------
@@ -148,7 +148,8 @@ CONTAINS
                                 lelectrostatic, velectrostatic,       &
                                 vreference,                           &
                                 lsoftcavity, vsoftcavity,             &
-                                lsurface, lvolume,                    &
+                                lsurface, env_surface_tension,        &
+                                lvolume, env_pressure,                &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte
       USE electrostatic_base, ONLY : reference, outer
@@ -215,11 +216,11 @@ CONTAINS
       !
       !  if surface tension different from zero compute cavitation energy
       !
-      IF ( lsurface ) CALL calc_ecavity( solvent, ecavity )
+      IF ( lsurface ) CALL calc_ecavity( env_surface_tension, solvent, ecavity )
       !
       !  if pressure different from zero compute PV energy
       !
-      IF ( lvolume ) CALL calc_epressure( solvent, epressure )
+      IF ( lvolume ) CALL calc_epressure( env_pressure, solvent, epressure )
       !
       RETURN
       !
@@ -238,7 +239,9 @@ CONTAINS
       USE environ_base, ONLY : lelectrostatic, velectrostatic,    &
                                charges, lstatic, static,          &
                                lelectrolyte, electrolyte,         &
-                               lrigidcavity, lsurface, lvolume,   &
+                               lrigidcavity,                      &
+                               lsurface, env_surface_tension,     &
+                               lvolume, env_pressure,             &
                                lsolvent, solvent
       !
       USE electrostatic_base, ONLY : outer
@@ -302,11 +305,11 @@ CONTAINS
          !
          ! ... If surface tension greater than zero, calculates cavity contribution
          !
-         IF ( lsurface ) CALL calc_decavity_dboundary( solvent, vrigidcavity )
+         IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, vrigidcavity )
          !
          ! ... If external pressure different from zero, calculates PV contribution
          !
-         IF ( lvolume ) CALL calc_depressure_dboundary( solvent, vrigidcavity )
+         IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, vrigidcavity )
          !
          ! ... If dielectric embedding, calcultes dielectric contribution
          !
