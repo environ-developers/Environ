@@ -44,10 +44,10 @@ CONTAINS
        & env_static_permittivity_,                   &
        & env_optical_permittivity_, solvent_mode,    &
        & radius_mode, alpha, softness,               &
+       & eps_distance, eps_spread,                   &
        & solvent_radius, radial_scale,               &
        & radial_spread, filling_threshold,           &
        & filling_spread,                             &
-       & eps_distance, eps_spread,                   &
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
