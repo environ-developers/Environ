@@ -127,14 +127,16 @@ CONTAINS
 
     boundary%solvent_aware = solvent_radius .GT. 0.D0
 
-    boundary%solvent_probe%type = 4
-    boundary%solvent_probe%pos = 0.D0
-    boundary%solvent_probe%volume = 1.D0
-    boundary%solvent_probe%dim = 0
-    boundary%solvent_probe%axis = 1
-
-    boundary%solvent_probe%spread = radial_spread
-    boundary%solvent_probe%width = solvent_radius * radial_scale
+    IF( boundary%solvent_aware ) THEN
+       boundary%solvent_probe%type = 4
+       ALLOCATE(boundary%solvent_probe%pos(3))
+       boundary%solvent_probe%pos = 0.D0
+       boundary%solvent_probe%volume = 1.D0
+       boundary%solvent_probe%dim = 0
+       boundary%solvent_probe%axis = 1
+       boundary%solvent_probe%spread = radial_spread
+       boundary%solvent_probe%width = solvent_radius * radial_scale
+    ENDIF
 
     boundary%filling_threshold = filling_threshold
     boundary%filling_spread = filling_spread
@@ -327,6 +329,8 @@ CONTAINS
        IF ( boundary%need_electrons ) THEN
           IF (ASSOCIATED(boundary%electrons)) NULLIFY(boundary%electrons)
        ENDIF
+
+       IF ( boundary%solvent_aware ) DEALLOCATE(boundary%solvent_probe%pos)
 
     ENDIF
 
