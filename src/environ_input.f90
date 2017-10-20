@@ -255,7 +255,7 @@ MODULE environ_input
         ! size
         REAL(DP) :: radial_spread = 0.5D0
         ! spread of the step function used to evaluate occupied volume
-        REAL(DP) :: filling_threshold = 0.125D0
+        REAL(DP) :: filling_threshold = 0.825D0
         ! threshold to decide whether to fill a continuum void or not, to be
         ! compared with the filled fraction: if filled fraction .GT. threshold
         ! THEN fill gridpoint
@@ -709,7 +709,7 @@ MODULE environ_input
        solvent_radius     = 0.D0
        radial_scale       = 2.D0
        radial_spread      = 0.5D0
-       filling_threshold  = 0.125D0
+       filling_threshold  = 0.825D0
        filling_spread     = 0.05D0
        !
        stern_mode = 'electronic'
