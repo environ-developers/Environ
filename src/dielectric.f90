@@ -216,7 +216,7 @@ CONTAINS
        CALL density_of_functions( dielectric%regions(i), local, .TRUE. )
        dielectric % background % of_r(:) = dielectric % background % of_r(:) - &
             & ( dielectric % background % of_r(:) - dielectric % regions(i) % volume ) * local % of_r(:)
-       CALL gradient_of_functions( 1, dielectric%regions(i), gradlocal )
+       CALL gradient_of_functions( dielectric%regions(i), gradlocal, .TRUE. )
        DO ipol = 1, 3
           dielectric % gradbackground % of_r(ipol,:) = &
             & dielectric % gradbackground % of_r(ipol,:) * ( 1.D0 - local % of_r(:) ) - &
@@ -226,7 +226,7 @@ CONTAINS
           CALL scalar_product_environ_gradient( dielectric % gradbackground, gradlocal, lapllocal )
           dielectric % laplbackground % of_r = dielectric % laplbackground % of_r(:) * ( 1.D0 - local % of_r(:) ) - &
                & 2.D0 * lapllocal % of_r
-          CALL laplacian_of_functions( 1, dielectric%regions(i), lapllocal )
+          CALL laplacian_of_functions( dielectric%regions(i), lapllocal, .TRUE. )
           dielectric % laplbackground % of_r(:) = dielectric % laplbackground % of_r(:) - &
                & ( dielectric % background % of_r(:) - dielectric % regions(i) % volume ) * lapllocal % of_r(:)
        ENDIF

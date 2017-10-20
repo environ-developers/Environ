@@ -235,6 +235,7 @@ MODULE environ_types
 
   TYPE environ_system
 
+     LOGICAL :: update = .FALSE.
      INTEGER :: ntyp
      INTEGER :: dim
      INTEGER :: axis
@@ -265,6 +266,11 @@ MODULE environ_types
 
      LOGICAL :: need_ions
      TYPE( environ_ions ), POINTER :: ions
+
+     ! Parameters for the system-dependent interface
+
+     LOGICAL :: need_system
+     TYPE( environ_system ), POINTER :: system
 
      ! scaled switching function of interface
      ! varying from 1 (QM region) to 0 (environment region)
@@ -297,6 +303,10 @@ MODULE environ_types
      REAL( DP ) :: alpha ! solvent-dependent scaling factor
      REAL( DP ) :: softness ! sharpness of the interface
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: soft_spheres
+
+     ! Components needed for boundary of system
+
+     TYPE( environ_functions ) :: simple
 
      ! Copmonents needed for solvent-aware boundary
 
@@ -981,6 +991,12 @@ CONTAINS
 
     TYPE( environ_system ), INTENT(INOUT) :: system
 
+    system%update = .FALSE.
+    system%ntyp = 0
+    system%dim = 0
+    system%axis = 1
+    system%pos = 0.D0
+    system%width = 0.D0
     NULLIFY( system%ions )
 
     RETURN

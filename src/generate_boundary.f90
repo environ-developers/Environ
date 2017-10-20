@@ -15,8 +15,8 @@ MODULE generate_boundary
   !
   PRIVATE
   !
-  PUBLIC :: boundary_of_density, boundary_of_functions, calc_dboundary_dions, &
-       & solvent_aware_boundary, solvent_aware_de_dboundary
+  PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
+       & calc_dboundary_dions, solvent_aware_boundary, solvent_aware_de_dboundary
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -204,7 +204,6 @@ CONTAINS
       ! ... Local variables
       !
       REAL( DP )             :: arg
-      REAL( DP ), EXTERNAL   :: qe_erfc
       !
       arg = ( x - xthr ) / spread
       dsfunct2 = - EXP( -arg**2 ) / sqrtpi / spread
@@ -213,6 +212,29 @@ CONTAINS
       !
 !--------------------------------------------------------------------
       END FUNCTION dsfunct2
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+      FUNCTION d2sfunct2( x, xthr, spread )
+!--------------------------------------------------------------------
+      !
+      ! ... Second derivative of switching function 2
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP )             :: d2sfunct2
+      REAL( DP )             :: x, xthr, spread
+      !
+      ! ... Local variables
+      !
+      REAL( DP )             :: arg
+      !
+      arg = ( x - xthr ) / spread
+      d2sfunct2 = EXP( -arg**2 ) / sqrtpi / spread**2 * 2.D0 * arg
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+      END FUNCTION d2sfunct2
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       FUNCTION boundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
@@ -570,7 +592,7 @@ CONTAINS
          !
          CALL init_environ_density( cell, local(i) )
          !
-         CALL density_of_functions( soft_spheres(i), local(i) )
+         CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
          !
          boundary % scaled % of_r = boundary % scaled % of_r * local(i) % of_r
          !
@@ -604,9 +626,9 @@ CONTAINS
             IF ( deriv .EQ. 2 ) CALL init_environ_density( cell, lapllocal(i) )
             IF ( deriv .EQ. 3 ) CALL init_environ_hessian( cell, hesslocal(i) )
             !
-            IF ( deriv .GE. 1 ) CALL gradient_of_functions( 1, soft_spheres(i), gradlocal(i) )
-            IF ( deriv .EQ. 2 ) CALL laplacian_of_functions( 1, soft_spheres(i), lapllocal(i) )
-            IF ( deriv .EQ. 3 ) CALL hessian_of_functions( 1, soft_spheres(i), hesslocal(i) )
+            IF ( deriv .GE. 1 ) CALL gradient_of_functions( soft_spheres(i), gradlocal(i), .FALSE. )
+            IF ( deriv .EQ. 2 ) CALL laplacian_of_functions( soft_spheres(i), lapllocal(i), .FALSE. )
+            IF ( deriv .EQ. 3 ) CALL hessian_of_functions( soft_spheres(i), hesslocal(i), .FALSE. )
             !
          END DO
          !
@@ -832,9 +854,10 @@ CONTAINS
       REAL( DP ), PARAMETER :: tolspuriousforce = 1.D-5
       !
       INTEGER, INTENT(IN) :: index
-      TYPE( environ_boundary ), INTENT(IN) :: boundary
+      TYPE( environ_boundary ), INTENT(IN), TARGET :: boundary
       TYPE( environ_gradient ), INTENT(INOUT) :: partial
       !
+      INTEGER, POINTER :: number
       TYPE( environ_cell ), POINTER :: cell
       !
       INTEGER :: i, ipol
@@ -850,8 +873,15 @@ CONTAINS
       ! ... Aliases and sanity checks
       !
       cell => partial % cell
+      IF ( boundary % need_ions ) THEN
+         number => boundary % ions % number
+      ELSE IF ( boundary % need_system ) THEN
+         number => boundary % system % ions % number
+      ELSE
+         CALL errore(sub_name,'Missing details of ions',1)
+      END IF
       !
-      IF ( index .GT. boundary % ions % number ) &
+      IF ( index .GT. number ) &
            & CALL errore(sub_name,'Index greater than number of ions',1)
       IF ( index .LE. 0 ) &
            & CALL errore(sub_name,'Index of ion is zero or lower',1)
@@ -868,11 +898,11 @@ CONTAINS
             !
          CASE( 'fft', 'fd', 'analytic', 'highmem' )
             !
-            CALL gradient_of_functions( 1, boundary%soft_spheres(index), partial )
+            CALL gradient_of_functions( boundary%soft_spheres(index), partial, .TRUE. )
             !
             CALL init_environ_density( cell, local )
             !
-            DO i = 1, boundary % ions % number
+            DO i = 1, number
                IF ( i .EQ. index ) CYCLE
                CALL density_of_functions( boundary%soft_spheres(i), local, .TRUE. )
                DO ipol = 1, 3
@@ -886,7 +916,7 @@ CONTAINS
          !
       ELSE IF ( boundary % mode .EQ. 'full' ) THEN
          !
-         CALL gradient_of_functions( 1, boundary%ions%core_electrons(index), partial )
+         CALL gradient_of_functions( boundary%ions%core_electrons(index), partial, .TRUE. )
          DO ipol = 1, 3
             partial % of_r( ipol, : ) = - partial % of_r( ipol, : ) * boundary % dscaled % of_r( : )
          END DO
@@ -895,12 +925,81 @@ CONTAINS
          IF ( spurious_force .GT. tolspuriousforce ) &
               & CALL errore(sub_name,'Unphysical forces due to core electrons are too high',1)
          !
+      ELSE IF ( boundary % mode .EQ. 'system' ) THEN
+         !
+         ! PROBABLY THERE IS A UNIFORM CONTRIBUTION TO THE FORCES
+         ! WHICH SHOULD ONLY AFFECT THE COM OF THE SYSTEM, POSSIBLY NEED TO ADD
+         ! A CHECK ON ATOMS THAT BELONG TO THE SYSTEM
+         partial % of_r = 0.D0
+         !
       END IF
       !
       RETURN
       !
 !--------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE boundary_of_system( simple, boundary )
+!--------------------------------------------------------------------
+      !
+      ! ... Calculates the dielectric constant as a function
+      ! ... of the charge density, and the derivative of
+      ! ... the dielectric constant wrt the charge density.
+      !
+      USE functions, ONLY: density_of_functions, gradient_of_functions, &
+                         & laplacian_of_functions, hessian_of_functions
+      !
+      IMPLICIT NONE
+      !
+      TYPE( environ_functions ), INTENT(IN) :: simple
+      TYPE( environ_boundary ), TARGET, INTENT(INOUT) :: boundary
+      !
+      INTEGER, POINTER :: nnr, ir_end, deriv
+      TYPE( environ_cell ), POINTER :: cell
+      !
+      INTEGER :: i
+      CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_system'
+      !
+      TYPE( environ_hessian ) :: hesslocal
+      !
+      ! Aliases and allocations
+      !
+      cell => boundary % scaled % cell
+      nnr => cell % nnr
+      ir_end => cell % ir_end
+      !
+      ! Compute soft spheres and generate boundary
+      !
+      CALL density_of_functions( simple, boundary % scaled, .TRUE. )
+      !
+      ! Generate boundary derivatives, if needed
+      !
+      deriv => boundary % deriv
+      !
+      IF ( deriv .GE. 1 ) CALL gradient_of_functions( simple, boundary%gradient, .TRUE. )
+      IF ( deriv .GE. 2 ) CALL laplacian_of_functions( simple, boundary%laplacian, .TRUE. )
+      IF ( deriv .GE. 3 ) THEN
+         CALL init_environ_hessian( cell, hesslocal )
+         CALL hessian_of_functions( simple, hesslocal, .FALSE. )
+         CALL calc_dsurface( nnr, ir_end, boundary%gradient%of_r, hesslocal%of_r, boundary%dsurface%of_r )
+         CALL destroy_environ_hessian( hesslocal )
+      ENDIF
+      !
+      boundary % volume = integrate_environ_density( boundary % scaled )
+      !
+      IF ( deriv .GE. 1 ) THEN
+         !
+         CALL update_gradient_modulus( boundary%gradient )
+         !
+         boundary % surface = integrate_environ_density( boundary%gradient%modulus )
+         !
+      END IF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE boundary_of_system
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
     SUBROUTINE solvent_aware_boundary( boundary )
@@ -918,23 +1017,29 @@ CONTAINS
       !
       ! Local variables
       !
-      INTEGER, POINTER :: nnr, ir_end
+      INTEGER, POINTER :: nnr, ir_end, deriv
       REAL( DP ), POINTER :: thr, spr
       TYPE( environ_cell ), POINTER :: cell
       !
-      INTEGER :: ir
+      INTEGER :: ir, ipol
       TYPE( environ_density ) :: filled_fraction
+      TYPE( environ_density ) :: d2filling
+      TYPE( environ_gradient ) :: gradconv
+      TYPE( environ_density ) :: laplconv
+      TYPE( environ_density ) :: local
       !
       ! Aliases and sanity checks
       !
       cell => boundary % scaled % cell
       nnr => boundary % scaled % cell % nnr
       ir_end => boundary % scaled % cell % ir_end
+      deriv => boundary % deriv
       !
       thr => boundary % filling_threshold
       spr => boundary % filling_spread
       !
       CALL init_environ_density( cell, filled_fraction )
+      IF ( deriv .GE. 2 ) CALL init_environ_density( cell, d2filling )
       !
       ! Step 0: save local interface function for later use
       !
@@ -952,17 +1057,68 @@ CONTAINS
       !
       boundary % filling % of_r = 0.D0
       boundary % dfilling % of_r = 0.D0
+      IF ( deriv .GE. 2 ) d2filling % of_r = 0.D0
       DO ir = 1, ir_end
          boundary % filling % of_r( ir ) = 1.D0 - sfunct2( filled_fraction % of_r( ir ), thr, spr )
          boundary % dfilling % of_r( ir ) = - dsfunct2( filled_fraction % of_r( ir ), thr, spr )
+         IF ( deriv .GE. 2 ) d2filling % of_r( ir ) = - d2sfunct2( filled_fraction % of_r( ir ), thr, spr )
       ENDDO
       !
       ! Step 4: update the interface function
       !
-      boundary % scaled % of_r = boundary % scaled % of_r + &
-           & ( 1.D0 - boundary % scaled % of_r ) * boundary % filling % of_r
+      boundary % scaled % of_r = boundary % local % of_r + &
+           & ( 1.D0 - boundary % local % of_r ) * boundary % filling % of_r
       !
       CALL destroy_environ_density( filled_fraction )
+      !
+      ! Step 5: update derived boundary properties
+      !
+      boundary % volume = integrate_environ_density( boundary % scaled )
+      !
+      IF ( deriv .GE. 1 ) THEN
+         !
+         CALL init_environ_gradient( cell, gradconv )
+         DO ipol = 1, 3
+            CALL compute_convolution_fft( nnr, boundary%gradient%of_r(ipol,:), &
+                 & boundary%probe%of_r, gradconv%of_r(ipol,:) )
+            boundary % gradient % of_r(ipol,:) = boundary % gradient % of_r(ipol,:) * &
+                 & ( 1.D0 - boundary % filling % of_r(:) ) + gradconv%of_r(ipol,:) * &
+                 & ( 1.D0 - boundary % local % of_r(:) ) * boundary % dfilling % of_r(:)
+         ENDDO
+         !
+         CALL update_gradient_modulus( boundary%gradient )
+         !
+         boundary % surface = integrate_environ_density( boundary%gradient%modulus )
+         !
+         IF ( deriv .GE. 2 ) THEN
+            !
+            CALL update_gradient_modulus( gradconv )
+            !
+            CALL init_environ_density( cell, laplconv )
+            CALL compute_convolution_fft( nnr, boundary%laplacian%of_r, boundary%probe%of_r, laplconv%of_r )
+            !
+            CALL init_environ_density( cell, local )
+            CALL scalar_product_environ_gradient( boundary%gradient, gradconv, local )
+            !
+            boundary % laplacian % of_r = boundary % laplacian % of_r * ( 1.D0 - boundary % filling % of_r ) &
+                 & - 2.D0 * local % of_r * boundary % dfilling % of_r + ( 1.D0 - boundary % local % of_r ) * &
+                 & ( d2filling % of_r * gradconv % modulus % of_r + boundary % dfilling % of_r * laplconv % of_r )
+            !
+            IF ( deriv .GE. 3 ) THEN
+               !
+               !!!!! UPDATE HESSIAN, BUT NEED TO HAVE HESSIAN STORED
+               !
+            ENDIF
+            !
+            CALL destroy_environ_density( laplconv )
+            CALL destroy_environ_density( local )
+            CALL destroy_environ_density( d2filling )
+            !
+         ENDIF
+         !
+         CALL destroy_environ_gradient( gradconv )
+         !
+      END IF
       !
       RETURN
       !
@@ -980,7 +1136,7 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      TYPE( environ_boundary ), INTENT(INOUT), TARGET :: boundary
+      TYPE( environ_boundary ), INTENT(IN), TARGET :: boundary
       TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
       !
       ! Local variables
@@ -1017,6 +1173,87 @@ CONTAINS
       !
 !--------------------------------------------------------------------
     END SUBROUTINE solvent_aware_de_dboundary
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+    SUBROUTINE test_solvent_aware( boundary )
+!--------------------------------------------------------------------
+      !
+      ! ... Test functional derivative of energy wrt local boundary
+      !
+      TYPE( environ_boundary ), INTENT(IN), TARGET :: boundary
+      !
+      TYPE( environ_boundary ) :: localbound
+      TYPE( environ_density ) :: de_dboundary
+      !
+      INTEGER, POINTER :: ir_end
+      INTEGER, POINTER :: nnr
+      TYPE( environ_cell ), POINTER :: cell
+      !
+      INTEGER :: ir, ir_0, ir_stride
+      REAL( DP ) :: localpressure, localsurface_tension
+      REAL( DP ) :: eplus, eminus, defd, delta
+      REAL( DP ), ALLOCATABLE, DIMENSION(:) :: localscaled
+      !
+      cell => boundary % scaled % cell
+      ir_end => boundary % scaled % cell % ir_end
+      nnr => boundary % scaled % cell % nnr
+      !
+      CALL init_environ_boundary( cell, localbound )
+      localbound = boundary
+      !
+      ALLOCATE( localscaled( nnr ) )
+      localscaled = boundary % local % of_r
+      !
+      CALL init_environ_density( cell, de_dboundary )
+      !
+      localpressure = 1.D0
+      CALL calc_depressure_dboundary( localpressure, boundary, de_dboundary )
+      !
+      localsurface_tension = 100.D0
+      CALL calc_desurface_dboundary( localsurface_tension, boundary, de_dboundary )
+      !
+      CALL solvent_aware_de_dboundary( boundary, de_dboundary )
+      !
+      ir_0 = 1
+      ir_stride = 1
+      delta = 0.00001
+      !
+      DO ir = ir_0, ir_end, ir_stride
+         !
+         localbound % scaled % of_r = localscaled
+         localbound % scaled % of_r( ir ) = localbound % scaled % of_r( ir ) + delta
+         !
+         CALL solvent_aware_boundary( localbound )
+         !
+         CALL calc_epressure( localpressure, localbound, eplus )
+         defd = defd + eplus
+         !
+         CALL calc_esurface( localsurface_tension, localbound, eplus )
+         defd = defd + eplus
+         !
+         localbound % scaled % of_r = localscaled
+         localbound % scaled % of_r( ir ) = localbound % scaled % of_r( ir ) - delta
+         !
+         CALL solvent_aware_boundary( localbound )
+         !
+         CALL calc_epressure( localpressure, localbound, eminus )
+         defd = defd - eminus
+         !
+         CALL calc_esurface( localsurface_tension, localbound, eminus )
+         defd = defd - eminus
+         !
+         defd = 0.5D0 * ( eplus - eminus ) / delta
+         !
+         WRITE(environ_unit,'(1X,a,i8,3f20.10)')' ir = ',ir,&
+              & de_dboundary%of_r(ir),defd,de_dboundary%of_r(ir)-depsfd
+         FLUSH(environ_unit)
+         !
+      ENDDO
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+    END SUBROUTINE test_solvent_aware
 !--------------------------------------------------------------------
     !
 END MODULE generate_boundary

@@ -32,7 +32,9 @@ CONTAINS
     boundary%need_electrons = .FALSE.
     NULLIFY( boundary%electrons )
     boundary%need_ions = .FALSE.
-    NULLIFY( boundary%ions   )
+    NULLIFY( boundary%ions )
+    boundary%need_system = .FALSE.
+    NULLIFY( boundary%system )
 
     ! Optional components
 
@@ -76,8 +78,9 @@ CONTAINS
 
   SUBROUTINE init_environ_boundary_first( need_gradient, need_laplacian, &
        & need_hessian, mode, stype, rhomax, rhomin, tbeta, const, alpha, &
-       & softness, solvent_radius, radial_scale, radial_spread,          &
-       & filling_threshold, filling_spread, electrons, ions, boundary )
+       & softness, system_distance, system_spread, solvent_radius, radial_scale, &
+       & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
+       & boundary )
 
     IMPLICIT NONE
 
@@ -87,11 +90,14 @@ CONTAINS
     LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
     REAL( DP ), INTENT(IN) :: alpha
     REAL( DP ), INTENT(IN) :: softness
+    REAL( DP ), INTENT(IN) :: system_distance
+    REAL( DP ), INTENT(IN) :: system_spread
     REAL( DP ), INTENT(IN) :: solvent_radius
     REAL( DP ), INTENT(IN) :: radial_scale, radial_spread
     REAL( DP ), INTENT(IN) :: filling_threshold, filling_spread
     TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
+    TYPE( environ_system ), TARGET, INTENT(IN) :: system
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
 
     IF ( need_hessian ) THEN
@@ -108,6 +114,8 @@ CONTAINS
     IF ( boundary%need_electrons ) boundary%electrons => electrons
     boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
     IF ( boundary%need_ions ) boundary%ions => ions
+    boundary%need_system = ( mode .EQ. 'system' )
+    IF ( boundary%need_system ) boundary%system => system
 
     boundary%type = stype
     boundary%rhomax = rhomax
@@ -124,6 +132,14 @@ CONTAINS
     boundary%softness = softness
     IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) &
          & ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
+
+    boundary%simple%type = 4
+    boundary%simple%pos => system%pos
+    boundary%simple%volume = 1.D0
+    boundary%simple%dim = system%dim
+    boundary%simple%axis = system%axis
+    boundary%simple%width = system_distance
+    boundary%simple%spread = system_spread
 
     boundary%solvent_aware = solvent_radius .GT. 0.D0
 
@@ -197,7 +213,7 @@ CONTAINS
 
   SUBROUTINE update_environ_boundary( bound )
 
-    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions, solvent_aware_boundary
+    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions, boundary_of_system, solvent_aware_boundary
 
     IMPLICIT NONE
 
@@ -215,6 +231,7 @@ CONTAINS
     update_anything = .FALSE.
     IF ( bound % need_ions ) update_anything = bound % ions % update
     IF ( bound % need_electrons ) update_anything = update_anything .OR. bound % electrons % update
+    IF ( bound % need_system ) update_anything = update_anything .OR. bound % system % update
     IF ( .NOT. update_anything ) THEN
        !
        ! ... Nothing is under update, change update_status and exit
@@ -289,6 +306,23 @@ CONTAINS
           !
        ENDIF
 
+    CASE ( 'system' )
+
+       IF ( bound % system % update ) THEN
+          !
+          ! ... Only ions are needed, fully update the boundary
+          !
+          CALL boundary_of_system( bound % simple, bound )
+          !
+          bound % update_status = 2 ! boundary has changed and is ready
+          !
+       ELSE
+          !
+          IF ( bound % update_status .EQ. 2 ) bound % update_status = 0 ! boundary has not changed
+          RETURN
+          !
+       ENDIF
+
     CASE DEFAULT
 
        CALL errore(sub_name,'Unrecognized boundary mode',1)
@@ -331,6 +365,10 @@ CONTAINS
        ENDIF
 
        IF ( boundary%solvent_aware ) DEALLOCATE(boundary%solvent_probe%pos)
+
+       IF ( boundary%need_system ) THEN
+          IF (ASSOCIATED(boundary%system)) NULLIFY(boundary%system)
+       ENDIF
 
     ENDIF
 
