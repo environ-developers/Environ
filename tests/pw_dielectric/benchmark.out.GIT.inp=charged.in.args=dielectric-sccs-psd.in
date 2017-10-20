@@ -498,7 +498,7 @@
  Iteration #         33
   pAp =  5.284862022226846E-7  rzold =  1.300621040027178E-7  alpha =  0.24610312143573135
  delta_qm =   0.629069E-05 delta_en =   0.683818E-04 tol =   0.100000E-03
- Charges are converged, exit!
+ Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -664,7 +664,7 @@
  Iteration #         47
   pAp =  4.08859624943402E-7  rzold =  8.56245163681528E-8  alpha =  0.20942277286490618
  delta_qm =   0.738324E-05 delta_en =   0.941971E-04 tol =   0.100000E-03
- Charges are converged, exit!
+ Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -866,7 +866,7 @@
  Iteration #         59
   pAp =  5.059471786107073E-7  rzold =  9.017620898523889E-8  alpha =  0.17823245745308028
  delta_qm =   0.722272E-05 delta_en =   0.901458E-04 tol =   0.100000E-03
- Charges are converged, exit!
+ Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -1110,7 +1110,7 @@
  Iteration #         73
   pAp =  3.6232527639731743E-7  rzold =  6.022714862999919E-8  alpha =  0.1662239776061207
  delta_qm =   0.690214E-05 delta_en =   0.823212E-04 tol =   0.100000E-03
- Charges are converged, exit!
+ Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
