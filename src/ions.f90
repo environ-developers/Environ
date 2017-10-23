@@ -246,6 +246,9 @@ CONTAINS
        ions%center(:) = ions%center(:) + ions%tau(:,i)*ions%iontype(ions%ityp(i))%zv
 
     ENDDO
+
+    IF ( ABS( ions % charge ) .LT. 1.D-8 ) &
+         & CALL errore(sub_name,'Ionic charge equal to zero',1)
     ions%center = ions%center / ions%charge
 
     ! If needed, generate a fictitious ion density using gaussians

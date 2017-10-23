@@ -164,6 +164,9 @@ CONTAINS
       !
       IMPLICIT NONE
       !
+      REAL(DP), PARAMETER       :: tol = 1.D-6
+      REAL(DP), PARAMETER       :: exp_tol = 3.6D1
+      !
       ! ... Declares variables
       !
       INTEGER, INTENT(IN)       :: nnr, dim, axis
@@ -173,7 +176,7 @@ CONTAINS
       !
       ! ... Local variables
       !
-      INTEGER                   :: i, j, k, ir, ir_end, ip
+      INTEGER                   :: i, j, k, ir, ip
       INTEGER                   :: idx, idx0
       !
       REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
@@ -181,22 +184,43 @@ CONTAINS
       REAL( DP )                :: r( 3 ), s( 3 )
       REAL( DP ), ALLOCATABLE   :: rholocal ( : )
       !
+      IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+        WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+        STOP
+      ENDIF
       inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
       inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
       inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
       !
+      IF ( ABS( spread ) .LT. tol ) THEN
+        WRITE(stdout,*)'ERROR: wrong spread for Gaussian function',spread
+        STOP
+      ENDIF
+      !
       IF (axis.LT.1.OR.axis.GT.3) &
-           WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
+        WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
       IF ( dim .EQ. 0 ) THEN
         scale = charge / ( sqrtpi * spread )**3
       ELSE IF ( dim .EQ. 1 ) THEN
         length = ABS( at(axis,axis) * alat )
+        IF ( length .LT. tol ) THEN
+          WRITE(stdout,*)'ERROR: unphysically small dimension of cell',length
+          STOP
+        ENDIF
         scale = charge / length / ( sqrtpi * spread )**2
       ELSE IF ( dim .EQ. 2 ) THEN
         length = ABS( at(axis,axis) * alat )
+        IF ( length .LT. tol .OR. omega .LT. tol ) THEN
+          WRITE(stdout,*)'ERROR: unphysically small dimensions of cell',length, omega
+          STOP
+        ENDIF
         scale = charge * length / omega / ( sqrtpi * spread )
       ELSE
         WRITE(stdout,*)'WARNING: wrong dim in generate_gaussian'
+      ENDIF
+      IF ( ABS( alat ) .LT. tol ) THEN
+        WRITE(stdout,*)'ERROR: unphysically small alat',alat
+        STOP
       ENDIF
       spr2 = ( spread / alat )**2
       ALLOCATE( rholocal( nnr ) )
@@ -245,9 +269,13 @@ CONTAINS
          s(:) = s(:) - ANINT(s(:))
          r(:) = MATMUL( at(:,:), s(:) )
          !
-         dist = SUM( r * r )
+         dist = SUM( r * r ) / spr2
          !
-         rholocal( ir ) = scale * EXP(-dist/spr2)
+         IF ( dist .GT. exp_tol ) THEN
+           rholocal( ir ) = 0.D0
+         ELSE
+           rholocal( ir ) = scale * EXP(-dist)
+         ENDIF
          !
       END DO
       !
@@ -272,6 +300,9 @@ CONTAINS
       !
       IMPLICIT NONE
       !
+      REAL(DP), PARAMETER       :: tol = 1.D-6
+      REAL(DP), PARAMETER       :: exp_tol = 3.6D1
+      !
       ! ... Declares variables
       !
       INTEGER, INTENT(IN)       :: nnr, dim, axis
@@ -281,61 +312,74 @@ CONTAINS
       !
       ! ... Local variables
       !
-      INTEGER                   :: i, j, k, ir, ir_end, ip
-      INTEGER                   :: idx0
+      INTEGER                   :: i, j, k, ir, ip
+      INTEGER                   :: idx, idx0
       !
       REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
       REAL( DP )                :: scale, spr2, dist, length
       REAL( DP )                :: r( 3 ), s( 3 )
       REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
       !
+      IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+        WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+        STOP
+      ENDIF
       inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
       inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
       inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
       !
-      idx0 = 0
-      !
-#if defined (__MPI)
-      DO i = 1, me_bgrp
-        idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-      END DO
-#endif
-      !
-#if defined (__MPI)
-      ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#else
-      ir_end = nnr
-#endif
+      IF ( ABS( spread ) .LT. tol ) THEN
+        WRITE(stdout,*)'ERROR: wrong spread for Gaussian function',spread
+        STOP
+      ENDIF
       !
       IF (axis.LT.1.OR.axis.GT.3) &
-           WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
+        WRITE(stdout,*)'WARNING: wrong axis in generate_gradgaussian'
       IF ( dim .EQ. 0 ) THEN
         scale = charge / ( sqrtpi * spread )**3
       ELSE IF ( dim .EQ. 1 ) THEN
         length = ABS( at(axis,axis) * alat )
+        IF ( length .LT. tol ) THEN
+          WRITE(stdout,*)'ERROR: unphysically small dimension of cell',length
+          STOP
+        ENDIF
         scale = charge / length / ( sqrtpi * spread )**2
       ELSE IF ( dim .EQ. 2 ) THEN
         length = ABS( at(axis,axis) * alat )
+        IF ( length .LT. tol .OR. omega .LT. tol ) THEN
+          WRITE(stdout,*)'ERROR: unphysically small dimensions of cell',length, omega
+          STOP
+        ENDIF
         scale = charge * length / omega / ( sqrtpi * spread )
       ELSE
-        WRITE(stdout,*)'WARNING: wrong dim in generate_gaussian'
+        WRITE(stdout,*)'WARNING: wrong dim in generate_gradgaussian'
+      ENDIF
+      IF ( ABS( alat ) .LT. tol ) THEN
+        WRITE(stdout,*)'ERROR: unphysically small alat',alat
+        STOP
       ENDIF
       spr2 = ( spread / alat )**2
       ALLOCATE( gradrholocal( 3, nnr ) )
       gradrholocal = 0.D0
       !
-      DO ir = 1, ir_end
+      ! idx0 = starting index of real-space FFT arrays for this processor
+      !
+      idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+      !
+      DO ir = 1, dfftp%nr1x*dfftp%nr2x*dfftp%npl
          !
          ! ... three dimensional indexes
          !
-         i = idx0 + ir - 1
-         k = i / (dfftp%nr1x*dfftp%nr2x)
-         IF ( k .GE. dfftp%nr3 ) CYCLE
-         i = i - (dfftp%nr1x*dfftp%nr2x)*k
-         j = i / dfftp%nr1x
-         IF ( j .GE. dfftp%nr2 ) CYCLE
-         i = i - dfftp%nr1x*j
-         IF ( i .GE. dfftp%nr1 ) CYCLE
+         idx = idx0 + ir - 1
+         k   = idx / (dfftp%nr1x*dfftp%nr2x)
+         idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+         j   = idx / dfftp%nr1x
+         idx = idx - dfftp%nr1x*j
+         i   = idx
+         !
+         ! ... do not include points outside the physical range
+         !
+         IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
          !
          DO ip = 1, 3
             r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -361,9 +405,13 @@ CONTAINS
          s(:) = s(:) - ANINT(s(:))
          r(:) = MATMUL( at(:,:), s(:) )
          !
-         dist = SUM( r * r )
+         dist = SUM( r * r ) / spr2
          !
-         gradrholocal( :, ir ) = scale * EXP(-dist/spr2) * r(:) * alat
+         IF ( dist .GT. exp_tol ) THEN
+           gradrholocal( :, ir ) = 0.D0
+         ELSE
+           gradrholocal( :, ir ) = scale * EXP(-dist) * r(:) * alat
+         ENDIF
          !
       END DO
       !
