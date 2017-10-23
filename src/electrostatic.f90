@@ -370,7 +370,10 @@ CONTAINS
                & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
        ENDIF
        !
-       IF ( setup % core % need_correction ) CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, aux, ftmp )
+       IF ( setup % core % need_correction ) THEN
+          CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, aux, ftmp )
+          forces = forces + ftmp
+       END IF
        !
        IF ( charges % include_externals ) THEN
           IF ( .NOT. ASSOCIATED( charges % externals ) ) &
