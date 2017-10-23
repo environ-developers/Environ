@@ -144,7 +144,7 @@ CONTAINS
     boundary%solvent_aware = solvent_radius .GT. 0.D0
 
     IF( boundary%solvent_aware ) THEN
-       boundary%solvent_probe%type = 4
+       boundary%solvent_probe%type = 2
        ALLOCATE(boundary%solvent_probe%pos(3))
        boundary%solvent_probe%pos = 0.D0
        boundary%solvent_probe%volume = 1.D0

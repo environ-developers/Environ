@@ -1053,6 +1053,8 @@ CONTAINS
        charge = charge + zv
        system%pos(:) = system%pos(:) + system%ions%tau(:,i) * zv
     ENDDO
+    IF ( ABS(charge) .LT. 1.D-8 ) &
+         & CALL errore(sub_name,'System charge is zero',1)
     system%pos(:) = system%pos(:) / charge
 
     system%width = 0.D0

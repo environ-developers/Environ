@@ -206,7 +206,11 @@ CONTAINS
       REAL( DP )             :: arg
       !
       arg = ( x - xthr ) / spread
-      dsfunct2 = - EXP( -arg**2 ) / sqrtpi / spread
+      IF ( abs(arg) .GT. 6.D0 ) THEN ! 6.D0 is the threshold of qe_erfc(x)
+         dsfunct2 = 0.D0
+      ELSE
+         dsfunct2 = - EXP( -arg**2 ) / sqrtpi / spread
+      END IF
       !
       RETURN
       !
@@ -229,7 +233,11 @@ CONTAINS
       REAL( DP )             :: arg
       !
       arg = ( x - xthr ) / spread
-      d2sfunct2 = EXP( -arg**2 ) / sqrtpi / spread**2 * 2.D0 * arg
+      IF ( abs(arg) .GT. 6.D0 ) THEN
+         d2sfunct2 = 0.D0
+      ELSE
+         d2sfunct2 = EXP( -arg**2 ) / sqrtpi / spread**2 * 2.D0 * arg
+      END IF
       !
       RETURN
       !
