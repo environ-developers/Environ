@@ -73,6 +73,7 @@ CONTAINS
     !
     USE poisson, ONLY : poisson_direct
     USE generalized, ONLY : generalized_gradient
+    USE linearized_pb, ONLY : linearized_pb_gradient
     !
     IMPLICIT NONE
     !
@@ -152,8 +153,9 @@ CONTAINS
 
        CASE ( 'cg', 'sd' )
 
-          CALL errore( sub_name, 'option not yet implemented', 1 )
-!          CALL linpb_gradient( )
+!          CALL errore( sub_name, 'option not yet implemented', 1 )
+          CALL linearized_pb_gradient( setup % solver, setup % core, charges, &
+                                        & dielectric, electrolyte, potential )
 
        CASE ( 'lbfgs' )
 
@@ -244,6 +246,7 @@ CONTAINS
 
     USE poisson, ONLY : poisson_energy
     USE generalized, ONLY: generalized_energy
+    USE linearized_pb, ONLY: linearized_pb_energy
 
     IMPLICIT NONE
 
@@ -278,8 +281,8 @@ CONTAINS
        IF ( .NOT. PRESENT( electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
-       CALL errore( sub_name, 'option not yet implemented', 1 )
-!       CALL linpb_energy()
+!       CALL errore( sub_name, 'option not yet implemented', 1 )
+       CALL linearized_pb_energy( setup % core, charges, dielectric, potential, energy ) 
 
     CASE ( 'pb', 'modpb' )
 
