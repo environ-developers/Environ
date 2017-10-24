@@ -582,7 +582,9 @@ CONTAINS
 
     CASE ( 'linpb', 'linmodpb', 'linearized-pb' )
 
-       CALL errore(sub_name,'Option not yet implemented',1)
+       IF ( solver % use_direct ) &
+            & CALL errore(sub_name,'Cannot use a direct solver for the linearized Poisson-Boltzmann eq.',1)
+!       CALL errore(sub_name,'Option not yet implemented',1)
 
     CASE ( 'pb', 'mod-pb', 'poisson-boltzmann' )
 
@@ -640,7 +642,7 @@ CONTAINS
     !
     SELECT CASE ( setup % problem )
        !
-    CASE ( 'generalized' )
+    CASE ( 'generalized', 'linpb' )
        !
        need_gradlog = .TRUE. ! THIS IS DUE TO THE CALCULATION OF FORCES, REQUIRING POLARIZATION CHARGE
        !
