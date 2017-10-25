@@ -361,7 +361,7 @@
  delta_qm =   0.106461E-04 delta_en =   0.195852E-03 tol =   0.100000E-03
  Iteration #         16
  delta_qm =   0.749791E-05 delta_en =   0.971459E-04 tol =   0.100000E-03
- Charges are converged, exit!
+ Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -394,7 +394,7 @@
  delta_qm =   0.919929E-05 delta_en =   0.146235E-03 tol =   0.100000E-03
  Iteration #         12
  delta_qm =   0.652494E-05 delta_en =   0.735693E-04 tol =   0.100000E-03
- Charges are converged, exit!
+ Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -425,7 +425,7 @@
  delta_qm =   0.106746E-04 delta_en =   0.196901E-03 tol =   0.100000E-03
  Iteration #         11
  delta_qm =   0.746085E-05 delta_en =   0.961880E-04 tol =   0.100000E-03
- Charges are converged, exit!
+ Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8

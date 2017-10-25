@@ -376,7 +376,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 9003   FORMAT(' Total iterative polarization charge = ',4F13.6)
        IF ( delta_en .LT. tolrhoaux .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-9005      FORMAT(' Charges are converged, exit!')
+9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxiter ) THEN
          WRITE(program_unit,9006)
@@ -540,7 +540,7 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-9005      FORMAT(' Charges are converged, exit!')
+9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
          WRITE(program_unit,9006)
@@ -714,7 +714,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-9005      FORMAT(' Charges are converged, exit!')
+9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
           WRITE(program_unit,9006)
@@ -914,7 +914,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
-9005      FORMAT(' Charges are converged, exit!')
+9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
          WRITE(program_unit,9006)
