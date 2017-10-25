@@ -49,6 +49,8 @@ CONTAINS
       USE pressure,      ONLY : calc_depressure_dboundary
       USE dielectric,    ONLY : calc_dedielectric_dboundary
       !
+      USE electrolyte_utils, ONLY : calc_electrolyte_density
+      !
       IMPLICIT NONE
       !
       ! ... Declares variables
@@ -92,6 +94,12 @@ CONTAINS
                CALL calc_velectrostatic( setup = outer, charges=charges, potential=velectrostatic )
             ENDIF
          ENDIF
+
+         IF ( lelectrolyte ) THEN
+           CALL calc_electrolyte_density( outer, electrolyte, velectrostatic )
+           IF ( verbose .GE. 3 ) CALL print_environ_density( electrolyte%gamma )
+           IF ( verbose .GE. 3 ) CALL print_environ_density( electrolyte%density )
+         END IF
 
          IF ( verbose .GE. 3 ) CALL print_environ_density( velectrostatic )
          vtot = vtot + velectrostatic % of_r - vreference % of_r
