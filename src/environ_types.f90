@@ -2,7 +2,7 @@ MODULE environ_types
 
   USE kinds,             ONLY : DP
   USE constants,         ONLY : rydberg_si, bohr_radius_si, bohr_radius_angs, &
-                              & amu_si, fpi, tpi, pi, sqrtpi
+                              & amu_si, fpi, tpi, pi, sqrtpi, k_boltzmann_ry
   USE mp,                ONLY : mp_sum
   USE control_flags,     ONLY : tddfpt
 
@@ -354,14 +354,23 @@ MODULE environ_types
 
   TYPE environ_electrolyte
 
+     ! Update status
+
+     LOGICAL :: update = .FALSE.
+
      INTEGER :: ntyp
      TYPE( environ_ioncctype ), DIMENSION(:), ALLOCATABLE :: ioncctype
 
      REAL( DP ) :: temperature
+     REAL( DP ) :: k2      ! Inverse of squared Debye length
 
      TYPE( environ_boundary ) :: boundary
 
      TYPE( environ_density ) :: density
+
+     ! The electrolyte switch function over space
+
+     TYPE( environ_density ) :: gamma
 
   END TYPE environ_electrolyte
 
