@@ -1284,8 +1284,10 @@ MODULE environ_input
        ENDIF
        !
        IF ( env_ioncc_ntyp > 0 ) THEN
-          problem = 'modpb'
-          solver = 'lbfgs'
+          problem = 'linpb'
+          solver  = 'cg'
+!          problem = 'modpb'
+!          solver = 'lbfgs'
        END IF
        !
        RETURN
