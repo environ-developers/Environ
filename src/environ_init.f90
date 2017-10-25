@@ -406,9 +406,11 @@ CONTAINS
 !
       ! ... Declares modules
       USE environ_base,  ONLY : cell, lstatic, loptical, static, optical, &
-                                lexternals, externals, lelectrostatic
+                                lexternals, externals, lelectrostatic,    &
+                                lelectrolyte, electrolyte
       ! ... Cell-related updates
       USE dielectric,     ONLY : update_environ_dielectric
+      USE electrolyte_utils,   ONLY : update_environ_electrolyte
       USE electrostatic_init,  ONLY : electrostatic_initcell
 !      USE extcharges,    ONLY : update_external_charges
       !
@@ -427,6 +429,7 @@ CONTAINS
       !
       IF ( lstatic ) CALL update_environ_dielectric( static )
       IF ( loptical ) CALL update_environ_dielectric( optical )
+      IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte ) 
       !
 !      IF ( lexternals ) CALL update_environ_externals( externals )
       !
@@ -459,6 +462,7 @@ CONTAINS
       USE boundary,          ONLY : update_environ_boundary,        &
                                     set_soft_spheres
       USE dielectric,        ONLY : update_environ_dielectric
+      USE electrolyte_utils, ONLY : update_environ_electrolyte
       USE electrostatic_init,     ONLY : electrostatic_initions
       !
       IMPLICIT NONE
@@ -515,6 +519,7 @@ CONTAINS
             CALL update_environ_boundary( electrolyte%boundary )
             IF ( electrolyte % boundary % update_status .EQ. 2 ) &
                  & CALL print_environ_boundary( electrolyte%boundary )
+            CALL update_environ_electrolyte( electrolyte )
          END IF
          !
       END IF
@@ -585,6 +590,7 @@ CONTAINS
             CALL update_environ_boundary( electrolyte%boundary )
             IF ( electrolyte % boundary % update_status .EQ. 2 ) &
                  & CALL print_environ_boundary( electrolyte%boundary )
+            CALL update_environ_electrolyte( electrolyte )
          END IF
          !
       END IF
