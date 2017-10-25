@@ -3,10 +3,11 @@ MODULE electrolyte_utils
 !--------------------------------------------------------------------
 
   USE environ_types
+  USE electrostatic_types
 
   USE dielectric
   USE boundary
-  
+  USE environ_base, ONLY : e2
 !  USE constants,      ONLY: k_boltzmann_ry, pi, tpi, fpi
 !  USE io_global,      ONLY: stdout
 !  USE mp,             ONLY: mp_sum
@@ -51,7 +52,8 @@ MODULE electrolyte_utils
   PRIVATE
 
   PUBLIC :: create_environ_electrolyte, init_environ_electrolyte_first, &
-       & init_environ_electrolyte_second, destroy_environ_electrolyte
+       & init_environ_electrolyte_second, destroy_environ_electrolyte,  &
+       & update_environ_electrolyte, calc_electrolyte_density
 
 CONTAINS
 
@@ -62,9 +64,12 @@ CONTAINS
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
 
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_electrolyte'
-    CHARACTER( LEN=80 ) :: label = 'electrolyte'
+    CHARACTER( LEN=80 ) :: label != 'electrolyte'
 
     CALL create_environ_boundary( electrolyte%boundary )
+    label = 'gamma'
+    CALL create_environ_density( electrolyte%gamma  , label )
+    label = 'electrolyte'
     CALL create_environ_density( electrolyte%density, label )
 
     IF ( ALLOCATED( electrolyte%ioncctype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
@@ -129,13 +134,125 @@ CONTAINS
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
 
-    CALL init_environ_boundary_second( cell, electrolyte%boundary )
+    INTEGER    :: ityp
+    REAL( DP ) :: sum_cz2, kT
 
+    CALL init_environ_boundary_second( cell, electrolyte%boundary )
+    CALL init_environ_density( cell, electrolyte%gamma )
     CALL init_environ_density( cell, electrolyte%density )
+
+    ! Compute k ** 2 = 1. / lambda_D ** 2
+    sum_cz2 = 0.D0
+    DO ityp = 1, electrolyte%ntyp
+      sum_cz2 = sum_cz2 + electrolyte%ioncctype(ityp)%cbulk * electrolyte%ioncctype(ityp)%z ** 2
+    END DO
+    sum_cz2 = sum_cz2 * e2
+    kT      = k_boltzmann_ry * electrolyte%temperature
+
+    electrolyte%k2 = fpi * sum_cz2 / kT
 
     RETURN
 
   END SUBROUTINE init_environ_electrolyte_second
+
+  SUBROUTINE update_environ_electrolyte( electrolyte )
+  !
+  IMPLICIT NONE
+  !
+  TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
+  !
+  CALL start_clock( 'electrolyte' )
+  !
+  ! ... Check if the boundary is under update (status = 1) or has been fully updated (status = 2)
+  !
+  IF ( electrolyte % boundary % update_status .GT. 0 ) electrolyte % update = .TRUE.
+  !
+  IF ( electrolyte % update ) THEN
+     !
+     ! ... Update the electrolyte in space if the boundary is ready
+     !
+     IF ( electrolyte % boundary % update_status .EQ. 2 ) THEN
+        !
+        CALL electrolyte_of_boundary( electrolyte )
+        !
+        electrolyte % update = .FALSE.
+        !
+     ENDIF
+     !
+  END IF
+  !
+  CALL stop_clock( 'electrolyte' )
+  !
+  RETURN
+  !
+  END SUBROUTINE update_environ_electrolyte
+
+  SUBROUTINE electrolyte_of_boundary( electrolyte )
+
+    IMPLICIT NONE
+
+    TYPE(environ_electrolyte), TARGET, INTENT(INOUT) :: electrolyte
+
+    REAL( DP ), DIMENSION( : ), POINTER :: gam, scaled
+
+    CHARACTER ( LEN=80 ) :: sub_name = 'electrolyte_of_boundary'
+
+    ! Aliases
+
+    gam    => electrolyte % gamma % of_r
+    scaled => electrolyte % boundary % scaled % of_r
+
+    ! Compute gamma(r)
+
+    SELECT CASE ( electrolyte%boundary%type )
+
+    CASE ( 0, 2 )
+
+       gam = 1.D0 - scaled
+
+    CASE DEFAULT
+
+       CALL errore(sub_name,'Unkown boundary type',1)
+
+    END SELECT
+
+    RETURN
+
+  END SUBROUTINE electrolyte_of_boundary
+
+  SUBROUTINE calc_electrolyte_density( setup, electrolyte, potential )
+
+    TYPE( electrostatic_setup ), INTENT(IN) :: setup
+    TYPE( environ_density ),     TARGET, INTENT(IN) :: potential
+    TYPE( environ_electrolyte ), TARGET, INTENT(INOUT) :: electrolyte
+
+    REAL( DP ), DIMENSION( : ), POINTER :: gam, pot, rho
+    REAL( DP ), POINTER :: k2
+
+    CHARACTER ( LEN=80 ) :: sub_name = 'calc_electrolyte_density'
+
+    k2  => electrolyte % k2
+    gam => electrolyte % gamma % of_r
+    rho => electrolyte % density % of_r
+    pot => potential % of_r
+
+    SELECT CASE ( setup % problem )
+
+    CASE ( 'linpb', 'linmodpb' )
+
+      rho = k2 * gam * pot
+
+    CASE ( 'pb', 'modpb' )
+
+      CALL errore( sub_name, 'option not yet implemented', 1 )
+
+    CASE DEFAULT
+
+      CALL errore( sub_name, 'unexpected problem keyword', 1 )
+
+    END SELECT
+
+  END SUBROUTINE calc_electrolyte_density
 
   SUBROUTINE destroy_environ_electrolyte( lflag, electrolyte )
 
@@ -156,6 +273,7 @@ CONTAINS
     ENDIF
 
     CALL destroy_environ_boundary( lflag, electrolyte%boundary )
+    CALL destroy_environ_density( electrolyte%gamma   )
     CALL destroy_environ_density( electrolyte%density )
 
     RETURN
