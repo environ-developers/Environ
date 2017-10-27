@@ -70,7 +70,7 @@ CONTAINS
     label = 'filling'
     CALL create_environ_density( boundary%filling, label )
     label = 'dfilling'
-    CALL create_environ_density( boundary%filling, label )
+    CALL create_environ_density( boundary%dfilling, label )
 
     RETURN
 
@@ -213,7 +213,8 @@ CONTAINS
 
   SUBROUTINE update_environ_boundary( bound )
 
-    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions, boundary_of_system, solvent_aware_boundary
+    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions, boundary_of_system, &
+         & solvent_aware_boundary, invert_boundary
 
     IMPLICIT NONE
 
@@ -313,6 +314,8 @@ CONTAINS
           ! ... Only ions are needed, fully update the boundary
           !
           CALL boundary_of_system( bound % simple, bound )
+          !
+          CALL invert_boundary( bound ) ! ONLY TO DEBUG SOLVENT AWARE
           !
           bound % update_status = 2 ! boundary has changed and is ready
           !

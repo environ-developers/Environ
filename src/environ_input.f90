@@ -259,7 +259,7 @@ MODULE environ_input
         ! threshold to decide whether to fill a continuum void or not, to be
         ! compared with the filled fraction: if filled fraction .GT. threshold
         ! THEN fill gridpoint
-        REAL(DP) :: filling_spread = 0.05D0
+        REAL(DP) :: filling_spread = 0.02D0
         ! spread of the switching function used to decide whether the dielectric
         ! void should be filled or not
 !
@@ -384,7 +384,7 @@ MODULE environ_input
         ! 'linear', 'anderson', 'diis', 'broyden'
         INTEGER :: ndiis=1
         ! order of DIIS interpolation of iterative calculation
-        REAL(DP) :: mix = 0.3
+        REAL(DP) :: mix = 0.5
         ! mixing parameter to be used in the iterative driver
 !
 ! Preconditioner's parameters
@@ -710,7 +710,7 @@ MODULE environ_input
        radial_scale       = 2.D0
        radial_spread      = 0.5D0
        filling_threshold  = 0.825D0
-       filling_spread     = 0.05D0
+       filling_spread     = 0.02D0
        !
        stern_mode = 'electronic'
        stern_distance = 0.D0
@@ -749,7 +749,7 @@ MODULE environ_input
        !
        mix_type = 'linear'
        ndiis = 1
-       mix = 0.3D0
+       mix = 0.5D0
        !
        preconditioner = 'sqrt'
        screening_type = 'none'
