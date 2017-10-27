@@ -812,7 +812,7 @@ CONTAINS
 
     IF ( PRESENT(label) ) THEN
        hessian%label = label
-       laplacian_label = label//'_laplacian'
+       laplacian_label = TRIM(ADJUSTL(label))//'_laplacian'
     ELSE
        hessian%label = 'hessian'
        laplacian_label = 'hessian_laplacian'

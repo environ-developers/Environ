@@ -45,7 +45,7 @@ CONTAINS
     CALL create_environ_density( boundary%laplacian, label )
     label = 'dsurface'
     CALL create_environ_density( boundary%dsurface, label )
-    label = 'hessian'
+    label = 'hessboundary'
     CALL create_environ_hessian( boundary%hessian, label )
 
     ! Components required for boundary of density
