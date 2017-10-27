@@ -281,6 +281,7 @@ MODULE environ_types
      TYPE( environ_gradient ) :: gradient
      TYPE( environ_density ) :: laplacian
      TYPE( environ_density ) :: dsurface
+     TYPE( environ_hessian ) :: hessian
 
      ! global properties of the boundary
 

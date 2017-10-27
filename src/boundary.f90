@@ -45,6 +45,8 @@ CONTAINS
     CALL create_environ_density( boundary%laplacian, label )
     label = 'dsurface'
     CALL create_environ_density( boundary%dsurface, label )
+    label = 'hessian'
+    CALL create_environ_hessian( boundary%hessian, label )
 
     ! Components required for boundary of density
 
@@ -184,6 +186,7 @@ CONTAINS
        CALL init_environ_density( cell, boundary%probe )
        CALL init_environ_density( cell, boundary%filling )
        CALL init_environ_density( cell, boundary%dfilling )
+       IF ( boundary%deriv .GE. 3 ) CALL init_environ_hessian( cell, boundary%hessian )
     ENDIF
 
     RETURN
@@ -390,6 +393,7 @@ CONTAINS
        CALL destroy_environ_density( boundary%probe )
        CALL destroy_environ_density( boundary%filling )
        CALL destroy_environ_density( boundary%dfilling )
+       IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_hessian( boundary%hessian )
     ENDIF
 
     RETURN

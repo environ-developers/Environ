@@ -412,8 +412,9 @@ CONTAINS
       REAL( DP ), DIMENSION(:), POINTER :: rho, eps, deps, d2eps
       REAL( DP ), DIMENSION(:), POINTER :: lapleps, dsurface
       REAL( DP ), DIMENSION(:,:), POINTER :: gradeps
+      REAL( DP ), DIMENSION(:,:,:), POINTER :: hesseps
       !
-      INTEGER :: ir, ipol
+      INTEGER :: ir, ipol, jpol
       !
       CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_density'
       !
@@ -457,7 +458,15 @@ CONTAINS
       !
       IF ( deriv .GE. 1 ) gradeps => boundary%gradient%of_r
       IF ( deriv .GE. 2 ) lapleps => boundary%laplacian%of_r
-      IF ( deriv .GE. 3 ) dsurface => boundary%dsurface%of_r
+      IF ( deriv .GE. 3 ) THEN
+         dsurface => boundary%dsurface%of_r
+         IF ( boundary % solvent_aware ) THEN
+            hesseps => boundary%hessian%of_r
+         ELSE
+            ALLOCATE( hesseps( 3, 3, nnr ) )
+            hesseps = 0.D0
+         ENDIF
+      END IF
       !
       SELECT CASE ( boundary_core )
          !
@@ -465,13 +474,23 @@ CONTAINS
          !
          IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( eps, gradeps )
          IF ( deriv .EQ. 2 ) CALL external_laplacian( eps, lapleps )
-         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, eps, gradeps, lapleps, dsurface )
+         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, eps, gradeps, lapleps, hesseps, dsurface )
          !
       CASE ( 'analytic', 'fd' )
          !
          IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( rho , gradeps )
          IF ( deriv .EQ. 2 ) CALL external_laplacian( rho, lapleps )
-         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, rho, gradeps, lapleps, dsurface )
+         IF ( deriv .EQ. 3 ) THEN
+            CALL external_dsurface( nnr, ir_end, rho, gradeps, lapleps, hesseps, dsurface )
+            IF ( boundary % solvent_aware ) THEN
+               DO ipol = 1, 3
+                  DO jpol = 1, 3
+                     hesseps(ipol,jpol,:) = hesseps(ipol,jpol,:) * deps(:) + &
+                          & gradeps(ipol,:) * gradeps(jpol,:) * d2eps(:)
+                  END DO
+               END DO
+            END IF
+         END IF
          IF ( deriv .GT. 1 ) lapleps(:) = lapleps(:) * deps(:) + &
               & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
          IF ( deriv .GE. 1 ) THEN
@@ -493,13 +512,16 @@ CONTAINS
          boundary % surface = integrate_environ_density( boundary%gradient%modulus )
       END IF
       !
+      IF ( deriv .GE. 3 .AND. .NOT. boundary % solvent_aware ) &
+           & DEALLOCATE( hesseps )
+      !
       RETURN
       !
 !--------------------------------------------------------------------
     END SUBROUTINE boundary_of_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-    SUBROUTINE external_dsurface( n, iend, x, grad, lapl, dsurface )
+    SUBROUTINE external_dsurface( n, iend, x, grad, lapl, hess, dsurface )
 !--------------------------------------------------------------------
       !
       IMPLICIT NONE
@@ -508,9 +530,8 @@ CONTAINS
       REAL( DP ), DIMENSION( n ), INTENT(IN) :: x
       REAL( DP ), DIMENSION( 3, n ), INTENT(OUT) :: grad
       REAL( DP ), DIMENSION( n ), INTENT(OUT) :: lapl
+      REAL( DP ), DIMENSION( 3, 3, n ), INTENT(OUT) :: hess
       REAL( DP ), DIMENSION( n ), INTENT(OUT) :: dsurface
-      !
-      REAL( DP ), DIMENSION( 3, 3, n ) :: hess
       !
       CALL external_hessian( x, grad, hess )
       lapl(:) = hess(1,1,:) + hess(2,2,:) + hess(3,3,:)
@@ -582,8 +603,9 @@ CONTAINS
       !
       TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
       TYPE( environ_gradient ), DIMENSION(:), ALLOCATABLE :: gradlocal
-      TYPE( environ_density), DIMENSION(:), ALLOCATABLE :: lapllocal
-      TYPE( environ_hessian), DIMENSION(:), ALLOCATABLE :: hesslocal
+      TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: lapllocal
+      TYPE( environ_hessian ), DIMENSION(:), ALLOCATABLE :: hesslocal
+      TYPE( environ_hessian ), POINTER :: hessian
       !
       ! Aliases and allocations
       !
@@ -611,6 +633,21 @@ CONTAINS
       !
       deriv => boundary % deriv
       !
+      IF ( deriv .EQ. 3 ) THEN
+         !
+         IF ( boundary%solvent_aware ) THEN
+            !
+            hessian => boundary%hessian
+            !
+         ELSE
+            !
+            ALLOCATE( hessian )
+            CALL init_environ_hessian( cell, hessian )
+            !
+         END IF
+         !
+      END IF
+      !
       SELECT CASE ( boundary_core )
          !
       CASE ( 'fft' )
@@ -619,7 +656,7 @@ CONTAINS
               & boundary%gradient%of_r )
          IF ( deriv .EQ. 2 ) CALL external_laplacian( boundary%scaled%of_r, boundary%laplacian%of_r )
          IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, boundary%scaled%of_r, &
-              & boundary%gradient%of_r, boundary%laplacian%of_r, boundary%dsurface%of_r )
+              & boundary%gradient%of_r, boundary%laplacian%of_r, hessian%of_r, boundary%dsurface%of_r )
          !
       CASE ( 'analytic', 'highmem' )
          !
@@ -647,7 +684,7 @@ CONTAINS
          IF ( deriv .EQ. 2 ) CALL calc_laplacian_of_boundary_highmem(nsoft_spheres, &
               & local,gradlocal,lapllocal,boundary%laplacian )
          IF ( deriv .EQ. 3 ) CALL calc_dsurface_of_boundary_highmem(nsoft_spheres, &
-              & local,gradlocal,hesslocal,boundary%gradient,boundary%laplacian, &
+              & local,gradlocal,hesslocal,boundary%gradient,boundary%laplacian,hessian, &
               & boundary%dsurface )
          !
          ! Destroy and deallocate
@@ -679,7 +716,22 @@ CONTAINS
          !
          IF ( deriv .GE. 2 ) boundary % laplacian % of_r = - boundary % laplacian % of_r
          !
-         IF ( deriv .EQ. 3 ) boundary % dsurface % of_r = - boundary % dsurface % of_r
+         IF ( deriv .EQ. 3 ) THEN
+            !
+            boundary % dsurface % of_r = - boundary % dsurface % of_r
+            !
+            IF ( boundary % solvent_aware ) THEN
+               !
+               boundary % hessian % of_r = - boundary % hessian % of_r
+               !
+            ELSE
+               !
+               CALL destroy_environ_hessian( hessian )
+               DEALLOCATE( hessian )
+               !
+            ENDIF
+            !
+         END IF
          !
       END IF
       !
@@ -794,7 +846,7 @@ CONTAINS
     END SUBROUTINE calc_laplacian_of_boundary_highmem
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-    SUBROUTINE calc_dsurface_of_boundary_highmem(n,local,gradlocal,hesslocal,gradient,laplacian,dsurface)
+    SUBROUTINE calc_dsurface_of_boundary_highmem(n,local,gradlocal,hesslocal,gradient,laplacian,hessian,dsurface)
 !--------------------------------------------------------------------
       IMPLICIT NONE
       !
@@ -804,17 +856,16 @@ CONTAINS
       TYPE( environ_hessian ), DIMENSION(n), INTENT(IN) :: hesslocal
       TYPE( environ_gradient ), INTENT(INOUT) :: gradient
       TYPE( environ_density ), INTENT(INOUT) :: laplacian, dsurface
+      TYPE( environ_hessian ), INTENT(INOUT) :: hessian
       !
       INTEGER :: i, j, k, ipol, jpol
       TYPE( environ_cell), POINTER :: cell
       TYPE( environ_density ) :: dens
       TYPE( environ_gradient ) :: partial
-      TYPE( environ_hessian ) :: hess
       !
       cell => laplacian % cell
       CALL init_environ_density( cell, dens )
       CALL init_environ_gradient( cell, partial )
-      CALL init_environ_hessian( cell, hess )
       !
       gradient % of_r = 0.D0
       DO i = 1, n
@@ -832,7 +883,7 @@ CONTAINS
                      IF ( k .EQ. j .OR. k .EQ. i ) CYCLE
                      dens % of_r = dens % of_r * local(k) % of_r
                   ENDDO
-                  hess % of_r( ipol, jpol, : ) = hess % of_r( ipol, jpol, : ) + dens % of_r( : )
+                  hessian % of_r( ipol, jpol, : ) = hessian % of_r( ipol, jpol, : ) + dens % of_r( : )
                ENDDO
             ENDDO
          ENDDO
@@ -840,12 +891,11 @@ CONTAINS
       !
       ! Final operations
       !
-      laplacian % of_r = hess % of_r( 1, 1, : ) + hess % of_r( 2, 2, : ) + hess % of_r( 3, 3, : )
-      CALL calc_dsurface( cell%nnr, cell%ir_end, gradient%of_r, hess%of_r, dsurface%of_r )
+      laplacian % of_r = hessian % of_r( 1, 1, : ) + hessian % of_r( 2, 2, : ) + hessian % of_r( 3, 3, : )
+      CALL calc_dsurface( cell%nnr, cell%ir_end, gradient%of_r, hessian%of_r, dsurface%of_r )
       !
       CALL destroy_environ_density( dens )
       CALL destroy_environ_gradient( partial )
-      CALL destroy_environ_hessian( hess )
       !
       RETURN
       !
@@ -970,7 +1020,7 @@ CONTAINS
       INTEGER :: i
       CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_system'
       !
-      TYPE( environ_hessian ) :: hesslocal
+      TYPE( environ_hessian ), POINTER :: hesslocal
       !
       ! Aliases and allocations
       !
@@ -989,10 +1039,18 @@ CONTAINS
       IF ( deriv .GE. 1 ) CALL gradient_of_functions( simple, boundary%gradient, .TRUE. )
       IF ( deriv .GE. 2 ) CALL laplacian_of_functions( simple, boundary%laplacian, .TRUE. )
       IF ( deriv .GE. 3 ) THEN
-         CALL init_environ_hessian( cell, hesslocal )
+         IF ( boundary % solvent_aware ) THEN
+            hesslocal => boundary % hessian
+         ELSE
+            ALLOCATE( hesslocal )
+            CALL init_environ_hessian( cell, hesslocal )
+         ENDIF
          CALL hessian_of_functions( simple, hesslocal, .FALSE. )
          CALL calc_dsurface( nnr, ir_end, boundary%gradient%of_r, hesslocal%of_r, boundary%dsurface%of_r )
-         CALL destroy_environ_hessian( hesslocal )
+         IF ( .NOT. boundary % solvent_aware ) THEN
+            CALL destroy_environ_hessian( hesslocal )
+            DEALLOCATE(hesslocal )
+         ENDIF
       ENDIF
       !
       boundary % volume = integrate_environ_density( boundary % scaled )
