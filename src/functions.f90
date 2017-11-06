@@ -5,9 +5,13 @@ MODULE functions
 
   PRIVATE
 
-  PUBLIC :: create_environ_functions, destroy_environ_functions, &
+  PUBLIC :: create_environ_functions, destroy_environ_functions, copy_environ_functions, &
        & density_of_functions, gradient_of_functions, laplacian_of_functions, &
        & hessian_of_functions
+
+  INTERFACE create_environ_functions
+     MODULE PROCEDURE create_environ_functions_scalar, create_environ_functions_array
+  END INTERFACE create_environ_functions
 
   INTERFACE density_of_functions
      MODULE PROCEDURE density_of_functions_scalar, density_of_functions_array
@@ -27,13 +31,38 @@ MODULE functions
 
 CONTAINS
 
-  SUBROUTINE create_environ_functions( n, type, dimm, axis, pos, width, spreadd, volume, f )
+  SUBROUTINE create_environ_functions_scalar( type, dimm, axis, pos, width, spreadd, volume, f )
+
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: type
+    INTEGER, INTENT(IN) :: dimm, axis
+    REAL( DP ), INTENT(IN) :: width, spreadd, volume
+    REAL( DP ), DIMENSION(3), TARGET, INTENT(IN) :: pos
+    TYPE( environ_functions ), INTENT(INOUT) :: f
+
+    INTEGER :: i
+
+    f%type   = type
+    f%dim    = dimm
+    f%axis   = axis
+    f%spread = spreadd
+    f%width  = width
+    f%volume = volume
+
+    f%pos => pos
+
+    RETURN
+
+  END SUBROUTINE create_environ_functions_scalar
+
+  SUBROUTINE create_environ_functions_array( n, type, dimm, axis, pos, width, spreadd, volume, f )
 
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: n
     INTEGER, INTENT(IN) :: type
-    INTEGER, DIMENSION(:), INTENT(IN) :: dimm, axis
+    INTEGER, DIMENSION(n), INTENT(IN) :: dimm, axis
     REAL( DP ), DIMENSION(n), INTENT(IN) :: width, spreadd, volume
     REAL( DP ), DIMENSION(3,n), TARGET, INTENT(IN) :: pos
     TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE, INTENT(INOUT) :: f
@@ -42,18 +71,32 @@ CONTAINS
 
     ALLOCATE( f(n) )
     DO i = 1, n
-       f(i)%type = type
-       f(i)%dim  = dimm(i)
-       f(i)%axis = axis(i)
-       f(i)%spread = spreadd(i)
-       f(i)%width = width(i)
-       f(i)%volume = volume(i)
-       f(i)%pos => pos(:,i)
+       CALL create_environ_functions_scalar( type, dimm(i), axis(i), pos(:,i), width(i), spreadd(i), volume(i), f(i) )
     ENDDO
 
     RETURN
 
-  END SUBROUTINE create_environ_functions
+  END SUBROUTINE create_environ_functions_array
+
+  SUBROUTINE copy_environ_functions( foriginal, fcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_functions ), INTENT(IN) :: foriginal
+    TYPE( environ_functions ), INTENT(OUT) :: fcopy
+
+    fcopy % pos   => foriginal % pos
+
+    fcopy % type   = foriginal % type
+    fcopy % dim    = foriginal % dim
+    fcopy % axis   = foriginal % axis
+    fcopy % spread = foriginal % spread
+    fcopy % width  = foriginal % width
+    fcopy % volume = foriginal % volume
+
+    RETURN
+
+  END SUBROUTINE copy_environ_functions
 
   SUBROUTINE destroy_environ_functions( n, f )
 

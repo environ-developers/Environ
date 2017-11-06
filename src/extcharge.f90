@@ -77,6 +77,14 @@ MODULE externals_utils
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( environ_externals ), INTENT(INOUT) :: externals
 
+    INTEGER :: i
+
+    IF ( externals % number .GT. 0 ) THEN
+       DO i = 1, externals % number
+          externals % functions(i) % pos = externals % functions(i) % pos / cell % alat
+       END DO
+    END IF
+
     CALL init_environ_density( cell, externals%density )
 
     RETURN

@@ -121,6 +121,14 @@ CONTAINS
 
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_dielectric_second'
 
+    INTEGER :: i
+
+    IF ( dielectric % nregions .GT. 0 ) THEN
+       DO i = 1, dielectric % nregions
+          dielectric % regions(i) % pos = dielectric % regions(i) % pos / cell % alat
+       END DO
+    END IF
+
     CALL init_environ_density( cell, dielectric%background )
     dielectric % background % of_r(:) = dielectric % constant
     CALL init_environ_gradient( cell, dielectric%gradbackground )

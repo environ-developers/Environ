@@ -8,7 +8,7 @@ MODULE boundary
   PRIVATE
 
   PUBLIC :: create_environ_boundary, init_environ_boundary_first, &
-       & init_environ_boundary_second, set_soft_spheres, &
+       & init_environ_boundary_second, copy_environ_boundary, set_soft_spheres, &
        & update_environ_boundary, destroy_environ_boundary
 
 CONTAINS
@@ -192,6 +192,71 @@ CONTAINS
     RETURN
 
   END SUBROUTINE init_environ_boundary_second
+
+  SUBROUTINE copy_environ_boundary( boriginal, bcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_boundary ), INTENT(IN) :: boriginal
+    TYPE( environ_boundary ), INTENT(OUT) :: bcopy
+
+    INTEGER :: i, n
+
+    bcopy % electrons => boriginal % electrons
+    bcopy % ions      => boriginal % ions
+    bcopy % system    => boriginal % system
+
+    bcopy % mode              = boriginal % mode
+    bcopy % update_status     = boriginal % update_status
+    bcopy % need_electrons    = boriginal % need_electrons
+    bcopy % need_ions         = boriginal % need_ions
+    bcopy % need_system       = boriginal % need_system
+    bcopy % deriv             = boriginal % deriv
+    bcopy % volume            = boriginal % volume
+    bcopy % surface           = boriginal % surface
+    bcopy % type              = boriginal % type
+    bcopy % rhomax            = boriginal % rhomax
+    bcopy % rhomin            = boriginal % rhomin
+    bcopy % fact              = boriginal % fact
+    bcopy % rhozero           = boriginal % rhozero
+    bcopy % deltarho          = boriginal % deltarho
+    bcopy % tbeta             = boriginal % tbeta
+    bcopy % const             = boriginal % const
+    bcopy % alpha             = boriginal % alpha
+    bcopy % softness          = boriginal % softness
+    bcopy % solvent_aware     = boriginal % solvent_aware
+    bcopy % filling_threshold = boriginal % filling_threshold
+    bcopy % filling_spread    = boriginal % filling_spread
+
+    CALL copy_environ_density   ( boriginal % scaled        , bcopy % scaled        )
+    CALL copy_environ_gradient  ( boriginal % gradient      , bcopy % gradient      )
+    CALL copy_environ_density   ( boriginal % laplacian     , bcopy % laplacian     )
+    CALL copy_environ_density   ( boriginal % dsurface      , bcopy % dsurface      )
+    CALL copy_environ_hessian   ( boriginal % hessian       , bcopy % hessian       )
+    CALL copy_environ_density   ( boriginal % density       , bcopy % density       )
+    CALL copy_environ_density   ( boriginal % dscaled       , bcopy % dscaled       )
+    CALL copy_environ_density   ( boriginal % d2scaled      , bcopy % d2scaled      )
+    CALL copy_environ_functions ( boriginal % simple        , bcopy % simple        )
+    CALL copy_environ_functions ( boriginal % solvent_probe , bcopy % solvent_probe )
+    CALL copy_environ_density   ( boriginal % local         , bcopy % local         )
+    CALL copy_environ_density   ( boriginal % probe         , bcopy % probe         )
+    CALL copy_environ_density   ( boriginal % filling       , bcopy % filling       )
+    CALL copy_environ_density   ( boriginal % dfilling      , bcopy % dfilling      )
+
+    IF ( ALLOCATED( boriginal % soft_spheres ) ) THEN
+       n = SIZE( boriginal % soft_spheres )
+       IF ( ALLOCATED( bcopy % soft_spheres ) ) DEALLOCATE( bcopy % soft_spheres )
+       ALLOCATE( bcopy % soft_spheres( n ) )
+       DO i = 1, n
+          CALL copy_environ_functions ( boriginal % soft_spheres(i), bcopy % soft_spheres(i) )
+       ENDDO
+    ELSE
+       IF ( ALLOCATED( bcopy % soft_spheres ) ) DEALLOCATE( bcopy%soft_spheres )
+    ENDIF
+
+    RETURN
+
+  END SUBROUTINE copy_environ_boundary
 
   SUBROUTINE set_soft_spheres( boundary )
 

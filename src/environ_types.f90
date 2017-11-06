@@ -493,6 +493,36 @@ CONTAINS
 
   END SUBROUTINE init_environ_density
 
+  SUBROUTINE copy_environ_density( doriginal, dcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: doriginal
+    TYPE( environ_density ), INTENT(OUT) :: dcopy
+    CHARACTER( LEN = 80 ) :: sub_name = 'copy_environ_density'
+
+    INTEGER :: n
+
+    IF ( .NOT. ASSOCIATED( doriginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    dcopy % cell => doriginal % cell
+
+    dcopy % update     = doriginal % update
+    dcopy % label      = doriginal % label
+    dcopy % charge     = doriginal % charge
+    dcopy % dipole     = doriginal % dipole
+    dcopy % quadrupole = doriginal % quadrupole
+
+    IF ( ALLOCATED( doriginal % of_r ) ) THEN
+       n = SIZE( doriginal % of_r )
+       IF ( ALLOCATED( dcopy % of_r ) ) DEALLOCATE( dcopy % of_r )
+       ALLOCATE( dcopy % of_r ( n ) )
+       dcopy % of_r = doriginal % of_r
+    END IF
+
+    RETURN
+
+  END SUBROUTINE copy_environ_density
+
   FUNCTION integrate_environ_density(density) RESULT(integral)
 
     IMPLICIT NONE
@@ -706,6 +736,35 @@ CONTAINS
 
   END SUBROUTINE init_environ_gradient
 
+  SUBROUTINE copy_environ_gradient( goriginal, gcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_gradient ), INTENT(IN) :: goriginal
+    TYPE( environ_gradient ), INTENT(OUT) :: gcopy
+    CHARACTER( LEN=80 ) :: sub_name = 'copy_environ_gradient'
+
+    INTEGER :: n
+
+    IF ( .NOT. ASSOCIATED( goriginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    gcopy % cell => goriginal % cell
+
+    gcopy % update = goriginal % update
+    gcopy % label  = goriginal % label
+
+    IF ( ALLOCATED( goriginal % of_r ) ) THEN
+       n = SIZE( goriginal % of_r, 2 )
+       IF ( ALLOCATED( gcopy % of_r ) ) DEALLOCATE( gcopy % of_r )
+       ALLOCATE( gcopy % of_r ( 3, n ) )
+       gcopy % of_r = goriginal % of_r
+    END IF
+
+    CALL copy_environ_density( goriginal % modulus, gcopy % modulus )
+
+    RETURN
+
+  END SUBROUTINE copy_environ_gradient
+
   SUBROUTINE update_gradient_modulus(gradient)
 
     IMPLICIT NONE
@@ -849,6 +908,35 @@ CONTAINS
     RETURN
 
   END SUBROUTINE init_environ_hessian
+
+  SUBROUTINE copy_environ_hessian( horiginal, hcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_hessian ), INTENT(IN) :: horiginal
+    TYPE( environ_hessian ), INTENT(OUT) :: hcopy
+    CHARACTER( LEN=80 ) :: sub_name = 'copy_environ_hessian'
+
+    INTEGER :: n
+
+    IF ( .NOT. ASSOCIATED( horiginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    hcopy % cell => horiginal % cell
+
+    hcopy % update = horiginal % update
+    hcopy % label  = horiginal % label
+
+    IF ( ALLOCATED( horiginal % of_r ) ) THEN
+       n = SIZE( horiginal % of_r, 3 )
+       IF ( ALLOCATED( hcopy % of_r ) ) DEALLOCATE( hcopy % of_r )
+       ALLOCATE( hcopy % of_r ( 3, 3, n ) )
+       hcopy % of_r = horiginal % of_r
+    END IF
+
+    CALL copy_environ_density( horiginal % laplacian, hcopy % laplacian )
+
+    RETURN
+
+  END SUBROUTINE copy_environ_hessian
 
   SUBROUTINE update_hessian_laplacian(hessian)
 
