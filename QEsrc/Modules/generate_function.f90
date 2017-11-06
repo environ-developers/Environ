@@ -358,6 +358,7 @@ CONTAINS
         WRITE(stdout,*)'ERROR: unphysically small alat',alat
         STOP
       ENDIF
+      scale = scale * 2.D0 / spread**2 * alat
       spr2 = ( spread / alat )**2
       ALLOCATE( gradrholocal( 3, nnr ) )
       gradrholocal = 0.D0
@@ -410,12 +411,12 @@ CONTAINS
          IF ( dist .GT. exp_tol ) THEN
            gradrholocal( :, ir ) = 0.D0
          ELSE
-           gradrholocal( :, ir ) = scale * EXP(-dist) * r(:) * alat
+           gradrholocal( :, ir ) = EXP(-dist) * r(:)
          ENDIF
          !
       END DO
       !
-      gradrho = gradrho + gradrholocal
+      gradrho = gradrho + gradrholocal * scale
       DEALLOCATE( gradrholocal )
       !
       RETURN
