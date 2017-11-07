@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 29Sep2017 at 16:11:31 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on  7Nov2017 at 16:19:16 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -9,7 +9,7 @@
      http://www.quantum-espresso.org/quote
 
      Serial version
-     Reading input from pw.in
+     Reading input from neutral.in
 
      Current dimensions of program PWSCF are:
      Max number of different atomic species (ntypx) = 10
@@ -134,7 +134,7 @@
      negative rho (up, down):  7.936E-04 0.000E+00
      Starting wfc are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is       12.5 secs
+     total cpu time spent up to now is        4.6 secs
 
      Self-consistent Calculation
 
@@ -145,9 +145,9 @@
      negative rho (up, down):  2.595E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 6.8E-05, # of iterations =  16
+     polarization accuracy = 3.7E-05, # of iterations =  14
 
-     total cpu time spent up to now is       23.8 secs
+     total cpu time spent up to now is       13.9 secs
 
      total energy              =     -34.06236055 Ry
      Harris-Foulkes estimate   =     -34.58697711 Ry
@@ -162,32 +162,32 @@
      negative rho (up, down):  2.656E-03 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 6.1E-05, # of iterations =  13
+     polarization accuracy = 6.6E-05, # of iterations =  10
 
-     total cpu time spent up to now is       34.0 secs
+     total cpu time spent up to now is       21.8 secs
 
-     total energy              =     -34.21524076 Ry
-     Harris-Foulkes estimate   =     -33.93989879 Ry
-     estimated scf accuracy    <       0.35516341 Ry
-     electrostatic embedding   =      -0.03422355 Ry
-     correction to one-el term =      -0.42417660 Ry
+     total energy              =     -34.21524312 Ry
+     Harris-Foulkes estimate   =     -33.94042998 Ry
+     estimated scf accuracy    <       0.35510112 Ry
+     electrostatic embedding   =      -0.03419497 Ry
+     correction to one-el term =      -0.42364750 Ry
 
      iteration #  3     ecut=    30.00 Ry     beta=0.70
      Davidson diagonalization with overlap
      ethr =  4.44E-03,  avg # of iterations =  2.0
 
-     negative rho (up, down):  2.204E-04 0.000E+00
+     negative rho (up, down):  2.202E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 8.3E-05, # of iterations =  13
+     polarization accuracy = 5.7E-05, # of iterations =  11
 
-     total cpu time spent up to now is       44.2 secs
+     total cpu time spent up to now is       29.6 secs
 
-     total energy              =     -34.28761974 Ry
-     Harris-Foulkes estimate   =     -33.97790084 Ry
-     estimated scf accuracy    <       0.01536784 Ry
-     electrostatic embedding   =      -0.02907748 Ry
-     correction to one-el term =      -0.28929097 Ry
+     total energy              =     -34.28775073 Ry
+     Harris-Foulkes estimate   =     -33.97793051 Ry
+     estimated scf accuracy    <       0.01539565 Ry
+     electrostatic embedding   =      -0.02927767 Ry
+     correction to one-el term =      -0.28920354 Ry
 
      iteration #  4     ecut=    30.00 Ry     beta=0.70
      Davidson diagonalization with overlap
@@ -195,96 +195,96 @@
 
      negative rho (up, down):  2.142E-04 0.000E+00
 
-     total cpu time spent up to now is       47.6 secs
+     total cpu time spent up to now is       32.6 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 ( 11060 PWs)   bands (ev):
 
-   -24.5402 -12.3135  -8.7687  -6.7987
+   -24.5418 -12.3154  -8.7675  -6.7982
 
-     highest occupied level (ev):    -6.7987
+     highest occupied level (ev):    -6.7982
 
-!    total energy              =     -34.29567570 Ry
-     Harris-Foulkes estimate   =     -34.17186667 Ry
-     estimated scf accuracy    <       0.00017796 Ry
+!    total energy              =     -34.29553956 Ry
+     Harris-Foulkes estimate   =     -34.17145953 Ry
+     estimated scf accuracy    <       0.00016823 Ry
 
      The total energy is the sum of the following terms:
 
-     one-electron contribution =     -63.79276847 Ry
-     hartree contribution      =      33.46032699 Ry
-     xc contribution           =      -8.39674154 Ry
+     one-electron contribution =     -63.79207472 Ry
+     hartree contribution      =      33.46002076 Ry
+     xc contribution           =      -8.39672857 Ry
      ewald contribution        =       4.55735774 Ry
-     electrostatic embedding   =      -0.03354561 Ry
-     correction to one-el term =      -0.09030482 Ry
+     electrostatic embedding   =      -0.03348196 Ry
+     correction to one-el term =      -0.09063281 Ry
 
      convergence has been achieved in   4 iterations
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =     0.00236649   -0.01253185   -0.00000281
-     atom    2 type  1   force =    -0.00876467    0.00476505    0.00000111
-     atom    3 type  1   force =     0.00639818    0.00776680    0.00000171
+     atom    1 type  2   force =     0.00231870   -0.01228463   -0.00000284
+     atom    2 type  1   force =    -0.00876660    0.00463612    0.00000113
+     atom    3 type  1   force =     0.00644790    0.00764851    0.00000171
 
-     Total force =     0.019064     Total SCF correction =     0.023797
+     Total force =     0.018834     Total SCF correction =     0.021606
      SCF correction compared to forces is large: reduce conv_thr to get better values
 
      Writing output data file pwscf.save
 
-     init_run     :     11.88s CPU     12.36s WALL (       1 calls)
-     electrons    :     32.74s CPU     35.30s WALL (       1 calls)
-     forces       :      1.28s CPU      1.41s WALL (       1 calls)
+     init_run     :      4.14s CPU      4.52s WALL (       1 calls)
+     electrons    :     26.21s CPU     28.21s WALL (       1 calls)
+     forces       :      0.89s CPU      1.02s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.07s CPU      0.07s WALL (       1 calls)
-     potinit      :      1.72s CPU      1.84s WALL (       1 calls)
+     wfcinit      :      0.06s CPU      0.06s WALL (       1 calls)
+     potinit      :      1.54s CPU      1.65s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.52s CPU      0.54s WALL (       4 calls)
-     sum_band     :      2.94s CPU      2.98s WALL (       4 calls)
-     v_of_rho     :      6.16s CPU      6.63s WALL (       5 calls)
-     newd         :      1.54s CPU      2.06s WALL (       5 calls)
-     mix_rho      :      0.47s CPU      0.53s WALL (       4 calls)
+     c_bands      :      0.42s CPU      0.43s WALL (       4 calls)
+     sum_band     :      2.64s CPU      2.70s WALL (       4 calls)
+     v_of_rho     :      5.47s CPU      5.88s WALL (       5 calls)
+     newd         :      1.36s CPU      1.83s WALL (       5 calls)
+     mix_rho      :      0.43s CPU      0.48s WALL (       4 calls)
 
      Called by c_bands:
-     init_us_2    :      0.03s CPU      0.05s WALL (       9 calls)
-     regterg      :      0.48s CPU      0.49s WALL (       4 calls)
+     init_us_2    :      0.03s CPU      0.04s WALL (       9 calls)
+     regterg      :      0.39s CPU      0.40s WALL (       4 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      1.93s CPU      1.95s WALL (       4 calls)
+     addusdens    :      1.76s CPU      1.77s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.48s CPU      0.48s WALL (      13 calls)
+     h_psi        :      0.40s CPU      0.40s WALL (      13 calls)
      s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
-     g_psi        :      0.01s CPU      0.01s WALL (       8 calls)
+     g_psi        :      0.00s CPU      0.00s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
-     h_psi:pot    :      0.48s CPU      0.48s WALL (      13 calls)
+     h_psi:pot    :      0.40s CPU      0.40s WALL (      13 calls)
      h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
-     vloc_psi     :      0.46s CPU      0.46s WALL (      13 calls)
-     add_vuspsi   :      0.01s CPU      0.01s WALL (      13 calls)
+     vloc_psi     :      0.38s CPU      0.38s WALL (      13 calls)
+     add_vuspsi   :      0.01s CPU      0.00s WALL (      13 calls)
 
      General routines
      calbec       :      0.01s CPU      0.01s WALL (      21 calls)
-     fft          :     16.98s CPU     17.13s WALL (     287 calls)
-     ffts         :      0.09s CPU      0.09s WALL (       9 calls)
-     fftw         :      0.38s CPU      0.38s WALL (      62 calls)
-     interpolate  :      0.73s CPU      0.79s WALL (       9 calls)
+     fft          :     13.79s CPU     13.93s WALL (     259 calls)
+     ffts         :      0.08s CPU      0.08s WALL (       9 calls)
+     fftw         :      0.35s CPU      0.35s WALL (      62 calls)
+     interpolate  :      0.67s CPU      0.73s WALL (       9 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
 
 
      Environ routines
      calc_eelect  :      0.02s CPU      0.02s WALL (       8 calls)
-     calc_velect  :     17.45s CPU     18.67s WALL (       6 calls)
-     dielectric   :      0.29s CPU      0.35s WALL (       5 calls)
-     calc_felect  :      0.24s CPU      0.25s WALL (       1 calls)
+     calc_velect  :     12.93s CPU     13.66s WALL (       6 calls)
+     dielectric   :      0.27s CPU      0.32s WALL (       5 calls)
+     calc_felect  :      0.12s CPU      0.14s WALL (       1 calls)
 
-     PWSCF        :    46.09s CPU        49.41s WALL
+     PWSCF        :    31.45s CPU        34.10s WALL
 
 
-   This run was terminated on:  16:12:21  29Sep2017            
+   This run was terminated on:  16:19:50   7Nov2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -306,7 +306,7 @@
  system defined dimension   =  0 
  system defined axis        =  3 
  system center              =      0.5921875     0.5886250     0.5750000 
- system width               =      0.1209428 
+ system width               =      0.1209436 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -320,6 +320,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    306.9268418 
+ surface of the QM region   =    219.1546597 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -330,39 +332,35 @@
  need gradient of logarithm =  T 
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.000000
+ Starting from polarization: rhoiter =      0.000000 jellium =      0.000000
  Iteration #          1
  delta_qm =   0.168745E-02 delta_en =   0.492046E+01 tol =   0.100000E-03
  Iteration #          2
- delta_qm =   0.849391E-03 delta_en =   0.124669E+01 tol =   0.100000E-03
+ delta_qm =   0.989957E-03 delta_en =   0.169347E+01 tol =   0.100000E-03
  Iteration #          3
- delta_qm =   0.567685E-03 delta_en =   0.556876E+00 tol =   0.100000E-03
+ delta_qm =   0.557850E-03 delta_en =   0.537748E+00 tol =   0.100000E-03
  Iteration #          4
- delta_qm =   0.412206E-03 delta_en =   0.293611E+00 tol =   0.100000E-03
+ delta_qm =   0.380246E-03 delta_en =   0.249846E+00 tol =   0.100000E-03
  Iteration #          5
- delta_qm =   0.309245E-03 delta_en =   0.165253E+00 tol =   0.100000E-03
+ delta_qm =   0.212212E-03 delta_en =   0.778184E-01 tol =   0.100000E-03
  Iteration #          6
- delta_qm =   0.228757E-03 delta_en =   0.904258E-01 tol =   0.100000E-03
+ delta_qm =   0.154337E-03 delta_en =   0.411609E-01 tol =   0.100000E-03
  Iteration #          7
- delta_qm =   0.162182E-03 delta_en =   0.454518E-01 tol =   0.100000E-03
+ delta_qm =   0.100515E-03 delta_en =   0.174585E-01 tol =   0.100000E-03
  Iteration #          8
- delta_qm =   0.111749E-03 delta_en =   0.215790E-01 tol =   0.100000E-03
+ delta_qm =   0.556025E-04 delta_en =   0.534234E-02 tol =   0.100000E-03
  Iteration #          9
- delta_qm =   0.779932E-04 delta_en =   0.105113E-01 tol =   0.100000E-03
+ delta_qm =   0.418925E-04 delta_en =   0.303261E-02 tol =   0.100000E-03
  Iteration #         10
- delta_qm =   0.564436E-04 delta_en =   0.550521E-02 tol =   0.100000E-03
+ delta_qm =   0.281576E-04 delta_en =   0.137005E-02 tol =   0.100000E-03
  Iteration #         11
- delta_qm =   0.413074E-04 delta_en =   0.294848E-02 tol =   0.100000E-03
+ delta_qm =   0.156073E-04 delta_en =   0.420922E-03 tol =   0.100000E-03
  Iteration #         12
- delta_qm =   0.293765E-04 delta_en =   0.149122E-02 tol =   0.100000E-03
+ delta_qm =   0.119004E-04 delta_en =   0.244718E-03 tol =   0.100000E-03
  Iteration #         13
- delta_qm =   0.199626E-04 delta_en =   0.688615E-03 tol =   0.100000E-03
+ delta_qm =   0.830667E-05 delta_en =   0.119233E-03 tol =   0.100000E-03
  Iteration #         14
- delta_qm =   0.131780E-04 delta_en =   0.300084E-03 tol =   0.100000E-03
- Iteration #         15
- delta_qm =   0.884694E-05 delta_en =   0.135248E-03 tol =   0.100000E-03
- Iteration #         16
- delta_qm =   0.626207E-05 delta_en =   0.677610E-04 tol =   0.100000E-03
+ delta_qm =   0.465638E-05 delta_en =   0.374663E-04 tol =   0.100000E-03
  Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -377,6 +375,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    332.9214039 
+ surface of the QM region   =    231.9123653 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -387,33 +387,27 @@
  need gradient of logarithm =  T 
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.327709
+ Starting from polarization: rhoiter =      0.327307 jellium =      0.000000
  Iteration #          1
- delta_qm =   0.319783E-03 delta_en =   0.176707E+00 tol =   0.100000E-03
+ delta_qm =   0.319761E-03 delta_en =   0.176683E+00 tol =   0.100000E-03
  Iteration #          2
- delta_qm =   0.180045E-03 delta_en =   0.560149E-01 tol =   0.100000E-03
+ delta_qm =   0.213734E-03 delta_en =   0.789390E-01 tol =   0.100000E-03
  Iteration #          3
- delta_qm =   0.144426E-03 delta_en =   0.360443E-01 tol =   0.100000E-03
+ delta_qm =   0.138389E-03 delta_en =   0.330937E-01 tol =   0.100000E-03
  Iteration #          4
- delta_qm =   0.115322E-03 delta_en =   0.229808E-01 tol =   0.100000E-03
+ delta_qm =   0.861753E-04 delta_en =   0.128325E-01 tol =   0.100000E-03
  Iteration #          5
- delta_qm =   0.868011E-04 delta_en =   0.130195E-01 tol =   0.100000E-03
+ delta_qm =   0.603426E-04 delta_en =   0.629204E-02 tol =   0.100000E-03
  Iteration #          6
- delta_qm =   0.631811E-04 delta_en =   0.689793E-02 tol =   0.100000E-03
+ delta_qm =   0.401158E-04 delta_en =   0.278082E-02 tol =   0.100000E-03
  Iteration #          7
- delta_qm =   0.459808E-04 delta_en =   0.365339E-02 tol =   0.100000E-03
+ delta_qm =   0.226796E-04 delta_en =   0.888824E-03 tol =   0.100000E-03
  Iteration #          8
- delta_qm =   0.339517E-04 delta_en =   0.199190E-02 tol =   0.100000E-03
+ delta_qm =   0.162400E-04 delta_en =   0.455738E-03 tol =   0.100000E-03
  Iteration #          9
- delta_qm =   0.250691E-04 delta_en =   0.108598E-02 tol =   0.100000E-03
+ delta_qm =   0.112260E-04 delta_en =   0.217767E-03 tol =   0.100000E-03
  Iteration #         10
- delta_qm =   0.180761E-04 delta_en =   0.564615E-03 tol =   0.100000E-03
- Iteration #         11
- delta_qm =   0.126015E-04 delta_en =   0.274404E-03 tol =   0.100000E-03
- Iteration #         12
- delta_qm =   0.859967E-05 delta_en =   0.127793E-03 tol =   0.100000E-03
- Iteration #         13
- delta_qm =   0.592240E-05 delta_en =   0.606093E-04 tol =   0.100000E-03
+ delta_qm =   0.616035E-05 delta_en =   0.655775E-04 tol =   0.100000E-03
  Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -428,6 +422,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    295.5062698 
+ surface of the QM region   =    214.3436407 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -438,33 +434,29 @@
  need gradient of logarithm =  T 
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.266396
+ Starting from polarization: rhoiter =      0.266622 jellium =      0.000000
  Iteration #          1
- delta_qm =   0.453472E-03 delta_en =   0.355341E+00 tol =   0.100000E-03
+ delta_qm =   0.453098E-03 delta_en =   0.354755E+00 tol =   0.100000E-03
  Iteration #          2
- delta_qm =   0.228941E-03 delta_en =   0.905714E-01 tol =   0.100000E-03
+ delta_qm =   0.248232E-03 delta_en =   0.106478E+00 tol =   0.100000E-03
  Iteration #          3
- delta_qm =   0.167143E-03 delta_en =   0.482747E-01 tol =   0.100000E-03
+ delta_qm =   0.176268E-03 delta_en =   0.536898E-01 tol =   0.100000E-03
  Iteration #          4
- delta_qm =   0.134323E-03 delta_en =   0.311775E-01 tol =   0.100000E-03
+ delta_qm =   0.105958E-03 delta_en =   0.194004E-01 tol =   0.100000E-03
  Iteration #          5
- delta_qm =   0.102363E-03 delta_en =   0.181063E-01 tol =   0.100000E-03
+ delta_qm =   0.713871E-04 delta_en =   0.880609E-02 tol =   0.100000E-03
  Iteration #          6
- delta_qm =   0.737607E-04 delta_en =   0.940143E-02 tol =   0.100000E-03
+ delta_qm =   0.512960E-04 delta_en =   0.454684E-02 tol =   0.100000E-03
  Iteration #          7
- delta_qm =   0.519625E-04 delta_en =   0.466578E-02 tol =   0.100000E-03
+ delta_qm =   0.306279E-04 delta_en =   0.162099E-02 tol =   0.100000E-03
  Iteration #          8
- delta_qm =   0.371911E-04 delta_en =   0.239013E-02 tol =   0.100000E-03
+ delta_qm =   0.198351E-04 delta_en =   0.679847E-03 tol =   0.100000E-03
  Iteration #          9
- delta_qm =   0.273674E-04 delta_en =   0.129422E-02 tol =   0.100000E-03
+ delta_qm =   0.144158E-04 delta_en =   0.359106E-03 tol =   0.100000E-03
  Iteration #         10
- delta_qm =   0.202267E-04 delta_en =   0.706960E-03 tol =   0.100000E-03
+ delta_qm =   0.879270E-05 delta_en =   0.133594E-03 tol =   0.100000E-03
  Iteration #         11
- delta_qm =   0.145885E-04 delta_en =   0.367759E-03 tol =   0.100000E-03
- Iteration #         12
- delta_qm =   0.101593E-04 delta_en =   0.178348E-03 tol =   0.100000E-03
- Iteration #         13
- delta_qm =   0.691055E-05 delta_en =   0.825219E-04 tol =   0.100000E-03
+ delta_qm =   0.573310E-05 delta_en =   0.567966E-04 tol =   0.100000E-03
  Charges are converged, EXIT
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -479,6 +471,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    295.5062698 
+ surface of the QM region   =    214.3436407 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
