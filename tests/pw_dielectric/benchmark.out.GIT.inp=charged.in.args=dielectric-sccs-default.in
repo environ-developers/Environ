@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 10Oct2017 at 11:24:11 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on  7Nov2017 at 16:22:11 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -171,7 +171,7 @@
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfc are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is       29.8 secs
+     total cpu time spent up to now is        8.5 secs
 
      Self-consistent Calculation
 
@@ -184,7 +184,7 @@
      add environment contribution to local potential
      polarization accuracy = 3.9E-05, # of iterations =  12
 
-     total cpu time spent up to now is       39.2 secs
+     total cpu time spent up to now is       16.6 secs
 
      total energy              =     -80.23660198 Ry
      Harris-Foulkes estimate   =     -83.01879009 Ry
@@ -201,7 +201,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.1E-05, # of iterations =  14
 
-     total cpu time spent up to now is       49.3 secs
+     total cpu time spent up to now is       25.2 secs
 
      total energy              =     -80.98864347 Ry
      Harris-Foulkes estimate   =     -76.58388143 Ry
@@ -218,7 +218,7 @@
      add environment contribution to local potential
      polarization accuracy = 4.8E-05, # of iterations =  15
 
-     total cpu time spent up to now is       59.4 secs
+     total cpu time spent up to now is       33.6 secs
 
      total energy              =     -81.33022523 Ry
      Harris-Foulkes estimate   =     -77.00552210 Ry
@@ -235,7 +235,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.4E-05, # of iterations =  16
 
-     total cpu time spent up to now is       69.4 secs
+     total cpu time spent up to now is       41.9 secs
 
      total energy              =     -81.38019620 Ry
      Harris-Foulkes estimate   =     -77.20741181 Ry
@@ -249,7 +249,7 @@
 
      negative rho (up, down):  2.756E-04 0.000E+00
 
-     total cpu time spent up to now is       74.7 secs
+     total cpu time spent up to now is       46.5 secs
 
      End of self-consistent calculation
 
@@ -293,60 +293,60 @@
 
      Writing output data file pwscf.save
 
-     init_run     :     28.79s CPU     29.54s WALL (       1 calls)
-     electrons    :     40.96s CPU     45.06s WALL (       1 calls)
-     forces       :      3.52s CPU      3.92s WALL (       1 calls)
+     init_run     :      7.72s CPU      8.33s WALL (       1 calls)
+     electrons    :     34.84s CPU     38.17s WALL (       1 calls)
+     forces       :      2.25s CPU      2.64s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.25s CPU      0.25s WALL (       1 calls)
-     potinit      :      1.98s CPU      2.11s WALL (       1 calls)
+     wfcinit      :      0.22s CPU      0.21s WALL (       1 calls)
+     potinit      :      1.77s CPU      1.87s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      2.37s CPU      2.24s WALL (       5 calls)
-     sum_band     :      7.28s CPU      7.36s WALL (       5 calls)
-     v_of_rho     :      7.97s CPU      8.60s WALL (       6 calls)
-     newd         :      3.86s CPU      5.47s WALL (       6 calls)
-     mix_rho      :      0.66s CPU      0.75s WALL (       5 calls)
+     c_bands      :      1.95s CPU      1.82s WALL (       5 calls)
+     sum_band     :      6.46s CPU      6.56s WALL (       5 calls)
+     v_of_rho     :      7.10s CPU      7.58s WALL (       6 calls)
+     newd         :      3.46s CPU      5.00s WALL (       6 calls)
+     mix_rho      :      0.58s CPU      0.67s WALL (       5 calls)
 
      Called by c_bands:
-     init_us_2    :      0.09s CPU      0.12s WALL (      11 calls)
-     regterg      :      2.23s CPU      2.08s WALL (       5 calls)
+     init_us_2    :      0.07s CPU      0.10s WALL (      11 calls)
+     regterg      :      1.87s CPU      1.71s WALL (       5 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       5 calls)
-     addusdens    :      5.76s CPU      5.79s WALL (       5 calls)
+     addusdens    :      5.17s CPU      5.22s WALL (       5 calls)
 
      Called by *egterg:
-     h_psi        :      2.05s CPU      1.99s WALL (      23 calls)
-     s_psi        :      0.11s CPU      0.04s WALL (      23 calls)
-     g_psi        :      0.02s CPU      0.02s WALL (      17 calls)
+     h_psi        :      1.70s CPU      1.64s WALL (      23 calls)
+     s_psi        :      0.11s CPU      0.03s WALL (      23 calls)
+     g_psi        :      0.01s CPU      0.01s WALL (      17 calls)
      rdiaghg      :      0.01s CPU      0.01s WALL (      22 calls)
 
      Called by h_psi:
-     h_psi:pot    :      2.03s CPU      1.97s WALL (      23 calls)
-     h_psi:calbec :      0.05s CPU      0.06s WALL (      23 calls)
-     vloc_psi     :      1.84s CPU      1.87s WALL (      23 calls)
-     add_vuspsi   :      0.13s CPU      0.04s WALL (      23 calls)
+     h_psi:pot    :      1.69s CPU      1.63s WALL (      23 calls)
+     h_psi:calbec :      0.06s CPU      0.06s WALL (      23 calls)
+     vloc_psi     :      1.51s CPU      1.53s WALL (      23 calls)
+     add_vuspsi   :      0.12s CPU      0.04s WALL (      23 calls)
 
      General routines
      calbec       :      0.08s CPU      0.08s WALL (      32 calls)
-     fft          :     16.42s CPU     16.59s WALL (     273 calls)
-     ffts         :      0.11s CPU      0.11s WALL (      11 calls)
-     fftw         :      1.51s CPU      1.53s WALL (     244 calls)
-     interpolate  :      0.91s CPU      1.00s WALL (      11 calls)
-     davcio       :      0.01s CPU      0.11s WALL (       1 calls)
+     fft          :     14.61s CPU     14.76s WALL (     273 calls)
+     ffts         :      0.10s CPU      0.10s WALL (      11 calls)
+     fftw         :      1.37s CPU      1.39s WALL (     244 calls)
+     interpolate  :      0.82s CPU      0.90s WALL (      11 calls)
+     davcio       :      0.00s CPU      0.00s WALL (       1 calls)
 
 
      Environ routines
      calc_eelect  :      0.02s CPU      0.02s WALL (      10 calls)
-     calc_velect  :     12.91s CPU     14.54s WALL (       8 calls)
-     dielectric   :      0.73s CPU      0.87s WALL (       6 calls)
-     calc_felect  :      0.99s CPU      1.04s WALL (       1 calls)
+     calc_velect  :     10.68s CPU     11.67s WALL (       8 calls)
+     dielectric   :      0.46s CPU      0.56s WALL (       6 calls)
+     calc_felect  :      0.55s CPU      0.60s WALL (       1 calls)
 
-     PWSCF        :  1m13.57s CPU     1m19.11s WALL
+     PWSCF        :    45.10s CPU        49.58s WALL
 
 
-   This run was terminated on:  11:25:30  10Oct2017            
+   This run was terminated on:  16:23: 1   7Nov2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -389,6 +389,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    989.6663489 
+ surface of the QM region   =    490.3846933 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -400,40 +402,40 @@
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Iteration #          1
-  pAp =  92.01284325786163  rzold =  89.11681792761655  alpha =  0.9685258576117564
+  pAp =    92.012843257861363       rzold =    89.116817927616466       alpha =   0.96852585761175825     
  delta_qm =   0.144051E-01 delta_en =   0.358571E+03 tol =   0.100000E-03
  Iteration #          2
-  pAp =  132.52066443026843  rzold =  17.613253966342462  alpha =  0.1329094903203602
+  pAp =    132.52066443026314       rzold =    17.613253966341553       alpha =   0.13290949032035862     
  delta_qm =   0.289070E-02 delta_en =   0.144394E+02 tol =   0.100000E-03
  Iteration #          3
-  pAp =  0.875209649390876  rzold =  0.18958040211218172  alpha =  0.216611416754974
+  pAp =   0.87520964939084134       rzold =   0.18958040211217395       alpha =   0.21661141675497370     
  delta_qm =   0.145902E-02 delta_en =   0.367844E+01 tol =   0.100000E-03
  Iteration #          4
-  pAp =  0.10868490251357991  rzold =  0.023983899729255017  alpha =  0.2206737014486284
+  pAp =   0.10868490251357625       rzold =    2.3983899729253820E-002  alpha =   0.22067370144862483     
  delta_qm =   0.104063E-02 delta_en =   0.187126E+01 tol =   0.100000E-03
  Iteration #          5
-  pAp =  0.011034475515118524  rzold =  0.004016259193810152  alpha =  0.3639737283668269
+  pAp =    1.1034475515118136E-002  rzold =    4.0162591938098895E-003  alpha =   0.36397372836681591     
  delta_qm =   0.560004E-03 delta_en =   0.541909E+00 tol =   0.100000E-03
  Iteration #          6
-  pAp =  0.0031617735856466194  rzold =  0.001244401532003765  alpha =  0.3935770536046371
+  pAp =    3.1617735856462529E-003  rzold =    1.2444015320036569E-003  alpha =   0.39357705360464845     
  delta_qm =   0.250805E-03 delta_en =   0.108697E+00 tol =   0.100000E-03
  Iteration #          7
-  pAp =  0.0004557026901184699  rzold =  0.000185251361280372  alpha =  0.40651803313298823
+  pAp =    4.5570269011844584E-004  rzold =    1.8525136128035968E-004  alpha =   0.40651803313298263     
  delta_qm =   0.150204E-03 delta_en =   0.389857E-01 tol =   0.100000E-03
  Iteration #          8
-  pAp =  0.0003340931678698469  rzold =  0.00009997320266511321  alpha =  0.29923749504527397
+  pAp =    3.3409316786982588E-004  rzold =    9.9973202665106783E-005  alpha =   0.29923749504527358     
  delta_qm =   0.862175E-04 delta_en =   0.128450E-01 tol =   0.100000E-03
  Iteration #          9
-  pAp =  0.00011117585500230402  rzold =  0.00004483632497723817  alpha =  0.4032919285964473
+  pAp =    1.1117585500229254E-004  rzold =    4.4836324977235025E-005  alpha =   0.40329192859646068     
  delta_qm =   0.370895E-04 delta_en =   0.237709E-02 tol =   0.100000E-03
  Iteration #         10
-  pAp =  0.00002443675533103844  rzold =  0.000010258991882088205  alpha =  0.41981808726699926
+  pAp =    2.4436755331037684E-005  rzold =    1.0258991882087394E-005  alpha =   0.41981808726697906     
  delta_qm =   0.181116E-04 delta_en =   0.566834E-03 tol =   0.100000E-03
  Iteration #         11
-  pAp =  0.0000017520989495913705  rzold =  9.356868994307449E-7  alpha =  0.5340377035492022
+  pAp =    1.7520989495910478E-006  rzold =    9.3568689943056263E-007  alpha =   0.53403770354919655     
  delta_qm =   0.992077E-05 delta_en =   0.170073E-03 tol =   0.100000E-03
  Iteration #         12
-  pAp =  3.088983673691336E-7  rzold =  1.9981898898989586E-7  alpha =  0.6468761576558031
+  pAp =    3.0889836736898775E-007  rzold =    1.9981898898984684E-007  alpha =   0.64687615765594986     
  delta_qm =   0.472194E-05 delta_en =   0.385287E-04 tol =   0.100000E-03
  Charges are converged, EXIT
 
@@ -449,6 +451,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    837.6711997 
+ surface of the QM region   =    448.9915474 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -461,46 +465,46 @@
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Warning: bad guess with residual norm =   0.142555E+04, reset to no guess
  Iteration #          1
-  pAp =  95.45322278713805  rzold =  92.72696749064609  alpha =  0.9714388344689886
+  pAp =    95.453222787137676       rzold =    92.726967490645620       alpha =   0.97143883446898749     
  delta_qm =   0.202001E-01 delta_en =   0.705098E+03 tol =   0.100000E-03
  Iteration #          2
-  pAp =  168.3763520532077  rzold =  19.54536624775069  alpha =  0.11608142122935566
+  pAp =    168.37635205323562       rzold =    19.545366247752575       alpha =   0.11608142122934763     
  delta_qm =   0.404440E-02 delta_en =   0.282652E+02 tol =   0.100000E-03
  Iteration #          3
-  pAp =  1.1430877669403052  rzold =  0.20086427705756468  alpha =  0.17572078266152444
+  pAp =    1.1430877669407229       rzold =   0.20086427705761606       alpha =   0.17572078266150518     
  delta_qm =   0.218209E-02 delta_en =   0.822789E+01 tol =   0.100000E-03
  Iteration #          4
-  pAp =  0.12033681781623361  rzold =  0.023384522746175185  alpha =  0.19432558688634843
+  pAp =   0.12033681781626232       rzold =    2.3384522746179186E-002  alpha =   0.19432558688633531     
  delta_qm =   0.161696E-02 delta_en =   0.451799E+01 tol =   0.100000E-03
  Iteration #          5
-  pAp =  0.01203975909836658  rzold =  0.0046194928644672315  alpha =  0.3836864863096765
+  pAp =    1.2039759098365650E-002  rzold =    4.6194928644668100E-003  alpha =   0.38368648630967112     
  delta_qm =   0.908471E-03 delta_en =   0.142615E+01 tol =   0.100000E-03
  Iteration #          6
-  pAp =  0.005230770614241349  rzold =  0.0018498052420517557  alpha =  0.3536391439180027
+  pAp =    5.2307706142412499E-003  rzold =    1.8498052420517761E-003  alpha =   0.35363914391801327     
  delta_qm =   0.473628E-03 delta_en =   0.387630E+00 tol =   0.100000E-03
  Iteration #          7
-  pAp =  0.0008398201528776362  rzold =  0.00039928886937820395  alpha =  0.4754456868057336
+  pAp =    8.3982015287766660E-004  rzold =    3.9928886937817652E-004  alpha =   0.47544568680568378     
  delta_qm =   0.288924E-03 delta_en =   0.144249E+00 tol =   0.100000E-03
  Iteration #          8
-  pAp =  0.0005689592739529276  rzold =  0.00023564844713314182  alpha =  0.4141745427505555
+  pAp =    5.6895927395246527E-004  rzold =    2.3564844713305129E-004  alpha =   0.41417454275073290     
  delta_qm =   0.139627E-03 delta_en =   0.336885E-01 tol =   0.100000E-03
  Iteration #          9
-  pAp =  0.0007503607172235945  rzold =  0.00017294518642744597  alpha =  0.23048272978276302
+  pAp =    7.5036071722339389E-004  rzold =    1.7294518642735102E-004  alpha =   0.23048272978269807     
  delta_qm =   0.789320E-04 delta_en =   0.107659E-01 tol =   0.100000E-03
  Iteration #         10
-  pAp =  0.0001308892322268293  rzold =  0.00004485338599221485  alpha =  0.34268201615305166
+  pAp =    1.3088923222686567E-004  rzold =    4.4853385992216413E-005  alpha =   0.34268201615296839     
  delta_qm =   0.362170E-04 delta_en =   0.226657E-02 tol =   0.100000E-03
  Iteration #         11
-  pAp =  0.000007463878035441913  rzold =  0.0000032856500961712514  alpha =  0.4402068308953441
+  pAp =    7.4638780354417614E-006  rzold =    3.2856500961710570E-006  alpha =   0.44020683089532703     
  delta_qm =   0.207684E-04 delta_en =   0.745335E-03 tol =   0.100000E-03
  Iteration #         12
-  pAp =  0.0000018599359624830612  rzold =  7.619374392627535E-7  alpha =  0.40965788856813534
+  pAp =    1.8599359624825875E-006  rzold =    7.6193743926264917E-007  alpha =   0.40965788856818364     
  delta_qm =   0.135911E-04 delta_en =   0.319191E-03 tol =   0.100000E-03
  Iteration #         13
-  pAp =  6.046973811152782E-7  rzold =  2.9980501890906923E-7  alpha =  0.4957934799653367
+  pAp =    6.0469738111497671E-007  rzold =    2.9980501890901730E-007  alpha =   0.49579347996549800     
  delta_qm =   0.795523E-05 delta_en =   0.109358E-03 tol =   0.100000E-03
  Iteration #         14
-  pAp =  3.757154333014067E-7  rzold =  1.4942942325362541E-7  alpha =  0.3977196835929549
+  pAp =    3.7571543330100357E-007  rzold =    1.4942942325355093E-007  alpha =   0.39771968359318338     
  delta_qm =   0.541491E-05 delta_en =   0.506671E-04 tol =   0.100000E-03
  Charges are converged, EXIT
 
@@ -516,6 +520,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    757.1445525 
+ surface of the QM region   =    424.1886577 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -528,49 +534,49 @@
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Warning: bad guess with residual norm =   0.162356E+04, reset to no guess
  Iteration #          1
-  pAp =  95.95471529235967  rzold =  93.38744222588588  alpha =  0.9732449514476522
+  pAp =    95.954715292359339       rzold =    93.387442225883333       alpha =   0.97324495144762901     
  delta_qm =   0.225239E-01 delta_en =   0.876659E+03 tol =   0.100000E-03
  Iteration #          2
-  pAp =  211.47316920973375  rzold =  21.422339207046363  alpha =  0.10130050675979717
+  pAp =    211.47316921011995       rzold =    21.422339207075385       alpha =   0.10130050675974940     
  delta_qm =   0.423466E-02 delta_en =   0.309870E+02 tol =   0.100000E-03
  Iteration #          3
-  pAp =  1.2263805169869066  rzold =  0.22341238405909405  alpha =  0.18217215698109407
+  pAp =    1.2263805169896931       rzold =   0.22341238405939862       alpha =   0.18217215698092851     
  delta_qm =   0.203971E-02 delta_en =   0.718922E+01 tol =   0.100000E-03
  Iteration #          4
-  pAp =  0.10520357341429185  rzold =  0.019392254221852694  alpha =  0.18433075600470303
+  pAp =   0.10520357341470184       rzold =    1.9392254221902966E-002  alpha =   0.18433075600446253     
  delta_qm =   0.159178E-02 delta_en =   0.437836E+01 tol =   0.100000E-03
  Iteration #          5
-  pAp =  0.019274901211852533  rzold =  0.0054594191434427656  alpha =  0.28323979891972967
+  pAp =    1.9274901211853334E-002  rzold =    5.4594191434442401E-003  alpha =   0.28323979891979439     
  delta_qm =   0.103602E-02 delta_en =   0.185472E+01 tol =   0.100000E-03
  Iteration #          6
-  pAp =  0.007054823912727866  rzold =  0.002376768620100703  alpha =  0.33689977942790145
+  pAp =    7.0548239127241905E-003  rzold =    2.3767686201006505E-003  alpha =   0.33689977942806959     
  delta_qm =   0.569966E-03 delta_en =   0.561361E+00 tol =   0.100000E-03
  Iteration #          7
-  pAp =  0.0015755083058747199  rzold =  0.0006635412696047438  alpha =  0.4211601215496904
+  pAp =    1.5755083058770674E-003  rzold =    6.6354126960521947E-004  alpha =   0.42116012154936477     
  delta_qm =   0.371143E-03 delta_en =   0.238027E+00 tol =   0.100000E-03
  Iteration #          8
-  pAp =  0.0007290411685565277  rzold =  0.0003498414159991134  alpha =  0.47986510376606767
+  pAp =    7.2904116855647774E-004  rzold =    3.4984141599910359E-004  alpha =   0.47986510376608710     
  delta_qm =   0.191484E-03 delta_en =   0.633590E-01 tol =   0.100000E-03
  Iteration #          9
-  pAp =  0.0010769386262144966  rzold =  0.0002727101454387242  alpha =  0.2532271930827819
+  pAp =    1.0769386262136978E-003  rzold =    2.7271014543876418E-004  alpha =   0.25322719308300684     
  delta_qm =   0.136312E-03 delta_en =   0.321080E-01 tol =   0.100000E-03
  Iteration #         10
-  pAp =  0.0006051017274086146  rzold =  0.00015318341922436788  alpha =  0.2531531679481156
+  pAp =    6.0510172741036440E-004  rzold =    1.5318341922470097E-004  alpha =   0.25315316794793402     
  delta_qm =   0.583242E-04 delta_en =   0.587815E-02 tol =   0.100000E-03
  Iteration #         11
-  pAp =  0.00004566753854604611  rzold =  0.00001553070387643607  alpha =  0.340081913124716
+  pAp =    4.5667538546244744E-005  rzold =    1.5530703876487663E-005  alpha =   0.34008191312436648     
  delta_qm =   0.349006E-04 delta_en =   0.210479E-02 tol =   0.100000E-03
  Iteration #         12
-  pAp =  0.000014370281107008039  rzold =  0.0000039820537403342  alpha =  0.27710339906936465
+  pAp =    1.4370281107073049E-005  rzold =    3.9820537403506198E-006  alpha =   0.27710339906925369     
  delta_qm =   0.232656E-04 delta_en =   0.935350E-03 tol =   0.100000E-03
  Iteration #         13
-  pAp =  0.0000019614758612612578  rzold =  8.530200419560358E-7  alpha =  0.4348868414865587
+  pAp =    1.9614758612670138E-006  rzold =    8.5302004195843598E-007  alpha =   0.43488684148650619     
  delta_qm =   0.136214E-04 delta_en =   0.320619E-03 tol =   0.100000E-03
  Iteration #         14
-  pAp =  9.183534103742402E-7  rzold =  3.8678449694318064E-7  alpha =  0.4211717325528973
+  pAp =    9.1835341037643727E-007  rzold =    3.8678449694433292E-007  alpha =   0.42117173255314444     
  delta_qm =   0.924573E-05 delta_en =   0.147716E-03 tol =   0.100000E-03
  Iteration #         15
-  pAp =  2.954867487943484E-7  rzold =  1.3780782950665511E-7  alpha =  0.46637566682411874
+  pAp =    2.9548674879531154E-007  rzold =    1.3780782950709099E-007  alpha =   0.46637566682407378     
  delta_qm =   0.529674E-05 delta_en =   0.484798E-04 tol =   0.100000E-03
  Charges are converged, EXIT
 
@@ -586,6 +592,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    717.0728738 
+ surface of the QM region   =    412.4194618 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -598,52 +606,52 @@
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Warning: bad guess with residual norm =   0.254216E+04, reset to no guess
  Iteration #          1
-  pAp =  95.8690962205173  rzold =  93.27401714721532  alpha =  0.9729310155659253
+  pAp =    95.869096220520092       rzold =    93.274017147210827       alpha =   0.97293101556585027     
  delta_qm =   0.276959E-01 delta_en =   0.132549E+04 tol =   0.100000E-03
  Iteration #          2
-  pAp =  251.29116860459328  rzold =  23.52864803019615  alpha =  0.0936310183953121
+  pAp =    251.29116860609309       rzold =    23.528648030301408       alpha =    9.3631018395172141E-002
  delta_qm =   0.507395E-02 delta_en =   0.444873E+02 tol =   0.100000E-03
  Iteration #          3
-  pAp =  1.739447897971853  rzold =  0.29009031545928404  alpha =  0.1667714886990988
+  pAp =    1.7394478979803500       rzold =   0.29009031546017816       alpha =   0.16677148869879815     
  delta_qm =   0.235965E-02 delta_en =   0.962140E+01 tol =   0.100000E-03
  Iteration #          4
-  pAp =  0.1391321102088016  rzold =  0.02383953505318226  alpha =  0.17134459484158787
+  pAp =   0.13913211020964783       rzold =    2.3839535053278790E-002  alpha =   0.17134459484123951     
  delta_qm =   0.188095E-02 delta_en =   0.611362E+01 tol =   0.100000E-03
  Iteration #          5
-  pAp =  0.025607801001239095  rzold =  0.006443327044443666  alpha =  0.2516157886470568
+  pAp =    2.5607801001306513E-002  rzold =    6.4433270444550564E-003  alpha =   0.25161578864683920     
  delta_qm =   0.128331E-02 delta_en =   0.284584E+01 tol =   0.100000E-03
  Iteration #          6
-  pAp =  0.00842242340754282  rzold =  0.002729256215208052  alpha =  0.3240464273933115
+  pAp =    8.4224234075450776E-003  rzold =    2.7292562152098632E-003  alpha =   0.32404642739343970     
  delta_qm =   0.748393E-03 delta_en =   0.967839E+00 tol =   0.100000E-03
  Iteration #          7
-  pAp =  0.002328714946856859  rzold =  0.0008714626837058608  alpha =  0.37422471345499025
+  pAp =    2.3287149468704175E-003  rzold =    8.7146268370833575E-004  alpha =   0.37422471345387415     
  delta_qm =   0.526994E-03 delta_en =   0.479905E+00 tol =   0.100000E-03
  Iteration #          8
-  pAp =  0.0011758860946265756  rzold =  0.00045289610229122415  alpha =  0.3851530385135218
+  pAp =    1.1758860946375412E-003  rzold =    4.5289610229235736E-004  alpha =   0.38515303851089377     
  delta_qm =   0.307265E-03 delta_en =   0.163144E+00 tol =   0.100000E-03
  Iteration #          9
-  pAp =  0.0019990703061410642  rzold =  0.0004911580442566766  alpha =  0.24569323187276537
+  pAp =    1.9990703061380588E-003  rzold =    4.9115804425769603E-004  alpha =   0.24569323187364472     
  delta_qm =   0.235207E-03 delta_en =   0.955968E-01 tol =   0.100000E-03
  Iteration #         10
-  pAp =  0.0007680946685953753  rzold =  0.00025704726650329767  alpha =  0.33465570978817405
+  pAp =    7.6809466859375554E-004  rzold =    2.5704726650382893E-004  alpha =   0.33465570978957149     
  delta_qm =   0.982198E-04 delta_en =   0.166702E-01 tol =   0.100000E-03
  Iteration #         11
-  pAp =  0.00011992419943360881  rzold =  0.00003955677059294247  alpha =  0.3298481105545464
+  pAp =    1.1992419943538131E-004  rzold =    3.9556770593359012E-005  alpha =   0.32984811055314456     
  delta_qm =   0.616213E-04 delta_en =   0.656154E-02 tol =   0.100000E-03
  Iteration #         12
-  pAp =  0.00003890943162971616  rzold =  0.000010270037053036757  alpha =  0.26394723908516976
+  pAp =    3.8909431630428756E-005  rzold =    1.0270037053205812E-005  alpha =   0.26394723908468060     
  delta_qm =   0.435167E-04 delta_en =   0.327232E-02 tol =   0.100000E-03
  Iteration #         13
-  pAp =  0.000005785923477144969  rzold =  0.0000022946309109361265  alpha =  0.39658853422451396
+  pAp =    5.7859234772072464E-006  rzold =    2.2946309109594212E-006  alpha =   0.39658853422427137     
  delta_qm =   0.275596E-04 delta_en =   0.131247E-02 tol =   0.100000E-03
  Iteration #         14
-  pAp =  0.0000028905968146794542  rzold =  0.0000011802461444963078  alpha =  0.4083053501279072
+  pAp =    2.8905968146908396E-006  rzold =    1.1802461445054775E-006  alpha =   0.40830535012947122     
  delta_qm =   0.192880E-04 delta_en =   0.642862E-03 tol =   0.100000E-03
  Iteration #         15
-  pAp =  0.0000010636019488659135  rzold =  4.767118438124995E-7  alpha =  0.4482051244084339
+  pAp =    1.0636019488756497E-006  rzold =    4.7671184381695280E-007  alpha =   0.44820512440851801     
  delta_qm =   0.109178E-04 delta_en =   0.205975E-03 tol =   0.100000E-03
  Iteration #         16
-  pAp =  4.815408923755583E-7  rzold =  2.0603001373974386E-7  alpha =  0.42785569616600516
+  pAp =    4.8154089238023316E-007  rzold =    2.0603001374187782E-007  alpha =   0.42785569616628299     
  delta_qm =   0.655431E-05 delta_en =   0.742332E-04 tol =   0.100000E-03
  Charges are converged, EXIT
 
@@ -659,6 +667,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    717.0728738 
+ surface of the QM region   =    412.4194618 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
