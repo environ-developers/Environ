@@ -282,7 +282,7 @@ CONTAINS
   SUBROUTINE update_environ_boundary( bound )
 
     USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions, boundary_of_system, &
-         & solvent_aware_boundary, invert_boundary
+         & solvent_aware_boundary, invert_boundary, test_de_dboundary
 
     IMPLICIT NONE
 
@@ -383,7 +383,11 @@ CONTAINS
           !
           CALL boundary_of_system( bound % simple, bound )
           !
-          CALL invert_boundary( bound ) ! ONLY TO DEBUG SOLVENT AWARE
+! ... TO DEBUG SOLVENT-AWARE
+!
+!          CALL invert_boundary( bound )
+!          !
+!          CALL test_de_dboundary( bound )
           !
           bound % update_status = 2 ! boundary has changed and is ready
           !

@@ -17,7 +17,7 @@ MODULE generate_boundary
   !
   PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
        & invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
-       & solvent_aware_de_dboundary
+       & solvent_aware_de_dboundary, test_de_dboundary
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -548,7 +548,7 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP ), PARAMETER :: toldsurface = 1.D-20
+      REAL( DP ), PARAMETER :: toldsurface = 1.D-50
       !
       INTEGER, INTENT(IN) :: n, iend
       REAL( DP ), DIMENSION( 3, n ), INTENT(IN) :: grad
@@ -1036,8 +1036,6 @@ CONTAINS
       !
       deriv => boundary % deriv
       !
-      IF ( deriv .GE. 1 ) CALL gradient_of_functions( simple, boundary%gradient, .TRUE. )
-      IF ( deriv .GE. 2 ) CALL laplacian_of_functions( simple, boundary%laplacian, .TRUE. )
       IF ( deriv .GE. 3 ) THEN
          IF ( boundary % solvent_aware ) THEN
             hesslocal => boundary % hessian
@@ -1045,13 +1043,34 @@ CONTAINS
             ALLOCATE( hesslocal )
             CALL init_environ_hessian( cell, hesslocal )
          ENDIF
-         CALL hessian_of_functions( simple, hesslocal, .FALSE. )
-         CALL calc_dsurface( nnr, ir_end, boundary%gradient%of_r, hesslocal%of_r, boundary%dsurface%of_r )
+      ENDIF
+      !
+      SELECT CASE ( boundary_core )
+         !
+      CASE ( 'fft' )
+         !
+         IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( boundary%scaled%of_r, boundary%gradient%of_r )
+         IF ( deriv .EQ. 2 ) CALL external_laplacian( boundary%scaled%of_r, boundary%laplacian%of_r )
+         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, boundary%scaled%of_r, boundary%gradient%of_r, &
+              & boundary%laplacian%of_r, hesslocal%of_r, boundary%dsurface%of_r )
+         !
+      CASE ( 'analytic' )
+         !
+         IF ( deriv .GE. 1 ) CALL gradient_of_functions( simple, boundary%gradient, .TRUE. )
+         IF ( deriv .GE. 2 ) CALL laplacian_of_functions( simple, boundary%laplacian, .TRUE. )
+         IF ( deriv .GE. 3 ) THEN
+            CALL hessian_of_functions( simple, hesslocal, .TRUE. )
+            CALL calc_dsurface( nnr, ir_end, boundary%gradient%of_r, hesslocal%of_r, boundary%dsurface%of_r )
+         ENDIF
+         !
+      END SELECT
+      !
+      IF ( deriv .GE. 3 ) THEN
          IF ( .NOT. boundary % solvent_aware ) THEN
             CALL destroy_environ_hessian( hesslocal )
             DEALLOCATE(hesslocal )
-         ENDIF
-      ENDIF
+         END IF
+      END IF
       !
       boundary % volume = integrate_environ_density( boundary % scaled )
       !
@@ -1104,8 +1123,7 @@ CONTAINS
       ! ... Fill voids of the continuum interface that are too small
       ! ... to fit a solvent molecule
       !
-      USE functions, ONLY: density_of_functions, gradient_of_functions, &
-           & laplacian_of_functions, hessian_of_functions
+      USE functions, ONLY: density_of_functions
       USE generate_function, ONLY : compute_convolution_fft
       !
       IMPLICIT NONE
@@ -1140,7 +1158,7 @@ CONTAINS
       spr => boundary % filling_spread
       !
       CALL init_environ_density( cell, filled_fraction )
-      IF ( deriv .GE. 2 ) CALL init_environ_density( cell, d2filling )
+      IF ( deriv .GE. 2 .AND. boundary_core .NE. 'fft' ) CALL init_environ_density( cell, d2filling )
       !
       ! Step 0: save local interface function for later use
       !
@@ -1158,117 +1176,114 @@ CONTAINS
       !
       boundary % filling % of_r = 0.D0
       boundary % dfilling % of_r = 0.D0
-      IF ( deriv .GE. 2 ) d2filling % of_r = 0.D0
       DO ir = 1, ir_end
          boundary % filling % of_r( ir ) = 1.D0 - sfunct2( filled_fraction % of_r( ir ), thr, spr )
          boundary % dfilling % of_r( ir ) = - dsfunct2( filled_fraction % of_r( ir ), thr, spr )
-         IF ( deriv .GE. 2 ) d2filling % of_r( ir ) = - d2sfunct2( filled_fraction % of_r( ir ), thr, spr )
+         IF ( deriv .GE. 2 .AND. boundary_core .NE. 'fft' ) &
+              & d2filling % of_r( ir ) = - d2sfunct2( filled_fraction % of_r( ir ), thr, spr )
       ENDDO
       !
-      ! Step 4: compute convolution with spatial derivatives of probe
-      !
-      IF ( deriv .GE. 1 ) THEN
-         !
-         CALL init_environ_gradient( cell, gradlocal )
-         CALL gradient_of_functions( boundary%solvent_probe, gradlocal, .FALSE. )
-         !
-         DO ipol = 1, 3
-            CALL compute_convolution_fft( nnr, boundary%local%of_r, gradlocal%of_r(ipol,:), gradlocal%of_r(ipol,:))
-         ENDDO
-         !
-         IF ( deriv .GE. 2 ) CALL update_gradient_modulus( gradlocal )
-         !
-      ENDIF
-      !
-      IF ( deriv .GE. 2 ) THEN
-         !
-         CALL init_environ_density( cell, lapllocal )
-         CALL laplacian_of_functions( boundary%solvent_probe, lapllocal, .FALSE. )
-         !
-         CALL compute_convolution_fft( nnr, boundary%local%of_r, lapllocal%of_r, lapllocal%of_r )
-         !
-      END IF
-      !
-      IF ( deriv .GE. 3 ) THEN
-         !
-         CALL init_environ_hessian( cell, hesslocal )
-         CALL hessian_of_functions( boundary%solvent_probe, hesslocal, .FALSE. )
-         !
-         DO ipol = 1, 3
-            DO jpol = 1, 3
-               CALL compute_convolution_fft( nnr, boundary%local%of_r, hesslocal%of_r(ipol,jpol,:), &
-                    & hesslocal%of_r(ipol,jpol,:) )
-            ENDDO
-         ENDDO
-         !
-      ENDIF
-      !
-      ! Step 5: update the interface function and its derivatives, in reverse order
-      !
-      IF ( deriv .GE. 3 ) THEN
-         !
-         DO ipol = 1, 3
-            DO jpol = 1, 3
-               !
-               boundary % hessian % of_r( ipol, jpol, : ) = boundary % hessian % of_r( ipol, jpol, : ) * &
-                    & ( 1.D0 - boundary % filling % of_r ) - boundary % dfilling % of_r * &
-                    & ( boundary % gradient % of_r( ipol, : ) * gradlocal % of_r ( jpol, : ) + &
-                    &   boundary % gradient % of_r( jpol, : ) * gradlocal % of_r ( ipol, : )  ) + &
-                    & ( 1.D0 - boundary % local % of_r ) * &
-                    & ( d2filling % of_r * gradlocal % of_r ( ipol, : ) * gradlocal % of_r ( jpol, : ) + &
-                    &   boundary % dfilling % of_r * hesslocal % of_r( ipol, jpol, : ) )
-               !
-            ENDDO
-         ENDDO
-         !
-         CALL destroy_environ_hessian( hesslocal )
-         !
-      ENDIF
-      !
-      IF ( deriv .GE. 2 ) THEN
-         !
-         CALL init_environ_density( cell, local )
-         CALL scalar_product_environ_gradient( boundary%gradient, gradlocal, local )
-         !
-         boundary % laplacian % of_r = boundary % laplacian % of_r * ( 1.D0 - boundary % filling % of_r ) &
-              & - 2.D0 * local % of_r * boundary % dfilling % of_r + ( 1.D0 - boundary % local % of_r ) * &
-              & ( d2filling % of_r * gradlocal % modulus % of_r **2 + boundary % dfilling % of_r * lapllocal % of_r )
-         !
-         CALL destroy_environ_density( local )
-         CALL destroy_environ_density( lapllocal )
-         CALL destroy_environ_density( d2filling )
-         !
-      ENDIF
-      !
-      IF ( deriv .GE. 1 ) THEN
-         !
-         DO ipol = 1, 3
-            !
-            boundary % gradient % of_r(ipol,:) = boundary % gradient % of_r(ipol,:) * &
-                 & ( 1.D0 - boundary % filling % of_r(:) ) + gradlocal%of_r(ipol,:) * &
-                 & ( 1.D0 - boundary % scaled % of_r(:) ) * boundary % dfilling % of_r(:)
-            !
-         ENDDO
-         !
-         CALL update_gradient_modulus( boundary % gradient )
-         !
-         boundary % surface = integrate_environ_density( boundary%gradient%modulus )
-         !
-         CALL destroy_environ_gradient( gradlocal )
-         !
-      ENDIF
+      ! Step 4: compute solvent-aware interface
       !
       boundary % scaled % of_r = boundary % local % of_r + &
            & ( 1.D0 - boundary % local % of_r ) * boundary % filling % of_r
       !
+      ! Step 4: compute boundary derivatives, if needed
+      !
+      SELECT CASE ( boundary_core )
+         !
+      CASE ( 'fft' )
+         !
+         IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( boundary%scaled%of_r, &
+              & boundary%gradient%of_r )
+         IF ( deriv .EQ. 2 ) CALL external_laplacian( boundary%scaled%of_r, boundary%laplacian%of_r )
+         IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, boundary%scaled%of_r, &
+              & boundary%gradient%of_r, boundary%laplacian%of_r, boundary%hessian%of_r, boundary%dsurface%of_r )
+         !
+      CASE( 'analytic', 'highmem' )
+         !
+         ! Allocate local fields for derivatives of convolution
+         !
+         IF ( deriv .GE. 1 ) CALL init_environ_gradient( cell, gradlocal )
+         IF ( deriv .GE. 2 ) CALL init_environ_density( cell, lapllocal )
+         IF ( deriv .GE. 3 ) CALL init_environ_hessian( cell, hesslocal )
+         !
+         ! Compute derivative of convolution with probe
+         !
+         IF ( deriv .GE. 1 ) CALL compute_convolution_deriv( deriv, boundary%solvent_probe, &
+              & boundary%local, gradlocal, lapllocal, hesslocal )
+         !
+         ! Update derivatives of interface function in reverse order
+         !
+         IF ( deriv .GE. 3 ) THEN
+            !
+            DO ipol = 1, 3
+               DO jpol = 1, 3
+                  !
+                  boundary % hessian % of_r( ipol, jpol, : ) = boundary % hessian % of_r( ipol, jpol, : ) * &
+                       & ( 1.D0 - boundary % filling % of_r ) - boundary % dfilling % of_r * &
+                       & ( boundary % gradient % of_r( ipol, : ) * gradlocal % of_r ( jpol, : ) + &
+                       &   boundary % gradient % of_r( jpol, : ) * gradlocal % of_r ( ipol, : )  ) + &
+                       & ( 1.D0 - boundary % local % of_r ) * &
+                       & ( d2filling % of_r * gradlocal % of_r ( ipol, : ) * gradlocal % of_r ( jpol, : ) + &
+                       &   boundary % dfilling % of_r * hesslocal % of_r( ipol, jpol, : ) )
+                  !
+               ENDDO
+            ENDDO
+            !
+            CALL destroy_environ_hessian( hesslocal )
+            !
+         ENDIF
+         !
+         IF ( deriv .GE. 2 ) THEN
+            !
+            CALL init_environ_density( cell, local )
+            CALL scalar_product_environ_gradient( boundary%gradient, gradlocal, local )
+            !
+            boundary % laplacian % of_r = boundary % laplacian % of_r * ( 1.D0 - boundary % filling % of_r ) &
+                 & - 2.D0 * local % of_r * boundary % dfilling % of_r + ( 1.D0 - boundary % local % of_r ) * &
+                 & ( d2filling % of_r * gradlocal % modulus % of_r **2 + boundary % dfilling % of_r * lapllocal % of_r )
+            !
+            CALL destroy_environ_density( local )
+            CALL destroy_environ_density( lapllocal )
+            CALL destroy_environ_density( d2filling )
+            !
+         ENDIF
+         !
+         IF ( deriv .GE. 1 ) THEN
+            !
+            DO ipol = 1, 3
+               !
+               boundary % gradient % of_r(ipol,:) = boundary % gradient % of_r(ipol,:) * &
+                    & ( 1.D0 - boundary % filling % of_r(:) ) + gradlocal%of_r(ipol,:) * &
+                    & ( 1.D0 - boundary % local % of_r(:) ) * boundary % dfilling % of_r(:)
+               !
+            ENDDO
+            !
+            CALL destroy_environ_gradient( gradlocal )
+            !
+         ENDIF
+         !
+         ! if needed, now can recompute dsurface
+         !
+         IF ( deriv .GE. 3 ) THEN
+            !
+            CALL calc_dsurface( nnr, ir_end, boundary % gradient % of_r, &
+                 & boundary % hessian % of_r, boundary % dsurface % of_r )
+            !
+         END IF
+         !
+      END SELECT
+      !
+      ! Final updates
+      !
       boundary % volume = integrate_environ_density( boundary % scaled )
       !
-      ! Step 6: if needed, now can recompute dsurface
-      !
-      IF ( deriv .GE. 3 ) THEN
+      IF ( deriv .GE. 1 ) THEN
          !
-         CALL calc_dsurface( nnr, ir_end, boundary % gradient % of_r, &
-           & boundary % hessian % of_r, boundary % dsurface % of_r )
+         CALL update_gradient_modulus( boundary % gradient )
+         !
+         boundary % surface = integrate_environ_density( boundary%gradient%modulus )
          !
       END IF
       !
@@ -1310,7 +1325,7 @@ CONTAINS
       !
       ! Step 1: compute (1-s)*de_dboudary*dfilling
       !
-      local % of_r = ( 1.D0 - boundary % scaled % of_r ) * de_dboundary % of_r * boundary % dfilling % of_r
+      local % of_r = ( 1.D0 - boundary % local % of_r ) * de_dboundary % of_r * boundary % dfilling % of_r
       !
       ! Step 2: compute convolution with the probe function
       !
@@ -1329,8 +1344,15 @@ CONTAINS
     END SUBROUTINE solvent_aware_de_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-    SUBROUTINE test_solvent_aware( boundary )
+    SUBROUTINE test_de_dboundary( boundary )
 !--------------------------------------------------------------------
+      !
+      USE cavity,        ONLY : calc_ecavity, calc_decavity_dboundary
+      USE pressure,      ONLY : calc_epressure, calc_depressure_dboundary
+      USE boundary,      ONLY : copy_environ_boundary, destroy_environ_boundary
+      USE functions,     ONLY : density_of_functions, gradient_of_functions
+      !
+      IMPLICIT NONE
       !
       ! ... Test functional derivative of energy wrt local boundary
       !
@@ -1338,76 +1360,175 @@ CONTAINS
       !
       TYPE( environ_boundary ) :: localbound
       TYPE( environ_density ) :: de_dboundary
+      TYPE( environ_functions ) :: test_function
+      TYPE( environ_density ) :: delta
+      TYPE( environ_gradient ) :: graddelta
       !
-      INTEGER, POINTER :: ir_end
       INTEGER, POINTER :: nnr
       TYPE( environ_cell ), POINTER :: cell
       !
-      INTEGER :: ir, ir_0, ir_stride
+      INTEGER :: i
       REAL( DP ) :: localpressure, localsurface_tension
-      REAL( DP ) :: eplus, eminus, defd, delta
-      REAL( DP ), ALLOCATABLE, DIMENSION(:) :: localscaled
+      REAL( DP ) :: eplus, eminus, de_fd, de_analytic, epsilon
       !
       cell => boundary % scaled % cell
-      ir_end => boundary % scaled % cell % ir_end
       nnr => boundary % scaled % cell % nnr
       !
-      CALL init_environ_boundary( cell, localbound )
-      localbound = boundary
-      !
-      ALLOCATE( localscaled( nnr ) )
-      localscaled = boundary % local % of_r
+      CALL copy_environ_boundary( boundary, localbound )
       !
       CALL init_environ_density( cell, de_dboundary )
       !
-      localpressure = 1.D0
-      CALL calc_depressure_dboundary( localpressure, boundary, de_dboundary )
+      CALL solvent_aware_boundary( localbound )
+      !
+      localpressure = 100.D0
+      CALL calc_depressure_dboundary( localpressure, localbound, de_dboundary )
       !
       localsurface_tension = 100.D0
-      CALL calc_desurface_dboundary( localsurface_tension, boundary, de_dboundary )
+      CALL calc_decavity_dboundary( localsurface_tension, localbound, de_dboundary )
       !
-      CALL solvent_aware_de_dboundary( boundary, de_dboundary )
+      CALL solvent_aware_de_dboundary( localbound, de_dboundary )
       !
-      ir_0 = 1
-      ir_stride = 1
-      delta = 0.00001
+      test_function % type = 1
+      test_function % dim = 0
+      test_function % axis = 3
+      test_function % spread = 0.3D0
+      test_function % width = 0.D0
+      test_function % volume = 1.D0
       !
-      DO ir = ir_0, ir_end, ir_stride
+      epsilon = 0.000001
+      !
+      CALL init_environ_density( cell, delta )
+      CALL init_environ_gradient( cell, graddelta )
+      !
+      ALLOCATE( test_function % pos( 3 ) )
+      test_function % pos(1) = 11.79D0 / cell % alat
+      test_function % pos(2) = 12.05D0 / cell % alat
+      !
+      DO i = 1, cell % n3
          !
-         localbound % scaled % of_r = localscaled
-         localbound % scaled % of_r( ir ) = localbound % scaled % of_r( ir ) + delta
+         test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
+         CALL density_of_functions( test_function, delta, .TRUE. )
+         CALL gradient_of_functions( test_function, graddelta, .TRUE. )
+         !
+         de_fd = 0.D0
+         CALL copy_environ_boundary( boundary, localbound )
+         localbound % scaled % of_r = localbound % scaled % of_r + epsilon * delta % of_r
+         localbound % volume = integrate_environ_density( localbound % scaled )
+         IF ( localbound % deriv .GE. 1 ) THEN
+            localbound % gradient % of_r = localbound % gradient % of_r + epsilon * graddelta % of_r
+            CALL update_gradient_modulus( localbound % gradient )
+            localbound % surface = integrate_environ_density( localbound % gradient % modulus )
+         END IF
          !
          CALL solvent_aware_boundary( localbound )
          !
          CALL calc_epressure( localpressure, localbound, eplus )
-         defd = defd + eplus
+         de_fd = de_fd + eplus
          !
-         CALL calc_esurface( localsurface_tension, localbound, eplus )
-         defd = defd + eplus
+         CALL calc_ecavity( localsurface_tension, localbound, eplus )
+         de_fd = de_fd + eplus
          !
-         localbound % scaled % of_r = localscaled
-         localbound % scaled % of_r( ir ) = localbound % scaled % of_r( ir ) - delta
+         CALL copy_environ_boundary( boundary, localbound )
+         localbound % scaled % of_r = localbound % scaled % of_r - epsilon * delta % of_r
+         localbound % volume = integrate_environ_density( localbound % scaled )
+         IF ( localbound % deriv .GE. 1 ) THEN
+            localbound % gradient % of_r = localbound % gradient % of_r - epsilon * graddelta % of_r
+            CALL update_gradient_modulus( localbound % gradient )
+            localbound % surface = integrate_environ_density( localbound % gradient % modulus )
+         END IF
          !
          CALL solvent_aware_boundary( localbound )
          !
          CALL calc_epressure( localpressure, localbound, eminus )
-         defd = defd - eminus
+         de_fd = de_fd - eminus
          !
-         CALL calc_esurface( localsurface_tension, localbound, eminus )
-         defd = defd - eminus
+         CALL calc_ecavity( localsurface_tension, localbound, eminus )
+         de_fd = de_fd - eminus
          !
-         defd = 0.5D0 * ( eplus - eminus ) / delta
+         de_fd = 0.5D0 * de_fd / epsilon
          !
-         WRITE(environ_unit,'(1X,a,i8,3f20.10)')' ir = ',ir,&
-              & de_dboundary%of_r(ir),defd,de_dboundary%of_r(ir)-depsfd
+         de_analytic = scalar_product_environ_density( de_dboundary, delta )
+         !
+         WRITE(environ_unit,'(1X,a,f20.10,3f20.10)')' z = ',test_function % pos(3) * cell % alat,&
+              & de_analytic, de_fd, de_analytic - de_fd
          FLUSH(environ_unit)
          !
       ENDDO
       !
+      CALL destroy_environ_density( delta )
+      CALL destroy_environ_gradient( graddelta )
+      CALL destroy_environ_density( de_dboundary )
+      !
+      CALL destroy_environ_boundary( .TRUE., localbound )
+      !
+      STOP
+      !
       RETURN
       !
 !--------------------------------------------------------------------
-    END SUBROUTINE test_solvent_aware
+    END SUBROUTINE test_de_dboundary
 !--------------------------------------------------------------------
-    !
+!--------------------------------------------------------------------
+    SUBROUTINE compute_convolution_deriv( deriv, probe, f, grad, lapl, hess )
+!--------------------------------------------------------------------
+      !
+      USE functions, ONLY : gradient_of_functions, laplacian_of_functions, hessian_of_functions
+      USE generate_function, ONLY : compute_convolution_fft
+      !
+      IMPLICIT NONE
+      !
+      INTEGER, INTENT(IN) :: deriv
+      TYPE( environ_functions ), INTENT(IN) :: probe
+      TYPE( environ_density ), INTENT(IN) :: f
+      TYPE( environ_gradient ), INTENT(INOUT) :: grad
+      TYPE( environ_density ), INTENT(INOUT) :: lapl
+      TYPE( environ_hessian ), INTENT(INOUT) :: hess
+      !
+      INTEGER, POINTER :: nnr
+      !
+      INTEGER :: ipol, jpol
+      !
+      nnr => f % cell % nnr
+      !
+      IF ( deriv .LE. 0 ) RETURN
+      !
+      IF ( deriv .GE. 1 ) THEN
+         !
+         CALL gradient_of_functions( probe, grad, .FALSE. )
+         !
+         DO ipol = 1, 3
+            CALL compute_convolution_fft( nnr, f%of_r, grad%of_r(ipol,:), grad%of_r(ipol,:))
+         ENDDO
+         !
+         CALL update_gradient_modulus( grad )
+         !
+      ENDIF
+      !
+      IF ( deriv .GE. 2 ) THEN
+         !
+         CALL laplacian_of_functions( probe, lapl, .FALSE. )
+         !
+         CALL compute_convolution_fft( nnr, f%of_r, lapl%of_r, lapl%of_r )
+         !
+      END IF
+      !
+      IF ( deriv .GE. 3 ) THEN
+         !
+         CALL hessian_of_functions( probe, hess, .FALSE. )
+         !
+         DO ipol = 1, 3
+            DO jpol = 1, 3
+               CALL compute_convolution_fft( nnr, f%of_r, hess%of_r(ipol,jpol,:), &
+                    & hess%of_r(ipol,jpol,:) )
+            ENDDO
+         ENDDO
+         !
+      ENDIF
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+   END SUBROUTINE compute_convolution_deriv
+!--------------------------------------------------------------------
+   !
 END MODULE generate_boundary
