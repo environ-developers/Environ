@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 29Sep2017 at 16:35:47 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on  7Nov2017 at 16:54:21 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -126,7 +126,7 @@
      negative rho (up, down):  7.936E-04 0.000E+00
      Starting wfc are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is       31.3 secs
+     total cpu time spent up to now is       11.2 secs
 
      Self-consistent Calculation
 
@@ -138,7 +138,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       34.3 secs
+     total cpu time spent up to now is       14.0 secs
 
      total energy              =     -34.04005743 Ry
      Harris-Foulkes estimate   =     -34.58697711 Ry
@@ -154,7 +154,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       37.5 secs
+     total cpu time spent up to now is       17.0 secs
 
      total energy              =     -34.13818786 Ry
      Harris-Foulkes estimate   =     -34.39721067 Ry
@@ -170,7 +170,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       40.2 secs
+     total cpu time spent up to now is       19.7 secs
 
      total energy              =     -34.24260836 Ry
      Harris-Foulkes estimate   =     -34.27417892 Ry
@@ -184,7 +184,7 @@
 
      negative rho (up, down):  2.168E-04 0.000E+00
 
-     total cpu time spent up to now is       42.8 secs
+     total cpu time spent up to now is       22.0 secs
 
      End of self-consistent calculation
 
@@ -220,56 +220,56 @@
 
      Writing output data file pwscf.save
 
-     init_run     :     30.07s CPU     31.18s WALL (       1 calls)
-     electrons    :     10.57s CPU     11.65s WALL (       1 calls)
-     forces       :     21.87s CPU     22.22s WALL (       1 calls)
+     init_run     :     10.01s CPU     11.14s WALL (       1 calls)
+     electrons    :      9.56s CPU     10.95s WALL (       1 calls)
+     forces       :      4.04s CPU      4.34s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.07s CPU      0.08s WALL (       1 calls)
-     potinit      :      1.72s CPU      1.83s WALL (       1 calls)
+     wfcinit      :      0.06s CPU      0.08s WALL (       1 calls)
+     potinit      :      1.54s CPU      1.69s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.52s CPU      0.53s WALL (       4 calls)
-     sum_band     :      2.95s CPU      3.01s WALL (       4 calls)
-     v_of_rho     :      6.22s CPU      6.69s WALL (       5 calls)
-     newd         :      1.52s CPU      2.03s WALL (       5 calls)
-     mix_rho      :      0.48s CPU      0.54s WALL (       4 calls)
+     c_bands      :      0.43s CPU      0.45s WALL (       4 calls)
+     sum_band     :      2.70s CPU      2.91s WALL (       4 calls)
+     v_of_rho     :      5.57s CPU      6.15s WALL (       5 calls)
+     newd         :      1.40s CPU      2.02s WALL (       5 calls)
+     mix_rho      :      0.44s CPU      0.52s WALL (       4 calls)
 
      Called by c_bands:
      init_us_2    :      0.03s CPU      0.06s WALL (       9 calls)
-     regterg      :      0.48s CPU      0.48s WALL (       4 calls)
+     regterg      :      0.40s CPU      0.41s WALL (       4 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      1.94s CPU      1.97s WALL (       4 calls)
+     addusdens    :      1.79s CPU      1.93s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.48s CPU      0.48s WALL (      13 calls)
+     h_psi        :      0.41s CPU      0.42s WALL (      13 calls)
      s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
-     g_psi        :      0.01s CPU      0.01s WALL (       8 calls)
+     g_psi        :      0.00s CPU      0.00s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
-     h_psi:pot    :      0.47s CPU      0.47s WALL (      13 calls)
+     h_psi:pot    :      0.41s CPU      0.41s WALL (      13 calls)
      h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
-     vloc_psi     :      0.46s CPU      0.46s WALL (      13 calls)
+     vloc_psi     :      0.39s CPU      0.40s WALL (      13 calls)
      add_vuspsi   :      0.01s CPU      0.01s WALL (      13 calls)
 
      General routines
      calbec       :      0.01s CPU      0.01s WALL (      21 calls)
-     fft          :      4.65s CPU      4.67s WALL (      78 calls)
+     fft          :      4.30s CPU      4.46s WALL (      78 calls)
      ffts         :      0.09s CPU      0.09s WALL (       9 calls)
-     fftw         :      0.37s CPU      0.38s WALL (      62 calls)
-     interpolate  :      0.73s CPU      0.80s WALL (       9 calls)
+     fftw         :      0.35s CPU      0.36s WALL (      62 calls)
+     interpolate  :      0.69s CPU      0.78s WALL (       9 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
 
 
      Environ routines
 
-     PWSCF        :  1m 2.71s CPU     1m 5.34s WALL
+     PWSCF        :    23.81s CPU        26.76s WALL
 
 
-   This run was terminated on:  16:36:52  29Sep2017            
+   This run was terminated on:  16:54:48   7Nov2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -290,13 +290,15 @@
  system defined dimension   =  0 
  system defined axis        =  3 
  system center              =      0.5921875     0.5886250     0.5750000 
- system width               =      0.1209428 
+ system width               =      0.1209436 
 
 %%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  boundary mode              = ionic                
  boundary is built from soft-spheres centered on ionic positions
  solvent-dependent scaling  =      1.0000000 
  softness parameter         =      0.5000000 
+ volume of the QM region    =    211.8920528 
+ surface of the QM region   =    173.6178424 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8

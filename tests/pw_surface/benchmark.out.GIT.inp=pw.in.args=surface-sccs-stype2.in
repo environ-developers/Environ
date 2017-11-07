@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 29Sep2017 at 16:34:59 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on  7Nov2017 at 16:53:39 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -126,7 +126,7 @@
      negative rho (up, down):  7.936E-04 0.000E+00
      Starting wfc are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is        4.3 secs
+     total cpu time spent up to now is        3.7 secs
 
      Self-consistent Calculation
 
@@ -138,7 +138,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        9.0 secs
+     total cpu time spent up to now is        7.8 secs
 
      total energy              =     -34.03884946 Ry
      Harris-Foulkes estimate   =     -34.58697711 Ry
@@ -154,7 +154,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       13.9 secs
+     total cpu time spent up to now is       12.3 secs
 
      total energy              =     -34.14251952 Ry
      Harris-Foulkes estimate   =     -34.38380725 Ry
@@ -170,7 +170,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       18.4 secs
+     total cpu time spent up to now is       16.3 secs
 
      total energy              =     -34.24090232 Ry
      Harris-Foulkes estimate   =     -34.26786693 Ry
@@ -184,7 +184,7 @@
 
      negative rho (up, down):  2.178E-04 0.000E+00
 
-     total cpu time spent up to now is       22.6 secs
+     total cpu time spent up to now is       20.1 secs
 
      End of self-consistent calculation
 
@@ -220,56 +220,56 @@
 
      Writing output data file pwscf.save
 
-     init_run     :      3.88s CPU      4.20s WALL (       1 calls)
-     electrons    :     16.95s CPU     18.51s WALL (       1 calls)
-     forces       :      1.05s CPU      1.18s WALL (       1 calls)
+     init_run     :      3.21s CPU      3.56s WALL (       1 calls)
+     electrons    :     14.74s CPU     16.61s WALL (       1 calls)
+     forces       :      0.78s CPU      0.91s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.07s CPU      0.08s WALL (       1 calls)
-     potinit      :      1.73s CPU      1.85s WALL (       1 calls)
+     wfcinit      :      0.06s CPU      0.07s WALL (       1 calls)
+     potinit      :      1.52s CPU      1.64s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.51s CPU      0.55s WALL (       4 calls)
-     sum_band     :      2.96s CPU      3.03s WALL (       4 calls)
-     v_of_rho     :      6.25s CPU      6.74s WALL (       5 calls)
-     newd         :      1.51s CPU      2.00s WALL (       5 calls)
-     mix_rho      :      0.48s CPU      0.53s WALL (       4 calls)
+     c_bands      :      0.45s CPU      0.51s WALL (       4 calls)
+     sum_band     :      2.69s CPU      2.87s WALL (       4 calls)
+     v_of_rho     :      5.54s CPU      6.08s WALL (       5 calls)
+     newd         :      1.39s CPU      1.97s WALL (       5 calls)
+     mix_rho      :      0.44s CPU      0.51s WALL (       4 calls)
 
      Called by c_bands:
      init_us_2    :      0.03s CPU      0.05s WALL (       9 calls)
-     regterg      :      0.47s CPU      0.50s WALL (       4 calls)
+     regterg      :      0.42s CPU      0.47s WALL (       4 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      1.96s CPU      2.00s WALL (       4 calls)
+     addusdens    :      1.77s CPU      1.90s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.48s CPU      0.47s WALL (      13 calls)
+     h_psi        :      0.43s CPU      0.45s WALL (      13 calls)
      s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
-     g_psi        :      0.01s CPU      0.01s WALL (       8 calls)
+     g_psi        :      0.00s CPU      0.00s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
-     h_psi:pot    :      0.47s CPU      0.47s WALL (      13 calls)
+     h_psi:pot    :      0.42s CPU      0.44s WALL (      13 calls)
      h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
-     vloc_psi     :      0.45s CPU      0.46s WALL (      13 calls)
+     vloc_psi     :      0.41s CPU      0.43s WALL (      13 calls)
      add_vuspsi   :      0.01s CPU      0.01s WALL (      13 calls)
 
      General routines
      calbec       :      0.01s CPU      0.01s WALL (      21 calls)
-     fft          :      6.98s CPU      7.01s WALL (     118 calls)
+     fft          :      6.36s CPU      6.53s WALL (     118 calls)
      ffts         :      0.09s CPU      0.09s WALL (       9 calls)
-     fftw         :      0.37s CPU      0.37s WALL (      62 calls)
-     interpolate  :      0.71s CPU      0.78s WALL (       9 calls)
+     fftw         :      0.37s CPU      0.39s WALL (      62 calls)
+     interpolate  :      0.69s CPU      0.77s WALL (       9 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
 
 
      Environ routines
 
-     PWSCF        :    22.07s CPU        24.18s WALL
+     PWSCF        :    18.93s CPU        21.40s WALL
 
 
-   This run was terminated on:  16:35:23  29Sep2017            
+   This run was terminated on:  16:54: 0   7Nov2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -290,7 +290,7 @@
  system defined dimension   =  0 
  system defined axis        =  3 
  system center              =      0.5921875     0.5886250     0.5750000 
- system width               =      0.1209428 
+ system width               =      0.1209436 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -304,6 +304,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    235.1334505 
+ surface of the QM region   =    183.0212450 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -317,6 +319,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    261.0678631 
+ surface of the QM region   =    196.6634801 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -330,6 +334,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    239.1212035 
+ surface of the QM region   =    185.8673843 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =          8
@@ -343,3 +349,5 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    239.1212035 
+ surface of the QM region   =    185.8673843 
