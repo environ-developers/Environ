@@ -14,7 +14,7 @@
    nat = 10
    ntyp = 3
    ecutwfc = 35
-   ecutrho = 280
+   ecutrho = 300
    occupations = 'smearing'
    degauss = 0.03
    smearing = 'mv'
