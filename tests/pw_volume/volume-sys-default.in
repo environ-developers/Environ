@@ -1,0 +1,14 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_pressure = 10. 
+   !
+ /
+ &BOUNDARY
+   !
+   boundary_mode = 'system'
+   boundary_distance = 3.D0
+   boundary_spread = 0.5D0
+   !
+ /

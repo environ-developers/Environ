@@ -1,0 +1,20 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_static_permittivity = 100. 
+   !
+ /
+ &BOUNDARY
+   !
+   boundary_mode = 'system'
+   boundary_distance = 3.D0
+   boundary_spread = 0.5D0
+   !
+ /
+ &ELECTROSTATIC
+   !
+   solver = 'iterative'
+   auxiliary = 'full'
+   !
+ /
