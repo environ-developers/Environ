@@ -436,7 +436,7 @@ CONTAINS
       IF ( lstatic ) CALL update_environ_dielectric( static )
       IF ( loptical ) CALL update_environ_dielectric( optical )
       !
-!      IF ( lexternals ) CALL update_environ_externals( externals )
+      IF ( lexternals ) CALL update_environ_externals( externals )
       !
       IF ( lelectrostatic ) CALL electrostatic_initcell( cell )
       !

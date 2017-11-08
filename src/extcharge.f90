@@ -12,6 +12,7 @@ MODULE externals_utils
 !--------------------------------------------------------------------
 
   USE environ_types
+  USE environ_output
   USE functions
   !
   IMPLICIT NONE
@@ -98,6 +99,8 @@ MODULE externals_utils
     TYPE( environ_externals ), INTENT(INOUT) :: externals
 
     CALL density_of_functions( externals%number, externals%functions, externals%density, .TRUE. )
+
+    externals % charge = integrate_environ_density( externals % density )
 
     RETURN
 
