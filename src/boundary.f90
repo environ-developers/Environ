@@ -1,6 +1,7 @@
 MODULE boundary
 
   USE environ_types
+  USE environ_output
   USE functions
 
   IMPLICIT NONE
@@ -471,9 +472,10 @@ CONTAINS
 
   SUBROUTINE test_de_dboundary( boundary )
 
-    USE cavity,        ONLY : calc_ecavity, calc_decavity_dboundary
-    USE pressure,      ONLY : calc_epressure, calc_depressure_dboundary
-    USE functions,     ONLY : density_of_functions, gradient_of_functions
+    USE generate_boundary, ONLY : solvent_aware_boundary, solvent_aware_de_dboundary
+    USE cavity,            ONLY : calc_ecavity, calc_decavity_dboundary
+    USE pressure,          ONLY : calc_epressure, calc_depressure_dboundary
+    USE functions,         ONLY : density_of_functions, gradient_of_functions
 
     IMPLICIT NONE
 
