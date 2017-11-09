@@ -235,7 +235,6 @@ CONTAINS
       !     Due to Hellman-Feynman only a few of Environ modules
       !     have an effect on atomic forces.
       !
-      USE kinds,        ONLY : DP
       USE environ_base, ONLY : lelectrostatic, velectrostatic,    &
                                charges, lstatic, static,          &
                                lelectrolyte, electrolyte,         &

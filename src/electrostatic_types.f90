@@ -11,7 +11,6 @@
 MODULE electrostatic_types
 !----------------------------------------------------------------------------
 
-  USE kinds, ONLY : DP
   USE environ_types
 
   TYPE gradient_solver
