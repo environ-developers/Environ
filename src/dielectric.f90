@@ -104,8 +104,8 @@ CONTAINS
 
     dielectric%nregions = nregions
     IF ( dielectric%nregions .GT. 0 ) &
-         & CALL create_environ_functions( dielectric%nregions, 2, epsregion_dim, &
-         & epsregion_axis, epsregion_pos, epsregion_spread, epsregion_width, &
+         & CALL create_environ_functions( dielectric%nregions, 4, epsregion_dim, &
+         & epsregion_axis, epsregion_pos, epsregion_width, epsregion_spread, &
          & epsregion_eps, dielectric%regions )
 
     RETURN
@@ -131,8 +131,10 @@ CONTAINS
 
     CALL init_environ_density( cell, dielectric%background )
     dielectric % background % of_r(:) = dielectric % constant
-    CALL init_environ_gradient( cell, dielectric%gradbackground )
-    IF ( dielectric%need_factsqrt ) CALL init_environ_density( cell, dielectric%laplbackground )
+    IF ( dielectric % nregions .GT. 0 ) THEN
+       CALL init_environ_gradient( cell, dielectric%gradbackground )
+       IF ( dielectric%need_factsqrt ) CALL init_environ_density( cell, dielectric%laplbackground )
+    END IF
 
     CALL init_environ_density( cell, dielectric%epsilon )
     CALL init_environ_density( cell, dielectric%depsilon )
@@ -208,10 +210,11 @@ CONTAINS
     TYPE( environ_cell ), POINTER :: cell
 
     dielectric % background % of_r = dielectric % constant
-    dielectric % gradbackground % of_r = 0.D0
-    IF ( dielectric % need_factsqrt ) dielectric % laplbackground % of_r = 0.D0
 
     IF ( dielectric % nregions .LE. 0 ) RETURN
+
+    dielectric % gradbackground % of_r = 0.D0
+    IF ( dielectric % need_factsqrt ) dielectric % laplbackground % of_r = 0.D0
 
     cell => dielectric % background % cell
 
@@ -222,22 +225,26 @@ CONTAINS
     DO i = 1, dielectric % nregions
 
        CALL density_of_functions( dielectric%regions(i), local, .TRUE. )
-       dielectric % background % of_r(:) = dielectric % background % of_r(:) - &
-            & ( dielectric % background % of_r(:) - dielectric % regions(i) % volume ) * local % of_r(:)
        CALL gradient_of_functions( dielectric%regions(i), gradlocal, .TRUE. )
-       DO ipol = 1, 3
-          dielectric % gradbackground % of_r(ipol,:) = &
-            & dielectric % gradbackground % of_r(ipol,:) * ( 1.D0 - local % of_r(:) ) - &
-            & ( dielectric % background % of_r(:) - dielectric % regions(i) % volume ) * gradlocal % of_r(ipol,:)
-       END DO
+
+       ! Update background and derivatives in reverse order
+
        IF ( dielectric % need_factsqrt ) THEN
           CALL scalar_product_environ_gradient( dielectric % gradbackground, gradlocal, lapllocal )
-          dielectric % laplbackground % of_r = dielectric % laplbackground % of_r(:) * ( 1.D0 - local % of_r(:) ) - &
-               & 2.D0 * lapllocal % of_r
+          dielectric % laplbackground % of_r = dielectric % laplbackground % of_r(:) * &
+               & ( 1.D0 - local % of_r(:) / dielectric % regions(i) % volume ) - &
+               & 2.D0 * lapllocal % of_r / dielectric % regions(i) % volume
           CALL laplacian_of_functions( dielectric%regions(i), lapllocal, .TRUE. )
-          dielectric % laplbackground % of_r(:) = dielectric % laplbackground % of_r(:) - &
-               & ( dielectric % background % of_r(:) - dielectric % regions(i) % volume ) * lapllocal % of_r(:)
+          dielectric % laplbackground % of_r(:) = dielectric % laplbackground % of_r(:) + &
+               & lapllocal % of_r(:) * ( 1.D0 - dielectric % background % of_r(:) / dielectric % regions(i) % volume )
        ENDIF
+       DO ipol = 1, 3
+          dielectric % gradbackground % of_r(ipol,:) = &
+               & dielectric % gradbackground % of_r(ipol,:) * ( 1.D0 - local % of_r(:) / dielectric % regions(i) % volume ) + &
+               & gradlocal % of_r (ipol,:) * ( 1.D0 - dielectric % background % of_r(:) / dielectric % regions(i) % volume )
+       END DO
+       dielectric % background % of_r(:) = dielectric % background % of_r(:) + &
+            & local % of_r(:) * ( 1.D0 - dielectric % background % of_r(:) / dielectric % regions(i) % volume )
 
     ENDDO
 
@@ -460,8 +467,10 @@ CONTAINS
     END IF
 
     CALL destroy_environ_density( dielectric%background )
-    CALL destroy_environ_gradient( dielectric%gradbackground )
-    IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%laplbackground )
+    IF ( dielectric % nregions .GT. 0 ) THEN
+       CALL destroy_environ_gradient( dielectric%gradbackground )
+       IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%laplbackground )
+    END IF
 
     CALL destroy_environ_density( dielectric%epsilon )
     CALL destroy_environ_density( dielectric%depsilon )
