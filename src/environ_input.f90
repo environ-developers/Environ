@@ -496,7 +496,7 @@ MODULE environ_input
                                      screening_type, screening, core,       &
                                      boundary_core, ifdtype, nfdpoint,      &
                                      assume_isolated, pbc_correction,       &
-                                     pbc_dim, pbc_axis, prog )
+                                     pbc_dim, pbc_axis, nspin, prog )
        !
        ! ... Then set environ base
        !

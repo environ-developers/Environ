@@ -36,16 +36,29 @@ CONTAINS
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
+    TYPE( environ_cell ), POINTER :: cell
+    !
     REAL( DP ) :: edummy, cdummy
+    REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: rhoaux, vaux
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_direct_charges'
     !
-    ! TO IMPLEMENT THE CASE OF nspin .NE. 1
+    ! Aliases and sanity checks
     !
-    potential % of_r = 0.D0
+    IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
+         & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
+    cell => charges % density % cell
     !
     IF ( core % use_qe_fft ) THEN
        !
-       CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
+       ALLOCATE( rhoaux ( cell % nnr, core % qe_fft % nspin ) )
+       rhoaux( :, 1 ) = charges % density % of_r
+       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
+       vaux = 0.D0
+       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
+       potential % of_r = vaux( :, 1 )
+       DEALLOCATE( rhoaux )
+       DEALLOCATE( vaux )
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
@@ -92,6 +105,7 @@ CONTAINS
     TYPE( environ_density ) :: local
     !
     REAL( DP ) :: edummy, cdummy
+    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: rhoaux, vaux
     CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density'
     !
     ! TO IMPLEMENT THE CASE OF nspin .NE. 1
@@ -107,7 +121,15 @@ CONTAINS
     !
     IF ( core % use_qe_fft ) THEN
        !
-       CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+       ALLOCATE( rhoaux ( cell % nnr, core % qe_fft % nspin ) )
+       rhoaux( :, 1 ) = charges % of_r
+       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
+       vaux = 0.D0
+       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
+       local % of_r = vaux( :, 1 )
+       DEALLOCATE( rhoaux )
+       DEALLOCATE( vaux )
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
@@ -160,8 +182,6 @@ CONTAINS
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_charges'
     !
-    ! TO IMPLEMENT THE CASE OF nspin .NE. 1
-    !
     IF ( core % use_qe_fft ) THEN
        !
        CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
@@ -208,8 +228,6 @@ CONTAINS
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_density'
-    !
-    ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
     IF ( core % use_qe_fft ) THEN
        !

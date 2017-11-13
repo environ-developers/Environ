@@ -463,7 +463,7 @@ CONTAINS
                                     loptical, optical,              &
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity,                   &
-                                    lelectrostatic
+                                    lelectrostatic, charges
       USE boundary,          ONLY : update_environ_boundary,        &
                                     set_soft_spheres
       USE dielectric,        ONLY : update_environ_dielectric
@@ -528,7 +528,10 @@ CONTAINS
          !
       END IF
       !
-      IF ( lelectrostatic ) CALL electrostatic_initions( system )
+      IF ( lelectrostatic ) THEN
+         CALL update_environ_charges( charges )
+         CALL electrostatic_initions( system )
+      END IF
       !
       system%update = .FALSE.
       ions%update = .FALSE.
@@ -551,7 +554,8 @@ CONTAINS
                                     lstatic, static,              &
                                     loptical, optical,            &
                                     lelectrolyte, electrolyte,    &
-                                    lsoftcavity
+                                    lsoftcavity,                  &
+                                    lelectrostatic, charges
       USE boundary,          ONLY : update_environ_boundary
       USE dielectric,        ONLY : update_environ_dielectric
       !
@@ -567,6 +571,8 @@ CONTAINS
       !
       CALL update_environ_electrons( nelec, nspin, nnr, rho, electrons )
       CALL print_environ_electrons( electrons )
+      !
+      IF ( lelectrostatic ) CALL update_environ_charges( charges )
       !
       ! ... Update soft environ properties, defined on electrons
       !

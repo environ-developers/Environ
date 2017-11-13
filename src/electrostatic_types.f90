@@ -76,6 +76,7 @@ MODULE electrostatic_types
   TYPE qe_fft_core
 
      INTEGER :: index
+     INTEGER :: nspin
      LOGICAL :: use_internal_pbc_corr = .false.
 
   END TYPE qe_fft_core
@@ -300,12 +301,13 @@ CONTAINS
 
   END SUBROUTINE destroy_fd_core
 
-  SUBROUTINE init_qe_fft_core( qe_fft, assume_isolated )
+  SUBROUTINE init_qe_fft_core( qe_fft, assume_isolated, nspin )
 
     IMPLICIT NONE
 
     TYPE( qe_fft_core ), INTENT(INOUT) :: qe_fft
     CHARACTER( LEN = * ), INTENT(IN), OPTIONAL :: assume_isolated
+    INTEGER, INTENT(IN), OPTIONAL :: nspin
 
     qe_fft % index = 1
 
@@ -317,6 +319,12 @@ CONTAINS
        CASE DEFAULT
        END SELECT
     END IF
+
+    IF ( PRESENT( nspin ) ) THEN
+       qe_fft % nspin = nspin
+    ELSE
+       qe_fft % nspin = 1
+    ENDIF
 
     RETURN
 
