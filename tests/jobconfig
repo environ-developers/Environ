@@ -1,3 +1,7 @@
+[pw_externals/]
+program = PW
+inputs_args = ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_2d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in'), ('isolated.in', 'externals_2d_dielectric_default.in'), ('slab.in', 'externals_0d_vacuum_default.in'), ('slab.in', 'externals_2d_vacuum_default.in'), ('slab.in', 'externals_0d_dielectric_default.in'), ('slab.in', 'externals_2d_dielectric_default.in')
+
 [pw_water/]
 program = PW
 inputs_args = ('neutral.in', 'water-neutral-sccs-default.in'), ('neutral.in', 'water-neutral-ss-default.in'), ('cation.in', 'water-cation-sccs-default.in'), ('cation.in', 'water-cation-ss-default.in'), ('anion.in', 'water-anion-sccs-default.in'), ('anion.in', 'water-anion-ss-default.in')
