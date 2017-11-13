@@ -1,3 +1,7 @@
+[pw_spin/]
+program = PW
+inputs_args = ('radical.in', 'vacuum-pcc.in'), ('radical.in', 'dielectric-pcc.in')
+
 [pw_externals/]
 program = PW
 inputs_args = ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_2d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in'), ('isolated.in', 'externals_2d_dielectric_default.in'), ('slab.in', 'externals_0d_vacuum_default.in'), ('slab.in', 'externals_2d_vacuum_default.in'), ('slab.in', 'externals_0d_dielectric_default.in'), ('slab.in', 'externals_2d_dielectric_default.in')
