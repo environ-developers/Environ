@@ -282,7 +282,7 @@ CONTAINS
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
 !       CALL errore( sub_name, 'option not yet implemented', 1 )
-       CALL linearized_pb_energy( setup % core, charges, dielectric, potential, energy ) 
+       CALL linearized_pb_energy( setup % core, charges, dielectric, electrolyte, potential, energy )
 
     CASE ( 'pb', 'modpb' )
 
