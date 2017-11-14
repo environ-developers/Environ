@@ -225,6 +225,11 @@ MODULE environ_types
      LOGICAL :: include_auxiliary = .FALSE.
      TYPE( environ_auxiliary ), POINTER :: auxiliary => NULL()
 
+     ! Electrolyte charges
+
+     LOGICAL :: include_electrolyte = .FALSE.
+     TYPE( environ_electrolyte ), POINTER :: electrolyte => NULL()
+
      ! Total smooth free charge
 
      INTEGER :: number = 0
@@ -344,11 +349,13 @@ MODULE environ_types
 
      INTEGER :: index
      REAL( DP ) :: cbulk   ! bulk concentration
-     REAL( DP ) :: radius  ! radius
+!     REAL( DP ) :: radius  ! radius
      REAL( DP ) :: cmax    ! maximum allowed concentration
      REAL( DP ) :: z       ! charge
-     REAL( DP ) :: mu      ! chemical potential
-     REAL( DP ) :: epsilon ! dielectric constant
+!     REAL( DP ) :: epsilon ! dielectric constant
+
+     TYPE( environ_density ) :: c ! local concentration
+     TYPE( environ_density ) :: cfactor ! exp(-z\phi\beta) or 1 - z\phi\beta
 
   END TYPE environ_ioncctype
 
@@ -362,14 +369,14 @@ MODULE environ_types
      TYPE( environ_ioncctype ), DIMENSION(:), ALLOCATABLE :: ioncctype
 
      REAL( DP ) :: temperature
-     REAL( DP ) :: k2      ! Inverse of squared Debye length
+     REAL( DP ) :: k2
+     REAL( DP ) :: cmax
 
      TYPE( environ_boundary ) :: boundary
 
      TYPE( environ_density ) :: density
 
-     ! The electrolyte switch function over space
-
+     ! The electrolyte switch function
      TYPE( environ_density ) :: gamma
 
   END TYPE environ_electrolyte
@@ -1160,6 +1167,9 @@ CONTAINS
     charges%include_auxiliary = .FALSE.
     NULLIFY( charges%auxiliary )
 
+    charges%include_electrolyte = .FALSE.
+    NULLIFY( charges%electrolyte )
+
     charges%number = 0
     charges%charge = 0.D0
     CALL create_environ_density( charges%density, label )
@@ -1168,7 +1178,7 @@ CONTAINS
 
   END SUBROUTINE create_environ_charges
 
-  SUBROUTINE init_environ_charges_first( charges, electrons, ions, externals, auxiliary )
+  SUBROUTINE init_environ_charges_first( charges, electrons, ions, externals, auxiliary, electrolyte )
 
     IMPLICIT NONE
 
@@ -1177,6 +1187,7 @@ CONTAINS
     TYPE( environ_ions ),      OPTIONAL, TARGET, INTENT(IN) :: ions
     TYPE( environ_externals ), OPTIONAL, TARGET, INTENT(IN) :: externals
     TYPE( environ_auxiliary ), OPTIONAL, TARGET, INTENT(IN) :: auxiliary
+    TYPE( environ_electrolyte ), OPTIONAL, TARGET, INTENT(IN) :: electrolyte
 
     IF ( PRESENT(ions) ) THEN
        charges%include_ions = .TRUE.
@@ -1196,6 +1207,11 @@ CONTAINS
     IF ( PRESENT(auxiliary) ) THEN
        charges%include_auxiliary = .TRUE.
        charges%auxiliary => auxiliary
+    ENDIF
+
+    IF ( PRESENT(electrolyte) ) THEN
+       charges%include_electrolyte = .TRUE.
+       charges%electrolyte => electrolyte
     ENDIF
 
   END SUBROUTINE init_environ_charges_first
@@ -1258,6 +1274,11 @@ CONTAINS
        CALL update_environ_auxiliary( charges % auxiliary )
     ENDIF
 
+    IF ( charges % include_electrolyte ) THEN
+       IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+    ENDIF
+
     local_charge = integrate_environ_density(charges%density)
     IF ( ABS(local_charge-charges%charge) .GT. 1.D-8 ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
 
@@ -1284,6 +1305,8 @@ CONTAINS
        IF (ASSOCIATED(charges%externals)) NULLIFY( charges%externals )
 
        IF (ASSOCIATED(charges%auxiliary)) NULLIFY( charges%auxiliary )
+
+       IF (ASSOCIATED(charges%electrolyte)) NULLIFY( charges%electrolyte )
 
     END IF
 
