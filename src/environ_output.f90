@@ -1080,7 +1080,8 @@ CONTAINS
       !
       USE environ_base, ONLY : lelectrostatic, eelectrostatic, &
                                lsurface, ecavity, &
-                               lvolume, epressure, deenviron
+                               lvolume, epressure, &
+                               lelectrolyte, eelectrolyte, deenviron
       !
       CHARACTER( LEN=80 ) :: sub_name = 'environ_print_energies'
       !
@@ -1089,11 +1090,13 @@ CONTAINS
             IF ( lelectrostatic ) WRITE( program_unit, 9201 ) eelectrostatic
             IF ( lsurface ) WRITE( program_unit, 9202 ) ecavity
             IF ( lvolume ) WRITE( program_unit, 9203 ) epressure
+            IF ( lelectrolyte ) WRITE( program_unit, 9205 ) eelectrolyte
             WRITE( program_unit, 9204 ) deenviron
          ELSE IF ( prog .EQ. 'CP' ) THEN
             IF ( lelectrostatic ) WRITE( program_unit, 9301 ) eelectrostatic
             IF ( lsurface ) WRITE( program_unit, 9302 ) ecavity
             IF ( lvolume ) WRITE( program_unit, 9303 ) epressure
+            IF ( lelectrolyte ) WRITE( program_unit, 9305 ) eelectrolyte
             WRITE( program_unit, 9304 ) deenviron
          ELSE
             CALL errore(sub_name,'Wrong program calling Environ',1)
@@ -1105,10 +1108,12 @@ CONTAINS
 9201 FORMAT( '     electrostatic embedding   =',F17.8,' Ry')
 9202 FORMAT( '     cavitation energy         =',F17.8,' Ry')
 9203 FORMAT( '     PV energy                 =',F17.8,' Ry')
+9205 FORMAT( '     electrolyte free energy   =',F17.8,' Ry')
 9204 FORMAT( '     correction to one-el term =',F17.8,' Ry')
 9301 FORMAT( '     electrostatic embedding = ',F14.5,' Hartree a.u.')
 9302 FORMAT( '           cavitation energy = ',F14.5,' Hartree a.u.')
 9303 FORMAT( '                   PV energy = ',F14.5,' Hartree a.u.')
+9305 FORMAT( '     electrolyte free energy = ',F14.5,' Hartree a.u.')
 9304 FORMAT( '   correction to one-el term = ',F14.5,' Hartree a.u.')
       !
 ! ---------------------------------------------------------------------
