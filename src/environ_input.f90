@@ -339,7 +339,7 @@ MODULE environ_input
         ! modpb       = modified poisson-boltzmann equation (non-linear)
         ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
         ! linmodpb    = linearized modified poisson-boltzmann equation
-        REAL(DP) :: tol = 1.D-4
+        REAL(DP) :: tol = 1.D-5
         ! convergence threshold for electrostatic potential or auxiliary charge
 !
 ! Driver's parameters
@@ -739,7 +739,7 @@ MODULE environ_input
        !
        !
        problem = 'poisson'
-       tol = 1.D-4
+       tol = 1.D-5
        !
        solver = 'direct'
        auxiliary = 'none'
