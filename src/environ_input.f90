@@ -640,7 +640,7 @@ MODULE environ_input
        !
        env_ioncc_ntyp = 0
        cion(:) = 1.0D0
-       cionmax(:) = 1.0D3
+       cionmax(:) = 0.0D0 ! if remains zero, pb or linpb
        rion(:) = 0.D0
        zion(:) = 0.D0
        solvent_temperature = 300.0D0
@@ -1269,6 +1269,7 @@ MODULE environ_input
        !
        LOGICAL, INTENT(OUT) :: lelectrostatic
        !
+       INTEGER           :: ityp
        CHARACTER(LEN=20) :: sub_name = ' fix_electrostatic '
        !
        lelectrostatic = env_electrostatic
@@ -1286,8 +1287,10 @@ MODULE environ_input
        IF ( env_ioncc_ntyp > 0 ) THEN
           problem = 'linpb'
           solver  = 'cg'
-!          problem = 'modpb'
-!          solver = 'lbfgs'
+          DO ityp = 1, env_ioncc_ntyp
+             IF ( cionmax(ityp) .GT. 0.D0 .OR. &
+                     rion(ityp) .GT. 0.D0 ) problem = 'linmodpb'
+          END DO
        END IF
        !
        RETURN
