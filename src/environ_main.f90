@@ -39,7 +39,8 @@ CONTAINS
                                 lsoftcavity, vsoftcavity,             &
                                 lsurface, lvolume,                    &
                                 charges, lstatic, static,             &
-                                lelectrolyte, electrolyte
+                                lelectrolyte, electrolyte,            &
+                                vsoftelectrolyte
       USE electrostatic_base, ONLY : reference, outer
       !
       ! ... Each contribution to the potential is computed in its module
@@ -48,6 +49,7 @@ CONTAINS
       USE cavity,        ONLY : calc_decavity_dboundary
       USE pressure,      ONLY : calc_depressure_dboundary
       USE dielectric,    ONLY : calc_dedielectric_dboundary
+      USE electrolyte_utils, ONLY : calc_deelectrolyte_dboundary
       !
       USE electrolyte_utils, ONLY : calc_electrolyte_density
       !
@@ -96,9 +98,7 @@ CONTAINS
          ENDIF
 
          IF ( lelectrolyte ) THEN
-           CALL calc_electrolyte_density( outer, electrolyte, velectrostatic )
-           IF ( verbose .GE. 3 ) CALL print_environ_density( electrolyte%gamma )
-           IF ( verbose .GE. 3 ) CALL print_environ_density( electrolyte%density )
+           CALL calc_electrolyte_density( outer%problem, electrolyte, velectrostatic )
          END IF
 
          IF ( verbose .GE. 3 ) CALL print_environ_density( velectrostatic )
@@ -127,6 +127,21 @@ CONTAINS
          ! ... Multiply for the derivative of the boundary wrt electronic density
 
          vsoftcavity % of_r = vsoftcavity % of_r * solvent % dscaled % of_r
+
+         ! ... If electrolyte is present add its non-electrostatic contribution
+
+         IF ( lelectrolyte ) THEN
+
+            vsoftelectrolyte % of_r = 0.D0
+
+            CALL calc_deelectrolyte_dboundary( outer%problem, electrolyte, vsoftelectrolyte)
+
+            vsoftelectrolyte % of_r = vsoftelectrolyte % of_r * electrolyte % boundary % dscaled % of_r
+
+            vsoftcavity % of_r = vsoftcavity % of_r + vsoftelectrolyte % of_r
+
+         END IF
+
          IF ( verbose .GE. 3 ) CALL print_environ_density( vsoftcavity )
          vtot = vtot + vsoftcavity % of_r
 
@@ -139,7 +154,7 @@ CONTAINS
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
       SUBROUTINE calc_eenviron( deenviron, eelectrostatic, ecavity, &
-                              & epressure )
+                              & epressure, eelectrolyte )
 !--------------------------------------------------------------------
       !
       ! ... Calculates the environ contribution to the Energy.
@@ -161,13 +176,14 @@ CONTAINS
       USE electrostatic, ONLY : calc_eelectrostatic, calc_ereference
       USE cavity,        ONLY : calc_ecavity
       USE pressure,      ONLY : calc_epressure
+      USE electrolyte_utils, ONLY : calc_eelectrolyte
       !
       IMPLICIT NONE
       !
       ! ... Declares variables
       !
       REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, ecavity, &
-                                 epressure
+                                 epressure, eelectrolyte
       REAL( DP ) :: ereference
       !
       ! ... Initializes the variables
@@ -176,6 +192,7 @@ CONTAINS
       eelectrostatic = 0.D0
       ecavity        = 0.D0
       epressure      = 0.D0
+      eelectrolyte   = 0.D0
       !
       ! ... Calculates the energy corrections
       !
@@ -224,6 +241,10 @@ CONTAINS
       !
       IF ( lvolume ) CALL calc_epressure( solvent, epressure )
       !
+      !  if electrolyte is present calculate its non-electrostatic contribution
+      !
+      IF ( lelectrolyte ) CALL calc_eelectrolyte( outer%problem, electrolyte, eelectrolyte )
+      !
       RETURN
       !
 !--------------------------------------------------------------------
@@ -253,7 +274,7 @@ CONTAINS
       USE pressure,          ONLY : calc_depressure_dboundary
       USE dielectric,        ONLY : calc_dedielectric_dboundary
       USE generate_boundary, ONLY : calc_dboundary_dions
-
+      USE electrolyte_utils, ONLY : calc_deelectrolyte_dboundary
       !
       IMPLICIT NONE
       !
@@ -263,8 +284,8 @@ CONTAINS
       TYPE( environ_cell ), POINTER :: cell
       !
       INTEGER :: i
-      TYPE( environ_density ) :: vrigidcavity
-      TYPE( environ_gradient ) :: partial
+      TYPE( environ_density ) :: vrigidcavity, vrigidelectrolyte
+      TYPE( environ_gradient ) :: partial, partialelectrolyte
       !
       force_environ = 0.D0
       !
@@ -320,6 +341,18 @@ CONTAINS
          !
          CALL init_environ_gradient( cell, partial )
          !
+         ! ... If electrolyte is present, add its non-electrostatic contribution
+         !
+         IF ( lelectrolyte ) THEN
+            !
+            CALL init_environ_density( cell, vrigidelectrolyte )
+            !
+            CALL calc_deelectrolyte_dboundary( outer%problem, electrolyte, vrigidelectrolyte )
+            !
+            CALL init_environ_gradient( cell, partialelectrolyte )
+            !
+         END IF
+         !
          DO i = 1, nat
             !
             CALL calc_dboundary_dions( i, solvent, partial )
@@ -327,11 +360,28 @@ CONTAINS
             force_environ( :, i ) = force_environ( :, i ) &
                  & - scalar_product_environ_gradient_density( partial, vrigidcavity )
             !
+            IF ( lelectrolyte ) THEN
+               !
+               CALL calc_dboundary_dions( i, electrolyte % boundary, partialelectrolyte )
+               !
+               force_environ( :, i ) = force_environ( :, i ) &
+               & - scalar_product_environ_gradient_density( partialelectrolyte, vrigidelectrolyte )
+               !
+            END IF
+            !
          ENDDO
          !
          CALL destroy_environ_gradient( partial )
          !
          CALL destroy_environ_density( vrigidcavity )
+         !
+         IF ( lelectrolyte ) THEN
+            !
+            CALL destroy_environ_gradient( partialelectrolyte )
+            !
+            CALL destroy_environ_density( vrigidelectrolyte )
+            !
+         END IF
          !
       END IF
       !
