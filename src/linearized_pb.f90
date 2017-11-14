@@ -55,10 +55,6 @@ SUBROUTINE linearized_pb_gradient_charges( solver, core, charges, dielectric, el
 
            CALL linearized_pb_gradient_sqrt( solver % gradient, core, charges%density, dielectric, electrolyte, potential )
 
-!        CASE ( 'left' )
-!
-!           CALL linearized_pb_gradient_left( solver % gradient, core, charges%density, dielectric, potential )
-
         CASE DEFAULT
 
            CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
@@ -113,10 +109,6 @@ SUBROUTINE linearized_pb_gradient_density( solver, core, charges, dielectric, el
 
            CALL linearized_pb_gradient_sqrt( solver % gradient, core, charges, dielectric, electrolyte, potential )
 
-!        CASE ( 'left' )
-!
-!           CALL linearized_pb_gradient_left( solver % gradient, core, charges, dielectric, potential )
-
         CASE DEFAULT
 
            CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
@@ -143,19 +135,20 @@ SUBROUTINE linearized_pb_gradient_density( solver, core, charges, dielectric, el
 END SUBROUTINE linearized_pb_gradient_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE linearized_pb_energy( core, charges, dielectric, potential, energy )
+SUBROUTINE linearized_pb_energy( core, charges, dielectric, electrolyte, potential, energy )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
-  TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), INTENT(INOUT) :: charges
-  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
-  TYPE( environ_density ), INTENT(IN) :: potential
-  REAL( DP ), INTENT(OUT) :: energy
+  TYPE( electrostatic_core ),  INTENT(IN)    :: core
+  TYPE( environ_charges ),     INTENT(INOUT) :: charges
+  TYPE( environ_dielectric ),  INTENT(IN)    :: dielectric
+  TYPE( environ_electrolyte ), INTENT(IN)    :: electrolyte
+  TYPE( environ_density ),     INTENT(IN)    :: potential
+  REAL( DP ),                  INTENT(OUT)   :: energy
 
-  REAL( DP ) :: degauss, eself
-  CHARACTER( LEN=25 ) :: sub_name = 'linearized_pb_energy'
+  REAL( DP )                                 :: degauss, eself, eions
+  CHARACTER( LEN=25 )                        :: sub_name = 'linearized_pb_energy'
 
   CALL start_clock( 'calc_elinpb' )
 
@@ -164,9 +157,16 @@ SUBROUTINE linearized_pb_energy( core, charges, dielectric, potential, energy )
   IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
        & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
 
-  energy = 0.D0
+  energy     = 0.D0
+  eions      = 0.D0
+
+  ! Electrostatic interaction of solute
 
   CALL poisson_energy( core, charges, potential, energy )
+
+  ! Electrostatic interaction of electrolyte 
+
+  CALL poisson_energy( core, charges % electrolyte % density, potential, eions ) 
 
   ! Adding correction for point-like nuclei: only affects simulations of charged
   ! systems, it does not affect forces, but shift the energy depending on the
@@ -218,7 +218,7 @@ SUBROUTINE linearized_pb_energy( core, charges, dielectric, potential, energy )
 
   ENDIF
 
-  energy = energy + eself + degauss
+  energy = energy + eions + eself + degauss
 
   CALL stop_clock( 'calc_elinpb' )
 
@@ -359,7 +359,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
 
        ! ... Apply operator to conjugate direction
 
-       Ap%of_r = (factsqrt%of_r + electrolyte % k2 * gam%of_r ) * z%of_r + r%of_r + beta * Ap%of_r
+       Ap%of_r = (factsqrt%of_r + electrolyte%k2 * gam%of_r ) * z%of_r + r%of_r + beta * Ap%of_r
 
        ! ... Step downhill
 
