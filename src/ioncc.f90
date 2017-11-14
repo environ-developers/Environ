@@ -3,9 +3,8 @@ MODULE electrolyte_utils
 !--------------------------------------------------------------------
 
   USE environ_types
-  USE electrostatic_types
 
-  USE dielectric
+!  USE dielectric
   USE boundary
   USE environ_base, ONLY : e2
 !  USE constants,      ONLY: k_boltzmann_ry, pi, tpi, fpi
@@ -53,7 +52,8 @@ MODULE electrolyte_utils
 
   PUBLIC :: create_environ_electrolyte, init_environ_electrolyte_first, &
        & init_environ_electrolyte_second, destroy_environ_electrolyte,  &
-       & update_environ_electrolyte, calc_electrolyte_density
+       & update_environ_electrolyte, calc_electrolyte_density,          &
+       & calc_eelectrolyte, calc_deelectrolyte_dboundary
 
 CONTAINS
 
@@ -64,7 +64,7 @@ CONTAINS
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
 
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_electrolyte'
-    CHARACTER( LEN=80 ) :: label != 'electrolyte'
+    CHARACTER( LEN=80 ) :: label
 
     CALL create_environ_boundary( electrolyte%boundary )
     label = 'gamma'
@@ -78,50 +78,97 @@ CONTAINS
 
   END SUBROUTINE create_environ_electrolyte
 
-  SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
-             & tbeta, const, distance, spread, alpha, softness, electrons, ions, &
-             & temperature, cbulk, cmax, radius, z, electrolyte )
+  SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin,   &
+             & rhopb, tbeta, const, distance, spread, alpha, softness, electrons, &
+             & ions, temperature, cbulk, cmax, radius, z, electrolyte )
 
     IMPLICIT NONE
 
     INTEGER, INTENT(IN) :: ntyp, stype
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
-    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, alpha, softness, temperature
+    REAL( DP ), INTENT(IN) :: rhomax, rhomin, rhopb, tbeta, const, distance, &
+                              spread, alpha, softness, temperature
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, cmax, radius, z
     TYPE( environ_electrons ), INTENT(IN) :: electrons
     TYPE( environ_ions ), INTENT(IN) :: ions
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
 
     INTEGER :: ityp
-    REAL( DP ) :: neutral
+    REAL( DP ) :: neutral, sumcbulk, amin, amax, rhomin_, rhomax_
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_electrolyte_first'
+    CHARACTER( LEN=80 ) :: ityps, label
+
+    ! ... Fix Stern boundary parameter and initiate electrolyte boundary
+
+    IF (( mode == 'electronic' .OR. mode == 'full') .AND. &
+          distance .GT. 0.D0 .AND. spread .GT. 0.D0 ) THEN
+       !
+       ! ... rhomin, rhomax defined as in Ringe et al. JCTC 12, 4052 (2016)
+       !
+       amin = LOG( rhomin ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
+       amax = LOG( rhomax ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
+       !
+       rhomin_ = EXP( amin + ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
+       rhomax_ = EXP( amax - ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
+       !
+    ELSE
+       !
+       rhomax_ = rhomin
+       rhomin_ = rhopb
+       !
+    END IF
+
+    CALL init_environ_boundary_first( .TRUE., .TRUE., .FALSE., mode, stype, &
+        & rhomax_, rhomin_, tbeta, const, alpha, softness, electrons, ions, &
+        & electrolyte%boundary )
+
+    ! ... Setup all electrolyte parameters (with checks)
 
     electrolyte%ntyp = ntyp
 
     electrolyte%temperature = temperature
-
-    CALL init_environ_boundary_first( .TRUE., .TRUE., .FALSE., mode, stype, &
-         & rhomax, rhomin, tbeta, const, alpha, softness, electrons, ions, &
-         & electrolyte%boundary )
+    electrolyte%cmax = 0.D0
 
     ALLOCATE( electrolyte%ioncctype(ntyp) )
 
     neutral = 0.D0
+
     DO ityp = 1, ntyp
-       ! If the radius is provided in input, compute cmax from it
-       electrolyte%ioncctype(ityp)%cmax = cmax(ityp) * bohr_radius_si**3 / amu_si
+       !
+       ! ... If the radius is provided in input, compute cmax from it
+       electrolyte%ioncctype(ityp)%cmax  = cmax(ityp) * bohr_radius_si**3 / amu_si
        IF ( cmax(ityp) .EQ. 0.D0 .AND. radius(ityp) .GT. 0.D0 ) &
             & electrolyte%ioncctype(ityp)%cmax  = 0.64D0 * 3.D0 / fpi / radius(ityp)**3
-       ! Double check that the bulk and max concentrations in input are compatible
-       IF ( cbulk(ityp) .GT. 0.D0 .AND. cmax(ityp) .LT. cbulk(ityp) ) &
-            & call errore (sub_name,'cmax should be at least greater than cbulk',1)
+       !
+       ! ... Double check that bulk and max concentrations in input are compatible
        electrolyte%ioncctype(ityp)%cbulk = cbulk(ityp) * bohr_radius_si**3 / amu_si
-       electrolyte%ioncctype(ityp)%radius = radius(ityp)
+       IF ( electrolyte%ioncctype(ityp)%cmax .GT. 0.D0 .AND. &
+          & electrolyte%ioncctype(ityp)%cmax .LT. electrolyte%ioncctype(ityp)%cbulk ) &
+          & call errore (sub_name,'cmax should be at least greater than cbulk',1)
+       !
+       ! ... Only single cmax is implemented
+       IF ( electrolyte%cmax .EQ. 0.D0 ) electrolyte%cmax = electrolyte%ioncctype(ityp)%cmax
+       IF ( .NOT. electrolyte%ioncctype(ityp)%cmax .EQ. electrolyte%cmax ) &
+          & call errore (sub_name,'different size for electrolytes not implemented',1)
+!       electrolyte%ioncctype(ityp)%radius = radius(ityp) ! is this needed?
+       !
        electrolyte%ioncctype(ityp)%z = z(ityp)
        neutral = neutral + cbulk(ityp)*z(ityp)
+       !
+       ! ... Create density for the local electrolyte concentration and related quantities
+       WRITE(ityps,'(I2.2)') ityp
+       label = 'c_electrolyte_'//TRIM(ityps)
+       CALL create_environ_density( electrolyte%ioncctype(ityp)%c, label)
+       label = 'cfactor_electrolyte_'//TRIM(ityps)
+       CALL create_environ_density( electrolyte%ioncctype(ityp)%cfactor, label)
+       !
     END DO
 
     IF ( neutral .GT. 1.D-8 ) CALL errore(sub_name,'Bulk electrolyte is not neutral',1)
+
+    sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
+    IF ( electrolyte%cmax .GT. 0.D0 .AND. electrolyte%cmax .LE. sumcbulk ) &
+          & CALL errore( sub_name,'cmax should be larger than the sum of cbulks',1)
 
     RETURN
 
@@ -135,124 +182,271 @@ CONTAINS
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
 
     INTEGER    :: ityp
-    REAL( DP ) :: sum_cz2, kT
+    REAL( DP ) :: sum_cz2, arg, kT, e
+
+    sum_cz2 = 0.D0
+    kT      = k_boltzmann_ry * electrolyte%temperature
 
     CALL init_environ_boundary_second( cell, electrolyte%boundary )
+
     CALL init_environ_density( cell, electrolyte%gamma )
     CALL init_environ_density( cell, electrolyte%density )
 
-    ! Compute k ** 2 = 1. / lambda_D ** 2
-    sum_cz2 = 0.D0
     DO ityp = 1, electrolyte%ntyp
+      !
+      CALL init_environ_density( cell, electrolyte%ioncctype(ityp)%c )
+      CALL init_environ_density( cell, electrolyte%ioncctype(ityp)%cfactor )
+      !
       sum_cz2 = sum_cz2 + electrolyte%ioncctype(ityp)%cbulk * electrolyte%ioncctype(ityp)%z ** 2
+      !
     END DO
-    sum_cz2 = sum_cz2 * e2
-    kT      = k_boltzmann_ry * electrolyte%temperature
 
-    electrolyte%k2 = fpi * sum_cz2 / kT
+    ! k ** 2 = eps / lambda_D ** 2
+    electrolyte%k2 = sum_cz2 / kT
+    electrolyte%k2 = electrolyte%k2 * e2
 
     RETURN
 
   END SUBROUTINE init_environ_electrolyte_second
 
   SUBROUTINE update_environ_electrolyte( electrolyte )
-  !
-  IMPLICIT NONE
-  !
-  TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
-  !
-  CALL start_clock( 'electrolyte' )
-  !
-  ! ... Check if the boundary is under update (status = 1) or has been fully updated (status = 2)
-  !
-  IF ( electrolyte % boundary % update_status .GT. 0 ) electrolyte % update = .TRUE.
-  !
-  IF ( electrolyte % update ) THEN
-     !
-     ! ... Update the electrolyte in space if the boundary is ready
-     !
-     IF ( electrolyte % boundary % update_status .EQ. 2 ) THEN
-        !
-        CALL electrolyte_of_boundary( electrolyte )
-        !
-        electrolyte % update = .FALSE.
-        !
-     ENDIF
-     !
-  END IF
-  !
-  CALL stop_clock( 'electrolyte' )
-  !
-  RETURN
-  !
+
+    IMPLICIT NONE
+
+    TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
+
+    CALL start_clock( 'electrolyte' )
+
+    ! ... Check if the boundary is under update (status = 1) or has been fully updated (status = 2)
+    IF ( electrolyte % boundary % update_status .GT. 0 ) electrolyte % update = .TRUE.
+
+    IF ( electrolyte % update ) THEN
+       ! ... Update the electrolyte in space if the boundary is ready
+       IF ( electrolyte % boundary % update_status .EQ. 2 ) THEN
+          !
+          CALL electrolyte_of_boundary( electrolyte )
+          !
+          electrolyte % update = .FALSE.
+          !
+       ENDIF
+       !
+    END IF
+
+    CALL stop_clock( 'electrolyte' )
+
+    RETURN
+
   END SUBROUTINE update_environ_electrolyte
 
   SUBROUTINE electrolyte_of_boundary( electrolyte )
 
     IMPLICIT NONE
 
-    TYPE(environ_electrolyte), TARGET, INTENT(INOUT) :: electrolyte
+    TYPE( environ_electrolyte ), TARGET, INTENT(INOUT) :: electrolyte
 
-    REAL( DP ), DIMENSION( : ), POINTER :: gam, scaled
+    TYPE( environ_density ), POINTER :: gam, scaled
 
     CHARACTER ( LEN=80 ) :: sub_name = 'electrolyte_of_boundary'
 
-    ! Aliases
+    ! ... Aliases and init local variables
+    gam    => electrolyte % gamma
+    scaled => electrolyte % boundary % scaled
 
-    gam    => electrolyte % gamma % of_r
-    scaled => electrolyte % boundary % scaled % of_r
-
-    ! Compute gamma(r)
-
-    SELECT CASE ( electrolyte%boundary%type )
-
-    CASE ( 0, 2 )
-
-       gam = 1.D0 - scaled
-
-    CASE DEFAULT
-
-       CALL errore(sub_name,'Unkown boundary type',1)
-
-    END SELECT
+    ! ... Compute gamma(r)
+    gam % of_r = 1.D0 - scaled % of_r
 
     RETURN
 
   END SUBROUTINE electrolyte_of_boundary
 
-  SUBROUTINE calc_electrolyte_density( setup, electrolyte, potential )
+  SUBROUTINE calc_electrolyte_density( problem, electrolyte, potential )
+!DEBUG
+    USE environ_output
+!DEBUG
+    IMPLICIT NONE
 
-    TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    TYPE( environ_density ),     TARGET, INTENT(IN) :: potential
+    TYPE( environ_density ),     TARGET, INTENT(IN)    :: potential
+    CHARACTER ( LEN=80 ),                INTENT(IN)    :: problem
     TYPE( environ_electrolyte ), TARGET, INTENT(INOUT) :: electrolyte
 
-    REAL( DP ), DIMENSION( : ), POINTER :: gam, pot, rho
-    REAL( DP ), POINTER :: k2
+    REAL( DP ), DIMENSION(:), POINTER :: pot, rho, c, cfactor, gam
 
-    CHARACTER ( LEN=80 ) :: sub_name = 'calc_electrolyte_density'
+    REAL( DP )              :: kT, e, factor
+    INTEGER                 :: ityp
+    TYPE( environ_density ) :: denominator
+    CHARACTER ( LEN=80 )    :: sub_name = 'calc_electrolyte_density'
 
-    k2  => electrolyte % k2
-    gam => electrolyte % gamma % of_r
-    rho => electrolyte % density % of_r
-    pot => potential % of_r
+    gam => electrolyte%gamma%of_r
+    pot => potential%of_r
+    rho => electrolyte%density%of_r
 
-    SELECT CASE ( setup % problem )
+    rho = 0.D0
+    kT  = k_boltzmann_ry * electrolyte%temperature
+    e   = SQRT( e2 )
 
-    CASE ( 'linpb', 'linmodpb' )
+    CALL init_environ_density( potential%cell, denominator )
+    denominator%of_r = 1.D0
 
-      rho = k2 * gam * pot
+    DO ityp = 1, electrolyte%ntyp
+      !
+      cfactor => electrolyte%ioncctype(ityp)%cfactor%of_r
+      !
+      SELECT CASE ( problem )
+        !
+      CASE ( 'linpb', 'linmodpb' )
+        !
+        cfactor = 1.D0 - electrolyte%ioncctype(ityp)%z*pot / kT * e
+        !
+      CASE ( 'pb' )
+        !
+        cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
+        !
+      CASE ( 'modpb' )
+        !
+        cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
+        factor = electrolyte%ioncctype(ityp)%cbulk / electrolyte%cmax
+        denominator%of_r = denominator%of_r - factor * ( 1.D0 - cfactor )
+        !
+      END SELECT
+      !
+      NULLIFY( cfactor )
+      !
+    END DO
 
-    CASE ( 'pb', 'modpb' )
+    DO ityp = 1, electrolyte%ntyp
+      !
+      c => electrolyte%ioncctype(ityp)%c%of_r
+      cfactor => electrolyte%ioncctype(ityp)%cfactor%of_r
+      !
+      c   = gam * electrolyte%ioncctype(ityp)%cbulk * cfactor / denominator%of_r
+      rho = rho + c * electrolyte%ioncctype(ityp)%z * e
+      !
+!DEBUG
+      CALL print_environ_density( electrolyte%ioncctype(ityp)%c )
+!DEBUG
+      NULLIFY( c )
+      NULLIFY( cfactor )
+      !
+    END DO
 
-      CALL errore( sub_name, 'option not yet implemented', 1 )
-
-    CASE DEFAULT
-
-      CALL errore( sub_name, 'unexpected problem keyword', 1 )
-
-    END SELECT
+    CALL destroy_environ_density( denominator )
+!DEBUG
+    CALL print_environ_density( electrolyte%density )
+    CALL print_environ_density( electrolyte%gamma )
+!DEBUG
 
   END SUBROUTINE calc_electrolyte_density
+
+  SUBROUTINE calc_eelectrolyte( problem, electrolyte, energy )
+
+    IMPLICIT NONE
+
+    CHARACTER ( LEN=80 ),        INTENT(IN)  :: problem
+    TYPE( environ_electrolyte ), INTENT(IN)  :: electrolyte
+    REAL( DP ),                  INTENT(OUT) :: energy
+
+    REAL( DP )              :: kT, sumcbulk, bulkterm, integral
+    INTEGER                 :: ityp
+    TYPE( environ_density ) :: arg, f
+
+    energy = 0.D0
+
+    kT       = k_boltzmann_ry * electrolyte%temperature
+    sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
+    bulkterm = LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+
+    SELECT CASE ( problem )
+      !
+    CASE ( 'pb', 'linpb' )
+      !
+      RETURN
+      !
+    CASE ( 'linmodpb' )
+      !
+      integral = integrate_environ_density( electrolyte%gamma )
+      energy   = kT * electrolyte%cmax * bulkterm * &
+               & ( integral - electrolyte%gamma%cell%omega )
+      !
+    CASE ( 'modpb' )
+      !
+      CALL init_environ_density( electrolyte%gamma%cell, arg )
+      CALL init_environ_density( electrolyte%gamma%cell, f )
+      !
+      arg%of_r = 0.D0
+      f%of_r = 0.D0
+      !
+      DO ityp = 1, electrolyte%ntyp
+        !
+        arg%of_r = arg%of_r + electrolyte%ioncctype(ityp)%cfactor%of_r * &
+                            & electrolyte%ioncctype(ityp)%cbulk
+        !
+      END DO
+      !
+      arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
+      arg%of_r = arg%of_r + 1.D0
+      f%of_r = electrolyte%gamma%of_r * LOG ( arg%of_r )
+      !
+      integral = integrate_environ_density( f )
+      !
+      energy   = - kT * electrolyte%cmax * &
+         & ( integral + bulkterm * electrolyte%gamma%cell%omega )
+      !
+      CALL destroy_environ_density( arg )
+      CALL destroy_environ_density( f )
+      !
+    END SELECT
+
+  END SUBROUTINE calc_eelectrolyte
+
+  SUBROUTINE calc_deelectrolyte_dboundary( problem, electrolyte, de_dboundary)
+
+    IMPLICIT NONE
+
+    CHARACTER ( LEN=80 ),        INTENT(IN)  :: problem
+    TYPE( environ_electrolyte ), TARGET, INTENT(IN)    :: electrolyte
+    TYPE( environ_density ),     TARGET, INTENT(INOUT) :: de_dboundary
+
+    REAL( DP )              :: kT, sumcbulk
+    INTEGER                 :: ityp
+    TYPE( environ_density ) :: arg
+
+    kT       = k_boltzmann_ry * electrolyte%temperature
+    sumcbulk = SUM( electrolyte % ioncctype(:)%cbulk )
+
+    SELECT CASE ( problem )
+      !
+    CASE ( 'pb', 'linpb' )
+      !
+      RETURN
+      !
+    CASE ( 'linmodpb' )
+      !
+      de_dboundary % of_r = kT * electrolyte%cmax * &
+                            LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+      !
+    CASE ( 'modpb' )
+      !
+      CALL init_environ_density( de_dboundary%cell, arg )
+      !
+      arg%of_r = 0.D0
+      !
+      DO ityp = 1, electrolyte%ntyp
+        !
+        arg%of_r = arg%of_r + electrolyte%ioncctype(ityp)%cfactor%of_r * &
+                            & electrolyte%ioncctype(ityp)%cbulk
+        !
+      END DO
+      !
+      arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
+      arg%of_r = arg%of_r + 1.D0
+      de_dboundary % of_r = - kT * electrolyte%cmax * &
+                              LOG ( arg%of_r )
+      !
+      CALL destroy_environ_density( arg )
+      !
+    END SELECT
+
+  END SUBROUTINE calc_deelectrolyte_dboundary
 
   SUBROUTINE destroy_environ_electrolyte( lflag, electrolyte )
 
@@ -263,9 +457,7 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'destroy_environ_electrolyte'
 
     IF ( lflag ) THEN
-
        ! These components were allocated first, destroy only if lflag = .TRUE.
-
        IF ( .NOT. ALLOCATED( electrolyte%ioncctype ) ) &
             & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
        DEALLOCATE( electrolyte%ioncctype )
