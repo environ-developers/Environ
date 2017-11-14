@@ -270,7 +270,7 @@ CONTAINS
     REAL( DP ), DIMENSION( : ), POINTER :: scaled, gradscaledmod, laplscaled
     REAL( DP ), DIMENSION( :, : ), POINTER :: gradeps, gradlogeps, gradscaled
 
-    REAL( DP ), DIMENSION( : ), POINTER :: laplback, gradbackmod, gradepsmod
+    REAL( DP ), DIMENSION( : ), POINTER :: laplback, gradbackmod
     REAL( DP ), DIMENSION( :, : ), POINTER :: gradback
 
     REAL( DP ), DIMENSION( : ), ALLOCATABLE :: dlogeps
@@ -280,6 +280,7 @@ CONTAINS
     REAL( DP ), DIMENSION( : ), ALLOCATABLE :: dlogeps_dback
     REAL( DP ), DIMENSION( : ), ALLOCATABLE :: d2eps_dback2
     REAL( DP ), DIMENSION( : ), ALLOCATABLE :: d2eps_dbackdbound
+    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: gradepsmod2
 
     CHARACTER ( LEN=80 ) :: sub_name = 'epsilon_of_boundary'
 
@@ -321,7 +322,7 @@ CONTAINS
        IF ( dielectric % need_factsqrt ) THEN
           laplback => dielectric % laplbackground % of_r
           gradbackmod => dielectric % gradbackground % modulus % of_r
-          gradepsmod => dielectric % gradient % modulus % of_r
+          ALLOCATE( gradepsmod2( nnr ) )
           ALLOCATE( d2eps_dbackdbound( nnr ) )
           ALLOCATE( d2eps_dback2( nnr ) )
        END IF
@@ -392,10 +393,19 @@ CONTAINS
        ELSE
           CALL scalar_product_environ_gradient( dielectric % boundary % gradient, &
                & dielectric % gradbackground, dielectric % factsqrt )
+          IF ( dielectric % need_gradient ) THEN
+             gradepsmod2 = dielectric % gradient % modulus % of_r**2
+          ELSE
+             gradepsmod2 = 0.D0
+             DO ipol = 1, 3
+                gradepsmod2(:) = gradepsmod2(:) + ( deps( : ) * gradscaled( ipol, : ) + &
+                     & deps_dback( : ) * gradback( ipol, : ) )**2
+             ENDDO
+          ENDIF
           factsqrteps = 2.D0 * d2eps_dbackdbound * factsqrteps + &
                & d2eps_dback2 * gradbackmod**2 + deps_dback * laplback + &
                & d2eps * gradscaledmod**2 + deps * laplscaled - &
-               & 0.5D0 * gradepsmod**2 / eps
+               & 0.5D0 * gradepsmod2 / eps
        ENDIF
        factsqrteps = factsqrteps * 0.5D0 / e2 / fpi
        DEALLOCATE( d2eps )
