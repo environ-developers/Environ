@@ -1,3 +1,7 @@
+[pw_regions/]
+program = PW
+inputs_args = ('pw.in', 'insphere-default.in'), ('pw.in', 'outslab-default.in' )
+
 [pw_spin/]
 program = PW
 inputs_args = ('radical.in', 'vacuum-pcc.in'), ('radical.in', 'dielectric-pcc.in')
