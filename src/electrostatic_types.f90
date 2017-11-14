@@ -642,7 +642,7 @@ CONTAINS
     !
     SELECT CASE ( setup % problem )
        !
-    CASE ( 'generalized', 'linpb' )
+    CASE ( 'generalized', 'linpb', 'linmodpb' )
        !
        need_gradlog = .TRUE. ! THIS IS DUE TO THE CALCULATION OF FORCES, REQUIRING POLARIZATION CHARGE
        !
