@@ -158,12 +158,14 @@ MODULE environ_base
        deenviron,                   &
        eelectrostatic,              &
        ecavity,                     &
-       epressure
+       epressure,                   &
+       eelectrolyte
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
-       vsoftcavity
+       vsoftcavity,                 &
+       vsoftelectrolyte
   TYPE ( environ_gradient ) ::      &
        gelectrostatic
   ! gradient of the total electrostatic potential
