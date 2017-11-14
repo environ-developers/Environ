@@ -215,10 +215,13 @@ CONTAINS
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
-    IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
-         & stern_mode, stype, rhomin, rhopb, tbeta, env_static_permittivity, &
+    IF ( lelectrolyte ) THEN
+       CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
+         & stern_mode, stype, rhomax, rhomin, rhopb, tbeta, env_static_permittivity, &
          & stern_distance, stern_spread, alpha, softness, electrons, ions, &
          & solvent_temperature, cion, cionmax, rion, zion, electrolyte )
+       CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
+    END IF
     !
     ! Set the parameters of the dielectric
     !
@@ -267,11 +270,13 @@ CONTAINS
                                lelectrostatic, eelectrostatic,          &
                                velectrostatic, vreference,              &
                                lsoftcavity, vsoftcavity,                &
+                               vsoftelectrolyte,                        &
                                lelectrolyte, electrolyte,               &
                                lsolvent, solvent, lstatic, static,      &
                                loptical, optical,                       &
                                lexternals, externals,                   &
-                               lsurface, ecavity, lvolume, epressure
+                               lsurface, ecavity, lvolume, epressure,   &
+                               eelectrolyte
       !
       USE electrostatic_init, ONLY : electrostatic_initbase
       !
@@ -336,6 +341,14 @@ CONTAINS
          CALL create_environ_density( vsoftcavity, label )
          CALL init_environ_density( cell, vsoftcavity )
          !
+         IF ( lelectrolyte ) THEN
+            !
+            label = 'vsoftelectrolyte'
+            CALL create_environ_density( vsoftelectrolyte, label )
+            CALL init_environ_density( cell, vsoftelectrolyte )
+            !
+         END IF
+         !
       END IF
       !
       ! ... Cavity contribution
@@ -345,6 +358,10 @@ CONTAINS
       ! ... Pressure contribution
       !
       epressure  = 0.0_DP
+      !
+      ! ... Non-electrostatice electrolyte contribution
+      !
+      eelectrolyte = 0.0_DP
       !
       ! ... Second step of initialization of some environ derived type
       !
@@ -429,7 +446,7 @@ CONTAINS
       !
       IF ( lstatic ) CALL update_environ_dielectric( static )
       IF ( loptical ) CALL update_environ_dielectric( optical )
-      IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte ) 
+      IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
       !
 !      IF ( lexternals ) CALL update_environ_externals( externals )
       !
@@ -619,6 +636,7 @@ CONTAINS
       USE environ_base, ONLY : vzero,                                &
                                lelectrostatic, velectrostatic,       &
                                vreference, lsoftcavity, vsoftcavity, &
+                               vsoftelectrolyte,                     &
                                ions, electrons, system, charges,     &
                                lexternals, externals,                &
                                lstatic, static, loptical, optical,   &
@@ -648,8 +666,10 @@ CONTAINS
          CALL destroy_environ_density( vreference )
          CALL electrostatic_clean( lflag )
       END IF
-      IF ( lsoftcavity ) &
-           & CALL destroy_environ_density( vsoftcavity )
+      IF ( lsoftcavity ) THEN
+         CALL destroy_environ_density( vsoftcavity )
+         IF ( lelectrolyte ) CALL destroy_environ_density( vsoftelectrolyte )
+      END IF
       !
       ! ... destroy derived types which were allocated in input
       !
