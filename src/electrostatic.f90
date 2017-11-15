@@ -30,9 +30,17 @@ MODULE electrostatic
   PUBLIC :: calc_velectrostatic, calc_eelectrostatic, &
             calc_felectrostatic, calc_vreference, calc_ereference
 
+  INTERFACE calc_velectrostatic
+     MODULE PROCEDURE calc_velectrostatic_charges, calc_velectrostatic_density
+  END INTERFACE calc_velectrostatic
+
+  INTERFACE calc_vreference
+     MODULE PROCEDURE calc_vreference_charges, calc_vreference_density
+  END INTERFACE calc_vreference
+
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_vreference( setup, charges, potential )
+  SUBROUTINE calc_vreference_charges( setup, charges, potential )
 !--------------------------------------------------------------------
     IMPLICIT NONE
 
@@ -51,7 +59,7 @@ CONTAINS
 
     CALL update_environ_charges( charges )
 
-    CALL calc_velectrostatic( setup = setup, charges = charges, potential = potential )
+    CALL calc_velectrostatic_charges( setup = setup, charges = charges, potential = potential )
 
     ! ... Reset flags
 
@@ -61,10 +69,33 @@ CONTAINS
 
     RETURN
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_vreference
+  END SUBROUTINE calc_vreference_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_velectrostatic( setup, charges, dielectric, electrolyte, &
+  SUBROUTINE calc_vreference_density( setup, charges, potential )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    TYPE( electrostatic_setup ), INTENT(IN) :: setup
+    TYPE( environ_density ), INTENT(INOUT) :: charges
+    TYPE( environ_density ), INTENT(INOUT) :: potential
+
+    TYPE( environ_cell ), POINTER :: cell
+
+    TYPE( environ_density ) :: local
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_vreference_density'
+
+    IF ( .NOT. ASSOCIATED( charges % cell, potential % cell ) ) &
+         & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
+
+    CALL calc_velectrostatic_density( setup = setup, charges = charges, potential = potential )
+
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_vreference_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE calc_velectrostatic_charges( setup, charges, dielectric, electrolyte, &
                                 & potential )
 !--------------------------------------------------------------------
     !
@@ -92,6 +123,8 @@ CONTAINS
     ! ... Calculates contribution to Hartree and local potentials
 
     CALL start_clock( 'calc_velect' )
+
+    potential % of_r = 0.D0
 
     ! ... Select the appropriate combination of problem and solver
 
@@ -205,7 +238,167 @@ CONTAINS
     RETURN
 
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_velectrostatic
+  END SUBROUTINE calc_velectrostatic_charges
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE calc_velectrostatic_density( setup, charges, dielectric, electrolyte, &
+                                & potential )
+!--------------------------------------------------------------------
+    !
+    ! ... Calculates the electrostatic embedding contribution to the
+    !     Kohn-Sham potential
+    !
+    USE poisson, ONLY : poisson_direct
+    USE generalized, ONLY : generalized_gradient
+    !
+    IMPLICIT NONE
+    !
+    ! ... Declares variables
+    !
+    TYPE( electrostatic_setup ), INTENT(IN) :: setup
+    TYPE( environ_density ), INTENT(INOUT) :: charges
+    TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
+    TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
+    TYPE( environ_density ), INTENT(INOUT) :: potential
+    !
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_velectrostatic_density'
+    !
+    ! ... Local variables
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    TYPE( environ_density ) :: local
+    !
+    ! ... Calculates contribution to Hartree and local potentials
+
+    CALL start_clock( 'calc_velect' )
+
+    ! ... Sanity check and local allocations
+
+    IF ( .NOT. ASSOCIATED( charges%cell, potential%cell ) ) &
+         & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
+
+    cell => charges % cell
+
+    CALL init_environ_density( cell, local )
+
+    ! ... Select the appropriate combination of problem and solver
+
+    SELECT CASE ( setup % problem )
+
+    CASE ( 'poisson' )
+
+       SELECT CASE ( setup % solver % type )
+
+       CASE ( 'direct', 'default' )
+
+          CALL poisson_direct( setup % core, charges, local )
+
+       CASE DEFAULT
+
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
+
+       END SELECT
+
+    CASE ( 'generalized' )
+
+       IF ( .NOT. PRESENT( dielectric ) ) &
+            CALL errore( sub_name, 'missing details of dielectric medium', 1 )
+
+       SELECT CASE ( setup % solver % type )
+
+       CASE ( 'direct' )
+
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL generalized_direct()
+
+       CASE ( 'cg', 'sd', 'iterative', 'default' )
+
+          CALL generalized_gradient( setup % solver, setup % core, charges, dielectric, local )
+
+       CASE ( 'lbfgs' )
+
+          CALL errore( sub_name, 'option not implemented', 1 )
+!          CALL generalized_lbfgs()
+
+       CASE  DEFAULT
+
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
+
+       END SELECT
+
+    CASE ( 'linpb', 'linmodpb' )
+
+       IF ( .NOT. PRESENT( electrolyte ) ) &
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+
+       SELECT CASE ( setup % solver % type )
+
+       CASE ( 'direct' )
+
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL linpb_direct()
+
+       CASE ( 'cg', 'sd' )
+
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL linpb_gradient( )
+
+       CASE ( 'lbfgs' )
+
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL linpb_lbfgs()
+
+       CASE DEFAULT
+
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
+
+       END SELECT
+
+    CASE ( 'pb', 'modpb' )
+
+       IF ( .NOT. PRESENT( electrolyte ) ) &
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+
+       SELECT CASE ( setup % solver % type )
+
+       CASE ( 'direct' )
+
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL pb_direct()
+
+       CASE ( 'nested' )
+
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL pb_nested()
+
+       CASE ( 'lbfgs' )
+
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL pb_lbfgs()
+
+       CASE DEFAULT
+
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
+
+       END SELECT
+
+    CASE DEFAULT
+
+       CALL errore( sub_name, 'unexpected problem keyword', 1 )
+
+    END SELECT
+
+    potential % of_r = local % of_r
+
+    CALL destroy_environ_density( local )
+
+    CALL stop_clock( 'calc_velect' )
+
+    RETURN
+
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_velectrostatic_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_ereference( setup, charges, potential, energy )

@@ -508,12 +508,12 @@ CONTAINS
             !
             ! ... Update quantities that depend on the solvent boundary
             !
-            IF ( lstatic ) THEN
+            IF ( lstatic .AND. .NOT. tddfpt ) THEN
                CALL update_environ_dielectric( static )
                IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
             END IF
             !
-            IF ( loptical ) THEN
+            IF ( loptical .AND. tddfpt ) THEN
                CALL update_environ_dielectric( optical )
                IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
             END IF
@@ -585,12 +585,12 @@ CONTAINS
             !
             ! ... Update quantities that depend on the solvent boundary
             !
-            IF ( lstatic ) THEN
+            IF ( lstatic .AND. .NOT. tddfpt ) THEN
                CALL update_environ_dielectric( static )
                IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
             END IF
             !
-            IF ( loptical ) THEN
+            IF ( loptical .AND. tddfpt ) THEN
                CALL update_environ_dielectric( optical )
                IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
             END IF
@@ -626,62 +626,90 @@ CONTAINS
       ! In environ_base all the control flags plus the variables
       ! that need to be deallocated
       !
-      USE environ_base, ONLY : vzero,                                &
-                               lelectrostatic, velectrostatic,       &
-                               vreference, lsoftcavity, vsoftcavity, &
-                               ions, electrons, system, charges,     &
-                               lexternals, externals,                &
-                               lstatic, static, loptical, optical,   &
-                               lsolvent, solvent,                    &
-                               lelectrolyte, electrolyte
-      !
-      USE electrostatic_init, ONLY : electrostatic_clean
+      USE environ_base, ONLY : vzero, lelectrostatic, vreference,      &
+                               lsoftcavity, vsoftcavity, lstatic,      &
+                               static, charges, lauxiliary, auxiliary, &
+                               lexternals, externals, lelectrolyte,    &
+                               electrolyte, ions, electrons, system
       !
       ! Local clean up subroutines for the different contributions
       !
       IMPLICIT NONE
       !
       LOGICAL, INTENT(IN) :: lflag
-      LOGICAL :: opnd
       !
       ! ... Deallocate environment variables
-      !
-      INQUIRE( unit=environ_unit, opened= opnd )
-      IF ( opnd ) CLOSE(unit=environ_unit)
       !
       CALL destroy_environ_density( vzero )
       !
       ! ... environ_base variables
       !
-      IF ( lelectrostatic ) THEN
-         CALL destroy_environ_density( velectrostatic )
-         CALL destroy_environ_density( vreference )
-         CALL electrostatic_clean( lflag )
-      END IF
-      IF ( lsoftcavity ) &
-           & CALL destroy_environ_density( vsoftcavity )
+      IF ( lelectrostatic ) CALL destroy_environ_density( vreference )
+      IF ( lsoftcavity ) CALL destroy_environ_density( vsoftcavity )
       !
       ! ... destroy derived types which were allocated in input
       !
       IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
-      IF ( lauxiliary ) CALL destroy_environ_auxiliary( auxiliary )
       IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
+      IF ( lauxiliary ) CALL destroy_environ_auxiliary( auxiliary )
       IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
-      IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )
-      IF ( lsolvent ) CALL destroy_environ_boundary( lflag, solvent )
       IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
       !
       CALL destroy_environ_electrons( lflag, electrons )
       CALL destroy_environ_ions( lflag, ions )
       CALL destroy_environ_system( lflag, system )
       !
-!!!! DOUBLE CHECK TDDFPT      IF ( .NOT. tddfpt) THEN
-!!!! DOUBLE CHECK TDDFPT        IF ( ALLOCATED( rhoions ) ) DEALLOCATE( rhoions )
-!!!! DOUBLE CHECK TDDFPT      END IF
+      ! ... the following quantities may be needed by TDDFPT
+      !
+      IF ( .NOT. tddfpt ) CALL environ_clean_tddfpt(lflag)
       !
       RETURN
       !
 !--------------------------------------------------------------------
    END SUBROUTINE environ_clean
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+   SUBROUTINE environ_clean_tddfpt(lflag)
+!--------------------------------------------------------------------
+!
+! Clean up all the Environ related allocated variables, and call
+! clean up subroutines of specific Environ modules. These are quantities
+! that may be needed by TDDFPT, thus may need to be cleaned later
+!
+      ! ... Declares modules
+      !
+      ! In environ_base all the control flags plus the variables
+      ! that need to be deallocated
+      !
+      USE environ_base, ONLY : lelectrostatic, velectrostatic,      &
+                               loptical, optical, lsolvent, solvent
+      !
+      USE electrostatic_init, ONLY : electrostatic_clean
+      !
+      IMPLICIT NONE
+      !
+      LOGICAL, INTENT(IN) :: lflag
+      !
+      LOGICAL :: opnd
+      !
+      INQUIRE( unit=environ_unit, opened= opnd )
+      IF ( opnd ) CLOSE(unit=environ_unit)
+      !
+      ! ... environ_base variables
+      !
+      IF ( lelectrostatic ) THEN
+         CALL destroy_environ_density( velectrostatic )
+         CALL electrostatic_clean( lflag )
+      END IF
+      !
+      ! ... destroy derived types which were allocated in input
+      !
+      IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )
+      IF ( lsolvent ) CALL destroy_environ_boundary( lflag, solvent )
+      !
+      RETURN
+      !
+!--------------------------------------------------------------------
+   END SUBROUTINE environ_clean_tddfpt
 !--------------------------------------------------------------------
 END MODULE environ_init

@@ -1238,7 +1238,7 @@ CONTAINS
       END SUBROUTINE environ_summary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE environ_clock( )
+      SUBROUTINE environ_clock( passed_unit )
 !--------------------------------------------------------------------
       !
       ! Write out the time informations of the Environ dependent
@@ -1248,8 +1248,17 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      WRITE( program_unit, * )
-      WRITE( program_unit, '(5X,"Environ routines")' )
+      INTEGER, INTENT(IN), OPTIONAL :: passed_unit
+      !
+      INTEGER :: actual_unit
+      !
+      IF ( PRESENT( passed_unit ) ) THEN
+         actual_unit = passed_unit
+      ELSE
+         actual_unit = program_unit
+      ENDIF
+      WRITE( actual_unit, * )
+      WRITE( actual_unit, '(5X,"Environ routines")' )
       ! dielectric subroutines
       IF ( lelectrostatic ) THEN
          CALL print_clock ('calc_eelect')

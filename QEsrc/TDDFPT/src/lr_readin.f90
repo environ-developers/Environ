@@ -62,14 +62,14 @@ SUBROUTINE lr_readin
   USE environ_base,        ONLY : environ_base_init, ir_end
   USE environ_input,       ONLY : read_environ
   USE environ_base,        ONLY : ifdtype, nfdpoint
-  USE ions_base,           ONLY : nsp, ityp, zv, tau, nat
+  USE ions_base,           ONLY : nsp, atm, ityp, zv, tau, nat
   USE cell_base,           ONLY : at, alat, omega, ibrav
   USE solvent_tddfpt,      ONLY : solvent_initbase_tddfpt
   USE environ_init,        ONLY : environ_initions, environ_initcell,      &
                                   environ_clean, environ_initbase,         &
                                   environ_initions_allocate
   USE environ_main,        ONLY : calc_venviron
-  USE mp_bands,            ONLY : me_bgrp
+  USE mp_bands,            ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id
   USE plugin_flags,        ONLY : use_environ
 #endif
   
@@ -439,33 +439,32 @@ SUBROUTINE lr_readin
      !
      ! Copied from PW/src/input.f90
      !
-     CALL read_environ( nat, nsp, assume_isolated, ibrav )
+     CALL read_environ( "TDDFPT", nelec, nspin, nat, nsp, atm, assume_isolated )
      !
      ! Taken from PW/src/init_run.f90
      !
      ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-     CALL environ_initbase( dfftp%nnr )
+     CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, &
+          & dfftp%nnr, ir_end, intra_bgrp_comm, me_bgrp, root_bgrp_id )
      !
      ! Taken from PW/src/electrons.f90
      !
-     CALL environ_initions( dfftp%nnr, nat, nsp, ityp, zv, tau, alat )
-     CALL environ_initcell( dfftp%nnr, dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, omega, alat, at )
+     CALL environ_initions( dfftp%nnr, nat, nsp, ityp, zv, tau )
+     CALL environ_initcell( omega, at )
      !
      ! Compute additional unperturbed potentials due to the presence of the
      ! environment and add them to the SCF (HXC) potential.
      !
      WRITE( stdout, '(/5x,"Computing and adding the polarization potentials to HXC potential")' )
      !
-     CALL calc_venviron( .TRUE., dfftp%nnr, nspin, 0.0d0, rho%of_r, v%of_r(:,1))
+     CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rho%of_r )
      !
-     ! Now, once the Environ potentials were computed we can deallocate numerous 
+     CALL calc_venviron( .TRUE., dfftp%nnr, v%of_r(:,1) )
+     !
+     ! Now, once the Environ potentials were computed we can deallocate numerous
      ! Environ arrays because they are not needed any longer.
      !
      CALL environ_clean( .TRUE. )
-     !
-     ! Allocations for TDDFPT
-     !
-     CALL solvent_initbase_tddfpt(ifdtype, nfdpoint, dfftp%nnr)
      !
   ENDIF
   !
