@@ -9,6 +9,7 @@
  &BOUNDARY
    !
    stype = 1
+   boundary_mode = 'full'
    boundary_core = 'fd'
    !
  /

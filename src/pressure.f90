@@ -19,7 +19,7 @@ MODULE pressure
   !
   USE environ_types
   USE environ_output
-  USE environ_base,  ONLY : env_pressure, e2
+  USE environ_base,  ONLY : e2
   !
   IMPLICIT NONE
   !
@@ -29,7 +29,7 @@ MODULE pressure
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_depressure_dboundary( boundary, de_dboundary )
+  SUBROUTINE calc_depressure_dboundary( pressure, boundary, de_dboundary )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the PV contribution to the potential
@@ -38,6 +38,7 @@ CONTAINS
     !
     ! ... Declares variables
     !
+    REAL( DP ), INTENT(IN) :: pressure
     TYPE( environ_boundary ), INTENT(IN) :: boundary
     TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
     !
@@ -45,7 +46,7 @@ CONTAINS
     !
     ! ... The functional derivative of the volume term is just unity
     !
-    de_dboundary%of_r = de_dboundary%of_r + env_pressure
+    de_dboundary%of_r = de_dboundary%of_r + pressure
     !
     RETURN
     !
@@ -53,7 +54,7 @@ CONTAINS
   END SUBROUTINE calc_depressure_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_epressure( boundary, epressure )
+  SUBROUTINE calc_epressure( pressure, boundary, epressure )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the PV contribution to the energy
@@ -62,12 +63,13 @@ CONTAINS
     !
     ! ... Declares variables
     !
+    REAL( DP ), INTENT(IN) :: pressure
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     REAL( DP ), INTENT(OUT) :: epressure
     !
     ! ... Computes the PV energy
     !
-    epressure = env_pressure * boundary%volume * e2 / 2.D0
+    epressure = pressure * boundary%volume * e2 / 2.D0
     !
     RETURN
     !

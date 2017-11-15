@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 19Oct2017 at 16:21:11 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on 14Nov2017 at 14:54: 8 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -145,7 +145,7 @@
      negative rho (up, down):  7.936E-04 0.000E+00
      Starting wfc are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is        2.4 secs
+     total cpu time spent up to now is        2.2 secs
 
      per-process dynamical memory:   616.2 Mb
 
@@ -160,7 +160,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.9E-08, # of iterations =   7
 
-     total cpu time spent up to now is        7.2 secs
+     total cpu time spent up to now is        6.8 secs
 
      total energy              =     -34.06236055 Ry
      Harris-Foulkes estimate   =     -34.58697711 Ry
@@ -177,7 +177,7 @@
      add environment contribution to local potential
      polarization accuracy = 8.6E-08, # of iterations =   3
 
-     total cpu time spent up to now is       11.0 secs
+     total cpu time spent up to now is       10.2 secs
 
      total energy              =     -34.21780942 Ry
      Harris-Foulkes estimate   =     -33.97366161 Ry
@@ -194,7 +194,7 @@
      add environment contribution to local potential
      polarization accuracy = 9.2E-08, # of iterations =   4
 
-     total cpu time spent up to now is       15.0 secs
+     total cpu time spent up to now is       13.6 secs
 
      total energy              =     -34.28822552 Ry
      Harris-Foulkes estimate   =     -33.97907176 Ry
@@ -208,7 +208,7 @@
 
      negative rho (up, down):  2.143E-04 0.000E+00
 
-     total cpu time spent up to now is       16.9 secs
+     total cpu time spent up to now is       15.2 secs
 
      End of self-consistent calculation
 
@@ -235,71 +235,71 @@
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =     0.00241065   -0.01279015   -0.00000327
-     atom    2 type  1   force =    -0.01064614    0.00453027    0.00000137
-     atom    3 type  1   force =     0.00823549    0.00825987    0.00000190
+     atom    1 type  2   force =     0.00234817   -0.01246513   -0.00000325
+     atom    2 type  1   force =    -0.01062373    0.00436605    0.00000136
+     atom    3 type  1   force =     0.00827556    0.00809908    0.00000189
 
-     Total force =     0.020960     Total SCF correction =     0.009567
+     Total force =     0.020662     Total SCF correction =     0.009567
      SCF correction compared to forces is large: reduce conv_thr to get better values
 
      Writing output data file pwscf.save
  
-     init_run     :      2.13s CPU      2.26s WALL (       1 calls)
-     electrons    :     13.84s CPU     16.00s WALL (       1 calls)
-     forces       :      0.60s CPU      0.61s WALL (       1 calls)
+     init_run     :      1.99s CPU      2.10s WALL (       1 calls)
+     electrons    :     12.81s CPU     16.12s WALL (       1 calls)
+     forces       :      0.59s CPU      0.61s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.03s CPU      0.04s WALL (       1 calls)
-     potinit      :      0.84s CPU      0.86s WALL (       1 calls)
+     wfcinit      :      0.03s CPU      0.03s WALL (       1 calls)
+     potinit      :      0.82s CPU      0.84s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.29s CPU      0.31s WALL (       4 calls)
-     sum_band     :      1.49s CPU      1.74s WALL (       4 calls)
-     v_of_rho     :      3.02s CPU      3.07s WALL (       5 calls)
-     newd         :      0.80s CPU      1.15s WALL (       5 calls)
-     mix_rho      :      0.27s CPU      0.27s WALL (       4 calls)
+     c_bands      :      0.26s CPU      0.27s WALL (       4 calls)
+     sum_band     :      1.34s CPU      1.40s WALL (       4 calls)
+     v_of_rho     :      2.86s CPU      2.94s WALL (       5 calls)
+     newd         :      0.67s CPU      0.72s WALL (       5 calls)
+     mix_rho      :      0.26s CPU      0.26s WALL (       4 calls)
 
      Called by c_bands:
-     init_us_2    :      0.01s CPU      0.02s WALL (       9 calls)
-     regterg      :      0.28s CPU      0.29s WALL (       4 calls)
+     init_us_2    :      0.02s CPU      0.02s WALL (       9 calls)
+     regterg      :      0.25s CPU      0.25s WALL (       4 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      0.96s CPU      1.19s WALL (       4 calls)
+     addusdens    :      0.83s CPU      0.88s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.28s CPU      0.30s WALL (      13 calls)
+     h_psi        :      0.25s CPU      0.26s WALL (      13 calls)
      s_psi        :      0.00s CPU      0.00s WALL (      13 calls)
      g_psi        :      0.00s CPU      0.00s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
-     h_psi:pot    :      0.28s CPU      0.29s WALL (      13 calls)
-     h_psi:calbec :      0.00s CPU      0.01s WALL (      13 calls)
-     vloc_psi     :      0.27s CPU      0.28s WALL (      13 calls)
+     h_psi:pot    :      0.25s CPU      0.25s WALL (      13 calls)
+     h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
+     vloc_psi     :      0.24s CPU      0.25s WALL (      13 calls)
      add_vuspsi   :      0.00s CPU      0.00s WALL (      13 calls)
 
      General routines
-     calbec       :      0.00s CPU      0.01s WALL (      21 calls)
-     fft          :      5.31s CPU      5.41s WALL (     175 calls)
+     calbec       :      0.02s CPU      0.01s WALL (      21 calls)
+     fft          :      5.02s CPU      5.11s WALL (     175 calls)
      ffts         :      0.05s CPU      0.05s WALL (       9 calls)
-     fftw         :      0.25s CPU      0.25s WALL (      62 calls)
-     interpolate  :      0.38s CPU      0.39s WALL (       9 calls)
+     fftw         :      0.20s CPU      0.22s WALL (      62 calls)
+     interpolate  :      0.36s CPU      0.36s WALL (       9 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
  
      Parallel routines
-     fft_scatter  :      1.14s CPU      1.20s WALL (     246 calls)
+     fft_scatter  :      1.08s CPU      1.12s WALL (     246 calls)
  
      Environ routines
-     calc_eelect  :      0.00s CPU      0.01s WALL (       8 calls)
-     calc_velect  :      5.66s CPU      5.77s WALL (       6 calls)
-     dielectric   :      0.34s CPU      0.33s WALL (       5 calls)
+     calc_eelect  :      0.01s CPU      0.01s WALL (       8 calls)
+     calc_velect  :      5.27s CPU      5.36s WALL (       6 calls)
+     dielectric   :      0.30s CPU      0.30s WALL (       5 calls)
      calc_felect  :      0.16s CPU      0.16s WALL (       1 calls)
  
-     PWSCF        :    16.78s CPU        21.07s WALL
+     PWSCF        :    15.62s CPU        22.45s WALL
 
  
-   This run was terminated on:  16:21:32  19Oct2017            
+   This run was terminated on:  14:54:30  14Nov2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -335,6 +335,8 @@
  using the optimal SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    220.5941036 
+ surface of the QM region   =    175.5575235 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -374,6 +376,8 @@
  using the optimal SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    246.0084886 
+ surface of the QM region   =    188.8695340 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -405,6 +409,8 @@
  using the optimal SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    228.1264789 
+ surface of the QM region   =    180.0928231 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -438,6 +444,8 @@
  using the optimal SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
+ volume of the QM region    =    228.1264789 
+ surface of the QM region   =    180.0928231 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background

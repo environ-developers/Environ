@@ -6,6 +6,9 @@
    !
  /
  &BOUNDARY
+   !
+   boundary_mode = 'full'
+   !
  /
  &ELECTROSTATIC
    pbc_dim = 2

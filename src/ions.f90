@@ -246,11 +246,14 @@ CONTAINS
        ions%center(:) = ions%center(:) + ions%tau(:,i)*ions%iontype(ions%ityp(i))%zv
 
     ENDDO
+
+    IF ( ABS( ions % charge ) .LT. 1.D-8 ) &
+         & CALL errore(sub_name,'Ionic charge equal to zero',1)
     ions%center = ions%center / ions%charge
 
     ! If needed, generate a fictitious ion density using gaussians
 
-    IF ( ions%use_smeared_ions ) CALL density_of_functions(ions%number,ions%smeared_ions,ions%density)
+    IF ( ions%use_smeared_ions ) CALL density_of_functions(ions%number,ions%smeared_ions,ions%density,.TRUE.)
 
     ! Compute quadrupole moment of point-like (and gaussian) nuclei
 

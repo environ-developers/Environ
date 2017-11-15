@@ -1,3 +1,15 @@
+[pw_regions/]
+program = PW
+inputs_args = ('pw.in', 'insphere-default.in'), ('pw.in', 'outslab-default.in' )
+
+[pw_spin/]
+program = PW
+inputs_args = ('radical.in', 'vacuum-pcc.in'), ('radical.in', 'dielectric-pcc.in')
+
+[pw_externals/]
+program = PW
+inputs_args = ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_2d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in'), ('isolated.in', 'externals_2d_dielectric_default.in'), ('slab.in', 'externals_0d_vacuum_default.in'), ('slab.in', 'externals_2d_vacuum_default.in'), ('slab.in', 'externals_0d_dielectric_default.in'), ('slab.in', 'externals_2d_dielectric_default.in')
+
 [pw_water/]
 program = PW
 inputs_args = ('neutral.in', 'water-neutral-sccs-default.in'), ('neutral.in', 'water-neutral-ss-default.in'), ('cation.in', 'water-cation-sccs-default.in'), ('cation.in', 'water-cation-ss-default.in'), ('anion.in', 'water-anion-sccs-default.in'), ('anion.in', 'water-anion-ss-default.in')
@@ -12,15 +24,15 @@ inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('neutral.in', 'peri
 
 [pw_dielectric/]
 program = PW
-inputs_args = ('neutral.in', 'dielectric-sccs-default.in'), ('neutral.in', 'dielectric-sccs-iter-aux.in'), ('neutral.in', 'dielectric-sccs-psd.in'), ('neutral.in', 'dielectric-sccs-stype1.in'), ('neutral.in', 'dielectric-ss-default.in'), ('neutral.in', 'dielectric-ss-iter-aux.in'), ('charged.in', 'dielectric-sccs-default.in'), ('charged.in', 'dielectric-sccs-iter-aux.in'), ('charged.in', 'dielectric-sccs-psd.in'), ('charged.in', 'dielectric-sccs-stype1.in'), ('charged.in', 'dielectric-ss-default.in'), ('charged.in', 'dielectric-ss-iter-aux.in')
+inputs_args = ('neutral.in', 'dielectric-sccs-default.in'), ('neutral.in', 'dielectric-sccs-iter-aux.in'), ('neutral.in', 'dielectric-sccs-psd.in'), ('neutral.in', 'dielectric-sccs-stype1.in'), ('neutral.in', 'dielectric-ss-default.in'), ('neutral.in', 'dielectric-ss-iter-aux.in'), ('charged.in', 'dielectric-sccs-default.in'), ('charged.in', 'dielectric-sccs-iter-aux.in'), ('charged.in', 'dielectric-sccs-psd.in'), ('charged.in', 'dielectric-sccs-stype1.in'), ('charged.in', 'dielectric-ss-default.in'), ('charged.in', 'dielectric-ss-iter-aux.in'), ('neutral.in', 'dielectric-sys-default.in'), ('neutral.in', 'dielectric-sys-iter-aux.in'), ('charged.in', 'dielectric-sys-default.in'), ('charged.in', 'dielectric-sys-iter-aux.in')
 
 [pw_surface/]
 program = PW
-inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-stype0.in'), ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-stype2.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in') 
+inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-stype0.in'), ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-stype2.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), ('pw.in', 'surface-sys-default.in'), ('pw.in', 'surface-sys-fft.in') 
 
 [pw_volume/]
 program = PW
-inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-sccs-stype0.in'), ('pw.in', 'volume-sccs-stype1.in'), ('pw.in', 'volume-sccs-stype2.in'), ('pw.in', 'volume-ss-default.in') 
+inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-sccs-stype0.in'), ('pw.in', 'volume-sccs-stype1.in'), ('pw.in', 'volume-sccs-stype2.in'), ('pw.in', 'volume-ss-default.in'), ('pw.in', 'volume-sys-default.in') 
 
 [pw_*/]
 program = PW

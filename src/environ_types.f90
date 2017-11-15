@@ -240,6 +240,7 @@ MODULE environ_types
 
   TYPE environ_system
 
+     LOGICAL :: update = .FALSE.
      INTEGER :: ntyp
      INTEGER :: dim
      INTEGER :: axis
@@ -271,6 +272,11 @@ MODULE environ_types
      LOGICAL :: need_ions
      TYPE( environ_ions ), POINTER :: ions
 
+     ! Parameters for the system-dependent interface
+
+     LOGICAL :: need_system
+     TYPE( environ_system ), POINTER :: system
+
      ! scaled switching function of interface
      ! varying from 1 (QM region) to 0 (environment region)
 
@@ -280,6 +286,7 @@ MODULE environ_types
      TYPE( environ_gradient ) :: gradient
      TYPE( environ_density ) :: laplacian
      TYPE( environ_density ) :: dsurface
+     TYPE( environ_hessian ) :: hessian
 
      ! global properties of the boundary
 
@@ -303,6 +310,21 @@ MODULE environ_types
      REAL( DP ) :: softness ! sharpness of the interface
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: soft_spheres
 
+     ! Components needed for boundary of system
+
+     TYPE( environ_functions ) :: simple
+
+     ! Copmonents needed for solvent-aware boundary
+
+     LOGICAL :: solvent_aware
+     TYPE( environ_functions ) :: solvent_probe
+     REAL( DP ) :: filling_threshold, filling_spread
+
+     TYPE( environ_density ) :: local
+     TYPE( environ_density ) :: probe
+     TYPE( environ_density ) :: filling
+     TYPE( environ_density ) :: dfilling
+
   END TYPE environ_boundary
 
   TYPE environ_dielectric
@@ -318,6 +340,8 @@ MODULE environ_types
 
      REAL( DP ) :: constant
      TYPE( environ_density ) :: background
+     TYPE( environ_gradient ) :: gradbackground
+     TYPE( environ_density ) :: laplbackground
 
      ! Boundary is the pointer to the object controlling
      ! the interface between the QM and the continuum region
@@ -329,7 +353,7 @@ MODULE environ_types
      ! properties of space
 
      TYPE( environ_density ) :: epsilon
-     TYPE( environ_density ) :: depsilon
+     TYPE( environ_density ) :: depsilon ! This is needed in the extra term of kohn-sham/forces
 
      ! Quantities related to the dielectric permittivity and
      ! thay may be needed by the different solvers
@@ -484,6 +508,36 @@ CONTAINS
     RETURN
 
   END SUBROUTINE init_environ_density
+
+  SUBROUTINE copy_environ_density( doriginal, dcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: doriginal
+    TYPE( environ_density ), INTENT(OUT) :: dcopy
+    CHARACTER( LEN = 80 ) :: sub_name = 'copy_environ_density'
+
+    INTEGER :: n
+
+    IF ( .NOT. ASSOCIATED( doriginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    dcopy % cell => doriginal % cell
+
+    dcopy % update     = doriginal % update
+    dcopy % label      = doriginal % label
+    dcopy % charge     = doriginal % charge
+    dcopy % dipole     = doriginal % dipole
+    dcopy % quadrupole = doriginal % quadrupole
+
+    IF ( ALLOCATED( doriginal % of_r ) ) THEN
+       n = SIZE( doriginal % of_r )
+       IF ( ALLOCATED( dcopy % of_r ) ) DEALLOCATE( dcopy % of_r )
+       ALLOCATE( dcopy % of_r ( n ) )
+       dcopy % of_r = doriginal % of_r
+    END IF
+
+    RETURN
+
+  END SUBROUTINE copy_environ_density
 
   FUNCTION integrate_environ_density(density) RESULT(integral)
 
@@ -698,6 +752,35 @@ CONTAINS
 
   END SUBROUTINE init_environ_gradient
 
+  SUBROUTINE copy_environ_gradient( goriginal, gcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_gradient ), INTENT(IN) :: goriginal
+    TYPE( environ_gradient ), INTENT(OUT) :: gcopy
+    CHARACTER( LEN=80 ) :: sub_name = 'copy_environ_gradient'
+
+    INTEGER :: n
+
+    IF ( .NOT. ASSOCIATED( goriginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    gcopy % cell => goriginal % cell
+
+    gcopy % update = goriginal % update
+    gcopy % label  = goriginal % label
+
+    IF ( ALLOCATED( goriginal % of_r ) ) THEN
+       n = SIZE( goriginal % of_r, 2 )
+       IF ( ALLOCATED( gcopy % of_r ) ) DEALLOCATE( gcopy % of_r )
+       ALLOCATE( gcopy % of_r ( 3, n ) )
+       gcopy % of_r = goriginal % of_r
+    END IF
+
+    CALL copy_environ_density( goriginal % modulus, gcopy % modulus )
+
+    RETURN
+
+  END SUBROUTINE copy_environ_gradient
+
   SUBROUTINE update_gradient_modulus(gradient)
 
     IMPLICIT NONE
@@ -804,7 +887,7 @@ CONTAINS
 
     IF ( PRESENT(label) ) THEN
        hessian%label = label
-       laplacian_label = label//'_laplacian'
+       laplacian_label = TRIM(ADJUSTL(label))//'_laplacian'
     ELSE
        hessian%label = 'hessian'
        laplacian_label = 'hessian_laplacian'
@@ -841,6 +924,35 @@ CONTAINS
     RETURN
 
   END SUBROUTINE init_environ_hessian
+
+  SUBROUTINE copy_environ_hessian( horiginal, hcopy )
+
+    IMPLICIT NONE
+
+    TYPE( environ_hessian ), INTENT(IN) :: horiginal
+    TYPE( environ_hessian ), INTENT(OUT) :: hcopy
+    CHARACTER( LEN=80 ) :: sub_name = 'copy_environ_hessian'
+
+    INTEGER :: n
+
+    IF ( .NOT. ASSOCIATED( horiginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    hcopy % cell => horiginal % cell
+
+    hcopy % update = horiginal % update
+    hcopy % label  = horiginal % label
+
+    IF ( ALLOCATED( horiginal % of_r ) ) THEN
+       n = SIZE( horiginal % of_r, 3 )
+       IF ( ALLOCATED( hcopy % of_r ) ) DEALLOCATE( hcopy % of_r )
+       ALLOCATE( hcopy % of_r ( 3, 3, n ) )
+       hcopy % of_r = horiginal % of_r
+    END IF
+
+    CALL copy_environ_density( horiginal % laplacian, hcopy % laplacian )
+
+    RETURN
+
+  END SUBROUTINE copy_environ_hessian
 
   SUBROUTINE update_hessian_laplacian(hessian)
 
@@ -984,6 +1096,12 @@ CONTAINS
 
     TYPE( environ_system ), INTENT(INOUT) :: system
 
+    system%update = .FALSE.
+    system%ntyp = 0
+    system%dim = 0
+    system%axis = 1
+    system%pos = 0.D0
+    system%width = 0.D0
     NULLIFY( system%ions )
 
     RETURN
@@ -1040,6 +1158,8 @@ CONTAINS
        charge = charge + zv
        system%pos(:) = system%pos(:) + system%ions%tau(:,i) * zv
     ENDDO
+    IF ( ABS(charge) .LT. 1.D-8 ) &
+         & CALL errore(sub_name,'System charge is zero',1)
     system%pos(:) = system%pos(:) / charge
 
     system%width = 0.D0

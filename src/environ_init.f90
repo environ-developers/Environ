@@ -45,6 +45,9 @@ CONTAINS
        & env_optical_permittivity_, solvent_mode,    &
        & radius_mode, alpha, softness,               &
        & eps_distance, eps_spread,                   &
+       & solvent_radius, radial_scale,               &
+       & radial_spread, filling_threshold,           &
+       & filling_spread,                             &
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
@@ -82,8 +85,10 @@ CONTAINS
          rhomin_, tbeta,                                  &
          env_static_permittivity_,                        &
          env_optical_permittivity_,                       &
-         alpha, softness, solvationrad(:), corespread(:), &
-         atomicspread(:),                                 &
+         alpha, softness,                                 &
+         solvent_radius, radial_scale, radial_spread,     &
+         filling_threshold, filling_spread,               &
+         solvationrad(:), corespread(:), atomicspread(:), &
          eps_distance, eps_spread,                        &
          env_surface_tension_, env_pressure_,             &
          stern_distance, stern_spread, cion(:),           &
@@ -152,8 +157,8 @@ CONTAINS
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
          lexternals .OR. lperiodic
-    lsoftcavity    = ( lsolvent .AND. solvent_mode .NE. 'ionic' ) .OR. &
-         ( lelectrolyte .AND. stern_mode .NE. 'ionic' )
+    lsoftcavity    = ( lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' ) ) .OR. &
+         ( lelectrolyte .AND. ( stern_mode .EQ. 'electronic' .OR. stern_mode .EQ. 'full' ) )
     lrigidcavity   = ( lsolvent .AND. solvent_mode .NE. 'electronic' ) .OR. &
          ( lelectrolyte .AND. stern_mode .NE. 'electronic' )
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
@@ -210,16 +215,19 @@ CONTAINS
     IF ( lsolvent ) THEN
        CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
-            & electrons, ions, solvent )
+            & eps_distance, eps_spread, solvent_radius, radial_scale, radial_spread, &
+            & filling_threshold, filling_spread, electrons, ions, system, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
-         & stern_mode, stype, rhomax, rhomin, rhopb, tbeta, env_static_permittivity, &
-         & stern_distance, stern_spread, alpha, softness, electrons, ions, &
-         & solvent_temperature, cion, cionmax, rion, zion, electrolyte )
+            & stern_mode, stype, rhomax, rhomin, rhopb, tbeta, env_static_permittivity, &
+            & alpha, softness, stern_distance, stern_spread, solvent_radius, &
+            & radial_scale, radial_spread, filling_threshold, filling_spread, &
+            & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
+            & zion, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
     !
@@ -448,7 +456,7 @@ CONTAINS
       IF ( loptical ) CALL update_environ_dielectric( optical )
       IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
       !
-!      IF ( lexternals ) CALL update_environ_externals( externals )
+      IF ( lexternals ) CALL update_environ_externals( externals )
       !
       IF ( lelectrostatic ) CALL electrostatic_initcell( cell )
       !
@@ -475,7 +483,7 @@ CONTAINS
                                     loptical, optical,              &
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity,                   &
-                                    lelectrostatic
+                                    lelectrostatic, charges
       USE boundary,          ONLY : update_environ_boundary,        &
                                     set_soft_spheres
       USE dielectric,        ONLY : update_environ_dielectric
@@ -506,6 +514,7 @@ CONTAINS
       !
       ! ... Update system parameters
       !
+      system%update = .TRUE.
       CALL update_environ_system( system )
       CALL print_environ_system( system )
       !
@@ -541,8 +550,12 @@ CONTAINS
          !
       END IF
       !
-      IF ( lelectrostatic ) CALL electrostatic_initions( system )
+      IF ( lelectrostatic ) THEN
+         CALL update_environ_charges( charges )
+         CALL electrostatic_initions( system )
+      END IF
       !
+      system%update = .FALSE.
       ions%update = .FALSE.
       !
       RETURN
@@ -563,7 +576,8 @@ CONTAINS
                                     lstatic, static,              &
                                     loptical, optical,            &
                                     lelectrolyte, electrolyte,    &
-                                    lsoftcavity
+                                    lsoftcavity,                  &
+                                    lelectrostatic, charges
       USE boundary,          ONLY : update_environ_boundary
       USE dielectric,        ONLY : update_environ_dielectric
       !
@@ -579,6 +593,8 @@ CONTAINS
       !
       CALL update_environ_electrons( nelec, nspin, nnr, rho, electrons )
       CALL print_environ_electrons( electrons )
+      !
+      IF ( lelectrostatic ) CALL update_environ_charges( charges )
       !
       ! ... Update soft environ properties, defined on electrons
       !

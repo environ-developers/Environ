@@ -245,6 +245,24 @@ MODULE environ_input
         REAL(DP) :: boundary_spread = 0.5D0
         ! spread of the boundary interface if defined on system position and width
 !
+! Solvent-aware boundary parameters
+!
+        REAL(DP) :: solvent_radius = 0.D0
+        ! size of the solvent, used to decide whether to fill a continuum
+        ! void or not. If set equal to 0.D0, use the standard algorithm
+        REAL(DP) :: radial_scale = 2.D0
+        ! compute the filled fraction on a spherical volume scaled wrt solvent
+        ! size
+        REAL(DP) :: radial_spread = 0.5D0
+        ! spread of the step function used to evaluate occupied volume
+        REAL(DP) :: filling_threshold = 0.825D0
+        ! threshold to decide whether to fill a continuum void or not, to be
+        ! compared with the filled fraction: if filled fraction .GT. threshold
+        ! THEN fill gridpoint
+        REAL(DP) :: filling_spread = 0.02D0
+        ! spread of the switching function used to decide whether the dielectric
+        ! void should be filled or not
+!
 ! Stern boundary parameters
 !
         CHARACTER( LEN = 80 ) :: stern_mode = 'electronic'
@@ -297,6 +315,9 @@ MODULE environ_input
              stype, rhomax, rhomin, tbeta,       &
              corespread,                         &
              boundary_distance, boundary_spread, &
+             solvent_radius, radial_scale,       &
+             radial_spread, filling_threshold,   &
+             filling_spread,                     &
              stern_mode, stern_distance,         &
              stern_spread, rhopb,                &
              boundary_core,                      &
@@ -318,7 +339,7 @@ MODULE environ_input
         ! modpb       = modified poisson-boltzmann equation (non-linear)
         ! linpb       = linearized poisson-boltzmann equation (debye-huckel)
         ! linmodpb    = linearized modified poisson-boltzmann equation
-        REAL(DP) :: tol = 1.D-4
+        REAL(DP) :: tol = 1.D-5
         ! convergence threshold for electrostatic potential or auxiliary charge
 !
 ! Driver's parameters
@@ -363,7 +384,7 @@ MODULE environ_input
         ! 'linear', 'anderson', 'diis', 'broyden'
         INTEGER :: ndiis=1
         ! order of DIIS interpolation of iterative calculation
-        REAL(DP) :: mix = 0.3
+        REAL(DP) :: mix = 0.5
         ! mixing parameter to be used in the iterative driver
 !
 ! Preconditioner's parameters
@@ -475,7 +496,7 @@ MODULE environ_input
                                      screening_type, screening, core,       &
                                      boundary_core, ifdtype, nfdpoint,      &
                                      assume_isolated, pbc_correction,       &
-                                     pbc_dim, pbc_axis, prog )
+                                     pbc_dim, pbc_axis, nspin, prog )
        !
        ! ... Then set environ base
        !
@@ -491,6 +512,9 @@ MODULE environ_input
                                 boundary_mode,                              &
                                 radius_mode, alpha, softness,               &
                                 boundary_distance, boundary_spread,         &
+                                solvent_radius, radial_scale,               &
+                                radial_spread, filling_threshold,           &
+                                filling_spread,                             &
                                 add_jellium,                                &
                                 env_surface_tension,                        &
                                 env_pressure,                               &
@@ -682,6 +706,12 @@ MODULE environ_input
        boundary_distance = 1.D0
        boundary_spread   = 0.5D0
        !
+       solvent_radius     = 0.D0
+       radial_scale       = 2.D0
+       radial_spread      = 0.5D0
+       filling_threshold  = 0.825D0
+       filling_spread     = 0.02D0
+       !
        stern_mode = 'electronic'
        stern_distance = 0.D0
        stern_spread = 0.5D0
@@ -709,7 +739,7 @@ MODULE environ_input
        !
        !
        problem = 'poisson'
-       tol = 1.D-4
+       tol = 1.D-5
        !
        solver = 'direct'
        auxiliary = 'none'
@@ -719,7 +749,7 @@ MODULE environ_input
        !
        mix_type = 'linear'
        ndiis = 1
-       mix = 0.3D0
+       mix = 0.5D0
        !
        preconditioner = 'sqrt'
        screening_type = 'none'
@@ -807,10 +837,16 @@ MODULE environ_input
        CALL mp_bcast( softness,                   ionode_id, comm )
        CALL mp_bcast( solvationrad,               ionode_id, comm )
        !
+       CALL mp_bcast( corespread,                 ionode_id, comm )
+       !
        CALL mp_bcast( boundary_distance,          ionode_id, comm )
        CALL mp_bcast( boundary_spread,            ionode_id, comm )
        !
-       CALL mp_bcast( corespread,                 ionode_id, comm )
+       CALL mp_bcast( solvent_radius,             ionode_id, comm )
+       CALL mp_bcast( radial_scale,               ionode_id, comm )
+       CALL mp_bcast( radial_spread,              ionode_id, comm )
+       CALL mp_bcast( filling_threshold,          ionode_id, comm )
+       CALL mp_bcast( filling_spread,             ionode_id, comm )
        !
        CALL mp_bcast( stern_mode,                 ionode_id, comm )
        CALL mp_bcast( stern_distance,             ionode_id, comm )
@@ -977,6 +1013,17 @@ MODULE environ_input
        !
        IF( boundary_spread <= 0.0_DP ) &
           CALL errore( sub_name,' boundary_spread out of range ', 1 )
+       !
+       IF ( solvent_radius < 0.0_DP ) &
+          CALL errore( sub_name, 'solvent_radius out of range ', 1 )
+       IF ( radial_scale < 1.0_DP ) &
+          CALL errore( sub_name, 'radial_scale out of range ', 1 )
+       IF ( radial_spread <= 0.0_DP ) &
+          CALL errore( sub_name, 'radial_spread out of range ', 1 )
+       IF ( filling_threshold <= 0.0_DP ) &
+          CALL errore( sub_name, 'filling_threshold out of range ', 1 )
+       IF ( filling_spread <= 0.0_DP ) &
+          CALL errore( sub_name, 'filling_spread out of range ', 1 )
        !
        allowed = .FALSE.
        DO i = 1, SIZE( stern_mode_allowed )

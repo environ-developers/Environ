@@ -23,7 +23,7 @@ MODULE cavity
   !
   USE environ_types
   USE environ_output
-  USE environ_base,  ONLY : env_surface_tension, e2
+  USE environ_base,  ONLY : e2
   !
   IMPLICIT NONE
   !
@@ -33,7 +33,7 @@ MODULE cavity
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_decavity_dboundary( boundary, de_dboundary )
+  SUBROUTINE calc_decavity_dboundary( surface_tension, boundary, de_dboundary )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the potential
@@ -42,13 +42,14 @@ CONTAINS
     !
     ! ... Declares variables
     !
+    REAL( DP ), INTENT(IN) :: surface_tension
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: de_dboundary
     !
     CHARACTER( LEN=80 )     :: sub_name = 'calc_dcavity_dboundary'
     !
     de_dboundary % of_r = de_dboundary % of_r + &
-         & env_surface_tension * boundary % dsurface % of_r
+         & surface_tension * boundary % dsurface % of_r
     !
     RETURN
     !
@@ -56,7 +57,7 @@ CONTAINS
   END SUBROUTINE calc_decavity_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_ecavity( boundary, ecavity )
+  SUBROUTINE calc_ecavity( surface_tension, boundary, ecavity )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the energy
@@ -65,6 +66,7 @@ CONTAINS
     !
     ! ... Declares variables
     !
+    REAL( DP ), INTENT(IN) :: surface_tension
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     REAL( DP ), INTENT(OUT) :: ecavity
     !
@@ -74,7 +76,7 @@ CONTAINS
     !
     ! ... Computes the cavitation energy
     !
-    ecavity = env_surface_tension * boundary%surface * e2 / 2.D0
+    ecavity = surface_tension * boundary%surface * e2 / 2.D0
     !
     RETURN
     !

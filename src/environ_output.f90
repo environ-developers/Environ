@@ -958,12 +958,17 @@ CONTAINS
           END IF
           IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
-       ELSE
+       ELSE IF ( boundary % need_ions ) THEN
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2008 ) boundary%alpha, boundary%softness
           IF ( verbosity .GE. 2 ) &
                & CALL print_environ_functions(boundary%ions%number,boundary%soft_spheres,&
                & passed_verbosity,passed_depth)
+       ELSE IF ( boundary % need_system ) THEN
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2009 ) boundary%simple%pos,boundary%simple%width,&
+               & boundary%simple%spread,boundary%simple%dim,boundary%simple%axis
        END IF
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2010 ) boundary%volume
+       IF ( boundary%deriv .GE. 1 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2011 ) boundary%surface
        IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 .AND. boundary%deriv .GE. 1 ) &
             & CALL print_environ_gradient(boundary%gradient,passed_verbosity,passed_depth)
@@ -995,8 +1000,14 @@ CONTAINS
 2008 FORMAT(1x,'boundary is built from soft-spheres centered on ionic positions'&
           /,1x,'solvent-dependent scaling  = ',F14.7,' '&
           /,1x,'softness parameter         = ',F14.7,' ')
-2009 FORMAT(1x,'also need the surface term of this boundary'&
-          /,1x,'fd parameter for surface   = ',F14.7,' ')
+2009 FORMAT(1x,'boundary is built as an analytic function centered on system position'&
+          /,1x,'center of the boundary     = ',3F14.7,' '&
+          /,1x,'distance from the center   = ',F14.7,' '&
+          /,1x,'spread of the interface    = ',F14.7,' '&
+          /,1x,'dimensionality             = ',I2,' '&
+          /,1x,'axis                       = ',I2,' ')
+2010 FORMAT(1x,'volume of the QM region    = ',F14.7,' ')
+2011 FORMAT(1x,'surface of the QM region   = ',F14.7,' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_boundary
 !--------------------------------------------------------------------

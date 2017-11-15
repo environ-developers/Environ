@@ -1,0 +1,45 @@
+ &CONTROL
+   !
+   calculation = 'scf'
+   restart_mode = 'from_scratch'
+   tprnfor = .TRUE.
+   !
+ /
+ &SYSTEM
+   !
+   ibrav = 8
+   celldm(1) = 10.6881
+   celldm(2) = 0.866025
+   celldm(3) = 3.95422
+   nat = 10
+   ntyp = 3
+   ecutwfc = 35
+   ecutrho = 300
+   occupations = 'smearing'
+   degauss = 0.03
+   smearing = 'mv'
+   nbnd = 80
+   tot_charge = 1
+   !
+/
+ &ELECTRONS
+   !
+   conv_thr = 5.D-3
+   !
+ /
+K_POINTS gamma
+ATOMIC_SPECIES
+C 1 C.pbe-rrkjus.UPF
+O 1 O.pbe-rrkjus.UPF
+Pt 1 Pt.pbe-n-rrkjus_psl.0.1.UPF
+ATOMIC_POSITIONS (bohr)
+C        5.335084148        4.646723426        8.296403369 
+O        5.335009643        4.619623254       10.475227761 
+Pt       8.061327071        0.098057998        4.387516393 
+Pt       2.608989366        0.098058283        4.387514077 
+Pt       0.000036609        4.720846294        4.364130427 
+Pt       5.335159557        4.721612729        4.775569927 
+Pt       0.000041121        7.802951963        0.000000000 
+Pt       5.335161233        7.697749113        0.148862900 
+Pt       2.697860636        3.152173889        0.083785821 
+Pt       7.972463687        3.152174491        0.083788701 

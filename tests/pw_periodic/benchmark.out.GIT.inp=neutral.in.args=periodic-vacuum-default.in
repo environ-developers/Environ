@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 19Oct2017 at 16:19:33 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on 14Nov2017 at 14:52:22 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -136,7 +136,7 @@
      negative rho (up, down):  7.936E-04 0.000E+00
      Starting wfc are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is        2.4 secs
+     total cpu time spent up to now is        2.1 secs
 
      per-process dynamical memory:   359.6 Mb
 
@@ -150,7 +150,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        4.2 secs
+     total cpu time spent up to now is        3.8 secs
 
      total energy              =     -34.06236055 Ry
      Harris-Foulkes estimate   =     -34.58697711 Ry
@@ -166,7 +166,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        6.0 secs
+     total cpu time spent up to now is        5.5 secs
 
      total energy              =     -34.15986092 Ry
      Harris-Foulkes estimate   =     -34.47608934 Ry
@@ -182,7 +182,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        7.6 secs
+     total cpu time spent up to now is        7.0 secs
 
      total energy              =     -34.26470290 Ry
      Harris-Foulkes estimate   =     -34.34657271 Ry
@@ -196,7 +196,7 @@
 
      negative rho (up, down):  2.167E-04 0.000E+00
 
-     total cpu time spent up to now is        8.8 secs
+     total cpu time spent up to now is        8.2 secs
 
      End of self-consistent calculation
 
@@ -223,70 +223,70 @@
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =     0.00333215   -0.01731568   -0.00000207
-     atom    2 type  1   force =    -0.01261099    0.00652450    0.00000108
-     atom    3 type  1   force =     0.00927884    0.01079117    0.00000099
+     atom    1 type  2   force =     0.00286545   -0.01490579   -0.00000210
+     atom    2 type  1   force =    -0.01237764    0.00531956    0.00000109
+     atom    3 type  1   force =     0.00951219    0.00958623    0.00000101
 
-     Total force =     0.026741     Total SCF correction =     0.022796
+     Total force =     0.024378     Total SCF correction =     0.022796
      SCF correction compared to forces is large: reduce conv_thr to get better values
 
      Writing output data file pwscf.save
  
-     init_run     :      2.11s CPU      2.34s WALL (       1 calls)
-     electrons    :      6.14s CPU      7.81s WALL (       1 calls)
-     forces       :      0.62s CPU      0.62s WALL (       1 calls)
+     init_run     :      1.91s CPU      2.04s WALL (       1 calls)
+     electrons    :      5.95s CPU      7.49s WALL (       1 calls)
+     forces       :      0.56s CPU      0.60s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.04s CPU      0.05s WALL (       1 calls)
-     potinit      :      0.83s CPU      0.91s WALL (       1 calls)
+     wfcinit      :      0.03s CPU      0.03s WALL (       1 calls)
+     potinit      :      0.81s CPU      0.83s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.30s CPU      0.30s WALL (       4 calls)
-     sum_band     :      1.44s CPU      1.54s WALL (       4 calls)
-     v_of_rho     :      2.93s CPU      3.05s WALL (       5 calls)
-     newd         :      0.74s CPU      0.83s WALL (       5 calls)
-     mix_rho      :      0.27s CPU      0.27s WALL (       4 calls)
+     c_bands      :      0.26s CPU      0.27s WALL (       4 calls)
+     sum_band     :      1.34s CPU      1.40s WALL (       4 calls)
+     v_of_rho     :      2.90s CPU      2.94s WALL (       5 calls)
+     newd         :      0.67s CPU      0.72s WALL (       5 calls)
+     mix_rho      :      0.26s CPU      0.26s WALL (       4 calls)
 
      Called by c_bands:
-     init_us_2    :      0.02s CPU      0.02s WALL (       9 calls)
-     regterg      :      0.28s CPU      0.28s WALL (       4 calls)
+     init_us_2    :      0.01s CPU      0.02s WALL (       9 calls)
+     regterg      :      0.24s CPU      0.25s WALL (       4 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      0.91s CPU      1.01s WALL (       4 calls)
+     addusdens    :      0.83s CPU      0.89s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.29s CPU      0.29s WALL (      13 calls)
-     s_psi        :      0.01s CPU      0.00s WALL (      13 calls)
+     h_psi        :      0.27s CPU      0.26s WALL (      13 calls)
+     s_psi        :      0.00s CPU      0.00s WALL (      13 calls)
      g_psi        :      0.00s CPU      0.00s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
-     h_psi:pot    :      0.29s CPU      0.29s WALL (      13 calls)
-     h_psi:calbec :      0.00s CPU      0.01s WALL (      13 calls)
-     vloc_psi     :      0.29s CPU      0.28s WALL (      13 calls)
+     h_psi:pot    :      0.27s CPU      0.26s WALL (      13 calls)
+     h_psi:calbec :      0.01s CPU      0.01s WALL (      13 calls)
+     vloc_psi     :      0.26s CPU      0.25s WALL (      13 calls)
      add_vuspsi   :      0.00s CPU      0.00s WALL (      13 calls)
 
      General routines
-     calbec       :      0.01s CPU      0.01s WALL (      21 calls)
-     fft          :      2.65s CPU      2.74s WALL (      91 calls)
-     ffts         :      0.05s CPU      0.05s WALL (       9 calls)
-     fftw         :      0.25s CPU      0.24s WALL (      62 calls)
-     interpolate  :      0.35s CPU      0.38s WALL (       9 calls)
+     calbec       :      0.02s CPU      0.01s WALL (      21 calls)
+     fft          :      2.54s CPU      2.61s WALL (      91 calls)
+     ffts         :      0.04s CPU      0.05s WALL (       9 calls)
+     fftw         :      0.20s CPU      0.22s WALL (      62 calls)
+     interpolate  :      0.33s CPU      0.36s WALL (       9 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
  
      Parallel routines
-     fft_scatter  :      0.60s CPU      0.62s WALL (     162 calls)
+     fft_scatter  :      0.58s CPU      0.58s WALL (     162 calls)
  
      Environ routines
      calc_eelect  :      0.01s CPU      0.01s WALL (       8 calls)
-     calc_velect  :      0.75s CPU      0.79s WALL (       6 calls)
-     calc_felect  :      0.15s CPU      0.15s WALL (       1 calls)
+     calc_velect  :      0.76s CPU      0.78s WALL (       6 calls)
+     calc_felect  :      0.14s CPU      0.15s WALL (       1 calls)
  
-     PWSCF        :     9.08s CPU        13.12s WALL
+     PWSCF        :     8.64s CPU        12.67s WALL
 
  
-   This run was terminated on:  16:19:46  19Oct2017            
+   This run was terminated on:  14:52:34  14Nov2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.

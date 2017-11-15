@@ -330,6 +330,7 @@ CONTAINS
     REAL(DP)            :: ftmp( 3, natoms ), jellium
     CHARACTER( LEN=80 ) :: sub_name = 'calc_felectrostatic'
     !
+    REAL(DP), DIMENSION(:,:), ALLOCATABLE :: rhoaux
     TYPE( environ_density ) :: aux
     TYPE( environ_gradient ) :: gradaux
     !
@@ -384,7 +385,13 @@ CONTAINS
           aux % of_r = aux % of_r + charges % externals % density % of_r
        ENDIF
        !
-       CALL external_force_lc(aux%of_r,ftmp)
+       IF ( setup % core % use_qe_fft ) THEN
+          ALLOCATE( rhoaux( cell % nnr, setup % core % qe_fft % nspin ) )
+          rhoaux( :, 1 ) = aux % of_r
+          IF ( setup % core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+          CALL external_force_lc(rhoaux,ftmp)
+          DEALLOCATE( rhoaux )
+       END IF
        !
        CALL destroy_environ_density( aux )
        !
