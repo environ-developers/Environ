@@ -64,7 +64,7 @@ MODULE externals_utils
        externals%functions(i)%pos(:) = pos(:,i)
        externals%functions(i)%spread = spreads(i)
        externals%functions(i)%width  = spreads(i)
-       externals%functions(i)%volume = charge(i)
+       externals%functions(i)%volume = -charge(i)
     ENDDO
 
     RETURN
