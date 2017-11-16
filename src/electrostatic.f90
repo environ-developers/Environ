@@ -28,44 +28,12 @@ MODULE electrostatic
   PRIVATE
 
   PUBLIC :: calc_velectrostatic, calc_eelectrostatic, &
-            calc_felectrostatic, calc_vreference, calc_ereference
+            calc_felectrostatic
 
 CONTAINS
+
 !--------------------------------------------------------------------
-  SUBROUTINE calc_vreference( setup, charges, potential )
-!--------------------------------------------------------------------
-    IMPLICIT NONE
-
-    TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    TYPE( environ_charges ), INTENT(INOUT) :: charges
-    TYPE( environ_density ), INTENT(INOUT) :: potential
-
-    LOGICAL :: include_externals
-
-    potential % of_r = 0.D0
-
-    ! ... Remove external charges, if present
-
-    include_externals = charges % include_externals
-    charges % include_externals = .FALSE.
-
-    CALL update_environ_charges( charges )
-
-    CALL calc_velectrostatic( setup = setup, charges = charges, potential = potential )
-
-    ! ... Reset flags
-
-    charges % include_externals = include_externals
-
-    CALL update_environ_charges( charges )
-
-    RETURN
-!--------------------------------------------------------------------
-  END SUBROUTINE calc_vreference
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE calc_velectrostatic( setup, charges, dielectric, electrolyte, &
-                                & potential )
+  SUBROUTINE calc_velectrostatic( setup, charges, potential )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the electrostatic embedding contribution to the
@@ -80,9 +48,7 @@ CONTAINS
     ! ... Declares variables
     !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    TYPE( environ_charges ), INTENT(INOUT) :: charges
-    TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
-    TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
+    TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_velectrostatic'
@@ -114,7 +80,7 @@ CONTAINS
 
     CASE ( 'generalized' )
 
-       IF ( .NOT. PRESENT( dielectric ) ) &
+       IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
 
        SELECT CASE ( setup % solver % type )
@@ -126,7 +92,7 @@ CONTAINS
 
        CASE ( 'cg', 'sd', 'iterative', 'default' )
 
-          CALL generalized_gradient( setup % solver, setup % core, charges, dielectric, potential )
+          CALL generalized_gradient( setup % solver, setup % core, charges, potential )
 
        CASE ( 'lbfgs' )
 
@@ -141,7 +107,7 @@ CONTAINS
 
     CASE ( 'linpb', 'linmodpb' )
 
-       IF ( .NOT. PRESENT( electrolyte ) ) &
+       IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
        SELECT CASE ( setup % solver % type )
@@ -154,8 +120,7 @@ CONTAINS
        CASE ( 'cg', 'sd' )
 
 !          CALL errore( sub_name, 'option not yet implemented', 1 )
-          CALL linearized_pb_gradient( setup % solver, setup % core, charges, &
-                                        & dielectric, electrolyte, potential )
+          CALL linearized_pb_gradient( setup % solver, setup % core, charges, potential )
 
        CASE ( 'lbfgs' )
 
@@ -170,7 +135,7 @@ CONTAINS
 
     CASE ( 'pb', 'modpb' )
 
-       IF ( .NOT. PRESENT( electrolyte ) ) &
+       IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
        SELECT CASE ( setup % solver % type )
@@ -210,38 +175,7 @@ CONTAINS
   END SUBROUTINE calc_velectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_ereference( setup, charges, potential, energy )
-!--------------------------------------------------------------------
-    IMPLICIT NONE
-
-    TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    TYPE( environ_charges ), INTENT(INOUT) :: charges
-    TYPE( environ_density ), INTENT(IN) :: potential
-    REAL( DP ), INTENT(OUT) :: energy
-
-    LOGICAL :: include_externals
-
-    ! ... Remove external charges, if present
-
-    include_externals = charges % include_externals
-    charges % include_externals = .FALSE.
-
-    CALL update_environ_charges( charges )
-
-    CALL calc_eelectrostatic( setup = setup, charges = charges, potential = potential, energy = energy )
-
-    ! ... Reset flags
-
-    charges % include_externals = include_externals
-
-    CALL update_environ_charges( charges )
-
-    RETURN
-!--------------------------------------------------------------------
-  END SUBROUTINE calc_ereference
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE calc_eelectrostatic( setup, charges, energy, dielectric, potential, electrolyte )
+  SUBROUTINE calc_eelectrostatic( setup, charges, potential, energy )
 !--------------------------------------------------------------------
 
     USE poisson, ONLY : poisson_energy
@@ -251,11 +185,9 @@ CONTAINS
     IMPLICIT NONE
 
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    TYPE( environ_charges ), INTENT(INOUT) :: charges
+    TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
-    TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
-    TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
 
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_eelectrostatic'
 
@@ -271,22 +203,22 @@ CONTAINS
 
     CASE ( 'generalized' )
 
-       IF ( .NOT. PRESENT( dielectric ) ) &
+       IF ( .NOT. ASSOCIATED( charges%dielectric ) ) &
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
 
-       CALL generalized_energy( setup % core, charges, dielectric, potential, energy )
+       CALL generalized_energy( setup % core, charges, potential, energy )
 
     CASE ( 'linpb', 'linmodpb' )
 
-       IF ( .NOT. PRESENT( electrolyte ) ) &
+       IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
 !       CALL errore( sub_name, 'option not yet implemented', 1 )
-       CALL linearized_pb_energy( setup % core, charges, dielectric, electrolyte, potential, energy )
+       CALL linearized_pb_energy( setup % core, charges, potential, energy )
 
     CASE ( 'pb', 'modpb' )
 
-       IF ( .NOT. PRESENT( electrolyte ) ) &
+       IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
        CALL errore( sub_name, 'option not yet implemented', 1 )
@@ -305,7 +237,7 @@ CONTAINS
   END SUBROUTINE calc_eelectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_felectrostatic( setup, natoms, charges, forces, potential, dielectric, electrolyte )
+  SUBROUTINE calc_felectrostatic( setup, natoms, charges, forces )
 !--------------------------------------------------------------------
     !
     USE periodic, ONLY : calc_fperiodic
@@ -319,22 +251,18 @@ CONTAINS
     !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
     INTEGER, INTENT(IN) :: natoms
-    TYPE( environ_charges ), INTENT(INOUT) :: charges
+    TYPE( environ_charges ), INTENT(IN) :: charges
     REAL(DP), INTENT(INOUT) :: forces( 3, natoms )
-    TYPE( environ_density ), OPTIONAL, INTENT(IN) :: potential
-    TYPE( environ_dielectric ), OPTIONAL, INTENT(IN) :: dielectric
-    TYPE( environ_electrolyte ), OPTIONAL, INTENT(IN) :: electrolyte
     !
     ! ... Local variables
     !
-    REAL(DP)            :: ftmp( 3, natoms ), jellium
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_felectrostatic'
+    TYPE( environ_cell ), POINTER :: cell
     !
+    REAL(DP)            :: ftmp( 3, natoms )
     REAL(DP), DIMENSION(:,:), ALLOCATABLE :: rhoaux
     TYPE( environ_density ) :: aux
-    TYPE( environ_gradient ) :: gradaux
     !
-    TYPE( environ_cell ), POINTER :: cell
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_felectrostatic'
     !
     CALL start_clock ('calc_felect')
     !
@@ -342,85 +270,48 @@ CONTAINS
     !
     cell => charges % density % cell
     !
-    ! ... Contribution from the interaction of ionic density with
-    !     modified electrostatic potential is equivalent to the interaction
-    !     of ionic potential with auxiliary charge
+    ! ... Electrostatic contributions to forces are formulated in terms
+    !     of the auxiliary charges times the derivatives of the pseudopotentials
     !
-    ftmp = 0.D0
+    CALL init_environ_density( cell, aux )
     !
-    ! ... Select the right expression
+    IF ( charges % include_dielectric ) THEN
+       IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       aux % of_r = aux % of_r + charges % dielectric % density % of_r
+    ENDIF
     !
-    SELECT CASE ( setup % problem )
-       !
-    CASE ( 'poisson', 'generalized' )
-       !
-       CALL init_environ_density( cell, aux )
-       !
-       IF ( charges % include_auxiliary ) THEN
-          IF ( .NOT. ASSOCIATED( charges % auxiliary ) ) &
-               & CALL errore(sub_name,'Missing expected charge component',1)
-          aux % of_r = charges % auxiliary % density % of_r
-       ELSE IF ( PRESENT( dielectric ) ) THEN
-          IF ( .NOT. ALLOCATED( dielectric%gradlog%of_r ) ) &
-               & CALL errore(sub_name,'Missing gradient of logarithm of dielectric',1)
-          IF ( .NOT. PRESENT( potential ) ) CALL errore(sub_name,'Missing required input',1)
-          CALL init_environ_gradient( cell, gradaux )
-          CALL external_gradient( potential%of_r, gradaux%of_r )
-          CALL scalar_product_environ_gradient( dielectric%gradlog, gradaux, aux )
-          CALL destroy_environ_gradient( gradaux )
-          jellium = 0.D0
-          IF ( add_jellium ) jellium = charges % charge / cell % omega
-          aux % of_r = aux % of_r / fpi / e2 + ( charges % density % of_r - jellium ) * &
-               & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
-       ENDIF
-       !
-       IF ( setup % core % need_correction ) THEN
-          CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, aux, ftmp )
-          forces = forces + ftmp
-       END IF
-       !
-       IF ( charges % include_externals ) THEN
-          IF ( .NOT. ASSOCIATED( charges % externals ) ) &
-               & CALL errore(sub_name,'Missing expected charge component',1)
-          aux % of_r = aux % of_r + charges % externals % density % of_r
-       ENDIF
-       !
-       IF ( setup % core % use_qe_fft ) THEN
-          ALLOCATE( rhoaux( cell % nnr, setup % core % qe_fft % nspin ) )
-          rhoaux( :, 1 ) = aux % of_r
-          IF ( setup % core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
-          CALL external_force_lc(rhoaux,ftmp)
-          DEALLOCATE( rhoaux )
-       END IF
-       !
-       CALL destroy_environ_density( aux )
-       !
-    CASE ( 'linpb', 'linmodpb' )
-
-       IF ( .NOT. PRESENT( electrolyte ) ) &
-            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-
-       CALL errore( sub_name, 'option not yet implemented', 1 )
-!       CALL linpb_forces()
-
-    CASE ( 'pb', 'modpb' )
-
-       IF ( .NOT. PRESENT( electrolyte ) ) &
-            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-
-       CALL errore( sub_name, 'option not yet implemented', 1 )
-!       CALL pb_forces()
-
-    CASE DEFAULT
-
-       CALL errore( sub_name, 'unexpected problem keyword', 1 )
-
-    END SELECT
-
+    IF ( charges % include_electrolyte ) THEN
+       IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       aux % of_r = aux % of_r + charges % electrolyte % density % of_r
+    END IF
+    !
+    IF ( charges % include_externals ) THEN
+       IF ( .NOT. ASSOCIATED( charges % externals ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       aux % of_r = aux % of_r + charges % externals % density % of_r
+    ENDIF
+    !
+    IF ( setup % core % use_qe_fft ) THEN
+       ftmp = 0.D0
+       ALLOCATE( rhoaux( cell % nnr, setup % core % qe_fft % nspin ) )
+       rhoaux( :, 1 ) = aux % of_r
+       IF ( setup % core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+       CALL external_force_lc(rhoaux,ftmp)
+       DEALLOCATE( rhoaux )
+       forces = forces + ftmp
+    END IF
+    !
+    IF ( setup % core % need_correction ) THEN
+       ftmp = 0.D0
+       CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, aux, ftmp )
+       forces = forces + ftmp
+    END IF
+    !
+    CALL destroy_environ_density( aux )
+    !
     CALL stop_clock ('calc_felect')
-    !
-    !
-    forces = forces + ftmp
     !
     RETURN
     !

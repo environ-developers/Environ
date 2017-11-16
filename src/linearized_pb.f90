@@ -29,16 +29,14 @@ MODULE linearized_pb
 CONTAINS
 
 !--------------------------------------------------------------------
-SUBROUTINE linearized_pb_gradient_charges( solver, core, charges, dielectric, electrolyte, potential )
+SUBROUTINE linearized_pb_gradient_charges( solver, core, charges, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
   TYPE( electrostatic_solver ), INTENT(IN) :: solver
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), INTENT(INOUT) :: charges
-  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
-  TYPE( environ_electrolyte ),INTENT(IN) :: electrolyte
+  TYPE( environ_charges ), INTENT(IN) :: charges
   TYPE( environ_density ), INTENT(INOUT) :: potential
 
   CHARACTER( LEN=25 ) :: sub_name = 'linearized_pb_gradient'
@@ -53,7 +51,8 @@ SUBROUTINE linearized_pb_gradient_charges( solver, core, charges, dielectric, el
 
         CASE ( 'sqrt' )
 
-           CALL linearized_pb_gradient_sqrt( solver % gradient, core, charges%density, dielectric, electrolyte, potential )
+           CALL linearized_pb_gradient_sqrt( solver % gradient, core, charges%density, &
+                & charges%dielectric, charges%electrolyte, potential )
 
         CASE DEFAULT
 
@@ -88,7 +87,7 @@ SUBROUTINE linearized_pb_gradient_density( solver, core, charges, dielectric, el
 
   TYPE( electrostatic_solver ), INTENT(IN) :: solver
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_density ), INTENT(INOUT) :: charges
+  TYPE( environ_density ), INTENT(IN) :: charges
   TYPE( environ_dielectric ), INTENT(IN) :: dielectric
   TYPE( environ_electrolyte ),INTENT(IN) :: electrolyte
   TYPE( environ_density ), INTENT(INOUT) :: potential
@@ -135,15 +134,13 @@ SUBROUTINE linearized_pb_gradient_density( solver, core, charges, dielectric, el
 END SUBROUTINE linearized_pb_gradient_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE linearized_pb_energy( core, charges, dielectric, electrolyte, potential, energy )
+SUBROUTINE linearized_pb_energy( core, charges, potential, energy )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
   TYPE( electrostatic_core ),  INTENT(IN)    :: core
-  TYPE( environ_charges ),     INTENT(INOUT) :: charges
-  TYPE( environ_dielectric ),  INTENT(IN)    :: dielectric
-  TYPE( environ_electrolyte ), INTENT(IN)    :: electrolyte
+  TYPE( environ_charges ),     INTENT(IN)    :: charges
   TYPE( environ_density ),     INTENT(IN)    :: potential
   REAL( DP ),                  INTENT(OUT)   :: energy
 
@@ -164,9 +161,9 @@ SUBROUTINE linearized_pb_energy( core, charges, dielectric, electrolyte, potenti
 
   CALL poisson_energy( core, charges, potential, energy )
 
-  ! Electrostatic interaction of electrolyte 
+  ! Electrostatic interaction of electrolyte
 
-  CALL poisson_energy( core, charges % electrolyte % density, potential, eions ) 
+  CALL poisson_energy( core, charges % electrolyte % density, potential, eions )
 
   ! Adding correction for point-like nuclei: only affects simulations of charged
   ! systems, it does not affect forces, but shift the energy depending on the
@@ -189,28 +186,8 @@ SUBROUTINE linearized_pb_energy( core, charges, dielectric, electrolyte, potenti
 
         ELSE
 
-        ! If using PBC, polarization charge should be neutral, as jellium polarization should also
-        ! accounted for, thus the correction for Gaussian nuclei should be almost negligible
-
-           IF ( charges % include_auxiliary ) THEN
-
-              degauss = - charges % ions % quadrupole_correction * charges % auxiliary % charge * e2 * pi &
-                   & / charges % density % cell % omega
-
-           ELSE
-
-              IF ( add_jellium ) THEN
-
-                 degauss = 0.D0
-
-              ELSE
-
-                 degauss = - charges % ions % quadrupole_correction * e2 * pi / charges % density % cell % omega &
-                      & * ( 1.D0 - dielectric % constant ) / dielectric % constant * charges % charge
-
-              ENDIF
-
-           ENDIF
+           degauss = - charges % ions % quadrupole_correction * charges % dielectric % charge * e2 * pi &
+                & / charges % density % cell % omega
 
         ENDIF
 
@@ -237,7 +214,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
   TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
-  TYPE( environ_electrolyte), TARGET, INTENT(IN) :: electrolyte 
+  TYPE( environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
 
   TYPE( environ_cell ), POINTER :: cell
@@ -275,7 +252,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
   eps => dielectric % epsilon
   factsqrt => dielectric % factsqrt
   x => potential
-  gam => electrolyte % gamma 
+  gam => electrolyte % gamma
   CALL init_environ_density( cell, invsqrt )
   invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
   jellium = 0.D0
@@ -365,7 +342,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
 
        pAp = scalar_product_environ_density( p, Ap )
        alpha = rzold / pAp
-       
+
        IF ( verbose .GE. 1 ) WRITE(environ_unit,*)' pAp = ',pAp,' rzold = ',rzold,' alpha = ',alpha
 
        x%of_r = x%of_r + alpha * p%of_r
@@ -420,5 +397,5 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
 END SUBROUTINE linearized_pb_gradient_sqrt
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-END MODULE linearized_pb 
+END MODULE linearized_pb
 !--------------------------------------------------------------------

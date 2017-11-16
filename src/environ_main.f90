@@ -35,7 +35,7 @@ CONTAINS
       !
       USE environ_base,  ONLY : vzero, solvent,                       &
                                 lelectrostatic, velectrostatic,       &
-                                vreference,                           &
+                                vreference, lexternals,               &
                                 lsoftcavity, vsoftcavity,             &
                                 lsurface, env_surface_tension,        &
                                 lvolume, env_pressure,                &
@@ -46,14 +46,13 @@ CONTAINS
       !
       ! ... Each contribution to the potential is computed in its module
       !
-      USE electrostatic, ONLY : calc_velectrostatic, calc_vreference
+      USE electrostatic, ONLY : calc_velectrostatic
       USE cavity,        ONLY : calc_decavity_dboundary
       USE pressure,      ONLY : calc_depressure_dboundary
       USE dielectric,    ONLY : calc_dedielectric_dboundary
       USE electrolyte_utils, ONLY : calc_deelectrolyte_dboundary
       USE generate_boundary, ONLY : solvent_aware_de_dboundary
-      !
-      USE electrolyte_utils, ONLY : calc_electrolyte_density
+      USE charges_utils,     ONLY : update_environ_charges, charges_of_potential
       !
       IMPLICIT NONE
       !
@@ -79,32 +78,19 @@ CONTAINS
 
          ! ... Electrostatics is also computed inside the calling program, need to remove the reference
 
-         CALL calc_vreference( reference, charges, vreference )
+         CALL calc_velectrostatic( reference, charges, vreference )
          IF ( verbose .GE. 3 ) CALL print_environ_density( vreference )
 
-         IF ( lstatic ) THEN
-            IF ( lelectrolyte ) THEN
-               CALL calc_velectrostatic( setup = outer, charges=charges, dielectric=static,  &
-                    & electrolyte=electrolyte, potential=velectrostatic )
-            ELSE
-               CALL calc_velectrostatic( setup = outer, charges=charges, dielectric=static, &
-                    & potential=velectrostatic )
-            ENDIF
-         ELSE
-            IF ( lelectrolyte ) THEN
-               CALL calc_velectrostatic( setup = outer, charges=charges, electrolyte=electrolyte, &
-                    & potential=velectrostatic )
-            ELSE
-               CALL calc_velectrostatic( setup = outer, charges=charges, potential=velectrostatic )
-            ENDIF
-         ENDIF
+         IF ( lexternals ) CALL update_environ_charges( charges, lexternals )
 
-         IF ( lelectrolyte ) THEN
-           CALL calc_electrolyte_density( outer%problem, electrolyte, velectrostatic )
-         END IF
-
+         CALL calc_velectrostatic( outer, charges, velectrostatic )
          IF ( verbose .GE. 3 ) CALL print_environ_density( velectrostatic )
+
          vtot = vtot + velectrostatic % of_r - vreference % of_r
+
+         CALL charges_of_potential( velectrostatic, charges )
+
+         IF ( lexternals ) CALL update_environ_charges( charges )
 
       END IF
 
@@ -169,7 +155,7 @@ CONTAINS
       !
       USE environ_base,  ONLY : electrons, solvent,                   &
                                 lelectrostatic, velectrostatic,       &
-                                vreference,                           &
+                                vreference, lexternals,               &
                                 lsoftcavity, vsoftcavity,             &
                                 lsurface, env_surface_tension,        &
                                 lvolume, env_pressure,                &
@@ -179,10 +165,11 @@ CONTAINS
       !
       ! ... Each contribution to the energy is computed in its module
       !
-      USE electrostatic, ONLY : calc_eelectrostatic, calc_ereference
+      USE electrostatic, ONLY : calc_eelectrostatic
       USE cavity,        ONLY : calc_ecavity
       USE pressure,      ONLY : calc_epressure
       USE electrolyte_utils, ONLY : calc_eelectrolyte
+      USE charges_utils,     ONLY : update_environ_charges
       !
       IMPLICIT NONE
       !
@@ -209,30 +196,18 @@ CONTAINS
          deenviron = deenviron + &
               & scalar_product_environ_density(electrons%density,vreference)
          !
-         CALL calc_ereference( setup=reference, charges=charges, potential=vreference, energy=ereference )
+         CALL calc_eelectrostatic( reference, charges, vreference, ereference )
          !
          deenviron = deenviron - &
               & scalar_product_environ_density(electrons%density,velectrostatic)
          !
-         IF ( lstatic ) THEN
-            IF ( lelectrolyte ) THEN
-               CALL calc_eelectrostatic( setup=outer, charges=charges, dielectric=static, &
-                    & electrolyte=electrolyte, potential=velectrostatic, energy=eelectrostatic )
-            ELSE
-               CALL calc_eelectrostatic( setup=outer, charges=charges, dielectric=static, &
-                    & potential=velectrostatic, energy=eelectrostatic )
-            ENDIF
-         ELSE
-            IF ( lelectrolyte ) THEN
-               CALL calc_eelectrostatic( setup=outer, charges=charges, electrolyte=electrolyte, &
-                    & potential=velectrostatic, energy=eelectrostatic )
-            ELSE
-               CALL calc_eelectrostatic( setup=outer, charges=charges, potential=velectrostatic, &
-                    & energy=eelectrostatic )
-            ENDIF
-         ENDIF
+         IF ( lexternals ) CALL update_environ_charges( charges, add_externals=lexternals )
+         !
+         CALL calc_eelectrostatic( outer, charges, velectrostatic, eelectrostatic )
          !
          eelectrostatic = eelectrostatic - ereference
+         !
+         IF ( lexternals ) CALL update_environ_charges( charges )
          !
       END IF
       !
@@ -296,27 +271,7 @@ CONTAINS
       !
       force_environ = 0.D0
       !
-      IF ( lelectrostatic ) THEN
-         !
-         IF ( lstatic ) THEN
-            IF ( lelectrolyte ) THEN
-               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
-                    & dielectric=static, electrolyte=electrolyte, forces=force_environ )
-            ELSE
-               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
-                    & dielectric=static, forces=force_environ )
-            END IF
-         ELSE
-            IF ( lelectrolyte ) THEN
-               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
-                    & electrolyte=electrolyte, forces=force_environ )
-            ELSE
-               CALL calc_felectrostatic( setup=outer, natoms=nat, charges=charges, potential=velectrostatic, &
-                    & forces=force_environ )
-            END IF
-         END IF
-         !
-      END IF
+      IF ( lelectrostatic ) CALL calc_felectrostatic( outer, nat, charges, force_environ )
       !
       ! ... Compute the total forces depending on the boundary
       !

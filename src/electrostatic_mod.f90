@@ -88,7 +88,7 @@ MODULE electrostatic_base
   LOGICAL ::                       &
        need_gradient,              &
        need_factsqrt,              &
-       need_gradlog,               &
-       need_auxiliary
+       need_auxiliary,             &
+       linearized
   !
 END MODULE electrostatic_base

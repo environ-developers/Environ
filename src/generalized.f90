@@ -36,20 +36,21 @@ MODULE generalized
 CONTAINS
 
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_charges( solver, core, charges, dielectric, potential )
+SUBROUTINE generalized_gradient_charges( solver, core, charges, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
   TYPE( electrostatic_solver ), INTENT(IN) :: solver
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), INTENT(INOUT) :: charges
-  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
+  TYPE( environ_charges ), INTENT(IN) :: charges
   TYPE( environ_density ), INTENT(INOUT) :: potential
 
   CHARACTER*20 :: sub_name = 'generalized_gradient'
 
   CALL start_clock( 'calc_vsolv' )
+
+  potential % of_r = 0.D0
 
   IF ( solver % use_gradient ) THEN
 
@@ -59,15 +60,15 @@ SUBROUTINE generalized_gradient_charges( solver, core, charges, dielectric, pote
 
         CASE ( 'none' )
 
-           CALL generalized_gradient_none( solver % gradient, core, charges%density, dielectric, potential )
+           CALL generalized_gradient_none( solver % gradient, core, charges%density, charges%dielectric, potential )
 
         CASE ( 'sqrt' )
 
-           CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, dielectric, potential )
+           CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, charges%dielectric, potential )
 
         CASE ( 'left' )
 
-           CALL generalized_gradient_left( solver % gradient, core, charges%density, dielectric, potential )
+           CALL generalized_gradient_left( solver % gradient, core, charges%density, charges%dielectric, potential )
 
         CASE DEFAULT
 
@@ -86,7 +87,7 @@ SUBROUTINE generalized_gradient_charges( solver, core, charges, dielectric, pote
 
      IF ( solver % auxiliary .EQ. 'full' ) THEN
 
-        CALL generalized_iterative( solver % iterative, core, charges%density, dielectric, potential, charges%auxiliary )
+        CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, potential )
 
      ELSE
 
@@ -116,7 +117,7 @@ SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, pote
 
   TYPE( electrostatic_solver ), INTENT(IN) :: solver
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_density ), INTENT(INOUT) :: charges
+  TYPE( environ_density ), INTENT(IN) :: charges
   TYPE( environ_dielectric ), INTENT(IN) :: dielectric
   TYPE( environ_density ), INTENT(INOUT) :: potential
 
@@ -184,14 +185,13 @@ SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, pote
 END SUBROUTINE generalized_gradient_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
+SUBROUTINE generalized_energy( core, charges, potential, energy )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_charges ), INTENT(INOUT) :: charges
-  TYPE( environ_dielectric ), INTENT(IN) :: dielectric
+  TYPE( environ_charges ), INTENT(IN) :: charges
   TYPE( environ_density ), INTENT(IN) :: potential
   REAL( DP ), INTENT(OUT) :: energy
 
@@ -230,28 +230,8 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 
         ELSE
 
-        ! If using PBC, polarization charge should be neutral, as jellium polarization should also
-        ! accounted for, thus the correction for Gaussian nuclei should be almost negligible
-
-           IF ( charges % include_auxiliary ) THEN
-
-              degauss = - charges % ions % quadrupole_correction * charges % auxiliary % charge * e2 * pi &
-                   & / charges % density % cell % omega
-
-           ELSE
-
-              IF ( add_jellium ) THEN
-
-                 degauss = 0.D0
-
-              ELSE
-
-                 degauss = - charges % ions % quadrupole_correction * e2 * pi / charges % density % cell % omega &
-                      & * ( 1.D0 - dielectric % constant ) / dielectric % constant * charges % charge
-
-              ENDIF
-
-           ENDIF
+           degauss = - charges % ions % quadrupole_correction * charges % dielectric % charge * e2 * pi &
+                & / charges % density % cell % omega
 
         ENDIF
 
@@ -269,27 +249,26 @@ SUBROUTINE generalized_energy( core, charges, dielectric, potential, energy )
 END SUBROUTINE generalized_energy
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential, auxiliary )
+SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
 
   TYPE( iterative_solver ), TARGET, INTENT(IN) :: iterative
   TYPE( electrostatic_core ), INTENT(IN) :: core
-  TYPE( environ_density ), TARGET, INTENT(INOUT) :: charges
+  TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
-  TYPE( environ_auxiliary ), TARGET, INTENT(INOUT), OPTIONAL :: auxiliary
 
   TYPE( environ_cell ), POINTER :: cell
-  TYPE( environ_density ), POINTER :: eps, rhoiter, rhozero, rhotot
+  TYPE( environ_density ), POINTER :: eps, rhoiter, rhotot
   TYPE( environ_gradient ), POINTER :: gradlogeps
 
   INTEGER :: iter
   REAL( DP ) :: total, totpol, totzero, totiter, delta_qm, delta_en, jellium
+  TYPE( environ_density ) :: rhozero
   TYPE( environ_density ) :: residual
   TYPE( environ_gradient ) :: gradpoisson
-  TYPE( environ_auxiliary ), TARGET :: rhoaux
 
   CHARACTER( LEN=80 ) :: sub_name = 'generalized_iterative'
 
@@ -313,17 +292,9 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
   ! ... If auxiliary charge is not passed, initialize it
 
-  IF ( .NOT. PRESENT( auxiliary ) ) THEN
-     CALL create_environ_auxiliary( rhoaux )
-     CALL init_environ_auxiliary( cell, rhoaux )
-     rhoiter => rhoaux % iterative
-     rhozero => rhoaux % fixed
-     rhotot => rhoaux % density
-  ELSE
-     rhoiter => auxiliary % iterative
-     rhozero => auxiliary % fixed
-     rhotot => auxiliary % density
-  ENDIF
+  rhoiter => dielectric % iterative
+  rhotot => dielectric % density
+  CALL init_environ_density( cell, rhozero )
 
   ! ... Aliases
 
@@ -394,14 +365,9 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
     CALL poisson_direct( core, rhotot, potential )
 
-    IF ( .NOT. PRESENT ( auxiliary ) ) THEN
-       CALL destroy_environ_auxiliary( rhoaux )
-    ELSE
-       CALL update_environ_auxiliary( auxiliary )
-    ENDIF
-
     ! ... Destroy local variables
 
+    CALL destroy_environ_density( rhozero )
     CALL destroy_environ_density( residual )
     CALL destroy_environ_gradient( gradpoisson )
 

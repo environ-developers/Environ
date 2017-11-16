@@ -731,59 +731,6 @@ CONTAINS
   END SUBROUTINE print_environ_externals
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE print_environ_auxiliary( auxiliary, local_verbose, local_depth )
-!--------------------------------------------------------------------
-
-    IMPLICIT NONE
-
-    TYPE( environ_auxiliary ), INTENT(IN) :: auxiliary
-    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-    INTEGER, INTENT(IN), OPTIONAL :: local_depth
-
-    INTEGER :: verbosity, passed_verbosity, passed_depth
-
-    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_auxiliary'
-
-    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
-
-    IF ( PRESENT(local_verbose) ) THEN
-       verbosity = verbose + local_verbose
-    ELSE
-       verbosity = verbose
-    END IF
-
-    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
-
-    IF ( PRESENT(local_depth) ) THEN
-       passed_verbosity = verbosity - verbose - local_depth
-       passed_depth = local_depth
-    ELSE
-       passed_verbosity = verbosity - verbose - depth
-       passed_depth = depth
-    END IF
-
-    IF ( verbosity .GE. 1 ) THEN
-       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2200 )
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2201 )auxiliary%charge
-       IF ( verbosity .GE. 2 ) THEN
-          CALL print_environ_density(auxiliary%density,passed_verbosity,passed_depth)
-       ENDIF
-       IF ( verbosity .GE. 3 ) THEN
-          CALL print_environ_density(auxiliary%iterative,passed_verbosity,passed_depth)
-          CALL print_environ_density(auxiliary%fixed,passed_verbosity,passed_depth)
-       ENDIF
-    END IF
-
-    FLUSH( environ_unit )
-
-    RETURN
-
-2200 FORMAT(/,4('%'),' AUXILIARY ',65('%'))
-2201 FORMAT(1x,'total auxiliary charge      = ',F14.7)
-!--------------------------------------------------------------------
-  END SUBROUTINE print_environ_auxiliary
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
   SUBROUTINE print_environ_charges( charges, local_verbose, local_depth )
 !--------------------------------------------------------------------
 
@@ -827,8 +774,8 @@ CONTAINS
                & CALL print_environ_electrons(charges%electrons,passed_verbosity,passed_depth)
           IF ( charges % include_externals ) &
                & CALL print_environ_externals(charges%externals,passed_verbosity,passed_depth)
-          IF ( charges % include_auxiliary ) &
-               & CALL print_environ_auxiliary(charges%auxiliary,passed_verbosity,passed_depth)
+          IF ( charges % include_dielectric ) &
+               & CALL print_environ_dielectric(charges%dielectric,passed_verbosity,passed_depth)
        ENDIF
     END IF
 
@@ -1053,14 +1000,16 @@ CONTAINS
           IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%background,passed_verbosity,passed_depth)
        END IF
        CALL print_environ_boundary(dielectric%boundary,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%density,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%epsilon,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%depsilon,passed_verbosity,passed_depth)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2103 )dielectric%need_gradient,&
-            & dielectric%need_factsqrt,dielectric%need_gradlog
+            & dielectric%need_factsqrt
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2104 )dielectric%charge
        IF ( verbosity .GE. 3 ) THEN
+          CALL print_environ_gradient(dielectric%gradlog,passed_verbosity,passed_depth)
           IF ( dielectric%need_gradient ) CALL print_environ_gradient(dielectric%gradient,passed_verbosity,passed_depth)
           IF ( dielectric%need_factsqrt ) CALL print_environ_density(dielectric%factsqrt,passed_verbosity,passed_depth)
-          IF ( dielectric%need_gradlog ) CALL print_environ_gradient(dielectric%gradlog,passed_verbosity,passed_depth)
        END IF
 
     END IF
@@ -1077,8 +1026,8 @@ CONTAINS
           /,1x,'number of dielec. regions  = ',I4,' ')
 2103 FORMAT(1x,'dielectric flags'&
           /,1x,'need gradient              = ',L2,' '&
-          /,1x,'need factor depend. sqrt   = ',L2,' '&
-          /,1x,'need gradient of logarithm = ',L2,' ')
+          /,1x,'need factor depend. sqrt   = ',L2,' ')
+2104 FORMAT(1x,'total dielectric charge    = ',F14.7)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_dielectric
 !--------------------------------------------------------------------

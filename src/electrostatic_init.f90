@@ -210,13 +210,13 @@ CONTAINS
     !
     ! Set logical flags according to electrostatic set up
     !
-    need_auxiliary = .FALSE.
     need_gradient = .FALSE.
     need_factsqrt = .FALSE.
-    need_gradlog  = .FALSE.
+    need_auxiliary = .FALSE.
+    linearized = .FALSE.
     !
-    CALL set_electrostatic_flags( reference, need_auxiliary, need_gradient, need_gradlog, need_factsqrt )
-    CALL set_electrostatic_flags( outer, need_auxiliary, need_gradient, need_gradlog, need_factsqrt )
+    CALL set_electrostatic_flags( reference, need_auxiliary, need_gradient, need_factsqrt, linearized )
+    CALL set_electrostatic_flags( outer, need_auxiliary, need_gradient, need_factsqrt, linearized )
     !
     RETURN
     !

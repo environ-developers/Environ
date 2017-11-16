@@ -3,6 +3,7 @@ MODULE electrolyte_utils
 !--------------------------------------------------------------------
 
   USE environ_types
+  USE environ_output
 
 !  USE dielectric
   USE boundary
@@ -52,7 +53,7 @@ MODULE electrolyte_utils
 
   PUBLIC :: create_environ_electrolyte, init_environ_electrolyte_first, &
        & init_environ_electrolyte_second, destroy_environ_electrolyte,  &
-       & update_environ_electrolyte, calc_electrolyte_density,          &
+       & update_environ_electrolyte, electrolyte_of_potential,          &
        & calc_eelectrolyte, calc_deelectrolyte_dboundary
 
 CONTAINS
@@ -81,10 +82,11 @@ CONTAINS
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
        & rhopb, tbeta, const, alpha, softness, distance, spread, solvent_radius, radial_scale, &
        & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
-       & temperature, cbulk, cmax, radius, z, electrolyte )
+       & temperature, cbulk, cmax, radius, z, linearized, electrolyte )
 
     IMPLICIT NONE
 
+    LOGICAL, INTENT(IN) :: linearized
     INTEGER, INTENT(IN) :: ntyp, stype
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
     REAL( DP ), INTENT(IN) :: rhomax, rhomin, rhopb, tbeta, const, distance, spread, alpha, softness, temperature
@@ -127,6 +129,7 @@ CONTAINS
 
     ! ... Setup all electrolyte parameters (with checks)
 
+    electrolyte%linearized = linearized
     electrolyte%ntyp = ntyp
 
     electrolyte%temperature = temperature
@@ -262,14 +265,11 @@ CONTAINS
 
   END SUBROUTINE electrolyte_of_boundary
 
-  SUBROUTINE calc_electrolyte_density( problem, electrolyte, potential )
-!DEBUG
-    USE environ_output
-!DEBUG
+  SUBROUTINE electrolyte_of_potential( potential, electrolyte )
+
     IMPLICIT NONE
 
     TYPE( environ_density ),     TARGET, INTENT(IN)    :: potential
-    CHARACTER ( LEN=80 ),                INTENT(IN)    :: problem
     TYPE( environ_electrolyte ), TARGET, INTENT(INOUT) :: electrolyte
 
     REAL( DP ), DIMENSION(:), POINTER :: pot, rho, c, cfactor, gam
@@ -294,23 +294,21 @@ CONTAINS
       !
       cfactor => electrolyte%ioncctype(ityp)%cfactor%of_r
       !
-      SELECT CASE ( problem )
-        !
-      CASE ( 'linpb', 'linmodpb' )
-        !
-        cfactor = 1.D0 - electrolyte%ioncctype(ityp)%z*pot / kT * e
-        !
-      CASE ( 'pb' )
-        !
-        cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
-        !
-      CASE ( 'modpb' )
-        !
-        cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
-        factor = electrolyte%ioncctype(ityp)%cbulk / electrolyte%cmax
-        denominator%of_r = denominator%of_r - factor * ( 1.D0 - cfactor )
-        !
-      END SELECT
+      IF ( electrolyte % linearized ) THEN
+         !
+         cfactor = 1.D0 - electrolyte%ioncctype(ityp)%z*pot / kT * e
+         !
+      ELSE IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+         !
+         cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
+         !
+      ELSE
+         !
+         cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
+         factor = electrolyte%ioncctype(ityp)%cbulk / electrolyte%cmax
+         denominator%of_r = denominator%of_r - factor * ( 1.D0 - cfactor )
+         !
+      END IF
       !
       NULLIFY( cfactor )
       !
@@ -338,7 +336,7 @@ CONTAINS
     CALL print_environ_density( electrolyte%gamma )
 !DEBUG
 
-  END SUBROUTINE calc_electrolyte_density
+  END SUBROUTINE electrolyte_of_potential
 
   SUBROUTINE calc_eelectrolyte( problem, electrolyte, energy )
 

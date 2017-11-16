@@ -23,6 +23,7 @@ MODULE environ_init
   USE dielectric
   USE electrolyte_utils
   USE externals_utils
+  USE charges_utils
   !
   PRIVATE
   !
@@ -68,7 +69,7 @@ CONTAINS
     ! ... to global variables and derived data types kept in this module
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
-         & need_gradlog, need_factsqrt, need_auxiliary
+         & need_factsqrt, need_auxiliary, linearized
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
@@ -149,7 +150,6 @@ CONTAINS
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_ioncc_ntyp .GT. 0
     lperiodic      = need_pbc_correction
-    lauxiliary     = need_auxiliary
     !
     ! Derived flags
     !
@@ -179,8 +179,6 @@ CONTAINS
     !
     IF ( lelectrostatic ) CALL create_environ_charges(charges)
     !
-    IF ( lauxiliary ) CALL create_environ_auxiliary(auxiliary)
-    !
     ! Allocate and set basic properties of ions
     !
     CALL init_environ_ions_first( nat, ntyp, lsoftcavity, lcoredensity, lsmearedions, &
@@ -206,10 +204,6 @@ CONTAINS
        CALL init_environ_charges_first( externals=externals, charges=charges )
     ENDIF
     !
-    ! If needed, link auxiliary charges
-    !
-    IF ( lauxiliary ) CALL init_environ_charges_first( auxiliary=auxiliary, charges=charges )
-    !
     ! Set the parameters of the solvent boundary
     !
     IF ( lsolvent ) THEN
@@ -227,7 +221,7 @@ CONTAINS
             & alpha, softness, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
-            & zion, electrolyte )
+            & zion, linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
     !
@@ -235,15 +229,16 @@ CONTAINS
     !
     IF ( lstatic ) THEN
        CALL init_environ_dielectric_first( env_static_permittivity, solvent, &
-         & need_gradient, need_factsqrt, need_gradlog, static )
+         & need_gradient, need_factsqrt, need_auxiliary, static )
        IF ( env_dielectric_regions .GT. 0 ) CALL set_dielectric_regions( &
          & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
          & epsregion_width, epsregion_spread, epsregion_eps(1,:), static )
+       CALL init_environ_charges_first( dielectric=static, charges=charges )
     END IF
     !
     IF ( loptical ) THEN
        CALL init_environ_dielectric_first( env_optical_permittivity, solvent, &
-         & need_gradient, need_factsqrt, need_gradlog, optical )
+         & need_gradient, need_factsqrt, need_auxiliary, optical )
        IF ( env_dielectric_regions .GT. 0 ) CALL set_dielectric_regions( &
          & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
          & epsregion_width, epsregion_spread, epsregion_eps(2,:), optical )
@@ -384,8 +379,6 @@ CONTAINS
       IF ( lelectrolyte ) CALL init_environ_electrolyte_second( cell, electrolyte )
       !
       IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
-      !
-      IF ( lauxiliary ) CALL init_environ_auxiliary( cell, auxiliary )
       !
       IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
       !
@@ -690,7 +683,6 @@ CONTAINS
       ! ... destroy derived types which were allocated in input
       !
       IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
-      IF ( lauxiliary ) CALL destroy_environ_auxiliary( auxiliary )
       IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
       IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
       IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )

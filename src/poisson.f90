@@ -271,7 +271,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(INOUT) :: charges
+    TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
     !
