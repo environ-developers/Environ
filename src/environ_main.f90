@@ -41,7 +41,7 @@ CONTAINS
                                 lvolume, env_pressure,                &
                                 charges, lstatic, static,             &
                                 lelectrolyte, electrolyte,            &
-                                vsoftelectrolyte
+                                cell, lsoftsolvent, lsoftelectrolyte
       USE electrostatic_base, ONLY : reference, outer
       !
       ! ... Each contribution to the potential is computed in its module
@@ -61,6 +61,8 @@ CONTAINS
       LOGICAL, INTENT(IN)       :: update
       INTEGER, INTENT(IN)       :: nnr
       REAL( DP ), INTENT(OUT)   :: vtot( nnr )
+
+      TYPE( environ_density ) :: de_dboundary
 
       ! ... If not updating the potentials, add old potentials and exit
 
@@ -98,44 +100,56 @@ CONTAINS
 
       IF ( lsoftcavity ) THEN
 
-         vsoftcavity % of_r = 0.D0
+         CALL init_environ_density( cell, de_dboundary )
 
-         ! ... If surface tension greater than zero, calculates cavity contribution
+         IF ( lsoftsolvent ) THEN
 
-         IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, vsoftcavity )
+            de_dboundary % of_r = 0.D0
 
-         ! ... If external pressure different from zero, calculates PV contribution
+            ! ... If surface tension greater than zero, calculates cavity contribution
 
-         IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, vsoftcavity )
+            IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, de_dboundary )
 
-         ! ... If dielectric embedding, calcultes dielectric contribution
+            ! ... If external pressure different from zero, calculates PV contribution
 
-         IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, vsoftcavity )
+            IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, de_dboundary )
 
-         ! ... If solvent-aware interface correct the potential
+            ! ... If dielectric embedding, calcultes dielectric contribution
 
-         IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, vsoftcavity )
+            IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, de_dboundary )
 
-         ! ... Multiply for the derivative of the boundary wrt electronic density
+            ! ... If solvent-aware interface correct the potential
 
-         vsoftcavity % of_r = vsoftcavity % of_r * solvent % dscaled % of_r
+            IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, de_dboundary )
 
-         ! ... If electrolyte is present add its non-electrostatic contribution
+            ! ... Multiply for the derivative of the boundary wrt electronic density
 
-         IF ( lelectrolyte ) THEN
+            vsoftcavity % of_r = de_dboundary % of_r * solvent % dscaled % of_r
 
-            vsoftelectrolyte % of_r = 0.D0
+         END IF
 
-            CALL calc_deelectrolyte_dboundary( outer%problem, electrolyte, vsoftelectrolyte )
+         IF ( lsoftelectrolyte ) THEN
 
-            vsoftelectrolyte % of_r = vsoftelectrolyte % of_r * electrolyte % boundary % dscaled % of_r
+            de_dboundary % of_r = 0.D0
 
-            vsoftcavity % of_r = vsoftcavity % of_r + vsoftelectrolyte % of_r
+            ! ... If electrolyte is present add its non-electrostatic contribution
+
+            CALL calc_deelectrolyte_dboundary( electrolyte, de_dboundary )
+
+            ! ... If solvent-aware interface correct the potential
+
+            IF ( electrolyte % boundary % solvent_aware ) CALL solvent_aware_de_dboundary( electrolyte % boundary, de_dboundary )
+
+            ! ... Multiply for the derivative of the boundary wrt electronic density
+
+            vsoftcavity % of_r = vsoftcavity % of_r + de_dboundary % of_r * electrolyte % boundary % dscaled % of_r
 
          END IF
 
          IF ( verbose .GE. 3 ) CALL print_environ_density( vsoftcavity )
          vtot = vtot + vsoftcavity % of_r
+
+         CALL destroy_environ_density( de_dboundary )
 
       END IF
 
@@ -224,7 +238,7 @@ CONTAINS
       !
       !  if electrolyte is present calculate its non-electrostatic contribution
       !
-      IF ( lelectrolyte ) CALL calc_eelectrolyte( outer%problem, electrolyte, eelectrolyte )
+      IF ( lelectrolyte ) CALL calc_eelectrolyte( electrolyte, eelectrolyte )
       !
       RETURN
       !
@@ -242,10 +256,11 @@ CONTAINS
       USE environ_base, ONLY : lelectrostatic, velectrostatic,    &
                                charges, lstatic, static,          &
                                lelectrolyte, electrolyte,         &
-                               lrigidcavity,                      &
+                               lrigidcavity, lrigidsolvent,       &
+                               lrigidelectrolyte,                 &
                                lsurface, env_surface_tension,     &
                                lvolume, env_pressure,             &
-                               lsolvent, solvent
+                               lsolvent, solvent, cell
       !
       USE electrostatic_base, ONLY : outer
       !
@@ -263,11 +278,9 @@ CONTAINS
       INTEGER, INTENT(IN) :: nat
       REAL( DP ), INTENT(INOUT) :: force_environ( 3, nat )
       !
-      TYPE( environ_cell ), POINTER :: cell
-      !
       INTEGER :: i
-      TYPE( environ_density ) :: vrigidcavity, vrigidelectrolyte
-      TYPE( environ_gradient ) :: partial, partialelectrolyte
+      TYPE( environ_density ) :: de_dboundary
+      TYPE( environ_gradient ) :: partial
       !
       force_environ = 0.D0
       !
@@ -277,77 +290,71 @@ CONTAINS
       !
       IF ( lrigidcavity ) THEN
          !
-         IF ( lsolvent ) THEN
-            cell => solvent % scaled % cell
-         ELSE IF ( lelectrolyte ) THEN
-            cell => electrolyte % density % cell
-         ELSE
-            RETURN
-         ENDIF
-         !
-         CALL init_environ_density( cell, vrigidcavity )
-         !
-         ! ... If surface tension greater than zero, calculates cavity contribution
-         !
-         IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, vrigidcavity )
-         !
-         ! ... If external pressure different from zero, calculates PV contribution
-         !
-         IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, vrigidcavity )
-         !
-         ! ... If dielectric embedding, calcultes dielectric contribution
-         !
-         IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, vrigidcavity )
-         !
-         ! ... If solvent-aware interface correct the potential
-         !
-         IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, vrigidcavity )
-         !
-         ! ... Multiply for the derivative of the boundary wrt ionic positions
+         CALL init_environ_density( cell, de_dboundary )
          !
          CALL init_environ_gradient( cell, partial )
          !
-         ! ... If electrolyte is present, add its non-electrostatic contribution
-         !
-         IF ( lelectrolyte ) THEN
+         IF ( lrigidsolvent ) THEN
             !
-            CALL init_environ_density( cell, vrigidelectrolyte )
+            de_dboundary % of_r = 0.D0
             !
-            CALL calc_deelectrolyte_dboundary( outer%problem, electrolyte, vrigidelectrolyte )
+            ! ... If surface tension greater than zero, calculates cavity contribution
             !
-            CALL init_environ_gradient( cell, partialelectrolyte )
+            IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, de_dboundary )
+            !
+            ! ... If external pressure different from zero, calculates PV contribution
+            !
+            IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, de_dboundary )
+            !
+            ! ... If dielectric embedding, calcultes dielectric contribution
+            !
+            IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, de_dboundary )
+            !
+            ! ... If solvent-aware interface correct the potential
+            !
+            IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, de_dboundary )
+            !
+            ! ... Multiply for the derivative of the boundary wrt ionic positions
+            !
+            DO i = 1, nat
+               !
+               CALL calc_dboundary_dions( i, solvent, partial )
+               !
+               force_environ( :, i ) = force_environ( :, i ) &
+                    & - scalar_product_environ_gradient_density( partial, de_dboundary )
+               !
+            END DO
             !
          END IF
          !
-         DO i = 1, nat
+         IF ( lrigidelectrolyte ) THEN
             !
-            CALL calc_dboundary_dions( i, solvent, partial )
+            de_dboundary % of_r = 0.D0
             !
-            force_environ( :, i ) = force_environ( :, i ) &
-                 & - scalar_product_environ_gradient_density( partial, vrigidcavity )
+            ! ... If electrolyte is present, add its non-electrostatic contribution
             !
-            IF ( lelectrolyte ) THEN
+            CALL calc_deelectrolyte_dboundary( electrolyte, de_dboundary )
+            !
+            ! ... If solvent-aware interface correct the potential
+            !
+            IF ( electrolyte % boundary % solvent_aware ) CALL solvent_aware_de_dboundary( electrolyte % boundary, de_dboundary )
+            !
+            ! ... Multiply for the derivative of the boundary wrt ionic positions
+            !
+            DO i = 1, nat
                !
-               CALL calc_dboundary_dions( i, electrolyte % boundary, partialelectrolyte )
+               CALL calc_dboundary_dions( i, electrolyte % boundary, partial )
                !
                force_environ( :, i ) = force_environ( :, i ) &
-               & - scalar_product_environ_gradient_density( partialelectrolyte, vrigidelectrolyte )
+                    & - scalar_product_environ_gradient_density( partial, de_dboundary )
                !
-            END IF
+            END DO
             !
-         ENDDO
+         END IF
          !
          CALL destroy_environ_gradient( partial )
          !
-         CALL destroy_environ_density( vrigidcavity )
-         !
-         IF ( lelectrolyte ) THEN
-            !
-            CALL destroy_environ_gradient( partialelectrolyte )
-            !
-            CALL destroy_environ_density( vrigidelectrolyte )
-            !
-         END IF
+         CALL destroy_environ_density( de_dboundary )
          !
       END IF
       !

@@ -46,7 +46,15 @@ MODULE environ_base
   LOGICAL ::                          &
        lelectrostatic
   LOGICAL ::                          &
+       lsoftsolvent
+  LOGICAL ::                          &
+       lsoftelectrolyte
+  LOGICAL ::                          &
        lsoftcavity
+  LOGICAL ::                          &
+       lrigidsolvent
+  LOGICAL ::                          &
+       lrigidelectrolyte
   LOGICAL ::                          &
        lrigidcavity
   LOGICAL ::                          &
@@ -133,10 +141,6 @@ MODULE environ_base
   !
   LOGICAL ::                        &
        lperiodic
-  INTEGER ::                        &
-       env_periodicity
-  INTEGER ::                        &
-       slab_axis
   !
   ! Temporary parameters
   !
@@ -157,13 +161,7 @@ MODULE environ_base
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
-       vsoftcavity,                 &
-       vsoftelectrolyte
-  TYPE ( environ_gradient ) ::      &
-       gelectrostatic
-  ! gradient of the total electrostatic potential
-  ! (elec + pol + ions) for the TDDFPT calculation
-  !
+       vsoftcavity
   !--------------------------------------------------------------------------
 END MODULE environ_base
 !----------------------------------------------------------------------------

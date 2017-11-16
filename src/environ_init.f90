@@ -156,13 +156,15 @@ CONTAINS
     ldielectric    = lstatic .OR. loptical
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
-         lexternals .OR. lperiodic
-    lsoftcavity    = ( lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' ) ) .OR. &
-         ( lelectrolyte .AND. ( stern_mode .EQ. 'electronic' .OR. stern_mode .EQ. 'full' ) )
-    lrigidcavity   = ( lsolvent .AND. solvent_mode .NE. 'electronic' ) .OR. &
-         ( lelectrolyte .AND. stern_mode .NE. 'electronic' )
+                     lexternals .OR. lperiodic
+    lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' )
+    lsoftelectrolyte = lelectrolyte .AND. ( stern_mode .EQ. 'electronic' .OR. stern_mode .EQ. 'full' )
+    lsoftcavity    = lsoftsolvent .OR. lsoftelectrolyte
+    lrigidsolvent  = lsolvent .AND. solvent_mode .NE. 'electronic'
+    lrigidelectrolyte = lelectrolyte .AND. stern_mode .NE. 'electronic'
+    lrigidcavity   = lrigidsolvent .OR. lrigidelectrolyte
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
-         ( lelectrolyte .AND. stern_mode .EQ. 'full' )
+                     ( lelectrolyte .AND. stern_mode .EQ. 'full' )
     lsmearedions   = lelectrostatic
     !
     ! Create optional types
@@ -273,7 +275,6 @@ CONTAINS
                                lelectrostatic, eelectrostatic,          &
                                velectrostatic, vreference,              &
                                lsoftcavity, vsoftcavity,                &
-                               vsoftelectrolyte,                        &
                                lelectrolyte, electrolyte,               &
                                lsolvent, solvent, lstatic, static,      &
                                loptical, optical,                       &
@@ -343,14 +344,6 @@ CONTAINS
          label = 'vsoftcavity'
          CALL create_environ_density( vsoftcavity, label )
          CALL init_environ_density( cell, vsoftcavity )
-         !
-         IF ( lelectrolyte ) THEN
-            !
-            label = 'vsoftelectrolyte'
-            CALL create_environ_density( vsoftelectrolyte, label )
-            CALL init_environ_density( cell, vsoftelectrolyte )
-            !
-         END IF
          !
       END IF
       !
@@ -569,7 +562,8 @@ CONTAINS
                                     lstatic, static,              &
                                     loptical, optical,            &
                                     lelectrolyte, electrolyte,    &
-                                    lsoftcavity,                  &
+                                    lsoftcavity, lsoftsolvent,    &
+                                    lsoftelectrolyte,             &
                                     lelectrostatic, charges
       USE boundary,          ONLY : update_environ_boundary
       USE dielectric,        ONLY : update_environ_dielectric
@@ -593,7 +587,7 @@ CONTAINS
       !
       IF ( lsoftcavity ) THEN
          !
-         IF ( lsolvent ) THEN
+         IF ( lsoftsolvent ) THEN
             !
             CALL update_environ_boundary( solvent )
             IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
@@ -612,7 +606,7 @@ CONTAINS
             !
          END IF
          !
-         IF ( lelectrolyte ) THEN
+         IF ( lsoftelectrolyte ) THEN
             CALL update_environ_boundary( electrolyte%boundary )
             IF ( electrolyte % boundary % update_status .EQ. 2 ) &
                  & CALL print_environ_boundary( electrolyte%boundary )
@@ -645,7 +639,6 @@ CONTAINS
       USE environ_base, ONLY : vzero,                                &
                                lelectrostatic, velectrostatic,       &
                                vreference, lsoftcavity, vsoftcavity, &
-                               vsoftelectrolyte,                     &
                                ions, electrons, system, charges,     &
                                lexternals, externals,                &
                                lstatic, static, loptical, optical,   &
@@ -677,7 +670,6 @@ CONTAINS
       END IF
       IF ( lsoftcavity ) THEN
          CALL destroy_environ_density( vsoftcavity )
-         IF ( lelectrolyte ) CALL destroy_environ_density( vsoftelectrolyte )
       END IF
       !
       ! ... destroy derived types which were allocated in input

@@ -338,11 +338,10 @@ CONTAINS
 
   END SUBROUTINE electrolyte_of_potential
 
-  SUBROUTINE calc_eelectrolyte( problem, electrolyte, energy )
+  SUBROUTINE calc_eelectrolyte( electrolyte, energy )
 
     IMPLICIT NONE
 
-    CHARACTER ( LEN=80 ),        INTENT(IN)  :: problem
     TYPE( environ_electrolyte ), INTENT(IN)  :: electrolyte
     REAL( DP ),                  INTENT(OUT) :: energy
 
@@ -356,54 +355,51 @@ CONTAINS
     sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
     bulkterm = LOG( 1.D0 - sumcbulk / electrolyte%cmax )
 
-    SELECT CASE ( problem )
-      !
-    CASE ( 'pb', 'linpb' )
-      !
-      RETURN
-      !
-    CASE ( 'linmodpb' )
-      !
-      integral = integrate_environ_density( electrolyte%gamma )
-      energy   = kT * electrolyte%cmax * bulkterm * &
-               & ( integral - electrolyte%gamma%cell%omega )
-      !
-    CASE ( 'modpb' )
-      !
-      CALL init_environ_density( electrolyte%gamma%cell, arg )
-      CALL init_environ_density( electrolyte%gamma%cell, f )
-      !
-      arg%of_r = 0.D0
-      f%of_r = 0.D0
-      !
-      DO ityp = 1, electrolyte%ntyp
-        !
-        arg%of_r = arg%of_r + electrolyte%ioncctype(ityp)%cfactor%of_r * &
-                            & electrolyte%ioncctype(ityp)%cbulk
-        !
-      END DO
-      !
-      arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
-      arg%of_r = arg%of_r + 1.D0
-      f%of_r = electrolyte%gamma%of_r * LOG ( arg%of_r )
-      !
-      integral = integrate_environ_density( f )
-      !
-      energy   = - kT * electrolyte%cmax * &
-         & ( integral + bulkterm * electrolyte%gamma%cell%omega )
-      !
-      CALL destroy_environ_density( arg )
-      CALL destroy_environ_density( f )
-      !
-    END SELECT
+    IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+       !
+       RETURN
+       !
+    ELSE IF ( electrolyte % linearized ) THEN
+       !
+       integral = integrate_environ_density( electrolyte%gamma )
+       energy   = kT * electrolyte%cmax * bulkterm * &
+            & ( integral - electrolyte%gamma%cell%omega )
+       !
+    ELSE
+       !
+       CALL init_environ_density( electrolyte%gamma%cell, arg )
+       CALL init_environ_density( electrolyte%gamma%cell, f )
+       !
+       arg%of_r = 0.D0
+       f%of_r = 0.D0
+       !
+       DO ityp = 1, electrolyte%ntyp
+          !
+          arg%of_r = arg%of_r + electrolyte%ioncctype(ityp)%cfactor%of_r * &
+               & electrolyte%ioncctype(ityp)%cbulk
+          !
+       END DO
+       !
+       arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
+       arg%of_r = arg%of_r + 1.D0
+       f%of_r = electrolyte%gamma%of_r * LOG ( arg%of_r )
+       !
+       integral = integrate_environ_density( f )
+       !
+       energy   = - kT * electrolyte%cmax * &
+            & ( integral + bulkterm * electrolyte%gamma%cell%omega )
+       !
+       CALL destroy_environ_density( arg )
+       CALL destroy_environ_density( f )
+       !
+    END IF
 
   END SUBROUTINE calc_eelectrolyte
 
-  SUBROUTINE calc_deelectrolyte_dboundary( problem, electrolyte, de_dboundary)
+  SUBROUTINE calc_deelectrolyte_dboundary( electrolyte, de_dboundary)
 
     IMPLICIT NONE
 
-    CHARACTER ( LEN=80 ),        INTENT(IN)  :: problem
     TYPE( environ_electrolyte ), TARGET, INTENT(IN)    :: electrolyte
     TYPE( environ_density ),     TARGET, INTENT(INOUT) :: de_dboundary
 
@@ -414,38 +410,36 @@ CONTAINS
     kT       = k_boltzmann_ry * electrolyte%temperature
     sumcbulk = SUM( electrolyte % ioncctype(:)%cbulk )
 
-    SELECT CASE ( problem )
-      !
-    CASE ( 'pb', 'linpb' )
-      !
-      RETURN
-      !
-    CASE ( 'linmodpb' )
-      !
-      de_dboundary % of_r = kT * electrolyte%cmax * &
-                            LOG( 1.D0 - sumcbulk / electrolyte%cmax )
-      !
-    CASE ( 'modpb' )
-      !
-      CALL init_environ_density( de_dboundary%cell, arg )
-      !
-      arg%of_r = 0.D0
-      !
-      DO ityp = 1, electrolyte%ntyp
-        !
-        arg%of_r = arg%of_r + electrolyte%ioncctype(ityp)%cfactor%of_r * &
-                            & electrolyte%ioncctype(ityp)%cbulk
-        !
-      END DO
-      !
-      arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
-      arg%of_r = arg%of_r + 1.D0
-      de_dboundary % of_r = - kT * electrolyte%cmax * &
-                              LOG ( arg%of_r )
-      !
-      CALL destroy_environ_density( arg )
-      !
-    END SELECT
+    IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+       !
+       RETURN
+       !
+    ELSE IF ( electrolyte % linearized ) THEN
+       !
+       de_dboundary % of_r = kT * electrolyte%cmax * &
+            LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+       !
+    ELSE
+       !
+       CALL init_environ_density( de_dboundary%cell, arg )
+       !
+       arg%of_r = 0.D0
+       !
+       DO ityp = 1, electrolyte%ntyp
+          !
+          arg%of_r = arg%of_r + electrolyte%ioncctype(ityp)%cfactor%of_r * &
+               & electrolyte%ioncctype(ityp)%cbulk
+          !
+       END DO
+       !
+       arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
+       arg%of_r = arg%of_r + 1.D0
+       de_dboundary % of_r = - kT * electrolyte%cmax * &
+            LOG ( arg%of_r )
+       !
+       CALL destroy_environ_density( arg )
+       !
+    END IF
 
   END SUBROUTINE calc_deelectrolyte_dboundary
 
