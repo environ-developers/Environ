@@ -397,6 +397,8 @@ MODULE environ_types
      ! The electrolyte switch function
      TYPE( environ_density ) :: gamma
 
+     REAL( DP ) :: charge = 0.0_DP
+
   END TYPE environ_electrolyte
 
 CONTAINS

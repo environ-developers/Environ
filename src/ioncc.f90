@@ -75,6 +75,8 @@ CONTAINS
 
     IF ( ALLOCATED( electrolyte%ioncctype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
 
+    electrolyte % charge = 0.D0
+
     RETURN
 
   END SUBROUTINE create_environ_electrolyte
@@ -329,6 +331,8 @@ CONTAINS
       NULLIFY( cfactor )
       !
     END DO
+
+    electrolyte % charge = integrate_environ_density( electrolyte % density )
 
     CALL destroy_environ_density( denominator )
 !DEBUG
