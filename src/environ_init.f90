@@ -23,6 +23,7 @@ MODULE environ_init
   USE dielectric
   USE electrolyte_utils
   USE externals_utils
+  USE charges_utils
   !
   PRIVATE
   !
@@ -68,7 +69,7 @@ CONTAINS
     ! ... to global variables and derived data types kept in this module
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
-         & need_gradlog, need_factsqrt, need_auxiliary
+         & need_factsqrt, need_auxiliary, linearized
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
@@ -149,20 +150,21 @@ CONTAINS
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_ioncc_ntyp .GT. 0
     lperiodic      = need_pbc_correction
-    lauxiliary     = need_auxiliary
     !
     ! Derived flags
     !
     ldielectric    = lstatic .OR. loptical
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
-         lexternals .OR. lperiodic
-    lsoftcavity    = ( lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' ) ) .OR. &
-         ( lelectrolyte .AND. ( stern_mode .EQ. 'electronic' .OR. stern_mode .EQ. 'full' ) )
-    lrigidcavity   = ( lsolvent .AND. solvent_mode .NE. 'electronic' ) .OR. &
-         ( lelectrolyte .AND. stern_mode .NE. 'electronic' )
+                     lexternals .OR. lperiodic
+    lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' )
+    lsoftelectrolyte = lelectrolyte .AND. ( stern_mode .EQ. 'electronic' .OR. stern_mode .EQ. 'full' )
+    lsoftcavity    = lsoftsolvent .OR. lsoftelectrolyte
+    lrigidsolvent  = lsolvent .AND. solvent_mode .NE. 'electronic'
+    lrigidelectrolyte = lelectrolyte .AND. stern_mode .NE. 'electronic'
+    lrigidcavity   = lrigidsolvent .OR. lrigidelectrolyte
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
-         ( lelectrolyte .AND. stern_mode .EQ. 'full' )
+                     ( lelectrolyte .AND. stern_mode .EQ. 'full' )
     lsmearedions   = lelectrostatic
     !
     ! Create optional types
@@ -178,8 +180,6 @@ CONTAINS
     IF ( loptical ) CALL create_environ_dielectric(optical)
     !
     IF ( lelectrostatic ) CALL create_environ_charges(charges)
-    !
-    IF ( lauxiliary ) CALL create_environ_auxiliary(auxiliary)
     !
     ! Allocate and set basic properties of ions
     !
@@ -206,10 +206,6 @@ CONTAINS
        CALL init_environ_charges_first( externals=externals, charges=charges )
     ENDIF
     !
-    ! If needed, link auxiliary charges
-    !
-    IF ( lauxiliary ) CALL init_environ_charges_first( auxiliary=auxiliary, charges=charges )
-    !
     ! Set the parameters of the solvent boundary
     !
     IF ( lsolvent ) THEN
@@ -221,26 +217,30 @@ CONTAINS
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
-    IF ( lelectrolyte ) CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
-         & stern_mode, stype, rhomin, rhopb, tbeta, env_static_permittivity, &
-         & alpha, softness, stern_distance, stern_spread, solvent_radius, &
-         & radial_scale, radial_spread, filling_threshold, filling_spread, &
-         & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
-         & zion, electrolyte )
+    IF ( lelectrolyte ) THEN
+       CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
+            & stern_mode, stype, rhomax, rhomin, rhopb, tbeta, env_static_permittivity, &
+            & alpha, softness, stern_distance, stern_spread, solvent_radius, &
+            & radial_scale, radial_spread, filling_threshold, filling_spread, &
+            & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
+            & zion, linearized, electrolyte )
+       CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
+    END IF
     !
     ! Set the parameters of the dielectric
     !
     IF ( lstatic ) THEN
        CALL init_environ_dielectric_first( env_static_permittivity, solvent, &
-         & need_gradient, need_factsqrt, need_gradlog, static )
+         & need_gradient, need_factsqrt, need_auxiliary, static )
        IF ( env_dielectric_regions .GT. 0 ) CALL set_dielectric_regions( &
          & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
          & epsregion_width, epsregion_spread, epsregion_eps(1,:), static )
+       CALL init_environ_charges_first( dielectric=static, charges=charges )
     END IF
     !
     IF ( loptical ) THEN
        CALL init_environ_dielectric_first( env_optical_permittivity, solvent, &
-         & need_gradient, need_factsqrt, need_gradlog, optical )
+         & need_gradient, need_factsqrt, need_auxiliary, optical )
        IF ( env_dielectric_regions .GT. 0 ) CALL set_dielectric_regions( &
          & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
          & epsregion_width, epsregion_spread, epsregion_eps(2,:), optical )
@@ -279,7 +279,8 @@ CONTAINS
                                lsolvent, solvent, lstatic, static,      &
                                loptical, optical,                       &
                                lexternals, externals,                   &
-                               lsurface, ecavity, lvolume, epressure
+                               lsurface, ecavity, lvolume, epressure,   &
+                               eelectrolyte
       !
       USE electrostatic_init, ONLY : electrostatic_initbase
       !
@@ -354,6 +355,10 @@ CONTAINS
       !
       epressure  = 0.0_DP
       !
+      ! ... Non-electrostatice electrolyte contribution
+      !
+      eelectrolyte = 0.0_DP
+      !
       ! ... Second step of initialization of some environ derived type
       !
       CALL init_environ_electrons_second( cell, electrons )
@@ -367,8 +372,6 @@ CONTAINS
       IF ( lelectrolyte ) CALL init_environ_electrolyte_second( cell, electrolyte )
       !
       IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
-      !
-      IF ( lauxiliary ) CALL init_environ_auxiliary( cell, auxiliary )
       !
       IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
       !
@@ -414,9 +417,11 @@ CONTAINS
 !
       ! ... Declares modules
       USE environ_base,  ONLY : cell, lstatic, loptical, static, optical, &
-                                lexternals, externals, lelectrostatic
+                                lexternals, externals, lelectrostatic,    &
+                                lelectrolyte, electrolyte
       ! ... Cell-related updates
       USE dielectric,     ONLY : update_environ_dielectric
+      USE electrolyte_utils,   ONLY : update_environ_electrolyte
       USE electrostatic_init,  ONLY : electrostatic_initcell
 !      USE extcharges,    ONLY : update_external_charges
       !
@@ -435,6 +440,7 @@ CONTAINS
       !
       IF ( lstatic ) CALL update_environ_dielectric( static )
       IF ( loptical ) CALL update_environ_dielectric( optical )
+      IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
       !
       IF ( lexternals ) CALL update_environ_externals( externals )
       !
@@ -467,6 +473,7 @@ CONTAINS
       USE boundary,          ONLY : update_environ_boundary,        &
                                     set_soft_spheres
       USE dielectric,        ONLY : update_environ_dielectric
+      USE electrolyte_utils, ONLY : update_environ_electrolyte
       USE electrostatic_init,     ONLY : electrostatic_initions
       !
       IMPLICIT NONE
@@ -524,6 +531,7 @@ CONTAINS
             CALL update_environ_boundary( electrolyte%boundary )
             IF ( electrolyte % boundary % update_status .EQ. 2 ) &
                  & CALL print_environ_boundary( electrolyte%boundary )
+            CALL update_environ_electrolyte( electrolyte )
          END IF
          !
       END IF
@@ -554,7 +562,8 @@ CONTAINS
                                     lstatic, static,              &
                                     loptical, optical,            &
                                     lelectrolyte, electrolyte,    &
-                                    lsoftcavity,                  &
+                                    lsoftcavity, lsoftsolvent,    &
+                                    lsoftelectrolyte,             &
                                     lelectrostatic, charges
       USE boundary,          ONLY : update_environ_boundary
       USE dielectric,        ONLY : update_environ_dielectric
@@ -578,7 +587,7 @@ CONTAINS
       !
       IF ( lsoftcavity ) THEN
          !
-         IF ( lsolvent ) THEN
+         IF ( lsoftsolvent ) THEN
             !
             CALL update_environ_boundary( solvent )
             IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
@@ -597,10 +606,11 @@ CONTAINS
             !
          END IF
          !
-         IF ( lelectrolyte ) THEN
+         IF ( lsoftelectrolyte ) THEN
             CALL update_environ_boundary( electrolyte%boundary )
             IF ( electrolyte % boundary % update_status .EQ. 2 ) &
                  & CALL print_environ_boundary( electrolyte%boundary )
+            CALL update_environ_electrolyte( electrolyte )
          END IF
          !
       END IF
@@ -628,9 +638,9 @@ CONTAINS
       !
       USE environ_base, ONLY : vzero, lelectrostatic, vreference,      &
                                lsoftcavity, vsoftcavity, lstatic,      &
-                               static, charges, lauxiliary, auxiliary, &
-                               lexternals, externals, lelectrolyte,    &
-                               electrolyte, ions, electrons, system
+                               static, charges, lexternals, externals, &
+                               lelectrolyte, electrolyte,              &
+                               ions, electrons, system
       !
       ! Local clean up subroutines for the different contributions
       !
@@ -651,7 +661,6 @@ CONTAINS
       !
       IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
       IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
-      IF ( lauxiliary ) CALL destroy_environ_auxiliary( auxiliary )
       IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
       IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
       !

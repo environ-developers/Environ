@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on  8Nov2017 at 15:33:36 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on 14Nov2017 at 16:18: 1 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -40,7 +40,7 @@
      number of Kohn-Sham states=           80
      kinetic-energy cutoff     =      35.0000  Ry
      charge density cutoff     =     300.0000  Ry
-     convergence threshold     =      5.0E-02
+     convergence threshold     =      5.0E-03
      mixing beta               =       0.7000
      number of iterations used =            8  plain     mixing
      Exchange-correlation      = PBE ( 1  4  3  4 0 0)
@@ -161,7 +161,7 @@
      negative rho (up, down):  3.086E-03 0.000E+00
      Starting wfc are   80 randomized atomic wfcs
 
-     total cpu time spent up to now is        6.1 secs
+     total cpu time spent up to now is        6.3 secs
 
      per-process dynamical memory:   193.5 Mb
 
@@ -175,7 +175,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        9.9 secs
+     total cpu time spent up to now is       10.0 secs
 
      total energy              =    -623.07788607 Ry
      Harris-Foulkes estimate   =    -624.45760611 Ry
@@ -191,7 +191,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       13.6 secs
+     total cpu time spent up to now is       13.5 secs
 
      total energy              =    -620.30723430 Ry
      Harris-Foulkes estimate   =    -665.93488362 Ry
@@ -207,7 +207,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       17.5 secs
+     total cpu time spent up to now is       17.3 secs
 
      total energy              =    -622.98041631 Ry
      Harris-Foulkes estimate   =    -654.11049369 Ry
@@ -223,7 +223,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       20.7 secs
+     total cpu time spent up to now is       20.4 secs
 
      total energy              =    -623.53424480 Ry
      Harris-Foulkes estimate   =    -654.78170881 Ry
@@ -239,7 +239,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       23.6 secs
+     total cpu time spent up to now is       23.2 secs
 
      total energy              =    -624.03230694 Ry
      Harris-Foulkes estimate   =    -656.48646235 Ry
@@ -255,7 +255,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       26.6 secs
+     total cpu time spent up to now is       26.0 secs
 
      total energy              =    -624.11330734 Ry
      Harris-Foulkes estimate   =    -655.39294995 Ry
@@ -271,7 +271,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       29.7 secs
+     total cpu time spent up to now is       29.0 secs
 
      total energy              =    -624.12201326 Ry
      Harris-Foulkes estimate   =    -655.62196222 Ry
@@ -287,7 +287,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       32.7 secs
+     total cpu time spent up to now is       31.9 secs
 
      total energy              =    -624.12964530 Ry
      Harris-Foulkes estimate   =    -655.43946335 Ry
@@ -299,118 +299,166 @@
      Davidson diagonalization with overlap
      ethr =  6.58E-05,  avg # of iterations =  3.0
 
-     negative rho (up, down):  3.151E-03 0.000E+00
+     negative rho (up, down):  2.345E-03 0.000E+00
 
-     total cpu time spent up to now is       35.5 secs
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       34.7 secs
+
+     total energy              =    -624.13096959 Ry
+     Harris-Foulkes estimate   =    -654.93683858 Ry
+     estimated scf accuracy    <       0.03367049 Ry
+     electrostatic embedding   =       0.00004109 Ry
+     correction to one-el term =      30.79920989 Ry
+
+     iteration # 10     ecut=    35.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  3.74E-05,  avg # of iterations =  8.0
+
+     negative rho (up, down):  2.479E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       37.8 secs
+
+     total energy              =    -624.13236569 Ry
+     Harris-Foulkes estimate   =    -654.37322053 Ry
+     estimated scf accuracy    <       0.01479667 Ry
+     electrostatic embedding   =       0.00005523 Ry
+     correction to one-el term =      30.23706668 Ry
+
+     iteration # 11     ecut=    35.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  1.64E-05,  avg # of iterations =  3.0
+
+     negative rho (up, down):  3.615E-03 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       40.6 secs
+
+     total energy              =    -624.13326176 Ry
+     Harris-Foulkes estimate   =    -654.35810314 Ry
+     estimated scf accuracy    <       0.01744600 Ry
+     electrostatic embedding   =       0.00008312 Ry
+     correction to one-el term =      30.22156462 Ry
+
+     iteration # 12     ecut=    35.00 Ry     beta=0.70
+     Davidson diagonalization with overlap
+     ethr =  1.64E-05,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.153E-03 0.000E+00
+
+     total cpu time spent up to now is       43.2 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 (  7286 PWs)   bands (ev):
 
-   -29.7619 -15.7416 -13.9205 -13.1627 -12.5110 -12.4876 -12.3452 -11.6340
-   -11.4720 -10.6592 -10.4873 -10.4051 -10.1392 -10.1056 -10.0737  -9.8352
-    -9.2547  -9.2117  -9.1471  -8.9659  -8.8715  -8.8142  -8.7521  -8.7283
-    -8.7141  -8.5534  -8.5258  -8.4283  -8.3512  -8.0564  -7.9681  -7.2656
-    -7.1044  -7.0003  -6.6873  -6.5544  -6.5267  -6.3464  -6.2427  -6.0334
-    -5.9073  -5.8672  -5.6472  -5.6093  -5.5685  -5.5620  -5.3776  -4.3506
-    -3.9352  -3.8778  -3.4569  -2.8423  -2.7083  -1.8148  -1.4175  -1.2970
-    -0.9794  -0.2275   0.1220   0.3518   0.4657   0.8752   1.6744   1.8877
-     2.0967   2.2366   2.6039   2.7598   3.0447   3.0837   3.6230   3.6437
-     4.1177   4.3957   4.5502   4.7781   4.8842   5.0403   5.1088   5.2727
+   -29.4505 -15.5820 -13.6868 -12.9134 -12.2664 -12.2400 -12.1442 -11.4357
+   -11.2806 -10.4553 -10.3017 -10.2086  -9.9498  -9.9041  -9.8390  -9.6860
+    -9.0608  -9.0133  -8.9731  -8.7730  -8.6782  -8.6287  -8.5728  -8.5386
+    -8.5245  -8.3616  -8.3180  -8.2468  -8.1594  -7.8852  -7.7813  -7.0552
+    -6.9051  -6.8096  -6.4734  -6.3773  -6.3354  -6.1667  -6.0493  -5.8679
+    -5.6953  -5.6532  -5.4615  -5.4449  -5.3845  -5.3838  -5.2059  -4.1591
+    -3.7659  -3.6638  -3.2565  -2.6524  -2.5434  -1.6341  -1.2342  -1.1122
+    -0.6616  -0.0574   0.3107   0.5367   0.6645   1.0913   1.8745   2.0845
+     2.2993   2.4300   2.8075   2.9713   3.2401   3.2823   3.8703   3.9375
+     4.3592   4.5820   4.7410   4.9716   5.1353   5.2069   5.3043   5.3566
 
-     the Fermi energy is    -5.4716 ev
+     the Fermi energy is    -5.2893 ev
 
-!    total energy              =    -624.10664556 Ry
-     Harris-Foulkes estimate   =    -654.93683858 Ry
-     estimated scf accuracy    <       0.03367049 Ry
+!    total energy              =    -624.13318973 Ry
+     Harris-Foulkes estimate   =    -654.28044864 Ry
+     estimated scf accuracy    <       0.00191848 Ry
 
      The total energy is the sum of the following terms:
 
-     one-electron contribution =   -3998.21347225 Ry
-     hartree contribution      =    2033.37426599 Ry
-     xc contribution           =    -263.26773504 Ry
+     one-electron contribution =   -3997.50968817 Ry
+     hartree contribution      =    2033.28539428 Ry
+     xc contribution           =    -263.25341645 Ry
      ewald contribution        =    1573.20467954 Ry
-     smearing contrib. (-TS)   =      -0.00363972 Ry
-     electrostatic embedding   =       0.00003616 Ry
-     correction to one-el term =      30.79921976 Ry
+     smearing contrib. (-TS)   =      -0.00562976 Ry
+     electrostatic embedding   =       0.00010578 Ry
+     correction to one-el term =      30.14536505 Ry
 
-     convergence has been achieved in   9 iterations
+     convergence has been achieved in  12 iterations
 
-     negative rho (up, down):  3.151E-03 0.000E+00
+     negative rho (up, down):  3.153E-03 0.000E+00
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  1   force =     0.00015509   -0.00476919    0.02449362
-     atom    2 type  2   force =    -0.00009855    0.00027007    0.08521006
-     atom    3 type  3   force =     0.00177490    0.01972534    0.03541158
-     atom    4 type  3   force =    -0.00093809    0.02017780    0.03556681
-     atom    5 type  3   force =    -0.00165559    0.00969308   -0.02375506
-     atom    6 type  3   force =     0.00073475   -0.00088187    0.05622711
-     atom    7 type  3   force =    -0.00130566   -0.01133152   -0.07193898
-     atom    8 type  3   force =     0.00011733   -0.01257140   -0.04266684
-     atom    9 type  3   force =     0.00656744   -0.01038292   -0.04967250
-     atom   10 type  3   force =    -0.00535161   -0.00992939   -0.04887580
+     atom    1 type  1   force =     0.00008537   -0.00624030    0.02356583
+     atom    2 type  2   force =    -0.00013740    0.00176433    0.01969692
+     atom    3 type  3   force =     0.00222403    0.00964560    0.03701413
+     atom    4 type  3   force =    -0.00123084    0.00988162    0.03720870
+     atom    5 type  3   force =    -0.00145244    0.01529865   -0.00412817
+     atom    6 type  3   force =     0.00040669    0.00936892    0.05580415
+     atom    7 type  3   force =    -0.00133058   -0.01175446   -0.05058049
+     atom    8 type  3   force =     0.00023513   -0.01038150   -0.03332660
+     atom    9 type  3   force =     0.00988692   -0.00899764   -0.04274332
+     atom   10 type  3   force =    -0.00868688   -0.00858521   -0.04251115
 
-     Total force =     0.165665     Total SCF correction =     0.510916
+     Total force =     0.123577     Total SCF correction =     0.225031
      SCF correction compared to forces is large: reduce conv_thr to get better values
 
      Writing output data file pwscf.save
  
-     init_run     :      5.64s CPU      5.75s WALL (       1 calls)
-     electrons    :     27.78s CPU     30.11s WALL (       1 calls)
-     forces       :      3.91s CPU      4.02s WALL (       1 calls)
+     init_run     :      5.62s CPU      5.71s WALL (       1 calls)
+     electrons    :     35.76s CPU     37.68s WALL (       1 calls)
+     forces       :      3.83s CPU      3.88s WALL (       1 calls)
 
      Called by init_run:
      wfcinit      :      0.41s CPU      0.41s WALL (       1 calls)
-     potinit      :      2.08s CPU      2.10s WALL (       1 calls)
+     potinit      :      2.04s CPU      2.06s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :     11.34s CPU     11.41s WALL (       9 calls)
-     sum_band     :      7.53s CPU      8.31s WALL (       9 calls)
-     v_of_rho     :      3.41s CPU      3.47s WALL (      10 calls)
-     newd         :      4.43s CPU      5.25s WALL (      10 calls)
-     mix_rho      :      0.37s CPU      0.37s WALL (       9 calls)
+     c_bands      :     14.02s CPU     14.12s WALL (      12 calls)
+     sum_band     :      9.79s CPU     10.39s WALL (      12 calls)
+     v_of_rho     :      4.36s CPU      4.44s WALL (      13 calls)
+     newd         :      5.72s CPU      6.20s WALL (      13 calls)
+     mix_rho      :      0.53s CPU      0.53s WALL (      12 calls)
 
      Called by c_bands:
-     init_us_2    :      0.08s CPU      0.09s WALL (      19 calls)
-     regterg      :     10.70s CPU     10.77s WALL (       9 calls)
+     init_us_2    :      0.12s CPU      0.11s WALL (      25 calls)
+     regterg      :     13.18s CPU     13.27s WALL (      12 calls)
 
      Called by sum_band:
-     sum_band:bec :      0.00s CPU      0.00s WALL (       9 calls)
-     addusdens    :      5.20s CPU      5.97s WALL (       9 calls)
+     sum_band:bec :      0.00s CPU      0.00s WALL (      12 calls)
+     addusdens    :      6.78s CPU      7.38s WALL (      12 calls)
 
      Called by *egterg:
-     h_psi        :      8.50s CPU      8.51s WALL (      48 calls)
-     s_psi        :      0.42s CPU      0.43s WALL (      48 calls)
-     g_psi        :      0.07s CPU      0.08s WALL (      38 calls)
-     rdiaghg      :      0.42s CPU      0.40s WALL (      47 calls)
+     h_psi        :     10.40s CPU     10.44s WALL (      63 calls)
+     s_psi        :      0.56s CPU      0.53s WALL (      63 calls)
+     g_psi        :      0.11s CPU      0.10s WALL (      50 calls)
+     rdiaghg      :      0.49s CPU      0.49s WALL (      62 calls)
 
      Called by h_psi:
-     h_psi:pot    :      8.46s CPU      8.46s WALL (      48 calls)
-     h_psi:calbec :      0.44s CPU      0.44s WALL (      48 calls)
-     vloc_psi     :      7.61s CPU      7.60s WALL (      48 calls)
-     add_vuspsi   :      0.41s CPU      0.42s WALL (      48 calls)
+     h_psi:pot    :     10.35s CPU     10.38s WALL (      63 calls)
+     h_psi:calbec :      0.55s CPU      0.55s WALL (      63 calls)
+     vloc_psi     :      9.27s CPU      9.30s WALL (      63 calls)
+     add_vuspsi   :      0.54s CPU      0.53s WALL (      63 calls)
 
      General routines
-     calbec       :      0.69s CPU      0.69s WALL (      61 calls)
-     fft          :      2.89s CPU      2.91s WALL (     200 calls)
-     ffts         :      0.08s CPU      0.08s WALL (      19 calls)
-     fftw         :      7.73s CPU      7.73s WALL (    2318 calls)
-     interpolate  :      0.41s CPU      0.42s WALL (      19 calls)
+     calbec       :      0.86s CPU      0.85s WALL (      79 calls)
+     fft          :      3.68s CPU      3.73s WALL (     260 calls)
+     ffts         :      0.11s CPU      0.11s WALL (      25 calls)
+     fftw         :      9.50s CPU      9.51s WALL (    2944 calls)
+     interpolate  :      0.54s CPU      0.54s WALL (      25 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
  
      Parallel routines
-     fft_scatter  :      1.09s CPU      1.08s WALL (    2537 calls)
+     fft_scatter  :      1.28s CPU      1.36s WALL (    3229 calls)
  
      Environ routines
-     calc_eelect  :      0.01s CPU      0.01s WALL (      18 calls)
-     calc_velect  :      0.91s CPU      0.90s WALL (      16 calls)
-     calc_felect  :      0.11s CPU      0.11s WALL (       1 calls)
+     calc_eelect  :      0.02s CPU      0.02s WALL (      24 calls)
+     calc_velect  :      1.26s CPU      1.28s WALL (      22 calls)
+     calc_felect  :      0.10s CPU      0.10s WALL (       1 calls)
  
-     PWSCF        :    37.74s CPU        42.42s WALL
+     PWSCF        :    45.64s CPU        50.30s WALL
 
  
-   This run was terminated on:  15:34:18   8Nov2017            
+   This run was terminated on:  16:18:51  14Nov2017            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -440,6 +488,21 @@
  system defined axis        =  3 
  system center              =      0.3882415     0.3750182     0.7201831 
  system width               =      1.5145225 
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         90
+ total electronic charge    =     90.0000000
+ number of spin components  =  1
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         90
+ total electronic charge    =     90.0000000
+ number of spin components  =  1
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         90
+ total electronic charge    =     90.0000000
+ number of spin components  =  1
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         90

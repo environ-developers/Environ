@@ -589,7 +589,9 @@ CONTAINS
 
     CASE ( 'linpb', 'linmodpb', 'linearized-pb' )
 
-       CALL errore(sub_name,'Option not yet implemented',1)
+       IF ( solver % use_direct ) &
+            & CALL errore(sub_name,'Cannot use a direct solver for the linearized Poisson-Boltzmann eq.',1)
+!       CALL errore(sub_name,'Option not yet implemented',1)
 
     CASE ( 'pb', 'mod-pb', 'poisson-boltzmann' )
 
@@ -638,18 +640,16 @@ CONTAINS
 
   END SUBROUTINE destroy_electrostatic_setup
 
-  SUBROUTINE set_electrostatic_flags( setup, need_auxiliary, need_gradient, need_gradlog, need_factsqrt )
+  SUBROUTINE set_electrostatic_flags( setup, need_auxiliary, need_gradient, need_factsqrt, linearized )
 
     IMPLICIT NONE
 
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    LOGICAL, INTENT(INOUT) :: need_auxiliary, need_gradient, need_gradlog, need_factsqrt
+    LOGICAL, INTENT(INOUT) :: need_auxiliary, need_gradient, need_factsqrt, linearized
     !
     SELECT CASE ( setup % problem )
        !
-    CASE ( 'generalized' )
-       !
-       need_gradlog = .TRUE. ! THIS IS DUE TO THE CALCULATION OF FORCES, REQUIRING POLARIZATION CHARGE
+    CASE ( 'generalized', 'linpb', 'linmodpb' )
        !
        IF ( setup % solver % use_gradient ) THEN
           !
@@ -668,6 +668,8 @@ CONTAINS
        END IF
        !
        IF ( setup % solver % auxiliary .NE. 'none' ) need_auxiliary = .TRUE.
+       !
+       IF ( setup % problem .NE. 'generalized' ) linearized = .TRUE.
        !
     END SELECT
     !

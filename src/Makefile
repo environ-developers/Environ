@@ -6,27 +6,33 @@ include ../../make.sys
 MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../../Modules $(MOD_FLAG).
 
 ENVIRONOBJS = \
-environ_types.o                       \
-solvent.o                             \
-cavity.o                              \
-pressure.o                            \
-epsregion.o                           \
-environ_mod.o                         \
-environ_init.o                        \
-environ_info.o                        \
-environ_main.o                        \
-environ_input.o                       \
-environ_makov_payne.o                 \
-generate_dielectric.o                 \
-environ_debug.o                       \
-electrostatic.o                       \
-electrostatic_init.o                  \
-electrostatic_mod.o                   \
-electrostatic_types.o                 \
-boundary.o                            \
-functions.o                           \
-ions.o                                \
-poisson.o
+boundary.o                \
+cavity.o                  \
+charges.o                 \
+dielectric.o              \
+electrostatic.o           \
+electrostatic_init.o      \
+electrostatic_mod.o       \
+electrostatic_types.o     \
+environ_init.o            \
+environ_input.o           \
+environ_main.o            \
+environ_makov_payne.o     \
+environ_mod.o             \
+environ_output.o          \
+environ_types.o           \
+extcharge.o               \
+functions.o               \
+generalized.o             \
+generate_boundary.o       \
+ioncc.o                   \
+ions.o                    \
+linearized_pb.o           \
+periodic.o                \
+poisson.o                 \
+pressure.o                \
+solvent_tddfpt.o          \
+util.o
 
 all : libenviron.a
 

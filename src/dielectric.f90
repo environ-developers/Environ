@@ -14,7 +14,7 @@ MODULE dielectric
   USE environ_types
   USE environ_output
   USE functions
-  USE environ_base, ONLY : e2
+  USE environ_base, ONLY : e2, add_jellium
   !
   IMPLICIT NONE
   !
@@ -25,7 +25,7 @@ MODULE dielectric
   PUBLIC :: create_environ_dielectric, init_environ_dielectric_first, &
        & set_dielectric_regions, init_environ_dielectric_second, &
        & update_environ_dielectric, calc_dedielectric_dboundary, &
-       & destroy_environ_dielectric
+       & destroy_environ_dielectric, dielectric_of_potential
   !
 CONTAINS
   !
@@ -56,26 +56,34 @@ CONTAINS
 
     NULLIFY( dielectric%boundary )
 
+    label = 'epsilon_gradlog'
+    CALL create_environ_gradient( dielectric%gradlog, label )
     dielectric%need_gradient = .FALSE.
     label = 'epsilon_gradient'
     CALL create_environ_gradient( dielectric%gradient, label )
     dielectric%need_factsqrt = .FALSE.
     label = 'epsilon_factsqrt'
     CALL create_environ_density( dielectric%factsqrt, label )
-    dielectric%need_gradlog = .FALSE.
-    label = 'epsilon_gradlog'
-    CALL create_environ_gradient( dielectric%gradlog, label )
+
+    label = 'density'
+    CALL create_environ_density( dielectric%density, label )
+    dielectric%need_auxiliary = .FALSE.
+    label = 'iterative'
+    CALL create_environ_density( dielectric%iterative, label )
+
+    dielectric%charge = 0.D0
+
     RETURN
 
   END SUBROUTINE create_environ_dielectric
 
   SUBROUTINE init_environ_dielectric_first( constant, boundary, &
-             & need_gradient, need_factsqrt, need_gradlog, dielectric )
+             & need_gradient, need_factsqrt, need_auxiliary, dielectric )
 
     IMPLICIT NONE
 
     REAL( DP ) :: constant
-    LOGICAL, INTENT(IN) :: need_gradient, need_factsqrt, need_gradlog
+    LOGICAL, INTENT(IN) :: need_gradient, need_factsqrt, need_auxiliary
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
 
@@ -85,7 +93,8 @@ CONTAINS
 
     dielectric%need_gradient = need_gradient
     dielectric%need_factsqrt = need_factsqrt
-    dielectric%need_gradlog = need_gradlog
+
+    dielectric%need_auxiliary = need_auxiliary
 
     RETURN
 
@@ -139,9 +148,12 @@ CONTAINS
     CALL init_environ_density( cell, dielectric%epsilon )
     CALL init_environ_density( cell, dielectric%depsilon )
 
+    CALL init_environ_gradient( cell, dielectric%gradlog )
     IF ( dielectric%need_gradient ) CALL init_environ_gradient( cell, dielectric%gradient )
     IF ( dielectric%need_factsqrt ) CALL init_environ_density( cell, dielectric%factsqrt )
-    IF ( dielectric%need_gradlog ) CALL init_environ_gradient( cell, dielectric%gradlog )
+
+    CALL init_environ_density( cell, dielectric%density )
+    IF ( dielectric%need_auxiliary ) CALL init_environ_density( cell, dielectric%iterative )
 
     RETURN
 
@@ -291,18 +303,18 @@ CONTAINS
     deps => dielectric % depsilon % of_r
     const => dielectric % background % of_r
     scaled => dielectric % boundary % scaled % of_r
+
+    IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
+         & CALL errore(sub_name,'Missing required gradient of boundary',1)
+    gradscaled => dielectric % boundary % gradient % of_r
+    gradlogeps => dielectric % gradlog % of_r
+    ALLOCATE( dlogeps( nnr ) )
+
     IF ( dielectric % need_gradient ) THEN
        IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
             & CALL errore(sub_name,'Missing required gradient of boundary',1)
        gradscaled => dielectric % boundary % gradient % of_r
        gradeps => dielectric % gradient % of_r
-    ENDIF
-    IF ( dielectric % need_gradlog ) THEN
-       IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
-            & CALL errore(sub_name,'Missing required gradient of boundary',1)
-       gradscaled => dielectric % boundary % gradient % of_r
-       gradlogeps => dielectric % gradlog % of_r
-       ALLOCATE( dlogeps( nnr ) )
     ENDIF
     IF ( dielectric % need_factsqrt ) THEN
        IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
@@ -318,7 +330,7 @@ CONTAINS
     IF ( dielectric % nregions .GT. 0 ) THEN
        gradback => dielectric % gradbackground % of_r
        ALLOCATE( deps_dback( nnr ) )
-       IF ( dielectric % need_gradlog ) ALLOCATE( dlogeps_dback( nnr ) )
+       ALLOCATE( dlogeps_dback( nnr ) )
        IF ( dielectric % need_factsqrt ) THEN
           laplback => dielectric % laplbackground % of_r
           gradbackmod => dielectric % gradbackground % modulus % of_r
@@ -336,11 +348,11 @@ CONTAINS
 
        eps = 1.D0 + ( const - 1.D0 ) * ( 1.D0 - scaled )
        deps = ( 1.D0 - const )
-       IF ( dielectric % need_gradlog ) dlogeps = deps / eps
+       dlogeps = deps / eps
        IF ( dielectric % need_factsqrt ) d2eps = 0.D0
        IF ( dielectric % nregions .GT. 0 ) THEN
           deps_dback = 1.D0 - scaled
-          IF ( dielectric % need_gradlog ) dlogeps_dback = deps_dback / eps
+          dlogeps_dback = deps_dback / eps
           IF ( dielectric % need_factsqrt ) THEN
              d2eps_dback2 = 0.D0
              d2eps_dbackdbound = -1.D0
@@ -351,11 +363,11 @@ CONTAINS
 
        eps = EXP( LOG( const ) * ( 1.D0 - scaled ) )
        deps = - eps * LOG( const )
-       IF ( dielectric % need_gradlog ) dlogeps = - LOG( const )
+       dlogeps = - LOG( const )
        IF ( dielectric % need_factsqrt ) d2eps = eps * LOG( const )**2
        IF ( dielectric % nregions .GT. 0 ) THEN
           deps_dback = eps * ( 1.D0 - scaled ) / const
-          IF ( dielectric % need_gradlog ) dlogeps_dback = ( 1.D0 - scaled ) / const
+          dlogeps_dback = ( 1.D0 - scaled ) / const
           IF ( dielectric % need_factsqrt ) THEN
              d2eps_dback2 = - deps_dback * scaled / const
              d2eps_dbackdbound = eps / const * ( 1.D0 - ( 1.D0 - scaled ) * LOG( const ) )
@@ -370,6 +382,14 @@ CONTAINS
 
     ! If needed, compute derived quantites
 
+    DO ipol = 1, 3
+       gradlogeps( ipol, : ) = dlogeps( : ) * gradscaled( ipol, : )
+       IF ( dielectric % nregions .GT. 0 ) gradlogeps( ipol, : ) = &
+            & gradlogeps( ipol, : ) + dlogeps_dback( : ) * gradback( ipol, : )
+    ENDDO
+    CALL update_gradient_modulus( dielectric%gradlog )
+    DEALLOCATE( dlogeps )
+
     IF ( dielectric % need_gradient ) THEN
        DO ipol = 1, 3
           gradeps( ipol, : ) = deps( : ) * gradscaled( ipol, : )
@@ -378,15 +398,6 @@ CONTAINS
        ENDDO
        CALL update_gradient_modulus( dielectric%gradient )
     END IF
-    IF ( dielectric % need_gradlog ) THEN
-       DO ipol = 1, 3
-          gradlogeps( ipol, : ) = dlogeps( : ) * gradscaled( ipol, : )
-          IF ( dielectric % nregions .GT. 0 ) gradlogeps( ipol, : ) = &
-               & gradlogeps( ipol, : ) + dlogeps_dback( : ) * gradback( ipol, : )
-       ENDDO
-       CALL update_gradient_modulus( dielectric%gradlog )
-       DEALLOCATE( dlogeps )
-    ENDIF
     IF ( dielectric % need_factsqrt ) THEN
        IF ( dielectric % nregions .LE. 0 ) THEN
           factsqrteps = ( d2eps - 0.5D0 * deps**2 / eps ) * gradscaledmod**2 + deps * laplscaled
@@ -413,7 +424,7 @@ CONTAINS
 
     IF ( dielectric % nregions .GT. 0 ) THEN
        DEALLOCATE( deps_dback )
-       IF ( dielectric % need_gradlog ) DEALLOCATE( dlogeps_dback )
+       DEALLOCATE( dlogeps_dback )
        IF ( dielectric % need_factsqrt ) THEN
           DEALLOCATE( d2eps_dback2 )
           DEALLOCATE( d2eps_dbackdbound )
@@ -423,6 +434,43 @@ CONTAINS
     RETURN
 
   END SUBROUTINE dielectric_of_boundary
+
+  SUBROUTINE dielectric_of_potential( charges, potential, dielectric )
+
+    IMPLICIT NONE
+
+    TYPE( environ_density ), INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(IN) :: potential
+    TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
+
+    TYPE( environ_cell ), POINTER :: cell
+
+    REAL( DP ) :: jellium
+    TYPE( environ_gradient ) :: gradient
+    CHARACTER( LEN=80 ) :: sub_name = 'dielectric_of_potential'
+
+    IF ( .NOT. ASSOCIATED( potential % cell, charges % cell ) ) &
+         & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
+    IF ( .NOT. ASSOCIATED( potential % cell, dielectric % density % cell ) ) &
+         & CALL errore(sub_name,'Missmatch in domains of potential and dielectric',1)
+    cell => charges % cell
+
+    CALL init_environ_gradient( cell, gradient )
+    CALL external_gradient( potential%of_r, gradient%of_r )
+    CALL scalar_product_environ_gradient( dielectric%gradlog, gradient, dielectric % density )
+
+    jellium = 0.D0
+    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
+    dielectric % density % of_r = dielectric % density % of_r / fpi / e2 + ( charges % of_r - jellium ) * &
+         & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
+
+    CALL destroy_environ_gradient( gradient )
+
+    dielectric % charge = integrate_environ_density( dielectric % density )
+
+    RETURN
+
+  END SUBROUTINE dielectric_of_potential
 
   SUBROUTINE calc_dedielectric_dboundary( dielectric, velectrostatic, de_dboundary )
 
@@ -485,9 +533,12 @@ CONTAINS
     CALL destroy_environ_density( dielectric%epsilon )
     CALL destroy_environ_density( dielectric%depsilon )
 
+    CALL destroy_environ_gradient( dielectric%gradlog )
     IF ( dielectric%need_gradient ) CALL destroy_environ_gradient( dielectric%gradient )
     IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%factsqrt )
-    IF ( dielectric%need_gradlog ) CALL destroy_environ_gradient( dielectric%gradlog )
+
+    CALL destroy_environ_density( dielectric%density )
+    IF ( dielectric%need_auxiliary ) CALL destroy_environ_density( dielectric%iterative )
 
     RETURN
 

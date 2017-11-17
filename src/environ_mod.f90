@@ -46,7 +46,15 @@ MODULE environ_base
   LOGICAL ::                          &
        lelectrostatic
   LOGICAL ::                          &
+       lsoftsolvent
+  LOGICAL ::                          &
+       lsoftelectrolyte
+  LOGICAL ::                          &
        lsoftcavity
+  LOGICAL ::                          &
+       lrigidsolvent
+  LOGICAL ::                          &
+       lrigidelectrolyte
   LOGICAL ::                          &
        lrigidcavity
   LOGICAL ::                          &
@@ -75,13 +83,6 @@ MODULE environ_base
        lexternals
   TYPE( environ_externals ), TARGET ::  &
        externals
-  !
-  ! Internal parameters of auxiliary charges
-  !
-  LOGICAL ::                            &
-       lauxiliary
-  TYPE( environ_auxiliary ), TARGET ::  &
-       auxiliary
   !
   ! Internal paramters of total charges
   !
@@ -140,10 +141,6 @@ MODULE environ_base
   !
   LOGICAL ::                        &
        lperiodic
-  INTEGER ::                        &
-       env_periodicity
-  INTEGER ::                        &
-       slab_axis
   !
   ! Temporary parameters
   !
@@ -158,17 +155,13 @@ MODULE environ_base
        deenviron,                   &
        eelectrostatic,              &
        ecavity,                     &
-       epressure
+       epressure,                   &
+       eelectrolyte
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
        vsoftcavity
-  TYPE ( environ_gradient ) ::      &
-       gelectrostatic
-  ! gradient of the total electrostatic potential
-  ! (elec + pol + ions) for the TDDFPT calculation
-  !
   !--------------------------------------------------------------------------
 END MODULE environ_base
 !----------------------------------------------------------------------------

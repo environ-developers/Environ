@@ -50,7 +50,7 @@ CONTAINS
    ! ... 1. the response "polarization" potential from the response polarization density
    ! ... 2. the response "dielectric" potential
    !
-   USE environ_base, ONLY : cell, velectrostatic, lsoftcavity
+   USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical
    USE electrostatic_base, ONLY : reference, outer
    !
    IMPLICIT NONE
@@ -64,14 +64,15 @@ CONTAINS
    !
    ! ... Local variables
    !
-   TYPE( environ_density ) :: response_density
+   TYPE( environ_charges ) :: response_charges
+   TYPE( environ_electrons ) :: response_electrons
    TYPE( environ_density ) :: dvreference
    TYPE( environ_density ) :: dvelectrostatic
    !
    INTEGER :: ir
    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gvtot0, gdvtot
    !
-   IF ( .NOT. tddfpt ) RETURN
+   IF ( .NOT. tddfpt .OR. .NOT. loptical ) RETURN
    !
    CALL start_clock( 'calc_vsolvent_tddfpt' )
    !
@@ -79,36 +80,43 @@ CONTAINS
    !
    IF ( nnr .NE. cell % nnr ) CALL errore(sub_name,'Missmatch in passed and stored grid dimension',1)
    !
-   CALL init_environ_density( cell, response_density )
+   ! ... Create source response electronic density
    !
-   response_density % of_r = drho_elec
+   CALL create_environ_electrons( response_electrons )
+   CALL init_environ_electrons_first( 0.D0, 1, response_electrons )
+   CALL init_environ_electrons_second( cell, response_electrons )
+   CALL update_environ_electrons( 0.D0, 1, nnr, drho_elec, response_electrons )
+   !
+   ! ... Link together different sources of electrostatic potential ( charges + dielectric + electrolyte )
+   !
+   CALL create_environ_charges( response_charges )
+   CALL init_environ_charges_first( electrons=response_electrons, dielectric=optical, charges=response_charges )
    !
    ! ... Compute reference potential of response density
    !
    CALL init_environ_density( cell, dvreference )
    !
-   CALL calc_vreference( reference, response_density, dvreference )
+   CALL calc_velectrostatic( reference, response_charges, dvreference )
    !
    ! ... Compute full electrostatic potential of response density
    !
    CALL init_environ_density( cell, dvelectrostatic )
    !
-   CALL calc_velectrostatic( setup = outer, charges=response_density, dielectric=optical,  &
-        & potential=dvelectrostatic )
+   CALL calc_velectrostatic( outer, response_charges, dvelectrostatic )
    !
    ! ... Response polarization potential
    !
-   dvpol = dvelectrostatic % of_r - dvreference % of_r
+   dv_pol = dvelectrostatic % of_r - dvreference % of_r
    !
-   IF ( lsoftcavity ) THEN
+   IF ( lsoftsolvent ) THEN
       !
-      ! ... Calculate a gradient of the total static potential
+      ! ... Calculate the gradient of the total static potential
       !
       ALLOCATE( gvtot0( 3, nnr ) )
       !
       CALL external_gradient( velectrostatic % of_r, gvtot0 )
       !
-      ! ... Calculate a gradient of the total response potential
+      ! ... Calculate the gradient of the total response potential
       !
       ALLOCATE( gdvtot( 3, nnr ) )
       !
@@ -132,7 +140,8 @@ CONTAINS
    !
    CALL destroy_environ_density( dvelectrostatic )
    CALL destroy_environ_density( dvreference )
-   CALL destroy_environ_density( response_density )
+   CALL destroy_environ_electrons( response_density )
+   CALL destroy_environ_charges( response_charges )
    !
    CALL stop_clock( 'calc_vsolvent_tddfpt' )
    !

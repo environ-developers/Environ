@@ -262,7 +262,7 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE klist,                 ONLY : nelec \
 USE environ_base,          ONLY : deenviron, eelectrostatic, & \
-                                  ecavity, epressure \
+                                  ecavity, epressure, eelectrolyte \
 USE environ_init,          ONLY : environ_initelectrons \
 USE environ_main,          ONLY : calc_eenviron \
 !Environ patch
@@ -278,9 +278,9 @@ sed '/Environ CALLS BEGIN/ a\
         ! \
         ! compute environ contributions to total energy \
         ! \
-        CALL calc_eenviron( deenviron, eelectrostatic, ecavity, epressure ) \
+        CALL calc_eenviron( deenviron, eelectrostatic, ecavity, epressure, eelectrolyte ) \
         ! \
-        plugin_etot = plugin_etot + deenviron + eelectrostatic + ecavity + epressure \
+        plugin_etot = plugin_etot + deenviron + eelectrostatic + ecavity + epressure + eelectrolyte \
         ! \
   END IF \
 !Environ patch
