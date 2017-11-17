@@ -14,7 +14,7 @@ MODULE solvent_tddfpt
   ! ... Written by I. Timrov 09/2013
   ! ... Re-written by O. Andreussi 11/2017
   !
-  USE environ_type
+  USE environ_types
   USE environ_output
   USE environ_base,       ONLY : e2
   !
@@ -52,6 +52,7 @@ CONTAINS
    !
    USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical
    USE electrostatic_base, ONLY : reference, outer
+   USE charges_utils
    !
    IMPLICIT NONE
    !
@@ -71,6 +72,7 @@ CONTAINS
    !
    INTEGER :: ir
    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gvtot0, gdvtot
+   CHARACTER( LEN=80 ) :: sub_name = 'calc_vsolvent_tddfpt'
    !
    IF ( .NOT. tddfpt .OR. .NOT. loptical ) RETURN
    !
@@ -83,7 +85,7 @@ CONTAINS
    ! ... Create source response electronic density
    !
    CALL create_environ_electrons( response_electrons )
-   CALL init_environ_electrons_first( 0.D0, 1, response_electrons )
+   CALL init_environ_electrons_first( 0, 1, response_electrons )
    CALL init_environ_electrons_second( cell, response_electrons )
    CALL update_environ_electrons( 0.D0, 1, nnr, drho_elec, response_electrons )
    !
@@ -140,8 +142,8 @@ CONTAINS
    !
    CALL destroy_environ_density( dvelectrostatic )
    CALL destroy_environ_density( dvreference )
-   CALL destroy_environ_electrons( response_density )
-   CALL destroy_environ_charges( response_charges )
+   CALL destroy_environ_electrons( .TRUE., response_electrons )
+   CALL destroy_environ_charges( .TRUE., response_charges )
    !
    CALL stop_clock( 'calc_vsolvent_tddfpt' )
    !
