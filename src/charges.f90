@@ -175,21 +175,29 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: potential
     TYPE( environ_charges ), INTENT(INOUT) :: charges
 
+    TYPE( environ_density ) :: tot_charge_density
     CHARACTER( LEN = 80 ) :: sub_name = 'charges_of_potential'
 
-    IF ( charges % include_dielectric ) THEN
-       IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
-       ! DIELECTRIC CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
-       CALL dielectric_of_potential( charges%density, potential, charges%dielectric )
-    ENDIF
+    CALL init_environ_density( potential % cell, tot_charge_density )
+
+    tot_charge_density % of_r = charges % density % of_r
 
     IF ( charges % include_electrolyte ) THEN
        IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
             & CALL errore(sub_name,'Missing expected charge component',1)
        ! ELECTROLYTE CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
        CALL electrolyte_of_potential( potential, charges%electrolyte )
+       tot_charge_density % of_r = tot_charge_density % of_r + charges % electrolyte % density % of_r
     ENDIF
+
+    IF ( charges % include_dielectric ) THEN
+       IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
+            & CALL errore(sub_name,'Missing expected charge component',1)
+       ! DIELECTRIC CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
+       CALL dielectric_of_potential( tot_charge_density, potential, charges%dielectric )
+    ENDIF
+
+    CALL destroy_environ_density( tot_charge_density )
 
     RETURN
 
