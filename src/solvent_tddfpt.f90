@@ -93,6 +93,8 @@ CONTAINS
    !
    CALL create_environ_charges( response_charges )
    CALL init_environ_charges_first( electrons=response_electrons, dielectric=optical, charges=response_charges )
+   CALL init_environ_charges_second( cell, response_charges )
+   CALL update_environ_charges( response_charges )
    !
    ! ... Compute reference potential of response density
    !
