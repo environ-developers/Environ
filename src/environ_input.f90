@@ -1331,7 +1331,8 @@ MODULE environ_input
           solver = 'cg'
        ENDIF
        !
-       IF ( env_ioncc_ntyp > 0 ) THEN
+       IF ( env_ioncc_ntyp .GT. 0 ) THEN
+          lelectrostatic = .TRUE.
           problem = 'linpb'
           solver  = 'cg'
           DO ityp = 1, env_ioncc_ntyp
