@@ -29,7 +29,7 @@ MODULE environ_init
   !
   PUBLIC :: set_environ_base, environ_initbase, environ_initcell,  &
        & environ_initions, environ_initelectrons, environ_initpotential, &
-       & environ_clean
+       & environ_clean, environ_clean_tddfpt
   !
 CONTAINS
 !--------------------------------------------------------------------

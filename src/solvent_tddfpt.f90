@@ -33,6 +33,8 @@ CONTAINS
    !
    ! ... Local clean up
    !
+   USE environ_init, ONLY : environ_clean_tddfpt
+   !
    IMPLICIT NONE
    !
    CALL environ_clean_tddfpt(.TRUE.)
@@ -52,6 +54,7 @@ CONTAINS
    !
    USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical
    USE electrostatic_base, ONLY : reference, outer
+   USE electrostatic, ONLY : calc_velectrostatic
    USE charges_utils
    !
    IMPLICIT NONE
@@ -157,3 +160,8 @@ END SUBROUTINE calc_vsolvent_tddfpt
 !--------------------------------------------------------------------
 END MODULE solvent_tddfpt
 !--------------------------------------------------------------------
+MODULE environ_info
+
+  USE environ_output
+
+END MODULE environ_info

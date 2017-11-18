@@ -59,18 +59,15 @@ SUBROUTINE lr_readin
   USE constants,           ONLY : eps4
   USE control_lr,          ONLY : lrpa
 #if defined(__ENVIRON)
-  USE environ_base,        ONLY : environ_base_init, ir_end
+  USE plugin_flags,        ONLY : use_environ
   USE environ_input,       ONLY : read_environ
-  USE environ_base,        ONLY : ifdtype, nfdpoint
   USE ions_base,           ONLY : nsp, atm, ityp, zv, tau, nat
   USE cell_base,           ONLY : at, alat, omega, ibrav
-  USE solvent_tddfpt,      ONLY : solvent_initbase_tddfpt
-  USE environ_init,        ONLY : environ_initions, environ_initcell,      &
-                                  environ_clean, environ_initbase,         &
-                                  environ_initions_allocate
+  USE environ_init,        ONLY : environ_initions, environ_initcell, &
+                                  environ_clean, environ_initbase,    &
+                                  environ_initelectrons
   USE environ_main,        ONLY : calc_venviron
   USE mp_bands,            ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id
-  USE plugin_flags,        ONLY : use_environ
 #endif
   
 
@@ -82,7 +79,7 @@ SUBROUTINE lr_readin
   ! Fine control of beta_gamma_z file
   CHARACTER(LEN=80) :: disk_io
   ! Specify the amount of I/O activities
-  INTEGER :: ios, iunout, ierr, ipol
+  INTEGER :: ios, iunout, ierr, ipol, ir_end
   LOGICAL :: auto_rs
   CHARACTER(LEN=6) :: int_to_char
   !
@@ -439,7 +436,7 @@ SUBROUTINE lr_readin
      !
      ! Copied from PW/src/input.f90
      !
-     CALL read_environ( "TDDFPT", nelec, nspin, nat, nsp, atm, assume_isolated )
+     CALL read_environ( "TDDFPT", NINT(nelec), nspin, nat, nsp, atm, assume_isolated )
      !
      ! Taken from PW/src/init_run.f90
      !
