@@ -143,6 +143,8 @@ CONTAINS
 
     DO ityp = 1, ntyp
        !
+       electrolyte%ioncctype(ityp)%index = ityp
+       !
        ! ... If the radius is provided in input, compute cmax from it
        electrolyte%ioncctype(ityp)%cmax  = cmax(ityp) * bohr_radius_si**3 / amu_si
        IF ( cmax(ityp) .EQ. 0.D0 .AND. radius(ityp) .GT. 0.D0 ) &
