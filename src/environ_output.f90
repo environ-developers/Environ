@@ -1077,17 +1077,19 @@ CONTAINS
        DO ityp=1,electrolyte%ntyp
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3105 )electrolyte%ioncctype(ityp)%index
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3106 )electrolyte%ioncctype(ityp)%cbulk
-          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3107 )electrolyte%ioncctype(ityp)%z
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3107 )electrolyte%ioncctype(ityp)%cbulk &
+                                                                 & * amu_si / bohr_radius_si**3
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3108 )electrolyte%ioncctype(ityp)%z
           IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%c, &
               & passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
-              & passed_verbosity,passed_depth)
+!          IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
+!              & passed_verbosity,passed_depth)
        END DO
        CALL print_environ_boundary(electrolyte%boundary,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%density,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%gamma,passed_verbosity,passed_depth)
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3108 )electrolyte%linearized
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3109 )electrolyte%charge
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3109 )electrolyte%linearized
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3110 )electrolyte%charge
 
     END IF
 
@@ -1101,11 +1103,12 @@ CONTAINS
 3104 FORMAT(1x,'modified Poisson-Boltzmann '&
           /,1x,'maximum concentration      = ',F14.7)
 3105 FORMAT(1x,'electrolyte species ',I4)
-3106 FORMAT(1x,'bulk concentration         = ',F14.7)
-3107 FORMAT(1x,'ionic charge               = ',F7.2)
-3108 FORMAT(1x,'electrolyte flags'&
+3106 FORMAT(1x,'bulk concentration  (a.u.) = ',E15.4)
+3107 FORMAT(1x,'bulk concentration (mol/L) = ',F14.7)
+3108 FORMAT(1x,'ionic charge               = ',F7.2)
+3109 FORMAT(1x,'electrolyte flags'&
           /,1x,'linearized                 = ',L2)
-3109 FORMAT(1x,'total electrolyte charge   = ',F14.7)
+3110 FORMAT(1x,'total electrolyte charge   = ',F14.7)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_electrolyte
 !--------------------------------------------------------------------
