@@ -532,6 +532,7 @@ CONTAINS
             IF ( electrolyte % boundary % update_status .EQ. 2 ) &
                  & CALL print_environ_boundary( electrolyte%boundary )
             CALL update_environ_electrolyte( electrolyte )
+            IF ( .NOT. electrolyte % update ) CALL print_environ_electrolyte( electrolyte )
          END IF
          !
       END IF
@@ -611,6 +612,7 @@ CONTAINS
             IF ( electrolyte % boundary % update_status .EQ. 2 ) &
                  & CALL print_environ_boundary( electrolyte%boundary )
             CALL update_environ_electrolyte( electrolyte )
+            IF ( .NOT. electrolyte % update ) CALL print_environ_electrolyte( electrolyte )
          END IF
          !
       END IF

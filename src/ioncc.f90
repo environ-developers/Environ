@@ -3,7 +3,6 @@ MODULE electrolyte_utils
 !--------------------------------------------------------------------
 
   USE environ_types
-  USE environ_output
 
 !  USE dielectric
   USE boundary
@@ -326,9 +325,6 @@ CONTAINS
       c   = gam * electrolyte%ioncctype(ityp)%cbulk * cfactor / denominator%of_r
       rho = rho + c * electrolyte%ioncctype(ityp)%z * e
       !
-!DEBUG
-      CALL print_environ_density( electrolyte%ioncctype(ityp)%c )
-!DEBUG
       NULLIFY( c )
       NULLIFY( cfactor )
       !
@@ -337,10 +333,6 @@ CONTAINS
     electrolyte % charge = integrate_environ_density( electrolyte % density )
 
     CALL destroy_environ_density( denominator )
-!DEBUG
-    CALL print_environ_density( electrolyte%density )
-    CALL print_environ_density( electrolyte%gamma )
-!DEBUG
 
   END SUBROUTINE electrolyte_of_potential
 

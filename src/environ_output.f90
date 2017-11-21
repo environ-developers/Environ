@@ -44,7 +44,7 @@ MODULE environ_output
        & print_environ_ions, print_environ_electrons, &
        & print_environ_externals, print_environ_system, &
        & print_environ_boundary, print_environ_dielectric, &
-       & print_environ_charges
+       & print_environ_electrolyte, print_environ_charges
 
 CONTAINS
 !--------------------------------------------------------------------
@@ -776,6 +776,8 @@ CONTAINS
                & CALL print_environ_externals(charges%externals,passed_verbosity,passed_depth)
           IF ( charges % include_dielectric ) &
                & CALL print_environ_dielectric(charges%dielectric,passed_verbosity,passed_depth)
+          IF ( charges % include_electrolyte ) &
+               & CALL print_environ_electrolyte(charges%electrolyte,passed_verbosity,passed_depth)
        ENDIF
     END IF
 
@@ -1032,6 +1034,82 @@ CONTAINS
   END SUBROUTINE print_environ_dielectric
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE print_environ_electrolyte( electrolyte, local_verbose, local_depth )
+!--------------------------------------------------------------------
+
+    IMPLICIT NONE
+
+    TYPE( environ_electrolyte ), INTENT(IN) :: electrolyte
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+    INTEGER, INTENT(IN), OPTIONAL :: local_depth
+
+    INTEGER :: verbosity, passed_verbosity, passed_depth, ityp
+
+    CHARACTER( LEN=80 ) :: sub_name = 'print_environ_electrolyte'
+
+    IF ( verbose .EQ. 0 ) RETURN ! environ output file has not been opened
+
+    IF ( PRESENT(local_verbose) ) THEN
+       verbosity = verbose + local_verbose
+    ELSE
+       verbosity = verbose
+    END IF
+
+    IF ( verbosity .EQ. 0 ) RETURN ! nothing to output
+
+    IF ( PRESENT(local_depth) ) THEN
+       passed_verbosity = verbosity - verbose - local_depth
+       passed_depth = local_depth
+    ELSE
+       passed_verbosity = verbosity - verbose - depth
+       passed_depth = depth
+    END IF
+
+
+    IF ( verbosity .GE. 1 ) THEN
+       IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 3100 )
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3101 )electrolyte%ntyp
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3102 )electrolyte%temperature
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3103 )1.D0/SQRT(electrolyte%k2)
+       IF ( electrolyte%cmax .GT. 0.D0 ) THEN
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3104 )electrolyte%cmax
+       ENDIF
+       DO ityp=1,electrolyte%ntyp
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3105 )electrolyte%ioncctype(ityp)%index
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3106 )electrolyte%ioncctype(ityp)%cbulk
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3107 )electrolyte%ioncctype(ityp)%z
+          IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%c, &
+              & passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
+              & passed_verbosity,passed_depth)
+       END DO
+       CALL print_environ_boundary(electrolyte%boundary,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%density,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%gamma,passed_verbosity,passed_depth)
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3108 )electrolyte%linearized
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3109 )electrolyte%charge
+
+    END IF
+
+    FLUSH( environ_unit )
+
+    RETURN
+3100 FORMAT(/,4('%'),' ELECTROLYTE ',64('%'))
+3101 FORMAT(1x,'number electrol. species   = ',I4)
+3102 FORMAT(1x,'solvent temperature        = ',F7.1)
+3103 FORMAT(1x,'Debye length [*1/sqrt(eps)]= ',F14.7)
+3104 FORMAT(1x,'modified Poisson-Boltzmann '&
+          /,1x,'maximum concentration      = ',F14.7)
+3105 FORMAT(1x,'electrolyte species ',I4)
+3106 FORMAT(1x,'bulk concentration         = ',F14.7)
+3107 FORMAT(1x,'ionic charge               = ',F7.2)
+3108 FORMAT(1x,'electrolyte flags'&
+          /,1x,'linearized                 = ',L2)
+3109 FORMAT(1x,'total electrolyte charge   = ',F14.7)
+!--------------------------------------------------------------------
+  END SUBROUTINE print_environ_electrolyte
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
       SUBROUTINE environ_print_energies( )
 !--------------------------------------------------------------------
       !
@@ -1209,6 +1287,7 @@ CONTAINS
          CALL print_clock ('calc_eelect')
          CALL print_clock ('calc_velect')
          CALL print_clock ('dielectric')
+         CALL print_clock ('electrolyte')
          CALL print_clock ('calc_felect')
       END IF
       ! TDDFT
