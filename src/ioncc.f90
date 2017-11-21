@@ -211,7 +211,7 @@ CONTAINS
 
     ! k ** 2 = eps / lambda_D ** 2
     electrolyte%k2 = sum_cz2 / kT
-    electrolyte%k2 = electrolyte%k2 * e2
+    electrolyte%k2 = electrolyte%k2 * e2 * fpi
 
     RETURN
 
