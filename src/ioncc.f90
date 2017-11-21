@@ -361,7 +361,8 @@ CONTAINS
 
     IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
        !
-       RETURN
+       integral = integrate_environ_density( electrolyte%gamma )
+       energy   = kT * sumcbulk * ( electrolyte%gamma%cell%omega - integral )
        !
     ELSE IF ( electrolyte % linearized ) THEN
        !
@@ -416,7 +417,7 @@ CONTAINS
 
     IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
        !
-       RETURN
+       de_dboundary % of_r = - kT * sumcbulk
        !
     ELSE IF ( electrolyte % linearized ) THEN
        !
