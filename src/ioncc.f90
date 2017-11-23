@@ -69,6 +69,8 @@ CONTAINS
     CALL create_environ_boundary( electrolyte%boundary )
     label = 'gamma'
     CALL create_environ_density( electrolyte%gamma  , label )
+    label = 'dgamma'
+    CALL create_environ_density( electrolyte%dgamma  , label )
     label = 'electrolyte'
     CALL create_environ_density( electrolyte%density, label )
 
@@ -199,6 +201,7 @@ CONTAINS
     CALL init_environ_boundary_second( cell, electrolyte%boundary )
 
     CALL init_environ_density( cell, electrolyte%gamma )
+    CALL init_environ_density( cell, electrolyte%dgamma )
     CALL init_environ_density( cell, electrolyte%density )
 
     DO ityp = 1, electrolyte%ntyp
@@ -253,16 +256,18 @@ CONTAINS
 
     TYPE( environ_electrolyte ), TARGET, INTENT(INOUT) :: electrolyte
 
-    TYPE( environ_density ), POINTER :: gam, scaled
+    TYPE( environ_density ), POINTER :: gam, dgam, scaled
 
     CHARACTER ( LEN=80 ) :: sub_name = 'electrolyte_of_boundary'
 
     ! ... Aliases and init local variables
     gam    => electrolyte % gamma
+    dgam   => electrolyte % dgamma
     scaled => electrolyte % boundary % scaled
 
     ! ... Compute gamma(r)
     gam % of_r = 1.D0 - scaled % of_r
+    dgam % of_r = -1.D0
 
     RETURN
 
@@ -411,12 +416,14 @@ CONTAINS
 
     IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
        !
-       de_dboundary % of_r = - kT * sumcbulk
+       de_dboundary % of_r = de_dboundary % of_r - &
+          & - electrolyte % dgamma % of_r * kT * sumcbulk
        !
     ELSE IF ( electrolyte % linearized ) THEN
        !
-       de_dboundary % of_r = kT * electrolyte%cmax * &
-            LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+       de_dboundary % of_r = de_dboundary % of_r + &
+          & electrolyte % dgamma % of_r * kT * electrolyte%cmax * &
+          & LOG( 1.D0 - sumcbulk / electrolyte%cmax )
        !
     ELSE
        !
@@ -433,8 +440,8 @@ CONTAINS
        !
        arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
        arg%of_r = arg%of_r + 1.D0
-       de_dboundary % of_r = - kT * electrolyte%cmax * &
-            LOG ( arg%of_r )
+       de_dboundary % of_r = de_dboundary % of_r - &
+         &  electrolyte % dgamma % of_r * kT * electrolyte%cmax * LOG ( arg%of_r )
        !
        CALL destroy_environ_density( arg )
        !
@@ -460,6 +467,7 @@ CONTAINS
 
     CALL destroy_environ_boundary( lflag, electrolyte%boundary )
     CALL destroy_environ_density( electrolyte%gamma   )
+    CALL destroy_environ_density( electrolyte%dgamma  )
     CALL destroy_environ_density( electrolyte%density )
 
     RETURN
