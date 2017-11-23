@@ -367,8 +367,6 @@ CONTAINS
           !
           bound % update_status = 2 ! boundary has changed and is ready
           !
-          RETURN
-          !
        ELSE
           !
           IF ( bound % update_status .EQ. 2 ) bound % update_status = 0 ! boundary has not changed
