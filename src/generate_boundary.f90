@@ -981,7 +981,7 @@ CONTAINS
          END DO
          CALL update_gradient_modulus( partial )
          spurious_force = integrate_environ_density( partial%modulus )
-         IF ( spurious_force .GT. tolspuriousforce ) WRITE( program_unit, 4001 )index, spurious_force
+         IF ( spurious_force .GT. tolspuriousforce .AND. ionode ) WRITE( program_unit, 4001 )index, spurious_force
 4001     FORMAT(1x,'WARNING: Unphysical forces due to core electrons are non-negligible '&
               /,1x,'atom type ',I3,' is subject to a spurious force of ',F12.6,' ')
          !

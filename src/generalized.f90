@@ -279,7 +279,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
   mix => iterative % mix
   tolrhoaux => iterative % tol
 
-  IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
+  IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
 
   ! ... Check that fields have the same defintion domain
@@ -310,7 +310,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
   rhozero % of_r = ( charges % of_r - jellium ) * ( 1.D0 - eps % of_r ) / eps % of_r
   totzero = integrate_environ_density( rhozero )
   totiter = integrate_environ_density( rhoiter )
-  IF ( verbose .GE. 1 ) WRITE(environ_unit,9001) totiter, jellium
+  IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9001) totiter, jellium
 9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6, ' jellium = ',F13.6)
 
   ! ... Create local variables
@@ -322,7 +322,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
   DO iter = 1, maxiter
 
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9002) iter
 9002 FORMAT(' Iteration # ',i10)
 
        rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
@@ -341,22 +341,22 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
        IF ( oldenviron ) delta_en = quadratic_mean_environ_density_old( residual )
        delta_qm = quadratic_mean_environ_density( residual )
        totiter = integrate_environ_density( rhoiter )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
-       IF ( verbose .GE. 2 ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
+       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
 9003   FORMAT(' Total iterative polarization charge = ',4F13.6)
        IF ( delta_en .LT. tolrhoaux .AND. iter .GT. 0 ) THEN
-          IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
+          IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxiter ) THEN
-         WRITE(program_unit,9006)
+         IF ( ionode ) WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     ! ... Compute total electrostatic potential
@@ -407,7 +407,7 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
   maxstep => gradient % maxstep
   tolvelect => gradient % tol
 
-  IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
+  IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
 
   ! ... Check that fields have the same defintion domain
@@ -456,7 +456,7 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
 
   DO iter = 1, maxstep
 
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9002) iter
 9002   FORMAT(' Iteration # ',i10)
 
        ! ... Apply preconditioner to new state
@@ -495,27 +495,27 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
        x%of_r = x%of_r + alpha * p%of_r
        r%of_r = r%of_r - alpha * Ap%of_r
 
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,*)'alpha = ',alpha,' beta = ',beta
-       IF ( verbose .GE. 2 ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' pAp = ',pAp
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,*)'alpha = ',alpha,' beta = ',beta
+       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' pAp = ',pAp
 
        ! ... If residual is small enough exit
 
        delta_qm = quadratic_mean_environ_density( r )
        delta_en = euclidean_norm_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
-          IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
+          IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
-         WRITE(program_unit,9006)
+         IF ( ionode ) WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( l )
@@ -561,7 +561,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
   maxstep => gradient % maxstep
   tolvelect => gradient % tol
 
-  IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
+  IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
 
   ! ... Check that fields have the same defintion domain
@@ -610,11 +610,11 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
      delta_en = euclidean_norm_environ_density( r )
      delta_qm = quadratic_mean_environ_density( r )
      IF ( delta_en .LT. 1.D-02 ) THEN
-        IF ( verbose .GE. 1 ) WRITE(environ_unit,9008)delta_en
+        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9008)delta_en
 9008    FORMAT(' Sqrt-preconditioned input guess with residual norm = ',E14.6)
         x%of_r = z%of_r
      ELSE
-        IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)delta_en
+        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9001)delta_en
 9001    FORMAT(' Warning: bad guess with residual norm = ',E14.6,', reset to no guess')
         x%update = .FALSE.
      ENDIF
@@ -634,7 +634,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
   DO iter = 1, maxstep
 
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9002) iter
 9002   FORMAT(' Iteration # ',i10)
 
        ! ... Apply preconditioner to new state
@@ -654,7 +654,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
        ELSE
           beta = 0.D0
        END IF
-       IF ( verbose .GE. 2 ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
+       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
        rzold = rznew
 
        p%of_r = z%of_r + beta * p%of_r
@@ -667,7 +667,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
        pAp = scalar_product_environ_density( p, Ap )
        alpha = rzold / pAp
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,*)' pAp = ',pAp,' rzold = ',rzold,' alpha = ',alpha
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,*)' pAp = ',pAp,' rzold = ',rzold,' alpha = ',alpha
 
        x%of_r = x%of_r + alpha * p%of_r
        r%of_r = r%of_r - alpha * Ap%of_r
@@ -676,14 +676,14 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
        delta_qm = quadratic_mean_environ_density( r )
        delta_en = euclidean_norm_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
-          IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
+          IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
-          WRITE(program_unit,9006)
+          IF ( ionode ) WRITE(program_unit,9006)
 9006      FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
@@ -705,7 +705,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 
     x % of_r = x % of_r + shift
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_density( r )
@@ -751,7 +751,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
   maxstep => gradient % maxstep
   tolvelect => gradient % tol
 
-  IF ( verbose .GE. 1 ) WRITE(environ_unit,9000)
+  IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
 
   ! ... Check that fields have the same defintion domain
@@ -806,11 +806,11 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
 !!!               & gradeps%of_r(3,:)*g%of_r(3,:)
 !!!     delta_qm = quadratic_mean_environ_density( r )
 !!!     IF ( delta_qm .LT. 1.D-02 ) THEN
-!!!        IF ( verbose .GE. 1 ) WRITE(environ_unit,9008)delta_qm
+!!!        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9008)delta_qm
 !!!9008    FORMAT(' Sqrt-preconditioned input guess with residual norm = ',E14.6)
 !!!        x%of_r = z%of_r
 !!!     ELSE
-!!!        IF ( verbose .GE. 1 ) WRITE(environ_unit,9001)delta_qm
+!!!        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9001)delta_qm
 !!!9001    FORMAT(' Warning: bad guess with residual norm = ',E14.6,', reset to no guess')
 !!!        x%update = .FALSE.
 !!!     ENDIF
@@ -830,7 +830,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
 
   DO iter = 1, maxstep
 
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9002) iter
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9002) iter
 9002 FORMAT(' Iteration # ',i10)
 
        ! ... Apply preconditioner to new state
@@ -849,7 +849,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
        ELSE
           beta = 0.D0
        END IF
-       IF ( verbose .GE. 2 ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
+       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
        rzold = rznew
 
        p%of_r = z%of_r + beta * p%of_r
@@ -867,7 +867,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
 
        pAp = scalar_product_environ_density( p, Ap )
        alpha = rzold / pAp
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,*)' pAp = ',pAp,' rzold = ',rzold,' alpha = ',alpha
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,*)' pAp = ',pAp,' rzold = ',rzold,' alpha = ',alpha
 
        x%of_r = x%of_r + alpha * p%of_r
        r%of_r = r%of_r - alpha * Ap%of_r
@@ -876,20 +876,20 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
 
        delta_qm = quadratic_mean_environ_density( r )
        delta_en = euclidean_norm_environ_density( r )
-       IF ( verbose .GE. 1 ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolvelect
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
-          IF ( verbose .GE. 1 ) WRITE(environ_unit,9005)
+          IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
 9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
-         WRITE(program_unit,9006)
+         IF ( ionode ) WRITE(program_unit,9006)
 9006     FORMAT(' Warning: Polarization charge not converged')
        ENDIF
 
     ENDDO
 
-    IF (.not.tddfpt.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
 
     CALL destroy_environ_gradient( g )

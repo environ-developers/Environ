@@ -573,7 +573,7 @@ CONTAINS
 
        de_analytic = scalar_product_environ_density( de_dboundary, delta )
 
-       WRITE(environ_unit,'(1X,a,f20.10,3f20.10)')' z = ',test_function % pos(3) * cell % alat,&
+       IF ( ionode ) WRITE(environ_unit,'(1X,a,f20.10,3f20.10)')' z = ',test_function % pos(3) * cell % alat,&
             & de_analytic, de_fd, de_analytic - de_fd
        FLUSH(environ_unit)
 

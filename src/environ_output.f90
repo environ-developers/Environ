@@ -121,7 +121,7 @@ CONTAINS
 
     IF ( verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1000 )
-       WRITE( UNIT = environ_unit, FMT = 1001 )cell%ibrav,cell%alat,cell%omega
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1001 )cell%ibrav,cell%alat,cell%omega
        IF ( verbosity .GE. 2 ) THEN
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
@@ -1283,8 +1283,8 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      WRITE( program_unit, * )
-      WRITE( program_unit, '(5X,"Environ routines")' )
+      IF ( ionode ) WRITE( program_unit, * )
+      IF ( ionode ) WRITE( program_unit, '(5X,"Environ routines")' )
       ! dielectric subroutines
       IF ( lelectrostatic ) THEN
          CALL print_clock ('calc_eelect')

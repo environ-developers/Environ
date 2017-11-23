@@ -1162,6 +1162,7 @@ CONTAINS
     DO i = 1, system%ions%number
        ityp => system%ions%ityp(i)
        IF ( ityp .GT. max_ntyp ) CYCLE
+       dist = 0.D0
        DO icor = 1, 3
           IF ( ( system%dim .EQ. 1 .AND. icor .EQ. system%axis ) &
                .OR. ( system%dim .EQ. 2 .AND. icor .NE. system%axis ) ) CYCLE

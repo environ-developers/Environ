@@ -1391,8 +1391,7 @@ MODULE environ_input
           !
        ELSE
           !
-          IF ( ionode ) &
-             WRITE( program_unit,'(A)') 'Warning: card '//trim(input_line)//' ignored'
+          IF ( ionode ) WRITE( program_unit,'(A)') 'Warning: card '//trim(input_line)//' ignored'
           !
        ENDIF
        !
