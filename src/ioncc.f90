@@ -356,18 +356,22 @@ CONTAINS
 
     kT       = k_boltzmann_ry * electrolyte%temperature
     sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
-    bulkterm = LOG( 1.D0 - sumcbulk / electrolyte%cmax )
 
-    IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+    IF ( electrolyte % linearized ) THEN
        !
        integral = integrate_environ_density( electrolyte%gamma )
-       energy   = kT * sumcbulk * ( electrolyte%gamma%cell%omega - integral )
        !
-    ELSE IF ( electrolyte % linearized ) THEN
-       !
-       integral = integrate_environ_density( electrolyte%gamma )
-       energy   = kT * electrolyte%cmax * bulkterm * &
-            & ( integral - electrolyte%gamma%cell%omega )
+       IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+          ! Linearized PB
+          energy   = kT * sumcbulk * ( electrolyte%gamma%cell%omega - integral )
+          !
+       ELSE
+          ! Linearized Modified PB
+          bulkterm = LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+          energy   = kT * electrolyte%cmax * bulkterm * &
+               & ( integral - electrolyte%gamma%cell%omega )
+          !
+       END IF
        !
     ELSE
        !
@@ -384,14 +388,24 @@ CONTAINS
           !
        END DO
        !
-       arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
-       arg%of_r = arg%of_r + 1.D0
-       f%of_r = electrolyte%gamma%of_r * LOG ( arg%of_r )
-       !
-       integral = integrate_environ_density( f )
-       !
-       energy   = - kT * electrolyte%cmax * &
-            & ( integral + bulkterm * electrolyte%gamma%cell%omega )
+       IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+          ! PB
+          f%of_r = electrolyte%gamma%of_r * arg%of_r - sumcbulk
+          integral = integrate_environ_density( f )
+          !
+          energy   = - kT * integral
+          !
+       ELSE
+          ! Modified PB
+          arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
+          arg%of_r = arg%of_r + 1.D0
+          f%of_r = electrolyte%gamma%of_r * LOG ( arg%of_r )
+          integral = integrate_environ_density( f )
+          bulkterm = LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+          !
+          energy   = - kT * electrolyte%cmax * &
+               & ( integral + bulkterm * electrolyte%gamma%cell%omega )
+       END IF
        !
        CALL destroy_environ_density( arg )
        CALL destroy_environ_density( f )
@@ -414,16 +428,20 @@ CONTAINS
     kT       = k_boltzmann_ry * electrolyte%temperature
     sumcbulk = SUM( electrolyte % ioncctype(:)%cbulk )
 
-    IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+    IF ( electrolyte % linearized ) THEN
        !
-       de_dboundary % of_r = de_dboundary % of_r - &
-          & electrolyte % dgamma % of_r * kT * sumcbulk
-       !
-    ELSE IF ( electrolyte % linearized ) THEN
-       !
-       de_dboundary % of_r = de_dboundary % of_r + &
-          & electrolyte % dgamma % of_r * kT * electrolyte%cmax * &
-          & LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+       IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+          ! Linearized PB
+          de_dboundary % of_r = de_dboundary % of_r - &
+             & electrolyte % dgamma % of_r * kT * sumcbulk
+          !
+       ELSE
+          ! Linearized Modified PB
+          de_dboundary % of_r = de_dboundary % of_r + &
+             & electrolyte % dgamma % of_r * kT * electrolyte%cmax * &
+             & LOG( 1.D0 - sumcbulk / electrolyte%cmax )
+          !
+       END IF
        !
     ELSE
        !
@@ -434,14 +452,23 @@ CONTAINS
        DO ityp = 1, electrolyte%ntyp
           !
           arg%of_r = arg%of_r + electrolyte%ioncctype(ityp)%cfactor%of_r * &
-               & electrolyte%ioncctype(ityp)%cbulk
+             & electrolyte%ioncctype(ityp)%cbulk
           !
        END DO
        !
-       arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
-       arg%of_r = arg%of_r + 1.D0
-       de_dboundary % of_r = de_dboundary % of_r - &
-         &  electrolyte % dgamma % of_r * kT * electrolyte%cmax * LOG ( arg%of_r )
+       IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
+          ! PB
+          de_dboundary % of_r = de_dboundary % of_r - &
+             & electrolyte % dgamma % of_r * kT * arg%of_r
+          !
+       ELSE
+          ! Modified PB
+          arg%of_r = arg%of_r / ( electrolyte%cmax - sumcbulk )
+          arg%of_r = arg%of_r + 1.D0
+          de_dboundary % of_r = de_dboundary % of_r - &
+             & electrolyte % dgamma % of_r * kT * electrolyte%cmax * LOG ( arg%of_r )
+          !
+       END IF
        !
        CALL destroy_environ_density( arg )
        !
