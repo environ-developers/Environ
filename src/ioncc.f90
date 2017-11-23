@@ -417,7 +417,7 @@ CONTAINS
     IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
        !
        de_dboundary % of_r = de_dboundary % of_r - &
-          & - electrolyte % dgamma % of_r * kT * sumcbulk
+          & electrolyte % dgamma % of_r * kT * sumcbulk
        !
     ELSE IF ( electrolyte % linearized ) THEN
        !
