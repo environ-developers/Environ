@@ -919,6 +919,14 @@ CONTAINS
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2010 ) boundary%volume
        IF ( boundary%deriv .GE. 1 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2011 ) boundary%surface
        IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
+       IF ( boundary%solvent_aware ) THEN
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2012 ) boundary%filling_threshold,boundary%filling_spread,&
+               & boundary%solvent_probe%width,boundary%solvent_probe%spread
+          IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%local,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%filling,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%dfilling,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%probe,passed_verbosity,passed_depth)
+       END IF
        IF ( verbosity .GE. 2 .AND. boundary%deriv .GE. 1 ) &
             & CALL print_environ_gradient(boundary%gradient,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 .AND. boundary%deriv .GE. 2 ) &
@@ -957,6 +965,11 @@ CONTAINS
           /,1x,'axis                       = ',I2,' ')
 2010 FORMAT(1x,'volume of the QM region    = ',F14.7,' ')
 2011 FORMAT(1x,'surface of the QM region   = ',F14.7,' ')
+2012 FORMAT(1x,'using solvent-aware boundary           '&
+          /,1x,'filling threshold          = ',F14.7,' '&
+          /,1x,'filling spread             = ',F14.7,' '&
+          /,1x,'solvent radius x rad scale = ',F14.7,' '&
+          /,1x,'spread of solvent probe    = ',F14.7,' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_boundary
 !--------------------------------------------------------------------
