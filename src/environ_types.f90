@@ -394,8 +394,9 @@ MODULE environ_types
 
      TYPE( environ_density ) :: density
 
-     ! The electrolyte switch function
+     ! The electrolyte switch function and relate quantities
      TYPE( environ_density ) :: gamma
+     TYPE( environ_density ) :: dgamma
 
      REAL( DP ) :: charge = 0.0_DP
 
