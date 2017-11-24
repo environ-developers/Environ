@@ -54,7 +54,8 @@ CONTAINS
        & env_pressure_,                              &
        & env_ioncc_ntyp_,                            &
        & stern_mode, stern_distance, stern_spread,   &
-       & cion, cionmax, rion, zion, rhopb,           &
+       & cion, cionmax, rion, zion, rhopb, alphapb,  &
+       & softnesspb,                                 &
        & solvent_temperature,                        &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
@@ -93,7 +94,8 @@ CONTAINS
          eps_distance, eps_spread,                        &
          env_surface_tension_, env_pressure_,             &
          stern_distance, stern_spread, cion(:),           &
-         cionmax(:), rion(:), zion(:), rhopb,             &
+         cionmax(:), rion(:), zion(:), rhopb, alphapb,    &
+         softnesspb,                                      &
          solvent_temperature,                             &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
@@ -220,7 +222,7 @@ CONTAINS
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
             & stern_mode, stype, rhomax, rhomin, rhopb, tbeta, env_static_permittivity, &
-            & alpha, softness, stern_distance, stern_spread, solvent_radius, &
+            & alphapb, softnesspb, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
             & zion, linearized, electrolyte )

@@ -286,6 +286,10 @@ MODULE environ_input
         ! spread of countercharge onset, if ioncc_level = 2
         REAL(DP) :: rhopb = 0.0001D0
         ! density threshold for the onset of ionic countercharge
+        REAL(DP) :: alphapb = 1.D0
+        ! scaling factor for ionic radii when stern_mode = 'ionic'
+        REAL(DP) :: softnesspb = 0.5D0
+        ! spread of the rigid interfaces for the electrolyte boundary
 !
 ! Numerical core's parameters
 !
@@ -319,7 +323,8 @@ MODULE environ_input
              radial_spread, filling_threshold,   &
              filling_spread,                     &
              stern_mode, stern_distance,         &
-             stern_spread, rhopb,                &
+             stern_spread, rhopb, alphapb,       &
+             softnesspb,                         &
              boundary_core,                      &
              ifdtype, nfdpoint
 !
@@ -520,7 +525,8 @@ MODULE environ_input
                                 env_pressure,                               &
                                 env_ioncc_ntyp,                             &
                                 stern_mode, stern_distance, stern_spread,   &
-                                cion, cionmax, rion, zion, rhopb,           &
+                                cion, cionmax, rion, zion, rhopb, alphapb,  &
+                                softnesspb,                                 &
                                 solvent_temperature,                        &
                                 env_external_charges,                       &
                                 extcharge_charge, extcharge_dim,            &
@@ -716,6 +722,8 @@ MODULE environ_input
        stern_distance = 0.D0
        stern_spread = 0.5D0
        rhopb = 0.0001D0
+       alphapb = 1.D0
+       softnesspb = 0.5D0
        !
        boundary_core = 'analytic'
        ifdtype  = 1
@@ -852,6 +860,8 @@ MODULE environ_input
        CALL mp_bcast( stern_distance,             ionode_id, comm )
        CALL mp_bcast( stern_spread,               ionode_id, comm )
        CALL mp_bcast( rhopb,                      ionode_id, comm )
+       CALL mp_bcast( alphapb,                    ionode_id, comm )
+       CALL mp_bcast( softnesspb,                 ionode_id, comm )
        !
        CALL mp_bcast( boundary_core,              ionode_id, comm )
        CALL mp_bcast( ifdtype,                    ionode_id, comm )
@@ -1038,6 +1048,10 @@ MODULE environ_input
           CALL errore( sub_name,' stern_spread out of range ', 1 )
        IF( rhopb <= 0.0_DP ) &
           CALL errore( sub_name,' rhopb out of range ', 1 )
+       IF( alphapb <= 0.0_DP ) &
+          CALL errore( sub_name,' alphapb out of range ', 1 )
+       IF( softnesspb <= 0.0_DP ) &
+          CALL errore( sub_name,' softnesspb out of range ', 1 )
        !
        allowed = .FALSE.
        DO i = 1, SIZE( boundary_core_allowed )
