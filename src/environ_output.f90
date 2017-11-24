@@ -1099,7 +1099,7 @@ CONTAINS
 3100 FORMAT(/,4('%'),' ELECTROLYTE ',64('%'))
 3101 FORMAT(1x,'number electrol. species   = ',I4)
 3102 FORMAT(1x,'solvent temperature        = ',F7.1)
-3103 FORMAT(1x,'Debye length [*1/sqrt(eps)]= ',F14.7)
+3103 FORMAT(1x,'Debye length / sqrt(eps)   = ',F14.7)
 3104 FORMAT(1x,'modified Poisson-Boltzmann '&
           /,1x,'maximum concentration      = ',F14.7)
 3105 FORMAT(1x,'electrolyte species ',I4)
