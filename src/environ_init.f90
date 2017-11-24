@@ -492,6 +492,7 @@ CONTAINS
       !
       CALL init_environ_ions_second( nat, ntyp, ityp, zv, cell, ions )
       IF ( lsolvent ) CALL set_soft_spheres( solvent )
+      IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
       !
       ! ... Update ions parameters
       !
