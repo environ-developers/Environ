@@ -91,6 +91,7 @@ CONTAINS
          vtot = vtot + velectrostatic % of_r - vreference % of_r
 
          CALL charges_of_potential( velectrostatic, charges )
+         IF ( verbose .GE. 3 ) CALL print_environ_charges( charges )
 
          IF ( lexternals ) CALL update_environ_charges( charges )
 
