@@ -517,12 +517,12 @@ CONTAINS
             !
             ! ... Update quantities that depend on the solvent boundary
             !
-            IF ( lstatic .AND. .NOT. tddfpt ) THEN
+            IF ( lstatic ) THEN
                CALL update_environ_dielectric( static )
                IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
             END IF
             !
-            IF ( loptical .AND. tddfpt ) THEN
+            IF ( loptical ) THEN
                CALL update_environ_dielectric( optical )
                IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
             END IF
@@ -596,12 +596,12 @@ CONTAINS
             !
             ! ... Update quantities that depend on the solvent boundary
             !
-            IF ( lstatic .AND. .NOT. tddfpt ) THEN
+            IF ( lstatic ) THEN
                CALL update_environ_dielectric( static )
                IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
             END IF
             !
-            IF ( loptical .AND. tddfpt ) THEN
+            IF ( loptical ) THEN
                CALL update_environ_dielectric( optical )
                IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
             END IF
