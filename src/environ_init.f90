@@ -398,6 +398,8 @@ CONTAINS
       !
       vzero % update = .TRUE.
       !
+      IF ( .NOT. ASSOCIATED( vzero % cell ) ) RETURN
+      !
       IF ( vzero % cell % nnr .NE. nnr ) &
            & CALL errore(sub_name,'Inconsistent size in input potential',1)
       vzero % of_r = vltot

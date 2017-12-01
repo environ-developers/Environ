@@ -436,7 +436,7 @@ SUBROUTINE lr_readin
      !
      ! Copied from PW/src/input.f90
      !
-     CALL read_environ( "TDDFPT", NINT(nelec), nspin, nat, nsp, atm, assume_isolated )
+     CALL read_environ( "TD", NINT(nelec), nspin, nat, nsp, atm, assume_isolated )
      !
      ! Taken from PW/src/init_run.f90
      !

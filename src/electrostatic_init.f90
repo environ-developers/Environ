@@ -57,7 +57,7 @@ CONTAINS
     !
     CALL create_electrostatic_core( reference_core )
     SELECT CASE ( prog )
-    CASE ( 'PW', 'CP' )
+    CASE ( 'PW', 'CP', 'TD' )
        lqe_fft = .TRUE.
        local_type = "fft"
        CALL init_electrostatic_core( type = local_type, qe_fft = qe_fft, core = reference_core )
@@ -161,7 +161,7 @@ CONTAINS
     !
     CALL create_electrostatic_solver( reference_solver )
     SELECT CASE ( prog )
-    CASE ( 'PW', 'CP' )
+    CASE ( 'PW', 'CP', 'TD' )
        local_type = "direct"
        CALL init_electrostatic_solver( type = local_type, solver = reference_solver )
     CASE DEFAULT
@@ -196,7 +196,7 @@ CONTAINS
     !
     CALL create_electrostatic_setup( reference )
     SELECT CASE ( prog )
-    CASE ( 'PW', 'CP' )
+    CASE ( 'PW', 'CP', 'TD' )
        local_type = "poisson"
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected name of host code',1)
