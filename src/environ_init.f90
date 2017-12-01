@@ -225,7 +225,7 @@ CONTAINS
             & alphapb, softnesspb, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
-            & zion, linearized, electrolyte )
+            & zion, linearized, env_static_permittivity, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
     !

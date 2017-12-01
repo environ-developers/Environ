@@ -42,6 +42,7 @@ CONTAINS
     USE poisson, ONLY : poisson_direct
     USE generalized, ONLY : generalized_gradient
     USE linearized_pb, ONLY : linearized_pb_gradient
+    USE poisson_boltzmann, ONLY : pb_direct
     !
     IMPLICIT NONE
     !
@@ -119,7 +120,6 @@ CONTAINS
 
        CASE ( 'cg', 'sd' )
 
-!          CALL errore( sub_name, 'option not yet implemented', 1 )
           CALL linearized_pb_gradient( setup % solver, setup % core, charges, potential )
 
        CASE ( 'lbfgs' )
@@ -142,8 +142,7 @@ CONTAINS
 
        CASE ( 'direct' )
 
-          CALL errore( sub_name, 'option not yet implemented', 1 )
-!          CALL pb_direct()
+          CALL pb_direct( setup % solver, setup % core, charges, potential )
 
        CASE ( 'nested' )
 

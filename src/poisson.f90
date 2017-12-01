@@ -5,6 +5,7 @@ MODULE poisson
   USE environ_types
   USE electrostatic_types
   USE periodic
+  USE stern
   USE environ_base, ONLY : e2, oldenviron
 
   IMPLICIT NONE
@@ -27,7 +28,7 @@ MODULE poisson
 
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_direct_charges( core, charges, potential )
+  SUBROUTINE poisson_direct_charges( core, charges, potential, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -35,6 +36,7 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     TYPE( environ_cell ), POINTER :: cell
     !
@@ -62,7 +64,7 @@ CONTAINS
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
@@ -78,6 +80,12 @@ CONTAINS
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges%density, potential )
           !
+       CASE ( 'stern' )
+          !
+          IF ( .NOT. PRESENT( electrolyte ) ) &
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+          CALL calc_vstern( core%correction%oned_analytic, electrolyte, charges%density, potential )
+          !
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -92,7 +100,7 @@ CONTAINS
   END SUBROUTINE poisson_direct_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_direct_density( core, charges, potential )
+  SUBROUTINE poisson_direct_density( core, charges, potential, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -100,6 +108,7 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_density ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
+    TYPE( environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ) :: local
@@ -107,8 +116,6 @@ CONTAINS
     REAL( DP ) :: edummy, cdummy
     REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: rhoaux, vaux
     CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density'
-    !
-    ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
@@ -133,7 +140,7 @@ CONTAINS
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
@@ -150,6 +157,12 @@ CONTAINS
        CASE ( '1da', 'oned_analytic' )
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges, local )
+          !
+       CASE ( 'stern' )
+          !
+          IF ( .NOT. PRESENT( electrolyte ) ) &
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+          CALL calc_vstern( core%correction%oned_analytic, electrolyte, charges, local )
           !
        CASE DEFAULT
           !
@@ -171,7 +184,7 @@ CONTAINS
   END SUBROUTINE poisson_direct_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_gradient_direct_charges( core, charges, gradient )
+  SUBROUTINE poisson_gradient_direct_charges( core, charges, gradient, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -179,6 +192,7 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_charges'
     !
@@ -188,7 +202,7 @@ CONTAINS
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
@@ -204,6 +218,12 @@ CONTAINS
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges%density, gradient )
           !
+       CASE ( 'stern' )
+          !
+          IF ( .NOT. PRESENT( electrolyte ) ) &
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+          CALL calc_gradvstern( core%correction%oned_analytic, electrolyte, charges%density, gradient )
+          !
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -218,7 +238,7 @@ CONTAINS
   END SUBROUTINE poisson_gradient_direct_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_gradient_direct_density( core, charges, gradient )
+  SUBROUTINE poisson_gradient_direct_density( core, charges, gradient, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -226,6 +246,7 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_density ), INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_density'
     !
@@ -235,7 +256,7 @@ CONTAINS
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
@@ -250,6 +271,12 @@ CONTAINS
        CASE ( '1da', 'oned_analytic' )
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges, gradient )
+          !
+       CASE ( 'stern' )
+          !
+          IF ( .NOT. PRESENT( electrolyte ) ) &
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+          CALL calc_gradvstern( core%correction%oned_analytic, electrolyte, charges, gradient )
           !
        CASE DEFAULT
           !
@@ -286,7 +313,7 @@ CONTAINS
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
@@ -351,7 +378,7 @@ CONTAINS
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !

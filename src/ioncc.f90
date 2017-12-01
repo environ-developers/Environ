@@ -85,7 +85,7 @@ CONTAINS
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
        & rhopb, tbeta, const, alpha, softness, distance, spread, solvent_radius, radial_scale, &
        & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
-       & temperature, cbulk, cmax, radius, z, linearized, electrolyte )
+       & temperature, cbulk, cmax, radius, z, linearized, permittivity, electrolyte )
 
     IMPLICIT NONE
 
@@ -93,7 +93,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: ntyp, stype
     CHARACTER( LEN=80 ), INTENT(IN) :: mode
     REAL( DP ), INTENT(IN) :: rhomax, rhomin, rhopb, tbeta, const, distance, spread, alpha, softness, temperature
-    REAL( DP ), INTENT(IN) :: solvent_radius, radial_scale, radial_spread, filling_threshold, filling_spread
+    REAL( DP ), INTENT(IN) :: solvent_radius, radial_scale, radial_spread, filling_threshold, filling_spread, permittivity
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, cmax, radius, z
     TYPE( environ_electrons ), INTENT(IN) :: electrons
     TYPE( environ_ions ), INTENT(IN) :: ions
@@ -137,6 +137,7 @@ CONTAINS
 
     electrolyte%temperature = temperature
     electrolyte%cmax = 0.D0
+    electrolyte%permittivity = permittivity
 
     ALLOCATE( electrolyte%ioncctype(ntyp) )
 

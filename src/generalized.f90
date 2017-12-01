@@ -36,7 +36,7 @@ MODULE generalized
 CONTAINS
 
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_charges( solver, core, charges, potential )
+SUBROUTINE generalized_gradient_charges( solver, core, charges, potential, electrolyte )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
@@ -45,6 +45,7 @@ SUBROUTINE generalized_gradient_charges( solver, core, charges, potential )
   TYPE( electrostatic_core ), INTENT(IN) :: core
   TYPE( environ_charges ), INTENT(IN) :: charges
   TYPE( environ_density ), INTENT(INOUT) :: potential
+  TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
 
   CHARACTER*20 :: sub_name = 'generalized_gradient'
 
@@ -60,15 +61,18 @@ SUBROUTINE generalized_gradient_charges( solver, core, charges, potential )
 
         CASE ( 'none' )
 
-           CALL generalized_gradient_none( solver % gradient, core, charges%density, charges%dielectric, potential )
+           CALL generalized_gradient_none( solver % gradient, core, charges % density, &
+                & charges % dielectric, potential, electrolyte )
 
         CASE ( 'sqrt' )
 
-           CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, charges%dielectric, potential )
+           CALL generalized_gradient_sqrt( solver % gradient, core, charges % density, &
+                & charges % dielectric, potential, electrolyte )
 
         CASE ( 'left' )
 
-           CALL generalized_gradient_left( solver % gradient, core, charges%density, charges%dielectric, potential )
+           CALL generalized_gradient_left( solver % gradient, core, charges % density, &
+                & charges % dielectric, potential, electrolyte )
 
         CASE DEFAULT
 
@@ -87,7 +91,7 @@ SUBROUTINE generalized_gradient_charges( solver, core, charges, potential )
 
      IF ( solver % auxiliary .EQ. 'full' ) THEN
 
-        CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, potential )
+        CALL generalized_iterative( solver % iterative, core, charges % density, charges % dielectric, potential, electrolyte )
 
      ELSE
 
@@ -110,7 +114,7 @@ SUBROUTINE generalized_gradient_charges( solver, core, charges, potential )
 END SUBROUTINE generalized_gradient_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, potential )
+SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
@@ -120,6 +124,7 @@ SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, pote
   TYPE( environ_density ), INTENT(IN) :: charges
   TYPE( environ_dielectric ), INTENT(IN) :: dielectric
   TYPE( environ_density ), INTENT(INOUT) :: potential
+  TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
 
   CHARACTER*20 :: sub_name = 'generalized_gradient'
 
@@ -135,15 +140,15 @@ SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, pote
 
         CASE ( 'none' )
 
-           CALL generalized_gradient_none( solver % gradient, core, charges, dielectric, potential )
+           CALL generalized_gradient_none( solver % gradient, core, charges, dielectric, potential, electrolyte )
 
         CASE ( 'sqrt' )
 
-           CALL generalized_gradient_sqrt( solver % gradient, core, charges, dielectric, potential )
+           CALL generalized_gradient_sqrt( solver % gradient, core, charges, dielectric, potential, electrolyte )
 
         CASE ( 'left' )
 
-           CALL generalized_gradient_left( solver % gradient, core, charges, dielectric, potential )
+           CALL generalized_gradient_left( solver % gradient, core, charges, dielectric, potential, electrolyte )
 
         CASE DEFAULT
 
@@ -162,7 +167,7 @@ SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, pote
 
      IF ( solver % auxiliary .EQ. 'full' ) THEN
 
-        CALL generalized_iterative( solver % iterative, core, charges, dielectric, potential )
+        CALL generalized_iterative( solver % iterative, core, charges, dielectric, potential, electrolyte )
 
      ELSE
 
@@ -249,7 +254,7 @@ SUBROUTINE generalized_energy( core, charges, potential, energy )
 END SUBROUTINE generalized_energy
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential )
+SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
@@ -259,6 +264,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
   TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+  TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
 
   TYPE( environ_cell ), POINTER :: cell
   TYPE( environ_density ), POINTER :: eps, rhoiter, rhotot
@@ -327,7 +333,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
        rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
 
-       CALL poisson_gradient_direct( core, rhotot, gradpoisson )
+       CALL poisson_gradient_direct( core, rhotot, gradpoisson, electrolyte )
 
        CALL scalar_product_environ_gradient( gradlogeps, gradpoisson, residual )
 
@@ -363,7 +369,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
     rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
 
-    CALL poisson_direct( core, rhotot, potential )
+    CALL poisson_direct( core, rhotot, potential, electrolyte )
 
     ! ... Destroy local variables
 
@@ -377,7 +383,7 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 END SUBROUTINE generalized_iterative
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, potential )
+SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
@@ -387,6 +393,7 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
   TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+  TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
 
   TYPE( environ_cell ), POINTER :: cell
   TYPE( environ_density ), POINTER :: x, b, eps
@@ -532,7 +539,7 @@ SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, poten
 END SUBROUTINE generalized_gradient_none
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, potential )
+SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
@@ -542,6 +549,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
   TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+  TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
 
   TYPE( environ_cell ), POINTER :: cell
   TYPE( environ_density ), POINTER :: x, b, eps, factsqrt
@@ -599,7 +607,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
      ! ... Preconditioning step
 
      z%of_r = r%of_r * invsqrt%of_r
-     CALL poisson_direct( core, z, z )
+     CALL poisson_direct( core, z, z, electrolyte )
      z%of_r = z%of_r * invsqrt%of_r
 
      rzold = scalar_product_environ_density( r, z )
@@ -640,7 +648,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
        ! ... Apply preconditioner to new state
 
        z%of_r = r%of_r * invsqrt%of_r
-       CALL poisson_direct( core, z, z )
+       CALL poisson_direct( core, z, z, electrolyte )
        z%of_r = z%of_r * invsqrt%of_r
 
        rznew = scalar_product_environ_density( r, z )
@@ -721,7 +729,7 @@ SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, poten
 END SUBROUTINE generalized_gradient_sqrt
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, potential )
+SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
 
   IMPLICIT NONE
@@ -731,6 +739,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
   TYPE( environ_density ), TARGET, INTENT(IN) :: charges
   TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
   TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+  TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
 
   TYPE( environ_cell ), POINTER :: cell
   TYPE( environ_density ), POINTER :: x, b, eps
@@ -836,7 +845,7 @@ SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, poten
        ! ... Apply preconditioner to new state
 
        z%of_r = r%of_r / eps%of_r
-       CALL poisson_direct( core, z, z )
+       CALL poisson_direct( core, z, z, electrolyte )
 
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
