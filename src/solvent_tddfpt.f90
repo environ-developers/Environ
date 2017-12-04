@@ -133,7 +133,7 @@ CONTAINS
       !
       DO ir = 1, nnr
          dv_epsilon(ir) = - SUM( gvtot0(:,ir) * gdvtot(:,ir) ) * &
-              & optical % depsilon % of_r(ir) / (fpi * e2)
+              & optical % depsilon % of_r(ir) * optical % boundary % dscaled % of_r(ir) / (fpi * e2)
       END DO
       !
       DEALLOCATE( gdvtot )
@@ -147,8 +147,8 @@ CONTAINS
    !
    CALL destroy_environ_density( dvelectrostatic )
    CALL destroy_environ_density( dvreference )
-   CALL destroy_environ_electrons( .TRUE., response_electrons )
    CALL destroy_environ_charges( .TRUE., response_charges )
+   CALL destroy_environ_electrons( .TRUE., response_electrons )
    !
    CALL stop_clock( 'calc_vsolvent_tddfpt' )
    !

@@ -365,6 +365,10 @@ SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potentia
 
     CALL poisson_direct( core, rhotot, potential )
 
+    ! ... In rhotot store total polarization charge
+
+    rhotot % of_r = rhozero % of_r + rhoiter % of_r
+
     ! ... Destroy local variables
 
     CALL destroy_environ_density( rhozero )
