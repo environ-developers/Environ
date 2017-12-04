@@ -65,7 +65,7 @@ SUBROUTINE lr_readin
   USE cell_base,           ONLY : at, alat, omega, ibrav
   USE environ_init,        ONLY : environ_initions, environ_initcell, &
                                   environ_clean, environ_initbase,    &
-                                  environ_initelectrons
+                                  environ_initelectrons, environ_initpotential
   USE environ_main,        ONLY : calc_venviron
   USE mp_bands,            ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id
 #endif
@@ -455,6 +455,8 @@ SUBROUTINE lr_readin
      WRITE( stdout, '(/5x,"Computing and adding the polarization potentials to HXC potential")' )
      !
      CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rho%of_r )
+     !
+     CALL environ_initpotential( dfftp%nnr, v%of_r(:,1) )
      !
      CALL calc_venviron( .TRUE., dfftp%nnr, v%of_r(:,1) )
      !
