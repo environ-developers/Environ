@@ -137,12 +137,13 @@ mv tmp.2 plugin_read_input.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    environ_init, ONLY : environ_clean \
+USE    control_flags, ONLY : tddfpt \
 !Environ patch
 ' plugin_clean.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL environ_clean(lflag) \
+   if(use_environ.AND..NOT.tddfpt) CALL environ_clean(lflag) \
 !Environ patch
 ' tmp.1 > tmp.2
 
