@@ -101,6 +101,7 @@ CONTAINS
 
       IF ( lsoftcavity ) THEN
 
+         vsoftcavity % of_r = 0.D0 
          CALL init_environ_density( cell, de_dboundary )
 
          IF ( lsoftsolvent ) THEN
