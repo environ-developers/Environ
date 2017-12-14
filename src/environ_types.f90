@@ -382,6 +382,7 @@ MODULE environ_types
 
      LOGICAL :: update = .FALSE.
 
+     CHARACTER( LEN=80 ) :: stern_entropy
      LOGICAL :: linearized = .FALSE.
      INTEGER :: ntyp
      TYPE( environ_ioncctype ), DIMENSION(:), ALLOCATABLE :: ioncctype
@@ -397,6 +398,9 @@ MODULE environ_types
      ! The electrolyte switch function and relate quantities
      TYPE( environ_density ) :: gamma
      TYPE( environ_density ) :: dgamma
+
+     TYPE( environ_density ) :: de_dboundary_second_order
+     REAL( DP ) :: energy_second_order
 
      REAL( DP ) :: charge = 0.0_DP
 

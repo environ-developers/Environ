@@ -138,6 +138,13 @@ MODULE environ_input
 !
         INTEGER :: env_ioncc_ntyp = 0
         ! number of counter-charge species in the electrolyte ( if != 0 must be >= 2 )
+        CHARACTER( LEN = 80 ) :: stern_entropy = 'full'
+        CHARACTER( LEN = 80 ) :: stern_entropy_allowed(2)
+        DATA stern_entropy_allowed / 'ions', 'full' /
+        ! keyword to set the electrolyte entropy terms that are affected by the
+        ! Stern-layer correction.
+        ! ions = only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 )
+        ! full = all terms ( Dabo et al. arXiv 0901.0096 )
         REAL(DP) :: cion(nsx) = 1.D0
         ! molar concentration of ionic countercharge (M=mol/L)
         REAL(DP) :: cionmax(nsx) = 1.D3
@@ -171,7 +178,7 @@ MODULE environ_input
              env_surface_tension,                                      &
              env_pressure,                                             &
              env_ioncc_ntyp, cion, cionmax, rion, zion,                &
-             solvent_temperature,                                      &
+             solvent_temperature, stern_entropy,                       &
              env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
@@ -523,7 +530,7 @@ MODULE environ_input
                                 add_jellium,                                &
                                 env_surface_tension,                        &
                                 env_pressure,                               &
-                                env_ioncc_ntyp,                             &
+                                env_ioncc_ntyp, stern_entropy,              &
                                 stern_mode, stern_distance, stern_spread,   &
                                 cion, cionmax, rion, zion, rhopb, alphapb,  &
                                 softnesspb,                                 &
@@ -669,6 +676,7 @@ MODULE environ_input
        env_pressure = 0.D0
        !
        env_ioncc_ntyp = 0
+       stern_entropy = 'full'
        cion(:) = 1.0D0
        cionmax(:) = 0.0D0 ! if remains zero, pb or linpb
        rion(:) = 0.D0
@@ -808,6 +816,7 @@ MODULE environ_input
        CALL mp_bcast( env_pressure,               ionode_id, comm )
        !
        CALL mp_bcast( env_ioncc_ntyp,             ionode_id, comm )
+       CALL mp_bcast( stern_entropy,              ionode_id, comm )
        CALL mp_bcast( cion,                       ionode_id, comm )
        CALL mp_bcast( cionmax,                    ionode_id, comm )
        CALL mp_bcast( rion,                       ionode_id, comm )
@@ -961,6 +970,13 @@ MODULE environ_input
        !
        IF( env_ioncc_ntyp < 0 .OR. env_ioncc_ntyp .EQ. 1 ) &
           CALL errore( sub_name,' env_ioncc_ntyp out of range ', 1 )
+       allowed = .FALSE.
+       DO i = 1, SIZE( stern_entropy_allowed )
+          IF( TRIM(stern_entropy) == stern_entropy_allowed(i) ) allowed = .TRUE.
+       END DO
+       IF( .NOT. allowed ) &
+          CALL errore( sub_name, ' stern_entropy '''// &
+                       & TRIM(stern_entropy)//''' not allowed ', 1 )
        IF( solvent_temperature < 0.0_DP ) &
           CALL errore( sub_name,' solvent_temperature out of range ', 1 )
        !

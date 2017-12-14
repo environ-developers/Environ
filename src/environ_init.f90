@@ -52,7 +52,7 @@ CONTAINS
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
-       & env_ioncc_ntyp_,                            &
+       & env_ioncc_ntyp_, stern_entropy,             &
        & stern_mode, stern_distance, stern_spread,   &
        & cion, cionmax, rion, zion, rhopb, alphapb,  &
        & softnesspb,                                 &
@@ -102,7 +102,7 @@ CONTAINS
          epsregion_pos(:,:), epsregion_spread(:),         &
          epsregion_width(:)
     CHARACTER( LEN = * ), INTENT(IN) :: environ_type,     &
-         solvent_mode, radius_mode, stern_mode
+         solvent_mode, radius_mode, stern_mode, stern_entropy
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
     INTEGER :: stype
@@ -225,7 +225,7 @@ CONTAINS
             & alphapb, softnesspb, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
-            & zion, linearized, electrolyte )
+            & zion, stern_entropy, linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
     !

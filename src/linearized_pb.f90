@@ -180,7 +180,7 @@ SUBROUTINE linearized_pb_energy( core, charges, potential, energy )
 
   ! Electrostatic interaction of electrolyte
 
-  CALL poisson_energy( core, charges % electrolyte % density, potential, eions )
+  eions = -0.5D0 * scalar_product_environ_density( charges % electrolyte % density, potential )
 
   ! Adding correction for point-like nuclei: only affects simulations of charged
   ! systems, it does not affect forces, but shift the energy depending on the
@@ -242,7 +242,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
 
   INTEGER :: iter
   REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, jellium, shift
-  TYPE( environ_density ) :: r, z, p, Ap, invsqrt
+  TYPE( environ_density ) :: r, z, p, Ap, invsqrt, ionccfact
 
   CHARACTER( LEN=80 ) :: sub_name = 'linearized_pb_gradient_sqrt'
 
@@ -283,12 +283,21 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
   CALL init_environ_density( cell, z )
   CALL init_environ_density( cell, p )
   CALL init_environ_density( cell, Ap )
+  CALL init_environ_density( cell, ionccfact )
+
+  IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cmax .GT. 0.D0 ) THEN
+    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r / &
+     & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cmax * (1.D0 - gam%of_r ))
+!    IF (ionode) print*, 'Linearized stern ions'
+  ELSE
+    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r
+  END IF
 
   ! ... Starting guess from new input and previous solution(s)
 
   IF ( x%update ) THEN
 
-     r%of_r = ( b%of_r - jellium ) - (factsqrt%of_r + electrolyte%k2/fpi * gam%of_r) * x%of_r
+     r%of_r = ( b%of_r - jellium ) - (factsqrt%of_r + ionccfact%of_r ) * x%of_r
 
      ! ... Preconditioning step
 
@@ -300,7 +309,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
      IF ( ABS(rzold) .LT. 1.D-30 ) &
           & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
-     r%of_r = (factsqrt%of_r + electrolyte%k2/fpi * gam%of_r) * ( x%of_r - z%of_r )
+     r%of_r = (factsqrt%of_r + ionccfact%of_r) * ( x%of_r - z%of_r )
      delta_en = euclidean_norm_environ_density( r )
      delta_qm = quadratic_mean_environ_density( r )
      IF ( delta_en .LT. 1.D-02 ) THEN
@@ -355,7 +364,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
 
        ! ... Apply operator to conjugate direction
 
-       Ap%of_r = (factsqrt%of_r + electrolyte%k2/fpi * gam%of_r ) * z%of_r + r%of_r + beta * Ap%of_r
+       Ap%of_r = (factsqrt%of_r + ionccfact%of_r ) * z%of_r + r%of_r + beta * Ap%of_r
 
        ! ... Step downhill
 
@@ -409,6 +418,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
     CALL destroy_environ_density( Ap )
 
     CALL destroy_environ_density(invsqrt)
+    CALL destroy_environ_density(ionccfact)
 
   RETURN
 
@@ -432,7 +442,7 @@ SUBROUTINE linearized_pb_gradient_vacuum( gradient, core, charges, electrolyte, 
 
   INTEGER :: iter
   REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
-  TYPE( environ_density ) :: r, z, p, Ap
+  TYPE( environ_density ) :: r, z, p, Ap, ionccfact
 
   CHARACTER( LEN=80 ) :: sub_name = 'linearized_pb_gradient_vacuum'
 
@@ -467,12 +477,21 @@ SUBROUTINE linearized_pb_gradient_vacuum( gradient, core, charges, electrolyte, 
   CALL init_environ_density( cell, z )
   CALL init_environ_density( cell, p )
   CALL init_environ_density( cell, Ap )
+  CALL init_environ_density( cell, ionccfact )
+
+  IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cmax .GT. 0.D0 ) THEN
+    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r / &
+     & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cmax * (1.D0 - gam%of_r ))
+!    print*, 'Linearized stern ions'
+  ELSE
+    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r
+  END IF
 
   ! ... Starting guess from new input and previous solution(s)
 
   IF ( x%update ) THEN
 
-     r%of_r = b%of_r - electrolyte%k2/fpi * gam%of_r * x%of_r
+     r%of_r = b%of_r - ionccfact%of_r * x%of_r
 
      ! ... Preconditioning step
 
@@ -483,7 +502,7 @@ SUBROUTINE linearized_pb_gradient_vacuum( gradient, core, charges, electrolyte, 
      IF ( ABS(rzold) .LT. 1.D-30 ) &
           & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 
-     r%of_r = electrolyte%k2/fpi * gam%of_r * ( x%of_r - z%of_r )
+     r%of_r = ionccfact%of_r * ( x%of_r - z%of_r )
      delta_en = euclidean_norm_environ_density( r )
      delta_qm = quadratic_mean_environ_density( r )
      IF ( delta_en .LT. 1.D-02 ) THEN
@@ -537,7 +556,7 @@ SUBROUTINE linearized_pb_gradient_vacuum( gradient, core, charges, electrolyte, 
 
        ! ... Apply operator to conjugate direction
 
-       Ap%of_r = electrolyte%k2/fpi * gam%of_r * z%of_r + r%of_r + beta * Ap%of_r
+       Ap%of_r = ionccfact%of_r * z%of_r + r%of_r + beta * Ap%of_r
 
        ! ... Step downhill
 
@@ -589,6 +608,7 @@ SUBROUTINE linearized_pb_gradient_vacuum( gradient, core, charges, electrolyte, 
     CALL destroy_environ_density( z )
     CALL destroy_environ_density( p )
     CALL destroy_environ_density( Ap )
+    CALL destroy_environ_density( ionccfact )
 
   RETURN
 
