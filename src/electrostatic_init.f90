@@ -91,6 +91,11 @@ CONTAINS
        CASE ( 'parabolic' )
           need_pbc_correction = .TRUE.
           loned_analytic = .TRUE.
+          local_type = '1da'
+       CASE ( 'stern' )
+          need_pbc_correction = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'stern'
        CASE DEFAULT
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT
@@ -105,30 +110,38 @@ CONTAINS
           loned_analytic = .TRUE.
           pbc_dim = 2
           pbc_axis = 1
+          local_type = '1da'
        CASE( 'slaby' )
           need_pbc_correction = .TRUE.
           loned_analytic = .TRUE.
           pbc_dim = 2
           pbc_axis = 2
+          local_type = '1da'
        CASE( 'slabz' )
           need_pbc_correction = .TRUE.
           loned_analytic = .TRUE.
           pbc_dim = 2
           pbc_axis = 3
+          local_type = '1da'
        CASE( 'pcc' )
           need_pbc_correction = .TRUE.
           loned_analytic = .TRUE.
           pbc_dim = 0
           pbc_axis = 3
+          local_type = '1da'
+       CASE( 'stern' )
+          need_pbc_correction = .TRUE.
+          loned_analytic = .TRUE.
+          pbc_dim = 2
+          pbc_axis = 3
+          local_type = 'stern'
        END SELECT
        !
     END IF
     !
     IF ( need_pbc_correction ) THEN
-       IF ( loned_analytic ) THEN
-          local_type = "1da"
+       IF ( loned_analytic ) &
           CALL init_electrostatic_core( type = local_type, oned_analytic = oned_analytic , core = pbc_core )
-       ENDIF
     ENDIF
     !
     ! Set up main (outer) core

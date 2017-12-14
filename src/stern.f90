@@ -74,7 +74,7 @@ CONTAINS
     TYPE( environ_density ), TARGET :: local
     REAL( DP ), DIMENSION(:), POINTER :: v, v0
     !
-    INTEGER :: i, i1, i2, icor
+    INTEGER :: i, i1, i2, icor, icount
     REAL( DP ) :: ez, fact, vstern, const
     REAL( DP ) :: v1, v2, dv, vbound
     REAL( DP ) :: arg, asinh, coth, acoth
@@ -141,7 +141,6 @@ CONTAINS
     const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
     v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
     v(:) = fact * v(:) + const
-    vbound = fact * ( - tot_charge * xstern**2 + 2.D0 * tot_dipole(slab_axis) * xstern ) + const
     dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern
     !
     ! ... Compute the physical properties of the interface
@@ -155,6 +154,20 @@ CONTAINS
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
     const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
+    vbound = 0.D0
+    DO i = 1, nnr
+       !
+       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          !
+          icount = icount + 1
+          vbound = vbound + potential % of_r(i) + v(i) - ez * ABS(axis(1,i))
+          !
+       ENDIF
+       !
+    ENDDO
+    !
+    vbound = vbound / DBLE(icount)  + ez * xstern
+    !
     ! ... Compute some constants needed for the calculation
     !
     f1 = - fact * zion * invkbt * 0.5D0
@@ -164,21 +177,16 @@ CONTAINS
     !
     ! ... Compute the analytic potential and charge
     !
+    v = v - vbound + vstern
     c1 = 0.D0
     c2 = 0.D0
     DO i = 1, nnr
        !
-       IF ( ABS(axis(1,i)) .LT. xstern ) THEN
-          !
-          ! ... Constant shift of the potential in the inside
-          !
-          v(i) = v(i) - vbound + vstern
-          !
-       ELSE
+       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           !
           ! ... Gouy-Chapmann-Stern analytic solution on the outside
           !
-          arg = const * EXP( ABS(axis(1,i)) * f1)
+          arg = const * EXP( ABS(axis(1,i)) * f1 )
           IF ( ABS(arg) .GT. 1.D0 ) THEN
              acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
           ELSE
@@ -190,13 +198,11 @@ CONTAINS
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-          v(i) = v(i) - ez * axis(1,i) + vtmp
+          v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
           !
        ENDIF
        !
     ENDDO
-    !
-    RETURN
     !
     potential % of_r = potential % of_r + v
     !
@@ -205,6 +211,7 @@ CONTAINS
     CALL stop_clock ('calc_vstern')
     !
     RETURN
+    !
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_vstern
 !---------------------------------------------------------------------------

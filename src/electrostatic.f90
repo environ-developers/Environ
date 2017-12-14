@@ -181,6 +181,7 @@ CONTAINS
     USE poisson, ONLY : poisson_energy
     USE generalized, ONLY: generalized_energy
     USE linearized_pb, ONLY: linearized_pb_energy
+    USE poisson_boltzmann, ONLY : pb_energy
 
     IMPLICIT NONE
 
@@ -221,8 +222,7 @@ CONTAINS
        IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
 
-       CALL errore( sub_name, 'option not yet implemented', 1 )
-!       CALL pb_energy()
+       CALL pb_energy( setup % core, charges, potential, energy)
 
     CASE DEFAULT
 

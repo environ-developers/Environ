@@ -10,7 +10,7 @@ MODULE poisson_boltzmann
 
   PRIVATE
 
-  PUBLIC :: pb_direct
+  PUBLIC :: pb_direct, pb_energy
 
   INTERFACE pb_direct
      MODULE PROCEDURE pb_direct_charges, pb_direct_density
@@ -41,7 +41,7 @@ CONTAINS
     IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
          & CALL errore(sub_name,'Missing electrolyte definition',1)
     !
-    IF ( .NOT. ( core%need_correction .AND. core%correction%type .NE. 'stern' ) ) &
+    IF ( .NOT. ( core%need_correction .AND. core%correction%type .EQ. 'stern' ) ) &
          & CALL errore(sub_name,'Direct solution of PB only through analytic PBC correction',1)
     !
     ! Compute electrostatic potential
@@ -106,7 +106,7 @@ CONTAINS
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
     cell => charges % cell
     !
-    IF ( .NOT. ( core%need_correction .AND. core%correction%type .NE. 'stern' ) ) &
+    IF ( .NOT. ( core%need_correction .AND. core%correction%type .EQ. 'stern' ) ) &
          & CALL errore(sub_name,'Direct solution of PB only through analytic PBC correction',1)
     !
     ! ... Using a local variable for the potential because the
@@ -156,6 +156,53 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE pb_direct_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE pb_energy( core, charges, potential, energy )
+!--------------------------------------------------------------------
+    !
+    USE generalized, ONLY : generalized_energy
+    USE poisson, ONLY : poisson_energy
+    !
+    IMPLICIT NONE
+    !
+    TYPE( electrostatic_core ), INTENT(IN) :: core
+    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(IN) :: potential
+    REAL( DP ), INTENT(OUT) :: energy
+    !
+    CHARACTER( LEN = 80 ) :: sub_name = 'pb_direct_charges'
+    !
+    ! Aliases and sanity checks
+    !
+    IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
+         & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
+    !
+    IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
+         & CALL errore(sub_name,'Missing electrolyte definition',1)
+    !
+    ! Compute electrostatic energy
+    !
+    IF ( charges % electrolyte % permittivity .GT. 1.D0 ) THEN
+       !
+       ! If there is a dielectric embedding, follow the generalized gradient path
+       !
+       IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
+            & CALL errore(sub_name,'Missing dielectric definition',1)
+       CALL generalized_energy( core, charges, potential, energy )
+       !
+    ELSE
+       !
+       ! Otherwise, in vacuum follow the poisson path
+       !
+       CALL poisson_energy( core, charges, potential, energy )
+       !
+    END IF
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE pb_energy
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE poisson_boltzmann
