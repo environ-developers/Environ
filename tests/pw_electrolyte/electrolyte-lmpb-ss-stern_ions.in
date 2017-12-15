@@ -1,0 +1,28 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_static_permittivity = 20. 
+   env_ioncc_ntyp = 2
+   solvent_temperature = 300.
+   cion(1) = 8.D0
+   cion(2) = 8.D0
+   zion(1) = 1
+   zion(2) = -1
+   rion(1) = 2.D0
+   rion(2) = 2.D0
+   stern_entropy = 'ions'
+   !
+ /
+ &BOUNDARY
+   !
+   stern_mode = 'ionic'
+   alphapb = 1.5D0
+   !
+ /
+ &ELECTROSTATIC
+   !
+   pbc_correction = 'parabolic'
+   pbc_dim = 0
+   !
+ /

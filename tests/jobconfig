@@ -28,15 +28,19 @@ inputs_args = ('neutral.in', 'dielectric-sccs-default.in'), ('neutral.in', 'diel
 
 [pw_surface/]
 program = PW
-inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-stype0.in'), ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-stype2.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), ('pw.in', 'surface-sys-default.in'), ('pw.in', 'surface-sys-fft.in') 
+inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-stype0.in'), ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-stype2.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), ('pw.in', 'surface-sys-default.in'), ('pw.in', 'surface-sys-fft.in')
 
 [pw_volume/]
 program = PW
-inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-sccs-stype0.in'), ('pw.in', 'volume-sccs-stype1.in'), ('pw.in', 'volume-sccs-stype2.in'), ('pw.in', 'volume-ss-default.in'), ('pw.in', 'volume-sys-default.in') 
+inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-sccs-stype0.in'), ('pw.in', 'volume-sccs-stype1.in'), ('pw.in', 'volume-sccs-stype2.in'), ('pw.in', 'volume-ss-default.in'), ('pw.in', 'volume-sys-default.in')
+
+[pw_electrolyte/]
+program = PW
+inputs_args = ('pw.in', 'electrolyte-lmpb-sccs-stern_full.in'), ('pw.in', 'electrolyte-lmpb-sccs-stern_ions.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_full.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_ions.in'), ('pw.in', 'electrolyte-lpb-sccs.in'), ('pw.in', 'electrolyte-lpb-ss.in')
 
 [pw_*/]
 program = PW
 
 [categories]
-pw_all = pw_*?? 
-_default_ = pw_*?? 
+pw_all = pw_*??
+_default_ = pw_*??
