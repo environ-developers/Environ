@@ -60,6 +60,7 @@ SUBROUTINE lr_readin
   USE control_lr,          ONLY : lrpa
 #if defined(__ENVIRON)
   USE plugin_flags,        ONLY : use_environ
+  USE environ_output,      ONLY : set_environ_output
   USE environ_input,       ONLY : read_environ
   USE ions_base,           ONLY : nsp, atm, ityp, zv, tau, nat
   USE cell_base,           ONLY : at, alat, omega, ibrav
@@ -436,6 +437,7 @@ SUBROUTINE lr_readin
      !
      ! Copied from PW/src/input.f90
      !
+     CALL set_environ_output("TD", ionode, ionode_id, intra_image_comm, stdout)
      CALL read_environ( "TD", NINT(nelec), nspin, nat, nsp, atm, assume_isolated )
      !
      ! Taken from PW/src/init_run.f90
