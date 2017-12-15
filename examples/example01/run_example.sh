@@ -91,8 +91,10 @@ environ_type='vacuum' # type of environment
                       # water: parameters from experimental values 
                       #        and specifically tuned
 ### ITERATIVE SOLVER PARAMETERS #####################################
-tolrhopol='1.d-11'  # tolerance of the iterative solver
-mixrhopol='0.6'     # polarization mixing for the iterative solver
+solver='iterative' # iterative solver
+auxiliary='full'   # solve for the polarization charge density
+tol='1.d-11'       # tolerance of the iterative solver
+mix='0.6'          # polarization mixing for the iterative solver
 #####################################################################
 
 for environ_type in vacuum water ; do 
@@ -127,7 +129,7 @@ for environ_type in vacuum water ; do
    celldm(1) = 20
    nat = 3
    ntyp = 2
-   assume_isolated = 'makov-payne'
+   assume_isolated = 'pcc'
    !
 /
  &ELECTRONS
@@ -157,9 +159,17 @@ EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = '$environ_type'
-   tolrhopol = $tolrhopol
-   mixrhopol = $mixrhopol
    !
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+   !
+   tol = $tol
+   mix = $mix
+   solver = '$solver'
+   auxiliary = '$auxiliary'
+   !  
  /
 EOF
    

@@ -18,7 +18,7 @@ $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012
 $ECHO
 $ECHO "coupled with different periodic-boundary correction schemes "
 $ECHO
-$ECHO "   O. Andreussi and N. Marzari, submitted to J. Chem. Phys. "
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
 
 # set the needed environment variables
 . ../../../environment_variables
@@ -97,8 +97,6 @@ environ_type='input'  # type of environment
 ### PERIODIC BOUNDARY CONDITIONS ####################################
 assume_isolated='none' # correction scheme to remove pbc 
                        # none: periodic calculation, no correction
-                       # makov-payne: post-processing correction
-                       #   only corrects the total energy
                        # martyna-tuckerman: on-the-fly correction of
                        #   the potential in G-space, fast and no error
                        #   but requires a cell at least 2xsize of sytem
@@ -107,7 +105,7 @@ assume_isolated='none' # correction scheme to remove pbc
                        #   (cell size)^-5
 #####################################################################
 
-for assume_isolated in none makov-payne martyna-tuckerman pcc ; do 
+for assume_isolated in none martyna-tuckerman pcc ; do 
 
 for epsilon in 01 80 ; do 
 
@@ -169,7 +167,7 @@ N   14      N.pbe-rrkjus.UPF
 C   12      C.pbe-rrkjus.UPF
 H    1      H.pbe-rrkjus.UPF
 ATOMIC_POSITIONS (angstrom)
-H        2.418655660   0.000000226   0.001997570
+H       -2.418655660   0.000000226   0.001997570
 N       -1.294053698   0.000000088   0.001601933
 C       -0.652551721   1.189250860   0.001097976
 C        0.729271251   1.209271597   0.000774029
@@ -188,12 +186,18 @@ EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = '$environ_type'
-   tolrhopol = 1.D-12
-   mixrhopol = 0.6
    env_static_permittivity = $epsilon
    env_surface_tension = 0.D0
    env_pressure = 0.D0
    !
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+   solver = 'iterative'
+   auxiliary = 'full'
+   tol = 1.D-12
+   mix = 0.6
  /
 EOF
 

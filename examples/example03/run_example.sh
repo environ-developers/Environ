@@ -18,7 +18,7 @@ $ECHO
 $ECHO "and with open boundary conditions along the axis perpendicular "
 $ECHO "to the slab plane, as described in "
 $ECHO
-$ECHO "   O. Andreussi and N. Marzari, submitted to J. Chem. Phys. "
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) "
 
 # set the needed environment variables
 . ../../../environment_variables
@@ -94,12 +94,14 @@ environ_type='input'  # type of environment
                       # vacuum: all flags off, no environ 
                       # water: parameters from experimental values 
                       #        and specifically tuned
-eps_mode='full'       # specify the charge density that is used to 
+boundary_mode='full'  # specify the charge density that is used to 
                       # build the dielectric cavity:
                       # electronic: use the electronic density (default)
-                      # ionic: use a fictitious charge density centered
-                      #        on atoms, exponentially decay with spread
-                      #        specified by solvationrad(ityp)
+                      # ionic: use a fictitious charge density calculated
+                      #        for atomic-centered interlocking spheres, 
+                      #        whose analytical expression is based on the
+                      #        error function (see Fisicaro et al. JCTC 13, 
+                      #        3829 (2017)).
                       # full: same as electronic, but a small extra 
                       #       density is added on the nuclei to avoid
                       #       spurious holes in the density due to 
@@ -201,12 +203,22 @@ EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = '$environ_type'
-   eps_mode = '$eps_mode'
-   tolrhopol = 5.D-13
-   mixrhopol = 0.6
    env_static_permittivity = $epsilon
    env_surface_tension = 0.D0
    env_pressure = 0.D0
+   !
+ /
+ &BOUNDARY
+   !
+   boundary_mode = '$boundary_mode'
+   !
+ /
+ &ELECTROSTATIC
+   !
+   solver = 'iterative'
+   auxiliary = 'full'
+   tol = 5.D-13
+   mix = 0.6
    !
  /
 EOF

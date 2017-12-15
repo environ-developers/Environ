@@ -3,7 +3,7 @@ example01: pw.x
            including electrostatic/cavitation/PV contributions
 example02: pw.x 
            use of different periodic boundary correction schemes for charged isolated systems
-	   in vacuum and in solution: Makov-Payne, Martyna-Tuckerman, Point-Counter-Charge (parabolic)
+	   in vacuum and in solution: Martyna-Tuckerman or Point-Counter-Charge (parabolic)
 example03: pw.x 
            use of parabolic correction for periodic boundary conditions in 
            neutral and charged 2D systems (slab)

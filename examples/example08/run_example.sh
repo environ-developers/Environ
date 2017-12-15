@@ -94,12 +94,14 @@ environ_type='vacuum' # type of environment
                       # water: parameters from experimental values 
                       #        and specifically tuned
 ### ITERATIVE SOLVER PARAMETERS #####################################
-tolrhopol='1.d-6'     # tolerance of the iterative solver
-mixtype='pcg'         # type of poisson solver
-                      # pcg: preconditioned conjugate gradient
-                      # psd: preconditioned steepest descent
-                      # linear/anderson/diis: iterative approach on 
-                      #      polarization charge with different mix
+tol='1.d-11'     # tolerance of the iterative solver
+solver='cg'      # type of poisson solver
+                 # cg: conjugate gradient, default with sqrt preconditioner
+                 # sd: steepest descent, default with sqrt preconditioner
+                 # iterative: iterative approach
+auxiliary='none' # quantity to be solved for
+                 # none: solve for the potential
+                 # full: solve for the polarization charge
 #####################################################################
 
 for environ_type in vacuum water ; do 
@@ -134,7 +136,7 @@ for environ_type in vacuum water ; do
    celldm(1) = 20
    nat = 3
    ntyp = 2
-   assume_isolated = 'makov-payne'
+   assume_isolated = 'pcc'
    !
 /
  &ELECTRONS
@@ -164,8 +166,14 @@ EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = '$environ_type'
-   tolrhopol = $tolrhopol
-   mixtype = '$mixtype' 
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+   !
+   solver = '$solver'
+   auxiliary ='$auxiliary'
+   tol = $tol
    !
  /
 EOF

@@ -8,7 +8,7 @@ by the electronic density, according to the  model of Fattebert
 and Gygi, Int J Quantum Chem 93, 139 (2003), revised by O. Andreussi, I. Dabo 
 and N. Marzari, J. Chem. Phys. 136, 064102 (2012) 
 
-Mind that for  Makov-Payne correction ( assume_isolated='makov-payne' keyword )
+Mind that the parabolic correction ( point-countercharge method, assume_isolated='pcc' keyword )
 is used for both the calculation in vacuum and in the solvent.
 
 Additional term of solvation can be computed by changing the specific keywords:

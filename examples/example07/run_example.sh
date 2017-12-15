@@ -90,8 +90,8 @@ environ_type='vacuum' # type of environment
                       # water: parameters from experimental values 
                       #        and specifically tuned
 ### ITERATIVE SOLVER PARAMETERS #####################################
-tolrhopol='1.d-12'  # tolerance of the iterative solver
-mixrhopol='0.6'     # polarization mixing for the iterative solver
+tol='1.d-12'  # tolerance of the iterative solver
+mix='0.6'     # polarization mixing for the iterative solver
 #####################################################################
 
 for environ_type in vacuum water ; do 
@@ -168,8 +168,16 @@ EOF
    verbose = $verbose
    environ_nskip = $environ_nskip
    environ_type = '$environ_type'
-   tolrhopol = $tolrhopol
-   mixrhopol = $mixrhopol
+   !
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+   !
+   solver = 'iterative'
+   auxiliary = 'full'
+   tol = $tol
+   mix = $mix
    !
  /
 EOF

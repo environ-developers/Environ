@@ -18,7 +18,7 @@ $ECHO
 $ECHO "and with open boundary conditions along the axis perpendicular "
 $ECHO "to the slab plane, as described in "
 $ECHO
-$ECHO "   O. Andreussi and N. Marzari, submitted to J. Chem. Phys. "
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
 
 # set the needed environment variables
 . ../../../environment_variables
@@ -202,13 +202,20 @@ EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = 'input'
-   eps_mode = 'full'
-   tolrhopol = 5.D-13
-   mixrhopol = 0.6
    env_static_permittivity = $epsilon
    env_surface_tension = 0.D0
    env_pressure = 0.D0
    env_external_charges = $env_extcharge_n
+   !
+ /
+ &BOUNDARY
+   !
+   boundary_mode = 'full'
+   !
+ /
+ &ELECTROSTATIC
+   !
+   tol = 5.D-13
    !
  /
  EXTERNAL_CHARGES (bohr)

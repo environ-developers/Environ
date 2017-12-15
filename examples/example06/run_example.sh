@@ -89,8 +89,8 @@ env_optical_permittivity=1.776 # optical permittivity of water
 env_surface_tension=0.0        # surface tension (not supported by TDDFPT)
 env_pressure=0.0               # pressure (not supported by TDDFPT)
 ### ITERATIVE SOLVER PARAMETERS #####################################
-tolrhopol='1.d-12'             # tolerance of the iterative solver
-mixrhopol='0.6'                # polarization mixing for the iterative solver
+tol='1.d-12'  # tolerance of the iterative solver
+mix='0.6'     # polarization mixing for the iterative solver
 #####################################################################
 
 for environ_type in vacuum input ; do 
@@ -125,12 +125,20 @@ cat > environ.in << EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = '$environ_type'
-   tolrhopol = $tolrhopol
-   mixrhopol = $mixrhopol
    env_static_permittivity = $env_static_permittivity
    env_optical_permittivity = $env_optical_permittivity
    env_surface_tension = $env_surface_tension
    env_pressure = $env_pressure
+   !
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+   !
+   solver = 'iterative'
+   auxiliary = 'full'
+   tol = $tol
+   mix = $mix
    !
  /
 EOF
