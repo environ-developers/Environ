@@ -160,7 +160,7 @@ USE    environ_output, ONLY : environ_summary \
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL update_output_program_unit( stdout )
+   if(use_environ) CALL update_output_program_unit( stdout ) \
    if(use_environ) CALL environ_summary() \
 !Environ patch
 ' tmp.1 > tmp.2
