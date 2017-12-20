@@ -1125,7 +1125,7 @@ CONTAINS
       ! ... to fit a solvent molecule
       !
       USE functions, ONLY: density_of_functions
-      USE generate_function, ONLY : compute_convolution_fft
+      USE environ_generate_function, ONLY : compute_convolution_fft
       !
       IMPLICIT NONE
       !
@@ -1302,7 +1302,7 @@ CONTAINS
       ! ... Fill voids of the continuum interface that are too small
       ! ... to fit a solvent molecule
       !
-      USE generate_function, ONLY : compute_convolution_fft
+      USE environ_generate_function, ONLY : compute_convolution_fft
       !
       IMPLICIT NONE
       !
@@ -1349,7 +1349,7 @@ CONTAINS
 !--------------------------------------------------------------------
       !
       USE functions, ONLY : gradient_of_functions, laplacian_of_functions, hessian_of_functions
-      USE generate_function, ONLY : compute_convolution_fft
+      USE environ_generate_function, ONLY : compute_convolution_fft
       !
       IMPLICIT NONE
       !

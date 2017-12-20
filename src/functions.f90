@@ -1,7 +1,7 @@
 MODULE functions
 
   USE environ_types
-  USE generate_function
+  USE environ_generate_function
 
   PRIVATE
 
