@@ -154,7 +154,8 @@ mv tmp.2 plugin_clean.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    io_global,      ONLY : stdout \
-USE    environ_output, ONLY : environ_summary \
+USE    environ_output, ONLY : environ_summary, & \
+                              update_output_program_unit \
 !Environ patch
 ' plugin_summary.f90 > tmp.1
 
