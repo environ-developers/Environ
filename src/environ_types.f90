@@ -165,6 +165,7 @@ MODULE environ_types
   TYPE environ_electrons
 
      LOGICAL :: update = .FALSE.
+     LOGICAL :: initialized = .FALSE.
      INTEGER :: number = 0
      INTEGER :: nspin = 1
 
@@ -179,6 +180,7 @@ MODULE environ_types
   TYPE environ_externals
 
      LOGICAL :: update = .FALSE.
+     LOGICAL :: initialized = .FALSE.
      INTEGER :: number = 0
 
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: functions
@@ -221,6 +223,7 @@ MODULE environ_types
      INTEGER :: number = 0
      REAL( DP ) :: charge = 0.0_DP
      TYPE( environ_density ) :: density
+     LOGICAL :: initialized = .FALSE.
 
   END TYPE environ_charges
 
@@ -247,6 +250,8 @@ MODULE environ_types
      ! Update status
 
      INTEGER :: update_status = 0
+
+     LOGICAL :: initialized = .FALSE.
 
      ! Parameters for the electrons-dependent interface
 
@@ -319,6 +324,8 @@ MODULE environ_types
 
      LOGICAL :: update = .FALSE.
 
+     LOGICAL :: initialized = .FALSE.
+
      ! Basic properties of the dielectric space from input
 
      INTEGER :: nregions
@@ -381,6 +388,8 @@ MODULE environ_types
      ! Update status
 
      LOGICAL :: update = .FALSE.
+
+     LOGICAL :: initialized = .FALSE.
 
      CHARACTER( LEN=80 ) :: stern_entropy
      LOGICAL :: linearized = .FALSE.
@@ -1019,6 +1028,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nelec, nspin
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
 
+    electrons%initialized = .FALSE.
     electrons%number = nelec
     electrons%nspin = nspin
 
@@ -1034,6 +1044,8 @@ CONTAINS
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
 
     CALL init_environ_density( cell, electrons%density )
+
+    electrons%initialized = .TRUE.
 
     RETURN
 
@@ -1083,7 +1095,10 @@ CONTAINS
     LOGICAL, INTENT(IN) :: lflag
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
 
-    CALL destroy_environ_density( electrons%density )
+    IF ( electrons%initialized ) THEN
+       CALL destroy_environ_density( electrons%density )
+       electrons%charge = 0.D0
+    END IF
 
     RETURN
 

@@ -657,12 +657,14 @@ CONTAINS
       !
       ! ... Deallocate environment variables
       !
-      CALL destroy_environ_density( vzero )
+      IF ( ASSOCIATED( vzero%cell ) ) CALL destroy_environ_density( vzero )
       !
       ! ... environ_base variables
       !
-      IF ( lelectrostatic ) CALL destroy_environ_density( vreference )
-      IF ( lsoftcavity ) CALL destroy_environ_density( vsoftcavity )
+      IF ( lelectrostatic .AND. ASSOCIATED( vreference%cell ) ) &
+         & CALL destroy_environ_density( vreference )
+      IF ( lsoftcavity .AND. ASSOCIATED( vsoftcavity%cell ) ) &
+         & CALL destroy_environ_density( vsoftcavity )
       !
       ! ... destroy derived types which were allocated in input
       !
@@ -708,13 +710,16 @@ CONTAINS
       !
       LOGICAL :: opnd
       !
-      INQUIRE( unit=environ_unit, opened= opnd )
-      IF ( opnd ) CLOSE(unit=environ_unit)
+      IF ( lflag ) THEN
+         INQUIRE( unit=environ_unit, opened= opnd )
+         IF ( opnd ) CLOSE(unit=environ_unit)
+      END IF
       !
       ! ... environ_base variables
       !
       IF ( lelectrostatic ) THEN
-         CALL destroy_environ_density( velectrostatic )
+         IF ( ASSOCIATED( velectrostatic%cell ) ) &
+             & CALL destroy_environ_density( velectrostatic )
          CALL electrostatic_clean( lflag )
       END IF
       !

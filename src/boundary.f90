@@ -160,6 +160,8 @@ CONTAINS
     boundary%filling_threshold = filling_threshold
     boundary%filling_spread = filling_spread
 
+    boundary%initialized = .FALSE.
+
     RETURN
 
   END SUBROUTINE init_environ_boundary_first
@@ -189,6 +191,8 @@ CONTAINS
        CALL init_environ_density( cell, boundary%dfilling )
        IF ( boundary%deriv .GE. 3 ) CALL init_environ_hessian( cell, boundary%hessian )
     ENDIF
+
+    boundary%initialized = .TRUE.
 
     RETURN
 
@@ -228,6 +232,7 @@ CONTAINS
     bcopy % solvent_aware     = boriginal % solvent_aware
     bcopy % filling_threshold = boriginal % filling_threshold
     bcopy % filling_spread    = boriginal % filling_spread
+    bcopy % initialized       = boriginal % initialized
 
     CALL copy_environ_density   ( boriginal % scaled        , bcopy % scaled        )
     CALL copy_environ_gradient  ( boriginal % gradient      , bcopy % gradient      )
@@ -446,23 +451,29 @@ CONTAINS
 
     ENDIF
 
-    CALL destroy_environ_density( boundary%scaled )
-    IF ( boundary%mode .NE. 'ionic' ) THEN
-       CALL destroy_environ_density( boundary%density )
-       CALL destroy_environ_density( boundary%dscaled )
-       CALL destroy_environ_density( boundary%d2scaled )
-    ENDIF
-    IF ( boundary%deriv .GE. 1 ) CALL destroy_environ_gradient( boundary%gradient )
-    IF ( boundary%deriv .GE. 2 ) CALL destroy_environ_density( boundary%laplacian )
-    IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_density( boundary%dsurface )
+    IF ( boundary%initialized ) THEN
 
-    IF ( boundary%solvent_aware ) THEN
-       CALL destroy_environ_density( boundary%local )
-       CALL destroy_environ_density( boundary%probe )
-       CALL destroy_environ_density( boundary%filling )
-       CALL destroy_environ_density( boundary%dfilling )
-       IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_hessian( boundary%hessian )
-    ENDIF
+       CALL destroy_environ_density( boundary%scaled )
+       IF ( boundary%mode .NE. 'ionic' ) THEN
+          CALL destroy_environ_density( boundary%density )
+          CALL destroy_environ_density( boundary%dscaled )
+          CALL destroy_environ_density( boundary%d2scaled )
+       ENDIF
+       IF ( boundary%deriv .GE. 1 ) CALL destroy_environ_gradient( boundary%gradient )
+       IF ( boundary%deriv .GE. 2 ) CALL destroy_environ_density( boundary%laplacian )
+       IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_density( boundary%dsurface )
+
+       IF ( boundary%solvent_aware ) THEN
+          CALL destroy_environ_density( boundary%local )
+          CALL destroy_environ_density( boundary%probe )
+          CALL destroy_environ_density( boundary%filling )
+          CALL destroy_environ_density( boundary%dfilling )
+          IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_hessian( boundary%hessian )
+       ENDIF
+
+       boundary%initialized = .FALSE.
+
+    END IF
 
     RETURN
 

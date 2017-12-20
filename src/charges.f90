@@ -96,6 +96,7 @@ CONTAINS
        charges%electrolyte => electrolyte
     ENDIF
 
+    charges%initialized = .FALSE.
 !--------------------------------------------------------------------
   END SUBROUTINE init_environ_charges_first
 !--------------------------------------------------------------------
@@ -110,6 +111,7 @@ CONTAINS
 
 
     CALL init_environ_density( cell, charges%density )
+    charges%initialized = .TRUE.
 
     RETURN
 
@@ -227,7 +229,12 @@ CONTAINS
 
     END IF
 
-    CALL destroy_environ_density( charges%density )
+    IF ( charges % initialized ) THEN
+
+      CALL destroy_environ_density( charges%density )
+      charges%initialized = .FALSE.
+
+    END IF
 
     RETURN
 

@@ -84,6 +84,7 @@ MODULE electrostatic_types
   TYPE oned_analytic_core
 
      INTEGER :: n, d, p, axis
+     LOGICAL :: initialized = .FALSE.
      REAL( DP ) :: size, omega, alat, origin(3)
      REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: x
 
@@ -252,11 +253,13 @@ CONTAINS
     LOGICAL, INTENT(IN) :: lflag
     TYPE( electrostatic_solver ), INTENT(INOUT) :: solver
 
-    solver % use_direct = .FALSE.
-    solver % use_gradient = .FALSE.
-    NULLIFY( solver % gradient )
-    solver % use_iterative = .FALSE.
-    NULLIFY( solver % iterative )
+    IF ( lflag ) THEN
+       solver % use_direct = .FALSE.
+       solver % use_gradient = .FALSE.
+       NULLIFY( solver % gradient )
+       solver % use_iterative = .FALSE.
+       NULLIFY( solver % iterative )
+    END IF
 
     RETURN
 
@@ -361,6 +364,8 @@ CONTAINS
          & CALL errore(sub_name,'Wrong choice of axis for analytic one dimensional core',1)
     oned_analytic % axis = axis
 
+    oned_analytic % initialized = .FALSE.
+
     RETURN
 
   END SUBROUTINE init_oned_analytic_core_first
@@ -380,6 +385,8 @@ CONTAINS
     oned_analytic % omega = cell % omega
 
     ALLOCATE( oned_analytic % x( oned_analytic % p , oned_analytic % n ) )
+
+    oned_analytic % initialized = .TRUE.
 
     RETURN
 
@@ -408,7 +415,7 @@ CONTAINS
 
   SUBROUTINE update_oned_analytic_core_origin( origin, oned_analytic )
 
-    USE generate_function, ONLY : generate_axis, generate_distance
+    USE environ_generate_function, ONLY : generate_axis, generate_distance
 
     IMPLICIT NONE
 
@@ -439,9 +446,12 @@ CONTAINS
 
     CHARACTER( LEN = 80 ) :: sub_name = 'destroy_oned_analytic_core'
 
-    IF ( .NOT. ALLOCATED( oned_analytic % x ) ) &
-         & CALL errore(sub_name,'Trying to destroy a non-allocated component',1)
-    DEALLOCATE( oned_analytic % x )
+    IF (oned_analytic % initialized ) THEN
+      IF ( .NOT. ALLOCATED( oned_analytic % x ) ) &
+           & CALL errore(sub_name,'Trying to destroy a non-allocated component',1)
+      DEALLOCATE( oned_analytic % x )
+      oned_analytic % initialized = .FALSE.
+    END IF
 
     RETURN
 
@@ -535,12 +545,14 @@ CONTAINS
     LOGICAL, INTENT(IN) :: lflag
     TYPE( electrostatic_core ), INTENT(INOUT) :: core
 
-    core % use_qe_fft = .FALSE.
-    NULLIFY( core % qe_fft )
-    core % use_oned_analytic = .FALSE.
-    NULLIFY( core % oned_analytic )
-    core % need_correction = .FALSE.
-    NULLIFY( core % correction )
+    IF ( lflag ) THEN
+       core % use_qe_fft = .FALSE.
+       NULLIFY( core % qe_fft )
+       core % use_oned_analytic = .FALSE.
+       NULLIFY( core % oned_analytic )
+       core % need_correction = .FALSE.
+       NULLIFY( core % correction )
+    END IF
 
     RETURN
 
@@ -631,10 +643,12 @@ CONTAINS
     LOGICAL, INTENT(IN) :: lflag
     TYPE( electrostatic_setup ), INTENT(INOUT) :: setup
 
-    NULLIFY( setup % solver )
-    NULLIFY( setup % core )
-    setup % nested_problem = .FALSE.
-    NULLIFY( setup % inner )
+    IF ( lflag ) THEN
+       NULLIFY( setup % solver )
+       NULLIFY( setup % core )
+       setup % nested_problem = .FALSE.
+       NULLIFY( setup % inner )
+    END IF
 
     RETURN
 

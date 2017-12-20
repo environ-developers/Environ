@@ -66,6 +66,7 @@ MODULE externals_utils
        externals%functions(i)%width  = spreads(i)
        externals%functions(i)%volume = -charge(i)
     ENDDO
+    externals%initialized = .FALSE.
 
     RETURN
 
@@ -87,6 +88,7 @@ MODULE externals_utils
     END IF
 
     CALL init_environ_density( cell, externals%density )
+    externals%initialized = .TRUE.
 
     RETURN
 
@@ -115,7 +117,10 @@ MODULE externals_utils
 
     IF ( lflag ) CALL destroy_environ_functions( externals%number, externals%functions )
 
-    CALL destroy_environ_density( externals%density )
+    IF ( externals%initialized ) THEN
+      CALL destroy_environ_density( externals%density )
+      externals%initialized = .FALSE.
+    END IF
 
     RETURN
 

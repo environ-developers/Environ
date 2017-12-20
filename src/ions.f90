@@ -312,10 +312,16 @@ CONTAINS
 
     ENDIF
 
-    IF ( ions%use_smeared_ions ) THEN
-       CALL destroy_environ_density( ions%density )
-       CALL destroy_environ_functions( ions%number, ions%smeared_ions )
-    ENDIF
+    IF ( ions%initialized ) THEN
+
+       IF ( ions%use_smeared_ions ) THEN
+          CALL destroy_environ_density( ions%density )
+          CALL destroy_environ_functions( ions%number, ions%smeared_ions )
+       ENDIF
+       ions%charge = 0.D0
+       ions%initialized = .FALSE.
+
+    END IF
 
     RETURN
 

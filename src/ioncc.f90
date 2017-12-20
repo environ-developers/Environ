@@ -75,8 +75,7 @@ CONTAINS
     label = 'electrolyte'
     CALL create_environ_density( electrolyte%density, label )
 
-    IF ( ALLOCATED( electrolyte%ioncctype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-
+!    IF ( ALLOCATED( electrolyte%ioncctype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
     electrolyte % charge = 0.D0
 
     RETURN
@@ -133,12 +132,15 @@ CONTAINS
 
     ! ... Setup all electrolyte parameters (with checks)
 
+    electrolyte%initialized = .FALSE.
     electrolyte%linearized = linearized
     electrolyte%ntyp = ntyp
     electrolyte%stern_entropy = TRIM( stern_entropy )
     electrolyte%temperature = temperature
     electrolyte%cmax = 0.D0
 
+    IF ( ALLOCATED( electrolyte%ioncctype ) ) &
+       CALL errore(sub_name,'Trying to allocate an already allocated object',1)
     ALLOCATE( electrolyte%ioncctype(ntyp) )
 
     neutral = 0.D0
@@ -223,6 +225,8 @@ CONTAINS
     IF ( electrolyte % linearized ) THEN
       CALL init_environ_density( cell, electrolyte % de_dboundary_second_order )
     END IF
+
+    electrolyte%initialized = .TRUE.
 
     RETURN
 
@@ -610,28 +614,32 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'destroy_environ_electrolyte'
     INTEGER :: ityp
 
-    IF ( lflag ) THEN
-       ! These components were allocated first, destroy only if lflag = .TRUE.
-       IF ( .NOT. ALLOCATED( electrolyte%ioncctype ) ) &
-            & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+    IF ( electrolyte%initialized ) THEN
 
        DO ityp = 1, electrolyte%ntyp
          CALL destroy_environ_density( electrolyte%ioncctype(ityp)%c )
          CALL destroy_environ_density( electrolyte%ioncctype(ityp)%cfactor )
        END DO
 
-       DEALLOCATE( electrolyte%ioncctype )
+       CALL destroy_environ_boundary( lflag, electrolyte%boundary )
+       CALL destroy_environ_density( electrolyte%gamma   )
+       CALL destroy_environ_density( electrolyte%dgamma  )
+       CALL destroy_environ_density( electrolyte%density )
 
-    ENDIF
+       IF ( electrolyte % linearized ) THEN
+          CALL destroy_environ_density( electrolyte%de_dboundary_second_order )
+       END IF
 
-    CALL destroy_environ_boundary( lflag, electrolyte%boundary )
-    CALL destroy_environ_density( electrolyte%gamma   )
-    CALL destroy_environ_density( electrolyte%dgamma  )
-    CALL destroy_environ_density( electrolyte%density )
+       electrolyte%initialized = .FALSE.
 
-    IF ( electrolyte % linearized ) THEN
-      CALL destroy_environ_density( electrolyte%de_dboundary_second_order )
     END IF
+
+    IF ( lflag ) THEN
+       ! These components were allocated first, destroy only if lflag = .TRUE.
+       IF ( .NOT. ALLOCATED( electrolyte%ioncctype ) ) &
+            & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+       DEALLOCATE( electrolyte%ioncctype )
+    ENDIF
 
     RETURN
 

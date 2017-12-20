@@ -96,6 +96,8 @@ CONTAINS
 
     dielectric%need_auxiliary = need_auxiliary
 
+    dielectric%initialized = .FALSE.
+
     RETURN
 
   END SUBROUTINE init_environ_dielectric_first
@@ -154,6 +156,8 @@ CONTAINS
 
     CALL init_environ_density( cell, dielectric%density )
     IF ( dielectric%need_auxiliary ) CALL init_environ_density( cell, dielectric%iterative )
+
+    dielectric%initialized = .TRUE.
 
     RETURN
 
@@ -524,21 +528,27 @@ CONTAINS
 
     END IF
 
-    CALL destroy_environ_density( dielectric%background )
-    IF ( dielectric % nregions .GT. 0 ) THEN
-       CALL destroy_environ_gradient( dielectric%gradbackground )
-       IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%laplbackground )
+    IF ( dielectric%initialized ) THEN
+
+       CALL destroy_environ_density( dielectric%background )
+       IF ( dielectric % nregions .GT. 0 ) THEN
+          CALL destroy_environ_gradient( dielectric%gradbackground )
+          IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%laplbackground )
+       END IF
+
+       CALL destroy_environ_density( dielectric%epsilon )
+       CALL destroy_environ_density( dielectric%depsilon )
+
+       CALL destroy_environ_gradient( dielectric%gradlog )
+       IF ( dielectric%need_gradient ) CALL destroy_environ_gradient( dielectric%gradient )
+       IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%factsqrt )
+
+       CALL destroy_environ_density( dielectric%density )
+       IF ( dielectric%need_auxiliary ) CALL destroy_environ_density( dielectric%iterative )
+
+       dielectric%initialized = .FALSE.
+
     END IF
-
-    CALL destroy_environ_density( dielectric%epsilon )
-    CALL destroy_environ_density( dielectric%depsilon )
-
-    CALL destroy_environ_gradient( dielectric%gradlog )
-    IF ( dielectric%need_gradient ) CALL destroy_environ_gradient( dielectric%gradient )
-    IF ( dielectric%need_factsqrt ) CALL destroy_environ_density( dielectric%factsqrt )
-
-    CALL destroy_environ_density( dielectric%density )
-    IF ( dielectric%need_auxiliary ) CALL destroy_environ_density( dielectric%iterative )
 
     RETURN
 
