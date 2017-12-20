@@ -153,12 +153,14 @@ mv tmp.2 plugin_clean.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
+USE    io_global,      ONLY : stdout
 USE    environ_output, ONLY : environ_summary \
 !Environ patch
 ' plugin_summary.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
+   if(use_environ) CALL update_output_program_unit( stdout )
    if(use_environ) CALL environ_summary() \
 !Environ patch
 ' tmp.1 > tmp.2
@@ -261,10 +263,8 @@ mv tmp.2 plugin_init_cell.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE klist,                 ONLY : nelec \
 USE environ_base,          ONLY : deenviron, eelectrostatic, & \
                                   ecavity, epressure, eelectrolyte \
-USE environ_init,          ONLY : environ_initelectrons \
 USE environ_main,          ONLY : calc_eenviron \
 !Environ patch
 ' plugin_scf_energy.f90 > tmp.1
@@ -272,10 +272,6 @@ USE environ_main,          ONLY : calc_eenviron \
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF(use_environ) THEN \
-        ! \
-        ! update electrons-related quantities in environ \
-        ! \
-        CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rhoin%of_r ) \
         ! \
         ! compute environ contributions to total energy \
         ! \
@@ -309,8 +305,10 @@ mv tmp.2 plugin_init_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
+USE klist,                 ONLY : nelec \
 USE environ_base,          ONLY : update_venviron, environ_thr, & \
                                   environ_restart \
+USE environ_init,          ONLY : environ_initelectrons \
 USE environ_main,          ONLY : calc_venviron \
 !Environ patch
 ' plugin_scf_potential.f90 > tmp.1
@@ -318,6 +316,10 @@ USE environ_main,          ONLY : calc_venviron \
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
      IF(use_environ) THEN \
+        ! \
+        ! update electrons-related quantities in environ \
+        ! \
+        CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rhoin%of_r ) \
         ! \
         ! environ contribution to the local potential \
         ! \
