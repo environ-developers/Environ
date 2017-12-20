@@ -44,7 +44,8 @@ MODULE environ_output
        & print_environ_ions, print_environ_electrons, &
        & print_environ_externals, print_environ_system, &
        & print_environ_boundary, print_environ_dielectric, &
-       & print_environ_electrolyte, print_environ_charges
+       & print_environ_electrolyte, print_environ_charges, &
+       & update_output_program_unit
 
 CONTAINS
 !--------------------------------------------------------------------
@@ -88,6 +89,20 @@ CONTAINS
 
 !--------------------------------------------------------------------
   END SUBROUTINE set_environ_output
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE update_output_program_unit( program_unit_ )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: program_unit_
+
+    program_unit = program_unit_
+
+    RETURN
+
+!--------------------------------------------------------------------
+  END SUBROUTINE update_output_program_unit
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE print_environ_cell( cell, local_verbose, local_depth )
