@@ -304,7 +304,6 @@ CONTAINS
 
     rho = 0.D0
     kT  = k_boltzmann_ry * electrolyte%temperature
-    e   = SQRT( e2 )
 
     CALL init_environ_density( potential%cell, denominator )
     denominator%of_r = 1.D0
@@ -315,7 +314,7 @@ CONTAINS
       !
       IF ( electrolyte % linearized ) THEN
          ! Linearized PB and Modified PB
-         cfactor = 1.D0 - electrolyte%ioncctype(ityp)%z*pot / kT * e
+         cfactor = 1.D0 - electrolyte%ioncctype(ityp)%z*pot / kT
          !
          IF ( electrolyte % cmax .GT. 0.D0 ) THEN
             !
@@ -334,11 +333,11 @@ CONTAINS
          !
          IF ( electrolyte % cmax .EQ. 0.D0 ) THEN
             ! PB
-            cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
+            cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT )
             !
          ELSE
             ! Modified PB
-            cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT * e )
+            cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT )
             factor = electrolyte%ioncctype(ityp)%cbulk / electrolyte%cmax
             !
             SELECT CASE ( electrolyte % stern_entropy )
@@ -367,7 +366,7 @@ CONTAINS
       cfactor => electrolyte%ioncctype(ityp)%cfactor%of_r
       !
       c   = gam * electrolyte%ioncctype(ityp)%cbulk * cfactor / denominator%of_r
-      rho = rho + c * electrolyte%ioncctype(ityp)%z * e
+      rho = rho + c * electrolyte%ioncctype(ityp)%z
       !
       NULLIFY( c )
       NULLIFY( cfactor )
@@ -389,13 +388,13 @@ CONTAINS
          !
          sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
          electrolyte % de_dboundary_second_order % of_r = &
-               & -0.5D0 * electrolyte%k2 / fpi * ( 1.D0 - sumcbulk / electrolyte%cmax ) * &
-               & ( pot / denominator%of_r ) ** 2.D0 * electrolyte % dgamma % of_r
+               & -0.5D0 * electrolyte%k2 / e2 / fpi * ( 1.D0 - sumcbulk / electrolyte%cmax ) * &
+               & ( pot / denominator%of_r ) ** 2 * electrolyte % dgamma % of_r
          !
       ELSE
          !
          electrolyte % de_dboundary_second_order % of_r = &
-               & -0.5D0 * electrolyte%k2 / fpi * pot * pot * electrolyte % dgamma % of_r
+               & -0.5D0 * electrolyte%k2 / e2 / fpi * pot * pot * electrolyte % dgamma % of_r
          !
       END IF
       !

@@ -286,11 +286,11 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
   CALL init_environ_density( cell, ionccfact )
 
   IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cmax .GT. 0.D0 ) THEN
-    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r / &
+    ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r / &
      & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cmax * (1.D0 - gam%of_r ))
 !    IF (ionode) print*, 'Linearized stern ions'
   ELSE
-    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r
+    ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r
   END IF
 
   ! ... Starting guess from new input and previous solution(s)
@@ -384,7 +384,7 @@ SUBROUTINE linearized_pb_gradient_sqrt( gradient, core, charges, dielectric, ele
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
-9005      FORMAT(' Charges are converged, exit!')
+9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
           IF ( ionode ) WRITE(program_unit,9006)
@@ -480,11 +480,11 @@ SUBROUTINE linearized_pb_gradient_vacuum( gradient, core, charges, electrolyte, 
   CALL init_environ_density( cell, ionccfact )
 
   IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cmax .GT. 0.D0 ) THEN
-    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r / &
+    ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r / &
      & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cmax * (1.D0 - gam%of_r ))
 !    print*, 'Linearized stern ions'
   ELSE
-    ionccfact%of_r = electrolyte%k2/fpi * gam%of_r
+    ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r
   END IF
 
   ! ... Starting guess from new input and previous solution(s)
@@ -576,7 +576,7 @@ SUBROUTINE linearized_pb_gradient_vacuum( gradient, core, charges, electrolyte, 
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
        IF ( delta_en .LT. tolvelect .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
-9005      FORMAT(' Charges are converged, exit!')
+9005      FORMAT(' Charges are converged, EXIT')
           EXIT
        ELSE IF ( iter .EQ. maxstep ) THEN
           IF ( ionode ) WRITE(program_unit,9006)
