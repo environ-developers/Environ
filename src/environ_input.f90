@@ -187,25 +187,6 @@ MODULE environ_input
 !
 ! Global parameters
 !
-        CHARACTER( LEN = 80 ) :: boundary_mode = 'electronic'
-        CHARACTER( LEN = 80 ) :: boundary_mode_allowed(8)
-        DATA boundary_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
-                              & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
-        ! eps_mode method for calculating the density that sets
-        ! the dielectric constant
-        ! electronic = dielectric depends self-consist. on electronic density
-        ! ionic = dielectric defined on a fictitious ionic density, generated
-        !         as the sum of exponential functions centered on atomic
-        !         positions of width specified in input by solvationrad(ityp)
-        ! full  = similar to electronic, but an extra density is added to
-        !         represent the core electrons and the nuclei. This extra
-        !         density is defined as the sum of gaussian functions centered
-        !         on atomic positions of width equal to corespread(ityp)
-        ! system = simplified regular dielectric defined to be outside a distance
-        !         eps_distance from the specified system
-        ! elec-sys = similar to electronic, but on top of the system dielectric
-        ! ionic-sys = similar to ionic, but on top of the system dielectric
-        ! full-sys = similar to full, but on top of the system dielectric
 !
 ! Rigid boundary (ionic) parameters
 !
@@ -216,41 +197,15 @@ MODULE environ_input
         ! pauling = R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
         ! bondi   = A. Bondi, J. Phys. Chem. 68, 441 (1964)
         ! uff     = A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
-        REAL(DP) :: alpha = 1.D0
-        ! scaling factor for ionic radii when boundary_mode = 'ionic'
-        REAL(DP) :: softness = 0.5D0
-        ! spread of the rigid interfaces
         REAL(DP) :: solvationrad(nsx) = -3.D0
         ! solvationrad radius of the solvation shell for each species when the
         ! ionic dielectric function is adopted, in internal units (a.u.)
-!
-! Soft boundary (electronic) parameters
-!
-        INTEGER :: stype = 2
-        ! type of switching functions used in the solvation models
-        !    0: original Fattebert-Gygi
-        !    1: ultrasoft switching function (only exponential part used for non-electrostatic)
-        !    2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
-        REAL(DP) :: rhomax = 0.005
-        ! first parameter of the sw function, roughly corresponding
-        ! to the density threshold of the solvation model
-        REAL(DP) :: rhomin = 0.0001
-        ! second parameter of the sw function when stype=1 or 2
-        REAL(DP) :: tbeta = 4.8
-        ! second parameter of the sw function when stype=0
 !
 ! Full boundary parameters
 !
         REAL(DP) :: corespread(nsx) = -0.5D0
         ! gaussian spreads of the core electrons, in internal units (a.u.), to
         ! be used when boundary_mode = 'full'
-!
-! Simplified boundary (system) parameters
-!
-        REAL(DP) :: boundary_distance = 1.D0
-        ! distance from the system where the boundary starts if required from boundary_mode
-        REAL(DP) :: boundary_spread = 0.5D0
-        ! spread of the boundary interface if defined on system position and width
 !
 ! Solvent-aware boundary parameters
 !
@@ -269,6 +224,78 @@ MODULE environ_input
         REAL(DP) :: filling_spread = 0.02D0
         ! spread of the switching function used to decide whether the dielectric
         ! void should be filled or not
+!
+! Numerical core's parameters
+!
+        CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
+        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
+        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
+        ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
+        ! fft       = fast Fourier transforms (default)
+        ! fd        = finite differences in real space
+        ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
+        ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
+!
+! Finite differences' parameters
+!
+        INTEGER  :: ifdtype = 1
+        ! type of numerical differentiator: 1=central differences,
+        ! 2=low-noise lanczos (m=2), 3=low-noise lanczos (m=4),
+        ! 4=smooth noise-robust (n=2), 5=smooth noise-robust (n=4)
+        INTEGER  :: nfdpoint = 2
+        ! number of points used in the numerical differentiator
+        ! N = 2*nfdpoint+1
+!
+! Solvent boundary parameters
+!
+        CHARACTER( LEN = 80 ) :: solvent_mode = 'electronic'
+        CHARACTER( LEN = 80 ) :: solvent_mode_allowed(8)
+        DATA solvent_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
+                              & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
+        ! eps_mode method for calculating the density that sets
+        ! the dielectric constant
+        ! electronic = dielectric depends self-consist. on electronic density
+        ! ionic = dielectric defined on a fictitious ionic density, generated
+        !         as the sum of exponential functions centered on atomic
+        !         positions of width specified in input by solvationrad(ityp)
+        ! full  = similar to electronic, but an extra density is added to
+        !         represent the core electrons and the nuclei. This extra
+        !         density is defined as the sum of gaussian functions centered
+        !         on atomic positions of width equal to corespread(ityp)
+        ! system = simplified regular dielectric defined to be outside a distance
+        !         eps_distance from the specified system
+        ! elec-sys = similar to electronic, but on top of the system dielectric
+        ! ionic-sys = similar to ionic, but on top of the system dielectric
+        ! full-sys = similar to full, but on top of the system dielectric
+!
+!
+!
+        REAL(DP) :: alpha = 1.D0
+        ! scaling factor for ionic radii when boundary_mode = 'ionic'
+        REAL(DP) :: softness = 0.5D0
+        ! spread of the rigid interfaces
+!
+! Soft boundary (electronic) parameters
+!
+        INTEGER :: stype = 2
+        ! type of switching functions used in the solvation models
+        !    0: original Fattebert-Gygi
+        !    1: ultrasoft switching function (only exponential part used for non-electrostatic)
+        !    2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
+        REAL(DP) :: rhomax = 0.005
+        ! first parameter of the sw function, roughly corresponding
+        ! to the density threshold of the solvation model
+        REAL(DP) :: rhomin = 0.0001
+        ! second parameter of the sw function when stype=1 or 2
+        REAL(DP) :: tbeta = 4.8
+        ! second parameter of the sw function when stype=0
+!
+! Simplified boundary (system) parameters
+!
+        REAL(DP) :: solvent_distance = 1.D0
+        ! distance from the system where the boundary starts if required from boundary_mode
+        REAL(DP) :: solvent_spread = 0.5D0
+        ! spread of the boundary interface if defined on system position and width
 !
 ! Stern boundary parameters
 !
@@ -291,33 +318,16 @@ MODULE environ_input
         ! onset distance of countercharge, if ioncc_level = 1|2
         REAL(DP) :: stern_spread = 0.5D0
         ! spread of countercharge onset, if ioncc_level = 2
-        REAL(DP) :: rhopb = 0.0001D0
+        REAL(DP) :: stern_rhomax = 0.0001D0
+        ! spread of countercharge onset, if ioncc_level = 2
+        REAL(DP) :: stern_rhomin = 0.0001D0
+        ! spread of countercharge onset, if ioncc_level = 2
+        REAL(DP) :: stern_tbeta = 0.0001D0
         ! density threshold for the onset of ionic countercharge
-        REAL(DP) :: alphapb = 1.D0
+        REAL(DP) :: stern_alpha = 1.D0
         ! scaling factor for ionic radii when stern_mode = 'ionic'
-        REAL(DP) :: softnesspb = 0.5D0
+        REAL(DP) :: stern_softness = 0.5D0
         ! spread of the rigid interfaces for the electrolyte boundary
-!
-! Numerical core's parameters
-!
-        CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
-        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
-        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
-        ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
-        ! fft       = fast Fourier transforms (default)
-        ! fd        = finite differences in real space
-        ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
-        ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
-!
-! Finite differences' parameters
-!
-        INTEGER  :: ifdtype = 1
-        ! type of numerical differentiator: 1=central differences,
-        ! 2=low-noise lanczos (m=2), 3=low-noise lanczos (m=4),
-        ! 4=smooth noise-robust (n=2), 5=smooth noise-robust (n=4)
-        INTEGER  :: nfdpoint = 2
-        ! number of points used in the numerical differentiator
-        ! N = 2*nfdpoint+1
 
         NAMELIST /boundary/                      &
              boundary_mode,                      &
