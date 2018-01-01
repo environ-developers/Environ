@@ -2,7 +2,7 @@ MODULE environ_types
 
   USE kinds,             ONLY : DP
   USE constants,         ONLY : rydberg_si, bohr_radius_si, bohr_radius_angs, &
-                              & amu_si, fpi, tpi, pi, sqrtpi, k_boltzmann_ry
+                         & amu_si, fpi, tpi, pi, sqrtpi, k_boltzmann_ry, rytoev
   USE mp,                ONLY : mp_sum
   USE control_flags,     ONLY : tddfpt
 
