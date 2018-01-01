@@ -16,7 +16,7 @@
  &BOUNDARY
    !
    stern_mode = 'ionic'
-   alphapb = 1.5D0
+   stern_alpha = 1.5D0
    !
  /
  &ELECTROSTATIC

@@ -13,8 +13,8 @@
  /
  &BOUNDARY
    ! 
-   stern_distance=0.5
-   stern_spread=1.0 
+   stern_rhomax=0.000700
+   stern_rhomin=0.000015
    !
  /
  &ELECTROSTATIC
