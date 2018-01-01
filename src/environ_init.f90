@@ -45,7 +45,7 @@ CONTAINS
        & env_static_permittivity_,                   &
        & env_optical_permittivity_, solvent_mode,    &
        & radius_mode, alpha, softness,               &
-       & eps_distance, eps_spread,                   &
+       & solvent_distance, solvent_spread,           &
        & solvent_radius, radial_scale,               &
        & radial_spread, filling_threshold,           &
        & filling_spread,                             &
@@ -54,8 +54,9 @@ CONTAINS
        & env_pressure_,                              &
        & env_ioncc_ntyp_, stern_entropy,             &
        & stern_mode, stern_distance, stern_spread,   &
-       & cion, cionmax, rion, zion, rhopb, alphapb,  &
-       & softnesspb,                                 &
+       & cion, cionmax, rion, zion, stern_rhomax,    &
+       & stern_rhomin, stern_tbeta, stern_alpha,     &
+       & stern_softness,                             &
        & solvent_temperature,                        &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
@@ -91,11 +92,12 @@ CONTAINS
          solvent_radius, radial_scale, radial_spread,     &
          filling_threshold, filling_spread,               &
          solvationrad(:), corespread(:), atomicspread(:), &
-         eps_distance, eps_spread,                        &
+         solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
          stern_distance, stern_spread, cion(:),           &
-         cionmax(:), rion(:), zion(:), rhopb, alphapb,    &
-         softnesspb,                                      &
+         cionmax(:), rion(:), zion(:), stern_rhomax,      &
+         stern_rhomin, stern_tbeta, stern_alpha,          &
+         stern_softness,                                  &
          solvent_temperature,                             &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
@@ -213,7 +215,7 @@ CONTAINS
     IF ( lsolvent ) THEN
        CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
-            & eps_distance, eps_spread, solvent_radius, radial_scale, radial_spread, &
+            & solvent_distance, solvent_spread, solvent_radius, radial_scale, radial_spread, &
             & filling_threshold, filling_spread, electrons, ions, system, solvent )
     ENDIF
     !
@@ -221,8 +223,8 @@ CONTAINS
     !
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
-            & stern_mode, stype, rhomax, rhomin, rhopb, tbeta, env_static_permittivity, &
-            & alphapb, softnesspb, stern_distance, stern_spread, solvent_radius, &
+            & stern_mode, stype, stern_rhomax, stern_rhomin, stern_tbeta, env_static_permittivity, &
+            & stern_alpha, stern_softness, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
             & zion, stern_entropy, linearized, electrolyte )

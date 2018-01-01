@@ -83,7 +83,7 @@ CONTAINS
   END SUBROUTINE create_environ_electrolyte
 
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
-       & rhopb, tbeta, const, alpha, softness, distance, spread, solvent_radius, radial_scale, &
+       & tbeta, const, alpha, softness, distance, spread, solvent_radius, radial_scale, &
        & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
        & temperature, cbulk, cmax, radius, z, stern_entropy, linearized, electrolyte )
 
@@ -92,7 +92,7 @@ CONTAINS
     LOGICAL, INTENT(IN) :: linearized
     INTEGER, INTENT(IN) :: ntyp, stype
     CHARACTER( LEN=80 ), INTENT(IN) :: mode, stern_entropy
-    REAL( DP ), INTENT(IN) :: rhomax, rhomin, rhopb, tbeta, const, distance, spread, alpha, softness, temperature
+    REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, alpha, softness, temperature
     REAL( DP ), INTENT(IN) :: solvent_radius, radial_scale, radial_spread, filling_threshold, filling_spread
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, cmax, radius, z
     TYPE( environ_electrons ), INTENT(IN) :: electrons
@@ -101,32 +101,32 @@ CONTAINS
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
 
     INTEGER :: ityp
-    REAL( DP ) :: neutral, sumcbulk, amin, amax, rhomin_, rhomax_
+    REAL( DP ) :: neutral, sumcbulk, amin, amax
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_electrolyte_first'
     CHARACTER( LEN=80 ) :: ityps, label
 
     ! ... Fix Stern boundary parameter and initiate electrolyte boundary
 
-    IF (( mode == 'electronic' .OR. mode == 'full') .AND. &
-          distance .GT. 0.D0 .AND. spread .GT. 0.D0 ) THEN
-       !
-       ! ... rhomin, rhomax defined as in Ringe et al. JCTC 12, 4052 (2016)
-       !
-       amin = LOG( rhomin ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
-       amax = LOG( rhomax ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
-       !
-       rhomin_ = EXP( amin + ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
-       rhomax_ = EXP( amax - ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
-       !
-    ELSE
-       !
-       rhomax_ = rhomin
-       rhomin_ = rhopb
-       !
-    END IF
+!    IF (( mode == 'electronic' .OR. mode == 'full') .AND. &
+!          distance .GT. 0.D0 .AND. spread .GT. 0.D0 ) THEN
+!       !
+!       ! ... rhomin, rhomax defined as in Ringe et al. JCTC 12, 4052 (2016)
+!       !
+!       amin = LOG( rhomin ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
+!       amax = LOG( rhomax ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
+!       !
+!       rhomin_ = EXP( amin + ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
+!       rhomax_ = EXP( amax - ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
+!       !
+!    ELSE
+!       !
+!       rhomax_ = rhomin
+!       rhomin_ = rhopb
+!       !
+!    END IF
 
     CALL init_environ_boundary_first( .TRUE., .TRUE., .FALSE., mode, stype, &
-         & rhomax_, rhomin_, tbeta, const, alpha, softness, distance, spread, &
+         & rhomax, rhomin, tbeta, const, alpha, softness, distance, spread, &
          & solvent_radius, radial_scale, radial_spread, filling_threshold, &
          & filling_spread, electrons, ions, system, electrolyte%boundary )
 

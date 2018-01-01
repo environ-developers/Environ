@@ -188,12 +188,20 @@ MODULE environ_input
 ! Global parameters
 !
 !
+! Soft boundary (electronic) parameters
+!
+        INTEGER :: stype = 2
+        ! type of switching functions used in the solvation models
+        !    0: original Fattebert-Gygi
+        !    1: ultrasoft switching function (only exponential part used for non-electrostatic)
+        !    2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
+!
 ! Rigid boundary (ionic) parameters
 !
         CHARACTER( LEN = 80 ) :: radius_mode = 'uff'
         CHARACTER( LEN = 80 ) :: radius_mode_allowed(3)
         DATA radius_mode_allowed / 'pauling', 'bondi', 'uff' /
-        ! type of hardcoded solvation radii to be used when boundary_mode = 'ionic'
+        ! type of hardcoded solvation radii to be used when solvent_mode = 'ionic'
         ! pauling = R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
         ! bondi   = A. Bondi, J. Phys. Chem. 68, 441 (1964)
         ! uff     = A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
@@ -205,7 +213,7 @@ MODULE environ_input
 !
         REAL(DP) :: corespread(nsx) = -0.5D0
         ! gaussian spreads of the core electrons, in internal units (a.u.), to
-        ! be used when boundary_mode = 'full'
+        ! be used when solvent_mode = 'full'
 !
 ! Solvent-aware boundary parameters
 !
@@ -252,36 +260,24 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: solvent_mode_allowed(8)
         DATA solvent_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
                               & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
-        ! eps_mode method for calculating the density that sets
+        ! solvent_mode method for calculating the density that sets
         ! the dielectric constant
         ! electronic = dielectric depends self-consist. on electronic density
         ! ionic = dielectric defined on a fictitious ionic density, generated
-        !         as the sum of exponential functions centered on atomic
+        !         as the sum of spherical error functions centered on atomic
         !         positions of width specified in input by solvationrad(ityp)
         ! full  = similar to electronic, but an extra density is added to
         !         represent the core electrons and the nuclei. This extra
         !         density is defined as the sum of gaussian functions centered
         !         on atomic positions of width equal to corespread(ityp)
         ! system = simplified regular dielectric defined to be outside a distance
-        !         eps_distance from the specified system
+        !         solvent_distance from the specified system
         ! elec-sys = similar to electronic, but on top of the system dielectric
         ! ionic-sys = similar to ionic, but on top of the system dielectric
         ! full-sys = similar to full, but on top of the system dielectric
 !
+! Soft solvent boundary (electronic) parameters
 !
-!
-        REAL(DP) :: alpha = 1.D0
-        ! scaling factor for ionic radii when boundary_mode = 'ionic'
-        REAL(DP) :: softness = 0.5D0
-        ! spread of the rigid interfaces
-!
-! Soft boundary (electronic) parameters
-!
-        INTEGER :: stype = 2
-        ! type of switching functions used in the solvation models
-        !    0: original Fattebert-Gygi
-        !    1: ultrasoft switching function (only exponential part used for non-electrostatic)
-        !    2: ultrasoft switching function as defined in Andreussi et al. JCP 2012
         REAL(DP) :: rhomax = 0.005
         ! first parameter of the sw function, roughly corresponding
         ! to the density threshold of the solvation model
@@ -290,10 +286,17 @@ MODULE environ_input
         REAL(DP) :: tbeta = 4.8
         ! second parameter of the sw function when stype=0
 !
-! Simplified boundary (system) parameters
+! Rigid solvent boundary (ionic) parameters
+!
+        REAL(DP) :: alpha = 1.D0
+        ! scaling factor for ionic radii when solvent_mode = 'ionic'
+        REAL(DP) :: softness = 0.5D0
+        ! spread of the rigid interfaces
+!
+! Simplified solvent boundary (system) parameters
 !
         REAL(DP) :: solvent_distance = 1.D0
-        ! distance from the system where the boundary starts if required from boundary_mode
+        ! distance from the system where the boundary starts if required from solvent_mode
         REAL(DP) :: solvent_spread = 0.5D0
         ! spread of the boundary interface if defined on system position and width
 !
@@ -304,44 +307,46 @@ MODULE environ_input
         DATA stern_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
                                 & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
         ! stern_mode method for calculating the density that sets
-        ! the onset of ionic countercharge
-        ! electronic = onset depends self-consist. on electronic density
-        ! ionic = onset defined on a fictitious ionic density, generated
-        !         as the sum of exponential functions centered on atomic
-        !         positions of width specified in input by solvationrad(ityp)
-        ! full  = similar to electronic, but an extra density is added to
-        !         represent the core electrons and the nuclei. This extra
-        !         density is defined as the sum of gaussian functions centered
-        !         on atomic positions of width equal to corespread(ityp)
-        ! system-derived see above for eps_mode
-        REAL(DP) :: stern_distance = 0.D0
-        ! onset distance of countercharge, if ioncc_level = 1|2
-        REAL(DP) :: stern_spread = 0.5D0
-        ! spread of countercharge onset, if ioncc_level = 2
-        REAL(DP) :: stern_rhomax = 0.0001D0
-        ! spread of countercharge onset, if ioncc_level = 2
+        ! the onset of ionic countercharge ( see solvent_mode above )
+!
+! Soft Stern boundary (electronic) parameters
+!
+        REAL(DP) :: stern_rhomax = 0.005D0
+        ! first parameter of the Stern sw function, roughly corresponding
+        ! to the density threshold of the ionic countercharge.
         REAL(DP) :: stern_rhomin = 0.0001D0
-        ! spread of countercharge onset, if ioncc_level = 2
-        REAL(DP) :: stern_tbeta = 0.0001D0
-        ! density threshold for the onset of ionic countercharge
+        ! second parameter of the Stern sw function when stype=1 or 2
+        REAL(DP) :: stern_tbeta = 4.8D0
+        ! second parameter of the Stern sw function when stype=0
+!
+! Rigid Stern boundary (ionic) parameters
+!
         REAL(DP) :: stern_alpha = 1.D0
         ! scaling factor for ionic radii when stern_mode = 'ionic'
         REAL(DP) :: stern_softness = 0.5D0
-        ! spread of the rigid interfaces for the electrolyte boundary
+        ! spread of the rigid Stern interfaces
+!
+! Simplified Stern boundary (system) parameters
+!
+        REAL(DP) :: stern_distance = 0.D0
+        ! distance from the system where the electrolyte boundary starts
+        REAL(DP) :: stern_spread = 0.5D0
+        ! spread of the interfaces for the electrolyte boundary
 
         NAMELIST /boundary/                      &
-             boundary_mode,                      &
+             solvent_mode,                       &
              radius_mode, alpha, softness,       &
              solvationrad,                       &
              stype, rhomax, rhomin, tbeta,       &
              corespread,                         &
-             boundary_distance, boundary_spread, &
+             solvent_distance, solvent_spread,   &
              solvent_radius, radial_scale,       &
              radial_spread, filling_threshold,   &
              filling_spread,                     &
              stern_mode, stern_distance,         &
-             stern_spread, rhopb, alphapb,       &
-             softnesspb,                         &
+             stern_spread, stern_rhomax,         &
+             stern_rhomin, stern_tbeta,          &
+             stern_alpha, stern_softness,        &
              boundary_core,                      &
              ifdtype, nfdpoint
 !
@@ -531,9 +536,9 @@ MODULE environ_input
                                 stype, rhomax, rhomin, tbeta,               &
                                 env_static_permittivity,                    &
                                 env_optical_permittivity,                   &
-                                boundary_mode,                              &
+                                solvent_mode,                               &
                                 radius_mode, alpha, softness,               &
-                                boundary_distance, boundary_spread,         &
+                                solvent_distance, solvent_spread,           &
                                 solvent_radius, radial_scale,               &
                                 radial_spread, filling_threshold,           &
                                 filling_spread,                             &
@@ -542,8 +547,9 @@ MODULE environ_input
                                 env_pressure,                               &
                                 env_ioncc_ntyp, stern_entropy,              &
                                 stern_mode, stern_distance, stern_spread,   &
-                                cion, cionmax, rion, zion, rhopb, alphapb,  &
-                                softnesspb,                                 &
+                                cion, cionmax, rion, zion, stern_rhomax,    &
+                                stern_rhomin, stern_tbeta,                  &
+                                stern_alpha, stern_softness,                &
                                 solvent_temperature,                        &
                                 env_external_charges,                       &
                                 extcharge_charge, extcharge_dim,            &
@@ -713,7 +719,7 @@ MODULE environ_input
        !
        IMPLICIT NONE
        !
-       boundary_mode = 'electronic'
+       solvent_mode = 'electronic'
        !
        radius_mode     = 'uff'
        alpha           = 1.D0
@@ -727,8 +733,8 @@ MODULE environ_input
        !
        corespread(:)   = -0.5D0
        !
-       boundary_distance = 1.D0
-       boundary_spread   = 0.5D0
+       solvent_distance = 1.D0
+       solvent_spread   = 0.5D0
        !
        solvent_radius     = 0.D0
        radial_scale       = 2.D0
@@ -737,11 +743,16 @@ MODULE environ_input
        filling_spread     = 0.02D0
        !
        stern_mode = 'electronic'
+       !
        stern_distance = 0.D0
        stern_spread = 0.5D0
-       rhopb = 0.0001D0
-       alphapb = 1.D0
-       softnesspb = 0.5D0
+       !
+       stern_rhomax = 0.005D0
+       stern_rhomin = 0.0001D0
+       stern_tbeta = 4.8D0
+       !
+       stern_alpha = 1.D0
+       stern_softness = 0.5D0
        !
        boundary_core = 'analytic'
        ifdtype  = 1
@@ -852,7 +863,7 @@ MODULE environ_input
        !
        IMPLICIT NONE
        !
-       CALL mp_bcast( boundary_mode,              ionode_id, comm )
+       CALL mp_bcast( solvent_mode,               ionode_id, comm )
        !
        CALL mp_bcast( stype,                      ionode_id, comm )
        CALL mp_bcast( rhomax,                     ionode_id, comm )
@@ -866,8 +877,8 @@ MODULE environ_input
        !
        CALL mp_bcast( corespread,                 ionode_id, comm )
        !
-       CALL mp_bcast( boundary_distance,          ionode_id, comm )
-       CALL mp_bcast( boundary_spread,            ionode_id, comm )
+       CALL mp_bcast( solvent_distance,           ionode_id, comm )
+       CALL mp_bcast( solvent_spread,             ionode_id, comm )
        !
        CALL mp_bcast( solvent_radius,             ionode_id, comm )
        CALL mp_bcast( radial_scale,               ionode_id, comm )
@@ -876,11 +887,16 @@ MODULE environ_input
        CALL mp_bcast( filling_spread,             ionode_id, comm )
        !
        CALL mp_bcast( stern_mode,                 ionode_id, comm )
+       !
        CALL mp_bcast( stern_distance,             ionode_id, comm )
        CALL mp_bcast( stern_spread,               ionode_id, comm )
-       CALL mp_bcast( rhopb,                      ionode_id, comm )
-       CALL mp_bcast( alphapb,                    ionode_id, comm )
-       CALL mp_bcast( softnesspb,                 ionode_id, comm )
+       !
+       CALL mp_bcast( stern_rhomax,               ionode_id, comm )
+       CALL mp_bcast( stern_rhomin,               ionode_id, comm )
+       CALL mp_bcast( stern_tbeta,                ionode_id, comm )
+       !
+       CALL mp_bcast( stern_alpha,                ionode_id, comm )
+       CALL mp_bcast( stern_softness,             ionode_id, comm )
        !
        CALL mp_bcast( boundary_core,              ionode_id, comm )
        CALL mp_bcast( ifdtype,                    ionode_id, comm )
@@ -1017,12 +1033,12 @@ MODULE environ_input
        LOGICAL           :: allowed = .FALSE.
        !
        allowed = .FALSE.
-       DO i = 1, SIZE( boundary_mode_allowed )
-          IF( TRIM(boundary_mode) == boundary_mode_allowed(i) ) allowed = .TRUE.
+       DO i = 1, SIZE( solvent_mode_allowed )
+          IF( TRIM(solvent_mode) == solvent_mode_allowed(i) ) allowed = .TRUE.
        END DO
        IF( .NOT. allowed ) &
-          CALL errore( sub_name, ' boundary_mode '''// &
-                       & TRIM(boundary_mode)//''' not allowed ', 1 )
+          CALL errore( sub_name, ' solvent_mode '''// &
+                       & TRIM(solvent_mode)//''' not allowed ', 1 )
        !
        IF( stype > 2 ) &
           CALL errore( sub_name,' stype out of range ', 1 )
@@ -1047,8 +1063,8 @@ MODULE environ_input
        IF( softness <= 0.0_DP ) &
           CALL errore( sub_name,' softness out of range ', 1 )
        !
-       IF( boundary_spread <= 0.0_DP ) &
-          CALL errore( sub_name,' boundary_spread out of range ', 1 )
+       IF( solvent_spread <= 0.0_DP ) &
+          CALL errore( sub_name,' solvent_spread out of range ', 1 )
        !
        IF ( solvent_radius < 0.0_DP ) &
           CALL errore( sub_name, 'solvent_radius out of range ', 1 )
@@ -1072,12 +1088,18 @@ MODULE environ_input
           CALL errore( sub_name,' stern_distance out of range ', 1 )
        IF( stern_spread <= 0.0_DP ) &
           CALL errore( sub_name,' stern_spread out of range ', 1 )
-       IF( rhopb <= 0.0_DP ) &
-          CALL errore( sub_name,' rhopb out of range ', 1 )
-       IF( alphapb <= 0.0_DP ) &
-          CALL errore( sub_name,' alphapb out of range ', 1 )
-       IF( softnesspb <= 0.0_DP ) &
-          CALL errore( sub_name,' softnesspb out of range ', 1 )
+       IF( stern_rhomax < 0.0_DP ) &
+          CALL errore( sub_name,' stern_rhomax out of range ', 1 )
+       IF( stern_rhomin < 0.0_DP ) &
+          CALL errore( sub_name,' stern_rhomin out of range ', 1 )
+       IF( stern_rhomax < stern_rhomin ) &
+            CALL errore( sub_name,' inconsistent stern_rhomax and stern_rhomin', 1 )
+       IF( stern_tbeta < 0.0_DP ) &
+            CALL errore( sub_name,' stern_tbeta out of range ', 1 )
+       IF( stern_alpha <= 0.0_DP ) &
+          CALL errore( sub_name,' stern_alpha out of range ', 1 )
+       IF( stern_softness <= 0.0_DP ) &
+          CALL errore( sub_name,' stern_softness out of range ', 1 )
        !
        allowed = .FALSE.
        DO i = 1, SIZE( boundary_core_allowed )
@@ -1229,8 +1251,8 @@ MODULE environ_input
        IF ( env_ioncc_ntyp .GT. 0 ) lboundary = .TRUE.
        IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
        !
-       IF ( boundary_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
-          IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic boundary_mode'
+       IF ( solvent_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
+          IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'
           boundary_core = 'analytic'
        ENDIF
        !
@@ -1284,8 +1306,8 @@ MODULE environ_input
        !
        ! Depending on the boundary mode, set fitted parameters
        !
-       IF ( TRIM(ADJUSTL(boundary_mode)) .EQ. 'electronic' .OR. &
-          & TRIM(ADJUSTL(boundary_mode)) .EQ. 'full' ) THEN
+       IF ( TRIM(ADJUSTL(solvent_mode)) .EQ. 'electronic' .OR. &
+          & TRIM(ADJUSTL(solvent_mode)) .EQ. 'full' ) THEN
           !
           ! Self-consistent continuum solvation (SCCS)
           !
@@ -1313,7 +1335,7 @@ MODULE environ_input
              rhomin = 0.0024
           END SELECT
           !
-       ELSE IF ( boundary_mode .EQ. 'ionic' ) THEN
+       ELSE IF ( solvent_mode .EQ. 'ionic' ) THEN
           !
           ! Soft-sphere continuum solvation
           !
