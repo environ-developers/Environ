@@ -166,7 +166,7 @@ CONTAINS
           & call errore (sub_name,'different size for electrolytes not implemented',1)
 !       electrolyte%ioncctype(ityp)%radius = radius(ityp) ! is this needed?
        !
-       electrolyte%ioncctype(ityp)%z = z(ityp)
+       electrolyte%ioncctype(ityp)%z = -z(ityp)
        neutral = neutral + cbulk(ityp)*z(ityp)
        !
        ! ... Create density for the local electrolyte concentration and related quantities
