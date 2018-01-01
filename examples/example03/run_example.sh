@@ -87,14 +87,14 @@ verbose=0             # if GE 1 prints debug informations
                       # if GE 2 prints out gaussian cube files with 
                       # dielectric function, polarization charges, etc
                       # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d0'   # electronic convergence threshold for the onset  
+environ_thr='1.d0'    # electronic convergence threshold for the onset  
                       # of solvation correction
 environ_type='input'  # type of environment
                       # input: read parameters from input
                       # vacuum: all flags off, no environ 
                       # water: parameters from experimental values 
                       #        and specifically tuned
-boundary_mode='full'  # specify the charge density that is used to 
+solvent_mode='full'   # specify the charge density that is used to 
                       # build the dielectric cavity:
                       # electronic: use the electronic density (default)
                       # ionic: use a fictitious charge density calculated
@@ -210,7 +210,7 @@ EOF
  /
  &BOUNDARY
    !
-   boundary_mode = '$boundary_mode'
+   solvent_mode = '$solvent_mode'
    !
  /
  &ELECTROSTATIC

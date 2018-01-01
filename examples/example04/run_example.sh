@@ -210,7 +210,7 @@ EOF
  /
  &BOUNDARY
    !
-   boundary_mode = 'full'
+   solvent_mode = 'full'
    !
  /
  &ELECTROSTATIC

@@ -18,7 +18,7 @@ boundary conditions in simulations of partially periodic systems in the
 presence of a continuum solvent, as described by O. Andreussi and N. marzari
 Phys. Rev. B 90 245101 (2014).
 
-Note that the keyword boundary_mode='full' is mandatory in this calculation, in 
+Note that the keyword solvent_mode='full' is mandatory in this calculation, in 
 order to remove the artifact of the Pt valence density, which presents a hole
 close to the position of ion, due to the missing core electrons. In order to
 avoid the continuum solvent to enter such a hole, a quickly vanishing gaussian
