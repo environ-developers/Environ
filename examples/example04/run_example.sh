@@ -103,9 +103,8 @@ extcharge_dim=2            # Dimensionality of the object: 0 = gaussian point,
 extcharge_axis=3           # Axis of the object: for planes it is the 
                            # orthogonal axis, for lines it is the line's axis
                            # no use for points.  
-extcharge_charge='0.5'     # Charge of each object (in internal units) 
-                           # opposite convention than in tot_charge
-                           # +1.0 means a total charge of -1.0 
+extcharge_charge='-0.5'    # Charge of each object (in internal units)
+                           # same convention as in tot_charge
 extcharge_spread='1.0'     # Spread of the object (gaussian shape) in a.u.
 ### PERIODIC BOUNDARY CONDITIONS ####################################
 assume_isolated='slabz' # correction scheme to remove pbc 
@@ -132,9 +131,9 @@ for epsilon in 1 80 ; do
 
     $ECHO "  running the scf calculation in $label"
     $ECHO "  with $assume_isolated periodic boundary correction"
-    $ECHO "  and a fixed planar density of charge (helmotz layer)"
+    $ECHO "  and a fixed planar density of charge (helmholtz layer)"
 
-    prefix=PtCO_helmotz_${label}
+    prefix=PtCO_helmholtz_${label}
     input=${prefix}'.in'
     output=${prefix}'.out'
     cat > $input << EOF 
