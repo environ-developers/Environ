@@ -37,7 +37,7 @@ MODULE environ_output
 
   PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, &
        & verbose, prog, set_environ_output, environ_print_energies, &
-       & environ_summary, environ_clock, write_cube, &
+       & environ_print_fermi_shift, environ_summary, environ_clock, write_cube, &
        & print_environ_density, print_environ_gradient, &
        & print_environ_hessian, &
        & print_environ_functions, print_environ_iontype, &
@@ -1188,6 +1188,23 @@ CONTAINS
 ! ---------------------------------------------------------------------
       END SUBROUTINE environ_print_energies
 ! ---------------------------------------------------------------------
+!----------------------------------------------------------------------
+      SUBROUTINE environ_print_fermi_shift( )
+!----------------------------------------------------------------------
+      !
+      ! If Gaussian nuclei are used, write out the corresponding 
+      ! Fermi energy shift
+      !
+      USE environ_base, ONLY : lsmearedions, fermi_shift
+
+      IF (lsmearedions) WRITE( program_unit, 9400 ) fermi_shift * rytoev 
+
+9400 FORMAT(/,5(' '),'the Fermi energy shift due to the environment is ',F10.4,' ev')
+      !
+!----------------------------------------------------------------------
+      END SUBROUTINE environ_print_fermi_shift
+!----------------------------------------------------------------------
+
 ! ---------------------------------------------------------------------
       SUBROUTINE environ_summary( )
 ! ---------------------------------------------------------------------

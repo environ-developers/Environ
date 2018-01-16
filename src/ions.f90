@@ -7,7 +7,7 @@
 !
 MODULE ions_utils
 
-  USE environ_base,  ONLY : e2
+  USE environ_base,  ONLY : e2, fermi_shift
   USE environ_output
   USE environ_types
   USE functions
@@ -281,11 +281,8 @@ CONTAINS
     END DO
 
     ! Calculate Fermi energy shift due to Gaussian nuclei
-    IF ( ions%use_smeared_ions .AND. ionode) WRITE(program_unit,9000) ions%quadrupole_correction * &
-        & tpi * e2 / ions%density%cell%omega * rytoev
-9000 FORMAT(/,5(' '),34(' -'),/,&
-              5(' '),'| Warning: Fermi energy shift due to Gaussian nuclei ',F10.4,' ev  |',/,&
-              5(' '),34(' -'))
+    IF ( ions%use_smeared_ions ) fermi_shift = ions%quadrupole_correction * &
+                                 & tpi * e2 / ions%density%cell%omega
     IF ( ions%use_smeared_ions ) ions%quadrupole_gauss(:) = ions%quadrupole_pc(:) + ions%quadrupole_correction
 
     RETURN

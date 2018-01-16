@@ -214,13 +214,21 @@ mv tmp.2 plugin_clock.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_output, ONLY : environ_print_energies \
+USE    control_flags,  ONLY : conv_elec \
+USE    klist,          ONLY : lgauss, ltetra \
+USE    environ_output, ONLY : environ_print_energies, & \
+                              environ_print_fermi_shift \
 !Environ patch
 ' plugin_print_energies.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL environ_print_energies() \
+   if (use_environ) then \
+     CALL environ_print_energies() \
+     if (conv_elec.and.(lgauss.or.ltetra)) then \
+       CALL environ_print_fermi_shift() \
+     end if \
+   end if \
 !Environ patch
 ' tmp.1 > tmp.2
 

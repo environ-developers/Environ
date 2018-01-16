@@ -156,7 +156,8 @@ MODULE environ_base
        eelectrostatic,              &
        ecavity,                     &
        epressure,                   &
-       eelectrolyte
+       eelectrolyte,                &
+       fermi_shift
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &
