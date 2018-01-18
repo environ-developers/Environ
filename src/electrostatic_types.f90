@@ -267,7 +267,7 @@ CONTAINS
 
   SUBROUTINE init_fd_core( ifdtype, nfdpoint, fd )
 
-    USE fd_gradient, ONLY : init_fd_gradient
+    USE environ_fd_gradient, ONLY : init_fd_gradient
 
     IMPLICIT NONE
 
@@ -317,7 +317,7 @@ CONTAINS
     qe_fft % use_internal_pbc_corr = .FALSE.
     IF ( PRESENT( assume_isolated ) ) THEN
        SELECT CASE( TRIM( ADJUSTL(assume_isolated) ) )
-       CASE( 'mt', 'martyna-tuckermann', 'm-t' )
+       CASE( 'mt', 'martyna-tuckerman', 'm-t' )
           qe_fft % use_internal_pbc_corr = .TRUE.
        CASE DEFAULT
        END SELECT
