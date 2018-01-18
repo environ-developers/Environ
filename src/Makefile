@@ -14,6 +14,7 @@ electrostatic.o           \
 electrostatic_init.o      \
 electrostatic_mod.o       \
 electrostatic_types.o     \
+environ_fd_gradient.o     \
 environ_generate_function.o \
 environ_init.o            \
 environ_input.o           \

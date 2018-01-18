@@ -396,7 +396,7 @@ CONTAINS
       SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
       !
-      USE fd_gradient, ONLY : calc_fd_gradient
+      USE environ_fd_gradient, ONLY : calc_fd_gradient
       !
       ! ... Calculates the dielectric constant as a function
       ! ... of the charge density, and the derivative of
