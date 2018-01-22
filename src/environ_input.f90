@@ -448,7 +448,7 @@ MODULE environ_input
 
   CONTAINS
      !
-     SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,assume_isolated)
+     SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,assume_isolated,ion_radius)
        !
        USE environ_init, ONLY : set_environ_base
        USE electrostatic_init, ONLY : set_electrostatic_base
@@ -457,11 +457,13 @@ MODULE environ_input
        CHARACTER(len=80), INTENT(IN) :: assume_isolated
        INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp
        CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
+       REAL( DP ), DIMENSION(:), INTENT(IN), OPTIONAL :: ion_radius
        !
        INTEGER, EXTERNAL :: find_free_unit
        !
        LOGICAL :: ext
        INTEGER :: environ_unit_input
+       INTEGER :: is
        !
        ! ... Open environ input file: environ.in
        !
@@ -482,6 +484,17 @@ MODULE environ_input
        ! ... Close environ input file
        !
        CLOSE( environ_unit_input )
+       !
+       ! ... If passed from input, overwrites atomic spread
+       ! (USED IN CP TO HAVE CONSISTENT RADII FOR ELECTROSTATICS)
+       !
+       IF ( PRESENT(ion_radius) ) THEN
+          !
+          DO is = 1, ntyp
+             atomicspread(is) = ion_radius(is)
+          ENDDO
+          !
+       ENDIF
        !
        ! ... Set verbosity and open debug file
        !

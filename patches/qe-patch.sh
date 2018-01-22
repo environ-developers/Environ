@@ -275,7 +275,7 @@ sed '/Environ CALLS BEGIN/ a\
         ! \
         ! update electrons-related quantities in environ \
         ! \
-        CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rhoin%of_r ) \
+        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec ) \
         ! \
         ! compute environ contributions to total energy \
         ! \

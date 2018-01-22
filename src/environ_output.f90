@@ -1316,7 +1316,7 @@ CONTAINS
          CALL print_clock ('calc_felect')
       END IF
       ! TDDFT
-      IF (tddfpt) CALL print_clock ('calc_vsolvent_tddfpt')
+      IF ( tddfpt ) CALL print_clock ('calc_vsolvent_tddfpt')
       !
       RETURN
       !
