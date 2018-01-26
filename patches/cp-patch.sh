@@ -4,7 +4,7 @@
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base, ONLY: vltot_zero \
+USE environ_base, ONLY: vzero \
 !Environ patch
 ' plugin_add_potential.f90 > tmp.1
 
@@ -22,7 +22,7 @@ sed '/Environ CALLS BEGIN/ a\
 !$omp parallel do \
        DO ir=1,dfftp%nnr \
          ! \
-         v(ir,1)=v(ir,1)+vltot_zero(ir) \
+         v(ir,1)=v(ir,1)+vzero%of_r(ir) \
          ! \
        END DO \
 !$omp end parallel do \
@@ -32,8 +32,8 @@ sed '/Environ CALLS BEGIN/ a\
 !$omp parallel do \
        DO ir=1,dfftp%nnr \
          ! \
-         v(ir,1)=v(ir,1)+vltot_zero(ir) \
-         v(ir,2)=v(ir,2)+vltot_zero(ir) \
+         v(ir,1)=v(ir,1)+vzero%of_r(ir) \
+         v(ir,2)=v(ir,2)+vzero%of_r(ir) \
          ! \
        END DO \
 !$omp end parallel do \
@@ -71,7 +71,7 @@ USE    environ_info, ONLY : environ_clock \
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL environ_clock(stdout) \
+   if(use_environ) CALL environ_clock() \
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -81,8 +81,8 @@ mv tmp.2 plugin_clock.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,         ONLY : deenviron, esolvent, ecavity, epressure, & \
-                                 eperiodic, eioncc, eextcharge \
+USE environ_base,          ONLY : deenviron, eelectrostatic, & \
+  ecavity, epressure, eelectrolyte \
 USE environ_main,         ONLY : calc_eenviron \
 !Environ patch
 ' plugin_energy.f90 > tmp.1
@@ -90,11 +90,10 @@ USE environ_main,         ONLY : calc_eenviron \
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF(use_environ) THEN \
-       call calc_eenviron( dfftp%nnr, nspin, rhoin, deenviron, esolvent, & \
-                           ecavity, epressure, eperiodic, eioncc, eextcharge ) \
-       ! \
-       plugin_etot = plugin_etot + esolvent + ecavity + epressure + eperiodic + eioncc + eextcharge \
-       ! \
+     call calc_eenviron( deenviron, eelectrostatic, ecavity, epressure, eelectrolyte ) \
+     ! \
+     plugin_etot = plugin_etot + eelectrostatic + ecavity + epressure + eelectrolyte \
+     ! \
   END IF \
 !Environ patch
 ' tmp.1 > tmp.2
@@ -105,10 +104,12 @@ mv tmp.2 plugin_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,     ONLY : update_venviron, vltot_zero,    & \
-                             environ_nskip, environ_restart, & \
-                             verbose \
+USE klist,            ONLY : nelec \
+USE environ_base,     ONLY : update_venviron, vzero,    & \
+                             environ_nskip, environ_restart \
+USE environ_output,   ONLY : verbose \
 USE environ_main,     ONLY : calc_venviron \
+USE environ_init,     ONLY : environ_initelectrons \
 !Environ patch
 ' plugin_get_potential.f90 > tmp.1
 
@@ -116,14 +117,18 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
      IF(use_environ) THEN \
         ! \
-        ! environ contribution to the local potential, saved in vltot_zero \
+        ! update electrons-related quantities in environ \
         ! \
-        vltot_zero = 0.D0 \
+        CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rhoin ) ! \
+        ! \
+        ! environ contribution to the local potential, saved in vzero \
+        ! \
+        vzero%of_r = 0.D0 \
         ! \
         update_venviron = ( nfi .GT. environ_nskip ) .OR. environ_restart \
         ! \
         IF ( update_venviron .AND. verbose .GT. 1 ) WRITE( stdout, 9200 ) \
-        CALL calc_venviron( update_venviron, dfftp%nnr, nspin, 1.D0, rhoin, vltot_zero ) \
+        CALL calc_venviron( update_venviron, dfftp%nnr, vzero%of_r ) \
         ! \
 9200 FORMAT(/"     add environment contribution to local potential") \
      ENDIF \
@@ -138,31 +143,39 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    environ_base, ONLY : ir_end \
 USE    environ_init, ONLY : environ_initbase \
+USE    cell_base,    ONLY : at, alat, omega, ibrav \
+USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id \
 !Environ patch
 ' plugin_init_base.f90 > tmp.1
+
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch \
+INTEGER :: ir_end \
+!Environ patch
+' tmp.1 > tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1)) \
-  IF ( use_environ ) CALL environ_initbase( dfftp%nnr, 1.D0 ) \
+  IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, & \
+       & dfftp%nnr, ir_end, intra_bgrp_comm, me_bgrp, root_bgrp_id, 1.D0 ) \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.2 > tmp.1
 
-mv tmp.2 plugin_init_base.f90
+mv tmp.1 plugin_init_base.f90
 
 #plugin_init_cell.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE cell_base,        ONLY : at, alat, omega, ibrav \
+USE cell_base,        ONLY : at, omega \
 USE environ_init,     ONLY : environ_initcell \
 !Environ patch
 ' plugin_init_cell.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  IF ( use_environ ) call environ_initcell( dfftp%nnr, dfftp%nr1, dfftp%nr2, dfftp%nr3, & \
-                           ibrav, omega, alat, at ) \
+  IF ( use_environ ) call environ_initcell( omega, at ) \
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -175,7 +188,6 @@ sed '/Environ MODULES BEGIN/ a\
 USE cell_base,        ONLY : alat, omega, tpiba2 \
 USE ions_base,        ONLY : zv \
 USE environ_init,     ONLY : environ_initions \
-USE environ_ions,     ONLY : rhoions \
 !Environ patch
 ' plugin_init_ions.f90 > tmp.1
 
@@ -209,7 +221,7 @@ sed '/Environ CALLS BEGIN/ a\
      ALLOCATE(tau_tmp(3,nat)) \
      tau_tmp = tau / alat \
      ! \
-     call environ_initions( dfftp%nnr, nat, nsp, ityp_tmp, zv, tau_tmp, alat ) \
+     call environ_initions( dfftp%nnr, nat, nsp, ityp_tmp, zv, tau_tmp ) \
      ! \
      DEALLOCATE(ityp_tmp) \
      DEALLOCATE(tau_tmp) \
@@ -224,8 +236,6 @@ mv tmp.1 plugin_init_ions.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-  USE environ_base,    ONLY : env_static_permittivity, env_dielectric_regions, & \
-                              env_external_charges, rhopol, rhoexternal \
   USE environ_main,    ONLY : calc_fenviron \
 !Environ patch
 ' plugin_int_forces.f90 > tmp.1
@@ -242,25 +252,6 @@ sed '/Environ CALLS BEGIN/ a\
     ! \
     ALLOCATE(force_environ(3,nat)) \
     force_environ=0.0_dp \
-    ! \
-    ! ... Computes here the contribution coming from the environ charges \
-    ! \
-    IF ( env_static_permittivity .GT. 1.D0 .OR. & \
-         env_dielectric_regions  .GT. 0    .OR. & \
-         env_external_charges    .GT. 0 )  THEN \
-      ALLOCATE( auxr( dfftp%nnr ) ) \
-      auxr = CMPLX(0.0,0.0, kind=DP) \
-      if(env_static_permittivity .GT. 1.D0 .OR. & \
-         env_dielectric_regions  .GT. 0 ) & \
-        auxr = auxr + CMPLX(rhopol(:),0.0, kind=DP) \
-      if(env_external_charges .GT. 0) & \
-        auxr = auxr + CMPLX(rhoexternal(:),0.0, kind=DP) \
-      CALL fwfft( "Dense", auxr, dfftp ) \
-      ALLOCATE( auxg( ngm ) ) \
-      auxg(:) = auxr( nl (:) ) \
-      CALL force_h_of_rho_g( auxg, eigts1, eigts2, eigts3, omega, force_environ ) \
-      DEALLOCATE( auxr, auxg ) \
-    ENDIF \
     ! \
     ! ... Add the other environment contributions \
     ! \
@@ -314,9 +305,11 @@ mv tmp.2 plugin_print_info.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
+USE io_global,        ONLY : ionode, ionode_id, stdout \
+USE mp_images,        ONLY : intra_image_comm \
 USE environ_input,    ONLY : read_environ \
-USE environ_base,     ONLY : atomicspread \
-USE input_parameters, ONLY : ion_radius, atom_label \
+USE input_parameters, ONLY : ion_radius, atom_label, nspin \
+USE environ_output,   ONLY : set_environ_output \
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
 
@@ -329,14 +322,8 @@ INTEGER :: is \
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
    IF ( use_environ ) THEN \
-      CALL read_environ(nat, ntyp, atom_label, assume_isolated, ibrav) \
-      ! \
-      ! ... Overwrites atomicspread with ion_radius from the CP input \
-      !     to avoid inconsistency \
-      ! \
-      DO is = 1, ntyp \
-        atomicspread(is) = ion_radius(is) \
-      ENDDO \
+      CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout) \
+      CALL read_environ("CP",1, nspin, nat, ntyp, atom_label, assume_isolated, ion_radius) \
    ENDIF \
 !Environ patch
 ' tmp.2 > tmp.1
