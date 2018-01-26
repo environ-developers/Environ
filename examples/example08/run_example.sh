@@ -95,11 +95,11 @@ environ_type='vacuum' # type of environment
                       #        and specifically tuned
 ### ITERATIVE SOLVER PARAMETERS #####################################
 tol='1.d-11'     # tolerance of the iterative solver
-solver='cg'      # type of poisson solver
+solver='cg'      # type of poisson solver (cg is default)
                  # cg: conjugate gradient, default with sqrt preconditioner
                  # sd: steepest descent, default with sqrt preconditioner
                  # iterative: iterative approach
-auxiliary='none' # quantity to be solved for
+auxiliary='none' # quantity to be solved for (none is default)
                  # none: solve for the potential
                  # full: solve for the polarization charge
 #####################################################################

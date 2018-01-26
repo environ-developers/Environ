@@ -91,7 +91,6 @@ environ_type='vacuum' # type of environment
                       #        and specifically tuned
 ### ITERATIVE SOLVER PARAMETERS #####################################
 tol='1.d-12'  # tolerance of the iterative solver
-mix='0.6'     # polarization mixing for the iterative solver
 #####################################################################
 
 for environ_type in vacuum water ; do 
@@ -174,10 +173,7 @@ EOF
  /
  &ELECTROSTATIC
    !
-   solver = 'iterative'
-   auxiliary = 'full'
    tol = $tol
-   mix = $mix
    !
  /
 EOF

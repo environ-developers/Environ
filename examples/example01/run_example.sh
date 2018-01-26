@@ -14,7 +14,12 @@ $ECHO "This example shows how to use pw.x to calculate the solvation energy "
 $ECHO "and other solvent related quantites for a water molecule in water"
 $ECHO "using a fully self consistent dielectric defined on the electronic"
 $ECHO "density according to "
+$ECHO
 $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
+$ECHO
+$ECHO "Two equivalent calculations are performed, using two different "
+$ECHO "algorithms to obtain the self consistent dielectic. "
+$ECHO 
 
 # set the needed environment variables
 . ../../../environment_variables
@@ -91,22 +96,42 @@ environ_type='vacuum' # type of environment
                       # water: parameters from experimental values 
                       #        and specifically tuned
 ### ITERATIVE SOLVER PARAMETERS #####################################
-solver='iterative' # iterative solver
-auxiliary='full'   # solve for the polarization charge density
-tol='1.d-11'       # tolerance of the iterative solver
-mix='0.6'          # polarization mixing for the iterative solver
+solver='iterative' # type of solver (cg is default with dielectric)
+                   # direct: direct poisson solver (only for vacuum)  
+                   # cg: conjugate gradient with sqrt preconditioner
+                   # sd: steepest descent with sqrt preconditioner
+                   # iterative: iterative approach
+auxiliary='full'   # auxiliary charge in the solver
+                   # none: no charge, solve for the potential
+                   # full: solve for the polarization charge
+tol='1.d-11'       # tolerance of the solver
+mix='0.6'          # mixing for the solver
 #####################################################################
 
 for environ_type in vacuum water ; do 
+
+    if   [ $environ_type = "water" ]; then
+      solvers="iterative cg"
+    else
+      solvers="direct"
+    fi
+  
+  for solver in $solvers ; do
+
+    if [ $solver = "iterative" ]; then
+      auxiliary='full'
+    else
+      auxiliary='none'
+    fi  
 
     # clean TMP_DIR
     $ECHO "  cleaning $TMP_DIR...\c"
     rm -rf $TMP_DIR/*
     $ECHO " done"
     
-    $ECHO "  running the relax calculation in $environ_type"
+    $ECHO "  running the relax calculation in $environ_type with $solver solver"
 
-  prefix=h2o_$environ_type
+  prefix=h2o_${environ_type}_${solver}
   input=${prefix}'.in'
   output=${prefix}'.out'
   cat > $input << EOF 
@@ -153,7 +178,7 @@ O   11.79  12.05  11.50
 H   13.45  11.22  11.50
 H   10.56  10.66  11.50
 EOF
-  cat > environ_${environ_type}.in << EOF
+  cat > environ_${environ_type}_${solver}.in << EOF
  &ENVIRON
    !
    verbose = $verbose
@@ -173,20 +198,27 @@ EOF
  /
 EOF
    
-  cp environ_${environ_type}.in environ.in
+  cp environ_${environ_type}_${solver}.in environ.in
   $PW_COMMAND < $input > $output 
   check_failure $?
   $ECHO " done"
 
+  done
+
 done
 
-evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum.out)
-esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water.out)
-dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
-ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water.out) 
-epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {print en}' h2o_water.out)
+rm -f results.txt
 
-$ECHO "  Solvation Energy     = $dgsol Kcal/mol" > results.txt
+for solver in iterative cg ; do
+
+evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum_direct.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water_${solver}.out)
+dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
+ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water_${solver}.out) 
+epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {print en}' h2o_water_${solver}.out)
+
+$ECHO "  Solver               = $solver "        >> results.txt
+$ECHO "  Solvation Energy     = $dgsol Kcal/mol" >> results.txt
 iprint=0
 dgelec=$dgsol
 if [ $ecav != 0 ]; then 
@@ -204,6 +236,9 @@ fi
 if [ $iprint != 0 ]; then
   $ECHO "  Electrostatic Energy = $dgelec Kcal/mol" >> results.txt
 fi
+$ECHO                                            >> results.txt
+
+done
 
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

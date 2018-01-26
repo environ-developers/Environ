@@ -90,7 +90,6 @@ env_surface_tension=0.0        # surface tension (not supported by TDDFPT)
 env_pressure=0.0               # pressure (not supported by TDDFPT)
 ### ITERATIVE SOLVER PARAMETERS #####################################
 tol='1.d-12'  # tolerance of the iterative solver
-mix='0.6'     # polarization mixing for the iterative solver
 #####################################################################
 
 for environ_type in vacuum input ; do 
@@ -135,10 +134,7 @@ cat > environ.in << EOF
  /
  &ELECTROSTATIC
    !
-   solver = 'iterative'
-   auxiliary = 'full'
    tol = $tol
-   mix = $mix
    !
  /
 EOF

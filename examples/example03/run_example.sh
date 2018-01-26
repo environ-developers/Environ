@@ -215,10 +215,7 @@ EOF
  /
  &ELECTROSTATIC
    !
-   solver = 'iterative'
-   auxiliary = 'full'
    tol = 5.D-13
-   mix = 0.6
    !
  /
 EOF

@@ -194,10 +194,7 @@ EOF
  &BOUNDARY
  /
  &ELECTROSTATIC
-   solver = 'iterative'
-   auxiliary = 'full'
    tol = 1.D-12
-   mix = 0.6
  /
 EOF
 

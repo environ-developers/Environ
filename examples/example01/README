@@ -8,7 +8,7 @@ by the electronic density, according to the  model of Fattebert
 and Gygi, Int J Quantum Chem 93, 139 (2003), revised by O. Andreussi, I. Dabo 
 and N. Marzari, J. Chem. Phys. 136, 064102 (2012) 
 
-Mind that the parabolic correction ( point-countercharge method, assume_isolated='pcc' keyword )
+Mind that the parabolic correction (or point-countercharge method)
 is used for both the calculation in vacuum and in the solvent.
 
 Additional term of solvation can be computed by changing the specific keywords:
@@ -18,6 +18,13 @@ Additional term of solvation can be computed by changing the specific keywords:
 -- env_pressure: external pressure of the medium. If different from zero, a PV
    energy term is added to the total energy, according to the method in 
    Cococcioni et al. PRL 94, 145501, 2005.
+
+Two calculations illustrate how the self consistent dielectric can be
+equivalently obtained either through an iterative procedure that solves 
+for the polarization charge density or a preconditioned conjugate gradient 
+algorithm that solves for the polarization potential (now the default, 
+see G. Fisicaro, L. Genovese, O. Andreussi, N. Marzari and S. Goedecker,
+J. Chem. Phys. 144, 014103 (2016))
 
 A rough explanation of the different keywords of the solvation model is 
 in the run_example.sh file.
