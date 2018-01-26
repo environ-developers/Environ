@@ -25,7 +25,7 @@
 
 # Executables
 *.exe
-*.out
+#*.out
 *.app
 
 # Directories with results of examples
