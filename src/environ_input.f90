@@ -1348,7 +1348,7 @@ MODULE environ_input
              !
           CASE ( 'water' )
              ! SS for neutrals
-             alpha = 1.16D0
+             alpha = 1.12D0
           CASE ( 'water-cation' )
              ! SS for cations
              alpha = 1.10D0
