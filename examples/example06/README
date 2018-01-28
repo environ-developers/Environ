@@ -1,10 +1,42 @@
+This example shows how to use pw.x to model a charged slab in the presence of 
+a solution at finite ionic strength. The diffuse charge density that mimics 
+the presence of the electrolyte is obtained from the solution of the linearized 
+Poisson-Boltzmann equation. Ionic finite-size effects are accounted for as
+described by I. Borukhov, D. Andelman, and H. Orland, Phys. Rev. Lett. 79, 
+435 (1997) and S. Ringe, H. Oberhofer, C. Hille, S. Matera, and K. Reuter,
+J. Comput. Theor. Chem. 12, 4052 (2016).
 
-This example shows how to use the pw.x and turbo_davidson.x codes
-to calculate the absorption spectrum of the CH4 molecule in water
-using a fully self-consistent dielectric defined on the electronic density
-and using the Davidson algorithm within the time-dependent density
-functional perturbation theory according to 
-I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015).
+Note that a solvent-accessible but ion-free region in the proximity of the 
+surface (Stern layer) is modeled by introducing an ion-exclusion function 
+as described by I. Dabo, E. Cancès, Y.L. Li, and N. Marzari, arXiv 
+0901.0096 (2008).  
 
-The description of the keywords for the turbo_davidson.x code
-can be found in TDDFPT/Doc of the Quantum ESPRESSO package.
+A preconditioned conjugate gradient algorithm is employed to solve the 
+linearized (modified) Poisson-Boltzmann equation as described in G. Fisicaro,
+L. Genovese, O. Andreussi, N. Marzari and S. Goedecker, J. Chem. Phys. 144, 
+014103 (2016))
+
+The calculation is a single SCF calculation of a (unrealistic) two-layer thick 
+Pt (111) slab with a CO molecule adsorbed on atop position (thanks to Ismaila 
+Dabo for the starting input of the system in vacuum). The solvent is treated
+as a continuum dielectric according to the Self-consistent Continuum Solvation
+(SCCS) model of O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 
+064102 (2012). 
+
+Only open boundary conditions are allowed for linearized Poisson-Boltzmann 
+calculations. The real-space quadratic correction of the electrostatic 
+potential (pbc_correction = 'parabolic', see I. Dabo et al. Phys. 
+Rev. B 77, 115139 (2008)) is strongly recommended. The method has been coupled 
+to the SCCS model in order to remove periodic boundary conditions in simulations 
+of partially periodic systems in the presence of a continuum solvent, as 
+described by O. Andreussi and N. Marzari Phys. Rev. B 90 245101 (2014).
+
+Note that the keyword solvent_mode='full' is mandatory in this calculation, in 
+order to remove the artifact of the Pt valence density, which presents a hole
+close to the position of ion, due to the missing core electrons. In order to
+avoid the continuum solvent to enter such a hole, a quickly vanishing gaussian
+density is added at the position of the nuclei when defining the dielectric. 
+The same problem is likely to occur in alogens and other transition metals. 
+
+A rough explanation of the different keywords of the electrolyte and solvation 
+models is provided inside the run_example.sh file.

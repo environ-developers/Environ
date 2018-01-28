@@ -10,19 +10,32 @@ if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
 $ECHO
 $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
-$ECHO "This example shows how to use the pw.x and turbo_davidson.x codes"
-$ECHO "to calculate the absorption spectrum of the CH4 molecule in water"
-$ECHO "using a fully self-consistent dielectric defined on the electronic density"
-$ECHO "and using the Davidson algorithm within the time-dependent density" 
-$ECHO "functional perturbation theory according to I. Timrov, O. Andreussi, A. Biancardi,"
-$ECHO "N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)."
+$ECHO "This example shows how to use pw.x to simulate a charged two-dimensional "
+$ECHO "system immersed in continuum solvent described by the SCCS model "
+$ECHO
+$ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
+$ECHO
+$ECHO "and with open boundary conditions along the axis perpendicular "
+$ECHO "to the slab plane, as described in "
+$ECHO
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
+$ECHO
+$ECHO "The presence of the electrolyte in the solution is accounted for through"
+$ECHO "the solution of the linearized modified Poisson-Boltzmann equation, see "
+$ECHO 
+$ECHO " I. Borukhov, D. Andelman, and H. Orland, Phys. Rev. Lett. 79, 435 (1997)"
+$ECHO "   I. Dabo, E. Cancès, Y.L. Li, and N. Marzari, arXiv 0901.0096 (2008) "
+$ECHO "       S. Ringe, H. Oberhofer, C. Hille, S. Matera, and K. Reuter, "
+$ECHO "            J. Comput. Theor. Chem. 12, 4052 (2016)."
+$ECHO "   G. Fisicaro, L. Genovese, O. Andreussi, N. Marzari and S. Goedecker,"
+$ECHO "                  J. Chem. Phys. 144, 014103 (2016) "
 
 # set the needed environment variables
 . ../../../environment_variables
 
 # required executables and pseudopotentials
-BIN_LIST="pw.x turbo_davidson.x"
-PSEUDO_LIST="H.pz-vbc.UPF C.pz-vbc.UPF"
+BIN_LIST="pw.x"
+PSEUDO_LIST="O.pbe-rrkjus.UPF C.pbe-rrkjus.UPF Pt.pbe-nd-rrkjus.UPF"
 
 $ECHO
 $ECHO "  executables directory: $BIN_DIR"
@@ -73,77 +86,82 @@ for FILE in $PSEUDO_LIST ; do
 done
 $ECHO " done"
 
+# how to run executables
+PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX --environ"
+$ECHO
+$ECHO "  running pw.x as: $PW_COMMAND"
+$ECHO
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
-verbose=0                      # if GE 1 prints debug informations
-                               # if GE 2 prints out gaussian cube files with 
-                               # dielectric function, polarization charges, etc
-                               # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d-1'            # electronic convergence threshold for the onset  
-                               # of solvation correction
-environ_type="vacuum"          # type of environment
-                               # input: read parameters from input
-                               # vacuum: all flags off, no environ 
-env_static_permittivity=78.5   # static permittivity of water
-env_optical_permittivity=1.776 # optical permittivity of water
-env_surface_tension=0.0        # surface tension (not supported by TDDFPT)
-env_pressure=0.0               # pressure (not supported by TDDFPT)
-### ITERATIVE SOLVER PARAMETERS #####################################
-tol='1.d-12'  # tolerance of the iterative solver
+verbose=0             # if GE 1 prints debug informations
+                      # if GE 2 prints out gaussian cube files with 
+                      # dielectric function, polarization charges, etc
+                      # WARNING: if GE 2 lot of I/O, much slower
+environ_thr='1.d0'    # electronic convergence threshold for the onset  
+                      # of solvation correction
+### ELECTROLYTE PARAMETERS ##########################################
+env_ioncc_ntyp=2        # number of electrolyte species to be used
+zion=1                  # ionic charge
+cion='1.0'              # ionic concentration (in mol/l)
+cionmax='5.0'           # max ionic concentration (in mol/l) due to 
+                        # finite ionic size. NOTE: cionmax=1/a**3, 
+                        # where a is the ionic size parameter 
+                        # originally proposed by Borukhov et al.
+                        # one can alternatively set the ionic radius
+                        # rion (in Bohr), related to cmax according
+                        # to: cionmax=p/(4/3*pi*rion**3), where
+                        # p=0.64 is the random close packing density.
+                        # the same value of cionmax (or rion) needs 
+                        # to be assigned to all ionic species!
+solvent_temperature=300 # temperature of the ionic solution 
+stern_mode='system'     # specify the method that is used to build
+                        # the electrolyte cavity
+                        # electronic, ionic, full: same as for solvent
+                        #   cavity, see previous examples. the 
+                        #   corresponding parameters are stern_rhomax
+                        #   and stern_rhomin (for electronic and full)
+                        #   or stern_alpha and stern_softness (for 
+                        #   ionic).
+                        # system: simplified erf-based interface 
+system_dim=2            # select dimensionality of the interface
+                        # 0, 1 and 2 for spherical, cylindrical or
+                        # planar interface
+system_axis=3           # select axis for the simplified interface.
+                        # the axis is along the 1D direction or 
+                        # normal to the 2D plane (pbc_axis = 1, 2 
+                        # or 3 for x, y or z axis)
+system_ntyp=1           # the geometrical center of the atoms of 
+                        # all types up to system_ntyp defines the
+                        # origin for the simplified interface
+stern_distance='21.0'   # distance parameter for the simplified
+                        # erf-based interface
+stern_spread='0.5'      # spread parameter for the simplified
+                        # erf-based interface 
+### PERIODIC BOUNDARY CONDITIONS ####################################
+env_electrostatic='.true.' # modify electrostatic embedding (required to
+                           #   switch on PBC corrections in vacuum)
+pbc_correction='parabolic' # correction scheme to remove PBC 
+                           # none: periodic calculation, no correction 
+                           # parabolic: quadratic real-space correction
+pbc_dim=2                  # select the desired system dimensionality
+                           #   0, 1 or 2: isolated, 1D or 2D system
+pbc_axis=3                 # set the axis along the 1D direction or 
+                           #   normal to the 2D plane (pbc_axis = 1, 2 
+                           #   or 3 for x, y or z axis)
 #####################################################################
-
-for environ_type in vacuum input ; do 
 
 # clean TMP_DIR
 $ECHO "  cleaning $TMP_DIR...\c"
 rm -rf $TMP_DIR/*
 $ECHO " done"
 
-if [ "${environ_type}" = "input" ] ; then
-   prefix_environ="solvent"
-   flag="-environ"
-else
-   prefix_environ="vacuum"
-   flag=" "
-fi
+$ECHO "  running the scf calculation with a diffuse ionic charge"
+$ECHO "  density and $pbc_correction periodic boundary correction"
 
-# how to run executables
-PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX $flag"
-TURBO_DAVIDSON_COMMAND="$PARA_PREFIX $BIN_DIR/turbo_davidson.x $PARA_POSTFIX $flag"
-$ECHO
-$ECHO "  running pw.x as: $PW_COMMAND"
-$ECHO "  running turbo_davidson.x as: $TURBO_DAVIDSON_COMMAND"
-$ECHO
-
-
-# Input for Environ
-if [ "${environ_type}" = "input" ] ; then
-cat > environ.in << EOF
- &ENVIRON
-   !
-   verbose = $verbose
-   environ_thr = $environ_thr
-   environ_type = '$environ_type'
-   env_static_permittivity = $env_static_permittivity
-   env_optical_permittivity = $env_optical_permittivity
-   env_surface_tension = $env_surface_tension
-   env_pressure = $env_pressure
-   !
- /
- &BOUNDARY
- /
- &ELECTROSTATIC
-   !
-   tol = $tol
-   !
- /
-EOF
-fi
- 
-prefix=CH4_$prefix_environ
-
-# Ground-state SCF calculation
-  cat > ${prefix}.scf.in << EOF
+prefix=PtCO_linearizedpb
+input=${prefix}'.in'
+output=${prefix}'.out'
+cat > $input << EOF 
  &CONTROL
    !
    calculation = 'scf'
@@ -151,77 +169,96 @@ prefix=CH4_$prefix_environ
    pseudo_dir = '$PSEUDO_DIR/'
    outdir = '$TMP_DIR/'
    prefix = '$prefix'
+   tprnfor = .TRUE.
    verbosity = 'high'
    !
  /
  &SYSTEM
    !
-   ibrav = 1
-   celldm(1) = 20
-   nat = 5
-   ntyp = 2
-   ecutwfc = 25
-   nbnd = 20
+   ibrav = 8
+   celldm(1) = 10.6881
+   celldm(2) = 0.866025
+   celldm(3) = 3.95422
+   nat = 10
+   ntyp = 3
+   ecutwfc = 35
+   ecutrho = 280
+   occupations = 'smearing'
+   degauss = 0.03
+   smearing = 'mv'
+   nbnd = 80
+   tot_charge = 1
    !
 /
  &ELECTRONS
    !
+   conv_thr = 5.D-9
    diagonalization = 'davidson'
-   mixing_mode = 'plain'
-   mixing_beta = 0.7
-   conv_thr = 1.D-8
-   electron_maxstep = 100
+   mixing_beta = 0.2
+   electron_maxstep = 200
    !
  /
-ATOMIC_SPECIES  
- H   1  H.pz-vbc.UPF
- C  12  C.pz-vbc.UPF
-ATOMIC_POSITIONS {Angstrom}
-C        0.000000000   0.000000000   0.000000000
-H        0.642814093   0.642814093   0.642814093
-H       -0.642814093  -0.642814093   0.642814093
-H        0.642814093  -0.642814093  -0.642814093
-H       -0.642814093   0.642814093  -0.642814093
-K_POINTS {gamma}
+K_POINTS (automatic)
+ 1 1 1 0 0 0
+ATOMIC_SPECIES
+Pt 1 Pt.pbe-nd-rrkjus.UPF
+C 1 C.pbe-rrkjus.UPF
+O 1 O.pbe-rrkjus.UPF
+ATOMIC_POSITIONS (bohr)
+Pt       8.061327071   0.098057998   8.992142901
+Pt       2.608989366   0.098058283   8.992140585
+Pt       0.000036609   4.720846294   8.968756935
+Pt       5.335159557   4.721612729   9.380196435
+Pt       0.000041121   7.802951963   4.604626508
+Pt       5.335161233   7.697749113   4.753489408
+Pt       2.697860636   3.152173889   4.688412329
+Pt       7.972463687   3.152174491   4.688415209
+C        5.335084148   4.646723426  12.901029877
+O        5.335009643   4.619623254  15.079854269
 EOF
-$ECHO "  running the scf calculation...\c"
-$PW_COMMAND < ${prefix}.scf.in > ${prefix}.scf.out
+cat > environ.in << EOF 
+ &ENVIRON
+   !
+   verbose = $verbose
+   environ_thr = $environ_thr
+   environ_type = 'input'
+   env_static_permittivity = 80
+   env_surface_tension = 0.D0
+   env_pressure = 0.D0
+   env_ioncc_ntyp = $env_ioncc_ntyp     
+   zion(1) = $zion
+   zion(2) = -$zion                  
+   cion(1) = $cion
+   cion(2) = $cion             
+   cionmax(1) = $cionmax
+   cionmax(2) = $cionmax         
+   solvent_temperature = $solvent_temperature
+   system_dim = $system_dim            
+   system_axis = $system_axis   
+   system_ntyp = $system_ntyp
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'full'
+   stern_mode = '$stern_mode'
+   stern_distance = $stern_distance
+   stern_spread = $stern_spread   
+   !
+ /
+ &ELECTROSTATIC
+   !
+   pbc_correction = '$pbc_correction'
+   pbc_dim = $pbc_dim                 
+   pbc_axis = $pbc_axis   
+   tol = 5.D-13
+   !
+ /
+EOF
+   
+$PW_COMMAND < $input > $output 
 check_failure $?
 $ECHO " done"
-
-
-
-# TDDFPT calculation using the Davidson algorithm
-cat > ${prefix}.turbo-davidson.in << EOF
-&lr_input
-    prefix='$prefix'
-    outdir='$TMP_DIR/'
-    restart = .false.
-/
-&lr_dav
-    num_eign=10
-    num_init=20
-    num_basis_max=150
-    residue_conv_thr=1.0E-4
-    start=0.0
-    finish=3.5
-    step=0.001
-    broadening=0.01
-    reference=0.0
-    p_nbnd_occ=4
-    p_nbnd_virt=15
-    poor_of_ram=.false.
-    poor_of_ram2=.false.
-/
-EOF
-$ECHO "  running the TDDFPT calculation using the Davidson algorithm...\c"
-$TURBO_DAVIDSON_COMMAND < ${prefix}.turbo-davidson.in > ${prefix}.turbo-davidson.out
-check_failure $?
-$ECHO " done"
-
-
-done
-
 
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

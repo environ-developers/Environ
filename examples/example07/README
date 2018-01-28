@@ -1,15 +1,16 @@
 
-This example shows how to use cp.x to calculate the electrostatic solvation energy
-and other related solvation quantities for a water molecule in a water solvent.
+This example shows how to use pw.x to calculate the energy of a water 
+cluster using a solvent-aware interface (thanks to Nicolas Hörmann for 
+the structure). This feature is particularly useful to model branched/
+open/porous systems, where pockets that are too small to be occupied
+by a solvent molecule should remain dielectric-free. 
 
-The calculation is a damped electron dynamics (thus missing the ionic relaxation),
-but in the presence of a continuum dielectric with the shape defined
-by the electronic density, according to the  model of Fattebert 
-and Gygi, Int J Quantum Chem 93, 139 (2003), revised by O. Andreussi, I. Dabo 
-and N. Marzari, J. Chem. Phys. 136, 064102 (2012) 
+Two calculations are carried out. The first calculation includes
+a standard interface between the quantum mechanical and the continuum
+region, such that the dielectric unphysically fills the small pocket 
+in between water molecules. The second calculation models instead a 
+solvent-aware interface, which prevents the dielectric continuum to 
+occupy the central 'hole' of the cluster.
 
-Note that, for the time being, no PBC correction has been used for the calculations 
-in vacuum and in the solvent.
-
-A rough explanation of the different keywords of the solvation model is 
-in the run_example.sh file.
+A rough explanation of the different solvent-aware related 
+keywords is provided inside the run_example.sh file.

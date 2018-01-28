@@ -18,8 +18,10 @@ $ECHO
 $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
 $ECHO
 $ECHO "Two equivalent calculations are performed, using two different "
-$ECHO "algorithms to obtain the self consistent dielectic. "
+$ECHO "algorithms to obtain the self consistent dielectic as described in "
 $ECHO 
+$ECHO "G. Fisicaro, L. Genovese, O. Andreussi, N. Marzari and S. Goedecker,"
+$ECHO "               J. Chem. Phys. 144, 014103 (2016)"
 
 # set the needed environment variables
 . ../../../environment_variables
@@ -83,19 +85,33 @@ $ECHO
 $ECHO "  running pw.x as: $PW_COMMAND"
 $ECHO
 
-### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
-verbose=0             # if GE 1 prints debug informations
-                      # if GE 2 prints out gaussian cube files with 
-                      # dielectric function, polarization charges, etc
-                      # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d-1'   # electronic convergence threshold for the onset  
-                      # of solvation correction
-environ_type='vacuum' # type of environment
-                      # input: read parameters from input
-                      # vacuum: all flags off, no environ 
-                      # water: parameters from experimental values 
-                      #        and specifically tuned
-### ITERATIVE SOLVER PARAMETERS #####################################
+### ELECTROSTATIC EMBEDDING PARAMETERS ######################################
+verbose=0                  # if GE 1 prints debug informations
+                           # if GE 2 prints out gaussian cube files with 
+                           # dielectric function, polarization charges, etc
+                           # WARNING: if GE 2 lot of I/O, much slower
+environ_thr='1.d-1'        # electronic convergence threshold for the onset  
+                           # of solvation correction
+environ_type='vacuum'      # type of environment
+                           # input: read parameters from input
+                           # vacuum: all flags off, no environ 
+                           # water: parameters from experimental values 
+                           #   and specifically tuned for neutral molecules
+                           # water-anions: same as water, but parameters are 
+                           #   tuned for anions (Dupont et al., JCP (2013))
+                           # water-cations: same as water, but parameters are
+                           #   tuned for cations (Dupont et al., JCP (2013))
+env_electrostatic='.true.' # modify electrostatic embedding (required to
+                           #   switch on PBC corrections in vacuum)
+pbc_correction='parabolic' # correction scheme to remove PBC 
+                           # none: periodic calculation, no correction 
+                           # parabolic: quadratic real-space correction
+pbc_dim=0                  # select the desired system dimensionality
+                           # 0, 1 or 2: isolated, 1D or 2D system
+                           # if pbc_dim=1 or 2: pbc_axis set the axis along 
+                           #   the 1D direction or normal to the 2D plane
+                           #   (pbc_axis = 1, 2 or 3 for x, y or z axis)
+### SOLVER PARAMETERS #######################################################
 solver='iterative' # type of solver (cg is default with dielectric)
                    # direct: direct poisson solver (only for vacuum)  
                    # cg: conjugate gradient with sqrt preconditioner
@@ -106,7 +122,7 @@ auxiliary='full'   # auxiliary charge in the solver
                    # full: solve for the polarization charge
 tol='1.d-11'       # tolerance of the solver
 mix='0.6'          # mixing for the solver
-#####################################################################
+############################################################################
 
 for environ_type in vacuum water ; do 
 
@@ -154,7 +170,6 @@ for environ_type in vacuum water ; do
    celldm(1) = 20
    nat = 3
    ntyp = 2
-   assume_isolated = 'pcc'
    !
 /
  &ELECTRONS
@@ -184,11 +199,15 @@ EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = '$environ_type'
+   env_electrostatic = $env_electrostatic
    !
  /
  &BOUNDARY
  /
  &ELECTROSTATIC
+   !
+   pbc_correction = '$pbc_correction'
+   pbc_dim = $pbc_dim
    !
    tol = $tol
    mix = $mix

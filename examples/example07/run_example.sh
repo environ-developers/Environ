@@ -10,17 +10,17 @@ if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
 $ECHO
 $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
-$ECHO "This example shows how to use cp.x to calculate the electrostatic "
-$ECHO "solvation energy for a water molecule in water using a fully self-"
-$ECHO "consistent dielectric defined on the electronic density according to "
-$ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
+$ECHO "This example shows how to use pw.x to simulate a 10xH20 water cluster "
+$ECHO "immersed in continuum solvent. Turning on the solvent_radius inside the "
+$ECHO "BOUNDARY namelist prevents dielectric from getting inside the cluster."
+$ECHO
 
 # set the needed environment variables
 . ../../../environment_variables
 
 # required executables and pseudopotentials
-BIN_LIST="cp.x"
-PSEUDO_LIST="O.pbe-rrkjus.UPF H.pbe-rrkjus.UPF"
+BIN_LIST="pw.x"
+PSEUDO_LIST="H.pbe-rrkjus.UPF O.pbe-rrkjus.UPF"
 
 $ECHO
 $ECHO "  executables directory: $BIN_DIR"
@@ -72,143 +72,192 @@ done
 $ECHO " done"
 
 # how to run executables
-CP_COMMAND="$PARA_PREFIX $BIN_DIR/cp.x $PARA_POSTFIX --environ"
+PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX --environ"
 $ECHO
-$ECHO "  running cp.x as: $CP_COMMAND"
+$ECHO "  running pw.x as: $PW_COMMAND"
 $ECHO
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
-verbose=0             # if GE 1 prints debug informations
-                      # if GE 2 prints out gaussian cube files with 
-                      # dielectric function, polarization charges, etc
-                      # WARNING: if GE 2 lot of I/O, much slower
-environ_nskip='300'   # number of CP steps that need to be skipped 
-                      # before starting to add environ contributions   
-environ_type='vacuum' # type of environment
-                      # input: read parameters from input
-                      # vacuum: all flags off, no environ 
-                      # water: parameters from experimental values 
-                      #        and specifically tuned
+verbose=0                      # if GE 1 prints debug informations
+                               # if GE 2 prints out gaussian cube files with 
+                               # dielectric function, polarization charges, etc
+                               # WARNING: if GE 2 lot of I/O, much slower
+environ_thr='1.d0'             # electronic convergence threshold for the onset  
+                               # of solvation correction
+environ_type="water"           # type of environment
+                               # input: read parameters from input
+                               # vacuum: all flags off, no environ 
+### BOUNDARY PARAMETERS #####################################
+filling_threshold=8.25d-01     # if filling function GE threshold, 
+                               # the dielectric is set to 1, so dielectric pockets
+                               # of the solvent size will be prevented
+                               # to prevent cylindrical pockets: decrease to approx. 0.65.
+                               # For below 0.5, the dielectric boundary might be modified strongly
+                               # will be treated as quantum mechanical
+solvent_mode="full"            # add add density to regions close to nuclei
+solvent_radius=3               # size of solvent molecules (radius(H20) approx 3 bohr)
 ### ITERATIVE SOLVER PARAMETERS #####################################
 tol='1.d-12'  # tolerance of the iterative solver
+mix='0.6'     # polarization mixing for the iterative solver
 #####################################################################
 
-for environ_type in vacuum water ; do 
+for solvent_awareness in standard solvent_aware ; do 
 
-    # clean TMP_DIR
-    $ECHO "  cleaning $TMP_DIR...\c"
-    rm -rf $TMP_DIR/*
-    $ECHO " done"
-    
-    $ECHO "  running the relax calculation in $environ_type"
+# clean TMP_DIR
+$ECHO "  cleaning $TMP_DIR...\c"
+rm -rf $TMP_DIR/*
+$ECHO " done"
 
-  prefix=h2o_$environ_type
-  input=${prefix}'.in'
-  output=${prefix}'.out'
-  cat > $input << EOF 
- &CONTROL
-   !
-   calculation = 'cp'
-   restart_mode = 'from_scratch'
-   pseudo_dir = '$PSEUDO_DIR'
-   outdir = '$TMP_DIR/'
-   prefix = $prefix
-   tprnfor = .TRUE.
-   dt              = 1
-   nstep           = 2000
-   ekin_conv_thr   = 1.D-11
-   etot_conv_thr   = 1.D-9
-   !
- /
- &SYSTEM
-   !
-   ecutrho = 300
-   ecutwfc = 30
-   !
-   ibrav = 1
-   celldm( 1 ) = 20.0000
-   !
-   nat = 3
-   ntyp = 2
-   !
-   occupations     = 'fixed'
-   nr1b            = 24
-   nr2b            = 24
-   nr3b            = 24
-   !
-/
- &ELECTRONS
-   !
-   conv_thr          = 5.D-9
-   emass             = 400
-   electron_dynamics = 'damp'
-   electron_damping  = 0.05d0
-   !
- /
- &IONS
-   !
-   ion_dynamics    = 'none' 
-   ion_damping = 0.1d0
-   !
- /
-K_POINTS (automatic)
- 1 1 1 0 0 0
-ATOMIC_SPECIES
- H   1  H.pbe-rrkjus.UPF
- O  16  O.pbe-rrkjus.UPF
-ATOMIC_POSITIONS (bohr)
-O   11.79  12.05  11.50
-H   13.45  11.22  11.50
-H   10.56  10.66  11.50
-EOF
-  cat > environ_${environ_type}.in << EOF
+if [ "${solvent_awareness}" = "standard" ] ; then
+   label="standard"
+else
+   label="fill_pockets"
+fi
+
+# how to run executables
+PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX -environ"
+$ECHO
+$ECHO "  running pw.x as: $PW_COMMAND"
+$ECHO
+
+
+
+prefix=H2OCluster_$label
+input=${prefix}'.in'
+output=${prefix}'.out'
+
+# Input for Environ standard
+if [ "${solvent_awareness}" = "standard" ] ; then
+cat > environ.in << EOF
  &ENVIRON
    !
    verbose = $verbose
-   environ_nskip = $environ_nskip
+   environ_thr = $environ_thr
    environ_type = '$environ_type'
    !
  /
  &BOUNDARY
+   solvent_mode = 'full'
  /
  &ELECTROSTATIC
    !
+   solver = 'iterative'
+   auxiliary = 'full'
    tol = $tol
+   mix = $mix
    !
  /
 EOF
-   
-  cp environ_${environ_type}.in environ.in
-  $CP_COMMAND < $input > $output 
-  check_failure $?
-  $ECHO " done"
+fi
+
+if [ "${solvent_awareness}" = "solvent_aware" ] ; then
+cat > environ.in << EOF
+ &ENVIRON
+   !
+   verbose = $verbose
+   environ_thr = $environ_thr
+   environ_type = '$environ_type'
+   !
+ /
+ &BOUNDARY
+   solvent_mode = 'full'
+   filling_threshold = $filling_threshold
+   solvent_radius = $solvent_radius
+ /
+ &ELECTROSTATIC
+   !
+   solver = 'iterative'
+   auxiliary = 'full'
+   tol = $tol
+   mix = $mix
+   !
+ /
+EOF
+fi
+
+cp environ.in environ_${prefix}.in   
+
+
+ 
+
+# Ground-state SCF calculations
+  cat > $input << EOF
+ &CONTROL
+   !
+   calculation = 'scf'
+   restart_mode = 'from_scratch'
+   pseudo_dir = '$PSEUDO_DIR/'
+   outdir = '$TMP_DIR/'
+   prefix = '$prefix'
+   verbosity = 'high'
+   tprnfor = .true.
+   !
+ /
+ &SYSTEM
+   !
+   assume_isolated = 'mt'
+   ecutrho = 280
+   ecutwfc = 35
+   ibrav = 0
+   nat = 30
+   ntyp = 2
+   occupations = 'fixed'
+   !
+/
+ &ELECTRONS
+   !
+   conv_thr =   2.0d-08
+   electron_maxstep = 100
+   mixing_beta =   3.0d-01
+   !
+ /
+ATOMIC_SPECIES
+H      1.00794 H.pbe-rrkjus.UPF 
+O      15.9994 O.pbe-rrkjus.UPF
+ATOMIC_POSITIONS angstrom
+O            9.7407800000       9.5971600000       6.5018633333 
+H           10.2290800000      10.1831600000       5.9108633333 
+H            8.8803800000      10.0472600000       6.6731633333 
+O            9.3199800000       6.8106600000       6.0826633333 
+H            9.4998800000       7.7702600000       6.1095633333 
+H            9.6905800000       6.4740600000       6.9229633333 
+O            7.3101800000      10.5947600000       7.2777633333 
+H            6.8562800000      11.3708600000       6.9263633333 
+H            6.6440800000       9.8498600000       7.2166633333 
+O            6.7248800000       6.2260600000       6.3047633333 
+H            7.6774800000       6.4711600000       6.1439633333 
+H            6.4600800000       5.6954600000       5.5435633333 
+O            9.8923800000       5.9950600000       8.7285633333 
+H            8.9392800000       5.7891600000       8.9336633333 
+H           10.4030800000       5.2569600000       9.0824633333 
+O            7.2755800000       5.5673600000       9.0328633333 
+H            6.8204800000       6.3086600000       9.4818633333 
+H            6.9531800000       5.6153600000       8.1129633333 
+O            7.8983800000       9.8013600000      10.0250633333 
+H            7.7074800000      10.3022600000       9.2121633333 
+H            8.7987800000       9.4352600000       9.8566633333 
+O            6.0458800000       7.9070600000       9.9967633333 
+H            5.5153800000       7.9994600000      10.7974633333 
+H            6.7709800000       8.5922600000      10.0746633333 
+O            5.5767800000       8.5916600000       7.2964633333 
+H            5.8959800000       7.7908600000       6.8329633333 
+H            5.5353800000       8.3223600000       8.2357633333 
+O           10.3283800000       8.7649600000       9.2297633333 
+H           10.2693800000       7.7933600000       9.1483633333 
+H           10.3395800000       9.0758600000       8.3073633333 
+K_POINTS automatic
+1 1 1 0 0 0
+CELL_PARAMETERS angstrom
+     14.0000000000       0.0000000000       0.0000000000
+      0.0000000000      14.0000000000       0.0000000000
+      0.0000000000       0.0000000000      14.0000000000      
+EOF
+
+$PW_COMMAND < $input > $output
+check_failure $?
+mv epsilon.cube ${prefix}_epsilon.cube
+rm environ.in
+
+$ECHO " done" ${prefix}
 
 done
-
-evac=$(awk '/total energy =/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_vacuum.out)
-esol=$(awk '/total energy =/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_water.out)
-dgsol=$($ECHO "($esol+(-1)*$evac)*313.68*2" | bc -l) 
-ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_water.out) 
-epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_water.out)
-
-$ECHO "  Solvation Energy     = $dgsol Kcal/mol" > results.txt
-iprint=0
-dgelec=$dgsol
-if [ $ecav != 0 ]; then 
-  iprint=1
-  dgcav=$($ECHO "$ecav*313.68*2" | bc -l)
-  $ECHO "  Cavitation Energy    =  $dgcav Kcal/mol" >> results.txt
-  dgelec=$($ECHO "$dgelec+(-1)*$dgcav" | bc -l)
-fi
-if [ $epres != 0 ]; then
-  iprint=1
-  dgpres=$($ECHO "$epres*313.68*2" | bc -l)
-  $ECHO "  PV Energy            = $dgpres Kcal/mol" >> results.txt
-  dgelec=$($ECHO "$dgelec+(-1)*$dgpres" | bc -l)
-fi
-if [ $iprint != 0 ]; then
-  $ECHO "  Electrostatic Energy = $dgelec Kcal/mol" >> results.txt
-fi
-
-$ECHO
-$ECHO "$EXAMPLE_DIR : done"

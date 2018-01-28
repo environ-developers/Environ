@@ -10,19 +10,22 @@ if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
 $ECHO
 $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
-$ECHO "This example shows how to use pw.x, turbo_lanczos.x, and turbo_spectrum.x"
-$ECHO "to calculate the absorption spectrum of the CH4 molecule in water"
-$ECHO "using a fully self-consistent dielectric defined on the electronic density"
-$ECHO "and using the Liouville-Lanczos approach within the time-dependent density" 
-$ECHO "functional perturbation theory according to I. Timrov, O. Andreussi, A. Biancardi,"
-$ECHO "N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)."
+$ECHO "This example shows how to use pw.x to simulate a charged two-dimensional "
+$ECHO "system immersed in continuum solvent described by the SCCS model "
+$ECHO
+$ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
+$ECHO
+$ECHO "and with open boundary conditions along the axis perpendicular "
+$ECHO "to the slab plane, as described in "
+$ECHO
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
 
 # set the needed environment variables
 . ../../../environment_variables
 
 # required executables and pseudopotentials
-BIN_LIST="pw.x turbo_lanczos.x turbo_spectrum.x"
-PSEUDO_LIST="H.pz-vbc.UPF C.pz-vbc.UPF"
+BIN_LIST="pw.x"
+PSEUDO_LIST="O.pbe-rrkjus.UPF C.pbe-rrkjus.UPF Pt.pbe-nd-rrkjus.UPF"
 
 $ECHO
 $ECHO "  executables directory: $BIN_DIR"
@@ -73,79 +76,69 @@ for FILE in $PSEUDO_LIST ; do
 done
 $ECHO " done"
 
-
-### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
-verbose=0                      # if GE 1 prints debug informations
-                               # if GE 2 prints out gaussian cube files with 
-                               # dielectric function, polarization charges, etc
-                               # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d-1'            # electronic convergence threshold for the onset  
-                               # of solvation correction
-environ_type="vacuum"          # type of environment
-                               # input: read parameters from input
-                               # vacuum: all flags off, no environ 
-env_static_permittivity=78.5   # static permittivity of water
-env_optical_permittivity=1.776 # optical permittivity of water
-env_surface_tension=0.0        # surface tension (not supported by TDDFPT)
-env_pressure=0.0               # pressure (not supported by TDDFPT)
-### ITERATIVE SOLVER PARAMETERS #####################################
-tol='1.d-12' # tolerance of the iterative solver
-#####################################################################
-
-for environ_type in vacuum input ; do 
-
-# clean TMP_DIR
-$ECHO "  cleaning $TMP_DIR...\c"
-rm -rf $TMP_DIR/*
-$ECHO " done"
-
-if [ "${environ_type}" = "input" ] ; then
-   prefix_environ="solvent"
-   flag="-environ"
-else
-   prefix_environ="vacuum"
-   flag=" "
-fi
-
 # how to run executables
-PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX $flag"
-TURBO_LANCZOS_COMMAND="$PARA_PREFIX $BIN_DIR/turbo_lanczos.x $PARA_POSTFIX $flag"
-TURBO_SPECTRUM_COMMAND="$PARA_PREFIX $BIN_DIR/turbo_spectrum.x $PARA_POSTFIX $flag"
+PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX --environ"
 $ECHO
 $ECHO "  running pw.x as: $PW_COMMAND"
-$ECHO "  running turbo_lanczos.x as: $TURBO_LANCZOS_COMMAND"
-$ECHO "  running turbo_spectrum.x as: $TURBO_SPECTRUM_COMMAND"
 $ECHO
 
+### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
+verbose=0             # if GE 1 prints debug informations
+                      # if GE 2 prints out gaussian cube files with 
+                      # dielectric function, polarization charges, etc
+                      # WARNING: if GE 2 lot of I/O, much slower
+environ_thr='1.d0'    # electronic convergence threshold for the onset  
+                      # of solvation correction
+### EXTERNAL CHARGES PARAMETERS #####################################
+env_extcharge_n=2          # Number of external objects to be used
+                           # key control parameter for the module, 
+                           # only activated if different from 0. 
+extcharge_pos_3_1='25.697'  # Position (x=1,y=2,z=3 first index of the vector)
+extcharge_pos_3_2='-10.303' # of each external object (second index) wrt 
+                           # the origin specified above, only need to
+	                   # specify the values different from 0.d0.
+                           # Values specified are in internal units (a.u.)
+extcharge_dim=2            # Dimensionality of the object: 0 = gaussian point, 
+	                   # 1 = gaussian line, 2 = gaussian plane
+extcharge_axis=3           # Axis of the object: for planes it is the 
+                           # orthogonal axis, for lines it is the line's axis
+                           # no use for points.  
+extcharge_charge='-0.5'    # Charge of each object (in internal units)
+                           # same convention as in tot_charge
+extcharge_spread='1.0'     # Spread of the object (gaussian shape) in a.u.
+### PERIODIC BOUNDARY CONDITIONS ####################################
+env_electrostatic='.true.' # modify electrostatic embedding (required to
+                           #   switch on PBC corrections in vacuum)
+pbc_correction='parabolic' # correction scheme to remove PBC 
+                           # none: periodic calculation, no correction 
+                           # parabolic: quadratic real-space correction
+pbc_dim=2                  # select the desired system dimensionality
+                           #   0, 1 or 2: isolated, 1D or 2D system
+pbc_axis=3                 # set the axis along the 1D direction or 
+                           #   normal to the 2D plane (pbc_axis = 1, 2 
+                           #   or 3 for x, y or z axis)
+#####################################################################
+for epsilon in 1 80 ; do
 
-# Input for Environ
-if [ "${environ_type}" = "input" ] ; then
-cat > environ.in << EOF
- &ENVIRON
-   !
-   verbose = $verbose
-   environ_thr = $environ_thr
-   environ_type = '$environ_type'
-   env_static_permittivity = $env_static_permittivity
-   env_optical_permittivity = $env_optical_permittivity
-   env_surface_tension = $env_surface_tension
-   env_pressure = $env_pressure
-   !
- /
- &BOUNDARY
- /
- &ELECTROSTATIC
-   !
-   tol = $tol
-   !
- /
-EOF
-fi
- 
-prefix=CH4_$prefix_environ
+    # clean TMP_DIR
+    $ECHO "  cleaning $TMP_DIR...\c"
+    rm -rf $TMP_DIR/*
+    $ECHO " done"
 
-# Ground-state SCF calculation
-  cat > ${prefix}.scf.in << EOF
+    if [ $epsilon = "1" ]; then
+      label="vacuum"
+    else
+      label="water"
+    fi
+
+    $ECHO "  running the scf calculation in $label"
+    $ECHO "  with $pbc_correction periodic boundary correction"
+    $ECHO "  and a fixed planar density of charge (helmholtz layer)"
+
+    prefix=PtCO_helmholtz_${label}
+    input=${prefix}'.in'
+    output=${prefix}'.out'
+    cat > $input << EOF 
  &CONTROL
    !
    calculation = 'scf'
@@ -153,89 +146,88 @@ prefix=CH4_$prefix_environ
    pseudo_dir = '$PSEUDO_DIR/'
    outdir = '$TMP_DIR/'
    prefix = '$prefix'
+   tprnfor = .TRUE.
    verbosity = 'high'
    !
  /
  &SYSTEM
    !
-   ibrav = 1
-   celldm(1) = 20
-   nat = 5
-   ntyp = 2
-   ecutwfc = 25
+   ibrav = 8
+   celldm(1) = 10.6881
+   celldm(2) = 0.866025
+   celldm(3) = 3.95422
+   nat = 10
+   ntyp = 3
+   ecutwfc = 35
+   ecutrho = 280
+   occupations = 'smearing'
+   degauss = 0.03
+   smearing = 'mv'
+   nbnd = 80
+   tot_charge = 1
    !
 /
  &ELECTRONS
    !
+   conv_thr = 5.D-9
    diagonalization = 'davidson'
-   mixing_mode = 'plain'
-   mixing_beta = 0.7
-   conv_thr = 1.D-8
-   electron_maxstep = 100
+   mixing_beta = 0.2
+   electron_maxstep = 200
    !
  /
-ATOMIC_SPECIES  
- H   1  H.pz-vbc.UPF
- C  12  C.pz-vbc.UPF
-ATOMIC_POSITIONS {Angstrom}
-C        0.000000000   0.000000000   0.000000000
-H        0.642814093   0.642814093   0.642814093
-H       -0.642814093  -0.642814093   0.642814093
-H        0.642814093  -0.642814093  -0.642814093
-H       -0.642814093   0.642814093  -0.642814093
-K_POINTS {gamma}
+K_POINTS (automatic)
+ 1 1 1 0 0 0
+ATOMIC_SPECIES
+C 1 C.pbe-rrkjus.UPF
+O 1 O.pbe-rrkjus.UPF
+Pt 1 Pt.pbe-nd-rrkjus.UPF
+ATOMIC_POSITIONS (bohr)
+C        5.335084148   4.646723426  12.901029877
+O        5.335009643   4.619623254  15.079854269
+Pt       8.061327071   0.098057998   8.992142901
+Pt       2.608989366   0.098058283   8.992140585
+Pt       0.000036609   4.720846294   8.968756935
+Pt       5.335159557   4.721612729   9.380196435
+Pt       0.000041121   7.802951963   4.604626508
+Pt       5.335161233   7.697749113   4.753489408
+Pt       2.697860636   3.152173889   4.688412329
+Pt       7.972463687   3.152174491   4.688415209
 EOF
-$ECHO "  running the scf calculation...\c"
-$PW_COMMAND < ${prefix}.scf.in > ${prefix}.scf.out
-check_failure $?
-$ECHO " done"
-
-
-
-# TDDFPT calculation using the Lanczos algorithm
-cat > ${prefix}.turbo-lanczos.in << EOF
-&lr_input
-    prefix='$prefix'
-    outdir='$TMP_DIR/'
-    restart_step = 250
-    restart = .false.
-/
-&lr_control
-    itermax = 3000
-    ipol = 4
-    n_ipol = 3
-/
+   cat > environ_${label}.in << EOF 
+ &ENVIRON
+   !
+   verbose = $verbose
+   environ_thr = $environ_thr
+   environ_type = 'input'
+   env_static_permittivity = $epsilon
+   env_surface_tension = 0.D0
+   env_pressure = 0.D0
+   env_external_charges = $env_extcharge_n
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'full'
+   !
+ /
+ &ELECTROSTATIC
+   !
+   pbc_correction = '$pbc_correction'
+   pbc_dim = $pbc_dim                 
+   pbc_axis = $pbc_axis   
+   tol = 5.D-13
+   !
+ /
+ EXTERNAL_CHARGES (bohr)
+ $extcharge_charge 0. 0. $extcharge_pos_3_1 $extcharge_spread $extcharge_dim $extcharge_axis
+ $extcharge_charge 0. 0. $extcharge_pos_3_2 $extcharge_spread $extcharge_dim $extcharge_axis
 EOF
-$ECHO "  running the TDDFPT calculation using the Lanczos algorithm...\c"
-$TURBO_LANCZOS_COMMAND < ${prefix}.turbo-lanczos.in > ${prefix}.turbo-lanczos.out
-check_failure $?
-$ECHO " done"
-
-
-
-# Post-processing spectrum calculation 
-cat > ${prefix}.turbo-spectrum.in << EOF
-&lr_input
-  prefix = '$prefix',
-  outdir = '$TMP_DIR/',
-  itermax0 = 3000,
-  itermax =  20000,
-  extrapolation="osc"
-  epsil = 0.01
-  start = 0.0d0
-  increment = 0.001d0
-  end = 3.5d0
-  ipol = 4
-/
-EOF
-$ECHO "  running the post-processing spectrum calculation...\c"
-$TURBO_SPECTRUM_COMMAND < ${prefix}.turbo-spectrum.in > ${prefix}.turbo-spectrum.out
-check_failure $?
-$ECHO " done"
-
+   
+   cp environ_${label}.in environ.in 
+   $PW_COMMAND < $input > $output 
+   check_failure $?
+   $ECHO " done"
 
 done
-
-
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

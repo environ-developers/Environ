@@ -1,29 +1,31 @@
-This example shows how to use pw.x to model two-dimensional periodic systems
-in contact with a continuum solvent. 
 
-The calculation is a single SCF calculation of a (unrealistic) two-layer thick 
-Pt (111) slab with a CO molecule adsorbed on atop position (thanks to Ismaila 
-Dabo for the starting input of the system in vacuum). The solvent is treated
-as a continuum dielectric according to the Self-consistent Continuum Solvation
-(SCCS) model of O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 
-064102 (2012). 
+This example show how to use pw.x to simulate isolated charged systems in 
+vacuum or immersed in a continuum dielectric solvent. 
 
-The artifacts due to the periodic boundary conditions are removed using a 
-real-space quadratic correction of the electrostatic potential, analogous 
-to the Point Counter-Charge (PCC) correction scheme (see I. Dabo et al. Phys. 
-Rev. B 77, 115139 (2008)). 
+Two calculations, one in vacuum and one in a continuum dielectric with the 
+dielectric permittivity of water, are performed on a pyridine cation, using 
+three different periodic-boundary correction schemes, for a total of six
+calculations. 
 
-The method has been coupled to the SCCS model in oder to remove periodic 
-boundary conditions in simulations of partially periodic systems in the 
-presence of a continuum solvent, as described by O. Andreussi and N. marzari
-Phys. Rev. B 90 245101 (2014).
+To keep the calculations simple, only the electrostatic interaction with the 
+solvent is introduced in the calculation, via the Self-consistent continuum 
+solvation (SCCS) model of O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys.
+136 064102 (2012). 
 
-Note that the keyword solvent_mode='full' is mandatory in this calculation, in 
-order to remove the artifact of the Pt valence density, which presents a hole
-close to the position of ion, due to the missing core electrons. In order to
-avoid the continuum solvent to enter such a hole, a quickly vanishing gaussian
-density is added at the position of the nuclei when defining the dielectric. 
-The same problem is likely to occur in alogens and other transition metals. 
+The periodic-boundary correction schemes adopted are:
 
-A rough explanation of the different keywords of the solvation model is inside 
-the run_example.sh file.
+- none: fully periodic calculation
+- martyna-tuckerman: self-consistent, reciprocal-space correction of the 
+               electrostatic potential. REQUIRES A CELL AT LEAST TWICE AS BIG
+	       AS THE SIZE OF THE SYSTEM UNDER STUDY. A part from the limitation
+               on the cell size, this correction scheme gives perfect accuracy 
+               at an almost negligible computational cost.
+- pcc: self-consistent, real-space quadratic correction of the electrostatic 
+               potentials, see I. Dabo et al. Phys. Rev. B 77, 115139 (2008). 
+               REQUIRES A CUBIC CELL. The error vs system size scales as L^-5. 
+
+Note that from the current version of ENVIRON, the makov-payne correction scheme 
+is no longer supported. 
+ 
+The extension of the above approaches to simulations in a continuum dielectric
+is described in details in O. Andreussi and N. Marzari, Phys. Rev. B 90 245101 (2014). 

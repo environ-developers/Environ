@@ -10,22 +10,22 @@ if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
 $ECHO
 $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
-$ECHO "This example shows how to use pw.x to simulate a charged two-dimensional "
-$ECHO "system immersed in continuum solvent described by the SCCS model "
+$ECHO "This example shows how to use pw.x to calculate the electrostatic "
+$ECHO "contribution to the solvation energy of a charged isolated system "
+$ECHO "(piridine cation in water) using the SCCS model "
 $ECHO
 $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
 $ECHO
-$ECHO "and with open boundary conditions along the axis perpendicular "
-$ECHO "to the slab plane, as described in "
+$ECHO "coupled with different periodic-boundary correction schemes "
 $ECHO
-$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) "
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
 
 # set the needed environment variables
 . ../../../environment_variables
 
 # required executables and pseudopotentials
 BIN_LIST="pw.x"
-PSEUDO_LIST="O.pbe-rrkjus.UPF C.pbe-rrkjus.UPF Pt.pbe-nd-rrkjus.UPF"
+PSEUDO_LIST="N.pbe-rrkjus.UPF C.pbe-rrkjus.UPF H.pbe-rrkjus.UPF"
 
 $ECHO
 $ECHO "  executables directory: $BIN_DIR"
@@ -87,46 +87,41 @@ verbose=0             # if GE 1 prints debug informations
                       # if GE 2 prints out gaussian cube files with 
                       # dielectric function, polarization charges, etc
                       # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d0'    # electronic convergence threshold for the onset  
+environ_thr='1.d-1'   # electronic convergence threshold for the onset  
                       # of solvation correction
 environ_type='input'  # type of environment
                       # input: read parameters from input
                       # vacuum: all flags off, no environ 
                       # water: parameters from experimental values 
                       #        and specifically tuned
-solvent_mode='full'   # specify the charge density that is used to 
-                      # build the dielectric cavity:
-                      # electronic: use the electronic density (default)
-                      # ionic: use a fictitious charge density calculated
-                      #        for atomic-centered interlocking spheres, 
-                      #        whose analytical expression is based on the
-                      #        error function (see Fisicaro et al. JCTC 13, 
-                      #        3829 (2017)).
-                      # full: same as electronic, but a small extra 
-                      #       density is added on the nuclei to avoid
-                      #       spurious holes in the density due to 
-                      #       pseudopotentials. Only needed with some
-                      #       atomic types and pp, in particular 
-                      #       alogens and transition metals
 ### PERIODIC BOUNDARY CONDITIONS ####################################
-assume_isolated='slabz' # correction scheme to remove pbc 
-                        # none: periodic calculation, no correction
-                        # slabx: quadratic real-space correction of 
-                        #        the potential, slab axis along x 
-                        # slaby: quadratic real-space correction of 
-                        #        the potential, slab axis along y 
-                        # slabz: quadratic real-space correction of 
-                        #        the potential, slab axis along z 
+assume_isolated='none' # correction scheme to remove pbc 
+                       # none: periodic calculation, no correction
+                       # martyna-tuckerman: on-the-fly correction of
+                       #   the potential in G-space, fast and no error
+                       #   but requires a cell at least 2xsize of sytem
+                       # pcc: on-the-fly correction of the potential
+                       #   in real space, error on energy decays as
+                       #   (cell size)^-5
+                       # NOTE: the pcc correction can be activated by
+                       # setting pbc_correction = 'parabolic' and 
+                       # pbc_dim = 0 in the Environ input file
+                       # in the ELECTROSTATIC namelist (recommended). 
+                       # For vacuum calculations, one needs to 
+                       # additionally set env_electrostatic = .true. 
+                       # in the ENVIRON namelist (see e.g. example01).
 #####################################################################
 
-for epsilon in 1 80 ; do 
+for assume_isolated in none martyna-tuckerman pcc ; do 
+
+for epsilon in 01 80 ; do 
 
     # clean TMP_DIR
     $ECHO "  cleaning $TMP_DIR...\c"
     rm -rf $TMP_DIR/*
     $ECHO " done"
     
-    if [ $epsilon = "1" ]; then
+    if [ $epsilon = "01" ]; then
       label="vacuum"
     else
       label="water"
@@ -135,7 +130,7 @@ for epsilon in 1 80 ; do
     $ECHO "  running the scf calculation in $label"
     $ECHO "  with $assume_isolated periodic boundary correction"
 
-  prefix=PtCO_${label}
+  prefix=piridine_${label}_${assume_isolated}
   input=${prefix}'.in'
   output=${prefix}'.out'
   cat > $input << EOF 
@@ -152,19 +147,13 @@ for epsilon in 1 80 ; do
  /
  &SYSTEM
    !
-   ibrav = 8
-   celldm(1) = 10.6881
-   celldm(2) = 0.866025
-   celldm(3) = 3.95422
-   nat = 10
+   ecutrho = 300
+   ecutwfc = 30
+   ibrav = 1
+   celldm(1) = 30
+   nat = 12
    ntyp = 3
-   ecutwfc = 35
-   ecutrho = 280
-   occupations = 'smearing'
-   degauss = 0.03
-   smearing = 'mv'
-   nbnd = 80
-   tot_charge = 1
+   tot_charge = 1 
    assume_isolated = '$assume_isolated'
    !
 /
@@ -172,30 +161,31 @@ for epsilon in 1 80 ; do
    !
    conv_thr = 5.D-9
    diagonalization = 'davidson'
-   mixing_beta = 0.2
+   mixing_beta = 0.4
    electron_maxstep = 200
    !
  /
  &IONS
    ion_dynamics    = 'bfgs'
  /
-K_POINTS (automatic)
- 1 1 1 0 0 0
-ATOMIC_SPECIES
-C 1 C.pbe-rrkjus.UPF
-O 1 O.pbe-rrkjus.UPF
-Pt 1 Pt.pbe-nd-rrkjus.UPF
-ATOMIC_POSITIONS (bohr)
-C        5.335084148   4.646723426  12.901029877
-O        5.335009643   4.619623254  15.079854269
-Pt       8.061327071   0.098057998   8.992142901
-Pt       2.608989366   0.098058283   8.992140585
-Pt       0.000036609   4.720846294   8.968756935
-Pt       5.335159557   4.721612729   9.380196435
-Pt       0.000041121   7.802951963   4.604626508
-Pt       5.335161233   7.697749113   4.753489408
-Pt       2.697860636   3.152173889   4.688412329
-Pt       7.972463687   3.152174491   4.688415209
+K_POINTS (gamma)
+ATOMIC_SPECIES  
+N   14      N.pbe-rrkjus.UPF
+C   12      C.pbe-rrkjus.UPF
+H    1      H.pbe-rrkjus.UPF
+ATOMIC_POSITIONS (angstrom)
+H       -2.418655660   0.000000226   0.001997570
+N       -1.294053698   0.000000088   0.001601933
+C       -0.652551721   1.189250860   0.001097976
+C        0.729271251   1.209271597   0.000774029
+C        1.425569237   0.000000099   0.000697925
+C        0.729271382  -1.209271463   0.001403411
+C       -0.652551525  -1.189250323   0.001876697
+H       -1.276762352   2.083974595   0.000904571
+H        1.248379957   2.168950315   0.000425216
+H        2.518135313  -0.000000088   0.000010538
+H        1.248380238  -2.168950127   0.001697259
+H       -1.276761908  -2.083974094   0.002582665
 EOF
   cat > environ_${label}.in << EOF
  &ENVIRON
@@ -209,17 +199,12 @@ EOF
    !
  /
  &BOUNDARY
-   !
-   solvent_mode = '$solvent_mode'
-   !
  /
  &ELECTROSTATIC
-   !
-   tol = 5.D-13
-   !
+   tol = 1.D-12
  /
 EOF
- 
+
   cp environ_${label}.in environ.in   
   $PW_COMMAND < $input > $output 
   check_failure $?
@@ -227,13 +212,17 @@ EOF
 
 done
 
-evac=$(awk '/^!/ {en=$5}; END {print en}' PtCO_vacuum.out)
-esol=$(awk '/^!/ {en=$5}; END {print en}' PtCO_water.out)
+evac=$(awk '/^!/ {en=$5}; END {print en}' piridine_vacuum_${assume_isolated}.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' piridine_water_${assume_isolated}.out)
 dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
 
+$ECHO "  Periodic boundary correction scheme = $assume_isolated " >> results.txt
 $ECHO "  Electrostatic Energy in vacuum      = $evac  Ry        " >> results.txt
 $ECHO "  Electrostatic Energy in solution    = $esol  Ry        " >> results.txt
 $ECHO "  Electrostatic Solvation Energy      = $dgsol Kcal/mol  " >> results.txt
+$ECHO "                                                         " >> results.txt
+
+done
 
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

@@ -10,10 +10,10 @@ if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
 $ECHO
 $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
-$ECHO "This example shows how to use pw.x, turbo_lanczos.x, and turbo_spectrum.x"
+$ECHO "This example shows how to use the pw.x and turbo_davidson.x codes"
 $ECHO "to calculate the absorption spectrum of the CH4 molecule in water"
 $ECHO "using a fully self-consistent dielectric defined on the electronic density"
-$ECHO "and using the Liouville-Lanczos approach within the time-dependent density" 
+$ECHO "and using the Davidson algorithm within the time-dependent density" 
 $ECHO "functional perturbation theory according to I. Timrov, O. Andreussi, A. Biancardi,"
 $ECHO "N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)."
 
@@ -21,7 +21,7 @@ $ECHO "N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)."
 . ../../../environment_variables
 
 # required executables and pseudopotentials
-BIN_LIST="pw.x turbo_lanczos.x turbo_spectrum.x"
+BIN_LIST="pw.x turbo_davidson.x"
 PSEUDO_LIST="H.pz-vbc.UPF C.pz-vbc.UPF"
 
 $ECHO
@@ -89,7 +89,7 @@ env_optical_permittivity=1.776 # optical permittivity of water
 env_surface_tension=0.0        # surface tension (not supported by TDDFPT)
 env_pressure=0.0               # pressure (not supported by TDDFPT)
 ### ITERATIVE SOLVER PARAMETERS #####################################
-tol='1.d-12' # tolerance of the iterative solver
+tol='1.d-12'  # tolerance of the iterative solver
 #####################################################################
 
 for environ_type in vacuum input ; do 
@@ -109,12 +109,10 @@ fi
 
 # how to run executables
 PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX $flag"
-TURBO_LANCZOS_COMMAND="$PARA_PREFIX $BIN_DIR/turbo_lanczos.x $PARA_POSTFIX $flag"
-TURBO_SPECTRUM_COMMAND="$PARA_PREFIX $BIN_DIR/turbo_spectrum.x $PARA_POSTFIX $flag"
+TURBO_DAVIDSON_COMMAND="$PARA_PREFIX $BIN_DIR/turbo_davidson.x $PARA_POSTFIX $flag"
 $ECHO
 $ECHO "  running pw.x as: $PW_COMMAND"
-$ECHO "  running turbo_lanczos.x as: $TURBO_LANCZOS_COMMAND"
-$ECHO "  running turbo_spectrum.x as: $TURBO_SPECTRUM_COMMAND"
+$ECHO "  running turbo_davidson.x as: $TURBO_DAVIDSON_COMMAND"
 $ECHO
 
 
@@ -163,6 +161,7 @@ prefix=CH4_$prefix_environ
    nat = 5
    ntyp = 2
    ecutwfc = 25
+   nbnd = 20
    !
 /
  &ELECTRONS
@@ -192,44 +191,31 @@ $ECHO " done"
 
 
 
-# TDDFPT calculation using the Lanczos algorithm
-cat > ${prefix}.turbo-lanczos.in << EOF
+# TDDFPT calculation using the Davidson algorithm
+cat > ${prefix}.turbo-davidson.in << EOF
 &lr_input
     prefix='$prefix'
     outdir='$TMP_DIR/'
-    restart_step = 250
     restart = .false.
 /
-&lr_control
-    itermax = 3000
-    ipol = 4
-    n_ipol = 3
+&lr_dav
+    num_eign=10
+    num_init=20
+    num_basis_max=150
+    residue_conv_thr=1.0E-4
+    start=0.0
+    finish=3.5
+    step=0.001
+    broadening=0.01
+    reference=0.0
+    p_nbnd_occ=4
+    p_nbnd_virt=15
+    poor_of_ram=.false.
+    poor_of_ram2=.false.
 /
 EOF
-$ECHO "  running the TDDFPT calculation using the Lanczos algorithm...\c"
-$TURBO_LANCZOS_COMMAND < ${prefix}.turbo-lanczos.in > ${prefix}.turbo-lanczos.out
-check_failure $?
-$ECHO " done"
-
-
-
-# Post-processing spectrum calculation 
-cat > ${prefix}.turbo-spectrum.in << EOF
-&lr_input
-  prefix = '$prefix',
-  outdir = '$TMP_DIR/',
-  itermax0 = 3000,
-  itermax =  20000,
-  extrapolation="osc"
-  epsil = 0.01
-  start = 0.0d0
-  increment = 0.001d0
-  end = 3.5d0
-  ipol = 4
-/
-EOF
-$ECHO "  running the post-processing spectrum calculation...\c"
-$TURBO_SPECTRUM_COMMAND < ${prefix}.turbo-spectrum.in > ${prefix}.turbo-spectrum.out
+$ECHO "  running the TDDFPT calculation using the Davidson algorithm...\c"
+$TURBO_DAVIDSON_COMMAND < ${prefix}.turbo-davidson.in > ${prefix}.turbo-davidson.out
 check_failure $?
 $ECHO " done"
 
