@@ -1219,6 +1219,12 @@ MODULE environ_input
           CALL errore( sub_name, ' pbc_correction '''// &
                        & TRIM(pbc_correction)//''' not allowed ', 1 )
        !
+       DO i = 1, env_ioncc_ntyp
+          IF ( cion(i) .LT. 0.D0 .OR. cionmax(i) .LT. 0.D0 .OR. &
+               rion(i) .LT. 0.D0 ) THEN
+             CALL errore( sub_name, ' cion, cionmax and rion cannot be negative', 1 )
+          END IF
+       END DO
        RETURN
        !
      END SUBROUTINE electrostatic_checkin
