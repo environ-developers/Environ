@@ -1304,10 +1304,6 @@ MODULE environ_input
           env_optical_permittivity = 1.D0
           env_surface_tension = 0.D0
           env_pressure = 0.D0
-          env_external_charges = 0    !! NOT SURE THESE SHOULD
-          env_dielectric_regions = 0  !! BE SET IN THE DEFINITION
-          env_ioncc_ntyp = 0          !! OF THE VACUUM
-          !env_electrostatic = .false. !! ENVIRON_TYPE
           RETURN
        ENDIF
        !
