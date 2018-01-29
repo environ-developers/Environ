@@ -104,7 +104,6 @@ mv tmp.2 plugin_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE klist,            ONLY : nelec \
 USE environ_base,     ONLY : update_venviron, vzero,    & \
                              environ_nskip, environ_restart \
 USE environ_output,   ONLY : verbose \
@@ -119,7 +118,7 @@ sed '/Environ CALLS BEGIN/ a\
         ! \
         ! update electrons-related quantities in environ \
         ! \
-        CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rhoin ) ! \
+        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin ) ! \
         ! \
         ! environ contribution to the local potential, saved in vzero \
         ! \
