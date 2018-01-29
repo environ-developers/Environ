@@ -1294,7 +1294,7 @@ MODULE environ_input
           env_external_charges = 0    !! NOT SURE THESE SHOULD
           env_dielectric_regions = 0  !! BE SET IN THE DEFINITION
           env_ioncc_ntyp = 0          !! OF THE VACUUM
-          env_electrostatic = .false. !! ENVIRON_TYPE
+          !env_electrostatic = .false. !! ENVIRON_TYPE
           RETURN
        ENDIF
        !
