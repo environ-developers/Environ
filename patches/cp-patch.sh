@@ -140,7 +140,6 @@ mv tmp.2 plugin_get_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_base, ONLY : ir_end \
 USE    environ_init, ONLY : environ_initbase \
 USE    cell_base,    ONLY : at, alat, omega, ibrav \
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id \
@@ -254,7 +253,7 @@ sed '/Environ CALLS BEGIN/ a\
     ! \
     ! ... Add the other environment contributions \
     ! \
-    CALL calc_fenviron( dfftp%nnr, nspin, nat, force_environ ) \
+    CALL calc_fenviron( nat, force_environ ) \
     ! \
     force = force + force_environ \
     ! \
