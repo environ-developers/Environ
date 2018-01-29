@@ -558,7 +558,7 @@ CONTAINS
    END SUBROUTINE environ_initions
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-   SUBROUTINE environ_initelectrons( nelec, nspin, nnr, rho )
+   SUBROUTINE environ_initelectrons( nspin, nnr, rho, nelec )
 !--------------------------------------------------------------------
 !
 ! Initialize the electrons-related quantities to be used in the Environ
@@ -578,15 +578,15 @@ CONTAINS
       !
       IMPLICIT NONE
       !
-      REAL( DP ), INTENT( IN )  :: nelec
       INTEGER, INTENT( IN )     :: nspin, nnr
       REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
+      REAL( DP ), INTENT( IN ), OPTIONAL  :: nelec
       !
       electrons%update = .TRUE.
       !
       ! ... Update electrons parameters
       !
-      CALL update_environ_electrons( nelec, nspin, nnr, rho, electrons )
+      CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
       CALL print_environ_electrons( electrons )
       !
       IF ( lelectrostatic ) CALL update_environ_charges( charges )

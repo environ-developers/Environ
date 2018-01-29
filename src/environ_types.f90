@@ -169,8 +169,6 @@ MODULE environ_types
      INTEGER :: number = 0
      INTEGER :: nspin = 1
 
-     REAL( DP ) :: nelec
-
      TYPE( environ_density ) :: density
 
      REAL( DP ) :: charge = 0.0_DP
@@ -1051,14 +1049,14 @@ CONTAINS
 
   END SUBROUTINE init_environ_electrons_second
 
-  SUBROUTINE update_environ_electrons( nelec, nspin, nnr, rho, electrons )
+  SUBROUTINE update_environ_electrons( nspin, nnr, rho, electrons, nelec )
 
     IMPLICIT NONE
 
-    REAL( DP ), INTENT(IN) :: nelec
     INTEGER, INTENT(IN) :: nspin, nnr
     REAL( DP ), DIMENSION(nnr,nspin), INTENT(IN) :: rho
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
+    REAL( DP ), INTENT(IN), OPTIONAL :: nelec
 
     REAL( DP ), PARAMETER :: tol = 1.D-8
     REAL( DP ) :: charge
@@ -1075,14 +1073,15 @@ CONTAINS
     electrons%density%of_r(:) = rho(:,1)
     IF ( electrons%nspin .EQ. 2 ) electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:,2)
 
-    ! Update and check integral of electronic density
+    ! Update integral of electronic density and, if provided, check against input value
 
     electrons%charge = integrate_environ_density( electrons%density )
-!    electrons%nelec = nelec
-    electrons%nelec = electrons%charge
-    electrons%number = INT(nelec)
-    IF ( ABS(electrons%charge-electrons%nelec) .GT. tol ) &
-             & CALL errore(sub_name,'Missmatch in integrated electronic charge',1)
+    electrons%number = INT(electrons%charge)
+
+    IF ( PRESENT( nelec ) ) THEN
+       IF ( ABS(electrons%charge-nelec) .GT. tol ) &
+            & CALL errore(sub_name,'Missmatch in integrated electronic charge',1)
+    ENDIF
 
     RETURN
 

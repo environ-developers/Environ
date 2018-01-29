@@ -90,7 +90,7 @@ CONTAINS
    CALL create_environ_electrons( response_electrons )
    CALL init_environ_electrons_first( 0, 1, response_electrons )
    CALL init_environ_electrons_second( cell, response_electrons )
-   CALL update_environ_electrons( 0.D0, 1, nnr, drho_elec, response_electrons )
+   CALL update_environ_electrons( 1, nnr, drho_elec, response_electrons, 0.D0 )
    !
    ! ... Link together different sources of electrostatic potential ( charges + dielectric + electrolyte )
    !
