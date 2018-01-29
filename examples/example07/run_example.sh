@@ -94,11 +94,9 @@ filling_threshold=8.25d-01     # if filling function GE threshold,
                                # to prevent cylindrical pockets: decrease to approx. 0.65.
                                # For below 0.5, the dielectric boundary might be modified strongly
                                # will be treated as quantum mechanical
-solvent_mode="full"            # add add density to regions close to nuclei
 solvent_radius=3               # size of solvent molecules (radius(H20) approx 3 bohr)
 ### ITERATIVE SOLVER PARAMETERS #####################################
 tol='1.d-12'  # tolerance of the iterative solver
-mix='0.6'     # polarization mixing for the iterative solver
 #####################################################################
 
 for solvent_awareness in standard solvent_aware ; do 
@@ -113,14 +111,6 @@ if [ "${solvent_awareness}" = "standard" ] ; then
 else
    label="fill_pockets"
 fi
-
-# how to run executables
-PW_COMMAND="$PARA_PREFIX $BIN_DIR/pw.x $PARA_POSTFIX -environ"
-$ECHO
-$ECHO "  running pw.x as: $PW_COMMAND"
-$ECHO
-
-
 
 prefix=H2OCluster_$label
 input=${prefix}'.in'
@@ -137,15 +127,11 @@ cat > environ.in << EOF
    !
  /
  &BOUNDARY
-   solvent_mode = 'full'
+   solvent_mode = 'electronic'
  /
  &ELECTROSTATIC
    !
-   solver = 'iterative'
-   auxiliary = 'full'
    tol = $tol
-   mix = $mix
-   !
  /
 EOF
 fi
@@ -160,16 +146,13 @@ cat > environ.in << EOF
    !
  /
  &BOUNDARY
-   solvent_mode = 'full'
+   solvent_mode = 'electronic'
    filling_threshold = $filling_threshold
    solvent_radius = $solvent_radius
  /
  &ELECTROSTATIC
    !
-   solver = 'iterative'
-   auxiliary = 'full'
    tol = $tol
-   mix = $mix
    !
  /
 EOF
@@ -255,7 +238,6 @@ EOF
 
 $PW_COMMAND < $input > $output
 check_failure $?
-mv epsilon.cube ${prefix}_epsilon.cube
 rm environ.in
 
 $ECHO " done" ${prefix}

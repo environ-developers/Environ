@@ -199,6 +199,7 @@ EOF
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = 'input'
+   env_electrostatic = $env_electrostatic 
    env_static_permittivity = $epsilon
    env_surface_tension = 0.D0
    env_pressure = 0.D0

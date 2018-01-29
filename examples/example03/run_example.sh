@@ -12,7 +12,7 @@ $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
 $ECHO "This example shows how to use pw.x to calculate the electrostatic "
 $ECHO "contribution to the solvation energy of a charged isolated system "
-$ECHO "(piridine cation in water) using the SCCS model "
+$ECHO "(pyridine cation in water) using the SCCS model "
 $ECHO
 $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
 $ECHO
@@ -130,7 +130,7 @@ for epsilon in 01 80 ; do
     $ECHO "  running the scf calculation in $label"
     $ECHO "  with $assume_isolated periodic boundary correction"
 
-  prefix=piridine_${label}_${assume_isolated}
+  prefix=pyridine_${label}_${assume_isolated}
   input=${prefix}'.in'
   output=${prefix}'.out'
   cat > $input << EOF 
@@ -212,8 +212,8 @@ EOF
 
 done
 
-evac=$(awk '/^!/ {en=$5}; END {print en}' piridine_vacuum_${assume_isolated}.out)
-esol=$(awk '/^!/ {en=$5}; END {print en}' piridine_water_${assume_isolated}.out)
+evac=$(awk '/^!/ {en=$5}; END {print en}' pyridine_vacuum_${assume_isolated}.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' pyridine_water_${assume_isolated}.out)
 dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
 
 $ECHO "  Periodic boundary correction scheme = $assume_isolated " >> results.txt

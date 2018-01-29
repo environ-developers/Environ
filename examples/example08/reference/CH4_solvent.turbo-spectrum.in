@@ -1,6 +1,6 @@
 &lr_input
   prefix = 'CH4_solvent',
-  outdir = '/scratch/itimrov/WORK_Environ/espresso_svn_11.03.2015/tempdir/',
+  outdir = '/home/fnattino/Programs/qe-6.1/tempdir/',
   itermax0 = 3000,
   itermax =  20000,
   extrapolation="osc"

@@ -88,14 +88,14 @@ verbose=0                  # if GE 1 prints debug informations
 environ_thr='1.d-1'        # electronic convergence threshold for the onset  
                            # of solvation correction
 environ_type='vacuum'      # type of environment
-                           # input: parameters from input 
+                           # input: read parameters from input
                            # vacuum: all flags off, no environ 
                            # water: parameters from experimental values 
                            #   and specifically tuned for neutral molecules
                            # water-anions: same as water, but parameters are 
-                           #   optimized for anions
+                           #   tuned for anions (Fisicaro et al., JCTC (2017))
                            # water-cations: same as water, but parameters are
-                           #   optimized for cations
+                           #   tuned for cations (Fisicaro et al., JCTC (2017))
 env_electrostatic='.true.' # modify electrostatic embedding (required to
                            #   switch on PBC corrections in vacuum)
 pbc_correction='parabolic' # correction scheme to remove PBC 
@@ -121,8 +121,8 @@ solvent_mode='ionic'       # specify the charge density that is used to
 #                          # is default) 
 #alpha=1.12                # vdW radii multiplying factor      
 #softness=0.5              # width parameter for the transition region
-#env_surface_tension=50    # first non-electrostatic parameter (see example01) 
-#env_pressure=-0.35        # second non-electrostatic parameter (see example01)
+#env_surface_tension=50    # non-electrostatic parameters (see example01) 
+#env_pressure=-0.35        # 
 ###########################################################################
 
 for environ_type in vacuum water ; do 

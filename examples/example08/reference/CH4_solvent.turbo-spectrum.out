@@ -1,6 +1,6 @@
- Warning: Only a single cpu will be used!
+ Warning: Only a single CPU will be used!
 
-     Program TDDFPT_PP v.5.1.2 (svn rev. 11428M) starts on 11Mar2015 at 12:57:51 
+     Program TDDFPT_PP v.6.1 (svn rev. 13369) starts on 29Jan2018 at 16:15:25 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -9,71 +9,56 @@
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote
 
-     Parallel version (MPI), running on    20 processors
-     R & G space division:  proc/nbgrp/npool/nimage =      20
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
- Calculation is finished.
+     Parallel version (MPI), running on     1 processors
 
      Reading   3000 Lanczos steps for direction 1
        3000 steps will be considered
 
+
      Reading   3000 Lanczos steps for direction 2
        3000 steps will be considered
+
 
      Reading   3000 Lanczos steps for direction 3
        3000 steps will be considered
 
+
      Polarization direction:1
-     Average =    13.02962031
-     Average oscillation amplitude =     0.36686527
+     Lanczos coefficients:
+     Average =    13.02830266
+     Average oscillation amplitude =     0.36941832
 
      Polarization direction:2
-     Average =    13.02980218
-     Average oscillation amplitude =     0.36699317
+     Lanczos coefficients:
+     Average =    13.02820533
+     Average oscillation amplitude =     0.36955392
 
      Polarization direction:3
-     Average =    13.03003942
-     Average oscillation amplitude =     0.36678386
+     Lanczos coefficients:
+     Average =    13.02834920
+     Average oscillation amplitude =     0.36977442
 
-     Data ready, starting to calculate observables
+     Data ready, starting to calculate observables...
 
      Broadening =      0.01000000 Ry
 
-     Output file name: CH4_solvent.plot    
+     Output file name: CH4_solvent.plot_chi
 
-     chi_i_j: dipole polarizability tensor in units of e^2*a_0^2/energy
+     chi_i_j: dipole polarizability tensor  in units of e^2*a_0^2/energy
 
      S: oscillator strength in units of 1/energy
 
-     S(\hbar \omega) = 2m/( 3 \pi e^2 \hbar) \omega sum_j chi_j_j
+     S(\hbar \omega) = 2m/( 3 \pi e^2 \hbar)  \omega sum_j chi_j_j
 
-     S(\hbar \omega) satisfies the f-sum rule: \int_0^\infty dE S(E) = N_el 
+     S(\hbar \omega) satisfies the f-sum rule:  \int_0^\infty dE S(E) = N_el 
 
-     Functions are reported in \hbar.\omega Energy unit is (Ry)
+     Functions are reported in \hbar.\omega  Energy unit is (Ry)
  
-     TDDFPT_PP    :    33.00s CPU        33.38s WALL
+     TDDFPT_PP    :    19.41s CPU        19.45s WALL
 
  
-   This run was terminated on:  12:58:25  11Mar2015            
+   This run was terminated on:  16:15:44  29Jan2018            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
 =------------------------------------------------------------------------------=
- Calculation is finished.

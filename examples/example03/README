@@ -1,5 +1,5 @@
 
-This example show how to use pw.x to simulate isolated charged systems in 
+This example shows how to use pw.x to simulate isolated charged systems in 
 vacuum or immersed in a continuum dielectric solvent. 
 
 Two calculations, one in vacuum and one in a continuum dielectric with the 

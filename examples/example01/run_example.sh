@@ -226,8 +226,6 @@ EOF
 
 done
 
-rm -f results.txt
-
 for solver in iterative cg ; do
 
 evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum_direct.out)

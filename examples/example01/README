@@ -11,7 +11,7 @@ and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
 Mind that the parabolic correction (or point-countercharge method)
 is used for both the calculation in vacuum and in the solvent.
 
-Additional term of solvation can be computed by changing the specific keywords:
+Additional terms of solvation can be computed by changing the specific keywords:
 -- env_surface_tension: surface tension of the solvent. If different from zero,  
    a cavitation energy is computed according to a revised version of the formula in 
    Scherlis et al. JCP 124, 074103, 2006 and Andreussi et al. J. Chem. Phys. 2012. 

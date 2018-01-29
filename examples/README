@@ -14,8 +14,8 @@ example05: pw.x
            use of external classical charge distribution (planar) to model Helmholtz layer
 	   above a charged 2D system.
 example06: pw.x
-           same as example05, but a diffuse electrolyte distribution is accounted for according to
-           a linearized Poisson-Boltzmann model.
+           same as example05, but the electrolyte counter charge layer is modeled according to 
+           the linearized Poisson-Boltzmann model.
 example07: pw.x
            use of the solvent-aware interface to prevent the dielectric to penetrate regions that
            should remain solvent-free.

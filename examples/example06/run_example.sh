@@ -20,8 +20,8 @@ $ECHO "to the slab plane, as described in "
 $ECHO
 $ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
 $ECHO
-$ECHO "The presence of the electrolyte in the solution is accounted for through"
-$ECHO "the solution of the linearized modified Poisson-Boltzmann equation, see "
+$ECHO "The presence of electrolytes in the solution is accounted for through"
+$ECHO "the linearized modified Poisson-Boltzmann model, see "
 $ECHO 
 $ECHO " I. Borukhov, D. Andelman, and H. Orland, Phys. Rev. Lett. 79, 435 (1997)"
 $ECHO "   I. Dabo, E. Cancès, Y.L. Li, and N. Marzari, arXiv 0901.0096 (2008) "
@@ -100,20 +100,19 @@ verbose=0             # if GE 1 prints debug informations
 environ_thr='1.d0'    # electronic convergence threshold for the onset  
                       # of solvation correction
 ### ELECTROLYTE PARAMETERS ##########################################
-env_ioncc_ntyp=2        # number of electrolyte species to be used
+env_ioncc_ntyp=2        # number of electrolyte species in solution
 zion=1                  # ionic charge
-cion='1.0'              # ionic concentration (in mol/l)
-cionmax='5.0'           # max ionic concentration (in mol/l) due to 
-                        # finite ionic size. NOTE: cionmax=1/a**3, 
-                        # where a is the ionic size parameter 
-                        # originally proposed by Borukhov et al.
+cion='5.0'              # ionic concentration (in mol/l)
+cionmax='15.0'          # max ionic concentration (in mol/l) 
+                        # NOTE: cionmax=1/a**3, where a is the ionic 
+                        # size parameter originally employed by Borukhov. 
                         # one can alternatively set the ionic radius
                         # rion (in Bohr), related to cmax according
-                        # to: cionmax=p/(4/3*pi*rion**3), where
-                        # p=0.64 is the random close packing density.
+                        # to: cionmax=p/(4/3*pi*rion**3), where p=0.64 
+                        # is the random close packing volume fraction.
                         # the same value of cionmax (or rion) needs 
                         # to be assigned to all ionic species!
-solvent_temperature=300 # temperature of the ionic solution 
+solvent_temperature=300 # temperature of the electrolyte solution 
 stern_mode='system'     # specify the method that is used to build
                         # the electrolyte cavity
                         # electronic, ionic, full: same as for solvent
@@ -124,30 +123,28 @@ stern_mode='system'     # specify the method that is used to build
                         #   ionic).
                         # system: simplified erf-based interface 
 system_dim=2            # select dimensionality of the interface
-                        # 0, 1 and 2 for spherical, cylindrical or
-                        # planar interface
+                        # 0, 1 and 2: spherical, cylindrical or
+                        #   planar interface
 system_axis=3           # select axis for the simplified interface.
                         # the axis is along the 1D direction or 
-                        # normal to the 2D plane (pbc_axis = 1, 2 
-                        # or 3 for x, y or z axis)
+                        # normal to the 2D plane (1, 2 or 3 for 
+                        # x, y or z axis)
 system_ntyp=1           # the geometrical center of the atoms of 
                         # all types up to system_ntyp defines the
-                        # origin for the simplified interface
-stern_distance='21.0'   # distance parameter for the simplified
+                        # origin of the simplified interface
+stern_distance='10.0'   # distance parameter for the simplified
                         # erf-based interface
 stern_spread='0.5'      # spread parameter for the simplified
                         # erf-based interface 
 ### PERIODIC BOUNDARY CONDITIONS ####################################
-env_electrostatic='.true.' # modify electrostatic embedding (required to
-                           #   switch on PBC corrections in vacuum)
 pbc_correction='parabolic' # correction scheme to remove PBC 
                            # none: periodic calculation, no correction 
                            # parabolic: quadratic real-space correction
 pbc_dim=2                  # select the desired system dimensionality
-                           #   0, 1 or 2: isolated, 1D or 2D system
+                           # 0, 1 or 2: isolated, 1D or 2D system
 pbc_axis=3                 # set the axis along the 1D direction or 
-                           #   normal to the 2D plane (pbc_axis = 1, 2 
-                           #   or 3 for x, y or z axis)
+                           # normal to the 2D plane (pbc_axis = 1, 2 
+                           # or 3 for x, y or z axis)
 #####################################################################
 
 # clean TMP_DIR

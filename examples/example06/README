@@ -1,10 +1,10 @@
 This example shows how to use pw.x to model a charged slab in the presence of 
-a solution at finite ionic strength. The diffuse charge density that mimics 
-the presence of the electrolyte is obtained from the solution of the linearized 
-Poisson-Boltzmann equation. Ionic finite-size effects are accounted for as
-described by I. Borukhov, D. Andelman, and H. Orland, Phys. Rev. Lett. 79, 
-435 (1997) and S. Ringe, H. Oberhofer, C. Hille, S. Matera, and K. Reuter,
-J. Comput. Theor. Chem. 12, 4052 (2016).
+an electrolyte solution. The diffuse charge density that mimics the presence 
+of the ions is obtained from the solution of the linearized Poisson-Boltzmann 
+equation. Ionic finite-size effects are accounted for as described by 
+I. Borukhov, D. Andelman, and H. Orland, Phys. Rev. Lett. 79, 435 (1997) and 
+S. Ringe, H. Oberhofer, C. Hille, S. Matera, and K. Reuter, J. Comput. Theor. 
+Chem. 12, 4052 (2016).
 
 Note that a solvent-accessible but ion-free region in the proximity of the 
 surface (Stern layer) is modeled by introducing an ion-exclusion function 
@@ -38,5 +38,5 @@ avoid the continuum solvent to enter such a hole, a quickly vanishing gaussian
 density is added at the position of the nuclei when defining the dielectric. 
 The same problem is likely to occur in alogens and other transition metals. 
 
-A rough explanation of the different keywords of the electrolyte and solvation 
-models is provided inside the run_example.sh file.
+A rough explanation of the different electrolyte-related keywords is provided 
+in the run_example.sh file.
