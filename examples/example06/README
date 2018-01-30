@@ -38,5 +38,10 @@ avoid the continuum solvent to enter such a hole, a quickly vanishing gaussian
 density is added at the position of the nuclei when defining the dielectric. 
 The same problem is likely to occur in alogens and other transition metals. 
 
+From ENVIRON version 1.0 the Fermi energy shift that arises from the gaussian
+nuclei smearing together with the parabolic pbc correction is printed as a
+separate contribution that needs to be added to the standard Fermi energy
+from pw.x.
+
 A rough explanation of the different electrolyte-related keywords is provided 
 in the run_example.sh file.

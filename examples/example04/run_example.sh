@@ -232,9 +232,21 @@ evac=$(awk '/^!/ {en=$5}; END {print en}' PtCO_vacuum.out)
 esol=$(awk '/^!/ {en=$5}; END {print en}' PtCO_water.out)
 dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
 
-$ECHO "  Electrostatic Energy in vacuum      = $evac  Ry        " >> results.txt
-$ECHO "  Electrostatic Energy in solution    = $esol  Ry        " >> results.txt
+fermi_vac=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_vacuum.out)
+delta_vac=$(awk '/the Fermi energy shift/ {en=$11}; END {print en}' PtCO_vacuum.out)
+fermi_vac_new=$($ECHO "$fermi_vac+$delta_vac" | bc -l)
+
+fermi_sol=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_water.out)
+delta_sol=$(awk '/the Fermi energy shift/ {en=$11}; END {print en}' PtCO_water.out)
+fermi_sol_new=$($ECHO "$fermi_sol+$delta_sol" | bc -l)
+
+$ECHO "  Energy in vacuum                    = $evac  Ry        " >> results.txt
+$ECHO "  Energy in solution                  = $esol  Ry        " >> results.txt
 $ECHO "  Electrostatic Solvation Energy      = $dgsol Kcal/mol  " >> results.txt
+
+$ECHO >> results.txt
+$ECHO "  Fermi energy in vacuum   = $fermi_vac eV + $delta_vac eV = $fermi_vac_new eV " >> results.txt
+$ECHO "  Fermi energy in solution = $fermi_sol eV + $delta_sol eV = $fermi_sol_new eV " >> results.txt
 
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

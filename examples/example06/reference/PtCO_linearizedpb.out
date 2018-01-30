@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 29Jan2018 at 16:44:44 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on 30Jan2018 at 13:18:37 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -8,8 +8,7 @@
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote
 
-     Parallel version (MPI), running on     8 processors
-     R & G space division:  proc/nbgrp/npool/nimage =       8
+     Parallel version (MPI), running on     1 processors
      Waiting for input...
      Reading input from standard input
 
@@ -24,11 +23,9 @@
      a serial algorithm will be used
 
  
-     Parallelization info
+     G-vector sticks info
      --------------------
      sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
-     Min         275     137     33                41359    14615    1815
-     Max         276     138     34                41372    14630    1828
      Sum        2205    1099    269               330909   116965   14571
  
 
@@ -193,9 +190,7 @@ A      1.00
 
      Smooth grid:   116965 G-vectors     FFT dimensions: (  45,  36, 160)
 
-     Estimated max dynamical RAM per process >      50.29MB
-
-     Estimated total allocated dynamical RAM >     402.32MB
+     Estimated max dynamical RAM per process >     378.02MB
 
      Check: negative/imaginary core charge=   -0.000038    0.000000
 
@@ -206,9 +201,9 @@ A      1.00
      negative rho (up, down):  7.106E-05 0.000E+00
      Starting wfc are   56 randomized atomic wfcs +   24 random wfc
 
-     total cpu time spent up to now is       30.7 secs
+     total cpu time spent up to now is        6.1 secs
 
-     per-process dynamical memory:    92.7 Mb
+     per-process dynamical memory:   428.0 Mb
 
      Self-consistent Calculation
 
@@ -216,13 +211,13 @@ A      1.00
      Davidson diagonalization with overlap
      ethr =  1.00E-02,  avg # of iterations =  7.0
 
-     negative rho (up, down):  7.850E-05 0.000E+00
+     negative rho (up, down):  7.727E-05 0.000E+00
 
-     total cpu time spent up to now is       43.5 secs
+     total cpu time spent up to now is       10.1 secs
 
-     total energy              =    -735.16697307 Ry
-     Harris-Foulkes estimate   =    -735.95163640 Ry
-     estimated scf accuracy    <       2.31974039 Ry
+     total energy              =    -735.16708935 Ry
+     Harris-Foulkes estimate   =    -735.95156912 Ry
+     estimated scf accuracy    <       2.31915284 Ry
      electrostatic embedding   =       0.03381190 Ry
      electrolyte free energy   =       0.00552873 Ry
      correction to one-el term =       0.00000000 Ry
@@ -231,13 +226,13 @@ A      1.00
      Davidson diagonalization with overlap
      ethr =  2.61E-03,  avg # of iterations =  4.0
 
-     negative rho (up, down):  1.385E-04 0.000E+00
+     negative rho (up, down):  1.372E-04 0.000E+00
 
-     total cpu time spent up to now is       55.9 secs
+     total cpu time spent up to now is       13.1 secs
 
-     total energy              =    -734.88240913 Ry
-     Harris-Foulkes estimate   =    -736.43425803 Ry
-     estimated scf accuracy    <      17.12132119 Ry
+     total energy              =    -734.88263162 Ry
+     Harris-Foulkes estimate   =    -736.43440607 Ry
+     estimated scf accuracy    <      17.12182875 Ry
      electrostatic embedding   =       0.03381190 Ry
      electrolyte free energy   =       0.00552873 Ry
      correction to one-el term =       0.00000000 Ry
@@ -246,163 +241,154 @@ A      1.00
      Davidson diagonalization with overlap
      ethr =  2.61E-03,  avg # of iterations =  2.0
 
-     negative rho (up, down):  1.094E-04 0.000E+00
+     negative rho (up, down):  1.084E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 4.6E-13, # of iterations =  39
 
-     total cpu time spent up to now is       76.1 secs
+     total cpu time spent up to now is       18.8 secs
 
-     total energy              =    -735.52725171 Ry
-     Harris-Foulkes estimate   =    -735.65117298 Ry
-     estimated scf accuracy    <       0.52429887 Ry
+     total energy              =    -735.52726294 Ry
+     Harris-Foulkes estimate   =    -735.65117395 Ry
+     estimated scf accuracy    <       0.52332249 Ry
      electrostatic embedding   =       0.03381190 Ry
      electrolyte free energy   =       0.00552873 Ry
      correction to one-el term =       0.00000000 Ry
 
      iteration #  4     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  5.89E-04,  avg # of iterations =  8.0
+     ethr =  5.88E-04,  avg # of iterations =  8.0
 
-     negative rho (up, down):  1.090E-04 0.000E+00
+     negative rho (up, down):  1.082E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 2.9E-13, # of iterations =  40
 
-     total cpu time spent up to now is       96.7 secs
+     total cpu time spent up to now is       25.4 secs
 
-     total energy              =    -735.33354050 Ry
-     Harris-Foulkes estimate   =    -749.68975449 Ry
-     estimated scf accuracy    <       0.23174060 Ry
-     electrostatic embedding   =       0.25273721 Ry
-     electrolyte free energy   =      -0.00761788 Ry
-     correction to one-el term =      14.05717664 Ry
+     total energy              =    -735.33351866 Ry
+     Harris-Foulkes estimate   =    -749.68866713 Ry
+     estimated scf accuracy    <       0.23173507 Ry
+     electrostatic embedding   =       0.25272935 Ry
+     electrolyte free energy   =      -0.00761735 Ry
+     correction to one-el term =      14.05614701 Ry
 
      iteration #  5     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
      ethr =  2.60E-04,  avg # of iterations =  5.0
 
-     negative rho (up, down):  1.276E-04 0.000E+00
+     negative rho (up, down):  1.271E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.4E-13, # of iterations =  40
 
-     total cpu time spent up to now is      144.2 secs
+     total cpu time spent up to now is       31.3 secs
 
-     total energy              =    -735.33676730 Ry
-     Harris-Foulkes estimate   =    -748.04669518 Ry
-     estimated scf accuracy    <       0.04621049 Ry
-     electrostatic embedding   =       0.23878270 Ry
-     electrolyte free energy   =      -0.00688180 Ry
-     correction to one-el term =      12.46534931 Ry
+     total energy              =    -735.33676631 Ry
+     Harris-Foulkes estimate   =    -748.04589310 Ry
+     estimated scf accuracy    <       0.04611828 Ry
+     electrostatic embedding   =       0.23877633 Ry
+     electrolyte free energy   =      -0.00688285 Ry
+     correction to one-el term =      12.46457601 Ry
 
      iteration #  6     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  5.19E-05,  avg # of iterations =  6.0
+     ethr =  5.18E-05,  avg # of iterations =  6.0
 
-     negative rho (up, down):  1.535E-04 0.000E+00
+     negative rho (up, down):  1.531E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 2.6E-13, # of iterations =  41
 
-     total cpu time spent up to now is      193.8 secs
+     total cpu time spent up to now is       37.5 secs
 
-     total energy              =    -735.33556640 Ry
-     Harris-Foulkes estimate   =    -746.78585858 Ry
-     estimated scf accuracy    <       0.02927877 Ry
-     electrostatic embedding   =       0.22841447 Ry
-     electrolyte free energy   =      -0.00625067 Ry
-     correction to one-el term =      11.22205984 Ry
+     total energy              =    -735.33555975 Ry
+     Harris-Foulkes estimate   =    -746.78488065 Ry
+     estimated scf accuracy    <       0.02925519 Ry
+     electrostatic embedding   =       0.22840799 Ry
+     electrolyte free energy   =      -0.00625097 Ry
+     correction to one-el term =      11.22110168 Ry
 
      iteration #  7     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
      ethr =  3.29E-05,  avg # of iterations =  4.0
 
-     negative rho (up, down):  1.594E-04 0.000E+00
+     negative rho (up, down):  1.593E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.5E-13, # of iterations =  41
 
-     total cpu time spent up to now is      243.0 secs
+     total cpu time spent up to now is       43.3 secs
 
-     total energy              =    -735.33669894 Ry
-     Harris-Foulkes estimate   =    -745.86838387 Ry
-     estimated scf accuracy    <       0.00926319 Ry
-     electrostatic embedding   =       0.22090377 Ry
-     electrolyte free energy   =      -0.00575039 Ry
-     correction to one-el term =      10.31482440 Ry
+     total energy              =    -735.33669731 Ry
+     Harris-Foulkes estimate   =    -745.86859374 Ry
+     estimated scf accuracy    <       0.00919669 Ry
+     electrostatic embedding   =       0.22090680 Ry
+     electrolyte free energy   =      -0.00575098 Ry
+     correction to one-el term =      10.31503873 Ry
 
      iteration #  8     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  1.04E-05,  avg # of iterations =  5.0
+     ethr =  1.03E-05,  avg # of iterations =  5.0
 
      negative rho (up, down):  1.587E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.3E-13, # of iterations =  42
 
-     total cpu time spent up to now is      291.4 secs
+     total cpu time spent up to now is       49.4 secs
 
-     total energy              =    -735.33711380 Ry
-     Harris-Foulkes estimate   =    -745.47727988 Ry
-     estimated scf accuracy    <       0.00289016 Ry
-     electrostatic embedding   =       0.21748714 Ry
-     electrolyte free energy   =      -0.00551447 Ry
-     correction to one-el term =       9.92746117 Ry
+     total energy              =    -735.33711496 Ry
+     Harris-Foulkes estimate   =    -745.47603612 Ry
+     estimated scf accuracy    <       0.00285627 Ry
+     electrostatic embedding   =       0.21747738 Ry
+     electrolyte free energy   =      -0.00551426 Ry
+     correction to one-el term =       9.92623266 Ry
 
      iteration #  9     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  3.25E-06,  avg # of iterations =  4.0
+     ethr =  3.21E-06,  avg # of iterations =  4.0
 
-     negative rho (up, down):  1.545E-04 0.000E+00
+     negative rho (up, down):  1.544E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.8E-13, # of iterations =  42
 
-     total cpu time spent up to now is      341.7 secs
+     total cpu time spent up to now is       55.3 secs
 
-     total energy              =    -735.33743714 Ry
-     Harris-Foulkes estimate   =    -745.28005288 Ry
-     estimated scf accuracy    <       0.00333420 Ry
-     electrostatic embedding   =       0.21553883 Ry
-     electrolyte free energy   =      -0.00538185 Ry
-     correction to one-el term =       9.73210043 Ry
+     total energy              =    -735.33743543 Ry
+     Harris-Foulkes estimate   =    -745.27888164 Ry
+     estimated scf accuracy    <       0.00335991 Ry
+     electrostatic embedding   =       0.21552693 Ry
+     electrolyte free energy   =      -0.00538182 Ry
+     correction to one-el term =       9.73094205 Ry
 
      iteration # 10     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  3.25E-06,  avg # of iterations =  1.0
+     ethr =  3.21E-06,  avg # of iterations =  1.0
 
      negative rho (up, down):  1.519E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.9E-13, # of iterations =  42
 
-     total cpu time spent up to now is      391.6 secs
+     total cpu time spent up to now is       61.1 secs
 
-     total energy              =    -735.33742076 Ry
-     Harris-Foulkes estimate   =    -745.16446180 Ry
-     estimated scf accuracy    <       0.00359588 Ry
-     electrostatic embedding   =       0.21409779 Ry
-     electrolyte free energy   =      -0.00531731 Ry
-     correction to one-el term =       9.61779281 Ry
+     total energy              =    -735.33742088 Ry
+     Harris-Foulkes estimate   =    -745.16400999 Ry
+     estimated scf accuracy    <       0.00357311 Ry
+     electrostatic embedding   =       0.21409193 Ry
+     electrolyte free energy   =      -0.00531772 Ry
+     correction to one-el term =       9.61735020 Ry
 
      iteration # 11     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  3.25E-06,  avg # of iterations =  1.0
+     ethr =  3.21E-06,  avg # of iterations =  1.0
 
      negative rho (up, down):  1.516E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 2.0E-13, # of iterations =  43
 
-     total cpu time spent up to now is      437.8 secs
+     total cpu time spent up to now is       67.0 secs
 
-     total energy              =    -735.33722575 Ry
-     Harris-Foulkes estimate   =    -745.03937534 Ry
-     estimated scf accuracy    <       0.00244038 Ry
-     electrostatic embedding   =       0.21233013 Ry
-     electrolyte free energy   =      -0.00525777 Ry
-     correction to one-el term =       9.49439172 Ry
+     total energy              =    -735.33722574 Ry
+     Harris-Foulkes estimate   =    -745.03901835 Ry
+     estimated scf accuracy    <       0.00243642 Ry
+     electrostatic embedding   =       0.21232730 Ry
+     electrolyte free energy   =      -0.00525782 Ry
+     correction to one-el term =       9.49403958 Ry
 
      iteration # 12     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
@@ -411,52 +397,49 @@ A      1.00
      negative rho (up, down):  1.473E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 4.9E-13, # of iterations =  42
 
-     total cpu time spent up to now is      458.3 secs
+     total cpu time spent up to now is       73.1 secs
 
-     total energy              =    -735.33771324 Ry
-     Harris-Foulkes estimate   =    -744.82043043 Ry
-     estimated scf accuracy    <       0.00061471 Ry
-     electrostatic embedding   =       0.20937214 Ry
-     electrolyte free energy   =      -0.00514762 Ry
-     correction to one-el term =       9.27824368 Ry
+     total energy              =    -735.33771144 Ry
+     Harris-Foulkes estimate   =    -744.82091658 Ry
+     estimated scf accuracy    <       0.00061596 Ry
+     electrostatic embedding   =       0.20938174 Ry
+     electrolyte free energy   =      -0.00514798 Ry
+     correction to one-el term =       9.27872179 Ry
 
      iteration # 13     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  6.91E-07,  avg # of iterations =  2.0
+     ethr =  6.92E-07,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.447E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 2.2E-13, # of iterations =  43
 
-     total cpu time spent up to now is      478.5 secs
+     total cpu time spent up to now is       78.9 secs
 
-     total energy              =    -735.33778097 Ry
-     Harris-Foulkes estimate   =    -744.83323687 Ry
-     estimated scf accuracy    <       0.00039663 Ry
-     electrostatic embedding   =       0.20872804 Ry
-     electrolyte free energy   =      -0.00513732 Ry
-     correction to one-el term =       9.29173497 Ry
+     total energy              =    -735.33777683 Ry
+     Harris-Foulkes estimate   =    -744.83361601 Ry
+     estimated scf accuracy    <       0.00040138 Ry
+     electrostatic embedding   =       0.20873949 Ry
+     electrolyte free energy   =      -0.00513766 Ry
+     correction to one-el term =       9.29210501 Ry
 
      iteration # 14     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  4.46E-07,  avg # of iterations =  1.0
+     ethr =  4.51E-07,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.434E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 2.3E-13, # of iterations =  43
 
-     total cpu time spent up to now is      498.7 secs
+     total cpu time spent up to now is       85.0 secs
 
-     total energy              =    -735.33786276 Ry
-     Harris-Foulkes estimate   =    -744.80792569 Ry
-     estimated scf accuracy    <       0.00011696 Ry
-     electrostatic embedding   =       0.20778679 Ry
-     electrolyte free energy   =      -0.00512473 Ry
-     correction to one-el term =       9.26734594 Ry
+     total energy              =    -735.33786082 Ry
+     Harris-Foulkes estimate   =    -744.80816992 Ry
+     estimated scf accuracy    <       0.00011663 Ry
+     electrostatic embedding   =       0.20778946 Ry
+     electrolyte free energy   =      -0.00512490 Ry
+     correction to one-el term =       9.26758957 Ry
 
      iteration # 15     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
@@ -465,16 +448,15 @@ A      1.00
      negative rho (up, down):  1.423E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 4.1E-13, # of iterations =  42
 
-     total cpu time spent up to now is      518.9 secs
+     total cpu time spent up to now is       90.9 secs
 
-     total energy              =    -735.33791980 Ry
-     Harris-Foulkes estimate   =    -744.77566441 Ry
+     total energy              =    -735.33791787 Ry
+     Harris-Foulkes estimate   =    -744.77562802 Ry
      estimated scf accuracy    <       0.00001287 Ry
-     electrostatic embedding   =       0.20682389 Ry
-     electrolyte free energy   =      -0.00511174 Ry
-     correction to one-el term =       9.23602830 Ry
+     electrostatic embedding   =       0.20682178 Ry
+     electrolyte free energy   =      -0.00511172 Ry
+     correction to one-el term =       9.23599592 Ry
 
      iteration # 16     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
@@ -483,16 +465,15 @@ A      1.00
      negative rho (up, down):  1.419E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 2.2E-13, # of iterations =  43
 
-     total cpu time spent up to now is      539.2 secs
+     total cpu time spent up to now is       96.8 secs
 
-     total energy              =    -735.33790800 Ry
-     Harris-Foulkes estimate   =    -744.80157122 Ry
-     estimated scf accuracy    <       0.00003060 Ry
-     electrostatic embedding   =       0.20724217 Ry
+     total energy              =    -735.33790604 Ry
+     Harris-Foulkes estimate   =    -744.80160208 Ry
+     estimated scf accuracy    <       0.00003072 Ry
+     electrostatic embedding   =       0.20724262 Ry
      electrolyte free energy   =      -0.00512821 Ry
-     correction to one-el term =       9.26153367 Ry
+     correction to one-el term =       9.26156599 Ry
 
      iteration # 17     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
@@ -501,147 +482,140 @@ A      1.00
      negative rho (up, down):  1.417E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 4.5E-13, # of iterations =  42
 
-     total cpu time spent up to now is      559.5 secs
+     total cpu time spent up to now is      102.7 secs
 
-     total energy              =    -735.33792492 Ry
-     Harris-Foulkes estimate   =    -744.79726559 Ry
-     estimated scf accuracy    <       0.00000493 Ry
-     electrostatic embedding   =       0.20680835 Ry
-     electrolyte free energy   =      -0.00512917 Ry
-     correction to one-el term =       9.25765937 Ry
+     total energy              =    -735.33792302 Ry
+     Harris-Foulkes estimate   =    -744.79735675 Ry
+     estimated scf accuracy    <       0.00000496 Ry
+     electrostatic embedding   =       0.20680909 Ry
+     electrolyte free energy   =      -0.00512919 Ry
+     correction to one-el term =       9.25775170 Ry
 
      iteration # 18     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  5.53E-09,  avg # of iterations =  2.0
+     ethr =  5.57E-09,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.417E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.3E-13, # of iterations =  42
 
-     total cpu time spent up to now is      579.7 secs
+     total cpu time spent up to now is      108.6 secs
 
-     total energy              =    -735.33792722 Ry
-     Harris-Foulkes estimate   =    -744.80381915 Ry
-     estimated scf accuracy    <       0.00000228 Ry
-     electrostatic embedding   =       0.20673779 Ry
-     electrolyte free energy   =      -0.00513293 Ry
-     correction to one-el term =       9.26428600 Ry
+     total energy              =    -735.33792534 Ry
+     Harris-Foulkes estimate   =    -744.80377029 Ry
+     estimated scf accuracy    <       0.00000223 Ry
+     electrostatic embedding   =       0.20673654 Ry
+     electrolyte free energy   =      -0.00513289 Ry
+     correction to one-el term =       9.26424026 Ry
 
      iteration # 19     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  2.56E-09,  avg # of iterations =  2.0
+     ethr =  2.50E-09,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.418E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.4E-13, # of iterations =  42
 
-     total cpu time spent up to now is      599.9 secs
+     total cpu time spent up to now is      114.5 secs
 
-     total energy              =    -735.33792893 Ry
-     Harris-Foulkes estimate   =    -744.80754793 Ry
-     estimated scf accuracy    <       0.00000094 Ry
-     electrostatic embedding   =       0.20667347 Ry
-     electrolyte free energy   =      -0.00513429 Ry
-     correction to one-el term =       9.26807943 Ry
+     total energy              =    -735.33792700 Ry
+     Harris-Foulkes estimate   =    -744.80760341 Ry
+     estimated scf accuracy    <       0.00000096 Ry
+     electrostatic embedding   =       0.20667515 Ry
+     electrolyte free energy   =      -0.00513430 Ry
+     correction to one-el term =       9.26813516 Ry
 
      iteration # 20     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  1.06E-09,  avg # of iterations =  2.0
+     ethr =  1.08E-09,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.420E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 4.0E-13, # of iterations =  42
 
-     total cpu time spent up to now is      620.2 secs
+     total cpu time spent up to now is      120.3 secs
 
-     total energy              =    -735.33792983 Ry
-     Harris-Foulkes estimate   =    -744.81147568 Ry
-     estimated scf accuracy    <       0.00000022 Ry
-     electrostatic embedding   =       0.20666292 Ry
-     electrolyte free energy   =      -0.00513552 Ry
-     correction to one-el term =       9.27201838 Ry
+     total energy              =    -735.33792794 Ry
+     Harris-Foulkes estimate   =    -744.81169492 Ry
+     estimated scf accuracy    <       0.00000021 Ry
+     electrostatic embedding   =       0.20666445 Ry
+     electrolyte free energy   =      -0.00513558 Ry
+     correction to one-el term =       9.27223805 Ry
 
      iteration # 21     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  2.46E-10,  avg # of iterations =  2.0
+     ethr =  2.39E-10,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.421E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 4.0E-13, # of iterations =  42
 
-     total cpu time spent up to now is      640.5 secs
+     total cpu time spent up to now is      126.2 secs
 
-     total energy              =    -735.33793031 Ry
-     Harris-Foulkes estimate   =    -744.81675694 Ry
+     total energy              =    -735.33792841 Ry
+     Harris-Foulkes estimate   =    -744.81681461 Ry
      estimated scf accuracy    <       0.00000006 Ry
-     electrostatic embedding   =       0.20669405 Ry
-     electrolyte free energy   =      -0.00513685 Ry
-     correction to one-el term =       9.27726944 Ry
+     electrostatic embedding   =       0.20669446 Ry
+     electrolyte free energy   =      -0.00513686 Ry
+     correction to one-el term =       9.27732860 Ry
 
      iteration # 22     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  6.99E-11,  avg # of iterations =  2.0
+     ethr =  6.80E-11,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.422E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 4.4E-13, # of iterations =  42
 
-     total cpu time spent up to now is      660.8 secs
+     total cpu time spent up to now is      132.1 secs
 
-     total energy              =    -735.33793031 Ry
-     Harris-Foulkes estimate   =    -744.81877837 Ry
-     estimated scf accuracy    <       0.00000007 Ry
-     electrostatic embedding   =       0.20672773 Ry
-     electrolyte free energy   =      -0.00513704 Ry
-     correction to one-el term =       9.27925735 Ry
+     total energy              =    -735.33792840 Ry
+     Harris-Foulkes estimate   =    -744.81882683 Ry
+     estimated scf accuracy    <       0.00000008 Ry
+     electrostatic embedding   =       0.20672896 Ry
+     electrolyte free energy   =      -0.00513705 Ry
+     correction to one-el term =       9.27930650 Ry
 
      iteration # 23     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  6.99E-11,  avg # of iterations =  2.0
+     ethr =  6.80E-11,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.423E-04 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 3.9E-13, # of iterations =  42
 
-     total cpu time spent up to now is      681.2 secs
+     total cpu time spent up to now is      138.0 secs
 
-     total energy              =    -735.33793042 Ry
-     Harris-Foulkes estimate   =    -744.82130408 Ry
+     total energy              =    -735.33792851 Ry
+     Harris-Foulkes estimate   =    -744.82135302 Ry
      estimated scf accuracy    <       0.00000001 Ry
-     electrostatic embedding   =       0.20674327 Ry
-     electrolyte free energy   =      -0.00513739 Ry
-     correction to one-el term =       9.28176778 Ry
+     electrostatic embedding   =       0.20674469 Ry
+     electrolyte free energy   =      -0.00513741 Ry
+     correction to one-el term =       9.28181723 Ry
 
      iteration # 24     ecut=    35.00 Ry     beta=0.20
      Davidson diagonalization with overlap
-     ethr =  1.21E-11,  avg # of iterations =  2.0
+     ethr =  1.31E-11,  avg # of iterations =  2.0
 
      negative rho (up, down):  1.428E-04 0.000E+00
 
-     total cpu time spent up to now is      693.6 secs
+     total cpu time spent up to now is      140.9 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 ( 14571 PWs)   bands (ev):
 
-   -29.5830 -16.0963 -14.5005 -13.1490 -12.9946 -12.4619 -12.4516 -12.3541
-   -12.1740 -11.3091 -11.1838 -11.0595 -10.8451 -10.8163 -10.7408 -10.6061
-    -9.9086  -9.8813  -9.8237  -9.6278  -9.6055  -9.5542  -9.5171  -9.4676
-    -9.4489  -9.2686  -9.2410  -9.1117  -9.0281  -8.7902  -8.6997  -7.9224
+   -29.5830 -16.0963 -14.5005 -13.1490 -12.9946 -12.4618 -12.4516 -12.3541
+   -12.1740 -11.3091 -11.1838 -11.0595 -10.8451 -10.8163 -10.7407 -10.6061
+    -9.9086  -9.8813  -9.8237  -9.6278  -9.6055  -9.5542  -9.5171  -9.4675
+    -9.4489  -9.2685  -9.2410  -9.1117  -9.0281  -8.7902  -8.6997  -7.9224
     -7.8183  -7.5448  -7.3125  -7.2565  -7.1893  -7.0350  -6.8554  -6.7679
     -6.5965  -6.5852  -6.3695  -6.3690  -6.3308  -6.1699  -5.9744  -4.8644
     -4.6400  -4.5586  -3.8909  -3.2682  -3.0928  -2.0743  -1.7912  -1.7468
-    -1.1602  -0.9269  -0.4136  -0.2014  -0.0022   0.4929   1.0571   1.3111
+    -1.1602  -0.9269  -0.4136  -0.2014  -0.0022   0.4929   1.0572   1.3111
      1.6855   2.1048   2.2856   2.4821   2.6458   2.8319   3.5110   3.5542
-     3.5899   3.6894   4.2244   4.4219   4.4974   4.5293   4.8319   4.9101
+     3.5899   3.6894   4.2244   4.4219   4.4974   4.5293   4.8320   4.9101
 
      occupation numbers 
      1.0000   1.0000   1.0000   1.0000   1.0000   1.0000   1.0000   1.0000
@@ -657,62 +631,62 @@ A      1.00
 
      the Fermi energy is    -6.2294 ev
 
-!    total energy              =    -735.33793047 Ry
-     Harris-Foulkes estimate   =    -744.82309072 Ry
-     estimated scf accuracy    <          3.9E-09 Ry
+!    total energy              =    -735.33792857 Ry
+     Harris-Foulkes estimate   =    -744.82306689 Ry
+     estimated scf accuracy    <          4.0E-09 Ry
 
      The total energy is the sum of the following terms:
 
-     one-electron contribution =   -3942.97923387 Ry
-     hartree contribution      =    2003.64744043 Ry
-     xc contribution           =    -378.69639310 Ry
+     one-electron contribution =   -3942.97919700 Ry
+     hartree contribution      =    2003.64742771 Ry
+     xc contribution           =    -378.69639344 Ry
      ewald contribution        =    1573.20467954 Ry
-     smearing contrib. (-TS)   =       0.00041629 Ry
-     electrostatic embedding   =       0.20675275 Ry
-     electrolyte free energy   =      -0.00513786 Ry
-     correction to one-el term =       9.28354535 Ry
+     smearing contrib. (-TS)   =       0.00041631 Ry
+     electrostatic embedding   =       0.20675244 Ry
+     electrolyte free energy   =      -0.00513785 Ry
+     correction to one-el term =       9.28352373 Ry
 
-     the Fermi energy shift due to the environment is    -0.4600 ev
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4600 ev
 
      convergence has been achieved in  24 iterations
 
      negative rho (up, down):  1.428E-04 0.000E+00
      The global environment contribution to forces
-     atom    1 type  1   force =    -0.00333425   -0.00301606    0.02023714
-     atom    2 type  1   force =     0.00334419   -0.00302854    0.02032303
-     atom    3 type  1   force =    -0.00011693    0.00163093   -0.00131133
-     atom    4 type  1   force =     0.00007012    0.00410492   -0.00435586
-     atom    5 type  1   force =    -0.00053940    0.00865698   -0.24806645
-     atom    6 type  1   force =     0.00044656    0.00977804   -0.23547561
-     atom    7 type  1   force =    -0.00992193   -0.00811660   -0.25924958
-     atom    8 type  1   force =     0.00995929   -0.00815938   -0.25994586
-     atom    9 type  2   force =     0.00004880    0.00506834   -0.05000699
-     atom   10 type  3   force =     0.00000037    0.00435391   -0.09290002
+     atom    1 type  1   force =    -0.00333458   -0.00301604    0.02023567
+     atom    2 type  1   force =     0.00334453   -0.00302848    0.02032163
+     atom    3 type  1   force =    -0.00011694    0.00163089   -0.00131292
+     atom    4 type  1   force =     0.00007013    0.00410488   -0.00435696
+     atom    5 type  1   force =    -0.00053929    0.00865718   -0.24806778
+     atom    6 type  1   force =     0.00044647    0.00977828   -0.23547700
+     atom    7 type  1   force =    -0.00992183   -0.00811682   -0.25925110
+     atom    8 type  1   force =     0.00995915   -0.00815959   -0.25994720
+     atom    9 type  2   force =     0.00004883    0.00506828   -0.05000731
+     atom   10 type  3   force =     0.00000038    0.00435385   -0.09290078
  
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  1   force =     0.00030528    0.01376870    0.02662527
-     atom    2 type  1   force =     0.00074497    0.01405084    0.02733048
-     atom    3 type  1   force =    -0.00182213    0.01229568   -0.01020073
-     atom    4 type  1   force =     0.00082285    0.00770703    0.03867024
-     atom    5 type  1   force =    -0.00152126   -0.01437204   -0.04489428
-     atom    6 type  1   force =     0.00045771   -0.02007191   -0.02665575
-     atom    7 type  1   force =     0.01750259   -0.00548430   -0.04235119
-     atom    8 type  1   force =    -0.01643197   -0.00512802   -0.04187616
-     atom    9 type  2   force =    -0.00004809   -0.00402930    0.06863397
-     atom   10 type  3   force =    -0.00000995    0.00126332    0.00471816
+     atom    1 type  1   force =     0.00030548    0.01376870    0.02662539
+     atom    2 type  1   force =     0.00074487    0.01405089    0.02732988
+     atom    3 type  1   force =    -0.00182193    0.01229541   -0.01020086
+     atom    4 type  1   force =     0.00082296    0.00770687    0.03866965
+     atom    5 type  1   force =    -0.00152103   -0.01437198   -0.04489344
+     atom    6 type  1   force =     0.00045716   -0.02007223   -0.02665581
+     atom    7 type  1   force =     0.01750285   -0.00548377   -0.04235135
+     atom    8 type  1   force =    -0.01643233   -0.00512764   -0.04187583
+     atom    9 type  2   force =    -0.00004806   -0.00402940    0.06863373
+     atom   10 type  3   force =    -0.00000998    0.00126315    0.00471864
      The non-local contrib.  to forces
-     atom    1 type  1   force =    -0.02753185   -0.00147641   -0.10149024
-     atom    2 type  1   force =     0.02764194   -0.00131333   -0.10193428
-     atom    3 type  1   force =     0.00098727    0.00406964   -0.15488020
-     atom    4 type  1   force =    -0.00079429   -0.01710432    0.50729226
-     atom    5 type  1   force =     0.00059994    0.02553016    0.05871248
-     atom    6 type  1   force =    -0.00090143   -0.01820921    0.08832326
-     atom    7 type  1   force =     0.01948977   -0.00388104    0.05024646
-     atom    8 type  1   force =    -0.01938187   -0.00355820    0.04906963
-     atom    9 type  2   force =    -0.00007942   -0.00736385    0.57030458
-     atom   10 type  3   force =     0.00018180    0.03860840   -2.95615801
+     atom    1 type  1   force =    -0.02753185   -0.00147635   -0.10149055
+     atom    2 type  1   force =     0.02764211   -0.00131317   -0.10193472
+     atom    3 type  1   force =     0.00098740    0.00406961   -0.15488057
+     atom    4 type  1   force =    -0.00079413   -0.01710432    0.50729181
+     atom    5 type  1   force =     0.00060018    0.02553026    0.05871310
+     atom    6 type  1   force =    -0.00090174   -0.01820931    0.08832335
+     atom    7 type  1   force =     0.01948987   -0.00388090    0.05024641
+     atom    8 type  1   force =    -0.01938209   -0.00355806    0.04906971
+     atom    9 type  2   force =    -0.00007945   -0.00736384    0.57030458
+     atom   10 type  3   force =     0.00018179    0.03860847   -2.95615817
      The ionic contribution  to forces
      atom    1 type  1   force =     0.50324609   -0.09020628   30.03736972
      atom    2 type  1   force =    -0.49292694   -0.08303178   30.06216876
@@ -725,25 +699,25 @@ A      1.00
      atom    9 type  2   force =     0.00636806    0.05296760   19.96835427
      atom   10 type  3   force =     0.00226724   -0.13041391   48.33963012
      The local contribution  to forces
-     atom    1 type  1   force =    -0.47478845    0.11196253  -29.91340129
-     atom    2 type  1   force =     0.46554404    0.10483463  -29.93731345
-     atom    3 type  1   force =     0.07487788   -0.11016453  -29.52511780
-     atom    4 type  1   force =    -0.05409661   -0.07609098  -29.65240557
-     atom    5 type  1   force =     0.06733507    0.03247371   48.24566732
-     atom    6 type  1   force =    -0.05719185   -0.14175244   45.82056123
-     atom    7 type  1   force =    -0.08422392    0.01392574   46.86567185
-     atom    8 type  1   force =     0.07111985    0.00676353   46.84297267
-     atom    9 type  2   force =    -0.00640891   -0.05468443  -20.41293852
-     atom   10 type  3   force =    -0.00248226    0.08873315  -45.27878576
+     atom    1 type  1   force =    -0.47478811    0.11196276  -29.91339959
+     atom    2 type  1   force =     0.46554372    0.10483463  -29.93731078
+     atom    3 type  1   force =     0.07487771   -0.11016455  -29.52511592
+     atom    4 type  1   force =    -0.05409655   -0.07609124  -29.65240293
+     atom    5 type  1   force =     0.06733376    0.03247404   48.24566827
+     atom    6 type  1   force =    -0.05719061   -0.14175219   45.82056319
+     atom    7 type  1   force =    -0.08422509    0.01392550   46.86567383
+     atom    8 type  1   force =     0.07112116    0.00676333   46.84297379
+     atom    9 type  2   force =    -0.00640892   -0.05468439  -20.41293911
+     atom   10 type  3   force =    -0.00248230    0.08873296  -45.27878472
      The core correction contribution to forces
-     atom    1 type  1   force =     0.00265139   -0.00348711   -0.00900937
-     atom    2 type  1   force =    -0.00283971   -0.00339994   -0.00883962
-     atom    3 type  1   force =     0.00044075   -0.00362434   -0.00285959
-     atom    4 type  1   force =    -0.00025519   -0.00365113    0.06939479
-     atom    5 type  1   force =     0.00049504    0.00754148    0.01483068
-     atom    6 type  1   force =    -0.00036633   -0.00436316    0.01703124
-     atom    7 type  1   force =     0.00728969    0.00425269    0.01816007
-     atom    8 type  1   force =    -0.00749463    0.00428596    0.01833915
+     atom    1 type  1   force =     0.00265138   -0.00348712   -0.00900931
+     atom    2 type  1   force =    -0.00283967   -0.00339995   -0.00883949
+     atom    3 type  1   force =     0.00044074   -0.00362433   -0.00285954
+     atom    4 type  1   force =    -0.00025517   -0.00365110    0.06939484
+     atom    5 type  1   force =     0.00049503    0.00754142    0.01483058
+     atom    6 type  1   force =    -0.00036631   -0.00436314    0.01703132
+     atom    7 type  1   force =     0.00728966    0.00425265    0.01816018
+     atom    8 type  1   force =    -0.00749459    0.00428592    0.01833911
      atom    9 type  2   force =     0.00000000    0.00000000    0.00000000
      atom   10 type  3   force =     0.00000000    0.00000000    0.00000000
      The Hubbard contrib.    to forces
@@ -758,85 +732,85 @@ A      1.00
      atom    9 type  2   force =     0.00000000    0.00000000    0.00000000
      atom   10 type  3   force =     0.00000000    0.00000000    0.00000000
      The SCF correction term to forces
-     atom    1 type  1   force =     0.00003996    0.00000414   -0.00001028
-     atom    2 type  1   force =    -0.00004094    0.00000193   -0.00000356
-     atom    3 type  1   force =    -0.00000950   -0.00000256    0.00004306
-     atom    4 type  1   force =     0.00000874   -0.00000178   -0.00001455
-     atom    5 type  1   force =    -0.00001221   -0.00000634   -0.00000309
-     atom    6 type  1   force =     0.00001311   -0.00001424   -0.00003299
-     atom    7 type  1   force =     0.00002530    0.00001092    0.00002086
-     atom    8 type  1   force =    -0.00002445    0.00001037    0.00001894
-     atom    9 type  2   force =     0.00000099   -0.00000485   -0.00000895
-     atom   10 type  3   force =     0.00000050   -0.00000611    0.00000224
+     atom    1 type  1   force =     0.00004017    0.00000395   -0.00001047
+     atom    2 type  1   force =    -0.00004127    0.00000186   -0.00000546
+     atom    3 type  1   force =    -0.00000922   -0.00000265    0.00004263
+     atom    4 type  1   force =     0.00000862   -0.00000159   -0.00001661
+     atom    5 type  1   force =    -0.00001098   -0.00000676   -0.00000273
+     atom    6 type  1   force =     0.00001172   -0.00001489   -0.00003412
+     atom    7 type  1   force =     0.00002656    0.00001192    0.00001984
+     atom    8 type  1   force =    -0.00002578    0.00001115    0.00001910
+     atom    9 type  2   force =     0.00000103   -0.00000483   -0.00000863
+     atom   10 type  3   force =     0.00000052   -0.00000599    0.00000225
 
-     Total force =     0.126199     Total SCF correction =     0.000099
+     Total force =     0.126198     Total SCF correction =     0.000100
 
      Writing output data file PtCO_linearizedpb.save
  
-     init_run     :     23.60s CPU     30.58s WALL (       1 calls)
-     electrons    :    518.68s CPU    662.91s WALL (       1 calls)
-     forces       :      1.19s CPU      1.19s WALL (       1 calls)
+     init_run     :      5.79s CPU      5.96s WALL (       1 calls)
+     electrons    :    125.52s CPU    134.90s WALL (       1 calls)
+     forces       :      3.60s CPU      3.72s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.06s CPU      0.07s WALL (       1 calls)
-     wfcinit:atom :      0.00s CPU      0.00s WALL (       1 calls)
-     wfcinit:wfcr :      0.06s CPU      0.07s WALL (       1 calls)
-     potinit      :      9.78s CPU     12.45s WALL (       1 calls)
+     wfcinit      :      0.42s CPU      0.43s WALL (       1 calls)
+     wfcinit:atom :      0.00s CPU      0.01s WALL (       1 calls)
+     wfcinit:wfcr :      0.40s CPU      0.40s WALL (       1 calls)
+     potinit      :      1.46s CPU      1.47s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      7.59s CPU      7.74s WALL (      24 calls)
-     sum_band     :      6.00s CPU      6.39s WALL (      24 calls)
-     v_of_rho     :      1.32s CPU      1.30s WALL (      25 calls)
-     v_h          :      3.67s CPU      3.77s WALL (     943 calls)
-     v_xc         :      1.26s CPU      1.26s WALL (      26 calls)
-     newd         :      3.22s CPU      3.47s WALL (      25 calls)
-     mix_rho      :      0.25s CPU      0.26s WALL (      24 calls)
+     c_bands      :     27.86s CPU     28.35s WALL (      24 calls)
+     sum_band     :     18.98s CPU     20.80s WALL (      24 calls)
+     v_of_rho     :      6.05s CPU      6.26s WALL (      25 calls)
+     v_h          :      9.34s CPU     10.44s WALL (     948 calls)
+     v_xc         :      6.02s CPU      6.22s WALL (      26 calls)
+     newd         :     10.35s CPU     12.37s WALL (      25 calls)
+     mix_rho      :      0.90s CPU      0.90s WALL (      24 calls)
 
      Called by c_bands:
-     init_us_2    :      0.10s CPU      0.09s WALL (      49 calls)
-     cegterg      :      7.22s CPU      7.35s WALL (      24 calls)
+     init_us_2    :      0.40s CPU      0.39s WALL (      49 calls)
+     cegterg      :     26.05s CPU     26.54s WALL (      24 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (      24 calls)
-     addusdens    :      4.66s CPU      5.04s WALL (      24 calls)
+     addusdens    :     13.97s CPU     15.75s WALL (      24 calls)
 
      Called by *egterg:
-     h_psi        :      4.00s CPU      4.07s WALL (     101 calls)
-     s_psi        :      0.29s CPU      0.31s WALL (     101 calls)
-     g_psi        :      0.04s CPU      0.03s WALL (      76 calls)
-     cdiaghg      :      1.14s CPU      1.15s WALL (     100 calls)
-     cegterg:over :      0.60s CPU      0.60s WALL (      76 calls)
-     cegterg:upda :      0.43s CPU      0.41s WALL (      76 calls)
-     cegterg:last :      0.19s CPU      0.19s WALL (      24 calls)
+     h_psi        :     17.04s CPU     17.11s WALL (     102 calls)
+     s_psi        :      1.62s CPU      1.60s WALL (     102 calls)
+     g_psi        :      0.19s CPU      0.20s WALL (      77 calls)
+     cdiaghg      :      0.90s CPU      0.91s WALL (     101 calls)
+     cegterg:over :      2.26s CPU      2.27s WALL (      77 calls)
+     cegterg:upda :      2.01s CPU      2.00s WALL (      77 calls)
+     cegterg:last :      0.97s CPU      0.97s WALL (      24 calls)
 
      Called by h_psi:
-     h_psi:pot    :      3.93s CPU      4.00s WALL (     101 calls)
-     h_psi:calbec :      0.39s CPU      0.40s WALL (     101 calls)
-     vloc_psi     :      3.24s CPU      3.30s WALL (     101 calls)
-     add_vuspsi   :      0.30s CPU      0.30s WALL (     101 calls)
+     h_psi:pot    :     16.88s CPU     16.90s WALL (     102 calls)
+     h_psi:calbec :      1.45s CPU      1.43s WALL (     102 calls)
+     vloc_psi     :     13.83s CPU     13.88s WALL (     102 calls)
+     add_vuspsi   :      1.60s CPU      1.59s WALL (     102 calls)
 
      General routines
-     calbec       :      0.53s CPU      0.54s WALL (     129 calls)
-     fft          :      6.87s CPU      6.96s WALL (    2566 calls)
-     ffts         :      0.02s CPU      0.03s WALL (      49 calls)
-     fftw         :      3.03s CPU      3.17s WALL (   10512 calls)
-     interpolate  :      0.18s CPU      0.18s WALL (      49 calls)
-     davcio       :      0.00s CPU      0.00s WALL (       1 calls)
+     calbec       :      2.13s CPU      2.13s WALL (     130 calls)
+     fft          :     17.07s CPU     18.83s WALL (    2576 calls)
+     ffts         :      0.12s CPU      0.10s WALL (      49 calls)
+     fftw         :     13.00s CPU     13.29s WALL (   10512 calls)
+     interpolate  :      0.54s CPU      0.56s WALL (      49 calls)
+     davcio       :      0.00s CPU      0.01s WALL (       1 calls)
  
      Parallel routines
-     fft_scatter  :      4.39s CPU      4.68s WALL (   13127 calls)
+     fft_scatter  :      4.18s CPU      4.87s WALL (   13137 calls)
  
      Environ routines
-     calc_eelect  :      0.01s CPU      0.01s WALL (      48 calls)
-     calc_velect  :     16.10s CPU     16.30s WALL (      42 calls)
-     dielectric   :      0.07s CPU      0.06s WALL (      27 calls)
+     calc_eelect  :      0.03s CPU      0.03s WALL (      48 calls)
+     calc_velect  :     55.01s CPU     59.80s WALL (      42 calls)
+     dielectric   :      0.48s CPU      0.48s WALL (      27 calls)
      electrolyte  :      0.00s CPU      0.00s WALL (       2 calls)
-     calc_felect  :      0.01s CPU      0.01s WALL (       1 calls)
+     calc_felect  :      0.09s CPU      0.09s WALL (       1 calls)
  
-     PWSCF        :  9m 3.61s CPU    11m34.83s WALL
+     PWSCF        :  2m15.05s CPU     2m24.75s WALL
 
  
-   This run was terminated on:  16:56:19  29Jan2018            
+   This run was terminated on:  13:21: 1  30Jan2018            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
