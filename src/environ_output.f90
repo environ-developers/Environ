@@ -1192,14 +1192,17 @@ CONTAINS
       SUBROUTINE environ_print_fermi_shift( )
 !----------------------------------------------------------------------
       !
-      ! If Gaussian nuclei are used, write out the corresponding 
+      ! If Gaussian nuclei are used, write out the corresponding
       ! Fermi energy shift
       !
-      USE environ_base, ONLY : lsmearedions, fermi_shift
+      USE environ_base, ONLY : lsmearedions, lperiodic, fermi_shift
 
-      IF (lsmearedions) WRITE( program_unit, 9400 ) fermi_shift * rytoev 
+      IF (lsmearedions .AND. lperiodic) &
+                 WRITE( program_unit, 9400 ) fermi_shift * rytoev
 
-9400 FORMAT(/,5(' '),'the Fermi energy shift due to the environment is ',F10.4,' ev')
+9400 FORMAT(/,5(' '),&
+       'the Fermi energy shift due to the parabolic pbc-correction is ',&
+           F10.4,' ev')
       !
 !----------------------------------------------------------------------
       END SUBROUTINE environ_print_fermi_shift
