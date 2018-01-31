@@ -1,18 +1,29 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) 2007-2008 Quantum-ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
 !
-! Subroutines to initialize and clean up the global ENVIRON variables
-! Only variables that are required outside of the specific modules
-! are initiliazed here, module-specific variables should be initialized
-! inside each module by the specific initiliazation subruotine
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
 !
-! original version by O. Andreussi, I. Dabo and N. Marzari (MIT)
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
 !
+! Module to initilize environ-related variables 
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Ismaila Dabo       (DMSE, Penn State)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
+!
+!----------------------------------------------------------------------------
 MODULE environ_init
+!----------------------------------------------------------------------------
   !
   USE environ_types
   USE environ_output
@@ -32,6 +43,7 @@ MODULE environ_init
        & environ_clean, environ_clean_tddfpt
   !
 CONTAINS
+  !
 !--------------------------------------------------------------------
   SUBROUTINE set_environ_base &
 !--------------------------------------------------------------------
@@ -68,7 +80,7 @@ CONTAINS
        & epsregion_spread, epsregion_width )
     !
     ! ... the following routine copies variables read in input
-    ! ... to global variables and derived data types kept in this module
+    ! ... to global variables kept in the environ_base module
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
          & need_factsqrt, need_auxiliary, linearized
@@ -268,199 +280,202 @@ CONTAINS
 ! environ modules. This subroutine is called by init_run.f90, thus
 ! only once per pw.x execution.
 !
-      ! ... Declares modules
-      !
-      ! In environ_base all the control flags plus the variables
-      ! that need to be initialized
-      !
-      USE environ_base, ONLY : e2_ => e2,                               &
-                               cell, electrons, charges,                &
-                               vzero, deenviron,                        &
-                               lelectrostatic, eelectrostatic,          &
-                               velectrostatic, vreference,              &
-                               lsoftcavity, vsoftcavity,                &
-                               lelectrolyte, electrolyte,               &
-                               lsolvent, solvent, lstatic, static,      &
-                               loptical, optical,                       &
-                               lexternals, externals,                   &
-                               lsurface, ecavity, lvolume, epressure,   &
-                               eelectrolyte
-      !
-      USE electrostatic_init, ONLY : electrostatic_initbase
-      !
-      ! Local base initialization subroutines for the different
-      ! environ contributions
-      !
-      IMPLICIT NONE
-      !
-      ! ... Input variable
-      !
-      INTEGER, INTENT(IN) :: nnr
-      INTEGER, INTENT(IN) :: ir_end
-      INTEGER, INTENT(IN) :: n1, n2, n3
-      INTEGER, INTENT(IN) :: ibrav
-      INTEGER, INTENT(IN) :: comm
-      INTEGER, INTENT(IN) :: me
-      INTEGER, INTENT(IN) :: root
-      REAL(DP), INTENT(IN) :: alat
-      REAL(DP), INTENT(IN) :: omega
-      REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
-      REAL(DP), OPTIONAL, INTENT(IN) :: e2
-      !
-      CHARACTER( LEN = 80 ) :: label = ' '
-      !
-      ! ... Common initialization for simulations with Environ
-      !
-      e2_ = 2.D0
-      IF ( PRESENT(e2) ) e2_ = e2
-      !
-      CALL init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
-      !
-      ! ... Create local storage for base potential, that needs to be modified
-      !
-      label = 'vzero'
-      CALL create_environ_density( vzero, label )
-      CALL init_environ_density( cell, vzero )
-      !
-      deenviron = 0.0_DP
-      !
-      ! ... Electrostatic contribution
-      !
-      eelectrostatic  = 0.0_DP
-      IF ( lelectrostatic ) THEN
-         !
-         label = 'velectrostatic'
-         CALL create_environ_density( velectrostatic, label )
-         CALL init_environ_density( cell, velectrostatic )
-         !
-         label = 'vreference'
-         CALL create_environ_density( vreference, label )
-         CALL init_environ_density( cell, vreference )
-         !
-         CALL electrostatic_initbase( cell )
-         !
-      END IF
-      !
-      ! ... Contribution to the potential due to boundary
-      !
-      IF ( lsoftcavity ) THEN
-         !
-         label = 'vsoftcavity'
-         CALL create_environ_density( vsoftcavity, label )
-         CALL init_environ_density( cell, vsoftcavity )
-         !
-      END IF
-      !
-      ! ... Cavity contribution
-      !
-      ecavity  = 0.0_DP
-      !
-      ! ... Pressure contribution
-      !
-      epressure  = 0.0_DP
-      !
-      ! ... Non-electrostatice electrolyte contribution
-      !
-      eelectrolyte = 0.0_DP
-      !
-      ! ... Second step of initialization of some environ derived type
-      !
-      CALL init_environ_electrons_second( cell, electrons )
-      !
-      IF ( lsolvent ) CALL init_environ_boundary_second( cell, solvent )
-      !
-      IF ( lstatic ) CALL init_environ_dielectric_second( cell, static )
-      !
-      IF ( loptical ) CALL init_environ_dielectric_second( cell, optical )
-      !
-      IF ( lelectrolyte ) CALL init_environ_electrolyte_second( cell, electrolyte )
-      !
-      IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
-      !
-      IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
-      !
-      RETURN
-      !
+    ! ... Declares modules
+    !
+    ! In environ_base all the control flags plus the variables
+    ! that need to be initialized
+    !
+    USE environ_base, ONLY : e2_ => e2,                               &
+         cell, electrons, charges,                &
+         vzero, deenviron,                        &
+         lelectrostatic, eelectrostatic,          &
+         velectrostatic, vreference,              &
+         lsoftcavity, vsoftcavity,                &
+         lelectrolyte, electrolyte,               &
+         lsolvent, solvent, lstatic, static,      &
+         loptical, optical,                       &
+         lexternals, externals,                   &
+         lsurface, ecavity, lvolume, epressure,   &
+         eelectrolyte
+    !
+    USE electrostatic_init, ONLY : electrostatic_initbase
+    !
+    ! Local base initialization subroutines for the different
+    ! environ contributions
+    !
+    IMPLICIT NONE
+    !
+    ! ... Input variable
+    !
+    INTEGER, INTENT(IN) :: nnr
+    INTEGER, INTENT(IN) :: ir_end
+    INTEGER, INTENT(IN) :: n1, n2, n3
+    INTEGER, INTENT(IN) :: ibrav
+    INTEGER, INTENT(IN) :: comm
+    INTEGER, INTENT(IN) :: me
+    INTEGER, INTENT(IN) :: root
+    REAL(DP), INTENT(IN) :: alat
+    REAL(DP), INTENT(IN) :: omega
+    REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
+    REAL(DP), OPTIONAL, INTENT(IN) :: e2
+    !
+    CHARACTER( LEN = 80 ) :: label = ' '
+    !
+    ! ... Common initialization for simulations with Environ
+    !
+    e2_ = 2.D0
+    IF ( PRESENT(e2) ) e2_ = e2
+    !
+    CALL init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
+    !
+    ! ... Create local storage for base potential, that needs to be modified
+    !
+    label = 'vzero'
+    CALL create_environ_density( vzero, label )
+    CALL init_environ_density( cell, vzero )
+    !
+    deenviron = 0.0_DP
+    !
+    ! ... Electrostatic contribution
+    !
+    eelectrostatic  = 0.0_DP
+    IF ( lelectrostatic ) THEN
+       !
+       label = 'velectrostatic'
+       CALL create_environ_density( velectrostatic, label )
+       CALL init_environ_density( cell, velectrostatic )
+       !
+       label = 'vreference'
+       CALL create_environ_density( vreference, label )
+       CALL init_environ_density( cell, vreference )
+       !
+       CALL electrostatic_initbase( cell )
+       !
+    END IF
+    !
+    ! ... Contribution to the potential due to boundary
+    !
+    IF ( lsoftcavity ) THEN
+       !
+       label = 'vsoftcavity'
+       CALL create_environ_density( vsoftcavity, label )
+       CALL init_environ_density( cell, vsoftcavity )
+       !
+    END IF
+    !
+    ! ... Cavity contribution
+    !
+    ecavity  = 0.0_DP
+    !
+    ! ... Pressure contribution
+    !
+    epressure  = 0.0_DP
+    !
+    ! ... Non-electrostatice electrolyte contribution
+    !
+    eelectrolyte = 0.0_DP
+    !
+    ! ... Second step of initialization of some environ derived type
+    !
+    CALL init_environ_electrons_second( cell, electrons )
+    !
+    IF ( lsolvent ) CALL init_environ_boundary_second( cell, solvent )
+    !
+    IF ( lstatic ) CALL init_environ_dielectric_second( cell, static )
+    !
+    IF ( loptical ) CALL init_environ_dielectric_second( cell, optical )
+    !
+    IF ( lelectrolyte ) CALL init_environ_electrolyte_second( cell, electrolyte )
+    !
+    IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
+    !
+    IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
+    !
+    RETURN
+    !
 !--------------------------------------------------------------------
-   END SUBROUTINE environ_initbase
+  END SUBROUTINE environ_initbase
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE environ_initpotential( nnr, vltot )
+  SUBROUTINE environ_initpotential( nnr, vltot )
 !--------------------------------------------------------------------
 !
 ! Save local potential that will be overwritten by environ
 !
-      ! ... Declares modules
-      USE environ_base,  ONLY : vzero
-      !
-      IMPLICIT NONE
-      !
-      INTEGER, INTENT(IN) :: nnr
-      REAL( DP ), INTENT( IN ) :: vltot(nnr)
-      !
-      CHARACTER( LEN=80 ) :: sub_name = 'environ_initpotential'
-      !
-      vzero % update = .TRUE.
-      !
-      IF ( .NOT. ASSOCIATED( vzero % cell ) ) RETURN
-      !
-      IF ( vzero % cell % nnr .NE. nnr ) &
-           & CALL errore(sub_name,'Inconsistent size in input potential',1)
-      vzero % of_r = vltot
-      !
-      RETURN
-      !
+    ! ... Declares modules
+    USE environ_base,  ONLY : vzero
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: nnr
+    REAL( DP ), INTENT( IN ) :: vltot(nnr)
+    !
+    CHARACTER( LEN=80 ) :: sub_name = 'environ_initpotential'
+    !
+    vzero % update = .TRUE.
+    !
+    IF ( .NOT. ASSOCIATED( vzero % cell ) ) RETURN
+    !
+    IF ( vzero % cell % nnr .NE. nnr ) &
+         & CALL errore(sub_name,'Inconsistent size in input potential',1)
+    vzero % of_r = vltot
+    !
+    RETURN
+    !
 !--------------------------------------------------------------------
-    END SUBROUTINE environ_initpotential
+  END SUBROUTINE environ_initpotential
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE environ_initcell( omega, at )
+  SUBROUTINE environ_initcell( omega, at )
 !--------------------------------------------------------------------
 !
 ! Initialize the cell-related quantities to be used in the Environ
 ! modules. This initialization is called by electrons.f90, thus it
 ! is performed at every step of electronic optimization.
 !
-      ! ... Declares modules
-      USE environ_base,  ONLY : cell, lstatic, loptical, static, optical, &
-                                lexternals, externals, lelectrostatic,    &
-                                lelectrolyte, electrolyte
-      ! ... Cell-related updates
-      USE dielectric,     ONLY : update_environ_dielectric
-      USE electrolyte_utils,   ONLY : update_environ_electrolyte
-      USE electrostatic_init,  ONLY : electrostatic_initcell
-!      USE extcharges,    ONLY : update_external_charges
-      !
-      IMPLICIT NONE
-      !
-      REAL( DP ), INTENT( IN ) :: omega
-      REAL( DP ), INTENT( IN ) :: at(3,3)
-      !
-      cell%update = .TRUE.
-      !
-      ! ... Update cell parameters
-      !
-      CALL update_environ_cell( omega, at, cell )
-      !
-      ! ... Update fixed quantities defined inside the cell
-      !
-      IF ( lstatic ) CALL update_environ_dielectric( static )
-      IF ( loptical ) CALL update_environ_dielectric( optical )
-      IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
-      !
-      IF ( lexternals ) CALL update_environ_externals( externals )
-      !
-      IF ( lelectrostatic ) CALL electrostatic_initcell( cell )
-      !
-      cell%update = .FALSE.
-      !
-      RETURN
-      !
+    ! ... Declares modules
+    USE environ_base,        ONLY : cell, lstatic, static, &
+                                    loptical, optical,  &
+                                    lexternals, externals,     &
+                                    lelectrolyte, electrolyte, &
+                                    lelectrostatic
+    ! ... Cell-related updates
+    USE dielectric,          ONLY : update_environ_dielectric
+    USE electrolyte_utils,   ONLY : update_environ_electrolyte
+    USE externals_utils,     ONLY : update_environ_externals
+    USE electrostatic_init,  ONLY : electrostatic_initcell
+    !
+    IMPLICIT NONE
+    !
+    REAL( DP ), INTENT( IN ) :: omega
+    REAL( DP ), INTENT( IN ) :: at(3,3)
+    !
+    cell%update = .TRUE.
+    !
+    ! ... Update cell parameters
+    !
+    CALL update_environ_cell( omega, at, cell )
+    !
+    ! ... Update fixed quantities defined inside the cell
+    !
+    IF ( lstatic ) CALL update_environ_dielectric( static )
+    IF ( loptical ) CALL update_environ_dielectric( optical )
+    IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
+    IF ( lexternals ) CALL update_environ_externals( externals )
+    !
+    ! ... Update electrostatic solvers
+    !
+    IF ( lelectrostatic ) CALL electrostatic_initcell( cell )
+    !
+    cell%update = .FALSE.
+    !
+    RETURN
+    !
 !--------------------------------------------------------------------
    END SUBROUTINE environ_initcell
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE environ_initions( nnr, nat, ntyp, ityp, zv, tau )
+   SUBROUTINE environ_initions( nnr, nat, ntyp, ityp, zv, tau )
 !--------------------------------------------------------------------
 !
 ! Initialize the ions-related quantities to be used in the Environ
@@ -468,92 +483,92 @@ CONTAINS
 ! is performed at every step of electronic optimization. It may not
 ! be the most efficient choice, but it is a safe choice.
 !
-      ! ... Declares modules
-      USE environ_base,      ONLY : cell, ions, electrons, system,  &
+     ! ... Declares modules
+     USE environ_base,       ONLY : cell, ions, electrons, system,  &
                                     lsolvent, solvent,              &
                                     lstatic, static,                &
                                     loptical, optical,              &
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity,                   &
                                     lelectrostatic, charges
-      USE boundary,          ONLY : update_environ_boundary,        &
+     USE boundary,           ONLY : update_environ_boundary,        &
                                     set_soft_spheres
-      USE dielectric,        ONLY : update_environ_dielectric
-      USE electrolyte_utils, ONLY : update_environ_electrolyte
-      USE electrostatic_init,     ONLY : electrostatic_initions
-      !
-      IMPLICIT NONE
-      !
-      INTEGER, INTENT( IN )     :: nnr, nat, ntyp
-      INTEGER, INTENT( IN )     :: ityp( nat )
-      REAL ( DP ), INTENT( IN ) :: zv( ntyp )
-      REAL ( DP ), INTENT( IN ) :: tau( 3, nat )
-      !
-      INTEGER :: ia, dim, axis, icor, max_ntyp
-      REAL ( DP ) :: charge, spread, dist, pos(3)
-      !
-      ions%update = .TRUE.
-      !
-      ! ... Second step of initialization, need to be moved out of here
-      !
-      CALL init_environ_ions_second( nat, ntyp, ityp, zv, cell, ions )
-      IF ( lsolvent ) CALL set_soft_spheres( solvent )
-      IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
-      !
-      ! ... Update ions parameters
-      !
-      CALL update_environ_ions( nat, tau, ions )
-      CALL print_environ_ions( ions )
-      !
-      ! ... Update system parameters
-      !
-      system%update = .TRUE.
-      CALL update_environ_system( system )
-      CALL print_environ_system( system )
-      !
-      ! ... Update rigid environ properties, defined on ions
-      !
-      IF ( lrigidcavity ) THEN
-         !
-         IF ( lsolvent ) THEN
-            !
-            CALL update_environ_boundary( solvent )
-            IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
-            !
-            ! ... Update quantities that depend on the solvent boundary
-            !
-            IF ( lstatic ) THEN
-               CALL update_environ_dielectric( static )
-               IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
-            END IF
-            !
-            IF ( loptical ) THEN
-               CALL update_environ_dielectric( optical )
-               IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
-            END IF
-            !
-         ENDIF
-         !
-         IF ( lelectrolyte ) THEN
-            CALL update_environ_boundary( electrolyte%boundary )
-            IF ( electrolyte % boundary % update_status .EQ. 2 ) &
-                 & CALL print_environ_boundary( electrolyte%boundary )
-            CALL update_environ_electrolyte( electrolyte )
-            IF ( .NOT. electrolyte % update ) CALL print_environ_electrolyte( electrolyte )
-         END IF
-         !
-      END IF
-      !
-      IF ( lelectrostatic ) THEN
-         CALL update_environ_charges( charges )
-         CALL electrostatic_initions( system )
-      END IF
-      !
-      system%update = .FALSE.
-      ions%update = .FALSE.
-      !
-      RETURN
-      !
+     USE dielectric,         ONLY : update_environ_dielectric
+     USE electrolyte_utils,  ONLY : update_environ_electrolyte
+     USE electrostatic_init, ONLY : electrostatic_initions
+     !
+     IMPLICIT NONE
+     !
+     INTEGER, INTENT( IN )     :: nnr, nat, ntyp
+     INTEGER, INTENT( IN )     :: ityp( nat )
+     REAL ( DP ), INTENT( IN ) :: zv( ntyp )
+     REAL ( DP ), INTENT( IN ) :: tau( 3, nat )
+     !
+     INTEGER :: ia, dim, axis, icor, max_ntyp
+     REAL ( DP ) :: charge, spread, dist, pos(3)
+     !
+     ions%update = .TRUE.
+     !
+     ! ... Second step of initialization, need to be moved out of here
+     !
+     CALL init_environ_ions_second( nat, ntyp, ityp, zv, cell, ions )
+     IF ( lsolvent ) CALL set_soft_spheres( solvent )
+     IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
+     !
+     ! ... Update ions parameters
+     !
+     CALL update_environ_ions( nat, tau, ions )
+     CALL print_environ_ions( ions )
+     !
+     ! ... Update system parameters
+     !
+     system%update = .TRUE.
+     CALL update_environ_system( system )
+     CALL print_environ_system( system )
+     !
+     ! ... Update rigid environ properties, defined on ions
+     !
+     IF ( lrigidcavity ) THEN
+        !
+        IF ( lsolvent ) THEN
+           !
+           CALL update_environ_boundary( solvent )
+           IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
+           !
+           ! ... Update quantities that depend on the solvent boundary
+           !
+           IF ( lstatic ) THEN
+              CALL update_environ_dielectric( static )
+              IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
+           END IF
+           !
+           IF ( loptical ) THEN
+              CALL update_environ_dielectric( optical )
+              IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
+           END IF
+           !
+        ENDIF
+        !
+        IF ( lelectrolyte ) THEN
+           CALL update_environ_boundary( electrolyte%boundary )
+           IF ( electrolyte % boundary % update_status .EQ. 2 ) &
+                & CALL print_environ_boundary( electrolyte%boundary )
+           CALL update_environ_electrolyte( electrolyte )
+           IF ( .NOT. electrolyte % update ) CALL print_environ_electrolyte( electrolyte )
+        END IF
+        !
+     END IF
+     !
+     IF ( lelectrostatic ) THEN
+        CALL update_environ_charges( charges )
+        CALL electrostatic_initions( system )
+     END IF
+     !
+     system%update = .FALSE.
+     ions%update = .FALSE.
+     !
+     RETURN
+     !
 !--------------------------------------------------------------------
    END SUBROUTINE environ_initions
 !--------------------------------------------------------------------
@@ -565,74 +580,74 @@ CONTAINS
 ! modules. This initialization is called by electrons.f90, thus it
 ! is performed at every step of electronic optimization.
 !
-      ! ... Declares modules
-      USE environ_base,      ONLY : electrons, lsolvent, solvent, &
-                                    lstatic, static,              &
-                                    loptical, optical,            &
-                                    lelectrolyte, electrolyte,    &
-                                    lsoftcavity, lsoftsolvent,    &
-                                    lsoftelectrolyte,             &
-                                    lelectrostatic, charges
-      USE boundary,          ONLY : update_environ_boundary
-      USE dielectric,        ONLY : update_environ_dielectric
-      !
-      IMPLICIT NONE
-      !
-      INTEGER, INTENT( IN )     :: nspin, nnr
-      REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
-      REAL( DP ), INTENT( IN ), OPTIONAL  :: nelec
-      !
-      electrons%update = .TRUE.
-      !
-      ! ... Update electrons parameters
-      !
-      CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
-      CALL print_environ_electrons( electrons )
-      !
-      IF ( lelectrostatic ) CALL update_environ_charges( charges )
-      !
-      ! ... Update soft environ properties, defined on electrons
-      !
-      IF ( lsoftcavity ) THEN
-         !
-         IF ( lsoftsolvent ) THEN
-            !
-            CALL update_environ_boundary( solvent )
-            IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
-            !
-            ! ... Update quantities that depend on the solvent boundary
-            !
-            IF ( lstatic ) THEN
-               CALL update_environ_dielectric( static )
-               IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
-            END IF
-            !
-            IF ( loptical ) THEN
-               CALL update_environ_dielectric( optical )
-               IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
-            END IF
-            !
-         END IF
-         !
-         IF ( lsoftelectrolyte ) THEN
-            CALL update_environ_boundary( electrolyte%boundary )
-            IF ( electrolyte % boundary % update_status .EQ. 2 ) &
-                 & CALL print_environ_boundary( electrolyte%boundary )
-            CALL update_environ_electrolyte( electrolyte )
-            IF ( .NOT. electrolyte % update ) CALL print_environ_electrolyte( electrolyte )
-         END IF
-         !
-      END IF
-      !
-      electrons%update = .FALSE.
-      !
-      RETURN
-      !
+     ! ... Declares modules
+     USE environ_base,      ONLY : electrons, lsolvent, solvent, &
+                                   lstatic, static,              &
+                                   loptical, optical,            &
+                                   lelectrolyte, electrolyte,    &
+                                   lsoftcavity, lsoftsolvent,    &
+                                   lsoftelectrolyte,             &
+                                   lelectrostatic, charges
+     USE boundary,          ONLY : update_environ_boundary
+     USE dielectric,        ONLY : update_environ_dielectric
+     !
+     IMPLICIT NONE
+     !
+     INTEGER, INTENT( IN )     :: nspin, nnr
+     REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
+     REAL( DP ), INTENT( IN ), OPTIONAL  :: nelec
+     !
+     electrons%update = .TRUE.
+     !
+     ! ... Update electrons parameters
+     !
+     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+     CALL print_environ_electrons( electrons )
+     !
+     IF ( lelectrostatic ) CALL update_environ_charges( charges )
+     !
+     ! ... Update soft environ properties, defined on electrons
+     !
+     IF ( lsoftcavity ) THEN
+        !
+        IF ( lsoftsolvent ) THEN
+           !
+           CALL update_environ_boundary( solvent )
+           IF ( solvent % update_status .EQ. 2 ) CALL print_environ_boundary( solvent )
+           !
+           ! ... Update quantities that depend on the solvent boundary
+           !
+           IF ( lstatic ) THEN
+              CALL update_environ_dielectric( static )
+              IF ( .NOT. static % update ) CALL print_environ_dielectric( static )
+           END IF
+           !
+           IF ( loptical ) THEN
+              CALL update_environ_dielectric( optical )
+              IF ( .NOT. optical % update ) CALL print_environ_dielectric( optical )
+           END IF
+           !
+        END IF
+        !
+        IF ( lsoftelectrolyte ) THEN
+           CALL update_environ_boundary( electrolyte%boundary )
+           IF ( electrolyte % boundary % update_status .EQ. 2 ) &
+                & CALL print_environ_boundary( electrolyte%boundary )
+           CALL update_environ_electrolyte( electrolyte )
+           IF ( .NOT. electrolyte % update ) CALL print_environ_electrolyte( electrolyte )
+        END IF
+        !
+     END IF
+     !
+     electrons%update = .FALSE.
+     !
+     RETURN
+     !
 !--------------------------------------------------------------------
    END SUBROUTINE environ_initelectrons
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-      SUBROUTINE environ_clean(lflag)
+   SUBROUTINE environ_clean(lflag)
 !--------------------------------------------------------------------
 !
 ! Clean up all the Environ related allocated variables, and call
@@ -640,51 +655,51 @@ CONTAINS
 ! this subroutine should mirror the one of the environ_init...
 ! subroutines above. This clean up is called by clean_pw.f90
 !
-      ! ... Declares modules
-      !
-      ! In environ_base all the control flags plus the variables
-      ! that need to be deallocated
-      !
-      USE environ_base, ONLY : vzero, lelectrostatic, vreference,      &
-                               lsoftcavity, vsoftcavity, lstatic,      &
-                               static, charges, lexternals, externals, &
-                               lelectrolyte, electrolyte,              &
-                               ions, electrons, system
-      !
-      ! Local clean up subroutines for the different contributions
-      !
-      IMPLICIT NONE
-      !
-      LOGICAL, INTENT(IN) :: lflag
-      !
-      ! ... Deallocate environment variables
-      !
-      IF ( ASSOCIATED( vzero%cell ) ) CALL destroy_environ_density( vzero )
-      !
-      ! ... environ_base variables
-      !
-      IF ( lelectrostatic .AND. ASSOCIATED( vreference%cell ) ) &
-         & CALL destroy_environ_density( vreference )
-      IF ( lsoftcavity .AND. ASSOCIATED( vsoftcavity%cell ) ) &
-         & CALL destroy_environ_density( vsoftcavity )
-      !
-      ! ... destroy derived types which were allocated in input
-      !
-      IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
-      IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
-      IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
-      IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
-      !
-      CALL destroy_environ_electrons( lflag, electrons )
-      CALL destroy_environ_ions( lflag, ions )
-      CALL destroy_environ_system( lflag, system )
-      !
-      ! ... the following quantities may be needed by TDDFPT
-      !
-      IF ( .NOT. tddfpt ) CALL environ_clean_tddfpt(lflag)
-      !
-      RETURN
-      !
+     ! ... Declares modules
+     !
+     ! In environ_base all the control flags plus the variables
+     ! that need to be deallocated
+     !
+     USE environ_base, ONLY : vzero, lelectrostatic, vreference,      &
+                              lsoftcavity, vsoftcavity, lstatic,      &
+                              static, charges, lexternals, externals, &
+                              lelectrolyte, electrolyte,              &
+                              ions, electrons, system
+     !
+     ! Local clean up subroutines for the different contributions
+     !
+     IMPLICIT NONE
+     !
+     LOGICAL, INTENT(IN) :: lflag
+     !
+     ! ... Deallocate environment variables
+     !
+     IF ( ASSOCIATED( vzero%cell ) ) CALL destroy_environ_density( vzero )
+     !
+     ! ... environ_base variables
+     !
+     IF ( lelectrostatic .AND. ASSOCIATED( vreference%cell ) ) &
+          & CALL destroy_environ_density( vreference )
+     IF ( lsoftcavity .AND. ASSOCIATED( vsoftcavity%cell ) ) &
+          & CALL destroy_environ_density( vsoftcavity )
+     !
+     ! ... destroy derived types which were allocated in input
+     !
+     IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
+     IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
+     IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
+     IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
+     !
+     CALL destroy_environ_electrons( lflag, electrons )
+     CALL destroy_environ_ions( lflag, ions )
+     CALL destroy_environ_system( lflag, system )
+     !
+     ! ... the following quantities may be needed by TDDFPT
+     !
+     IF ( .NOT. tddfpt ) CALL environ_clean_tddfpt(lflag)
+     !
+     RETURN
+     !
 !--------------------------------------------------------------------
    END SUBROUTINE environ_clean
 !--------------------------------------------------------------------
@@ -696,43 +711,45 @@ CONTAINS
 ! clean up subroutines of specific Environ modules. These are quantities
 ! that may be needed by TDDFPT, thus may need to be cleaned later
 !
-      ! ... Declares modules
-      !
-      ! In environ_base all the control flags plus the variables
-      ! that need to be deallocated
-      !
-      USE environ_base, ONLY : lelectrostatic, velectrostatic,      &
-                               loptical, optical, lsolvent, solvent
-      !
-      USE electrostatic_init, ONLY : electrostatic_clean
-      !
-      IMPLICIT NONE
-      !
-      LOGICAL, INTENT(IN) :: lflag
-      !
-      LOGICAL :: opnd
-      !
-      IF ( lflag ) THEN
-         INQUIRE( unit=environ_unit, opened= opnd )
-         IF ( opnd ) CLOSE(unit=environ_unit)
-      END IF
-      !
-      ! ... environ_base variables
-      !
-      IF ( lelectrostatic ) THEN
-         IF ( ASSOCIATED( velectrostatic%cell ) ) &
+     ! ... Declares modules
+     !
+     ! In environ_base all the control flags plus the variables
+     ! that need to be deallocated
+     !
+     USE environ_base, ONLY : lelectrostatic, velectrostatic,      &
+          loptical, optical, lsolvent, solvent
+     !
+     USE electrostatic_init, ONLY : electrostatic_clean
+     !
+     IMPLICIT NONE
+     !
+     LOGICAL, INTENT(IN) :: lflag
+     !
+     LOGICAL :: opnd
+     !
+     IF ( lflag ) THEN
+        INQUIRE( unit=environ_unit, opened= opnd )
+        IF ( opnd ) CLOSE(unit=environ_unit)
+     END IF
+     !
+     ! ... environ_base variables
+     !
+     IF ( lelectrostatic ) THEN
+        IF ( ASSOCIATED( velectrostatic%cell ) ) &
              & CALL destroy_environ_density( velectrostatic )
-         CALL electrostatic_clean( lflag )
-      END IF
-      !
-      ! ... destroy derived types which were allocated in input
-      !
-      IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )
-      IF ( lsolvent ) CALL destroy_environ_boundary( lflag, solvent )
-      !
-      RETURN
-      !
+        CALL electrostatic_clean( lflag )
+     END IF
+     !
+     ! ... destroy derived types which were allocated in input
+     !
+     IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )
+     IF ( lsolvent ) CALL destroy_environ_boundary( lflag, solvent )
+     !
+     RETURN
+     !
 !--------------------------------------------------------------------
    END SUBROUTINE environ_clean_tddfpt
 !--------------------------------------------------------------------
+!----------------------------------------------------------------------------
 END MODULE environ_init
+!----------------------------------------------------------------------------

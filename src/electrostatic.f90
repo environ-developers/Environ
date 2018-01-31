@@ -1,22 +1,35 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) 2007-2008 Quantum-ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
 !
-! The different modules in this file contain all the Environ related variables
-! that need to be passed in and out. All module-specific variables are declared
-! inside the appropriate modules.
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
 !
-! original version by O. Andreussi and N. Marzari (MIT)
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
+!
+! Module containing the main drivers to compute electrostatic contributions
+! to Kohn-Sham potential, total Energy and inter-atomic forces.
+!
+! The main inputs provided to the module are:
+!      - the setup of the electrostatic calculation
+!        (in an electrostatic_setup derived data type)
+!      - the charges and environment details
+!        (in an environ_charges derived data type)
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
 MODULE electrostatic
-  !--------------------------------------------------------------------------
-  !
-  ! ... this module contains all the main variables and routines needed for the
-  ! ... electrostatic embedding.
+!----------------------------------------------------------------------------
   !
   USE environ_types
   USE electrostatic_types
@@ -24,12 +37,12 @@ MODULE electrostatic
   USE environ_base, ONLY : e2, add_jellium
   !
   SAVE
-
+  !
   PRIVATE
-
+  !
   PUBLIC :: calc_velectrostatic, calc_eelectrostatic, &
-            calc_felectrostatic
-
+       & calc_felectrostatic
+  !
 CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE calc_velectrostatic( setup, charges, potential )
@@ -54,186 +67,185 @@ CONTAINS
     !
     ! ... Local variables
     !
-
+    !
     ! ... Calculates contribution to Hartree and local potentials
-
+    !
     CALL start_clock( 'calc_velect' )
-
+    !
     potential % of_r = 0.D0
-
+    !
     ! ... Select the appropriate combination of problem and solver
-
+    !
     SELECT CASE ( setup % problem )
-
+       !
     CASE ( 'poisson' )
-
+       !
        SELECT CASE ( setup % solver % type )
-
+          !
        CASE ( 'direct', 'default' )
-
+          !
           CALL poisson_direct( setup % core, charges, potential )
-
+          !
        CASE DEFAULT
-
+          !
           CALL errore( sub_name, 'unexpected solver keyword', 1 )
-
+          !
        END SELECT
-
+       !
     CASE ( 'generalized' )
-
+       !
        IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
-
+       !
        SELECT CASE ( setup % solver % type )
-
+          !
        CASE ( 'direct' )
-
+          !
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL generalized_direct()
-
+          !
        CASE ( 'cg', 'sd', 'iterative', 'default' )
-
+          !
           CALL generalized_gradient( setup % solver, setup % core, charges, potential )
-
+          !
        CASE ( 'lbfgs' )
-
+          !
           CALL errore( sub_name, 'option not implemented', 1 )
 !          CALL generalized_lbfgs()
-
+          !
        CASE  DEFAULT
-
+          !
           CALL errore( sub_name, 'unexpected solver keyword', 1 )
-
+          !
        END SELECT
-
+       !
     CASE ( 'linpb', 'linmodpb' )
-
+       !
        IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-
+       !
        SELECT CASE ( setup % solver % type )
-
+          !
        CASE ( 'direct' )
-
+          !
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL linpb_direct()
-
+          !
        CASE ( 'cg', 'sd' )
-
-!          CALL errore( sub_name, 'option not yet implemented', 1 )
+          !
           CALL linearized_pb_gradient( setup % solver, setup % core, charges, potential )
-
+          !
        CASE ( 'lbfgs' )
-
+          !
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL linpb_lbfgs()
-
+          !
        CASE DEFAULT
-
+          !
           CALL errore( sub_name, 'unexpected solver keyword', 1 )
-
+          !
        END SELECT
-
+       !
     CASE ( 'pb', 'modpb' )
-
+       !
        IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-
+       !
        SELECT CASE ( setup % solver % type )
-
+          !
        CASE ( 'direct' )
-
+          !
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL pb_direct()
-
+          !
        CASE ( 'nested' )
-
+          !
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL pb_nested()
-
+          !
        CASE ( 'lbfgs' )
-
+          !
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL pb_lbfgs()
-
+          !
        CASE DEFAULT
-
+          !
           CALL errore( sub_name, 'unexpected solver keyword', 1 )
-
+          !
        END SELECT
-
+       !
     CASE DEFAULT
-
+       !
        CALL errore( sub_name, 'unexpected problem keyword', 1 )
-
+       !
     END SELECT
-
+    !
     CALL stop_clock( 'calc_velect' )
-
+    !
     RETURN
-
+    !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_velectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_eelectrostatic( setup, charges, potential, energy )
 !--------------------------------------------------------------------
-
+    !
     USE poisson, ONLY : poisson_energy
     USE generalized, ONLY: generalized_energy
     USE linearized_pb, ONLY: linearized_pb_energy
-
+    !
     IMPLICIT NONE
-
+    !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
-
+    !
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_eelectrostatic'
-
+    !
     CALL start_clock ('calc_eelect')
-
+    !
     ! ... Select the right expression
-
+    !
     SELECT CASE ( setup % problem )
-
+       !
     CASE ( 'poisson' )
-
+       !
        CALL poisson_energy( setup % core, charges, potential, energy )
-
+       !
     CASE ( 'generalized' )
-
+       !
        IF ( .NOT. ASSOCIATED( charges%dielectric ) ) &
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
-
+       !
        CALL generalized_energy( setup % core, charges, potential, energy )
-
+       !
     CASE ( 'linpb', 'linmodpb' )
-
+       !
        IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-
-!       CALL errore( sub_name, 'option not yet implemented', 1 )
+       !
        CALL linearized_pb_energy( setup % core, charges, potential, energy )
-
+       !
     CASE ( 'pb', 'modpb' )
-
+       !
        IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-
+       !
        CALL errore( sub_name, 'option not yet implemented', 1 )
 !       CALL pb_energy()
-
+       !
     CASE DEFAULT
-
+       !
        CALL errore( sub_name, 'unexpected problem keyword', 1 )
-
+       !
     END SELECT
-
+    !
     CALL stop_clock ('calc_eelect')
-
+    !
     RETURN
+    !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_eelectrostatic
 !--------------------------------------------------------------------
@@ -319,6 +331,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_felectrostatic
 !--------------------------------------------------------------------
-!--------------------------------------------------------------------
+!----------------------------------------------------------------------------
 END MODULE electrostatic
-!--------------------------------------------------------------------
+!----------------------------------------------------------------------------
