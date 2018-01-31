@@ -60,7 +60,8 @@ For TDDFPT:
           ../../Environ/patches/td-patch.sh
     8) in install dir run
           ./makedeps.sh TDDFPT/src
-    9) in QE main dir make tddfpt
+    9) in QE main dir
+          make tddfpt
    10) run executables with -environ flag
 
 For CP:

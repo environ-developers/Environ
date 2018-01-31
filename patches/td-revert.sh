@@ -88,7 +88,7 @@ cat > tmp.1 <<EOF
       WRITE( stdout, '(/5x,"Computing and adding the polarization potentials to HXC potential")' )
       !
 -     CALL calc_venviron( .TRUE., dfftp%nnr, nspin, 0.0d0, rho%of_r, v%of_r(:,1))
-+     CALL environ_initelectrons( nelec, nspin, dfftp%nnr, rho%of_r )
++     CALL environ_initelectrons( nspin, dfftp%nnr, rho%of_r, nelec )
       !
 -     ! Now, once the Environ potentials were computed we can deallocate numerous
 -     ! Environ arrays because they are not needed any longer.
@@ -108,8 +108,8 @@ cat > tmp.1 <<EOF
    !
 EOF
 
-patch -R -i tmp.1
+patch -R --ignore-whitespace -i tmp.1
 
 rm tmp.1
 
-if [ -e lr_readin.PreENVIRON ] rm lr_readin.PreENVIRON
+if [ -e lr_readin.f90PreENVIRON ] ; then rm lr_readin.f90PreENVIRON ; fi
