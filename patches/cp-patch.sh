@@ -1,4 +1,29 @@
+# Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+#
+#    This file is part of Environ version 1.0
+#
+#    Environ 1.0 is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    Environ 1.0 is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more detail, either the file
+#    `License' in the root directory of the present distribution, or
+#    online at <http://www.gnu.org/licenses/>.
+#
+# PATCH script for plugin files in CPV/src
+#
+# Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
+#          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
+#
+
 #!/bin/bash
+
+# check whether echo has the -e option
+if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
 
 #plugin_add_potential.f90
 
@@ -329,3 +354,99 @@ sed '/Environ CALLS BEGIN/ a\
 mv tmp.1 plugin_read_input.f90
 
 rm tmp.2
+
+#plugin_utilities.f90
+
+cat >> plugin_utilities.f90 <<EOF
+!Environ patch
+!-----------------------------------------------------------------------
+  SUBROUTINE external_laplacian( a, lapla )
+!-----------------------------------------------------------------------
+      !
+      ! Interface for computing hessians in real space, to be called by
+      ! an external module
+      !
+      USE kinds,            ONLY : DP
+      USE fft_base,         ONLY : dfftp
+      USE gvect,            ONLY : ngm, nl, g
+      USE fft_interfaces,   ONLY : fwfft, invfft
+      !
+      IMPLICIT NONE
+      !
+      REAL( DP ), INTENT(IN)  :: a( dfftp%nnr )
+      REAL( DP ), INTENT(OUT) :: lapla( dfftp%nnr )
+      !
+      ! ... Locals
+      !
+      INTEGER :: is
+      COMPLEX(DP), ALLOCATABLE :: auxr(:)
+      COMPLEX(DP), ALLOCATABLE :: auxg(:)
+      REAL(DP), ALLOCATABLE :: d2rho(:,:)
+      REAL(DP), ALLOCATABLE :: dxdyrho(:), dxdzrho(:), dydzrho(:), grada(:)
+      !
+      ALLOCATE( auxg( ngm ) )
+      ALLOCATE( auxr( dfftp%nnr ) )
+      auxr(:) = CMPLX(a( : ),0.D0,kind=dp)
+      CALL fwfft ('Dense', auxr, dfftp)
+      auxg(:) = auxr(nl(:))
+      DEALLOCATE( auxr )
+      !
+      ALLOCATE( grada(dfftp%nnr) )
+      ALLOCATE( d2rho(3,dfftp%nnr) )
+      ALLOCATE( dxdyrho(dfftp%nnr) )
+      ALLOCATE( dxdzrho(dfftp%nnr) )
+      ALLOCATE( dydzrho(dfftp%nnr) )
+      ! from G-space A compute R-space grad(A) and second derivatives
+      CALL gradrho(1,auxg,grada,d2rho,dxdyrho,dxdzrho,dydzrho)
+      DEALLOCATE( auxg )
+      ! reorder second derivatives
+      lapla(:) = d2rho(1,:)+d2rho(2,:)+d2rho(3,:)
+      DEALLOCATE( grada, d2rho, dxdyrho, dxdzrho, dydzrho )
+
+  RETURN
+
+!-----------------------------------------------------------------------
+  END SUBROUTINE external_laplacian
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+  SUBROUTINE external_force_lc( rho, force )
+!-----------------------------------------------------------------------
+
+    USE kinds,             ONLY : DP
+    USE cell_base,         ONLY : omega
+    USE fft_base,          ONLY : dfftp
+    USE fft_interfaces,    ONLY : fwfft
+    USE electrons_base,    ONLY : nspin
+    USE gvect,             ONLY : ngm, nl, eigts1, eigts2, eigts3
+    USE ions_base,         ONLY : nat
+
+    IMPLICIT NONE
+    !
+    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
+    REAL(DP), DIMENSION(3,nat), INTENT(OUT) :: force
+    !
+    ! aux is used to store a possible additional density
+    ! now defined in real space
+    !
+    COMPLEX(DP), ALLOCATABLE :: auxg(:), auxr(:)
+    !
+    force = 0.D0
+    !
+    ALLOCATE( auxr( dfftp%nnr ) )
+    auxr = CMPLX(rho(:,1),0.0, kind=DP)
+    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
+    CALL fwfft( "Dense", auxr, dfftp )
+    ALLOCATE( auxg( ngm ) )
+    auxg(:) = auxr( nl (:) )
+    !
+    CALL force_h_of_rho_g( auxg, eigts1, eigts2, eigts3, omega, force )
+    !
+    DEALLOCATE( auxr, auxg )
+    !
+    RETURN
+    !
+!-----------------------------------------------------------------------
+  END SUBROUTINE external_force_lc
+!-----------------------------------------------------------------------
+!Environ patch
+EOF

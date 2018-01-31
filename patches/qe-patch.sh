@@ -1,3 +1,26 @@
+# Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+#
+#    This file is part of Environ version 1.0
+#
+#    Environ 1.0 is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    Environ 1.0 is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more detail, either the file
+#    `License' in the root directory of the present distribution, or
+#    online at <http://www.gnu.org/licenses/>.
+#
+# PATCH script for plugin files in PW/src
+#
+# Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
+#          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
+#          Ismaila Dabo       (Department of Materials Science and Engineering, Penn State)
+#
+
 #!/bin/bash
 
 # plugin_int_forces
@@ -371,3 +394,56 @@ mv tmp.2 plugin_scf_potential.f90
 # mv tmp.2 makov_payne.f90
 
 rm tmp.1
+
+# force_lc
+
+cat >> force_lc.f90 <<EOF
+!Environ patch
+subroutine external_force_lc( rhor, force )
+
+  use kinds,            only : DP
+  use cell_base,        only : at, bg, alat, omega
+  use ions_base,        only : nat, ntyp => nsp, ityp, tau, zv, amass
+  use fft_base,         only : dfftp
+  use fft_interfaces,   only : fwfft
+  use gvect,            only : ngm, gstart, ngl, nl, igtongl, g, gg, gcutm
+  use lsda_mod,         only : nspin
+  use vlocal,           only : strf, vloc
+  use control_flags,    only : gamma_only
+  use martyna_tuckerman, only: do_comp_mt, wg_corr_force
+  implicit none
+
+  real( dp ), intent(in) ::  rhor (dfftp%nnr, nspin)
+  real( dp ), intent(out) :: force (3, nat)
+
+  real( dp ), allocatable :: force_tmp(:,:)
+  complex( dp ), allocatable :: auxg(:), auxr(:)
+
+  force = 0.0_dp
+
+  allocate(force_tmp(3,nat))
+
+  if ( do_comp_mt) then
+     force_tmp = 0.0_dp
+     allocate(auxr(dfftp%nnr))
+     allocate(auxg(ngm))
+     auxg = cmplx(0.0_dp,0.0_dp)
+     auxr = cmplx(rhor(:,1),0.0_dp)
+     if ( nspin .eq. 2 ) auxr = auxr + cmplx(rhor(:,2),0.0_dp)
+     call fwfft ("Dense", auxr, dfftp)
+     auxg(:)=auxr(nl(:))
+     call wg_corr_force(.false.,omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, &
+                        1, auxg, force_tmp)
+     deallocate(auxr,auxg)
+     force = force + force_tmp
+  endif
+
+  force_tmp = 0.0_dp
+  call force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl, &
+       g, rhor, nl, nspin, gstart, gamma_only, vloc, force_tmp )
+  force = force + force_tmp
+
+  return
+end subroutine external_force_lc
+!Environ patch
+EOF

@@ -38,4 +38,5 @@ results/
 userconfig
 test.err.*
 test.out.*
+tests/*/*.out
 *.pyc
