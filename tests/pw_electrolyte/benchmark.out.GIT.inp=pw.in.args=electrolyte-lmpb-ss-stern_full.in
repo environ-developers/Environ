@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 31Jan2018 at 22: 6:39 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on  1Feb2018 at 12:21:14 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -309,63 +309,63 @@
 
      Writing output data file pwscf.save
  
-     init_run     :     14.89s CPU     15.22s WALL (       1 calls)
-     electrons    :     27.70s CPU     28.92s WALL (       1 calls)
-     forces       :     18.49s CPU     18.61s WALL (       1 calls)
+     init_run     :     14.87s CPU     15.21s WALL (       1 calls)
+     electrons    :     27.80s CPU     28.92s WALL (       1 calls)
+     forces       :     18.53s CPU     18.63s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.12s CPU      0.13s WALL (       1 calls)
-     potinit      :      1.55s CPU      1.59s WALL (       1 calls)
+     wfcinit      :      0.13s CPU      0.13s WALL (       1 calls)
+     potinit      :      1.53s CPU      1.59s WALL (       1 calls)
 
      Called by electrons:
      c_bands      :      1.30s CPU      1.31s WALL (       6 calls)
-     sum_band     :      2.31s CPU      2.52s WALL (       6 calls)
-     v_of_rho     :      3.61s CPU      3.76s WALL (       7 calls)
-     newd         :      1.22s CPU      1.47s WALL (       7 calls)
+     sum_band     :      2.29s CPU      2.52s WALL (       6 calls)
+     v_of_rho     :      3.62s CPU      3.76s WALL (       7 calls)
+     newd         :      1.28s CPU      1.48s WALL (       7 calls)
      mix_rho      :      0.32s CPU      0.32s WALL (       6 calls)
 
      Called by c_bands:
      init_us_2    :      0.05s CPU      0.05s WALL (      13 calls)
-     regterg      :      1.20s CPU      1.21s WALL (       6 calls)
+     regterg      :      1.19s CPU      1.21s WALL (       6 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       6 calls)
-     addusdens    :      1.55s CPU      1.74s WALL (       6 calls)
+     addusdens    :      1.53s CPU      1.74s WALL (       6 calls)
 
      Called by *egterg:
-     h_psi        :      1.16s CPU      1.15s WALL (      27 calls)
-     s_psi        :      0.02s CPU      0.03s WALL (      27 calls)
-     g_psi        :      0.02s CPU      0.01s WALL (      20 calls)
-     rdiaghg      :      0.02s CPU      0.01s WALL (      26 calls)
+     h_psi        :      1.12s CPU      1.15s WALL (      27 calls)
+     s_psi        :      0.05s CPU      0.03s WALL (      27 calls)
+     g_psi        :      0.01s CPU      0.01s WALL (      20 calls)
+     rdiaghg      :      0.00s CPU      0.01s WALL (      26 calls)
 
      Called by h_psi:
-     h_psi:pot    :      1.15s CPU      1.14s WALL (      27 calls)
-     h_psi:calbec :      0.02s CPU      0.05s WALL (      27 calls)
-     vloc_psi     :      1.08s CPU      1.06s WALL (      27 calls)
-     add_vuspsi   :      0.05s CPU      0.03s WALL (      27 calls)
+     h_psi:pot    :      1.12s CPU      1.14s WALL (      27 calls)
+     h_psi:calbec :      0.05s CPU      0.05s WALL (      27 calls)
+     vloc_psi     :      1.04s CPU      1.06s WALL (      27 calls)
+     add_vuspsi   :      0.02s CPU      0.03s WALL (      27 calls)
 
      General routines
-     calbec       :      0.05s CPU      0.06s WALL (      37 calls)
-     fft          :      7.67s CPU      8.02s WALL (     365 calls)
+     calbec       :      0.07s CPU      0.06s WALL (      37 calls)
+     fft          :      7.61s CPU      8.01s WALL (     365 calls)
      ffts         :      0.04s CPU      0.04s WALL (      13 calls)
-     fftw         :      0.80s CPU      0.82s WALL (     364 calls)
-     interpolate  :      0.38s CPU      0.42s WALL (      13 calls)
+     fftw         :      0.75s CPU      0.82s WALL (     364 calls)
+     interpolate  :      0.40s CPU      0.42s WALL (      13 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
  
      Parallel routines
-     fft_scatter  :      2.10s CPU      2.28s WALL (     742 calls)
+     fft_scatter  :      2.07s CPU      2.28s WALL (     742 calls)
  
      Environ routines
      calc_eelect  :      0.01s CPU      0.02s WALL (      12 calls)
-     calc_velect  :     14.91s CPU     15.38s WALL (      10 calls)
-     dielectric   :      0.37s CPU      0.38s WALL (       9 calls)
+     calc_velect  :     14.98s CPU     15.39s WALL (      10 calls)
+     dielectric   :      0.38s CPU      0.38s WALL (       9 calls)
      electrolyte  :      0.01s CPU      0.01s WALL (       2 calls)
      calc_felect  :      0.17s CPU      0.17s WALL (       1 calls)
  
-     PWSCF        :  1m 1.22s CPU     1m 2.93s WALL
+     PWSCF        :  1m 1.35s CPU     1m 2.94s WALL
 
  
-   This run was terminated on:  22: 7:42  31Jan2018            
+   This run was terminated on:  12:22:17   1Feb2018            
 
 =------------------------------------------------------------------------------=
    JOB DONE.

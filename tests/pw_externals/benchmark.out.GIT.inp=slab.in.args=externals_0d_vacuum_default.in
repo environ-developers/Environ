@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 31Jan2018 at 22:11:43 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on  1Feb2018 at 12:26:19 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -161,7 +161,7 @@
      negative rho (up, down):  3.049E-03 0.000E+00
      Starting wfc are   80 randomized atomic wfcs
 
-     total cpu time spent up to now is        5.3 secs
+     total cpu time spent up to now is        5.2 secs
 
      per-process dynamical memory:   214.2 Mb
 
@@ -175,7 +175,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        7.6 secs
+     total cpu time spent up to now is        7.5 secs
 
      total energy              =    -622.68828071 Ry
      Harris-Foulkes estimate   =    -624.21130265 Ry
@@ -189,7 +189,7 @@
 
      negative rho (up, down):  3.619E-02 0.000E+00
 
-     total cpu time spent up to now is       10.1 secs
+     total cpu time spent up to now is       10.0 secs
 
      total energy              =    -610.12611772 Ry
      Harris-Foulkes estimate   =    -653.59192448 Ry
@@ -253,7 +253,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       18.4 secs
+     total cpu time spent up to now is       18.3 secs
 
      total energy              =    -621.83185673 Ry
      Harris-Foulkes estimate   =    -638.63143414 Ry
@@ -365,7 +365,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       32.4 secs
+     total cpu time spent up to now is       32.5 secs
 
      total energy              =    -621.88708474 Ry
      Harris-Foulkes estimate   =    -638.39674836 Ry
@@ -450,61 +450,61 @@
 
      Writing output data file pwscf.save
  
-     init_run     :      4.85s CPU      4.95s WALL (       1 calls)
-     electrons    :     29.21s CPU     31.24s WALL (       1 calls)
-     forces       :      2.80s CPU      2.86s WALL (       1 calls)
+     init_run     :      4.80s CPU      4.89s WALL (       1 calls)
+     electrons    :     29.44s CPU     31.30s WALL (       1 calls)
+     forces       :      2.82s CPU      2.86s WALL (       1 calls)
 
      Called by init_run:
      wfcinit      :      0.20s CPU      0.21s WALL (       1 calls)
-     potinit      :      1.32s CPU      1.34s WALL (       1 calls)
+     potinit      :      1.33s CPU      1.34s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      8.84s CPU      9.00s WALL (      15 calls)
+     c_bands      :      8.86s CPU      9.04s WALL (      15 calls)
      sum_band     :      9.45s CPU     10.27s WALL (      15 calls)
-     v_of_rho     :      4.13s CPU      4.23s WALL (      16 calls)
-     newd         :      5.92s CPU      6.87s WALL (      16 calls)
+     v_of_rho     :      4.16s CPU      4.25s WALL (      16 calls)
+     newd         :      6.10s CPU      6.86s WALL (      16 calls)
      mix_rho      :      0.40s CPU      0.39s WALL (      15 calls)
 
      Called by c_bands:
      init_us_2    :      0.13s CPU      0.14s WALL (      31 calls)
-     regterg      :      7.89s CPU      8.04s WALL (      15 calls)
+     regterg      :      7.90s CPU      8.08s WALL (      15 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (      15 calls)
-     addusdens    :      7.65s CPU      8.43s WALL (      15 calls)
+     addusdens    :      7.65s CPU      8.42s WALL (      15 calls)
 
      Called by *egterg:
-     h_psi        :      5.60s CPU      5.64s WALL (      63 calls)
-     s_psi        :      0.39s CPU      0.39s WALL (      63 calls)
-     g_psi        :      0.07s CPU      0.07s WALL (      47 calls)
-     rdiaghg      :      0.45s CPU      0.46s WALL (      62 calls)
+     h_psi        :      5.65s CPU      5.67s WALL (      63 calls)
+     s_psi        :      0.36s CPU      0.39s WALL (      63 calls)
+     g_psi        :      0.09s CPU      0.07s WALL (      47 calls)
+     rdiaghg      :      0.44s CPU      0.46s WALL (      62 calls)
 
      Called by h_psi:
-     h_psi:pot    :      5.57s CPU      5.58s WALL (      63 calls)
+     h_psi:pot    :      5.57s CPU      5.60s WALL (      63 calls)
      h_psi:calbec :      0.38s CPU      0.38s WALL (      63 calls)
-     vloc_psi     :      4.79s CPU      4.82s WALL (      63 calls)
-     add_vuspsi   :      0.40s CPU      0.38s WALL (      63 calls)
+     vloc_psi     :      4.82s CPU      4.84s WALL (      63 calls)
+     add_vuspsi   :      0.36s CPU      0.38s WALL (      63 calls)
 
      General routines
-     calbec       :      0.56s CPU      0.55s WALL (      82 calls)
-     fft          :      2.12s CPU      2.27s WALL (     316 calls)
-     ffts         :      0.07s CPU      0.06s WALL (      31 calls)
-     fftw         :      4.40s CPU      4.46s WALL (    3540 calls)
-     interpolate  :      0.36s CPU      0.38s WALL (      31 calls)
+     calbec       :      0.56s CPU      0.56s WALL (      82 calls)
+     fft          :      2.12s CPU      2.28s WALL (     316 calls)
+     ffts         :      0.06s CPU      0.06s WALL (      31 calls)
+     fftw         :      4.47s CPU      4.47s WALL (    3540 calls)
+     interpolate  :      0.34s CPU      0.38s WALL (      31 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
  
      Parallel routines
-     fft_scatter  :      1.01s CPU      1.00s WALL (    3887 calls)
+     fft_scatter  :      0.94s CPU      1.00s WALL (    3887 calls)
  
      Environ routines
-     calc_eelect  :      0.01s CPU      0.02s WALL (      30 calls)
+     calc_eelect  :      0.00s CPU      0.02s WALL (      30 calls)
      calc_velect  :      0.54s CPU      0.56s WALL (      26 calls)
      calc_felect  :      0.04s CPU      0.04s WALL (       1 calls)
  
-     PWSCF        :    37.21s CPU        39.41s WALL
+     PWSCF        :    37.42s CPU        39.42s WALL
 
  
-   This run was terminated on:  22:12:23  31Jan2018            
+   This run was terminated on:  12:26:59   1Feb2018            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
