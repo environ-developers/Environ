@@ -1,18 +1,28 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) 2007-2008 Quantum-ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
+!
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
+!
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
 !
 ! Module to include a real-space correction of the potential in order to
 ! remove periodic boundary conditions on a partially periodic system.
-! The correction is computed for the time being using the planar average approximation and
-! is of quadratic nature: the first order proportional to the dipole of the
-! system along the direction perpendicular to the slab, the second order
-! proportional to the total charge of the system.
+! The correction is computed for the time being using the planar average
+! approximation and is of quadratic nature: the first order proportional
+! to the dipole of the system along the direction perpendicular to the slab,
+! the second order proportional to the total charge of the system.
 !
-! original version by O. Andreussi and N. Marzari
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
 MODULE periodic

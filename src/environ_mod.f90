@@ -1,19 +1,30 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) 2007-2008 Quantum-ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
 !
-! The different modules in this file contain all the Environ related variables
-! that need to be passed in and out. All module-specific variables are declared
-! inside the appropriate modules.
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
 !
-! original version by O. Andreussi, I. Dabo, and N. Marzari (MIT)
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
+!
+! This module contains all control variables and stored variables
+! needed for the Environ calculation
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Ismaila Dabo       (DMSE, Penn State)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
 MODULE environ_base
-  !--------------------------------------------------------------------------
+!----------------------------------------------------------------------------
   !
   ! ... this module contains all the main variables needed for the
   ! ... environ module. This include the control and debug variables,
@@ -163,6 +174,6 @@ MODULE environ_base
        velectrostatic,              &
        vreference,                  &
        vsoftcavity
-  !--------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 END MODULE environ_base
 !----------------------------------------------------------------------------

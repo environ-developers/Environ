@@ -1,21 +1,31 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) 2007-2008 Quantum-ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
 !
-! Module to include an environment pressure potential, proportional to
-! the quantum volume of the system. The method was developed by
-! Cococcioni et al. PRL 94, 145501 (2005).
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
 !
-! original version by O. Andreussi, N. Marzari (MIT)
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
+!
+! Module to compute an enthalpy functiona, defined as the quantum volume
+! of the system times the external pressure of the environment.
+! Original method developed in Cococcioni et al, PRL (2005)
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
+!
+! Original version by M. Cococcioni and N. Marzari (MIT)
 !
 !----------------------------------------------------------------------------
 MODULE pressure
 !----------------------------------------------------------------------------
-  !
-  ! ... The variables needed to compute PV energy and potential corrections
   !
   USE environ_types
   USE environ_output

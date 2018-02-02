@@ -1,62 +1,133 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) Oliviero Andreussi
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
 !
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
+!
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
+!
+! Module containing the main routines to handle
+!
+!              environ_ions
+!
+! derived data types.
+!
+! Environ_ions contains all the details of the ions of the QM system,
+! including the atomic type, mass and charge, the solvation radii,
+! the sizes of the ionic cores and the spread to be used when treating
+! the ions as gaussians. The module also contains all the routines
+! to handle environ_ions and to generate smooth ionic density from the
+! ions specification.
+!
+!----------------------------------------------------------------------------
+!  TYPE environ_ions
+!----------------------------------------------------------------------------
+!     !
+!     LOGICAL :: initialized = .FALSE.
+!     LOGICAL :: update = .FALSE.
+!     INTEGER :: number = 0
+!     REAL( DP ), DIMENSION(3) :: center
+!     REAL( DP ) :: alat
+!     !
+!     ! Specifications of point-like ions
+!     !
+!     INTEGER :: ntyp = 0
+!     INTEGER, DIMENSION(:), ALLOCATABLE :: ityp
+!     REAL( DP ), DIMENSION(:,:), POINTER :: tau
+!     TYPE( environ_iontype ), DIMENSION(:), ALLOCATABLE :: iontype
+!     !
+!     ! Parameters of the fictitious gaussian ionic density
+!     ! needed by electrostatic calculations
+!     !
+!     LOGICAL :: use_smeared_ions = .FALSE.
+!     TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: smeared_ions
+!     TYPE( environ_density ) :: density
+!     !
+!     ! Parameters of the density of core electrons
+!     !
+!     LOGICAL :: use_core_electrons = .FALSE.
+!     TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: core_electrons
+!     TYPE( environ_density ) :: core
+!     !
+!     REAL( DP ) :: charge = 0.0_DP
+!     REAL( DP ) :: quadrupole_correction
+!     REAL( DP ) :: selfenergy_correction
+!     REAL( DP ), DIMENSION(3) :: dipole
+!     REAL( DP ), DIMENSION(3) :: quadrupole_pc
+!     REAL( DP ), DIMENSION(3) :: quadrupole_gauss
+!     !
+!----------------------------------------------------------------------------
+!  END TYPE environ_ions
+!----------------------------------------------------------------------------
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!
+!----------------------------------------------------------------------------
 MODULE ions_utils
-
+!----------------------------------------------------------------------------
+  !
   USE environ_base,  ONLY : e2, fermi_shift
   USE environ_output
   USE environ_types
   USE functions
-
+  !
   PRIVATE
-
+  !
   PUBLIC :: create_environ_ions, init_environ_ions_first, init_environ_ions_second, &
        & update_environ_ions, destroy_environ_ions
-
+  !
 CONTAINS
-
+!--------------------------------------------------------------------
   SUBROUTINE create_environ_ions(ions)
-
+!--------------------------------------------------------------------
+    !
     IMPLICIT NONE
-
+    !
     TYPE( environ_ions ), INTENT(INOUT) :: ions
     CHARACTER (LEN=80) :: sub_name = 'create_environ_ions'
     CHARACTER (LEN=80) :: label = ' '
-
+    !
     ions%update = .FALSE.
-
+    !
     IF ( ALLOCATED( ions%ityp ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
     IF ( ALLOCATED( ions%iontype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-
+    !
     NULLIFY( ions%tau )
-
+    !
     ions%use_smeared_ions = .FALSE.
     IF ( ALLOCATED( ions%smeared_ions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
     label = 'smeared_ions'
     CALL create_environ_density( ions%density, label )
-
+    !
     ions%use_core_electrons = .FALSE.
     IF ( ALLOCATED( ions%core_electrons ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
     label = 'core_electrons'
     CALL create_environ_density( ions%core, label )
-
+    !
     RETURN
-
+    !
+!--------------------------------------------------------------------
   END SUBROUTINE create_environ_ions
-
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE init_environ_ions_first( nat, ntyp, lsoftcavity, lcoredensity, &
        &  lsmearedions, radius_mode, atom_label, atomicspread, corespread, solvationrad, ions )
-
+!--------------------------------------------------------------------
+    !
     ! First step of ions initialization, cannot initialize everything
     ! because some infos are missing when this routine is called
     ! NEED TO REVISE THE POSITION OF THE CALL INSIDE QE TO MERGE FIRST AND SECOND
-
+    !
     IMPLICIT NONE
-
+    !
     INTEGER, INTENT(IN) :: nat, ntyp
     LOGICAL, INTENT(IN) :: lsoftcavity
     LOGICAL, INTENT(IN) :: lcoredensity
@@ -67,105 +138,108 @@ CONTAINS
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: corespread
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: solvationrad
     TYPE( environ_ions ), INTENT(INOUT) :: ions
-
+    !
     CHARACTER( LEN = 80 ) :: sub_name = 'init_environ_ions_first'
-
+    !
     INTEGER :: i
-
+    !
     ions%center = 0.D0
     ions%dipole = 0.D0
     ions%quadrupole_pc = 0.D0
     ions%quadrupole_gauss = 0.D0
     ions%quadrupole_correction = 0.D0
     ions%selfenergy_correction = 0.D0
-
+    !
     ions%number = nat
     ions%ntyp = ntyp
-
+    !
     ! Allocate the basic vectors, cannot initialize them here
-
+    !
     ions%initialized = .FALSE.
     ALLOCATE( ions%tau( 3, nat ) )
     ions%tau = 0.D0
     ALLOCATE( ions%ityp( nat ) )
     ions%ityp = 0
     ions%alat = 0.D0
-
+    !
     ! Set ions types, note that also valence charges cannot be initialized here
-
+    !
     ALLOCATE( ions%iontype( ntyp ) )
-
+    !
     DO i = 1, ntyp
-
+       !
        ! Given the label we could set some of the properties with defaults
-
+       !
        CALL set_iontype_defaults( i, atom_label(i), radius_mode, ions%iontype(i) )
-
+       !
        ! Check if values were provided in input and overwrite them
-
+       !
        IF ( atomicspread(i) .GT. 0 ) ions%iontype(i)%atomicspread = atomicspread(i)
        IF ( corespread(i) .GT. 0 ) ions%iontype(i)%corespread = corespread(i)
        IF ( solvationrad(i) .GT. 0 ) ions%iontype(i)%solvationrad = solvationrad(i)
-
+       !
        ! If need cavity defined exclusively on ions, check radius is not zero
-
+       !
        IF ( .NOT. lsoftcavity .AND. ( ions%iontype(i)%solvationrad .EQ. 0.D0 ) ) &
             & CALL errore(sub_name,'Missing solvation radius for one of the atom types',1)
-
+       !
        ! If need smeared ions, check spread is not zero
-
+       !
        IF ( lsmearedions .AND. ( ions%iontype(i)%atomicspread .EQ. 0.D0 ) ) &
             & CALL errore(sub_name,'Missing atomic spread for one of the atom types',1)
-
+       !
     END DO
-
+    !
     ions%use_smeared_ions = lsmearedions
-
+    !
     ions%use_core_electrons = lcoredensity
-
+    !
     RETURN
-
+    !
+!--------------------------------------------------------------------
   END SUBROUTINE init_environ_ions_first
-
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE init_environ_ions_second( nat, ntyp, ityp, zv, cell, ions )
-
+!--------------------------------------------------------------------
+    !
     ! Second step of initialization, passing the information on types,
     ! atomic valence charges and whether we need to compute the smeared density or not
-
+    !
     IMPLICIT NONE
-
+    !
     INTEGER, INTENT(IN) :: nat, ntyp
     INTEGER, DIMENSION(nat), INTENT(IN) :: ityp
     REAL(DP), DIMENSION(ntyp), INTENT(IN) :: zv
     TYPE( environ_cell), INTENT(IN) :: cell
     TYPE( environ_ions ), INTENT(INOUT) :: ions
-
+    !
     CHARACTER( LEN = 80 ) :: sub_name = 'init_environ_ions_second'
-
+    !
     INTEGER :: i
-
+    !
     ! Check on dimensions, can skip if merged with first step
-
+    !
     IF ( ions%number .NE. nat ) CALL errore(sub_name,'Mismatch in number of atoms',1)
     IF ( ions%ntyp .NE. ntyp ) CALL errore(sub_name,'Mismatch in number of atom types',1)
-
+    !
     ions%alat = cell % alat ! This is needed because the ionic positions are scaled by alat
     ions%ityp = ityp
-
+    !
     DO i = 1, ions%ntyp
-
+       !
        ions%iontype(i)%zv = -zv(i)
-
+       !
     ENDDO
-
+    !
     ions%charge = 0.D0
-
+    !
     DO i = 1, ions%number
-
+       !
        ions%charge = ions%charge + ions%iontype(ions%ityp(i))%zv
-
+       !
     ENDDO
-
+    !
     IF ( ions%use_smeared_ions ) THEN
        ! THE FOLLOWING TEST ON ALLOCATION IS ONLY THERE BECAUSE OF WHEN THIS INITIALIZATION
        ! IS CALLED, IF MERGED WITH THE FIRST STEP REMOVE THE TEST
@@ -174,9 +248,9 @@ CONTAINS
        ELSE
           ions%density%of_r = 0.D0
        ENDIF
-
+       !
        ! Build smeared ions from iontype data
-
+       !
        IF ( .NOT. ALLOCATED( ions%smeared_ions ) ) THEN
           ALLOCATE( ions%smeared_ions( ions%number ) )
           DO i = 1, ions%number
@@ -185,9 +259,9 @@ CONTAINS
                   & ions%iontype(ions%ityp(i))%zv,ions%tau(:,i))
           ENDDO
        ENDIF
-
+       !
     ENDIF
-
+    !
     IF ( ions%use_core_electrons ) THEN
        ! THE FOLLOWING TEST ON ALLOCATION IS ONLY THERE BECAUSE OF WHEN THIS INITIALIZATION
        ! IS CALLED, IF MERGED WITH THE FIRST STEP REMOVE THE TEST
@@ -196,9 +270,9 @@ CONTAINS
        ELSE
           ions%core%of_r = 0.D0
        ENDIF
-
+       !
        ! Build core electrons from iontype data
-
+       !
        IF ( .NOT. ALLOCATED( ions%core_electrons ) ) THEN
           ALLOCATE( ions%core_electrons( ions%number ) )
           DO i = 1, ions%number
@@ -207,65 +281,68 @@ CONTAINS
                   & -ions%iontype(ions%ityp(i))%zv,ions%tau(:,i))
           ENDDO
        ENDIF
-
+       !
     ENDIF
-
+    !
     ions%initialized = .TRUE.
-
+    !
     RETURN
-
+    !
+!--------------------------------------------------------------------
   END SUBROUTINE init_environ_ions_second
-
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE update_environ_ions( nat, tau, ions )
-
+!--------------------------------------------------------------------
+    !
     ! Update ionic positions and compute derived quantities
-
+    !
     IMPLICIT NONE
-
+    !
     INTEGER, INTENT(IN) :: nat
     REAL(DP), DIMENSION(3,nat), INTENT(IN) :: tau
     TYPE( environ_ions ), INTENT(INOUT) :: ions
-
+    !
     INTEGER :: i
     INTEGER :: dim, axis
     REAL(DP) :: charge, spread
     REAL(DP), DIMENSION(3) :: pos
     CHARACTER(LEN=80) :: sub_name = 'update_environ_ions'
-
+    !
     ! Check on dimensions
-
+    !
     IF ( ions%number .NE. nat ) CALL errore(sub_name,'Mismatch in number of atoms',1)
-
+    !
     ! Update positions
-
+    !
     ions%tau = tau
-
+    !
     ! Center of ionic charge used by three sub-modules
-
+    !
     ions%center = 0.D0
     DO i = 1, ions%number
-
+       !
        ions%center(:) = ions%center(:) + ions%tau(:,i)*ions%iontype(ions%ityp(i))%zv
-
+       !
     ENDDO
-
+    !
     IF ( ABS( ions % charge ) .LT. 1.D-8 ) &
          & CALL errore(sub_name,'Ionic charge equal to zero',1)
     ions%center = ions%center / ions%charge
-
+    !
     ! If needed, generate a fictitious ion density using gaussians
-
+    !
     IF ( ions%use_smeared_ions ) CALL density_of_functions(ions%number,ions%smeared_ions,ions%density,.TRUE.)
-
+    !
     ! Compute quadrupole moment of point-like (and gaussian) nuclei
-
+    !
     ions%dipole = 0.D0 ! This is due to the choice of ionic center
     ions%quadrupole_pc = 0.D0
     ions%quadrupole_correction = 0.D0
     ions%selfenergy_correction = 0.D0
-
+    !
     DO i = 1, ions%number
-
+       !
        ions%quadrupole_pc(:) = ions%quadrupole_pc(:) + &
             & ions%iontype(ions%ityp(i))%zv * &
             & ( ( ions%tau(:,i) - ions%center(:) ) * ions%alat )**2
@@ -277,70 +354,76 @@ CONTAINS
             & ions%selfenergy_correction + ions%iontype(ions%ityp(i))%zv**2 / &
             & ions%iontype(ions%ityp(i))%atomicspread * SQRT( 2.D0 / pi )
        END IF
-
+       !
     END DO
-
+    !
     ! Calculate Fermi energy shift due to Gaussian nuclei
     IF ( ions%use_smeared_ions ) fermi_shift = ions%quadrupole_correction * &
                                  & tpi * e2 / ions%density%cell%omega
     IF ( ions%use_smeared_ions ) ions%quadrupole_gauss(:) = ions%quadrupole_pc(:) + ions%quadrupole_correction
-
+    !
     RETURN
-
+    !
+!--------------------------------------------------------------------
   END SUBROUTINE update_environ_ions
-
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE destroy_environ_ions(lflag, ions)
-
+!--------------------------------------------------------------------
+    !
     IMPLICIT NONE
-
+    !
     LOGICAL, INTENT(IN) :: lflag
     TYPE( environ_ions ), INTENT(INOUT) :: ions
     CHARACTER (LEN=80) :: sub_name = 'destroy_environ_ions'
-
+    !
     ! ityp, tau and iontype should have been allocated
     ! raise an error if they are not
-
+    !
     IF ( lflag ) THEN
-
+       !
        ! These components were allocated first, only destroy if lflag = .TRUE.
-
+       !
        IF (.NOT.ALLOCATED(ions%ityp)) &
             & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
        DEALLOCATE( ions%ityp )
        IF (.NOT.ALLOCATED(ions%iontype)) &
             & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
        DEALLOCATE( ions%iontype )
-
+       !
        IF (.NOT.ASSOCIATED(ions%tau)) &
             & CALL errore(sub_name,'Trying to destroy a non associated object',1)
        DEALLOCATE( ions%tau )
-
+       !
     ENDIF
-
+    !
     IF ( ions%initialized ) THEN
-
+       !
        IF ( ions%use_smeared_ions ) THEN
           CALL destroy_environ_density( ions%density )
           CALL destroy_environ_functions( ions%number, ions%smeared_ions )
        ENDIF
        ions%charge = 0.D0
        ions%initialized = .FALSE.
-
+       !
     END IF
-
+    !
     RETURN
-
+    !
+!--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_ions
-
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE set_iontype_defaults(index,label,radius_mode,iontype)
-
+!--------------------------------------------------------------------
+    !
     IMPLICIT NONE
-
+    !
     INTEGER, INTENT(IN) :: index
     CHARACTER( LEN=3 ), INTENT(IN) :: label
     CHARACTER( LEN=80 ), INTENT(IN) :: radius_mode
     TYPE(environ_iontype), INTENT(INOUT) :: iontype
-
+    !
     CHARACTER( LEN=80 ) :: sub_name = 'set_iontype_defaults'
     REAL( DP ), DIMENSION(92) :: pauling_radii
     DATA pauling_radii/ 1.20_DP, 0.00_DP, & ! H, -
@@ -375,44 +458,45 @@ CONTAINS
          & 3.640_DP, 3.141_DP, 3.170_DP, 3.069_DP, 2.954_DP, 3.120_DP, 2.840_DP, 2.754_DP, & ! Lu, Hf, Ta, W, Re, Os, Ir, Pt
          & 3.293_DP, 2.705_DP, 4.337_DP, 4.297_DP, 4.379_DP, 4.709_DP, 4.750_DP, 4.765_DP, & ! Au, Hg, Tl, Pb, Bi, Po, At, Rn
          & 4.900_DP, 3.677_DP, 3.478_DP, 3.396_DP, 3.424_DP, 3.395_DP / ! Fr, Ra, Ac, Th, Pa, U
-
+    !
     iontype%index = index
     iontype%label = label
     iontype%zv = 0.D0 ! this cannot be initialized here at this time
     iontype%atmnum = get_atmnum(label)
-
+    !
     IF ( iontype%atmnum .EQ. 0 ) &
          & CALL errore(sub_name,'Can not assign the atom type associated with input label',1)
-
+    !
     iontype%atomicspread = 0.5D0
     iontype%corespread = 0.5D0
-
+    !
     SELECT CASE ( radius_mode )
-
+       !
     CASE ( 'pauling' )
-
+       !
        iontype%solvationrad = pauling_radii(iontype%atmnum)
-
+       !
     CASE ( 'bondi' )
-
+       !
        iontype%solvationrad = bondi_radii(iontype%atmnum)
-
+       !
     CASE ( 'uff' )
-
+       !
        iontype%solvationrad = UFF_diameters(iontype%atmnum) * 0.5_DP
-
+       !
     CASE DEFAULT
-
+       !
        CALL errore(sub_name,'Unknown radius_mode',1)
-
+       !
     END SELECT
-
+    !
     iontype%solvationrad = iontype%solvationrad / bohr_radius_angs
-
+    !
     RETURN
-
+    !
+!--------------------------------------------------------------------
   END SUBROUTINE set_iontype_defaults
-
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   FUNCTION get_atmnum(label)
 !wgt  FUNCTION get_atmwgt(label)
@@ -420,16 +504,16 @@ CONTAINS
 ! original version by O. Andreussi (MIT)
 !
 !--------------------------------------------------------------------
-
+    !
     INTEGER :: get_atmnum
 !wgt    REAL*8 :: get_atmwgt
-
+    !
     CHARACTER*(*), INTENT(IN) :: label
     CHARACTER*3 :: tmplab
-
+    !
     INTEGER :: num
     REAL*8 :: weigth
-
+    !
     tmplab=TRIM(ADJUSTL(label))
     CALL lowcase(tmplab)
     IF (tmplab(1:1).EQ.'a')  THEN
@@ -728,26 +812,25 @@ CONTAINS
       num=0
       weigth=0
     ENDIF
-
+    !
     get_atmnum=num
 !    get_atmwgt=weigth
-
+    !
 !--------------------------------------------------------------------
   END FUNCTION get_atmnum
 !wgt  END FUNCTION get_atmwgt
 !--------------------------------------------------------------------
-
 !--------------------------------------------------------------------
   SUBROUTINE lowcase(string)
 !--------------------------------------------------------------------
-
+    !
     CHARACTER*(*), INTENT(inout) :: string
-
+    !
     INTEGER :: i, length
     CHARACTER(1) :: letter
-
+    !
     length=LEN(string)
-
+    !
     DO i = 1,min(255,length)
       letter = string(i:i)
       IF(letter.eq.'A') THEN
@@ -805,10 +888,11 @@ CONTAINS
       END IF
       string(i:i) = letter
     END DO
-
+    !
     RETURN
 !--------------------------------------------------------------------
   END SUBROUTINE lowcase
 !--------------------------------------------------------------------
-
+!----------------------------------------------------------------------------
 END MODULE ions_utils
+!----------------------------------------------------------------------------

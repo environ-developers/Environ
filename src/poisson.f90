@@ -1,30 +1,56 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+!
+!    This file is part of Environ version 1.0
+!
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
+!
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
+!
+! This module contains the main drivers and routines to compute the
+! electrostatic potential that is the solution of a Poisson equation:
+!
+!      \nabla ^2 \phi = -4 \pi \rho
+!
+! At this time the subroutines are mostly wrappers for the FFT
+! solver of Quantum ESPRESSO.
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!
 !--------------------------------------------------------------------
 MODULE poisson
 !--------------------------------------------------------------------
-
+  !
   USE environ_types
   USE electrostatic_types
   USE periodic
   USE environ_base, ONLY : e2, oldenviron
-
+  !
   IMPLICIT NONE
-
+  !
   PRIVATE
-
+  !
   PUBLIC :: poisson_direct, poisson_gradient_direct, poisson_energy
-
+  !
   INTERFACE poisson_direct
      MODULE PROCEDURE poisson_direct_charges, poisson_direct_density
   END INTERFACE poisson_direct
-
+  !
   INTERFACE poisson_gradient_direct
      MODULE PROCEDURE poisson_gradient_direct_charges, poisson_gradient_direct_density
   END INTERFACE poisson_gradient_direct
-
+  !
   INTERFACE poisson_energy
      MODULE PROCEDURE poisson_energy_charges, poisson_energy_density
   END INTERFACE poisson_energy
-
+  !
 CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE poisson_direct_charges( core, charges, potential )
