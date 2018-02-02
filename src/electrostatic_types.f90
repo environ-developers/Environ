@@ -467,7 +467,7 @@ CONTAINS
   SUBROUTINE update_oned_analytic_core_origin( origin, oned_analytic )
 !--------------------------------------------------------------------
     !
-    USE tools_generate_function, ONLY : generate_axis, generate_distance
+    USE tools_generate_functions, ONLY : generate_axis, generate_distance
     !
     IMPLICIT NONE
     !

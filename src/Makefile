@@ -26,33 +26,33 @@ include ../../make.sys
 MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../../Modules $(MOD_FLAG).
 
 ENVIRONOBJS = \
-boundary.o                  \
-cavity.o                    \
-charges.o                   \
-dielectric.o                \
-electrolyte.o               \
-electrostatic.o             \
-electrostatic_init.o        \
-electrostatic_mod.o         \
-electrostatic_types.o       \
-environ_fd_gradient.o       \
-environ_generate_function.o \
-environ_init.o              \
-environ_input.o             \
-environ_main.o              \
-environ_mod.o               \
-environ_output.o            \
-environ_types.o             \
-externals.o                 \
-functions.o                 \
-generalized.o               \
-generate_boundary.o         \
-ions.o                      \
-linearized_pb.o             \
-periodic.o                  \
-poisson.o                   \
-pressure.o                  \
-solvent_tddfpt.o
+correction_periodic.o      \
+electrostatic_init.o       \
+electrostatic_mod.o        \
+electrostatic_types.o      \
+embedding_electrostatic.o  \
+embedding_surface.o        \
+embedding_volume.o         \
+environ_init.o             \
+environ_input.o            \
+environ_main.o             \
+environ_mod.o              \
+environ_output.o           \
+environ_types.o            \
+problem_generalized.o      \
+problem_linearized_pb.o    \
+problem_poisson.o          \
+solvent_tddfpt.o           \
+tools_fd_gradient.o        \
+tools_generate_boundary.o  \
+tools_generate_functions.o \
+utils_boundary.o           \
+utils_charges.o            \
+utils_dielectric.o         \
+utils_electrolyte.o        \
+utils_externals.o          \
+utils_functions.o          \
+utils_ions.o
 
 all : libenviron.a
 
