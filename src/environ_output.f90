@@ -1166,23 +1166,24 @@ CONTAINS
     ! Called by electrons.f90
     !
     USE environ_base, ONLY : lelectrostatic, eelectrostatic, &
-                             lsurface, ecavity, &
-                             lvolume, epressure, &
-                             lelectrolyte, eelectrolyte, deenviron
+                             lsurface, esurface, &
+                             lvolume, evolume, &
+                             lelectrolyte, eelectrolyte, &
+                             deenviron
     !
     CHARACTER( LEN=80 ) :: sub_name = 'environ_print_energies'
     !
     IF ( ionode ) THEN
        IF ( prog .EQ. 'PW' ) THEN
           IF ( lelectrostatic ) WRITE( program_unit, 9201 ) eelectrostatic
-          IF ( lsurface ) WRITE( program_unit, 9202 ) ecavity
-          IF ( lvolume ) WRITE( program_unit, 9203 ) epressure
+          IF ( lsurface ) WRITE( program_unit, 9202 ) esurface
+          IF ( lvolume ) WRITE( program_unit, 9203 ) evolume
           IF ( lelectrolyte ) WRITE( program_unit, 9205 ) eelectrolyte
           WRITE( program_unit, 9204 ) deenviron
        ELSE IF ( prog .EQ. 'CP' ) THEN
           IF ( lelectrostatic ) WRITE( program_unit, 9301 ) eelectrostatic
-          IF ( lsurface ) WRITE( program_unit, 9302 ) ecavity
-          IF ( lvolume ) WRITE( program_unit, 9303 ) epressure
+          IF ( lsurface ) WRITE( program_unit, 9302 ) esurface
+          IF ( lvolume ) WRITE( program_unit, 9303 ) evolume
           IF ( lelectrolyte ) WRITE( program_unit, 9305 ) eelectrolyte
           WRITE( program_unit, 9304 ) deenviron
        ELSE

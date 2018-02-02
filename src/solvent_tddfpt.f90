@@ -68,8 +68,8 @@ CONTAINS
    !
    USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical
    USE electrostatic_base, ONLY : reference, outer
-   USE electrostatic, ONLY : calc_velectrostatic
-   USE charges_utils
+   USE embedding_electrostatic, ONLY : calc_velectrostatic
+   USE utils_charges
    !
    IMPLICIT NONE
    !

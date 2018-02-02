@@ -65,54 +65,16 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !--------------------------------------------------------------------
-MODULE electrolyte_utils
+MODULE utils_electrolyte
 !--------------------------------------------------------------------
   !
   USE environ_types
   USE environ_output
   !
-  USE boundary
+  USE utils_boundary
   USE environ_base, ONLY : e2
-!  USE constants,      ONLY: k_boltzmann_ry, pi, tpi, fpi
-!  USE io_global,      ONLY: stdout
-!  USE mp,             ONLY: mp_sum
-!  USE mp_bands,       ONLY: intra_bgrp_comm
-!  USE environ_cell,   ONLY: domega, alat, omega, ntot, at
-!  USE environ_ions,   ONLY: avg_pos, rhoions
-!  USE environ_base,   ONLY: verbose, e2, ir_end, environ_unit,           &
-!                            env_ioncc_level, nrep, cion, cionmax, zion,  &
-!                            solvent_temperature, rhoioncc, rhopolcc,     &
-!                            env_static_permittivity, rhopol, slab_axis,  &
-!                            rhomin, rhopb
-!  USE generate_function, ONLY: planar_average
-!  USE periodic,       ONLY: calc_vperiodic
-!  USE environ_debug,  ONLY: write_cube
-!  USE generate_f_of_rho, ONLY: epsilonfunct
   !
   IMPLICIT NONE
-  !
-!  INTEGER :: naxis, shift, cell_max, cell_min, n1d, nr1, nr2, nr3
-!  REAL( DP ) :: area, darea, axis_length, dx, xstern, deltastern
-!
-!  REAL( DP ) :: kbt, invkbt, fsw
-!
-!  REAL( DP ), ALLOCATABLE :: axis(:), switch(:), step(:)
-!  REAL( DP ), ALLOCATABLE :: axis1d(:), switch1d(:), step1d(:)
-!
-!  REAL( DP ) :: charge_fix, dipole_fix, dv_fix, vfix_avg, vfix1d_avg
-!  REAL( DP ), ALLOCATABLE :: rhofix(:), vfix(:), vzero(:), gradvzero(:,:), rhozero(:), laplvzero(:)
-!  REAL( DP ), ALLOCATABLE :: rhofix1d(:), vfix1d(:)
-!  REAL( DP ), ALLOCATABLE :: czero1d(:,:), rhozero1d(:), vzero1d(:)
-!
-!  INTEGER :: nnrlocal, nspinlocal
-!  REAL( DP ), ALLOCATABLE :: rhoinlocal(:), rhooutlocal(:), vtotlocal(:,:)
-!
-!  INTEGER :: ifdtype, nfdpoint, ncfd, ncfd2
-!  INTEGER, ALLOCATABLE :: icfd(:), icfd2(:)
-!  REAL( DP ), ALLOCATABLE :: eps1d(:), deps1d(:)
-!
-!  INTEGER :: nsp
-!  REAL( DP ), ALLOCATABLE :: cb(:), z(:), mu(:)
   !
   PRIVATE
   !
@@ -736,5 +698,5 @@ CONTAINS
   END SUBROUTINE destroy_environ_electrolyte
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE electrolyte_utils
+END MODULE utils_electrolyte
 !----------------------------------------------------------------------------

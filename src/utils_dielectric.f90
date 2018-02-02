@@ -91,12 +91,12 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE dielectric
+MODULE utils_dielectric
   !--------------------------------------------------------------------------
   !
   USE environ_types
   USE environ_output
-  USE functions
+  USE utils_functions
   USE environ_base, ONLY : e2, add_jellium
   !
   IMPLICIT NONE
@@ -669,5 +669,5 @@ CONTAINS
   END SUBROUTINE destroy_environ_dielectric
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE dielectric
+END MODULE utils_dielectric
 !----------------------------------------------------------------------------

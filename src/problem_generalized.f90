@@ -29,15 +29,15 @@
 ! includes improved algorithms from G. Fisicaro and S. Goedecker
 !
 !----------------------------------------------------------------------------
-MODULE generalized
+MODULE problem_generalized
 !----------------------------------------------------------------------------
   !
   USE environ_types
   USE electrostatic_types
   USE environ_output
-  USE poisson, ONLY : poisson_direct, poisson_gradient_direct, poisson_energy
+  USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct, poisson_energy
   USE environ_base, ONLY : e2, oldenviron, add_jellium
-  USE periodic, ONLY : calc_v0periodic
+  USE correction_periodic, ONLY : calc_v0periodic
   !
   IMPLICIT NONE
   !
@@ -924,5 +924,5 @@ CONTAINS
   END SUBROUTINE generalized_gradient_left
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE generalized
+END MODULE problem_generalized
 !----------------------------------------------------------------------------

@@ -25,7 +25,7 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE generate_boundary
+MODULE tools_generate_boundary
 !----------------------------------------------------------------------------
   !
   USE environ_types
@@ -415,7 +415,7 @@ CONTAINS
   SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
     !
-    USE environ_fd_gradient, ONLY : calc_fd_gradient
+    USE tools_fd_gradient, ONLY : calc_fd_gradient
     !
     ! ... Calculates the dielectric constant as a function
     ! ... of the charge density, and the derivative of
@@ -605,7 +605,7 @@ CONTAINS
     ! ... of the charge density, and the derivative of
     ! ... the dielectric constant wrt the charge density.
     !
-    USE functions, ONLY: density_of_functions, gradient_of_functions, &
+    USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions
     !
     IMPLICIT NONE
@@ -925,7 +925,7 @@ CONTAINS
   SUBROUTINE calc_dboundary_dions( index, boundary, partial )
 !--------------------------------------------------------------------
     !
-    USE functions, ONLY: density_of_functions, gradient_of_functions
+    USE utils_functions, ONLY: density_of_functions, gradient_of_functions
     !
     IMPLICIT NONE
     !
@@ -1026,7 +1026,7 @@ CONTAINS
     ! ... of the charge density, and the derivative of
     ! ... the dielectric constant wrt the charge density.
     !
-    USE functions, ONLY: density_of_functions, gradient_of_functions, &
+    USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions
     !
     IMPLICIT NONE
@@ -1143,8 +1143,8 @@ CONTAINS
     ! ... Fill voids of the continuum interface that are too small
     ! ... to fit a solvent molecule
     !
-    USE functions, ONLY: density_of_functions
-    USE environ_generate_function, ONLY : compute_convolution_fft
+    USE utils_functions, ONLY: density_of_functions
+    USE tools_generate_functions, ONLY : compute_convolution_fft
     !
     IMPLICIT NONE
     !
@@ -1321,7 +1321,7 @@ CONTAINS
     ! ... Fill voids of the continuum interface that are too small
     ! ... to fit a solvent molecule
     !
-    USE environ_generate_function, ONLY : compute_convolution_fft
+    USE tools_generate_functions, ONLY : compute_convolution_fft
     !
     IMPLICIT NONE
     !
@@ -1367,8 +1367,8 @@ CONTAINS
   SUBROUTINE compute_convolution_deriv( deriv, probe, f, grad, lapl, hess )
 !--------------------------------------------------------------------
     !
-    USE functions, ONLY : gradient_of_functions, laplacian_of_functions, hessian_of_functions
-    USE environ_generate_function, ONLY : compute_convolution_fft
+    USE utils_functions, ONLY : gradient_of_functions, laplacian_of_functions, hessian_of_functions
+    USE tools_generate_functions, ONLY : compute_convolution_fft
     !
     IMPLICIT NONE
     !
@@ -1426,5 +1426,5 @@ CONTAINS
   END SUBROUTINE compute_convolution_deriv
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE generate_boundary
+END MODULE tools_generate_boundary
 !----------------------------------------------------------------------------

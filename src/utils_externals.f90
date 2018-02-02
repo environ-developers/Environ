@@ -47,12 +47,12 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE externals_utils
+MODULE utils_externals
 !----------------------------------------------------------------------------
   !
   USE environ_types
   USE environ_output
-  USE functions
+  USE utils_functions
   !
   IMPLICIT NONE
   !
@@ -181,5 +181,5 @@ CONTAINS
   END SUBROUTINE destroy_environ_externals
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE externals_utils
+END MODULE utils_externals
 !----------------------------------------------------------------------------

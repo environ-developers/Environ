@@ -24,7 +24,7 @@
 ! Original version by M. Cococcioni and N. Marzari (MIT)
 !
 !----------------------------------------------------------------------------
-MODULE pressure
+MODULE embedding_volume
 !----------------------------------------------------------------------------
   !
   USE environ_types
@@ -35,11 +35,11 @@ MODULE pressure
   !
   PRIVATE
   !
-  PUBLIC :: calc_depressure_dboundary, calc_epressure
+  PUBLIC :: calc_devolume_dboundary, calc_evolume
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_depressure_dboundary( pressure, boundary, de_dboundary )
+  SUBROUTINE calc_devolume_dboundary( volume, boundary, de_dboundary )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the PV contribution to the potential
@@ -48,11 +48,11 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    REAL( DP ), INTENT(IN) :: pressure
+    REAL( DP ), INTENT(IN) :: volume
     TYPE( environ_boundary ), INTENT(IN) :: boundary
     TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
     !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_dpressure_dboundary'
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_dvolume_dboundary'
     !
     ! ... The functional derivative of the volume term is just unity
     !
@@ -61,10 +61,10 @@ CONTAINS
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_depressure_dboundary
+  END SUBROUTINE calc_devolume_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_epressure( pressure, boundary, epressure )
+  SUBROUTINE calc_evolume( pressure, boundary, evolume )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the PV contribution to the energy
@@ -73,19 +73,19 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    REAL( DP ), INTENT(IN) :: pressure
+    REAL( DP ), INTENT(IN) :: volume
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
-    REAL( DP ), INTENT(OUT) :: epressure
+    REAL( DP ), INTENT(OUT) :: evolume
     !
     ! ... Computes the PV energy
     !
-    epressure = pressure * boundary%volume * e2 / 2.D0
+    evolume = pressure * boundary%volume * e2 / 2.D0
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_epressure
+  END SUBROUTINE calc_evolume
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-END MODULE pressure
+END MODULE embedding_volume
 !--------------------------------------------------------------------

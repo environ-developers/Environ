@@ -20,7 +20,7 @@
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------
-MODULE environ_generate_function
+MODULE tools_generate_functions
 !----------------------------------------------------------------------------
   !
   USE kinds, ONLY: DP
@@ -1333,7 +1333,7 @@ CONTAINS
   END FUNCTION erfcvolume
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE environ_generate_function
+END MODULE tools_generate_functions
 !----------------------------------------------------------------------------
 
 

@@ -58,13 +58,14 @@ CONTAINS
     !
     ! ... Each contribution to the potential is computed in its module
     !
-    USE electrostatic, ONLY : calc_velectrostatic
-    USE cavity,        ONLY : calc_decavity_dboundary
-    USE pressure,      ONLY : calc_depressure_dboundary
-    USE dielectric,    ONLY : calc_dedielectric_dboundary
-    USE electrolyte_utils, ONLY : calc_deelectrolyte_dboundary
-    USE generate_boundary, ONLY : solvent_aware_de_dboundary
-    USE charges_utils,     ONLY : update_environ_charges, charges_of_potential
+    USE embedding_electrostatic, ONLY : calc_velectrostatic
+    USE embedding_surface,       ONLY : calc_desurface_dboundary
+    USE embedding_volume,        ONLY : calc_devolume_dboundary
+    USE utils_dielectric,        ONLY : calc_dedielectric_dboundary
+    USE utils_electrolyte,       ONLY : calc_deelectrolyte_dboundary
+    USE utils_charges,           ONLY : update_environ_charges, &
+                                      & charges_of_potential
+    USE tools_generate_boundary, ONLY : solvent_aware_de_dboundary
     !
     IMPLICIT NONE
     !
@@ -122,11 +123,11 @@ CONTAINS
           !
           ! ... If surface tension greater than zero, calculates cavity contribution
           !
-          IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, de_dboundary )
+          IF ( lsurface ) CALL calc_desurface_dboundary( env_surface_tension, solvent, de_dboundary )
           !
           ! ... If external pressure different from zero, calculates PV contribution
           !
-          IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, de_dboundary )
+          IF ( lvolume ) CALL calc_devolume_dboundary( env_pressure, solvent, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !
@@ -172,8 +173,8 @@ CONTAINS
   END SUBROUTINE calc_venviron
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_eenviron( deenviron, eelectrostatic, ecavity, &
-       & epressure, eelectrolyte )
+  SUBROUTINE calc_eenviron( deenviron, eelectrostatic, esurface, &
+       & evolume, eelectrolyte )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the environ contribution to the Energy.
@@ -193,26 +194,26 @@ CONTAINS
     !
     ! ... Each contribution to the energy is computed in its module
     !
-    USE electrostatic, ONLY : calc_eelectrostatic
-    USE cavity,        ONLY : calc_ecavity
-    USE pressure,      ONLY : calc_epressure
-    USE electrolyte_utils, ONLY : calc_eelectrolyte
-    USE charges_utils,     ONLY : update_environ_charges
+    USE embedding_electrostatic, ONLY : calc_eelectrostatic
+    USE embedding_surface,       ONLY : calc_esurface
+    USE embedding_volume,        ONLY : calc_evolume
+    USE utils_electrolyte,       ONLY : calc_eelectrolyte
+    USE utils_charges,           ONLY : update_environ_charges
     !
     IMPLICIT NONE
     !
     ! ... Declares variables
     !
-    REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, ecavity, &
-         epressure, eelectrolyte
+    REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, esurface, &
+         evolume, eelectrolyte
     REAL( DP ) :: ereference
     !
     ! ... Initializes the variables
     !
     deenviron      = 0.D0
     eelectrostatic = 0.D0
-    ecavity        = 0.D0
-    epressure      = 0.D0
+    esurface       = 0.D0
+    evolume        = 0.D0
     eelectrolyte   = 0.D0
     !
     ! ... Calculates the energy corrections
@@ -244,11 +245,11 @@ CONTAINS
     !
     !  if surface tension different from zero compute cavitation energy
     !
-    IF ( lsurface ) CALL calc_ecavity( env_surface_tension, solvent, ecavity )
+    IF ( lsurface ) CALL calc_esurface( env_surface_tension, solvent, esurface )
     !
     !  if pressure different from zero compute PV energy
     !
-    IF ( lvolume ) CALL calc_epressure( env_pressure, solvent, epressure )
+    IF ( lvolume ) CALL calc_evolume( env_pressure, solvent, evolume )
     !
     !  if electrolyte is present calculate its non-electrostatic contribution
     !
@@ -280,12 +281,12 @@ CONTAINS
     !
     ! ... Each contribution to the forces is computed in its module
     !
-    USE electrostatic,     ONLY : calc_felectrostatic
-    USE cavity,            ONLY : calc_decavity_dboundary
-    USE pressure,          ONLY : calc_depressure_dboundary
-    USE dielectric,        ONLY : calc_dedielectric_dboundary
-    USE electrolyte_utils, ONLY : calc_deelectrolyte_dboundary
-    USE generate_boundary, ONLY : calc_dboundary_dions, solvent_aware_de_dboundary
+    USE embedding_electrostatic, ONLY : calc_felectrostatic
+    USE embedding_surface,       ONLY : calc_desurface_dboundary
+    USE embedding_volume,        ONLY : calc_devolume_dboundary
+    USE utils_dielectric,        ONLY : calc_dedielectric_dboundary
+    USE utils_electrolyte,       ONLY : calc_deelectrolyte_dboundary
+    USE tools_generate_boundary, ONLY : calc_dboundary_dions, solvent_aware_de_dboundary
     !
     IMPLICIT NONE
     !
@@ -314,11 +315,11 @@ CONTAINS
           !
           ! ... If surface tension greater than zero, calculates cavity contribution
           !
-          IF ( lsurface ) CALL calc_decavity_dboundary( env_surface_tension, solvent, de_dboundary )
+          IF ( lsurface ) CALL calc_desurface_dboundary( env_surface_tension, solvent, de_dboundary )
           !
           ! ... If external pressure different from zero, calculates PV contribution
           !
-          IF ( lvolume ) CALL calc_depressure_dboundary( env_pressure, solvent, de_dboundary )
+          IF ( lvolume ) CALL calc_devolume_dboundary( env_pressure, solvent, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !

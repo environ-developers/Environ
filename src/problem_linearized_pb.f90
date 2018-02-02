@@ -25,13 +25,13 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE linearized_pb
+MODULE problem_linearized_pb
 !----------------------------------------------------------------------------
   !
   USE environ_types
   USE electrostatic_types
   USE environ_output
-  USE poisson,      ONLY : poisson_direct, poisson_energy
+  USE problem_poisson, ONLY : poisson_direct, poisson_energy
   USE environ_base, ONLY : e2, add_jellium
   !
   IMPLICIT NONE
@@ -633,5 +633,5 @@ CONTAINS
   END SUBROUTINE linearized_pb_gradient_vacuum
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE linearized_pb
+END MODULE problem_linearized_pb
 !----------------------------------------------------------------------------

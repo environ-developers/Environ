@@ -29,12 +29,12 @@ MODULE environ_init
   USE environ_output
   USE environ_base
   !
-  USE ions_utils
-  USE boundary
-  USE dielectric
-  USE electrolyte_utils
-  USE externals_utils
-  USE charges_utils
+  USE utils_ions
+  USE utils_boundary
+  USE utils_dielectric
+  USE utils_electrolyte
+  USE utils_externals
+  USE utils_charges
   !
   PRIVATE
   !
@@ -434,15 +434,18 @@ CONTAINS
 ! is performed at every step of electronic optimization.
 !
     ! ... Declares modules
+    !
     USE environ_base,        ONLY : cell, lstatic, static, &
                                     loptical, optical,  &
                                     lexternals, externals,     &
                                     lelectrolyte, electrolyte, &
                                     lelectrostatic
     ! ... Cell-related updates
-    USE dielectric,          ONLY : update_environ_dielectric
-    USE electrolyte_utils,   ONLY : update_environ_electrolyte
-    USE externals_utils,     ONLY : update_environ_externals
+    !
+    USE utils_dielectric,    ONLY : update_environ_dielectric
+    USE utils_electrolyte,   ONLY : update_environ_electrolyte
+    USE utils_externals,     ONLY : update_environ_externals
+    !
     USE electrostatic_init,  ONLY : electrostatic_initcell
     !
     IMPLICIT NONE
@@ -491,10 +494,10 @@ CONTAINS
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity,                   &
                                     lelectrostatic, charges
-     USE boundary,           ONLY : update_environ_boundary,        &
+     USE utils_boundary,     ONLY : update_environ_boundary,        &
                                     set_soft_spheres
-     USE dielectric,         ONLY : update_environ_dielectric
-     USE electrolyte_utils,  ONLY : update_environ_electrolyte
+     USE utils_dielectric,   ONLY : update_environ_dielectric
+     USE utils_electrolyte,  ONLY : update_environ_electrolyte
      USE electrostatic_init, ONLY : electrostatic_initions
      !
      IMPLICIT NONE
@@ -588,8 +591,8 @@ CONTAINS
                                    lsoftcavity, lsoftsolvent,    &
                                    lsoftelectrolyte,             &
                                    lelectrostatic, charges
-     USE boundary,          ONLY : update_environ_boundary
-     USE dielectric,        ONLY : update_environ_dielectric
+     USE utils_boundary,    ONLY : update_environ_boundary
+     USE utils_dielectric,  ONLY : update_environ_dielectric
      !
      IMPLICIT NONE
      !

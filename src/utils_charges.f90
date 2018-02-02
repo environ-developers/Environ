@@ -70,7 +70,7 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE charges_utils
+MODULE utils_charges
 !----------------------------------------------------------------------------
   !
   USE environ_types
@@ -236,8 +236,8 @@ CONTAINS
   SUBROUTINE charges_of_potential( potential, charges )
 !--------------------------------------------------------------------
     !
-    USE dielectric,        ONLY : dielectric_of_potential
-    USE electrolyte_utils, ONLY : electrolyte_of_potential
+    USE utils_dielectric,  ONLY : dielectric_of_potential
+    USE utils_electrolyte, ONLY : electrolyte_of_potential
     !
     IMPLICIT NONE
     !
@@ -312,5 +312,5 @@ CONTAINS
   END SUBROUTINE destroy_environ_charges
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE charges_utils
+END MODULE utils_charges
 !----------------------------------------------------------------------------

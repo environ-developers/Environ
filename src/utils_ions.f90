@@ -71,13 +71,13 @@
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------
-MODULE ions_utils
+MODULE utils_ions
 !----------------------------------------------------------------------------
   !
   USE environ_base,  ONLY : e2, fermi_shift
   USE environ_output
   USE environ_types
-  USE functions
+  USE utils_functions
   !
   PRIVATE
   !
@@ -894,5 +894,5 @@ CONTAINS
   END SUBROUTINE lowcase
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE ions_utils
+END MODULE utils_ions
 !----------------------------------------------------------------------------

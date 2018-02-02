@@ -27,6 +27,7 @@ MODULE environ_input
 !----------------------------------------------------------------------------
   !
   USE kinds,      ONLY : DP
+  USE constants,  ONLY : bohr_radius_angs
   USE parameters, ONLY : nsx
   !
   USE parser,     ONLY : field_count, read_line, get_field, parse_unit
@@ -1809,8 +1810,6 @@ CONTAINS
      !
      ! ... convert input positions to atomic units
      !
-     USE kinds,         ONLY : DP
-     USE constants,     ONLY : bohr_radius_angs
      IMPLICIT NONE
      CHARACTER (len=*), INTENT(in)  :: pos_format
      INTEGER, INTENT(in)  :: n

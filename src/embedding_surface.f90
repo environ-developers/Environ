@@ -26,7 +26,7 @@
 ! Original version by D. Scherlis, M. Cococcioni, and N. Marzari (MIT)
 !
 !----------------------------------------------------------------------------
-MODULE cavity
+MODULE embedding_surface
 !----------------------------------------------------------------------------
   !
   ! ... The variables needed to introduce an environment with a surface tension
@@ -40,11 +40,11 @@ MODULE cavity
   !
   PRIVATE
   !
-  PUBLIC :: calc_decavity_dboundary, calc_ecavity
+  PUBLIC :: calc_desurface_dboundary, calc_esurface
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_decavity_dboundary( surface_tension, boundary, de_dboundary )
+  SUBROUTINE calc_desurface_dboundary( surface_tension, boundary, de_dboundary )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the potential
@@ -57,7 +57,7 @@ CONTAINS
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: de_dboundary
     !
-    CHARACTER( LEN=80 )     :: sub_name = 'calc_dcavity_dboundary'
+    CHARACTER( LEN=80 )     :: sub_name = 'calc_desurface_dboundary'
     !
     de_dboundary % of_r = de_dboundary % of_r + &
          & surface_tension * boundary % dsurface % of_r
@@ -65,10 +65,10 @@ CONTAINS
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_decavity_dboundary
+  END SUBROUTINE calc_desurface_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_ecavity( surface_tension, boundary, ecavity )
+  SUBROUTINE calc_esurface( surface_tension, boundary, esurface )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the cavitation contribution to the energy
@@ -79,21 +79,21 @@ CONTAINS
     !
     REAL( DP ), INTENT(IN) :: surface_tension
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
-    REAL( DP ), INTENT(OUT) :: ecavity
+    REAL( DP ), INTENT(OUT) :: esurface
     !
     ! ... Local variables
     !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_ecavity'
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_esurface'
     !
     ! ... Computes the cavitation energy
     !
-    ecavity = surface_tension * boundary%surface * e2 / 2.D0
+    esurface = surface_tension * boundary%surface * e2 / 2.D0
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE calc_ecavity
+  END SUBROUTINE calc_esurface
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-END MODULE cavity
+END MODULE embedding_surface
 !--------------------------------------------------------------------

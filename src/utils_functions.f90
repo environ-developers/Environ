@@ -44,10 +44,10 @@
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------
-MODULE functions
+MODULE utils_functions
   !
   USE environ_types
-  USE environ_generate_function
+  USE tools_generate_functions
   !
   PRIVATE
   !
@@ -493,5 +493,5 @@ CONTAINS
   END SUBROUTINE hessian_of_functions_array
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE functions
+END MODULE utils_functions
 !----------------------------------------------------------------------------

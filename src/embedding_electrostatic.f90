@@ -28,11 +28,11 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE electrostatic
+MODULE embedding_electrostatic
 !----------------------------------------------------------------------------
   !
-  USE environ_types
   USE electrostatic_types
+  USE environ_types
   USE environ_output
   USE environ_base, ONLY : e2, add_jellium
   !
@@ -51,9 +51,9 @@ CONTAINS
     ! ... Calculates the electrostatic embedding contribution to the
     !     Kohn-Sham potential
     !
-    USE poisson, ONLY : poisson_direct
-    USE generalized, ONLY : generalized_gradient
-    USE linearized_pb, ONLY : linearized_pb_gradient
+    USE problem_poisson,       ONLY : poisson_direct
+    USE problem_generalized,   ONLY : generalized_gradient
+    USE problem_linearized_pb, ONLY : linearized_pb_gradient
     !
     IMPLICIT NONE
     !
@@ -191,9 +191,9 @@ CONTAINS
   SUBROUTINE calc_eelectrostatic( setup, charges, potential, energy )
 !--------------------------------------------------------------------
     !
-    USE poisson, ONLY : poisson_energy
-    USE generalized, ONLY: generalized_energy
-    USE linearized_pb, ONLY: linearized_pb_energy
+    USE problem_poisson,       ONLY : poisson_energy
+    USE problem_generalized,   ONLY : generalized_energy
+    USE problem_linearized_pb, ONLY : linearized_pb_energy
     !
     IMPLICIT NONE
     !
@@ -253,7 +253,7 @@ CONTAINS
   SUBROUTINE calc_felectrostatic( setup, natoms, charges, forces )
 !--------------------------------------------------------------------
     !
-    USE periodic, ONLY : calc_fperiodic
+    USE correction_periodic, ONLY : calc_fperiodic
     !
     ! ... Calculates the electrostatic embedding contribution to
     !     interatomic forces
@@ -332,5 +332,5 @@ CONTAINS
   END SUBROUTINE calc_felectrostatic
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE electrostatic
+END MODULE embedding_electrostatic
 !----------------------------------------------------------------------------

@@ -113,12 +113,12 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE boundary
+MODULE utils_boundary
 !----------------------------------------------------------------------------
   !
   USE environ_types
   USE environ_output
-  USE functions
+  USE utils_functions
   !
   IMPLICIT NONE
   !
@@ -420,7 +420,8 @@ CONTAINS
   SUBROUTINE update_environ_boundary( bound )
 !--------------------------------------------------------------------
     !
-    USE generate_boundary, ONLY : boundary_of_density, boundary_of_functions, boundary_of_system, &
+    USE tools_generate_boundary, ONLY : boundary_of_density, &
+         & boundary_of_functions, boundary_of_system, &
          & solvent_aware_boundary, invert_boundary
     !
     IMPLICIT NONE
@@ -620,9 +621,9 @@ CONTAINS
   SUBROUTINE test_de_dboundary( boundary )
 !--------------------------------------------------------------------
     !
-    USE generate_boundary, ONLY : solvent_aware_boundary, solvent_aware_de_dboundary
-    USE cavity,            ONLY : calc_ecavity, calc_decavity_dboundary
-    USE pressure,          ONLY : calc_epressure, calc_depressure_dboundary
+    USE tools_generate_boundary, ONLY : solvent_aware_boundary, solvent_aware_de_dboundary
+    USE embedding_surface,       ONLY : calc_esurface, calc_desurface_dboundary
+    USE embedding_volume,        ONLY : calc_evolume, calc_devolume_dboundary
     !
     IMPLICIT NONE
     !
@@ -653,10 +654,10 @@ CONTAINS
     CALL solvent_aware_boundary( localbound )
     !
     localpressure = 100.D0
-    CALL calc_depressure_dboundary( localpressure, localbound, de_dboundary )
+    CALL calc_dvolume_dboundary( localpressure, localbound, de_dboundary )
     !
     localsurface_tension = 100.D0
-    CALL calc_decavity_dboundary( localsurface_tension, localbound, de_dboundary )
+    CALL calc_desurface_dboundary( localsurface_tension, localbound, de_dboundary )
     !
     CALL solvent_aware_de_dboundary( localbound, de_dboundary )
     !
@@ -694,10 +695,10 @@ CONTAINS
        !
        CALL solvent_aware_boundary( localbound )
        !
-       CALL calc_epressure( localpressure, localbound, eplus )
+       CALL calc_evolume( localpressure, localbound, eplus )
        de_fd = de_fd + eplus
        !
-       CALL calc_ecavity( localsurface_tension, localbound, eplus )
+       CALL calc_esurface( localsurface_tension, localbound, eplus )
        de_fd = de_fd + eplus
        !
        CALL copy_environ_boundary( boundary, localbound )
@@ -711,10 +712,10 @@ CONTAINS
        !
        CALL solvent_aware_boundary( localbound )
        !
-       CALL calc_epressure( localpressure, localbound, eminus )
+       CALL calc_evolume( localpressure, localbound, eminus )
        de_fd = de_fd - eminus
        !
-       CALL calc_ecavity( localsurface_tension, localbound, eminus )
+       CALL calc_esurface( localsurface_tension, localbound, eminus )
        de_fd = de_fd - eminus
        !
        de_fd = 0.5D0 * de_fd / epsilon
@@ -741,5 +742,5 @@ CONTAINS
   END SUBROUTINE test_de_dboundary
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
-END MODULE boundary
+END MODULE utils_boundary
 !----------------------------------------------------------------------------

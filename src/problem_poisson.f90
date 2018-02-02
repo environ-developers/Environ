@@ -25,12 +25,12 @@
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
 !--------------------------------------------------------------------
-MODULE poisson
+MODULE problem_poisson
 !--------------------------------------------------------------------
   !
   USE environ_types
   USE electrostatic_types
-  USE periodic
+  USE correction_periodic
   USE environ_base, ONLY : e2, oldenviron
   !
   IMPLICIT NONE
@@ -401,5 +401,5 @@ CONTAINS
   END SUBROUTINE poisson_energy_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-END MODULE poisson
+END MODULE problem_poisson
 !--------------------------------------------------------------------

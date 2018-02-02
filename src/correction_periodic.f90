@@ -25,7 +25,7 @@
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
-MODULE periodic
+MODULE correction_periodic
 !----------------------------------------------------------------------------
   !
   ! ... The variables needed to correct periodic boundary conditions
@@ -446,5 +446,5 @@ CONTAINS
   END SUBROUTINE calc_fperiodic
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-END MODULE periodic
+END MODULE correction_periodic
 !---------------------------------------------------------------------------

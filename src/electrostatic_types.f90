@@ -298,7 +298,7 @@ CONTAINS
   SUBROUTINE init_fd_core( ifdtype, nfdpoint, fd )
 !--------------------------------------------------------------------
     !
-    USE environ_fd_gradient, ONLY : init_fd_gradient
+    USE tools_fd_gradient, ONLY : init_fd_gradient
     !
     IMPLICIT NONE
     !
@@ -467,7 +467,7 @@ CONTAINS
   SUBROUTINE update_oned_analytic_core_origin( origin, oned_analytic )
 !--------------------------------------------------------------------
     !
-    USE environ_generate_function, ONLY : generate_axis, generate_distance
+    USE tools_generate_function, ONLY : generate_axis, generate_distance
     !
     IMPLICIT NONE
     !
