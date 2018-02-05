@@ -295,7 +295,7 @@ CONTAINS
          lsolvent, solvent, lstatic, static,      &
          loptical, optical,                       &
          lexternals, externals,                   &
-         lsurface, ecavity, lvolume, epressure,   &
+         lsurface, esurface, lvolume, evolume,    &
          eelectrolyte
     !
     USE electrostatic_init, ONLY : electrostatic_initbase
@@ -365,11 +365,11 @@ CONTAINS
     !
     ! ... Cavity contribution
     !
-    ecavity  = 0.0_DP
+    esurface  = 0.0_DP
     !
     ! ... Pressure contribution
     !
-    epressure  = 0.0_DP
+    evolume   = 0.0_DP
     !
     ! ... Non-electrostatice electrolyte contribution
     !

@@ -39,7 +39,7 @@ MODULE embedding_volume
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE calc_devolume_dboundary( volume, boundary, de_dboundary )
+  SUBROUTINE calc_devolume_dboundary( pressure, boundary, de_dboundary )
 !--------------------------------------------------------------------
     !
     ! ... Calculates the PV contribution to the potential
@@ -48,7 +48,7 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    REAL( DP ), INTENT(IN) :: volume
+    REAL( DP ), INTENT(IN) :: pressure
     TYPE( environ_boundary ), INTENT(IN) :: boundary
     TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
     !
@@ -73,7 +73,7 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    REAL( DP ), INTENT(IN) :: volume
+    REAL( DP ), INTENT(IN) :: pressure
     TYPE( environ_boundary ), TARGET, INTENT(IN) :: boundary
     REAL( DP ), INTENT(OUT) :: evolume
     !

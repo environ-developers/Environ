@@ -296,7 +296,7 @@ mv tmp.2 plugin_init_cell.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE environ_base,          ONLY : deenviron, eelectrostatic, & \
-                                  ecavity, epressure, eelectrolyte \
+                                  esurface, evolume, eelectrolyte \
 USE environ_main,          ONLY : calc_eenviron \
 !Environ patch
 ' plugin_scf_energy.f90 > tmp.1
@@ -307,9 +307,9 @@ sed '/Environ CALLS BEGIN/ a\
         ! \
         ! compute environ contributions to total energy \
         ! \
-        CALL calc_eenviron( deenviron, eelectrostatic, ecavity, epressure, eelectrolyte ) \
+        CALL calc_eenviron( deenviron, eelectrostatic, esurface, evolume, eelectrolyte ) \
         ! \
-        plugin_etot = plugin_etot + deenviron + eelectrostatic + ecavity + epressure + eelectrolyte \
+        plugin_etot = plugin_etot + deenviron + eelectrostatic + esurface + evolume + eelectrolyte \
         ! \
   END IF \
 !Environ patch

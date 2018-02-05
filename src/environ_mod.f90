@@ -165,8 +165,8 @@ MODULE environ_base
   REAL (KIND=DP) ::                 &
        deenviron,                   &
        eelectrostatic,              &
-       ecavity,                     &
-       epressure,                   &
+       esurface,                    &
+       evolume,                     &
        eelectrolyte,                &
        fermi_shift
   TYPE ( environ_density ) ::       &
