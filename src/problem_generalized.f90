@@ -378,7 +378,7 @@ CONTAINS
     !
     rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
     !
-    !CALL poisson_direct( core, rhotot, potential )
+    CALL poisson_direct( core, rhotot, potential )
     !
     ! ... In rhotot store total polarization charge
     !
