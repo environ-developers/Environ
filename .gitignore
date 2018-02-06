@@ -40,3 +40,7 @@ test.err.*
 test.out.*
 tests/*/*.out
 *.pyc
+
+# Documentation files
+input_xx.xsl
+

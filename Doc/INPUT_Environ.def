@@ -182,7 +182,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 		 Generic keyword that flags the need to read the &ELECTROSTATIC namelist. Any electrostatic
 		 embedding keyword (env_static_permittivity, env_electrolyte_ntyp) will turn this keyword on.
 		 One needs to turn on explicitly this keyword to activate electrostatic embedding effects
-		 that do not a specific activation keyword, such as for PBC correction schemes.
+		 that do not have a specific activation keyword, such as for PBC correction schemes.
 	    }
 	    status { REQUIRED }
 	}
