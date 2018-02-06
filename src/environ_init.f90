@@ -64,7 +64,7 @@ CONTAINS
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
-       & env_ioncc_ntyp_, stern_entropy,             &
+       & env_electrolyte_ntyp_, stern_entropy,       &
        & stern_mode, stern_distance, stern_spread,   &
        & cion, cionmax, rion, zion, stern_rhomax,    &
        & stern_rhomin, stern_tbeta, stern_alpha,     &
@@ -91,7 +91,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
-         stype_, env_ioncc_ntyp_,                         &
+         stype_, env_electrolyte_ntyp_,                   &
          env_external_charges,                            &
          extcharge_dim(:), extcharge_axis(:),             &
          env_dielectric_regions,                          &
@@ -146,7 +146,7 @@ CONTAINS
     env_surface_tension = &
          env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
     env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
-    env_ioncc_ntyp = env_ioncc_ntyp_
+    env_electrolyte_ntyp = env_electrolyte_ntyp_
     stype = stype_
     rhomax = rhomax_
     rhomin = rhomin_
@@ -164,7 +164,7 @@ CONTAINS
     lsurface       = env_surface_tension .GT. 0.D0
     lvolume        = env_pressure .NE. 0.D0
     lexternals     = env_external_charges .GT. 0
-    lelectrolyte   = env_ioncc_ntyp .GT. 0
+    lelectrolyte   = env_electrolyte_ntyp .GT. 0
     lperiodic      = need_pbc_correction
     !
     ! Derived flags
@@ -234,7 +234,7 @@ CONTAINS
     ! Set the parameters of the electrolyte and of its boundary
     !
     IF ( lelectrolyte ) THEN
-       CALL init_environ_electrolyte_first( env_ioncc_ntyp, &
+       CALL init_environ_electrolyte_first( env_electrolyte_ntyp, &
             & stern_mode, stype, stern_rhomax, stern_rhomin, stern_tbeta, env_static_permittivity, &
             & stern_alpha, stern_softness, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &

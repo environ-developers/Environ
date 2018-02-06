@@ -130,7 +130,7 @@ MODULE environ_base
   LOGICAL ::                        &
        lelectrolyte
   INTEGER ::                        &
-       env_ioncc_ntyp
+       env_electrolyte_ntyp
   TYPE( environ_electrolyte ) ::    &
        electrolyte
   !

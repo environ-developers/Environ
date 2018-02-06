@@ -149,7 +149,7 @@ MODULE environ_input
 !
 ! Ionic countercharge parameters
 !
-        INTEGER :: env_ioncc_ntyp = 0
+        INTEGER :: env_electrolyte_ntyp = 0
         ! number of counter-charge species in the electrolyte ( if != 0 must be >= 2 )
         CHARACTER( LEN = 80 ) :: stern_entropy = 'full'
         CHARACTER( LEN = 80 ) :: stern_entropy_allowed(2)
@@ -190,7 +190,7 @@ MODULE environ_input
              env_static_permittivity, env_optical_permittivity,        &
              env_surface_tension,                                      &
              env_pressure,                                             &
-             env_ioncc_ntyp, cion, cionmax, rion, zion,                &
+             env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              solvent_temperature, stern_entropy,                       &
              env_external_charges, env_dielectric_regions
 !
@@ -243,7 +243,7 @@ MODULE environ_input
         ! compared with the filled fraction: if filled fraction .GT. threshold
         ! THEN fill gridpoint
         REAL(DP) :: filling_spread = 0.02D0
-        ! spread of the switching function used to decide whether the dielectric
+        ! spread of the switching function used to decide whether the continuum
         ! void should be filled or not
 !
 ! Numerical core's parameters
@@ -252,7 +252,7 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
         DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
-        ! fft       = fast Fourier transforms (default)
+        ! fft       = fast Fourier transforms
         ! fd        = finite differences in real space
         ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
         ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
@@ -572,7 +572,7 @@ CONTAINS
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
-                             env_ioncc_ntyp, stern_entropy,              &
+                             env_electrolyte_ntyp, stern_entropy,        &
                              stern_mode, stern_distance, stern_spread,   &
                              cion, cionmax, rion, zion, stern_rhomax,    &
                              stern_rhomin, stern_tbeta,                  &
@@ -712,7 +712,7 @@ CONTAINS
     !
     env_pressure = 0.D0
     !
-    env_ioncc_ntyp = 0
+    env_electrolyte_ntyp = 0
     stern_entropy = 'full'
     cion(:) = 1.0D0
     cionmax(:) = 0.0D0 ! if remains zero, pb or linpb
@@ -846,7 +846,7 @@ CONTAINS
     !
     CALL mp_bcast( env_pressure,               ionode_id, comm )
     !
-    CALL mp_bcast( env_ioncc_ntyp,             ionode_id, comm )
+    CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
     CALL mp_bcast( stern_entropy,              ionode_id, comm )
     CALL mp_bcast( cion,                       ionode_id, comm )
     CALL mp_bcast( cionmax,                    ionode_id, comm )
@@ -995,8 +995,8 @@ CONTAINS
     IF( env_surface_tension < 0.0_DP ) &
          CALL errore( sub_name,' env_surface_tension out of range ', 1 )
     !
-    IF( env_ioncc_ntyp < 0 .OR. env_ioncc_ntyp .EQ. 1 ) &
-         CALL errore( sub_name,' env_ioncc_ntyp out of range ', 1 )
+    IF( env_electrolyte_ntyp < 0 .OR. env_electrolyte_ntyp .EQ. 1 ) &
+         CALL errore( sub_name,' env_electrolyte_ntyp out of range ', 1 )
     allowed = .FALSE.
     DO i = 1, SIZE( stern_entropy_allowed )
        IF( TRIM(stern_entropy) == stern_entropy_allowed(i) ) allowed = .TRUE.
@@ -1214,7 +1214,7 @@ CONTAINS
          CALL errore( sub_name, ' pbc_correction '''// &
          & TRIM(pbc_correction)//''' not allowed ', 1 )
     !
-    DO i = 1, env_ioncc_ntyp
+    DO i = 1, env_electrolyte_ntyp
        IF ( cion(i) .LT. 0.D0 .OR. cionmax(i) .LT. 0.D0 .OR. &
             rion(i) .LT. 0.D0 ) THEN
           CALL errore( sub_name, ' cion, cionmax and rion cannot be negative', 1 )
@@ -1246,7 +1246,7 @@ CONTAINS
          & lboundary = .TRUE.
     IF ( env_surface_tension .GT. 0.D0 ) lboundary = .TRUE.
     IF ( env_pressure .NE. 0.D0 ) lboundary = .TRUE.
-    IF ( env_ioncc_ntyp .GT. 0 ) lboundary = .TRUE.
+    IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
     IF ( solvent_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
@@ -1380,11 +1380,11 @@ CONTAINS
        solver = 'cg'
     ENDIF
     !
-    IF ( env_ioncc_ntyp .GT. 0 ) THEN
+    IF ( env_electrolyte_ntyp .GT. 0 ) THEN
        lelectrostatic = .TRUE.
        problem = 'linpb'
        solver  = 'cg'
-       DO ityp = 1, env_ioncc_ntyp
+       DO ityp = 1, env_electrolyte_ntyp
           IF ( cionmax(ityp) .GT. 0.D0 .OR. &
                rion(ityp) .GT. 0.D0 ) problem = 'linmodpb'
        END DO
