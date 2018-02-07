@@ -52,7 +52,7 @@ CONTAINS
     TYPE( environ_boundary ), INTENT(IN) :: boundary
     TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
     !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_dvolume_dboundary'
+    CHARACTER( LEN=80 ) :: sub_name = 'calc_devolume_dboundary'
     !
     ! ... The functional derivative of the volume term is just unity
     !
