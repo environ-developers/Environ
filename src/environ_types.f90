@@ -399,7 +399,6 @@ MODULE environ_types
      !
      INTEGER :: index
      REAL( DP ) :: cbulk   ! bulk concentration
-     REAL( DP ) :: cmax    ! maximum allowed concentration
      REAL( DP ) :: z       ! charge
      !
      TYPE( environ_density ) :: c ! local concentration
@@ -422,7 +421,7 @@ MODULE environ_types
      !
      REAL( DP ) :: temperature
      REAL( DP ) :: k2
-     REAL( DP ) :: cmax
+     REAL( DP ) :: cionmax
      !
      TYPE( environ_boundary ) :: boundary
      !

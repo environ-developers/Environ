@@ -319,19 +319,19 @@ NAMELIST: &ENVIRON
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       cionmax(i), i=1,env_electrolyte_ntyp
+   Variable:       cionmax
    
    Type:           REAL
-   Default:        1.D3
+   Default:        0.D0
    Description:    Maximum molar concentration of ionic countercharge (in mol/L).
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       rion(i), i=1,env_electrolyte_ntyp
+   Variable:       rion
    
    Type:           REAL
-   Default:        1.0
+   Default:        0.D0
    Description:    Mean atomic radius of ionic countercharge (a.u.).
    Status:         OPTIONAL
    +--------------------------------------------------------------------
@@ -1054,4 +1054,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Tue Feb 06 17:25:47 CST 2018
+This file has been created by helpdoc utility on Wed Feb 07 19:48:09 CET 2018

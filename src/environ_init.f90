@@ -107,7 +107,7 @@ CONTAINS
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
          stern_distance, stern_spread, cion(:),           &
-         cionmax(:), rion(:), zion(:), stern_rhomax,      &
+         cionmax, rion, zion(:), stern_rhomax,            &
          stern_rhomin, stern_tbeta, stern_alpha,          &
          stern_softness,                                  &
          solvent_temperature,                             &

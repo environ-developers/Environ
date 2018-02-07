@@ -302,9 +302,9 @@ CONTAINS
     CALL init_environ_density( cell, Ap )
     CALL init_environ_density( cell, ionccfact )
     !
-    IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cmax .GT. 0.D0 ) THEN
+    IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
        ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r / &
-            & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cmax * (1.D0 - gam%of_r ))
+            & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cionmax * (1.D0 - gam%of_r ))
        !    IF (ionode) print*, 'Linearized stern ions'
     ELSE
        ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r
@@ -496,9 +496,9 @@ CONTAINS
     CALL init_environ_density( cell, Ap )
     CALL init_environ_density( cell, ionccfact )
     !
-    IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cmax .GT. 0.D0 ) THEN
+    IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
        ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r / &
-            & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cmax * (1.D0 - gam%of_r ))
+            & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cionmax * (1.D0 - gam%of_r ))
        !    print*, 'Linearized stern ions'
     ELSE
        ionccfact%of_r = electrolyte%k2/e2/fpi * gam%of_r

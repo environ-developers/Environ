@@ -9,8 +9,7 @@
    cion(2) = 8.D0
    zion(1) = 1
    zion(2) = -1
-   rion(1) = 2.D0
-   rion(2) = 2.D0
+   rion = 2.D0
    stern_entropy = 'ions'
    !
  /

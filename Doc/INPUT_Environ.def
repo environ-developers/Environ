@@ -295,16 +295,16 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	dimension cionmax -start 1 -end env_electrolyte_ntyp -type REAL {
-	    default { 1.D3 }
+	var cionmax -type REAL {
+	    default { 0.D0 }
 	    info {
 		 Maximum molar concentration of ionic countercharge (in mol/L).
 	    }
 	    status { OPTIONAL }
 	}
 
-	dimension rion -start 1 -end env_electrolyte_ntyp -type REAL {
-	    default { 1.0 }
+	var rion -type REAL {
+	    default { 0.D0 }
 	    info {
 		 Mean atomic radius of ionic countercharge (a.u.).
 	    }

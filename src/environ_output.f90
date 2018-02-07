@@ -1118,8 +1118,8 @@ CONTAINS
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3101 )electrolyte%ntyp
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3102 )electrolyte%temperature
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3103 )1.D0/SQRT(electrolyte%k2)
-       IF ( electrolyte%cmax .GT. 0.D0 ) THEN
-          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3104 )electrolyte%cmax
+       IF ( electrolyte%cionmax .GT. 0.D0 ) THEN
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3104 )electrolyte%cionmax
        ENDIF
        DO ityp=1,electrolyte%ntyp
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3105 )electrolyte%ioncctype(ityp)%index

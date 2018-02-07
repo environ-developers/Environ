@@ -160,9 +160,9 @@ MODULE environ_input
         ! full = all terms ( Dabo et al. arXiv 0901.0096 )
         REAL(DP) :: cion(nsx) = 1.D0
         ! molar concentration of ionic countercharge (M=mol/L)
-        REAL(DP) :: cionmax(nsx) = 1.D3
+        REAL(DP) :: cionmax = 1.D3
         ! maximum molar concentration of ionic countercharge (M=mol/L)
-        REAL(DP) :: rion(nsx) = 0.D0
+        REAL(DP) :: rion = 0.D0
         ! mean atomic radius of ionic countercharge (a.u.)
         REAL(DP) :: zion(nsx) = 1.D0
         ! valence of ionic countercharge
@@ -715,8 +715,8 @@ CONTAINS
     env_electrolyte_ntyp = 0
     stern_entropy = 'full'
     cion(:) = 1.0D0
-    cionmax(:) = 0.0D0 ! if remains zero, pb or linpb
-    rion(:) = 0.D0
+    cionmax = 0.0D0 ! if remains zero, pb or linpb
+    rion = 0.D0
     zion(:) = 0.D0
     solvent_temperature = 300.0D0
     !
@@ -1215,11 +1215,14 @@ CONTAINS
          & TRIM(pbc_correction)//''' not allowed ', 1 )
     !
     DO i = 1, env_electrolyte_ntyp
-       IF ( cion(i) .LT. 0.D0 .OR. cionmax(i) .LT. 0.D0 .OR. &
-            rion(i) .LT. 0.D0 ) THEN
-          CALL errore( sub_name, ' cion, cionmax and rion cannot be negative', 1 )
+       IF ( cion(i) .LT. 0.D0 ) THEN
+          CALL errore( sub_name, ' cion cannot be negative ', 1 )
        END IF
     END DO
+    IF ( cionmax .LT. 0.D0 .OR. rion .LT. 0.D0 ) &
+         CALL errore( sub_name,'cionmax and rion cannot be negative ', 1 )
+    IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
+         CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
     RETURN
     !
 !--------------------------------------------------------------------
@@ -1384,10 +1387,7 @@ CONTAINS
        lelectrostatic = .TRUE.
        problem = 'linpb'
        solver  = 'cg'
-       DO ityp = 1, env_electrolyte_ntyp
-          IF ( cionmax(ityp) .GT. 0.D0 .OR. &
-               rion(ityp) .GT. 0.D0 ) problem = 'linmodpb'
-       END DO
+       IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'
     END IF
     !
     RETURN
