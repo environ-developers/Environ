@@ -22,26 +22,7 @@
 #!/bin/bash
 
 ENVIRON_VERSION="1.0"
-ENVIRON_dir="$PWD/../../Environ"
-patch_SCRIPT="$ENVIRON_dir/patches/qe-patch.sh"
-revert_SCRIPT="$ENVIRON_dir/patches/qe-revert.sh"
-
-function to_do_before_patch () {
-  echo > /dev/null
-}
-
-function to_do_after_patch () {
-  echo > /dev/null
-}
-
-function to_do_before_revert () {
-  echo > /dev/null
-}
-
-function to_do_after_revert () {
-  echo > /dev/null
-}
-
+ENVIRON_DIR=${PWD}/Environ
 
 if [ "$#" -eq 0 ];
 then
@@ -66,19 +47,15 @@ case "$1" in
   echo "#Please do not remove or modify this file"                    >  Environ_PATCH
   echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
   echo "$ENVIRON_VERSION"                                              >> Environ_PATCH
-
-  to_do_before_patch
-
-  if test -e "$patch_SCRIPT" ; then
-    echo "-- Applying patches"
-    bash "$patch_SCRIPT"
-  fi
-
-  to_do_after_patch
-
+  for i in pw cp td ; do
+      PATCH_SCRIPT="${ENVIRON_DIR}/patches/${i}-patch.sh"
+      if test -e "$PATCH_SCRIPT" ; then
+	  echo "-- Applying patches to $i"
+	  bash "$PATCH_SCRIPT" > /dev/null
+      fi
+  done
   echo "- DONE!"
 ;;
-
 (-revert)
   echo "* I will try to revert Environ version $Environ_VERSION ..."
   if test ! -e Environ_PATCH ; then
@@ -87,21 +64,13 @@ case "$1" in
     echo "* ABORT"
     exit
   fi
-
-  echo "-- Executing pre script"
-
-  to_do_before_revert
-
-  if test -e "$revert_SCRIPT" ; then
-    echo "-- Reverting patches"
-    bash "$revert_SCRIPT"
-  fi
-
-  echo "-- Executing post script"
-  to_do_after_revert
-
+  for i in pw cp td ; do
+      REVERT_SCRIPT="${ENVIRON_DIR}/patches/${i}-revert.sh"
+      if test -e "$REVERT_SCRIPT" ; then
+	  echo "-- Reverting patches to $i"
+	  bash "$REVERT_SCRIPT" > /dev/null
+      fi
+  done
   rm "Environ_PATCH"
-
   echo "* DONE!"
-
 esac

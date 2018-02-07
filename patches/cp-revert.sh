@@ -18,6 +18,9 @@
 #
 #!/bin/bash
 
+QEDIR="$PWD"
+cd $QEDIR/CPV/src
+
 # plugin_int_forces
 
 sed '/Environ patch/,/Environ patch/d' plugin_int_forces.f90 > tmp.1
@@ -95,3 +98,5 @@ mv tmp.1 plugin_get_potential.f90
 sed '/Environ patch/,/Environ patch/d' plugin_utilities.f90 > tmp.1
 
 mv tmp.1 plugin_utilities.f90
+
+cd $QEDIR

@@ -22,8 +22,8 @@
 
 #!/bin/bash
 
-# check whether echo has the -e option
-if test "`echo -e`" = "-e" ; then ECHO=echo ; else ECHO="echo -e" ; fi
+QEDIR="$PWD"
+cd $QEDIR/CPV/src
 
 #plugin_add_potential.f90
 
@@ -450,3 +450,5 @@ cat >> plugin_utilities.f90 <<EOF
 !-----------------------------------------------------------------------
 !Environ patch
 EOF
+
+cd $QEDIR
