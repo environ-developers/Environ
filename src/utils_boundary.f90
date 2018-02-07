@@ -654,7 +654,7 @@ CONTAINS
     CALL solvent_aware_boundary( localbound )
     !
     localpressure = 100.D0
-    CALL calc_dvolume_dboundary( localpressure, localbound, de_dboundary )
+    CALL calc_devolume_dboundary( localpressure, localbound, de_dboundary )
     !
     localsurface_tension = 100.D0
     CALL calc_desurface_dboundary( localsurface_tension, localbound, de_dboundary )
