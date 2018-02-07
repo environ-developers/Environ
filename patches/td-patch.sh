@@ -22,6 +22,9 @@
 
 #!/bin/bash
 
+QEDIR="$PWD"
+cd $QEDIR/TDDFPT/src
+
 cat > tmp.1 <<EOF
 --- lr_readin.f90	2018-01-29 15:53:52.000000000 -0600
 +++ lr_readin.f90	2018-01-29 15:53:58.000000000 -0600
@@ -112,3 +115,4 @@ patch -b -z PreENVIRON --ignore-whitespace -i tmp.1
 
 rm tmp.1
 
+cd $QEDIR
