@@ -100,7 +100,7 @@ verbose=0             # if GE 1 prints debug informations
 environ_thr='1.d0'    # electronic convergence threshold for the onset  
                       # of solvation correction
 ### ELECTROLYTE PARAMETERS ##########################################
-env_ioncc_ntyp=2        # number of electrolyte species in solution
+env_electrolyte_ntyp=2  # number of electrolyte species in solution
 zion=1                  # ionic charge
 cion='5.0'              # ionic concentration (in mol/l)
 cionmax='15.0'          # max ionic concentration (in mol/l) 
@@ -222,7 +222,7 @@ cat > environ.in << EOF
    env_static_permittivity = 80
    env_surface_tension = 0.D0
    env_pressure = 0.D0
-   env_ioncc_ntyp = $env_ioncc_ntyp     
+   env_electrolyte_ntyp = $env_electrolyte_ntyp
    zion(1) = $zion
    zion(2) = -$zion                  
    cion(1) = $cion
