@@ -23,8 +23,21 @@
 
 #!/bin/bash
 
-QEDIR="$PWD"
-cd $QEDIR/PW/src
+cd $PW_SRC
+
+if test -e "Environ_PATCH" ; then
+    echo "-- File Environ_PATCH exists in PW/src directory"
+    echo "-- I guess you have already patched PW/src with Environ $(tail -1 Environ_PATCH)"
+    echo "-- Please unpatch it first, or start from a clean source tree"
+    echo "-- See you later..."
+    echo "* ABORT"
+    exit
+fi
+
+echo "* I will try to patch PW/src with Environ version $ENVIRON_VERSION ..."
+echo "#Please do not remove or modify this file"                          >  Environ_PATCH
+echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
+echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
 
 # plugin_int_forces
 
@@ -391,4 +404,6 @@ end subroutine external_force_lc
 !Environ patch
 EOF
 
-cd $QEDIR
+echo "- DONE!"
+
+cd $QE_DIR

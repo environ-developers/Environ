@@ -22,8 +22,21 @@
 
 #!/bin/bash
 
-QEDIR="$PWD"
-cd $QEDIR/TDDFPT/src
+cd $TD_SRC
+
+if test -e "Environ_PATCH" ; then
+    echo "-- File Environ_PATCH exists in TDDFPT/src directory"
+    echo "-- I guess you have already patched TDDFPT/src with Environ $(tail -1 Environ_PATCH)"
+    echo "-- Please unpatch it first, or start from a clean source tree"
+    echo "-- See you later..."
+    echo "* ABORT"
+    exit
+fi
+
+echo "* I will try to patch TDDFPT/src with Environ version $ENVIRON_VERSION ..."
+echo "#Please do not remove or modify this file"                          >  Environ_PATCH
+echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
+echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
 
 cat > tmp.1 <<EOF
 --- lr_readin.f90	2018-01-29 15:53:52.000000000 -0600
@@ -115,4 +128,6 @@ patch -b -z PreENVIRON --ignore-whitespace -i tmp.1
 
 rm tmp.1
 
-cd $QEDIR
+echo "- DONE!"
+
+cd $QE_DIR

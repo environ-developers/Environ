@@ -22,8 +22,21 @@
 
 #!/bin/bash
 
-QEDIR="$PWD"
-cd $QEDIR/CPV/src
+cd $CP_SRC
+
+if test -e "Environ_PATCH" ; then
+    echo "-- File Environ_PATCH exists in CPV/src directory"
+    echo "-- I guess you have already patched CPV/src with Environ $(tail -1 Environ_PATCH)"
+    echo "-- Please unpatch it first, or start from a clean source tree"
+    echo "-- See you later..."
+    echo "* ABORT"
+    exit
+fi
+
+echo "* I will try to patch CPV/src with Environ version $ENVIRON_VERSION ..."
+echo "#Please do not remove or modify this file"                          >  Environ_PATCH
+echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
+echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
 
 #plugin_add_potential.f90
 
@@ -451,4 +464,6 @@ cat >> plugin_utilities.f90 <<EOF
 !Environ patch
 EOF
 
-cd $QEDIR
+echo "- DONE!"
+
+cd $QE_DIR

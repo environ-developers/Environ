@@ -22,10 +22,22 @@
 
 #!/bin/bash
 
-QEDIR="$PWD"
-cd $QEDIR/TDDFPT/src
+cd $TD_SRC
 
-cat > tmp.1 <<EOF
+if test ! -e Environ_PATCH ; then
+    echo "-- File Environ_PATCH is not there"
+    echo "-- I guess you never patched, so there is nothing to revert"
+    echo "* ABORT"
+    exit
+fi
+
+echo "* I will try to revert TDDFPT/src with Environ version $ENVIRON_VERSION ..."
+rm "Environ_PATCH"
+
+if [ -e lr_readin.f90PreENVIRON ]; then
+    mv -f lr_readin.f90PreENVIRON lr_readin.f90
+else
+    cat > tmp.1 <<EOF
 --- lr_readin.f90	2018-01-29 15:53:52.000000000 -0600
 +++ lr_readin.f90	2018-01-29 15:53:58.000000000 -0600
 @@ -59,18 +59,16 @@
@@ -110,11 +122,10 @@ cat > tmp.1 <<EOF
    ENDIF
    !
 EOF
+    patch -R --ignore-whitespace -i tmp.1
+    rm tmp.1
+fi
 
-patch -R --ignore-whitespace -i tmp.1
+echo "* DONE!"
 
-rm tmp.1
-
-if [ -e lr_readin.f90PreENVIRON ] ; then rm lr_readin.f90PreENVIRON ; fi
-
-cd $QEDIR
+cd $QE_DIR

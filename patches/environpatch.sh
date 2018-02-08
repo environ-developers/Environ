@@ -16,61 +16,142 @@
 #
 # PATCH SCRIPT FOR Environ
 #
-# This script has been adapted from original patch scripts
-# of plumed (www.plumed-code.org) by Layla Martin-Samos
+# Author: Oliviero Andreussi (Department of Physics, UNT)
 #
 #!/bin/bash
 
-ENVIRON_VERSION="1.0"
-ENVIRON_DIR=${PWD}/Environ
+export ENVIRON_VERSION="1.0"
+export ENVIRON_PATCH=$(cd "${BASH_SOURCE%/*}"; pwd)
+export ENVIRON_DIR="${ENVIRON_PATCH}/.."
+export ENVIRON_TEST="${ENVIRON_DIR}/tests"
+export ENVIRON_SRC="${ENVIRON_DIR}/src"
+
+# Installation script assumes that Environ directory is placed
+# in main QE directory. Modify the following line if this is not the case
+
+export QE_DIR="$ENVIRON_DIR/.."
+
+# Set QE source directories and check that they are present
+
+export PW_SRC="${QE_DIR}/PW/src"
+if [ ! -d $PW_SRC ]; then
+   echo "Cannot find PW/src directory"
+   echo "Searching in $PW_SRC"
+   exit
+fi
+
+export CP_SRC="${QE_DIR}/CPV/src"
+if [ ! -d $CP_SRC ]; then
+   echo "Cannot find CPV/src directory"
+   echo "Searching in $CP_SRC"
+   exit
+fi
+
+export TD_SRC="${QE_DIR}/TDDFPT/src"
+if [ ! -d $TD_SRC ]; then
+   echo "Cannot find TDDFPT/src directory"
+   echo "Searching in $TD_SRC"
+   exit
+fi
 
 if [ "$#" -eq 0 ];
 then
  echo "USAGE :"
- echo "$0  (-patch) (-revert)   "
+ echo "$0  (-patch or -revert) {all|pw|cp|td}"
  echo " -patch  : apply Environ patch "
  echo " -revert : revert code to original "
+ echo " a second argument may be used to specify the code to patch"
  exit
 fi
 
 case "$1" in
-(-patch)
-  echo "* I will try to patch Environ version $ENVIRON_VERSION ..."
-  if test -e "Environ_PATCH" ; then
-    echo "-- File Environ_PATCH exists"
-    echo "-- I guess you have already patched Environ $(tail -1 Environ_PATCH)"
-    echo "-- Please unpatch it first, or start from a clean source tree"
-    echo "-- See you later..."
-    echo "* ABORT"
-    exit
-  fi
-  echo "#Please do not remove or modify this file"                    >  Environ_PATCH
-  echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
-  echo "$ENVIRON_VERSION"                                              >> Environ_PATCH
-  for i in pw cp td ; do
-      PATCH_SCRIPT="${ENVIRON_DIR}/patches/${i}-patch.sh"
-      if test -e "$PATCH_SCRIPT" ; then
-	  echo "-- Applying patches to $i"
-	  bash "$PATCH_SCRIPT" > /dev/null
-      fi
-  done
-  echo "- DONE!"
-;;
-(-revert)
-  echo "* I will try to revert Environ version $Environ_VERSION ..."
-  if test ! -e Environ_PATCH ; then
-    echo "-- File Environ_PATCH is not there"
-    echo "-- I guess you never patched, so there is nothing to revert"
-    echo "* ABORT"
-    exit
-  fi
-  for i in pw cp td ; do
-      REVERT_SCRIPT="${ENVIRON_DIR}/patches/${i}-revert.sh"
-      if test -e "$REVERT_SCRIPT" ; then
-	  echo "-- Reverting patches to $i"
-	  bash "$REVERT_SCRIPT" > /dev/null
-      fi
-  done
-  rm "Environ_PATCH"
-  echo "* DONE!"
+    (-patch)
+	if [ "$#" -eq 1 ]; then
+ 	   for i in pw cp td ; do
+	       PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
+	       if test -e "$PATCH_SCRIPT" ; then
+		   echo "-- Applying patches to $i"
+		   bash "$PATCH_SCRIPT"
+	       fi
+	   done
+	else
+	    case "$2" in
+	    (all)
+ 		for i in pw cp td ; do
+		    PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
+		    if test -e "$PATCH_SCRIPT" ; then
+			echo "-- Applying patches to $i"
+			bash "$PATCH_SCRIPT"
+		    fi
+		done
+		;;
+	    (pw)
+		PATCH_SCRIPT="${ENVIRON_PATCH}/pw-patch.sh"
+		if test -e "$PATCH_SCRIPT" ; then
+		    echo "-- Applying patches to pw"
+		    bash "$PATCH_SCRIPT"
+		fi
+		;;
+	    (cp)
+		PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
+		if test -e "$PATCH_SCRIPT" ; then
+		    echo "-- Applying patches to cp"
+		    bash "$PATCH_SCRIPT"
+		fi
+		;;
+	    (td)
+ 		for i in pw td ; do
+		    PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
+		    if test -e "$PATCH_SCRIPT" ; then
+			echo "-- Applying patches to $i"
+			bash "$PATCH_SCRIPT"
+		    fi
+		done
+	    esac
+	fi
+	;;
+    (-revert)
+	if [ "$#" -eq 1 ]; then
+ 	   for i in pw cp td ; do
+	       PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
+	       if test -e "$PATCH_SCRIPT" ; then
+		   echo "-- Reverting patches to $i"
+		   bash "$PATCH_SCRIPT"
+	       fi
+	   done
+	else
+	    case "$2" in
+	    (all)
+ 		for i in pw cp td ; do
+		    REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
+		    if test -e "$REVERT_SCRIPT" ; then
+			echo "-- Reverting patches to $i"
+			bash "$REVERT_SCRIPT" > /dev/null
+		    fi
+		done
+		;;
+	    (pw)
+		REVERT_SCRIPT="${ENVIRON_PATCH}/pw-revert.sh"
+		if test -e "$REVERT_SCRIPT" ; then
+		    echo "-- Reverting patches to pw"
+		    bash "$REVERT_SCRIPT"
+		fi
+		;;
+	    (cp)
+		REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
+		if test -e "$REVERT_SCRIPT" ; then
+		    echo "-- Reverting patches to cp"
+		    bash "$REVERT_SCRIPT"
+		fi
+		;;
+	    (td)
+ 		for i in pw td ; do
+		    REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
+		    if test -e "$REVERT_SCRIPT" ; then
+			echo "-- Reverting patches to ${i}"
+			bash "$REVERT_SCRIPT"
+		    fi
+		done
+	    esac
+	fi
 esac
