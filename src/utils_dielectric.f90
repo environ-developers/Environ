@@ -151,7 +151,7 @@ CONTAINS
     label = 'epsilon_factsqrt'
     CALL create_environ_density( dielectric%factsqrt, label )
     !
-    label = 'density'
+    label = 'polarization_density'
     CALL create_environ_density( dielectric%density, label )
     dielectric%need_auxiliary = .FALSE.
     label = 'iterative'
