@@ -267,6 +267,10 @@ MODULE environ_types
   !
   TYPE environ_boundary
      !
+     ! Boundary label
+     !
+     CHARACTER (LEN=80) :: label
+     !
      ! Choice of the interface
      !
      CHARACTER (LEN=80) :: mode

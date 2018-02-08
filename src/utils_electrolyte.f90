@@ -95,13 +95,13 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_electrolyte'
     CHARACTER( LEN=80 ) :: label
     !
-    CALL create_environ_boundary( electrolyte%boundary )
+    label = 'electrolyte'
+    CALL create_environ_boundary( electrolyte%boundary, label )
+    CALL create_environ_density( electrolyte%density, label )
     label = 'gamma'
     CALL create_environ_density( electrolyte%gamma  , label )
     label = 'dgamma'
     CALL create_environ_density( electrolyte%dgamma  , label )
-    label = 'electrolyte'
-    CALL create_environ_density( electrolyte%density, label )
     !
     electrolyte % charge = 0.D0
     !

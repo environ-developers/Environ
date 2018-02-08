@@ -31,6 +31,10 @@
 !  TYPE environ_boundary
 !----------------------------------------------------------------------------
 !
+!     ! Boundary label
+!
+!     CHARACTER (LEN=80) :: label
+!
 !     ! Choice of the interface
 !
 !     CHARACTER (LEN=80) :: mode
@@ -131,19 +135,21 @@ MODULE utils_boundary
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE create_environ_boundary(boundary)
+  SUBROUTINE create_environ_boundary(boundary, local_label)
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+    CHARACTER( LEN=80 ), INTENT(IN) :: local_label
     !
     CHARACTER( LEN=80 ) :: sub_name = 'create_environ_boundary'
     CHARACTER( LEN=80 ) :: label = ' '
     !
     boundary%update_status = 0
+    boundary%label = local_label
     !
-    label = 'boundary'
+    label = 'boundary_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%scaled, label )
     boundary%volume = 0.D0
     boundary%surface = 0.D0
@@ -158,22 +164,22 @@ CONTAINS
     ! Optional components
     !
     boundary%deriv = 0
-    label = 'gradboundary'
+    label = 'gradboundary_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_gradient( boundary%gradient, label )
-    label = 'laplboundary'
+    label = 'laplboundary_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%laplacian, label )
-    label = 'dsurface'
+    label = 'dsurface_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%dsurface, label )
-    label = 'hessboundary'
+    label = 'hessboundary_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_hessian( boundary%hessian, label )
     !
     ! Components required for boundary of density
     !
-    label = 'density'
+    label = 'boundary_density_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%density, label )
-    label = 'dboundary'
+    label = 'dboundary_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%dscaled, label )
-    label = 'd2boundary'
+    label = 'd2boundary_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%d2scaled, label )
     !
     ! Components required for boundary of functions
@@ -184,13 +190,13 @@ CONTAINS
     ! Components required for solvent-aware interface
     !
     boundary%solvent_aware = .FALSE.
-    label = 'local'
+    label = 'local_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%local, label )
-    label = 'probe'
+    label = 'probe_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%probe, label )
-    label = 'filling'
+    label = 'filling_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%filling, label )
-    label = 'dfilling'
+    label = 'dfilling_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%dfilling, label )
     !
     RETURN
