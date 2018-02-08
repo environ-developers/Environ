@@ -48,37 +48,53 @@ CONTAINS
     REAL( DP ), DIMENSION( nnr ), INTENT(IN) :: f
     REAL( DP ), DIMENSION( 3, nnr ), INTENT(OUT) :: grad
     !
-    INTEGER :: index0, i, ir, ir_end, ipol, in
+    INTEGER :: idx, idx0, j0, k0, i, ir, ir_end, ipol, in
     INTEGER :: ix(-nfdpoint:nfdpoint),iy(-nfdpoint:nfdpoint),iz(-nfdpoint:nfdpoint)
     INTEGER :: ixc, iyc, izc, ixp, ixm, iyp, iym, izp, izm
-    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gradtmp
+    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gradtmp, gradaux
     !
     grad = 0.D0
     !
-    ALLOCATE( gradtmp( 3, dfftp%nr1x*dfftp%nr2x*dfftp%nr3x ) )
+    ALLOCATE( gradtmp( dfftp%nr1x*dfftp%nr2x*dfftp%nr3x, 3 ) )
     gradtmp = 0.D0
     !
-    index0 = 0
-    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
 #if defined (__MPI)
-    DO i = 1, me_bgrp
-       index0 = index0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-#endif
-    !
-#if defined (__MPI)
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
 #else
+    j0 = 0 ; k0 = 0
     ir_end = nnr
 #endif
+! END BACKWARD COMPATIBILITY
     !
     DO ir = 1, ir_end
        !
-       i = index0 + ir - 1
-       iz(0) = i / (dfftp%nr1x*dfftp%nr2x)
-       i     = i - (dfftp%nr1x*dfftp%nr2x)*iz(0)
-       iy(0) = i / dfftp%nr1x
-       ix(0) = i - dfftp%nr1x*iy(0)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       i = idx0 + ir - 1
+!       iz(0) = i / (dfftp%nr1x*dfftp%nr2x)
+!       i     = i - (dfftp%nr1x*dfftp%nr2x)*iz(0)
+!       iy(0) = i / dfftp%nr1x
+!       ix(0) = i - dfftp%nr1x*iy(0)
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx   = ir - 1
+       iz(0) = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx   = idx - (dfftp%nr1x*dfftp%my_nr2p)*iz(0)
+       iz(0) = iz(0) + k0
+       iy(0) = idx / dfftp%nr1x
+       idx   = idx - dfftp%nr1x*iy(0)
+       iy(0) = iy(0) + j0
+       ix(0) = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( ix(0) >= dfftp%nr1 .OR. iy(0) >= dfftp%nr2 .OR. iz(0) >= dfftp%nr3 ) CYCLE
        !
        DO in = 1, nfdpoint
           ix(in) = ix(in-1) + 1
@@ -97,29 +113,32 @@ CONTAINS
        !
        DO in = -nfdpoint, nfdpoint
           i = ix(in) + iy(0) * dfftp%nr1x + iz(0) * dfftp%nr1x * dfftp%nr2x + 1
-          gradtmp(1,i) = gradtmp(1,i) - icfd(in)*f(ir)*dfftp%nr1x
+          gradtmp(i,1) = gradtmp(i,1) - icfd(in)*f(ir)*dfftp%nr1
           i = ix(0) + iy(in) * dfftp%nr1x + iz(0) * dfftp%nr1x * dfftp%nr2x + 1
-          gradtmp(2,i) = gradtmp(2,i) - icfd(in)*f(ir)*dfftp%nr2x
+          gradtmp(i,2) = gradtmp(i,2) - icfd(in)*f(ir)*dfftp%nr2
           i = ix(0) + iy(0) * dfftp%nr1x + iz(in) * dfftp%nr1x * dfftp%nr2x + 1
-          gradtmp(3,i) = gradtmp(3,i) - icfd(in)*f(ir)*dfftp%nr3x
+          gradtmp(i,3) = gradtmp(i,3) - icfd(in)*f(ir)*dfftp%nr3
        ENDDO
        !
     ENDDO
     !
+    ALLOCATE( gradaux(nnr,3) )
 #if defined (__MPI)
     DO ipol = 1, 3
-       CALL mp_sum( gradtmp(ipol,:), intra_bgrp_comm )
-       CALL scatter_grid ( dfftp, gradtmp(ipol,:), grad(ipol,:) )
+       CALL mp_sum( gradtmp(:,ipol), intra_bgrp_comm )
+       CALL scatter_grid ( dfftp, gradtmp(:,ipol), gradaux(:,ipol) )
     ENDDO
 #else
-    grad = gradtmp
+    gradaux(1:nnr,:) = gradtmp(1:nnr,:)
 #endif
     !
     DEALLOCATE( gradtmp )
     !
     DO ir = 1,nnr
-       grad(:,ir) = MATMUL( bg, grad(:,ir) )
+       grad(:,ir) = MATMUL( bg, gradaux(ir,:) )
     ENDDO
+    DEALLOCATE( gradaux )
+    !
     grad = grad / DBLE(ncfd) / alat
     !
     RETURN

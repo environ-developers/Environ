@@ -1199,7 +1199,7 @@ CONTAINS
     ! Update integral of electronic density and, if provided, check against input value
     !
     electrons%charge = integrate_environ_density( electrons%density )
-    electrons%number = INT(electrons%charge)
+    electrons%number = NINT(electrons%charge)
     !
     IF ( PRESENT( nelec ) ) THEN
        IF ( ABS(electrons%charge-nelec) .GT. tol ) &

@@ -97,9 +97,7 @@ CONTAINS
     INTEGER                   :: i, j, k, ir, ir_end
     INTEGER                   :: idx, idx0, narea
     !
-    ! idx0 = starting index of real-space FFT arrays for this processor
-    !
-    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+    INTEGER                   :: j0, k0
     !
     narea = dfftp%nr1*dfftp%nr2*dfftp%nr3 / naxis
     !
@@ -109,16 +107,42 @@ CONTAINS
        f1d = 0.D0
     END IF
     !
-    DO ir = 1, dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
+    !
+    DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       idx = idx0 + ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
        j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x*j
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
        i   = idx
+! END BACKWARD COMPATIBILITY
        !
        ! ... do not include points outside the physical range
        !
@@ -185,7 +209,7 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ip
+    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end
     INTEGER                   :: idx, idx0
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
@@ -235,20 +259,42 @@ CONTAINS
     ALLOCATE( rholocal( nnr ) )
     rholocal = 0.D0
     !
-    ! idx0 = starting index of real-space FFT arrays for this processor
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
     !
-    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-    !
-    DO ir = 1, dfftp%nr1x*dfftp%nr2x*dfftp%npl
+    DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       idx = idx0 + ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
        j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x*j
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
        i   = idx
+! END BACKWARD COMPATIBILITY
        !
        ! ... do not include points outside the physical range
        !
@@ -321,7 +367,7 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ip
+    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end
     INTEGER                   :: idx, idx0
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
@@ -372,20 +418,42 @@ CONTAINS
     ALLOCATE( gradrholocal( 3, nnr ) )
     gradrholocal = 0.D0
     !
-    ! idx0 = starting index of real-space FFT arrays for this processor
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
     !
-    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-    !
-    DO ir = 1, dfftp%nr1x*dfftp%nr2x*dfftp%npl
+    DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       idx = idx0 + ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
        j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x*j
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
        i   = idx
+! END BACKWARD COMPATIBILITY
        !
        ! ... do not include points outside the physical range
        !
@@ -438,6 +506,7 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
+    USE io_global,        ONLY : stdout
     USE cell_base,        ONLY : at, bg, alat
     USE fft_base,         ONLY : dfftp
     USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
@@ -453,8 +522,8 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ir_end, ip
-    INTEGER                   :: idx0
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: idx, idx0
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
     REAL( DP )                :: dist, arg
@@ -462,39 +531,57 @@ CONTAINS
     REAL( DP ), ALLOCATABLE   :: rholocal ( : )
     REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
     !
-    idx0 = 0
-    !
-#if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-#endif
-    !
-#if defined (__MPI)
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#else
-    ir_end = nnr
-#endif
-    !
     ALLOCATE( rholocal( nnr ) )
     rholocal = 0.D0
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
     !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -534,6 +621,7 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
+    USE io_global,        ONLY : stdout
     USE cell_base,        ONLY : at, bg, alat
     USE fft_base,         ONLY : dfftp
     USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
@@ -551,8 +639,8 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ir_end, ip
-    INTEGER                   :: idx0
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: idx, idx0
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
     REAL( DP )                :: dist, arg
@@ -560,39 +648,57 @@ CONTAINS
     REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
     REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
     !
-    idx0 = 0
-    !
-#if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-#endif
-    !
-#if defined (__MPI)
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#else
-    ir_end = nnr
-#endif
-    !
     ALLOCATE( gradrholocal( 3, nnr ) )
     gradrholocal = 0.D0
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
     !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -648,8 +754,8 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ir_end, ip
-    INTEGER                   :: idx0, ntot
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: idx, idx0, ntot
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
@@ -657,19 +763,13 @@ CONTAINS
     REAL( DP ), ALLOCATABLE   :: rholocal ( : )
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-    !
-    idx0 = 0
-    ir_end = nnr
-    !
-#if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#endif
     !
     ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
     !
@@ -681,18 +781,46 @@ CONTAINS
     ALLOCATE( rholocal( nnr ) )
     rholocal = 0.D0
     !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
+    !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -770,8 +898,8 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ir_end, ip
-    INTEGER                   :: idx0, ntot
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: idx, idx0, ntot
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
@@ -779,19 +907,13 @@ CONTAINS
     REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-    !
-    idx0 = 0
-    ir_end = nnr
-    !
-#if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#endif
     !
     ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
     !
@@ -808,18 +930,46 @@ CONTAINS
     gradrholocal = 0.D0
     chargelocal = 0.D0
     !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
+    !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -897,8 +1047,8 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ir_end, ip
-    INTEGER                   :: idx0, ntot
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: idx, idx0, ntot
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
@@ -906,19 +1056,13 @@ CONTAINS
     REAL( DP ), ALLOCATABLE   :: laplrholocal ( : )
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-    !
-    idx0 = 0
-    ir_end = nnr
-    !
-#if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#endif
     !
     ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
     !
@@ -935,18 +1079,46 @@ CONTAINS
     laplrholocal = 0.D0
     chargelocal = 0.D0
     !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
+    !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -1024,8 +1196,8 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ir_end, ip, jp
-    INTEGER                   :: idx0, ntot
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, jp
+    INTEGER                   :: idx, idx0, ntot
     !
     REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal, tmp
@@ -1033,19 +1205,13 @@ CONTAINS
     REAL( DP ), ALLOCATABLE   :: hessrholocal ( :, :, : )
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-    !
-    idx0 = 0
-    ir_end = nnr
-    !
-#if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
-#endif
     !
     ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
     !
@@ -1062,18 +1228,46 @@ CONTAINS
     hessrholocal = 0.D0
     chargelocal = 0.D0
     !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+#if defined (__MPI)
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+#else
+    j0 = 0 ; k0 = 0
+    ir_end = nnr
+#endif
+! END BACKWARD COMPATIBILITY
+    !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -1138,6 +1332,7 @@ CONTAINS
   SUBROUTINE generate_axis( nnr, icor, pos, axis )
 !--------------------------------------------------------------------
     USE kinds,            ONLY : DP
+    USE io_global,        ONLY : stdout
     USE cell_base,        ONLY : at, bg, alat
     USE fft_base,         ONLY : dfftp
     USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
@@ -1147,40 +1342,58 @@ CONTAINS
     REAL(DP), INTENT(IN) :: pos(3)
     REAL(DP), INTENT(OUT) :: axis( dfftp%nnr )
     !
-    INTEGER  :: i, j, k, ir, ir_end, ip, idx0
+    INTEGER  :: i, j, j0, k, k0, ir, ir_end, ip, idx, idx0
     REAL(DP) :: inv_nr1, inv_nr2, inv_nr3
     REAL(DP) :: r(3)
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
     !
-    idx0 = 0
-    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
 #if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-#endif
-    !
-#if defined (__MPI)
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
 #else
+    j0 = 0 ; k0 = 0
     ir_end = nnr
 #endif
+! END BACKWARD COMPATIBILITY
     !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
@@ -1213,6 +1426,7 @@ CONTAINS
   SUBROUTINE generate_distance( nnr, pos, distance )
 !--------------------------------------------------------------------
     USE kinds,            ONLY : DP
+    USE io_global,        ONLY : stdout
     USE cell_base,        ONLY : at, bg, alat
     USE fft_base,         ONLY : dfftp
     USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
@@ -1221,40 +1435,58 @@ CONTAINS
     REAL(DP), INTENT(IN) :: pos(3)
     REAL(DP), INTENT(OUT) :: distance( 3, dfftp%nnr )
     !
-    INTEGER  :: i, j, k, ir, ir_end, ip, idx0
+    INTEGER  :: i, j, j0, k, k0, ir, ir_end, ip, idx, idx0
     REAL(DP) :: inv_nr1, inv_nr2, inv_nr3
     REAL(DP) :: r(3), s(3)
     !
+    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       STOP
+    ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
     !
-    idx0 = 0
-    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
 #if defined (__MPI)
-    DO i = 1, me_bgrp
-       idx0 = idx0 + dfftp%nr1x*dfftp%nr2x*dfftp%npp(i)
-    END DO
-#endif
-    !
-#if defined (__MPI)
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1))
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
 #else
+    j0 = 0 ; k0 = 0
     ir_end = nnr
 #endif
+! END BACKWARD COMPATIBILITY
     !
     DO ir = 1, ir_end
        !
        ! ... three dimensional indexes
        !
-       i = idx0 + ir - 1
-       k = i / (dfftp%nr1x*dfftp%nr2x)
-       IF ( k .GE. dfftp%nr3 ) CYCLE
-       i = i - (dfftp%nr1x*dfftp%nr2x)*k
-       j = i / dfftp%nr1x
-       IF ( j .GE. dfftp%nr2 ) CYCLE
-       i = i - dfftp%nr1x*j
-       IF ( i .GE. dfftp%nr1 ) CYCLE
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X
+!       idx = idx0 + ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!       j   = idx / dfftp%nr1x
+!       idx = idx - dfftp%nr1x*j
+!       i   = idx
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+       idx = ir - 1
+       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+       k   = k + k0
+       j   = idx / dfftp%nr1x
+       idx = idx - dfftp%nr1x * j
+       j   = j + j0
+       i   = idx
+! END BACKWARD COMPATIBILITY
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
        !
        DO ip = 1, 3
           r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &

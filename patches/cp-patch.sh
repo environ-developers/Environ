@@ -192,7 +192,16 @@ INTEGER :: ir_end \
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%nr2x*dfftp%npp(me_bgrp+1)) \
+! BACKWARD COMPATIBILITY \
+! Compatible with QE-5.X QE-6.1.X \
+!  ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl \
+! Compatible with QE-6.2, QE-6.2.1 and QE-GIT \
+#if defined (__MPI) \
+    ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p) \
+#else \
+    ir_end = dfftp%nnr \
+#endif \
+! END BACKWARD COMPATIBILITY \
   IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, & \
        & dfftp%nnr, ir_end, intra_bgrp_comm, me_bgrp, root_bgrp_id, 1.D0 ) \
 !Environ patch
