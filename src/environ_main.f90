@@ -94,19 +94,19 @@ CONTAINS
        ! ... Electrostatics is also computed inside the calling program, need to remove the reference
        !
        CALL calc_velectrostatic( reference, charges, vreference )
-       IF ( verbose .GE. 3 ) CALL print_environ_density( vreference )
+       IF ( verbose .GE. 2 ) CALL print_environ_density( vreference )
        !
        IF ( lexternals ) CALL update_environ_charges( charges, lexternals )
        !
        CALL calc_velectrostatic( outer, charges, velectrostatic )
-       IF ( verbose .GE. 3 ) CALL print_environ_density( velectrostatic )
+       IF ( verbose .GE. 2 ) CALL print_environ_density( velectrostatic )
        !
        vtot = vtot + velectrostatic % of_r - vreference % of_r
        !
        CALL charges_of_potential( velectrostatic, charges )
        !
        IF ( lexternals ) CALL update_environ_charges( charges )
-       IF ( verbose .GE. 3 ) CALL print_environ_charges( charges )
+       IF ( verbose .GE. 2 ) CALL print_environ_charges( charges )
        !
     END IF
     !
@@ -161,7 +161,7 @@ CONTAINS
           !
        END IF
        !
-       IF ( verbose .GE. 3 ) CALL print_environ_density( vsoftcavity )
+       IF ( verbose .GE. 4 ) CALL print_environ_density( vsoftcavity )
        vtot = vtot + vsoftcavity % of_r
        !
        CALL destroy_environ_density( de_dboundary )

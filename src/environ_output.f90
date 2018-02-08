@@ -151,7 +151,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -217,7 +217,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose 
        passed_depth = depth
     END IF
     !
@@ -285,7 +285,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose 
        passed_depth = depth
     END IF
     !
@@ -364,7 +364,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -449,7 +449,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -559,7 +559,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose 
        passed_depth = depth
     END IF
     !
@@ -615,7 +615,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose 
        passed_depth = depth
     END IF
     !
@@ -689,7 +689,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -741,7 +741,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -794,7 +794,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -855,7 +855,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose 
        passed_depth = depth
     END IF
     !
@@ -914,60 +914,61 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
     IF ( verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2000 )
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2001 )boundary%mode
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2001 )boundary%label
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2002 )boundary%mode
        IF ( boundary % need_electrons ) THEN
-          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2002 ) boundary % type
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2003 ) boundary % type
           SELECT CASE ( boundary % type )
           CASE ( 0 )
-             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2003 ) boundary % rhozero, boundary % tbeta
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % rhozero, boundary % tbeta
           CASE ( 1 )
-             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % rhomax, boundary % rhomin
-             IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % fact
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % rhomax, boundary % rhomin
+             IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2006 ) boundary % fact
           CASE ( 2 )
-             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2006 ) boundary % rhomax, boundary % rhomin
+             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2007 ) boundary % rhomax, boundary % rhomin
           END SELECT
-          IF ( verbosity .GE. 2 ) THEN
+          IF ( verbosity .GE. 3 ) THEN
              CALL print_environ_density(boundary%density,passed_verbosity,passed_depth)
              IF ( boundary % need_ions ) THEN
-                IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2007 )
+                IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2008 )
                 IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%ions%core)
              END IF
              IF ( verbosity .GE. 3 ) &
                   & CALL print_environ_electrons(boundary%electrons,passed_verbosity,passed_depth)
           END IF
-          IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
        ELSE IF ( boundary % need_ions ) THEN
-          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2008 ) boundary%alpha, boundary%softness
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2009 ) boundary%alpha, boundary%softness
           IF ( verbosity .GE. 2 ) &
                & CALL print_environ_functions(boundary%ions%number,boundary%soft_spheres,&
                & passed_verbosity,passed_depth)
        ELSE IF ( boundary % need_system ) THEN
-          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2009 ) boundary%simple%pos,boundary%simple%width,&
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2010 ) boundary%simple%pos,boundary%simple%width,&
                & boundary%simple%spread,boundary%simple%dim,boundary%simple%axis
        END IF
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2010 ) boundary%volume
-       IF ( boundary%deriv .GE. 1 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2011 ) boundary%surface
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2011 ) boundary%volume
+       IF ( boundary%deriv .GE. 1 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2012 ) boundary%surface
        IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
        IF ( boundary%solvent_aware ) THEN
-          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2012 ) boundary%filling_threshold,boundary%filling_spread,&
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2013 ) boundary%filling_threshold,boundary%filling_spread,&
                & boundary%solvent_probe%width,boundary%solvent_probe%spread
-          IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%local,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%local,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%filling,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%dfilling,passed_verbosity,passed_depth)
           IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%probe,passed_verbosity,passed_depth)
        END IF
-       IF ( verbosity .GE. 2 .AND. boundary%deriv .GE. 1 ) &
+       IF ( verbosity .GE. 4 .AND. boundary%deriv .GE. 1 ) &
             & CALL print_environ_gradient(boundary%gradient,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 2 .AND. boundary%deriv .GE. 2 ) &
+       IF ( verbosity .GE. 4 .AND. boundary%deriv .GE. 2 ) &
             & CALL print_environ_density(boundary%laplacian,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 2 .AND. boundary%deriv .EQ. 3 ) &
+       IF ( verbosity .GE. 4 .AND. boundary%deriv .EQ. 3 ) &
             & CALL print_environ_density(boundary%dsurface,passed_verbosity,passed_depth)
     END IF
     !
@@ -976,32 +977,33 @@ CONTAINS
     RETURN
     !
 2000 FORMAT(/,4('%'),' BOUNDARY ',66('%'))
-2001 FORMAT(1x,'boundary mode              = ',A20,' ')
-2002 FORMAT(1x,'boundary is built as a function of a smooth density'&
+2001 FORMAT(1x,'boundary label             = ',A20,' ')
+2002 FORMAT(1x,'boundary mode              = ',A20,' ')
+2003 FORMAT(1x,'boundary is built as a function of a smooth density'&
           /,1x,'function type              = ',I2,' ')
-2003 FORMAT(1x,'using the Fattebert-Gygi function with parameters '&
+2004 FORMAT(1x,'using the Fattebert-Gygi function with parameters '&
           /,1x,'rhozero                    = ',F14.7,' '&
           /,1x,'2*beta                     = ',F14.7,' ')
-2004 FORMAT(1x,'using the optimal SCCS function with parameters '&
+2005 FORMAT(1x,'using the optimal SCCS function with parameters '&
           /,1x,'rhomax                     = ',F14.7,' '&
           /,1x,'rhomin                     = ',F14.7,' ')
-2005 FORMAT(1x,'log(rhomax/rhomin)         = ',F14.7,' ')
-2006 FORMAT(1x,'using the modified SCCS function with parameters '&
+2006 FORMAT(1x,'log(rhomax/rhomin)         = ',F14.7,' ')
+2007 FORMAT(1x,'using the modified SCCS function with parameters '&
           /,1x,'rhomax                     = ',F14.7,' '&
           /,1x,'rhomin                     = ',F14.7,' ')
-2007 FORMAT(1x,'adding fictitious core-electrons')
-2008 FORMAT(1x,'boundary is built from soft-spheres centered on ionic positions'&
+2008 FORMAT(1x,'adding fictitious core-electrons')
+2009 FORMAT(1x,'boundary is built from soft-spheres centered on ionic positions'&
           /,1x,'solvent-dependent scaling  = ',F14.7,' '&
           /,1x,'softness parameter         = ',F14.7,' ')
-2009 FORMAT(1x,'boundary is built as an analytic function centered on system position'&
+2010 FORMAT(1x,'boundary is built as an analytic function centered on system position'&
           /,1x,'center of the boundary     = ',3F14.7,' '&
           /,1x,'distance from the center   = ',F14.7,' '&
           /,1x,'spread of the interface    = ',F14.7,' '&
           /,1x,'dimensionality             = ',I2,' '&
           /,1x,'axis                       = ',I2,' ')
-2010 FORMAT(1x,'volume of the QM region    = ',F14.7,' ')
-2011 FORMAT(1x,'surface of the QM region   = ',F14.7,' ')
-2012 FORMAT(1x,'using solvent-aware boundary           '&
+2011 FORMAT(1x,'volume of the QM region    = ',F14.7,' ')
+2012 FORMAT(1x,'surface of the QM region   = ',F14.7,' ')
+2013 FORMAT(1x,'using solvent-aware boundary           '&
           /,1x,'filling threshold          = ',F14.7,' '&
           /,1x,'filling spread             = ',F14.7,' '&
           /,1x,'solvent radius x rad scale = ',F14.7,' '&
@@ -1037,7 +1039,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -1048,16 +1050,16 @@ CONTAINS
        ELSE
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2102 )dielectric%constant,dielectric%nregions
           CALL print_environ_functions(dielectric%nregions,dielectric%regions,passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%background,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%background,passed_verbosity,passed_depth)
        END IF
-       CALL print_environ_boundary(dielectric%boundary,passed_verbosity,passed_depth)
+!       CALL print_environ_boundary(dielectric%boundary,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%density,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%epsilon,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%depsilon,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 4 ) CALL print_environ_density(dielectric%depsilon,passed_verbosity,passed_depth)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2103 )dielectric%need_gradient,&
             & dielectric%need_factsqrt
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2104 )dielectric%charge
-       IF ( verbosity .GE. 3 ) THEN
+       IF ( verbosity .GE. 4 ) THEN
           CALL print_environ_gradient(dielectric%gradlog,passed_verbosity,passed_depth)
           IF ( dielectric%need_gradient ) CALL print_environ_gradient(dielectric%gradient,passed_verbosity,passed_depth)
           IF ( dielectric%need_factsqrt ) CALL print_environ_density(dielectric%factsqrt,passed_verbosity,passed_depth)
@@ -1109,7 +1111,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose - depth
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -1127,14 +1129,15 @@ CONTAINS
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3107 )electrolyte%ioncctype(ityp)%cbulk &
                                                                  & * amu_si / bohr_radius_si**3
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3108 )electrolyte%ioncctype(ityp)%z
-          IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%c, &
+          IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%c, &
               & passed_verbosity,passed_depth)
-!          IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
-!              & passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
+              & passed_verbosity,passed_depth)
        END DO
-       CALL print_environ_boundary(electrolyte%boundary,passed_verbosity,passed_depth)
+!       CALL print_environ_boundary(electrolyte%boundary,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%density,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%gamma,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%gamma,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 4 ) CALL print_environ_density(electrolyte%dgamma,passed_verbosity,passed_depth)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3109 )electrolyte%linearized
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3110 )electrolyte%charge
     END IF
