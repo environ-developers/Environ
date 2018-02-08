@@ -309,24 +309,24 @@ Molar concentration of ionic countercharge (in mol/L).
          <status> OPTIONAL
          </status>
       </dimension>
-      <dimension name="cionmax" start="1" end="env_electrolyte_ntyp" type="REAL" >
-         <default> 1.D3
+      <var name="cionmax" type="REAL" >
+         <default> 0.D0
          </default>
          <info>
 Maximum molar concentration of ionic countercharge (in mol/L).
          </info>
          <status> OPTIONAL
          </status>
-      </dimension>
-      <dimension name="rion" start="1" end="env_electrolyte_ntyp" type="REAL" >
-         <default> 1.0
+      </var>
+      <var name="rion" type="REAL" >
+         <default> 0.D0
          </default>
          <info>
 Mean atomic radius of ionic countercharge (a.u.).
          </info>
          <status> OPTIONAL
          </status>
-      </dimension>
+      </var>
       <dimension name="zion" start="1" end="env_electrolyte_ntyp" type="REAL" >
          <default> 1.0
          </default>

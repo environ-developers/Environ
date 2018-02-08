@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on  7Feb2018 at 14:13:43 
+     Program PWSCF v.6.1 (svn rev. 13369) starts on  7Feb2018 at 19:26: 0 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -56,6 +56,8 @@
      compensation onset threshold      =               0.1000E+03 
      surface tension in input (dyn/cm) =                   100.00 
      surface tension in internal units =               0.1285E-03 
+     external pressure in input (GPa)  =                     0.50 
+     external pressure in inter. units =               0.3399E-04 
 
 
 
@@ -111,9 +113,9 @@
          1           O   tau(   1) = (   0.4716000   0.4820000   0.4600000  )
          2           H   tau(   2) = (   0.5380000   0.4488000   0.4600000  )
          3           H   tau(   3) = (   0.4224000   0.4264000   0.4600000  )
-         4           O   tau(   4) = (   0.4716000   0.4820000   0.6200000  )
-         5           H   tau(   5) = (   0.5380000   0.4488000   0.6200000  )
-         6           H   tau(   6) = (   0.4224000   0.4264000   0.6200000  )
+         4           O   tau(   4) = (   0.4716000   0.4820000   0.7600000  )
+         5           H   tau(   5) = (   0.5380000   0.4488000   0.7600000  )
+         6           H   tau(   6) = (   0.4224000   0.4264000   0.7600000  )
 
      number of k points=     1
                        cart. coord. in units 2pi/alat
@@ -126,11 +128,11 @@
      Estimated max dynamical RAM per process >     518.03MB
 
      Initial potential from superposition of free atoms
-     Check: negative starting charge=   -0.001560
+     Check: negative starting charge=   -0.001462
 
      starting charge   15.61518, renormalised to   16.00000
 
-     negative rho (up, down):  1.598E-03 0.000E+00
+     negative rho (up, down):  1.498E-03 0.000E+00
      Starting wfc are   12 randomized atomic wfcs
 
      total cpu time spent up to now is        4.2 secs
@@ -143,109 +145,113 @@
      Davidson diagonalization with overlap
      ethr =  1.00E-02,  avg # of iterations =  2.0
 
-     negative rho (up, down):  5.602E-04 0.000E+00
+     negative rho (up, down):  5.178E-04 0.000E+00
 
      add environment contribution to local potential
 
      total cpu time spent up to now is        7.8 secs
 
-     total energy              =     -67.93722554 Ry
-     Harris-Foulkes estimate   =     -69.14942366 Ry
-     estimated scf accuracy    <       1.49013427 Ry
-     cavitation energy         =       0.06693578 Ry
+     total energy              =     -68.01772329 Ry
+     Harris-Foulkes estimate   =     -69.15227093 Ry
+     estimated scf accuracy    <       1.34153631 Ry
+     cavitation energy         =       0.07258735 Ry
+     PV energy                 =       0.04116846 Ry
      correction to one-el term =       0.00000000 Ry
 
      iteration #  2     ecut=    30.00 Ry     beta=0.70
      Davidson diagonalization with overlap
-     ethr =  9.31E-03,  avg # of iterations =  2.0
+     ethr =  8.38E-03,  avg # of iterations =  2.0
 
-     negative rho (up, down):  9.103E-03 0.000E+00
+     negative rho (up, down):  7.925E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       11.5 secs
+     total cpu time spent up to now is       11.6 secs
 
-     total energy              =     -68.16827886 Ry
-     Harris-Foulkes estimate   =     -68.68401281 Ry
-     estimated scf accuracy    <       0.97936070 Ry
-     cavitation energy         =       0.03794480 Ry
-     correction to one-el term =      -0.01373089 Ry
+     total energy              =     -68.27371141 Ry
+     Harris-Foulkes estimate   =     -68.75503861 Ry
+     estimated scf accuracy    <       0.88367486 Ry
+     cavitation energy         =       0.04612394 Ry
+     PV energy                 =       0.01719099 Ry
+     correction to one-el term =      -0.02352427 Ry
 
      iteration #  3     ecut=    30.00 Ry     beta=0.70
      Davidson diagonalization with overlap
-     ethr =  6.12E-03,  avg # of iterations =  2.0
+     ethr =  5.52E-03,  avg # of iterations =  2.0
 
-     negative rho (up, down):  6.846E-04 0.000E+00
+     negative rho (up, down):  7.315E-04 0.000E+00
 
      add environment contribution to local potential
 
      total cpu time spent up to now is       15.0 secs
 
-     total energy              =     -68.39154573 Ry
-     Harris-Foulkes estimate   =     -68.44498710 Ry
-     estimated scf accuracy    <       0.04649830 Ry
-     cavitation energy         =       0.04014739 Ry
-     correction to one-el term =      -0.01227690 Ry
+     total energy              =     -68.46655335 Ry
+     Harris-Foulkes estimate   =     -68.52995268 Ry
+     estimated scf accuracy    <       0.03246731 Ry
+     cavitation energy         =       0.04814359 Ry
+     PV energy                 =       0.01824722 Ry
+     correction to one-el term =      -0.02046743 Ry
 
      iteration #  4     ecut=    30.00 Ry     beta=0.70
      Davidson diagonalization with overlap
-     ethr =  2.91E-04,  avg # of iterations =  2.0
+     ethr =  2.03E-04,  avg # of iterations =  2.0
 
-     negative rho (up, down):  4.341E-04 0.000E+00
+     negative rho (up, down):  4.386E-04 0.000E+00
 
-     total cpu time spent up to now is       18.2 secs
+     total cpu time spent up to now is       18.3 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 ( 21694 PWs)   bands (ev):
 
-   -25.2556 -24.2676 -13.1294 -12.2661  -9.2775  -8.2793  -8.0474  -4.8079
+   -24.8239 -24.8170 -12.7145 -12.7016  -8.8607  -8.8373  -6.9234  -6.7423
 
-     highest occupied level (ev):    -4.8079
+     highest occupied level (ev):    -6.7423
 
-!    total energy              =     -68.39859289 Ry
-     Harris-Foulkes estimate   =     -68.42810769 Ry
-     estimated scf accuracy    <       0.00032160 Ry
+!    total energy              =     -68.47086407 Ry
+     Harris-Foulkes estimate   =     -68.51835428 Ry
+     estimated scf accuracy    <       0.00034428 Ry
 
      The total energy is the sum of the following terms:
 
-     one-electron contribution =    -167.80522616 Ry
-     hartree contribution      =      87.03586292 Ry
-     xc contribution           =     -16.85199338 Ry
-     ewald contribution        =      29.19327949 Ry
-     cavitation energy         =       0.03718109 Ry
-     correction to one-el term =      -0.00769685 Ry
+     one-electron contribution =    -141.75307390 Ry
+     hartree contribution      =      73.85958300 Ry
+     xc contribution           =     -16.77355431 Ry
+     ewald contribution        =      16.14879542 Ry
+     cavitation energy         =       0.04546769 Ry
+     PV energy                 =       0.01638273 Ry
+     correction to one-el term =      -0.01446470 Ry
 
      convergence has been achieved in   4 iterations
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =     0.00335562   -0.01792191   -0.14029194
-     atom    2 type  1   force =    -0.01838114    0.00568754   -0.00964869
-     atom    3 type  1   force =     0.01502816    0.01223289   -0.00964867
-     atom    4 type  2   force =     0.00334889   -0.01791517    0.14148483
-     atom    5 type  1   force =    -0.01837748    0.00568687    0.00905231
-     atom    6 type  1   force =     0.01502595    0.01222978    0.00905217
+     atom    1 type  2   force =     0.00363546   -0.01933127    0.00041695
+     atom    2 type  1   force =    -0.01593018    0.00687665    0.00029598
+     atom    3 type  1   force =     0.01230281    0.01241654    0.00029576
+     atom    4 type  2   force =     0.00362841   -0.01929389    0.00029238
+     atom    5 type  1   force =    -0.01595826    0.00689173   -0.00065101
+     atom    6 type  1   force =     0.01232176    0.01244024   -0.00065006
 
-     Total force =     0.205440     Total SCF correction =     0.025903
+     Total force =     0.044598     Total SCF correction =     0.029607
      SCF correction compared to forces is large: reduce conv_thr to get better values
 
      Writing output data file pwscf.save
  
-     init_run     :      3.87s CPU      4.17s WALL (       1 calls)
-     electrons    :     13.22s CPU     14.11s WALL (       1 calls)
-     forces       :      0.76s CPU      0.83s WALL (       1 calls)
+     init_run     :      3.85s CPU      4.14s WALL (       1 calls)
+     electrons    :     13.32s CPU     14.17s WALL (       1 calls)
+     forces       :      0.75s CPU      0.82s WALL (       1 calls)
 
      Called by init_run:
      wfcinit      :      0.12s CPU      0.12s WALL (       1 calls)
-     potinit      :      2.56s CPU      2.75s WALL (       1 calls)
+     potinit      :      2.48s CPU      2.66s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.91s CPU      0.92s WALL (       4 calls)
-     sum_band     :      2.31s CPU      2.50s WALL (       4 calls)
-     v_of_rho     :      4.34s CPU      4.68s WALL (       5 calls)
-     newd         :      1.19s CPU      1.40s WALL (       5 calls)
-     mix_rho      :      0.40s CPU      0.41s WALL (       4 calls)
+     c_bands      :      0.92s CPU      0.92s WALL (       4 calls)
+     sum_band     :      2.28s CPU      2.51s WALL (       4 calls)
+     v_of_rho     :      4.48s CPU      4.76s WALL (       5 calls)
+     newd         :      1.18s CPU      1.41s WALL (       5 calls)
+     mix_rho      :      0.38s CPU      0.40s WALL (       4 calls)
 
      Called by c_bands:
      init_us_2    :      0.04s CPU      0.04s WALL (       9 calls)
@@ -253,37 +259,37 @@
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (       4 calls)
-     addusdens    :      1.42s CPU      1.57s WALL (       4 calls)
+     addusdens    :      1.41s CPU      1.57s WALL (       4 calls)
 
      Called by *egterg:
-     h_psi        :      0.89s CPU      0.89s WALL (      13 calls)
-     s_psi        :      0.00s CPU      0.01s WALL (      13 calls)
+     h_psi        :      0.90s CPU      0.90s WALL (      13 calls)
+     s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
      g_psi        :      0.01s CPU      0.01s WALL (       8 calls)
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
 
      Called by h_psi:
      h_psi:pot    :      0.89s CPU      0.89s WALL (      13 calls)
      h_psi:calbec :      0.01s CPU      0.02s WALL (      13 calls)
-     vloc_psi     :      0.86s CPU      0.86s WALL (      13 calls)
-     add_vuspsi   :      0.02s CPU      0.01s WALL (      13 calls)
+     vloc_psi     :      0.87s CPU      0.86s WALL (      13 calls)
+     add_vuspsi   :      0.01s CPU      0.01s WALL (      13 calls)
 
      General routines
-     calbec       :      0.01s CPU      0.02s WALL (      21 calls)
-     fft          :      5.65s CPU      6.00s WALL (     128 calls)
+     calbec       :      0.02s CPU      0.02s WALL (      21 calls)
+     fft          :      5.53s CPU      5.92s WALL (     128 calls)
      ffts         :      0.07s CPU      0.08s WALL (       9 calls)
-     fftw         :      0.68s CPU      0.74s WALL (     122 calls)
+     fftw         :      0.78s CPU      0.75s WALL (     122 calls)
      interpolate  :      0.54s CPU      0.61s WALL (       9 calls)
      davcio       :      0.00s CPU      0.00s WALL (       1 calls)
  
      Parallel routines
-     fft_scatter  :      1.94s CPU      2.06s WALL (     259 calls)
+     fft_scatter  :      2.00s CPU      2.04s WALL (     259 calls)
  
      Environ routines
  
-     PWSCF        :    18.01s CPU        19.28s WALL
+     PWSCF        :    18.11s CPU        19.35s WALL
 
  
-   This run was terminated on:  14:14: 2   7Feb2018            
+   This run was terminated on:  19:26:19   7Feb2018            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -291,23 +297,23 @@
 
 %%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of ions             =          6
- ionic center of charge     =      0.4737500     0.4709000     0.5400000
+ ionic center of charge     =      0.4737500     0.4709000     0.6100000
  total ionic charge         =    -16.0000000
  ionic dipole               =      0.0000000     0.0000000     0.0000000
- ionic quadrupole (pc)      =     -8.4907750    -4.0099000   -64.0000000
+ ionic quadrupole (pc)      =     -8.4907750    -4.0099000  -225.0000000
  ion   1 type =  2 coordinates =     11.7900000    12.0500000    11.5000000
  ion   2 type =  1 coordinates =     13.4500000    11.2200000    11.5000000
  ion   3 type =  1 coordinates =     10.5600000    10.6600000    11.5000000
- ion   4 type =  2 coordinates =     11.7900000    12.0500000    15.5000000
- ion   5 type =  1 coordinates =     13.4500000    11.2200000    15.5000000
- ion   6 type =  1 coordinates =     10.5600000    10.6600000    15.5000000
+ ion   4 type =  2 coordinates =     11.7900000    12.0500000    19.0000000
+ ion   5 type =  1 coordinates =     13.4500000    11.2200000    19.0000000
+ ion   6 type =  1 coordinates =     10.5600000    10.6600000    19.0000000
 
 %%%% SYSTEM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  system is built from all present ionic types
  system defined dimension   =  0 
  system defined axis        =  3 
- system center              =      0.4737500     0.4709000     0.5400000 
- system width               =      0.1049622 
+ system center              =      0.4737500     0.4709000     0.6100000 
+ system width               =      0.1646726 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         15
@@ -321,38 +327,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =   1178.7358242 
- surface of the QM region   =    521.0592176 
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         15
- total electronic charge    =     16.0000000
- number of spin components  =  1
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    463.4160134 
- surface of the QM region   =    295.3799114 
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         15
- total electronic charge    =     16.0000000
- number of spin components  =  1
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    488.5668570 
- surface of the QM region   =    312.5258853 
+ volume of the QM region    =   1211.2177646 
+ surface of the QM region   =    565.0535973 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         16
@@ -366,8 +342,8 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =    433.0791092 
- surface of the QM region   =    289.4348806 
+ volume of the QM region    =    505.7762457 
+ surface of the QM region   =    359.0501420 
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         16
@@ -381,5 +357,35 @@
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =    433.0791092 
- surface of the QM region   =    289.4348806 
+ volume of the QM region    =    536.8516929 
+ surface of the QM region   =    374.7720157 
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         15
+ total electronic charge    =     16.0000000
+ number of spin components  =  1
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    481.9964146 
+ surface of the QM region   =    353.9415897 
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         15
+ total electronic charge    =     16.0000000
+ number of spin components  =  1
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    481.9964146 
+ surface of the QM region   =    353.9415897 

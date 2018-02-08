@@ -107,11 +107,9 @@ cionmax='15.0'          # max ionic concentration (in mol/l)
                         # NOTE: cionmax=1/a**3, where a is the ionic 
                         # size parameter originally employed by Borukhov. 
                         # one can alternatively set the ionic radius
-                        # rion (in Bohr), related to cmax according
+                        # rion (in Bohr), related to cionmax according
                         # to: cionmax=p/(4/3*pi*rion**3), where p=0.64 
                         # is the random close packing volume fraction.
-                        # the same value of cionmax (or rion) needs 
-                        # to be assigned to all ionic species!
 solvent_temperature=300 # temperature of the electrolyte solution 
 stern_mode='system'     # specify the method that is used to build
                         # the electrolyte cavity
@@ -227,8 +225,7 @@ cat > environ.in << EOF
    zion(2) = -$zion                  
    cion(1) = $cion
    cion(2) = $cion             
-   cionmax(1) = $cionmax
-   cionmax(2) = $cionmax         
+   cionmax = $cionmax
    solvent_temperature = $solvent_temperature
    system_dim = $system_dim            
    system_axis = $system_axis   

@@ -107,7 +107,7 @@ CONTAINS
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
          stern_distance, stern_spread, cion(:),           &
-         cionmax(:), rion(:), zion(:), stern_rhomax,      &
+         cionmax, rion, zion(:), stern_rhomax,            &
          stern_rhomin, stern_tbeta, stern_alpha,          &
          stern_softness,                                  &
          solvent_temperature,                             &
@@ -121,6 +121,7 @@ CONTAINS
     INTEGER :: i
     INTEGER :: stype
     REAL(DP) :: rhomax, rhomin
+    CHARACTER( LEN = 80 ) :: label
     !
     ! Create necessary local types
     !
@@ -187,7 +188,10 @@ CONTAINS
     !
     IF ( lexternals ) CALL create_environ_externals(externals)
     !
-    IF ( lsolvent ) CALL create_environ_boundary(solvent)
+    IF ( lsolvent ) THEN
+       label = 'solvent'
+       CALL create_environ_boundary(solvent, label)
+    ENDIF
     !
     IF ( lelectrolyte ) CALL create_environ_electrolyte(electrolyte)
     !
