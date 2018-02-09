@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
 #    This file is part of Environ version 1.0
@@ -20,8 +22,6 @@
 #          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
 #          Ismaila Dabo       (Department of Materials Science and Engineering, Penn State)
 #
-
-#!/bin/bash
 
 cd $PW_SRC
 

@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
 #    This file is part of Environ version 1.0
@@ -19,8 +21,6 @@
 # Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
 #          Iurii Timrov       (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
 #
-
-#!/bin/bash
 
 cd $TD_SRC
 

@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
 #    This file is part of Environ version 1.0
@@ -18,7 +20,6 @@
 #
 # Author: Oliviero Andreussi (Department of Physics, UNT)
 #
-#!/bin/bash
 
 export ENVIRON_VERSION="1.0"
 export ENVIRON_PATCH=$(cd "${BASH_SOURCE%/*}"; pwd)

@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
 #    This file is part of Environ version 1.0
@@ -16,7 +18,6 @@
 #
 # PATCH REVERT script for plugin files in CPV/src
 #
-#!/bin/bash
 
 cd $CP_SRC
 

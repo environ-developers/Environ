@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
 #    This file is part of Environ version 1.0
@@ -18,8 +20,6 @@
 #
 # Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
 #
-
-#!/bin/bash
 
 cd $PW_SRC
 
