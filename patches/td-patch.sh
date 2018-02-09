@@ -155,6 +155,15 @@ cat > tmp.6.2 <<EOF
  #endif
    
  
+@@ -82,7 +80,7 @@
+   ! Fine control of beta_gamma_z file
+   CHARACTER(LEN=80) :: disk_io
+   ! Specify the amount of I/O activities
+-  INTEGER :: ios, iunout, ierr, ipol
++  INTEGER :: ios, iunout, ierr, ipol, ir_end
+   LOGICAL :: auto_rs
+   CHARACTER(LEN=6) :: int_to_char
+   !
 @@ -438,33 +437,35 @@
       !
       ! Copied from PW/src/input.f90
