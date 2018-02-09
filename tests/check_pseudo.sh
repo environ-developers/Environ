@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 # Copyright (C) 2001-2017 Quantum ESPRESSO group
 #
@@ -21,7 +22,6 @@
 #
 # Author: Oliviero Andreussi (Department of Physics, University of North Thexas)
 #
-#!/bin/bash
 
 source ${ENVIRON_ROOT}/tests/ENVIRONMENT
 
