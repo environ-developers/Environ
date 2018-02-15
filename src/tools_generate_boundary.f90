@@ -1188,6 +1188,8 @@ CONTAINS
     !
     CALL density_of_functions( boundary%solvent_probe, boundary%probe, .TRUE. )
     !
+    boundary%probe%of_r = boundary%probe%of_r / integrate_environ_density( boundary%probe )
+    !
     ! Step 2: compute filled fraction, i.e. convolution of local boundary with probe
     !
     CALL compute_convolution_fft( nnr, boundary%local%of_r, boundary%probe%of_r, filled_fraction%of_r )
