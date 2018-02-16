@@ -1305,8 +1305,6 @@ CONTAINS
        !
        ! Self-consistent continuum solvation (SCCS)
        !
-       stype = 2
-       !
        SELECT CASE ( TRIM(ADJUSTL(environ_type)) )
           !
        CASE ( 'water' )
