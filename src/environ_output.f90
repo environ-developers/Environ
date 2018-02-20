@@ -1441,7 +1441,7 @@ CONTAINS
 !      CALL grid_gather( f, flocal )
 !Compatible with QE-svn
     CALL gather_grid( dfftp, f%of_r, flocal )
-    CALL mp_sum( flocal, comm )
+    CALL mp_sum( flocal, f%cell%comm )
 #else
     flocal = f%of_r
 #endif
