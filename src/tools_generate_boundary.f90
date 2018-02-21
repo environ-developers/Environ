@@ -1157,6 +1157,7 @@ CONTAINS
     TYPE( environ_cell ), POINTER :: cell
     !
     INTEGER :: ir, ipol, jpol
+    REAL( DP ) :: probe_volume
     TYPE( environ_density ) :: filled_fraction
     TYPE( environ_density ) :: d2filling
     !
@@ -1188,7 +1189,8 @@ CONTAINS
     !
     CALL density_of_functions( boundary%solvent_probe, boundary%probe, .TRUE. )
     !
-    boundary%probe%of_r = boundary%probe%of_r / integrate_environ_density( boundary%probe )
+    probe_volume = integrate_environ_density( boundary%probe )
+    boundary%probe%of_r = boundary%probe%of_r / probe_volume
     !
     ! Step 2: compute filled fraction, i.e. convolution of local boundary with probe
     !
@@ -1233,7 +1235,7 @@ CONTAINS
        ! Compute derivative of convolution with probe
        !
        IF ( deriv .GE. 1 ) CALL compute_convolution_deriv( deriv, boundary%solvent_probe, &
-            & boundary%local, gradlocal, lapllocal, hesslocal )
+            & boundary%local, gradlocal, lapllocal, hesslocal, probe_volume )
        !
        ! Update derivatives of interface function in reverse order
        !
@@ -1366,7 +1368,7 @@ CONTAINS
   END SUBROUTINE solvent_aware_de_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE compute_convolution_deriv( deriv, probe, f, grad, lapl, hess )
+  SUBROUTINE compute_convolution_deriv( deriv, probe, f, grad, lapl, hess, probe_vol )
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : gradient_of_functions, laplacian_of_functions, hessian_of_functions
@@ -1375,6 +1377,7 @@ CONTAINS
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: deriv
+    REAL( DP ), INTENT( IN ) :: probe_vol
     TYPE( environ_functions ), INTENT(IN) :: probe
     TYPE( environ_density ), INTENT(IN) :: f
     TYPE( environ_gradient ), INTENT(INOUT) :: grad
@@ -1392,6 +1395,7 @@ CONTAINS
     IF ( deriv .GE. 1 ) THEN
        !
        CALL gradient_of_functions( probe, grad, .FALSE. )
+       grad%of_r(:,:) = grad%of_r(:,:) / probe_vol
        !
        DO ipol = 1, 3
           CALL compute_convolution_fft( nnr, f%of_r, grad%of_r(ipol,:), grad%of_r(ipol,:))
@@ -1404,6 +1408,7 @@ CONTAINS
     IF ( deriv .GE. 2 ) THEN
        !
        CALL laplacian_of_functions( probe, lapl, .FALSE. )
+       lapl%of_r = lapl%of_r / probe_vol
        !
        CALL compute_convolution_fft( nnr, f%of_r, lapl%of_r, lapl%of_r )
        !
@@ -1412,6 +1417,7 @@ CONTAINS
     IF ( deriv .GE. 3 ) THEN
        !
        CALL hessian_of_functions( probe, hess, .FALSE. )
+       hess%of_r(:,:,:) = hess%of_r(:,:,:) / probe_vol
        !
        DO ipol = 1, 3
           DO jpol = 1, 3
