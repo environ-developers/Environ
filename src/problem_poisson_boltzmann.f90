@@ -21,8 +21,8 @@ CONTAINS
   SUBROUTINE pb_direct_charges( solver, core, charges, potential )
 !--------------------------------------------------------------------
     !
-    USE generalized, ONLY : generalized_gradient
-    USE poisson, ONLY : poisson_direct
+    USE problem_generalized, ONLY : generalized_gradient
+    USE problem_poisson,     ONLY : poisson_direct
     !
     IMPLICIT NONE
     !
@@ -85,8 +85,8 @@ CONTAINS
   SUBROUTINE pb_direct_density( solver, core, charges, electrolyte, potential, dielectric )
 !--------------------------------------------------------------------
     !
-    USE generalized, ONLY : generalized_gradient
-    USE poisson, ONLY : poisson_direct
+    USE problem_generalized, ONLY : generalized_gradient
+    USE problem_poisson,     ONLY : poisson_direct
     !
     IMPLICIT NONE
     !
@@ -161,8 +161,8 @@ CONTAINS
   SUBROUTINE pb_energy( core, charges, potential, energy )
 !--------------------------------------------------------------------
     !
-    USE generalized, ONLY : generalized_energy
-    USE poisson, ONLY : poisson_energy
+    USE problem_generalized, ONLY : generalized_energy
+    USE problem_poisson,     ONLY : poisson_energy
     !
     IMPLICIT NONE
     !
