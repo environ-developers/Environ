@@ -18,7 +18,7 @@ $ECHO
 $ECHO "and with open boundary conditions along the axis perpendicular "
 $ECHO "to the slab plane, as described in "
 $ECHO
-$ECHO "   O. Andreussi and N. Marzari, submitted to J. Chem. Phys. "
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) "
 
 # set the needed environment variables
 . ../../../environment_variables
@@ -89,41 +89,44 @@ verbose=0             # if GE 1 prints debug informations
                       # WARNING: if GE 2 lot of I/O, much slower
 environ_thr='1.d0'    # electronic convergence threshold for the onset  
                       # of solvation correction
-### EXTERNAL CHARGES PARAMETERS #####################################
-env_extcharge_n=2          # Number of external objects to be used
-                           # key control parameter for the module, 
-                           # only activated if different from 0. 
-extcharge_pos_3_1='25.697'  # Position (x=1,y=2,z=3 first index of the vector)
-extcharge_pos_3_2='-10.303' # of each external object (second index) wrt 
-                           # the origin specified above, only need to
-	                   # specify the values different from 0.d0.
-                           # Values specified are in internal units (a.u.)
-extcharge_dim=2            # Dimensionality of the object: 0 = gaussian point, 
-	                   # 1 = gaussian line, 2 = gaussian plane
-extcharge_axis=3           # Axis of the object: for planes it is the 
-                           # orthogonal axis, for lines it is the line's axis
-                           # no use for points.  
-extcharge_charge='0.5'     # Charge of each object (in internal units) 
-                           # opposite convention than in tot_charge
-                           # +1.0 means a total charge of -1.0 
-extcharge_spread='1.0'     # Spread of the object (gaussian shape) in a.u.
+environ_type='input'  # type of environment
+                      # input: read parameters from input
+                      # vacuum: all flags off, no environ 
+                      # water: parameters from experimental values 
+                      #        and specifically tuned
+solvent_mode='full'   # specify the charge density that is used to 
+                      # build the dielectric cavity:
+                      # electronic: use the electronic density (default)
+                      # ionic: use a fictitious charge density calculated
+                      #        for atomic-centered interlocking spheres, 
+                      #        whose analytical expression is based on the
+                      #        error function (see example02)
+                      # full: same as electronic, but a small extra 
+                      #       density is added on the nuclei to avoid
+                      #       spurious holes in the density due to 
+                      #       pseudopotentials. Only needed with some
+                      #       atomic types and pp, in particular 
+                      #       alogens and transition metals
 ### PERIODIC BOUNDARY CONDITIONS ####################################
-assume_isolated='slabz' # correction scheme to remove pbc 
-                        # none: periodic calculation, no correction
-                        # slabx: quadratic real-space correction of 
-                        #        the potential, slab axis along x 
-                        # slaby: quadratic real-space correction of 
-                        #        the potential, slab axis along y 
-                        # slabz: quadratic real-space correction of 
-                        #        the potential, slab axis along z 
+env_electrostatic='.true.' # modify electrostatic embedding (required to
+                           #   switch on PBC corrections in vacuum)
+pbc_correction='parabolic' # correction scheme to remove PBC 
+                           # none: periodic calculation, no correction 
+                           # parabolic: quadratic real-space correction
+pbc_dim=2                  # select the desired system dimensionality
+                           #   0, 1 or 2: isolated, 1D or 2D system
+pbc_axis=3                 # set the axis along the 1D direction or 
+                           #   normal to the 2D plane (pbc_axis = 1, 2 
+                           #   or 3 for x, y or z axis)
 #####################################################################
-for epsilon in 1 80 ; do
+
+for epsilon in 1 80 ; do 
 
     # clean TMP_DIR
     $ECHO "  cleaning $TMP_DIR...\c"
     rm -rf $TMP_DIR/*
     $ECHO " done"
-
+    
     if [ $epsilon = "1" ]; then
       label="vacuum"
     else
@@ -131,13 +134,12 @@ for epsilon in 1 80 ; do
     fi
 
     $ECHO "  running the scf calculation in $label"
-    $ECHO "  with $assume_isolated periodic boundary correction"
-    $ECHO "  and a fixed planar density of charge (helmotz layer)"
+    $ECHO "  with $pbc_correction periodic boundary correction"
 
-    prefix=PtCO_helmotz_${label}
-    input=${prefix}'.in'
-    output=${prefix}'.out'
-    cat > $input << EOF 
+  prefix=PtCO_${label}
+  input=${prefix}'.in'
+  output=${prefix}'.out'
+  cat > $input << EOF 
  &CONTROL
    !
    calculation = 'scf'
@@ -164,7 +166,6 @@ for epsilon in 1 80 ; do
    smearing = 'mv'
    nbnd = 80
    tot_charge = 1
-   assume_isolated = '$assume_isolated'
    !
 /
  &ELECTRONS
@@ -174,9 +175,6 @@ for epsilon in 1 80 ; do
    mixing_beta = 0.2
    electron_maxstep = 200
    !
- /
- &IONS
-   ion_dynamics    = 'bfgs'
  /
 K_POINTS (automatic)
  1 1 1 0 0 0
@@ -196,31 +194,59 @@ Pt       5.335161233   7.697749113   4.753489408
 Pt       2.697860636   3.152173889   4.688412329
 Pt       7.972463687   3.152174491   4.688415209
 EOF
-   cat > environ_${label}.in << EOF 
+  cat > environ_${label}.in << EOF
  &ENVIRON
    !
    verbose = $verbose
    environ_thr = $environ_thr
-   environ_type = 'input'
-   eps_mode = 'full'
-   tolrhopol = 5.D-13
-   mixrhopol = 0.6
+   environ_type = '$environ_type'
    env_static_permittivity = $epsilon
    env_surface_tension = 0.D0
    env_pressure = 0.D0
-   env_external_charges = $env_extcharge_n
+   env_electrostatic = $env_electrostatic
    !
  /
- EXTERNAL_CHARGES (bohr)
- $extcharge_charge 0. 0. $extcharge_pos_3_1 $extcharge_spread $extcharge_dim $extcharge_axis
- $extcharge_charge 0. 0. $extcharge_pos_3_2 $extcharge_spread $extcharge_dim $extcharge_axis
+ &BOUNDARY
+   !
+   solvent_mode = '$solvent_mode'
+   !
+ /
+ &ELECTROSTATIC
+   !
+   pbc_correction = '$pbc_correction'
+   pbc_dim = $pbc_dim                 
+   pbc_axis = $pbc_axis   
+   tol = 5.D-13
+   !
+ /
 EOF
-   
-   cp environ_${label}.in environ.in 
-   $PW_COMMAND < $input > $output 
-   check_failure $?
-   $ECHO " done"
+ 
+  cp environ_${label}.in environ.in   
+  $PW_COMMAND < $input > $output 
+  check_failure $?
+  $ECHO " done"
 
 done
+
+evac=$(awk '/^!/ {en=$5}; END {print en}' PtCO_vacuum.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' PtCO_water.out)
+dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
+
+fermi_vac=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_vacuum.out)
+delta_vac=$(awk '/the Fermi energy shift/ {en=$11}; END {print en}' PtCO_vacuum.out)
+fermi_vac_new=$($ECHO "$fermi_vac+$delta_vac" | bc -l)
+
+fermi_sol=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_water.out)
+delta_sol=$(awk '/the Fermi energy shift/ {en=$11}; END {print en}' PtCO_water.out)
+fermi_sol_new=$($ECHO "$fermi_sol+$delta_sol" | bc -l)
+
+$ECHO "  Energy in vacuum                    = $evac  Ry        " >> results.txt
+$ECHO "  Energy in solution                  = $esol  Ry        " >> results.txt
+$ECHO "  Electrostatic Solvation Energy      = $dgsol Kcal/mol  " >> results.txt
+
+$ECHO >> results.txt
+$ECHO "  Fermi energy in vacuum   = $fermi_vac eV + $delta_vac eV = $fermi_vac_new eV " >> results.txt
+$ECHO "  Fermi energy in solution = $fermi_sol eV + $delta_sol eV = $fermi_sol_new eV " >> results.txt
+
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

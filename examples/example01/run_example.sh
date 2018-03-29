@@ -14,7 +14,14 @@ $ECHO "This example shows how to use pw.x to calculate the solvation energy "
 $ECHO "and other solvent related quantites for a water molecule in water"
 $ECHO "using a fully self consistent dielectric defined on the electronic"
 $ECHO "density according to "
+$ECHO
 $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012) "
+$ECHO
+$ECHO "Two equivalent calculations are performed, using two different "
+$ECHO "algorithms to obtain the self consistent dielectic as described in "
+$ECHO 
+$ECHO "G. Fisicaro, L. Genovese, O. Andreussi, N. Marzari and S. Goedecker,"
+$ECHO "               J. Chem. Phys. 144, 014103 (2016)"
 
 # set the needed environment variables
 . ../../../environment_variables
@@ -78,33 +85,69 @@ $ECHO
 $ECHO "  running pw.x as: $PW_COMMAND"
 $ECHO
 
-### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
-verbose=0             # if GE 1 prints debug informations
-                      # if GE 2 prints out gaussian cube files with 
-                      # dielectric function, polarization charges, etc
-                      # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d-1'   # electronic convergence threshold for the onset  
-                      # of solvation correction
-environ_type='vacuum' # type of environment
-                      # input: read parameters from input
-                      # vacuum: all flags off, no environ 
-                      # water: parameters from experimental values 
-                      #        and specifically tuned
-### ITERATIVE SOLVER PARAMETERS #####################################
-tolrhopol='1.d-11'  # tolerance of the iterative solver
-mixrhopol='0.6'     # polarization mixing for the iterative solver
-#####################################################################
+### ELECTROSTATIC EMBEDDING PARAMETERS ######################################
+verbose=0                  # if GE 1 prints debug informations
+                           # if GE 2 prints out gaussian cube files with 
+                           # dielectric function, polarization charges, etc
+                           # WARNING: if GE 2 lot of I/O, much slower
+environ_thr='1.d-1'        # electronic convergence threshold for the onset  
+                           # of solvation correction
+environ_type='vacuum'      # type of environment
+                           # input: read parameters from input
+                           # vacuum: all flags off, no environ 
+                           # water: parameters from experimental values 
+                           #   and specifically tuned for neutral molecules
+                           # water-anions: same as water, but parameters are 
+                           #   tuned for anions (Dupont et al., JCP (2013))
+                           # water-cations: same as water, but parameters are
+                           #   tuned for cations (Dupont et al., JCP (2013))
+env_electrostatic='.true.' # modify electrostatic embedding (required to
+                           #   switch on PBC corrections in vacuum)
+pbc_correction='parabolic' # correction scheme to remove PBC 
+                           # none: periodic calculation, no correction 
+                           # parabolic: quadratic real-space correction
+pbc_dim=0                  # select the desired system dimensionality
+                           # 0, 1 or 2: isolated, 1D or 2D system
+                           # if pbc_dim=1 or 2: pbc_axis set the axis along 
+                           #   the 1D direction or normal to the 2D plane
+                           #   (pbc_axis = 1, 2 or 3 for x, y or z axis)
+### SOLVER PARAMETERS #######################################################
+solver='iterative' # type of solver (cg is default with dielectric)
+                   # direct: direct poisson solver (only for vacuum)  
+                   # cg: conjugate gradient with sqrt preconditioner
+                   # sd: steepest descent with sqrt preconditioner
+                   # iterative: iterative approach
+auxiliary='full'   # auxiliary charge in the solver
+                   # none: no charge, solve for the potential
+                   # full: solve for the polarization charge
+tol='1.d-11'       # tolerance of the solver
+mix='0.6'          # mixing for the solver
+############################################################################
 
 for environ_type in vacuum water ; do 
+
+    if   [ $environ_type = "water" ]; then
+      solvers="iterative cg"
+    else
+      solvers="direct"
+    fi
+  
+  for solver in $solvers ; do
+
+    if [ $solver = "iterative" ]; then
+      auxiliary='full'
+    else
+      auxiliary='none'
+    fi  
 
     # clean TMP_DIR
     $ECHO "  cleaning $TMP_DIR...\c"
     rm -rf $TMP_DIR/*
     $ECHO " done"
     
-    $ECHO "  running the relax calculation in $environ_type"
+    $ECHO "  running the relax calculation in $environ_type with $solver solver"
 
-  prefix=h2o_$environ_type
+  prefix=h2o_${environ_type}_${solver}
   input=${prefix}'.in'
   output=${prefix}'.out'
   cat > $input << EOF 
@@ -127,7 +170,6 @@ for environ_type in vacuum water ; do
    celldm(1) = 20
    nat = 3
    ntyp = 2
-   assume_isolated = 'makov-payne'
    !
 /
  &ELECTRONS
@@ -151,32 +193,49 @@ O   11.79  12.05  11.50
 H   13.45  11.22  11.50
 H   10.56  10.66  11.50
 EOF
-  cat > environ_${environ_type}.in << EOF
+  cat > environ_${environ_type}_${solver}.in << EOF
  &ENVIRON
    !
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = '$environ_type'
-   tolrhopol = $tolrhopol
-   mixrhopol = $mixrhopol
+   env_electrostatic = $env_electrostatic
    !
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+   !
+   pbc_correction = '$pbc_correction'
+   pbc_dim = $pbc_dim
+   !
+   tol = $tol
+   mix = $mix
+   solver = '$solver'
+   auxiliary = '$auxiliary'
+   !  
  /
 EOF
    
-  cp environ_${environ_type}.in environ.in
+  cp environ_${environ_type}_${solver}.in environ.in
   $PW_COMMAND < $input > $output 
   check_failure $?
   $ECHO " done"
 
+  done
+
 done
 
-evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum.out)
-esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water.out)
-dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
-ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water.out) 
-epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {print en}' h2o_water.out)
+for solver in iterative cg ; do
 
-$ECHO "  Solvation Energy     = $dgsol Kcal/mol" > results.txt
+evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum_direct.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water_${solver}.out)
+dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
+ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water_${solver}.out) 
+epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {print en}' h2o_water_${solver}.out)
+
+$ECHO "  Solver               = $solver "        >> results.txt
+$ECHO "  Solvation Energy     = $dgsol Kcal/mol" >> results.txt
 iprint=0
 dgelec=$dgsol
 if [ $ecav != 0 ]; then 
@@ -194,6 +253,9 @@ fi
 if [ $iprint != 0 ]; then
   $ECHO "  Electrostatic Energy = $dgelec Kcal/mol" >> results.txt
 fi
+$ECHO                                            >> results.txt
+
+done
 
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

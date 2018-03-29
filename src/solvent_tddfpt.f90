@@ -1,18 +1,32 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) 2001-2013 Quantum-ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
+!
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
+!
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
+!
+! Module for calculation of the response "polarization" and "dielectric"
+! potentials, to be coupled with the TDDFPT algorithms of Quantum ESPRESSO.
+! Original formulas derived in I. Timrov et al, JCP (2015)
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Iurii Timrov       (THEOS and NCCR-MARVEL, EPFL)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
+!
+! Original version by I. Timrov and S. Baroni (SISSA), 09/2013
 !
 !----------------------------------------------------------------------------
 MODULE solvent_tddfpt
 !----------------------------------------------------------------------------
-  !
-  ! ... Module for calculation of the response "polarization" and "dielectric" potentials.
-  ! ... Inspired by Environ/src/solvent.f90
-  ! ... Written by I. Timrov 09/2013
-  ! ... Re-written by O. Andreussi 11/2017
   !
   USE environ_types
   USE environ_output
@@ -41,12 +55,12 @@ CONTAINS
    !
    RETURN
    !
-!---------------------------------------------------------------------------------
+!--------------------------------------------------------------------
  END SUBROUTINE solvent_clean_tddfpt
-!---------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
  SUBROUTINE calc_vsolvent_tddfpt(nnr, nspin, rho_0, drho_elec, dv_pol, dv_epsilon)
-!-----------------------------------------------------------------------------------
+!--------------------------------------------------------------------
    !
    ! ... This subroutine calculates:
    ! ... 1. the response "polarization" potential from the response polarization density
@@ -54,8 +68,8 @@ CONTAINS
    !
    USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical
    USE electrostatic_base, ONLY : reference, outer
-   USE electrostatic, ONLY : calc_velectrostatic
-   USE charges_utils
+   USE embedding_electrostatic, ONLY : calc_velectrostatic
+   USE utils_charges
    !
    IMPLICIT NONE
    !
@@ -90,7 +104,7 @@ CONTAINS
    CALL create_environ_electrons( response_electrons )
    CALL init_environ_electrons_first( 0, 1, response_electrons )
    CALL init_environ_electrons_second( cell, response_electrons )
-   CALL update_environ_electrons( 0.D0, 1, nnr, drho_elec, response_electrons )
+   CALL update_environ_electrons( 1, nnr, drho_elec, response_electrons, 0.D0 )
    !
    ! ... Link together different sources of electrostatic potential ( charges + dielectric + electrolyte )
    !
@@ -157,11 +171,13 @@ CONTAINS
 !--------------------------------------------------------------------
 END SUBROUTINE calc_vsolvent_tddfpt
 !--------------------------------------------------------------------
-!--------------------------------------------------------------------
+!----------------------------------------------------------------------------
 END MODULE solvent_tddfpt
-!--------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 MODULE environ_info
-
+!----------------------------------------------------------------------------
   USE environ_output
-
+!----------------------------------------------------------------------------
 END MODULE environ_info
+!----------------------------------------------------------------------------

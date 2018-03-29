@@ -7,6 +7,6 @@
  /
  &BOUNDARY
    !
-   boundary_mode = 'ionic'
+   solvent_mode = 'ionic'
    !
  /

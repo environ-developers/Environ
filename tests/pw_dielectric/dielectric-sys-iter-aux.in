@@ -7,9 +7,9 @@
  /
  &BOUNDARY
    !
-   boundary_mode = 'system'
-   boundary_distance = 3.D0
-   boundary_spread = 0.5D0
+   solvent_mode = 'system'
+   solvent_distance = 3.D0
+   solvent_spread = 0.5D0
    !
  /
  &ELECTROSTATIC

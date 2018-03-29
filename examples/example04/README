@@ -1,7 +1,5 @@
-This example shows how to use pw.x to model a charged slab in the presence of 
-a fixed, planar and smooth (gaussian profiled) distribution of charge (helmotz 
-plane). The example comprises two calculations, with and without a continuum
-solvent. 
+This example shows how to use pw.x to model two-dimensional periodic systems
+in contact with a continuum solvent. 
 
 The calculation is a single SCF calculation of a (unrealistic) two-layer thick 
 Pt (111) slab with a CO molecule adsorbed on atop position (thanks to Ismaila 
@@ -15,17 +13,22 @@ real-space quadratic correction of the electrostatic potential, analogous
 to the Point Counter-Charge (PCC) correction scheme (see I. Dabo et al. Phys. 
 Rev. B 77, 115139 (2008)). 
 
-The method has been coupled to the SCCS model in oder to remove periodic 
+The method has been coupled to the SCCS model in order to remove periodic 
 boundary conditions in simulations of partially periodic systems in the 
 presence of a continuum solvent, as described by O. Andreussi and N. marzari
-submitted to J. Chem. Phys. (2013?).
+Phys. Rev. B 90 245101 (2014).
 
-Note that the keyword eps_mode='full' is mandatory in this calculation, in 
+Note that the keyword solvent_mode='full' is mandatory in this calculation, in 
 order to remove the artifact of the Pt valence density, which presents a hole
 close to the position of ion, due to the missing core electrons. In order to
 avoid the continuum solvent to enter such a hole, a quickly vanishing gaussian
 density is added at the position of the nuclei when defining the dielectric. 
 The same problem is likely to occur in alogens and other transition metals. 
+
+From ENVIRON version 1.0 the Fermi energy shift that arises from the gaussian
+nuclei smearing together with the parabolic pbc correction is printed as a
+separate contribution that needs to be added to the standard Fermi energy
+from pw.x.
 
 A rough explanation of the different keywords of the solvation model is inside 
 the run_example.sh file.

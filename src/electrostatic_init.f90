@@ -1,30 +1,40 @@
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 !
-! Copyright (C) 2007-2008 Quantum-ESPRESSO group
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!    This file is part of Environ version 1.0
 !
-! original version by O. Andreussi and N. Marzari (MIT)
+!    Environ 1.0 is free software: you can redistribute it and/or modify
+!    it under the terms of the GNU General Public License as published by
+!    the Free Software Foundation, either version 2 of the License, or
+!    (at your option) any later version.
+!
+!    Environ 1.0 is distributed in the hope that it will be useful,
+!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!    GNU General Public License for more detail, either the file
+!    `License' in the root directory of the present distribution, or
+!    online at <http://www.gnu.org/licenses/>.
+!
+! Module to initialize electrostatic-related variables
+!
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------
 MODULE electrostatic_init
 !----------------------------------------------------------------------------
-
+  !
   USE environ_types
   USE electrostatic_types
   USE electrostatic_base
-
+  !
   PRIVATE
-
+  !
   PUBLIC :: set_electrostatic_base, electrostatic_initbase, electrostatic_initcell, &
        & electrostatic_initions, electrostatic_clean
-
+  !
 CONTAINS
   !
-  ! ... the following routine copies input variables read in input
-  ! ... to global variables kept in this module
-  !
+!--------------------------------------------------------------------
   SUBROUTINE set_electrostatic_base                         &
        ( problem, tol, solver_type, auxiliary,              &
        step_type, step, maxstep, mix_type, ndiis, mix,      &
@@ -32,6 +42,10 @@ CONTAINS
        core_type, boundary_core_, ifdtype, nfdpoint,        &
        assume_isolated, pbc_correction, pbc_dim_, pbc_axis_,&
        nspin, prog )
+!--------------------------------------------------------------------
+    !
+    ! ... this routine copies input variables read in input
+    ! ... to global variables kept in the electrostatic_base module
     !
     IMPLICIT NONE
     !
@@ -286,9 +300,9 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
-
+    !
     LOGICAL, INTENT(IN) :: lflag
-
+    !
     CALL destroy_electrostatic_setup( lflag, outer )
     CALL destroy_electrostatic_setup( lflag, reference )
     CALL destroy_electrostatic_core( lflag, outer_core )
@@ -298,10 +312,12 @@ CONTAINS
     CALL destroy_electrostatic_solver( lflag, reference_solver )
     IF ( lfd ) CALL destroy_fd_core( lflag, fd )
     IF ( loned_analytic ) CALL destroy_oned_analytic_core( lflag, oned_analytic )
-
+    !
     RETURN
-
+    !
 !--------------------------------------------------------------------
   END SUBROUTINE electrostatic_clean
 !--------------------------------------------------------------------
+!----------------------------------------------------------------------------
 END MODULE electrostatic_init
+!----------------------------------------------------------------------------

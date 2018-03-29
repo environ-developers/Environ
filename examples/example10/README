@@ -1,0 +1,15 @@
+
+This example shows how to use cp.x to calculate the electrostatic solvation energy
+and other related solvation quantities for a water molecule in a water solvent.
+
+The calculation is a damped electron dynamics (thus missing the ionic relaxation),
+but in the presence of a continuum dielectric with the shape defined
+by the electronic density, according to the  model of Fattebert 
+and Gygi, Int J Quantum Chem 93, 139 (2003), revised by O. Andreussi, I. Dabo 
+and N. Marzari, J. Chem. Phys. 136, 064102 (2012) 
+
+Note that, for the time being, no PBC correction has been used for the calculations 
+in vacuum and in the solvent.
+
+A rough explanation of the different keywords of the solvation model is 
+in the run_example.sh file.

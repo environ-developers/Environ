@@ -1,40 +1,11 @@
 
-This example show how to use pw.x to simulate isolated charged systems in 
-vacuum or immersed in a continuum dielectric solvent. 
+Same as example01, but the cavity that separates the quantum mechanical from the 
+continuum region is constructed using interlocking spheres centered on the nuclei
+("soft-spheres") as described in G. Fisicaro, L. Genovese, O. Andreussi, S. Mandal,
+N.N. Nair, N. Marzari, and S.Goedecker, J. Chem. Theor. Comput. 13, 3829 (2017).
 
-Two calculations, one in vacuum and one in a continuum dielectric with the 
-dielectric permittivity of water, are performed on a piridine cation, using 
-four different periodic-boundary correction schemes, for a total of eight
-calculations. 
+Mind that the parabolic correction (or point-countercharge method)
+is used for both the calculation in vacuum and in the solvent.
 
-To keep the calculations simple, only the electrostatic interaction with the 
-solvent is introduced in the calculation, via the Self-consistent continuum 
-solvation (SCCS) model of O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys.
-136 064102 (2012). 
-
-The periodic-boundary correction schemes adopted are:
-
-- none: fully periodic calculation
-- makov-payne: non-self-consistent, post-processing correction of the 
-               electrostatic energy. REQUIRES A CUBIC CELL. 
-               The error as system size scales as L^-5, where L is the 
-               size of the cubic cell. Electron density and inter-atomic
-               forces are computed in full periodic boundary conditions, 
-               nonetheless the effect of the self-polarization due to periodic
-               images scales as L^-5, thus is mostly negligible. 
-- martyna-tuckerman: self-consistent, reciprocal-space correction of the 
-               electrostatic potential. REQUIRES A CELL AT LEAST TWICE AS BIG
-	       AS THE SIZE OF THE SYSTEM UNDER STUDY. A part from the limitation
-               on the cell size, this correction scheme gives perfect accuracy 
-               at an almost negligible computational cost.
-- pcc: self-consistent, real-space quadratic correction of the electrostatic 
-               potentials, analogous to the makov-payne, see I. Dabo et al.
-	       Phys. Rev. B 77, 115139 (2008). REQUIRES A CUBIC CELL. 
-	       The error vs system size scales as L^-5. It costs more than 
-               a makov-payne calculation, since it is applied at every SCF step
-	       but it may reduce the number of SCF steps required, especially 
-	       in solution. 
-
-The extension of the above approaches to simulations in a continuum dielectric
-is described in details in O. Andreussi and N. Marzari, submitted to J. Chem. 
-Phys. (2013?). 
+A rough explanation of the keywords that are related to the soft-spheres 
+solvation model is provided in the run_example.sh file.

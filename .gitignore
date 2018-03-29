@@ -25,7 +25,7 @@
 
 # Executables
 *.exe
-*.out
+#*.out
 *.app
 
 # Directories with results of examples
@@ -38,4 +38,9 @@ results/
 userconfig
 test.err.*
 test.out.*
+tests/*/*.out
 *.pyc
+
+# Documentation files
+input_xx.xsl
+

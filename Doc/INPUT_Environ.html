@@ -1,0 +1,1943 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- *** FILE AUTOMATICALLY CREATED: DO NOT EDIT, CHANGES WILL BE LOST *** --><meta http-equiv="Content-Style-Type" CONTENT="text/css">
+<style>
+	  body {
+	  background-color:#ffffff;
+	  font:normal 14px/1.8em arial, helvetica, sans-serif;
+	  width:900px;
+	  text-align:justify;
+	  margin: 30 10 10 30;
+	  }
+
+	  h1 {
+	  font-size:24px;
+	  }
+	  
+	  h2 {
+	  font-size:18px;
+	  }
+	  
+	  h3 {
+	  font-size:16px;
+	  }
+	  pre, tt, code {
+	  font-size:14px;
+	  }	  
+	  .syntax, .syntax table {
+	  font-size:14px;
+	  }
+	  span.namelist {
+	  color: #214478;
+	  }
+	  span.card {
+	  color: #782167;
+	  }
+	  span.flag {
+	  color: #008000;
+	  font-weight: bold;
+	  }
+	</style>
+<title>pw.x: input description</title>
+</head>
+<body>
+<a name="__top__"></a><table style="border-width: 0; table-layout: auto; width: 100%; text-align: left; vertical-align: top; background: #00395a;">
+<tr><th style="margin: 3 3 3 10; background: #005789; background: linear-gradient(rgba(0,87,137,1),rgba(0,119,189,1)); color: #ffffee; ">
+<h1 style="margin: 10 10 10 15; text-align: left;"> Input File Description </h1>
+<h2 style="margin: 10 10 10 15; text-align: left;"> Program:
+	      pw.x / Environ / Quantum Espresso</h2>
+</th></tr>
+<tr><td style="padding: 10 3 3 3; background: #ffffff; color: #222222; ">
+   <blockquote style="margin-bottom: 2em;">
+<h3>TABLE OF CONTENTS</h3>
+<blockquote>
+   
+   
+   <p><a href="#idm45811014237968">INTRODUCTION</a></p>
+   <p><a href="#idm45811014213856">&amp;ENVIRON</a></p>
+<blockquote>
+<a href="#idm45811014212944">environ_type</a> | <a href="#idm45811014207152">verbose</a> | <a href="#idm45811014204432">environ_restart</a> | <a href="#idm45811014202128">oldenviron</a> | <a href="#idm45811014199888">environ_thr</a> | <a href="#idm45811014197120">environ_nskip</a> | <a href="#idm45811014195264">system_ntyp</a> | <a href="#idm45811014193232">system_dim</a> | <a href="#idm45811014191328">system_axis</a> | <a href="#idm45811014189472">env_electrostatic</a> | <a href="#idm45811014186480">env_static_permittivity</a> | <a href="#idm45811014184032">env_optical_permittivity</a> | <a href="#idm45811014181648">env_surface_tension</a> | <a href="#idm45811014177296">env_pressure</a> | <a href="#idm45811014173168">env_external_charges</a> | <a href="#idm45811014170736">env_dielectric_regions</a> | <a href="#idm45811014168368">env_electrolyte_ntyp</a> | <a href="#idm45811014166000">stern_entropy</a> | <a href="#idm45811014163296">cion</a> | <a href="#idm45811014160512">cionmax</a> | <a href="#idm45811014158272">rion</a> | <a href="#idm45811014156048">zion</a> | <a href="#idm45811014153328">solvent_temperature</a> | <a href="#idm45811014151088">add_jellium</a> | <a href="#idm45811014148528">atomicspread</a>
+</blockquote>
+   <p><a href="#idm45811014145264">&amp;BOUNDARY</a></p>
+<blockquote>
+<a href="#idm45811014144240">solvent_mode</a> | <a href="#idm45811014140896">rhomax</a> | <a href="#idm45811014138592">rhomin</a> | <a href="#idm45811014136352">tbeta</a> | <a href="#idm45811014134112">alpha</a> | <a href="#idm45811014131760">softness</a> | <a href="#idm45811014129504">solvent_distance</a> | <a href="#idm45811014126896">solvent_spread</a> | <a href="#idm45811014124640">stern_mode</a> | <a href="#idm45811014121104">stern_rhomax</a> | <a href="#idm45811014118768">stern_rhomin</a> | <a href="#idm45811014116480">stern_tbeta</a> | <a href="#idm45811014114192">stern_alpha</a> | <a href="#idm45811014111808">stern_softness</a> | <a href="#idm45811014109520">stern_distance</a> | <a href="#idm45811014106912">stern_spread</a> | <a href="#idm45811014104624">stype</a> | <a href="#idm45811014101888">radius_mode</a> | <a href="#idm45811014099200">solvationrad</a> | <a href="#idm45811014096320">corespread</a> | <a href="#idm45811014093200">solvent_radius</a> | <a href="#idm45811014090848">radial_scale</a> | <a href="#idm45811014088320">radial_spread</a> | <a href="#idm45811014086048">filling_threshold</a> | <a href="#idm45811014083600">filling_spread</a> | <a href="#idm45811014081296">boundary_core</a> | <a href="#idm45811014078000">ifdtype</a> | <a href="#idm45811014074608">nfdpoint</a>
+</blockquote>
+   <p><a href="#idm45811014071744">&amp;ELECTROSTATIC</a></p>
+<blockquote>
+<a href="#idm45811014070736">problem</a> | <a href="#idm45811014067408">solver</a> | <a href="#idm45811014064576">auxiliary</a> | <a href="#idm45811014061728">tol</a> | <a href="#idm45811014058800">mix</a> | <a href="#idm45811014056048">pbc_dim</a> | <a href="#idm45811014053760">pbc_axis</a> | <a href="#idm45811014051328">pbc_correction</a>
+</blockquote>
+   <p><a href="#idm45811014048656">EXTERNAL_CHARGES</a></p>
+<blockquote>
+<a href="#idm45811014043888">Q</a> | <a href="#idm45811014041344">x</a> | <a href="#idm45811014040672">y</a> | <a href="#idm45811014040000">z</a> | <a href="#idm45811014038944">spread</a> | <a href="#idm45811014286480">dim</a> | <a href="#idm45811014284576">axis</a>
+</blockquote>
+   <p><a href="#idm45811014011984">DIELECTRIC_REGIONS</a></p>
+<blockquote>
+<a href="#idm45811014007696">EpsSt</a> | <a href="#idm45811014006304">EpsOpt</a> | <a href="#idm45811014003824">x</a> | <a href="#idm45811014003200">y</a> | <a href="#idm45811014002576">z</a> | <a href="#idm45811014001824">width</a> | <a href="#idm45811014000176">spread</a> | <a href="#idm45811013998384">dim</a> | <a href="#idm45811013996496">axis</a>
+</blockquote>
+</blockquote>
+</blockquote>
+   <blockquote>
+<a name="idm45811014237968"></a><h3>INTRODUCTION</h3>
+<blockquote><pre>
+    <b>Input data format:</b> { } = optional, [ ] = it depends, | = or
+
+All quantities whose dimensions are not explicitly specified are in
+RYDBERG ATOMIC UNITS. Charge is "number" charge (i.e. not multiplied
+by e); potentials are in energy units (i.e. they are multiplied by e).
+
+<b>BEWARE:</b> TABS, DOS &lt;CR&gt;&lt;LF&gt; CHARACTERS ARE POTENTIAL SOURCES OF TROUBLE
+
+Comment lines in <i>namelists</i> can be introduced by a "!", exactly as in fortran
+code. Comments lines in <i>cards</i> can be introduced by either a "!" or a "#"
+character in the first position of a line.
+Do not start any line in <i>cards</i> with a "/" character.
+
+<b>Structure of the environ.in input file:</b>
+===============================================================================
+
+<b>&amp;ENVIRON</b>
+  ...
+<b>/</b>
+
+[ <b>&amp;BOUNDARY</b>
+  ...
+  <b>/</b> ]
+
+[ <b>&amp;ELECTROSTATIC</b>
+  ...
+  <b>/</b> ]
+
+[ <b>EXTERNAL_CHARGES</b> { bohr | angstrom }
+   Q1 0.0 0.0 0.0 { spread_Q1 dim_Q1 axis_Q1 }
+   Q2 0.5 0.0 0.0 { spread_Q2 dim_Q2 axis_Q2 } ]
+
+[ <b>DIELECTRIC_REGIONS</b> { bohr | angstrom }
+   EPSst_E1 EPSopt_E1 0.0 0.0 0.0 width_E1 { spread_E1 dim_E1 axis_E1 }
+   EPSst_E2 EPSopt_E2 0.0 0.0 0.0 width_E2 { spread_E2 dim_E2 axis_E2 } ]
+   </pre></blockquote>
+</blockquote>
+   <a name="idm45811014213856"></a><a name="ENVIRON"></a><table border="0" width="100%" style="margin-bottom: 20;">
+<tr><th bgcolor="#ddcba6"><h2 style="margin: 10 10 10 15; text-align: left;"> Namelist: <span class="namelist"><span style="font-weight:normal">&amp;</span>ENVIRON</span>
+</h2></th></tr>
+<tr><td style="text-align: left; background: #ffebc6; padding: 5 5 5 30; "><table style="border-color: #505087; border-style: solid; border-width: 0; margin-bottom: 10; table-layout: auto; width: 800;"><tbody><tr><td>
+      <p><b> This namelist is always needed !
+      </b></p>
+      <a name="idm45811014212944"></a><a name="environ_type"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">environ_type</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'input'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Set up all of the environment embedding flags and interface
+parameters according to predefined types:
+
+'input':
+         Do not use predefined types, read the flags of the different contribution from input
+         or use the defauls values (which correspond to no contributions).
+
+'vacuum':
+         All environment embeddings are turned off, but pbc corrections, external charges and
+         electrolyte charges can be present.
+
+'water':
+         Set up the main physical constants to the experimental values for water at room temperature
+         ( env_static_permittivity = 78.3 ). Set the tunable embedding flags to the values optimized
+         to reproduce aqueous solvation of small neutral organic compounds, corresponding to
+         non-electrostatic contributions modelled via pressure ( env_pressure = -0.35 GPa )
+         and surface tension ( env_surface_tension = 50 dyn/cm ) effects (see references below).
+         For electrons-dependent interfaces (self-consistent continuum solvation, SCCS), set soft
+         interface parameters to the optimal values ( rhomax = 0.005; rhomin = 0.0001)
+         derived in O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012).
+         For ions-dependent interfaces (soft-sphere continuum solvation, SSCS), set rigid
+         interface parameter to the optimal value ( alpha = 1.12 ) derived in
+         G. Fisicaro et al. J. Chem. Theory Comput. 13, 8, 3829 (2017).
+
+'water-cation':
+         Set up the main physical constants to the experimental values for water at room temperature
+         ( env_static_permittivity = 78.3 ). Set the tunable embedding flags to the values optimized
+         to reproduce aqueous solvation of small organic cations.
+         SCCS parameters ( env_pressure = 0.125 GPa; env_surface_tension = 5.0 dyn/cm;
+         rhomax = 0.0035;  rhomin = 0.0002 ) were derived in C. Dupont, O. Andreussi and
+         N. Marzari, J. Chem. Phys. 139, 214110 (2013)
+         SSCS parameters ( env_pressure = -0.35 GPa; env_surface_tension = 50.0 dyn/cm;
+         alpha = 1.10 ) were derived in G. Fisicaro et al. J. Chem. Theory Comput.
+         13, 8, 3829 (2017).
+
+'water-anion':
+         Set up the main physical constants to the experimental values for water at room temperature
+         ( env_static_permittivity = 78.3 ). Set the tunable embedding flags to the values optimized
+         to reproduce aqueous solvation of small organic cations.
+         SCCS parameters ( env_pressure = 0.45 GPa; env_surface_tension = 0.0 dyn/cm;
+         rhomax = 0.0155;  rhomin = 0.0024 ) were derived in C. Dupont, O. Andreussi and
+         N. Marzari, J. Chem. Phys. 139, 214110 (2013)
+         SSCS parameters ( env_pressure = -0.35 GPa; env_surface_tension = 50.0 dyn/cm;
+         alpha = 0.98 ) were derived in G. Fisicaro et al. J. Chem. Theory Comput.
+         13, 8, 3829 (2017).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014207152"></a><a name="verbose"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">verbose</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Control the amount of output written to specific output files, mostly useful for debugging purposes
+
+verbose .EQ. 0  minimal information written to standard output
+verbose .EQ. 1  additional information written to environ.debug file
+verbose .EQ. 2  dumping of main physical quantities on the real-space grid in the form of
+                  *.cube files
+verbose .GE. 3  dumping of several intermediate physical quantites on the real-space grid
+                as this is done at every SCF step it will slow down the calculation significantly
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014204432"></a><a name="environ_restart"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">environ_restart</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">LOGICAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> .false.
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Compute environ contributions during the initialization step, useful for 'restart' calculations
+and systems with a good-enough initial guess
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014202128"></a><a name="oldenviron"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">oldenviron</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">LOGICAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> .false.
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Use some legacy code in order to compare with results from Environ v0.2
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014199888"></a><a name="environ_thr"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">environ_thr</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.d-1
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> IMPORTANT. The default value is only valid for small systems, while is too conservative for larger systems
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Only include/update environment contributions when SCF accuracy is below this threshold.
+Since the environment region is defined in terms of the electronic density, the test is done
+in order to avoid computing unphysical environment contributions, usually to skip the
+environ calculation during the first couple of SCF step.
+
+IMPORTANT: as the SCF accuracy is an extensive property (increases with the number of electrons in
+the system), the optimal environ_thr will also vary with system size.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014197120"></a><a name="environ_nskip"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">environ_nskip</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Only include/update environment contributions after the first environ_nskip steps of CP dynamics.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014195264"></a><a name="system_ntyp"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">system_ntyp</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Specify the atom types that are used to determine the origin and size of the embedded system,
+for system-dependent properties in Environ (e.g. see later system-dependent boundary)
+Atom types up to system_ntyp are used, all atoms are used by default or if system_ntyp == 0.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014193232"></a><a name="system_dim"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">system_dim</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Dimensionality of the embedded system, used to determine size (only ortogonally to periodic
+dimensions) and position (0 = 0D, 1 = 1D, 2 = 2D).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014191328"></a><a name="system_axis"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">system_axis</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 3
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Main axis of the embedded system, only necessary for partially periodic systems
+(1 = x, 2 = y, 3 = z).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014189472"></a><a name="env_electrostatic"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_electrostatic</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">LOGICAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> .false.
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Generic keyword that flags the need to read the &amp;ELECTROSTATIC namelist. Any electrostatic
+embedding keyword (env_static_permittivity, env_electrolyte_ntyp) will turn this keyword on.
+One needs to turn on explicitly this keyword to activate electrostatic embedding effects
+that do not have a specific activation keyword, such as for PBC correction schemes.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014186480"></a><a name="env_static_permittivity"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_static_permittivity</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.D0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Static dielectric permittivity of the elctrostatic continuum embedding model.
+This keyword (like all the env_* keywords) is also the flag which controls the activation
+of the specific contribution: if set equal to one (=vacuum) no dielectric effects from the environment.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014184032"></a><a name="env_optical_permittivity"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_optical_permittivity</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.D0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Optical dielectric permittivity of the electrostatic continuum embedding model,
+only needed for TDDFPT calculations. If set equal to one (=vacuum) no dielectric
+effects in linear response calculations.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014181648"></a><a name="env_surface_tension"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_surface_tension</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.D0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Surface tension (gamma) of the environment in CGS units dyn/cm.
+This keyword controls the activation of the surface-dependent contribution to
+the solute's Hamiltonian (gamma*S): if set equal to 0.D0 no surface
+contribution from the environment.
+
+This contribution may be straighforwardly used to compute cavitation free energies,
+as proposed by Scherlis et al. in J. Chem. Phys. 124, 074103 (2006).
+NOTE that the current implementation uses an improved definition of the
+quantum-surface O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012).
+This contribution can also be used as a simplified approach to the more general
+non-electrostatic contributions to solvation, as in the SCCS approach.
+In this second case, env_surface_tension needs not to correspond to the
+real surface tension of the solvent, but is used as a fitting parameter.
+See O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014177296"></a><a name="env_pressure"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_pressure</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.D0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+External pressure (P) of the environment in GPa.
+This keyword controls the activation of the volume-dependet contribution to
+the solute's Hamiltonian (P*V): if set equal to 0.D0 no volume contribution
+from the environment.
+
+This contribution may be straightforwardly used to compute the electronic entalpy,
+i.e. to model finite systems under pressure, as proposed by M. Cococcioni et al. in
+Phys. Rev. Lett. 94, 145501 (2005). This contribution can also be used as a simplified
+approach to more complex and general non-electrostatic contributions to solvation,
+as in the SCCS approach. In this second case, env_pressure needs not correspond to the
+real external pressure of the environment, but is used as a fitting parameter
+(and can assume negative values). See O. Andreussi, I. Dabo and N. Marzari,
+J. Chem. Phys. 136 064102 (2012)
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014173168"></a><a name="env_external_charges"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_external_charges</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Number of fixed external charges. This keyword controls how many fixed external densities of charge need to be
+included in the simulation box. Shape, position and amount of charge of each external density need to be specified
+in the EXTERNAL_CHARGES card.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014170736"></a><a name="env_dielectric_regions"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_dielectric_regions</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Number of fixed dielectric regions. This keyword controls how many regions of fixed permittivities (static and optical)
+need to be included in the simulation box. Shape, position and permittivities of each region need to be specified
+in the DIELECTRIC_REGIONS card.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014168368"></a><a name="env_electrolyte_ntyp"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">env_electrolyte_ntyp</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Number counter-charge species to be added in the continuum region modelling the electrolyte (if different
+from zero, must be greater or equal to 2, in order for the electrolyte to be charge neutral).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014166000"></a><a name="stern_entropy"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_entropy</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'full'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Keyword to set the electrolyte entropy terms that are affected by the Stern-layer correction.
+'ions' : only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 ).
+'full' : all terms ( Dabo et al. arXiv 0901.0096 ).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014163296"></a><a name="cion"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" style="white-space: nowrap; text-align: left; vertical-align: top; background: #ffff99; padding: 2 2 2 10; ">cion(i), i=1,env_electrolyte_ntyp</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Molar concentration of ionic countercharge (in mol/L).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014160512"></a><a name="cionmax"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">cionmax</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.D0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Maximum molar concentration of ionic countercharge (in mol/L).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014158272"></a><a name="rion"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">rion</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.D0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Mean atomic radius of ionic countercharge (a.u.).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014156048"></a><a name="zion"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" style="white-space: nowrap; text-align: left; vertical-align: top; background: #ffff99; padding: 2 2 2 10; ">zion(i), i=1,env_electrolyte_ntyp</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Valence of ionic countercharge.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014153328"></a><a name="solvent_temperature"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">solvent_temperature</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 300.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Temperature of electrolyte solution, needed by Poisson-Boltzmann equation.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014151088"></a><a name="add_jellium"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">add_jellium</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">LOGICAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> .FALSE.
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OBSOLETE
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Control if jellium polarization is included in the calculation of dielectric environment effects on
+charged solutes. The jellium contribution, although it formally needs to be considered, is a PBC
+artifact and needs to be removed when applying periodic boundary correction schemes. Thus, in any
+reasonable simulation there is no need to explicitly include the jellium contribution.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014148528"></a><a name="atomicspread"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" style="white-space: nowrap; text-align: left; vertical-align: top; background: #ffff99; padding: 2 2 2 10; ">atomicspread(i), i=1,ntyp</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+In the calculation of electrostatic contributions, ionic charge densities are modelled
+as gaussians of fixed spread, as specified by atomicspread(ityp) for each atomic type.
+Results are identical to using point-like charges (as is usually done in PW), unless the gaussian
+spreads are too large. The default value of 0.5 a.u. was derived to be safe enough in most
+common atom types. A too small value may require larger density cutoffs (ecutrho).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+   </td></tr></tbody></table></td></tr>
+</table>
+   <a name="idm45811014145264"></a><a name="BOUNDARY"></a><table border="0" width="100%" style="margin-bottom: 20;">
+<tr><th bgcolor="#ddcba6"><h2 style="margin: 10 10 10 15; text-align: left;"> Namelist: <span class="namelist"><span style="font-weight:normal">&amp;</span>BOUNDARY</span>
+</h2></th></tr>
+<tr><td style="text-align: left; background: #ffebc6; padding: 5 5 5 30; "><table style="border-color: #505087; border-style: solid; border-width: 0; margin-bottom: 10; table-layout: auto; width: 800;"><tbody><tr><td>
+      <p><b> This namelist is not needed if there are no embedding schemes requiring a continuum interface
+      </b></p>
+      <a name="idm45811014144240"></a><a name="solvent_mode"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">solvent_mode</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'electronic'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Choice of the interface function representing the boundary between the
+QM region and the solvent embedding environment. Dielectric, surface and
+volume embedding will all act on the solvent interface (as opposed to
+the electrolyte embedding that will act on the electrolyte interface).
+
+'electronic':
+       interface depends self-consist. on electronic density, corresponds
+       to the Self-consistent Continuum Solvation approach (SCCS).
+
+'ionic':
+       interface defined on atomic positions, corresponds to the
+       Soft-sphere Continuum Solvation approach (SSCS).
+
+'full':
+       similar to electronic, but an extra density is added to
+       represent the core electrons and the nuclei. This extra
+       density is defined as the sum of gaussian functions centered
+       on atomic positions of width specified by the corespread(ityp) keyword.
+
+'system':
+       inteface defined as a simple analytical function of system position and
+       dimensionality.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014140896"></a><a name="rhomax"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">rhomax</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.005
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+First parameter of the density-dependent interface function,
+roughly corresponding to the density threshold of the continuum model.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014138592"></a><a name="rhomin"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">rhomin</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.0001
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Second parameter of the density-dependent interface function, when stype=1.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014136352"></a><a name="tbeta"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">tbeta</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 4.8
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Second parameter of the density-dependent interface function, when stype=0.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014134112"></a><a name="alpha"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">alpha</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Main parameter of ions-dependent interface function, corresponding to the homogeneous
+scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014131760"></a><a name="softness"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">softness</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Numerical spread of the soft-sphere functions used for the ions-dependent interfaces.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014129504"></a><a name="solvent_distance"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">solvent_distance</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Distance of the system-dependent interface from the center of the system, computed as the
+center of ionic charge of the atomic types entering the definition of the system
+(as specified in the system_ntyp keyword of the &amp;ENVIRON namelist).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014126896"></a><a name="solvent_spread"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">solvent_spread</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Numerical spread of the analytical function used for the system-dependent interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014124640"></a><a name="stern_mode"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_mode</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'electronic'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> REQUIRED
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Choice of the interface function representing the boundary between the
+QM region and the electrolyte embedding environment. Please note that a
+separate set of keywords is used to specify the parameters of the electrolyte
+interface function (all exploiting the stern_ prefix).
+
+'electronic':
+       interface depends self-consist. on electronic density, corresponds
+       to the Self-consistent Continuum Solvation approach (SCCS).
+
+'ionic':
+       interface defined on atomic positions, corresponds to the
+       Soft-sphere Continuum Solvation approach (SSCS).
+
+'full':
+       similar to electronic, but an extra density is added to
+       represent the core electrons and the nuclei. This extra
+       density is defined as the sum of gaussian functions centered
+       on atomic positions of width specified by the corespread(ityp) keyword.
+
+'system':
+       inteface defined as a simple analytical function of system position and
+       dimensionality.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014121104"></a><a name="stern_rhomax"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_rhomax</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.005
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+First parameter of the density-dependent interface function,
+roughly corresponding to the density threshold of the continuum model.
+Used for the electrolyte interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014118768"></a><a name="stern_rhomin"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_rhomin</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.0001
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Second parameter of the density-dependent interface function, when stype=1.
+Used for the electrolyte interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014116480"></a><a name="stern_tbeta"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_tbeta</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 4.8
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Second parameter of the density-dependent interface function, when stype=0
+Used for the electrolyte interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014114192"></a><a name="stern_alpha"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_alpha</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Main parameter of ions-dependent interface function, corresponding to the homogeneous
+scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
+Used for the electrolyte interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014111808"></a><a name="stern_softness"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_softness</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Numerical spread of the soft-sphere functions used for the ions-dependent interfaces.
+Used for the electrolyte interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014109520"></a><a name="stern_distance"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_distance</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Distance of the system-dependent interface from the center of the system, computed as the
+center of ionic charge of the atomic types entering the definition of the system
+(as specified in the system_ntyp keyword of the &amp;ENVIRON namelist).
+Used for the electrolyte interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014106912"></a><a name="stern_spread"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stern_spread</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Numerical spread of the analytical function used for the system-dependent interface.
+Used for the electrolyte interface.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014104624"></a><a name="stype"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">stype</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+The shape of the environment region is defined according to a specific switching function of the electronic
+density:
+
+stype .EQ. 0 : Original switching function from Fattebert and Gygi.
+               Requires two parameters: rhomax and tbeta
+stype .EQ. 1 : Optimally smooth switching function from the SCCS method, redefined for the non-electrostatic part.
+               Requires two parameters: rhomax and rhomin
+stype .EQ. 2 : Optimally smooth switching function from the SCCS method of Andreussi et al.
+               Requires two parameters: rhomax and rhomin
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014101888"></a><a name="radius_mode"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">radius_mode</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'uff'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Specify the predefined set of atomic radii to be used when building an ions-dependent interface.
+
+'pauling' : R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
+'bondi'   : A. Bondi, J. Phys. Chem. 68, 441 (1964)
+'uff'     : A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014099200"></a><a name="solvationrad"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" style="white-space: nowrap; text-align: left; vertical-align: top; background: #ffff99; padding: 2 2 2 10; ">solvationrad(i), i=1,ntyp</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 3.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Atomic radii used for the ions-dependent interface as introduced by G. Fisicaro et al.
+J. Chem. Theory Comput. 13, 8, 3829 (2017). These values will overwrite the defaults
+set by the radius_mode keyword.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014096320"></a><a name="corespread"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" style="white-space: nowrap; text-align: left; vertical-align: top; background: #ffff99; padding: 2 2 2 10; ">corespread(i), i=1,ntyp</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Numerical spread of the atomic-centered Gaussian functions used to model core electrons and
+ions for interfaces defined on the full set of degrees of freedom of the QM system (iterface mode = full).
+NOTE: this numerical parameter should only be used to avoid artefacts coming from the missing
+core electrons, if this parameter affects the final results a WARNING will be issued and a smaller
+(even null) value should be used instead.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014093200"></a><a name="solvent_radius"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">solvent_radius</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Size of the solvent molecules, used in the solvent-aware algorithm to decide whether to fill a continuum
+void or not. If set equal to 0.D0, use the standard local algorithm.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014090848"></a><a name="radial_scale"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">radial_scale</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 2.0
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+For solvent-aware interfaces, compute the filled fraction on a spherical volume whose radius is
+radial_scale * solvent_radius. The deafaul value of 2.0 guarantees that spherical voids of the size
+of a solvent molecule will be homogenously filled. Larger values will let the algorithm sample a
+larger volume of space, increasing the non-locality of the algorithm.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014088320"></a><a name="radial_spread"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">radial_spread</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+For solvent-aware interfaces, numerical spread of the step function used to compute the filled fraction.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014086048"></a><a name="filling_threshold"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">filling_threshold</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.825
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+For solvent-aware interfaces, threshold of filled-fraction used to decide whether to fill or not
+a continuum void. The default value of 7/8 correspond to the geometrical condition required to
+homogenously fill a spherical void of radius smaller than the solvent radius.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014083600"></a><a name="filling_spread"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">filling_spread</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.02
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+For solvent-aware interfaces, numerical spread of the switching function used to decide whether the
+continuum void should be filled or not.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014081296"></a><a name="boundary_core"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">boundary_core</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'analytic'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Specify the numerical approach used to compute derivatives of the continuum interface with respect
+to real-space coordinates or QM degrees of freedom.
+
+'fft'      : fast Fourier transform
+'fd'       : finite differences in real-space
+'analytic' : analytic derivatives for as much as possible (and FFTs for the rest)
+
+NOTE: analytic derivatives, especially for ions-dependent interfaces, may require a large amount of storage.
+If this prevents the calculation to run, use FFTs instead.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014078000"></a><a name="ifdtype"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">ifdtype</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+The gradient of the dielectric function is computed in real-space using finite differences.
+Different finite differences schemes have been implemented following
+P. Holoborodko, Smooth noise robust differentiators, 2008
+<a href="http://www.holoborodko.com/pavel/numerical-methods/numerical-derivative/smooth-low-noise-differentiators">http://www.holoborodko.com/pavel/numerical-methods/numerical-derivative/smooth-low-noise-differentiators</a>
+Each scheme can exploit different numbers of points of the real-space grid (as defined by nfdpoint).
+
+ifdtype .EQ. 1 : Central differences
+ifdtype .EQ. 2 : Low-noise Lanczos (m=2)
+ifdtype .EQ. 3 : Low-noise Lanczos (m=4)
+ifdtype .EQ. 4 : Smooth noise-robust (n=2)
+ifdtype .EQ. 5 : Smooth noise-robust (n=4)
+
+Central differences are used by default and have been tested more deeply. The other schemes work fine,
+but are not deeply tested in terms of performances.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014074608"></a><a name="nfdpoint"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">nfdpoint</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> IMPORTANT
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Number of point from the real-space grid, to be used by the different finite-difference schemes to compute gradients.
+Number of points = 2 * nfdpoint + 1
+e.g. ifdtype.EQ.1 .AND. nfdpoint.EQ.1 correspond to central differences with three points
+
+IMPORTANT: nfdpoint .EQ. 1 seems to be enough for most applications, but more refinied finite-difference schemes are
+needed (nfdpoint.EQ.2 is enough) for energy conservation in MD simulations in continuum dielectric.
+See test case reported in O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+   </td></tr></tbody></table></td></tr>
+</table>
+   <a name="idm45811014071744"></a><a name="ELECTROSTATIC"></a><table border="0" width="100%" style="margin-bottom: 20;">
+<tr><th bgcolor="#ddcba6"><h2 style="margin: 10 10 10 15; text-align: left;"> Namelist: <span class="namelist"><span style="font-weight:normal">&amp;</span>ELECTROSTATIC</span>
+</h2></th></tr>
+<tr><td style="text-align: left; background: #ffebc6; padding: 5 5 5 30; "><table style="border-color: #505087; border-style: solid; border-width: 0; margin-bottom: 10; table-layout: auto; width: 800;"><tbody><tr><td>
+      <p><b> This namelist is not needed if there are no electrostatic embedding effects
+      </b></p>
+      <a name="idm45811014070736"></a><a name="problem"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">problem</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'poisson'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Type of electrostatic problem that need to be solved. This keyword is usually set automatically by the
+ENVIRON namelist, but it may be used to specify a linearized or modified version of an electrostatic problem.
+
+'poisson'     : standard Poisson equation, with or without periodic boundary conditions
+'generalized' : generalized Poisson equation, a dielectric embedding must be present
+'pb'          : non-linear Poisson-Boltzmann equation, an electrolyte embedding must be present,
+                a dielectric embedding is optional.
+'modpb'       : non-linear size-modified Poisson-Boltzmann equation, an electrolyte embedding must
+                be present, a dielectric embedding is optional.
+'linpb'       : linearized version of the Poisson-Boltzmann problem.
+'linmodpb'    : linearized version of the modified Poisson-Boltzmann problem.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014067408"></a><a name="solver"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">solver</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'direct'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Type of numerical solver used to get the solution of the electrostatic problem.
+
+'direct'    : Get the direct solution of the problem as provided by the adopted numerical core.
+              At this time, the FFT numerical core of Environ only allows the 'poisson' problem to be solved directly.
+'iterative' : Use a fixed-point search algorithm (used to be the default for the 'generalized' problem in Environ v0.2).
+'sd'        : Use a steepest-descent algorithm, possibly preconditioned.
+'cg'        : Use a conjugate-gradient algorithm, possibly preconditioned.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014064576"></a><a name="auxiliary"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">auxiliary</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'none'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+The electrostatic problem is defined and solved in terms of the electrostatic potential or of an auxiliary quantity.
+
+'none' : solve for the electrostatic potential.
+'full' : solve for the auxiliary charge (e.g. for 'generalized' problems solve for the polarization charge,
+         used to be the default in Environ v0.2).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014061728"></a><a name="tol"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">tol</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 1.D-5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> IMPORTANT
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Accuracy of the electrostatic calculation: higher accuracies will require more cycles,
+but will ensure smoother SCF convergece. As electrostatic solver iterations are usually
+cheaper than SCF cycles, it is recommended to increase this accuracy whenever the SCF has problems converging.
+The units depend on the actual quantity that is computed by the algorithm, either the potential
+(auxiliary = 'none') or an auxiliary charge (auxiliary = 'full'). In the latter case, much smaller thresholds
+should be adopted (e.g. lower than 1.D-8).
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014058800"></a><a name="mix"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">mix</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Linear mixing parameter for iterative solver. Usually does not affect results (and it shouldn't)
+and does not affect performances, large values work fine in most common applications.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014056048"></a><a name="pbc_dim"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">pbc_dim</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 3
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Dimensionality of the simulation cell, i.e. periodic boundary conditions are applied on 3/2/1/0 sides
+of the cell.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014053760"></a><a name="pbc_axis"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">pbc_axis</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 3
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+For partially periodic simulation cells (1D or 2D), choice of the sides with periodic boundary conditions.
+1 = x, 2 = y, 3 = z, where
+  if pbc_dim = 2, specified axis is orthogonal to 2D plane.
+  if pbc_dim = 1, specified axis is along the 1D direction.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+      <a name="idm45811014051328"></a><a name="pbc_correction"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; ">pbc_correction</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">CHARACTER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 'none'
+         </td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Status:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> OPTIONAL
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Type of pbc correction scheme to be used.
+'none' : no correction.
+'parabolic' : parabolic point-counter-charge (PCC) correction, only implemeted for 0D and 2D systems.
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+   </td></tr></tbody></table></td></tr>
+</table>
+   <a name="idm45811014048656"></a><a name="EXTERNAL_CHARGES"></a><table border="0" style="margin-bottom: 20; table-layout: auto; width: 100%;">
+<tr><th bgcolor="#ddcba6"><h2 style="margin: 10 10 10 15; text-align: left; white-space: nowrap;"> 
+	    Card: <span class="card">EXTERNAL_CHARGES</span> { <span class="flag">bohr</span> | <span class="flag">angstrom</span> } </h2></th></tr>
+<tr><td style="text-align: left; background: #ffebc6; padding: 5 5 5 30; "><table style="border-color: #505087; border-style: solid; border-width: 0; margin-bottom: 10; table-layout: auto; width: 100%;"><tbody>
+<tr><td>
+<h3>Syntax:</h3>
+<blockquote>
+<b style="white-space: nowrap;">EXTERNAL_CHARGES {  bohr | angstrom
+          } </b><br><div class="syntax">
+<a name="idm45811014045296"></a><table>
+<tr>
+<td style="white-space:nowrap"> <i><a href="#idm45811014043888">Q(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014041344">x(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014040672">y(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014040000">z(1)</a></i> </td>
+<td> { </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014038944">spread(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014286480">dim(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014284576">axis(1)</a></i> </td>
+<td> } </td>
+</tr>
+<tr>
+<td style="white-space:nowrap"> <i><a href="#idm45811014043888">Q(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014041344">x(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014040672">y(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014040000">z(2)</a></i> </td>
+<td> { </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014038944">spread(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014286480">dim(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014284576">axis(2)</a></i> </td>
+<td> } </td>
+</tr>
+<tr><td colspan="2"> . . .</td></tr>
+<tr>
+<td style="white-space:nowrap"> <i><a href="#idm45811014043888">Q(nec)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014041344">x(nec)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014040672">y(nec)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014040000">z(nec)</a></i> </td>
+<td> { </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014038944">spread(nec)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014286480">dim(nec)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014284576">axis(nec)</a></i> </td>
+<td> } </td>
+</tr>
+</table>
+</div>
+</blockquote>
+</td></tr>
+<tr><td>
+<h3>Description of items:</h3>
+<blockquote>
+<a name="idm45811014048032"></a><a name="extcharge_unit"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" style="white-space: nowrap; text-align: left; vertical-align: top; background: #ffff99; padding: 2 2 2 10; "><i>Card's options:</i></th>
+<th style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">
+<span class="flag">bohr</span> | <span class="flag">angstrom</span>
+</th>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> (DEPRECATED) bohr
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+bohr    : atomic positions are in cartesian coordinate,
+          in atomic units (i.e. Bohr radii)
+
+angstrom: atomic positions are in cartesian coordinates,
+          in Angstrom
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="Q"><a name="idm45811014043888">Q</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;"> total charge of external object
+                  </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" align="left" valign="top" style="background: #ffff99; padding: 2 2 2 10; ">
+<a name="x"><a name="idm45811014041344">x</a></a>, <a name="y"><a name="idm45811014040672">y</a></a>, <a name="z"><a name="idm45811014040000">z</a></a>
+</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+positions
+
+NOTE: each atomic coordinate can also be specified
+      as a simple algebraic expression, see the
+      description in the input file of PW.
+                  </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="spread"><a name="idm45811014038944">spread</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+                     </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+Gaussian spread of the external charge density
+in atomic units
+                     </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="dim"><a name="idm45811014286480">dim</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+                     </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+dimensionality of the charge density:
+
+dim .EQ. 0 : point-like (gaussian shaped) charge density
+
+dim .EQ. 1 : linear (gaussian shaped) charge density
+
+dim .EQ. 2 : planar (gaussian shaped) charge density
+                     </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="axis"><a name="idm45811014284576">axis</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 3
+                     </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+axis of the external charge density:
+
+if dim.EQ.0 : axis has no meaning/use
+
+if dim.EQ.1 : axis identifies the direction of the linear
+charge density: axis.EQ.1|2|3 means lines along x|y|z respectively
+
+if dim.EQ.2 : axis identifies the direction ortogonal to the planar
+charge density: axis.EQ.1|2|3 means planes ortogonal to x|y|z
+                     </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+</blockquote>
+</td></tr>
+</tbody></table></td></tr>
+</table>
+   <a name="idm45811014011984"></a><a name="DIELECTRIC_REGIONS"></a><table border="0" style="margin-bottom: 20; table-layout: auto; width: 100%;">
+<tr><th bgcolor="#ddcba6"><h2 style="margin: 10 10 10 15; text-align: left; white-space: nowrap;"> 
+	    Card: <span class="card">DIELECTRIC_REGIONS</span> { <span class="flag">bohr</span> | <span class="flag">angstrom</span> } </h2></th></tr>
+<tr><td style="text-align: left; background: #ffebc6; padding: 5 5 5 30; "><table style="border-color: #505087; border-style: solid; border-width: 0; margin-bottom: 10; table-layout: auto; width: 100%;"><tbody>
+<tr><td>
+<h3>Syntax:</h3>
+<blockquote>
+<b style="white-space: nowrap;">DIELECTRIC_REGIONS {  bohr | angstrom
+          } </b><br><div class="syntax">
+<a name="idm45811014008960"></a><table>
+<tr>
+<td style="white-space:nowrap"> <i><a href="#idm45811014007696">EpsSt(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014006304">EpsOpt(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014003824">x(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014003200">y(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014002576">z(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014001824">width(1)</a></i> </td>
+<td> { </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014000176">spread(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811013998384">dim(1)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811013996496">axis(1)</a></i> </td>
+<td> } </td>
+</tr>
+<tr>
+<td style="white-space:nowrap"> <i><a href="#idm45811014007696">EpsSt(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014006304">EpsOpt(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014003824">x(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014003200">y(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014002576">z(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014001824">width(2)</a></i> </td>
+<td> { </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014000176">spread(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811013998384">dim(2)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811013996496">axis(2)</a></i> </td>
+<td> } </td>
+</tr>
+<tr><td colspan="2"> . . .</td></tr>
+<tr>
+<td style="white-space:nowrap"> <i><a href="#idm45811014007696">EpsSt(ndr)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014006304">EpsOpt(ndr)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014003824">x(ndr)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014003200">y(ndr)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014002576">z(ndr)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014001824">width(ndr)</a></i> </td>
+<td> { </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811014000176">spread(ndr)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811013998384">dim(ndr)</a></i> </td>
+<td style="white-space:nowrap"> <i><a href="#idm45811013996496">axis(ndr)</a></i> </td>
+<td> } </td>
+</tr>
+</table>
+</div>
+</blockquote>
+</td></tr>
+<tr><td>
+<h3>Description of items:</h3>
+<blockquote>
+<a name="idm45811014011488"></a><a name="epsregion_unit"></a><table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" style="white-space: nowrap; text-align: left; vertical-align: top; background: #ffff99; padding: 2 2 2 10; "><i>Card's options:</i></th>
+<th style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">
+<span class="flag">bohr</span> | <span class="flag">angstrom</span>
+</th>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> (DEPRECATED) bohr
+         </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+bohr    : positions are in cartesian coordinate,
+          in atomic units (i.e. Bohr radii)
+
+angstrom: positions are in cartesian coordinates,
+          in Angstrom
+         </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="EpsSt"><a name="idm45811014007696">EpsSt</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;"> static permittivity inside of dielectric region
+                  </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="EpsOpt"><a name="idm45811014006304">EpsOpt</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;"> optical permittivity inside of dielectric region
+                  </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th width="20%" align="left" valign="top" style="background: #ffff99; padding: 2 2 2 10; ">
+<a name="x"><a name="idm45811014003824">x</a></a>, <a name="y"><a name="idm45811014003200">y</a></a>, <a name="z"><a name="idm45811014002576">z</a></a>
+</th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+positions
+
+NOTE: each coordinate can also be specified as a simple
+      algebraic expression, see the description in the
+      input file of PW.
+                  </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="width"><a name="idm45811014001824">width</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;"> width of the dielectric region in atomic units
+                  </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="spread"><a name="idm45811014000176">spread</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">REAL</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0.5
+                     </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;"> spread of the external charge density in atomic units
+                     </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="dim"><a name="idm45811013998384">dim</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 0
+                     </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+dimensionality of the dielectric region:
+
+dim .EQ. 0 : sphere-like (erfc shaped) region
+
+dim .EQ. 1 : cylinder-like (erfc shaped) region
+
+dim .EQ. 2 : planar (erfc shaped) region
+                     </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+<table width="100%" style="border-color:   #b5b500; border-style: solid; border-width: 2; margin-bottom: 10; table-layout: auto; background-color: #FFFFFF;">
+<tr>
+<th align="left" valign="top" width="20%" style="background: #ffff99; padding: 2 2 2 10; "><a name="axis"><a name="idm45811013996496">axis</a></a></th>
+<td style="text-align: left; vertical-align: top; background: #ffffc3; padding: 2 2 2 5; ">INTEGER</td>
+</tr>
+<tr>
+<td style="text-align: right; vertical-align: top; background: #ffffc3; padding: 2 10 2 10; "><i>Default:</i></td>
+<td style="text-align: left;  vertical-align: top; background: #fff3d9; padding: 2 2 2 5; "> 3
+                     </td>
+</tr>
+<tr><td align="left" valign="top" colspan="2"><blockquote><pre style="margin-bottom: -1em;">
+axis of the dielectric region:
+
+if dim.EQ.0 : axis has no meaning/use
+
+if dim.EQ.1 : axis identifies the direction of the linear
+charge density: axis.EQ.1|2|3 means lines along x|y|z respectively
+
+if dim.EQ.2 : axis identifies the direction ortogonal to the planar
+charge density: axis.EQ.1|2|3 means planes ortogonal to x|y|z
+                     </pre></blockquote></td></tr>
+</table>
+<div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
+</blockquote>
+</td></tr>
+</tbody></table></td></tr>
+</table>
+</td></tr>
+</table>
+<small>
+	  This file has been created by helpdoc utility.
+	</small>
+</body>
+</html>
