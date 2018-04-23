@@ -64,11 +64,11 @@ CONTAINS
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
-       & env_electrolyte_ntyp_, stern_entropy,       &
-       & stern_mode, stern_distance, stern_spread,   &
-       & cion, cionmax, rion, zion, stern_rhomax,    &
-       & stern_rhomin, stern_tbeta, stern_alpha,     &
-       & stern_softness,                             &
+       & env_electrolyte_ntyp_, stern_linearized,    &
+       & stern_entropy, stern_mode, stern_distance,  &
+       & stern_spread, cion, cionmax, rion, zion,    &
+       & stern_rhomax, stern_rhomin, stern_tbeta,    &
+       & stern_alpha, stern_softness,                &
        & solvent_temperature,                        &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
@@ -83,11 +83,12 @@ CONTAINS
     ! ... to global variables kept in the environ_base module
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
-         & need_factsqrt, need_auxiliary, linearized
+         & need_factsqrt, need_auxiliary
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
-    LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, add_jellium_
+    LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, &
+         add_jellium_, stern_linearized
     INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
@@ -243,7 +244,7 @@ CONTAINS
             & stern_alpha, stern_softness, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
-            & zion, stern_entropy, linearized, electrolyte )
+            & zion, stern_entropy, stern_linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
     !
