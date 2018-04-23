@@ -41,6 +41,7 @@ environ_output.o           \
 environ_types.o            \
 problem_generalized.o      \
 problem_linearized_pb.o    \
+problem_pb.o               \
 problem_poisson.o          \
 solvent_tddfpt.o           \
 tools_fd_gradient.o        \
