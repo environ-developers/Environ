@@ -1,0 +1,34 @@
+New in development version:
+
+  * 
+
+Problems fixed in development version:
+
+  * modified the local arrays in compute_convolution_fft to avoid 
+    large automatic arrays written on the stack (segmentation fault on
+    Mac with default compilation options, i.e. small stack) 
+
+Incompatible changes in development version:
+
+  *
+
+Known problems in Environ 1.0 :
+
+  * testset is not fully consistent between parallel and serial execution,
+    and with different compilers
+  
+  * test pw_water/water-anion-sccs-default has convergence issues
+
+  * charged systems in PBC without jellium show small differences between
+    pcb and iter solvers
+
+  * forces in dielectric embedding for charged systems and PBC have a 
+    small error
+
+  * sqrt preconditioner for dielectric embedding only works for analytic 
+    boundary_core
+
+  * alternative preconditioning schemes for dielectric embedding 
+    are not stable, do not converge
+
+ 
