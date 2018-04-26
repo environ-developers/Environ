@@ -56,6 +56,13 @@ MODULE electrostatic_types
      !
   END TYPE iterative_solver
   !
+  TYPE newton_solver
+     !
+     INTEGER :: maxiter
+     REAL( DP ) :: tol
+     !
+  END TYPE newton_solver
+  !
   TYPE electrostatic_solver
      !
      CHARACTER( LEN = 80 ) :: type
@@ -70,11 +77,12 @@ MODULE electrostatic_types
      LOGICAL :: use_iterative
      TYPE( iterative_solver ), POINTER :: iterative => NULL()
      !
+     LOGICAL :: use_newton
+     TYPE( newton_solver ), POINTER :: newton => NULL()
+     !
 !     LOGICAL :: use_lbfgs
 !     TYPE( lbfgs_solver ) :: lbfgs
 !
-!     LOGICAL :: use_newton
-!     TYPE( newton_solver ) :: newton
      !
   END TYPE electrostatic_solver
   !
@@ -144,19 +152,19 @@ MODULE electrostatic_types
 CONTAINS
   !
 !--------------------------------------------------------------------
-  SUBROUTINE init_gradient_solver( type, tol, step_type, step, maxstep, preconditioner, &
+  SUBROUTINE init_gradient_solver( lconjugate, tol, step_type, step, maxstep, preconditioner, &
        & screening_type, screening, gradient )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
+    LOGICAL, INTENT(IN) :: lconjugate
     INTEGER, INTENT(IN) :: maxstep
     REAL( DP ), INTENT(IN) :: tol, step, screening
-    CHARACTER( LEN = 80 ), INTENT(IN) :: type, step_type, preconditioner, screening_type
+    CHARACTER( LEN = 80 ), INTENT(IN) :: step_type, preconditioner, screening_type
     TYPE( gradient_solver ), INTENT(INOUT) :: gradient
     !
-    gradient % lconjugate = .FALSE.
-    IF ( TRIM(ADJUSTL(type)) .EQ. "cg" ) gradient % lconjugate = .TRUE.
+    gradient % lconjugate = lconjugate
     gradient % tol = tol
     gradient % step_type = step_type
     gradient % step = step
@@ -193,6 +201,24 @@ CONTAINS
   END SUBROUTINE init_iterative_solver
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE init_newton_solver( tol, maxiter, newton )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: maxiter
+    REAL( DP ), INTENT(IN) :: tol
+    TYPE( newton_solver ), INTENT(INOUT) :: newton
+    !
+    newton % tol = tol
+    newton % maxiter = maxiter
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE init_newton_solver
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE create_electrostatic_solver( solver )
 !--------------------------------------------------------------------
     !
@@ -216,7 +242,7 @@ CONTAINS
   END SUBROUTINE create_electrostatic_solver
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_electrostatic_solver( type, solver, gradient, iterative, auxiliary )
+  SUBROUTINE init_electrostatic_solver( type, solver, gradient, iterative, newton, auxiliary )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -225,6 +251,7 @@ CONTAINS
     TYPE( electrostatic_solver ), INTENT(INOUT) :: solver
     TYPE( gradient_solver ), TARGET, INTENT(IN), OPTIONAL :: gradient
     TYPE( iterative_solver ), TARGET, INTENT(IN), OPTIONAL :: iterative
+    TYPE( newton_solver ), TARGET, INTENT(IN), OPTIONAL :: newton
     CHARACTER( LEN = 80 ), INTENT(IN), OPTIONAL :: auxiliary
     !
     INTEGER :: number
@@ -252,6 +279,12 @@ CONTAINS
             & CALL errore( sub_name, 'Missing specified solver type', 1 )
        solver % use_iterative = .TRUE.
        solver % iterative => iterative
+    CASE( 'newton' )
+       !
+       IF ( .NOT. PRESENT( newton ) ) &
+            & CALL errore( sub_name, 'Missing specified solver type', 1 )
+       solver % use_newton = .TRUE.
+       solver % newton => newton
        !
     CASE DEFAULT
        !
@@ -265,6 +298,7 @@ CONTAINS
     IF ( solver % use_direct ) number = number + 1
     IF ( solver % use_gradient ) number = number + 1
     IF ( solver % use_iterative ) number = number + 1
+    IF ( solver % use_newton ) number = number + 1
     IF ( number .NE. 1 ) CALL errore( sub_name, 'Too few or too many solvers are active', 1 )
     !
     RETURN
@@ -674,12 +708,13 @@ CONTAINS
        !
     CASE ( 'linpb', 'linmodpb', 'linearized-pb' )
        !
-       IF ( solver % use_direct ) &
-            & CALL errore(sub_name,'Cannot use a direct solver for the linearized Poisson-Boltzmann eq.',1)
+       IF ( solver % use_direct .OR. solver % use_iterative ) &
+            & CALL errore(sub_name,'Only gradient-based solver for the linearized Poisson-Boltzmann eq.',1)
        !
-    CASE ( 'pb', 'mod-pb', 'poisson-boltzmann' )
+    CASE ( 'pb', 'modpb', 'poisson-boltzmann' )
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       IF ( solver % use_direct .OR. solver % use_gradient ) &
+            & CALL errore(sub_name,'No direct or gradient-based solver for the full Poisson-Boltzmann eq.',1)
        !
     CASE DEFAULT
        !
@@ -734,18 +769,17 @@ CONTAINS
   END SUBROUTINE destroy_electrostatic_setup
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE set_electrostatic_flags( setup, need_auxiliary, need_gradient, &
-       & need_factsqrt, linearized )
+  SUBROUTINE set_electrostatic_flags( setup, need_auxiliary, need_gradient, need_factsqrt )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    LOGICAL, INTENT(INOUT) :: need_auxiliary, need_gradient, need_factsqrt, linearized
+    LOGICAL, INTENT(INOUT) :: need_auxiliary, need_gradient, need_factsqrt
     !
     SELECT CASE ( setup % problem )
        !
-    CASE ( 'generalized', 'linpb', 'linmodpb' )
+    CASE ( 'generalized', 'linpb', 'linmodpb', 'pb', 'modpb' )
        !
        IF ( setup % solver % use_gradient ) THEN
           !
@@ -764,8 +798,6 @@ CONTAINS
        END IF
        !
        IF ( setup % solver % auxiliary .NE. 'none' ) need_auxiliary = .TRUE.
-       !
-       IF ( setup % problem .NE. 'generalized' ) linearized = .TRUE.
        !
     END SELECT
     !

@@ -76,13 +76,17 @@ MODULE electrostatic_base
   ! Internal setup of numerical solvers
   !
   LOGICAL ::                           &
-       lgradient
+       lgradient, lconjugate
   TYPE( gradient_solver ) ::           &
-       gradient
+       gradient, inner_gradient
   LOGICAL ::                           &
        literative
   TYPE( iterative_solver ) ::          &
-       iterative
+       iterative, inner_iterative
+  LOGICAL ::                           &
+       lnested, lnewton
+  TYPE( newton_solver ) ::             &
+       newton
   !
   ! General setup of periodic boundary conditions
   !
@@ -97,7 +101,6 @@ MODULE electrostatic_base
   LOGICAL ::                       &
        need_gradient,              &
        need_factsqrt,              &
-       need_auxiliary,             &
-       linearized
+       need_auxiliary
   !
 END MODULE electrostatic_base
