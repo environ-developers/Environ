@@ -11,6 +11,7 @@
    zion(2) = -1
    rion = 2.D0
    stern_entropy = 'ions'
+   stern_linearized = .true.
    !
  /
  &BOUNDARY
