@@ -373,7 +373,6 @@ CONTAINS
        !
        rhotot % of_r = charges % of_r + rhoaux % of_r
        !
-       !FN jellium cannot be included
        IF ( PRESENT(dielectric) ) THEN
           !
           CALL generalized_gradient( inner_solver, inner_core, rhotot, dielectric, x ) 
@@ -567,7 +566,6 @@ CONTAINS
        rhotot % of_r = charges % of_r + rhoaux % of_r + screening % of_r * x%of_r
        residual % of_r = x%of_r
        !
-       !FN jellium cannot be included
        IF (PRESENT( dielectric )) THEN
           CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, dielectric, screening )
        ELSE
