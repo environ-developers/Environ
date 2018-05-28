@@ -329,10 +329,12 @@ CONTAINS
     REAL( DP ), POINTER :: z, cbulk
     REAL( DP ), DIMENSION(:), POINTER :: pot, rho, c, cfactor, gam
     !
-    REAL( DP )              :: kT, e, factor, sumcbulk
+    REAL( DP )              :: kT, e, factor, sumcbulk, arg
     INTEGER                 :: ityp, ir
     TYPE( environ_density ) :: denominator
     CHARACTER ( LEN=80 )    :: sub_name = 'calc_electrolyte_density'
+    !
+    REAL( DP ), PARAMETER   :: exp_arg_limit = LOG( HUGE(1.0_DP) )
     !
     gam => electrolyte%gamma%of_r
     pot => potential%of_r
@@ -373,9 +375,9 @@ CONTAINS
          DO ir = 1, potential % cell % ir_end
             ! numerical problems arise when computing exp( -z*pot/kT )
             ! in regions close to the nuclei (exponent is too large).
-            ! since gamma there is zero we skip those problematic points.
-            IF ( gam(ir) .NE. 0.D0 ) THEN
-               cfactor(ir) = EXP( -z * pot(ir) / kT )
+            arg = -z * pot(ir) / kT
+            IF ( arg .LT. exp_arg_limit ) THEN
+               cfactor(ir) = EXP( arg )
             END IF
          END DO
          !

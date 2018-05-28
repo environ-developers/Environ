@@ -300,7 +300,7 @@ CONTAINS
     TYPE( environ_density ), POINTER :: x, gam
     !
     INTEGER :: iter, ityp, ir
-    REAL( DP ) :: total, totaux, delta_qm, delta_en, kT, factor
+    REAL( DP ) :: total, totaux, delta_qm, delta_en, kT, factor, arg
     TYPE( environ_density ) :: residual, rhotot, denominator, rhoaux, cfactor!, rhonew
     !
     CHARACTER( LEN=80 ) :: sub_name = 'pb_nested'
@@ -308,6 +308,8 @@ CONTAINS
     !
     INTEGER, POINTER :: maxiter, ir_end
     REAL( DP ), POINTER :: tolrhoaux, mix, cbulk, cionmax, z
+    !
+    REAL( DP ), PARAMETER     :: exp_arg_limit = LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' OUTER LOOP ON POTENTIAL ',50('%'))
@@ -395,8 +397,9 @@ CONTAINS
           cfactor % of_r = 0.D0
           !
           DO ir = 1, ir_end 
-             IF ( gam % of_r (ir) .NE. 0.D0 ) THEN
-                cfactor % of_r (ir) = EXP( -z * x%of_r(ir) / kT )
+             arg = -z * x%of_r(ir) / kT
+             IF ( arg .LT. exp_arg_limit ) THEN
+                cfactor % of_r (ir) = EXP( arg )
              END IF
           END DO
           !
@@ -495,7 +498,7 @@ CONTAINS
     TYPE( environ_density ), POINTER :: x, gam
     !
     INTEGER :: iter, itypi, itypj, ir
-    REAL( DP ) :: total, totaux, delta_qm, delta_en, kT, z
+    REAL( DP ) :: total, totaux, delta_qm, delta_en, kT, z, arg
     TYPE( environ_density ) :: residual, rhotot, numerator, denominator, &
                                cfactor, rhoaux, screening
     !
@@ -506,6 +509,9 @@ CONTAINS
     !
     INTEGER, POINTER :: maxiter, ir_end
     REAL( DP ), POINTER :: tol, mix, cbulk, cbulki, cbulkj, cionmax, zi, zj
+    !
+    !
+    REAL( DP ), PARAMETER     :: exp_arg_limit = LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -586,9 +592,10 @@ CONTAINS
           cfactor % of_r = 0.D0
           !
           DO ir = 1, ir_end
-             IF ( gam % of_r (ir) .NE. 0.D0 ) THEN
-                rhoaux % of_r (ir) = SINH( z*x%of_r(ir) / kT )
-                cfactor % of_r (ir) = COSH( z*x%of_r(ir) / kT )
+             arg = z * x%of_r(ir) / kT
+             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
+                rhoaux % of_r (ir) = SINH( arg )
+                cfactor % of_r (ir) = COSH( arg ) 
              END IF
           END DO
           !
@@ -626,8 +633,9 @@ CONTAINS
              cfactor % of_r = 1.D0 
              !
              DO ir = 1, ir_end
-                IF ( gam % of_r (ir) .NE. 0.D0 ) THEN
-                   cfactor % of_r (ir) = EXP( -zi*x%of_r(ir) / kT )
+                arg = -zi*x%of_r(ir) / kT
+                IF ( arg .LT. exp_arg_limit ) THEN
+                   cfactor % of_r (ir) = EXP( arg )
                 END IF
              END DO
              !
@@ -704,14 +712,14 @@ CONTAINS
           !
        END IF 
        !
-       rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
-       screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
 !!!!!!
 !       CALL print_environ_density( screening, local_verbose=2 )
-!       CALL print_environ_density( rhoaux, local_verbose=2 ) 
+!       CALL print_environ_density( rhoaux, local_verbose=2 )
 !       CALL print_environ_density( x, local_verbose=2 )
 !       CALL errore( sub_name, 'stop', 1)
 !!!!!!
+       rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
+       screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
        !
        ! ... If residual is small enough exit
        !
