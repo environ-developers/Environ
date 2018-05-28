@@ -506,7 +506,7 @@ CONTAINS
   END SUBROUTINE generate_gradgaussian
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_exponential( nnr, spread, pos, rho )
+  SUBROUTINE generate_exponential(nnr, dim, axis, scale, width, spread, pos, rho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -519,8 +519,8 @@ CONTAINS
     !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr
-    REAL( DP ), INTENT(IN)    :: spread
+    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    REAL( DP ), INTENT(IN)    :: scale, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
     REAL( DP ), INTENT(INOUT) :: rho( nnr )
     !
@@ -542,6 +542,9 @@ CONTAINS
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    !
+    IF (axis.LT.1.OR.axis.GT.3) &
+         WRITE(stdout,*)'WARNING: wrong axis in generate_exponential'
     !
     ALLOCATE( rholocal( nnr ) )
     rholocal = 0.D0
@@ -595,6 +598,16 @@ CONTAINS
        !
        r(:) = pos(:) - r(:)
        !
+       !  ... possibly 2D or 1D gaussians
+       !
+       IF ( dim .EQ. 1) THEN
+          r(axis) = 0.D0
+       ELSE IF ( dim .EQ. 2 ) THEN
+          DO i = 1, 3
+             IF ( i .NE. axis ) r(i) = 0.D0
+          ENDDO
+       END IF
+       !
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
@@ -602,7 +615,7 @@ CONTAINS
        r(:) = MATMUL( at(:,:), s(:) )
        !
        dist = SQRT(SUM( r * r )) * alat
-       arg = dist - spread
+       arg = ( dist - width ) / spread
        !
        IF( ABS( arg ) .LT. exp_arg_limit ) THEN
           rholocal( ir ) = EXP( - arg )
@@ -611,6 +624,8 @@ CONTAINS
        END IF
        !
     END DO
+    !
+    rholocal = rholocal * scale
     !
     rho = rho + rholocal
     DEALLOCATE( rholocal )
@@ -621,7 +636,7 @@ CONTAINS
   END SUBROUTINE generate_exponential
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_gradexponential( nnr, spread, pos, gradrho )
+  SUBROUTINE generate_gradexponential(nnr, dim, axis, scale, width, spread, pos, gradrho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -632,12 +647,10 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    REAL( DP ), PARAMETER :: tol = 1.D-10
-    !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr
-    REAL( DP ), INTENT(IN)    :: spread
+    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    REAL( DP ), INTENT(IN)    :: scale, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
     REAL( DP ), INTENT(INOUT) :: gradrho( 3, nnr )
     !
@@ -650,7 +663,7 @@ CONTAINS
     REAL( DP )                :: dist, arg
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0, tol = 1.D-10
     !
     IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
        WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
@@ -659,6 +672,9 @@ CONTAINS
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
     inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
     inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    !
+    IF (axis.LT.1.OR.axis.GT.3) &
+         WRITE(stdout,*)'WARNING: wrong axis in generate_gradexponential'
     !
     ALLOCATE( gradrholocal( 3, nnr ) )
     gradrholocal = 0.D0
@@ -712,6 +728,16 @@ CONTAINS
        !
        r(:) = pos(:) - r(:)
        !
+       !  ... possibly 2D or 1D erfc
+       !
+       IF ( dim .EQ. 1) THEN
+          r(axis) = 0.D0
+       ELSE IF ( dim .EQ. 2 ) THEN
+          DO i = 1, 3
+             IF ( i .NE. axis ) r(i) = 0.D0
+          ENDDO
+       END IF
+       !
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
@@ -719,14 +745,17 @@ CONTAINS
        r(:) = MATMUL( at(:,:), s(:) )
        !
        dist = SQRT(SUM( r * r )) * alat
-       arg = dist - spread
+       arg = ( dist - width ) / spread
+       !
        IF ( dist .GT. tol .AND. ABS( arg ) .LT. exp_arg_limit ) THEN
-          gradrholocal( :, ir ) = r(:) * alat / dist * EXP( - arg )
+          gradrholocal( :, ir ) = r(:) * alat / dist / spread * EXP( - arg )
        ELSE
           gradrholocal( :, ir ) = 0.D0
        ENDIF
        !
     END DO
+    !
+    gradrholocal = gradrholocal * scale
     !
     gradrho = gradrho + gradrholocal
     DEALLOCATE( gradrholocal )
