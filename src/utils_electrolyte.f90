@@ -128,7 +128,7 @@ CONTAINS
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, z
     TYPE( environ_electrons ), INTENT(IN) :: electrons
     TYPE( environ_ions ), INTENT(IN) :: ions
-    TYPE( environ_system ), INTENT(IN) :: system
+    TYPE( environ_system ), TARGET, INTENT(IN) :: system
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
     !
     INTEGER :: ityp
@@ -208,6 +208,18 @@ CONTAINS
           & CALL errore( sub_name,'cionmax should be larger than the sum of cbulks',1)
     !
     electrolyte % energy_second_order = 0.D0
+    !!!!!
+    label = 'potential'
+    CALL create_environ_density( electrolyte%potential, label)
+    ! setup exponential function
+    electrolyte%expfunction%type = 3
+    electrolyte%expfunction%pos => system%pos
+    electrolyte%expfunction%volume = 1.D0 ! 3.D0 * k_boltzmann_ry * electrolyte%temperature
+    electrolyte%expfunction%dim = system%dim
+    electrolyte%expfunction%axis = system%axis
+    electrolyte%expfunction%width = distance
+    electrolyte%expfunction%spread = spread
+    !!!!!
     !
     RETURN
     !
@@ -253,6 +265,9 @@ CONTAINS
     END IF
     !
     electrolyte%initialized = .TRUE.
+    !!!!!
+    CALL init_environ_density( cell, electrolyte % potential )
+    !!!!!
     !
     RETURN
     !
@@ -263,6 +278,9 @@ CONTAINS
   SUBROUTINE update_environ_electrolyte( electrolyte )
 !--------------------------------------------------------------------
     !
+!!!!
+    USE utils_functions, ONLY: density_of_functions
+!!!!
     IMPLICIT NONE
     !
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
@@ -280,6 +298,12 @@ CONTAINS
           !
           electrolyte % update = .FALSE.
           !
+!!!!!
+    CALL density_of_functions( electrolyte % expfunction, electrolyte % potential, .TRUE. )
+    CALL print_environ_density( electrolyte % potential )
+    ! this second function with FALSE could be used to add second exponential to first
+!    CALL density_of_functions( expfunction, electrolyte % potential, .FALSE. )
+!!!!!
        ENDIF
        !
     END IF

@@ -436,6 +436,10 @@ MODULE environ_types
      TYPE( environ_density ) :: gamma
      TYPE( environ_density ) :: dgamma
      !
+     !!!!
+     TYPE( environ_functions ) :: expfunction
+     TYPE( environ_density )   :: potential
+     !!!!
      TYPE( environ_density ) :: de_dboundary_second_order
      REAL( DP ) :: energy_second_order
      !
