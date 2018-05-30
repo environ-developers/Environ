@@ -222,7 +222,7 @@ CONTAINS
     CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
        CALL generate_erfc(nnr, dim, axis, charge, width, spread, pos, density%of_r)
     CASE ( 3 ) ! Exponential
-       CALL generate_exponential(nnr, dim, axis, charge, width, spread, pos, density%of_r)
+       CALL generate_exponential(nnr, dim, axis, width, spread, pos, density%of_r)
 !       CALL generate_exponential(nnr, spread, pos, density%of_r)
     CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
        local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
@@ -301,7 +301,7 @@ CONTAINS
     CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
        CALL generate_graderfc(nnr, dim, axis, charge, width, spread, pos, gradient%of_r)
     CASE ( 3 ) ! Exponential
-       CALL generate_gradexponential(nnr, dim, axis, charge, width, spread, pos, gradient%of_r)
+       CALL generate_gradexponential(nnr, dim, axis, width, spread, pos, gradient%of_r)
 !       CALL generate_gradexponential(nnr, spread, pos, gradient%of_r)
     CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
        local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
