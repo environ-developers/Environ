@@ -160,6 +160,11 @@ MODULE environ_input
         ! Stern-layer correction.
         ! ions = only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 )
         ! full = all terms ( Dabo et al. arXiv 0901.0096 )
+        CHARACTER( LEN = 80 ) :: ion_adsorption = 'none'
+        CHARACTER( LEN = 80 ) :: ion_adsorption_allowed(4)
+        DATA ion_adsorption_allowed / 'none', 'anion', 'cation', 'repulsion' /
+        ! include asymmetric adsorption of electrolyte.
+        ! ( Baskin and Prendergast J. Electrochem. Soc. 164, E3438 )
         REAL(DP) :: cion(nsx) = 1.D0
         ! molar concentration of ionic countercharge (M=mol/L)
         REAL(DP) :: cionmax = 1.D3
@@ -170,6 +175,8 @@ MODULE environ_input
         ! valence of ionic countercharge
         REAL(DP) :: solvent_temperature = 300.D0
         ! temperature of the solution
+        REAL(DP) :: ion_adsorption_energy = 0.D0
+        ! adsorption energy of electrolyte (Ry)
 !
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
@@ -194,6 +201,7 @@ MODULE environ_input
              env_pressure,                                             &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              solvent_temperature, stern_linearized, stern_entropy,     &
+             ion_adsorption, ion_adsorption_energy,                    &
              env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
@@ -591,6 +599,7 @@ CONTAINS
                              stern_spread, cion, cionmax, rion, zion,    &
                              stern_rhomax, stern_rhomin, stern_tbeta,    &
                              stern_alpha, stern_softness,                &
+                             ion_adsorption, ion_adsorption_energy,      &
                              solvent_temperature,                        &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
@@ -735,6 +744,9 @@ CONTAINS
     zion(:) = 0.D0
     solvent_temperature = 300.0D0
     !
+    ion_adsorption = 'none'
+    ion_adsorption_energy = 0.D0
+    !
     env_external_charges = 0
     env_dielectric_regions = 0
     !
@@ -873,6 +885,9 @@ CONTAINS
     CALL mp_bcast( rion,                       ionode_id, comm )
     CALL mp_bcast( zion,                       ionode_id, comm )
     CALL mp_bcast( solvent_temperature,        ionode_id, comm )
+    !
+    CALL mp_bcast( ion_adsorption,             ionode_id, comm )
+    CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
     !
     CALL mp_bcast( env_external_charges,       ionode_id, comm )
     CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
@@ -1040,6 +1055,15 @@ CONTAINS
          CALL errore( sub_name,'cionmax and rion cannot be negative ', 1 )
     IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
          CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
+    allowed = .FALSE.
+    DO i = 1, SIZE( ion_adsorption_allowed )
+       IF( TRIM(ion_adsorption) == ion_adsorption_allowed(i) ) allowed = .TRUE.
+    END DO
+    IF( .NOT. allowed ) &
+         CALL errore( sub_name, ' ion_adsorption '''// &
+         & TRIM(ion_adsorption)//''' not allowed ', 1 )
+    IF ( ion_adsorption_energy .LT. 0D0 ) &
+         CALL errore( sub_name,'ion_adsorption_energy must be positive', 1 )
     !
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
