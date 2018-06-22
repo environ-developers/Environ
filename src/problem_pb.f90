@@ -405,7 +405,7 @@ CONTAINS
           !
           residual % of_r = residual % of_r + z * cbulk * cfactor % of_r
           !
-          IF ( cionmax .NE. 0.D0 ) THEN
+          IF ( cionmax .GT. 0.D0 ) THEN
              factor = cbulk / cionmax
              SELECT CASE ( electrolyte % stern_entropy )
              CASE ( 'full' )
@@ -556,9 +556,104 @@ CONTAINS
     !
     ! ... Starting guess from new input and previous solution(s)
     !
-    x % of_r = 0.D0
-    rhoaux % of_r = 0.D0
-    screening % of_r = electrolyte%k2/e2/fpi * gam%of_r 
+    IF ( x%update ) THEN
+       !
+       rhoaux % of_r = electrolyte % density % of_r
+       screening % of_r = 0.D0
+       denominator%of_r = 1.D0
+       !
+       DO itypi = 1, electrolyte % ntyp
+          !
+          cbulki => electrolyte%ioncctype(itypi)%cbulk
+          zi => electrolyte%ioncctype(itypi)%z
+          !
+          cfactor % of_r = 1.D0
+          !
+          DO ir = 1, ir_end
+             arg = - zi*x%of_r(ir) /kT
+             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
+                cfactor % of_r (ir) = EXP( arg )
+             END IF
+          END DO
+          !
+          numerator % of_r = 1.D0
+          !
+          IF ( cionmax .GT. 0.D0 ) THEN
+             !
+             SELECT CASE ( electrolyte % stern_entropy )
+             !
+             CASE ( 'full' )
+                !
+                denominator%of_r = denominator%of_r - cbulki/cionmax * ( 1.D0 - cfactor%of_r)
+                !
+                DO itypj = 1, electrolyte % ntyp
+                   !
+                   zj => electrolyte%ioncctype(itypj)%z
+                   cbulkj => electrolyte%ioncctype(itypj)%cbulk
+                   !
+                   IF ( itypj .EQ. itypi ) THEN
+                      !
+                      numerator % of_r = numerator % of_r - cbulkj/cionmax
+                      !
+                   ELSE
+                      !
+                      numerator % of_r = numerator % of_r - cbulkj/cionmax * &
+                                 (1.D0 - (1.D0 - zj/zi) * cfactor % of_r **(zj/zi))
+                      !
+                   END IF
+                   !
+                   NULLIFY( zj )
+                   NULLIFY( cbulkj )
+                   !
+                END DO
+                !
+             CASE ( 'ions' )
+                !
+                denominator%of_r = denominator%of_r - cbulki/cionmax * &
+                           ( 1.D0 - gam%of_r * cfactor%of_r )
+                !
+                DO itypj = 1, electrolyte % ntyp
+                   !
+                   zj => electrolyte%ioncctype(itypj)%z
+                   cbulkj => electrolyte%ioncctype(itypj)%cbulk
+                   !
+                   IF ( itypj .EQ. itypi ) THEN
+                      !
+                      numerator % of_r = numerator % of_r - cbulkj/cionmax
+                      !
+                   ELSE
+                      !
+                      numerator % of_r = numerator % of_r - cbulkj/cionmax * &
+                                  (1.D0 - (1.D0 - zj/zi) * gam%of_r * cfactor % of_r **(zj/zi))
+                      !
+                   END IF
+                   !
+                   NULLIFY( zj )
+                   NULLIFY( cbulkj )
+                   !
+                END DO
+                 !
+             END SELECT
+          END IF
+          !
+          screening % of_r = screening % of_r + &
+              cbulki * zi**2 / kT * cfactor % of_r * numerator % of_r
+          !
+          NULLIFY( zi )
+          NULLIFY( cbulki )
+          !
+       END DO
+       !
+       screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
+       !
+    ELSE
+       !
+       x % update = .TRUE.
+       x % of_r = 0.D0
+       rhoaux % of_r = 0.D0
+       screening % of_r = electrolyte%k2/e2/fpi * gam%of_r
+       !
+    ENDIF
     !
     residual % of_r = 0.D0
     !
@@ -589,7 +684,7 @@ CONTAINS
           cbulk => electrolyte%ioncctype(1)%cbulk
           z = ABS(electrolyte%ioncctype(1)%z)
           !
-          cfactor % of_r = 0.D0
+          cfactor % of_r = 1.D0
           !
           DO ir = 1, ir_end
              arg = z * x%of_r(ir) / kT
@@ -601,7 +696,7 @@ CONTAINS
           !
           rhoaux % of_r  = -2.D0 * z * cbulk * rhoaux % of_r
           !
-          IF ( cionmax .NE. 0.D0 ) THEN
+          IF ( cionmax .GT. 0.D0 ) THEN
              !
              SELECT CASE ( electrolyte % stern_entropy )
              !
@@ -643,7 +738,7 @@ CONTAINS
              !
              numerator % of_r = 1.D0
              !
-             IF ( cionmax .NE. 0.D0 ) THEN
+             IF ( cionmax .GT. 0.D0 ) THEN
                 !
                 SELECT CASE ( electrolyte % stern_entropy )
                 !
@@ -712,14 +807,14 @@ CONTAINS
           !
        END IF 
        !
+       rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
+       screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
 !!!!!!
 !       CALL print_environ_density( screening, local_verbose=2 )
 !       CALL print_environ_density( rhoaux, local_verbose=2 )
 !       CALL print_environ_density( x, local_verbose=2 )
 !       CALL errore( sub_name, 'stop', 1)
 !!!!!!
-       rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
-       screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
        !
        ! ... If residual is small enough exit
        !
