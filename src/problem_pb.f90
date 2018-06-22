@@ -577,6 +577,8 @@ CONTAINS
           !
           DO ir = 1, ir_end
              arg = - zi*x%of_r(ir) /kT
+             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
+                & arg = arg - electrolyte%ioncctype(itypi)%potential%of_r(ir) / kT
              IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                 cfactor % of_r (ir) = EXP( arg )
              END IF
