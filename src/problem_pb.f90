@@ -687,7 +687,7 @@ CONTAINS
        screening % of_r = 0.D0
        denominator%of_r = 1.D0
        !
-!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 )  THEN
+!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 .AND. electrolyte%ion_adsorption .EQ. 'none' )  THEN
        IF (.FALSE.) THEN
           ! Symmetric electrolyte: use hyperbolic functions
           cbulk => electrolyte%ioncctype(1)%cbulk
