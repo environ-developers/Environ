@@ -145,6 +145,7 @@ CONTAINS
     !
     ! ... Compute the physical properties of the interface
     !
+    zion = ABS(zion)
     ez = - tpi * e2 * tot_charge / area / permittivity
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
     arg = ez/fact
@@ -160,13 +161,13 @@ CONTAINS
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           !
           icount = icount + 1
-          vbound = vbound + potential % of_r(i) + v(i) - ez * ABS(axis(1,i))
+          vbound = vbound + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i)) - xstern)
           !
        ENDIF
        !
     ENDDO
     !
-    vbound = vbound / DBLE(icount)  + ez * xstern
+    vbound = vbound / DBLE(icount)
     !
     ! ... Compute some constants needed for the calculation
     !
@@ -305,3 +306,4 @@ CONTAINS
 !---------------------------------------------------------------------------
 END MODULE correction_stern
 !---------------------------------------------------------------------------
+
