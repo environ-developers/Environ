@@ -309,7 +309,7 @@ CONTAINS
     INTEGER, POINTER :: maxiter, ir_end
     REAL( DP ), POINTER :: tolrhoaux, mix, cbulk, cionmax, z
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 100.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' OUTER LOOP ON POTENTIAL ',50('%'))
@@ -400,6 +400,8 @@ CONTAINS
              arg = -z * x%of_r(ir) / kT
              IF ( arg .LT. exp_arg_limit ) THEN
                 cfactor % of_r (ir) = EXP( arg )
+             ELSE
+                cfactor % of_r (ir) = EXP( exp_arg_limit )
              END IF
           END DO
           !
@@ -511,7 +513,7 @@ CONTAINS
     REAL( DP ), POINTER :: tol, mix, cbulk, cbulki, cbulkj, cionmax, zi, zj
     !
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 100.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -545,6 +547,10 @@ CONTAINS
 !    CALL create_environ_density( rhoaux, label )
 !    label = 'screening'
 !    CALL create_environ_density( screening, label )
+!    label = 'numerator'
+!    CALL create_environ_density( numerator, label )
+!    label = 'denominator'
+!    CALL create_environ_density( denominator, label )
 !!!!!
     CALL init_environ_density( cell, cfactor )
     CALL init_environ_density( cell, numerator )
@@ -571,8 +577,10 @@ CONTAINS
           !
           DO ir = 1, ir_end
              arg = - zi*x%of_r(ir) /kT
-             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
+             IF ( arg .LT. exp_arg_limit ) THEN
                 cfactor % of_r (ir) = EXP( arg )
+             ELSE
+                cfactor % of_r (ir) = EXP( exp_arg_limit )
              END IF
           END DO
           !
@@ -679,7 +687,8 @@ CONTAINS
        screening % of_r = 0.D0
        denominator%of_r = 1.D0
        !
-       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 )  THEN
+!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 .AND. electrolyte%ion_adsorption .EQ. 'none' )  THEN
+       IF (.FALSE.) THEN
           ! Symmetric electrolyte: use hyperbolic functions
           cbulk => electrolyte%ioncctype(1)%cbulk
           z = ABS(electrolyte%ioncctype(1)%z)
@@ -691,6 +700,9 @@ CONTAINS
              IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                 rhoaux % of_r (ir) = SINH( arg )
                 cfactor % of_r (ir) = COSH( arg ) 
+             ELSE
+                rhoaux % of_r (ir) = SINH( exp_arg_limit )
+                cfactor % of_r (ir) = COSH( exp_arg_limit )
              END IF
           END DO
           !
@@ -714,6 +726,10 @@ CONTAINS
                 !
              END SELECT
              !
+          ELSE
+             !
+             screening % of_r = electrolyte%k2/e2/fpi * cfactor%of_r
+             !
           END IF
           !
           NULLIFY( cbulk )
@@ -731,6 +747,8 @@ CONTAINS
                 arg = -zi*x%of_r(ir) / kT
                 IF ( arg .LT. exp_arg_limit ) THEN
                    cfactor % of_r (ir) = EXP( arg )
+                ELSE
+                   cfactor % of_r (ir) = EXP( exp_arg_limit )
                 END IF
              END DO
              !
@@ -795,6 +813,7 @@ CONTAINS
 
                    !
                 END SELECT
+                !
              END IF
              !
              screening % of_r = screening % of_r + & 
@@ -810,6 +829,9 @@ CONTAINS
        rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
        screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
 !!!!!!
+!       CALL print_environ_density( gam, local_verbose=2 )
+!       CALL print_environ_density( numerator, local_verbose=2 )
+!       CALL print_environ_density( denominator, local_verbose=2 )
 !       CALL print_environ_density( screening, local_verbose=2 )
 !       CALL print_environ_density( rhoaux, local_verbose=2 )
 !       CALL print_environ_density( x, local_verbose=2 )

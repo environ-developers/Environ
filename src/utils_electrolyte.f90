@@ -334,7 +334,7 @@ CONTAINS
     TYPE( environ_density ) :: denominator
     CHARACTER ( LEN=80 )    :: sub_name = 'calc_electrolyte_density'
     !
-    REAL( DP ), PARAMETER   :: exp_arg_limit = 100.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER   :: exp_arg_limit = LOG( HUGE(1.0_DP) )
     !
     gam => electrolyte%gamma%of_r
     pot => potential%of_r
@@ -352,7 +352,7 @@ CONTAINS
       cbulk => electrolyte%ioncctype(ityp)%cbulk
       z => electrolyte%ioncctype(ityp)%z
       !
-      cfactor  = 0.D0
+      cfactor  = 1.D0
       !
       IF ( electrolyte % linearized ) THEN
          ! Linearized PB and Modified PB
@@ -378,6 +378,8 @@ CONTAINS
             arg = -z * pot(ir) / kT
             IF ( arg .LT. exp_arg_limit ) THEN
                cfactor(ir) = EXP( arg )
+            ELSE
+               cfactor(ir) = EXP( exp_arg_limit )
             END IF
          END DO
          !
