@@ -309,7 +309,7 @@ CONTAINS
     INTEGER, POINTER :: maxiter, ir_end
     REAL( DP ), POINTER :: tolrhoaux, mix, cbulk, cionmax, z
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0 !LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' OUTER LOOP ON POTENTIAL ',50('%'))
@@ -394,7 +394,7 @@ CONTAINS
           !
           cbulk => electrolyte%ioncctype(ityp)%cbulk 
           z => electrolyte%ioncctype(ityp)%z
-          cfactor % of_r = 0.D0
+          cfactor % of_r = 1.D0
           !
           DO ir = 1, ir_end 
              arg = -z * x%of_r(ir) / kT
@@ -513,7 +513,7 @@ CONTAINS
     REAL( DP ), POINTER :: tol, mix, cbulk, cbulki, cbulkj, cionmax, zi, zj
     !
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0 !LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
