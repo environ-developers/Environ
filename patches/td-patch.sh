@@ -236,7 +236,7 @@ IF ( use_environ ) THEN\
    IF (.not.davidson) WRITE( stdout, '(5x,"ENVIRON: Calculate the response &\
        & polarization and dielectric potentials")' )\
    !\
-   CALL calc_dvenviron( dfftp%nnr, nspin, rho%of_r, rho_1, dv )\
+   CALL calc_dvenviron( dfftp%nnr, rho%of_r(:,1), rho_1(:,1), dv(:,1) )\
    !\
 END IF\
 !Environ patch

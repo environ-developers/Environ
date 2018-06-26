@@ -33,7 +33,7 @@ MODULE environ_main
   !
 PRIVATE
 !
-PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron
+PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron, calc_dvenviron
 !
 CONTAINS
 !--------------------------------------------------------------------
@@ -377,6 +377,60 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_fenviron
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE calc_dvenviron( nnr, rho, drho, dvtot )
+!--------------------------------------------------------------------
+    !
+    ! ... Calculates the environ contribution to the local
+    !     potential. All the Environ modules need to be called here.
+    !     The potentials are all computed on the dense real-space
+    !     grid and added to vtot.
+    !
+    USE environ_base,  ONLY : vzero, solvent,                       &
+                              lelectrostatic, velectrostatic,       &
+                              vreference, lexternals,               &
+                              lsoftcavity, vsoftcavity,             &
+                              lsurface, env_surface_tension,        &
+                              lvolume, env_pressure,                &
+                              charges, lstatic, static,             &
+                              lelectrolyte, electrolyte,            &
+                              cell, lsoftsolvent, lsoftelectrolyte
+    USE electrostatic_base, ONLY : reference, outer
+    !
+    ! ... Each contribution to the potential is computed in its module
+    !
+    USE embedding_electrostatic, ONLY : calc_dvelectrostatic
+    !
+    IMPLICIT NONE
+    !
+    ! ... Declares variables
+    !
+    INTEGER, INTENT(IN)     :: nnr, nspin
+    REAL( DP ), INTENT(IN)  :: rho( nnr )    ! ground-state charge-density
+    REAL( DP ), INTENT(IN)  :: drho( nnr )   ! response charge-density
+    REAL( DP ), INTENT(OUT) :: dvtot( nnr )
+    !
+    ! ... If any form of electrostatic embedding is present, calculate its contribution
+    !
+    IF ( lelectrostatic ) THEN
+       !
+       ! ... Electrostatics is also computed inside the calling program, need to remove the reference
+       !
+       CALL calc_dvelectrostatic( reference, charges, vreference )
+       !
+    END IF
+    !
+    ! ... Compute the total potential depending on the boundary
+    !
+    IF ( lsoftcavity ) THEN
+       !
+       !
+    END IF
+    !
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_dvenviron
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE environ_main
