@@ -100,33 +100,92 @@ USE environ_output,   ONLY : set_environ_output\
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
 
-sed '/Environ CALLS BEGIN/ a\
+sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
-   IF (use_environ) THEN\
-      CALL set_environ_output("PW", ionode, ionode_id, intra_image_comm, stdout)\
-      CALL read_environ("PW",1, nspin, nat, ntyp, atom_label, assume_isolated)\
-   ENDIF\
+! BACKWARD COMPATIBILITY \
+! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
+!  CHARACTER( LEN = 2 ) :: prog
+! Compatible with QE-6.3.X and QE-GIT\
+! END BACKWARD COMPATIBILITY
 !Environ patch
 ' tmp.1 > tmp.2
 
-mv tmp.2 plugin_read_input.f90
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch\
+   IF (use_environ) THEN\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
+!      prog = "PW"\
+! Compatible with QE-6.3.X and QE-GIT\
+! END BACKWARD COMPATIBILITY\
+      CALL set_environ_output(prog, ionode, ionode_id, intra_image_comm, stdout)\
+      CALL read_environ(prog,1, nspin, nat, ntyp, atom_label, assume_isolated)\
+   ENDIF\
+!Environ patch
+' tmp.2 > tmp.1
+
+mv tmp.1 plugin_read_input.f90
 
 # plugin_clean
 
 sed '/Environ MODULES BEGIN/ a\
-!Environ patch \
-USE    environ_init, ONLY : environ_clean \
-USE    control_flags, ONLY : tddfpt \
+!Environ patch\
+USE environ_init, ONLY : environ_clean, environ_clean_pw, &\
+                         ltddfpt, environ_clean_tddfpt\
 !Environ patch
 ' plugin_clean.f90 > tmp.1
 
-sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-   if(use_environ.AND..NOT.tddfpt) CALL environ_clean(lflag) \
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch\
+! BACKWARD COMPATIBILITY \
+! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
+!  CHARACTER( LEN = 2 ) :: prog\
+! Compatible with QE-6.3.X and QE-GIT\
+! END BACKWARD COMPATIBILITY
 !Environ patch
 ' tmp.1 > tmp.2
 
-mv tmp.2 plugin_clean.f90
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch\
+   IF (use_environ) THEN\
+      !\
+! BACKWARD COMPATIBILITY \
+! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
+!       prog = "PW"\
+! Compatible with QE-6.3.X and QE-GIT\
+! END BACKWARD COMPATIBILITY\
+      IF ( prog(1:2) == "PW" ) THEN\
+         !\
+         ! When called by PW, but inside a TD calculation\
+         ! do not clean environ variables, they have been\
+         ! already cleaned by TD. The lflag input is used\
+         ! to fully clean the variable or to only clean\
+         ! variables initialized during the PW run and not the\
+         ! ones initialized while processing the input:\
+         ! this allows NEB simulations\
+         !\
+         IF ( .NOT. ltddfpt ) CALL environ_clean(lflag)\
+         !\
+      ELSE IF ( prog(1:2) == "TD" ) THEN\
+         !\
+         ! When called by TD, use the flag input variable to\
+         ! specify whether to clean the PW variables or\
+         ! the TD variables. In both cases, the variables are\
+         ! fully cleaned (no NEB with TD).\
+         !\
+	 IF ( .NOT. lflag ) THEN\
+            CALL environ_clean_pw(.TRUE.)\
+         ELSE\
+            CALL environ_clean_tddfpt(.TRUE.)\
+	 END IF\
+         !\
+      END IF\
+      !\
+   END IF\
+!Environ patch
+' tmp.2 > tmp.1
+
+mv tmp.1 plugin_clean.f90
 
 # plugin_summary
 
@@ -286,13 +345,13 @@ mv tmp.2 plugin_scf_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_init,         ONLY : environ_initpotential \
+USE environ_init,         ONLY : environ_initpotential\
 !Environ patch
 ' plugin_init_potential.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  IF(use_environ) CALL environ_initpotential( dfftp%nnr, vltot ) \
+  IF(use_environ) CALL environ_initpotential( dfftp%nnr, vltot )\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -301,40 +360,40 @@ mv tmp.2 plugin_init_potential.f90
 # plugin_scf_potential
 
 sed '/Environ MODULES BEGIN/ a\
-!Environ patch \
-USE klist,                 ONLY : nelec \
-USE environ_base,          ONLY : update_venviron, environ_thr, & \
-                                  environ_restart \
-USE environ_init,          ONLY : environ_initelectrons \
-USE environ_main,          ONLY : calc_venviron \
+!Environ patch\
+USE klist,                 ONLY : nelec\
+USE environ_base,          ONLY : update_venviron, environ_thr, &\
+                                  environ_restart, ltddfpt\
+USE environ_init,          ONLY : environ_initelectrons\
+USE environ_main,          ONLY : calc_venviron\
 !Environ patch
 ' plugin_scf_potential.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-     IF(use_environ) THEN \
-        ! \
-        ! update electrons-related quantities in environ \
-        ! \
-        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec ) \
-        ! \
-        ! environ contribution to the local potential \
-        ! \
-        IF ( dr2 .GT. 0.0_dp ) THEN \
-           update_venviron = .NOT. conv_elec .AND. dr2 .LT. environ_thr \
-        ! \
-        ELSE \
-           update_venviron = environ_restart \
-           ! for subsequent steps of optimization or dynamics, compute \
-           ! environ contribution during initialization \
-           IF ( .NOT. environ_restart ) environ_restart = .TRUE. \
-        ENDIF \
-        ! \
-        IF ( update_venviron ) WRITE( stdout, 9200 ) \
-        CALL calc_venviron( update_venviron, dfftp%nnr, vltot ) \
-        ! \
-9200 FORMAT(/"     add environment contribution to local potential") \
-     ENDIF \
+!Environ patch\
+     IF(use_environ) THEN\
+        !\
+        ! update electrons-related quantities in environ\
+        !\
+        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec )\
+        !\
+        ! environ contribution to the local potential\
+        !\
+        IF ( dr2 .GT. 0.0_dp ) THEN\
+           update_venviron = .NOT. conv_elec .AND. dr2 .LT. environ_thr\
+        !\
+        ELSE\
+           update_venviron = environ_restart .OR. ltddfpt\
+           ! for subsequent steps of optimization or dynamics, compute\
+           ! environ contribution during initialization\
+           IF ( .NOT. environ_restart ) environ_restart = .TRUE.\
+        ENDIF\
+        !\
+        IF ( update_venviron ) WRITE( stdout, 9200 )\
+        CALL calc_venviron( update_venviron, dfftp%nnr, vltot )\
+        !\
+9200 FORMAT(/"     add environment contribution to local potential")\
+     ENDIF\
 !Environ patch
 ' tmp.1 > tmp.2
 

@@ -489,7 +489,7 @@ CONTAINS
     USE environ_init, ONLY : set_environ_base
     USE electrostatic_init, ONLY : set_electrostatic_base
     !
-    CHARACTER(len=2), INTENT(IN) :: prog
+    CHARACTER(len=*), INTENT(IN) :: prog
     CHARACTER(len=80), INTENT(IN) :: assume_isolated
     INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp
     CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
@@ -554,7 +554,7 @@ CONTAINS
     !
     ! ... Then set environ base
     !
-    CALL set_environ_base  ( nelec, nspin,                               &
+    CALL set_environ_base  ( prog, nelec, nspin,                         &
                              nat, ntyp, atom_label, atomicspread,        &
                              corespread, solvationrad,                   &
                              oldenviron, environ_restart, environ_thr,   &

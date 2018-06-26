@@ -61,7 +61,7 @@ cat > tmp.6.1 <<EOF
 -                                  environ_clean, environ_initbase,         &
 -                                  environ_initions_allocate
 +  USE environ_init,        ONLY : environ_initions, environ_initcell, &
-+                                  environ_clean, environ_initbase,    &
++                                  environ_clean_pw, environ_initbase,    &
 +                                  environ_initelectrons, environ_initpotential
    USE environ_main,        ONLY : calc_venviron
 -  USE mp_bands,            ONLY : me_bgrp
@@ -121,7 +121,7 @@ cat > tmp.6.1 <<EOF
 +     ! Environ arrays because they are not needed any longer.
       !
 -     CALL solvent_initbase_tddfpt(ifdtype, nfdpoint, dfftp%nnr)
-+     CALL environ_clean( .TRUE. )
++     CALL environ_clean_pw( .TRUE. )
       !
    ENDIF
    !
@@ -147,7 +147,7 @@ cat > tmp.6.2 <<EOF
 -                                  environ_clean, environ_initbase,         &
 -                                  environ_initions_allocate
 +  USE environ_init,        ONLY : environ_initions, environ_initcell, &
-+                                  environ_clean, environ_initbase,    &
++                                  environ_clean_pw, environ_initbase,    &
 +                                  environ_initelectrons, environ_initpotential
    USE environ_main,        ONLY : calc_venviron
 -  USE plugin_flags,        ONLY : use_environ
@@ -206,7 +206,7 @@ cat > tmp.6.2 <<EOF
 +     ! Environ arrays because they are not needed any longer.
       !
 -     CALL solvent_initbase_tddfpt(ifdtype, nfdpoint, dfftp%nnr)
-+     CALL environ_clean( .TRUE. )
++     CALL environ_clean_pw( .TRUE. )
       !
    ENDIF
    !
@@ -215,9 +215,35 @@ EOF
 # BACKWARD COMPATIBILITY
 # Compatible with QE-5.X QE-6.1.X
 #patch -b -z PreENVIRON --ignore-whitespace -i tmp.6.1
-# Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-patch -b -z PreENVIRON --ignore-whitespace -i tmp.6.2
+# Compatible with QE-6.2.X
+#patch -b -z PreENVIRON --ignore-whitespace -i tmp.6.2
+# Compatible with QE-6.3.X and QE-GIT
 # END BACKWARD COMPATIBILITY
+
+# plugin_int_forces
+if [ -e plugin_tddfpt_potential.f90 ]; then
+  sed '/Environ MODULES BEGIN/ a\
+      !Environ patch\
+      USE scf,              ONLY : rho\
+      USE environ_main,     ONLY : calc_dvenviron\
+      !Environ patch
+      ' plugin_tddfpt_potential.f90 > tmp.1
+
+  sed '/Environ CALLS BEGIN/ a\
+!Environ patch\
+IF ( use_environ ) THEN\
+   !\
+   IF (.not.davidson) WRITE( stdout, '(5x,"ENVIRON: Calculate the response &\
+       & polarization and dielectric potentials")' )\
+   !\
+   CALL calc_dvenviron( dfftp%nnr, nspin, rho%of_r, rho_1, dv )\
+   !\
+END IF\
+!Environ patch
+' tmp.1 > tmp.2
+  mv tmp.2 plugin_int_forces.f90
+  rm tmp.1 tmp.2
+fi
 
 rm tmp.6.1 tmp.6.2
 

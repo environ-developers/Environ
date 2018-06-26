@@ -40,14 +40,14 @@ MODULE environ_init
   !
   PUBLIC :: set_environ_base, environ_initbase, environ_initcell,  &
        & environ_initions, environ_initelectrons, environ_initpotential, &
-       & environ_clean, environ_clean_tddfpt
+       & environ_clean, environ_clean_pw, environ_clean_tddfpt
   !
 CONTAINS
   !
 !--------------------------------------------------------------------
   SUBROUTINE set_environ_base &
 !--------------------------------------------------------------------
-       ( nelec, nspin,                               &
+       ( prog, nelec, nspin,                         &
        & nat, ntyp, atom_label, atomicspread,        &
        & corespread, solvationrad,                   &
        & oldenviron_, environ_restart_, environ_thr_,&
@@ -115,13 +115,25 @@ CONTAINS
          extcharge_pos(:,:), epsregion_eps(:,:),          &
          epsregion_pos(:,:), epsregion_spread(:),         &
          epsregion_width(:)
-    CHARACTER( LEN = * ), INTENT(IN) :: environ_type,     &
+    CHARACTER( LEN = * ), INTENT(IN) :: prog, environ_type, &
          solvent_mode, radius_mode, stern_mode, stern_entropy
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
     INTEGER :: stype
     REAL(DP) :: rhomax, rhomin
     CHARACTER( LEN = 80 ) :: label
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    ltddfpt = tddfpt
+! Compatible with QE-6.3.X and QE-GIT \
+    SELECT CASE ( prog(1:2) )
+    CASE ( 'TD' )
+       ltddfpt = .TRUE.
+    CASE DEFAULT
+       ltddfpt = .FALSE.
+    ELSE SELECT
+! END BACKWARD COMPATIBILITY
     !
     ! Create necessary local types
     !
@@ -289,7 +301,8 @@ CONTAINS
     ! In environ_base all the control flags plus the variables
     ! that need to be initialized
     !
-    USE environ_base, ONLY : e2_ => e2,                               &
+    USE environ_base, ONLY :
+         e2_ => e2,                               &
          cell, electrons, charges,                &
          vzero, deenviron,                        &
          lelectrostatic, eelectrostatic,          &
@@ -658,9 +671,32 @@ CONTAINS
 !--------------------------------------------------------------------
 !
 ! Clean up all the Environ related allocated variables, and call
+! clean up subroutines of specific Environ modules.
+!
+     !
+     ! Local clean up subroutines for the different contributions
+     !
+     IMPLICIT NONE
+     !
+     LOGICAL, INTENT(IN) :: lflag
+     !
+     CALL environ_clean_pw(lflag)
+     !
+     CALL environ_clean_tddfpt(lflag)
+     !
+     RETURN
+     !
+!--------------------------------------------------------------------
+   END SUBROUTINE environ_clean
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+   SUBROUTINE environ_clean_pw(lflag)
+!--------------------------------------------------------------------
+!
+! Clean up all the Environ related allocated variables, and call
 ! clean up subroutines of specific Environ modules. The structure of
 ! this subroutine should mirror the one of the environ_init...
-! subroutines above. This clean up is called by clean_pw.f90
+! subroutines above.
 !
      ! ... Declares modules
      !
@@ -701,14 +737,10 @@ CONTAINS
      CALL destroy_environ_ions( lflag, ions )
      CALL destroy_environ_system( lflag, system )
      !
-     ! ... the following quantities may be needed by TDDFPT
-     !
-     IF ( .NOT. tddfpt ) CALL environ_clean_tddfpt(lflag)
-     !
      RETURN
      !
 !--------------------------------------------------------------------
-   END SUBROUTINE environ_clean
+   END SUBROUTINE environ_clean_pw
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
    SUBROUTINE environ_clean_tddfpt(lflag)
