@@ -227,7 +227,7 @@ sed '/Environ CALLS BEGIN/ a\
 ! BACKWARD COMPATIBILITY \
 ! Compatible with QE-5.X QE-6.1.X \
 !  ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl \
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT \
+! Compatible with QE-6.2.X, QE-6.3.X and QE-GIT \
 #if defined (__MPI) \
     ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p) \
 #else \
@@ -398,6 +398,17 @@ sed '/Environ CALLS BEGIN/ a\
 ' tmp.1 > tmp.2
 
 mv tmp.2 plugin_scf_potential.f90
+
+# plugin_check
+
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
+IF (use_environ) CALL errore( calling_subroutine, &\
+   & "Calculation not compatible with Environ embedding", 1)\
+!Environ patch
+' plugin_check.f90 > tmp.1
+
+mv tmp.1 plugin_check.f90
 
 # makov_payne
 
