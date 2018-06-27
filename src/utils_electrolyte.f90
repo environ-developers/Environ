@@ -445,7 +445,7 @@ CONTAINS
             arg = - z * pot(ir) / kT
             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
                & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
-            IF ( arg .LT. exp_arg_limit ) THEN
+            IF ( ABS( arg ) .LT. exp_arg_limit ) THEN
                cfactor(ir) = EXP( arg )
             END IF
          END DO
