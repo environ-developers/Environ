@@ -104,9 +104,9 @@ sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
 ! BACKWARD COMPATIBILITY \
 ! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!  CHARACTER( LEN = 2 ) :: prog
+!  CHARACTER( LEN = 2 ) :: prog\
 ! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY
+! END BACKWARD COMPATIBILITY\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -141,7 +141,7 @@ sed '/Environ VARIABLES BEGIN/ a\
 ! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
 !  CHARACTER( LEN = 2 ) :: prog\
 ! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY
+! END BACKWARD COMPATIBILITY\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -427,8 +427,6 @@ mv tmp.1 plugin_check.f90
 # ' tmp.1 > tmp.2
 # 
 # mv tmp.2 makov_payne.f90
-
-rm tmp.1
 
 # force_lc
 
