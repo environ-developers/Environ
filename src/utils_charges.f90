@@ -257,6 +257,7 @@ CONTAINS
        ! ELECTROLYTE CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
        CALL electrolyte_of_potential( potential, charges%electrolyte )
        tot_charge_density % of_r = tot_charge_density % of_r + charges % electrolyte % density % of_r
+       CALL print_environ_density( charges % electrolyte % density )
     ENDIF
     !
     IF ( charges % include_dielectric ) THEN
