@@ -222,6 +222,7 @@ EOF
 
 # plugin_int_forces
 if [ -e plugin_tddfpt_potential.f90 ]; then
+
   sed '/Environ MODULES BEGIN/ a\
       !Environ patch\
       USE scf,              ONLY : rho\
@@ -230,19 +231,21 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
       ' plugin_tddfpt_potential.f90 > tmp.1
 
   sed '/Environ CALLS BEGIN/ a\
-!Environ patch\
-IF ( use_environ ) THEN\
-   !\
-   IF (.not.davidson) WRITE( stdout, '(5x,"ENVIRON: Calculate the response &\
-       & polarization and dielectric potentials")' )\
-   !\
-   CALL calc_dvenviron( dfftp%nnr, rho%of_r(:,1), rho_1(:,1), dv(:,1) )\
-   !\
-END IF\
-!Environ patch
-' tmp.1 > tmp.2
-  mv tmp.2 plugin_int_forces.f90
-  rm tmp.1 tmp.2
+      !Environ patch\
+      IF ( use_environ ) THEN\
+      !\
+      IF (.not.davidson) WRITE( stdout, 8200 )\
+8200  FORMAT(5x,"Calculate Environ contribution to response potential)\
+      !\
+      CALL calc_dvenviron( dfftp%nnr, rho%of_r(:,1), rho_1(:,1), dv(:,1) )\
+      !\
+      END IF\
+      !Environ patch
+      ' tmp.1 > tmp.2
+
+  mv tmp.2 plugin_tddfpt_potential.f90
+  rm tmp.1
+
 fi
 
 rm tmp.6.1 tmp.6.2

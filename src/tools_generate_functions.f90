@@ -40,7 +40,12 @@ CONTAINS
     USE fft_base,       ONLY : dfftp
     USE fft_interfaces, ONLY : fwfft, invfft
     USE control_flags,  ONLY : gamma_only
-    USE gvect,          ONLY : nl, nlm, ngm, gg, gstart
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    USE gvect,          ONLY : nl, nlm, ngm, gg, gstart
+! Compatible with QE-6.3.X, and QE-GIT
+    USE gvect,          ONLY : ngm, gg, gstart
+! END BACKWARD COMPATIBILITY
     !
     IMPLICIT NONE
     !
@@ -54,18 +59,36 @@ CONTAINS
     auxr(:) = CMPLX( fa(:), 0.D0, kind=DP )
     CALL fwfft('Dense', auxr, dfftp)
     !
-    ALLOCATE( auxg( nnr ) ) 
+    ALLOCATE( auxg( nnr ) )
     auxg = 0.D0
-    auxg(nl(1:ngm)) = auxr(nl(1:ngm))
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    auxg(nl(1:ngm)) = auxr(nl(1:ngm))
+! Compatible with QE-6.3.X, and QE-GIT
+    auxg(dfftp%nl(1:ngm)) = auxr(dfftp%nl(1:ngm))
+! END BACKWARD COMPATIBILITY
     !
     auxr(:) = CMPLX( fb(:), 0.D0, kind=DP )
     CALL fwfft('Dense', auxr, dfftp)
     !
-    auxg(nl(1:ngm)) = auxg(nl(1:ngm)) * auxr(nl(1:ngm))
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    auxg(nl(1:ngm)) = auxg(nl(1:ngm)) * auxr(nl(1:ngm))
+! Compatible with QE-6.3.X, and QE-GIT
+    auxg(dfftp%nl(1:ngm)) = auxg(dfftp%nl(1:ngm)) * auxr(dfftp%nl(1:ngm))
+! END BACKWARD COMPATIBILITY
     !
     DEALLOCATE( auxr )
     !
-    IF ( gamma_only ) auxg(nlm(1:ngm)) = CMPLX( REAL( auxg(nl(1:ngm)) ), -AIMAG( auxg(nl(1:ngm)) ) ,kind=DP)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    IF ( gamma_only ) auxg(nlm(1:ngm)) = &
+!         & CMPLX( REAL( auxg(nl(1:ngm)) ), -AIMAG( auxg(nl(1:ngm)) ) ,kind=DP)
+! Compatible with QE-6.3.X, and QE-GIT
+    IF ( gamma_only ) auxg(dfftp%nlm(1:ngm)) = &
+         & CMPLX( REAL( auxg(dfftp%nl(1:ngm)) ), -AIMAG( auxg(dfftp%nl(1:ngm)) ) ,kind=DP)
+! END BACKWARD COMPATIBILITY
     !
     CALL invfft('Dense',auxg, dfftp)
     !

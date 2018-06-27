@@ -388,28 +388,24 @@ CONTAINS
     !     grid and added to vtot.
     !
     USE environ_base,  ONLY : vzero, solvent,                       &
-                              lelectrostatic, velectrostatic,       &
-                              vreference, lexternals,               &
-                              lsoftcavity, vsoftcavity,             &
-                              lsurface, env_surface_tension,        &
-                              lvolume, env_pressure,                &
-                              charges, lstatic, static,             &
-                              lelectrolyte, electrolyte,            &
-                              cell, lsoftsolvent, lsoftelectrolyte
-    USE electrostatic_base, ONLY : reference, outer
+                              lelectrostatic, loptical
     !
     ! ... Each contribution to the potential is computed in its module
     !
-    USE embedding_electrostatic, ONLY : calc_dvelectrostatic
+    USE solvent_tddfpt, ONLY : calc_vsolvent_tddfpt
     !
     IMPLICIT NONE
     !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)     :: nnr, nspin
+    INTEGER, INTENT(IN)     :: nnr
     REAL( DP ), INTENT(IN)  :: rho( nnr )    ! ground-state charge-density
     REAL( DP ), INTENT(IN)  :: drho( nnr )   ! response charge-density
     REAL( DP ), INTENT(OUT) :: dvtot( nnr )
+    !
+    ! ... Local variables
+    !
+    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: dvpol, dvepsilon
     !
     ! ... If any form of electrostatic embedding is present, calculate its contribution
     !
@@ -417,14 +413,21 @@ CONTAINS
        !
        ! ... Electrostatics is also computed inside the calling program, need to remove the reference
        !
-       CALL calc_dvelectrostatic( reference, charges, vreference )
-       !
-    END IF
-    !
-    ! ... Compute the total potential depending on the boundary
-    !
-    IF ( lsoftcavity ) THEN
-       !
+       IF ( loptical ) THEN
+          !
+          ALLOCATE( dvpol( nnr ) )
+          dvpol = 0.D0
+          ALLOCATE( dvepsilon( nnr ) )
+          dvepsilon = 0.D0
+          !
+          CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
+          !
+          dvtot = dvtot + dvpol + dvepsilon
+          !
+          DEALLOCATE( dvpol )
+          DEALLOCATE( dvepsilon )
+          !
+       ENDIF
        !
     END IF
     !

@@ -130,8 +130,9 @@ mv tmp.1 plugin_read_input.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
+USE environ_base, ONLY : ltddfpt\
 USE environ_init, ONLY : environ_clean, environ_clean_pw, &\
-                         ltddfpt, environ_clean_tddfpt\
+                         environ_clean_tddfpt\
 !Environ patch
 ' plugin_clean.f90 > tmp.1
 
@@ -430,7 +431,7 @@ mv tmp.1 plugin_check.f90
 
 # force_lc
 
-cat >> force_lc.f90 <<EOF
+cat > tmp.1 <<EOF
 !Environ patch
 subroutine external_force_lc( rhor, force )
 
@@ -480,6 +481,12 @@ subroutine external_force_lc( rhor, force )
 end subroutine external_force_lc
 !Environ patch
 EOF
+# BACKWARD COMPATIBILITY
+# Compatible with QE-5.X QE-6.1.X, QE-6.2.X
+# cat tmp.1 >> force_lc.f90
+# Compatible with QE-6.3.X and QE-GIT
+# END BACKWARD COMPATIBILITY
+rm tmp.1
 
 echo "- DONE!"
 

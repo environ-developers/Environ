@@ -132,7 +132,7 @@ CONTAINS
        ltddfpt = .TRUE.
     CASE DEFAULT
        ltddfpt = .FALSE.
-    ELSE SELECT
+    END SELECT
 ! END BACKWARD COMPATIBILITY
     !
     ! Create necessary local types
@@ -301,7 +301,7 @@ CONTAINS
     ! In environ_base all the control flags plus the variables
     ! that need to be initialized
     !
-    USE environ_base, ONLY :
+    USE environ_base, ONLY :                      &
          e2_ => e2,                               &
          cell, electrons, charges,                &
          vzero, deenviron,                        &

@@ -36,7 +36,7 @@ MODULE problem_generalized
   USE electrostatic_types
   USE environ_output
   USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct, poisson_energy
-  USE environ_base, ONLY : e2, oldenviron, add_jellium
+  USE environ_base, ONLY : e2, oldenviron, add_jellium, ltddfpt
   USE correction_periodic, ONLY : calc_v0periodic
   !
   IMPLICIT NONE
@@ -371,7 +371,7 @@ CONTAINS
        !
     ENDDO
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     ! ... Compute total electrostatic potential
@@ -534,7 +534,7 @@ CONTAINS
        !
     ENDDO
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_density( l )
@@ -724,7 +724,7 @@ CONTAINS
     !
     x % of_r = x % of_r + shift
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_density( r )
@@ -908,7 +908,7 @@ CONTAINS
        !
     ENDDO
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_gradient( g )
