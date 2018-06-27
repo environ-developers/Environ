@@ -156,6 +156,7 @@ CONTAINS
     const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
     vbound = 0.D0
+    icount = 0
     DO i = 1, nnr
        !
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
@@ -166,7 +167,8 @@ CONTAINS
        ENDIF
        !
     ENDDO
-    !
+    CALL mp_sum(icount,cell%comm)
+    CALL mp_sum(vbound,cell%comm)
     vbound = vbound / DBLE(icount)
     !
     ! ... Compute some constants needed for the calculation

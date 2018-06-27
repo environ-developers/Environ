@@ -58,6 +58,14 @@ CONTAINS
     USE problem_generalized, ONLY : generalized_gradient
     USE problem_poisson,     ONLY : poisson_direct
     !
+    !
+    IMPLICIT NONE
+    !
+    TYPE( electrostatic_solver ), INTENT(IN) :: solver
+    TYPE( electrostatic_core ), INTENT(IN) :: core
+    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(INOUT) :: potential
+    !
     CHARACTER( LEN = 80 ) :: sub_name = 'pb_direct_charges'
     !
     ! Aliases and sanity checks
