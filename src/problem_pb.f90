@@ -543,10 +543,8 @@ CONTAINS
           !
           DO ir = 1, ir_end 
              arg = -z * x%of_r(ir) / kT
-             IF ( arg .LT. exp_arg_limit ) THEN
+             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                 cfactor % of_r (ir) = EXP( arg )
-             ELSE
-                cfactor % of_r (ir) = EXP( exp_arg_limit )
              END IF
           END DO
           !
@@ -722,10 +720,8 @@ CONTAINS
           !
           DO ir = 1, ir_end
              arg = - zi*x%of_r(ir) /kT
-             IF ( arg .LT. exp_arg_limit ) THEN
+             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                 cfactor % of_r (ir) = EXP( arg )
-             ELSE
-                cfactor % of_r (ir) = EXP( exp_arg_limit )
              END IF
           END DO
           !
@@ -832,7 +828,7 @@ CONTAINS
        screening % of_r = 0.D0
        denominator%of_r = 1.D0
        !
-!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 .AND. electrolyte%ion_adsorption .EQ. 'none' )  THEN
+!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 )  THEN
        IF (.FALSE.) THEN
           ! Symmetric electrolyte: use hyperbolic functions
           cbulk => electrolyte%ioncctype(1)%cbulk
@@ -845,9 +841,6 @@ CONTAINS
              IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                 rhoaux % of_r (ir) = SINH( arg )
                 cfactor % of_r (ir) = COSH( arg ) 
-             ELSE
-                rhoaux % of_r (ir) = SINH( exp_arg_limit )
-                cfactor % of_r (ir) = COSH( exp_arg_limit )
              END IF
           END DO
           !
@@ -890,10 +883,8 @@ CONTAINS
              !
              DO ir = 1, ir_end
                 arg = -zi*x%of_r(ir) / kT
-                IF ( arg .LT. exp_arg_limit ) THEN
+                IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                    cfactor % of_r (ir) = EXP( arg )
-                ELSE
-                   cfactor % of_r (ir) = EXP( exp_arg_limit )
                 END IF
              END DO
              !
