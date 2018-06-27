@@ -376,10 +376,8 @@ CONTAINS
             ! numerical problems arise when computing exp( -z*pot/kT )
             ! in regions close to the nuclei (exponent is too large).
             arg = -z * pot(ir) / kT
-            IF ( arg .LT. exp_arg_limit ) THEN
+            IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                cfactor(ir) = EXP( arg )
-            ELSE
-               cfactor(ir) = EXP( exp_arg_limit )
             END IF
          END DO
          !
