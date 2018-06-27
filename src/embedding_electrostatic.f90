@@ -54,7 +54,7 @@ CONTAINS
     USE problem_poisson,       ONLY : poisson_direct
     USE problem_generalized,   ONLY : generalized_gradient
     USE problem_linearized_pb, ONLY : linearized_pb_gradient
-    USE problem_poisson_boltzmann, ONLY : pb_direct
+    USE problem_pb,            ONLY : pb_direct
     !
     IMPLICIT NONE
     !
@@ -194,7 +194,7 @@ CONTAINS
     USE problem_poisson,       ONLY : poisson_energy
     USE problem_generalized,   ONLY : generalized_energy
     USE problem_linearized_pb, ONLY : linearized_pb_energy
-    USE problem_poisson_boltzmann, ONLY : pb_energy
+    USE problem_pb,            ONLY : pb_energy
     !
     IMPLICIT NONE
     !
