@@ -199,7 +199,7 @@ CONTAINS
     !
     IF ( neutral .GT. 1.D-8 ) CALL errore(sub_name,'Bulk electrolyte is not neutral',1)
     !
-    ! ... If cionmax is not provided in input but radius is, calculate cionmax 
+    ! ... If cionmax is not provided in input but radius is, calculate cionmax
     electrolyte%cionmax = cionmax * bohr_radius_si**3 / amu_si
     IF ( cionmax .EQ. 0.D0 .AND. radius .GT. 0.D0 ) &
             & electrolyte%cionmax = 0.64D0 * 3.D0 / fpi / radius**3
@@ -328,12 +328,15 @@ CONTAINS
     TYPE( environ_density ),     TARGET, INTENT(IN)    :: potential
     TYPE( environ_electrolyte ), TARGET, INTENT(INOUT) :: electrolyte
     !
+    REAL( DP ), POINTER :: z, cbulk
     REAL( DP ), DIMENSION(:), POINTER :: pot, rho, c, cfactor, gam
     !
-    REAL( DP )              :: kT, e, factor, sumcbulk
-    INTEGER                 :: ityp
+    REAL( DP )              :: kT, e, factor, sumcbulk, arg
+    INTEGER                 :: ityp, ir
     TYPE( environ_density ) :: denominator
     CHARACTER ( LEN=80 )    :: sub_name = 'calc_electrolyte_density'
+    !
+    REAL( DP ), PARAMETER   :: exp_arg_limit = 25.D0 !LOG( HUGE(1.0_DP) )
     !
     gam => electrolyte%gamma%of_r
     pot => potential%of_r
@@ -348,34 +351,43 @@ CONTAINS
     DO ityp = 1, electrolyte%ntyp
       !
       cfactor => electrolyte%ioncctype(ityp)%cfactor%of_r
+      cbulk => electrolyte%ioncctype(ityp)%cbulk
+      z => electrolyte%ioncctype(ityp)%z
+      !
+      cfactor  = 1.D0
       !
       IF ( electrolyte % linearized ) THEN
          ! Linearized PB and Modified PB
-         cfactor = 1.D0 - electrolyte%ioncctype(ityp)%z*pot / kT
+         cfactor = 1.D0 - z*pot / kT
          !
          IF ( electrolyte % cionmax .GT. 0.D0 ) THEN
             !
-            factor = electrolyte%ioncctype(ityp)%cbulk / electrolyte%cionmax
+            factor = cbulk / electrolyte%cionmax
             !
             IF ( electrolyte % stern_entropy == 'ions' ) THEN
                ! Linearized Modified PB with stern entropy 'ions'
                denominator%of_r = denominator%of_r - factor * ( 1.D0 - gam )
-!               if (ionode) print *, 'denominator stern ions'
                !
             END IF
             !
          END IF
          !
       ELSE
+         ! PB
+         DO ir = 1, potential % cell % ir_end
+            ! numerical problems arise when computing exp( -z*pot/kT )
+            ! in regions close to the nuclei (exponent is too large).
+            arg = -z * pot(ir) / kT
+            IF ( arg .LT. exp_arg_limit ) THEN
+               cfactor(ir) = EXP( arg )
+            ELSE
+               cfactor(ir) = EXP( exp_arg_limit )
+            END IF
+         END DO
          !
-         IF ( electrolyte % cionmax .EQ. 0.D0 ) THEN
-            ! PB
-            cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT )
-            !
-         ELSE
+         IF ( electrolyte % cionmax .NE. 0.D0 ) THEN
             ! Modified PB
-            cfactor = EXP ( - electrolyte%ioncctype(ityp)%z*pot / kT )
-            factor = electrolyte%ioncctype(ityp)%cbulk / electrolyte%cionmax
+            factor = cbulk / electrolyte%cionmax
             !
             SELECT CASE ( electrolyte % stern_entropy )
                !
@@ -394,6 +406,8 @@ CONTAINS
       END IF
       !
       NULLIFY( cfactor )
+      NULLIFY( cbulk )
+      NULLIFY( z )
       !
    END DO
    !
@@ -401,12 +415,16 @@ CONTAINS
       !
       c => electrolyte%ioncctype(ityp)%c%of_r
       cfactor => electrolyte%ioncctype(ityp)%cfactor%of_r
+      cbulk => electrolyte%ioncctype(ityp)%cbulk
+      z => electrolyte%ioncctype(ityp)%z
       !
-      c   = gam * electrolyte%ioncctype(ityp)%cbulk * cfactor / denominator%of_r
-      rho = rho + c * electrolyte%ioncctype(ityp)%z
+      c   = gam * cbulk * cfactor / denominator%of_r
+      rho = rho + c * z
       !
       NULLIFY( c )
       NULLIFY( cfactor )
+      NULLIFY( cbulk )
+      NULLIFY( z )
       !
    END DO
    !

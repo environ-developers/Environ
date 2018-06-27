@@ -36,7 +36,6 @@ CONTAINS
     ! ... convolution of function fa with function fb and put
     ! ... the result in function fc
     !
-    USE kinds,          ONLY : DP
     USE cell_base,      ONLY : omega
     USE fft_base,       ONLY : dfftp
     USE fft_interfaces, ONLY : fwfft, invfft
@@ -49,13 +48,14 @@ CONTAINS
     REAL( DP ), INTENT(IN)      :: fa( nnr ), fb( nnr )
     REAL( DP ), INTENT(OUT)     :: fc( nnr )
     !
-    COMPLEX( DP ), DIMENSION( nnr ) :: auxr, auxg
+    COMPLEX( DP ), DIMENSION( : ), ALLOCATABLE :: auxr, auxg
     !
-    auxg = 0.D0
-    !
+    ALLOCATE( auxr( nnr ) )
     auxr(:) = CMPLX( fa(:), 0.D0, kind=DP )
     CALL fwfft('Dense', auxr, dfftp)
     !
+    ALLOCATE( auxg( nnr ) ) 
+    auxg = 0.D0
     auxg(nl(1:ngm)) = auxr(nl(1:ngm))
     !
     auxr(:) = CMPLX( fb(:), 0.D0, kind=DP )
@@ -63,11 +63,15 @@ CONTAINS
     !
     auxg(nl(1:ngm)) = auxg(nl(1:ngm)) * auxr(nl(1:ngm))
     !
+    DEALLOCATE( auxr )
+    !
     IF ( gamma_only ) auxg(nlm(1:ngm)) = CMPLX( REAL( auxg(nl(1:ngm)) ), -AIMAG( auxg(nl(1:ngm)) ) ,kind=DP)
     !
     CALL invfft('Dense',auxg, dfftp)
     !
     fc(:) = REAL( auxg(:) ) * omega
+    !
+    DEALLOCATE( auxg )
     !
     RETURN
     !
