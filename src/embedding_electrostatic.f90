@@ -307,6 +307,7 @@ CONTAINS
     ENDIF
     !
     IF ( setup % core % use_qe_fft ) THEN
+       !
        ftmp = 0.D0
        ALLOCATE( rhoaux( cell % nnr, setup % core % qe_fft % nspin ) )
        rhoaux( :, 1 ) = aux % of_r
@@ -314,6 +315,18 @@ CONTAINS
        CALL external_force_lc(rhoaux,ftmp)
        DEALLOCATE( rhoaux )
        forces = forces + ftmp
+       !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1 QE-6.2.0 QE-6.2.1
+!
+! Compatible with QE-GIT
+       IF ( setup % core % qe_fft % use_internal_pbc_corr ) THEN
+          ftmp = 0.D0
+          CALL external_wg_corr_force(rhoaux,ftmp)
+          forces = forces + ftmp
+       END IF
+! END BACKWARD COMPATIBILITY
+       !
     END IF
     !
     IF ( setup % core % need_correction ) THEN
