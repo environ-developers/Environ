@@ -483,14 +483,14 @@ MODULE environ_input
 !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,assume_isolated,ion_radius)
+  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
 !--------------------------------------------------------------------
     !
     USE environ_init, ONLY : set_environ_base
     USE electrostatic_init, ONLY : set_electrostatic_base
     !
     CHARACTER(len=*), INTENT(IN) :: prog
-    CHARACTER(len=80), INTENT(IN) :: assume_isolated
+    LOGICAL, INTENT(IN) :: use_internal_pbc_corr
     INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp
     CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
     REAL( DP ), DIMENSION(:), INTENT(IN), OPTIONAL :: ion_radius
@@ -549,7 +549,7 @@ CONTAINS
                                   ndiis, mix, preconditioner,            &
                                   screening_type, screening, core,       &
                                   boundary_core, ifdtype, nfdpoint,      &
-                                  assume_isolated, pbc_correction,       &
+                                  use_internal_pbc_corr, pbc_correction, &
                                   pbc_dim, pbc_axis, nspin, prog )
     !
     ! ... Then set environ base

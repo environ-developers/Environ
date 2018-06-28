@@ -90,13 +90,21 @@ mv tmp.1 plugin_int_forces.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE io_global,  ONLY : ionode, ionode_id, stdout\
-USE mp_images,  ONLY : intra_image_comm\
-USE input_parameters, ONLY : nspin\
-USE input_parameters, ONLY : nat, ntyp, atom_label\
-USE input_parameters, ONLY : assume_isolated, ibrav\
-USE environ_input,    ONLY : read_environ\
-USE environ_output,   ONLY : set_environ_output\
+  USE io_global,  ONLY : ionode, ionode_id, stdout\
+  USE mp_images,  ONLY : intra_image_comm\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
+!  USE input_parameters, ONLY : nspin\
+!  USE input_parameters, ONLY : nat, ntyp, atm => atom_label\
+!  USE input_parameters, ONLY : ibrav\
+! Compatible with QE-6.3.X and QE-GIT\
+  USE lsda_mod,   ONLY : nspin\
+  USE ions_base,  ONLY : nat, ntyp = nsp, atm\
+  USE cell_base,  ONLY : ibrav\
+! END BACKWARD COMPATIBILITY\
+  USE martyna_tuckerman, ONLY : do_comp_mt\
+  USE environ_input,     ONLY : read_environ\
+  USE environ_output,    ONLY : set_environ_output\
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
 
@@ -119,7 +127,7 @@ sed '/Environ CALLS BEGIN/ a\
 ! Compatible with QE-6.3.X and QE-GIT\
 ! END BACKWARD COMPATIBILITY\
       CALL set_environ_output(prog, ionode, ionode_id, intra_image_comm, stdout)\
-      CALL read_environ(prog,1, nspin, nat, ntyp, atom_label, assume_isolated)\
+      CALL read_environ(prog,1, nspin, nat, ntyp, atm, do_comp_mt)\
    ENDIF\
 !Environ patch
 ' tmp.2 > tmp.1
