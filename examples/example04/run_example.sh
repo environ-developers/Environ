@@ -65,7 +65,7 @@ for FILE in $PSEUDO_LIST ; do
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
             $WGET $PSEUDO_DIR/$FILE \
-                http://www.quantum-espresso.org/pseudo/1.3/UPF/$FILE 2> /dev/null 
+                http://www.quantum-espresso.org/upf_files/UPF/$FILE 2> /dev/null 
     fi
     if test $? != 0; then
         $ECHO
