@@ -32,7 +32,7 @@ MODULE problem_linearized_pb
   USE electrostatic_types
   USE environ_output
   USE problem_poisson, ONLY : poisson_direct, poisson_energy
-  USE environ_base, ONLY : e2, add_jellium
+  USE environ_base, ONLY : e2, add_jellium, ltddfpt
   !
   IMPLICIT NONE
   !
@@ -426,7 +426,7 @@ CONTAINS
     !
     x % of_r = x % of_r + shift
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_density( r )
@@ -618,7 +618,7 @@ CONTAINS
     !
     x % of_r = x % of_r + shift
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_density( r )

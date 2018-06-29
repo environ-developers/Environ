@@ -340,24 +340,21 @@ CONTAINS
   END SUBROUTINE destroy_fd_core
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_qe_fft_core( qe_fft, assume_isolated, nspin )
+  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( qe_fft_core ), INTENT(INOUT) :: qe_fft
-    CHARACTER( LEN = * ), INTENT(IN), OPTIONAL :: assume_isolated
+    LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
     INTEGER, INTENT(IN), OPTIONAL :: nspin
     !
     qe_fft % index = 1
     !
-    qe_fft % use_internal_pbc_corr = .FALSE.
-    IF ( PRESENT( assume_isolated ) ) THEN
-       SELECT CASE( TRIM( ADJUSTL(assume_isolated) ) )
-       CASE( 'mt', 'martyna-tuckerman', 'm-t' )
-          qe_fft % use_internal_pbc_corr = .TRUE.
-       CASE DEFAULT
-       END SELECT
+    IF ( PRESENT ( use_internal_pbc_corr ) ) THEN
+       qe_fft % use_internal_pbc_corr = use_internal_pbc_corr
+    ELSE
+       qe_fft % use_internal_pbc_corr = .FALSE.
     END IF
     !
     IF ( PRESENT( nspin ) ) THEN

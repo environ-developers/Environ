@@ -66,7 +66,7 @@ CONTAINS
    ! ... 1. the response "polarization" potential from the response polarization density
    ! ... 2. the response "dielectric" potential
    !
-   USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical
+   USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical, ltddfpt
    USE electrostatic_base, ONLY : reference, outer
    USE embedding_electrostatic, ONLY : calc_velectrostatic
    USE utils_charges
@@ -91,7 +91,7 @@ CONTAINS
    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gvtot0, gdvtot
    CHARACTER( LEN=80 ) :: sub_name = 'calc_vsolvent_tddfpt'
    !
-   IF ( .NOT. tddfpt .OR. .NOT. loptical ) RETURN
+   IF ( .NOT. ltddfpt .OR. .NOT. loptical ) RETURN
    !
    CALL start_clock( 'calc_vsolvent_tddfpt' )
    !

@@ -33,7 +33,7 @@ MODULE environ_main
   !
 PRIVATE
 !
-PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron
+PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron, calc_dvenviron
 !
 CONTAINS
 !--------------------------------------------------------------------
@@ -377,6 +377,63 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_fenviron
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE calc_dvenviron( nnr, rho, drho, dvtot )
+!--------------------------------------------------------------------
+    !
+    ! ... Calculates the environ contribution to the local
+    !     potential. All the Environ modules need to be called here.
+    !     The potentials are all computed on the dense real-space
+    !     grid and added to vtot.
+    !
+    USE environ_base,  ONLY : vzero, solvent,                       &
+                              lelectrostatic, loptical
+    !
+    ! ... Each contribution to the potential is computed in its module
+    !
+    USE solvent_tddfpt, ONLY : calc_vsolvent_tddfpt
+    !
+    IMPLICIT NONE
+    !
+    ! ... Declares variables
+    !
+    INTEGER, INTENT(IN)     :: nnr
+    REAL( DP ), INTENT(IN)  :: rho( nnr )    ! ground-state charge-density
+    REAL( DP ), INTENT(IN)  :: drho( nnr )   ! response charge-density
+    REAL( DP ), INTENT(OUT) :: dvtot( nnr )
+    !
+    ! ... Local variables
+    !
+    REAL( DP ), DIMENSION( : ), ALLOCATABLE :: dvpol, dvepsilon
+    !
+    ! ... If any form of electrostatic embedding is present, calculate its contribution
+    !
+    IF ( lelectrostatic ) THEN
+       !
+       ! ... Electrostatics is also computed inside the calling program, need to remove the reference
+       !
+       IF ( loptical ) THEN
+          !
+          ALLOCATE( dvpol( nnr ) )
+          dvpol = 0.D0
+          ALLOCATE( dvepsilon( nnr ) )
+          dvepsilon = 0.D0
+          !
+          CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
+          !
+          dvtot = dvtot + dvpol + dvepsilon
+          !
+          DEALLOCATE( dvpol )
+          DEALLOCATE( dvepsilon )
+          !
+       ENDIF
+       !
+    END IF
+    !
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE calc_dvenviron
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE environ_main

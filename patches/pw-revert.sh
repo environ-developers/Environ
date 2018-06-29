@@ -105,6 +105,12 @@ sed '/Environ patch/,/Environ patch/d' plugin_scf_potential.f90 > tmp.1
 
 mv tmp.1 plugin_scf_potential.f90
 
+# plugin_check
+
+sed '/Environ patch/,/Environ patch/d' plugin_check.f90 > tmp.1
+
+mv tmp.1 plugin_check.f90
+
 # makov_payne
 
 sed '/Environ patch/,/Environ patch/d' makov_payne.f90 > tmp.1
