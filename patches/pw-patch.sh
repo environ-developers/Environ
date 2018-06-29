@@ -99,7 +99,7 @@ sed '/Environ MODULES BEGIN/ a\
 !  USE input_parameters, ONLY : ibrav\
 ! Compatible with QE-6.3.X and QE-GIT\
   USE lsda_mod,   ONLY : nspin\
-  USE ions_base,  ONLY : nat, ntyp = nsp, atm\
+  USE ions_base,  ONLY : nat, ntyp => nsp, atm\
   USE cell_base,  ONLY : ibrav\
 ! END BACKWARD COMPATIBILITY\
   USE martyna_tuckerman, ONLY : do_comp_mt\
