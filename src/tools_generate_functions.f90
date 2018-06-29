@@ -57,7 +57,12 @@ CONTAINS
     !
     ALLOCATE( auxr( nnr ) )
     auxr(:) = CMPLX( fa(:), 0.D0, kind=DP )
-    CALL fwfft('Dense', auxr, dfftp)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    CALL fwfft('Dense', auxr, dfftp)
+! Compatible with QE-6.3.X, and QE-GIT
+    CALL fwfft('Rho', auxr, dfftp)
+! END BACKWARD COMPATIBILITY
     !
     ALLOCATE( auxg( nnr ) )
     auxg = 0.D0
@@ -70,7 +75,12 @@ CONTAINS
 ! END BACKWARD COMPATIBILITY
     !
     auxr(:) = CMPLX( fb(:), 0.D0, kind=DP )
-    CALL fwfft('Dense', auxr, dfftp)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    CALL fwfft('Dense', auxr, dfftp)
+! Compatible with QE-6.3.X, and QE-GIT
+    CALL fwfft('Rho', auxr, dfftp)
+! END BACKWARD COMPATIBILITY
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
@@ -90,7 +100,12 @@ CONTAINS
          & CMPLX( REAL( auxg(dfftp%nl(1:ngm)) ), -AIMAG( auxg(dfftp%nl(1:ngm)) ) ,kind=DP)
 ! END BACKWARD COMPATIBILITY
     !
-    CALL invfft('Dense',auxg, dfftp)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!    CALL invfft('Dense',auxg, dfftp)
+! Compatible with QE-6.3.X, and QE-GIT
+    CALL invfft('Rho',auxg, dfftp)
+! END BACKWARD COMPATIBILITY
     !
     fc(:) = REAL( auxg(:) ) * omega
     !
