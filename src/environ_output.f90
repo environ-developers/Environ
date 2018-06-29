@@ -1389,7 +1389,7 @@ CONTAINS
 !      USE fft_base,       ONLY : grid_gather
 ! Compatible with QE-5.2 QE-5.2.1
 !      USE fft_base,       ONLY : gather_grid
-! Compatible with QE-5.3 svn
+! Compatible with QE-5.3 QE-6.X QE-git
     USE scatter_mod,    ONLY : gather_grid
 ! END BACKWARD COMPATIBILITY
     !
