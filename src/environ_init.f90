@@ -83,7 +83,7 @@ CONTAINS
     ! ... to global variables kept in the environ_base module
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
-         & need_factsqrt, need_auxiliary
+         & need_factsqrt, need_auxiliary, need_electrolyte
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
@@ -166,7 +166,7 @@ CONTAINS
     lsurface       = env_surface_tension .GT. 0.D0
     lvolume        = env_pressure .NE. 0.D0
     lexternals     = env_external_charges .GT. 0
-    lelectrolyte   = env_electrolyte_ntyp .GT. 0
+    lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
     lperiodic      = need_pbc_correction
     !
     ! Derived flags

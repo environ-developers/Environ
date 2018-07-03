@@ -54,7 +54,7 @@ CONTAINS
     USE problem_poisson,       ONLY : poisson_direct
     USE problem_generalized,   ONLY : generalized_gradient
     USE problem_linearized_pb, ONLY : linearized_pb_gradient
-    USE problem_pb,            ONLY : pb_direct, pb_nested
+    USE problem_pb,            ONLY : pb_nested
     !
     IMPLICIT NONE
     !
@@ -156,7 +156,8 @@ CONTAINS
           !
        CASE ( 'direct' )
           !
-          CALL pb_direct( setup % solver, setup % core, charges, potential )
+          CALL errore( sub_name, 'option not yet implemented', 1 )
+!          CALL pb_direct()
           !
        CASE ( 'iterative' )
           !

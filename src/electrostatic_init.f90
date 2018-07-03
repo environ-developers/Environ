@@ -99,6 +99,7 @@ CONTAINS
     ! Numerical core for periodic boundary correction
     !
     need_pbc_correction = .FALSE.
+    need_electrolyte = .FALSE.
     CALL create_electrostatic_core( pbc_core )
     !
     ! first check keywords specfied in input
@@ -115,6 +116,7 @@ CONTAINS
           local_type = '1da'
        CASE ( 'stern' )
           need_pbc_correction = .TRUE.
+          need_electrolyte = .TRUE.
           loned_analytic = .TRUE.
           local_type = 'stern'
        CASE DEFAULT
@@ -152,6 +154,7 @@ CONTAINS
           local_type = '1da'
        CASE( 'stern' )
           need_pbc_correction = .TRUE.
+          need_electrolyte = .TRUE.
           loned_analytic = .TRUE.
           pbc_dim = 2
           pbc_axis = 3

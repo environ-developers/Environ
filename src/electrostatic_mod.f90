@@ -91,7 +91,8 @@ MODULE electrostatic_base
   ! General setup of periodic boundary conditions
   !
   LOGICAL ::                           &
-       need_pbc_correction
+       need_pbc_correction,            &
+       need_electrolyte
   INTEGER ::                           &
        pbc_dim,                        &
        pbc_axis

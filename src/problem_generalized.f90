@@ -51,7 +51,7 @@ MODULE problem_generalized
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE generalized_gradient_charges( solver, core, charges, potential, electrolyte )
+  SUBROUTINE generalized_gradient_charges( solver, core, charges, potential )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -60,7 +60,6 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
-    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     CHARACTER*20 :: sub_name = 'generalized_gradient'
     !
@@ -76,15 +75,15 @@ CONTAINS
              !
           CASE ( 'none' )
              !
-             CALL generalized_gradient_none( solver % gradient, core, charges%density, charges%dielectric, potential, electrolyte )
+             CALL generalized_gradient_none( solver % gradient, core, charges%density, charges%dielectric, potential, charges%electrolyte )
              !
           CASE ( 'sqrt' )
              !
-             CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, charges%dielectric, potential, electrolyte )
+             CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, charges%dielectric, potential, charges%electrolyte )
              !
           CASE ( 'left' )
              !
-             CALL generalized_gradient_left( solver % gradient, core, charges%density, charges%dielectric, potential, electrolyte )
+             CALL generalized_gradient_left( solver % gradient, core, charges%density, charges%dielectric, potential, charges%electrolyte )
              !
           CASE DEFAULT
              !
@@ -103,7 +102,7 @@ CONTAINS
        !
        IF ( solver % auxiliary .EQ. 'full' ) THEN
           !
-          CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, potential, electrolyte )
+          CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, potential, charges%electrolyte )
           !
        ELSE
           !

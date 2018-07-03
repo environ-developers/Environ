@@ -68,17 +68,16 @@ CONTAINS
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
     REAL( DP ), POINTER :: cion, zion, permittivity, xstern
-    REAL( DP ), DIMENSION(:), POINTER :: c1, c2
     REAL( DP ) :: kbt, invkbt
     !
     TYPE( environ_density ), TARGET :: local
-    REAL( DP ), DIMENSION(:), POINTER :: v, v0
+    REAL( DP ), DIMENSION(:), POINTER :: v
     !
-    INTEGER :: i, i1, i2, icor, icount
+    INTEGER :: i, icount
     REAL( DP ) :: ez, fact, vstern, const
-    REAL( DP ) :: v1, v2, dv, vbound
+    REAL( DP ) :: dv, vbound
     REAL( DP ) :: arg, asinh, coth, acoth
-    REAL( DP ) :: f1, f2, f3, f4
+    REAL( DP ) :: f1, f2
     REAL( DP ) :: area, vtmp
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
@@ -111,9 +110,6 @@ CONTAINS
     zion => electrolyte % ioncctype(1) % z
     permittivity => electrolyte%permittivity
     xstern => electrolyte%boundary%simple%width
-    !
-    c1 => electrolyte%ioncctype(1)%c%of_r
-    c2 => electrolyte%ioncctype(2)%c%of_r
     !
     ! ... Set Boltzmann factors
     !
@@ -175,14 +171,10 @@ CONTAINS
     !
     f1 = - fact * zion * invkbt * 0.5D0
     f2 = 4.D0 * kbt / zion
-    f3 = cion ! / cionmax
-    f4 = zion * invkbt
     !
     ! ... Compute the analytic potential and charge
     !
     v = v - vbound + vstern
-    c1 = 0.D0
-    c2 = 0.D0
     DO i = 1, nnr
        !
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
@@ -196,8 +188,6 @@ CONTAINS
              acoth = 0.D0
           END IF
           vtmp =  f2 * acoth
-          c1(i) = f3 * ( EXP( - f4 * vtmp ) )
-          c2(i) = f3 * ( EXP( f4 * vtmp ) )
           !
           ! ... Remove source potential (linear) and add analytic one
           !
@@ -239,21 +229,21 @@ CONTAINS
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
     REAL( DP ), POINTER :: cion, zion, permittivity, xstern
-    REAL( DP ), DIMENSION(:), POINTER :: c1, c2
     REAL( DP ) :: kbt, invkbt
     !
-    TYPE( environ_density ), TARGET :: local
-    REAL( DP ), DIMENSION(:), POINTER :: v, v0
+    TYPE( environ_gradient ), TARGET :: glocal
+    REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
     !
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_vstern'
-    !
-    INTEGER :: i, i1, i2
+    INTEGER :: i
     REAL( DP ) :: ez, fact, vstern, const
-    REAL( DP ) :: v1, v2, dv, vbound
     REAL( DP ) :: arg, asinh, coth, acoth
-    REAL( DP ) :: f1, f2, f3, f4
+    REAL( DP ) :: f1, f2
+    REAL( DP ) :: area, dvtmp_dx
+    REAL(DP) :: dipole(0:3), quadrupole(3)
+    REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvstern'
     !
-    CALL start_clock ('calc_vpbc')
+    CALL start_clock ('calc_gvst')
     !
     ! ... Aliases and sanity checks
     !
@@ -281,9 +271,6 @@ CONTAINS
     permittivity => electrolyte%permittivity
     xstern => electrolyte%boundary%simple%width
     !
-    c1 => electrolyte%ioncctype(1)%c%of_r
-    c2 => electrolyte%ioncctype(2)%c%of_r
-    !
     ! ... Set Boltzmann factors
     !
     kbt = electrolyte % temperature * k_boltzmann_ry
@@ -292,14 +279,65 @@ CONTAINS
     IF ( env_periodicity .NE. 2 ) &
          & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
     !
-    CALL init_environ_density( cell, local )
-    v => local % of_r
+    CALL init_environ_gradient( cell, glocal )
+    gvstern => glocal % of_r
     !
-    gradv % of_r = 0.D0
+    ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL destroy_environ_density(local)
+    CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
     !
-    CALL stop_clock ('calc_vstern')
+    tot_charge = dipole(0)
+    tot_dipole = dipole(1:3)
+    !
+    ! ... First compute the gradient of parabolic correction
+    !
+    fact = e2 * fpi / omega
+    gvstern(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
+    gvstern = gvstern * fact
+    !
+    ! ... Compute the physical properties of the interface
+    !
+    zion = ABS(zion)
+    ez = - tpi * e2 * tot_charge / area / permittivity
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
+    arg = ez/fact
+    asinh = LOG(arg + SQRT( arg**2 + 1 ))
+    vstern = 2.D0 * kbt / zion * asinh
+    arg = vstern * 0.25D0 * invkbt * zion
+    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    !
+    ! ... Compute some constants needed for the calculation
+    !
+    f1 = - fact * zion * invkbt * 0.5D0
+    f2 = 4.D0 * kbt / zion
+    !
+    ! ... Compute the analytic gradient of potential
+    !     Note that the only contribution different from the parabolic
+    !     correction is in the region of the diffuse layer
+    !
+    DO i = 1, nnr
+       !
+       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          !
+          ! ... Gouy-Chapmann-Stern analytic solution on the outside
+          !
+          arg = const * EXP( ABS(axis(1,i)) * f1 )
+          dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
+          !
+          ! ... Remove source potential (linear) and add analytic one
+          !
+          gvstern(slab_axis,i) =  gvstern(slab_axis,i) + dvtmp_dx - ez
+          !
+       ENDIF
+       !
+    ENDDO
+    !
+    gradv % of_r = gradv % of_r + gvstern
+    !
+    CALL destroy_environ_gradient(glocal)
+    !
+    CALL stop_clock ('calc_gvst')
     !
     RETURN
 !---------------------------------------------------------------------------
