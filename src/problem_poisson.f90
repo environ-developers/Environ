@@ -54,7 +54,7 @@ MODULE problem_poisson
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_direct_charges( core, charges, potential, electrolyte )
+  SUBROUTINE poisson_direct_charges( core, charges, potential )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -62,7 +62,6 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
-    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     TYPE( environ_cell ), POINTER :: cell
     !
@@ -108,9 +107,9 @@ CONTAINS
           !
        CASE ( 'stern' )
           !
-          IF ( .NOT. PRESENT( electrolyte ) ) &
+          IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_vstern( core%correction%oned_analytic, electrolyte, charges%density, potential )
+          CALL calc_vstern( core%correction%oned_analytic, charges%electrolyte, charges%density, potential )
           !
        CASE DEFAULT
           !
@@ -210,7 +209,7 @@ CONTAINS
   END SUBROUTINE poisson_direct_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE poisson_gradient_direct_charges( core, charges, gradient, electrolyte )
+  SUBROUTINE poisson_gradient_direct_charges( core, charges, gradient )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -218,7 +217,6 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
-    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_charges'
     !
@@ -246,9 +244,9 @@ CONTAINS
           !
        CASE ( 'stern' )
           !
-          IF ( .NOT. PRESENT( electrolyte ) ) &
+          IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_gradvstern( core%correction%oned_analytic, electrolyte, charges%density, gradient )
+          CALL calc_gradvstern( core%correction%oned_analytic, charges%electrolyte, charges%density, gradient )
           !
        CASE DEFAULT
           !

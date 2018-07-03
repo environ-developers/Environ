@@ -230,14 +230,34 @@ CONTAINS
        !
     CASE ( 'poisson' )
        !
-       CALL poisson_energy( setup % core, charges, potential, energy )
+       IF ( setup % core % need_correction ) THEN
+          IF ( setup % core % correction % type .EQ. 'stern' ) THEN
+             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+             CALL pb_energy( setup % core, charges, potential, energy )
+          ELSE
+             CALL poisson_energy( setup % core, charges, potential, energy )
+          ENDIF
+       ELSE
+          CALL poisson_energy( setup % core, charges, potential, energy )
+       END IF
        !
     CASE ( 'generalized' )
        !
        IF ( .NOT. ASSOCIATED( charges%dielectric ) ) &
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
        !
-       CALL generalized_energy( setup % core, charges, potential, energy )
+       IF ( setup % core % need_correction ) THEN
+          IF ( setup % core % correction % type .EQ. 'stern' ) THEN
+             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+             CALL pb_energy( setup % core, charges, potential, energy )
+          ELSE
+             CALL generalized_energy( setup % core, charges, potential, energy )
+          ENDIF
+       ELSE
+          CALL generalized_energy( setup % core, charges, potential, energy )
+       END IF
        !
     CASE ( 'pb', 'modpb', 'linpb', 'linmodpb' )
        !
