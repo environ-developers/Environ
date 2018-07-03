@@ -83,7 +83,7 @@ CONTAINS
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vstern'
     !
-    CALL start_clock ('calc_vpbc')
+    CALL start_clock ('calc_vstern')
     !
     ! ... Aliases and sanity checks
     !
