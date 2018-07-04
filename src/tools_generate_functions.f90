@@ -533,7 +533,7 @@ CONTAINS
     REAL( DP )                :: dist, arg
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: rholocal ( : )
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 100.D0
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0
     !
     IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
        WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3

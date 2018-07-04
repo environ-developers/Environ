@@ -309,7 +309,7 @@ CONTAINS
     INTEGER, POINTER :: maxiter, ir_end
     REAL( DP ), POINTER :: tolrhoaux, mix, cbulk, cionmax, z
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0 !LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' OUTER LOOP ON POTENTIAL ',50('%'))
@@ -400,7 +400,11 @@ CONTAINS
              arg = -z * x%of_r(ir) / kT
              IF ( electrolyte%ion_adsorption .NE. 'none' ) &
                 & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
-             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
+             IF ( arg .GT. exp_arg_limit ) THEN
+                cfactor % of_r (ir) = EXP( exp_arg_limit )
+             ELSE IF ( arg .LT. -exp_arg_limit ) THEN
+                cfactor % of_r (ir) = EXP( -exp_arg_limit )
+             ELSE
                 cfactor % of_r (ir) = EXP( arg )
              END IF
           END DO
@@ -513,7 +517,7 @@ CONTAINS
     REAL( DP ), POINTER :: tol, mix, cbulk, cbulki, cbulkj, cionmax, zi, zj
     !
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 25.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0 !LOG( HUGE(1.0_DP) )
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -579,7 +583,11 @@ CONTAINS
              arg = - zi*x%of_r(ir) /kT
              IF ( electrolyte%ion_adsorption .NE. 'none' ) &
                 & arg = arg - electrolyte%ioncctype(itypi)%potential%of_r(ir) / kT
-             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
+             IF ( arg .GT. exp_arg_limit ) THEN
+                cfactor % of_r (ir) = EXP( exp_arg_limit )
+             ELSE IF ( arg .LT. -exp_arg_limit ) THEN
+                cfactor % of_r (ir) = EXP( -exp_arg_limit )
+             ELSE
                 cfactor % of_r (ir) = EXP( arg )
              END IF
           END DO
@@ -700,6 +708,9 @@ CONTAINS
              IF ( ABS(arg) .LT. exp_arg_limit ) THEN
                 rhoaux % of_r (ir) = SINH( arg )
                 cfactor % of_r (ir) = COSH( arg ) 
+!!!!
+! MAX OUTSIDE RANGE MISSING!
+!!!!
              END IF
           END DO
           !
@@ -744,7 +755,11 @@ CONTAINS
                 arg = - zi*x%of_r(ir) /kT
                 IF ( electrolyte%ion_adsorption .NE. 'none' ) &
                    & arg = arg - electrolyte%ioncctype(itypi)%potential%of_r(ir) / kT
-                IF ( ABS(arg) .LT. exp_arg_limit ) THEN
+                IF ( arg .GT. exp_arg_limit ) THEN
+                   cfactor % of_r (ir) = EXP( exp_arg_limit )
+                ELSE IF ( arg .LT. -exp_arg_limit ) THEN
+                   cfactor % of_r (ir) = EXP( -exp_arg_limit )
+                ELSE
                    cfactor % of_r (ir) = EXP( arg )
                 END IF
              END DO

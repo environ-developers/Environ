@@ -401,7 +401,7 @@ CONTAINS
     TYPE( environ_density ) :: denominator
     CHARACTER ( LEN=80 )    :: sub_name = 'calc_electrolyte_density'
     !
-    REAL( DP ), PARAMETER   :: exp_arg_limit = 25.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER   :: exp_arg_limit = 40.D0 !LOG( HUGE(1.0_DP) )
     !
     gam => electrolyte%gamma%of_r
     pot => potential%of_r
@@ -445,8 +445,12 @@ CONTAINS
             arg = - z * pot(ir) / kT
             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
                & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
-            IF ( ABS( arg ) .LT. exp_arg_limit ) THEN
-               cfactor(ir) = EXP( arg )
+            IF ( arg .GT. exp_arg_limit ) THEN
+                cfactor (ir) = EXP( exp_arg_limit )
+            ELSE IF ( arg .LT. -exp_arg_limit ) THEN
+                cfactor (ir) = EXP( -exp_arg_limit )
+            ELSE
+                cfactor (ir) = EXP( arg )
             END IF
          END DO
          !
