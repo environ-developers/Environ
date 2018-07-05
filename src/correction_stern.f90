@@ -142,8 +142,8 @@ CONTAINS
     ! ... Compute the physical properties of the interface
     !
     zion = ABS(zion)
-    ez = - tpi * e2 * tot_charge / area / permittivity
-    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
+    ez = - tpi * e2 * tot_charge / area ! / permittivity
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
     arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
@@ -297,41 +297,41 @@ CONTAINS
     !
     ! ... Compute the physical properties of the interface
     !
-    zion = ABS(zion)
-    ez = - tpi * e2 * tot_charge / area / permittivity
-    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
-    arg = ez/fact
-    asinh = LOG(arg + SQRT( arg**2 + 1 ))
-    vstern = 2.D0 * kbt / zion * asinh
-    arg = vstern * 0.25D0 * invkbt * zion
-    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
-    !
-    ! ... Compute some constants needed for the calculation
-    !
-    f1 = - fact * zion * invkbt * 0.5D0
-    f2 = 4.D0 * kbt / zion
-    !
-    ! ... Compute the analytic gradient of potential
-    !     Note that the only contribution different from the parabolic
-    !     correction is in the region of the diffuse layer
-    !
-    DO i = 1, nnr
-       !
-       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-          !
-          ! ... Gouy-Chapmann-Stern analytic solution on the outside
-          !
-          arg = const * EXP( ABS(axis(1,i)) * f1 )
-          dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
-          !
-          ! ... Remove source potential (linear) and add analytic one
-          !
-          gvstern(slab_axis,i) =  gvstern(slab_axis,i) + dvtmp_dx - ez
-          !
-       ENDIF
-       !
-    ENDDO
+!    zion = ABS(zion)
+!    ez = - tpi * e2 * tot_charge / area / permittivity
+!    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
+!    arg = ez/fact
+!    asinh = LOG(arg + SQRT( arg**2 + 1 ))
+!    vstern = 2.D0 * kbt / zion * asinh
+!    arg = vstern * 0.25D0 * invkbt * zion
+!    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+!    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+!    !
+!    ! ... Compute some constants needed for the calculation
+!    !
+!    f1 = - fact * zion * invkbt * 0.5D0
+!    f2 = 4.D0 * kbt / zion
+!    !
+!    ! ... Compute the analytic gradient of potential
+!    !     Note that the only contribution different from the parabolic
+!    !     correction is in the region of the diffuse layer
+!    !
+!    DO i = 1, nnr
+!       !
+!       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+!          !
+!          ! ... Gouy-Chapmann-Stern analytic solution on the outside
+!          !
+!          arg = const * EXP( ABS(axis(1,i)) * f1 )
+!          dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
+!          !
+!          ! ... Remove source potential (linear) and add analytic one
+!          !
+!          gvstern(slab_axis,i) =  gvstern(slab_axis,i) + dvtmp_dx - ez
+!          !
+!       ENDIF
+!       !
+!    ENDDO
     !
     gradv % of_r = gradv % of_r + gvstern
     !
