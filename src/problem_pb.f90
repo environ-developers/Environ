@@ -349,19 +349,8 @@ CONTAINS
 !    IF ( iterative % mix_type == 'diis' ) & 
 !        CALL init_environ_density( cell, rhonew )
     !
-    ! ... Starting guess from new input and previous solution(s)
-    !
-    IF ( x % update ) THEN
-       !
-       rhoaux % of_r = electrolyte % density % of_r
-       !
-    ELSE 
-       !
-       x % of_r = 0.D0
-       rhoaux % of_r = 0.D0
-       x % update = .TRUE.
-       !
-    END IF
+    x % of_r = 0.D0
+    rhoaux % of_r = 0.D0
     !
     ! ... Start iterative algorithm 
     !
@@ -564,14 +553,82 @@ CONTAINS
     CALL init_environ_density( cell, residual )
     CALL init_environ_density( cell, screening )
     !
-    ! ... Starting guess from new input and previous solution(s)
+    x % of_r = 0.D0
+    rhoaux % of_r = 0.D0
+    screening % of_r = electrolyte%k2/e2/fpi * gam%of_r
+    residual % of_r = 0.D0
     !
-    IF ( x%update ) THEN
+    ! ... Start Newton's algorithm 
+    !
+    DO iter = 1, maxiter
        !
-       rhoaux % of_r = electrolyte % density % of_r
+       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9002) iter
+9002   FORMAT(' Newton step # ',i10)
+       !
+       rhotot % of_r = charges % of_r + rhoaux % of_r + screening % of_r * x%of_r
+       residual % of_r = x%of_r
+       !
+       IF (PRESENT( dielectric )) THEN
+          CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, dielectric, screening )
+       ELSE
+          CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, screening=screening ) 
+       END IF
+       !
+       residual % of_r = x%of_r - residual % of_r  
+       !
+       rhoaux % of_r = 0.D0
        screening % of_r = 0.D0
        denominator%of_r = 1.D0
        !
+!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 .AND. electrolyte%ion_adsorption .EQ. 'none' )  THEN
+!          ! Symmetric electrolyte: use hyperbolic functions
+!          cbulk => electrolyte%ioncctype(1)%cbulk
+!          z = ABS(electrolyte%ioncctype(1)%z)
+!          !
+!          cfactor % of_r = 1.D0
+!          !
+!          DO ir = 1, ir_end
+!             arg = z * x%of_r(ir) / kT
+!             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
+!                rhoaux % of_r (ir) = SINH( arg )
+!                cfactor % of_r (ir) = COSH( arg ) 
+!             !!!!
+!             ! MAX OUTSIDE RANGE MISSING!
+!             !!!!
+!             END IF
+!          END DO
+!          !
+!          rhoaux % of_r  = -2.D0 * z * cbulk * rhoaux % of_r
+!          !
+!          IF ( cionmax .GT. 0.D0 ) THEN
+!             !
+!             SELECT CASE ( electrolyte % stern_entropy )
+!             !
+!             CASE ( 'full' )
+!                !
+!                denominator%of_r = 2.D0 * cbulk/cionmax * ( cfactor%of_r - 1.D0 ) + 1.D0
+!                screening % of_r = electrolyte%k2/e2/fpi * &
+!                   ( cfactor % of_r * ( 1.D0 - 2.D0*cbulk/cionmax ) + 2.D0*cbulk/cionmax )
+!                !
+!             CASE ( 'ions' )
+!                !
+!                denominator%of_r = 2.D0 * cbulk/cionmax * ( gam%of_r * cfactor%of_r - 1.D0) + 1.D0
+!                screening % of_r = electrolyte%k2/e2/fpi * & 
+!                   ( cfactor % of_r * ( 1.D0 - 2.D0*cbulk/cionmax ) + 2.D0*cbulk/cionmax * gam%of_r )
+!                !
+!             END SELECT
+!             !
+!          ELSE
+!             !
+!             screening % of_r = electrolyte%k2/e2/fpi * cfactor%of_r
+!             !
+!          END IF
+!          !
+!          NULLIFY( cbulk )
+!          !
+!       ELSE 
+       !
+       ! General solution for symmetric & asymmetric electrolyte
        DO itypi = 1, electrolyte % ntyp
           !
           cbulki => electrolyte%ioncctype(itypi)%cbulk
@@ -591,6 +648,8 @@ CONTAINS
                 cfactor % of_r (ir) = EXP( arg )
              END IF
           END DO
+          !
+          rhoaux % of_r = rhoaux % of_r + zi * cbulki * cfactor % of_r
           !
           numerator % of_r = 1.D0
           !
@@ -648,8 +707,10 @@ CONTAINS
                    NULLIFY( cbulkj )
                    !
                 END DO
-                 !
+
+                !
              END SELECT
+             !
           END IF
           !
           screening % of_r = screening % of_r + &
@@ -660,183 +721,7 @@ CONTAINS
           !
        END DO
        !
-       screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
-       !
-    ELSE
-       !
-       x % update = .TRUE.
-       x % of_r = 0.D0
-       rhoaux % of_r = 0.D0
-       screening % of_r = electrolyte%k2/e2/fpi * gam%of_r
-       !
-    ENDIF
-    !
-    residual % of_r = 0.D0
-    !
-    ! ... Start Newton's algorithm 
-    !
-    DO iter = 1, maxiter
-       !
-       IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9002) iter
-9002   FORMAT(' Newton step # ',i10)
-       !
-       rhotot % of_r = charges % of_r + rhoaux % of_r + screening % of_r * x%of_r
-       residual % of_r = x%of_r
-       !
-       IF (PRESENT( dielectric )) THEN
-          CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, dielectric, screening )
-       ELSE
-          CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, screening=screening ) 
-       END IF
-       !
-       residual % of_r = x%of_r - residual % of_r  
-       !
-       rhoaux % of_r = 0.D0
-       screening % of_r = 0.D0
-       denominator%of_r = 1.D0
-       !
-!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 .AND. electrolyte%ion_adsorption .EQ. 'none' )  THEN
-       IF (.FALSE.) THEN
-          ! Symmetric electrolyte: use hyperbolic functions
-          cbulk => electrolyte%ioncctype(1)%cbulk
-          z = ABS(electrolyte%ioncctype(1)%z)
-          !
-          cfactor % of_r = 1.D0
-          !
-          DO ir = 1, ir_end
-             arg = z * x%of_r(ir) / kT
-             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
-                rhoaux % of_r (ir) = SINH( arg )
-                cfactor % of_r (ir) = COSH( arg ) 
-!!!!
-! MAX OUTSIDE RANGE MISSING!
-!!!!
-             END IF
-          END DO
-          !
-          rhoaux % of_r  = -2.D0 * z * cbulk * rhoaux % of_r
-          !
-          IF ( cionmax .GT. 0.D0 ) THEN
-             !
-             SELECT CASE ( electrolyte % stern_entropy )
-             !
-             CASE ( 'full' )
-                !
-                denominator%of_r = 2.D0 * cbulk/cionmax * ( cfactor%of_r - 1.D0 ) + 1.D0
-                screening % of_r = electrolyte%k2/e2/fpi * &
-                   ( cfactor % of_r * ( 1.D0 - 2.D0*cbulk/cionmax ) + 2.D0*cbulk/cionmax )
-                !
-             CASE ( 'ions' )
-                !
-                denominator%of_r = 2.D0 * cbulk/cionmax * ( gam%of_r * cfactor%of_r - 1.D0) + 1.D0
-                screening % of_r = electrolyte%k2/e2/fpi * & 
-                   ( cfactor % of_r * ( 1.D0 - 2.D0*cbulk/cionmax ) + 2.D0*cbulk/cionmax * gam%of_r )
-                !
-             END SELECT
-             !
-          ELSE
-             !
-             screening % of_r = electrolyte%k2/e2/fpi * cfactor%of_r
-             !
-          END IF
-          !
-          NULLIFY( cbulk )
-          !
-       ELSE 
-          ! General solution for symmetric & asymmetric electrolyte
-          DO itypi = 1, electrolyte % ntyp
-             !
-             cbulki => electrolyte%ioncctype(itypi)%cbulk
-             zi => electrolyte%ioncctype(itypi)%z
-             !
-             cfactor % of_r = 1.D0 
-             !
-             DO ir = 1, ir_end
-                arg = - zi*x%of_r(ir) /kT
-                IF ( electrolyte%ion_adsorption .NE. 'none' ) &
-                   & arg = arg - electrolyte%ioncctype(itypi)%potential%of_r(ir) / kT
-                IF ( arg .GT. exp_arg_limit ) THEN
-                   cfactor % of_r (ir) = EXP( exp_arg_limit )
-                ELSE IF ( arg .LT. -exp_arg_limit ) THEN
-                   cfactor % of_r (ir) = EXP( -exp_arg_limit )
-                ELSE
-                   cfactor % of_r (ir) = EXP( arg )
-                END IF
-             END DO
-             !
-             rhoaux % of_r = rhoaux % of_r + zi * cbulki * cfactor % of_r
-             !
-             numerator % of_r = 1.D0
-             !
-             IF ( cionmax .GT. 0.D0 ) THEN
-                !
-                SELECT CASE ( electrolyte % stern_entropy )
-                !
-                CASE ( 'full' )
-                   !
-                   denominator%of_r = denominator%of_r - cbulki/cionmax * ( 1.D0 - cfactor%of_r)
-                   !
-                   DO itypj = 1, electrolyte % ntyp
-                      !
-                      zj => electrolyte%ioncctype(itypj)%z
-                      cbulkj => electrolyte%ioncctype(itypj)%cbulk
-                      !
-                      IF ( itypj .EQ. itypi ) THEN
-                         !
-                         numerator % of_r = numerator % of_r - cbulkj/cionmax
-                         !
-                      ELSE 
-                         !
-                         numerator % of_r = numerator % of_r - cbulkj/cionmax * & 
-                                     (1.D0 - (1.D0 - zj/zi) * cfactor % of_r **(zj/zi))
-                         !
-                      END IF
-                      !
-                      NULLIFY( zj )
-                      NULLIFY( cbulkj )
-                      !
-                   END DO
-                   !
-                CASE ( 'ions' )
-                   !
-                   denominator%of_r = denominator%of_r - cbulki/cionmax * & 
-                              ( 1.D0 - gam%of_r * cfactor%of_r )
-                   !
-                   DO itypj = 1, electrolyte % ntyp
-                      !
-                      zj => electrolyte%ioncctype(itypj)%z
-                      cbulkj => electrolyte%ioncctype(itypj)%cbulk
-                      !
-                      IF ( itypj .EQ. itypi ) THEN
-                         !
-                         numerator % of_r = numerator % of_r - cbulkj/cionmax
-                         !
-                      ELSE
-                         !
-                         numerator % of_r = numerator % of_r - cbulkj/cionmax * &
-                                     (1.D0 - (1.D0 - zj/zi) * gam%of_r * cfactor % of_r **(zj/zi))
-                         !
-                      END IF
-                      !
-                      NULLIFY( zj )
-                      NULLIFY( cbulkj )
-                      !
-                   END DO
-
-                   !
-                END SELECT
-                !
-             END IF
-             !
-             screening % of_r = screening % of_r + & 
-                 cbulki * zi**2 / kT * cfactor % of_r * numerator % of_r
-             !
-             NULLIFY( zi )
-             NULLIFY( cbulki )
-             !
-          END DO
-          !
-       END IF 
+!       END IF 
        !
        rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
        screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
