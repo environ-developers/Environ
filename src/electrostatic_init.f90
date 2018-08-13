@@ -40,8 +40,8 @@ CONTAINS
        step_type, step, maxstep, mix_type, ndiis, mix,      &
        preconditioner, screening_type, screening,           &
        core_type, boundary_core_, ifdtype, nfdpoint,        &
-       assume_isolated, pbc_correction, pbc_dim_, pbc_axis_,&
-       nspin, prog, inner_tol, inner_solver_type,           &
+       use_internal_pbc_corr, pbc_correction, pbc_dim_,     &
+       pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
        inner_maxstep, inner_mix )
 !--------------------------------------------------------------------
     !
@@ -51,6 +51,7 @@ CONTAINS
     IMPLICIT NONE
     !
     CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
+    LOGICAL, INTENT(IN) :: use_internal_pbc_corr
     INTEGER, INTENT(IN) :: maxstep, ndiis, ifdtype, nfdpoint,       &
          pbc_dim_, pbc_axis_, nspin, inner_maxstep
     REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol,   &
@@ -58,7 +59,7 @@ CONTAINS
     CHARACTER( LEN = * ), INTENT(IN) :: problem, solver_type,       &
          auxiliary, step_type, mix_type, preconditioner,            &
          screening_type, core_type, boundary_core_,                 &
-         assume_isolated, pbc_correction, prog, inner_solver_type
+         pbc_correction, prog, inner_solver_type
     !
     INTEGER :: i
     CHARACTER( LEN = 80 ) :: local_type, local_auxiliary, inner_problem
@@ -123,44 +124,6 @@ CONTAINS
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT
        !
-    ELSE
-       !
-       ! or, in case not provided, check hostcode keyword
-       !
-       SELECT CASE( TRIM( ADJUSTL(assume_isolated) ) )
-       CASE( 'slabx' )
-          need_pbc_correction = .TRUE.
-          loned_analytic = .TRUE.
-          pbc_dim = 2
-          pbc_axis = 1
-          local_type = '1da'
-       CASE( 'slaby' )
-          need_pbc_correction = .TRUE.
-          loned_analytic = .TRUE.
-          pbc_dim = 2
-          pbc_axis = 2
-          local_type = '1da'
-       CASE( 'slabz' )
-          need_pbc_correction = .TRUE.
-          loned_analytic = .TRUE.
-          pbc_dim = 2
-          pbc_axis = 3
-          local_type = '1da'
-       CASE( 'pcc' )
-          need_pbc_correction = .TRUE.
-          loned_analytic = .TRUE.
-          pbc_dim = 0
-          pbc_axis = 3
-          local_type = '1da'
-       CASE( 'stern' )
-          need_pbc_correction = .TRUE.
-          need_electrolyte = .TRUE.
-          loned_analytic = .TRUE.
-          pbc_dim = 2
-          pbc_axis = 3
-          local_type = 'stern'
-       END SELECT
-       !
     END IF
     !
     IF ( need_pbc_correction ) THEN
@@ -190,7 +153,7 @@ CONTAINS
     ! Set up active numerical cores
     !
     IF ( lfd ) CALL init_fd_core( ifdtype, nfdpoint, fd )
-    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, assume_isolated, nspin )
+    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
     IF ( loned_analytic ) CALL init_oned_analytic_core_first( pbc_dim, pbc_axis, oned_analytic )
     !
     ! Initial setup of solver flags

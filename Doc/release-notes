@@ -10,7 +10,8 @@ Problems fixed in development version:
 
 Incompatible changes in development version:
 
-  *
+  * from QE-6.3 it is no longer possible to speficy PBC correction 
+    scheme of Environ using the assume_isolated keyword in the pw input file
 
 Known problems in Environ 1.0 :
 

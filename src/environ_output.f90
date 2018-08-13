@@ -68,8 +68,9 @@ CONTAINS
     !
     bibliography(1) = "O. Andreussi, I. Dabo and N. Marzari, J.&
                       & Chem. Phys. 136, 064102 (2012)"
-    bibliography(2) = "O. Andreussi, I. Dabo and N. Marzari, J.&
-                      & Chem. Phys. 136, 064102 (2012)"
+    bibliography(2) = "I. Timrov, O. Andreussi, A. Biancardi, N.&
+                      & Marzari, and S. Baroni, J. Chem. Phys.&
+                      & 142, 034111 (2015)"
     bibliography(3) = "O. Andreussi, I. Dabo and N. Marzari, J.&
                       & Chem. Phys. 136, 064102 (2012)"
     bibliography(4) = "O. Andreussi, I. Dabo and N. Marzari, J.&
@@ -86,7 +87,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    CHARACTER( LEN=2 ), INTENT(IN) :: prog_
+    CHARACTER( LEN=* ), INTENT(IN) :: prog_
     LOGICAL, INTENT(IN) :: ionode_
     INTEGER, INTENT(IN) :: ionode_id_
     INTEGER, INTENT(IN) :: comm_
@@ -103,7 +104,7 @@ CONTAINS
     program_unit = program_unit_
     environ_unit = find_free_unit()
     !
-    prog = prog_
+    prog = prog_(1:2)
     !
     RETURN
     !
@@ -1241,7 +1242,8 @@ CONTAINS
                                    env_static_permittivity,          &
                                    env_optical_permittivity,         &
                                    env_surface_tension,              &
-                                   env_pressure, lelectrostatic
+                                   env_pressure, lelectrostatic,     &
+                                   ltddfpt
     USE electrostatic_base, ONLY : outer, boundary_core, lfd, fd
     !
     IMPLICIT NONE
@@ -1271,7 +1273,7 @@ CONTAINS
           !
           IF ( env_static_permittivity .GT. 1.D0 ) THEN
              WRITE( UNIT = program_unit, FMT = 9005 ) env_static_permittivity
-             IF (tddfpt) &
+             IF (ltddfpt) &
                   & WRITE( UNIT = program_unit, FMT = 9006 ) env_optical_permittivity
              WRITE( UNIT = program_unit, FMT = 9007 ) TRIM( solvent%mode )
           END IF
@@ -1346,7 +1348,7 @@ CONTAINS
     ! Write out the time informations of the Environ dependent
     ! calculations. Called by print_clock_pw.f90
     !
-    USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume
+    USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume, ltddfpt
     !
     IMPLICIT NONE
     !
@@ -1371,7 +1373,7 @@ CONTAINS
        CALL print_clock ('calc_felect')
     END IF
     ! TDDFT
-    IF ( tddfpt ) CALL print_clock ('calc_vsolvent_tddfpt')
+    IF ( ltddfpt ) CALL print_clock ('calc_vsolvent_tddfpt')
     !
     RETURN
     !
@@ -1379,7 +1381,7 @@ CONTAINS
   END SUBROUTINE environ_clock
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE write_cube( f, ions )
+  SUBROUTINE write_cube( f, ions, idx )
 !--------------------------------------------------------------------
     !
     USE fft_base,       ONLY : dfftp
@@ -1388,7 +1390,7 @@ CONTAINS
 !      USE fft_base,       ONLY : grid_gather
 ! Compatible with QE-5.2 QE-5.2.1
 !      USE fft_base,       ONLY : gather_grid
-! Compatible with QE-5.3 svn
+! Compatible with QE-5.3 QE-6.X QE-git
     USE scatter_mod,    ONLY : gather_grid
 ! END BACKWARD COMPATIBILITY
     !
@@ -1414,6 +1416,9 @@ CONTAINS
     INTEGER, DIMENSION(:), POINTER :: ityp
     REAL( DP ), DIMENSION(:,:), POINTER :: tau
     !
+    INTEGER, OPTIONAL :: idx
+    CHARACTER( LEN=100 ) :: filemod
+    !
     nr1x = dfftp%nr1x
     nr2x = dfftp%nr2x
     nr3x = dfftp%nr3x
@@ -1422,7 +1427,13 @@ CONTAINS
     nr2 = dfftp%nr2
     nr3 = dfftp%nr3
     !
-    filename = TRIM(ADJUSTL(f%label))//".cube"
+    IF(PRESENT(idx)) THEN
+       WRITE(filemod, '(i4.4)') idx
+    ELSE
+       filemod = ""
+    ENDIF
+
+    filename = TRIM(ADJUSTL(f%label))//TRIM(filemod)//".cube"
     !
     alat => f%cell%alat
     at => f%cell%at

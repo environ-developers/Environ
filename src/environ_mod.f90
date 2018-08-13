@@ -53,6 +53,8 @@ MODULE environ_base
   ! Control flags
   !
   LOGICAL ::                          &
+       ltddfpt
+  LOGICAL ::                          &
        lsolvent
   LOGICAL ::                          &
        lelectrostatic

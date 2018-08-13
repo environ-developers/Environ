@@ -337,19 +337,35 @@ CONTAINS
     ENDIF
     !
     IF ( setup % core % use_qe_fft ) THEN
+       !
        ftmp = 0.D0
        ALLOCATE( rhoaux( cell % nnr, setup % core % qe_fft % nspin ) )
        rhoaux( :, 1 ) = aux % of_r
        IF ( setup % core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
        CALL external_force_lc(rhoaux,ftmp)
-       DEALLOCATE( rhoaux )
        forces = forces + ftmp
+       !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X
+!
+! Compatible with QE-6.3.X and QE-GIT
+       IF ( setup % core % qe_fft % use_internal_pbc_corr ) THEN
+          ftmp = 0.D0
+          CALL external_wg_corr_force(rhoaux,ftmp)
+          forces = forces + ftmp
+       END IF
+! END BACKWARD COMPATIBILITY
+       !
+       DEALLOCATE( rhoaux )
+       !
     END IF
     !
     IF ( setup % core % need_correction ) THEN
+       !
        ftmp = 0.D0
        CALL calc_fperiodic( setup%core%correction%oned_analytic, natoms, charges, aux, ftmp )
        forces = forces + ftmp
+       !
     END IF
     !
     CALL destroy_environ_density( aux )

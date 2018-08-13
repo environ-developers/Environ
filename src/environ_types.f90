@@ -31,7 +31,11 @@ MODULE environ_types
   USE constants,         ONLY : rydberg_si, bohr_radius_si, bohr_radius_angs, &
                          & amu_si, fpi, tpi, pi, sqrtpi, k_boltzmann_ry, rytoev
   USE mp,                ONLY : mp_sum
-  USE control_flags,     ONLY : tddfpt
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+!  USE control_flags,     ONLY : tddfpt
+! Compatible with QE-6.3.X and QE-GIT \
+! END BACKWARD COMPATIBILITY
   !
   TYPE environ_cell
      !
