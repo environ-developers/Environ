@@ -75,15 +75,18 @@ CONTAINS
              !
           CASE ( 'none' )
              !
-             CALL generalized_gradient_none( solver % gradient, core, charges%density, charges%dielectric, potential, charges%electrolyte )
+             CALL generalized_gradient_none( solver % gradient, core, charges%density, &
+                                    charges%dielectric, potential, charges%electrolyte )
              !
           CASE ( 'sqrt' )
              !
-             CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, charges%dielectric, potential, charges%electrolyte )
+             CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, &
+                                    charges%dielectric, potential, charges%electrolyte )
              !
           CASE ( 'left' )
              !
-             CALL generalized_gradient_left( solver % gradient, core, charges%density, charges%dielectric, potential, charges%electrolyte )
+             CALL generalized_gradient_left( solver % gradient, core, charges%density, &
+                                    charges%dielectric, potential, charges%electrolyte )
              !
           CASE DEFAULT
              !
@@ -102,7 +105,8 @@ CONTAINS
        !
        IF ( solver % auxiliary .EQ. 'full' ) THEN
           !
-          CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, potential, charges%electrolyte )
+          CALL generalized_iterative( solver % iterative, core, charges%density, &
+                              charges%dielectric, potential, charges%electrolyte )
           !
        ELSE
           !
