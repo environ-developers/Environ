@@ -10,6 +10,7 @@
    zion(1) = 1
    zion(2) = -1
    rion = 2.D0
+   stern_linearized = .true.
    !
  /
  &BOUNDARY

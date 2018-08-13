@@ -149,6 +149,8 @@ MODULE environ_input
 !
 ! Ionic countercharge parameters
 !
+        LOGICAL :: stern_linearized = .false.
+        ! solve linear-regime poisson-boltzmann problem
         INTEGER :: env_electrolyte_ntyp = 0
         ! number of counter-charge species in the electrolyte ( if != 0 must be >= 2 )
         CHARACTER( LEN = 80 ) :: stern_entropy = 'full'
@@ -191,7 +193,7 @@ MODULE environ_input
              env_surface_tension,                                      &
              env_pressure,                                             &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
-             solvent_temperature, stern_entropy,                       &
+             solvent_temperature, stern_linearized, stern_entropy,     &
              env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
@@ -381,6 +383,8 @@ MODULE environ_input
         ! linmodpb    = linearized modified poisson-boltzmann equation
         REAL(DP) :: tol = 1.D-5
         ! convergence threshold for electrostatic potential or auxiliary charge
+        REAL(DP) :: inner_tol = 1.D-5
+        ! same as tol for inner loop in nested algorithms
 !
 ! Driver's parameters
 !
@@ -414,6 +418,10 @@ MODULE environ_input
         ! step size to be used if step_type = 'input' (inherits the tasks of the old mixrhopol)
         INTEGER :: maxstep = 200
         ! maximum number of steps to be performed by gradient or iterative solvers
+        CHARACTER( LEN = 80 ) :: inner_solver = 'direct'
+        ! type of numerical solver for inner loop in nested algorithms
+        INTEGER :: inner_maxstep = 200
+        ! same as maxstep for inner loop in nested algorithms
 !
 ! Iterative driver's parameters (OBSOLETE)
 !
@@ -426,6 +434,8 @@ MODULE environ_input
         ! order of DIIS interpolation of iterative calculation
         REAL(DP) :: mix = 0.5
         ! mixing parameter to be used in the iterative driver
+        REAL(DP) :: inner_mix = 0.5
+        ! same as mix but for inner loop in nested algorithm
 !
 ! Preconditioner's parameters
 !
@@ -462,8 +472,8 @@ MODULE environ_input
         ! dimensionality of the simulation cell
         ! periodic boundary conditions on 3/2/1/0 sides of the cell
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
-        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(2)
-        DATA pbc_correction_allowed / 'none', 'parabolic' /
+        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(3)
+        DATA pbc_correction_allowed / 'none', 'parabolic', 'stern' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
         INTEGER :: pbc_axis = 3
@@ -479,7 +489,9 @@ MODULE environ_input
              preconditioner,                     &
              screening_type, screening,          &
              core,                               &
-             pbc_dim, pbc_correction, pbc_axis
+             pbc_dim, pbc_correction, pbc_axis,  &
+             inner_tol, inner_solver,            &
+             inner_maxstep, inner_mix
 !
 CONTAINS
 !--------------------------------------------------------------------
@@ -550,7 +562,9 @@ CONTAINS
                                   screening_type, screening, core,       &
                                   boundary_core, ifdtype, nfdpoint,      &
                                   use_internal_pbc_corr, pbc_correction, &
-                                  pbc_dim, pbc_axis, nspin, prog )
+                                  pbc_dim, pbc_axis, nspin, prog,        &
+                                  inner_tol, inner_solver, inner_maxstep,&
+                                  inner_mix )
     !
     ! ... Then set environ base
     !
@@ -572,10 +586,10 @@ CONTAINS
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
-                             env_electrolyte_ntyp, stern_entropy,        &
-                             stern_mode, stern_distance, stern_spread,   &
-                             cion, cionmax, rion, zion, stern_rhomax,    &
-                             stern_rhomin, stern_tbeta,                  &
+                             env_electrolyte_ntyp, stern_linearized,     &
+                             stern_entropy, stern_mode, stern_distance,  &
+                             stern_spread, cion, cionmax, rion, zion,    &
+                             stern_rhomax, stern_rhomin, stern_tbeta,    &
                              stern_alpha, stern_softness,                &
                              solvent_temperature,                        &
                              env_external_charges,                       &
@@ -713,6 +727,7 @@ CONTAINS
     env_pressure = 0.D0
     !
     env_electrolyte_ntyp = 0
+    stern_linearized = .false.
     stern_entropy = 'full'
     cion(:) = 1.0D0
     cionmax = 0.0D0 ! if remains zero, pb or linpb
@@ -796,6 +811,10 @@ CONTAINS
     step_type = 'optimal'
     step = 0.3D0
     maxstep = 200
+    inner_solver = 'direct'
+    inner_tol = 1.D-10
+    inner_maxstep = 200
+    inner_mix = 0.5D0
     !
     mix_type = 'linear'
     ndiis = 1
@@ -847,6 +866,7 @@ CONTAINS
     CALL mp_bcast( env_pressure,               ionode_id, comm )
     !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
+    CALL mp_bcast( stern_linearized,           ionode_id, comm )
     CALL mp_bcast( stern_entropy,              ionode_id, comm )
     CALL mp_bcast( cion,                       ionode_id, comm )
     CALL mp_bcast( cionmax,                    ionode_id, comm )
@@ -926,6 +946,11 @@ CONTAINS
     CALL mp_bcast( tol,                        ionode_id, comm )
     !
     CALL mp_bcast( solver,                     ionode_id, comm )
+    CALL mp_bcast( inner_solver,               ionode_id, comm )
+    CALL mp_bcast( inner_tol,                  ionode_id, comm )
+    CALL mp_bcast( inner_maxstep,              ionode_id, comm )
+    CALL mp_bcast( inner_mix,                  ionode_id, comm )
+
     CALL mp_bcast( auxiliary,                  ionode_id, comm )
     CALL mp_bcast( step_type,                  ionode_id, comm )
     CALL mp_bcast( step,                       ionode_id, comm )
@@ -1006,6 +1031,15 @@ CONTAINS
          & TRIM(stern_entropy)//''' not allowed ', 1 )
     IF( solvent_temperature < 0.0_DP ) &
          CALL errore( sub_name,' solvent_temperature out of range ', 1 )
+    DO i = 1, env_electrolyte_ntyp
+       IF ( cion(i) .LT. 0.D0 ) THEN
+          CALL errore( sub_name, ' cion cannot be negative ', 1 )
+       END IF
+    END DO
+    IF ( cionmax .LT. 0.D0 .OR. rion .LT. 0.D0 ) &
+         CALL errore( sub_name,'cionmax and rion cannot be negative ', 1 )
+    IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
+         CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
     !
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
@@ -1213,16 +1247,19 @@ CONTAINS
     IF( .NOT. allowed ) &
          CALL errore( sub_name, ' pbc_correction '''// &
          & TRIM(pbc_correction)//''' not allowed ', 1 )
-    !
-    DO i = 1, env_electrolyte_ntyp
-       IF ( cion(i) .LT. 0.D0 ) THEN
-          CALL errore( sub_name, ' cion cannot be negative ', 1 )
-       END IF
+    allowed = .FALSE.
+    DO i = 1, SIZE( solver_allowed )
+       IF( TRIM(inner_solver) == solver_allowed(i) ) allowed = .TRUE.
     END DO
-    IF ( cionmax .LT. 0.D0 .OR. rion .LT. 0.D0 ) &
-         CALL errore( sub_name,'cionmax and rion cannot be negative ', 1 )
-    IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
-         CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
+    IF( .NOT. allowed ) &
+         CALL errore( sub_name, ' inner solver '''// &
+         & TRIM(inner_solver)//''' not allowed ',1)
+    IF( inner_mix <= 0.0_DP ) &
+         CALL errore( sub_name,' inner_mix out of range ', 1 )
+    IF( inner_tol <= 0.0_DP ) &
+         CALL errore( sub_name,' inner_tol out of range ', 1 )
+    IF( inner_maxstep <= 1 ) &
+         CALL errore( sub_name,' inner_maxstep out of range ', 1 )
     RETURN
     !
 !--------------------------------------------------------------------
@@ -1383,9 +1420,16 @@ CONTAINS
     !
     IF ( env_electrolyte_ntyp .GT. 0 ) THEN
        lelectrostatic = .TRUE.
-       problem = 'linpb'
-       solver  = 'cg'
-       IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'
+       IF ( stern_linearized ) THEN
+          problem = 'linpb'
+          solver  = 'cg'
+          IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'
+       ELSE
+          problem = 'pb'
+          solver  = 'newton'
+          inner_solver = 'cg'
+          IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'modpb'
+       END IF
     END IF
     !
     RETURN

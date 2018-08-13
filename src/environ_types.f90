@@ -430,6 +430,7 @@ MODULE environ_types
      REAL( DP ) :: temperature
      REAL( DP ) :: k2
      REAL( DP ) :: cionmax
+     REAL( DP ) :: permittivity
      !
      TYPE( environ_boundary ) :: boundary
      !

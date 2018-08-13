@@ -230,6 +230,7 @@ cat > environ.in << EOF
    system_dim = $system_dim            
    system_axis = $system_axis   
    system_ntyp = $system_ntyp
+   stern_linearized = .true.
    !
  /
  &BOUNDARY

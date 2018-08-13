@@ -23,9 +23,11 @@ Environ_OBJECTS= \
 	linearized_pb.o \
 	periodic.o \
 	poisson.o \
+	poisson_boltzmann.o \
 	pressure.o \
 	solvent_tddfpt.o \
-	util.o 
+	stern.o \
+	util.o
 Environ_SRC= \
 	boundary.f90 \
 	cavity.f90 \
@@ -51,7 +53,9 @@ Environ_SRC= \
 	linearized_pb.f90 \
 	periodic.f90 \
 	poisson.f90 \
+	poisson_boltzmann.f90 \
 	pressure.f90 \
 	solvent_tddfpt.f90 \
-	util.f90 
+	stern.f90 \
+	util.f90
 

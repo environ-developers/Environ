@@ -54,6 +54,7 @@ CONTAINS
     USE problem_poisson,       ONLY : poisson_direct
     USE problem_generalized,   ONLY : generalized_gradient
     USE problem_linearized_pb, ONLY : linearized_pb_gradient
+    USE problem_pb,            ONLY : pb_nested
     !
     IMPLICIT NONE
     !
@@ -158,10 +159,27 @@ CONTAINS
           CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL pb_direct()
           !
-       CASE ( 'nested' )
+       CASE ( 'iterative' )
           !
-          CALL errore( sub_name, 'option not yet implemented', 1 )
-!          CALL pb_nested()
+          IF ( ASSOCIATED(setup % inner) ) THEN
+             !
+             IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
+                CALL errore( sub_name, 'missing details of dielectric medium', 1 )
+             !
+             CALL pb_nested( setup % solver, setup % core, charges, potential, setup % inner )
+             !
+          ELSE
+             !
+             CALL pb_nested( setup % solver, setup % core, charges, potential )
+             !
+          END IF
+          !
+       CASE ( 'newton' )
+          !
+          IF ( .NOT. ASSOCIATED(setup % inner) ) &
+              CALL errore( sub_name, 'missing details of inner electrostatic setup', 1 )
+          !
+          CALL pb_nested( setup % solver, setup % core, charges, potential, setup % inner )
           !
        CASE ( 'lbfgs' )
           !
@@ -193,7 +211,7 @@ CONTAINS
     !
     USE problem_poisson,       ONLY : poisson_energy
     USE problem_generalized,   ONLY : generalized_energy
-    USE problem_linearized_pb, ONLY : linearized_pb_energy
+    USE problem_pb,            ONLY : pb_energy
     !
     IMPLICIT NONE
     !
@@ -212,29 +230,41 @@ CONTAINS
        !
     CASE ( 'poisson' )
        !
-       CALL poisson_energy( setup % core, charges, potential, energy )
+       IF ( setup % core % need_correction ) THEN
+          IF ( setup % core % correction % type .EQ. 'stern' ) THEN
+             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+             CALL pb_energy( setup % core, charges, potential, energy )
+          ELSE
+             CALL poisson_energy( setup % core, charges, potential, energy )
+          ENDIF
+       ELSE
+          CALL poisson_energy( setup % core, charges, potential, energy )
+       END IF
        !
     CASE ( 'generalized' )
        !
        IF ( .NOT. ASSOCIATED( charges%dielectric ) ) &
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
        !
-       CALL generalized_energy( setup % core, charges, potential, energy )
+       IF ( setup % core % need_correction ) THEN
+          IF ( setup % core % correction % type .EQ. 'stern' ) THEN
+             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+             CALL pb_energy( setup % core, charges, potential, energy )
+          ELSE
+             CALL generalized_energy( setup % core, charges, potential, energy )
+          ENDIF
+       ELSE
+          CALL generalized_energy( setup % core, charges, potential, energy )
+       END IF
        !
-    CASE ( 'linpb', 'linmodpb' )
+    CASE ( 'pb', 'modpb', 'linpb', 'linmodpb' )
        !
        IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
             CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
        !
-       CALL linearized_pb_energy( setup % core, charges, potential, energy )
-       !
-    CASE ( 'pb', 'modpb' )
-       !
-       IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
-            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-       !
-       CALL errore( sub_name, 'option not yet implemented', 1 )
-!       CALL pb_energy()
+       CALL pb_energy( setup % core, charges, potential, energy )
        !
     CASE DEFAULT
        !
