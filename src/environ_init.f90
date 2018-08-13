@@ -69,6 +69,7 @@ CONTAINS
        & stern_spread, cion, cionmax, rion, zion,    &
        & stern_rhomax, stern_rhomin, stern_tbeta,    &
        & stern_alpha, stern_softness,                &
+       & ion_adsorption, ion_adsorption_energy,      &
        & solvent_temperature,                        &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
@@ -111,13 +112,14 @@ CONTAINS
          cionmax, rion, zion(:), stern_rhomax,            &
          stern_rhomin, stern_tbeta, stern_alpha,          &
          stern_softness,                                  &
-         solvent_temperature,                             &
+         solvent_temperature, ion_adsorption_energy,      &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
          epsregion_pos(:,:), epsregion_spread(:),         &
          epsregion_width(:)
     CHARACTER( LEN = * ), INTENT(IN) :: prog, environ_type, &
-         solvent_mode, radius_mode, stern_mode, stern_entropy
+         solvent_mode, radius_mode, stern_mode,           &
+         stern_entropy, ion_adsorption
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
     INTEGER :: stype
@@ -256,7 +258,8 @@ CONTAINS
             & stern_alpha, stern_softness, stern_distance, stern_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
             & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
-            & zion, stern_entropy, stern_linearized, electrolyte )
+            & zion, stern_entropy, ion_adsorption, ion_adsorption_energy, stern_linearized, &
+            & electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
     !

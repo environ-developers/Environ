@@ -412,6 +412,8 @@ MODULE environ_types
      TYPE( environ_density ) :: c ! local concentration
      TYPE( environ_density ) :: cfactor ! exp(-z\phi\beta) or 1 - z\phi\beta
      !
+     TYPE( environ_density )   :: potential
+     !
   END TYPE environ_ioncctype
   !
   TYPE environ_electrolyte
@@ -423,6 +425,8 @@ MODULE environ_types
      LOGICAL :: initialized = .FALSE.
      !
      CHARACTER( LEN=80 ) :: stern_entropy
+     CHARACTER( LEN=80 ) :: ion_adsorption
+     !
      LOGICAL :: linearized = .FALSE.
      INTEGER :: ntyp
      TYPE( environ_ioncctype ), DIMENSION(:), ALLOCATABLE :: ioncctype
@@ -431,6 +435,7 @@ MODULE environ_types
      REAL( DP ) :: k2
      REAL( DP ) :: cionmax
      REAL( DP ) :: permittivity
+     REAL( DP ) :: adsorption_energy
      !
      TYPE( environ_boundary ) :: boundary
      !
@@ -440,6 +445,8 @@ MODULE environ_types
      !
      TYPE( environ_density ) :: gamma
      TYPE( environ_density ) :: dgamma
+     !
+     TYPE( environ_functions ) :: function
      !
      TYPE( environ_density ) :: de_dboundary_second_order
      REAL( DP ) :: energy_second_order

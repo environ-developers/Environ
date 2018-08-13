@@ -1137,7 +1137,7 @@ CONTAINS
        END DO
 !       CALL print_environ_boundary(electrolyte%boundary,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%density,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%gamma,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%gamma,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 4 ) CALL print_environ_density(electrolyte%dgamma,passed_verbosity,passed_depth)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3109 )electrolyte%linearized
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3110 )electrolyte%charge
