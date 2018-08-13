@@ -170,7 +170,7 @@ MODULE environ_base
        esurface,                    &
        evolume,                     &
        eelectrolyte,                &
-       fermi_shift
+       potential_shift
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &

@@ -74,7 +74,7 @@
 MODULE utils_ions
 !----------------------------------------------------------------------------
   !
-  USE environ_base,  ONLY : e2, fermi_shift
+  USE environ_base,  ONLY : e2, potential_shift
   USE environ_output
   USE environ_types
   USE utils_functions
@@ -357,8 +357,8 @@ CONTAINS
        !
     END DO
     !
-    ! Calculate Fermi energy shift due to Gaussian nuclei
-    IF ( ions%use_smeared_ions ) fermi_shift = ions%quadrupole_correction * &
+    ! Calculate potential shift due to Gaussian nuclei
+    IF ( ions%use_smeared_ions ) potential_shift = ions%quadrupole_correction * &
                                  & tpi * e2 / ions%density%cell%omega
     IF ( ions%use_smeared_ions ) ions%quadrupole_gauss(:) = ions%quadrupole_pc(:) + ions%quadrupole_correction
     !
