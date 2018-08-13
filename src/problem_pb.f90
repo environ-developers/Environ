@@ -34,7 +34,7 @@ MODULE problem_pb
   USE problem_linearized_pb, ONLY : linearized_pb_gradient!, linearized_pb_gradient_sqrt
   USE problem_generalized, ONLY : generalized_gradient
   USE problem_poisson, ONLY : poisson_direct, poisson_energy
-  USE environ_base, ONLY : e2, oldenviron
+  USE environ_base, ONLY : e2, oldenviron, ltddfpt
   !
   IMPLICIT NONE
   !
@@ -463,7 +463,7 @@ CONTAINS
        ENDIF
     ENDDO
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     electrolyte accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     ! ... Destroy local variables
@@ -849,7 +849,7 @@ CONTAINS
        ENDIF
     ENDDO
     !
-    IF (.not.tddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     electrolyte accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     ! ... Destroy local variables
