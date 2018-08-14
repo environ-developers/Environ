@@ -116,7 +116,7 @@ CONTAINS
   END SUBROUTINE init_environ_semiconductor_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_externals_second( cell, semiconductor )
+  SUBROUTINE init_environ_semiconductor_second( cell, semiconductor )
 !--------------------------------------------------------------------
     !
     !IMPLICIT NONE

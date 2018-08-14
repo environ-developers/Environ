@@ -136,6 +136,14 @@ MODULE environ_base
   TYPE( environ_electrolyte ) ::    &
        electrolyte
   !
+  ! Semiconductor parameters
+  !
+  LOGICAL ::                        &
+       lsemiconductor
+  TYPE( environ_semiconductor ) ::  &
+       semiconductor
+
+  !
   ! Cavitation energy parameters
   !
   LOGICAL ::                        &

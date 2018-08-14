@@ -276,9 +276,9 @@ CONTAINS
     ! Set the parameters of the semiconductor
     !
     IF ( lsemiconductor ) THEN
-       CALL init_environ_semiconductor( temperature, sc_permittivity, &
-           & sc_carrier_density ,semiconductor = semiconductor)
-       CALL init_environ_charges_first( semiconductor, charges = charges )
+       CALL init_environ_semiconductor_first( temperature, sc_permittivity, &
+           & sc_carrier_density , semiconductor)
+       CALL init_environ_charges_first( semiconductor=semiconductor, charges = charges )
     ENDIF 
     !
     ! Set the parameters of the dielectric
@@ -428,7 +428,7 @@ CONTAINS
     !
     IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
     !
-    IF ( lsemiconductor ) CALL init_environ_semiconductor_second(cell, semiconductor)
+    IF ( lsemiconductor ) CALL init_environ_semiconductor_second( cell, semiconductor)
     !
     IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
     !

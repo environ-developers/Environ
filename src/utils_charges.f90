@@ -117,7 +117,7 @@ CONTAINS
     NULLIFY( charges%electrolyte )
     !
     charges%include_semiconductor = .FALSE.
-    NULLIFY( charges%electrolyte )
+    NULLIFY( charges%semiconductor )
     !
     charges%number = 0
     charges%charge = 0.D0
