@@ -114,6 +114,7 @@ CONTAINS
        CASE ( 'ms' , 'mott-schottky')
           IF ( .NOT. ASSOCIATED( charges%semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
+          CALL calc_vms( core%correction%oned_analytic, charges%semiconductor, charges%density, potential )
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -197,6 +198,7 @@ CONTAINS
           !
           IF ( .NOT. PRESENT( semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
+          CALL calc_vgcs( core%correction%oned_analytic, semiconductor, charges, local )
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -259,7 +261,8 @@ CONTAINS
        CASE ( 'ms','mott-schottky')
           IF ( .NOT. ASSOCIATED( charges%semiconductor ) ) &
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
-          
+          CALL calc_gradvms( core%correction%oned_analytic, charges%semiconductor, charges%density, gradient )          
+
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -320,6 +323,8 @@ CONTAINS
           !
           IF ( .NOT. PRESENT( semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction', 1)
+          CALL calc_gradvgcs( core%correction%oned_analytic, semiconductor, charges, gradient )
+
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)

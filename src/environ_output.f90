@@ -1173,7 +1173,7 @@ CONTAINS
                              lsurface, esurface, &
                              lvolume, evolume, &
                              lelectrolyte, eelectrolyte, &
-                             deenviron
+                             deenviron, lsemiconductor
     !
     CHARACTER( LEN=80 ) :: sub_name = 'environ_print_energies'
     !
@@ -1372,6 +1372,7 @@ CONTAINS
        CALL print_clock ('electrolyte')
        CALL print_clock ('calc_felect')
     END IF
+    IF ( lsemiconductor ) CALL print_clock('calc_vms')
     ! TDDFT
     IF ( ltddfpt ) CALL print_clock ('calc_vsolvent_tddfpt')
     !

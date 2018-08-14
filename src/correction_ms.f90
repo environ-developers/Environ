@@ -8,7 +8,7 @@
 ! original version by O. Andreussi and N. Marzari
 !
 !----------------------------------------------------------------------------
-MODULE correction_gcs
+MODULE correction_ms
 !----------------------------------------------------------------------------
   !
   ! ...
@@ -22,11 +22,11 @@ MODULE correction_gcs
   !
   PRIVATE
   !
-  PUBLIC :: calc_vgcs, calc_gradvgcs
+  PUBLIC :: calc_vms, calc_gradvms
   !
 CONTAINS
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_vgcs( oned_analytic, electrolyte, charges, potential )
+  SUBROUTINE calc_vms( oned_analytic, semiconductor, charges, potential )
 !---------------------------------------------------------------------------
     !
     ! ... Given the total explicit charge, the value of the field at the boundary
@@ -54,7 +54,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-    TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
+    TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
@@ -81,9 +81,9 @@ CONTAINS
     REAL( DP ) :: area, vtmp
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_vgcs'
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms'
     !
-    CALL start_clock ('calc_vgcs')
+    CALL start_clock ('calc_vms')
     !
     ! ... Aliases and sanity checks
     !
@@ -206,16 +206,16 @@ CONTAINS
     RETURN
     !
 !---------------------------------------------------------------------------
-  END SUBROUTINE calc_vgcs
+  END SUBROUTINE calc_vms
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_gradvgcs( oned_analytic, electrolyte, charges, gradv )
+  SUBROUTINE calc_gradvms( oned_analytic, semiconductor, charges, gradv )
 !---------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-    TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
+    TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradv
     !
@@ -337,13 +337,13 @@ CONTAINS
     !
     CALL destroy_environ_gradient(glocal)
     !
-    CALL stop_clock ('calc_gvst')
+    CALL stop_clock ('calc_gvms')
     !
     RETURN
 !---------------------------------------------------------------------------
-  END SUBROUTINE calc_gradvgcs
+  END SUBROUTINE calc_gradvms
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-END MODULE correction_gcs
+END MODULE correction_ms
 !---------------------------------------------------------------------------
 
