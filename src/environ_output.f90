@@ -1366,7 +1366,7 @@ CONTAINS
     IF ( lelectrostatic ) THEN
        CALL print_clock ('calc_eelect')
        CALL print_clock ('calc_velect')
-       CALL print_clock ('calc_vstern')
+       CALL print_clock ('calc_vgcs')
        CALL print_clock ('dielectric')
        CALL print_clock ('electrolyte')
        CALL print_clock ('calc_felect')

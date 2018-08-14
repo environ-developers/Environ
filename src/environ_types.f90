@@ -424,7 +424,7 @@ MODULE environ_types
      !
      LOGICAL :: initialized = .FALSE.
      !
-     CHARACTER( LEN=80 ) :: stern_entropy
+     CHARACTER( LEN=80 ) :: electrolyte_entropy
      CHARACTER( LEN=80 ) :: ion_adsorption
      !
      LOGICAL :: linearized = .FALSE.

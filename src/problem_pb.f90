@@ -402,7 +402,7 @@ CONTAINS
           !
           IF ( cionmax .GT. 0.D0 ) THEN
              factor = cbulk / cionmax
-             SELECT CASE ( electrolyte % stern_entropy )
+             SELECT CASE ( electrolyte % electrolyte_entropy )
              CASE ( 'full' )
                 denominator%of_r = denominator%of_r - factor * ( 1.D0 - cfactor%of_r )
              CASE ( 'ions' )
@@ -655,7 +655,7 @@ CONTAINS
           !
           IF ( cionmax .GT. 0.D0 ) THEN
              !
-             SELECT CASE ( electrolyte % stern_entropy )
+             SELECT CASE ( electrolyte % electrolyte_entropy )
              !
              CASE ( 'full' )
                 !

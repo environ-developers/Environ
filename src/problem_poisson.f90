@@ -31,7 +31,7 @@ MODULE problem_poisson
   USE environ_types
   USE electrostatic_types
   USE correction_periodic
-  USE correction_stern
+  USE correction_gcs
   USE environ_base, ONLY : e2, oldenviron
   !
   IMPLICIT NONE
@@ -105,11 +105,11 @@ CONTAINS
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges%density, potential )
           !
-       CASE ( 'stern' )
+       CASE ( 'gcs' )
           !
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_vstern( core%correction%oned_analytic, charges%electrolyte, charges%density, potential )
+          CALL calc_vgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, potential )
           !
        CASE DEFAULT
           !
@@ -183,11 +183,11 @@ CONTAINS
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges, local )
           !
-       CASE ( 'stern' )
+       CASE ( 'gcs' )
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_vstern( core%correction%oned_analytic, electrolyte, charges, local )
+          CALL calc_vgcs( core%correction%oned_analytic, electrolyte, charges, local )
           !
        CASE DEFAULT
           !
@@ -242,11 +242,11 @@ CONTAINS
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges%density, gradient )
           !
-       CASE ( 'stern' )
+       CASE ( 'gcs' )
           !
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_gradvstern( core%correction%oned_analytic, charges%electrolyte, charges%density, gradient )
+          CALL calc_gradvgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, gradient )
           !
        CASE DEFAULT
           !
@@ -296,11 +296,11 @@ CONTAINS
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges, gradient )
           !
-       CASE ( 'stern' )
+       CASE ( 'gcs' )
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_gradvstern( core%correction%oned_analytic, electrolyte, charges, gradient )
+          CALL calc_gradvgcs( core%correction%oned_analytic, electrolyte, charges, gradient )
           !
        CASE DEFAULT
           !

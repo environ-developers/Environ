@@ -1,0 +1,27 @@
+ &ENVIRON
+    verbose = 1,
+    environ_thr = 0.1,
+    system_axis = 3,
+    system_dim = 2,
+    env_electrolyte_ntyp = 2,
+    temperature = 300,
+    electrolyte_linearized = .false.,
+    zion(1) = 1,
+    cion(1) = 0.01,
+    zion(2) = -1,
+    cion(2) = 0.01
+/
+ &BOUNDARY
+    electrolyte_spread = 0.001,
+    electrolyte_distance = 20.2137,
+    electrolyte_mode = 'system',
+/
+ &ELECTROSTATIC
+    problem = 'poisson'
+    solver = 'direct'
+    inner_solver = 'direct'
+    pbc_correction = 'gcs'
+    pbc_dim = 2                 
+    pbc_axis = 3   
+    tol = 1e-11,
+/

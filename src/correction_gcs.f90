@@ -8,7 +8,7 @@
 ! original version by O. Andreussi and N. Marzari
 !
 !----------------------------------------------------------------------------
-MODULE correction_stern
+MODULE correction_gcs
 !----------------------------------------------------------------------------
   !
   ! ...
@@ -22,11 +22,11 @@ MODULE correction_stern
   !
   PRIVATE
   !
-  PUBLIC :: calc_vstern, calc_gradvstern
+  PUBLIC :: calc_vgcs, calc_gradvgcs
   !
 CONTAINS
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_vstern( oned_analytic, electrolyte, charges, potential )
+  SUBROUTINE calc_vgcs( oned_analytic, electrolyte, charges, potential )
 !---------------------------------------------------------------------------
     !
     ! ... Given the total explicit charge, the value of the field at the boundary
@@ -81,9 +81,9 @@ CONTAINS
     REAL( DP ) :: area, vtmp
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_vstern'
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_vgcs'
     !
-    CALL start_clock ('calc_vstern')
+    CALL start_clock ('calc_vgcs')
     !
     ! ... Aliases and sanity checks
     !
@@ -201,15 +201,15 @@ CONTAINS
     !
     CALL destroy_environ_density(local)
     !
-    CALL stop_clock ('calc_vstern')
+    CALL stop_clock ('calc_vgcs')
     !
     RETURN
     !
 !---------------------------------------------------------------------------
-  END SUBROUTINE calc_vstern
+  END SUBROUTINE calc_vgcs
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_gradvstern( oned_analytic, electrolyte, charges, gradv )
+  SUBROUTINE calc_gradvgcs( oned_analytic, electrolyte, charges, gradv )
 !---------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -241,7 +241,7 @@ CONTAINS
     REAL( DP ) :: area, dvtmp_dx
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvstern'
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvgcs'
     !
     CALL start_clock ('calc_gvst')
     !
@@ -341,9 +341,9 @@ CONTAINS
     !
     RETURN
 !---------------------------------------------------------------------------
-  END SUBROUTINE calc_gradvstern
+  END SUBROUTINE calc_gradvgcs
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-END MODULE correction_stern
+END MODULE correction_gcs
 !---------------------------------------------------------------------------
 

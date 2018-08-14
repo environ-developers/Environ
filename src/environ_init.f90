@@ -64,13 +64,17 @@ CONTAINS
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
-       & env_electrolyte_ntyp_, stern_linearized,    &
-       & stern_entropy, stern_mode, stern_distance,  &
-       & stern_spread, cion, cionmax, rion, zion,    &
-       & stern_rhomax, stern_rhomin, stern_tbeta,    &
-       & stern_alpha, stern_softness,                &
+       & env_electrolyte_ntyp_,                      &
+       & electrolyte_linearized,                     &
+       & electrolyte_entropy, electrolyte_mode,      &
+       & electrolyte_distance,                       &
+       & electrolyte_spread,                         &
+       & cion, cionmax, rion, zion,                  &
+       & electrolyte_rhomax, electrolyte_rhomin,     &
+       & electrolyte_tbeta,                          &
+       & electrolyte_alpha, electrolyte_softness,    &
        & ion_adsorption, ion_adsorption_energy,      &
-       & solvent_temperature,                        &
+       & temperature,                                &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
        & extcharge_axis, extcharge_pos,              &
@@ -89,7 +93,7 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
     LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, &
-         add_jellium_, stern_linearized
+         add_jellium_, electrolyte_linearized
     INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
@@ -108,18 +112,20 @@ CONTAINS
          solvationrad(:), corespread(:), atomicspread(:), &
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
-         stern_distance, stern_spread, cion(:),           &
-         cionmax, rion, zion(:), stern_rhomax,            &
-         stern_rhomin, stern_tbeta, stern_alpha,          &
-         stern_softness,                                  &
          solvent_temperature, ion_adsorption_energy,      &
+         electrolyte_distance, electrolyte_spread,        & 
+         cion(:), cionmax, rion, zion(:),                 &
+         electrolyte_rhomax, electrolyte_rhomin,          &
+         electrolyte_tbeta, electrolyte_alpha,            &
+         electrolyte_softness, temperature,               &
+         ion_adsorption_energy,                           &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
          epsregion_pos(:,:), epsregion_spread(:),         &
          epsregion_width(:)
     CHARACTER( LEN = * ), INTENT(IN) :: prog, environ_type, &
-         solvent_mode, radius_mode, stern_mode,           &
-         stern_entropy, ion_adsorption
+         solvent_mode, radius_mode, electrolyte_mode,     &
+         electrolyte_entropy, ion_adsorption
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
     INTEGER :: stype
@@ -190,13 +196,13 @@ CONTAINS
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
     lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' )
-    lsoftelectrolyte = lelectrolyte .AND. ( stern_mode .EQ. 'electronic' .OR. stern_mode .EQ. 'full' )
+    lsoftelectrolyte = lelectrolyte .AND. ( electrolyte_mode .EQ. 'electronic' .OR. electrolyte_mode .EQ. 'full' )
     lsoftcavity    = lsoftsolvent .OR. lsoftelectrolyte
     lrigidsolvent  = lsolvent .AND. solvent_mode .NE. 'electronic'
-    lrigidelectrolyte = lelectrolyte .AND. stern_mode .NE. 'electronic'
+    lrigidelectrolyte = lelectrolyte .AND. electrolyte_mode .NE. 'electronic'
     lrigidcavity   = lrigidsolvent .OR. lrigidelectrolyte
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
-                     ( lelectrolyte .AND. stern_mode .EQ. 'full' )
+                     ( lelectrolyte .AND. electrolyte_mode .EQ. 'full' )
     lsmearedions   = lelectrostatic
     !
     ! Create optional types
@@ -254,12 +260,14 @@ CONTAINS
     !
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_electrolyte_ntyp, &
-            & stern_mode, stype, stern_rhomax, stern_rhomin, stern_tbeta, env_static_permittivity, &
-            & stern_alpha, stern_softness, stern_distance, stern_spread, solvent_radius, &
+            & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, & 
+            & electrolyte_tbeta, env_static_permittivity, &
+            & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
+            & electrolyte_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
-            & electrons, ions, system, solvent_temperature, cion, cionmax, rion, &
-            & zion, stern_entropy, ion_adsorption, ion_adsorption_energy, stern_linearized, &
-            & electrolyte )
+            & electrons, ions, system, temperature, cion, cionmax, rion, &
+            & zion, electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
+            & electrolyte_linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
     !
