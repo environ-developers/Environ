@@ -463,8 +463,8 @@ MODULE environ_types
      !
      !
      REAL( DP ) :: temperature
-     REAL( DP ) :: sc_permittivity
-     REAL( DP ) :: sc_carrier_density
+     REAL( DP ) :: permittivity
+     REAL( DP ) :: carrier_density
      !
      ! As far as I can tell this is not relevant for the semicondutor
      !TYPE( environ_boundary ) :: boundary

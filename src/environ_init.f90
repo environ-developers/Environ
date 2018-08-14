@@ -35,6 +35,7 @@ MODULE environ_init
   USE utils_electrolyte
   USE utils_externals
   USE utils_charges
+  USE utils_semiconductor
   !
   PRIVATE
   !
@@ -186,7 +187,7 @@ CONTAINS
     lvolume        = env_pressure .NE. 0.D0
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
-    !lsemiconductor = need_semiconductor
+    lsemiconductor = need_semiconductor
     lperiodic      = need_pbc_correction
     !
     ! Derived flags
@@ -215,6 +216,8 @@ CONTAINS
     ENDIF
     !
     IF ( lelectrolyte ) CALL create_environ_electrolyte(electrolyte)
+    !
+    IF ( lsemiconductor ) CALL create_environ_semiconductor(semiconductor)
     !
     IF ( lstatic ) CALL create_environ_dielectric(static)
     !
@@ -269,6 +272,14 @@ CONTAINS
             & zion, electrolyte_entropy, electrolyte_linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
+    !
+    ! Set the parameters of the semiconductor
+    !
+    IF ( lsemiconductor ) THEN
+       CALL init_environ_semiconductor( temperature, sc_permittivity, &
+           & sc_carrier_density ,semiconductor = semiconductor)
+       CALL init_environ_charges_first( semiconductor, charges = charges )
+    ENDIF 
     !
     ! Set the parameters of the dielectric
     !
@@ -417,6 +428,8 @@ CONTAINS
     !
     IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
     !
+    IF ( lsemiconductor ) CALL init_environ_semiconductor_second(cell, semiconductor)
+    !
     IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
     !
     RETURN
@@ -467,12 +480,14 @@ CONTAINS
                                     loptical, optical,  &
                                     lexternals, externals,     &
                                     lelectrolyte, electrolyte, &
-                                    lelectrostatic
+                                    lelectrostatic, &
+                                    lsemiconductor, semiconductor
     ! ... Cell-related updates
     !
     USE utils_dielectric,    ONLY : update_environ_dielectric
     USE utils_electrolyte,   ONLY : update_environ_electrolyte
     USE utils_externals,     ONLY : update_environ_externals
+    USE utils_semiconductor, ONLY : update_environ_semiconductor
     !
     USE electrostatic_init,  ONLY : electrostatic_initcell
     !
@@ -493,6 +508,7 @@ CONTAINS
     IF ( loptical ) CALL update_environ_dielectric( optical )
     IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
     IF ( lexternals ) CALL update_environ_externals( externals )
+    IF ( lsemiconductor ) CALL update_environ_semiconductor( semiconductor )
     !
     ! ... Update electrostatic solvers
     !
@@ -718,6 +734,7 @@ CONTAINS
                               lsoftcavity, vsoftcavity, lstatic,      &
                               static, charges, lexternals, externals, &
                               lelectrolyte, electrolyte,              &
+                              lsemiconductor, semiconductor,          &
                               ions, electrons, system
      !
      ! Local clean up subroutines for the different contributions
@@ -743,6 +760,7 @@ CONTAINS
      IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
      IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
      IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
+     IF ( lsemiconductor ) CALL destroy_environ_semiconductor( lflag, semiconductor)
      !
      CALL destroy_environ_electrons( lflag, electrons )
      CALL destroy_environ_ions( lflag, ions )
