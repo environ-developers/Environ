@@ -174,9 +174,9 @@ MODULE environ_input
 !
 ! Semiconductor parameters
 !
-        REAL(DP) :: sc_permittivity = 11.D0
+        REAL(DP) :: sc_permittivity = 1.D0
         ! dielectric permittivity of the semiconductor
-        REAL(DP) :: sc_carrier_density = 1.D17
+        REAL(DP) :: sc_carrier_density = 0.D0
         ! conncentration fo charge carriers within the semiconductor
         ! In units of (cm^-3)
 
@@ -483,8 +483,9 @@ MODULE environ_input
         ! dimensionality of the simulation cell
         ! periodic boundary conditions on 3/2/1/0 sides of the cell
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
-        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(4)
-        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs', 'ms' /
+        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(7)
+        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs',&
+            &'gouy-chapman', 'gouy-chapman-stern', 'ms','mott-schottky' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
         ! ms = mott-schottky calculation for semiconductor
@@ -748,8 +749,8 @@ CONTAINS
     zion(:) = 0.D0
     temperature = 300.0D0
     !
-    sc_permittivity = 11.0D0
-    sc_carrier_density = 1.0D17
+    sc_permittivity = 1.D0
+    sc_carrier_density = 0.D0
     !
     env_external_charges = 0
     env_dielectric_regions = 0
@@ -1060,8 +1061,10 @@ CONTAINS
     IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
          CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
     !
-    IF ( sc_permittivity <= 0 .OR. sc_carrier_density <= 0 ) &
-         CALL errore( sub_name, 'sc_permittivity and sc_carrier_density cannot be negative', 1)
+    IF ( sc_permittivity < 1.D0) &
+         CALL errore( sub_name, 'sc_permittivity out of range', 1)
+    IF ( sc_carrier_density < 0.D0 ) &
+         CALL errore( sub_name, 'sc_carrier_density cannot be negative', 1)
 
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
@@ -1433,6 +1436,8 @@ CONTAINS
          & lelectrostatic = .TRUE.
     IF ( env_external_charges .GT. 0 ) lelectrostatic = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lelectrostatic = .TRUE.
+    IF ( sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0 ) &
+         &  lelectrostatic = .TRUE.
     !
     IF ( env_static_permittivity > 1.D0 &
          .OR. env_dielectric_regions > 0 ) THEN
