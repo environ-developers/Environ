@@ -112,7 +112,6 @@ CONTAINS
          solvationrad(:), corespread(:), atomicspread(:), &
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
-         solvent_temperature, ion_adsorption_energy,      &
          electrolyte_distance, electrolyte_spread,        & 
          cion(:), cionmax, rion, zion(:),                 &
          electrolyte_rhomax, electrolyte_rhomin,          &
