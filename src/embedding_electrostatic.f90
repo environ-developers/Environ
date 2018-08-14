@@ -231,7 +231,7 @@ CONTAINS
     CASE ( 'poisson' )
        !
        IF ( setup % core % need_correction ) THEN
-          IF ( setup % core % correction % type .EQ. 'stern' ) THEN
+          IF ( setup % core % correction % type .EQ. 'gcs' ) THEN
              IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                   CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
              CALL pb_energy( setup % core, charges, potential, energy )
@@ -248,7 +248,7 @@ CONTAINS
             CALL errore( sub_name, 'missing details of dielectric medium', 1 )
        !
        IF ( setup % core % need_correction ) THEN
-          IF ( setup % core % correction % type .EQ. 'stern' ) THEN
+          IF ( setup % core % correction % type .EQ. 'gcs' ) THEN
              IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                   CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
              CALL pb_energy( setup % core, charges, potential, energy )

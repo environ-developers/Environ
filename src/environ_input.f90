@@ -149,13 +149,13 @@ MODULE environ_input
 !
 ! Ionic countercharge parameters
 !
-        LOGICAL :: stern_linearized = .false.
+        LOGICAL :: electrolyte_linearized = .false.
         ! solve linear-regime poisson-boltzmann problem
         INTEGER :: env_electrolyte_ntyp = 0
         ! number of counter-charge species in the electrolyte ( if != 0 must be >= 2 )
-        CHARACTER( LEN = 80 ) :: stern_entropy = 'full'
-        CHARACTER( LEN = 80 ) :: stern_entropy_allowed(2)
-        DATA stern_entropy_allowed / 'ions', 'full' /
+        CHARACTER( LEN = 80 ) :: electrolyte_entropy = 'full'
+        CHARACTER( LEN = 80 ) :: electrolyte_entropy_allowed(2)
+        DATA electrolyte_entropy_allowed / 'ions', 'full' /
         ! keyword to set the electrolyte entropy terms that are affected by the
         ! Stern-layer correction.
         ! ions = only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 )
@@ -168,7 +168,7 @@ MODULE environ_input
         ! mean atomic radius of ionic countercharge (a.u.)
         REAL(DP) :: zion(nsx) = 1.D0
         ! valence of ionic countercharge
-        REAL(DP) :: solvent_temperature = 300.D0
+        REAL(DP) :: temperature = 300.D0
         ! temperature of the solution
 !
 ! External charges parameters, the remaining parameters are read from
@@ -193,7 +193,7 @@ MODULE environ_input
              env_surface_tension,                                      &
              env_pressure,                                             &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
-             solvent_temperature, stern_linearized, stern_entropy,     &
+             temperature, electrolyte_linearized, electrolyte_entropy,     &
              env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
@@ -317,35 +317,35 @@ MODULE environ_input
 !
 ! Stern boundary parameters
 !
-        CHARACTER( LEN = 80 ) :: stern_mode = 'electronic'
-        CHARACTER( LEN = 80 ) :: stern_mode_allowed(8)
-        DATA stern_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
+        CHARACTER( LEN = 80 ) :: electrolyte_mode = 'electronic'
+        CHARACTER( LEN = 80 ) :: electrolyte_mode_allowed(8)
+        DATA electrolyte_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
                                 & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
-        ! stern_mode method for calculating the density that sets
+        ! electrolyte_mode method for calculating the density that sets
         ! the onset of ionic countercharge ( see solvent_mode above )
 !
 ! Soft Stern boundary (electronic) parameters
 !
-        REAL(DP) :: stern_rhomax = 0.005D0
+        REAL(DP) :: electrolyte_rhomax = 0.005D0
         ! first parameter of the Stern sw function, roughly corresponding
         ! to the density threshold of the ionic countercharge.
-        REAL(DP) :: stern_rhomin = 0.0001D0
+        REAL(DP) :: electrolyte_rhomin = 0.0001D0
         ! second parameter of the Stern sw function when stype=1 or 2
-        REAL(DP) :: stern_tbeta = 4.8D0
+        REAL(DP) :: electrolyte_tbeta = 4.8D0
         ! second parameter of the Stern sw function when stype=0
 !
 ! Rigid Stern boundary (ionic) parameters
 !
-        REAL(DP) :: stern_alpha = 1.D0
-        ! scaling factor for ionic radii when stern_mode = 'ionic'
-        REAL(DP) :: stern_softness = 0.5D0
+        REAL(DP) :: electrolyte_alpha = 1.D0
+        ! scaling factor for ionic radii when electrolyte_mode = 'ionic'
+        REAL(DP) :: electrolyte_softness = 0.5D0
         ! spread of the rigid Stern interfaces
 !
 ! Simplified Stern boundary (system) parameters
 !
-        REAL(DP) :: stern_distance = 0.D0
+        REAL(DP) :: electrolyte_distance = 0.D0
         ! distance from the system where the electrolyte boundary starts
-        REAL(DP) :: stern_spread = 0.5D0
+        REAL(DP) :: electrolyte_spread = 0.5D0
         ! spread of the interfaces for the electrolyte boundary
 !
         NAMELIST /boundary/                      &
@@ -358,10 +358,10 @@ MODULE environ_input
              solvent_radius, radial_scale,       &
              radial_spread, filling_threshold,   &
              filling_spread,                     &
-             stern_mode, stern_distance,         &
-             stern_spread, stern_rhomax,         &
-             stern_rhomin, stern_tbeta,          &
-             stern_alpha, stern_softness,        &
+             electrolyte_mode, electrolyte_distance,         &
+             electrolyte_spread, electrolyte_rhomax,         &
+             electrolyte_rhomin, electrolyte_tbeta,          &
+             electrolyte_alpha, electrolyte_softness,        &
              boundary_core,                      &
              ifdtype, nfdpoint
 !
@@ -473,7 +473,7 @@ MODULE environ_input
         ! periodic boundary conditions on 3/2/1/0 sides of the cell
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
         CHARACTER( LEN = 80 ) :: pbc_correction_allowed(3)
-        DATA pbc_correction_allowed / 'none', 'parabolic', 'stern' /
+        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
         INTEGER :: pbc_axis = 3
@@ -586,12 +586,12 @@ CONTAINS
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
-                             env_electrolyte_ntyp, stern_linearized,     &
-                             stern_entropy, stern_mode, stern_distance,  &
-                             stern_spread, cion, cionmax, rion, zion,    &
-                             stern_rhomax, stern_rhomin, stern_tbeta,    &
-                             stern_alpha, stern_softness,                &
-                             solvent_temperature,                        &
+                             env_electrolyte_ntyp, electrolyte_linearized,     &
+                             electrolyte_entropy, electrolyte_mode, electrolyte_distance,  &
+                             electrolyte_spread, cion, cionmax, rion, zion,    &
+                             electrolyte_rhomax, electrolyte_rhomin, electrolyte_tbeta,    &
+                             electrolyte_alpha, electrolyte_softness,                &
+                             temperature,                        &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
                              extcharge_axis, extcharge_pos,              &
@@ -727,13 +727,13 @@ CONTAINS
     env_pressure = 0.D0
     !
     env_electrolyte_ntyp = 0
-    stern_linearized = .false.
-    stern_entropy = 'full'
+    electrolyte_linearized = .false.
+    electrolyte_entropy = 'full'
     cion(:) = 1.0D0
     cionmax = 0.0D0 ! if remains zero, pb or linpb
     rion = 0.D0
     zion(:) = 0.D0
-    solvent_temperature = 300.0D0
+    temperature = 300.0D0
     !
     env_external_charges = 0
     env_dielectric_regions = 0
@@ -774,17 +774,17 @@ CONTAINS
     filling_threshold  = 0.825D0
     filling_spread     = 0.02D0
     !
-    stern_mode = 'electronic'
+    electrolyte_mode = 'electronic'
     !
-    stern_distance = 0.D0
-    stern_spread = 0.5D0
+    electrolyte_distance = 0.D0
+    electrolyte_spread = 0.5D0
     !
-    stern_rhomax = 0.005D0
-    stern_rhomin = 0.0001D0
-    stern_tbeta = 4.8D0
+    electrolyte_rhomax = 0.005D0
+    electrolyte_rhomin = 0.0001D0
+    electrolyte_tbeta = 4.8D0
     !
-    stern_alpha = 1.D0
-    stern_softness = 0.5D0
+    electrolyte_alpha = 1.D0
+    electrolyte_softness = 0.5D0
     !
     boundary_core = 'analytic'
     ifdtype  = 1
@@ -866,13 +866,13 @@ CONTAINS
     CALL mp_bcast( env_pressure,               ionode_id, comm )
     !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
-    CALL mp_bcast( stern_linearized,           ionode_id, comm )
-    CALL mp_bcast( stern_entropy,              ionode_id, comm )
+    CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
+    CALL mp_bcast( electrolyte_entropy,              ionode_id, comm )
     CALL mp_bcast( cion,                       ionode_id, comm )
     CALL mp_bcast( cionmax,                    ionode_id, comm )
     CALL mp_bcast( rion,                       ionode_id, comm )
     CALL mp_bcast( zion,                       ionode_id, comm )
-    CALL mp_bcast( solvent_temperature,        ionode_id, comm )
+    CALL mp_bcast( temperature,        ionode_id, comm )
     !
     CALL mp_bcast( env_external_charges,       ionode_id, comm )
     CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
@@ -913,17 +913,17 @@ CONTAINS
     CALL mp_bcast( filling_threshold,          ionode_id, comm )
     CALL mp_bcast( filling_spread,             ionode_id, comm )
     !
-    CALL mp_bcast( stern_mode,                 ionode_id, comm )
+    CALL mp_bcast( electrolyte_mode,                 ionode_id, comm )
     !
-    CALL mp_bcast( stern_distance,             ionode_id, comm )
-    CALL mp_bcast( stern_spread,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_distance,             ionode_id, comm )
+    CALL mp_bcast( electrolyte_spread,               ionode_id, comm )
     !
-    CALL mp_bcast( stern_rhomax,               ionode_id, comm )
-    CALL mp_bcast( stern_rhomin,               ionode_id, comm )
-    CALL mp_bcast( stern_tbeta,                ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomax,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomin,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_tbeta,                ionode_id, comm )
     !
-    CALL mp_bcast( stern_alpha,                ionode_id, comm )
-    CALL mp_bcast( stern_softness,             ionode_id, comm )
+    CALL mp_bcast( electrolyte_alpha,                ionode_id, comm )
+    CALL mp_bcast( electrolyte_softness,             ionode_id, comm )
     !
     CALL mp_bcast( boundary_core,              ionode_id, comm )
     CALL mp_bcast( ifdtype,                    ionode_id, comm )
@@ -1023,14 +1023,14 @@ CONTAINS
     IF( env_electrolyte_ntyp < 0 .OR. env_electrolyte_ntyp .EQ. 1 ) &
          CALL errore( sub_name,' env_electrolyte_ntyp out of range ', 1 )
     allowed = .FALSE.
-    DO i = 1, SIZE( stern_entropy_allowed )
-       IF( TRIM(stern_entropy) == stern_entropy_allowed(i) ) allowed = .TRUE.
+    DO i = 1, SIZE( electrolyte_entropy_allowed )
+       IF( TRIM(electrolyte_entropy) == electrolyte_entropy_allowed(i) ) allowed = .TRUE.
     END DO
     IF( .NOT. allowed ) &
-         CALL errore( sub_name, ' stern_entropy '''// &
-         & TRIM(stern_entropy)//''' not allowed ', 1 )
-    IF( solvent_temperature < 0.0_DP ) &
-         CALL errore( sub_name,' solvent_temperature out of range ', 1 )
+         CALL errore( sub_name, ' electrolyte_entropy '''// &
+         & TRIM(electrolyte_entropy)//''' not allowed ', 1 )
+    IF( temperature < 0.0_DP ) &
+         CALL errore( sub_name,' temperature out of range ', 1 )
     DO i = 1, env_electrolyte_ntyp
        IF ( cion(i) .LT. 0.D0 ) THEN
           CALL errore( sub_name, ' cion cannot be negative ', 1 )
@@ -1110,28 +1110,28 @@ CONTAINS
          CALL errore( sub_name, 'filling_spread out of range ', 1 )
     !
     allowed = .FALSE.
-    DO i = 1, SIZE( stern_mode_allowed )
-       IF( TRIM(stern_mode) == stern_mode_allowed(i) ) allowed = .TRUE.
+    DO i = 1, SIZE( electrolyte_mode_allowed )
+       IF( TRIM(electrolyte_mode) == electrolyte_mode_allowed(i) ) allowed = .TRUE.
     END DO
     IF( .NOT. allowed ) &
-         CALL errore( sub_name, ' stern_mode '''// &
-         & TRIM(stern_mode)//''' not allowed ', 1 )
-    IF( stern_distance < 0.0_DP ) &
-         CALL errore( sub_name,' stern_distance out of range ', 1 )
-    IF( stern_spread <= 0.0_DP ) &
-         CALL errore( sub_name,' stern_spread out of range ', 1 )
-    IF( stern_rhomax < 0.0_DP ) &
-         CALL errore( sub_name,' stern_rhomax out of range ', 1 )
-    IF( stern_rhomin < 0.0_DP ) &
-         CALL errore( sub_name,' stern_rhomin out of range ', 1 )
-    IF( stern_rhomax < stern_rhomin ) &
-         CALL errore( sub_name,' inconsistent stern_rhomax and stern_rhomin', 1 )
-    IF( stern_tbeta < 0.0_DP ) &
-         CALL errore( sub_name,' stern_tbeta out of range ', 1 )
-    IF( stern_alpha <= 0.0_DP ) &
-         CALL errore( sub_name,' stern_alpha out of range ', 1 )
-    IF( stern_softness <= 0.0_DP ) &
-         CALL errore( sub_name,' stern_softness out of range ', 1 )
+         CALL errore( sub_name, ' electrolyte_mode '''// &
+         & TRIM(electrolyte_mode)//''' not allowed ', 1 )
+    IF( electrolyte_distance < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_distance out of range ', 1 )
+    IF( electrolyte_spread <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_spread out of range ', 1 )
+    IF( electrolyte_rhomax < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_rhomax out of range ', 1 )
+    IF( electrolyte_rhomin < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_rhomin out of range ', 1 )
+    IF( electrolyte_rhomax < electrolyte_rhomin ) &
+         CALL errore( sub_name,' inconsistent electrolyte_rhomax and electrolyte_rhomin', 1 )
+    IF( electrolyte_tbeta < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_tbeta out of range ', 1 )
+    IF( electrolyte_alpha <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_alpha out of range ', 1 )
+    IF( electrolyte_softness <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_softness out of range ', 1 )
     !
     allowed = .FALSE.
     DO i = 1, SIZE( boundary_core_allowed )
@@ -1420,7 +1420,7 @@ CONTAINS
     !
     IF ( env_electrolyte_ntyp .GT. 0 ) THEN
        lelectrostatic = .TRUE.
-       IF ( stern_linearized ) THEN
+       IF ( electrolyte_linearized ) THEN
           problem = 'linpb'
           solver  = 'cg'
           IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'

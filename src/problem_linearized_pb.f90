@@ -72,7 +72,7 @@ CONTAINS
           !
        ELSE
           ! Screening as in linearized pb problem
-          IF ( charges%electrolyte%stern_entropy == 'ions' &
+          IF ( charges%electrolyte%electrolyte_entropy == 'ions' &
                .AND. charges%electrolyte%cionmax .GT. 0.D0 ) THEN
              !
              local_screening%of_r = charges%electrolyte%k2/e2/fpi * charges%electrolyte%gamma%of_r / &
@@ -161,7 +161,7 @@ CONTAINS
           !
        ELSE
           ! Screening as in linearized pb problem
-          IF ( electrolyte%stern_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
+          IF ( electrolyte%electrolyte_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
              !
              local_screening%of_r = electrolyte%k2/e2/fpi * electrolyte%gamma%of_r / &
                & ( 1.D0 - SUM(electrolyte%ioncctype(:)%cbulk)/electrolyte%cionmax * (1.D0 - electrolyte%gamma%of_r ))

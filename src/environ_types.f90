@@ -422,7 +422,7 @@ MODULE environ_types
      !
      LOGICAL :: initialized = .FALSE.
      !
-     CHARACTER( LEN=80 ) :: stern_entropy
+     CHARACTER( LEN=80 ) :: electrolyte_entropy
      LOGICAL :: linearized = .FALSE.
      INTEGER :: ntyp
      TYPE( environ_ioncctype ), DIMENSION(:), ALLOCATABLE :: ioncctype

@@ -592,7 +592,7 @@ CONTAINS
        core % use_qe_fft = .TRUE.
        core % qe_fft => qe_fft
        !
-    CASE ( '1da', '1d-analytic', 'oned_analytic', 'stern' )
+    CASE ( '1da', '1d-analytic', 'oned_analytic', 'gcs' )
        !
        IF ( .NOT. PRESENT( oned_analytic ) ) CALL errore(sub_name,'Missing specified core type',1)
        core % use_oned_analytic = .TRUE.
@@ -711,7 +711,7 @@ CONTAINS
     CASE ( 'pb', 'modpb', 'poisson-boltzmann' )
        !
        IF ( solver % use_direct .OR. solver % use_gradient ) THEN
-          IF ( .NOT.( core % need_correction .AND. core % correction % type .EQ. 'stern' ) ) &
+          IF ( .NOT.( core % need_correction .AND. core % correction % type .EQ. 'gcs' ) ) &
                & CALL errore(sub_name,'No direct or gradient-based solver for the full Poisson-Boltzmann eq.',1)
        ENDIF
        !

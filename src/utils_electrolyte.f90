@@ -33,7 +33,7 @@
 !     !
 !     LOGICAL :: initialized = .FALSE.
 !     !
-!     CHARACTER( LEN=80 ) :: stern_entropy
+!     CHARACTER( LEN=80 ) :: electrolyte_entropy
 !     LOGICAL :: linearized = .FALSE.
 !     INTEGER :: ntyp
 !     TYPE( environ_ioncctype ), DIMENSION(:), ALLOCATABLE :: ioncctype
@@ -115,14 +115,14 @@ CONTAINS
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
        & tbeta, const, alpha, softness, distance, spread, solvent_radius, radial_scale, &
        & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
-       & temperature, cbulk, cionmax, radius, z, stern_entropy, linearized, electrolyte )
+       & temperature, cbulk, cionmax, radius, z, electrolyte_entropy, linearized, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     LOGICAL, INTENT(IN) :: linearized
     INTEGER, INTENT(IN) :: ntyp, stype
-    CHARACTER( LEN=80 ), INTENT(IN) :: mode, stern_entropy
+    CHARACTER( LEN=80 ), INTENT(IN) :: mode, electrolyte_entropy
     REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, alpha, softness, temperature
     REAL( DP ), INTENT(IN) :: solvent_radius, radial_scale, radial_spread, filling_threshold, filling_spread
     REAL( DP ), INTENT(IN) :: cionmax, radius
@@ -167,7 +167,7 @@ CONTAINS
     electrolyte%initialized = .FALSE.
     electrolyte%linearized = linearized
     electrolyte%ntyp = ntyp
-    electrolyte%stern_entropy = TRIM( stern_entropy )
+    electrolyte%electrolyte_entropy = TRIM( electrolyte_entropy )
     electrolyte%temperature = temperature
     electrolyte%cionmax = 0.D0
     electrolyte%permittivity = const 
@@ -364,8 +364,8 @@ CONTAINS
             !
             factor = cbulk / electrolyte%cionmax
             !
-            IF ( electrolyte % stern_entropy == 'ions' ) THEN
-               ! Linearized Modified PB with stern entropy 'ions'
+            IF ( electrolyte % electrolyte_entropy == 'ions' ) THEN
+               ! Linearized Modified PB with electrolyte entropy 'ions'
                denominator%of_r = denominator%of_r - factor * ( 1.D0 - gam )
                !
             END IF
@@ -387,7 +387,7 @@ CONTAINS
             ! Modified PB
             factor = cbulk / electrolyte%cionmax
             !
-            SELECT CASE ( electrolyte % stern_entropy )
+            SELECT CASE ( electrolyte % electrolyte_entropy )
                !
             CASE ( 'full' )
                !
@@ -437,7 +437,7 @@ CONTAINS
       electrolyte % energy_second_order = &
            &  0.5D0 * scalar_product_environ_density( electrolyte % density, potential )
       !
-      IF ( electrolyte % stern_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
+      IF ( electrolyte % electrolyte_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
          !
          sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
          electrolyte % de_dboundary_second_order % of_r = &
@@ -490,7 +490,7 @@ CONTAINS
           !
        ELSE
           ! Linearized Modified PB
-          SELECT CASE ( electrolyte % stern_entropy )
+          SELECT CASE ( electrolyte % electrolyte_entropy )
              !
           CASE ( 'full' )
              !
@@ -507,7 +507,7 @@ CONTAINS
              integral = integrate_environ_density( f )
              !
              energy   = - kT * electrolyte%cionmax * integral
-!             if (ionode) print *, 'energy stern ions'
+!             if (ionode) print *, 'energy electrolyte ions'
              !
           END SELECT
           !
@@ -535,7 +535,7 @@ CONTAINS
           !
        ELSE
           ! Modified PB
-          SELECT CASE ( electrolyte % stern_entropy )
+          SELECT CASE ( electrolyte % electrolyte_entropy )
              !
           CASE ( 'full' )
              !
@@ -598,7 +598,7 @@ CONTAINS
           !
        ELSE
           ! Linearized Modified PB
-          SELECT CASE ( electrolyte % stern_entropy )
+          SELECT CASE ( electrolyte % electrolyte_entropy )
              !
           CASE ( 'full' )
              !
@@ -639,7 +639,7 @@ CONTAINS
           !
        ELSE
           ! Modified PB
-          SELECT CASE ( electrolyte % stern_entropy )
+          SELECT CASE ( electrolyte % electrolyte_entropy )
              !
           CASE ( 'full' )
              !

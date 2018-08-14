@@ -115,11 +115,11 @@ CONTAINS
           need_pbc_correction = .TRUE.
           loned_analytic = .TRUE.
           local_type = '1da'
-       CASE ( 'stern' )
+       CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
           need_pbc_correction = .TRUE.
           need_electrolyte = .TRUE.
           loned_analytic = .TRUE.
-          local_type = 'stern'
+          local_type = 'gcs'
        CASE DEFAULT
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT

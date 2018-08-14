@@ -42,6 +42,10 @@ inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-sccs-stype0
 program = PW
 inputs_args = ('pw.in', 'electrolyte-lmpb-sccs-stern_full.in'), ('pw.in', 'electrolyte-lmpb-sccs-stern_ions.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_full.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_ions.in'), ('pw.in', 'electrolyte-lpb-sccs.in'), ('pw.in', 'electrolyte-lpb-ss.in')
 
+[pw_gcs/]
+program = PW
+inputs_args = ('pw.in', 'gcs-solvent.in'), ('pw.in', 'gcs-vacuum.in')
+
 [pw_*/]
 program = PW
 
