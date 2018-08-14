@@ -1273,6 +1273,9 @@ CONTAINS
     IF( .NOT. allowed ) &
          CALL errore( sub_name, ' pbc_correction '''// &
          & TRIM(pbc_correction)//''' not allowed ', 1 )
+    IF( TRIM(pbc_correction) .EQ. 'gcs' .AND. TRIM(electrolyte_mode) .NE. 'system' ) &
+       & CALL errore( sub_name, 'Only system boundary for gcs correction', 1)
+    print *, 'not here'
     allowed = .FALSE.
     DO i = 1, SIZE( solver_allowed )
        IF( TRIM(inner_solver) == solver_allowed(i) ) allowed = .TRUE.
