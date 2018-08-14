@@ -74,6 +74,7 @@ CONTAINS
        & electrolyte_tbeta,                          &
        & electrolyte_alpha, electrolyte_softness,    &
        & temperature,                                &
+       & sc_permittivity, sc_carrier_density,        &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
        & extcharge_axis, extcharge_pos,              &
@@ -117,6 +118,7 @@ CONTAINS
          electrolyte_rhomax, electrolyte_rhomin,          &
          electrolyte_tbeta, electrolyte_alpha,            &
          electrolyte_softness, temperature,               &
+         sc_permittivity, sc_carrier_density,             &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
          epsregion_pos(:,:), epsregion_spread(:),         &

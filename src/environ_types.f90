@@ -248,7 +248,8 @@ MODULE environ_types
      !
      ! Semiconductor charges
      !
-
+     LOGICAL :: include_semiconductor = .FALSE.
+     TYPE( environ_semiconductor ), POINTER :: semiconductor => NULL()
      !
      ! Total smooth free charge
      !
@@ -451,6 +452,37 @@ MODULE environ_types
      REAL( DP ) :: charge = 0.0_DP
      !
   END TYPE environ_electrolyte
+
+  TYPE environ_semiconductor
+     !
+     ! Update status
+     !
+     LOGICAL :: update = .FALSE.
+     !
+     LOGICAL :: initialized = .FALSE.
+     !
+     !
+     REAL( DP ) :: temperature
+     REAL( DP ) :: sc_permittivity
+     REAL( DP ) :: sc_carrier_density
+     !
+     ! As far as I can tell this is not relevant for the semicondutor
+     !TYPE( environ_boundary ) :: boundary
+     !
+     TYPE( environ_density ) :: density
+     !
+     ! The electrolyte switch function and relate quantities
+     !
+     !TYPE( environ_density ) :: gamma
+     !TYPE( environ_density ) :: dgamma
+     !
+     !TYPE( environ_density ) :: de_dboundary_second_order
+     !REAL( DP ) :: energy_second_order
+     !
+     REAL( DP ) :: charge = 0.0_DP
+     !
+  END TYPE environ_semiconductor
+
   !
 CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------------

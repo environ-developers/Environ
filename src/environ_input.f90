@@ -170,6 +170,16 @@ MODULE environ_input
         ! valence of ionic countercharge
         REAL(DP) :: temperature = 300.D0
         ! temperature of the solution
+
+!
+! Semiconductor parameters
+!
+        REAL(DP) :: sc_permittivity = 11.D0
+        ! dielectric permittivity of the semiconductor
+        REAL(DP) :: sc_carrier_density = 1.D17
+        ! conncentration fo charge carriers within the semiconductor
+        ! In units of (cm^-3)
+
 !
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
@@ -194,7 +204,8 @@ MODULE environ_input
              env_pressure,                                             &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              temperature, electrolyte_linearized, electrolyte_entropy,     &
-             env_external_charges, env_dielectric_regions
+             sc_permittivity, sc_carrier_density,                      &
+             env_external_charges, env_dielectric_regions             
 !
 !=----------------------------------------------------------------------------=!
 !  BOUNDARY Namelist Input Parameters
@@ -593,6 +604,7 @@ CONTAINS
                              electrolyte_rhomax, electrolyte_rhomin, electrolyte_tbeta,    &
                              electrolyte_alpha, electrolyte_softness,                &
                              temperature,                        &
+                             sc_permittivity, sc_carrier_density,        &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
                              extcharge_axis, extcharge_pos,              &
@@ -736,6 +748,9 @@ CONTAINS
     zion(:) = 0.D0
     temperature = 300.0D0
     !
+    sc_permittivity = 11.0D0
+    sc_carrier_density = 1.0D17
+    !
     env_external_charges = 0
     env_dielectric_regions = 0
     !
@@ -874,6 +889,9 @@ CONTAINS
     CALL mp_bcast( rion,                       ionode_id, comm )
     CALL mp_bcast( zion,                       ionode_id, comm )
     CALL mp_bcast( temperature,        ionode_id, comm )
+    !
+    CALL mp_bcast( sc_permittivity,        ionode_id, comm )
+    CALL mp_bcast( sc_carrier_density,        ionode_id, comm )
     !
     CALL mp_bcast( env_external_charges,       ionode_id, comm )
     CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
@@ -1042,6 +1060,9 @@ CONTAINS
     IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
          CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
     !
+    IF ( sc_permittivity <= 0 .OR. sc_carrier_density <= 0 ) &
+         CALL errore( sub_name, 'sc_permittivity and sc_carrier_density cannot be negative', 1)
+
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
     !
