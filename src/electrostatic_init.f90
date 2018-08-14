@@ -101,6 +101,7 @@ CONTAINS
     !
     need_pbc_correction = .FALSE.
     need_electrolyte = .FALSE.
+    need_semiconductor = .FALSE.
     CALL create_electrostatic_core( pbc_core )
     !
     ! first check keywords specfied in input
@@ -120,6 +121,11 @@ CONTAINS
           need_electrolyte = .TRUE.
           loned_analytic = .TRUE.
           local_type = 'gcs'
+       CASE ( 'ms', 'mott-schottky' )
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms'
        CASE DEFAULT
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT

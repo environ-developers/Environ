@@ -246,6 +246,10 @@ MODULE environ_types
      LOGICAL :: include_electrolyte = .FALSE.
      TYPE( environ_electrolyte ), POINTER :: electrolyte => NULL()
      !
+     ! Semiconductor charges
+     !
+
+     !
      ! Total smooth free charge
      !
      INTEGER :: number = 0
