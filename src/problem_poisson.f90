@@ -32,6 +32,7 @@ MODULE problem_poisson
   USE electrostatic_types
   USE correction_periodic
   USE correction_gcs
+  USE correction_ms
   USE environ_base, ONLY : e2, oldenviron
   !
   IMPLICIT NONE
@@ -198,7 +199,7 @@ CONTAINS
           !
           IF ( .NOT. PRESENT( semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
-          CALL calc_vgcs( core%correction%oned_analytic, semiconductor, charges, local )
+          CALL calc_vms( core%correction%oned_analytic, semiconductor, charges, local )
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -323,7 +324,7 @@ CONTAINS
           !
           IF ( .NOT. PRESENT( semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction', 1)
-          CALL calc_gradvgcs( core%correction%oned_analytic, semiconductor, charges, gradient )
+          CALL calc_gradvms( core%correction%oned_analytic, semiconductor, charges, gradient )
 
        CASE DEFAULT
           !

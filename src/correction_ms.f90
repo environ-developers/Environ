@@ -67,14 +67,14 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
-    REAL( DP ), POINTER :: cion, zion, permittivity, xstern
+    REAL( DP ), POINTER :: permittivity, xstern, carrier_density
     REAL( DP ) :: kbt, invkbt
     !
     TYPE( environ_density ), TARGET :: local
     REAL( DP ), DIMENSION(:), POINTER :: v
     !
     INTEGER :: i, icount
-    REAL( DP ) :: ez, fact, vstern, const
+    REAL( DP ) :: ez, fact, vms, const
     REAL( DP ) :: dv, vbound
     REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: f1, f2
@@ -102,18 +102,15 @@ CONTAINS
     origin => oned_analytic % origin
     axis => oned_analytic % x
     !
-    ! ... Get parameters of electrolyte to compute analytic correction
+    ! ... Get parameters of semiconductor to compute analytic correction
     !
-    IF ( electrolyte % ntyp .NE. 2 ) &
-         & CALL errore(sub_name,'Unexpected number of counterionic species, different from two',1)
-    cion => electrolyte % ioncctype(1) % cbulk
-    zion => electrolyte % ioncctype(1) % z
-    permittivity => electrolyte%permittivity
-    xstern => electrolyte%boundary%simple%width
+    permittivity => semiconductor%permittivity
+    carrier_density => semiconductor%carrier_density
+    xstern => semiconductor%boundary%simple%width
     !
     ! ... Set Boltzmann factors
     !
-    kbt = electrolyte % temperature * k_boltzmann_ry
+    kbt = semiconductor % temperature * k_boltzmann_ry
     invkbt = 1.D0 / kbt
     !
     IF ( env_periodicity .NE. 2 ) &
@@ -228,7 +225,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
-    REAL( DP ), POINTER :: cion, zion, permittivity, xstern
+    REAL( DP ), POINTER ::  permittivity, xstern, carrier_density
     REAL( DP ) :: kbt, invkbt
     !
     TYPE( environ_gradient ), TARGET :: glocal
@@ -262,14 +259,11 @@ CONTAINS
     origin => oned_analytic % origin
     axis => oned_analytic % x
     !
-    ! ... Get parameters of electrolyte to compute analytic correction
+    ! ... Get parameters of semiconductor to compute analytic correction
     !
-    IF ( electrolyte % ntyp .NE. 2 ) &
-         & CALL errore(sub_name,'Unexpected number of counterionic species, different from two',1)
-    cion => electrolyte % ioncctype(1) % cbulk
-    zion => electrolyte % ioncctype(1) % z
-    permittivity => electrolyte%permittivity
-    xstern => electrolyte%boundary%simple%width
+    permittivity => semiconductor%permittivity
+    carrier_density => semiconductor%carrier_density
+    xstern => semiconductor%boundary%simple%width
     !
     ! ... Set Boltzmann factors
     !

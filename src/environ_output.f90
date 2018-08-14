@@ -1173,7 +1173,7 @@ CONTAINS
                              lsurface, esurface, &
                              lvolume, evolume, &
                              lelectrolyte, eelectrolyte, &
-                             deenviron, lsemiconductor
+                             deenviron
     !
     CHARACTER( LEN=80 ) :: sub_name = 'environ_print_energies'
     !
@@ -1348,7 +1348,7 @@ CONTAINS
     ! Write out the time informations of the Environ dependent
     ! calculations. Called by print_clock_pw.f90
     !
-    USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume, ltddfpt
+    USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume, ltddfpt, lsemiconductor
     !
     IMPLICIT NONE
     !
