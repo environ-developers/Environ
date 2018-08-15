@@ -4,18 +4,18 @@
    environ_thr = 1.d2
    env_static_permittivity = 20. 
    env_electrolyte_ntyp = 2
-   solvent_temperature = 300.
+   temperature = 300.
    cion(1) = 8.D0
    cion(2) = 8.D0
    zion(1) = 1
    zion(2) = -1
-   stern_linearized = .true.
+   electrolyte_linearized = .true.
    !
  /
  &BOUNDARY
    ! 
-   stern_rhomax=0.000700
-   stern_rhomin=0.000015
+   electrolyte_rhomax=0.000700
+   electrolyte_rhomin=0.000015
    !
  /
  &ELECTROSTATIC
