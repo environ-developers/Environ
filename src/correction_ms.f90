@@ -74,10 +74,8 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: v
     !
     INTEGER :: i, icount
-    REAL( DP ) :: ez, fact, vms, const
-    REAL( DP ) :: dv, vbound
-    REAL( DP ) :: arg, asinh, coth, acoth
-    REAL( DP ) :: f1, f2
+    REAL( DP ) :: ez, fact, vms
+    REAL( DP ) :: arg
     REAL( DP ) :: area, vtmp
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
@@ -107,6 +105,9 @@ CONTAINS
     permittivity => semiconductor%permittivity
     carrier_density => semiconductor%carrier_density
     xstern => semiconductor%simple%width
+    
+    !   convert carrier density to units of (bohr)^-3
+    carrier_density = carrier_density *6.448D24
     !
     ! ... Set Boltzmann factors
     !
@@ -139,14 +140,10 @@ CONTAINS
     ! ... Compute the physical properties of the interface
     !
     !zion = ABS(zion)
-    ez = - tpi * e2 * tot_charge / area ! / permittivity
-    !fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
-    !arg = ez/fact
-    !asinh = LOG(arg + SQRT( arg**2 + 1 ))
-    !vstern = 2.D0 * kbt / zion * asinh
-    !arg = vstern * 0.25D0 * invkbt * zion
-    !coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    !const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    ez = - tpi * e2 * tot_charge / area  / permittivity !in units of Ry/bohr 
+    fact = permittivitty /tpi / e2 /2.D0 /carrier_density
+    arg = fact* (e2**2.D0)
+    vms =  kbt + arg
     !
     vbound = 0.D0
     icount = 0
@@ -166,33 +163,26 @@ CONTAINS
     !
     ! ... Compute some constants needed for the calculation
     !
-!    f1 = - fact * zion * invkbt * 0.5D0
-!    f2 = 4.D0 * kbt / zion
+    !f1 =  fact * zion * invkbt * 0.5D0
     !
     ! ... Compute the analytic potential and charge
     !
-!    v = v - vbound + vstern
-!    DO i = 1, nnr
+    v = v - vbound + vms
+    DO i = 1, nnr
        !
-!       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           !
           ! ... Gouy-Chapmann-Stern analytic solution on the outside
           !
-!          arg = const * EXP( ABS(axis(1,i)) * f1 )
-!          IF ( ABS(arg) .GT. 1.D0 ) THEN
-!             acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-!          ELSE
-!             acoth = 0.D0
-!          END IF
-!          vtmp =  f2 * acoth
+          vtmp = (ABS(axis(1,i))-xstern)**2.D0 / fact - ez*(ABS(axis(1,i))-xstern)
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-!          v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
+          v(i) =  v(i) + vtmp - vms - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
           !
-!       ENDIF
+       ENDIF
        !
-!    ENDDO
+    ENDDO
     !
     potential % of_r = potential % of_r + v
     !
@@ -232,15 +222,14 @@ CONTAINS
     REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
     !
     INTEGER :: i
-    REAL( DP ) :: ez, fact, vstern, const
-    REAL( DP ) :: arg, asinh, coth, acoth
-    REAL( DP ) :: f1, f2
+    REAL( DP ) :: ez, fact, vms
+    REAL( DP ) :: arg
     REAL( DP ) :: area, dvtmp_dx
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvgcs'
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvms'
     !
-    CALL start_clock ('calc_gvst')
+    CALL start_clock ('calc_gvms')
     !
     ! ... Aliases and sanity checks
     !
@@ -286,8 +275,8 @@ CONTAINS
     ! ... First compute the gradient of parabolic correction
     !
     fact = e2 * fpi / omega
-    gvstern(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
-    gvstern = gvstern * fact
+    gvms(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
+    gvms = gvms * fact
     !
     ! ... Compute the physical properties of the interface
     !
@@ -327,7 +316,8 @@ CONTAINS
 !       !
 !    ENDDO
     !
-    gradv % of_r = gradv % of_r + gvstern
+    ! Seems like 
+    gradv % of_r = gradv % of_r + gvms
     !
     CALL destroy_environ_gradient(glocal)
     !
