@@ -5,7 +5,7 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-! original version by O. Andreussi and N. Marzari
+! original version by Q. Campbell 
 !
 !----------------------------------------------------------------------------
 MODULE correction_ms
@@ -75,8 +75,8 @@ CONTAINS
     !
     INTEGER :: i, icount
     REAL( DP ) :: ez, fact, vms
-    REAL( DP ) :: arg
-    REAL( DP ) :: area, vtmp
+    REAL( DP ) :: arg, const
+    REAL( DP ) :: area, vtmp, vbound
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms'
@@ -135,13 +135,13 @@ CONTAINS
     const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
     v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
     v(:) = fact * v(:) + const
-    dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern
+    !dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern
     !
     ! ... Compute the physical properties of the interface
     !
     !zion = ABS(zion)
     ez = - tpi * e2 * tot_charge / area  / permittivity !in units of Ry/bohr 
-    fact = permittivitty /tpi / e2 /2.D0 /carrier_density
+    fact = permittivity /tpi / e2 /2.D0 /carrier_density
     arg = fact* (e2**2.D0)
     vms =  kbt + arg
     !
@@ -219,7 +219,7 @@ CONTAINS
     REAL( DP ) :: kbt, invkbt
     !
     TYPE( environ_gradient ), TARGET :: glocal
-    REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
+    REAL( DP ), DIMENSION(:,:), POINTER :: gvms
     !
     INTEGER :: i
     REAL( DP ) :: ez, fact, vms
@@ -263,7 +263,7 @@ CONTAINS
          & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
     !
     CALL init_environ_gradient( cell, glocal )
-    gvstern => glocal % of_r
+    gvms => glocal % of_r
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
