@@ -379,7 +379,7 @@ MODULE environ_input
 !
 ! Global parameters
 !
-        CHARACTER( LEN = 80 ) :: problem = 'poisson'
+        CHARACTER( LEN = 80 ) :: problem = 'none'
         CHARACTER( LEN = 80 ) :: problem_allowed(6)
         DATA problem_allowed / 'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb' /
         ! type of electrostatic problem:
@@ -396,7 +396,7 @@ MODULE environ_input
 !
 ! Driver's parameters
 !
-        CHARACTER( LEN = 80 ) :: solver = 'direct'
+        CHARACTER( LEN = 80 ) :: solver = 'none'
         CHARACTER( LEN = 80 ) :: solver_allowed(7)
         DATA solver_allowed / 'cg', 'sd', 'iterative', 'lbfgs', 'newton', 'nested', 'direct' /
         ! type of numerical solver
@@ -426,7 +426,9 @@ MODULE environ_input
         ! step size to be used if step_type = 'input' (inherits the tasks of the old mixrhopol)
         INTEGER :: maxstep = 200
         ! maximum number of steps to be performed by gradient or iterative solvers
-        CHARACTER( LEN = 80 ) :: inner_solver = 'direct'
+        CHARACTER( LEN = 80 ) :: inner_solver = 'none'
+        CHARACTER( LEN = 80 ) :: inner_solver_allowed(5)
+        DATA inner_solver_allowed / 'none', 'cg', 'sd', 'iterative', 'direct' /
         ! type of numerical solver for inner loop in nested algorithms
         INTEGER :: inner_maxstep = 200
         ! same as maxstep for inner loop in nested algorithms
@@ -698,6 +700,10 @@ CONTAINS
     !
     CALL electrostatic_bcast()
     !
+    ! ... Set electrostatic problem
+    !
+    CALL set_electrostatic_problem( )
+    !
     ! ... Check &ELECTROSTATIC variables
     !
     CALL electrostatic_checkin()
@@ -817,15 +823,15 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    problem = 'poisson'
+    problem = 'none'
     tol = 1.D-5
     !
-    solver = 'direct'
+    solver = 'none'
     auxiliary = 'none'
     step_type = 'optimal'
     step = 0.3D0
     maxstep = 200
-    inner_solver = 'direct'
+    inner_solver = 'none'
     inner_tol = 1.D-10
     inner_maxstep = 200
     inner_mix = 0.5D0
@@ -1275,10 +1281,9 @@ CONTAINS
          & TRIM(pbc_correction)//''' not allowed ', 1 )
     IF( TRIM(pbc_correction) .EQ. 'gcs' .AND. TRIM(electrolyte_mode) .NE. 'system' ) &
        & CALL errore( sub_name, 'Only system boundary for gcs correction', 1)
-    print *, 'not here'
     allowed = .FALSE.
-    DO i = 1, SIZE( solver_allowed )
-       IF( TRIM(inner_solver) == solver_allowed(i) ) allowed = .TRUE.
+    DO i = 1, SIZE( inner_solver_allowed )
+       IF( TRIM(inner_solver) == inner_solver_allowed(i) ) allowed = .TRUE.
     END DO
     IF( .NOT. allowed ) &
          CALL errore( sub_name, ' inner solver '''// &
@@ -1432,7 +1437,6 @@ CONTAINS
     !
     LOGICAL, INTENT(OUT) :: lelectrostatic
     !
-    INTEGER           :: ityp
     CHARACTER(LEN=20) :: sub_name = ' fix_electrostatic '
     !
     lelectrostatic = env_electrostatic
@@ -1440,31 +1444,57 @@ CONTAINS
          & lelectrostatic = .TRUE.
     IF ( env_external_charges .GT. 0 ) lelectrostatic = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lelectrostatic = .TRUE.
+    IF ( env_electrolyte_ntyp .GT. 0 ) lelectrostatic = .TRUE.
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE fix_electrostatic
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE set_electrostatic_problem( )
+!--------------------------------------------------------------------
+    !
+    !  Set problem according to the ENVIRON and ELECTROSTATIC namelists
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=80) :: sub_name = ' set_electrostatic_problem '
+    !
+    IF ( env_electrolyte_ntyp .GT. 0 ) THEN
+       IF ( .NOT. TRIM(pbc_correction) == 'gcs' ) THEN
+          IF ( electrolyte_linearized ) THEN
+             IF (problem == 'none') problem = 'linpb'
+             IF (solver == 'none' ) solver  = 'cg'
+             IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'
+          ELSE
+             IF (problem == 'none') problem = 'pb'
+             IF (solver == 'none' ) solver  = 'newton'
+             IF (inner_solver == 'none') inner_solver = 'cg'
+             IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'modpb'
+          END IF
+       END IF
+    END IF
     !
     IF ( env_static_permittivity > 1.D0 &
          .OR. env_dielectric_regions > 0 ) THEN
-       problem = 'generalized'
-       solver = 'cg'
+         IF (problem == 'none') problem = 'generalized'
+       IF ( .NOT. TRIM(pbc_correction) == 'gcs' ) THEN
+         IF (solver == 'none' ) solver = 'cg'
+       ELSE
+         IF (solver == 'none' ) solver = 'iterative'
+       END IF
+    ELSE
+       IF (problem == 'none') problem = 'poisson'
+       IF (solver == 'none' ) solver = 'direct'
     ENDIF
     !
-    IF ( env_electrolyte_ntyp .GT. 0 ) THEN
-       lelectrostatic = .TRUE.
-       IF ( electrolyte_linearized ) THEN
-          problem = 'linpb'
-          solver  = 'cg'
-          IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'
-       ELSE
-          problem = 'pb'
-          solver  = 'newton'
-          inner_solver = 'cg'
-          IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'modpb'
-       END IF
-    END IF
+    IF (.NOT. (problem == 'pb' .OR. problem == 'modpb') &
+        .AND. (inner_solver .NE. 'none')) &
+        CALL errore( sub_name, 'Only pb or modpb problems allow inner solver', 1)
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE fix_electrostatic
+  END SUBROUTINE set_electrostatic_problem
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE environ_read_cards( unit )

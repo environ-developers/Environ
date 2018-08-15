@@ -62,7 +62,7 @@ CONTAINS
          pbc_correction, prog, inner_solver_type
     !
     INTEGER :: i
-    CHARACTER( LEN = 80 ) :: local_type, local_auxiliary, inner_problem
+    CHARACTER( LEN = 80 ) :: local_type, local_auxiliary, local_problem, inner_problem
     !
     ! Initial setup of core flags
     !
@@ -73,7 +73,7 @@ CONTAINS
     ! Setup nested scheme if required
     !
     lnested = .FALSE.
-    IF ( .NOT. inner_solver_type .EQ. 'direct' ) lnested = .TRUE.
+    IF ( .NOT. inner_solver_type .EQ. 'none' ) lnested = .TRUE.
     !
     ! Set reference core according to calling program
     !
@@ -251,11 +251,11 @@ CONTAINS
     CALL create_electrostatic_setup( reference )
     SELECT CASE ( prog )
     CASE ( 'PW', 'CP', 'TD' )
-       local_type = "poisson"
+       local_problem = "poisson"
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected name of host code',1)
     END SELECT
-    CALL init_electrostatic_setup( local_type , reference_solver, reference_core, reference )
+    CALL init_electrostatic_setup( local_problem , reference_solver, reference_core, reference )
     !
     ! Create outer setup
     !

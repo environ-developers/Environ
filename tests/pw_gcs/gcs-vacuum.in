@@ -17,9 +17,6 @@
     electrolyte_mode = 'system',
 /
  &ELECTROSTATIC
-    problem = 'poisson'
-    solver = 'direct'
-    inner_solver = 'direct'
     pbc_correction = 'gcs'
     pbc_dim = 2                 
     pbc_axis = 3   

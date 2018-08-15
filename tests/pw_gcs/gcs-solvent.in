@@ -18,10 +18,8 @@
     electrolyte_mode = 'system',
 /
  &ELECTROSTATIC
-    problem = 'generalized'
     solver = 'iterative'
     auxiliary = 'full'
-    inner_solver = 'direct'
     pbc_correction = 'gcs'
     pbc_dim = 2                 
     pbc_axis = 3   
