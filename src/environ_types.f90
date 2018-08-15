@@ -466,18 +466,9 @@ MODULE environ_types
      REAL( DP ) :: permittivity
      REAL( DP ) :: carrier_density
      !
-     ! As far as I can tell this is not relevant for the semicondutor
-     !TYPE( environ_boundary ) :: boundary
+     TYPE( environ_functions ) :: simple
      !
      TYPE( environ_density ) :: density
-     !
-     ! The electrolyte switch function and relate quantities
-     !
-     !TYPE( environ_density ) :: gamma
-     !TYPE( environ_density ) :: dgamma
-     !
-     !TYPE( environ_density ) :: de_dboundary_second_order
-     !REAL( DP ) :: energy_second_order
      !
      REAL( DP ) :: charge = 0.0_DP
      !

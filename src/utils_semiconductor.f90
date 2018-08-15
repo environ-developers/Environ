@@ -37,7 +37,7 @@
 !     REAL( DP ) :: sc_carrier_density
      !
      ! As far as I can tell this is not relevant for the semicondutor
-     !TYPE( environ_boundary ) :: boundary
+     !TYPE( environ_function ) :: simple
      !
 !     TYPE( environ_density ) :: density
      !
@@ -96,18 +96,32 @@ CONTAINS
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE init_environ_semiconductor_first( temperature, &
-       & sc_permittivity,sc_carrier_density, semiconductor )
+       & sc_permittivity,sc_carrier_density,sc_distance, &
+       & sc_spread, system, semiconductor )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     REAL( DP ), INTENT(IN) :: temperature, sc_permittivity
-    REAL( DP ), INTENT(IN) :: sc_carrier_density
+    REAL( DP ), INTENT(IN) :: sc_carrier_density, sc_distance, sc_spread
+    TYPE( environ_system ) , INTENT(IN) :: system
     TYPE( environ_semiconductor ), INTENT(INOUT) :: semiconductor
     !
     semiconductor%temperature = temperature
     semiconductor%permittivity = sc_permittivity
     semiconductor%carrier_density = sc_carrier_density
+
+    semiconductor%simple%type = 4
+    semiconductor%simple%pos = system%pos
+    semiconductor%simple%volume = 1.D0
+    semiconductor%simple%dim = system%dim
+    semiconductor%simple%axis = system%axis
+    semiconductor%simple%width = sc_distance
+    semiconductor%simple%spread = sc_spread
+
+
+
+
     semiconductor%initialized = .FALSE.
     !
     RETURN

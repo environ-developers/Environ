@@ -359,6 +359,13 @@ MODULE environ_input
         REAL(DP) :: electrolyte_spread = 0.5D0
         ! spread of the interfaces for the electrolyte boundary
 !
+! Mott Schottky boundary (system parameters
+!
+        REAL(DP) :: sc_distance = 0.D0
+        ! distance from the system where the electrolyte boundary starts
+        REAL(DP) :: sc_spread = 0.5D0
+        ! spread of the interfaces for the electrolyte boundary
+ 
         NAMELIST /boundary/                      &
              solvent_mode,                       &
              radius_mode, alpha, softness,       &
@@ -374,7 +381,8 @@ MODULE environ_input
              electrolyte_rhomin, electrolyte_tbeta,          &
              electrolyte_alpha, electrolyte_softness,        &
              boundary_core,                      &
-             ifdtype, nfdpoint
+             ifdtype, nfdpoint,                  &
+             sc_distance, sc_spread
 !
 !=----------------------------------------------------------------------------=!
 !  ELECTROSTATIC Namelist Input Parameters
@@ -606,6 +614,7 @@ CONTAINS
                              electrolyte_alpha, electrolyte_softness,                &
                              temperature,                        &
                              sc_permittivity, sc_carrier_density,        &
+                             sc_distance, sc_spread,                     &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
                              extcharge_axis, extcharge_pos,              &

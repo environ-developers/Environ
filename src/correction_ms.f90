@@ -106,7 +106,7 @@ CONTAINS
     !
     permittivity => semiconductor%permittivity
     carrier_density => semiconductor%carrier_density
-    xstern => semiconductor%boundary%simple%width
+    xstern => semiconductor%simple%width
     !
     ! ... Set Boltzmann factors
     !
@@ -138,15 +138,15 @@ CONTAINS
     !
     ! ... Compute the physical properties of the interface
     !
-    zion = ABS(zion)
+    !zion = ABS(zion)
     ez = - tpi * e2 * tot_charge / area ! / permittivity
-    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
-    arg = ez/fact
-    asinh = LOG(arg + SQRT( arg**2 + 1 ))
-    vstern = 2.D0 * kbt / zion * asinh
-    arg = vstern * 0.25D0 * invkbt * zion
-    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    !fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
+    !arg = ez/fact
+    !asinh = LOG(arg + SQRT( arg**2 + 1 ))
+    !vstern = 2.D0 * kbt / zion * asinh
+    !arg = vstern * 0.25D0 * invkbt * zion
+    !coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    !const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
     vbound = 0.D0
     icount = 0
@@ -166,33 +166,33 @@ CONTAINS
     !
     ! ... Compute some constants needed for the calculation
     !
-    f1 = - fact * zion * invkbt * 0.5D0
-    f2 = 4.D0 * kbt / zion
+!    f1 = - fact * zion * invkbt * 0.5D0
+!    f2 = 4.D0 * kbt / zion
     !
     ! ... Compute the analytic potential and charge
     !
-    v = v - vbound + vstern
-    DO i = 1, nnr
+!    v = v - vbound + vstern
+!    DO i = 1, nnr
        !
-       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+!       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           !
           ! ... Gouy-Chapmann-Stern analytic solution on the outside
           !
-          arg = const * EXP( ABS(axis(1,i)) * f1 )
-          IF ( ABS(arg) .GT. 1.D0 ) THEN
-             acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-          ELSE
-             acoth = 0.D0
-          END IF
-          vtmp =  f2 * acoth
+!          arg = const * EXP( ABS(axis(1,i)) * f1 )
+!          IF ( ABS(arg) .GT. 1.D0 ) THEN
+!             acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+!          ELSE
+!             acoth = 0.D0
+!          END IF
+!          vtmp =  f2 * acoth
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-          v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
+!          v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
           !
-       ENDIF
+!       ENDIF
        !
-    ENDDO
+!    ENDDO
     !
     potential % of_r = potential % of_r + v
     !
@@ -263,11 +263,11 @@ CONTAINS
     !
     permittivity => semiconductor%permittivity
     carrier_density => semiconductor%carrier_density
-    xstern => semiconductor%boundary%simple%width
+    xstern => semiconductor%simple%width
     !
     ! ... Set Boltzmann factors
     !
-    kbt = electrolyte % temperature * k_boltzmann_ry
+    kbt = semiconductor % temperature * k_boltzmann_ry
     invkbt = 1.D0 / kbt
     !
     IF ( env_periodicity .NE. 2 ) &
