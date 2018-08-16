@@ -105,6 +105,8 @@ CONTAINS
     permittivity => semiconductor%permittivity
     carrier_density => semiconductor%carrier_density
     xstern => semiconductor%simple%width
+
+    WRITE( environ_unit, * )"carrier density: ",carrier_density
     
     !   convert carrier density to units of (bohr)^-3
     carrier_density = carrier_density *1.25D-25
@@ -170,6 +172,7 @@ CONTAINS
     CALL mp_sum(icount,cell%comm)
     CALL mp_sum(vbound,cell%comm)
     vbound = vbound / DBLE(icount)
+    WRITE (environ_unit, *)"vbound: ",vbound
     !
     ! ... Compute some constants needed for the calculation
     !
@@ -177,7 +180,7 @@ CONTAINS
     !
     ! ... Compute the analytic potential and charge
     !
-    v = v - vbound + vms
+    v = v - vbound !- vms
     DO i = 1, nnr
        
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
@@ -188,21 +191,22 @@ CONTAINS
              !
              ! ... Mott Schottky analytic solution on the outside
              !
-             vtmp = (distance)**2.D0 / fact/4.D0 - ez*(distance)
+             vtmp = (distance)**2.D0 / fact/4.D0 + ez*(distance) 
           ELSE 
-             vtmp = vms
+             vtmp = 0.D0
           END IF
           !WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
           !WRITE (environ_unit, *) "Distance: ", distance
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-          v(i) =  v(i) + vtmp - vms -ez*distance ! vtmp - potential % of_r(i)
+          v(i) =  v(i) + vtmp -ez*distance!-vms ! vtmp - potential % of_r(i)
           !WRITE( environ_unit, *)"This is the vi: ",ez*distance
           !
        ENDIF
        !
     ENDDO
+    !v = v - vms
     !
     potential % of_r = potential % of_r + v
     !
