@@ -251,7 +251,6 @@ CONTAINS
       DO i = 1, nnr
         IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           vtmp = 2.D0 * lin_c * EXP( -1.D0 * lin_k * ABS(axis(1,i)) / lin_e)
-          vlocal%of_r(i) = 1.D0
           v(i) = v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern
         ENDIF
       ENDDO
