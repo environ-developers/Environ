@@ -16,7 +16,7 @@ MODULE correction_ms
   USE environ_types
   USE electrostatic_types
   USE environ_output,    ONLY : environ_unit
-  USE environ_base,      ONLY : e2
+  USE environ_base,      ONLY : e2, sc_fermi_shift
   !
   IMPLICIT NONE
   !
@@ -33,23 +33,24 @@ CONTAINS
     !     is obtained by Gauss's law
     ! (1) ez = - tpi * e2 * charge * axis_length / omega / env_static_permittivity
     !
-    ! ... By integrating the Guy-Chapman model one has a relation that links the derivative
-    !     of the potential (the field) to the value of the potential
-    ! (2) dv/dz = - ez = fact * SINH( v(z) * zion / 2 / kbt )
+    ! ... By integrating the Mott Schottky model, we can find that the schottky barrier
+    !     is equal to 
+    ! (2) vms = fact*(ez)**2 + kbt
+    !
     !     where
-    ! (3) fact = - e2 * SQRT( 32 * pi * cd * kbt / e2 / env_static_permittivity )
+    ! (3) fact = sc_permittivity/tpi / e2 /2.D0 /carrier_density
     !
-    ! ... By combining (1) and (2) one can derive the analytic charge from the knowledge of the potential
-    !     at the boundary,
-    ! (4) charge_ext = fact * env_static_permittivity * omega / axis_lenght / tpi / e2 * SINH( vskin * zion / 2 / kbt )
+    !  You can then find the potential as a parabolic function of distance
+    ! (4) v_analytic = (distance)**2/fact/4 - ez*(distance)
+    ! 
+    !  This parabolic function is only accurate until the maximum is reached
+    !  We can find out when this will happen as the depletion length
+    !  
+    ! (5) depletion_length = 2.D0 *fact*ez
     !
-    ! ... or one can compute the value of the potential at the interface corresponding to a certain
-    !     explicit charge density,
-    ! (5) vskin_analytic = 2.D0 * kbt / zion * ASINH( ez / fact )
-    !
-    ! ... Eventually, by integrating Eq. (2) the analytic form of the potential is found
-    ! (6) vanalytic(z) = 4.D0 * kbt / zion * ACOTH( const * EXP( - z * fact * zion / kbt / 2.D0  ) )
-    !     were the constant is determined by the condition that vanalytic(xskin) = vskin
+    !  After the depletion length, the potential will remain flat
+    !  For more details and derivation see the appendix in Ch11 of Schmickler
+    !  Interfacial Electrochemistry book
     !
     IMPLICIT NONE
     !
@@ -152,6 +153,8 @@ CONTAINS
     WRITE(  environ_unit, *)"Prefactor: ",fact
     arg = fact* (ez**2.D0)
     vms =  arg ! +kbt
+    !Set the fermi shift to be equal to the shottky barrier
+    sc_fermi_shift = vms
     !Finds the total length of the depletion region
     depletion_length = 2.D0 *fact*ez
     WRITE ( environ_unit, * )"depletion length: ",depletion_length
