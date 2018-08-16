@@ -53,6 +53,7 @@ CONTAINS
     !  Interfacial Electrochemistry book
     !
     IMPLICIT NONE
+    SAVE 
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
@@ -109,8 +110,6 @@ CONTAINS
 
     WRITE( environ_unit, * )"carrier density: ",carrier_density
     
-    !   convert carrier density to units of (bohr)^-3
-    carrier_density = carrier_density *1.25D-25
     !
     WRITE( environ_unit, * )"xstern: ",xstern
     WRITE( environ_unit, * )"carrier density: ",carrier_density
@@ -155,6 +154,7 @@ CONTAINS
     vms =  arg ! +kbt
     !Set the fermi shift to be equal to the shottky barrier
     sc_fermi_shift = vms
+    WRITE( environ_unit, *)"sc_fermi_shift: ",sc_fermi_shift
     !Finds the total length of the depletion region
     depletion_length = 2.D0 *fact*ez
     WRITE ( environ_unit, * )"depletion length: ",depletion_length

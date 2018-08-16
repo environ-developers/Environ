@@ -1226,6 +1226,7 @@ CONTAINS
     IF (lsemiconductor) &
          WRITE( program_unit, 9401 ) sc_fermi_shift * rytoev
 
+    WRITE(environ_unit,*)sc_fermi_shift*rytoev
 9400 FORMAT(/,5(' '),&
           'the Fermi energy shift due to the parabolic pbc-correction is ',&
           F10.4,' ev')

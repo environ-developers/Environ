@@ -112,6 +112,9 @@ CONTAINS
     semiconductor%permittivity = sc_permittivity
     semiconductor%carrier_density = sc_carrier_density
 
+    !   convert carrier density to units of (bohr)^-3
+    semiconductor%carrier_density = semiconductor%carrier_density *1.25D-25
+
     semiconductor%simple%type = 4
     semiconductor%simple%pos => system%pos
     semiconductor%simple%volume = 1.D0
