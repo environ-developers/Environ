@@ -14,8 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the definition of electrostatic derived data types
-! of the basic routines to handle them
+!> Module containing the definition of electrostatic derived data types
+!! of the basic routines to handle them
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -592,7 +592,7 @@ CONTAINS
        core % use_qe_fft = .TRUE.
        core % qe_fft => qe_fft
        !
-    CASE ( '1da', '1d-analytic', 'oned_analytic', 'gcs' )
+    CASE ( '1da', '1d-analytic', 'oned_analytic', 'gcs', 'lgcs' )
        !
        IF ( .NOT. PRESENT( oned_analytic ) ) CALL errore(sub_name,'Missing specified core type',1)
        core % use_oned_analytic = .TRUE.

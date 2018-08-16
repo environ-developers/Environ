@@ -15,7 +15,7 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to generate functions on the real space dense grid
+!> Module to generate functions on the real space dense grid
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
@@ -28,14 +28,14 @@ MODULE tools_generate_functions
   IMPLICIT NONE
   !
 CONTAINS
+!
+!  Subroutine: compute_convolution_fft
+!
+!> Calculates using reciprocal-space techniques the convolution
+!! of function fa with function fb and returns the result as fc
 !--------------------------------------------------------------------
   SUBROUTINE compute_convolution_fft( nnr, fa, fb, fc )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates using reciprocal-space techniques the
-    ! ... convolution of function fa with function fb and put
-    ! ... the result in function fc
-    !
     USE cell_base,      ONLY : omega
     USE fft_base,       ONLY : dfftp
     USE fft_interfaces, ONLY : fwfft, invfft

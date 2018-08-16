@@ -15,8 +15,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main drivers to compute Environ contributions
-! to Kohn-Sham potential, total energy and inter-atomic forces
+!> Module containing the main drivers to compute Environ contributions
+!! to Kohn-Sham potential, total energy and inter-atomic forces
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -36,15 +36,14 @@ PRIVATE
 PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron, calc_dvenviron
 !
 CONTAINS
+!  Subroutine: calc_venviron
+!
+!> Calculates the Environ contribution to the local potential. All
+!! the Environ modules need to be called here. The potentials are
+!! all computed on the dense real-space grid and added to vtot.
 !--------------------------------------------------------------------
   SUBROUTINE calc_venviron( update, nnr, vtot )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the local
-    !     potential. All the Environ modules need to be called here.
-    !     The potentials are all computed on the dense real-space
-    !     grid and added to vtot.
-    !
     USE environ_base,  ONLY : vzero, solvent,                       &
                               lelectrostatic, velectrostatic,       &
                               vreference, lexternals,               &
@@ -172,16 +171,15 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_venviron
 !--------------------------------------------------------------------
+!  Subroutine: calc_eenviron
+!
+!> Calculates the Environ contribution to the energy. We must remove
+!! int v_environ * rhoelec that is automatically included in the
+!! energy computed as the sum of Kohn-Sham eigenvalues.
 !--------------------------------------------------------------------
   SUBROUTINE calc_eenviron( deenviron, eelectrostatic, esurface, &
        & evolume, eelectrolyte )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the Energy.
-    !     We must remove \int v_environ * rhoelec that is
-    !     automatically included in the energy computed as sum of
-    !     Kohn-Sham eigenvalues.
-    !
     USE environ_base,  ONLY : electrons, solvent,                   &
                               lelectrostatic, velectrostatic,       &
                               vreference, lexternals,               &
@@ -260,14 +258,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_eenviron
 !--------------------------------------------------------------------
+!  Subroutine: calc_fenviron
+!
+!> Calculates the Environ contribution to the forces. Due to
+!! Hellman-Feynman only a few of the Environ modules have an
+!! effect on the atomic forces.
 !--------------------------------------------------------------------
   SUBROUTINE calc_fenviron( nat, force_environ )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the forces.
-    !     Due to Hellman-Feynman only a few of Environ modules
-    !     have an effect on atomic forces.
-    !
     USE environ_base, ONLY : lelectrostatic, velectrostatic,    &
                              charges, lstatic, static,          &
                              lelectrolyte, electrolyte,         &
@@ -378,15 +376,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_fenviron
 !--------------------------------------------------------------------
+!  Subroutine: calc_denviron
+!
+!> Calculates the Environ contribution to the local potential. All
+!! the Environ modules need to be called here. The potentials are
+!! all computed on the dense real-space grid and added to vtot.
 !--------------------------------------------------------------------
   SUBROUTINE calc_dvenviron( nnr, rho, drho, dvtot )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the local
-    !     potential. All the Environ modules need to be called here.
-    !     The potentials are all computed on the dense real-space
-    !     grid and added to vtot.
-    !
     USE environ_base,  ONLY : vzero, solvent,                       &
                               lelectrostatic, loptical
     !
@@ -399,8 +396,8 @@ CONTAINS
     ! ... Declares variables
     !
     INTEGER, INTENT(IN)     :: nnr
-    REAL( DP ), INTENT(IN)  :: rho( nnr )    ! ground-state charge-density
-    REAL( DP ), INTENT(IN)  :: drho( nnr )   ! response charge-density
+    REAL( DP ), INTENT(IN)  :: rho( nnr )    !> ground-state charge-density
+    REAL( DP ), INTENT(IN)  :: drho( nnr )   !> response charge-density
     REAL( DP ), INTENT(OUT) :: dvtot( nnr )
     !
     ! ... Local variables

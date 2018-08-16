@@ -14,18 +14,15 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_ions
-!
-! derived data types.
-!
-! Environ_ions contains all the details of the ions of the QM system,
-! including the atomic type, mass and charge, the solvation radii,
-! the sizes of the ionic cores and the spread to be used when treating
-! the ions as gaussians. The module also contains all the routines
-! to handle environ_ions and to generate smooth ionic density from the
-! ions specification.
+!! Module containing the main routines to handle environ_ions
+!! derived data types.
+!!
+!! Environ_ions contains all the details of the ions of the QM system,
+!! including the atomic type, mass and charge, the solvation radii,
+!! the sizes of the ionic cores and the spread to be used when treating
+!! the ions as gaussians. The module also contains all the routines
+!! to handle environ_ions and to generate smooth ionic density from the
+!! ions specification.
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_ions

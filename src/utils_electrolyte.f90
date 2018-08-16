@@ -14,14 +14,11 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_electrolyte
-!
-! derived data types.
-!
-! Environ_electrolyte contains all the specifications and the details of
-! the electrolyte medium and of the ionic distribution in it.
+!> Module containing the main routines to handle environ_electrolyte
+!! derived data types.
+!!
+!! Environ_electrolyte contains all the specifications and the details of
+!! the electrolyte medium and of the ionic distribution in it.
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_electrolyte
