@@ -1,4 +1,4 @@
-!
+
 ! Copyright (C) 2017 Environ group
 ! This file is distributed under the terms of the
 ! GNU General Public License. See the file `License'
@@ -16,7 +16,7 @@ MODULE correction_ms
   USE environ_types
   USE electrostatic_types
   USE environ_output,    ONLY : environ_unit
-  USE environ_base,      ONLY : e2, sc_fermi_shift
+  USE environ_base,      ONLY : e2
   !
   IMPLICIT NONE
   !
@@ -53,7 +53,7 @@ CONTAINS
     !  Interfacial Electrochemistry book
     !
     IMPLICIT NONE
-    SAVE 
+!    SAVE 
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
@@ -123,7 +123,7 @@ CONTAINS
     !
     CALL init_environ_density( cell, local )
     v => local % of_r
-    !
+   !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
     CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
@@ -152,9 +152,6 @@ CONTAINS
     WRITE(  environ_unit, *)"Prefactor: ",fact
     arg = fact* (ez**2.D0)
     vms =  arg ! +kbt
-    !Set the fermi shift to be equal to the shottky barrier
-    sc_fermi_shift = vms
-    WRITE( environ_unit, *)"sc_fermi_shift: ",sc_fermi_shift
     !Finds the total length of the depletion region
     depletion_length = 2.D0 *fact*ez
     WRITE ( environ_unit, * )"depletion length: ",depletion_length
@@ -183,7 +180,7 @@ CONTAINS
     !
     ! ... Compute the analytic potential and charge
     !
-    v = v - vbound !- vms
+    v = v - vbound - vms
     DO i = 1, nnr
        
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN

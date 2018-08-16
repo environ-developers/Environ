@@ -1218,21 +1218,14 @@ CONTAINS
     ! If Gaussian nuclei are used, write out the corresponding
     ! Fermi energy shift
     !
-    USE environ_base, ONLY : lsmearedions, lperiodic, fermi_shift, &
-                             lsemiconductor, sc_fermi_shift
+    USE environ_base, ONLY : lsmearedions, lperiodic, fermi_shift
 
     IF (lsmearedions .AND. lperiodic) &
          WRITE( program_unit, 9400 ) fermi_shift * rytoev
-    IF (lsemiconductor) &
-         WRITE( program_unit, 9401 ) sc_fermi_shift * rytoev
 
-    WRITE(environ_unit,*)sc_fermi_shift*rytoev
 9400 FORMAT(/,5(' '),&
           'the Fermi energy shift due to the parabolic pbc-correction is ',&
           F10.4,' ev')
-9401 FORMAT(/,5(' '),&
-          'Shift the Fermi energy by ',F10.4,&
-               ' ev to align with Mott Schottky contribution.')
     !
 !----------------------------------------------------------------------
   END SUBROUTINE environ_print_fermi_shift

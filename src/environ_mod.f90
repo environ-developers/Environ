@@ -178,8 +178,7 @@ MODULE environ_base
        esurface,                    &
        evolume,                     &
        eelectrolyte,                &
-       fermi_shift,                 &
-       sc_fermi_shift
+       fermi_shift
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &
