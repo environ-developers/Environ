@@ -580,7 +580,6 @@ CONTAINS
              integral = integrate_environ_density( f )
              !
              energy   = - kT * electrolyte%cionmax * integral
-!             if (ionode) print *, 'energy electrolyte ions'
              !
           END SELECT
           !

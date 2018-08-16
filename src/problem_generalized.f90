@@ -35,7 +35,7 @@ MODULE problem_generalized
   USE environ_types
   USE electrostatic_types
   USE environ_output
-  USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct, poisson_energy
+  USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct!, poisson_energy
   USE environ_base, ONLY : e2, oldenviron, add_jellium, ltddfpt
   USE correction_periodic, ONLY : calc_v0periodic
   !
@@ -43,7 +43,7 @@ MODULE problem_generalized
   !
   PRIVATE
   !
-  PUBLIC :: generalized_gradient, generalized_energy
+  PUBLIC :: generalized_gradient!, generalized_energy
   !
   INTERFACE generalized_gradient
      MODULE PROCEDURE generalized_gradient_charges, generalized_gradient_density
@@ -204,70 +204,70 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE generalized_gradient_density
 !--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE generalized_energy( core, charges, potential, energy )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(IN) :: charges
-    TYPE( environ_density ), INTENT(IN) :: potential
-    REAL( DP ), INTENT(OUT) :: energy
-    !
-    REAL( DP ) :: degauss, eself
-    CHARACTER*20 :: sub_name = 'generalized_energy'
-    !
-    CALL start_clock( 'calc_esolv' )
-    !
-    ! Aliases and sanity checks
-    !
-    IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
-         & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
-    !
-    energy = 0.D0
-    !
-    CALL poisson_energy( core, charges, potential, energy )
-    !
-    ! Adding correction for point-like nuclei: only affects simulations of charged
-    ! systems, it does not affect forces, but shift the energy depending on the
-    ! fictitious Gaussian spread of the nuclei
-    !
-    eself = 0.D0
-    degauss = 0.D0
-    !
-    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
-       !
-       ! Compute spurious self-polarization energy
-       !
-       eself = 0.D0
-       !
-       IF ( core % use_qe_fft ) THEN
-          !
-          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
-             !
-             degauss = 0.D0
-             !
-          ELSE
-             !
-             degauss = - charges % ions % quadrupole_correction * charges % dielectric % charge * e2 * pi &
-                  & / charges % density % cell % omega
-             !
-          ENDIF
-          !
-       ENDIF
-       !
-    ENDIF
-    !
-    energy = energy + eself + degauss
-    !
-    CALL stop_clock( 'calc_esolv' )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE generalized_energy
-!--------------------------------------------------------------------
+!!--------------------------------------------------------------------
+!  SUBROUTINE generalized_energy( core, charges, potential, energy )
+!!--------------------------------------------------------------------
+!    !
+!    IMPLICIT NONE
+!    !
+!    TYPE( electrostatic_core ), INTENT(IN) :: core
+!    TYPE( environ_charges ), INTENT(IN) :: charges
+!    TYPE( environ_density ), INTENT(IN) :: potential
+!    REAL( DP ), INTENT(OUT) :: energy
+!    !
+!    REAL( DP ) :: degauss, eself
+!    CHARACTER*20 :: sub_name = 'generalized_energy'
+!    !
+!    CALL start_clock( 'calc_esolv' )
+!    !
+!    ! Aliases and sanity checks
+!    !
+!    IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
+!         & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
+!    !
+!    energy = 0.D0
+!    !
+!    CALL poisson_energy( core, charges, potential, energy )
+!    !
+!    ! Adding correction for point-like nuclei: only affects simulations of charged
+!    ! systems, it does not affect forces, but shift the energy depending on the
+!    ! fictitious Gaussian spread of the nuclei
+!    !
+!    eself = 0.D0
+!    degauss = 0.D0
+!    !
+!    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
+!       !
+!       ! Compute spurious self-polarization energy
+!       !
+!       eself = 0.D0
+!       !
+!       IF ( core % use_qe_fft ) THEN
+!          !
+!          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+!             !
+!             degauss = 0.D0
+!             !
+!          ELSE
+!             !
+!             degauss = - charges % ions % quadrupole_correction * charges % dielectric % charge * e2 * pi &
+!                  & / charges % density % cell % omega
+!             !
+!          ENDIF
+!          !
+!       ENDIF
+!       !
+!    ENDIF
+!    !
+!    energy = energy + eself + degauss
+!    !
+!    CALL stop_clock( 'calc_esolv' )
+!    !
+!    RETURN
+!    !
+!!--------------------------------------------------------------------
+!  END SUBROUTINE generalized_energy
+!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------

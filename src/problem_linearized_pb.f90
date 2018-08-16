@@ -31,7 +31,7 @@ MODULE problem_linearized_pb
   USE environ_types
   USE electrostatic_types
   USE environ_output
-  USE problem_poisson, ONLY : poisson_direct, poisson_energy
+  USE problem_poisson, ONLY : poisson_direct!, poisson_energy
   USE environ_base, ONLY : e2, add_jellium, ltddfpt
   !
   IMPLICIT NONE

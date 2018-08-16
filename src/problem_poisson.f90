@@ -38,7 +38,7 @@ MODULE problem_poisson
   !
   PRIVATE
   !
-  PUBLIC :: poisson_direct, poisson_gradient_direct, poisson_energy
+  PUBLIC :: poisson_direct, poisson_gradient_direct!, poisson_energy
   !
   INTERFACE poisson_direct
      MODULE PROCEDURE poisson_direct_charges, poisson_direct_density
@@ -48,9 +48,9 @@ MODULE problem_poisson
      MODULE PROCEDURE poisson_gradient_direct_charges, poisson_gradient_direct_density
   END INTERFACE poisson_gradient_direct
   !
-  INTERFACE poisson_energy
-     MODULE PROCEDURE poisson_energy_charges, poisson_energy_density
-  END INTERFACE poisson_energy
+!  INTERFACE poisson_energy
+!     MODULE PROCEDURE poisson_energy_charges, poisson_energy_density
+!  END INTERFACE poisson_energy
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -315,116 +315,119 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE poisson_gradient_direct_density
 !--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE poisson_energy_charges( core, charges, potential, energy )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(IN) :: charges
-    TYPE( environ_density ), INTENT(IN) :: potential
-    REAL( DP ), INTENT(OUT) :: energy
-    !
-    REAL( DP ) :: degauss, eself
-    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_charges'
-    !
-    energy = 0.d0
-    !
-    IF ( core % use_qe_fft ) THEN
-       !
-       energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
-       !
-    ELSE IF ( core % use_oned_analytic ) THEN
-       !
-       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
-       !
-    ELSE
-       !
-       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
-       !
-    ENDIF
-    !
-    ! Remove self-interaction and correct energy of Gaussian ions
-    !
-    eself = 0.D0
-    degauss = 0.D0
-    !
-    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
-       !
-       eself = charges % ions % selfenergy_correction * e2
-       !
-       IF ( core % use_qe_fft ) THEN
-          !
-          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
-             !
-             degauss = 0.D0
-             !
-          ELSE
-             !
-             degauss = - charges % ions % quadrupole_correction * charges % charge * e2 * tpi &
-                  & / charges % density % cell % omega
-             !
-          END IF
-          !
-       ENDIF
-       !
-       degauss = degauss ! we are missing the difference in interaction of electrons with gaussian vs. pc nuclei
-       !
-    ENDIF
-    !
-    energy = energy + eself + degauss
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE poisson_energy_charges
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE poisson_energy_density( core, charges, potential, energy )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_density ), INTENT(IN) :: charges
-    TYPE( environ_density ), INTENT(IN) :: potential
-    REAL( DP ), INTENT(OUT) :: energy
-    !
-    REAL( DP ) :: degauss, eself
-    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_density'
-    !
-    energy = 0.D0
-    !
-    IF ( core % use_qe_fft ) THEN
-       !
-       energy = 0.5D0 * scalar_product_environ_density( charges, potential )
-       !
-    ELSE IF ( core % use_oned_analytic ) THEN
-       !
-       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
-       !
-    ELSE
-       !
-       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
-       !
-    ENDIF
-    !
-    ! Remove self-interaction and correct energy of Gaussian ions
-    ! WARNING: THESE CORRECTIONS ARE ONLY POSSIBLE WHEN INFORMATIONS
-    ! ABOUT THE POINT-LIKE NUCLEI ARE PASSED
-    !
-    eself = 0.D0
-    !
-    degauss = 0.D0
-    !
-    energy = energy + eself + degauss
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE poisson_energy_density
-!--------------------------------------------------------------------
+!!--------------------------------------------------------------------
+!  SUBROUTINE poisson_energy_charges( core, charges, potential, energy )
+!!--------------------------------------------------------------------
+!    !
+!    IMPLICIT NONE
+!    !
+!    TYPE( electrostatic_core ), INTENT(IN) :: core
+!    TYPE( environ_charges ), INTENT(IN) :: charges
+!    TYPE( environ_density ), INTENT(IN) :: potential
+!    REAL( DP ), INTENT(OUT) :: energy
+!    !
+!    REAL( DP ) :: degauss, eself
+!    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_charges'
+!    !
+!    energy = 0.d0
+!    !
+!    IF ( core % use_qe_fft ) THEN
+!       !
+!       energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
+!       print*, 'poisson', energy, charges%charge
+!       !
+!    ELSE IF ( core % use_oned_analytic ) THEN
+!       !
+!       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+!       !
+!    ELSE
+!       !
+!       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+!       !
+!    ENDIF
+!    !
+!    ! Remove self-interaction and correct energy of Gaussian ions
+!    !
+!    eself = 0.D0
+!    degauss = 0.D0
+!    !
+!    print *, "tot charge " , charges%charge
+!    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
+!       !
+!       eself = charges % ions % selfenergy_correction * e2
+!       !
+!       IF ( core % use_qe_fft ) THEN
+!          !
+!          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+!             !
+!             degauss = 0.D0
+!             !
+!          ELSE
+!             !
+!             degauss = - charges % ions % quadrupole_correction * charges % charge * e2 * tpi &
+!                  & / charges % density % cell % omega
+!             !
+!          END IF
+!          !
+!       ENDIF
+!       !
+!       degauss = degauss ! we are missing the difference in interaction of electrons with gaussian vs. pc nuclei
+!       !
+!    ENDIF
+!    !
+!    print *, 'eself', eself, 'degauss', degauss
+!    energy = energy + eself + degauss
+!    !
+!    RETURN
+!    !
+!!--------------------------------------------------------------------
+!  END SUBROUTINE poisson_energy_charges
+!!--------------------------------------------------------------------
+!!--------------------------------------------------------------------
+!  SUBROUTINE poisson_energy_density( core, charges, potential, energy )
+!!--------------------------------------------------------------------
+!    !
+!    IMPLICIT NONE
+!    !
+!    TYPE( electrostatic_core ), INTENT(IN) :: core
+!    TYPE( environ_density ), INTENT(IN) :: charges
+!    TYPE( environ_density ), INTENT(IN) :: potential
+!    REAL( DP ), INTENT(OUT) :: energy
+!    !
+!    REAL( DP ) :: degauss, eself
+!    CHARACTER( LEN = 80 ) :: sub_name = 'poisson_energy_density'
+!    !
+!    energy = 0.D0
+!    !
+!    IF ( core % use_qe_fft ) THEN
+!       !
+!       energy = 0.5D0 * scalar_product_environ_density( charges, potential )
+!       !
+!    ELSE IF ( core % use_oned_analytic ) THEN
+!       !
+!       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+!       !
+!    ELSE
+!       !
+!       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+!       !
+!    ENDIF
+!    !
+!    ! Remove self-interaction and correct energy of Gaussian ions
+!    ! WARNING: THESE CORRECTIONS ARE ONLY POSSIBLE WHEN INFORMATIONS
+!    ! ABOUT THE POINT-LIKE NUCLEI ARE PASSED
+!    !
+!    eself = 0.D0
+!    !
+!    degauss = 0.D0
+!    !
+!    energy = energy + eself + degauss
+!    !
+!    RETURN
+!    !
+!!--------------------------------------------------------------------
+!  END SUBROUTINE poisson_energy_density
+!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
 END MODULE problem_poisson
 !--------------------------------------------------------------------

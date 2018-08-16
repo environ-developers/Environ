@@ -206,75 +206,169 @@ CONTAINS
   END SUBROUTINE calc_velectrostatic
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE calc_eelectrostatic( setup, charges, potential, energy )
+  SUBROUTINE calc_eelectrostatic( core, charges, potential, energy, add_environment )
 !--------------------------------------------------------------------
-    !
-    USE problem_poisson,       ONLY : poisson_energy
-    USE problem_generalized,   ONLY : generalized_energy
-    USE problem_pb,            ONLY : pb_energy
+!    !
+!    USE problem_poisson,       ONLY : poisson_energy
+!    USE problem_generalized,   ONLY : generalized_energy
+!    USE problem_pb,            ONLY : pb_energy
     !
     IMPLICIT NONE
     !
-    TYPE( electrostatic_setup ), INTENT(IN) :: setup
+    TYPE( electrostatic_core ), TARGET, INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
+    LOGICAL, OPTIONAL, INTENT(IN) :: add_environment
     REAL( DP ), INTENT(OUT) :: energy
     !
+    REAL( DP ) :: degauss, eself
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_eelectrostatic'
     !
     CALL start_clock ('calc_eelect')
     !
-    ! ... Select the right expression
+    ! Aliases and sanity checks
     !
-    SELECT CASE ( setup % problem )
+    IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
+         & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
+    !
+    energy = 0.D0
+    eself = 0.D0
+    degauss = 0.D0
+    !
+    ! Electrons and nuclei
+    ! 
+    IF ( core % use_qe_fft ) THEN
        !
-    CASE ( 'poisson' )
+       energy = energy + 0.5D0 * scalar_product_environ_density( charges%density, potential )
+       degauss = degauss + charges % charge
        !
-       IF ( setup % core % need_correction ) THEN
-          IF ( setup % core % correction % type .EQ. 'gcs' ) THEN
-             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
-                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-             CALL pb_energy( setup % core, charges, potential, energy )
-          ELSE
-             CALL poisson_energy( setup % core, charges, potential, energy )
-          ENDIF
-       ELSE
-          CALL poisson_energy( setup % core, charges, potential, energy )
+    ELSE IF ( core % use_oned_analytic ) THEN
+       !
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+       !
+    ELSE
+       !
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
+       !
+    ENDIF
+    ! 
+    !  Include environment contributions
+    !
+    IF ( PRESENT(add_environment) .AND. add_environment ) THEN 
+       !
+       ! External charges
+       ! 
+       IF ( charges % include_externals ) THEN
+          !
+          energy = energy + 0.5D0 * scalar_product_environ_density( charges%externals%density, potential )
+          degauss = degauss + charges % externals % charge
+          !
        END IF
        !
-    CASE ( 'generalized' )
+       ! Polarization charge
        !
-       IF ( .NOT. ASSOCIATED( charges%dielectric ) ) &
-            CALL errore( sub_name, 'missing details of dielectric medium', 1 )
-       !
-       IF ( setup % core % need_correction ) THEN
-          IF ( setup % core % correction % type .EQ. 'gcs' ) THEN
-             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
-                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-             CALL pb_energy( setup % core, charges, potential, energy )
-          ELSE
-             CALL generalized_energy( setup % core, charges, potential, energy )
-          ENDIF
-       ELSE
-          CALL generalized_energy( setup % core, charges, potential, energy )
+       IF ( charges % include_dielectric ) THEN
+          ! 
+          degauss = degauss + charges % dielectric % charge * 0.5D0 
+          !
        END IF
        !
-    CASE ( 'pb', 'modpb', 'linpb', 'linmodpb' )
+       ! Electrolyte charge 
        !
-       IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
-            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+       IF ( charges % include_electrolyte ) THEN
+          ! NOTE: electrolyte electrostatic interaction should be negative
+          energy = energy - 0.5D0 * scalar_product_environ_density( charges%electrolyte%density, potential )
+          degauss = degauss + charges % electrolyte % charge 
+          !
+       END IF
        !
-       CALL pb_energy( setup % core, charges, potential, energy )
+    END IF
+    !
+    ! Adding correction for point-like nuclei: only affects simulations of charged
+    ! systems, it does not affect forces, but shift the energy depending on the
+    ! fictitious Gaussian spread of the nuclei
+    !
+    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
        !
-    CASE DEFAULT
+       ! Compute spurious self-polarization energy
        !
-       CALL errore( sub_name, 'unexpected problem keyword', 1 )
+       eself = charges % ions % selfenergy_correction * e2
        !
-    END SELECT
+       IF ( core % use_qe_fft ) THEN
+          !
+          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+             !
+             degauss = 0.D0
+             !
+          ELSE 
+             !
+             degauss = - degauss * charges % ions % quadrupole_correction * e2 * tpi &
+                  & / charges % density % cell % omega
+             !
+          ENDIF
+          !
+       ENDIF
+       !
+    ENDIF
+    !
+    energy = energy + eself + degauss
     !
     CALL stop_clock ('calc_eelect')
     !
     RETURN
+!!!!!
+!    !
+!    ! ... Select the right expression
+!    !
+!    SELECT CASE ( setup % problem )
+!       !
+!    CASE ( 'poisson' )
+!       !
+!       IF ( setup % core % need_correction ) THEN
+!          IF ( setup % core % correction % type .EQ. 'gcs' ) THEN
+!             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+!                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+!             CALL pb_energy( setup % core, charges, potential, energy )
+!          ELSE
+!             CALL poisson_energy( setup % core, charges, potential, energy )
+!          ENDIF
+!       ELSE
+!          CALL poisson_energy( setup % core, charges, potential, energy )
+!       END IF
+!       !
+!    CASE ( 'generalized' )
+!       !
+!       IF ( .NOT. ASSOCIATED( charges%dielectric ) ) &
+!            CALL errore( sub_name, 'missing details of dielectric medium', 1 )
+!       !
+!       IF ( setup % core % need_correction ) THEN
+!          IF ( setup % core % correction % type .EQ. 'gcs' ) THEN
+!             IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+!                  CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+!             CALL pb_energy( setup % core, charges, potential, energy )
+!          ELSE
+!             CALL generalized_energy( setup % core, charges, potential, energy )
+!          ENDIF
+!       ELSE
+!          CALL generalized_energy( setup % core, charges, potential, energy )
+!       END IF
+!       !
+!    CASE ( 'pb', 'modpb', 'linpb', 'linmodpb' )
+!       !
+!       IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+!            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
+!       !
+!       CALL pb_energy( setup % core, charges, potential, energy )
+!       !
+!    CASE DEFAULT
+!       !
+!       CALL errore( sub_name, 'unexpected problem keyword', 1 )
+!       !
+!    END SELECT
+!    !
+!    CALL stop_clock ('calc_eelect')
+!    !
+!    RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE calc_eelectrostatic

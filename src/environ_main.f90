@@ -230,14 +230,15 @@ CONTAINS
        deenviron = deenviron - &
             & scalar_product_environ_density(electrons%density,velectrostatic)
        !
-       IF ( lexternals ) CALL update_environ_charges( charges, add_externals=lexternals )
-       !
-       CALL calc_eelectrostatic( outer, charges, velectrostatic, eelectrostatic )
+!       IF ( lexternals ) CALL update_environ_charges( charges, add_externals=lexternals )
+!       !
+       CALL calc_eelectrostatic( outer, charges, velectrostatic, eelectrostatic, &
+                                 add_environment=.true. )
        !
        eelectrostatic = eelectrostatic - ereference
        !
-       IF ( lexternals ) CALL update_environ_charges( charges )
-       !
+!       IF ( lexternals ) CALL update_environ_charges( charges )
+!       !
     END IF
     !
     IF ( lsoftcavity ) deenviron = deenviron - &
