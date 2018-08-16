@@ -71,7 +71,6 @@ CONTAINS
     REAL( DP ) :: edummy, cdummy
     REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: rhoaux, vaux
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_direct_charges'
-    LOGICAL :: linearized = .FALSE.
     !
     ! Aliases and sanity checks
     !
@@ -110,13 +109,10 @@ CONTAINS
           CALL calc_vperiodic( core%correction%oned_analytic, charges%density, potential )
           !
           !
-       CASE ( 'gcs', 'lgcs' )
-          IF (( TRIM( ADJUSTL( core%correction%type ) ) ) == 'lgcs') THEN
-            linearized = .TRUE.
-          ENDIF
+       CASE ( 'gcs' )
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_vgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, potential, linearized )
+          CALL calc_vgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, potential )
           !
        CASE DEFAULT
           !
@@ -148,7 +144,6 @@ CONTAINS
     REAL( DP ) :: edummy, cdummy
     REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: rhoaux, vaux
     CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density', llab
-    LOGICAL :: linearized = .FALSE.
     !
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
@@ -193,14 +188,11 @@ CONTAINS
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges, local )
           !
-       CASE ( 'gcs', 'lgcs' )
-          IF (( TRIM( ADJUSTL( core%correction%type ) ) ) == 'lgcs') THEN
-            linearized = .TRUE.
-          ENDIF
+       CASE ( 'gcs' )
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_vgcs( core%correction%oned_analytic, electrolyte, charges, local, linearized )
+          CALL calc_vgcs( core%correction%oned_analytic, electrolyte, charges, local )
           !
        CASE DEFAULT
           !
@@ -255,7 +247,7 @@ CONTAINS
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges%density, gradient )
           !
-       CASE ( 'gcs', 'lgcs' )
+       CASE ( 'gcs' )
           !
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
@@ -309,7 +301,7 @@ CONTAINS
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges, gradient )
           !
-       CASE ( 'gcs', 'lgcs' )
+       CASE ( 'gcs' )
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)

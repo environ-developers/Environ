@@ -482,8 +482,8 @@ MODULE environ_input
         ! dimensionality of the simulation cell
         ! periodic boundary conditions on 3/2/1/0 sides of the cell
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
-        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(4)
-        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs', 'lgcs' /
+        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(3)
+        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
         INTEGER :: pbc_axis = 3
@@ -1481,6 +1481,7 @@ CONTAINS
          IF (solver == 'none' ) solver = 'cg'
        ELSE
          IF (solver == 'none' ) solver = 'iterative'
+         IF (auxiliary == 'none' ) auxiliary = 'full'
        END IF
     ELSE
        IF (problem == 'none') problem = 'poisson'

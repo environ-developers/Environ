@@ -223,14 +223,14 @@ CONTAINS
        deenviron = deenviron + &
             & scalar_product_environ_density(electrons%density,vreference)
        !
-       CALL calc_eelectrostatic( reference, charges, vreference, ereference )
+       CALL calc_eelectrostatic( reference%core, charges, vreference, ereference )
        !
        deenviron = deenviron - &
             & scalar_product_environ_density(electrons%density,velectrostatic)
        !
 !       IF ( lexternals ) CALL update_environ_charges( charges, add_externals=lexternals )
 !       !
-       CALL calc_eelectrostatic( outer, charges, velectrostatic, eelectrostatic, &
+       CALL calc_eelectrostatic( outer%core, charges, velectrostatic, eelectrostatic, &
                                  add_environment=.true. )
        !
        eelectrostatic = eelectrostatic - ereference

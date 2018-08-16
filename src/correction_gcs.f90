@@ -110,7 +110,7 @@ CONTAINS
     !! value of the electric field at xstern, and k is a quantity that depends on the
     !! electrolyte.
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_vgcs( oned_analytic, electrolyte, charges, potential, linearized )
+  SUBROUTINE calc_vgcs( oned_analytic, electrolyte, charges, potential )
 !---------------------------------------------------------------------------
     IMPLICIT NONE
     !
@@ -118,7 +118,6 @@ CONTAINS
     TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
-    LOGICAL, INTENT(IN) :: linearized
     !
     INTEGER, POINTER :: nnr
     TYPE( environ_cell ), POINTER :: cell
@@ -219,7 +218,7 @@ CONTAINS
     !lin_e = SQRT(permittivity)
     lin_e = 1.D0
     lin_c = -1.D0 * ez * lin_e / lin_k * EXP(lin_k * ABS(xstern) / lin_e)
-    IF ( linearized ) THEN
+    IF ( electrolyte % linearized ) THEN
       vstern = lin_c * EXP(-1.D0 * lin_k * xstern / lin_e)
     ENDIF
     
@@ -247,7 +246,7 @@ CONTAINS
     ! ... Compute the analytic potential and charge
     !
     v = v - vbound + vstern
-    IF ( linearized ) THEN
+    IF ( electrolyte % linearized ) THEN
       DO i = 1, nnr
         IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           vtmp = 2.D0 * lin_c * EXP( -1.D0 * lin_k * ABS(axis(1,i)) / lin_e)
