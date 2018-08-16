@@ -263,6 +263,7 @@ CONTAINS
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
+    WRITE(environ_unit, *) "electrolyte_distance: ",electrolyte_distance
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_electrolyte_ntyp, &
             & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, & 
@@ -277,6 +278,7 @@ CONTAINS
     !
     ! Set the parameters of the semiconductor
     !
+    WRITE(environ_unit, *)"sc_distance: ",sc_distance
     IF ( lsemiconductor ) THEN
        CALL init_environ_semiconductor_first( temperature, sc_permittivity, &
            & sc_carrier_density , sc_distance, sc_spread, system,semiconductor)

@@ -15,7 +15,7 @@ MODULE correction_ms
   !
   USE environ_types
   USE electrostatic_types
-  USE environ_output
+  USE environ_output,    ONLY : environ_unit
   USE environ_base,      ONLY : e2
   !
   IMPLICIT NONE
@@ -109,6 +109,8 @@ CONTAINS
     !   convert carrier density to units of (bohr)^-3
     carrier_density = carrier_density *6.448D24
     !
+    WRITE( environ_unit, * )"xstern: ",xstern
+    WRITE( environ_unit, * )"carrier density: ",carrier_density
     ! ... Set Boltzmann factors
     !
     kbt = semiconductor % temperature * k_boltzmann_ry
@@ -140,10 +142,14 @@ CONTAINS
     ! ... Compute the physical properties of the interface
     !
     !zion = ABS(zion)
+    WRITE( environ_unit, *)"charge: ",tot_charge
     ez = - tpi * e2 * tot_charge / area  / permittivity !in units of Ry/bohr 
+    WRITE( environ_unit, * )"electric field: ",ez
     fact = permittivity /tpi / e2 /2.D0 /carrier_density
+    WRITE(  environ_unit, *)"Prefactor: ",fact
     arg = fact* (e2**2.D0)
-    vms =  kbt + arg
+    vms =  arg ! +kbt
+    WRITE ( environ_unit, * )"vms: ",vms
     !
     vbound = 0.D0
     icount = 0
@@ -169,7 +175,9 @@ CONTAINS
     !
     v = v - vbound + vms
     DO i = 1, nnr
-       !
+       !IF MOD(i,15) .EQ. 0 THEN
+       WRITE(environ_unit,*)axis(1,i)
+       !ENDIF
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           !
           ! ... Gouy-Chapmann-Stern analytic solution on the outside
@@ -188,9 +196,16 @@ CONTAINS
     !
     CALL destroy_environ_density(local)
     !
-    CALL stop_clock ('calc_vgcs')
+    CALL stop_clock ('calc_vms')
     !
+
+
+
+
     RETURN
+
+
+
     !
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_vms

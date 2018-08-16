@@ -179,7 +179,6 @@ MODULE environ_input
         REAL(DP) :: sc_carrier_density = 0.D0
         ! conncentration fo charge carriers within the semiconductor
         ! In units of (cm^-3)
-
 !
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
@@ -362,9 +361,9 @@ MODULE environ_input
 ! Mott Schottky boundary (system parameters
 !
         REAL(DP) :: sc_distance = 0.D0
-        ! distance from the system where the electrolyte boundary starts
+        ! distance from the system where the mott schottky boundary starts
         REAL(DP) :: sc_spread = 0.5D0
-        ! spread of the interfaces for the electrolyte boundary
+        ! spread of the interfaces for the mott schottky boundary
  
         NAMELIST /boundary/                      &
              solvent_mode,                       &
@@ -690,6 +689,8 @@ CONTAINS
     !
     ! ... Set predefined envinron_types, also according to the boundary
     !
+    !WRITE(environ_unit,*)"electrolyte distance : ",electrolyte_distance
+    !WRITE(environ_unit,*)"sc_distance: ",sc_distance
     CALL set_environ_type()
     !
     ! ... Fix some &ELECTROSTATIC defaults depending on &ENVIRON and &BOUNDARY
@@ -804,6 +805,9 @@ CONTAINS
     !
     electrolyte_distance = 0.D0
     electrolyte_spread = 0.5D0
+    !
+    sc_distance = 0.D0
+    sc_spread = 0.5D0
     !
     electrolyte_rhomax = 0.005D0
     electrolyte_rhomin = 0.0001D0
@@ -946,6 +950,9 @@ CONTAINS
     !
     CALL mp_bcast( electrolyte_distance,             ionode_id, comm )
     CALL mp_bcast( electrolyte_spread,               ionode_id, comm )
+    !
+    CALL mp_bcast( sc_distance,             ionode_id, comm )
+    CALL mp_bcast( sc_spread,               ionode_id, comm )
     !
     CALL mp_bcast( electrolyte_rhomax,               ionode_id, comm )
     CALL mp_bcast( electrolyte_rhomin,               ionode_id, comm )
@@ -1166,7 +1173,13 @@ CONTAINS
          CALL errore( sub_name,' electrolyte_alpha out of range ', 1 )
     IF( electrolyte_softness <= 0.0_DP ) &
          CALL errore( sub_name,' electrolyte_softness out of range ', 1 )
+    ! semiconductor checks
+    IF( sc_distance < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_distance out of range ', 1 )
+    IF( sc_spread <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_spread out of range ', 1 )
     !
+
     allowed = .FALSE.
     DO i = 1, SIZE( boundary_core_allowed )
        IF( TRIM(boundary_core) == boundary_core_allowed(i) ) allowed = .TRUE.
@@ -1322,6 +1335,8 @@ CONTAINS
     IF ( env_pressure .NE. 0.D0 ) lboundary = .TRUE.
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
+    IF ( sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0 ) &
+         &  lboundary = .TRUE.
     !
     IF ( solvent_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
        IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'

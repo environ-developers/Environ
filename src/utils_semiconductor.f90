@@ -86,6 +86,7 @@ CONTAINS
     semiconductor%update = .FALSE.
 
     !semiconductor%temperature = 300
+    !CALL create_environ_function( semiconductor%simple, label )
     CALL create_environ_density( semiconductor%density, label )
     semiconductor%charge = 0.D0
     !
@@ -104,7 +105,7 @@ CONTAINS
     !
     REAL( DP ), INTENT(IN) :: temperature, sc_permittivity
     REAL( DP ), INTENT(IN) :: sc_carrier_density, sc_distance, sc_spread
-    TYPE( environ_system ) , INTENT(IN) :: system
+    TYPE( environ_system ), TARGET, INTENT(IN) :: system
     TYPE( environ_semiconductor ), INTENT(INOUT) :: semiconductor
     !
     semiconductor%temperature = temperature
@@ -112,14 +113,12 @@ CONTAINS
     semiconductor%carrier_density = sc_carrier_density
 
     semiconductor%simple%type = 4
-    semiconductor%simple%pos = system%pos
+    semiconductor%simple%pos => system%pos
     semiconductor%simple%volume = 1.D0
     semiconductor%simple%dim = system%dim
     semiconductor%simple%axis = system%axis
     semiconductor%simple%width = sc_distance
     semiconductor%simple%spread = sc_spread
-
-
 
 
     semiconductor%initialized = .FALSE.
