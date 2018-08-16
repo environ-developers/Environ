@@ -2,7 +2,6 @@
     calculation = 'scf',
     tprnfor = .true.,
     forc_conv_thr = 0.001,
-    pseudo_dir = '/home/quinn/Pseudos/SSSP_precision_pseudos'
  /
  &SYSTEM
     nspin = 1,
@@ -10,9 +9,9 @@
     nat = 2,
     occupations = 'smearing',
     ibrav = 0,
-    degauss = 0.01,
+    degauss = 0.02,
     smearing = 'marzari-vanderbilt',
-    tot_charge = 0,
+    tot_charge = 0.003,
     ntyp = 1,
     ecutrho = 350,
  /

@@ -3,7 +3,7 @@
     environ_thr = 0.1,
     system_axis = 3,
     system_dim = 2,
-    env_static_permittivity = 80,
+    env_static_permittivity = 11,
     !env_electrolyte_ntyp = 2,
     temperature = 300,
     !electrolyte_linearized = .false.,
@@ -15,6 +15,8 @@
     sc_carrier_density = 1.D17,
 /
  &BOUNDARY
+    sc_spread = 0.001,
+    sc_distance = 10.2137    
     electrolyte_spread = 0.001,
     electrolyte_distance = 20.2137,
     electrolyte_mode = 'system',

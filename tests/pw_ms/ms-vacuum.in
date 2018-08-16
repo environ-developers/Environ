@@ -1,5 +1,5 @@
  &ENVIRON
-    verbose = 1,
+    verbose = 3,
     environ_thr = 0.1,
     system_axis = 3,
     system_dim = 2,
@@ -11,9 +11,11 @@
     !zion(2) = -1,
     !cion(2) = 0.01 ,
     sc_permittivity = 11,
-    sc_carrier_density = 1.D17,   
+    sc_carrier_density = 1.D18,   
 /
  &BOUNDARY
+    sc_spread = 0.001,
+    sc_distance = 10.2137
     electrolyte_spread = 0.001,
     electrolyte_distance = 20.2137,
     electrolyte_mode = 'system',
@@ -22,7 +24,7 @@
     problem = 'poisson'
     solver = 'direct'
     inner_solver = 'direct'
-    pbc_correction = 'mott-schottky'
+    pbc_correction = 'ms'
     pbc_dim = 2                 
     pbc_axis = 3   
     tol = 1e-11,
