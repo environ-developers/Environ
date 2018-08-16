@@ -14,8 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains all control variables and stored variables
-! needed for the Environ calculation
+!> This module contains all control variables and stored variables
+!! needed for the Environ calculation
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)

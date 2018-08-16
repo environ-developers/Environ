@@ -25,9 +25,7 @@ MODULE correction_gcs
   PUBLIC :: calc_vgcs, calc_gradvgcs
   !
 CONTAINS
-!---------------------------------------------------------------------------
-  SUBROUTINE calc_vgcs( oned_analytic, electrolyte, charges, potential )
-!---------------------------------------------------------------------------
+    !  Subroutine: calc_vgcs
     !
     ! ... Given the total explicit charge, the value of the field at the boundary
     !     is obtained by Gauss's law
@@ -51,12 +49,76 @@ CONTAINS
     ! (6) vanalytic(z) = 4.D0 * kbt / zion * ACOTH( const * EXP( - z * fact * zion / kbt / 2.D0  ) )
     !     were the constant is determined by the condition that vanalytic(xskin) = vskin
     !
+    !> Function that calculates the Gouy-Chapman correction and adds it to the
+    !! potential.
+    !! 
+    !! Procedure is as follows:
+    !! -# execute parabolic correction
+    !! -# shift to fit open boundary conditions
+    !! -# add analytic solution outside stern boundary
+    !!
+    !! The following outlines the Gouy-Chapman correction for the non-linear case.
+    !!
+    !! Given the total explicit charge, the value of the field at the boundary
+    !! is obtained by Gauss's law
+    !! \f[
+    !!    E_z = \frac{-2\pi q}{A \epsilon_0}
+    !! \f]
+    !!
+    !! By integrating the Gouy-Chapman model one has a relation that links the derivative
+    !! of the potential (the field) to the value of the potential
+    !! \f[
+    !!    \frac{dv}{dz} = -E_z = f\sinh( v(x) z_d / 2k_BT )
+    !! \f]
+    !! where \f$z_d\f$ is the electrolyte charge and 
+    !! \f[
+    !!    f = \sqrt{\frac{ 32\pi c_d k_BT}{\epsilon_0}}
+    !! \f]
+    !!
+    !! By combining the equations for the electric field, one can derive the 
+    !! analytic charge from the knowledge of the potential at the boundary,
+    !! \f[
+    !!    Q_{\text{ext}} = \frac{f\epsilon_0 A}{2\pi}\sinh\right(\frac{v_s z_d}
+    !!    {2k_B T}\right)
+    !! \f]
+    !! where \f$v_s\f$ is vstern
+    !!
+    !! or one can compute the value of the potential at the interface corresponding 
+    !! to a certain explicit charge density,
+    !! \f[
+    !!    v_a = \frac{2 k_BT}{z_d} \sinh^{-1}(E_z / f)
+    !! \f]
+    !! where \f$v_a\f$ is the analytic value of vstern.
+    !!
+    !! Eventually, by integrating the equation for potential, the analytic form 
+    !! of the potential is found
+    !! \f[
+    !!    v(x) = \frac{4k_BT}{z_d}\coth(c \exp( -x f z_d / 2k_BT  ) )
+    !! \f]
+    !! where c is determined by the condition that v(xstern) = vstern
+    !!
+    !! For the linearized case, the analytic solution is calculated as follows:
+    !! 
+    !! The electric field can be calculated as in the non-linear case
+    !! 
+    !! The equation for the potential is
+    !! \f[
+    !!    v(x) = c \exp(-k\left|x\right|/\sqrt{\epsilon_0})
+    !! \f]
+    !!
+    !! where c is determined by relating the derivative of the potential with the
+    !! value of the electric field at xstern, and k is a quantity that depends on the
+    !! electrolyte.
+!---------------------------------------------------------------------------
+  SUBROUTINE calc_vgcs( oned_analytic, electrolyte, charges, potential, linearized )
+!---------------------------------------------------------------------------
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
+    LOGICAL, INTENT(IN) :: linearized
     !
     INTEGER, POINTER :: nnr
     TYPE( environ_cell ), POINTER :: cell
@@ -67,7 +129,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
-    REAL( DP ), POINTER :: cion, zion, permittivity, xstern
+    REAL( DP ), POINTER :: cion, permittivity, xstern
     REAL( DP ) :: kbt, invkbt
     !
     TYPE( environ_density ), TARGET :: local
@@ -75,10 +137,11 @@ CONTAINS
     !
     INTEGER :: i, icount
     REAL( DP ) :: ez, fact, vstern, const
-    REAL( DP ) :: dv, vbound
+    REAL( DP ) :: dv, vbound, zion
     REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: f1, f2
     REAL( DP ) :: area, vtmp
+    REAL( DP ) :: lin_k, lin_e, lin_c
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vgcs'
@@ -107,7 +170,7 @@ CONTAINS
     IF ( electrolyte % ntyp .NE. 2 ) &
          & CALL errore(sub_name,'Unexpected number of counterionic species, different from two',1)
     cion => electrolyte % ioncctype(1) % cbulk
-    zion => electrolyte % ioncctype(1) % z
+    zion = ABS(electrolyte % ioncctype(1) % z)
     permittivity => electrolyte%permittivity
     xstern => electrolyte%boundary%simple%width
     !
@@ -132,7 +195,6 @@ CONTAINS
     area = omega / axis_length
     !
     ! ... First apply parabolic correction
-    !
     fact = e2 * tpi / omega
     const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
     v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
@@ -141,9 +203,8 @@ CONTAINS
     !
     ! ... Compute the physical properties of the interface
     !
-    zion = ABS(zion)
-    ez = - tpi * e2 * tot_charge / area ! / permittivity
-    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
+    ez = - tpi * e2 * tot_charge / area !/ permittivity
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity )
     arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
@@ -151,17 +212,28 @@ CONTAINS
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
     const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
+    ! ... Compute linearized quantities
+    !
+    ! note that this is simplified due to same c_ion
+    lin_k = SQRT(electrolyte%k2)
+    !lin_e = SQRT(permittivity)
+    lin_e = 1.D0
+    lin_c = -1.D0 * ez * lin_e / lin_k * EXP(lin_k * ABS(xstern) / lin_e)
+    IF ( linearized ) THEN
+      vstern = lin_c * EXP(-1.D0 * lin_k * xstern / lin_e)
+    ENDIF
+    
     vbound = 0.D0
     icount = 0
     DO i = 1, nnr
-       !
-       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-          !
-          icount = icount + 1
-          vbound = vbound + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i)) - xstern)
-          !
-       ENDIF
-       !
+      !
+      IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+        !
+        icount = icount + 1
+        vbound = vbound + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i)) - xstern)
+        !
+      ENDIF
+      !
     ENDDO
     CALL mp_sum(icount,cell%comm)
     CALL mp_sum(vbound,cell%comm)
@@ -175,27 +247,36 @@ CONTAINS
     ! ... Compute the analytic potential and charge
     !
     v = v - vbound + vstern
-    DO i = 1, nnr
-       !
-       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-          !
-          ! ... Gouy-Chapmann-Stern analytic solution on the outside
-          !
-          arg = const * EXP( ABS(axis(1,i)) * f1 )
-          IF ( ABS(arg) .GT. 1.D0 ) THEN
-             acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-          ELSE
-             acoth = 0.D0
-          END IF
-          vtmp =  f2 * acoth
-          !
-          ! ... Remove source potential (linear) and add analytic one
-          !
-          v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
-          !
-       ENDIF
-       !
-    ENDDO
+    IF ( linearized ) THEN
+      DO i = 1, nnr
+        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          vtmp = 2.D0 * lin_c * EXP( -1.D0 * lin_k * ABS(axis(1,i)) / lin_e)
+          v(i) = v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern
+        ENDIF
+      ENDDO
+    ELSE
+      DO i = 1, nnr
+         !
+         IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+            !
+            ! ... Gouy-Chapmann-Stern analytic solution on the outside
+            !
+            arg = const * EXP( ABS(axis(1,i)) * f1 )
+            IF ( ABS(arg) .GT. 1.D0 ) THEN
+               acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+            ELSE
+               acoth = 0.D0
+            ENDIF
+            vtmp =  f2 * acoth
+            !
+            ! ... Remove source potential (linear) and add analytic one
+            !
+            v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
+            !
+         ENDIF
+         !
+      ENDDO
+    ENDIF
     !
     potential % of_r = potential % of_r + v
     !

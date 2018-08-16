@@ -14,18 +14,15 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_boundary
-!
-! derived data types.
-!
-! Environ_boundary contains all the specifications and the details of
-! the smooth interface between the QM and the continuum regions of the
-! simulation cell. The main interface function is stored in the %scaled
-! component, the type also stores boundary real-space derivatives (gradient,
-! laplacian, dsurface, hessian) and other quantities needed by Environ
-! modules.
+!> Module containing the main routines to handle environ_boundary
+!! derived data types.
+!!
+!! Environ_boundary contains all the specifications and the details of
+!! the smooth interface between the QM and the continuum regions of the
+!! simulation cell. The main interface function is stored in the %scaled
+!! component, the type also stores boundary real-space derivatives (gradient,
+!! laplacian, dsurface, hessian) and other quantities needed by Environ
+!! modules.
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_boundary

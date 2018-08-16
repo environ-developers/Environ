@@ -14,7 +14,7 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to initialize electrostatic-related variables
+!> Module to initialize electrostatic-related variables
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -34,6 +34,10 @@ MODULE electrostatic_init
   !
 CONTAINS
   !
+  !  Subroutine: set_electrostatic_base
+  !
+  !> Copies input variables read in input to global variables
+  !! kept in the electrostatic_base module
 !--------------------------------------------------------------------
   SUBROUTINE set_electrostatic_base                         &
        ( problem, tol, solver_type, auxiliary,              &
@@ -44,10 +48,6 @@ CONTAINS
        pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
        inner_maxstep, inner_mix )
 !--------------------------------------------------------------------
-    !
-    ! ... this routine copies input variables read in input
-    ! ... to global variables kept in the electrostatic_base module
-    !
     IMPLICIT NONE
     !
     CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
@@ -120,6 +120,11 @@ CONTAINS
           need_electrolyte = .TRUE.
           loned_analytic = .TRUE.
           local_type = 'gcs'
+       CASE ( 'lgcs' )
+          need_pbc_correction = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'lgcs'
        CASE DEFAULT
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT

@@ -14,14 +14,14 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main drivers to compute electrostatic contributions
-! to Kohn-Sham potential, total Energy and inter-atomic forces.
-!
-! The main inputs provided to the module are:
-!      - the setup of the electrostatic calculation
-!        (in an electrostatic_setup derived data type)
-!      - the charges and environment details
-!        (in an environ_charges derived data type)
+!> Module containing the main drivers to compute electrostatic contributions
+!! to Kohn-Sham potential, total Energy and inter-atomic forces.
+!!
+!! The main inputs provided to the module are:
+!!      - the setup of the electrostatic calculation
+!!        (in an electrostatic_setup derived data type)
+!!      - the charges and environment details
+!!        (in an environ_charges derived data type)
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -44,12 +44,14 @@ MODULE embedding_electrostatic
        & calc_felectrostatic
   !
 CONTAINS
+!
+!  Subroutine: calc_velectrostatic
+!
+!> Calculates the electrostatic embedding contribution to the
+!! Kohn-Sham potential
 !--------------------------------------------------------------------
   SUBROUTINE calc_velectrostatic( setup, charges, potential )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the electrostatic embedding contribution to the
-    !     Kohn-Sham potential
     !
     USE problem_poisson,       ONLY : poisson_direct
     USE problem_generalized,   ONLY : generalized_gradient
@@ -205,6 +207,10 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_velectrostatic
 !--------------------------------------------------------------------
+!  Subroutine: calc_eelectrostatic
+!
+!> Calculates the electrostatic embedding contribution to the
+!! energy
 !--------------------------------------------------------------------
   SUBROUTINE calc_eelectrostatic( core, charges, potential, energy, add_environment )
 !--------------------------------------------------------------------
@@ -373,14 +379,15 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_eelectrostatic
 !--------------------------------------------------------------------
+!  Subroutine: calc_felectrostatic
+!
+!> Calculates the electrostatic embedding contribution to the
+!! interatomic forces
 !--------------------------------------------------------------------
   SUBROUTINE calc_felectrostatic( setup, natoms, charges, forces )
 !--------------------------------------------------------------------
     !
     USE correction_periodic, ONLY : calc_fperiodic
-    !
-    ! ... Calculates the electrostatic embedding contribution to
-    !     interatomic forces
     !
     IMPLICIT NONE
     !

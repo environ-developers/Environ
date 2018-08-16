@@ -14,9 +14,9 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module provide output subroutines for Environ, including summary
-! of input parameters, timings, print of energy contributions, and print
-! subroutines for Environ derived data types
+!> This module provides output subroutines for Environ, including summary
+!! of input parameters, timings, print of energy contributions, and print
+!! subroutines for Environ derived data types
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -1229,14 +1229,14 @@ CONTAINS
 !----------------------------------------------------------------------
   END SUBROUTINE environ_print_potential_shift
 !----------------------------------------------------------------------
+!  Subroutine: environ_summary
+!
+!> Write out the main parameters of Environ calculations, summarizing
+!! the input keywords (some info also on internal vs input units).
+!! Called by summary.f90
 !----------------------------------------------------------------------
   SUBROUTINE environ_summary( )
 !----------------------------------------------------------------------
-    !
-    ! Write out the main parameters of Environ calculations,
-    ! summarizing the input keywords (some info also on internal
-    ! vs input units). Called by summary.f90
-    !
     USE environ_base,       ONLY : environ_thr, lsolvent, solvent,   &
                                    env_static_permittivity,          &
                                    env_optical_permittivity,         &
@@ -1340,13 +1340,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE environ_summary
 !--------------------------------------------------------------------
+!  Subroutine: environ_clock
+!
+!> Writes out the time informations of the Environ dependent
+!! calculations. Called by print_clock_pw.f90
 !--------------------------------------------------------------------
   SUBROUTINE environ_clock( passed_unit )
 !--------------------------------------------------------------------
-    !
-    ! Write out the time informations of the Environ dependent
-    ! calculations. Called by print_clock_pw.f90
-    !
     USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume, ltddfpt
     !
     IMPLICIT NONE

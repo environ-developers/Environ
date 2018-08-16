@@ -14,9 +14,9 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to compute an enthalpy functiona, defined as the quantum volume
-! of the system times the external pressure of the environment.
-! Original method developed in Cococcioni et al, PRL (2005)
+!> Module to compute an enthalpy functiona, defined as the quantum volume
+!! of the system times the external pressure of the environment.
+!! Original method developed in Cococcioni et al, PRL (2005)
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -38,12 +38,12 @@ MODULE embedding_volume
   PUBLIC :: calc_devolume_dboundary, calc_evolume
   !
 CONTAINS
+!  Subroutine: calc_devolume_dboundary
+!
+!> Calculates the PV contribution to the potential
 !--------------------------------------------------------------------
   SUBROUTINE calc_devolume_dboundary( pressure, boundary, de_dboundary )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the PV contribution to the potential
-    !
     IMPLICIT NONE
     !
     ! ... Declares variables
@@ -63,12 +63,12 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_devolume_dboundary
 !--------------------------------------------------------------------
+!  Subroutine: calc_evolume
+!
+!> Calculates the PV contribution to the energy
 !--------------------------------------------------------------------
   SUBROUTINE calc_evolume( pressure, boundary, evolume )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the PV contribution to the energy
-    !
     IMPLICIT NONE
     !
     ! ... Declares variables

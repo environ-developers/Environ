@@ -14,16 +14,13 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_functions
-!
-! derived data types.
-!
-! Environ_functions contains all the details of analytic functions needed
-! by Environ modules and defined on the three-dimensional real-space
-! domain, together with the routines to handle the derived data type and
-! to generate the functions from their parameters.
+!> Module containing the main routines to handle environ_functions
+!! derived data types.
+!!
+!! Environ_functions contains all the details of analytic functions needed
+!! by Environ modules and defined on the three-dimensional real-space
+!! domain, together with the routines to handle the derived data type and
+!! to generate the functions from their parameters.
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_functions

@@ -14,14 +14,15 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains the main drivers and routines to compute the
-! electrostatic potential that is the solution of a
-! generalized Poisson equation:
-!
-!      \nabla \cdot \epsilon (r) \nabla \phi = -4 \pi \rho
-!
-! Different algorithms (gradient descent on potential and iterative
-! on the polarization charge) are available and implemented.
+!> This module contains the main drivers and routines to compute the
+!! electrostatic potential that is the solution of a
+!! generalized Poisson equation:
+!! \f[
+!!      \nabla \cdot \epsilon (r) \nabla \phi = -4 \pi \rho
+!! \f]
+!!
+!! Different algorithms (gradient descent on potential and iterative
+!! on the polarization charge) are available and implemented.
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)

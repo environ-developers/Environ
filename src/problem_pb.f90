@@ -14,11 +14,13 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains the main drivers and routines to compute the
-! electrostatic potential that is the solution of the full
-! Poisson-Boltzmann equation, possibly in a dielectric medium:
-!
-! \nabla \cdot \epsilon (r) \nabla \phi = -4 \pi (\rho + \gamma \sum_i z_i c_i(\phi) )
+!> This module contains the main drivers and routines to compute the
+!! electrostatic potential that is the solution of the full
+!! Poisson-Boltzmann equation, possibly in a dielectric medium:
+!!
+!! \f[
+!!    \nabla \cdot \epsilon (r) \nabla \phi = -4 \pi (\rho + \gamma \sum_i z_i c_i(\phi) )
+!! \f]
 !
 ! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Oliviero Andreussi (Department of Physics, UNT)

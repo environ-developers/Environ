@@ -14,18 +14,16 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module used to store global electrostatic-related variables and parameters
+!> Module used to store global electrostatic-related variables and parameters.
+!! Contains all the main variables needed for the electrostatic solvers.
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
-!
+!  
 !----------------------------------------------------------------------------
 MODULE electrostatic_base
 !----------------------------------------------------------------------------
-  !
-  ! ... this module contains all the main variables needed for the
-  ! ... electrostatic solvers.
   !
   USE electrostatic_types
   !

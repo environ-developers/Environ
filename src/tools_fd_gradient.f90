@@ -15,7 +15,7 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to compute finite-differences gradients on dense real space grid
+!> Module to compute finite-differences gradients on dense real space grid
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !

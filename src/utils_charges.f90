@@ -14,16 +14,13 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_charges
-!
-! derived data types.
-!
-! Environ_charges are used as wrappers for electrostatic charges to be
-! passed to electrostatic drivers. Charges may include source charges
-! from the QM system (electrons and ions), but also externally-defined
-! charges, dielectric polarization charges and electrolyte charges.
+!> Module containing the main routines to handle environ_charges
+!! derived data types.
+!!
+!! Environ_charges are used as wrappers for electrostatic charges to be
+!! passed to electrostatic drivers. Charges may include source charges
+!! from the QM system (electrons and ions), but also externally-defined
+!! charges, dielectric polarization charges and electrolyte charges.
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_charges

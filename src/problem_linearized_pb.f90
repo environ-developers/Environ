@@ -14,11 +14,13 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains the main drivers and routines to compute the
-! electrostatic potential that is the solution of a
-! linearized Poisson-Boltzmann equation, possibly in a dielectric medium:
-!
-! ( \nabla \cdot \epsilon (r) \nabla + \gamma (r) * k^2 ) \phi = -4 \pi \rho
+!> This module contains the main drivers and routines to compute the
+!! electrostatic potential that is the solution of a
+!! linearized Poisson-Boltzmann equation, possibly in a dielectric medium:
+!!
+!! \f[
+!!    ( \nabla \cdot \epsilon (r) \nabla + \gamma (r) * k^2 ) \phi = -4 \pi \rho
+!! \f]
 !
 ! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Oliviero Andreussi (Department of Physics, UNT)

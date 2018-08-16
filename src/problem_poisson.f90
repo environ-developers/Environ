@@ -14,13 +14,15 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains the main drivers and routines to compute the
-! electrostatic potential that is the solution of a Poisson equation:
-!
-!      \nabla ^2 \phi = -4 \pi \rho
-!
-! At this time the subroutines are mostly wrappers for the FFT
-! solver of Quantum ESPRESSO.
+!> This module contains the main drivers and routines to compute the
+!! electrostatic potential that is the solution of a Poisson equation:
+!!
+!! \f[ 
+!!      \nabla ^2 \phi = -4 \pi \rho
+!! \f]
+!!
+!! At this time the subroutines are mostly wrappers for the FFT
+!! solver of Quantum ESPRESSO.
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
@@ -33,6 +35,7 @@ MODULE problem_poisson
   USE correction_periodic
   USE correction_gcs
   USE environ_base, ONLY : e2, oldenviron
+  USE environ_output
   !
   IMPLICIT NONE
   !
@@ -68,6 +71,7 @@ CONTAINS
     REAL( DP ) :: edummy, cdummy
     REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: rhoaux, vaux
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_direct_charges'
+    LOGICAL :: linearized = .FALSE.
     !
     ! Aliases and sanity checks
     !
@@ -105,11 +109,14 @@ CONTAINS
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges%density, potential )
           !
-       CASE ( 'gcs' )
           !
+       CASE ( 'gcs', 'lgcs' )
+          IF (( TRIM( ADJUSTL( core%correction%type ) ) ) == 'lgcs') THEN
+            linearized = .TRUE.
+          ENDIF
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_vgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, potential )
+          CALL calc_vgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, potential, linearized )
           !
        CASE DEFAULT
           !
@@ -140,7 +147,8 @@ CONTAINS
     !
     REAL( DP ) :: edummy, cdummy
     REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: rhoaux, vaux
-    CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density'
+    CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density', llab
+    LOGICAL :: linearized = .FALSE.
     !
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
@@ -149,6 +157,8 @@ CONTAINS
     ! ... Using a local variable for the potential because the
     !     routine may be called with the same argument for charges and potential
     !
+    llab = 'vloc'
+    CALL create_environ_density( local, llab )
     CALL init_environ_density( cell, local )
     !
     IF ( core % use_qe_fft ) THEN
@@ -183,11 +193,14 @@ CONTAINS
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges, local )
           !
-       CASE ( 'gcs' )
+       CASE ( 'gcs', 'lgcs' )
+          IF (( TRIM( ADJUSTL( core%correction%type ) ) ) == 'lgcs') THEN
+            linearized = .TRUE.
+          ENDIF
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-          CALL calc_vgcs( core%correction%oned_analytic, electrolyte, charges, local )
+          CALL calc_vgcs( core%correction%oned_analytic, electrolyte, charges, local, linearized )
           !
        CASE DEFAULT
           !
@@ -242,7 +255,7 @@ CONTAINS
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges%density, gradient )
           !
-       CASE ( 'gcs' )
+       CASE ( 'gcs', 'lgcs' )
           !
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
@@ -296,7 +309,7 @@ CONTAINS
           !
           CALL calc_gradvperiodic( core%correction%oned_analytic, charges, gradient )
           !
-       CASE ( 'gcs' )
+       CASE ( 'gcs', 'lgcs' )
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)

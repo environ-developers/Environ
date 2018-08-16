@@ -14,10 +14,10 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains the main control and parameter variables
-! from QE Modules, the definitions of Environ derived data types
-! and the routines to handle the basic derived data types
-! (cell, density, gradient, hessian, electrons, system)
+!> This module contains the main control and parameter variables
+!! from QE Modules, the definitions of Environ derived data types
+!! and the routines to handle the basic derived data types
+!! (cell, density, gradient, hessian, electrons, system)
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -62,23 +62,23 @@ MODULE environ_types
   !
   TYPE environ_density
      !
-     ! Optionally have an associated logical status
+     !> Optionally have an associated logical status
      !
      LOGICAL :: update = .FALSE.
      !
-     ! Optionally have an associated label, used for printout and debugs
+     !> Optionally have an associated label, used for printout and debugs
      !
      CHARACTER( LEN=80 ) :: label = ' '
      !
-     ! Each quantity in real-space is associated with its definition domain
+     !> Each quantity in real-space is associated with its definition domain
      !
      TYPE( environ_cell ), POINTER :: cell => NULL()
      !
-     ! The quantity in real-space, local to each processor
+     !> The quantity in real-space, local to each processor
      !
      REAL( DP ), DIMENSION(:), ALLOCATABLE :: of_r
      !
-     ! Multipole moments of the quantity
+     !> Multipole moments of the quantity
      !
      REAL( DP ) :: charge
      !
@@ -90,19 +90,19 @@ MODULE environ_types
   !
   TYPE environ_gradient
      !
-     ! Optionally have an associated logical status
+     !> Optionally have an associated logical status
      !
      LOGICAL :: update = .FALSE.
      !
-     ! Optionally have an associated label, used for printout and debugs
+     !> Optionally have an associated label, used for printout and debugs
      !
      CHARACTER( LEN=80 ) :: label = ' '
      !
-     ! Each quantity in real-space is associated with its definition domain
+     !> Each quantity in real-space is associated with its definition domain
      !
      TYPE( environ_cell ), POINTER :: cell => NULL()
      !
-     ! The quantity in real-space, local to each processor
+     !> The quantity in real-space, local to each processor
      !
      REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: of_r
      !
@@ -112,19 +112,19 @@ MODULE environ_types
   !
   TYPE environ_hessian
      !
-     ! Optionally have an associated logical status
+     !> Optionally have an associated logical status
      !
      LOGICAL :: update = .FALSE.
      !
-     ! Optionally have an associated label, used for printout and debugs
+     !> Optionally have an associated label, used for printout and debugs
      !
      CHARACTER( LEN=80 ) :: label = ' '
      !
-     ! Each quantity in real-space is associated with its definition domain
+     !> Each quantity in real-space is associated with its definition domain
      !
      TYPE( environ_cell ), POINTER :: cell => NULL()
      !
-     ! The quantity in real-space, local to each processor
+     !> The quantity in real-space, local to each processor
      !
      REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: of_r
      !
@@ -271,11 +271,11 @@ MODULE environ_types
   !
   TYPE environ_boundary
      !
-     ! Boundary label
+     !> Boundary label
      !
      CHARACTER (LEN=80) :: label
      !
-     ! Choice of the interface
+     !> Choice of the interface
      !
      CHARACTER (LEN=80) :: mode
      !
@@ -300,8 +300,8 @@ MODULE environ_types
      LOGICAL :: need_system
      TYPE( environ_system ), POINTER :: system
      !
-     ! scaled switching function of interface
-     ! varying from 1 (QM region) to 0 (environment region)
+     !> scaled switching function of interface
+     !! varying from 1 (QM region) to 0 (environment region)
      !
      TYPE( environ_density ) :: scaled
      !
@@ -368,17 +368,17 @@ MODULE environ_types
      TYPE( environ_gradient ) :: gradbackground
      TYPE( environ_density ) :: laplbackground
      !
-     ! Boundary is the pointer to the object controlling
-     ! the interface between the QM and the continuum region
+     !> Boundary is the pointer to the object controlling
+     !! the interface between the QM and the continuum region
      !
      TYPE( environ_boundary ), POINTER :: boundary
      !
-     ! The dielectric function over space is built from the
-     ! boundary of the continuum environment and the basic dielectric
-     ! properties of space
+     !> The dielectric function over space is built from the
+     !! boundary of the continuum environment and the basic dielectric
+     !! properties of space
      !
      TYPE( environ_density ) :: epsilon
-     TYPE( environ_density ) :: depsilon ! This is needed in the extra term of kohn-sham/forces
+     TYPE( environ_density ) :: depsilon !> This is needed in the extra term of kohn-sham/forces
      !
      ! Quantities related to the dielectric permittivity and
      ! thay may be needed by the different solvers
@@ -406,11 +406,11 @@ MODULE environ_types
   TYPE environ_ioncctype
      !
      INTEGER :: index
-     REAL( DP ) :: cbulk   ! bulk concentration
-     REAL( DP ) :: z       ! charge
+     REAL( DP ) :: cbulk   !> bulk concentration
+     REAL( DP ) :: z       !> charge
      !
-     TYPE( environ_density ) :: c ! local concentration
-     TYPE( environ_density ) :: cfactor ! exp(-z\phi\beta) or 1 - z\phi\beta
+     TYPE( environ_density ) :: c !> local concentration
+     TYPE( environ_density ) :: cfactor !> exp(-z\phi\beta) or 1 - z\phi\beta
      !
      TYPE( environ_density )   :: potential
      !
@@ -456,9 +456,6 @@ MODULE environ_types
   END TYPE environ_electrolyte
   !
 CONTAINS
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- CELL ---------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
 !--------------------------------------------------------------------
@@ -515,9 +512,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE update_environ_cell
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- DENSITY ------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_density(density,local_label)
 !--------------------------------------------------------------------
@@ -794,9 +788,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_density
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- GRADIENT -----------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_gradient(gradient,label)
 !--------------------------------------------------------------------
@@ -988,9 +979,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION scalar_product_environ_gradient_density
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- HESSIAN ------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_hessian(hessian,label)
 !--------------------------------------------------------------------
@@ -1123,9 +1111,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_hessian
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- ELECTRONS ----------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_electrons(electrons)
 !--------------------------------------------------------------------
@@ -1242,9 +1227,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_electrons
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- SYSTEM -------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_system(system)
 !--------------------------------------------------------------------
@@ -1288,13 +1270,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE init_environ_system
 !--------------------------------------------------------------------
+!  Subroutine: update_environ_system
+!
+!> Given the system definition compute position (centre of charge)
+!! and width (maximum distance from centre) of the system.
 !--------------------------------------------------------------------
   SUBROUTINE update_environ_system( system )
 !--------------------------------------------------------------------
-    !
-    ! Given the system definition compute position (center of charge)
-    ! and width (maximum distance from center) of the system
-    !
     IMPLICIT NONE
     !
     TYPE( environ_system ), INTENT(INOUT) :: system
