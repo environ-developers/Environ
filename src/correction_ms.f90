@@ -75,8 +75,8 @@ CONTAINS
     !
     INTEGER :: i, icount
     REAL( DP ) :: ez, fact, vms
-    REAL( DP ) :: arg, const
-    REAL( DP ) :: area, vtmp, vbound
+    REAL( DP ) :: arg, const, depletion_length
+    REAL( DP ) :: area, vtmp, vbound, distance
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms'
@@ -107,7 +107,7 @@ CONTAINS
     xstern => semiconductor%simple%width
     
     !   convert carrier density to units of (bohr)^-3
-    carrier_density = carrier_density *6.448D24
+    carrier_density = carrier_density *1.25D-25
     !
     WRITE( environ_unit, * )"xstern: ",xstern
     WRITE( environ_unit, * )"carrier density: ",carrier_density
@@ -127,6 +127,7 @@ CONTAINS
     CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
     !
     tot_charge = dipole(0)
+ 
     tot_dipole = dipole(1:3)
     tot_quadrupole = quadrupole
     area = omega / axis_length
@@ -143,12 +144,15 @@ CONTAINS
     !
     !zion = ABS(zion)
     WRITE( environ_unit, *)"charge: ",tot_charge
-    ez = - tpi * e2 * tot_charge / area  / permittivity !in units of Ry/bohr 
+    ez = - tpi * e2 * tot_charge / area ! / permittivity !in units of Ry/bohr 
     WRITE( environ_unit, * )"electric field: ",ez
-    fact = permittivity /tpi / e2 /2.D0 /carrier_density
+    fact = 1.D0/tpi / e2 /2.D0 /carrier_density !*permittivity
     WRITE(  environ_unit, *)"Prefactor: ",fact
-    arg = fact* (e2**2.D0)
+    arg = fact* (ez**2.D0)
     vms =  arg ! +kbt
+    !Finds the total length of the depletion region
+    depletion_length = 2.D0 *fact*ez
+    WRITE ( environ_unit, * )"depletion length: ",depletion_length
     WRITE ( environ_unit, * )"vms: ",vms
     !
     vbound = 0.D0
@@ -175,18 +179,26 @@ CONTAINS
     !
     v = v - vbound + vms
     DO i = 1, nnr
-       !IF MOD(i,15) .EQ. 0 THEN
-       WRITE(environ_unit,*)axis(1,i)
-       !ENDIF
+       
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          distance = ABS(axis(1,i)) - xstern
+          !Only applies parabolic equation if still within the depletion width
           !
-          ! ... Gouy-Chapmann-Stern analytic solution on the outside
-          !
-          vtmp = (ABS(axis(1,i))-xstern)**2.D0 / fact - ez*(ABS(axis(1,i))-xstern)
+          IF ( distance <= depletion_length) THEN
+             !
+             ! ... Mott Schottky analytic solution on the outside
+             !
+             vtmp = (distance)**2.D0 / fact/4.D0 - ez*(distance)
+          ELSE 
+             vtmp = vms
+          END IF
+          !WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
+          !WRITE (environ_unit, *) "Distance: ", distance
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-          v(i) =  v(i) + vtmp - vms - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
+          v(i) =  v(i) + vtmp - vms -ez*distance ! vtmp - potential % of_r(i)
+          !WRITE( environ_unit, *)"This is the vi: ",ez*distance
           !
        ENDIF
        !
