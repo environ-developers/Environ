@@ -78,7 +78,7 @@ CONTAINS
     !! By combining the equations for the electric field, one can derive the 
     !! analytic charge from the knowledge of the potential at the boundary,
     !! \f[
-    !!    Q_{\text{ext}} = \frac{f\epsilon_0 A}{2\pi}\sinh\right(\frac{v_s z_d}
+    !!    Q_{ext} = \frac{f\epsilon_0 A}{2\pi}\sinh\left(\frac{v_s z_d}
     !!    {2k_B T}\right)
     !! \f]
     !! where \f$v_s\f$ is vstern
