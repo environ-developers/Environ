@@ -556,7 +556,7 @@ CONTAINS
     CALL init_environ_density( cell, screening )
     !
     x % of_r = 0.D0
-    rhoaux % of_r = 0.D0
+    rhoaux % of_r = electrolyte%density%of_r
     screening % of_r = electrolyte%k2/e2/fpi * gam%of_r
     residual % of_r = 0.D0
     !
