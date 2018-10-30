@@ -126,7 +126,7 @@ CONTAINS
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
 !    ltddfpt = tddfpt
-! Compatible with QE-6.3.X and QE-GIT \
+! Compatible with QE-6.3.X and QE-GIT
     SELECT CASE ( prog(1:2) )
     CASE ( 'TD' )
        ltddfpt = .TRUE.
