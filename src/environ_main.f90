@@ -50,6 +50,7 @@ CONTAINS
                               lsoftcavity, vsoftcavity,             &
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
+                              lconfine, env_confine,                &
                               charges, lstatic, static,             &
                               lelectrolyte, electrolyte,            &
                               cell, lsoftsolvent, lsoftelectrolyte
@@ -82,6 +83,7 @@ CONTAINS
     !
     IF ( .NOT. update ) THEN
        IF ( lelectrostatic ) vtot = vtot + velectrostatic % of_r - vreference % of_r
+       IF ( lconfine ) vtot = vtot + vconfine % of_r
        IF ( lsoftcavity ) vtot = vtot + vsoftcavity % of_r
        RETURN
     END IF
@@ -109,6 +111,15 @@ CONTAINS
        !
     END IF
     !
+    IF ( lconfine ) THEN
+       !
+       CALL calc_vconfine( env_confine, solvent, vconfine )
+       IF ( verbose .GE. 2 ) CALL print_environ_density( vconfine )
+       !
+       vtot = vtot + vconfine
+       !
+    END IF
+    !
     ! ... Compute the total potential depending on the boundary
     !
     IF ( lsoftcavity ) THEN
@@ -127,6 +138,10 @@ CONTAINS
           ! ... If external pressure different from zero, calculates PV contribution
           !
           IF ( lvolume ) CALL calc_devolume_dboundary( env_pressure, solvent, de_dboundary )
+          !
+          ! ... If confinement potential different from zero, calculates confine contribution
+          !
+          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, charges%electrons%density, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !
@@ -186,6 +201,7 @@ CONTAINS
                               lsoftcavity, vsoftcavity,             &
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
+                              lconfine, vconfine, env_confine,      &
                               charges, lstatic, static,             &
                               lelectrolyte, electrolyte
     USE electrostatic_base, ONLY : reference, outer
@@ -195,6 +211,7 @@ CONTAINS
     USE embedding_electrostatic, ONLY : calc_eelectrostatic
     USE embedding_surface,       ONLY : calc_esurface
     USE embedding_volume,        ONLY : calc_evolume
+    USE embedding_confine,       ONLY : calc_econfine
     USE utils_electrolyte,       ONLY : calc_eelectrolyte
     USE utils_charges,           ONLY : update_environ_charges
     !
@@ -203,7 +220,7 @@ CONTAINS
     ! ... Declares variables
     !
     REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, esurface, &
-         evolume, eelectrolyte
+         evolume, econfine, eelectrolyte
     REAL( DP ) :: ereference
     !
     ! ... Initializes the variables
@@ -212,6 +229,7 @@ CONTAINS
     eelectrostatic = 0.D0
     esurface       = 0.D0
     evolume        = 0.D0
+    econfine       = 0.D0
     eelectrolyte   = 0.D0
     !
     ! ... Calculates the energy corrections
@@ -249,6 +267,10 @@ CONTAINS
     !  if pressure different from zero compute PV energy
     !
     IF ( lvolume ) CALL calc_evolume( env_pressure, solvent, evolume )
+    !
+    !  if confinement potential different from zero compute confine energy
+    !
+    IF ( lconfine ) econfine = scalar_product_environ_density( electrons%density, vconfine )
     !
     !  if electrolyte is present calculate its non-electrostatic contribution
     !
@@ -319,6 +341,10 @@ CONTAINS
           ! ... If external pressure different from zero, calculates PV contribution
           !
           IF ( lvolume ) CALL calc_devolume_dboundary( env_pressure, solvent, de_dboundary )
+          !
+          ! ... If confinement potential different from zero, calculates confine contribution
+          !
+          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, charges%electrons%density, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !

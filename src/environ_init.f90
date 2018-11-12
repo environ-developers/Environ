@@ -53,7 +53,7 @@ CONTAINS
        & oldenviron_, environ_restart_, environ_thr_,&
        & environ_nskip_, environ_type,               &
        & system_ntyp, system_dim, system_axis,       &
-       & stype_, rhomax_, rhomin_, tbeta,            &
+       & stype, rhomax, rhomin, tbeta,               &
        & env_static_permittivity_,                   &
        & env_optical_permittivity_, solvent_mode,    &
        & radius_mode, alpha, softness,               &
@@ -64,6 +64,7 @@ CONTAINS
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
+       & env_confine_,                               &
        & env_electrolyte_ntyp_,                      &
        & electrolyte_linearized,                     &
        & electrolyte_entropy, electrolyte_mode,      &
@@ -97,13 +98,13 @@ CONTAINS
     INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
-         stype_, env_electrolyte_ntyp_,                   &
+         stype, env_electrolyte_ntyp_,                    &
          env_external_charges,                            &
          extcharge_dim(:), extcharge_axis(:),             &
          env_dielectric_regions,                          &
          epsregion_dim(:), epsregion_axis(:)
-    REAL(DP), INTENT(IN) :: environ_thr_, rhomax_,        &
-         rhomin_, tbeta,                                  &
+    REAL(DP), INTENT(IN) :: environ_thr_, rhomax,         &
+         rhomin, tbeta,                                   &
          env_static_permittivity_,                        &
          env_optical_permittivity_,                       &
          alpha, softness,                                 &
@@ -112,7 +113,8 @@ CONTAINS
          solvationrad(:), corespread(:), atomicspread(:), &
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
-         electrolyte_distance, electrolyte_spread,        & 
+         env_confine_,                                    &
+         electrolyte_distance, electrolyte_spread,        &
          cion(:), cionmax, rion, zion(:),                 &
          electrolyte_rhomax, electrolyte_rhomin,          &
          electrolyte_tbeta, electrolyte_alpha,            &
@@ -127,8 +129,6 @@ CONTAINS
          electrolyte_entropy, ion_adsorption
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
-    INTEGER :: stype
-    REAL(DP) :: rhomax, rhomin
     CHARACTER( LEN = 80 ) :: label
     !
 ! BACKWARD COMPATIBILITY
@@ -167,10 +167,8 @@ CONTAINS
     env_surface_tension = &
          env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
     env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
+    env_confine = env_confine_
     env_electrolyte_ntyp = env_electrolyte_ntyp_
-    stype = stype_
-    rhomax = rhomax_
-    rhomin = rhomin_
     !
     ! Set basic logical flags
     !
@@ -184,6 +182,7 @@ CONTAINS
     ENDIF
     lsurface       = env_surface_tension .GT. 0.D0
     lvolume        = env_pressure .NE. 0.D0
+    lconfine       = env_confine .NE. 0.D0
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
     lperiodic      = need_pbc_correction
@@ -191,7 +190,7 @@ CONTAINS
     ! Derived flags
     !
     ldielectric    = lstatic .OR. loptical
-    lsolvent       = ldielectric .OR. lsurface .OR. lvolume
+    lsolvent       = ldielectric .OR. lsurface .OR. lvolume .OR. lconfine
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
     lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' )
@@ -259,7 +258,7 @@ CONTAINS
     !
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_electrolyte_ntyp, &
-            & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, & 
+            & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, &
             & electrolyte_tbeta, env_static_permittivity, &
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
@@ -324,6 +323,7 @@ CONTAINS
          loptical, optical,                       &
          lexternals, externals,                   &
          lsurface, esurface, lvolume, evolume,    &
+         lconfine, vconfine, econfine,            &
          eelectrolyte
     !
     USE electrostatic_init, ONLY : electrostatic_initbase
@@ -398,6 +398,17 @@ CONTAINS
     ! ... Pressure contribution
     !
     evolume   = 0.0_DP
+    !
+    ! ... Confinement contribution
+    !
+    econfine   = 0.0_DP
+    IF ( lconfine ) THEN
+       !
+       label = 'vconfine'
+       CALL create_environ_density( vconfine, label )
+       CALL init_environ_density( cell, vconfine )
+       !
+    END IF
     !
     ! ... Non-electrostatice electrolyte contribution
     !
@@ -717,6 +728,7 @@ CONTAINS
      USE environ_base, ONLY : vzero, lelectrostatic, vreference,      &
                               lsoftcavity, vsoftcavity, lstatic,      &
                               static, charges, lexternals, externals, &
+                              lconfine, vconfine,                     &
                               lelectrolyte, electrolyte,              &
                               ions, electrons, system
      !
@@ -736,6 +748,8 @@ CONTAINS
           & CALL destroy_environ_density( vreference )
      IF ( lsoftcavity .AND. ASSOCIATED( vsoftcavity%cell ) ) &
           & CALL destroy_environ_density( vsoftcavity )
+     IF ( lconfine .AND. ASSOCIATED( vconfine%cell ) ) &
+          & CALL destroy_environ_density( vconfine )
      !
      ! ... destroy derived types which were allocated in input
      !
