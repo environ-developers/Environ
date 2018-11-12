@@ -196,6 +196,12 @@ CONTAINS
     label = 'dfilling_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%dfilling, label )
     !
+    ! Components required for field-aware interface
+    !
+    boundary%field_aware = .FALSE.
+    label = 'normal_field_'//TRIM(ADJUSTL(local_label))
+    CALL create_environ_density( boundary%normal_field, label )
+    !
     RETURN
     !
 !--------------------------------------------------------------------
@@ -205,7 +211,8 @@ CONTAINS
   SUBROUTINE init_environ_boundary_first( need_gradient, need_laplacian, &
        & need_hessian, mode, stype, rhomax, rhomin, tbeta, const, alpha, &
        & softness, system_distance, system_spread, solvent_radius, radial_scale, &
-       & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
+       & radial_spread, filling_threshold, filling_spread, field_factor, &
+       & charge_asymmetry, field_max, field_min, electrons, ions, system, &
        & boundary )
 !--------------------------------------------------------------------
     !
@@ -222,6 +229,7 @@ CONTAINS
     REAL( DP ), INTENT(IN) :: solvent_radius
     REAL( DP ), INTENT(IN) :: radial_scale, radial_spread
     REAL( DP ), INTENT(IN) :: filling_threshold, filling_spread
+    REAL( DP ), INTENT(IN) :: field_factor, charge_asymmetry, field_max, field_min
     TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_system ), TARGET, INTENT(IN) :: system
@@ -284,6 +292,12 @@ CONTAINS
     boundary%filling_threshold = filling_threshold
     boundary%filling_spread = filling_spread
     !
+    boundary%field_aware = field_factor .GT. 0.D0
+    boundary%field_factor = field_factor
+    boundary%charge_asymmetry = charge_asymmetry
+    boundary%field_max = field_max
+    boundary%field_min = field_min
+    !
     boundary%initialized = .FALSE.
     !
     RETURN
@@ -302,7 +316,7 @@ CONTAINS
     !
     CALL init_environ_density( cell, boundary%scaled )
     !
-    IF ( boundary%mode .NE. 'ionic' ) THEN
+    IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
        CALL init_environ_density( cell, boundary%density )
        CALL init_environ_density( cell, boundary%dscaled )
        CALL init_environ_density( cell, boundary%d2scaled )
@@ -317,6 +331,10 @@ CONTAINS
        CALL init_environ_density( cell, boundary%filling )
        CALL init_environ_density( cell, boundary%dfilling )
        IF ( boundary%deriv .GE. 3 ) CALL init_environ_hessian( cell, boundary%hessian )
+    ENDIF
+    !
+    IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
+       CALL init_environ_density( cell, boundary%normal_field )
     ENDIF
     !
     boundary%initialized = .TRUE.

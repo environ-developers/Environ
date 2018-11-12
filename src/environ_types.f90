@@ -337,7 +337,7 @@ MODULE environ_types
      !
      TYPE( environ_functions ) :: simple
      !
-     ! Copmonents needed for solvent-aware boundary
+     ! Components needed for solvent-aware boundary
      !
      LOGICAL :: solvent_aware
      TYPE( environ_functions ) :: solvent_probe
@@ -347,6 +347,13 @@ MODULE environ_types
      TYPE( environ_density ) :: probe
      TYPE( environ_density ) :: filling
      TYPE( environ_density ) :: dfilling
+     !
+     ! Components needed for field-aware boundary
+     !
+     REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min
+     !
+     TYPE( environ_density ) :: normal_field
+     REAL( DP ), DIMENSION(:), ALLOCATABLE :: ion_field
      !
   END TYPE environ_boundary
   !

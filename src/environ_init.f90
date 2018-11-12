@@ -61,6 +61,8 @@ CONTAINS
        & solvent_radius, radial_scale,               &
        & radial_spread, filling_threshold,           &
        & filling_spread,                             &
+       & field_awareness, charge_asymmetry,          &
+       & field_max, field_min,                       &
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
@@ -109,6 +111,8 @@ CONTAINS
          alpha, softness,                                 &
          solvent_radius, radial_scale, radial_spread,     &
          filling_threshold, filling_spread,               &
+         field_awareness, charge_asymmetry, field_max,    &
+         field_min,                                       &
          solvationrad(:), corespread(:), atomicspread(:), &
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
@@ -252,7 +256,8 @@ CONTAINS
        CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
             & solvent_distance, solvent_spread, solvent_radius, radial_scale, radial_spread, &
-            & filling_threshold, filling_spread, electrons, ions, system, solvent )
+            & filling_threshold, filling_spread, field_awareness, charge_asymmetry, field_max, &
+            & field_min, electrons, ions, system, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
@@ -264,6 +269,7 @@ CONTAINS
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
+            & field_awareness, charge_asymmetry, field_max, field_min, &
             & electrons, ions, system, temperature, cion, cionmax, rion, &
             & zion, electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
             & electrolyte_linearized, electrolyte )
