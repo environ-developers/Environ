@@ -4,6 +4,10 @@ New in development version:
 
 Problems fixed in development version:
 
+  * decreased tolerance for check on electronic charge in utils_charges.f90
+
+  * fixed a small bug that prevented compilation in environ_init.f90 
+
   * modified the local arrays in compute_convolution_fft to avoid 
     large automatic arrays written on the stack (segmentation fault on
     Mac with default compilation options, i.e. small stack) 
