@@ -256,6 +256,17 @@ MODULE environ_input
         ! spread of the switching function used to decide whether the continuum
         ! void should be filled or not
 !
+! Field-aware boundary parameters
+!
+        REAL(DP) :: field_awareness = 0.D0
+        !
+        REAL(DP) :: charge_asymmetry = 1.D0
+        !
+        REAL(DP) :: field_max = 10.D0
+        !
+        REAL(DP) :: field_min = 1.D0
+        ! 
+!
 ! Numerical core's parameters
 !
         CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
@@ -366,6 +377,8 @@ MODULE environ_input
              solvent_radius, radial_scale,       &
              radial_spread, filling_threshold,   &
              filling_spread,                     &
+             field_awareness, charge_asymmetry,  &
+             field_max, field_min,               &
              electrolyte_mode, electrolyte_distance,         &
              electrolyte_spread, electrolyte_rhomax,         &
              electrolyte_rhomin, electrolyte_tbeta,          &
@@ -593,6 +606,8 @@ CONTAINS
                              solvent_radius, radial_scale,               &
                              radial_spread, filling_threshold,           &
                              filling_spread,                             &
+                             field_awareness, charge_asymmetry,          &
+                             field_max, field_min,                       &
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
@@ -794,6 +809,11 @@ CONTAINS
     filling_threshold  = 0.825D0
     filling_spread     = 0.02D0
     !
+    field_awareness    = 0.D0
+    charge_asymmetry   = 1.D0
+    field_max          = 10.D0
+    field_min          = 1.D0
+    !
     electrolyte_mode = 'electronic'
     !
     electrolyte_distance = 0.D0
@@ -886,13 +906,13 @@ CONTAINS
     CALL mp_bcast( env_pressure,               ionode_id, comm )
     !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
-    CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
-    CALL mp_bcast( electrolyte_entropy,              ionode_id, comm )
+    CALL mp_bcast( electrolyte_linearized,     ionode_id, comm )
+    CALL mp_bcast( electrolyte_entropy,        ionode_id, comm )
     CALL mp_bcast( cion,                       ionode_id, comm )
     CALL mp_bcast( cionmax,                    ionode_id, comm )
     CALL mp_bcast( rion,                       ionode_id, comm )
     CALL mp_bcast( zion,                       ionode_id, comm )
-    CALL mp_bcast( temperature,        ionode_id, comm )
+    CALL mp_bcast( temperature,                ionode_id, comm )
     !
     CALL mp_bcast( ion_adsorption,             ionode_id, comm )
     CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
@@ -935,6 +955,11 @@ CONTAINS
     CALL mp_bcast( radial_spread,              ionode_id, comm )
     CALL mp_bcast( filling_threshold,          ionode_id, comm )
     CALL mp_bcast( filling_spread,             ionode_id, comm )
+    !
+    CALL mp_bcast( field_awareness,            ionode_id, comm )
+    CALL mp_bcast( charge_asymmetry,           ionode_id, comm )
+    CALL mp_bcast( field_max,                  ionode_id, comm )
+    CALL mp_bcast( field_min,                  ionode_id, comm )
     !
     CALL mp_bcast( electrolyte_mode,                 ionode_id, comm )
     !
@@ -1140,6 +1165,15 @@ CONTAINS
          CALL errore( sub_name, 'filling_threshold out of range ', 1 )
     IF ( filling_spread <= 0.0_DP ) &
          CALL errore( sub_name, 'filling_spread out of range ', 1 )
+    !
+    IF ( field_awareness < 0.0_DP ) &
+         CALL errore( sub_name, 'field_awareness out of range ', 1 )
+    IF ( ABS(charge_asymmetry) > 1.0_DP ) &
+         CALL errore( sub_name, 'charge_asymmetry out of range ', 1 )
+    IF ( field_min < 0.0_DP ) &
+         CALL errore( sub_name, 'field_min out of range ', 1 )
+    IF ( field_max <= field_min ) &
+         CALL errore( sub_name, 'field_max out of range ', 1 )
     !
     allowed = .FALSE.
     DO i = 1, SIZE( electrolyte_mode_allowed )

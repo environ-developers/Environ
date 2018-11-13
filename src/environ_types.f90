@@ -350,10 +350,12 @@ MODULE environ_types
      !
      ! Components needed for field-aware boundary
      !
+     LOGICAL :: field_aware
      REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min
      !
      TYPE( environ_density ) :: normal_field
      REAL( DP ), DIMENSION(:), ALLOCATABLE :: ion_field
+     REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: partial_of_ion_field
      !
   END TYPE environ_boundary
   !

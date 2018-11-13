@@ -36,7 +36,7 @@ MODULE tools_generate_boundary
   !
   PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
        & invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
-       & solvent_aware_de_dboundary, test_de_dboundary
+       & solvent_aware_de_dboundary, test_de_dboundary, compute_ion_field
   !
 CONTAINS
 !  Function: sfunct0
@@ -1504,6 +1504,112 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE compute_convolution_deriv
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, field, &
+       & ion_field, partial_of_ion_field )
+!--------------------------------------------------------------------
+    !
+    USE utils_functions, ONLY : density_of_functions, gradient_of_functions, laplacian_of_functions
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: nsoft_spheres
+    TYPE( environ_functions), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
+    TYPE( environ_gradient ), INTENT(IN) :: field
+    REAL( DP ), DIMENSION(nsoft_spheres), INTENT(OUT) :: ion_field
+    REAL( DP ), DIMENSION(3,nsoft_spheres,nsoft_spheres), INTENT(OUT) :: partial_of_ion_field
+    !
+    INTEGER, POINTER :: nnr, ir_end, deriv
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    INTEGER :: i, j, k
+    CHARACTER( LEN=80 ) :: sub_name = 'compute_ion_field'
+    !
+    TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
+    TYPE( environ_gradient ), DIMENSION(:), ALLOCATABLE :: gradlocal
+    TYPE( environ_density ) :: aux
+    !
+    ! Aliases and allocations
+    !
+    cell => field % cell
+    nnr => cell % nnr
+    ir_end => cell % ir_end
+    !
+    ALLOCATE( local( nsoft_spheres ) )
+    ALLOCATE( gradlocal( nsoft_spheres ) )
+    !
+    ! Compute soft spheres and generate boundary
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL init_environ_density( cell, local(i) )
+       !
+       CALL init_environ_gradient( cell, gradlocal(i) )
+       !
+       CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
+       !
+       CALL gradient_of_functions( soft_spheres(i), gradlocal(i), .FALSE. )
+       !
+    ENDDO
+    !
+    ion_field = 0.d0
+    partial_of_ion_field = 0.D0
+    !
+    CALL init_environ_density( cell, aux )
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL scalar_product_environ_gradient( field, gradlocal(i), aux ) ! here aux is the normal field
+       DO j = 1, nsoft_spheres
+          IF ( j .EQ. i ) CYCLE
+          aux % of_r = aux % of_r * local(j) % of_r
+       ENDDO
+       ion_field(i) = integrate_environ_density( aux )
+       !
+       DO j = 1, nsoft_spheres
+          !
+          aux % of_r = 0.D0
+          !
+          IF ( j .EQ. i ) THEN
+             !
+             CALL laplacian_of_functions( soft_spheres(i), aux, .FALSE. )
+             !
+             DO k = 1, nsoft_spheres
+                IF ( k .EQ. j ) CYCLE
+                aux % of_r = aux % of_r * local(k) % of_r
+             ENDDO
+             !
+          ELSE
+             !
+             CALL scalar_product_environ_gradient( gradlocal(i), gradlocal(j), aux )
+             !
+             DO k = 1, nsoft_spheres
+                IF ( k .EQ. j .OR. k .EQ. i ) CYCLE
+                aux % of_r = aux % of_r * local(k) % of_r
+             ENDDO
+             !
+          ENDIF
+          !
+          partial_of_ion_field( :, i, j ) = scalar_product_environ_gradient_density( field, aux )
+          !
+       ENDDO
+       !
+    END DO
+    !
+    CALL destroy_environ_density( aux )
+    !
+    DO i = 1, nsoft_spheres
+       CALL destroy_environ_gradient( gradlocal(i) )
+       CALL destroy_environ_density( local(i) )
+    ENDDO
+    DEALLOCATE( gradlocal )
+    DEALLOCATE( local )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE compute_ion_field
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE tools_generate_boundary

@@ -245,9 +245,9 @@ CONTAINS
     !
     boundary%mode = mode
     !
-    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' )
+    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' ) .OR. (field_factor .GT. 0.D0 )
     IF ( boundary%need_electrons ) boundary%electrons => electrons
-    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' )
+    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' ) .OR. (field_factor .GT. 0.D0 )
     IF ( boundary%need_ions ) boundary%ions => ions
     boundary%need_system = ( mode .EQ. 'system' )
     IF ( boundary%need_system ) boundary%system => system
@@ -297,6 +297,10 @@ CONTAINS
     boundary%charge_asymmetry = charge_asymmetry
     boundary%field_max = field_max
     boundary%field_min = field_min
+    IF ( boundary%field_aware .AND. boundary%mode .EQ. 'ionic' ) THEN
+       ALLOCATE( boundary%ion_field( boundary%ions%number ) )
+       ALLOCATE( boundary%partial_of_ion_field( 3, boundary%ions%number, boundary%ions%number ) )
+    ENDIF
     !
     boundary%initialized = .FALSE.
     !
@@ -333,7 +337,8 @@ CONTAINS
        IF ( boundary%deriv .GE. 3 ) CALL init_environ_hessian( cell, boundary%hessian )
     ENDIF
     !
-    IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
+    IF ( boundary%field_aware .AND. &
+     & ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) ) THEN
        CALL init_environ_density( cell, boundary%normal_field )
     ENDIF
     !
@@ -380,6 +385,11 @@ CONTAINS
     bcopy % solvent_aware     = boriginal % solvent_aware
     bcopy % filling_threshold = boriginal % filling_threshold
     bcopy % filling_spread    = boriginal % filling_spread
+    bcopy % field_aware       = boriginal % field_aware
+    bcopy % field_factor      = boriginal % field_factor
+    bcopy % charge_asymmetry  = boriginal % charge_asymmetry
+    bcopy % field_max         = boriginal % field_max
+    bcopy % field_min         = boriginal % field_min
     bcopy % initialized       = boriginal % initialized
     !
     CALL copy_environ_density   ( boriginal % scaled        , bcopy % scaled        )
@@ -396,6 +406,7 @@ CONTAINS
     CALL copy_environ_density   ( boriginal % probe         , bcopy % probe         )
     CALL copy_environ_density   ( boriginal % filling       , bcopy % filling       )
     CALL copy_environ_density   ( boriginal % dfilling      , bcopy % dfilling      )
+    CALL copy_environ_density   ( boriginal % normal_field  , bcopy % normal_field  )
     !
     IF ( ALLOCATED( boriginal % soft_spheres ) ) THEN
        n = SIZE( boriginal % soft_spheres )
@@ -406,6 +417,17 @@ CONTAINS
        ENDDO
     ELSE
        IF ( ALLOCATED( bcopy % soft_spheres ) ) DEALLOCATE( bcopy%soft_spheres )
+    ENDIF
+    !
+    IF ( ALLOCATED( boriginal % ion_field ) ) THEN
+       n = SIZE( boriginal % ion_field )
+       IF ( ALLOCATED( bcopy % ion_field ) ) DEALLOCATE( bcopy % ion_field )
+       IF ( ALLOCATED( bcopy % partial_of_ion_field ) ) DEALLOCATE( bcopy % partial_of_ion_field )
+       ALLOCATE( bcopy % ion_field( n ) )
+       ALLOCATE( bcopy % partial_of_ion_field( 3, n, n ) )
+    ELSE
+       IF ( ALLOCATED( bcopy % ion_field ) ) DEALLOCATE( bcopy % ion_field )
+       IF ( ALLOCATED( bcopy % partial_of_ion_field ) ) DEALLOCATE( bcopy % partial_of_ion_field )
     ENDIF
     !
     RETURN
@@ -443,7 +465,7 @@ CONTAINS
     !
     USE tools_generate_boundary, ONLY : boundary_of_density, &
          & boundary_of_functions, boundary_of_system, &
-         & solvent_aware_boundary, invert_boundary
+         & solvent_aware_boundary, invert_boundary, compute_ion_field
     !
     IMPLICIT NONE
     !
@@ -454,7 +476,8 @@ CONTAINS
     !
     INTEGER :: i
     TYPE( environ_cell ), POINTER :: cell
-    TYPE( environ_density ) :: local
+    TYPE( environ_density ) :: rho
+    TYPE( environ_gradient ) :: gradrho, field
     !
     cell => bound%density%cell
     !
@@ -470,6 +493,38 @@ CONTAINS
        RETURN
        !
     ENDIF
+    !
+    IF ( bound % field_aware ) THEN
+       !
+       CALL init_environ_gradient( cell, field )
+       !
+       CALL init_environ_density( cell, rho )
+       rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
+       !
+       CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+       !
+       IF ( bound % mode .EQ. 'full' .OR. bound % mode .EQ. 'electronic' ) THEN
+          !
+          CALL init_environ_gradient( cell, gradrho )
+          !
+          CALL external_gradient( bound%electrons%density, gradrho )
+          !
+          CALL scalar_product_environ_gradient( field, gradrho, bound % normal_field )
+          !
+          CALL destroy_environ_gradient( gradrho )
+          !
+       ELSE IF ( bound % mode .EQ. 'ionic' ) THEN
+          !
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
+               & bound%ion_field, bound%partial_of_ion_field )
+          !
+       ENDIF
+       !
+       CALL destroy_environ_density( rho )
+       !
+       CALL destroy_environ_gradient( field )
+       !
+    END IF
     !
     SELECT CASE ( bound % mode )
        !
@@ -587,8 +642,13 @@ CONTAINS
        ! These components were allocated first, destroy only if lflag = .TRUE.
        !
        IF ( boundary%need_ions ) THEN
-          IF ( .NOT. boundary%need_electrons ) &
-               & CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
+          IF ( .NOT. boundary%need_electrons ) THEN
+             CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
+             IF ( boundary%field_aware ) THEN
+                DEALLOCATE( boundary%ion_field )
+                DEALLOCATE( boundary%partial_of_ion_field )
+             ENDIF
+          END IF
           IF (.NOT.ASSOCIATED(boundary%ions)) &
                & CALL errore(sub_name,'Trying to destroy a non associated object',1)
           NULLIFY(boundary%ions)
@@ -627,6 +687,10 @@ CONTAINS
           CALL destroy_environ_density( boundary%filling )
           CALL destroy_environ_density( boundary%dfilling )
           IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_hessian( boundary%hessian )
+       ENDIF
+       !
+       IF ( boundary%field_aware ) THEN
+          CALL destroy_environ_density( boundary%normal_field )
        ENDIF
        !
        boundary%initialized = .FALSE.
