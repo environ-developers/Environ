@@ -1205,7 +1205,7 @@ END SUBROUTINE gradv_h_of_rho_r
 SUBROUTINE field_of_gradrho( gradrho, e )
   !----------------------------------------------------------------------------
   !
-  ! ... Gradient of Hartree potential in R space from a total 
+  ! ... Gradient of Hartree potential in R space from a total
   !     (spinless) density in R space n(r)
   !
   USE kinds,           ONLY : DP
@@ -1247,7 +1247,7 @@ SUBROUTINE field_of_gradrho( gradrho, e )
   !
   DO ipol = 1, 3
      !
-     gaux( : ) = CMPLX( gradrho( ipol, : ), 0.D0, KIND=dp ) 
+     gaux( : ) = CMPLX( gradrho( ipol, : ), 0.D0, KIND=dp )
      !
      CALL fwfft('Rho', gaux, dfftp)
      !
@@ -1260,14 +1260,14 @@ SUBROUTINE field_of_gradrho( gradrho, e )
         !
      END DO
      !
-     ! ...and add the factor e2*fpi/2\pi/a coming from the missing prefactor of 
-     !  V = e2 * fpi divided by the 2\pi/a factor missing in G  
+     ! ...and add the factor e2*fpi/2\pi/a coming from the missing prefactor of
+     !  V = e2 * fpi divided by the 2\pi/a factor missing in G
      !
      fac = e2 * fpi / tpiba
-     aux = aux * fac 
+     aux = aux * fac
      !
      ! ...add martyna-tuckerman correction, if needed
-     ! 
+     !
      IF ( do_comp_mt ) THEN
         !
         rgtot(1:ngm) = gaux(dfftp%nl(1:ngm))

@@ -1524,7 +1524,7 @@ CONTAINS
     INTEGER, POINTER :: nnr, ir_end, deriv
     TYPE( environ_cell ), POINTER :: cell
     !
-    INTEGER :: i, j, k
+    INTEGER :: i, j, k, ipol
     CHARACTER( LEN=80 ) :: sub_name = 'compute_ion_field'
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local

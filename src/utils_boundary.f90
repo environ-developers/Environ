@@ -301,7 +301,7 @@ CONTAINS
     boundary%field_min = field_min
     IF ( boundary%field_aware .AND. boundary%mode .EQ. 'ionic' ) THEN
        ALLOCATE( boundary%ion_field( boundary%ions%number ) )
-       ALLOCATE( boundary%dion_field_dboundary( boundary%ions%umber ) )
+       ALLOCATE( boundary%dion_field_drho( boundary%ions%number ) )
        ALLOCATE( boundary%partial_of_ion_field( 3, boundary%ions%number, boundary%ions%number ) )
     ENDIF
     !
@@ -320,6 +320,8 @@ CONTAINS
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+    !
+    INTEGER :: i
     !
     CALL init_environ_density( cell, boundary%scaled )
     !
@@ -366,7 +368,7 @@ CONTAINS
     TYPE( environ_boundary ), INTENT(IN) :: boriginal
     TYPE( environ_boundary ), INTENT(OUT) :: bcopy
     !
-    INTEGER :: i, n
+    INTEGER :: i, n, m
     !
     bcopy % electrons => boriginal % electrons
     bcopy % ions      => boriginal % ions
@@ -418,7 +420,10 @@ CONTAINS
     !
     IF ( ALLOCATED( boriginal % soft_spheres ) ) THEN
        n = SIZE( boriginal % soft_spheres )
-       IF ( ALLOCATED( bcopy % soft_spheres ) ) DEALLOCATE( bcopy % soft_spheres ) !!! THIS IS NOT CORRECT
+       IF ( ALLOCATED( bcopy % soft_spheres ) ) THEN
+          m = SIZE( bcopy % soft_spheres )
+          CALL destroy_environ_functions( m, bcopy % soft_spheres )
+       ENDIF
        ALLOCATE( bcopy % soft_spheres( n ) )
        DO i = 1, n
           CALL copy_environ_functions ( boriginal % soft_spheres(i), bcopy % soft_spheres(i) )
@@ -433,7 +438,13 @@ CONTAINS
        IF ( ALLOCATED( bcopy % partial_of_ion_field ) ) DEALLOCATE( bcopy % partial_of_ion_field )
        ALLOCATE( bcopy % ion_field( n ) )
        ALLOCATE( bcopy % partial_of_ion_field( 3, n, n ) )
-       IF ( ALLOCATED( bcopy % dion_field_drho ) ) DEALLOCATE( bcopy % dion_field_drho ) ) !! THIS IS NOT CORRECT
+       IF ( ALLOCATED( bcopy % dion_field_drho ) ) THEN
+          m = SIZE( bcopy % dion_field_drho )
+          DO i = 1, m
+             CALL destroy_environ_density( bcopy % dion_field_drho( i ) )
+          ENDDO
+          DEALLOCATE( bcopy % dion_field_drho )
+       ENDIF
        ALLOCATE( bcopy % dion_field_drho( n ) )
        DO i = 1, n
           CALL copy_environ_density( boriginal % dion_field_drho(i), bcopy % dion_field_drho(i) )
@@ -441,7 +452,7 @@ CONTAINS
     ELSE
        IF ( ALLOCATED( bcopy % ion_field ) ) DEALLOCATE( bcopy % ion_field )
        IF ( ALLOCATED( bcopy % partial_of_ion_field ) ) DEALLOCATE( bcopy % partial_of_ion_field )
-       IF ( ALLOCATED( bcopy % dion_field_drho ) ) DEALLOCATE( bcopy % dion_field_drho ) ) 
+       IF ( ALLOCATED( bcopy % dion_field_drho ) ) DEALLOCATE( bcopy % dion_field_drho )
     ENDIF
     !
     RETURN
