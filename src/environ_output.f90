@@ -1173,6 +1173,7 @@ CONTAINS
                              lsurface, esurface, &
                              lvolume, evolume, &
                              lelectrolyte, eelectrolyte, &
+                             lconfine, econfine, &
                              deenviron
     !
     CHARACTER( LEN=80 ) :: sub_name = 'environ_print_energies'
@@ -1183,12 +1184,14 @@ CONTAINS
           IF ( lsurface ) WRITE( program_unit, 9202 ) esurface
           IF ( lvolume ) WRITE( program_unit, 9203 ) evolume
           IF ( lelectrolyte ) WRITE( program_unit, 9205 ) eelectrolyte
+          IF ( lconfine ) WRITE( program_unit, 9206 ) econfine
           WRITE( program_unit, 9204 ) deenviron
        ELSE IF ( prog .EQ. 'CP' ) THEN
           IF ( lelectrostatic ) WRITE( program_unit, 9301 ) eelectrostatic
           IF ( lsurface ) WRITE( program_unit, 9302 ) esurface
           IF ( lvolume ) WRITE( program_unit, 9303 ) evolume
           IF ( lelectrolyte ) WRITE( program_unit, 9305 ) eelectrolyte
+          IF ( lconfine ) WRITE( program_unit, 9306 ) econfine
           WRITE( program_unit, 9304 ) deenviron
        ELSE
           CALL errore(sub_name,'Wrong program calling Environ',1)
@@ -1200,12 +1203,14 @@ CONTAINS
 9201 FORMAT( '     electrostatic embedding   =',F17.8,' Ry')
 9202 FORMAT( '     cavitation energy         =',F17.8,' Ry')
 9203 FORMAT( '     PV energy                 =',F17.8,' Ry')
+9206 FORMAT( '     confinement energy        =',F17.8,' Ry')
 9205 FORMAT( '     electrolyte free energy   =',F17.8,' Ry')
 9204 FORMAT( '     correction to one-el term =',F17.8,' Ry')
 9301 FORMAT( '     electrostatic embedding = ',F14.5,' Hartree a.u.')
 9302 FORMAT( '           cavitation energy = ',F14.5,' Hartree a.u.')
 9303 FORMAT( '                   PV energy = ',F14.5,' Hartree a.u.')
 9305 FORMAT( '     electrolyte free energy = ',F14.5,' Hartree a.u.')
+9306 FORMAT( '          confinement energy = ',F14.5,' Hartree a.u.')
 9304 FORMAT( '   correction to one-el term = ',F14.5,' Hartree a.u.')
     !
 !----------------------------------------------------------------------
