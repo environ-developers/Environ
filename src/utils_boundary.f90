@@ -201,6 +201,8 @@ CONTAINS
     boundary%field_aware = .FALSE.
     label = 'normal_field_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%normal_field, label )
+    IF ( ALLOCATED( boundary%dion_field_drho ) ) &
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
     !
     RETURN
     !
@@ -299,6 +301,7 @@ CONTAINS
     boundary%field_min = field_min
     IF ( boundary%field_aware .AND. boundary%mode .EQ. 'ionic' ) THEN
        ALLOCATE( boundary%ion_field( boundary%ions%number ) )
+       ALLOCATE( boundary%dion_field_dboundary( boundary%ions%umber ) )
        ALLOCATE( boundary%partial_of_ion_field( 3, boundary%ions%number, boundary%ions%number ) )
     ENDIF
     !
@@ -337,9 +340,14 @@ CONTAINS
        IF ( boundary%deriv .GE. 3 ) CALL init_environ_hessian( cell, boundary%hessian )
     ENDIF
     !
-    IF ( boundary%field_aware .AND. &
-     & ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) ) THEN
-       CALL init_environ_density( cell, boundary%normal_field )
+    IF ( boundary%field_aware ) THEN
+       IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
+          CALL init_environ_density( cell, boundary%normal_field )
+       ELSE IF ( boundary%mode .EQ. 'ionic' ) THEN
+          DO i = 1, boundary%ions%number
+             CALL init_environ_density( cell, boundary%dion_field_drho(i) )
+          ENDDO
+       ENDIF
     ENDIF
     !
     boundary%initialized = .TRUE.
@@ -410,7 +418,7 @@ CONTAINS
     !
     IF ( ALLOCATED( boriginal % soft_spheres ) ) THEN
        n = SIZE( boriginal % soft_spheres )
-       IF ( ALLOCATED( bcopy % soft_spheres ) ) DEALLOCATE( bcopy % soft_spheres )
+       IF ( ALLOCATED( bcopy % soft_spheres ) ) DEALLOCATE( bcopy % soft_spheres ) !!! THIS IS NOT CORRECT
        ALLOCATE( bcopy % soft_spheres( n ) )
        DO i = 1, n
           CALL copy_environ_functions ( boriginal % soft_spheres(i), bcopy % soft_spheres(i) )
@@ -425,9 +433,15 @@ CONTAINS
        IF ( ALLOCATED( bcopy % partial_of_ion_field ) ) DEALLOCATE( bcopy % partial_of_ion_field )
        ALLOCATE( bcopy % ion_field( n ) )
        ALLOCATE( bcopy % partial_of_ion_field( 3, n, n ) )
+       IF ( ALLOCATED( bcopy % dion_field_drho ) ) DEALLOCATE( bcopy % dion_field_drho ) ) !! THIS IS NOT CORRECT
+       ALLOCATE( bcopy % dion_field_drho( n ) )
+       DO i = 1, n
+          CALL copy_environ_density( boriginal % dion_field_drho(i), bcopy % dion_field_drho(i) )
+       ENDDO
     ELSE
        IF ( ALLOCATED( bcopy % ion_field ) ) DEALLOCATE( bcopy % ion_field )
        IF ( ALLOCATED( bcopy % partial_of_ion_field ) ) DEALLOCATE( bcopy % partial_of_ion_field )
+       IF ( ALLOCATED( bcopy % dion_field_drho ) ) DEALLOCATE( bcopy % dion_field_drho ) ) 
     ENDIF
     !
     RETURN
@@ -516,7 +530,7 @@ CONTAINS
        ELSE IF ( bound % mode .EQ. 'ionic' ) THEN
           !
           CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
-               & bound%ion_field, bound%partial_of_ion_field )
+               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
           !
        ENDIF
        !

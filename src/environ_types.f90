@@ -355,6 +355,7 @@ MODULE environ_types
      !
      TYPE( environ_density ) :: normal_field
      REAL( DP ), DIMENSION(:), ALLOCATABLE :: ion_field
+     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: dion_field_drho
      REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: partial_of_ion_field
      !
   END TYPE environ_boundary
