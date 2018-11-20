@@ -267,8 +267,7 @@ CONTAINS
     !
     boundary%alpha = alpha
     boundary%softness = softness
-    IF ( boundary%need_ions .AND. .NOT. boundary%need_electrons ) &
-         & ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
+    IF ( boundary%mode .EQ. 'ionic' ) ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
     !
     boundary%simple%type = 4
     boundary%simple%pos => system%pos
@@ -503,8 +502,9 @@ CONTAINS
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ) :: rho
     TYPE( environ_gradient ) :: gradrho, field
+    CHARACTER( LEN=80 ) :: label
     !
-    cell => bound%density%cell
+    cell => bound%scaled%cell
     !
     update_anything = .FALSE.
     IF ( bound % need_ions ) update_anything = bound % ions % update
@@ -518,38 +518,6 @@ CONTAINS
        RETURN
        !
     ENDIF
-    !
-    IF ( bound % field_aware ) THEN
-       !
-       CALL init_environ_gradient( cell, field )
-       !
-       CALL init_environ_density( cell, rho )
-       rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
-       !
-       CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
-       !
-       IF ( bound % mode .EQ. 'full' .OR. bound % mode .EQ. 'electronic' ) THEN
-          !
-          CALL init_environ_gradient( cell, gradrho )
-          !
-          CALL external_gradient( bound%electrons%density, gradrho )
-          !
-          CALL scalar_product_environ_gradient( field, gradrho, bound % normal_field )
-          !
-          CALL destroy_environ_gradient( gradrho )
-          !
-       ELSE IF ( bound % mode .EQ. 'ionic' ) THEN
-          !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
-               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
-          !
-       ENDIF
-       !
-       CALL destroy_environ_density( rho )
-       !
-       CALL destroy_environ_gradient( field )
-       !
-    END IF
     !
     SELECT CASE ( bound % mode )
        !
@@ -614,6 +582,40 @@ CONTAINS
           !
        ENDIF
        !
+    CASE ( 'fa-electronic' )
+       !
+       IF ( bound % ions % update ) THEN
+          !
+          bound % update_status = 1 ! waiting to finish update
+          !
+       ENDIF
+       !
+       IF ( bound % electrons % update ) THEN
+          !
+          bound % density % of_r = bound % electrons % density % of_r
+          !
+          CALL boundary_of_density( bound % density, bound )
+          !
+          bound % update_status = 2 ! boundary has changes and is ready
+          !
+       ENDIF
+       !
+    CASE ( 'fa-ionic' )
+       !
+       IF ( bound % ions % update ) THEN
+          !
+          bound % update_status = 1 ! boundary has changed and is ready
+          !
+       ENDIF
+       !
+       IF ( bound % electrons % update ) THEN
+          !
+          CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
+          !
+          bound % update_status = 2 ! boundary has changes and is ready
+          !
+       ENDIF
+       !
     CASE ( 'system' )
        !
        IF ( bound % system % update ) THEN
@@ -646,6 +648,79 @@ CONTAINS
     ! Solvent-aware interface
     !
     IF ( bound % update_status .EQ. 2 .AND. bound % solvent_aware ) CALL solvent_aware_boundary( bound )
+    !
+    IF ( bound % update_status .EQ. 2 .AND. bound % field_aware ) THEN
+       !
+       CALL init_environ_gradient( cell, field )
+       !
+       CALL init_environ_density( cell, rho )
+       rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
+       !
+       label = 'rhototal'
+       rho % label = label
+       CALL write_cube( rho, bound%ions )
+       !
+       CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+       !
+       CALL update_gradient_modulus( field )
+       label = 'field'
+       field % modulus % label = label
+       CALL write_cube( field % modulus, bound%ions )
+       !
+       IF ( bound % mode .EQ. 'fa-electronic' ) THEN
+          !
+          WRITE( environ_unit, * ) ' computing the normal component of the field'
+          FLUSH( environ_unit )
+          !
+          CALL init_environ_gradient( cell, gradrho )
+          !
+          WRITE( environ_unit, * ) ' computing the gradient of the electronic density'
+          FLUSH( environ_unit )
+          !
+          CALL external_gradient( bound%electrons%density%of_r, gradrho%of_r )
+          !
+          WRITE( environ_unit, * ) ' normal field from scalar product of gradients'
+          FLUSH( environ_unit )
+          !
+          CALL scalar_product_environ_gradient( field, bound%gradient, bound % normal_field )
+!          CALL scalar_product_environ_gradient( field, gradrho, bound % normal_field )
+          !
+!          CALL write_cube( bound % dscaled, bound % ions )
+!          !
+          !          bound % normal_field % of_r(:) = bound % normal_field % of_r(:) * bound % dscaled % of_r(:)
+          rho %of_r = rho % of_r * bound % scaled % of_r
+          !
+          WRITE( environ_unit, '(a,f20.10,a,f20.10)' )'total_charge = ',integrate_environ_density(rho),' total flux = ',integrate_environ_density( bound % normal_field )
+          FLUSH( environ_unit )
+          !
+          CALL write_cube( bound % normal_field, bound % ions )
+          !
+          CALL destroy_environ_gradient( gradrho )
+          !
+          STOP
+          !
+       ELSE IF ( bound % mode .EQ. 'fa-ionic' ) THEN
+          !
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
+               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+          !
+          DO i = 1, bound % ions % number
+             WRITE(environ_unit, * )'flux throught soft-sphere number ',i,' equal to ',bound%ion_field(i)
+          ENDDO
+          WRITE( environ_unit, * )'total_charge = ',integrate_environ_density(rho),' total flux throught soft-spheres = ',SUM(bound%ion_field(:))
+          !
+          CALL scalar_product_environ_gradient( field, bound%gradient, rho )
+          WRITE( environ_unit, * )'actual total flux = ',integrate_environ_density(rho)
+          !
+          STOP
+          !
+       ENDIF
+       !
+       CALL destroy_environ_density( rho )
+       !
+       CALL destroy_environ_gradient( field )
+       !
+    END IF
     !
     RETURN
     !

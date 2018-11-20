@@ -1565,7 +1565,7 @@ CONTAINS
        !
        ! Compute gradient of soft-sphere interface
        !
-       gradaux % of_r = gradlocal(i) % of_r
+       gradaux % of_r = - gradlocal(i) % of_r
        !
        DO ipol = 1, 3
           DO j = 1, nsoft_spheres
@@ -1581,10 +1581,10 @@ CONTAINS
        !
        ! Compute functional derivative of field flux wrt electronic density
        !
-       CALL field_of_gradrho( gradaux, dion_field_drho(i) )
-       !
-       ! Compute partial derivatives of field flux wrt ionic positions
-       !
+!       CALL field_of_gradrho( gradaux, dion_field_drho(i) )
+!       !
+!       ! Compute partial derivatives of field flux wrt ionic positions
+!       !
        DO j = 1, nsoft_spheres
           !
           aux % of_r = 0.D0
@@ -1594,8 +1594,8 @@ CONTAINS
              CALL laplacian_of_functions( soft_spheres(i), aux, .FALSE. )
              !
              DO k = 1, nsoft_spheres
-                IF ( k .EQ. j ) CYCLE
-                aux % of_r = aux % of_r * local(k) % of_r
+               IF ( k .EQ. j ) CYCLE
+               aux % of_r = aux % of_r * local(k) % of_r
              ENDDO
              !
           ELSE
@@ -1616,6 +1616,7 @@ CONTAINS
     END DO
     !
     CALL destroy_environ_density( aux )
+    CALL destroy_environ_gradient( gradaux )
     !
     DO i = 1, nsoft_spheres
        CALL destroy_environ_gradient( gradlocal(i) )

@@ -293,7 +293,7 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: solvent_mode = 'electronic'
         CHARACTER( LEN = 80 ) :: solvent_mode_allowed(8)
         DATA solvent_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
-                              & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
+                              & 'system', 'fa-electronic', 'fa-ionic', 'fa-full' /
         ! solvent_mode method for calculating the density that sets
         ! the dielectric constant
         ! electronic = dielectric depends self-consist. on electronic density
@@ -306,9 +306,9 @@ MODULE environ_input
         !         on atomic positions of width equal to corespread(ityp)
         ! system = simplified regular dielectric defined to be outside a distance
         !         solvent_distance from the specified system
-        ! elec-sys = similar to electronic, but on top of the system dielectric
-        ! ionic-sys = similar to ionic, but on top of the system dielectric
-        ! full-sys = similar to full, but on top of the system dielectric
+        ! fa-electrons = similar to electronic, but field-aware
+        ! fa-ionic = similar to ionic, but field-aware
+        ! fa-full = similar to full, but field-aware
 !
 ! Soft solvent boundary (electronic) parameters
 !
@@ -1357,7 +1357,7 @@ CONTAINS
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
-    IF ( solvent_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
+    IF ( (solvent_mode .EQ. 'ionic' .OR. solvent_mode .EQ. 'fa-ionic') .AND. boundary_core .NE. 'analytic' ) THEN
        IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'
        boundary_core = 'analytic'
     ENDIF
@@ -1406,7 +1406,9 @@ CONTAINS
     ! Depending on the boundary mode, set fitted parameters
     !
     IF ( TRIM(ADJUSTL(solvent_mode)) .EQ. 'electronic' .OR. &
-         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'full' ) THEN
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'full' .OR. &
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-electronic' .OR. &
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-full' ) THEN
        !
        ! Self-consistent continuum solvation (SCCS)
        !
@@ -1432,7 +1434,8 @@ CONTAINS
           rhomin = 0.0024
        END SELECT
        !
-    ELSE IF ( solvent_mode .EQ. 'ionic' ) THEN
+    ELSE IF ( TRIM(ADJUSTL(solvent_mode)) .EQ. 'ionic' .OR. &
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-ionic' ) THEN
        !
        ! Soft-sphere continuum solvation
        !
