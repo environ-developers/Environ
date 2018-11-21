@@ -198,10 +198,10 @@ CONTAINS
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
-    lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' )
+    lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' .OR. solvent_mode(1:2) .EQ. 'fa' )
     lsoftelectrolyte = lelectrolyte .AND. ( electrolyte_mode .EQ. 'electronic' .OR. electrolyte_mode .EQ. 'full' )
     lsoftcavity    = lsoftsolvent .OR. lsoftelectrolyte
-    lrigidsolvent  = lsolvent .AND. solvent_mode .NE. 'electronic'
+    lrigidsolvent  = lsolvent .AND. ( solvent_mode .EQ. 'ionic' .OR. solvent_mode(1:2) .EQ. 'fa' )
     lrigidelectrolyte = lelectrolyte .AND. electrolyte_mode .NE. 'electronic'
     lrigidcavity   = lrigidsolvent .OR. lrigidelectrolyte
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &

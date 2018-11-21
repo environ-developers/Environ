@@ -247,9 +247,9 @@ CONTAINS
     !
     boundary%mode = mode
     !
-    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' ) .OR. (field_factor .GT. 0.D0 )
+    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' ) .OR. ( field_factor .GT. 0.D0 )
     IF ( boundary%need_electrons ) boundary%electrons => electrons
-    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' ) .OR. (field_factor .GT. 0.D0 )
+    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' ) .OR. ( field_factor .GT. 0.D0 )
     IF ( boundary%need_ions ) boundary%ions => ions
     boundary%need_system = ( mode .EQ. 'system' )
     IF ( boundary%need_system ) boundary%system => system
@@ -267,7 +267,7 @@ CONTAINS
     !
     boundary%alpha = alpha
     boundary%softness = softness
-    IF ( boundary%mode .EQ. 'ionic' ) ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
+    IF ( boundary%mode .EQ. 'ionic' .OR. boundary%mode .EQ. 'fa-ionic' ) ALLOCATE( boundary%soft_spheres( boundary%ions%number ) )
     !
     boundary%simple%type = 4
     boundary%simple%pos => system%pos
@@ -298,7 +298,7 @@ CONTAINS
     boundary%charge_asymmetry = charge_asymmetry
     boundary%field_max = field_max
     boundary%field_min = field_min
-    IF ( boundary%field_aware .AND. boundary%mode .EQ. 'ionic' ) THEN
+    IF ( boundary%field_aware .AND. boundary%mode .EQ. 'fa-ionic' ) THEN
        ALLOCATE( boundary%ion_field( boundary%ions%number ) )
        ALLOCATE( boundary%dion_field_drho( boundary%ions%number ) )
        ALLOCATE( boundary%partial_of_ion_field( 3, boundary%ions%number, boundary%ions%number ) )
@@ -320,6 +320,7 @@ CONTAINS
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
     !
+    CHARACTER( LEN=80 ) :: sub_name = 'init_environ_boundary_second'
     INTEGER :: i
     !
     CALL init_environ_density( cell, boundary%scaled )
@@ -342,12 +343,14 @@ CONTAINS
     ENDIF
     !
     IF ( boundary%field_aware ) THEN
-       IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
+       IF ( boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
           CALL init_environ_density( cell, boundary%normal_field )
-       ELSE IF ( boundary%mode .EQ. 'ionic' ) THEN
+       ELSE IF ( boundary%mode .EQ. 'fa-ionic' ) THEN
           DO i = 1, boundary%ions%number
              CALL init_environ_density( cell, boundary%dion_field_drho(i) )
           ENDDO
+       ELSE
+          CALL errore(sub_name,'boundary must be field-aware',1)
        ENDIF
     ENDIF
     !
@@ -470,7 +473,7 @@ CONTAINS
     INTEGER :: i
     REAL( DP ) :: radius
     !
-    IF ( boundary % mode .NE. 'ionic' ) RETURN
+    IF ( .NOT. ( boundary % mode .EQ. 'ionic' .OR. boundary % mode .EQ. 'fa-ionic' ) ) RETURN
     !
     DO i = 1, boundary%ions%number
        radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
@@ -503,6 +506,11 @@ CONTAINS
     TYPE( environ_density ) :: rho
     TYPE( environ_gradient ) :: gradrho, field
     CHARACTER( LEN=80 ) :: label
+    !
+    INTEGER :: ipol
+    REAL( DP ) :: dx, x0
+    REAL( DP ), ALLOCATABLE :: analytic_partial_of_ion_field(:,:,:)
+    REAL( DP ), ALLOCATABLE :: fd_partial_of_ion_field(:)
     !
     cell => bound%scaled%cell
     !
@@ -704,13 +712,50 @@ CONTAINS
           CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
                & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
           !
+          ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
+          analytic_partial_of_ion_field = bound % partial_of_ion_field
+          !
           DO i = 1, bound % ions % number
              WRITE(environ_unit, * )'flux throught soft-sphere number ',i,' equal to ',bound%ion_field(i)
           ENDDO
+          rho %of_r = rho % of_r * bound % scaled % of_r
           WRITE( environ_unit, * )'total_charge = ',integrate_environ_density(rho),' total flux throught soft-spheres = ',SUM(bound%ion_field(:))
           !
           CALL scalar_product_environ_gradient( field, bound%gradient, rho )
           WRITE( environ_unit, * )'actual total flux = ',integrate_environ_density(rho)
+          !
+          dx = 0.01D0
+          !
+          ALLOCATE( fd_partial_of_ion_field( bound%ions%number ) )
+          !
+          DO i = 1, bound % ions % number
+             DO ipol = 1, 3
+                !
+                x0 = bound % ions % tau( ipol, i )
+                bound % ions % tau( ipol, i ) = x0 - dx
+                !
+                CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
+                     & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+                !
+                fd_partial_of_ion_field = bound%ion_field
+                !
+                bound % ions % tau( ipol, i ) = x0 + dx
+                !
+                CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
+                     & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+                !
+                fd_partial_of_ion_field = bound%ion_field - fd_partial_of_ion_field
+                fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx
+                !
+                bound % ions % tau( ipol, i ) = x0
+                !
+                WRITE( environ_unit, * )' i  = ',i,' ipol = ',ipol
+                WRITE( environ_unit, '(a,10f20.10)' )'analytic     = ',analytic_partial_of_ion_field( ipol, :, i )
+                WRITE( environ_unit, '(a,10f20.10)' )'finite-diff  = ',fd_partial_of_ion_field(:)
+                WRITE( environ_unit, * )' '
+                !
+             ENDDO
+          ENDDO
           !
           STOP
           !
