@@ -546,6 +546,8 @@ CONTAINS
 !    CALL create_environ_density( numerator, label )
 !    label = 'denominator'
 !    CALL create_environ_density( denominator, label )
+!    label = 'cfactor'
+!    CALL create_environ_density( cfactor, label )
 !!!!!
     CALL init_environ_density( cell, cfactor )
     CALL init_environ_density( cell, numerator )
@@ -556,7 +558,7 @@ CONTAINS
     CALL init_environ_density( cell, screening )
     !
     x % of_r = 0.D0
-    rhoaux % of_r = electrolyte%density%of_r
+    rhoaux % of_r = 0.D0
     screening % of_r = electrolyte%k2/e2/fpi * gam%of_r
     residual % of_r = 0.D0
     !
@@ -715,6 +717,9 @@ CONTAINS
              !
           END IF
           !
+!!!
+!        CALL write_cube( cfactor, idx=itypi )
+!!!
           screening % of_r = screening % of_r + &
               cbulki * zi**2 / kT * cfactor % of_r * numerator % of_r
           !
@@ -734,6 +739,7 @@ CONTAINS
 !       CALL print_environ_density( screening, local_verbose=2 )
 !       CALL print_environ_density( rhoaux, local_verbose=2 )
 !       CALL print_environ_density( x, local_verbose=2 )
+!       totaux = integrate_environ_density( rhoaux )
 !       CALL errore( sub_name, 'stop', 1)
 !!!!!!
        !
