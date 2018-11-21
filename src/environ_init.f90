@@ -218,7 +218,7 @@ CONTAINS
     !
     IF ( loptical ) CALL create_environ_dielectric(optical)
     !
-    IF ( lelectrostatic ) CALL create_environ_charges(charges)
+    IF ( lelectrostatic .OR. lconfine ) CALL create_environ_charges(charges)
     !
     ! Allocate and set basic properties of ions
     !
@@ -233,9 +233,10 @@ CONTAINS
     !
     CALL init_environ_system( system_ntyp, system_dim, system_axis, ions, system )
     !
-    ! Collect free charges if computing electrostatics
+    ! Collect free charges if computing electrostatics or confinement 
     !
-    IF ( lelectrostatic ) CALL init_environ_charges_first( ions=ions, electrons=electrons, charges=charges )
+    IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_first( electrons=electrons, charges=charges )
+    IF ( lelectrostatic ) CALL init_environ_charges_first( ions=ions, charges=charges )
     !
     ! Allocate and set basic properties of external charges
     !
@@ -428,7 +429,7 @@ CONTAINS
     !
     IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
     !
-    IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
+    IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_second( cell, charges )
     !
     RETURN
     !
@@ -601,10 +602,8 @@ CONTAINS
         !
      END IF
      !
-     IF ( lelectrostatic ) THEN
-        CALL update_environ_charges( charges )
-        CALL electrostatic_initions( system )
-     END IF
+     IF ( lelectrostatic .OR. lconfine ) CALL update_environ_charges( charges )
+     IF ( lelectrostatic ) CALL electrostatic_initions( system )
      !
      system%update = .FALSE.
      ions%update = .FALSE.
@@ -646,7 +645,7 @@ CONTAINS
      CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
      CALL print_environ_electrons( electrons )
      !
-     IF ( lelectrostatic ) CALL update_environ_charges( charges )
+     IF ( lelectrostatic .OR. lconfine ) CALL update_environ_charges( charges )
      !
      ! ... Update soft environ properties, defined on electrons
      !
@@ -753,7 +752,7 @@ CONTAINS
      !
      ! ... destroy derived types which were allocated in input
      !
-     IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
+     IF ( lelectrostatic .OR. lconfine ) CALL destroy_environ_charges( lflag, charges )
      IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
      IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
      IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
