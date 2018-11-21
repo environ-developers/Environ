@@ -50,7 +50,7 @@ CONTAINS
                               lsoftcavity, vsoftcavity,             &
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
-                              lconfine, env_confine,                &
+                              lconfine, env_confine, vconfine,      &
                               charges, lstatic, static,             &
                               lelectrolyte, electrolyte,            &
                               cell, lsoftsolvent, lsoftelectrolyte
@@ -61,6 +61,8 @@ CONTAINS
     USE embedding_electrostatic, ONLY : calc_velectrostatic
     USE embedding_surface,       ONLY : calc_desurface_dboundary
     USE embedding_volume,        ONLY : calc_devolume_dboundary
+    USE embedding_confine,       ONLY : calc_vconfine, &
+                                        calc_deconfine_dboundary
     USE utils_dielectric,        ONLY : calc_dedielectric_dboundary
     USE utils_electrolyte,       ONLY : calc_deelectrolyte_dboundary
     USE utils_charges,           ONLY : update_environ_charges, &
@@ -116,7 +118,7 @@ CONTAINS
        CALL calc_vconfine( env_confine, solvent, vconfine )
        IF ( verbose .GE. 2 ) CALL print_environ_density( vconfine )
        !
-       vtot = vtot + vconfine
+       vtot = vtot + vconfine % of_r
        !
     END IF
     !
@@ -193,7 +195,7 @@ CONTAINS
 !! energy computed as the sum of Kohn-Sham eigenvalues.
 !--------------------------------------------------------------------
   SUBROUTINE calc_eenviron( deenviron, eelectrostatic, esurface, &
-       & evolume, eelectrolyte )
+       & evolume, econfine, eelectrolyte )
 !--------------------------------------------------------------------
     USE environ_base,  ONLY : electrons, solvent,                   &
                               lelectrostatic, velectrostatic,       &
@@ -211,7 +213,7 @@ CONTAINS
     USE embedding_electrostatic, ONLY : calc_eelectrostatic
     USE embedding_surface,       ONLY : calc_esurface
     USE embedding_volume,        ONLY : calc_evolume
-    USE embedding_confine,       ONLY : calc_econfine
+!    USE embedding_confine,       ONLY : calc_econfine
     USE utils_electrolyte,       ONLY : calc_eelectrolyte
     USE utils_charges,           ONLY : update_environ_charges
     !
@@ -296,6 +298,7 @@ CONTAINS
                              lrigidelectrolyte,                 &
                              lsurface, env_surface_tension,     &
                              lvolume, env_pressure,             &
+                             lconfine, env_confine,             &
                              lsolvent, solvent, cell
     !
     USE electrostatic_base, ONLY : outer
@@ -305,6 +308,7 @@ CONTAINS
     USE embedding_electrostatic, ONLY : calc_felectrostatic
     USE embedding_surface,       ONLY : calc_desurface_dboundary
     USE embedding_volume,        ONLY : calc_devolume_dboundary
+    USE embedding_confine,       ONLY : calc_deconfine_dboundary
     USE utils_dielectric,        ONLY : calc_dedielectric_dboundary
     USE utils_electrolyte,       ONLY : calc_deelectrolyte_dboundary
     USE tools_generate_boundary, ONLY : calc_dboundary_dions, solvent_aware_de_dboundary
