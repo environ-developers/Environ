@@ -1529,7 +1529,7 @@ CONTAINS
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     TYPE( environ_gradient ), DIMENSION(:), ALLOCATABLE :: gradlocal
-    TYPE( environ_density ) :: aux
+    TYPE( environ_density ) :: aux, aux2
     TYPE( environ_gradient ) :: gradaux
     !
     ! Aliases and allocations
@@ -1559,24 +1559,23 @@ CONTAINS
     partial_of_ion_field = 0.D0
     !
     CALL init_environ_density( cell, aux )
+    CALL init_environ_density( cell, aux2 )
     CALL init_environ_gradient( cell, gradaux )
     !
     DO i = 1, nsoft_spheres
        !
        ! Compute gradient of soft-sphere interface
        !
-       gradaux % of_r = - gradlocal(i) % of_r
-       !
-       DO ipol = 1, 3
-          DO j = 1, nsoft_spheres
-             IF ( j .EQ. i ) CYCLE
-             gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * local(j) % of_r( : )
-          ENDDO
-       ENDDO
+       gradaux % of_r =  - gradlocal(i) % of_r
        !
        ! Compute field flux through soft-sphere interface
        !
        CALL scalar_product_environ_gradient( field, gradaux, aux ) ! here aux is the normal field
+       !
+       DO j = 1, nsoft_spheres
+          IF ( j .EQ. i ) CYCLE
+          aux % of_r = aux % of_r * local(j) % of_r
+       ENDDO
        ion_field(i) = integrate_environ_density( aux )
        !
        ! Compute functional derivative of field flux wrt electronic density
@@ -1591,25 +1590,32 @@ CONTAINS
           !
           IF ( j .EQ. i ) THEN
              !
-             CALL laplacian_of_functions( soft_spheres(i), aux, .FALSE. )
+             CALL laplacian_of_functions( soft_spheres(i), aux, .TRUE. )
              !
+             aux % of_r = - aux % of_r
              DO k = 1, nsoft_spheres
                IF ( k .EQ. j ) CYCLE
                aux % of_r = aux % of_r * local(k) % of_r
              ENDDO
              !
+             DO ipol = 1, 3
+                aux2 % of_r = aux % of_r * field % of_r(ipol,:)
+                partial_of_ion_field( ipol, i, j ) = integrate_environ_density( aux2 )
+             ENDDO
+             !
           ELSE
              !
-             CALL scalar_product_environ_gradient( gradlocal(i), gradlocal(j), aux )
-             !
+             CALL scalar_product_environ_gradient( field, gradaux, aux ) ! here aux is the normal field
+!             CALL scalar_product_environ_gradient( gradlocal(i), gradlocal(j), aux )
+!             !
              DO k = 1, nsoft_spheres
                 IF ( k .EQ. j .OR. k .EQ. i ) CYCLE
                 aux % of_r = aux % of_r * local(k) % of_r
              ENDDO
              !
+             partial_of_ion_field( :, i, j ) = - scalar_product_environ_gradient_density( gradlocal(j), aux )
+             !
           ENDIF
-          !
-          partial_of_ion_field( :, i, j ) = scalar_product_environ_gradient_density( field, aux )
           !
        ENDDO
        !

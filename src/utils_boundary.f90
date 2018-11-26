@@ -406,19 +406,19 @@ CONTAINS
     !
     CALL copy_environ_density   ( boriginal % scaled        , bcopy % scaled        )
     CALL copy_environ_gradient  ( boriginal % gradient      , bcopy % gradient      )
-    CALL copy_environ_density   ( boriginal % laplacian     , bcopy % laplacian     )
-    CALL copy_environ_density   ( boriginal % dsurface      , bcopy % dsurface      )
-    CALL copy_environ_hessian   ( boriginal % hessian       , bcopy % hessian       )
-    CALL copy_environ_density   ( boriginal % density       , bcopy % density       )
-    CALL copy_environ_density   ( boriginal % dscaled       , bcopy % dscaled       )
-    CALL copy_environ_density   ( boriginal % d2scaled      , bcopy % d2scaled      )
+    IF ( ASSOCIATED( boriginal%laplacian%cell ) ) CALL copy_environ_density   ( boriginal % laplacian     , bcopy % laplacian     )
+    IF ( ASSOCIATED( boriginal%dsurface%cell ) ) CALL copy_environ_density   ( boriginal % dsurface      , bcopy % dsurface      )
+    IF ( ASSOCIATED( boriginal%hessian%cell ) ) CALL copy_environ_hessian   ( boriginal % hessian       , bcopy % hessian       )
+    IF ( ASSOCIATED( boriginal%density%cell ) ) CALL copy_environ_density   ( boriginal % density       , bcopy % density       )
+    IF ( ASSOCIATED( boriginal%dscaled%cell ) )  CALL copy_environ_density   ( boriginal % dscaled       , bcopy % dscaled       )
+    IF ( ASSOCIATED( boriginal%d2scaled%cell ) ) CALL copy_environ_density   ( boriginal % d2scaled      , bcopy % d2scaled      )
     CALL copy_environ_functions ( boriginal % simple        , bcopy % simple        )
     CALL copy_environ_functions ( boriginal % solvent_probe , bcopy % solvent_probe )
-    CALL copy_environ_density   ( boriginal % local         , bcopy % local         )
-    CALL copy_environ_density   ( boriginal % probe         , bcopy % probe         )
-    CALL copy_environ_density   ( boriginal % filling       , bcopy % filling       )
-    CALL copy_environ_density   ( boriginal % dfilling      , bcopy % dfilling      )
-    CALL copy_environ_density   ( boriginal % normal_field  , bcopy % normal_field  )
+    IF ( ASSOCIATED( boriginal%local%cell ) )  CALL copy_environ_density   ( boriginal % local         , bcopy % local         )
+    IF ( ASSOCIATED( boriginal%probe%cell ) )   CALL copy_environ_density   ( boriginal % probe         , bcopy % probe         )
+    IF ( ASSOCIATED( boriginal%filling%cell ) )  CALL copy_environ_density   ( boriginal % filling       , bcopy % filling       )
+    IF ( ASSOCIATED( boriginal%dfilling%cell ) )   CALL copy_environ_density   ( boriginal % dfilling      , bcopy % dfilling      )
+    IF ( ASSOCIATED( boriginal%normal_field%cell ) )   CALL copy_environ_density   ( boriginal % normal_field  , bcopy % normal_field  )
     !
     IF ( ALLOCATED( boriginal % soft_spheres ) ) THEN
        n = SIZE( boriginal % soft_spheres )
@@ -511,6 +511,7 @@ CONTAINS
     REAL( DP ) :: dx, x0
     REAL( DP ), ALLOCATABLE :: analytic_partial_of_ion_field(:,:,:)
     REAL( DP ), ALLOCATABLE :: fd_partial_of_ion_field(:)
+    TYPE( environ_boundary ) :: localbound
     !
     cell => bound%scaled%cell
     !
@@ -724,30 +725,30 @@ CONTAINS
           CALL scalar_product_environ_gradient( field, bound%gradient, rho )
           WRITE( environ_unit, * )'actual total flux = ',integrate_environ_density(rho)
           !
-          dx = 0.01D0
+          dx = 0.0001D0
           !
           ALLOCATE( fd_partial_of_ion_field( bound%ions%number ) )
           !
           DO i = 1, bound % ions % number
              DO ipol = 1, 3
                 !
+                CALL copy_environ_boundary( bound, localbound )
                 x0 = bound % ions % tau( ipol, i )
-                bound % ions % tau( ipol, i ) = x0 - dx
+                localbound % ions % tau( ipol, i ) = x0 - dx
                 !
-                CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
-                     & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, field, &
+                     & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
                 !
-                fd_partial_of_ion_field = bound%ion_field
+                fd_partial_of_ion_field = localbound%ion_field
                 !
-                bound % ions % tau( ipol, i ) = x0 + dx
+                CALL copy_environ_boundary( bound, localbound )
+                localbound % ions % tau( ipol, i ) = x0 + dx
                 !
-                CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
-                     & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, field, &
+                     & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
                 !
-                fd_partial_of_ion_field = bound%ion_field - fd_partial_of_ion_field
-                fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx
-                !
-                bound % ions % tau( ipol, i ) = x0
+                fd_partial_of_ion_field = localbound%ion_field - fd_partial_of_ion_field
+                fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx / cell%alat
                 !
                 WRITE( environ_unit, * )' i  = ',i,' ipol = ',ipol
                 WRITE( environ_unit, '(a,10f20.10)' )'analytic     = ',analytic_partial_of_ion_field( ipol, :, i )
