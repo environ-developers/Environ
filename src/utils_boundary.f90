@@ -736,6 +736,10 @@ CONTAINS
                 x0 = bound % ions % tau( ipol, i )
                 localbound % ions % tau( ipol, i ) = x0 - dx
                 !
+!                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
+!                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
+!                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+                !
                 CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, field, &
                      & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
                 !
@@ -743,6 +747,10 @@ CONTAINS
                 !
                 CALL copy_environ_boundary( bound, localbound )
                 localbound % ions % tau( ipol, i ) = x0 + dx
+                !
+!                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
+!                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
+!                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
                 !
                 CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, field, &
                      & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
