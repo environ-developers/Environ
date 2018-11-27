@@ -1506,7 +1506,7 @@ CONTAINS
   END SUBROUTINE compute_convolution_deriv
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, field, &
+  SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, ions, field, &
        & ion_field, dion_field_drho, partial_of_ion_field )
 !--------------------------------------------------------------------
     !
@@ -1516,6 +1516,7 @@ CONTAINS
     !
     INTEGER, INTENT(IN) :: nsoft_spheres
     TYPE( environ_functions), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
+    TYPE( environ_ions ), INTENT(IN) :: ions
     TYPE( environ_gradient ), INTENT(IN) :: field
     REAL( DP ), DIMENSION(nsoft_spheres), INTENT(OUT) :: ion_field
     TYPE( environ_density ), DIMENSION(nsoft_spheres), INTENT(INOUT) :: dion_field_drho
@@ -1587,19 +1588,26 @@ CONTAINS
        !
        ! Compute functional derivative of field flux wrt electronic density
        !
-!       CALL field_of_gradrho( gradaux, dion_field_drho(i) )
+!       CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
        !
        ! Compute partial derivatives of field flux wrt ionic positions
        !
-!       CALL partial_field_of_ion(local(i),hesslocal)
-       !
        DO j = 1, nsoft_spheres
           !
-!          CALL scalar_product_environ_hessian( hesslocal, gradlocal(j), gradaux )
-!          !
-!          partial_of_ion_field( :, j, i ) = scalar_product_environ_gradient_density( gradaux, prod )
+          ! Compute hessian of poisson potential of individual nuclei
+          !
+          CALL density_of_functions( ions%smeared_ions(j), aux, .TRUE. )
+          !
+          CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r )
+          !
+          CALL scalar_product_environ_hessian( hesslocal, gradlocal(i), gradaux )
+          !
+          partial_of_ion_field( :, i, j ) = partial_of_ion_field( :, i, j ) - &
+               & scalar_product_environ_gradient_density( gradaux, prod )
           !
           IF ( j .EQ. i ) THEN
+             !
+             ! Hessian of soft-sphere times the field
              !
              CALL hessian_of_functions( soft_spheres(i), hessaux, .TRUE. )
              !
@@ -1609,6 +1617,8 @@ CONTAINS
                   & scalar_product_environ_gradient_density( gradaux, prod )
              !
           ELSE
+             !
+             ! ion field times gradient of different soft-sphere
              !
              CALL scalar_product_environ_gradient( gradlocal(i), field, aux ) ! here aux is the normal field
              !

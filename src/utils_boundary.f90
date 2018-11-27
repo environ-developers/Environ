@@ -493,6 +493,7 @@ CONTAINS
     USE tools_generate_boundary, ONLY : boundary_of_density, &
          & boundary_of_functions, boundary_of_system, &
          & solvent_aware_boundary, invert_boundary, compute_ion_field
+    USE utils_ions, ONLY : update_environ_ions
     !
     IMPLICIT NONE
     !
@@ -710,7 +711,7 @@ CONTAINS
           !
        ELSE IF ( bound % mode .EQ. 'fa-ionic' ) THEN
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, field, &
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
                & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
           !
           ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
@@ -736,11 +737,11 @@ CONTAINS
                 x0 = bound % ions % tau( ipol, i )
                 localbound % ions % tau( ipol, i ) = x0 - dx
                 !
-!                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
-!                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
-!                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
+                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
+                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
                 !
-                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, field, &
+                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, localbound%ions, field, &
                      & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
                 !
                 fd_partial_of_ion_field = localbound%ion_field
@@ -748,11 +749,11 @@ CONTAINS
                 CALL copy_environ_boundary( bound, localbound )
                 localbound % ions % tau( ipol, i ) = x0 + dx
                 !
-!                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
-!                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
-!                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
+                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
+                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
                 !
-                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, field, &
+                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, localbound%ions, field, &
                      & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
                 !
                 fd_partial_of_ion_field = localbound%ion_field - fd_partial_of_ion_field
