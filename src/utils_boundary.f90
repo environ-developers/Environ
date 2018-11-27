@@ -404,21 +404,21 @@ CONTAINS
     bcopy % field_min         = boriginal % field_min
     bcopy % initialized       = boriginal % initialized
     !
-    CALL copy_environ_density   ( boriginal % scaled        , bcopy % scaled        )
-    CALL copy_environ_gradient  ( boriginal % gradient      , bcopy % gradient      )
-    IF ( ASSOCIATED( boriginal%laplacian%cell ) ) CALL copy_environ_density   ( boriginal % laplacian     , bcopy % laplacian     )
-    IF ( ASSOCIATED( boriginal%dsurface%cell ) ) CALL copy_environ_density   ( boriginal % dsurface      , bcopy % dsurface      )
-    IF ( ASSOCIATED( boriginal%hessian%cell ) ) CALL copy_environ_hessian   ( boriginal % hessian       , bcopy % hessian       )
-    IF ( ASSOCIATED( boriginal%density%cell ) ) CALL copy_environ_density   ( boriginal % density       , bcopy % density       )
-    IF ( ASSOCIATED( boriginal%dscaled%cell ) )  CALL copy_environ_density   ( boriginal % dscaled       , bcopy % dscaled       )
-    IF ( ASSOCIATED( boriginal%d2scaled%cell ) ) CALL copy_environ_density   ( boriginal % d2scaled      , bcopy % d2scaled      )
+    IF ( ASSOCIATED( boriginal%scaled%cell ) )       CALL copy_environ_density   ( boriginal % scaled        , bcopy % scaled        )
+    IF ( ASSOCIATED( boriginal%gradient%cell ) )     CALL copy_environ_gradient  ( boriginal % gradient      , bcopy % gradient      )
+    IF ( ASSOCIATED( boriginal%laplacian%cell ) )    CALL copy_environ_density   ( boriginal % laplacian     , bcopy % laplacian     )
+    IF ( ASSOCIATED( boriginal%dsurface%cell ) )     CALL copy_environ_density   ( boriginal % dsurface      , bcopy % dsurface      )
+    IF ( ASSOCIATED( boriginal%hessian%cell ) )      CALL copy_environ_hessian   ( boriginal % hessian       , bcopy % hessian       )
+    IF ( ASSOCIATED( boriginal%density%cell ) )      CALL copy_environ_density   ( boriginal % density       , bcopy % density       )
+    IF ( ASSOCIATED( boriginal%dscaled%cell ) )      CALL copy_environ_density   ( boriginal % dscaled       , bcopy % dscaled       )
+    IF ( ASSOCIATED( boriginal%d2scaled%cell ) )     CALL copy_environ_density   ( boriginal % d2scaled      , bcopy % d2scaled      )
     CALL copy_environ_functions ( boriginal % simple        , bcopy % simple        )
     CALL copy_environ_functions ( boriginal % solvent_probe , bcopy % solvent_probe )
-    IF ( ASSOCIATED( boriginal%local%cell ) )  CALL copy_environ_density   ( boriginal % local         , bcopy % local         )
-    IF ( ASSOCIATED( boriginal%probe%cell ) )   CALL copy_environ_density   ( boriginal % probe         , bcopy % probe         )
-    IF ( ASSOCIATED( boriginal%filling%cell ) )  CALL copy_environ_density   ( boriginal % filling       , bcopy % filling       )
-    IF ( ASSOCIATED( boriginal%dfilling%cell ) )   CALL copy_environ_density   ( boriginal % dfilling      , bcopy % dfilling      )
-    IF ( ASSOCIATED( boriginal%normal_field%cell ) )   CALL copy_environ_density   ( boriginal % normal_field  , bcopy % normal_field  )
+    IF ( ASSOCIATED( boriginal%local%cell ) )        CALL copy_environ_density   ( boriginal % local         , bcopy % local         )
+    IF ( ASSOCIATED( boriginal%probe%cell ) )        CALL copy_environ_density   ( boriginal % probe         , bcopy % probe         )
+    IF ( ASSOCIATED( boriginal%filling%cell ) )      CALL copy_environ_density   ( boriginal % filling       , bcopy % filling       )
+    IF ( ASSOCIATED( boriginal%dfilling%cell ) )     CALL copy_environ_density   ( boriginal % dfilling      , bcopy % dfilling      )
+    IF ( ASSOCIATED( boriginal%normal_field%cell ) ) CALL copy_environ_density   ( boriginal % normal_field  , bcopy % normal_field  )
     !
     IF ( ALLOCATED( boriginal % soft_spheres ) ) THEN
        n = SIZE( boriginal % soft_spheres )
@@ -754,6 +754,8 @@ CONTAINS
                 WRITE( environ_unit, '(a,10f20.10)' )'analytic     = ',analytic_partial_of_ion_field( ipol, :, i )
                 WRITE( environ_unit, '(a,10f20.10)' )'finite-diff  = ',fd_partial_of_ion_field(:)
                 WRITE( environ_unit, * )' '
+                !
+                localbound % ions % tau( ipol, i ) = x0
                 !
              ENDDO
           ENDDO

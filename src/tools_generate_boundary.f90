@@ -1510,7 +1510,7 @@ CONTAINS
        & ion_field, dion_field_drho, partial_of_ion_field )
 !--------------------------------------------------------------------
     !
-    USE utils_functions, ONLY : density_of_functions, gradient_of_functions, laplacian_of_functions
+    USE utils_functions, ONLY : density_of_functions, gradient_of_functions, laplacian_of_functions, hessian_of_functions
     !
     IMPLICIT NONE
     !
@@ -1529,6 +1529,7 @@ CONTAINS
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     TYPE( environ_gradient ), DIMENSION(:), ALLOCATABLE :: gradlocal
+    TYPE( environ_hessian ) :: hesslocal
     TYPE( environ_density ) :: aux, aux2
     TYPE( environ_gradient ) :: gradaux
     !
@@ -1559,7 +1560,7 @@ CONTAINS
     partial_of_ion_field = 0.D0
     !
     CALL init_environ_density( cell, aux )
-    CALL init_environ_density( cell, aux2 )
+    CALL init_environ_hessian( cell, hesslocal )
     CALL init_environ_gradient( cell, gradaux )
     !
     DO i = 1, nsoft_spheres
@@ -1586,28 +1587,27 @@ CONTAINS
 !       !
        DO j = 1, nsoft_spheres
           !
-          aux % of_r = 0.D0
-          !
           IF ( j .EQ. i ) THEN
              !
-             CALL laplacian_of_functions( soft_spheres(i), aux, .TRUE. )
+             hesslocal % of_r = 0.D0
              !
-             aux % of_r = - aux % of_r
+             CALL hessian_of_functions( soft_spheres(i), hesslocal, .TRUE. )
+             !
+             CALL scalar_product_environ_hessian( hesslocal, field, gradaux )
+             !
+             aux % of_r = 1.D0
              DO k = 1, nsoft_spheres
                IF ( k .EQ. j ) CYCLE
                aux % of_r = aux % of_r * local(k) % of_r
              ENDDO
              !
-             DO ipol = 1, 3
-                aux2 % of_r = aux % of_r * field % of_r(ipol,:)
-                partial_of_ion_field( ipol, i, j ) = integrate_environ_density( aux2 )
-             ENDDO
+             partial_of_ion_field( :, i, j ) = scalar_product_environ_gradient_density( gradaux, aux )
              !
           ELSE
              !
-             CALL scalar_product_environ_gradient( field, gradaux, aux ) ! here aux is the normal field
-!             CALL scalar_product_environ_gradient( gradlocal(i), gradlocal(j), aux )
-!             !
+             CALL scalar_product_environ_gradient( gradlocal(i), field, aux ) ! here aux is the normal field
+             !             !
+             aux % of_r = -aux % of_r
              DO k = 1, nsoft_spheres
                 IF ( k .EQ. j .OR. k .EQ. i ) CYCLE
                 aux % of_r = aux % of_r * local(k) % of_r
@@ -1623,6 +1623,7 @@ CONTAINS
     !
     CALL destroy_environ_density( aux )
     CALL destroy_environ_gradient( gradaux )
+    CALL destroy_environ_hessian( hesslocal )
     !
     DO i = 1, nsoft_spheres
        CALL destroy_environ_gradient( gradlocal(i) )
