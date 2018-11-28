@@ -493,7 +493,7 @@ CONTAINS
     USE tools_generate_boundary, ONLY : boundary_of_density, &
          & boundary_of_functions, boundary_of_system, &
          & solvent_aware_boundary, invert_boundary, &
-         & compute_ion_field, compute_normal_field
+         & compute_ion_field, compute_normal_field, compute_dion_field_drho
     !
     IMPLICIT NONE
     !
@@ -610,20 +610,22 @@ CONTAINS
        !
        IF ( bound % ions % update ) THEN
           !
+          CALL compute_dion_field_drho( bound%ions%number, bound%soft_spheres, bound%dion_field_drho )
+          !
           bound % update_status = 1 ! waiting to finish update
           !
        ENDIF
        !
        IF ( bound % electrons % update ) THEN
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
-               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, &
+               & bound%electrons, bound%ion_field, bound%partial_of_ion_field )
           !
           CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
           !
           ! Testing ion_field derivatives
           !
-          CALL test_ion_field_derivatives( 2, bound )
+          CALL test_ion_field_derivatives( 1, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -959,14 +961,14 @@ CONTAINS
           localelectrons % density % of_r = bound % electrons % density % of_r - epsilon * delta%of_r
           !
           CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
-               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+               & bound%ion_field, bound%partial_of_ion_field )
           !
           fd_dion_field_drho = bound%ion_field
           !
           localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
           !
           CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
-               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+               & bound%ion_field, bound%partial_of_ion_field )
           !
           fd_dion_field_drho = bound%ion_field - fd_dion_field_drho
           fd_dion_field_drho = fd_dion_field_drho * 0.5D0 / epsilon
@@ -1013,7 +1015,7 @@ CONTAINS
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
              CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
-                  & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+                  & bound%ion_field, bound%partial_of_ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field
              !
@@ -1024,7 +1026,7 @@ CONTAINS
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
              CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
-                  & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+                  & bound%ion_field, bound%partial_of_ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field - fd_partial_of_ion_field
              fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx / cell%alat

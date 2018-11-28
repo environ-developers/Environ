@@ -37,7 +37,7 @@ MODULE tools_generate_boundary
   PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
        & invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
        & solvent_aware_de_dboundary, test_de_dboundary, &
-       & compute_ion_field, compute_normal_field
+       & compute_ion_field, compute_normal_field, compute_dion_field_drho
   !
 CONTAINS
 !  Function: sfunct0
@@ -1508,7 +1508,7 @@ CONTAINS
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, ions, electrons, &
-       & ion_field, dion_field_drho, partial_of_ion_field )
+       & ion_field, partial_of_ion_field )
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions, gradient_of_functions, laplacian_of_functions, hessian_of_functions
@@ -1520,7 +1520,6 @@ CONTAINS
     TYPE( environ_ions ), INTENT(IN) :: ions
     TYPE( environ_electrons ), INTENT(IN) :: electrons
     REAL( DP ), DIMENSION(nsoft_spheres), INTENT(OUT) :: ion_field
-    TYPE( environ_density ), DIMENSION(nsoft_spheres), INTENT(INOUT) :: dion_field_drho
     REAL( DP ), DIMENSION(3,nsoft_spheres,nsoft_spheres), INTENT(OUT) :: partial_of_ion_field
     !
     INTEGER, POINTER :: nnr, ir_end, deriv
@@ -1597,14 +1596,6 @@ CONTAINS
        !
        ion_field(i) = integrate_environ_density( aux )
        !
-       ! Compute functional derivative of field flux wrt electronic density
-       !
-       DO ipol = 1, 3
-          gradaux % of_r(ipol,:) = gradlocal(i) % of_r(ipol,:) * prod % of_r(:)
-       ENDDO
-       !
-       CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
-       !
        ! Compute partial derivatives of field flux wrt ionic positions
        !
        DO j = 1, nsoft_spheres
@@ -1669,6 +1660,84 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE compute_ion_field
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE compute_dion_field_drho( nsoft_spheres, soft_spheres, dion_field_drho )
+!--------------------------------------------------------------------
+    !
+    USE utils_functions, ONLY : density_of_functions, gradient_of_functions
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: nsoft_spheres
+    TYPE( environ_functions), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
+    TYPE( environ_density ), DIMENSION(nsoft_spheres), INTENT(INOUT) :: dion_field_drho
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    INTEGER :: i, j, ipol
+    CHARACTER( LEN=80 ) :: sub_name = 'compute_dion_field_drho'
+    !
+    TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
+    !
+    TYPE( environ_density ) :: prod
+    TYPE( environ_gradient ) :: gradaux
+    !
+    ! Aliases and allocations
+    !
+    IF ( nsoft_spheres .LT. 1 ) CALL errore(sub_name,'Missing soft-spheres',1)
+    cell => dion_field_drho(1) % cell
+    !
+    ALLOCATE( local( nsoft_spheres ) )
+    !
+    ! Compute field-independent soft spheres and gradients
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL init_environ_density( cell, local(i) )
+       !
+       CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
+       !
+    ENDDO  
+    !
+    ! Compute field flux
+    !
+    CALL init_environ_density( cell, prod )
+    CALL init_environ_gradient( cell, gradaux )
+    !
+    DO i = 1, nsoft_spheres
+       !
+       ! Compute product of other soft-spheres
+       !
+       prod % of_r = 1.D0
+       DO j = 1, nsoft_spheres
+          IF ( j .EQ. i ) CYCLE
+          prod % of_r = prod % of_r * local(j) % of_r
+       ENDDO
+       !
+       ! Compute functional derivative of field flux wrt electronic density
+       !
+       CALL gradient_of_functions( soft_spheres(i), gradaux, .TRUE. )
+       !
+       DO ipol = 1, 3
+          gradaux % of_r(ipol,:) = gradaux % of_r(ipol,:) * prod % of_r(:)
+       ENDDO
+       !
+       CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
+       !
+    END DO
+    !
+    CALL destroy_environ_gradient( gradaux )
+    !
+    DO i = 1, nsoft_spheres
+       CALL destroy_environ_density( local(i) )
+    ENDDO
+    DEALLOCATE( local )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE compute_dion_field_drho
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE compute_normal_field( ions, electrons, normal_field )
