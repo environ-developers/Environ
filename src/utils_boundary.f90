@@ -618,14 +618,13 @@ CONTAINS
        !
        IF ( bound % electrons % update ) THEN
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, &
-               & bound%electrons, bound%ion_field, bound%partial_of_ion_field )
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, bound%ion_field )
           !
           CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
           !
           ! Testing ion_field derivatives
           !
-          CALL test_ion_field_derivatives( 1, bound )
+!          CALL test_ion_field_derivatives( 1, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -873,7 +872,7 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_ions, ONLY : update_environ_ions
-    USE tools_generate_boundary, ONLY : compute_ion_field
+    USE tools_generate_boundary, ONLY : compute_ion_field, compute_ion_field_partial
     !
     IMPLICIT NONE
     !
@@ -961,14 +960,14 @@ CONTAINS
           localelectrons % density % of_r = bound % electrons % density % of_r - epsilon * delta%of_r
           !
           CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
-               & bound%ion_field, bound%partial_of_ion_field )
+               & bound%ion_field )
           !
           fd_dion_field_drho = bound%ion_field
           !
           localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
           !
           CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
-               & bound%ion_field, bound%partial_of_ion_field )
+               & bound%ion_field )
           !
           fd_dion_field_drho = bound%ion_field - fd_dion_field_drho
           fd_dion_field_drho = fd_dion_field_drho * 0.5D0 / epsilon
@@ -996,6 +995,9 @@ CONTAINS
        !
        ! Test derivative wrt atomic positions with finite differences
        !
+       CALL compute_ion_field_partial( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
+            & bound%ion_field, bound%partial_of_ion_field )
+       !
        ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
        analytic_partial_of_ion_field = bound % partial_of_ion_field
        !
@@ -1015,7 +1017,7 @@ CONTAINS
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
              CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
-                  & bound%ion_field, bound%partial_of_ion_field )
+                  & bound%ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field
              !
@@ -1026,7 +1028,7 @@ CONTAINS
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
              CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
-                  & bound%ion_field, bound%partial_of_ion_field )
+                  & bound%ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field - fd_partial_of_ion_field
              fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx / cell%alat

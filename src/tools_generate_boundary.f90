@@ -37,7 +37,8 @@ MODULE tools_generate_boundary
   PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
        & invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
        & solvent_aware_de_dboundary, test_de_dboundary, &
-       & compute_ion_field, compute_normal_field, compute_dion_field_drho
+       & compute_ion_field, compute_ion_field_partial, &
+       & compute_normal_field, compute_dion_field_drho
   !
 CONTAINS
 !  Function: sfunct0
@@ -1507,8 +1508,101 @@ CONTAINS
   END SUBROUTINE compute_convolution_deriv
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, ions, electrons, &
-       & ion_field, partial_of_ion_field )
+  SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, ions, electrons, ion_field )
+!--------------------------------------------------------------------
+    !
+    USE utils_functions, ONLY : density_of_functions, gradient_of_functions
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: nsoft_spheres
+    TYPE( environ_functions), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
+    TYPE( environ_ions ), INTENT(IN) :: ions
+    TYPE( environ_electrons ), INTENT(IN) :: electrons
+    REAL( DP ), DIMENSION(nsoft_spheres), INTENT(OUT) :: ion_field
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    INTEGER :: i, j
+    CHARACTER( LEN=80 ) :: sub_name = 'compute_ion_field'
+    !
+    TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
+    !
+    TYPE( environ_density ) :: aux, prod
+    TYPE( environ_gradient ) :: gradaux, field
+    !
+    ! Aliases and allocations
+    !
+    cell => ions % density % cell
+    !
+    ALLOCATE( local( nsoft_spheres ) )
+    !
+    ! Compute field-independent soft spheres and gradients
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL init_environ_density( cell, local(i) )
+       !
+       CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
+       !
+    ENDDO  
+    !
+    ! Compute field
+    !
+    CALL init_environ_density( cell, aux )
+    aux % of_r = electrons % density % of_r + ions % density % of_r
+    !
+    CALL init_environ_gradient( cell, field )
+    CALL gradv_h_of_rho_r( aux%of_r, field%of_r )
+    !
+    ! Compute field flux
+    !
+    ion_field = 0.d0
+    !
+    CALL init_environ_density( cell, prod )
+    CALL init_environ_gradient( cell, gradaux )
+    !
+    DO i = 1, nsoft_spheres
+       !
+       ! Compute product of other soft-spheres
+       !
+       prod % of_r = 1.D0
+       DO j = 1, nsoft_spheres
+          IF ( j .EQ. i ) CYCLE
+          prod % of_r = prod % of_r * local(j) % of_r
+       ENDDO
+       !
+       ! Compute field flux through soft-sphere interface
+       !
+       CALL gradient_of_functions( soft_spheres(i), gradaux, .TRUE. )
+       !
+       CALL scalar_product_environ_gradient( field, gradaux, aux ) ! here aux is the normal field
+       !
+       aux % of_r = - aux % of_r * prod % of_r
+       !
+       ion_field(i) = integrate_environ_density( aux )
+       !
+    END DO
+    !
+    CALL destroy_environ_gradient( gradaux )
+    CALL destroy_environ_density( prod )
+    !
+    CALL destroy_environ_gradient( field )
+    CALL destroy_environ_density( aux )
+    !
+    DO i = 1, nsoft_spheres
+       CALL destroy_environ_density( local(i) )
+    ENDDO
+    DEALLOCATE( local )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE compute_ion_field
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE compute_ion_field_partial( nsoft_spheres, soft_spheres, &
+       & ions, electrons, ion_field, partial_of_ion_field )
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions, gradient_of_functions, laplacian_of_functions, hessian_of_functions
@@ -1659,7 +1753,7 @@ CONTAINS
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE compute_ion_field
+  END SUBROUTINE compute_ion_field_partial
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE compute_dion_field_drho( nsoft_spheres, soft_spheres, dion_field_drho )
