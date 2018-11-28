@@ -1588,7 +1588,11 @@ CONTAINS
        !
        ! Compute functional derivative of field flux wrt electronic density
        !
-!       CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
+       DO ipol = 1, 3
+          gradaux % of_r(ipol,:) = gradlocal(i) % of_r(ipol,:) * prod % of_r(:)
+       ENDDO
+       !
+       CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
        !
        ! Compute partial derivatives of field flux wrt ionic positions
        !
@@ -1596,9 +1600,9 @@ CONTAINS
           !
           ! Compute hessian of poisson potential of individual nuclei
           !
-          CALL density_of_functions( ions%smeared_ions(j), aux, .TRUE. )
+          CALL density_of_functions( ions%smeared_ions(j), aux, .TRUE. ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
           !
-          CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r )
+          CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
           !
           CALL scalar_product_environ_hessian( hesslocal, gradlocal(i), gradaux )
           !
