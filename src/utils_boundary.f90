@@ -509,10 +509,16 @@ CONTAINS
     CHARACTER( LEN=80 ) :: label
     !
     INTEGER :: ipol
+    TYPE( environ_boundary ) :: localbound
+    !
     REAL( DP ) :: dx, x0
     REAL( DP ), ALLOCATABLE :: analytic_partial_of_ion_field(:,:,:)
     REAL( DP ), ALLOCATABLE :: fd_partial_of_ion_field(:)
-    TYPE( environ_boundary ) :: localbound
+    !
+    TYPE( environ_density ) :: dion_field_drho
+    TYPE( environ_functions ) :: test_function
+    TYPE( environ_density ) :: delta
+    TYPE( environ_gradient ) :: graddelta
     !
     cell => bound%scaled%cell
     !
@@ -714,51 +720,69 @@ CONTAINS
           CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
                & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
           !
-          ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
-          analytic_partial_of_ion_field = bound % partial_of_ion_field
+          ! Print out individual and global fluxes
           !
           DO i = 1, bound % ions % number
-             WRITE(environ_unit, * )'flux throught soft-sphere number ',i,' equal to ',bound%ion_field(i)
+             WRITE(environ_unit, '(a,i3,a,f14.7)' )'flux throught soft-sphere number ',i,' equal to ',bound%ion_field(i)
           ENDDO
+          !
           rho %of_r = rho % of_r * bound % scaled % of_r
-          WRITE( environ_unit, * )'total_charge = ',integrate_environ_density(rho),' total flux throught soft-spheres = ',SUM(bound%ion_field(:))
+          WRITE( environ_unit, '(a,f14.7,a,f14.7)' )'total_charge = ',integrate_environ_density(rho),' total flux throught soft-spheres = ',SUM(bound%ion_field(:))
           !
           CALL scalar_product_environ_gradient( field, bound%gradient, rho )
-          WRITE( environ_unit, * )'actual total flux = ',integrate_environ_density(rho)
+          WRITE( environ_unit, '(a,f14.7)' )'actual total flux = ',integrate_environ_density(rho)
           !
-          dx = 0.0001D0
+          ! Test functional derivative wrt electronic density of each flux
           !
-          ALLOCATE( fd_partial_of_ion_field( bound%ions%number ) )
-          !
+          ALLOCATE( analytic_dion_field_drho( bound%ions%number ) )
           DO i = 1, bound % ions % number
-             DO ipol = 1, 3
-                !
-                CALL copy_environ_boundary( bound, localbound )
-                x0 = bound % ions % tau( ipol, i )
-                localbound % ions % tau( ipol, i ) = x0 - dx
-                !
-                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
-                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
-                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
-                !
-                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, localbound%ions, field, &
-                     & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
-                !
-                fd_partial_of_ion_field = localbound%ion_field
-                !
-                CALL copy_environ_boundary( bound, localbound )
-                localbound % ions % tau( ipol, i ) = x0 + dx
-                !
-                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
-                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
-                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
-                !
-                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, localbound%ions, field, &
-                     & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
-                !
-                fd_partial_of_ion_field = localbound%ion_field - fd_partial_of_ion_field
-                fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx / cell%alat
-                !
+             CALL copy_environ_density( bound%dion_field_drho(i), analytic_dion_field_drho(i) )
+          ENDDO
+          !
+          ALLOCATE( fd_dion_field_drho( bound%ions%number ) )
+          !
+          test_function % type = 1
+          test_function % dim = 0
+          test_function % axis = 3
+          test_function % spread = 0.3D0
+          test_function % width = 0.D0
+          test_function % volume = 1.D0
+          !
+          epsilon = 0.000001
+          !
+          CALL init_environ_density( cell, delta )
+          CALL init_environ_gradient( cell, graddelta )
+          !
+          ! We are only going to check delta functions along the z axis passing throught the O atom
+          !
+          ALLOCATE( test_function % pos( 3 ) )
+          test_function % pos(1) = 11.79D0 / cell % alat
+          test_function % pos(2) = 12.05D0 / cell % alat
+          !
+          DO i = 1, cell % n3
+             !
+             test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
+             CALL density_of_functions( test_function, delta, .TRUE. )
+             !
+             fd_dion_field_drho = 0.D0
+             !
+             rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r + epsilon * delta % of_r
+             CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+             !
+             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
+                  & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+             !
+             fd_dion_field_drho = bound%ion_field
+             !
+             rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r - epsilon * delta % of_r
+             CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+             !
+             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
+                  & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+             !
+             fd_dion_field_drho = bound%ion_field - fd_dion_field_drho
+             fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx / cell%alat
+             !
                 WRITE( environ_unit, * )' i  = ',i,' ipol = ',ipol
                 WRITE( environ_unit, '(a,10f20.10)' )'analytic     = ',analytic_partial_of_ion_field( ipol, :, i )
                 WRITE( environ_unit, '(a,10f20.10)' )'finite-diff  = ',fd_partial_of_ion_field(:)
@@ -767,9 +791,68 @@ CONTAINS
                 localbound % ions % tau( ipol, i ) = x0
                 !
              ENDDO
+             !
           ENDDO
           !
+          DEALLOCATE( analytical_partial_of_ion_field )
+          DEALLOCATE( fd_partial_of_ion_field )
+          !
           STOP
+!          !
+!          ! Test derivative wrt atomic positions with finite differences
+!          !
+!          ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
+!          analytic_partial_of_ion_field = bound % partial_of_ion_field
+!          !
+!          dx = 0.0001D0
+!          !
+!          ALLOCATE( fd_partial_of_ion_field( bound%ions%number ) )
+!          !
+!          DO i = 1, bound % ions % number
+!             !
+!             DO ipol = 1, 3
+!                !
+!                CALL copy_environ_boundary( bound, localbound )
+!                x0 = bound % ions % tau( ipol, i )
+!                localbound % ions % tau( ipol, i ) = x0 - dx
+!                !
+!                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
+!                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
+!                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+!                !
+!                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, localbound%ions, field, &
+!                     & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
+!                !
+!                fd_partial_of_ion_field = localbound%ion_field
+!                !
+!                CALL copy_environ_boundary( bound, localbound )
+!                localbound % ions % tau( ipol, i ) = x0 + dx
+!                !
+!                CALL update_environ_ions( localbound%ions%number, localbound%ions%tau, localbound%ions )
+!                rho % of_r = localbound%electrons%density%of_r + localbound%ions%density%of_r
+!                CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+!                !
+!                CALL compute_ion_field( localbound%ions%number, localbound%soft_spheres, localbound%ions, field, &
+!                     & localbound%ion_field, localbound%dion_field_drho, localbound%partial_of_ion_field )
+!                !
+!                fd_partial_of_ion_field = localbound%ion_field - fd_partial_of_ion_field
+!                fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx / cell%alat
+!                !
+!                WRITE( environ_unit, * )' i  = ',i,' ipol = ',ipol
+!                WRITE( environ_unit, '(a,10f20.10)' )'analytic     = ',analytic_partial_of_ion_field( ipol, :, i )
+!                WRITE( environ_unit, '(a,10f20.10)' )'finite-diff  = ',fd_partial_of_ion_field(:)
+!                WRITE( environ_unit, * )' '
+!                !
+!                localbound % ions % tau( ipol, i ) = x0
+!                !
+!             ENDDO
+!             !
+!          ENDDO
+!          !
+!          DEALLOCATE( analytical_partial_of_ion_field )
+!          DEALLOCATE( fd_partial_of_ion_field )
+!          !
+!          STOP
           !
        ENDIF
        !
