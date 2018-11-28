@@ -36,7 +36,8 @@ MODULE tools_generate_boundary
   !
   PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
        & invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
-       & solvent_aware_de_dboundary, test_de_dboundary, compute_ion_field
+       & solvent_aware_de_dboundary, test_de_dboundary, &
+       & compute_ion_field, compute_normal_field
   !
 CONTAINS
 !  Function: sfunct0
@@ -1506,7 +1507,7 @@ CONTAINS
   END SUBROUTINE compute_convolution_deriv
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, ions, field, &
+  SUBROUTINE compute_ion_field( nsoft_spheres, soft_spheres, ions, electrons, &
        & ion_field, dion_field_drho, partial_of_ion_field )
 !--------------------------------------------------------------------
     !
@@ -1517,7 +1518,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nsoft_spheres
     TYPE( environ_functions), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
     TYPE( environ_ions ), INTENT(IN) :: ions
-    TYPE( environ_gradient ), INTENT(IN) :: field
+    TYPE( environ_electrons ), INTENT(IN) :: electrons
     REAL( DP ), DIMENSION(nsoft_spheres), INTENT(OUT) :: ion_field
     TYPE( environ_density ), DIMENSION(nsoft_spheres), INTENT(INOUT) :: dion_field_drho
     REAL( DP ), DIMENSION(3,nsoft_spheres,nsoft_spheres), INTENT(OUT) :: partial_of_ion_field
@@ -1531,13 +1532,14 @@ CONTAINS
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     TYPE( environ_gradient ), DIMENSION(:), ALLOCATABLE :: gradlocal
     TYPE( environ_hessian ) :: hesslocal
+    !
     TYPE( environ_density ) :: aux, prod
-    TYPE( environ_gradient ) :: gradaux
+    TYPE( environ_gradient ) :: gradaux, field
     TYPE( environ_hessian ) :: hessaux
     !
     ! Aliases and allocations
     !
-    cell => field % cell
+    cell => ions % density % cell
     nnr => cell % nnr
     ir_end => cell % ir_end
     !
@@ -1556,15 +1558,24 @@ CONTAINS
        !
        CALL gradient_of_functions( soft_spheres(i), gradlocal(i), .FALSE. )
        !
-    ENDDO
+    ENDDO  
     !
     CALL init_environ_hessian( cell, hesslocal )
+    !
+    ! Compute field
+    !
+    CALL init_environ_density( cell, aux )
+    aux % of_r = electrons % density % of_r + ions % density % of_r
+    !
+    CALL init_environ_gradient( cell, field )
+    CALL gradv_h_of_rho_r( aux%of_r, field%of_r )
+    !
+    ! Compute field flux
     !
     ion_field = 0.d0
     partial_of_ion_field = 0.D0
     !
     CALL init_environ_density( cell, prod )
-    CALL init_environ_density( cell, aux )
     CALL init_environ_gradient( cell, gradaux )
     CALL init_environ_hessian( cell, hessaux )
     !
@@ -1640,6 +1651,7 @@ CONTAINS
        !
     END DO
     !
+    CALL destroy_environ_gradient( field )
     CALL destroy_environ_density( prod )
     CALL destroy_environ_density( aux )
     CALL destroy_environ_gradient( gradaux )
@@ -1657,6 +1669,44 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE compute_ion_field
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE compute_normal_field( ions, electrons, normal_field )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_ions ), INTENT(IN) :: ions
+    TYPE( environ_electrons ), INTENT(IN) :: electrons
+    TYPE( environ_density ), INTENT(INOUT) :: normal_field
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: rho
+    TYPE( environ_gradient ) :: field, gradrho
+    !
+    cell => normal_field % cell
+    !
+    ! Compute field
+    !
+    CALL init_environ_density( cell, rho )
+    rho % of_r = electrons % density % of_r + ions % density % of_r
+    !
+    CALL init_environ_gradient( cell, field )
+    CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+    !
+    CALL init_environ_gradient( cell, gradrho )
+    CALL external_gradient( electrons%density%of_r, gradrho%of_r )
+    !
+    CALL scalar_product_environ_gradient( field, gradrho, normal_field )
+    !
+    CALL destroy_environ_gradient( gradrho )
+    CALL destroy_environ_gradient( field )
+    CALL destroy_environ_density( rho )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE compute_normal_field
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE tools_generate_boundary

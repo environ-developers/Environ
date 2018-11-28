@@ -492,7 +492,8 @@ CONTAINS
     !
     USE tools_generate_boundary, ONLY : boundary_of_density, &
          & boundary_of_functions, boundary_of_system, &
-         & solvent_aware_boundary, invert_boundary, compute_ion_field
+         & solvent_aware_boundary, invert_boundary, &
+         & compute_ion_field, compute_normal_field
     !
     IMPLICIT NONE
     !
@@ -595,6 +596,8 @@ CONTAINS
        !
        IF ( bound % electrons % update ) THEN
           !
+          CALL compute_normal_field( bound%ions, bound%electrons, bound%normal_field )
+          !
           bound % density % of_r = bound % electrons % density % of_r
           !
           CALL boundary_of_density( bound % density, bound )
@@ -607,13 +610,20 @@ CONTAINS
        !
        IF ( bound % ions % update ) THEN
           !
-          bound % update_status = 1 ! boundary has changed and is ready
+          bound % update_status = 1 ! waiting to finish update
           !
        ENDIF
        !
        IF ( bound % electrons % update ) THEN
           !
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
+               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
+          !
           CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
+          !
+          ! Testing ion_field derivatives
+          !
+          CALL test_ion_field_derivatives( 2, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -651,45 +661,6 @@ CONTAINS
     ! Solvent-aware interface
     !
     IF ( bound % update_status .EQ. 2 .AND. bound % solvent_aware ) CALL solvent_aware_boundary( bound )
-    !
-    ! Field-aware interface
-    !
-    IF ( bound % update_status .EQ. 2 .AND. bound % field_aware ) THEN
-       !
-       CALL init_environ_density( cell, rho )
-       rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
-       !
-       CALL init_environ_gradient( cell, field )
-       CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
-       !
-       IF ( bound % mode .EQ. 'fa-electronic' ) THEN
-          !
-          CALL init_environ_gradient( cell, gradrho )
-          !
-          CALL external_gradient( bound%electrons%density%of_r, gradrho%of_r )
-          !
-          CALL scalar_product_environ_gradient( field, gradrho, bound%normal_field )
-          !
-          CALL destroy_environ_gradient( gradrho )
-          !
-          STOP
-          !
-       ELSE IF ( bound % mode .EQ. 'fa-ionic' ) THEN
-          !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
-               & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
-          !
-          ! Testing ion_field derivatives
-          !
-!          CALL test_ion_field_derivatives( 1, rho, field, bound )
-          !
-       ENDIF
-       !
-       CALL destroy_environ_density( rho )
-       !
-       CALL destroy_environ_gradient( field )
-       !
-    END IF
     !
     RETURN
     !
@@ -896,7 +867,7 @@ CONTAINS
   END SUBROUTINE test_de_dboundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE test_ion_field_derivatives( ideriv, rho, field, bound )
+  SUBROUTINE test_ion_field_derivatives( ideriv, bound )
 !--------------------------------------------------------------------
     !
     USE utils_ions, ONLY : update_environ_ions
@@ -905,11 +876,11 @@ CONTAINS
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: ideriv ! .EQ. 1/2 for electronic/ionic
-    TYPE( environ_density ), INTENT(INOUT) :: rho
-    TYPE( environ_gradient ), INTENT(INOUT) :: field
     TYPE( environ_boundary ), INTENT(INOUT) :: bound
     !
     TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_density ) :: rho
+    TYPE( environ_gradient ) :: field
     !
     INTEGER :: i, ipol
     REAL( DP ) :: dx, x0, epsilon
@@ -922,8 +893,17 @@ CONTAINS
     TYPE( environ_density ), ALLOCATABLE, DIMENSION(:) :: analytic_dion_field_drho
     TYPE( environ_functions ) :: test_function
     TYPE( environ_density ) :: delta
+    TYPE( environ_electrons ) :: localelectrons
     !
     cell => bound % scaled % cell
+    !
+    ! Recompute total charge density and field
+    !
+    CALL init_environ_density( cell, rho )
+    rho % of_r = bound % electrons % density % of_r + bound % ions % density % of_r
+    !
+    CALL init_environ_gradient( cell, field )
+    CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
     !
     ! Print out individual and global fluxes
     !
@@ -961,6 +941,8 @@ CONTAINS
        !
        CALL init_environ_density( cell, delta )
        !
+       CALL init_environ_density( cell, localelectrons%density )
+       !
        ! We are only going to check delta functions along the z axis passing throught the O atom
        !
        ALLOCATE( test_function % pos( 3 ) )
@@ -974,18 +956,16 @@ CONTAINS
           !
           fd_dion_field_drho = 0.D0
           !
-          rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r - epsilon * delta%of_r
-          CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+          localelectrons % density % of_r = bound % electrons % density % of_r - epsilon * delta%of_r
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
                & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
           !
           fd_dion_field_drho = bound%ion_field
           !
-          rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r + epsilon * delta%of_r
-          CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+          localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
+          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
                & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
           !
           fd_dion_field_drho = bound%ion_field - fd_dion_field_drho
@@ -1032,7 +1012,7 @@ CONTAINS
              rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
-             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
+             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
                   & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field
@@ -1043,7 +1023,7 @@ CONTAINS
              rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
-             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, field, &
+             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
                   & bound%ion_field, bound%dion_field_drho, bound%partial_of_ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field - fd_partial_of_ion_field
