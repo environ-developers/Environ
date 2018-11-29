@@ -201,6 +201,8 @@ CONTAINS
     boundary%field_aware = .FALSE.
     label = 'normal_field_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%normal_field, label )
+    IF ( ALLOCATED( boundary%local_spheres ) ) &
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
     IF ( ALLOCATED( boundary%dion_field_drho ) ) &
          & CALL errore(sub_name,'Trying to create an already allocated object',1)
     !
@@ -302,6 +304,7 @@ CONTAINS
        ALLOCATE( boundary%ion_field( boundary%ions%number ) )
        ALLOCATE( boundary%dion_field_drho( boundary%ions%number ) )
        ALLOCATE( boundary%partial_of_ion_field( 3, boundary%ions%number, boundary%ions%number ) )
+       ALLOCATE( boundary%local_spheres( boundary%ions%number ) )
     ENDIF
     !
     boundary%initialized = .FALSE.
@@ -325,7 +328,8 @@ CONTAINS
     !
     CALL init_environ_density( cell, boundary%scaled )
     !
-    IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
+    IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' .OR. &
+         & boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
        CALL init_environ_density( cell, boundary%density )
        CALL init_environ_density( cell, boundary%dscaled )
        CALL init_environ_density( cell, boundary%d2scaled )
@@ -463,22 +467,33 @@ CONTAINS
   END SUBROUTINE copy_environ_boundary
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE set_soft_spheres( boundary )
+  SUBROUTINE set_soft_spheres( boundary, scale )
 !--------------------------------------------------------------------
+    !
+    USE tools_generate_boundary, ONLY : scaling_of_field
     !
     IMPLICIT NONE
     !
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+    LOGICAL, INTENT(IN), OPTIONAL :: scale
     !
+    LOGICAL :: lscale1, lscale2
     INTEGER :: i
-    REAL( DP ) :: radius
+    REAL( DP ) :: radius, f
     !
     IF ( .NOT. ( boundary % mode .EQ. 'ionic' .OR. boundary % mode .EQ. 'fa-ionic' ) ) RETURN
     !
+    lscale1 = PRESENT(scale) .AND. ( boundary % mode .EQ. 'fa-ionic' )
+    lscale2 = .NOT. PRESENT(scale) .AND. ( boundary % mode .EQ. 'fa-ionic' )
+    !
+    f = 1.D0
     DO i = 1, boundary%ions%number
-       radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
+       IF ( lscale1 ) f = scaling_of_field(boundary%field_factor,boundary%charge_asymmetry,&
+            & boundary%field_max,boundary%field_min,boundary%ion_field(i))
+       radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * f
        boundary%soft_spheres(i) = environ_functions(5,1,0,radius,boundary%softness,1.D0,&
             & boundary%ions%tau(:,i))
+       IF ( lscale2 ) boundary%local_spheres(i) = boundary%soft_spheres(i)
     ENDDO
     !
     RETURN
@@ -610,7 +625,7 @@ CONTAINS
        !
        IF ( bound % ions % update ) THEN
           !
-          CALL compute_dion_field_drho( bound%ions%number, bound%soft_spheres, bound%dion_field_drho )
+          CALL compute_dion_field_drho( bound%ions%number, bound%local_spheres, bound%dion_field_drho )
           !
           bound % update_status = 1 ! waiting to finish update
           !
@@ -618,13 +633,15 @@ CONTAINS
        !
        IF ( bound % electrons % update ) THEN
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, bound%ion_field )
+          CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, bound%ion_field )
+          !
+          CALL set_soft_spheres( bound, .TRUE. )
           !
           CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
           !
           ! Testing ion_field derivatives
           !
-!          CALL test_ion_field_derivatives( 1, bound )
+!          CALL test_ion_field_derivatives( 2, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -678,16 +695,20 @@ CONTAINS
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
     CHARACTER (LEN=80) :: sub_name = 'destroy_environ_boundary'
     !
+    INTEGER :: i
+    !
     IF ( lflag ) THEN
        !
        ! These components were allocated first, destroy only if lflag = .TRUE.
        !
-       IF ( boundary%need_ions ) THEN
-          IF ( .NOT. boundary%need_electrons ) THEN
+       IF ( boundary % need_ions ) THEN
+          IF ( boundary%mode .EQ. 'ionic' .OR. boundary%mode .EQ. 'fa-ionic' ) THEN
              CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
-             IF ( boundary%field_aware ) THEN
+             IF ( boundary%field_aware .AND. boundary%mode .EQ. 'fa-ionic' ) THEN
                 DEALLOCATE( boundary%ion_field )
                 DEALLOCATE( boundary%partial_of_ion_field )
+                CALL destroy_environ_functions( boundary%ions%number, boundary%local_spheres )
+                DEALLOCATE( boundary%dion_field_drho )
              ENDIF
           END IF
           IF (.NOT.ASSOCIATED(boundary%ions)) &
@@ -713,7 +734,7 @@ CONTAINS
     IF ( boundary%initialized ) THEN
        !
        CALL destroy_environ_density( boundary%scaled )
-       IF ( boundary%mode .NE. 'ionic' ) THEN
+       IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
           CALL destroy_environ_density( boundary%density )
           CALL destroy_environ_density( boundary%dscaled )
           CALL destroy_environ_density( boundary%d2scaled )
@@ -731,7 +752,13 @@ CONTAINS
        ENDIF
        !
        IF ( boundary%field_aware ) THEN
-          CALL destroy_environ_density( boundary%normal_field )
+          IF ( boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
+             CALL destroy_environ_density( boundary%normal_field )
+          ELSE IF ( boundary%mode .EQ. 'fa-ionic' )THEN
+             DO i = 1, boundary%ions%number
+                CALL destroy_environ_density( boundary%dion_field_drho(i) )
+             ENDDO
+          ENDIF
        ENDIF
        !
        boundary%initialized = .FALSE.
@@ -959,14 +986,14 @@ CONTAINS
           !
           localelectrons % density % of_r = bound % electrons % density % of_r - epsilon * delta%of_r
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
+          CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, &
                & bound%ion_field )
           !
           fd_dion_field_drho = bound%ion_field
           !
           localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
           !
-          CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, localelectrons, &
+          CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, &
                & bound%ion_field )
           !
           fd_dion_field_drho = bound%ion_field - fd_dion_field_drho
@@ -995,7 +1022,7 @@ CONTAINS
        !
        ! Test derivative wrt atomic positions with finite differences
        !
-       CALL compute_ion_field_partial( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
+       CALL compute_ion_field_partial( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, &
             & bound%ion_field, bound%partial_of_ion_field )
        !
        ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
@@ -1016,7 +1043,7 @@ CONTAINS
              rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
-             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
+             CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, &
                   & bound%ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field
@@ -1027,7 +1054,7 @@ CONTAINS
              rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
              CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
              !
-             CALL compute_ion_field( bound%ions%number, bound%soft_spheres, bound%ions, bound%electrons, &
+             CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, &
                   & bound%ion_field )
              !
              fd_partial_of_ion_field = bound%ion_field - fd_partial_of_ion_field

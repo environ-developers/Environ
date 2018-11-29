@@ -38,7 +38,8 @@ MODULE tools_generate_boundary
        & invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
        & solvent_aware_de_dboundary, test_de_dboundary, &
        & compute_ion_field, compute_ion_field_partial, &
-       & compute_normal_field, compute_dion_field_drho
+       & compute_normal_field, compute_dion_field_drho, &
+       & scaling_of_field, dscaling_of_field
   !
 CONTAINS
 !  Function: sfunct0
@@ -1870,6 +1871,40 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE compute_normal_field
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  FUNCTION scaling_of_field( field_factor, charge_asymmetry, field_max, &
+       & field_min, ion_field )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL( DP ) :: scaling_of_field
+    REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min, ion_field
+    !
+    scaling_of_field = 1.D0
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END FUNCTION scaling_of_field
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  FUNCTION dscaling_of_field( field_factor, charge_asymmetry, field_max, &
+       & field_min, ion_field )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL( DP ) :: dscaling_of_field
+    REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min, ion_field
+    !
+    dscaling_of_field = 0.D0
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END FUNCTION dscaling_of_field
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE tools_generate_boundary
