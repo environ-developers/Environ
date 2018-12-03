@@ -639,9 +639,9 @@ CONTAINS
           !
           CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
           !
-          ! Testing ion_field derivatives
-          !
-!          CALL test_ion_field_derivatives( 2, bound )
+! ... TO DEBUG FIELD-AWARE: testing ion_field derivatives
+!          !
+!          CALL test_ion_field_derivatives( 1, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -656,7 +656,7 @@ CONTAINS
           CALL boundary_of_system( bound % simple, bound )
           !
 ! ... TO DEBUG SOLVENT-AWARE
-!
+!          !
 !          CALL invert_boundary( bound )
 !          !
 !          CALL test_de_dboundary( bound )

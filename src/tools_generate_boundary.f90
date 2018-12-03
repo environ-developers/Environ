@@ -1882,7 +1882,22 @@ CONTAINS
     REAL( DP ) :: scaling_of_field
     REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min, ion_field
     !
-    scaling_of_field = 1.D0
+    REAL( DP ) :: field, fact, arg
+    !
+    field = ABS(ion_field)
+    !
+    fact = ( charge_asymmetry - SIGN(1.D0,ion_field) )**2 * field_factor
+    !
+    IF ( field .LE. field_min ) THEN
+       scaling_of_field = 0.D0
+    ELSE IF ( field .LE. field_max ) THEN
+       arg = tpi * ( field - field_min ) / ( field_max - field_min )
+       scaling_of_field = ( arg - SIN( arg ) ) / tpi
+    ELSE
+       scaling_of_field = 1.D0
+    END IF
+    !
+    scaling_of_field = scaling_of_field * fact
     !
     RETURN
     !
@@ -1898,6 +1913,21 @@ CONTAINS
     !
     REAL( DP ) :: dscaling_of_field
     REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min, ion_field
+    !
+    REAL( DP ) :: field, fact, arg
+    !
+    field = ABS(ion_field)
+    !
+    fact = ( charge_asymmetry - SIGN(1.D0,ion_field) )**2 * field_factor
+    !
+    IF ( field .LE. field_min .OR. field .GT. field_max ) THEN
+       dscaling_of_field = 0.D0
+    ELSE 
+       arg = tpi * ( field - field_min ) / ( field_max - field_min )
+       dscaling_of_field = ( 1.D0 - COS( arg ) )  / ( field_max - field_min )
+    END IF
+    !
+    dscaling_of_field = dscaling_of_field * fact
     !
     dscaling_of_field = 0.D0
     !
