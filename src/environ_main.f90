@@ -159,6 +159,10 @@ CONTAINS
           !
           IF ( electrolyte % boundary % solvent_aware ) CALL solvent_aware_de_dboundary( electrolyte % boundary, de_dboundary )
           !
+          ! ... If field-aware interface correct the derivative of the interface function
+          !
+          IF ( electrolyte % boundary % field_aware ) CALL field_aware_dboundary_drho( electrolyte % boundary, electrolyte % boundary % dscaled )
+          !
           ! ... Multiply for the derivative of the boundary wrt electronic density
           !
           vsoftcavity % of_r = vsoftcavity % of_r + de_dboundary % of_r * electrolyte % boundary % dscaled % of_r
@@ -334,10 +338,12 @@ CONTAINS
           !
           IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, de_dboundary )
           !
-          ! ... Multiply for the derivative of the boundary wrt ionic positions
+          ! ... If field-aware compute partial derivatives of field fluxes wrt ionic positions
           !
           IF ( solvent % field_aware ) CALL compute_ion_field_partial( solvent%ions%number, solvent%soft_spheres, &
                & solvent%ions, solvent%electrons, solvent%ion_field, solvent%partial_of_ion_field )
+          !
+          ! ... Multiply for the derivative of the boundary wrt ionic positions
           !
           DO i = 1, nat
              !
@@ -366,12 +372,21 @@ CONTAINS
           !
           IF ( electrolyte % boundary % solvent_aware ) CALL solvent_aware_de_dboundary( electrolyte % boundary, de_dboundary )
           !
+          ! ... If field-aware compute partial derivatives of field fluxes wrt ionic positions
+          !
+          IF ( electrolyte % boundary % field_aware ) CALL compute_ion_field_partial( electrolyte%boundary%ions%number, &
+               & electrolyte%boundary%soft_spheres, electrolyte%boundary%ions, electrolyte%boundary%electrons, &
+               & electrolyte%boundary%ion_field, electrolyte%boundary%partial_of_ion_field )
+          !
           ! ... Multiply for the derivative of the boundary wrt ionic positions
           !
           DO i = 1, nat
              !
              CALL calc_dboundary_dions( i, electrolyte % boundary, partial )
              !
+             ! ... If field-aware interface correct the derivative of the interface function
+             !
+             IF ( electrolyte % boundary % field_aware ) CALL field_aware_dboundary_dions( i, electrolyte % boundary, partial )
              !
              force_environ( :, i ) = force_environ( :, i ) &
                   & - scalar_product_environ_gradient_density( partial, de_dboundary )
