@@ -260,12 +260,12 @@ MODULE environ_input
 !
         REAL(DP) :: field_awareness = 0.D0
         !
-        REAL(DP) :: charge_asymmetry = 1.D0
+        REAL(DP) :: charge_asymmetry = -1.D0
         !
         REAL(DP) :: field_max = 10.D0
         !
         REAL(DP) :: field_min = 1.D0
-        ! 
+        !
 !
 ! Numerical core's parameters
 !
@@ -810,7 +810,7 @@ CONTAINS
     filling_spread     = 0.02D0
     !
     field_awareness    = 0.D0
-    charge_asymmetry   = 1.D0
+    charge_asymmetry   = -1.D0
     field_max          = 10.D0
     field_min          = 1.D0
     !

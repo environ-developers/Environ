@@ -664,14 +664,6 @@ CONTAINS
        !
        CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
        !
-       local(i) % label = 'soft-sphere-1'
-       CALL write_cube( local(i) )
-       !
-       CALL derivative_of_functions( soft_spheres(i), local(i), .TRUE. )
-       local(i) % label = 'derivative-1'
-       CALL write_cube( local(i) )
-       !
-       STOP
        boundary % scaled % of_r = boundary % scaled % of_r * local(i) % of_r
        !
     ENDDO
@@ -1556,7 +1548,7 @@ CONTAINS
        !
        CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
        !
-    ENDDO  
+    ENDDO
     !
     ! Compute field
     !
@@ -1907,7 +1899,7 @@ CONTAINS
        scaling_of_field = 1.D0
     END IF
     !
-    scaling_of_field = scaling_of_field * fact
+    scaling_of_field = 1.D0 - scaling_of_field * fact
     !
     RETURN
     !
@@ -1937,9 +1929,7 @@ CONTAINS
        dscaling_of_field = ( 1.D0 - COS( arg ) )  / ( field_max - field_min )
     END IF
     !
-    dscaling_of_field = dscaling_of_field * fact
-    !
-    dscaling_of_field = 0.D0
+    dscaling_of_field = - dscaling_of_field * fact
     !
     RETURN
     !
