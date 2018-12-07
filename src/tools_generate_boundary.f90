@@ -39,7 +39,8 @@ MODULE tools_generate_boundary
        & solvent_aware_de_dboundary, test_de_dboundary, &
        & compute_ion_field, compute_ion_field_partial, &
        & compute_normal_field, compute_dion_field_drho, &
-       & scaling_of_field, dscaling_of_field
+       & scaling_of_field, dscaling_of_field, &
+       & field_aware_dboundary_drho, field_aware_dboundary_dions
   !
 CONTAINS
 !  Function: sfunct0
@@ -624,7 +625,7 @@ CONTAINS
   SUBROUTINE boundary_of_functions( nsoft_spheres, soft_spheres, boundary )
 !--------------------------------------------------------------------
     USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
-         & laplacian_of_functions, hessian_of_functions
+         & laplacian_of_functions, hessian_of_functions, derivative_of_functions
     !
     IMPLICIT NONE
     !
@@ -643,6 +644,7 @@ CONTAINS
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: lapllocal
     TYPE( environ_hessian ), DIMENSION(:), ALLOCATABLE :: hesslocal
     TYPE( environ_hessian ), POINTER :: hessian
+    CHARACTER( LEN=80 ) :: label
     !
     ! Aliases and allocations
     !
@@ -662,6 +664,14 @@ CONTAINS
        !
        CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
        !
+       local(i) % label = 'soft-sphere-1'
+       CALL write_cube( local(i) )
+       !
+       CALL derivative_of_functions( soft_spheres(i), local(i), .TRUE. )
+       local(i) % label = 'derivative-1'
+       CALL write_cube( local(i) )
+       !
+       STOP
        boundary % scaled % of_r = boundary % scaled % of_r * local(i) % of_r
        !
     ENDDO
@@ -1652,7 +1662,7 @@ CONTAINS
        !
        CALL gradient_of_functions( soft_spheres(i), gradlocal(i), .FALSE. )
        !
-    ENDDO  
+    ENDDO
     !
     CALL init_environ_hessian( cell, hesslocal )
     !
@@ -1793,7 +1803,7 @@ CONTAINS
        !
        CALL density_of_functions( soft_spheres(i), local(i), .FALSE. )
        !
-    ENDDO  
+    ENDDO
     !
     ! Compute field flux
     !
@@ -1922,7 +1932,7 @@ CONTAINS
     !
     IF ( field .LE. field_min .OR. field .GT. field_max ) THEN
        dscaling_of_field = 0.D0
-    ELSE 
+    ELSE
        arg = tpi * ( field - field_min ) / ( field_max - field_min )
        dscaling_of_field = ( 1.D0 - COS( arg ) )  / ( field_max - field_min )
     END IF
@@ -1935,6 +1945,172 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END FUNCTION dscaling_of_field
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE field_aware_dboundary_drho( boundary, dscaled )
+!--------------------------------------------------------------------
+    !
+    USE utils_functions, ONLY : density_of_functions, derivative_of_functions
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    TYPE( environ_density ), INTENT(INOUT) :: dscaled
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    INTEGER, POINTER :: nsoft_spheres
+    !
+    INTEGER :: i, j
+    REAL( DP ) :: df
+    CHARACTER( LEN=80 ) :: sub_name = 'field_aware_dboundary_drho'
+    !
+    TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
+    !
+    TYPE( environ_density ) :: aux
+    !
+    ! Aliases and allocations
+    !
+    IF ( boundary % mode .NE. 'fa-ionic' ) RETURN
+    !
+    cell => dscaled % cell
+    !
+    nsoft_spheres => boundary % ions % number
+    IF ( nsoft_spheres .LE. 0 ) &
+         & CALL errore(sub_name,'Inconsistent number of soft-spheres',1)
+    !
+    ALLOCATE( local( nsoft_spheres ) )
+    !
+    ! Compute field-independent soft spheres and gradients
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL init_environ_density( cell, local(i) )
+       !
+       CALL density_of_functions( boundary%soft_spheres(i), local(i), .FALSE. )
+       !
+    ENDDO
+    !
+    CALL init_environ_density( cell, aux )
+    !
+    dscaled % of_r = 0.D0
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
+       !
+       DO j = 1, nsoft_spheres
+          !
+          IF ( j .EQ. i ) CYCLE
+          !
+          aux % of_r = aux % of_r * local(j) % of_r
+          !
+       ENDDO
+       !
+       df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
+            & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+       !
+       aux % of_r = aux % of_r * boundary % dion_field_drho(i) % of_r * df
+       !
+       dscaled % of_r = dscaled % of_r + aux % of_r
+       !
+    ENDDO
+    !
+    CALL destroy_environ_density( aux )
+    !
+    DO i = 1, nsoft_spheres
+       CALL destroy_environ_density( local(i) )
+    ENDDO
+    DEALLOCATE( local )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE field_aware_dboundary_drho
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE field_aware_dboundary_dions( index, boundary, partial )
+!--------------------------------------------------------------------
+    !
+    USE utils_functions, ONLY : density_of_functions, derivative_of_functions
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: index
+    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    TYPE( environ_gradient ), INTENT(INOUT) :: partial
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    INTEGER, POINTER :: nsoft_spheres
+    !
+    INTEGER :: i, j, ipol
+    REAL( DP ) :: df
+    CHARACTER( LEN=80 ) :: sub_name = 'field_aware_dboundary_dions'
+    !
+    TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
+    !
+    TYPE( environ_density ) :: aux
+    TYPE( environ_gradient ) :: gradaux
+    !
+    ! Aliases and allocations
+    !
+    IF ( boundary % mode .NE. 'fa-ionic' ) RETURN
+    !
+    cell => boundary % dscaled % cell
+    !
+    nsoft_spheres => boundary % ions % number
+    IF ( nsoft_spheres .LE. 0 ) &
+         & CALL errore(sub_name,'Inconsistent number of soft-spheres',1)
+    !
+    ALLOCATE( local( nsoft_spheres ) )
+    !
+    ! Compute field-independent soft spheres and gradients
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL init_environ_density( cell, local(i) )
+       !
+       CALL density_of_functions( boundary%soft_spheres(i), local(i), .FALSE. )
+       !
+    ENDDO
+    !
+    CALL init_environ_density( cell, aux )
+    !
+    CALL init_environ_gradient( cell, gradaux )
+    !
+    DO i = 1, nsoft_spheres
+       !
+       CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
+       !
+       DO j = 1, nsoft_spheres
+          !
+          IF ( j .EQ. i ) CYCLE
+          !
+          aux % of_r = aux % of_r * local(j) % of_r
+          !
+       ENDDO
+       !
+       df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
+            & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+       !
+       aux % of_r = aux % of_r * df
+       !
+       DO ipol = 1, 3
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) + aux % of_r(:) * boundary % partial_of_ion_field(ipol,i,index) ! THIS MAY NEED TO BE INVERTED
+       ENDDO
+       !
+    ENDDO
+    !
+    CALL destroy_environ_density( aux )
+    !
+    DO i = 1, nsoft_spheres
+       CALL destroy_environ_density( local(i) )
+    ENDDO
+    DEALLOCATE( local )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE field_aware_dboundary_dions
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE tools_generate_boundary

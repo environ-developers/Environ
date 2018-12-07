@@ -350,6 +350,7 @@ CONTAINS
        IF ( boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
           CALL init_environ_density( cell, boundary%normal_field )
        ELSE IF ( boundary%mode .EQ. 'fa-ionic' ) THEN
+          CALL init_environ_density( cell, boundary%dscaled )
           DO i = 1, boundary%ions%number
              CALL init_environ_density( cell, boundary%dion_field_drho(i) )
           ENDDO
@@ -490,7 +491,7 @@ CONTAINS
     DO i = 1, boundary%ions%number
        IF ( lscale1 ) f = scaling_of_field(boundary%field_factor,boundary%charge_asymmetry,&
             & boundary%field_max,boundary%field_min,boundary%ion_field(i))
-       radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * f
+       radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad !* boundary%alpha * f
        boundary%soft_spheres(i) = environ_functions(5,1,0,radius,boundary%softness,1.D0,&
             & boundary%ions%tau(:,i))
        IF ( lscale2 ) boundary%local_spheres(i) = boundary%soft_spheres(i)
@@ -755,6 +756,7 @@ CONTAINS
           IF ( boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
              CALL destroy_environ_density( boundary%normal_field )
           ELSE IF ( boundary%mode .EQ. 'fa-ionic' )THEN
+             CALL destroy_environ_density( boundary%dscaled )
              DO i = 1, boundary%ions%number
                 CALL destroy_environ_density( boundary%dion_field_drho(i) )
              ENDDO
