@@ -491,7 +491,8 @@ CONTAINS
     DO i = 1, boundary%ions%number
        IF ( lscale1 ) f = scaling_of_field(boundary%field_factor,boundary%charge_asymmetry,&
             & boundary%field_max,boundary%field_min,boundary%ion_field(i))
-       radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad !* boundary%alpha * f
+       WRITE( environ_unit, '(a,i3,a,f8.4,a,f14.7)' )'i = ',i,' scaling factor = ',f,' ion_field = ',boundary%ion_field(i)
+       radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * f
        boundary%soft_spheres(i) = environ_functions(5,1,0,radius,boundary%softness,1.D0,&
             & boundary%ions%tau(:,i))
        IF ( lscale2 ) boundary%local_spheres(i) = boundary%soft_spheres(i)
@@ -643,6 +644,10 @@ CONTAINS
 ! ... TO DEBUG FIELD-AWARE: testing ion_field derivatives
 !          !
 !          CALL test_ion_field_derivatives( 1, bound )
+          !
+! ... TO DEBUG FIELD-AWARE: testing energy derivatives
+!          !
+          CALL test_energy_derivatives( bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -1153,6 +1158,8 @@ CONTAINS
     test_function % pos(2) = 12.05D0 / cell % alat
     !
     DO i = 1, cell % n3
+       !
+       de_fd = 0.D0
        !
        test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
        CALL density_of_functions( test_function, delta, .TRUE. )
