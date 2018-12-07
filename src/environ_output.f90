@@ -1268,6 +1268,8 @@ CONTAINS
                 WRITE( UNIT = program_unit, FMT = 9002 ) 'SCCS'
                 WRITE( UNIT = program_unit, FMT = 9004 ) solvent%rhomax, solvent%rhomin
              ENDIF
+             IF ( solvent%solvent_aware ) WRITE( UNIT = program_unit, FMT = 9013 )
+             IF ( solvent%field_aware ) WRITE( UNIT = program_unit, FMT = 9014 )
           ENDIF
           !
           IF ( env_static_permittivity .GT. 1.D0 ) THEN
@@ -1329,6 +1331,8 @@ CONTAINS
 9011 FORMAT( '     external pressure in input (GPa)  = ',  F24.2,' ' &
             /'     external pressure in inter. units = ',  E24.4,' ' )
 9012 FORMAT( '     correction slab geom. along axis  = ',  I24,' ' )
+9013 FORMAT( '     interface is solvent aware            ' )
+9014 FORMAT( '     interface is field aware            ' )
 9100 FORMAT(/,5x,'Electrostatic Setup',/,5x,'-------------------')
 9101 FORMAT( '     electrostatic problem to solve    = ',  A24,' ' &
             /'     numerical solver adopted          = ',  A24,' ' &
