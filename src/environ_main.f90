@@ -65,7 +65,7 @@ CONTAINS
     USE utils_charges,           ONLY : update_environ_charges, &
                                       & charges_of_potential
     USE tools_generate_boundary, ONLY : solvent_aware_de_dboundary, &
-                                      & field_aware_dboundary_drho
+                                      & field_aware_de_drho
     !
     IMPLICIT NONE
     !
@@ -137,13 +137,19 @@ CONTAINS
           !
           IF ( solvent % solvent_aware ) CALL solvent_aware_de_dboundary( solvent, de_dboundary )
           !
-          ! ... If field-aware interface correct the derivative of the interface function
-          !
-          IF ( solvent % field_aware ) CALL field_aware_dboundary_drho( solvent, solvent%dscaled )
-          !
-          ! ... Multiply for the derivative of the boundary wrt electronic density
-          !
-          vsoftcavity % of_r = de_dboundary % of_r * solvent % dscaled % of_r
+          IF ( solvent % field_aware ) THEN
+             !
+             ! ... If field-aware interface use a more cumbersome formula
+             !
+             CALL field_aware_de_drho( solvent, de_dboundary, vsoftcavity )
+             !
+          ELSE
+             !
+             ! ... Otherwiese, multiply for the derivative of the boundary wrt electronic density
+             !
+             vsoftcavity % of_r = de_dboundary % of_r * solvent % dscaled % of_r
+             !
+          ENDIF
           !
        END IF
        !
@@ -159,13 +165,19 @@ CONTAINS
           !
           IF ( electrolyte % boundary % solvent_aware ) CALL solvent_aware_de_dboundary( electrolyte % boundary, de_dboundary )
           !
-          ! ... If field-aware interface correct the derivative of the interface function
-          !
-          IF ( electrolyte % boundary % field_aware ) CALL field_aware_dboundary_drho( electrolyte % boundary, electrolyte % boundary % dscaled )
-          !
-          ! ... Multiply for the derivative of the boundary wrt electronic density
-          !
-          vsoftcavity % of_r = vsoftcavity % of_r + de_dboundary % of_r * electrolyte % boundary % dscaled % of_r
+          IF ( electrolyte % boundary % field_aware ) THEN
+             !
+             ! ... If field-aware interface correct the derivative of the interface function
+             !
+             CALL field_aware_de_drho( electrolyte % boundary, de_dboundary, vsoftcavity )
+             !
+          ELSE
+             !
+             ! ... Multiply for the derivative of the boundary wrt electronic density
+             !
+             vsoftcavity % of_r = vsoftcavity % of_r + de_dboundary % of_r * electrolyte % boundary % dscaled % of_r
+             !
+          ENDIF
           !
        END IF
        !

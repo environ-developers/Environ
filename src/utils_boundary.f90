@@ -491,7 +491,7 @@ CONTAINS
     DO i = 1, boundary%ions%number
        IF ( lscale1 ) f = scaling_of_field(boundary%field_factor,boundary%charge_asymmetry,&
             & boundary%field_max,boundary%field_min,boundary%ion_field(i))
-       WRITE( environ_unit, '(a,i3,a,f8.4,a,f14.7)' )'i = ',i,' scaling factor = ',f,' ion_field = ',boundary%ion_field(i)
+       WRITE( environ_unit, '(a,i3,a,f20.10,a,f20.10)' )'i = ',i,' scaling factor = ',f,' ion_field = ',boundary%ion_field(i)
        radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * f
        boundary%soft_spheres(i) = environ_functions(5,1,0,radius,boundary%softness,1.D0,&
             & boundary%ions%tau(:,i))
@@ -644,9 +644,9 @@ CONTAINS
 ! ... TO DEBUG FIELD-AWARE: testing ion_field derivatives
 !          !
 !          CALL test_ion_field_derivatives( 1, bound )
-          !
-! ... TO DEBUG FIELD-AWARE: testing energy derivatives
 !          !
+! ... TO DEBUG FIELD-AWARE: testing energy derivatives
+          !
           CALL test_energy_derivatives( bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
@@ -1111,6 +1111,7 @@ CONTAINS
     TYPE( environ_electrons ) :: localelectrons
     !
     cell => bound % scaled % cell
+    bound % ions % number = 1 
     !
     ! Compute analytic functional derivative wrt electronic density
     !
@@ -1130,11 +1131,9 @@ CONTAINS
     localsurface_tension = 100.D0
     CALL calc_desurface_dboundary( localsurface_tension, bound, de_dboundary )
     !
-    CALL field_aware_dboundary_drho( bound, bound%dscaled )
-    !
     CALL init_environ_density( cell, vanalytic )
     !
-    vanalytic % of_r = de_dboundary % of_r * bound % dscaled % of_r
+    CALL field_aware_de_drho( bound, de_dboundary, vanalytic )
     !
     ! Loop over gridpoints with rhoelec + or - a delta function
     !
@@ -1145,7 +1144,7 @@ CONTAINS
     test_function % width = 0.D0
     test_function % volume = 1.D0
     !
-    epsilon = 0.000001
+    epsilon = 0.00001
     !
     CALL init_environ_density( cell, delta )
     !

@@ -40,7 +40,7 @@ MODULE tools_generate_boundary
        & compute_ion_field, compute_ion_field_partial, &
        & compute_normal_field, compute_dion_field_drho, &
        & scaling_of_field, dscaling_of_field, &
-       & field_aware_dboundary_drho, field_aware_dboundary_dions
+       & field_aware_de_drho, field_aware_dboundary_dions
   !
 CONTAINS
 !  Function: sfunct0
@@ -1937,7 +1937,7 @@ CONTAINS
   END FUNCTION dscaling_of_field
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE field_aware_dboundary_drho( boundary, dscaled )
+  SUBROUTINE field_aware_de_drho( boundary, de_dboundary, de_drho )
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions, derivative_of_functions
@@ -1945,14 +1945,15 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( environ_boundary ), INTENT(IN) :: boundary
-    TYPE( environ_density ), INTENT(INOUT) :: dscaled
+    TYPE( environ_density ), INTENT(IN) :: de_dboundary
+    TYPE( environ_density ), INTENT(INOUT) :: de_drho
     !
     TYPE( environ_cell ), POINTER :: cell
     INTEGER, POINTER :: nsoft_spheres
     !
     INTEGER :: i, j
     REAL( DP ) :: df
-    CHARACTER( LEN=80 ) :: sub_name = 'field_aware_dboundary_drho'
+    CHARACTER( LEN=80 ) :: sub_name = 'field_aware_de_drho'
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     !
@@ -1962,7 +1963,7 @@ CONTAINS
     !
     IF ( boundary % mode .NE. 'fa-ionic' ) RETURN
     !
-    cell => dscaled % cell
+    cell => de_drho % cell
     !
     nsoft_spheres => boundary % ions % number
     IF ( nsoft_spheres .LE. 0 ) &
@@ -1982,8 +1983,6 @@ CONTAINS
     !
     CALL init_environ_density( cell, aux )
     !
-    dscaled % of_r = 0.D0
-    !
     DO i = 1, nsoft_spheres
        !
        CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
@@ -1999,9 +1998,10 @@ CONTAINS
        df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
             & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
        !
-       aux % of_r = aux % of_r * boundary % dion_field_drho(i) % of_r * df
+       df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * &
+            & scalar_product_environ_density( aux, de_dboundary )
        !
-       dscaled % of_r = dscaled % of_r + aux % of_r
+       de_drho % of_r = de_drho % of_r + boundary % dion_field_drho(i) % of_r * df
        !
     ENDDO
     !
@@ -2015,7 +2015,7 @@ CONTAINS
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE field_aware_dboundary_drho
+  END SUBROUTINE field_aware_de_drho
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE field_aware_dboundary_dions( index, boundary, partial )
@@ -2081,6 +2081,8 @@ CONTAINS
        !
        df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
             & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+       !
+       df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
        !
        aux % of_r = aux % of_r * df
        !
