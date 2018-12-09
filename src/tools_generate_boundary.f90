@@ -990,7 +990,7 @@ CONTAINS
     IF ( boundary % mode .EQ. 'full' .AND. .NOT. ASSOCIATED( boundary % dscaled % cell, cell ) ) &
          & CALL errore(sub_name,'Mismatch or unassociated boundary derivative',1)
     !
-    IF ( boundary % mode .EQ. 'ionic' ) THEN
+    IF ( boundary % mode .EQ. 'ionic' .OR. boundary % mode .EQ. 'fa-ionic' ) THEN
        !
        SELECT CASE ( boundary_core )
           !
@@ -2087,10 +2087,14 @@ CONTAINS
        aux % of_r = aux % of_r * df
        !
        DO ipol = 1, 3
-          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) + aux % of_r(:) * boundary % partial_of_ion_field(ipol,i,index) ! THIS MAY NEED TO BE INVERTED
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) + aux % of_r(:) * boundary % partial_of_ion_field(ipol,i,index) 
        ENDDO
        !
     ENDDO
+    !
+    partial % of_r = partial % of_r - gradaux % of_r
+    !
+    CALL destroy_environ_gradient( gradaux )
     !
     CALL destroy_environ_density( aux )
     !

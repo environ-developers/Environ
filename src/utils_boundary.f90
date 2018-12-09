@@ -646,8 +646,8 @@ CONTAINS
 !          CALL test_ion_field_derivatives( 1, bound )
 !          !
 ! ... TO DEBUG FIELD-AWARE: testing energy derivatives
-          !
-          CALL test_energy_derivatives( bound )
+!          !
+!          CALL test_energy_derivatives( 2, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -1087,41 +1087,44 @@ CONTAINS
   END SUBROUTINE test_ion_field_derivatives
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE test_energy_derivatives( bound )
+  SUBROUTINE test_energy_derivatives( ideriv, bound )
 !--------------------------------------------------------------------
     !
     USE tools_generate_boundary
+    USE utils_ions,              ONLY : update_environ_ions
     USE embedding_surface,       ONLY : calc_esurface, calc_desurface_dboundary
     USE embedding_volume,        ONLY : calc_evolume, calc_devolume_dboundary
     !
     IMPLICIT NONE
     !
+    INTEGER, INTENT(IN) :: ideriv
     TYPE( environ_boundary ), INTENT(INOUT) :: bound
     !
     TYPE( environ_cell ), POINTER :: cell
     !
-    INTEGER :: i
+    INTEGER :: i, ipol
     REAL( DP ) :: epsilon
     REAL( DP ) :: localpressure, localsurface_tension
     REAL( DP ) :: de_fd, de_analytic, etmp
+    REAL( DP ) :: dx, x0, force(3)
     TYPE( environ_density ) :: de_dboundary
     TYPE( environ_density ) :: vanalytic
     TYPE( environ_functions ) :: test_function
     TYPE( environ_density ) :: delta
     TYPE( environ_electrons ) :: localelectrons
+    TYPE( environ_gradient ) :: partial
     !
     cell => bound % scaled % cell
-    bound % ions % number = 1 
     !
-    ! Compute analytic functional derivative wrt electronic density
-    !
-    CALL compute_dion_field_drho( bound%ions%number, bound%local_spheres, bound%dion_field_drho )
+    ! Compute the field and the field-aware interface
     !
     CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, bound%ion_field )
     !
     CALL set_soft_spheres( bound, .TRUE. )
     !
     CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
+    !
+    ! Compute functional derivative of the energy wrt interface
     !
     CALL init_environ_density( cell, de_dboundary )
     !
@@ -1131,79 +1134,159 @@ CONTAINS
     localsurface_tension = 100.D0
     CALL calc_desurface_dboundary( localsurface_tension, bound, de_dboundary )
     !
-    CALL init_environ_density( cell, vanalytic )
+    IF ( ideriv .EQ. 1 ) THEN
+       !
+       ! Compute functional derivative wrt electronic density
+       !
+       CALL compute_dion_field_drho( bound%ions%number, bound%local_spheres, bound%dion_field_drho )
+       !
+       CALL init_environ_density( cell, vanalytic )
+       !
+       CALL field_aware_de_drho( bound, de_dboundary, vanalytic )
+       !
+       ! Loop over gridpoints with rhoelec + or - a delta function
+       !
+       test_function % type = 1
+       test_function % dim = 0
+       test_function % axis = 3
+       test_function % spread = 0.3D0
+       test_function % width = 0.D0
+       test_function % volume = 1.D0
+       !
+       epsilon = 0.00001
+       !
+       CALL init_environ_density( cell, delta )
+       !
+       CALL init_environ_density( cell, localelectrons%density )
+       !
+       ! We are only going to check delta functions along the z axis passing throught the O atom
+       !
+       ALLOCATE( test_function % pos( 3 ) )
+       test_function % pos(1) = 11.79D0 / cell % alat
+       test_function % pos(2) = 12.05D0 / cell % alat
+       !
+       DO i = 1, cell % n3
+          !
+          de_fd = 0.D0
+          !
+          test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
+          CALL density_of_functions( test_function, delta, .TRUE. )
+          !
+          localelectrons % density % of_r = bound % electrons % density % of_r - epsilon * delta%of_r
+          !
+          CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, bound%ion_field )
+          !
+          CALL set_soft_spheres( bound, .TRUE. )
+          !
+          CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
+          !
+          CALL calc_evolume( localpressure, bound, etmp )
+          de_fd = de_fd + etmp
+          !
+          CALL calc_esurface( localsurface_tension, bound, etmp )
+          de_fd = de_fd + etmp
+          !
+          localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
+          !
+          CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, bound%ion_field )
+          !
+          CALL set_soft_spheres( bound, .TRUE. )
+          !
+          CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
+          !
+          CALL calc_evolume( localpressure, bound, etmp )
+          de_fd = de_fd - etmp
+          !
+          CALL calc_esurface( localsurface_tension, bound, etmp )
+          de_fd = de_fd - etmp
+          !
+          de_fd = de_fd * 0.5D0 / epsilon
+          !
+          de_analytic = scalar_product_environ_density( vanalytic, delta )
+          !
+          IF ( ionode ) WRITE(environ_unit,'(a,f14.7,3f20.10)')' z = ',test_function % pos(3) * cell % alat,&
+               & de_analytic, de_fd, de_analytic - de_fd
+          !
+       ENDDO
+       !
+       DEALLOCATE( test_function % pos )
+       CALL destroy_environ_density( delta )
+       !
+       CALL destroy_environ_density( vanalytic )
+       !
+    ELSE IF ( ideriv .EQ. 2 ) THEN
+       !
+       ! Compute partial derivative with respect to ionic positions
+       !
+       CALL compute_ion_field_partial( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, bound%ion_field, &
+            & bound%partial_of_ion_field )
+       !
+       dx = 0.0001D0
+       !
+       CALL init_environ_gradient( cell, partial )
+       !
+       DO i = 1, bound%ions%number
+          !
+          CALL calc_dboundary_dions( i, bound, partial )
+          !
+          ! ... If field-aware interface correct the derivative of the interface function
+          !
+          IF ( bound % field_aware ) CALL field_aware_dboundary_dions( i, bound, partial )
+          !
+          force = - scalar_product_environ_gradient_density( partial, de_dboundary )
+          !
+          DO ipol = 1, 3
+             !
+             de_fd = 0.D0
+             !
+             x0 = bound % ions % tau( ipol, i )
+             bound % ions % tau( ipol, i ) = x0 - dx
+             !
+             CALL update_environ_ions( bound%ions%number, bound%ions%tau, bound%ions )
+             !
+             CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, bound%ion_field )
+             !
+             CALL set_soft_spheres( bound, .TRUE. )
+             !
+             CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
+             !
+             CALL calc_evolume( localpressure, bound, etmp )
+             de_fd = de_fd + etmp
+             !
+             CALL calc_esurface( localsurface_tension, bound, etmp )
+             de_fd = de_fd + etmp
+             !
+             bound % ions % tau( ipol, i ) = x0 + dx
+             !
+             CALL update_environ_ions( bound%ions%number, bound%ions%tau, bound%ions )
+             !
+             CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, bound%ion_field )
+             !
+             CALL set_soft_spheres( bound, .TRUE. )
+             !
+             CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
+             !
+             CALL calc_evolume( localpressure, bound, etmp )
+             de_fd = de_fd - etmp
+             !
+             CALL calc_esurface( localsurface_tension, bound, etmp )
+             de_fd = de_fd - etmp
+             !
+             de_fd = de_fd * 0.5D0 / dx / cell%alat
+             !
+             IF ( ionode ) WRITE(environ_unit,'(a,i3,a,i3,3f20.10)')' i = ',i,' ipol = ',ipol,&
+                  & force(ipol), de_fd, force(ipol) - de_fd
+             !
+             bound % ions % tau( ipol, i ) = x0
+             !
+          ENDDO
+          !
+       END DO
+       !
+       CALL destroy_environ_gradient( partial )
+       !
+    ENDIF
     !
-    CALL field_aware_de_drho( bound, de_dboundary, vanalytic )
-    !
-    ! Loop over gridpoints with rhoelec + or - a delta function
-    !
-    test_function % type = 1
-    test_function % dim = 0
-    test_function % axis = 3
-    test_function % spread = 0.3D0
-    test_function % width = 0.D0
-    test_function % volume = 1.D0
-    !
-    epsilon = 0.00001
-    !
-    CALL init_environ_density( cell, delta )
-    !
-    CALL init_environ_density( cell, localelectrons%density )
-    !
-    ! We are only going to check delta functions along the z axis passing throught the O atom
-    !
-    ALLOCATE( test_function % pos( 3 ) )
-    test_function % pos(1) = 11.79D0 / cell % alat
-    test_function % pos(2) = 12.05D0 / cell % alat
-    !
-    DO i = 1, cell % n3
-       !
-       de_fd = 0.D0
-       !
-       test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
-       CALL density_of_functions( test_function, delta, .TRUE. )
-       !
-       localelectrons % density % of_r = bound % electrons % density % of_r - epsilon * delta%of_r
-       !
-       CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, bound%ion_field )
-       !
-       CALL set_soft_spheres( bound, .TRUE. )
-       !
-       CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
-       !
-       CALL calc_evolume( localpressure, bound, etmp )
-       de_fd = de_fd + etmp
-       !
-       CALL calc_esurface( localsurface_tension, bound, etmp )
-       de_fd = de_fd + etmp
-       !
-       localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
-       !
-       CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, bound%ion_field )
-       !
-       CALL set_soft_spheres( bound, .TRUE. )
-       !
-       CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
-       !
-       CALL calc_evolume( localpressure, bound, etmp )
-       de_fd = de_fd - etmp
-       !
-       CALL calc_esurface( localsurface_tension, bound, etmp )
-       de_fd = de_fd - etmp
-       !
-       de_fd = de_fd * 0.5D0 / epsilon
-       !
-       de_analytic = scalar_product_environ_density( vanalytic, delta )
-       !
-       IF ( ionode ) WRITE(environ_unit,'(a,f14.7,3f20.10)')' z = ',test_function % pos(3) * cell % alat,&
-            & de_analytic, de_fd, de_analytic - de_fd
-       !
-    ENDDO
-    !
-    DEALLOCATE( test_function % pos )
-    CALL destroy_environ_density( delta )
-    !
-    CALL destroy_environ_density( vanalytic )
     CALL destroy_environ_density( de_dboundary )
     STOP
     !
