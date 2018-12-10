@@ -484,8 +484,13 @@ CONTAINS
     !
     IF ( .NOT. ( boundary % mode .EQ. 'ionic' .OR. boundary % mode .EQ. 'fa-ionic' ) ) RETURN
     !
-    lscale1 = PRESENT(scale) .AND. scale .AND. ( boundary % mode .EQ. 'fa-ionic' )
-    lscale2 = .NOT. PRESENT(scale) .AND. ( boundary % mode .EQ. 'fa-ionic' )
+    lscale1 = .FALSE.
+    lscale2 = .FALSE.
+    IF ( PRESENT( scale ) ) THEN
+       lscale1 = scale .AND. ( boundary % mode .EQ. 'fa-ionic' )
+    ELSE
+       lscale2 = ( boundary % mode .EQ. 'fa-ionic' )
+    ENDIF
     !
     f = 1.D0
     DO i = 1, boundary%ions%number
@@ -520,8 +525,6 @@ CONTAINS
     !
     INTEGER :: i
     TYPE( environ_cell ), POINTER :: cell
-    TYPE( environ_density ) :: rho
-    TYPE( environ_gradient ) :: gradrho, field
     CHARACTER( LEN=80 ) :: label
     !
     cell => bound%scaled%cell

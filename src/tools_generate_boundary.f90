@@ -2087,7 +2087,7 @@ CONTAINS
        aux % of_r = aux % of_r * df
        !
        DO ipol = 1, 3
-          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) + aux % of_r(:) * boundary % partial_of_ion_field(ipol,i,index) 
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) + aux % of_r(:) * boundary % partial_of_ion_field(ipol,i,index)
        ENDDO
        !
     ENDDO
