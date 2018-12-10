@@ -484,14 +484,13 @@ CONTAINS
     !
     IF ( .NOT. ( boundary % mode .EQ. 'ionic' .OR. boundary % mode .EQ. 'fa-ionic' ) ) RETURN
     !
-    lscale1 = PRESENT(scale) .AND. ( boundary % mode .EQ. 'fa-ionic' )
+    lscale1 = PRESENT(scale) .AND. scale .AND. ( boundary % mode .EQ. 'fa-ionic' )
     lscale2 = .NOT. PRESENT(scale) .AND. ( boundary % mode .EQ. 'fa-ionic' )
     !
     f = 1.D0
     DO i = 1, boundary%ions%number
        IF ( lscale1 ) f = scaling_of_field(boundary%field_factor,boundary%charge_asymmetry,&
             & boundary%field_max,boundary%field_min,boundary%ion_field(i))
-       WRITE( environ_unit, '(a,i3,a,f20.10,a,f20.10)' )'i = ',i,' scaling factor = ',f,' ion_field = ',boundary%ion_field(i)
        radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * f
        boundary%soft_spheres(i) = environ_functions(5,1,0,radius,boundary%softness,1.D0,&
             & boundary%ions%tau(:,i))
