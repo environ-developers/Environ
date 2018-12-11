@@ -49,6 +49,7 @@ MODULE environ_types
      REAL( DP ) :: domega
      REAL( DP ) :: origin( 3 )
      REAL( DP ), DIMENSION( 3, 3 ) :: at
+     REAL( DP ), DIMENSION( 3, 8 ) :: corners
      !
      ! Properties of the processor-specific partition
      !
@@ -477,6 +478,10 @@ CONTAINS
     INTEGER, INTENT(IN) :: nnr, ir_end, comm, me, root
     REAL( DP ), INTENT(IN) :: alat, omega, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
+    !
+    INTEGER :: ic, ix, iy, iz
+    REAL( DP ) :: dx, dy, dz
+    !
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
     !
     cell % n1 = n1
@@ -497,6 +502,30 @@ CONTAINS
     cell % domega = cell % omega / cell % ntot
     !
     cell % origin = 0.D0
+    !
+    ic = 0
+    DO ix = 0,1
+       !
+       dx = DBLE(-ix)
+       !
+       DO iy = 0,1
+          !
+          dy = DBLE(-iy)
+          !
+          DO iz = 0,1
+             !
+             dz = DBLE(-iz)
+             !
+             ic = ic + 1
+             cell%corners(1,ic) = dx*at(1,1) + dy*at(1,2) + dz*at(1,3)
+             cell%corners(2,ic) = dx*at(2,1) + dy*at(2,2) + dz*at(2,3)
+             cell%corners(3,ic) = dx*at(3,1) + dy*at(3,2) + dz*at(3,3)
+             !
+          ENDDO
+          !
+       ENDDO
+       !
+    ENDDO
     !
     RETURN
     !

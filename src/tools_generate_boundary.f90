@@ -677,6 +677,7 @@ CONTAINS
        IF ( boundary%solvent_aware ) THEN
           !
           hessian => boundary%hessian
+          hessian%of_r = 0.D0
           !
        ELSE
           !

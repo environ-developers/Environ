@@ -226,7 +226,7 @@ CONTAINS
   END SUBROUTINE planar_average
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_gaussian( nnr, dim, axis, charge, spread, pos, rho )
+  SUBROUTINE generate_gaussian( nnr, dim, axis, charge, spread, pos, corners, rho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -247,14 +247,15 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: charge, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners(3,8)
     REAL( DP ), INTENT(INOUT) :: rho( nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end
+    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end, ic
     INTEGER                   :: idx, idx0
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: scale, spr2, dist, length
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: rholocal ( : )
@@ -363,10 +364,17 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
-       !
-       dist = SUM( r * r ) / spr2
+       dist_min = SUM( r * r )
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s )
+         IF (dist<dist_min) dist_min = dist
+       ENDDO
+       dist = dist_min / spr2
        !
        IF ( dist .GT. exp_tol ) THEN
           rholocal( ir ) = 0.D0
@@ -385,7 +393,7 @@ CONTAINS
   END SUBROUTINE generate_gaussian
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_gradgaussian( nnr, dim, axis, charge, spread, pos, gradrho )
+  SUBROUTINE generate_gradgaussian( nnr, dim, axis, charge, spread, pos, corners, gradrho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -405,14 +413,15 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: charge, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners(3,8)
     REAL( DP ), INTENT(INOUT) :: gradrho( 3, nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end
+    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end, ic
     INTEGER                   :: idx, idx0
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: scale, spr2, dist, length
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
@@ -522,10 +531,17 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
-       !
-       dist = SUM( r * r ) / spr2
+       dist_min = SUM( r * r )
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s )
+         IF (dist<dist_min) dist_min = dist
+       ENDDO
+       dist = dist_min / spr2
        !
        IF ( dist .GT. exp_tol ) THEN
           gradrholocal( :, ir ) = 0.D0
@@ -544,7 +560,7 @@ CONTAINS
   END SUBROUTINE generate_gradgaussian
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_exponential(nnr, dim, axis, width, spread, pos, rho )
+  SUBROUTINE generate_exponential(nnr, dim, axis, width, spread, pos, corners, rho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -560,14 +576,15 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners(3,8)
     REAL( DP ), INTENT(INOUT) :: rho( nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
     INTEGER                   :: idx, idx0
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: dist, arg
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: rholocal ( : )
@@ -649,10 +666,18 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
+       dist_min = SUM( r * r )
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s )
+         IF (dist<dist_min) dist_min = dist
+       ENDDO
+       dist = SQRT(dist_min) * alat
        !
-       dist = SQRT(SUM( r * r )) * alat
        arg = ( dist - width ) / spread
        !
        IF( ABS( arg ) .LT. exp_arg_limit ) THEN
@@ -672,7 +697,7 @@ CONTAINS
   END SUBROUTINE generate_exponential
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_gradexponential(nnr, dim, axis, width, spread, pos, gradrho )
+  SUBROUTINE generate_gradexponential(nnr, dim, axis, width, spread, pos, corners, gradrho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -688,14 +713,15 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners(3,8)
     REAL( DP ), INTENT(INOUT) :: gradrho( 3, nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
     INTEGER                   :: idx, idx0
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: dist, arg
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
@@ -777,10 +803,18 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
+       dist_min = SUM( r * r )
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s )
+         IF (dist<dist_min) dist_min = dist
+       ENDDO
+       dist = SQRT(dist_min) * alat
        !
-       dist = SQRT(SUM( r * r )) * alat
        arg = ( dist - width ) / spread
        !
        IF ( dist .GT. tol .AND. ABS( arg ) .LT. exp_arg_limit ) THEN
@@ -800,7 +834,7 @@ CONTAINS
   END SUBROUTINE generate_gradexponential
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_erfc( nnr, dim, axis, charge, width, spread, pos, rho )
+  SUBROUTINE generate_erfc( nnr, dim, axis, charge, width, spread, pos, corners, rho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -817,14 +851,15 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners(3,8)
     REAL( DP ), INTENT(INOUT) :: rho( nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
     INTEGER                   :: idx, idx0, ntot
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: rholocal ( : )
@@ -910,11 +945,19 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
+       dist_min = SUM( r * r ) 
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s ) 
+         IF (dist<dist_min) dist_min = dist
+       ENDDO
+       dist = SQRT(dist_min)
        !
-       dist = SQRT(SUM( r * r ))
-       arg = ( dist * alat - width ) / spread
+       arg = ( dist * alat  - width ) / spread
        !
        rholocal( ir ) = qe_erfc(arg)
        !
@@ -941,7 +984,7 @@ CONTAINS
   END SUBROUTINE generate_erfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_graderfc( nnr, dim, axis, charge, width, spread, pos, gradrho )
+  SUBROUTINE generate_graderfc( nnr, dim, axis, charge, width, spread, pos, corners, gradrho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -961,16 +1004,17 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners(3,8)
     REAL( DP ), INTENT(INOUT) :: gradrho( 3, nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
     INTEGER                   :: idx, idx0, ntot
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
-    REAL( DP )                :: r( 3 ), s( 3 )
+    REAL( DP )                :: r( 3 ), s( 3 ), rmin( 3 )
     REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
@@ -1059,11 +1103,23 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
-       r = r * alat
-       !
-       dist = SQRT(SUM( r * r ))
+       rmin(:) = r(:)
+       dist_min = SUM( r * r ) 
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s ) 
+         IF (dist<dist_min) THEN
+           rmin(:) = s(:)
+           dist_min = dist
+         END IF
+       ENDDO
+       r = rmin * alat
+       dist = SQRT(dist_min) * alat
+       ! 
        arg = ( dist - width ) / spread
        !
        IF ( dist .GT. tol ) gradrholocal( :, ir ) = - EXP( - arg**2 ) * r(:) / dist
@@ -1090,7 +1146,7 @@ CONTAINS
   END SUBROUTINE generate_graderfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_laplerfc( nnr, dim, axis, charge, width, spread, pos, laplrho )
+  SUBROUTINE generate_laplerfc( nnr, dim, axis, charge, width, spread, pos, corners, laplrho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -1110,14 +1166,15 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners( 3, 8)
     REAL( DP ), INTENT(INOUT) :: laplrho( nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
     INTEGER                   :: idx, idx0, ntot
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: laplrholocal ( : )
@@ -1208,14 +1265,28 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
-       r = r * alat
+       dist_min = SUM( r * r ) 
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s ) 
+         IF (dist<dist_min) dist_min = dist
+       ENDDO
+       dist = SQRT(dist_min) * alat
        !
-       dist = SQRT(SUM( r * r ))
        arg = ( dist - width ) / spread
        !
-       IF ( dist .GT. tol ) laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - arg / spread ) * 2.D0
+       SELECT CASE ( dim )
+       CASE( 0 )
+         IF ( dist .GT. tol ) laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - arg / spread ) * 2.D0
+       CASE( 1 )
+         IF ( dist .GT. tol ) laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - 2.D0 * arg / spread )
+       CASE( 2 )
+         laplrholocal( ir ) = EXP( - arg**2 ) * arg / spread  * 2.D0
+       END SELECT
        chargelocal = chargelocal + qe_erfc(arg)
        !
     END DO
@@ -1239,7 +1310,7 @@ CONTAINS
   END SUBROUTINE generate_laplerfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_hesserfc( nnr, dim, axis, charge, width, spread, pos, hessrho )
+  SUBROUTINE generate_hesserfc( nnr, dim, axis, charge, width, spread, pos, corners, hessrho )
 !--------------------------------------------------------------------
     !
     USE kinds,            ONLY : DP
@@ -1259,16 +1330,17 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
+    REAL( DP ), INTENT(IN)    :: corners(3,8)
     REAL( DP ), INTENT(INOUT) :: hessrho( 3, 3, nnr )
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, jp
+    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, jp, ic
     INTEGER                   :: idx, idx0, ntot
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
     REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal, tmp
-    REAL( DP )                :: r( 3 ), s( 3 )
+    REAL( DP )                :: r( 3 ), s( 3 ), rmin( 3 )
     REAL( DP ), ALLOCATABLE   :: hessrholocal ( :, :, : )
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
@@ -1357,11 +1429,23 @@ CONTAINS
        ! ... minimum image convention
        !
        s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
+       s(:) = s(:) - FLOOR(s(:))
        r(:) = MATMUL( at(:,:), s(:) )
-       r = r * alat
+       rmin(:) = r(:)
+       dist_min = SUM( r * r )
+       DO ic = 2,8
+         s(1) = r(1) + corners(1,ic)
+         s(2) = r(2) + corners(2,ic)
+         s(3) = r(3) + corners(3,ic)
+         dist = SUM( s * s )
+         IF (dist<dist_min) THEN
+           rmin(:) = s(:)
+           dist_min  = dist
+         ENDIF 
+       ENDDO
+       r = rmin * alat
+       dist = SQRT(dist_min) * alat
        !
-       dist = SQRT(SUM( r * r ))
        arg = ( dist - width ) / spread
        !
        IF ( dist .GT. tol ) THEN

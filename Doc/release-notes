@@ -4,6 +4,13 @@ New in development version:
 
 Problems fixed in development version:
 
+  * improved minimum image convention for generation of functions: it solves
+    incorrect behavior for non-orthorombic cells
+
+  * bugfix: laplacian of erfc was not correctly implemented for 1-D and 
+    2-D systems (calculations with dielectric and 1- or 2-D system boundary 
+    were affected)
+
   * modified the local arrays in compute_convolution_fft to avoid 
     large automatic arrays written on the stack (segmentation fault on
     Mac with default compilation options, i.e. small stack) 
