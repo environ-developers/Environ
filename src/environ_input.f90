@@ -339,7 +339,7 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: electrolyte_mode = 'electronic'
         CHARACTER( LEN = 80 ) :: electrolyte_mode_allowed(8)
         DATA electrolyte_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
-                                & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
+                                & 'system', 'fa-electronic', 'fa-ionic', 'fa-full' /
         ! electrolyte_mode method for calculating the density that sets
         ! the onset of ionic countercharge ( see solvent_mode above )
 !

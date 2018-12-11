@@ -199,7 +199,7 @@ CONTAINS
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
     lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' .OR. solvent_mode(1:2) .EQ. 'fa' )
-    lsoftelectrolyte = lelectrolyte .AND. ( electrolyte_mode .EQ. 'electronic' .OR. electrolyte_mode .EQ. 'full' )
+    lsoftelectrolyte = lelectrolyte .AND. ( electrolyte_mode .EQ. 'electronic' .OR. electrolyte_mode .EQ. 'full' .OR. electrolyte_mode(1:2) .EQ. 'fa' )
     lsoftcavity    = lsoftsolvent .OR. lsoftelectrolyte
     lrigidsolvent  = lsolvent .AND. solvent_mode .NE. 'electronic'
     lrigidelectrolyte = lelectrolyte .AND. electrolyte_mode .NE. 'electronic'
