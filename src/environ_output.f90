@@ -1271,7 +1271,7 @@ CONTAINS
              IF ( solvent%solvent_aware ) WRITE( UNIT = program_unit, FMT = 9013 )
              IF ( solvent%field_aware ) THEN
                 WRITE( UNIT = program_unit, FMT = 9014 )
-                WRITE( UNIT = program_unit, FMT = 9015 )solvent%field_factor,solvent%asymmetry
+                WRITE( UNIT = program_unit, FMT = 9015 )solvent%field_factor,solvent%charge_asymmetry
                 WRITE( UNIT = program_unit, FMT = 9016 )solvent%field_min,solvent%field_max
              ENDIF
           ENDIF
