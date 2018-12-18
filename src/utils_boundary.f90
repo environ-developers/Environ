@@ -201,9 +201,13 @@ CONTAINS
     boundary%field_aware = .FALSE.
     label = 'normal_field_'//TRIM(ADJUSTL(local_label))
     CALL create_environ_density( boundary%normal_field, label )
+    IF ( ALLOCATED( boundary%ion_field ) ) &
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
     IF ( ALLOCATED( boundary%local_spheres ) ) &
          & CALL errore(sub_name,'Trying to create an already allocated object',1)
     IF ( ALLOCATED( boundary%dion_field_drho ) ) &
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( boundary%partial_of_ion_field ) ) &
          & CALL errore(sub_name,'Trying to create an already allocated object',1)
     !
     RETURN
@@ -350,7 +354,6 @@ CONTAINS
        IF ( boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
           CALL init_environ_density( cell, boundary%normal_field )
        ELSE IF ( boundary%mode .EQ. 'fa-ionic' ) THEN
-          CALL init_environ_density( cell, boundary%dscaled )
           DO i = 1, boundary%ions%number
              CALL init_environ_density( cell, boundary%dion_field_drho(i) )
           ENDDO
@@ -705,6 +708,40 @@ CONTAINS
     !
     INTEGER :: i
     !
+    IF ( boundary%initialized ) THEN
+       !
+       CALL destroy_environ_density( boundary%scaled )
+       IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
+          CALL destroy_environ_density( boundary%density )
+          CALL destroy_environ_density( boundary%dscaled )
+          CALL destroy_environ_density( boundary%d2scaled )
+       ENDIF
+       IF ( boundary%deriv .GE. 1 ) CALL destroy_environ_gradient( boundary%gradient )
+       IF ( boundary%deriv .GE. 2 ) CALL destroy_environ_density( boundary%laplacian )
+       IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_density( boundary%dsurface )
+       !
+       IF ( boundary%solvent_aware ) THEN
+          CALL destroy_environ_density( boundary%local )
+          CALL destroy_environ_density( boundary%probe )
+          CALL destroy_environ_density( boundary%filling )
+          CALL destroy_environ_density( boundary%dfilling )
+          IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_hessian( boundary%hessian )
+       ENDIF
+       !
+       IF ( boundary%field_aware ) THEN
+          IF ( boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
+             CALL destroy_environ_density( boundary%normal_field )
+          ELSE IF ( boundary%mode .EQ. 'fa-ionic' )THEN
+             DO i = 1, boundary%ions%number
+                CALL destroy_environ_density( boundary%dion_field_drho(i) )
+             ENDDO
+          ENDIF
+       ENDIF
+       !
+       boundary%initialized = .FALSE.
+       !
+    END IF
+    !
     IF ( lflag ) THEN
        !
        ! These components were allocated first, destroy only if lflag = .TRUE.
@@ -738,41 +775,6 @@ CONTAINS
        ENDIF
        !
     ENDIF
-    !
-    IF ( boundary%initialized ) THEN
-       !
-       CALL destroy_environ_density( boundary%scaled )
-       IF ( boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' ) THEN
-          CALL destroy_environ_density( boundary%density )
-          CALL destroy_environ_density( boundary%dscaled )
-          CALL destroy_environ_density( boundary%d2scaled )
-       ENDIF
-       IF ( boundary%deriv .GE. 1 ) CALL destroy_environ_gradient( boundary%gradient )
-       IF ( boundary%deriv .GE. 2 ) CALL destroy_environ_density( boundary%laplacian )
-       IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_density( boundary%dsurface )
-       !
-       IF ( boundary%solvent_aware ) THEN
-          CALL destroy_environ_density( boundary%local )
-          CALL destroy_environ_density( boundary%probe )
-          CALL destroy_environ_density( boundary%filling )
-          CALL destroy_environ_density( boundary%dfilling )
-          IF ( boundary%deriv .GE. 3 ) CALL destroy_environ_hessian( boundary%hessian )
-       ENDIF
-       !
-       IF ( boundary%field_aware ) THEN
-          IF ( boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full' ) THEN
-             CALL destroy_environ_density( boundary%normal_field )
-          ELSE IF ( boundary%mode .EQ. 'fa-ionic' )THEN
-             CALL destroy_environ_density( boundary%dscaled )
-             DO i = 1, boundary%ions%number
-                CALL destroy_environ_density( boundary%dion_field_drho(i) )
-             ENDDO
-          ENDIF
-       ENDIF
-       !
-       boundary%initialized = .FALSE.
-       !
-    END IF
     !
     RETURN
     !
