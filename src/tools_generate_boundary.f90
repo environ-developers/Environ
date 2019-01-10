@@ -2046,7 +2046,7 @@ CONTAINS
     !
     IF ( boundary % mode .NE. 'fa-ionic' ) RETURN
     !
-    cell => boundary % dscaled % cell
+    cell => boundary % scaled % cell
     !
     nsoft_spheres => boundary % ions % number
     IF ( nsoft_spheres .LE. 0 ) &
