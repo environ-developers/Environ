@@ -222,12 +222,13 @@ MODULE environ_input
 ! Rigid boundary (ionic) parameters
 !
         CHARACTER( LEN = 80 ) :: radius_mode = 'uff'
-        CHARACTER( LEN = 80 ) :: radius_mode_allowed(3)
-        DATA radius_mode_allowed / 'pauling', 'bondi', 'uff' /
+        CHARACTER( LEN = 80 ) :: radius_mode_allowed(4)
+        DATA radius_mode_allowed / 'pauling', 'bondi', 'uff', 'muff' /
         ! type of hardcoded solvation radii to be used when solvent_mode = 'ionic'
         ! pauling = R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
         ! bondi   = A. Bondi, J. Phys. Chem. 68, 441 (1964)
         ! uff     = A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
+        ! muff    = uff with local modifications (Nitrogen, see Fisicaro JCTC (2017)
         REAL(DP) :: solvationrad(nsx) = -3.D0
         ! solvationrad radius of the solvation shell for each species when the
         ! ionic dielectric function is adopted, in internal units (a.u.)
@@ -1439,7 +1440,7 @@ CONTAINS
        !
        ! Soft-sphere continuum solvation
        !
-       radius_mode = 'uff'
+       radius_mode = 'muff'
        softness = 0.5D0
        env_surface_tension = 50.D0 !! NOTE THAT WE ARE USING THE
        env_pressure = -0.35D0      !! SET FOR CLUSTERS, AS IN SCCS

@@ -222,7 +222,7 @@ CONTAINS
     ENDIF
     !
     local_charge = integrate_environ_density(charges%density)
-    IF ( ABS(local_charge-charges%charge) .GT. 1.D-8 ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
+    IF ( ABS(local_charge-charges%charge) .GT. 1.D-4 ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
     !
     RETURN
     !
