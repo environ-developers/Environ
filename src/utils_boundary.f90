@@ -503,6 +503,10 @@ CONTAINS
        boundary%soft_spheres(i) = environ_functions(5,1,0,radius,boundary%softness,1.D0,&
             & boundary%ions%tau(:,i))
        IF ( lscale2 ) boundary%local_spheres(i) = boundary%soft_spheres(i)
+       IF ( verbose .GE. 1 ) WRITE(environ_unit,6100)i,boundary%ions%iontype(boundary%ions%ityp(i))%label,&
+               & boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad,boundary%alpha,&
+               & boundary%ion_field(i),f,radius
+6100   FORMAT("atom numer = ",i3," atom label = ",a3," solvation radius = ",f8.4," scaling = ",f8.4," field flux = ",f8.4," scaling of field = ",f8.4," final radius = ",f8.4)
     ENDDO
     !
     RETURN
