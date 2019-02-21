@@ -271,13 +271,14 @@ MODULE environ_input
 ! Numerical core's parameters
 !
         CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
-        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
-        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
+        CHARACTER( LEN = 80 ) :: boundary_core_allowed(5)
+        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem', 'lowmem' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
         ! fft       = fast Fourier transforms
         ! fd        = finite differences in real space
         ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
         ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
+        ! lowmem    = more efficient analytic derivatives (testing)
 !
 ! Finite differences' parameters
 !
@@ -1358,9 +1359,14 @@ CONTAINS
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
-    IF ( (solvent_mode .EQ. 'ionic' .OR. solvent_mode .EQ. 'fa-ionic') .AND. boundary_core .NE. 'analytic' ) THEN
-       IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'
-       boundary_core = 'analytic'
+    IF (solvent_mode .EQ. 'ionic' .OR. solvent_mode .EQ. 'fa-ionic') THEN
+       !
+       ! May want a switch statement here
+       !
+       IF ( boundary_core .EQ. 'fft' .OR. boundary_core .EQ. 'fd' ) THEN
+          IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'
+          boundary_core = 'analytic'
+       ENDIF
     ENDIF
     !
     RETURN
