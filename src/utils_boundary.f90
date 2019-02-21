@@ -253,9 +253,9 @@ CONTAINS
     !
     boundary%mode = mode
     !
-    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' ) .OR. ( field_factor .GT. 0.D0 )
+    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' ) .OR. ( mode .EQ. 'fa-ionic' ) .OR. ( mode .EQ. 'fa-electronic' )
     IF ( boundary%need_electrons ) boundary%electrons => electrons
-    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' ) .OR. ( field_factor .GT. 0.D0 )
+    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' ) .OR. ( mode .EQ. 'fa-ionic' ) .OR. ( mode .EQ. 'fa-electronic' )
     IF ( boundary%need_ions ) boundary%ions => ions
     boundary%need_system = ( mode .EQ. 'system' )
     IF ( boundary%need_system ) boundary%system => system
