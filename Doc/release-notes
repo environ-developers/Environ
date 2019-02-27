@@ -4,6 +4,8 @@ New in development version:
 
 Problems fixed in development version:
 
+  * fixed a bug in dielectric regions when optical permittivity is different from vacuum
+
   * decreased tolerance for check on electronic charge in utils_charges.f90
 
   * fixed a small bug that prevented compilation in environ_init.f90 
