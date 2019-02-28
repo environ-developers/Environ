@@ -713,7 +713,12 @@ CONTAINS
     REAL( DP ), DIMENSION(0:3) :: dipole
     REAL( DP ), DIMENSION(3) :: quadrupole
     !
-    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( density%cell%nnr, density%of_r, density%cell%origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     density % charge = dipole(0)
     density % dipole = dipole(1:3)
@@ -1185,7 +1190,7 @@ CONTAINS
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
     REAL( DP ), INTENT(IN), OPTIONAL :: nelec
     !
-    REAL( DP ), PARAMETER :: tol = 1.D-8
+    REAL( DP ), PARAMETER :: tol = 1.D-4
     REAL( DP ) :: charge
     CHARACTER( LEN= 80 ) :: sub_name = 'update_environ_electrons'
     !
@@ -1198,7 +1203,11 @@ CONTAINS
     ! Assign input density to electrons%density%of_r
     !
     electrons%density%of_r(:) = rho(:,1)
-    IF ( electrons%nspin .EQ. 2 ) electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:,2)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    IF ( electrons%nspin .EQ. 2 ) electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:,2)
+! Compatible with QE-6.4.X and QE-GIT
+! END BACKWARD COMPATIBILITY
     !
     ! Update integral of electronic density and, if provided, check against input value
     !
