@@ -253,9 +253,11 @@ CONTAINS
     !
     boundary%mode = mode
     !
-    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' ) .OR. ( mode .EQ. 'fa-ionic' ) .OR. ( mode .EQ. 'fa-electronic' )
+    boundary%need_electrons = ( mode .EQ. 'electronic' ) .OR. ( mode .EQ. 'full' ) &
+      & .OR. ( mode .EQ. 'fa-ionic' ) .OR. ( mode .EQ. 'fa-electronic' )
     IF ( boundary%need_electrons ) boundary%electrons => electrons
-    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' ) .OR. ( mode .EQ. 'fa-ionic' ) .OR. ( mode .EQ. 'fa-electronic' )
+    boundary%need_ions = ( mode .EQ. 'ionic' ) .OR. ( mode .EQ. 'full' ) &
+      & .OR. ( mode .EQ. 'fa-ionic' ) .OR. ( mode .EQ. 'fa-electronic' )
     IF ( boundary%need_ions ) boundary%ions => ions
     boundary%need_system = ( mode .EQ. 'system' )
     IF ( boundary%need_system ) boundary%system => system
@@ -309,7 +311,7 @@ CONTAINS
        ALLOCATE( boundary%dion_field_drho( boundary%ions%number ) )
        ALLOCATE( boundary%partial_of_ion_field( 3, boundary%ions%number, boundary%ions%number ) )
        ALLOCATE( boundary%local_spheres( boundary%ions%number ) )
-    ENDIF
+     ENDIF
     !
     boundary%initialized = .FALSE.
     !
