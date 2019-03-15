@@ -945,7 +945,6 @@ CONTAINS
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ) :: dens
     TYPE( environ_gradient ) :: partial
-    TYPE( environ_density ) :: aux
     !
     cell => laplacian % cell
     CALL init_environ_density( cell, dens )
@@ -981,19 +980,6 @@ CONTAINS
     CALL destroy_environ_density( dens )
     CALL destroy_environ_gradient( partial )
     !
-    CALL init_environ_density(cell, aux)
-    aux % of_r = 0.D0
-    aux % of_r = hessian % of_r( 1, 1, : )
-
-    !!! DEBUG
-    !CALL write_cube(aux)
-    !WRITE(stdout,*)'done'
-    !FLUSH(stdout)
-    !CALL write_cube(laplacian)
-    !STOP
-    !
-
-
     RETURN
     !
 !--------------------------------------------------------------------
@@ -1091,7 +1077,6 @@ CONTAINS
     TYPE( environ_density ), INTENT(INOUT) :: laplacian
     TYPE( environ_density ), INTENT(INOUT) :: dsurface
     TYPE( environ_hessian ), INTENT(INOUT) :: hessian
-    TYPE( environ_density ) :: aux ! for debugging purposes only
     !
     INTEGER :: i, j, k, ipol, jpol, tol
     TYPE( environ_cell), POINTER :: cell
@@ -1102,7 +1087,6 @@ CONTAINS
     DO i = 1, n
        DO j = 1, cell % nnr
           IF ( ABS( local( i ) % of_r( j ) ) .LE. tol ) THEN
-             !WRITE(stdout,*) (local( i ) % of_r( j )), (gradlocal( i ) % of_r( 1, j ))
              CYCLE
           ENDIF
           DO ipol = 1, 3
@@ -1121,19 +1105,8 @@ CONTAINS
        ENDDO
     ENDDO
     !
-    CALL init_environ_density(cell, aux)
-    aux % of_r = 0.D0
-    aux % of_r = hessian % of_r( 1, 1, : )
-    !
     laplacian % of_r = hessian % of_r( 1, 1, : ) + hessian % of_r( 2, 2, : ) + hessian % of_r( 3, 3, : )
     CALL calc_dsurface( cell%nnr, cell%ir_end, gradient%of_r, hessian%of_r, dsurface%of_r )
-    !
-    !!! DEBUG
-    !CALL write_cube(aux)
-    !WRITE(stdout,*)'done'
-    !FLUSH(stdout)
-    !CALL write_cube(scaled)
-    !STOP
     !
     RETURN
     !
