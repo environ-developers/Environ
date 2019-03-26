@@ -51,7 +51,8 @@ sufficient.
    :lines: 2,4
 
 The environ threshold specifies when to start environ contributions to the SCF iterative step. The default
-value is suitable primarily for small systems.
+value is suitable primarily for small systems. Note that since these input files follow fortran convention,
+double precision is notated as above. 
 
 .. literalinclude:: example01.in
    :language: fortran
@@ -61,6 +62,18 @@ The environ type simplifies the requirement of some of the physical parameters (
 tension, and static permittivity), which arise depending on the interface model applied. One can manually add
 these, but these have been tuned to optimal values, and therefore it is generally preferable to use the preset
 values by setting this parameter accordingly (vacuum, water, water-anions, water-cations). 
+
+.. note::
+
+   This option is equivalent to
+
+   .. code-block:: fortran
+
+      &ENVIRON
+         environ_type = 'input'
+         env_surface_tension = 0
+         env_pressure = 0
+         env_static_permittivity = 1
 
 By design, pw assumes a simulation cell with 3D periodicity. This can be overcome by setting a simulation cell
 with enough space and enabling the pbc_correction parameter (which in turn requires the env_electrostatic
