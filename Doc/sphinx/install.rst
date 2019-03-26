@@ -23,7 +23,9 @@ necessary. All commands should be executed in the root directory of Quantum ESPR
 Environ files should be extracted. The Environ files are assumed to exist (see step 1 below) in
 a folder named Environ that sits in the Quantum ESPRESSO root directory
 
-1. If not done already, clone (or extract) the Environ module to the root of the Quantum ESPRESSO installation::
+1. If not done already, clone (or extract) the Environ module to the root of the Quantum ESPRESSO installation
+   
+   ::
    
    git clone https://gitlab.com/olivieroandreussi/Environ.git
 
