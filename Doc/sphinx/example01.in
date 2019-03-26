@@ -1,0 +1,3 @@
+! Some comment
+&ENVIRON
+	verbose = 1

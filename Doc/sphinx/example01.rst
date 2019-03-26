@@ -27,12 +27,20 @@ can run the bash script and view the generated environ files in the results fold
 prefix and the .in suffix). Refer to the input documentation (which can be viewed on the browser from the local
 html file, Doc/INPUT_Environ.html) for in-depth information on any of the variables as well as the expected
 structure. The general structure splits parameters into a number of keywords, &ENVIRON, &BOUNDARY, and
-&ELECTROSTATIC.
+&ELECTROSTATIC. This file has fortran-like formatting and as such, '!' can prepend comments.
+
+.. literalinclude:: example01.in
+   :language: fortran
+   :linenos: 1-3
 
 Environ is designed to be modular and as a result, many of the parameters are interchangeable. The parameters
 used in the program are also helpfully described in the bash file. By default, the verbosity parameter (verbose)
 is set to zero, which limits output to the standard pw output location (which is to the terminal, and therefore
-is often piped into an output file). Some helpful environment specific quantities can also be printed out. These
+is often piped into an output file). 
+
+
+
+Some helpful environment specific quantities can also be printed out. These
 are typically used on the development side for debugging. The option verbose=1 (or any higher integer value)
 will output these in a file named environ.debug. The option verbose=2 will additionally output gaussian cube
 files that contain the density objects of important quantities. Specifying this option will impact performance

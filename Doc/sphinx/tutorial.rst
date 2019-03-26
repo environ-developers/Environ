@@ -11,7 +11,7 @@ The bash scripts contain explanations behind settings. A more verbose explanatio
 on setting up jobs from scratch can be seen in this tutorial. 
 
 .. toctree::
-   :hidden:   
+   :numbered:   
 
    example01
    example02
