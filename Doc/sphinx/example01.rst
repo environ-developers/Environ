@@ -31,7 +31,7 @@ structure. The general structure splits parameters into a number of keywords, &E
 
 .. literalinclude:: example01.in
    :language: fortran
-   :linenos: 1-3
+   :lines: 1-3
 
 Environ is designed to be modular and as a result, many of the parameters are interchangeable. The parameters
 used in the program are also helpfully described in the bash file. By default, the verbosity parameter (verbose)
