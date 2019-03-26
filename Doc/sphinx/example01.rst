@@ -33,12 +33,11 @@ structure. The general structure splits parameters into a number of keywords, &E
    :language: fortran
    :lines: 1-3
 
-Environ is designed to be modular and as a result, many of the parameters are interchangeable. The parameters
+Environ is designed to be modular and as a result, many of the parameters are interchangeable. Each
+parameter belongs to a corresponding keyword and therefore should be placed accordingly. The parameters
 used in the program are also helpfully described in the bash file. By default, the verbosity parameter (verbose)
 is set to zero, which limits output to the standard pw output location (which is to the terminal, and therefore
 is often piped into an output file). 
-
-
 
 Some helpful environment specific quantities can also be printed out. These
 are typically used on the development side for debugging. The option verbose=1 (or any higher integer value)
@@ -47,8 +46,16 @@ files that contain the density objects of important quantities. Specifying this 
 due to the heavy I/O operations, and for the majority of simulations, a verbosity of zero ought to be
 sufficient.
 
+.. literalinclude:: example01.in
+   :language: fortran
+   :lines: 2,4
+
 The environ threshold specifies when to start environ contributions to the SCF iterative step. The default
-value is suitable primarily for small systems. 
+value is suitable primarily for small systems.
+
+.. literalinclude:: example01.in
+   :language: fortran
+   :lines: 2,5
 
 The environ type simplifies the requirement of some of the physical parameters (such as pressure, surface
 tension, and static permittivity), which arise depending on the interface model applied. One can manually add
