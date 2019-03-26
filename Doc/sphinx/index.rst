@@ -6,9 +6,17 @@
 Welcome to Environ's documentation!
 ===================================
 
+Environ is a computational library aimed at introducing environment effects to atomistic first-principles simulations,
+in particular for applications in surface science and materials design. It is a Quantum-ESPRESSO module, and the current
+version is compatible with QE-6.3. 
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   installation
+   tutorial with examples
+   developer information
 
 
 
