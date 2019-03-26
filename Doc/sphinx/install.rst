@@ -11,11 +11,11 @@ Alternatively one can download the archive at the `release`_ page. Then,
 
 1. configure QE following the standard procedure, running::
 
-   ./configure
+      ./configure
 
 2. compile QE without the Environ module (i.e. standard pw installation)::
    
-   make pw
+      make pw
 
 If there are problems with the preliminary steps, look up for solution on the `PW-forum`_ or refer to
 the Quantum ESPRESSO `documentation`_ and website. To install Environ, the following steps are
@@ -24,44 +24,43 @@ Environ files should be extracted. The Environ files are assumed to exist (see s
 a folder named Environ that sits in the Quantum ESPRESSO root directory
 
 1. If not done already, clone (or extract) the Environ module to the root of the Quantum ESPRESSO installation
-   
    ::
    
-   git clone https://gitlab.com/olivieroandreussi/Environ.git
+      git clone https://gitlab.com/olivieroandreussi/Environ.git
 
 2. run the QE script addonpatch.sh with the -patch option::
 
-   ./install/addsonpatch.sh Environ Environ/src Modules -patch
+      ./install/addsonpatch.sh Environ Environ/src Modules -patch
 
 3. run the Environ installation script with the -patch option::
 
-   ./Environ/patches/environpatch.sh -patch
+      ./Environ/patches/environpatch.sh -patch
 
 4. run the QE script to regenerate modules' dependencies::
 
-   ./install/makedeps.sh
+      ./install/makedeps.sh
 
 5. re-compile, e.g.::
 
-   make pw
+      make pw
 
 To clean up the compilation of Environ, follow these steps:
 
 1. run the QE script addsonpatch.sh with the -revert option::
 
-   ./install/addsonpatch.sh Environ Environ/src Modules -revert
+      ./install/addsonpatch.sh Environ Environ/src Modules -revert
 
 2. run the Environ installation script with the -revert option::
 
-   ./Environ/patches/environpatch.sh -revert
+      ./Environ/patches/environpatch.sh -revert
 
 3. run the QE script to regenerate modules' dependencies::
 
-   ./install/makedeps.sh
+      ./install/makedeps.sh
 
 4. remove objects, modules, and exectuables::
 
-   make clean
+      make clean
 
 If any errors are encountered, refer to the `website`_. 
 
