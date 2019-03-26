@@ -10,4 +10,8 @@ to run via executing bash scripts. The context for these tests are given in the 
 The bash scripts contain explanations behind settings. A more verbose explanation, along with a guide
 on setting up jobs from scratch can be seen in this tutorial. 
 
+.. toctree::
+   :hidden:   
 
+   example01
+   example02
