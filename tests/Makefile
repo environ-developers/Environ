@@ -74,6 +74,10 @@ run-custom-test-parallel : prolog pseudo
 create-reference-pw : pseudo prolog
 	env QE_USE_MPI=0 ${TESTCODE_DIR}/bin/testcode.py --category=pw_all make-benchmarks
 
+create-custom-reference-pw : pseudo prolog
+	@if test -d $(testdir); then \
+	env QE_USE_MPI=0 ${TESTCODE_DIR}/bin/testcode.py --category=$(testdir) make-benchmarks ; fi
+
 compare : compare-pw
 
 compare-pw : prolog
