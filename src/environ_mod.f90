@@ -150,6 +150,13 @@ MODULE environ_base
   REAL (KIND=DP) ::                 &
        env_pressure
   !
+  ! Confinement potential parameters
+  !
+  LOGICAL ::                        &
+       lconfine
+  REAL (KIND=DP) ::                 &
+       env_confine
+  !
   ! Periodicity correction parameters
   !
   LOGICAL ::                        &
@@ -170,11 +177,13 @@ MODULE environ_base
        esurface,                    &
        evolume,                     &
        eelectrolyte,                &
+       econfine,                    &
        potential_shift
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
+       vconfine,                    &
        vsoftcavity
 !----------------------------------------------------------------------------
 END MODULE environ_base

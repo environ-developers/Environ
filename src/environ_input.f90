@@ -147,6 +147,11 @@ MODULE environ_input
         REAL(DP) :: env_pressure = 0.D0
         ! external pressure for PV energy, if equal to zero no pressure term
 !
+! Confine energy parameters
+!
+        REAL(DP) :: env_confine = 0.D0
+        ! confinement potential
+!
 ! Ionic countercharge parameters
 !
         LOGICAL :: electrolyte_linearized = .false.
@@ -199,6 +204,7 @@ MODULE environ_input
              env_static_permittivity, env_optical_permittivity,        &
              env_surface_tension,                                      &
              env_pressure,                                             &
+             env_confine,                                              &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              temperature, electrolyte_linearized, electrolyte_entropy, &
              ion_adsorption, ion_adsorption_energy,                    &
@@ -596,6 +602,7 @@ CONTAINS
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
+                             env_confine,                                &
                              env_electrolyte_ntyp,                       &
                              electrolyte_linearized, electrolyte_entropy,&
                              electrolyte_mode, electrolyte_distance,     &
@@ -743,6 +750,8 @@ CONTAINS
     !
     env_pressure = 0.D0
     !
+    env_confine = 0.D0
+    !
     env_electrolyte_ntyp = 0
     electrolyte_linearized = .false.
     electrolyte_entropy = 'full'
@@ -884,6 +893,8 @@ CONTAINS
     CALL mp_bcast( env_surface_tension,        ionode_id, comm )
     !
     CALL mp_bcast( env_pressure,               ionode_id, comm )
+    !
+    CALL mp_bcast( env_confine,                ionode_id, comm )
     !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
     CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
@@ -1320,6 +1331,7 @@ CONTAINS
          & lboundary = .TRUE.
     IF ( env_surface_tension .GT. 0.D0 ) lboundary = .TRUE.
     IF ( env_pressure .NE. 0.D0 ) lboundary = .TRUE.
+    IF ( env_confine .NE. 0.D0 ) lboundary = .TRUE.
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
