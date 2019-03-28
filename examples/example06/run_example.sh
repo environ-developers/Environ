@@ -74,8 +74,7 @@ for FILE in $PSEUDO_LIST ; do
     if test ! -r $PSEUDO_DIR/$FILE ; then
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
-            $WGET $PSEUDO_DIR/$FILE \
-                http://www.quantum-espresso.org/upf_files/UPF/$FILE 2> /dev/null 
+            $WGET $PSEUDO_DIR/$FILE $NETWORK_PSEUDO/$FILE 2> /dev/null 
     fi
     if test $? != 0; then
         $ECHO
@@ -100,40 +99,41 @@ verbose=0             # if GE 1 prints debug informations
 environ_thr='1.d0'    # electronic convergence threshold for the onset  
                       # of solvation correction
 ### ELECTROLYTE PARAMETERS ##########################################
-env_electrolyte_ntyp=2  # number of electrolyte species in solution
-zion=1                  # ionic charge
-cion='5.0'              # ionic concentration (in mol/l)
-cionmax='15.0'          # max ionic concentration (in mol/l) 
-                        # NOTE: cionmax=1/a**3, where a is the ionic 
-                        # size parameter originally employed by Borukhov. 
-                        # one can alternatively set the ionic radius
-                        # rion (in Bohr), related to cionmax according
-                        # to: cionmax=p/(4/3*pi*rion**3), where p=0.64 
-                        # is the random close packing volume fraction.
-solvent_temperature=300 # temperature of the electrolyte solution 
-stern_mode='system'     # specify the method that is used to build
-                        # the electrolyte cavity
-                        # electronic, ionic, full: same as for solvent
-                        #   cavity, see previous examples. the 
-                        #   corresponding parameters are stern_rhomax
-                        #   and stern_rhomin (for electronic and full)
-                        #   or stern_alpha and stern_softness (for 
-                        #   ionic).
-                        # system: simplified erf-based interface 
-system_dim=2            # select dimensionality of the interface
-                        # 0, 1 and 2: spherical, cylindrical or
-                        #   planar interface
-system_axis=3           # select axis for the simplified interface.
-                        # the axis is along the 1D direction or 
-                        # normal to the 2D plane (1, 2 or 3 for 
-                        # x, y or z axis)
-system_ntyp=1           # the geometrical center of the atoms of 
-                        # all types up to system_ntyp defines the
-                        # origin of the simplified interface
-stern_distance='10.0'   # distance parameter for the simplified
-                        # erf-based interface
-stern_spread='0.5'      # spread parameter for the simplified
-                        # erf-based interface 
+env_electrolyte_ntyp=2      # number of electrolyte species in solution
+zion=1                      # ionic charge
+cion='5.0'                  # ionic concentration (in mol/l)
+cionmax='15.0'              # max ionic concentration (in mol/l) 
+                            # NOTE: cionmax=1/a**3, where a is the ionic 
+                            # size parameter originally employed by Borukhov. 
+                            # one can alternatively set the ionic radius
+                            # rion (in Bohr), related to cionmax according
+                            # to: cionmax=p/(4/3*pi*rion**3), where p=0.64 
+                            # is the random close packing volume fraction.
+temperature=300             # temperature of the electrolyte solution 
+electrolyte_mode='system'   # specify the method that is used to build
+                            # the electrolyte cavity
+                            # electronic, ionic, full: same as for solvent
+                            #   cavity, see previous examples. the 
+                            #   corresponding parameters are 
+                            #   electrolyte_rhomax, electrolyte_rhomin 
+                            #   (for electronic and full), or
+                            #   electrolyte_alpha and electrolyte_softness 
+                            #   (for ionic).
+                            # system: simplified erf-based interface 
+system_dim=2                # select dimensionality of the interface
+                            # 0, 1 and 2: spherical, cylindrical or
+                            #   planar interface
+system_axis=3               # select axis for the simplified interface.
+                            # the axis is along the 1D direction or 
+                            # normal to the 2D plane (1, 2 or 3 for 
+                            # x, y or z axis)
+system_ntyp=1               # the geometrical center of the atoms of 
+                            # all types up to system_ntyp defines the
+                            # origin of the simplified interface
+electrolyte_distance='10.0' # distance parameter for the simplified
+                            # erf-based interface
+electrolyte_spread='0.5'    # spread parameter for the simplified
+                            # erf-based interface 
 ### PERIODIC BOUNDARY CONDITIONS ####################################
 pbc_correction='parabolic' # correction scheme to remove PBC 
                            # none: periodic calculation, no correction 
@@ -226,19 +226,19 @@ cat > environ.in << EOF
    cion(1) = $cion
    cion(2) = $cion             
    cionmax = $cionmax
-   solvent_temperature = $solvent_temperature
+   temperature = $temperature
    system_dim = $system_dim            
    system_axis = $system_axis   
    system_ntyp = $system_ntyp
-   stern_linearized = .true.
+   electrolyte_linearized = .true.
    !
  /
  &BOUNDARY
    !
    solvent_mode = 'full'
-   stern_mode = '$stern_mode'
-   stern_distance = $stern_distance
-   stern_spread = $stern_spread   
+   electrolyte_mode = '$electrolyte_mode'
+   electrolyte_distance = $electrolyte_distance
+   electrolyte_spread = $electrolyte_spread   
    !
  /
  &ELECTROSTATIC
