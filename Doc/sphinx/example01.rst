@@ -1,18 +1,23 @@
 .. Environ documentation example01 file, created by
    Matthew Truscott on Tue Mar 26 2019.
 
-Example 1
-=========
+Example: Solvation Energy
+=========================
 
 This first example will demonstrate using the pw.x executable with Environ to calculate the solvation energy
 and other related solvation quantities for a water molecule in a water solvent. A more in-depth explanation 
-of the demonstration can be found in the README.
+of the demonstration can be found in the README. The overall idea is as follows: solvation energy is the
+difference in energy between a solute in vacuum and in solvent. By default, the pw.x program calculates
+the energy of a system in vacuum. The Environ module allows us to account for additional effects or
+correction factors. It also allows us to add some non-vacuum environment, in this case, a water solvent.
+Hence by running pw.x twice with different Environ parameters, one can calculate the energy of the system
+in vacuum and in water, thus obtaining the solvation energy. 
 
 In general, execution of pw.x requires a correctly formatted input file with all the descriptive properties of
 the desired system. With the Environ addon, an additional input file is required that contain simulation
 parameters for the environment. Unlike the pw input file that can be arbitrarily named and then specified on
 execution of the program, the Environ file must be named ‘environ.in’. To enable the environ addon on a pw
-calculation, the --environ modifier should be added. Hence the command, ./pw.x --environ < example.in would 
+calculation, the ``--environ`` modifier should be added. Hence the command, ``./pw.x --environ < example.in`` would 
 feed in a pw input file named example.in into pw.x and run a serial calculation via whichever FORTRAN compiler 
 Quantum ESPRESSO has been configured with. Since the --environ modifier added, pw now expects an environ.in 
 file. Failure to do so will result in an error. 
@@ -75,6 +80,10 @@ values by setting this parameter accordingly (vacuum, water, water-anions, water
          env_pressure = 0
          env_static_permittivity = 1
 
+.. literalinclude:: example01.in
+   :language: fortran
+   :lines: 10-12
+         
 By design, pw assumes a simulation cell with 3D periodicity. This can be overcome by setting a simulation cell
 with enough space and enabling the pbc_correction parameter (which in turn requires the env_electrostatic
 parameter to be set as true). This correction is an approximation but should be sufficient for most simulation
@@ -82,6 +91,10 @@ runs. For more accurate results, one may want to refer to martyna-tuckerman (see
 ‘assume-isolated’), which does require a larger simulation cell (and therefore more physical memory). For
 simulations that require one to retain periodicity in 1 or 2 dimensions (for example, a diffuse-layer
 simulation), the pbc_dim parameter can be set appropriately. 
+
+.. literalinclude:: example01.in
+   :language: fortran
+   :lines: 10,13-14
 
 The electrostatic calculation has its own accuracy that, for the most part, should be set manually in the input
 file (since the value itself is reliant on the solver picked). 
@@ -93,10 +106,22 @@ corrections printed that are a result of the Environ module (the electrostatic e
 to one-el term). These corrections should be non-zero once the threshold specified in Environ’s input file is
 met. Finally one can inspect the computation cost of the environ processes at the end of the file. 
 
+.. literalinclude:: example01.in
+   :language: fortran
+   :lines: 8-9
+
 In this example, the boundary is left empty. By default, Environ will use the SCCS model to define the
 interface. This model uses the electrostatic density to define the separation between solute and solvent. 
 
+.. literalinclude:: example01.in
+   :language: fortran
+   :lines: 10,15-16
+
 A number of different solvers can be employed to calculate for electrostatic potential. Typically these default
 to sensible values according to the setup, however, one can manually set these along with the auxiliary
-parameter (in the event of say, polarization charge). 
+parameter (in the event of say, polarization charge).
 
+For small investigations such as this example, where only 3 simulations are run, it is sufficient to process
+the result directly from the command line. When scaling up to a higher number of simulations, bash or
+python scripting can be exploited to automate the process of calculating the solvation energy. Suppose the
+user is in the directory containing the newly created PW output files (in the results folder)
