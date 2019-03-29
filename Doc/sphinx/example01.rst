@@ -1,8 +1,8 @@
 .. Environ documentation example01 file, created by
    Matthew Truscott on Tue Mar 26 2019.
 
-Example: Solvation Energy
-=========================
+Example: Solvation Energy (SCCS)
+================================
 
 This first example will demonstrate using the pw.x executable with Environ to calculate the solvation energy
 and other related solvation quantities for a water molecule in a water solvent. A more in-depth explanation 
@@ -17,7 +17,8 @@ In general, execution of pw.x requires a correctly formatted input file with all
 the desired system. With the Environ addon, an additional input file is required that contain simulation
 parameters for the environment. Unlike the pw input file that can be arbitrarily named and then specified on
 execution of the program, the Environ file must be named ‘environ.in’. To enable the environ addon on a pw
-calculation, the ``--environ`` modifier should be added. Hence the command, ``./pw.x --environ < example.in`` would 
+calculation, the ``--environ`` modifier should be added. Hence the command, ``./pw.x --environ < example.in`` 
+would 
 feed in a pw input file named example.in into pw.x and run a serial calculation via whichever FORTRAN compiler 
 Quantum ESPRESSO has been configured with. Since the --environ modifier added, pw now expects an environ.in 
 file. Failure to do so will result in an error. 
