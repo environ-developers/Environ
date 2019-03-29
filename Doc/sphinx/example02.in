@@ -1,0 +1,21 @@
+ &ENVIRON
+   !
+   verbose = 0
+   environ_thr = 1.d-1
+   environ_type = 'vacuum'
+   env_electrostatic = .true.
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode='ionic'
+   !
+ /
+ &ELECTROSTATIC
+   !
+   pbc_correction = 'parabolic'
+   pbc_dim = 0
+   !
+   tol = 1.d-11 
+   !  
+ /
