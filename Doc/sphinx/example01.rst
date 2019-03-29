@@ -125,4 +125,35 @@ parameter (in the event of say, polarization charge).
 For small investigations such as this example, where only 3 simulations are run, it is sufficient to process
 the result directly from the command line. When scaling up to a higher number of simulations, bash or
 python scripting can be exploited to automate the process of calculating the solvation energy. Suppose the
-user is in the directory containing the newly created PW output files (in the results folder)
+user is in the directory containing the newly created PW output files (in the results folder), the output files
+of Quantum ESPRESSO are designed for convenient extraction of commonly used results via grep. Calling
+``grep ! *.out`` will return the total energy values. Since this is a PW relax calculation, the energy is
+calculated multiple times, while updating the positions of the ions depending on the calculated forces in the
+system. One should expect to get a result like:
+
+::
+     
+   h2o_vacuum_direct.out:!    total energy              =     -34.26804813 Ry
+   h2o_vacuum_direct.out:!    total energy              =     -34.26815510 Ry
+   h2o_vacuum_direct.out:!    total energy              =     -34.26825783 Ry
+   h2o_vacuum_direct.out:!    total energy              =     -34.26826238 Ry
+   h2o_water_cg.out:!    total energy              =     -34.28845991 Ry
+   h2o_water_cg.out:!    total energy              =     -34.28851745 Ry
+   h2o_water_cg.out:!    total energy              =     -34.28858148 Ry
+   h2o_water_iterative.out:!    total energy              =     -34.28845478 Ry
+   h2o_water_iterative.out:!    total energy              =     -34.28851656 Ry
+   h2o_water_iterative.out:!    total energy              =     -34.28857886 Ry
+
+Note that the values may not match exactly due to the compiler used. It is useful to bear in mind when
+analysing energies in Rydberg, differences of E-2 are typical for solvation energies, whereas differences of 
+less than 3E-3 are less than chemical accuracy. We see that the final energy of the system depends on the 
+solver used, but the difference is 3E-5, well below chemical accuracy and therefore not of much concern for
+regular applications. Hence the solvation energy can be calculated (as the difference between the solvation
+and vacuum energies) as -6.374kcal/mol (or 2.03E-2Ry) via the conjugative gradient solver, and -6.373kcal/mol
+(or 2.03E-2Ry) via the iterative solver. This compares closely to the experimental solvation energy of
+water (-6.3kcal/mol [1]_).
+
+If the user is just interested in the final energy in a relax calculation, a command like ``grep Final *.out``
+will achieve this. 
+
+.. [1] A. V. Marenich et al., Minnesota Solvation Database - version 2012; University of Minnesota: Minneapolis
