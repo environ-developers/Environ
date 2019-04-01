@@ -272,7 +272,7 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    control_flags,  ONLY : conv_elec \
 USE    environ_output, ONLY : environ_print_energies, & \
-                              environ_print_potential_shift \
+                              environ_print_potential_warning \
 !Environ patch
 ' plugin_print_energies.f90 > tmp.1
 
@@ -281,7 +281,7 @@ sed '/Environ CALLS BEGIN/ a\
    if (use_environ) then \
      CALL environ_print_energies() \
      if (conv_elec) then \
-       CALL environ_print_potential_shift() \
+       CALL environ_print_potential_warning() \
      end if \
    end if \
 !Environ patch
@@ -370,10 +370,12 @@ mv tmp.2 plugin_init_potential.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
 USE klist,                 ONLY : nelec\
+USE control_flags,         ONLY : lscf\
 USE environ_base,          ONLY : update_venviron, environ_thr, &\
                                   environ_restart, ltddfpt\
 USE environ_init,          ONLY : environ_initelectrons\
 USE environ_main,          ONLY : calc_venviron\
+USE environ_output,        ONLY : environ_print_potential_shift\
 !Environ patch
 ' plugin_scf_potential.f90 > tmp.1
 
@@ -399,6 +401,10 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         IF ( update_venviron ) WRITE( stdout, 9200 )\
         CALL calc_venviron( update_venviron, dfftp%nnr, vltot )\
+        !\
+        IF ( .NOT. lscf .OR. conv_elec ) THEN\
+          CALL environ_print_potential_shift()\
+        END IF\
         !\
 9200 FORMAT(/"     add environment contribution to local potential")\
      ENDIF\

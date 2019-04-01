@@ -49,7 +49,8 @@ MODULE environ_output
   !
   PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, &
        & verbose, prog, set_environ_output, environ_print_energies, &
-       & environ_print_potential_shift, environ_summary, environ_clock, write_cube, &
+       & environ_print_potential_shift, environ_print_potential_warning, &
+       & environ_summary, environ_clock, write_cube, &
        & print_environ_density, print_environ_gradient, &
        & print_environ_hessian, &
        & print_environ_functions, print_environ_iontype, &
@@ -1233,6 +1234,21 @@ CONTAINS
     !
 !----------------------------------------------------------------------
   END SUBROUTINE environ_print_potential_shift
+!----------------------------------------------------------------------
+  SUBROUTINE environ_print_potential_warning( )
+!----------------------------------------------------------------------
+    !
+    USE electrostatic_base, ONLY : need_pbc_correction
+
+     IF (need_pbc_correction) WRITE( program_unit, 9401 ) 
+
+9401 FORMAT(/,&
+     5(' '),'WARNING: you are using the parabolic pbc correction;',/,&
+     5(' '),'         the potential shift above must be added to ',/,&
+     5(' '),'         band and Fermi energies.')
+    !
+!----------------------------------------------------------------------
+  END SUBROUTINE environ_print_potential_warning
 !----------------------------------------------------------------------
 !  Subroutine: environ_summary
 !
