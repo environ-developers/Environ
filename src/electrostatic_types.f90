@@ -708,26 +708,24 @@ CONTAINS
        IF ( solver % use_direct .OR. solver % use_iterative ) &
             & CALL errore(sub_name,'Only gradient-based solver for the linearized Poisson-Boltzmann eq.',1)
        !
-       IF ( .NOT. core % need_correction ) &
-          & CALL errore(sub_name,'linearized-PB problem requires pbc correction.',1)
-       !
-       IF ( ASSOCIATED( core % correction ) ) THEN
-          IF ( .NOT. core % correction % type .EQ. '1da' ) &
-             & CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
-       END IF
+       IF ( core % need_correction ) THEN
+          IF (.NOT. core % correction % type .EQ. '1da' ) &
+            & CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
+       ELSE 
+          CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
+       END IF 
        !
     CASE ( 'pb', 'modpb', 'poisson-boltzmann' )
        !
        IF ( solver % use_direct .OR. solver % use_gradient ) &
           & CALL errore(sub_name,'No direct or gradient-based solver for the full Poisson-Boltzmann eq.',1)
        !
-       IF ( .NOT. core % need_correction ) & 
-          & CALL errore(sub_name,'full-PB problem requires pbc correction.',1)
-       !
-       IF ( ASSOCIATED( core % correction ) ) THEN 
-          IF ( .NOT. core % correction % type .EQ. '1da' ) &
-             & CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
-       END IF
+       IF ( core % need_correction ) THEN
+          IF (.NOT. core % correction % type .EQ. '1da' ) &
+            & CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
+       ELSE 
+          CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
+       END IF 
        !
     CASE DEFAULT
        !

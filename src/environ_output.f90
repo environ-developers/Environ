@@ -1226,7 +1226,7 @@ CONTAINS
     !
     USE environ_base, ONLY : lsmearedions, potential_shift
 
-     IF (lsmearedions) WRITE( program_unit, 9400 ) potential_shift * rytoev
+    IF (lsmearedions) WRITE( program_unit, 9400 ) potential_shift * rytoev
 
 9400 FORMAT(/,5(' '),&
           'the potential shift due to the Gaussian-smeared nuclei is ',&
@@ -1240,7 +1240,7 @@ CONTAINS
     !
     USE electrostatic_base, ONLY : need_pbc_correction
 
-     IF (need_pbc_correction) WRITE( program_unit, 9401 ) 
+    IF (need_pbc_correction) WRITE( program_unit, 9401 ) 
 
 9401 FORMAT(/,&
      5(' '),'WARNING: you are using the parabolic pbc correction;',/,&
