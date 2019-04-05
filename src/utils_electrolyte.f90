@@ -745,6 +745,8 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'destroy_environ_electrolyte'
     INTEGER :: ityp
     !
+    CALL destroy_environ_boundary( lflag, electrolyte%boundary )
+    !
     IF ( electrolyte%initialized ) THEN
        !
        DO ityp = 1, electrolyte%ntyp
@@ -755,7 +757,6 @@ CONTAINS
          END IF
        END DO
        !
-       CALL destroy_environ_boundary( lflag, electrolyte%boundary )
        CALL destroy_environ_density( electrolyte%gamma   )
        CALL destroy_environ_density( electrolyte%dgamma  )
        CALL destroy_environ_density( electrolyte%density )
