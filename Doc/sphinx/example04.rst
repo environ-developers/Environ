@@ -6,7 +6,8 @@ Example: Two-Dimensional Systems
 
 This example shows how to use pw.x to model two-dimensional periodic systems in contact with a continuum solvent.
 This is particurly useful for diffuse layer systems and other surface investigations. For this calculation, a
-Pt (111) slab is chosen. By running the bash file and inspecting the environ input files, one will notice that
+Pt (111) slab is chosen with a CO molecule adsorbed on the surface. 
+By running the bash file and inspecting the environ input files, one will notice that
 most of the input remains unchanged. The SCCS (self-consistent charge solvation) model is chosen for the solvent
 by default and the solvent type is set manually, for example for vacuum,
 
@@ -28,3 +29,7 @@ z.
    &ELECTROSTATIC
       pbc_dim = 2
       pbc_axis = 3
+
+The tolerance is also different from previous examples. This parameter is typically set in order to optimize
+the ability for the self-consistent process to converge, and should be picked appropriately depending on the
+system. These examples serve as good guidelines for each type of simulation.

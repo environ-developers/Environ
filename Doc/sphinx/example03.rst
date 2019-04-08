@@ -25,4 +25,8 @@ direction. This can be added into the pw input file, under the SYSTEM keyword.
    &SYSTEM
       assume_isolated = 'martyna-tuckerman'
 
+The tolerance is different from previous examples. This value is chosen to facilitate the self-consistent
+process and will directly affect the speed and accuracy of the convergence. One should set this according to
+the type of simulation being run, these values in the examples serving as guidelines for that decision.
+
 .. [1] G. J. Martyna and M. E. Tuckerman, J. Chem. Phys. 110, 2810 (1999)
