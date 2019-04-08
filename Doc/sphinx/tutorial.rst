@@ -15,3 +15,5 @@ on setting up jobs from scratch can be seen in this tutorial.
 
    example01
    example02
+   example03
+   example04
