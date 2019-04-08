@@ -154,6 +154,7 @@ and vacuum energies) as -6.374kcal/mol (or 2.03E-2Ry) via the conjugative gradie
 water (-6.3kcal/mol [1]_).
 
 If the user is just interested in the final energy in a relax calculation, a command like ``grep Final *.out``
-will achieve this. 
+will achieve this. This example conveniently automates the calculation of these values via bash (along with
+other helpful energy values), and prints them out into ``results.txt`` for reference. 
 
 .. [1] A. V. Marenich et al., Minnesota Solvation Database - version 2012; University of Minnesota: Minneapolis

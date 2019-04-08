@@ -14,9 +14,9 @@ differentiable [1]_.
 
 An alternative model that Environ has implemented is the soft-sphere (SSCS) model [2]_. This model sets
 a smooth boundary according to the ionic positions. Interlocking spheres are taken around each ion, whose
-radii are by default consistent with the UFF force fields [3]_ (with the exception of nitrogen, which is based
-off Bondi's radius for nitrogen [4]_) in a nature similar to PCM, only these are smooth functions (spherical 
-error functions).
+radii are by default consistent with the UFF force fields [3]_ (note that in the paper, there is an exception 
+for nitrogen, which is based off Bondi's radius for nitrogen [4]_, an option which is not a default in Environ)
+in a nature similar to PCM, only these are smooth functions (spherical error functions).
 
 This example repeats the previous setup, instead with a soft-spheres implementation. Since this is a boundary
 parameter, one can see on execution of the bash script that the environ input files here differ, now possessing
@@ -28,7 +28,10 @@ parameters related to the &BOUNDARY keyword.
 
 Simply by setting the solvent_mode parameter one can switch from SCCS to soft-sphere model, environ_type presets
 can take care of the required (tuned) parameters associated with the model. Note that the solver (and auxiliary)
-parameters are not required for the SSCS. 
+parameters are not required for the SSCS.
+
+Calculating the solvation energy is exactly the same procedure as before, and results in a value of
+-5.786kcal/mol, within chemical accuracy of the experimental results, as seen in the first example.
 
 .. [1] O. Andreussi, I. Dabo, N. Marzari, J. Chem. Phys. 136, 064102 (2012) 
 .. [2] G. Fisicaro et al., J. Chem. Comput. 2017, 13, 8, 3829-3845
