@@ -18,6 +18,11 @@ $ECHO
 # set the needed environment variables
 . ../../../environment_variables
 
+# compatibility with QE for versions prior to 6.4
+if [ -z $NETWORK_PSEUDO ]; then
+    NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+fi
+
 # required executables and pseudopotentials
 BIN_LIST="pw.x"
 PSEUDO_LIST="H.pbe-rrkjus.UPF O.pbe-rrkjus.UPF"
@@ -60,7 +65,7 @@ for FILE in $PSEUDO_LIST ; do
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
             $WGET $PSEUDO_DIR/$FILE \
-                http://www.quantum-espresso.org/upf_files/UPF/$FILE 2> /dev/null 
+                $NETWORK_PSEUDO/$FILE 2> /dev/null
     fi
     if test $? != 0; then
         $ECHO
@@ -79,16 +84,16 @@ $ECHO
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
 verbose=0                      # if GE 1 prints debug informations
-                               # if GE 2 prints out gaussian cube files with 
+                               # if GE 2 prints out gaussian cube files with
                                # dielectric function, polarization charges, etc
                                # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d0'             # electronic convergence threshold for the onset  
+environ_thr='1.d0'             # electronic convergence threshold for the onset
                                # of solvation correction
 environ_type="water"           # type of environment
                                # input: read parameters from input
-                               # vacuum: all flags off, no environ 
+                               # vacuum: all flags off, no environ
 ### BOUNDARY PARAMETERS #####################################
-filling_threshold=8.25d-01     # if filling function GE threshold, 
+filling_threshold=8.25d-01     # if filling function GE threshold,
                                # the dielectric is set to 1, so dielectric pockets
                                # of the solvent size will be prevented
                                # to prevent cylindrical pockets: decrease to approx. 0.65.
@@ -99,7 +104,7 @@ solvent_radius=3               # size of solvent molecules (radius(H20) approx 3
 tol='1.d-12'  # tolerance of the iterative solver
 #####################################################################
 
-for solvent_awareness in standard solvent_aware ; do 
+for solvent_awareness in standard solvent_aware ; do
 
 # clean TMP_DIR
 $ECHO "  cleaning $TMP_DIR...\c"
@@ -158,10 +163,7 @@ cat > environ.in << EOF
 EOF
 fi
 
-cp environ.in environ_${prefix}.in   
-
-
- 
+cp environ.in environ_${prefix}.in
 
 # Ground-state SCF calculations
   cat > $input << EOF
@@ -195,45 +197,45 @@ cp environ.in environ_${prefix}.in
    !
  /
 ATOMIC_SPECIES
-H      1.00794 H.pbe-rrkjus.UPF 
+H      1.00794 H.pbe-rrkjus.UPF
 O      15.9994 O.pbe-rrkjus.UPF
 ATOMIC_POSITIONS angstrom
-O            9.7407800000       9.5971600000       6.5018633333 
-H           10.2290800000      10.1831600000       5.9108633333 
-H            8.8803800000      10.0472600000       6.6731633333 
-O            9.3199800000       6.8106600000       6.0826633333 
-H            9.4998800000       7.7702600000       6.1095633333 
-H            9.6905800000       6.4740600000       6.9229633333 
-O            7.3101800000      10.5947600000       7.2777633333 
-H            6.8562800000      11.3708600000       6.9263633333 
-H            6.6440800000       9.8498600000       7.2166633333 
-O            6.7248800000       6.2260600000       6.3047633333 
-H            7.6774800000       6.4711600000       6.1439633333 
-H            6.4600800000       5.6954600000       5.5435633333 
-O            9.8923800000       5.9950600000       8.7285633333 
-H            8.9392800000       5.7891600000       8.9336633333 
-H           10.4030800000       5.2569600000       9.0824633333 
-O            7.2755800000       5.5673600000       9.0328633333 
-H            6.8204800000       6.3086600000       9.4818633333 
-H            6.9531800000       5.6153600000       8.1129633333 
-O            7.8983800000       9.8013600000      10.0250633333 
-H            7.7074800000      10.3022600000       9.2121633333 
-H            8.7987800000       9.4352600000       9.8566633333 
-O            6.0458800000       7.9070600000       9.9967633333 
-H            5.5153800000       7.9994600000      10.7974633333 
-H            6.7709800000       8.5922600000      10.0746633333 
-O            5.5767800000       8.5916600000       7.2964633333 
-H            5.8959800000       7.7908600000       6.8329633333 
-H            5.5353800000       8.3223600000       8.2357633333 
-O           10.3283800000       8.7649600000       9.2297633333 
-H           10.2693800000       7.7933600000       9.1483633333 
-H           10.3395800000       9.0758600000       8.3073633333 
+O            9.7407800000       9.5971600000       6.5018633333
+H           10.2290800000      10.1831600000       5.9108633333
+H            8.8803800000      10.0472600000       6.6731633333
+O            9.3199800000       6.8106600000       6.0826633333
+H            9.4998800000       7.7702600000       6.1095633333
+H            9.6905800000       6.4740600000       6.9229633333
+O            7.3101800000      10.5947600000       7.2777633333
+H            6.8562800000      11.3708600000       6.9263633333
+H            6.6440800000       9.8498600000       7.2166633333
+O            6.7248800000       6.2260600000       6.3047633333
+H            7.6774800000       6.4711600000       6.1439633333
+H            6.4600800000       5.6954600000       5.5435633333
+O            9.8923800000       5.9950600000       8.7285633333
+H            8.9392800000       5.7891600000       8.9336633333
+H           10.4030800000       5.2569600000       9.0824633333
+O            7.2755800000       5.5673600000       9.0328633333
+H            6.8204800000       6.3086600000       9.4818633333
+H            6.9531800000       5.6153600000       8.1129633333
+O            7.8983800000       9.8013600000      10.0250633333
+H            7.7074800000      10.3022600000       9.2121633333
+H            8.7987800000       9.4352600000       9.8566633333
+O            6.0458800000       7.9070600000       9.9967633333
+H            5.5153800000       7.9994600000      10.7974633333
+H            6.7709800000       8.5922600000      10.0746633333
+O            5.5767800000       8.5916600000       7.2964633333
+H            5.8959800000       7.7908600000       6.8329633333
+H            5.5353800000       8.3223600000       8.2357633333
+O           10.3283800000       8.7649600000       9.2297633333
+H           10.2693800000       7.7933600000       9.1483633333
+H           10.3395800000       9.0758600000       8.3073633333
 K_POINTS automatic
 1 1 1 0 0 0
 CELL_PARAMETERS angstrom
      14.0000000000       0.0000000000       0.0000000000
       0.0000000000      14.0000000000       0.0000000000
-      0.0000000000       0.0000000000      14.0000000000      
+      0.0000000000       0.0000000000      14.0000000000
 EOF
 
 $PW_COMMAND < $input > $output
