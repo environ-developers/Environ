@@ -39,5 +39,20 @@ functions are represented by gaussians, and thus the parameters are simply posit
 charges can represent basic shapes depending on the dimensionality defined. For a slab, we specify a
 dimensionality of 2. For the direction of the slab, we specify 3, which represents the z-axis. This convention
 is consistent with the boundary correction options (explained in the previous example) that define the system
-to be periodic in two-dimensions as opposed to the three by default. 
+to be periodic in two-dimensions as opposed to the three by default.
+
+We set this system up so that there exists two countercharge planes on either side of the Pt slab. Since the
+system is periodic, imposing symmetry in this manner allows the simulation to perform better and is generally
+advised. Since there are now two planes of half charge, the resultant electric field is half what it would have
+otherwise been. For detailed information on these planar charge setups, see [1]_, [2]_. Directly taken from
+these is a summary:
+
+For models with charge distribution, the free energy functional can be written as
+
+.. math::
+
+   F^{\text{PC}}[\rho(\mathbf{r}), \phi(\mathbf{r}) = \int\left[-\frac{\epsilon(\mathbf{r})}{8\pi}\lvert\nabla\phi(\mathbf{r})\rvert^2 + \rho(\mathbf{r})\phi(\mathbf{r}) + \rho^{\text{ions}}(\mathbf{r})\phi(\mathbf{r})\right]d\mathbf{r}
+
+.. [1] C. L. Fu and K. M. Ho, Phys. Rev. Lett. 63, 1617 (1989)
+.. [2] F. Nattino et al., J. Chem. Phys. 041722 (2019)
 

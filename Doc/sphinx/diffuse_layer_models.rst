@@ -48,6 +48,6 @@ to the axis normal to the plane. Note that this definition clearly does not acco
 of line and plane charge distributions, but this can be achieved instead by changing the atomic positions of 
 the slab.
 
-For an example of plane countercharges, see ex05_
+For an example of plane countercharges, see :ref:`ex05`.
 
 
