@@ -91,7 +91,8 @@ parameter to be set as true). This correction is an approximation but should be 
 runs. For more accurate results, one may want to refer to martyna-tuckerman (see Q-E input documentation under
 ‘assume-isolated’), which does require a larger simulation cell (and therefore more physical memory). For
 simulations that require one to retain periodicity in 1 or 2 dimensions (for example, a diffuse-layer
-simulation), the pbc_dim parameter can be set appropriately. 
+simulation), the pbc_dim parameter can be set appropriately. More details on this quadratic correction method
+can be found in the publication [1]_. 
 
 .. literalinclude:: example01.in
    :language: fortran
@@ -151,10 +152,11 @@ solver used, but the difference is 3E-5, well below chemical accuracy and theref
 regular applications. Hence the solvation energy can be calculated (as the difference between the solvation
 and vacuum energies) as -6.374kcal/mol (or 2.03E-2Ry) via the conjugative gradient solver, and -6.373kcal/mol
 (or 2.03E-2Ry) via the iterative solver. This compares closely to the experimental solvation energy of
-water (-6.3kcal/mol [1]_).
+water (-6.3kcal/mol [2]_).
 
 If the user is just interested in the final energy in a relax calculation, a command like ``grep Final *.out``
 will achieve this. This example conveniently automates the calculation of these values via bash (along with
 other helpful energy values), and prints them out into ``results.txt`` for reference. 
 
-.. [1] A. V. Marenich et al., Minnesota Solvation Database - version 2012; University of Minnesota: Minneapolis
+.. [1] I. Dabo et al., Phys. Rev. B 77, 115139 (2008)
+.. [2] A. V. Marenich et al., Minnesota Solvation Database - version 2012; University of Minnesota: Minneapolis

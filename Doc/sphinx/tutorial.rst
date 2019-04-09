@@ -18,3 +18,4 @@ on setting up jobs from scratch can be seen in this tutorial.
    example03
    example04
    example05
+   example06

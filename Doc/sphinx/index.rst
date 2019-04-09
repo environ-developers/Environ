@@ -16,6 +16,8 @@ module, and the current version is compatible with QE-6.4.
 
    install
    tutorial
+   interface_models
+   diffuse_layer_models
    developer
 
 
