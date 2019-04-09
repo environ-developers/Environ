@@ -65,7 +65,11 @@ CONTAINS
     TYPE( environ_cell ), POINTER :: cell
     !
     REAL( DP ) :: edummy, cdummy
-    REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: rhoaux, vaux
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!    REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: rhoaux, vaux
+! Compatible with QE-6.4.X QE-GIT
+! END BACKWARD COMPATIBILITY
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_direct_charges'
     !
     ! Aliases and sanity checks
@@ -76,15 +80,20 @@ CONTAINS
     !
     IF ( core % use_qe_fft ) THEN
        !
-       ALLOCATE( rhoaux ( cell % nnr, core % qe_fft % nspin ) )
-       rhoaux( :, 1 ) = charges % density % of_r
-       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
-       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
-       vaux = 0.D0
-       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
-       potential % of_r = vaux( :, 1 )
-       DEALLOCATE( rhoaux )
-       DEALLOCATE( vaux )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!       rhoaux( :, 1 ) = charges % density % of_r
+!       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+!       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
+!       vaux = 0.D0
+!       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
+!       potential % of_r = vaux( :, 1 )
+!       DEALLOCATE( rhoaux )
+!       DEALLOCATE( vaux )
+! Compatible with QE-6.4 and QE-GIT
+       potential % of_r = 0.D0
+       CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
+! END BACKWARD COMPATIBILITY
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
@@ -131,10 +140,12 @@ CONTAINS
     TYPE( environ_density ) :: local
     !
     REAL( DP ) :: edummy, cdummy
-    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: rhoaux, vaux
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!    REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: rhoaux, vaux
+! Compatible with QE-6.4.X QE-GIT
+! END BACKWARD COMPATIBILITY
     CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density'
-    !
-    ! TO IMPLEMENT THE CASE OF nspin .NE. 1
     !
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
@@ -147,15 +158,20 @@ CONTAINS
     !
     IF ( core % use_qe_fft ) THEN
        !
-       ALLOCATE( rhoaux ( cell % nnr, core % qe_fft % nspin ) )
-       rhoaux( :, 1 ) = charges % of_r
-       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
-       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
-       vaux = 0.D0
-       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
-       local % of_r = vaux( :, 1 )
-       DEALLOCATE( rhoaux )
-       DEALLOCATE( vaux )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!       ALLOCATE( rhoaux ( cell % nnr, core % qe_fft % nspin ) )
+!       rhoaux( :, 1 ) = charges % of_r
+!       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+!       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
+!       vaux = 0.D0
+!       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
+!       local % of_r = vaux( :, 1 )
+!       DEALLOCATE( rhoaux )
+!       DEALLOCATE( vaux )
+! Compatible with QE-6.4.X QE-GIT
+       CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+! END BACKWARD COMPATIBILITY
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
