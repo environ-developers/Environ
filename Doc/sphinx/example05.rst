@@ -1,7 +1,7 @@
 .. Environ documentation example03 file, created by
    Matthew Truscott on Mon Apr 8 2019.
 
-.. _ex05
+.. _ex05:
 
 Example: Charge Distributions
 =============================

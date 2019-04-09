@@ -37,7 +37,7 @@ based off the following 1D definition for the gaussian,
 
 .. math::
 
-   a\e^{frac{(x-b)^2}{c^2}}
+   ae^{\frac{(x-b)^2}{c^2}}
 
 Note the lack of the factor of two that some definitions use. In three dimensions, the equation is effectively
 the same, only radial around the 3-dimensional point specified in the input. The gaussian is normalized to the
@@ -48,6 +48,6 @@ to the axis normal to the plane. Note that this definition clearly does not acco
 of line and plane charge distributions, but this can be achieved instead by changing the atomic positions of 
 the slab.
 
-For an example of plane countercharges, see example05 :ref:`ex05
+For an example of plane countercharges, see ex05_
 
 
