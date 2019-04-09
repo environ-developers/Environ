@@ -698,7 +698,6 @@ CONTAINS
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1600 )
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1601 )electrons%number
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1602 )electrons%charge
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1603 )electrons%nspin
        IF ( verbosity .GE. 2 ) &
             & CALL print_environ_density(electrons%density,passed_verbosity,passed_depth)
     END IF
@@ -710,7 +709,6 @@ CONTAINS
 1600 FORMAT(/,4('%'),' ELECTRONS ',65('%'))
 1601 FORMAT(1x,'number of electrons        = ',I10)
 1602 FORMAT(1x,'total electronic charge    = ',F14.7)
-1603 FORMAT(1x,'number of spin components  = ',I2)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_electrons
 !--------------------------------------------------------------------

@@ -150,25 +150,45 @@ USE environ_init,     ONLY : environ_initelectrons \
 !Environ patch
 ' plugin_get_potential.f90 > tmp.1
 
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!\
+! Compatible with QE-6.4.X QE-GIT\
+REAL(DP), DIMENSION(:), ALLOCATABLE :: rhoaux\
+! END BACKWARD COMPATIBILITY\
+!Environ patch
+' tmp.1 > tmp.2
+
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-     IF(use_environ) THEN \
-        ! \
-        ! update electrons-related quantities in environ \
-        ! \
-        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin ) ! \
-        ! \
-        ! environ contribution to the local potential, saved in vzero \
-        ! \
-        vzero%of_r = 0.D0 \
-        ! \
-        update_venviron = ( nfi .GT. environ_nskip ) .OR. environ_restart \
-        ! \
-        IF ( update_venviron .AND. verbose .GT. 1 ) WRITE( stdout, 9200 ) \
-        CALL calc_venviron( update_venviron, dfftp%nnr, vzero%of_r ) \
-        ! \
-9200 FORMAT(/"     add environment contribution to local potential") \
-     ENDIF \
+!Environ patch\
+     IF(use_environ) THEN\
+        !\
+        ! update electrons-related quantities in environ\
+        !\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin )\
+! Compatible with QE-6.4.X QE-GIT\
+        ALLOCATE(rhoaux(dfftp%nnr))\
+        rhoaux = rhoin(:,1)\
+        IF ( nspin .EQ. 2) rhoaux = rhoaux + rhoin(:,2)\
+        CALL environ_initelectrons( dfftp%nnr, rhoaux )\
+        DEALLOCATE(rhoaux)\
+! END BACKWARD COMPATIBILITY\
+        !\
+        ! environ contribution to the local potential, saved in vzero\
+        !\
+        vzero%of_r = 0.D0\
+        !\
+        update_venviron = ( nfi .GT. environ_nskip ) .OR. environ_restart\
+        !\
+        IF ( update_venviron .AND. verbose .GT. 1 ) WRITE( stdout, 9200 )\
+        CALL calc_venviron( update_venviron, dfftp%nnr, vzero%of_r )\
+        !\
+9200 FORMAT(/"     add environment contribution to local potential")\
+     ENDIF\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -353,7 +373,13 @@ sed '/Environ MODULES BEGIN/ a\
 USE io_global,        ONLY : ionode, ionode_id, stdout \
 USE mp_images,        ONLY : intra_image_comm \
 USE environ_input,    ONLY : read_environ \
-USE input_parameters, ONLY : ion_radius, atom_label, nspin \
+USE input_parameters, ONLY : ion_radius, atom_label \
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!USE input_parameters, ONLY : nspin\
+! Compatible with QE-6.4.X QE-GIT\
+!\
+! END BACKWARD COMPATIBILITY\
 USE environ_output,   ONLY : set_environ_output \
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
@@ -365,11 +391,16 @@ INTEGER :: is \
 ' tmp.1 > tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-   IF ( use_environ ) THEN \
-      CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout) \
-      CALL read_environ("CP",1, nspin, nat, ntyp, atom_label, assume_isolated, ion_radius) \
-   ENDIF \
+!Environ patch\
+   IF ( use_environ ) THEN\
+      CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout)\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!      CALL read_environ("CP", 1, nspin, nat, ntyp, atom_label, assume_isolated, ion_radius)\
+! Compatible with QE-6.4.X QE-GIT\
+       CALL read_environ("CP", 1, nat, ntyp, atom_label, assume_isolated, ion_radius)\
+! END BACKWARD COMPATIBILITY\
+   ENDIF\
 !Environ patch
 ' tmp.2 > tmp.1
 
@@ -438,13 +469,23 @@ cat >> plugin_utilities.f90 <<EOF
     USE cell_base,         ONLY : omega
     USE fft_base,          ONLY : dfftp
     USE fft_interfaces,    ONLY : fwfft
-    USE electrons_base,    ONLY : nspin
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    USE electrons_base,    ONLY : nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     USE gvect,             ONLY : ngm, nl, eigts1, eigts2, eigts3
     USE ions_base,         ONLY : nat
 
     IMPLICIT NONE
     !
-    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
+! Compatible with QE-6.4.X QE-GIT
+    REAL(DP), DIMENSION(dfftp%nnr), INTENT(IN) :: rho
+! END BACKWARD COMPATIBILITY
     REAL(DP), DIMENSION(3,nat), INTENT(OUT) :: force
     !
     ! aux is used to store a possible additional density
@@ -455,8 +496,13 @@ cat >> plugin_utilities.f90 <<EOF
     force = 0.D0
     !
     ALLOCATE( auxr( dfftp%nnr ) )
-    auxr = CMPLX(rho(:,1),0.0, kind=DP)
-    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    auxr = CMPLX(rho(:,1),0.0, kind=DP)
+!    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
+! Compatible with QE-6.4.X QE-GIT
+    auxr = CMPLX(rho,0.0, kind=DP)
+! END BACKWARD COMPATIBILITY
     CALL fwfft( "Dense", auxr, dfftp )
     ALLOCATE( auxg( ngm ) )
     auxg(:) = auxr( nl (:) )

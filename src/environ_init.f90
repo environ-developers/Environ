@@ -47,7 +47,12 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE set_environ_base &
 !--------------------------------------------------------------------
-       ( prog, nelec, nspin,                         &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!       ( prog, nelec, nspin,                         &
+! Compatible with QE-6.4.X QE-GIT
+       ( prog, nelec,                                &
+! END BACKWARD COMPATIBILITY
        & nat, ntyp, atom_label, atomicspread,        &
        & corespread, solvationrad,                   &
        & oldenviron_, environ_restart_, environ_thr_,&
@@ -88,7 +93,13 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
     LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, add_jellium_
-    INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
+    INTEGER, INTENT(IN) :: nelec, nat, ntyp,              &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
          stype_, env_electrolyte_ntyp_,                   &
@@ -220,7 +231,12 @@ CONTAINS
     !
     ! Set basic properties of electrons
     !
-    CALL init_environ_electrons_first( nelec, nspin, electrons )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL init_environ_electrons_first( nelec, nspin, electrons )
+! Compatible with QE-6.4.X QE-GIT
+    CALL init_environ_electrons_first( nelec, electrons )
+! END BACKWARD COMPATIBILITY
     !
     ! Set basic properties of the selected system
     !
@@ -593,7 +609,12 @@ CONTAINS
    END SUBROUTINE environ_initions
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-   SUBROUTINE environ_initelectrons( nspin, nnr, rho, nelec )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!   SUBROUTINE environ_initelectrons( nspin, nnr, rho, nelec )
+! Compatible with QE-6.4.X QE-GIT
+   SUBROUTINE environ_initelectrons( nnr, rho, nelec )
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
 !
 ! Initialize the electrons-related quantities to be used in the Environ
@@ -613,15 +634,26 @@ CONTAINS
      !
      IMPLICIT NONE
      !
-     INTEGER, INTENT( IN )     :: nspin, nnr
-     REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
+     INTEGER, INTENT( IN )     :: nnr
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!     INTEGER, INTENT( IN )     :: nspin
+!     REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
+! Compatible with QE-6.4.X QE-GIT
+     REAL ( DP ), INTENT( IN ) :: rho( nnr )
+! END BACKWARD COMPATIBILITY
      REAL( DP ), INTENT( IN ), OPTIONAL  :: nelec
      !
      electrons%update = .TRUE.
      !
      ! ... Update electrons parameters
      !
-     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! Compatible with QE-6.4.X QE-GIT
+     CALL update_environ_electrons( nnr, rho, electrons, nelec )
+! END BACKWARD COMPATIBILITY
      CALL print_environ_electrons( electrons )
      !
      IF ( lelectrostatic ) CALL update_environ_charges( charges )

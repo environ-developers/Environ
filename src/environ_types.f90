@@ -197,7 +197,12 @@ MODULE environ_types
      LOGICAL :: update = .FALSE.
      LOGICAL :: initialized = .FALSE.
      INTEGER :: number = 0
-     INTEGER :: nspin = 1
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!     INTEGER :: nspin = 1
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
      !
      TYPE( environ_density ) :: density
      !
@@ -1134,7 +1139,12 @@ CONTAINS
     !
     electrons%update = .FALSE.
     electrons%number = 0
-    electrons%nspin  = 1
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    electrons%nspin  = 1
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     electrons%charge = 0.D0
     CALL create_environ_density( electrons%density,label )
     !
@@ -1144,17 +1154,33 @@ CONTAINS
   END SUBROUTINE create_environ_electrons
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_electrons_first( nelec, nspin, electrons )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!  SUBROUTINE init_environ_electrons_first( nelec, nspin, electrons )
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE init_environ_electrons_first( nelec, electrons )
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: nelec, nspin
+    INTEGER, INTENT(IN) :: nelec
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
     !
     electrons%initialized = .FALSE.
     electrons%number = nelec
-    electrons%nspin = nspin
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    electrons%nspin  = nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     !
     RETURN
     !
@@ -1180,13 +1206,24 @@ CONTAINS
   END SUBROUTINE init_environ_electrons_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!  SUBROUTINE update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE update_environ_electrons( nnr, rho, electrons, nelec )
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: nspin, nnr
-    REAL( DP ), DIMENSION(nnr,nspin), INTENT(IN) :: rho
+    INTEGER, INTENT(IN) :: nnr
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+!    REAL( DP ), DIMENSION(nnr,nspin), INTENT(IN) :: rho
+! Compatible with QE-6.4.X QE-GIT
+    REAL( DP ), DIMENSION(nnr), INTENT(IN) :: rho
+! END BACKWARD COMPATIBILITY
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
     REAL( DP ), INTENT(IN), OPTIONAL :: nelec
     !
@@ -1196,17 +1233,23 @@ CONTAINS
     !
     ! Check on dimensions
     !
-    IF ( nspin .NE. electrons%nspin ) CALL errore(sub_name,'Missmatch in spin size',1)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    IF ( nspin .NE. electrons%nspin ) CALL errore(sub_name,'Missmatch in spin size',1)
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     !
     IF ( nnr .NE. electrons%density%cell%nnr ) CALL errore(sub_name,'Missmatch in grid size',1)
     !
     ! Assign input density to electrons%density%of_r
     !
-    electrons%density%of_r(:) = rho(:,1)
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    electrons%density%of_r(:) = rho(:,1)
 !    IF ( electrons%nspin .EQ. 2 ) electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:,2)
 ! Compatible with QE-6.4.X and QE-GIT
+    electrons%density%of_r = rho
 ! END BACKWARD COMPATIBILITY
     !
     ! Update integral of electronic density and, if provided, check against input value
