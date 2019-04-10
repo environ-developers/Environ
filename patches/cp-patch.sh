@@ -410,8 +410,7 @@ rm tmp.2
 
 #plugin_utilities.f90
 
-cat >> plugin_utilities.f90 <<EOF
-!Environ patch
+cat > tmp.1 <<EOF
 !-----------------------------------------------------------------------
   SUBROUTINE external_laplacian( a, lapla )
 !-----------------------------------------------------------------------
@@ -461,6 +460,9 @@ cat >> plugin_utilities.f90 <<EOF
 !-----------------------------------------------------------------------
   END SUBROUTINE external_laplacian
 !-----------------------------------------------------------------------
+EOF
+
+cat > tmp.2 <<EOF
 !-----------------------------------------------------------------------
   SUBROUTINE external_force_lc( rho, force )
 !-----------------------------------------------------------------------
@@ -516,8 +518,52 @@ cat >> plugin_utilities.f90 <<EOF
 !-----------------------------------------------------------------------
   END SUBROUTINE external_force_lc
 !-----------------------------------------------------------------------
-!Environ patch
+!-----------------------------------------------------------------------
+  SUBROUTINE external_wg_corr_force( rhor, force )
+!-----------------------------------------------------------------------
+
+    USE kinds,             ONLY : DP
+    USE ions_base,         ONLY : nat
+    USE fft_base,          ONLY : dfftp
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    USE electrons_base,    ONLY : nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
+    !
+    IMPLICIT NONE
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr, nspin )
+! Compatible with QE-6.4.X QE-GIT
+    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr )
+! END BACKWARD COMPATIBILITY
+    REAL( DP ), INTENT(IN) :: force (3, nat)
+    !
+    CHARACTER(LEN=80) :: sub_name = "external_wg_corr_force"
+    !
+    ! dummy routine, avoiding cross dependencies with pw objects
+    !
+    CALL errore(sub_name,&
+       "the martyna-tuckerman correction is not available in cp",1)
+    !
+    RETURN
+    !
+!-----------------------------------------------------------------------
+  END SUBROUTINE external_wg_corr_force
+!-----------------------------------------------------------------------
 EOF
+
+echo "!Environ patch" >> plugin_utilities.f90
+# BACKWARD COMPATIBILITY
+# Compatible with QE-6.0 QE-6.1.X QE-6.2.X
+#cat tmp.1             >> plugin_utilities.f90
+# END BACKWARD COMPATIBILITY
+cat tmp.2             >> plugin_utilities.f90
+echo "!Environ patch" >> plugin_utilities.f90
+rm tmp.1 tmp.2
 
 echo "- DONE!"
 
