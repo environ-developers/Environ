@@ -190,9 +190,9 @@ sed '/Environ CALLS BEGIN/ a\
 9200 FORMAT(/"     add environment contribution to local potential")\
      ENDIF\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.2 > tmp.3
 
-mv tmp.2 plugin_get_potential.f90
+mv tmp.3 plugin_get_potential.f90
 
 #plugin_init_base.f90
 
@@ -396,9 +396,9 @@ sed '/Environ CALLS BEGIN/ a\
       CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout)\
 ! BACKWARD COMPATIBILITY\
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!      CALL read_environ("CP", 1, nspin, nat, ntyp, atom_label, assume_isolated, ion_radius)\
+!      CALL read_environ("CP", 1, nspin, nat, ntyp, atom_label, .FALSE., ion_radius)\
 ! Compatible with QE-6.4.X QE-GIT\
-       CALL read_environ("CP", 1, nat, ntyp, atom_label, assume_isolated, ion_radius)\
+       CALL read_environ("CP", 1, nat, ntyp, atom_label, .FALSE., ion_radius)\
 ! END BACKWARD COMPATIBILITY\
    ENDIF\
 !Environ patch
@@ -421,7 +421,7 @@ cat >> plugin_utilities.f90 <<EOF
       !
       USE kinds,            ONLY : DP
       USE fft_base,         ONLY : dfftp
-      USE gvect,            ONLY : ngm, nl, g
+      USE gvect,            ONLY : ngm, g
       USE fft_interfaces,   ONLY : fwfft, invfft
       !
       IMPLICIT NONE
@@ -441,7 +441,7 @@ cat >> plugin_utilities.f90 <<EOF
       ALLOCATE( auxr( dfftp%nnr ) )
       auxr(:) = CMPLX(a( : ),0.D0,kind=dp)
       CALL fwfft ('Dense', auxr, dfftp)
-      auxg(:) = auxr(nl(:))
+      auxg(:) = auxr(dfftp%nl(:))
       DEALLOCATE( auxr )
       !
       ALLOCATE( grada(dfftp%nnr) )
@@ -475,7 +475,7 @@ cat >> plugin_utilities.f90 <<EOF
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
-    USE gvect,             ONLY : ngm, nl, eigts1, eigts2, eigts3
+    USE gvect,             ONLY : ngm, eigts1, eigts2, eigts3
     USE ions_base,         ONLY : nat
 
     IMPLICIT NONE
@@ -505,7 +505,7 @@ cat >> plugin_utilities.f90 <<EOF
 ! END BACKWARD COMPATIBILITY
     CALL fwfft( "Dense", auxr, dfftp )
     ALLOCATE( auxg( ngm ) )
-    auxg(:) = auxr( nl (:) )
+    auxg(:) = auxr( dfftp%nl (:) )
     !
     CALL force_h_of_rho_g( auxg, eigts1, eigts2, eigts3, omega, force )
     !
