@@ -226,6 +226,7 @@ CONTAINS
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_system ), TARGET, INTENT(IN) :: system
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+    CHARACTER( LEN=80 ) :: sub_name = 'init_environ_boundary_first'
     !
     IF ( need_hessian ) THEN
        boundary%deriv = 3
@@ -252,8 +253,9 @@ CONTAINS
     boundary%tbeta = tbeta
     boundary%deltarho = rhomax - rhomin
     !
+    IF ( const .EQ. 1.D0 .AND. boundary%need_electrons .AND. stype .EQ. 2 ) &
+     & CALL errore(sub_name,'stype=2 boundary requires dielectric constant > 1',1)
     boundary%const = const
-    IF ( const .EQ. 1.D0 ) boundary%const = 2.D0
     !
     boundary%alpha = alpha
     boundary%softness = softness
