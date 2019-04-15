@@ -1613,7 +1613,7 @@ CONTAINS
      IMPLICIT NONE
      !
      CHARACTER(len=256) :: input_line
-     INTEGER            :: ie, ierr, nfield
+     INTEGER            :: ie, ix, ierr, nfield
      LOGICAL            :: tend
      LOGICAL, EXTERNAL  :: matches
      CHARACTER(len=4)   :: lb_pos
@@ -1697,7 +1697,12 @@ CONTAINS
      ENDDO
      taextchg = .true.
      !
-     CALL convert_pos( external_charges, env_external_charges, extcharge_pos )
+     DO ie = 1, env_external_charges
+        DO ix = 1, 3
+           CALL convert_length( external_charges, extcharge_pos(ix, ie))
+        ENDDO
+        CALL convert_length( external_charges, extcharge_spread(ie))
+     ENDDO
      !
      RETURN
      !
@@ -1781,7 +1786,7 @@ CONTAINS
      IMPLICIT NONE
      !
      CHARACTER(len=256) :: input_line
-     INTEGER            :: ie, ierr, nfield
+     INTEGER            :: ie, ix, ierr, nfield
      LOGICAL            :: tend
      LOGICAL, EXTERNAL  :: matches
      CHARACTER(len=4)   :: lb_pos
@@ -1878,7 +1883,13 @@ CONTAINS
      ENDDO
      taepsreg = .true.
      !
-     CALL convert_pos( dielectric_regions, env_dielectric_regions, epsregion_pos )
+     DO ie = 1, env_dielectric_regions
+        DO ix = 1, 3
+           CALL convert_length( dielectric_regions, epsregion_pos(ix, ie))
+        ENDDO
+        CALL convert_length( dielectric_regions, epsregion_width(ie))
+        CALL convert_length( dielectric_regions, epsregion_spread(ie))
+     ENDDO
      !
      RETURN
      !
@@ -1920,38 +1931,37 @@ CONTAINS
    END SUBROUTINE allocate_input_epsregion
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-   SUBROUTINE convert_pos (pos_format, n, pos)
+   SUBROUTINE convert_length(length_format, length)
 !--------------------------------------------------------------------
      !
-     ! ... convert input positions to atomic units
+     ! ... convert input length to atomic units
      !
      IMPLICIT NONE
-     CHARACTER (len=*), INTENT(in)  :: pos_format
-     INTEGER, INTENT(in)  :: n
-     REAL (DP), INTENT(inout) :: pos(3,n)
+     CHARACTER (len=*), INTENT(in)  :: length_format
+     REAL (DP), INTENT(inout) :: length
      !
-     SELECT CASE( pos_format )
+     SELECT CASE( length_format )
      CASE( 'bohr' )
         !
-        ! ... input positions are in a.u., do nothing
+        ! ... input length are in a.u., do nothing
         !
-        pos = pos
+        length = length
         !
      CASE( 'angstrom' )
         !
-        ! ... positions in A: convert to a.u.
+        ! ... length in A: convert to a.u.
         !
-        pos = pos / bohr_radius_angs
+        length = length / bohr_radius_angs
         !
      CASE DEFAULT
         !
-        CALL errore( 'iosys','pos_format=' // &
-             & trim( pos_format ) // ' not implemented', 1 )
+        CALL errore( 'iosys','length_format=' // &
+             & trim( length_format ) // ' not implemented', 1 )
         !
      END SELECT
      !
 !--------------------------------------------------------------------
-   END SUBROUTINE convert_pos
+   END SUBROUTINE convert_length
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE environ_input
