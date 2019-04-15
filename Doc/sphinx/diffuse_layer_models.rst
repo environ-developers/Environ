@@ -8,6 +8,8 @@ Diffuse Layer Models
 This page presents a more in-depth description of the diffuse layer models implemented in Environ, along with
 all revelant input parameters.
 
+.. _expq:
+
 Explicit Charge
 ---------------
 
@@ -48,6 +50,27 @@ to the axis normal to the plane. Note that this definition clearly does not acco
 of line and plane charge distributions, but this can be achieved instead by changing the atomic positions of 
 the slab.
 
-For an example of plane countercharges, see :ref:`ex05`.
+For an example of plane countercharges, see :ref:`ex05`. 
+
+For models with charge distribution, the free energy functional can be written as
+
+.. math::
+
+   F^{\text{PC}}[\rho(\mathbf{r}), \phi(\mathbf{r}] = \int\left[-\frac{\epsilon(\mathbf{r})}{8\pi}\lvert\nabla\phi(\mathbf{r})\rvert^2 + \rho(\mathbf{r})\phi(\mathbf{r}) + \rho^{\text{ions}}(\mathbf{r})\phi(\mathbf{r})\right]d\mathbf{r}
+
+where :math:`\rho(\mathbf{r})` is the total charge density of the solute, :math:`\phi(\mathbf{r})` is the
+electrostatic potential, and :math:`\rho^{\text{ions}}(\mathbf{r})` is the external charge density that
+mimics the counterion accumulation.
+
+Poisson-Boltzmann model
+-----------------------
+
+The Poisson-Boltzmann model accounts for the chemical potential and the entropy of the ions in solution.
+Adding these consequently explicit concentration-dependent terms results in a different free energy functional
+than before,
+
+.. math::
+
+   F^{\text{PC}}[\rho(\mathbf{r}), \phi(\mathbf{r}, \{c_i(\mathbf{r}\}] = \int\left[-\frac{\epsilon(\mathbf{r})}{8\pi}\lvert\nabla\phi(\mathbf{r})\rvert^2 + \rho(\mathbf{r})\phi(\mathbf{r}) + \rho^{\text{ions}}(\mathbf{r})\phi(\mathbf{r})-\sum^{\text{p}}_{i=1}\mu_i(c_i(\mathbf{r})-c_i^0)-T(s[\{c_i(\mathbf{r})\}]-s[\{c_i^0\}])\right]d\mathbf{r}
 
 
