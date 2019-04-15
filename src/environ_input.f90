@@ -1493,7 +1493,8 @@ CONTAINS
          IF (solver == 'none' ) solver = 'cg'
        ELSE
          IF (solver == 'none' ) solver = 'iterative'
-         IF (auxiliary == 'none' ) auxiliary = 'full'
+         IF (solver == 'iterative' &
+            & .AND. auxiliary == 'none' ) auxiliary = 'full'
        END IF
     ELSE
        IF (problem == 'none') problem = 'poisson'

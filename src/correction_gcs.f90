@@ -197,13 +197,15 @@ CONTAINS
     fact = e2 * tpi / omega
     const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
     v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
-    v(:) = fact * v(:) + const
-    dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern
+    v = fact * v + const
     !
     ! ... Compute the physical properties of the interface
     !
-    ez = - tpi * e2 * tot_charge / area !/ permittivity
-    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity )
+    ez = - tpi * e2 * tot_charge / area !/ permittivity !! the input charge density includes explicit and
+                                                        !! polarization charges, so tot_charge already accounts
+                                                        !! for the dielectric screening. permittivity needs not
+                                                        !! to be included
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
     arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
@@ -215,13 +217,14 @@ CONTAINS
     !
     ! note that this is simplified due to same c_ion
     lin_k = SQRT(electrolyte%k2)
-    !lin_e = SQRT(permittivity)
-    lin_e = 1.D0
-    lin_c = -1.D0 * ez * lin_e / lin_k * EXP(lin_k * ABS(xstern) / lin_e)
+    lin_e = SQRT(permittivity)
+    lin_c = -1.D0 * ez * lin_e / lin_k * EXP(lin_k * xstern / lin_e)
     IF ( electrolyte % linearized ) THEN
-      vstern = lin_c * EXP(-1.D0 * lin_k * xstern / lin_e)
+       vstern = lin_c * EXP(-1.D0 * lin_k * xstern / lin_e)
     ENDIF
-    
+    !
+    ! ... Compute value of the reference potential at the boundary with electrolyte
+    !
     vbound = 0.D0
     icount = 0
     DO i = 1, nnr
@@ -238,43 +241,58 @@ CONTAINS
     CALL mp_sum(vbound,cell%comm)
     vbound = vbound / DBLE(icount)
     !
+    v = v - vbound + vstern
+    !
     ! ... Compute some constants needed for the calculation
     !
     f1 = - fact * zion * invkbt * 0.5D0
     f2 = 4.D0 * kbt / zion
     !
-    ! ... Compute the analytic potential and charge
+    ! ... Compute the analytic potential
     !
-    v = v - vbound + vstern
     IF ( electrolyte % linearized ) THEN
-      DO i = 1, nnr
-        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-          vtmp = 2.D0 * lin_c * EXP( -1.D0 * lin_k * ABS(axis(1,i)) / lin_e)
-          v(i) = v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern
-        ENDIF
-      ENDDO
+       !
+       DO i = 1, nnr
+          !
+          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+             !
+             ! ... Linearized Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             vtmp = lin_c * EXP( -1.D0 * lin_k * ABS(axis(1,i)) / lin_e)
+             !
+             ! ... Remove source potential and add analytic one
+             !
+             !v(i) = v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern
+             v(i) = vtmp - potential % of_r(i)
+             !
+          ENDIF
+          !
+       ENDDO
+       !
     ELSE
-      DO i = 1, nnr
-         !
-         IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-            !
-            ! ... Gouy-Chapmann-Stern analytic solution on the outside
-            !
-            arg = const * EXP( ABS(axis(1,i)) * f1 )
-            IF ( ABS(arg) .GT. 1.D0 ) THEN
-               acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-            ELSE
-               acoth = 0.D0
-            ENDIF
-            vtmp =  f2 * acoth
-            !
-            ! ... Remove source potential (linear) and add analytic one
-            !
-            v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern ! vtmp - potential % of_r(i)
-            !
-         ENDIF
-         !
-      ENDDO
+       !
+       DO i = 1, nnr
+          !
+          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+             !
+             ! ... Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             arg = const * EXP( ABS(axis(1,i)) * f1 )
+             IF ( ABS(arg) .GT. 1.D0 ) THEN
+                acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+             ELSE
+                acoth = 0.D0
+             ENDIF
+             vtmp =  f2 * acoth
+             !
+             ! ... Remove source potential and add analytic one
+             !
+!             v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern
+             v(i) = vtmp - potential % of_r(i)
+             !
+          ENDIF
+          !
+       ENDDO
     ENDIF
     !
     potential % of_r = potential % of_r + v
@@ -308,8 +326,8 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
-    REAL( DP ), POINTER :: cion, zion, permittivity, xstern
-    REAL( DP ) :: kbt, invkbt
+    REAL( DP ), POINTER :: cion, permittivity, xstern
+    REAL( DP ) :: zion, kbt, invkbt
     !
     TYPE( environ_gradient ), TARGET :: glocal
     REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
@@ -317,6 +335,7 @@ CONTAINS
     INTEGER :: i
     REAL( DP ) :: ez, fact, vstern, const
     REAL( DP ) :: arg, asinh, coth, acoth
+    REAL( DP ) :: lin_k, lin_e, lin_c
     REAL( DP ) :: f1, f2
     REAL( DP ) :: area, dvtmp_dx
     REAL(DP) :: dipole(0:3), quadrupole(3)
@@ -347,7 +366,7 @@ CONTAINS
     IF ( electrolyte % ntyp .NE. 2 ) &
          & CALL errore(sub_name,'Unexpected number of counterionic species, different from two',1)
     cion => electrolyte % ioncctype(1) % cbulk
-    zion => electrolyte % ioncctype(1) % z
+    zion = ABS( electrolyte % ioncctype(1) % z )
     permittivity => electrolyte%permittivity
     xstern => electrolyte%boundary%simple%width
     !
@@ -368,6 +387,7 @@ CONTAINS
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
+    area = omega / axis_length
     !
     ! ... First compute the gradient of parabolic correction
     !
@@ -377,41 +397,79 @@ CONTAINS
     !
     ! ... Compute the physical properties of the interface
     !
-!    zion = ABS(zion)
-!    ez = - tpi * e2 * tot_charge / area / permittivity
-!    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
-!    arg = ez/fact
-!    asinh = LOG(arg + SQRT( arg**2 + 1 ))
-!    vstern = 2.D0 * kbt / zion * asinh
-!    arg = vstern * 0.25D0 * invkbt * zion
-!    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-!    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
-!    !
-!    ! ... Compute some constants needed for the calculation
-!    !
-!    f1 = - fact * zion * invkbt * 0.5D0
-!    f2 = 4.D0 * kbt / zion
-!    !
-!    ! ... Compute the analytic gradient of potential
-!    !     Note that the only contribution different from the parabolic
-!    !     correction is in the region of the diffuse layer
-!    !
-!    DO i = 1, nnr
-!       !
-!       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-!          !
-!          ! ... Gouy-Chapmann-Stern analytic solution on the outside
-!          !
-!          arg = const * EXP( ABS(axis(1,i)) * f1 )
-!          dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
-!          !
-!          ! ... Remove source potential (linear) and add analytic one
-!          !
-!          gvstern(slab_axis,i) =  gvstern(slab_axis,i) + dvtmp_dx - ez
-!          !
-!       ENDIF
-!       !
-!    ENDDO
+    ez = - tpi * e2 * tot_charge / area !/ permittivity !! the input charge density includes explicit and
+                                                        !! polarization charges, so tot_charge already accounts
+                                                        !! for the dielectric screening. permittivity needs not
+                                                        !! to be included
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
+    arg = ez/fact
+    asinh = LOG(arg + SQRT( arg**2 + 1 ))
+    vstern = 2.D0 * kbt / zion * asinh
+    arg = vstern * 0.25D0 * invkbt * zion
+    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    !
+    ! ... Compute linearized quantities
+    !
+    ! note that this is simplified due to same c_ion
+    lin_k = SQRT(electrolyte%k2)
+    lin_e = SQRT(permittivity)
+    lin_c = -1.D0 * ez * lin_e / lin_k * EXP(lin_k * xstern / lin_e)
+    !
+    ! ... Compute the analytic gradient of potential
+    !     Note that the only contribution different from the parabolic
+    !     correction is in the region of the diffuse layer
+    !
+    IF ( electrolyte % linearized ) THEN
+       !
+       ! ... Compute some constants needed for the calculation
+       !
+       f1 = -1.D0 * lin_k / lin_e
+       !
+       DO i = 1, nnr
+          !
+          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+             !
+             ! ... Linearized Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             arg = f1 * ABS(axis(1,i))
+             dvtmp_dx = lin_c * f1 * EXP( arg )
+             !
+             ! ... Remove source potential and add analytic one
+             !
+             gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                         & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+             !
+          ENDIF
+          !
+       ENDDO
+       !
+    ELSE
+       !
+       ! ... Compute some constants needed for the calculation
+       !
+       f1 = - fact * zion * invkbt * 0.5D0
+       f2 = 4.D0 * kbt / zion
+       !
+       DO i = 1, nnr
+          !
+          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+             !
+             ! ... Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             arg = const * EXP( ABS(axis(1,i)) * f1 )
+             dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
+             !
+             ! ... Remove source potential (linear) and add analytic one
+             !
+             gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                         & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+             !
+          ENDIF
+          !
+       ENDDO
+       !
+    ENDIF
     !
     gradv % of_r = gradv % of_r + gvstern
     !
@@ -426,4 +484,3 @@ CONTAINS
 !---------------------------------------------------------------------------
 END MODULE correction_gcs
 !---------------------------------------------------------------------------
-
