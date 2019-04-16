@@ -71,6 +71,70 @@ than before,
 
 .. math::
 
-   F^{\text{PC}}[\rho(\mathbf{r}), \phi(\mathbf{r}, \{c_i(\mathbf{r}\}] = \int\left[-\frac{\epsilon(\mathbf{r})}{8\pi}\lvert\nabla\phi(\mathbf{r})\rvert^2 + \rho(\mathbf{r})\phi(\mathbf{r}) + \rho^{\text{ions}}(\mathbf{r})\phi(\mathbf{r})-\sum^{\text{p}}_{i=1}\mu_i(c_i(\mathbf{r})-c_i^0)-T(s[\{c_i(\mathbf{r})\}]-s[\{c_i^0\}])\right]d\mathbf{r}
+   F^{\text{PC}}[\rho(\mathbf{r}), \phi(\mathbf{r}, \{c_i(\mathbf{r}\}] = \int\left[-\frac{\epsilon(\mathbf{r})}{8\pi}\lvert\nabla\phi(\mathbf{r})\rvert^2 + \rho(\mathbf{r})\phi(\mathbf{r}) + \rho^{\text{ions}}(\mathbf{r})\phi(\mathbf{r})\right.
+   
+   \left.-\sum^{\text{p}}_{i=1}\mu_i(c_i(\mathbf{r})-c_i^0)-T(s[\{c_i(\mathbf{r})\}]-s[\{c_i^0\}])\right]d\mathbf{r}.
+
+Here, :math:`\mu_i` is the chemical potential of the ith electrolyte species and T is the temperature, that
+is included as part of the entropy term.
+
+We assume that these electrolytes have point-charge, and there is ideal mixing, leading us to the following
+entropy expression,
+
+.. math::
+
+   s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{\gamma(\mathbf{r})
+
+where :math:`\gamma(\mathbf{r})` is the exclusion function and sets the boundary between the electrolyte
+and solute regions.
+
+The functional above is
+minimized with respect to the concentrations in order to find the equilibrium for electrolyte concentrations.
+This leads to the well-known Poisson-Boltzmann equation, which can be numerically solved using Newton's
+iterative algorithm and a preconditioned conjugate gradient algorithm, which works with linear equations. 
+
+There are times when it is beneficial to approximate the Poisson-Boltzmann equation, which is non-linear and
+thus non-trivial to solve. For :math:`z_i\phi(\mathbf{r}) \ll k_BT`, that is, when the electrostatic potential
+is low, or in the high-temperature limit, one can approximate the Poisson-Boltzmann by its linear form, which
+is derived by Taylor expanding the appropriate terms in the full Poisson-Boltzmann equation. The result is
+a less computationally expensive approach to representing the electrolyte, while still maintaining the same
+parameter set. 
+
+In the case where we deal with linear slabs with two-dimensional periodicity, a different approximation can
+be used. The idea here is that the one-dimensional Poisson-Boltzmann equation can be analytically solved and
+thus this result can be applied as a PBC (periodic boundary condition) correction. This approach is also
+known as the Gouy-Chapman Stern model for an electrolyte, and compares well to the numerical approach for
+our examples. 
+
+Modified Poisson-Boltzmann model
+================================
+
+The Poisson-Boltzmann can be improved by dropping the assumpion of point-like ions. This assumption leads to
+an overestimate of the electrolyte countercharge accumulation at electrode surfaces, and thus, by accounting
+for the steric repulsion between ions, which opposes the electrostatic attraction between the counterions and
+the electrode surface, one can improve on the full Poisson-Boltzmann model. The size-modified
+Poisson-Boltzmann (MPB) can be derived from the same free energy functional as before, only with a modified
+entropy expression
+
+.. math::
+
+   s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{c_{\text{max}}\gamma(\mathbf{r})
+
+   -k_B\left(c_{\text{max}}\gamma(\mathbf{r} - \sum^{\text{p}}_{i=1}c_i(\mathbf{r})\right)\ln\left(1 - \sum^{\text{p}}_{i=1}\frac{c_i(\mathbf{r})}{c_{\text{max}}\gamma(\mathbf{r})}\right).
+
+The idea is to essentially impose a space dependent maximum ionic concentration, and the result is a better
+representation of the electrolyte, verified by a comparison to experimental differential capacitance.
+
+Additional Interactions
+=======================
+
+Environ
+=======
+
+Environ has implemented all of the above models in a modular way that allows one to mix and match models and
+correction methods where reasonable. 
+   
+
+
 
 
