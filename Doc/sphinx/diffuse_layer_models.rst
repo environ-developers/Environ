@@ -118,7 +118,7 @@ entropy expression
 
 .. math::
 
-   s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{c_{\text{max}}\gamma(\mathbf{r})
+   s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{c_{\text{max}}\gamma(\mathbf{r})}
 
    -k_B\left(c_{\text{max}}\gamma(\mathbf{r} - \sum^{\text{p}}_{i=1}c_i(\mathbf{r})\right)\ln\left(1 - \sum^{\text{p}}_{i=1}\frac{c_i(\mathbf{r})}{c_{\text{max}}\gamma(\mathbf{r})}\right).
 
