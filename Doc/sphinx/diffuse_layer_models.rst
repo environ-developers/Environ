@@ -107,7 +107,7 @@ known as the Gouy-Chapman Stern model for an electrolyte, and compares well to t
 our examples. 
 
 Modified Poisson-Boltzmann model
-================================
+--------------------------------
 
 The Poisson-Boltzmann can be improved by dropping the assumpion of point-like ions. This assumption leads to
 an overestimate of the electrolyte countercharge accumulation at electrode surfaces, and thus, by accounting
@@ -126,10 +126,10 @@ The idea is to essentially impose a space dependent maximum ionic concentration,
 representation of the electrolyte, verified by a comparison to experimental differential capacitance.
 
 Additional Interactions
-=======================
+-----------------------
 
 Environ
-=======
+-------
 
 Environ has implemented all of the above models in a modular way that allows one to mix and match models and
 correction methods where reasonable. 

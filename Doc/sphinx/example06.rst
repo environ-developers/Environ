@@ -49,7 +49,10 @@ Note that this does not include the size-modified equation. The page on diffuse-
 each of the models and how they differ in more detail. In particular, the required parameters for each models
 do vary slightly. For the linearized Poisson-Boltzmann model and the Poisson-Boltzmann model, the charge
 and concentrations need to be specified. The additional max concentration (cionmax) parameter should be
-included when choosing the modified Poisson-Boltzmann model.
+included when choosing the modified Poisson-Boltzmann model. Notice that the model need not be specified
+explicitly and is instead inferred by the parameters supplied to the input. The physical models all require
+at least the concentrations and the charges of the ions. By setting the maximum concentration to be non-zero,
+Environ will assume the user wishes to use the modified Poisson-Boltzmann model. 
 
 .. note::
 
