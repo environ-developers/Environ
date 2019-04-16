@@ -1495,6 +1495,8 @@ CONTAINS
          IF (solver == 'none' ) solver = 'iterative'
          IF (solver == 'iterative' &
             & .AND. auxiliary == 'none' ) auxiliary = 'full'
+         IF (solver .NE. 'iterative') &
+            & CALL errore( sub_name, 'GCS correction requires iterative solver', 1)
        END IF
     ELSE
        IF (problem == 'none') problem = 'poisson'
