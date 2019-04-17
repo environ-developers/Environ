@@ -324,7 +324,6 @@ CONTAINS
                 ELSE
                    electrolyte%ioncctype(ityp)%potential%of_r(:) = 0.D0
                 END IF
-!                CALL print_environ_density( electrolyte%ioncctype(ityp)%potential )
              END DO
           CASE( 'cation' )
              DO ityp = 1, electrolyte%ntyp
@@ -342,7 +341,6 @@ CONTAINS
              DO ityp = 1, electrolyte%ntyp
                 CALL density_of_functions( electrolyte%function, &
                                            electrolyte%ioncctype(ityp)%potential, .TRUE. )
-!                CALL print_environ_density( electrolyte%ioncctype(ityp)%potential )
              END DO
           END SELECT
           !

@@ -732,16 +732,6 @@ CONTAINS
        !
        rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
        screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2
-!!!!!!
-!       CALL print_environ_density( gam, local_verbose=2 )
-!       CALL print_environ_density( numerator, local_verbose=2 )
-!       CALL print_environ_density( denominator, local_verbose=2 )
-!       CALL print_environ_density( screening, local_verbose=2 )
-!       CALL print_environ_density( rhoaux, local_verbose=2 )
-!       CALL print_environ_density( x, local_verbose=2 )
-!       totaux = integrate_environ_density( rhoaux )
-!       CALL errore( sub_name, 'stop', 1)
-!!!!!!
        !
        ! ... If residual is small enough exit
        !
