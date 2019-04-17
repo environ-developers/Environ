@@ -11,8 +11,13 @@ $ECHO
 $ECHO "$EXAMPLE_DIR : starting"
 $ECHO
 $ECHO "This example shows how to use pw.x to simulate a 10xH20 water cluster "
-$ECHO "immersed in continuum solvent. Turning on the solvent_radius inside the "
-$ECHO "BOUNDARY namelist prevents dielectric from getting inside the cluster."
+$ECHO "immersed in continuum solvent. By setting the solvent_radius inside the "
+$ECHO "BOUNDARY namelist, one activates the solvent-aware interface, see "
+$ECHO
+$ECHO "O. Andreussi, N.G. Hörmann, F. Nattino, G. Fisicaro, S. Goedecker, and" 
+$ECHO "        N. Marzari, J. Chem. Theory Comput. 15, 1996 (2019)."
+$ECHO
+$ECHO "This feature prevents dielectric from getting inside the cluster."
 $ECHO
 
 # set the needed environment variables
