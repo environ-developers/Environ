@@ -83,7 +83,7 @@ entropy expression,
 
 .. math::
 
-   s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{\gamma(\mathbf{r})
+   s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{\gamma(\mathbf{r})}
 
 where :math:`\gamma(\mathbf{r})` is the exclusion function and sets the boundary between the electrolyte
 and solute regions.
