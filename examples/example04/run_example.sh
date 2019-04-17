@@ -232,11 +232,11 @@ esol=$(awk '/^!/ {en=$5}; END {print en}' PtCO_water.out)
 dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
 
 fermi_vac=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_vacuum.out)
-delta_vac=$(awk '/the Fermi energy shift/ {en=$11}; END {print en}' PtCO_vacuum.out)
+delta_vac=$(awk '/the potential shift due/ {en=$10}; END {print en}' PtCO_vacuum.out)
 fermi_vac_new=$($ECHO "$fermi_vac+$delta_vac" | bc -l)
 
-fermi_sol=$(awk '/the potential shift/ {en=$5}; END {print en}'     PtCO_water.out)
-delta_sol=$(awk '/the potential shift/ {en=$10}; END {print en}' PtCO_water.out)
+fermi_sol=$(awk '/the Fermi energy is/ {en=$5}; END {print en}'     PtCO_water.out)
+delta_sol=$(awk '/the potential shift due/ {en=$10}; END {print en}' PtCO_water.out)
 fermi_sol_new=$($ECHO "$fermi_sol+$delta_sol" | bc -l)
 
 $ECHO "  Energy in vacuum                    = $evac  Ry        " >> results.txt
