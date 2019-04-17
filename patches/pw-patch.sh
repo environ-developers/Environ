@@ -379,9 +379,20 @@ USE environ_output,        ONLY : environ_print_potential_shift\
 !Environ patch
 ' plugin_scf_potential.f90 > tmp.1
 
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch\
+INTEGER :: local_verbose\
+!Environ patch
+' tmp.1 > tmp.2
+
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
      IF(use_environ) THEN\
+        !\
+        ! reduce output at each scf iteration\
+        !\
+        local_verbose = 0\
+        IF ( .NOT. lscf .OR. conv_elec ) local_verbose = 1\
         !\
         ! update electrons-related quantities in environ\
         !\
@@ -400,7 +411,7 @@ sed '/Environ CALLS BEGIN/ a\
         ENDIF\
         !\
         IF ( update_venviron ) WRITE( stdout, 9200 )\
-        CALL calc_venviron( update_venviron, dfftp%nnr, vltot )\
+        CALL calc_venviron( update_venviron, dfftp%nnr, vltot, local_verbose )\
         !\
         IF ( .NOT. lscf .OR. conv_elec ) THEN\
           CALL environ_print_potential_shift()\
@@ -409,9 +420,9 @@ sed '/Environ CALLS BEGIN/ a\
 9200 FORMAT(/"     add environment contribution to local potential")\
      ENDIF\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.2 > tmp.1
 
-mv tmp.2 plugin_scf_potential.f90
+mv tmp.1 plugin_scf_potential.f90
 
 # plugin_check
 

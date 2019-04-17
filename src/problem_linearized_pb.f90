@@ -371,7 +371,7 @@ CONTAINS
        ELSE
           beta = 0.D0
        END IF
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
        rzold = rznew
        !
        p%of_r = z%of_r + beta * p%of_r

@@ -42,7 +42,7 @@ CONTAINS
 !! the Environ modules need to be called here. The potentials are
 !! all computed on the dense real-space grid and added to vtot.
 !--------------------------------------------------------------------
-  SUBROUTINE calc_venviron( update, nnr, vtot )
+  SUBROUTINE calc_venviron( update, nnr, vtot, local_verbose )
 !--------------------------------------------------------------------
     USE environ_base,  ONLY : vzero, solvent,                       &
                               lelectrostatic, velectrostatic,       &
@@ -76,6 +76,7 @@ CONTAINS
     LOGICAL, INTENT(IN)       :: update
     INTEGER, INTENT(IN)       :: nnr
     REAL( DP ), INTENT(OUT)   :: vtot( nnr )
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
     !
     TYPE( environ_density ) :: de_dboundary
     !
@@ -84,10 +85,23 @@ CONTAINS
     vtot = vzero % of_r
     !
     IF ( .NOT. update ) THEN
+       !
        IF ( lelectrostatic ) vtot = vtot + velectrostatic % of_r - vreference % of_r
        IF ( lconfine ) vtot = vtot + vconfine % of_r
        IF ( lsoftcavity ) vtot = vtot + vsoftcavity % of_r
+       !
+       IF ( PRESENT( local_verbose ) ) THEN
+          !
+          IF ( lelectrostatic ) CALL print_environ_density( vreference, local_verbose )
+          IF ( lelectrostatic ) CALL print_environ_density( velectrostatic, local_verbose )
+          IF ( lelectrostatic ) CALL print_environ_charges( charges, local_verbose, local_depth=0 )
+          IF ( lconfine ) CALL print_environ_density( vconfine, local_verbose )
+          IF ( lsoftcavity ) CALL print_environ_density( vsoftcavity, local_verbose )
+          !
+       END IF
+       !
        RETURN
+       !
     END IF
     !
     ! ... If any form of electrostatic embedding is present, calculate its contribution
@@ -97,26 +111,26 @@ CONTAINS
        ! ... Electrostatics is also computed inside the calling program, need to remove the reference
        !
        CALL calc_velectrostatic( reference, charges, vreference )
-       IF ( verbose .GE. 2 ) CALL print_environ_density( vreference )
+       CALL print_environ_density( vreference )
        !
        IF ( lexternals ) CALL update_environ_charges( charges, lexternals )
        !
        CALL calc_velectrostatic( outer, charges, velectrostatic )
-       IF ( verbose .GE. 2 ) CALL print_environ_density( velectrostatic )
+       CALL print_environ_density( velectrostatic )
        !
        vtot = vtot + velectrostatic % of_r - vreference % of_r
        !
        CALL charges_of_potential( velectrostatic, charges )
        !
        IF ( lexternals ) CALL update_environ_charges( charges )
-       IF ( verbose .GE. 2 ) CALL print_environ_charges( charges )
+       CALL print_environ_charges( charges )
        !
     END IF
     !
     IF ( lconfine ) THEN
        !
        CALL calc_vconfine( env_confine, solvent, vconfine )
-       IF ( verbose .GE. 2 ) CALL print_environ_density( vconfine )
+       CALL print_environ_density( vconfine )
        !
        vtot = vtot + vconfine % of_r
        !
@@ -177,7 +191,7 @@ CONTAINS
           !
        END IF
        !
-       IF ( verbose .GE. 4 ) CALL print_environ_density( vsoftcavity )
+       CALL print_environ_density( vsoftcavity )
        vtot = vtot + vsoftcavity % of_r
        !
        CALL destroy_environ_density( de_dboundary )
