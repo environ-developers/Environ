@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Environ'
-copyright = '2019, Oliviero Andreussi'
-author = 'Oliviero Andreussi'
+copyright = '2019, Environ Developers'
+author = 'Oliviero Andreussi, Matthew Truscott'
 
 # The short X.Y version
 version = ''

@@ -1,6 +1,6 @@
 
-Continuum Embeddings
---------------------
+Overview
+--------
 
 As opposed to the more commonly used atomistic description of solvents in chemistry simulations, Environ
 implements a set of continuum models, with the goal of providing a method of describing systems in

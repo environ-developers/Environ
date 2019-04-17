@@ -4,6 +4,8 @@
 Interactions
 ============
 
+The following pages cover the interactions between the embedded system and the environment. 
+
 .. toctree::
    
    dielectric_medium
