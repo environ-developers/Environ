@@ -24,8 +24,8 @@ standpoint, it is more reasonable to work with a set of vector and scalar fields
 numerical domain. 
 
 
-Self-Consistent Continuum Solvation (SCCS)
-------------------------------------------
+Self-Consistent (SCCS)
+----------------------
 
 The SCCS model is described comprehensively in the 2012 publication [2]_, we present here a summary of the
 theory and methodology behind the model.
@@ -48,8 +48,8 @@ where :math:`t(x)` is a smooth function, and the two parameters are :math:`\rho_
 :math:`\rho_{\text{max}}` that bound the above function, the function returns 1 with an input above 
 the max density bound and 0 with an input below the min density bound.
 
-Soft-Sphere Continuum Solvation (SSCS)
---------------------------------------
+Soft-Sphere (SSCS)
+------------------
 
 The SSCS model is described comprehensively in the 2017 publication [4]_, again, we present here a
 summary of the theory and methodology behind the model. 
@@ -82,4 +82,6 @@ conjunction with either implemented interface model.
 
 .. [1] O. Andreussi and G. Fisicaro, Wiley DOI: 10.1002/qua.25725 (2018)
 .. [2] O. Andreussi, I. Dabo, and N. Marzari, J. Chem. Phys. 136, 064102 (2012)
-.. [3] 
+.. [3] J. L. Fattebert, F. Gygi, J. Comput. Chem., 2002, 23(6), 662
+.. [4] G. Fisicaro et al., J. Comput. Chem., 2017 13(8), 3829
+.. [5] S. Miertus, E. Scrocco, J. Tomasi, J. Chem. Phys. 1981 2;55(1):117-129
