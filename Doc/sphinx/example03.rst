@@ -29,4 +29,11 @@ The tolerance is different from previous examples. This value is chosen to facil
 process and will directly affect the speed and accuracy of the convergence. One should set this according to
 the type of simulation being run, these values in the examples serving as guidelines for that decision.
 
+Clearly for larger systems, the parabolic correction is a more feasible choice for imposing isolation.
+This is a real-space quadratic correction of the electrostatic potential [2_], which has been shown to
+provide energy accuracy improvements of almost 1 order of magnitude in comparison with the alternative PCC
+and GCC schemes for large cell sizes. This correction scheme implemented in Environ is limited to 0D and 2D
+systems (which account for the majority of systems that Environ typically works with).
+
 .. [1] G. J. Martyna and M. E. Tuckerman, J. Chem. Phys. 110, 2810 (1999)
+.. [2] \I. Dabo et al. Phys. Rev. B 77, 115139 (2008)

@@ -82,4 +82,4 @@ Here, the electrolyte_mode parameter is set to system, corresponding to a simple
 
 .. [1] F. Nattino et al., J. Chem. Phys. 150, 041722 (2019)
 .. [2] G. Fisicaro et al., J. Chem. Phys. 144, 014103 (2016)
-.. [3] I. Dabo et al., arXiv 0901.0096 (2008)
+.. [3] \I. Dabo et al., arXiv 0901.0096 (2008)

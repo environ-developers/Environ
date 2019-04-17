@@ -33,3 +33,10 @@ z.
 The tolerance is also different from previous examples. This parameter is typically set in order to optimize
 the ability for the self-consistent process to converge, and should be picked appropriately depending on the
 system. These examples serve as good guidelines for each type of simulation.
+
+Along with the electrostatic solvation energy, which calculated similarly to Example 1, where one takes the
+difference between the total energy in vacuum with total energy in electrolyte solvent, this example
+calculates the Fermi energy both in vacuum and in solution. Unlike other energy terms, the printed total
+Fermi energy is decomposed into terms, one from QE and a correction (delta energy) from Environ. Hence, the
+user should sum these terms during post-processing in order to get the Fermi energy of the system (this
+is done for the user in this example by the bash script).
