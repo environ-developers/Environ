@@ -285,7 +285,6 @@ CONTAINS
   SUBROUTINE pb_iterative( iterative, core, potential, charges, & 
                    electrolyte, dielectric, inner_solver, inner_core ) 
 !--------------------------------------------------------------------
-!    USE mdiis,     ONLY : mdiis_type, allocate_mdiis, deallocate_mdiis, update_by_mdiis
     !
     IMPLICIT NONE
     !
@@ -303,15 +302,14 @@ CONTAINS
     !
     INTEGER :: iter, ityp, ir
     REAL( DP ) :: total, totaux, delta_qm, delta_en, kT, factor, arg
-    TYPE( environ_density ) :: residual, rhotot, denominator, rhoaux, cfactor!, rhonew
+    TYPE( environ_density ) :: residual, rhotot, denominator, rhoaux, cfactor
     !
     CHARACTER( LEN=80 ) :: sub_name = 'pb_nested'
-!    TYPE(mdiis_type) :: mdiist
     !
     INTEGER, POINTER :: maxiter, ir_end
     REAL( DP ), POINTER :: tolrhoaux, mix, cbulk, cionmax, z
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' OUTER LOOP ON POTENTIAL ',50('%'))
@@ -348,16 +346,11 @@ CONTAINS
     CALL init_environ_density( cell, rhotot )
     CALL init_environ_density( cell, residual )
     CALL init_environ_density( cell, cfactor )
-!    IF ( iterative % mix_type == 'diis' ) & 
-!        CALL init_environ_density( cell, rhonew )
     !
     x % of_r = 0.D0
     rhoaux % of_r = 0.D0
     !
     ! ... Start iterative algorithm 
-    !
-!    IF ( iterative % mix_type == 'diis' ) & 
-!       CALL allocate_mdiis( mdiist, iterative % ndiis, SIZE(x%of_r), mix, 1)
     !
     DO iter = 1, maxiter
        !
@@ -389,8 +382,8 @@ CONTAINS
           !
           DO ir = 1, ir_end 
              arg = -z * x%of_r(ir) / kT
-             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
-                & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
+!             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
+!                & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
              IF ( arg .GT. exp_arg_limit ) THEN
                 cfactor % of_r (ir) = EXP( exp_arg_limit )
              ELSE IF ( arg .LT. -exp_arg_limit ) THEN
@@ -421,24 +414,8 @@ CONTAINS
        !
        ! ... residual is now the new electrolyte charge
        !
-!       SELECT CASE ( iterative % mix_type ) 
-!       CASE ( 'diis' )  
-!          !
-!          rhonew % of_r = residual % of_r
-!          residual % of_r = residual % of_r - rhoaux % of_r
-!          CALL update_by_mdiis(mdiist, rhonew % of_r, residual % of_r, residual%cell%comm)
-!          rhoaux % of_r = rhonew % of_r
-!          !
-!       CASE( 'linear' )
-          !
-          residual % of_r = residual % of_r - rhoaux % of_r
-          rhoaux % of_r = rhoaux % of_r + mix * residual % of_r
-          ! 
-!       CASE DEFAULT
-!          !
-!          CALL errore(sub_name, 'mix_type not implemented' )
-!          !
-!       END SELECT
+       residual % of_r = residual % of_r - rhoaux % of_r
+       rhoaux % of_r = rhoaux % of_r + mix * residual % of_r
        !
        ! ... If residual is small enough exit
        !
@@ -500,15 +477,12 @@ CONTAINS
                                cfactor, rhoaux, screening
     !
     CHARACTER( LEN=80 ) :: sub_name = 'pb_newton'
-!!!!!
-!    CHARACTER( LEN=80 ) :: label
-!!!!!
     !
     INTEGER, POINTER :: maxiter, ir_end
     REAL( DP ), POINTER :: tol, mix, cbulk, cbulki, cbulkj, cionmax, zi, zj
     !
     !
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
@@ -537,18 +511,6 @@ CONTAINS
     !
     kT  = k_boltzmann_ry * electrolyte%temperature
     !
-!!!!!
-!    label = 'rhoaux'
-!    CALL create_environ_density( rhoaux, label )
-!    label = 'screening'
-!    CALL create_environ_density( screening, label )
-!    label = 'numerator'
-!    CALL create_environ_density( numerator, label )
-!    label = 'denominator'
-!    CALL create_environ_density( denominator, label )
-!    label = 'cfactor'
-!    CALL create_environ_density( cfactor, label )
-!!!!!
     CALL init_environ_density( cell, cfactor )
     CALL init_environ_density( cell, numerator )
     CALL init_environ_density( cell, denominator )
@@ -584,55 +546,8 @@ CONTAINS
        screening % of_r = 0.D0
        denominator%of_r = 1.D0
        !
-!       IF ( SIZE( electrolyte%ioncctype ) .EQ. 2 .AND. electrolyte%ion_adsorption .EQ. 'none' )  THEN
-!          ! Symmetric electrolyte: use hyperbolic functions
-!          cbulk => electrolyte%ioncctype(1)%cbulk
-!          z = ABS(electrolyte%ioncctype(1)%z)
-!          !
-!          cfactor % of_r = 1.D0
-!          !
-!          DO ir = 1, ir_end
-!             arg = z * x%of_r(ir) / kT
-!             IF ( ABS(arg) .LT. exp_arg_limit ) THEN
-!                rhoaux % of_r (ir) = SINH( arg )
-!                cfactor % of_r (ir) = COSH( arg ) 
-!             !!!!
-!             ! MAX OUTSIDE RANGE MISSING!
-!             !!!!
-!             END IF
-!          END DO
-!          !
-!          rhoaux % of_r  = -2.D0 * z * cbulk * rhoaux % of_r
-!          !
-!          IF ( cionmax .GT. 0.D0 ) THEN
-!             !
-!             SELECT CASE ( electrolyte % stern_entropy )
-!             !
-!             CASE ( 'full' )
-!                !
-!                denominator%of_r = 2.D0 * cbulk/cionmax * ( cfactor%of_r - 1.D0 ) + 1.D0
-!                screening % of_r = electrolyte%k2/e2/fpi * &
-!                   ( cfactor % of_r * ( 1.D0 - 2.D0*cbulk/cionmax ) + 2.D0*cbulk/cionmax )
-!                !
-!             CASE ( 'ions' )
-!                !
-!                denominator%of_r = 2.D0 * cbulk/cionmax * ( gam%of_r * cfactor%of_r - 1.D0) + 1.D0
-!                screening % of_r = electrolyte%k2/e2/fpi * & 
-!                   ( cfactor % of_r * ( 1.D0 - 2.D0*cbulk/cionmax ) + 2.D0*cbulk/cionmax * gam%of_r )
-!                !
-!             END SELECT
-!             !
-!          ELSE
-!             !
-!             screening % of_r = electrolyte%k2/e2/fpi * cfactor%of_r
-!             !
-!          END IF
-!          !
-!          NULLIFY( cbulk )
-!          !
-!       ELSE 
+       ! ... General solution for symmetric & asymmetric electrolyte
        !
-       ! General solution for symmetric & asymmetric electrolyte
        DO itypi = 1, electrolyte % ntyp
           !
           cbulki => electrolyte%ioncctype(itypi)%cbulk
@@ -641,9 +556,9 @@ CONTAINS
           cfactor % of_r = 1.D0
           !
           DO ir = 1, ir_end
-             arg = - zi*x%of_r(ir) /kT
-             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
-                & arg = arg - electrolyte%ioncctype(itypi)%potential%of_r(ir) / kT
+             arg = -zi * x%of_r(ir) / kT
+!             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
+!                & arg = arg - electrolyte%ioncctype(itypi)%potential%of_r(ir) / kT
              IF ( arg .GT. exp_arg_limit ) THEN
                 cfactor % of_r (ir) = EXP( exp_arg_limit )
              ELSE IF ( arg .LT. -exp_arg_limit ) THEN
@@ -717,9 +632,6 @@ CONTAINS
              !
           END IF
           !
-!!!
-!        CALL write_cube( cfactor, idx=itypi )
-!!!
           screening % of_r = screening % of_r + &
               cbulki * zi**2 / kT * cfactor % of_r * numerator % of_r
           !
@@ -727,8 +639,6 @@ CONTAINS
           NULLIFY( cbulki )
           !
        END DO
-       !
-!       END IF 
        !
        rhoaux % of_r = gam % of_r * rhoaux % of_r / denominator % of_r
        screening % of_r = screening % of_r * gam % of_r / denominator % of_r ** 2

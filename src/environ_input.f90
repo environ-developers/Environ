@@ -1083,6 +1083,8 @@ CONTAINS
          & TRIM(ion_adsorption)//''' not allowed ', 1 )
     IF ( ion_adsorption_energy .LT. 0D0 ) &
          CALL errore( sub_name,'ion_adsorption_energy must be positive', 1 )
+    IF( .NOT. TRIM(ion_adsorption) .EQ. 'none' ) &
+         & CALL errore( sub_name,'ion_adsorption not implemented', 1 )
     !
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
