@@ -439,7 +439,7 @@ cat > tmp.1 <<EOF
       ALLOCATE( auxg( ngm ) )
       ALLOCATE( auxr( dfftp%nnr ) )
       auxr(:) = CMPLX(a( : ),0.D0,kind=dp)
-      CALL fwfft ('Dense', auxr, dfftp)
+      CALL fwfft ("Rho", auxr, dfftp)
       auxg(:) = auxr(dfftp%nl(:))
       DEALLOCATE( auxr )
       !
@@ -505,7 +505,7 @@ cat > tmp.2 <<EOF
 ! Compatible with QE-6.4.X QE-GIT
     auxr = CMPLX(rho,0.0, kind=DP)
 ! END BACKWARD COMPATIBILITY
-    CALL fwfft( "Dense", auxr, dfftp )
+    CALL fwfft( "Rho", auxr, dfftp )
     ALLOCATE( auxg( ngm ) )
     auxg(:) = auxr( dfftp%nl (:) )
     !
