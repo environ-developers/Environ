@@ -14,14 +14,15 @@ Hence by running pw.x twice with different Environ parameters, one can calculate
 in vacuum and in water, thus obtaining the solvation energy. 
 
 In general, execution of pw.x requires a correctly formatted input file with all the descriptive properties of
-the desired system. With the Environ addon, an additional input file is required that contain simulation
+the desired system. With the Environ addon, an additional input file is required that contains simulation
 parameters for the environment. Unlike the pw input file that can be arbitrarily named and then specified on
 execution of the program, the Environ file must be named ‘environ.in’. To enable the environ addon on a pw
 calculation, the ``--environ`` modifier should be added. Hence the command, ``./pw.x --environ < example.in`` 
 would 
 feed in a pw input file named example.in into pw.x and run a serial calculation via whichever FORTRAN compiler 
-Quantum ESPRESSO has been configured with. Since the --environ modifier added, pw now expects an environ.in 
-file. Failure to do so will result in an error. 
+Quantum ESPRESSO has been configured with (as with any program, call ``pw.x`` from its actual position, or add
+it to the PATH). Since the ``--environ`` modifier is added, ``pw.x`` now expects 
+an environ.in file. Failure to do so will result in an error. 
 
 The bash script run_example.sh generates all the necessary files described above and executes multiple pw 
 calculations successively. Due to the constraint of the environ.in name, a change in environment should require
@@ -46,11 +47,11 @@ is set to zero, which limits output to the standard pw output location (which is
 is often piped into an output file). 
 
 Some helpful environment specific quantities can also be printed out. These
-are typically used on the development side for debugging. The option verbose=1 (or any higher integer value)
-will output these in a file named environ.debug. The option verbose=2 will additionally output gaussian cube
+are typically used on the development side for debugging. The option ``verbose=1`` (or any higher integer value)
+will output these in a file named environ.debug. The option ``verbose=2`` will additionally output gaussian cube
 files that contain the density objects of important quantities. Specifying this option will impact performance
 due to the heavy I/O operations, and for the majority of simulations, a verbosity of zero ought to be
-sufficient.
+sufficient, which is the default.
 
 .. literalinclude:: example01.in
    :language: fortran

@@ -21,6 +21,7 @@ module, and the current version is compatible with QE-6.4.
    interface_models
    interactions
    output01
+   faq
    developer
 
 

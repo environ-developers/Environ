@@ -62,10 +62,51 @@ To clean up the compilation of Environ, follow these steps:
 
       make clean
 
-If any errors are encountered, refer to the `website`_. 
+Installation Issues
+-------------------
+
+Linker Problem
+~~~~~~~~~~~~~~
+
+In Environ v1.0, there is an issue with the installation procedure for codes different from pw.x. The problem
+seems to depend on the compiler, but it is present in the most common Intel Fortran compiler. The solution
+for this problem requires some work, which is described here, and will be fixed in future releases.
+
+There is some circular dependencies between Environ modules and PW modules, but since the linkers only look 
+for the dependencies written at the time of the Environ installation, they will not be able to function
+as intended.
+
+To fix this, one can edit the Makefile manually, to add these PW dependencies, so that instead of::
+
+   PWOBJS = some-path/PW/src/libpw.a
+   QEMODS = some-path/Modules/libquemod.a some-more-libraries.a
+
+we have::
+
+   PWOBJS = some-path/PW/src/libpw.a
+   QEMODS = some-path/Modules/libquemod.a some-more-libraries.a some-path/PW/src/libpw.a
+
+This may be necessary for the following files::
+
+   PHonon/FD/Makefile
+   PHonon/Gamma/Makefile
+   PHonon/PH/Makefile
+   PWCOND/src/Makefile
+   TDDFPT/src/Makefile
+   XSpectra/src/Makefile
+   GWW/bse/Makefile
+   GWW/head/Makefile
+   GWW/pw4gww/Makefile
+
+There is an exception, for the CPV Makefile, instead of this::
+
+   QEMODS=../../Modules/libqemod.a
+
+do this::
+
+   QEMODS=../../Modules/libqemod.a libcp.a
 
 .. _here: https://gitlab.com/QEF/q-e
 .. _release: https://github.com/QEF/q-e/releases
 .. _PW-forum: https://www.quantum-espresso.org/forum
 .. _documentation: https://www.quantum-espresso.org/Doc/user_guide/
-.. _website: http://www.quantum-environment.org/installation-issues.html
