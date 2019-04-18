@@ -42,7 +42,7 @@ MODULE environ_output
   !
   CHARACTER( LEN = 2 ) :: prog
   !
-  INTEGER, PARAMETER :: nbibliography = 4
+  INTEGER, PARAMETER :: nbibliography = 6
   CHARACTER( LEN = 80 ), DIMENSION( nbibliography ) :: bibliography
   !
   PRIVATE
@@ -76,6 +76,12 @@ CONTAINS
                       & Chem. Phys. 136, 064102 (2012)"
     bibliography(4) = "O. Andreussi, I. Dabo and N. Marzari, J.&
                       & Chem. Phys. 136, 064102 (2012)"
+    bibliography(5) = "O. Andreussi, N.G. Hoermann, F. Nattino,&
+                      & G. Fisicaro, S. Goedecker, and N. Marzari,&
+                      & J. Chem. Theory Comput. 15, 1996 (2019)"
+    bibliography(6) = "F. Nattino, M. Truscott, N. Marzari, and&
+                      & O. Andreussi, J. Chem. Phys. 150, 041722&
+                      & (2019)"
     !
     RETURN
     !
