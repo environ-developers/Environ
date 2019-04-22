@@ -47,9 +47,9 @@ CONTAINS
        use_internal_pbc_corr, pbc_correction, pbc_dim_,     &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!       pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
+       pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
 ! Compatbile with QE-6.4.X QE-GIT
-       pbc_axis_, prog, inner_tol, inner_solver_type, &
+!       pbc_axis_, prog, inner_tol, inner_solver_type, &
 ! END BACKWARD COMPATIBILITY
        inner_maxstep, inner_mix )
 !--------------------------------------------------------------------
@@ -64,7 +64,7 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    INTEGER, INTENT(IN) :: nspin
+    INTEGER, INTENT(IN) :: nspin
 ! Compatbile with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -168,9 +168,9 @@ CONTAINS
     IF ( lfd ) CALL init_fd_core( ifdtype, nfdpoint, fd )
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
 ! Compatible with QE-6.4.X QE-GIT
-    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr )
+!    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr )
 ! END BACKWARD COMPATIBILITY
     IF ( loned_analytic ) CALL init_oned_analytic_core_first( pbc_dim, pbc_axis, oned_analytic )
     !

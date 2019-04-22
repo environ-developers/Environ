@@ -464,9 +464,9 @@ CONTAINS
           !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!          CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
+          CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
 ! Compatible with QE-6.4.X QE-GIT
-          CALL calc_vsolvent_tddfpt(nnr, rho, drho, dvpol, dvepsilon)
+!          CALL calc_vsolvent_tddfpt(nnr, rho, drho, dvpol, dvepsilon)
 ! END BACKWARD COMPATIBILITY
           !
           dvtot = dvtot + dvpol + dvepsilon

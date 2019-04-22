@@ -49,9 +49,9 @@ CONTAINS
 !--------------------------------------------------------------------
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-!       ( prog, nelec, nspin,                         &
+       ( prog, nelec, nspin,                         &
 ! Compatible with QE-6.4.X QE-GIT
-       ( prog, nelec,                                &
+!       ( prog, nelec,                                &
 ! END BACKWARD COMPATIBILITY
        & nat, ntyp, atom_label, atomicspread,        &
        & corespread, solvationrad,                   &
@@ -102,7 +102,7 @@ CONTAINS
          add_jellium_, electrolyte_linearized
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    INTEGER, INTENT(IN) :: nspin
+    INTEGER, INTENT(IN) :: nspin
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -240,9 +240,9 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL init_environ_electrons_first( nelec, nspin, electrons )
+    CALL init_environ_electrons_first( nelec, nspin, electrons )
 ! Compatible with QE-6.4.X QE-GIT
-    CALL init_environ_electrons_first( nelec, electrons )
+!    CALL init_environ_electrons_first( nelec, electrons )
 ! END BACKWARD COMPATIBILITY
     !
     ! Set basic properties of the selected system
@@ -632,9 +632,9 @@ CONTAINS
 !--------------------------------------------------------------------
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!   SUBROUTINE environ_initelectrons( nspin, nnr, rho, nelec )
+   SUBROUTINE environ_initelectrons( nspin, nnr, rho, nelec )
 ! Compatible with QE-6.4.X QE-GIT
-   SUBROUTINE environ_initelectrons( nnr, rho, nelec )
+!   SUBROUTINE environ_initelectrons( nnr, rho, nelec )
 ! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
 !
@@ -658,10 +658,10 @@ CONTAINS
      INTEGER, INTENT( IN )     :: nnr
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!     INTEGER, INTENT( IN )     :: nspin
-!     REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
+     INTEGER, INTENT( IN )     :: nspin
+     REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
 ! Compatible with QE-6.4.X QE-GIT
-     REAL ( DP ), INTENT( IN ) :: rho( nnr )
+!     REAL ( DP ), INTENT( IN ) :: rho( nnr )
 ! END BACKWARD COMPATIBILITY
      REAL( DP ), INTENT( IN ), OPTIONAL  :: nelec
      !
@@ -671,9 +671,9 @@ CONTAINS
      !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
 ! Compatible with QE-6.4.X QE-GIT
-     CALL update_environ_electrons( nnr, rho, electrons, nelec )
+!     CALL update_environ_electrons( nnr, rho, electrons, nelec )
 ! END BACKWARD COMPATIBILITY
      CALL print_environ_electrons( electrons )
      !

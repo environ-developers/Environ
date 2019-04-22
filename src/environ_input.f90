@@ -513,9 +513,9 @@ CONTAINS
 !--------------------------------------------------------------------
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
 ! Compatible with QE-6.4.X QE-GIT
-  SUBROUTINE read_environ(prog,nelec,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+!  SUBROUTINE read_environ(prog,nelec,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
 ! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
@@ -527,7 +527,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nelec, nat, ntyp
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    INTEGER, INTENT(IN) :: nspin
+    INTEGER, INTENT(IN) :: nspin
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -591,9 +591,9 @@ CONTAINS
                                   use_internal_pbc_corr, pbc_correction, &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!                                  pbc_dim, pbc_axis, nspin, prog,        &
+                                  pbc_dim, pbc_axis, nspin, prog,        &
 ! Compatible with QE-6.4.X QE-GIT
-                                  pbc_dim, pbc_axis, prog,        &
+!                                  pbc_dim, pbc_axis, prog,        &
 ! END BACKWARD COMPATIBILITY
                                   inner_tol, inner_solver, inner_maxstep,&
                                   inner_mix )
@@ -602,9 +602,9 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL set_environ_base  ( prog, nelec, nspin,                         &
+    CALL set_environ_base  ( prog, nelec, nspin,                         &
 ! Compatible with QE-6.4.X QE-GIT
-    CALL set_environ_base  ( prog, nelec,                                &
+!    CALL set_environ_base  ( prog, nelec,                                &
 ! END BACKWARD COMPATIBILITY
                              nat, ntyp, atom_label, atomicspread,        &
                              corespread, solvationrad,                   &

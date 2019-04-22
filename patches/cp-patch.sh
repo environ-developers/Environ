@@ -171,13 +171,13 @@ sed '/Environ CALLS BEGIN/ a\
         !\
 ! BACKWARD COMPATIBILITY\
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin )\
+        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin )\
 ! Compatible with QE-6.4.X QE-GIT\
-        ALLOCATE(rhoaux(dfftp%nnr))\
-        rhoaux = rhoin(:,1)\
-        IF ( nspin .EQ. 2) rhoaux = rhoaux + rhoin(:,2)\
-        CALL environ_initelectrons( dfftp%nnr, rhoaux )\
-        DEALLOCATE(rhoaux)\
+!        ALLOCATE(rhoaux(dfftp%nnr))\
+!        rhoaux = rhoin(:,1)\
+!        IF ( nspin .EQ. 2) rhoaux = rhoaux + rhoin(:,2)\
+!        CALL environ_initelectrons( dfftp%nnr, rhoaux )\
+!        DEALLOCATE(rhoaux)\
 ! END BACKWARD COMPATIBILITY\
         !\
         ! environ contribution to the local potential, saved in vzero\
@@ -378,7 +378,7 @@ USE environ_input,    ONLY : read_environ \
 USE input_parameters, ONLY : ion_radius, atom_label \
 ! BACKWARD COMPATIBILITY\
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!USE input_parameters, ONLY : nspin\
+USE input_parameters, ONLY : nspin\
 ! Compatible with QE-6.4.X QE-GIT\
 !\
 ! END BACKWARD COMPATIBILITY\
@@ -398,9 +398,9 @@ sed '/Environ CALLS BEGIN/ a\
       CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout)\
 ! BACKWARD COMPATIBILITY\
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!      CALL read_environ("CP", 1, nspin, nat, ntyp, atom_label, .FALSE., ion_radius)\
+      CALL read_environ("CP", 1, nspin, nat, ntyp, atom_label, .FALSE., ion_radius)\
 ! Compatible with QE-6.4.X QE-GIT\
-       CALL read_environ("CP", 1, nat, ntyp, atom_label, .FALSE., ion_radius)\
+!       CALL read_environ("CP", 1, nat, ntyp, atom_label, .FALSE., ion_radius)\
 ! END BACKWARD COMPATIBILITY\
    ENDIF\
 !Environ patch
@@ -475,7 +475,7 @@ cat > tmp.2 <<EOF
     USE fft_interfaces,    ONLY : fwfft
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    USE electrons_base,    ONLY : nspin
+    USE electrons_base,    ONLY : nspin
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -486,9 +486,9 @@ cat > tmp.2 <<EOF
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
+    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
 ! Compatible with QE-6.4.X QE-GIT
-    REAL(DP), DIMENSION(dfftp%nnr), INTENT(IN) :: rho
+!    REAL(DP), DIMENSION(dfftp%nnr), INTENT(IN) :: rho
 ! END BACKWARD COMPATIBILITY
     REAL(DP), DIMENSION(3,nat), INTENT(OUT) :: force
     !
@@ -502,10 +502,10 @@ cat > tmp.2 <<EOF
     ALLOCATE( auxr( dfftp%nnr ) )
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    auxr = CMPLX(rho(:,1),0.0, kind=DP)
-!    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
+    auxr = CMPLX(rho(:,1),0.0, kind=DP)
+    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
 ! Compatible with QE-6.4.X QE-GIT
-    auxr = CMPLX(rho,0.0, kind=DP)
+!    auxr = CMPLX(rho,0.0, kind=DP)
 ! END BACKWARD COMPATIBILITY
     CALL fwfft( "Rho", auxr, dfftp )
     ALLOCATE( auxg( ngm ) )
@@ -529,7 +529,7 @@ cat > tmp.2 <<EOF
     USE fft_base,          ONLY : dfftp
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    USE electrons_base,    ONLY : nspin
+    USE electrons_base,    ONLY : nspin
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -538,9 +538,9 @@ cat > tmp.2 <<EOF
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr, nspin )
+    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr, nspin )
 ! Compatible with QE-6.4.X QE-GIT
-    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr )
+!    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr )
 ! END BACKWARD COMPATIBILITY
     REAL( DP ), INTENT(IN) :: force (3, nat)
     !

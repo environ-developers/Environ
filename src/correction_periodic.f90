@@ -87,9 +87,9 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
 ! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+!    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
 ! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
@@ -188,9 +188,9 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
 ! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+!    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
 ! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
@@ -304,9 +304,9 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
 ! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+!    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
 ! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
@@ -415,9 +415,9 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
 ! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+!    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
 ! END BACKWARD COMPATIBILITY
     DEALLOCATE( rhotot )
     !

@@ -100,7 +100,7 @@ MODULE electrostatic_types
      INTEGER :: index
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!     INTEGER :: nspin
+     INTEGER :: nspin
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -381,9 +381,9 @@ CONTAINS
 !--------------------------------------------------------------------
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-!  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
 ! Compatible with QE-6.4.X QE-GIT
-  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr )
+!  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr )
 ! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
@@ -393,7 +393,7 @@ CONTAINS
     LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    INTEGER, INTENT(IN), OPTIONAL :: nspin
+    INTEGER, INTENT(IN), OPTIONAL :: nspin
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -408,11 +408,11 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    IF ( PRESENT( nspin ) ) THEN
-!       qe_fft % nspin = nspin
-!    ELSE
-!       qe_fft % nspin = 1
-!    ENDIF
+    IF ( PRESENT( nspin ) ) THEN
+       qe_fft % nspin = nspin
+    ELSE
+       qe_fft % nspin = 1
+    ENDIF
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY

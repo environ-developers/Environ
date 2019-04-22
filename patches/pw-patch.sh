@@ -98,12 +98,12 @@ sed '/Environ MODULES BEGIN/ a\
 !  USE input_parameters, ONLY : nat, ntyp, atm => atom_label\
 !  USE input_parameters, ONLY : ibrav\
 ! Compatible with QE-6.3.X\
-!  USE lsda_mod,   ONLY : nspin\
-!  USE ions_base,  ONLY : nat, ntyp => nsp, atm\
-!  USE cell_base,  ONLY : ibrav\
-! Compatible with QE-6.4.X QE-GIT\
+  USE lsda_mod,   ONLY : nspin\
   USE ions_base,  ONLY : nat, ntyp => nsp, atm\
   USE cell_base,  ONLY : ibrav\
+! Compatible with QE-6.4.X QE-GIT\
+!  USE ions_base,  ONLY : nat, ntyp => nsp, atm\
+!  USE cell_base,  ONLY : ibrav\
 ! END BACKWARD COMPATIBILITY\
   USE martyna_tuckerman, ONLY : do_comp_mt\
   USE environ_input,     ONLY : read_environ\
@@ -132,9 +132,9 @@ sed '/Environ CALLS BEGIN/ a\
       CALL set_environ_output(prog, ionode, ionode_id, intra_image_comm, stdout)\
 ! BACKWARD COMPATIBILITY\
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X\
-!      CALL read_environ(prog, 1, nspin, nat, ntyp, atm, do_comp_mt)\
+      CALL read_environ(prog, 1, nspin, nat, ntyp, atm, do_comp_mt)\
 ! Compatible with QE-6.4.X QE-GIT\
-      CALL read_environ(prog, 1, nat, ntyp, atm, do_comp_mt)\
+!      CALL read_environ(prog, 1, nat, ntyp, atm, do_comp_mt)\
 ! END BACKWARD COMPATIBILITY\
    ENDIF\
 !Environ patch
@@ -406,9 +406,9 @@ sed '/Environ CALLS BEGIN/ a\
         !\
 ! BACKWARD COMPATIBILITY\
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec )\
+        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec )\
 ! Compatible with QE-6.4.X QE-GIT\
-        CALL environ_initelectrons( dfftp%nnr, rhoin%of_r(:,1), nelec )\
+!        CALL environ_initelectrons( dfftp%nnr, rhoin%of_r(:,1), nelec )\
 ! END BACKWARD COMPATIBILITY\
         !\
         ! environ contribution to the local potential\

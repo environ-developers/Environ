@@ -67,9 +67,9 @@ CONTAINS
 !--------------------------------------------------------------------
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-! SUBROUTINE calc_vsolvent_tddfpt(nnr, nspin, rho_0, drho_elec, dv_pol, dv_epsilon)
+ SUBROUTINE calc_vsolvent_tddfpt(nnr, nspin, rho_0, drho_elec, dv_pol, dv_epsilon)
 ! Compatible with QE-6.4.X QE-GIT
- SUBROUTINE calc_vsolvent_tddfpt(nnr, rho_0, drho_elec, dv_pol, dv_epsilon)
+! SUBROUTINE calc_vsolvent_tddfpt(nnr, rho_0, drho_elec, dv_pol, dv_epsilon)
 ! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
    USE environ_base, ONLY: cell, velectrostatic, lsoftsolvent, loptical, optical, ltddfpt
@@ -82,7 +82,7 @@ CONTAINS
    INTEGER, INTENT(IN)     :: nnr              ! number of grid points in R-space
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-!   INTEGER, INTENT(IN)     :: nspin            ! if nspin=2 spin-polarized case (not supported)
+   INTEGER, INTENT(IN)     :: nspin            ! if nspin=2 spin-polarized case (not supported)
 ! Compatible with QE-6.4.X QE-GIT
 !
 ! END BACKWARD COMPATIBILITY
@@ -115,13 +115,13 @@ CONTAINS
    CALL create_environ_electrons( response_electrons )
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!   CALL init_environ_electrons_first( 0, 1, response_electrons )
-!   CALL init_environ_electrons_second( cell, response_electrons )
-!   CALL update_environ_electrons( 1, nnr, drho_elec, response_electrons, 0.D0 )
-! Compatible with QE-6.4.X QE-GIT
-   CALL init_environ_electrons_first( 0, response_electrons )
+   CALL init_environ_electrons_first( 0, 1, response_electrons )
    CALL init_environ_electrons_second( cell, response_electrons )
-   CALL update_environ_electrons( nnr, drho_elec, response_electrons, 0.D0 )
+   CALL update_environ_electrons( 1, nnr, drho_elec, response_electrons, 0.D0 )
+! Compatible with QE-6.4.X QE-GIT
+!   CALL init_environ_electrons_first( 0, response_electrons )
+!   CALL init_environ_electrons_second( cell, response_electrons )
+!   CALL update_environ_electrons( nnr, drho_elec, response_electrons, 0.D0 )
 ! END BACKWARD COMPATIBILITY
    !
    ! ... Link together different sources of electrostatic potential ( charges + dielectric + electrolyte )
