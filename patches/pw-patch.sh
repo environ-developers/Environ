@@ -97,8 +97,11 @@ sed '/Environ MODULES BEGIN/ a\
 !  USE input_parameters, ONLY : nspin\
 !  USE input_parameters, ONLY : nat, ntyp, atm => atom_label\
 !  USE input_parameters, ONLY : ibrav\
-! Compatible with QE-6.3.X and QE-GIT\
-  USE lsda_mod,   ONLY : nspin\
+! Compatible with QE-6.3.X\
+!  USE lsda_mod,   ONLY : nspin\
+!  USE ions_base,  ONLY : nat, ntyp => nsp, atm\
+!  USE cell_base,  ONLY : ibrav\
+! Compatible with QE-6.4.X QE-GIT\
   USE ions_base,  ONLY : nat, ntyp => nsp, atm\
   USE cell_base,  ONLY : ibrav\
 ! END BACKWARD COMPATIBILITY\
@@ -122,12 +125,17 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
 ! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X\
 !      prog = "PW"\
-! Compatible with QE-6.3.X and QE-GIT\
+! Compatible with QE-6.3.X QE-6.4.X QE-GIT\
 ! END BACKWARD COMPATIBILITY\
       CALL set_environ_output(prog, ionode, ionode_id, intra_image_comm, stdout)\
-      CALL read_environ(prog,1, nspin, nat, ntyp, atm, do_comp_mt)\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X\
+!      CALL read_environ(prog, 1, nspin, nat, ntyp, atm, do_comp_mt)\
+! Compatible with QE-6.4.X QE-GIT\
+      CALL read_environ(prog, 1, nat, ntyp, atm, do_comp_mt)\
+! END BACKWARD COMPATIBILITY\
    ENDIF\
 !Environ patch
 ' tmp.2 > tmp.1
@@ -158,7 +166,7 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
       !\
-! BACKWARD COMPATIBILITY \
+! BACKWARD COMPATIBILITY\
 ! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
 !       prog = "PW"\
 ! Compatible with QE-6.3.X and QE-GIT\
@@ -396,7 +404,12 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         ! update electrons-related quantities in environ\
         !\
-        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec )\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec )\
+! Compatible with QE-6.4.X QE-GIT\
+        CALL environ_initelectrons( dfftp%nnr, rhoin%of_r(:,1), nelec )\
+! END BACKWARD COMPATIBILITY\
         !\
         ! environ contribution to the local potential\
         !\

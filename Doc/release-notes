@@ -1,6 +1,10 @@
 New in development version:
 
-  * Confinement potential introduced 
+  * confinement potential introduced
+
+  * non-linear Poisson-Bolzmann and modified Poisson-Bolzmann
+
+  * additional interactions in diffuse layer
 
 Problems fixed in development version:
 
@@ -11,11 +15,19 @@ Problems fixed in development version:
     2-D systems (calculations with dielectric and 1- or 2-D system boundary 
     were affected)
 
+  * fixed a bug in dielectric regions when optical permittivity is different from vacuum
+
+  * decreased tolerance for check on electronic charge in utils_charges.f90
+ 
+  * fixed a small bug that prevented compilation in environ_init.f90 
+
   * modified the local arrays in compute_convolution_fft to avoid 
     large automatic arrays written on the stack (segmentation fault on
     Mac with default compilation options, i.e. small stack) 
 
 Incompatible changes in development version:
+
+  * from QE-6.4 Environ has no information on spin
 
   * from QE-6.3 it is no longer possible to speficy PBC correction 
     scheme of Environ using the assume_isolated keyword in the pw input file

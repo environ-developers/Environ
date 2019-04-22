@@ -202,11 +202,22 @@ CONTAINS
     REAL( DP ), DIMENSION(3,nregions), INTENT(IN) :: epsregion_pos
     TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
     !
+    INTEGER :: i
+    !
     dielectric%nregions = nregions
-    IF ( dielectric%nregions .GT. 0 ) &
-         & CALL create_environ_functions( dielectric%nregions, 4, epsregion_dim, &
-         & epsregion_axis, epsregion_pos, epsregion_width, epsregion_spread, &
-         & epsregion_eps, dielectric%regions )
+    IF ( dielectric%nregions .GT. 0 ) THEN
+       ALLOCATE( dielectric % regions(nregions) )
+       DO i = 1, dielectric%nregions
+          dielectric % regions(i) % type = 4
+          dielectric % regions(i) % dim = epsregion_dim(i)
+          dielectric % regions(i) % axis = epsregion_axis(i)
+          dielectric % regions(i) % spread = epsregion_spread(i)
+          dielectric % regions(i) % width = epsregion_width(i)
+          dielectric % regions(i) % volume = epsregion_eps(i)
+          ALLOCATE( dielectric % regions(i) % pos(3) )
+          dielectric % regions(i) % pos = epsregion_pos(:,i)
+       END DO
+    END IF
     !
     RETURN
     !

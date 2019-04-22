@@ -18,10 +18,15 @@ $ECHO
 $ECHO "and with open boundary conditions along the axis perpendicular "
 $ECHO "to the slab plane, as described in "
 $ECHO
-$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) "
 
 # set the needed environment variables
 . ../../../environment_variables
+
+# compatibility with QE for versions prior to 6.4
+if [ -z $NETWORK_PSEUDO ]; then
+    NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+fi
 
 # required executables and pseudopotentials
 BIN_LIST="pw.x"
@@ -64,7 +69,8 @@ for FILE in $PSEUDO_LIST ; do
     if test ! -r $PSEUDO_DIR/$FILE ; then
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
-            $WGET $PSEUDO_DIR/$FILE $NETWORK_PSEUDO/$FILE 2> /dev/null 
+            $WGET $PSEUDO_DIR/$FILE \
+                $NETWORK_PSEUDO/$FILE 2> /dev/null
     fi
     if test $? != 0; then
         $ECHO
@@ -83,38 +89,38 @@ $ECHO
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
 verbose=0             # if GE 1 prints debug informations
-                      # if GE 2 prints out gaussian cube files with 
+                      # if GE 2 prints out gaussian cube files with
                       # dielectric function, polarization charges, etc
                       # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d0'    # electronic convergence threshold for the onset  
+environ_thr='1.d0'    # electronic convergence threshold for the onset
                       # of solvation correction
 ### EXTERNAL CHARGES PARAMETERS #####################################
 env_extcharge_n=2          # Number of external objects to be used
-                           # key control parameter for the module, 
-                           # only activated if different from 0. 
+                           # key control parameter for the module,
+                           # only activated if different from 0.
 extcharge_pos_3_1='25.697'  # Position (x=1,y=2,z=3 first index of the vector)
-extcharge_pos_3_2='-10.303' # of each external object (second index) wrt 
+extcharge_pos_3_2='-10.303' # of each external object (second index) wrt
                            # the origin specified above, only need to
 	                   # specify the values different from 0.d0.
                            # Values specified are in internal units (a.u.)
-extcharge_dim=2            # Dimensionality of the object: 0 = gaussian point, 
+extcharge_dim=2            # Dimensionality of the object: 0 = gaussian point,
 	                   # 1 = gaussian line, 2 = gaussian plane
-extcharge_axis=3           # Axis of the object: for planes it is the 
+extcharge_axis=3           # Axis of the object: for planes it is the
                            # orthogonal axis, for lines it is the line's axis
-                           # no use for points.  
+                           # no use for points.
 extcharge_charge='-0.5'    # Charge of each object (in internal units)
                            # same convention as in tot_charge
 extcharge_spread='1.0'     # Spread of the object (gaussian shape) in a.u.
 ### PERIODIC BOUNDARY CONDITIONS ####################################
 env_electrostatic='.true.' # modify electrostatic embedding (required to
                            #   switch on PBC corrections in vacuum)
-pbc_correction='parabolic' # correction scheme to remove PBC 
-                           # none: periodic calculation, no correction 
+pbc_correction='parabolic' # correction scheme to remove PBC
+                           # none: periodic calculation, no correction
                            # parabolic: quadratic real-space correction
 pbc_dim=2                  # select the desired system dimensionality
                            #   0, 1 or 2: isolated, 1D or 2D system
-pbc_axis=3                 # set the axis along the 1D direction or 
-                           #   normal to the 2D plane (pbc_axis = 1, 2 
+pbc_axis=3                 # set the axis along the 1D direction or
+                           #   normal to the 2D plane (pbc_axis = 1, 2
                            #   or 3 for x, y or z axis)
 #####################################################################
 for epsilon in 1 80 ; do
@@ -137,7 +143,7 @@ for epsilon in 1 80 ; do
     prefix=PtCO_helmholtz_${label}
     input=${prefix}'.in'
     output=${prefix}'.out'
-    cat > $input << EOF 
+    cat > $input << EOF
  &CONTROL
    !
    calculation = 'scf'
@@ -192,13 +198,13 @@ Pt       5.335161233   7.697749113   4.753489408
 Pt       2.697860636   3.152173889   4.688412329
 Pt       7.972463687   3.152174491   4.688415209
 EOF
-   cat > environ_${label}.in << EOF 
+   cat > environ_${label}.in << EOF
  &ENVIRON
    !
    verbose = $verbose
    environ_thr = $environ_thr
    environ_type = 'input'
-   env_electrostatic = $env_electrostatic 
+   env_electrostatic = $env_electrostatic
    env_static_permittivity = $epsilon
    env_surface_tension = 0.D0
    env_pressure = 0.D0
@@ -213,8 +219,8 @@ EOF
  &ELECTROSTATIC
    !
    pbc_correction = '$pbc_correction'
-   pbc_dim = $pbc_dim                 
-   pbc_axis = $pbc_axis   
+   pbc_dim = $pbc_dim
+   pbc_axis = $pbc_axis
    tol = 5.D-13
    !
  /
@@ -222,9 +228,9 @@ EOF
  $extcharge_charge 0. 0. $extcharge_pos_3_1 $extcharge_spread $extcharge_dim $extcharge_axis
  $extcharge_charge 0. 0. $extcharge_pos_3_2 $extcharge_spread $extcharge_dim $extcharge_axis
 EOF
-   
-   cp environ_${label}.in environ.in 
-   $PW_COMMAND < $input > $output 
+
+   cp environ_${label}.in environ.in
+   $PW_COMMAND < $input > $output
    check_failure $?
    $ECHO " done"
 

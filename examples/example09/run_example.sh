@@ -13,12 +13,17 @@ $ECHO
 $ECHO "This example shows how to use the pw.x and turbo_davidson.x codes"
 $ECHO "to calculate the absorption spectrum of the CH4 molecule in water"
 $ECHO "using a fully self-consistent dielectric defined on the electronic density"
-$ECHO "and using the Davidson algorithm within the time-dependent density" 
+$ECHO "and using the Davidson algorithm within the time-dependent density"
 $ECHO "functional perturbation theory according to I. Timrov, O. Andreussi, A. Biancardi,"
 $ECHO "N. Marzari, and S. Baroni, J. Chem. Phys. 142, 034111 (2015)."
 
 # set the needed environment variables
 . ../../../environment_variables
+
+# compatibility with QE for versions prior to 6.4
+if [ -z $NETWORK_PSEUDO ]; then
+    NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+fi
 
 # required executables and pseudopotentials
 BIN_LIST="pw.x turbo_davidson.x"
@@ -61,7 +66,8 @@ for FILE in $PSEUDO_LIST ; do
     if test ! -r $PSEUDO_DIR/$FILE ; then
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
-            $WGET $PSEUDO_DIR/$FILE $NETWORK_PSEUDO/$FILE 2> /dev/null 
+            $WGET $PSEUDO_DIR/$FILE \
+                $NETWORK_PSEUDO/$FILE 2> /dev/null
     fi
     if test $? != 0; then
         $ECHO
@@ -75,14 +81,14 @@ $ECHO " done"
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
 verbose=0                      # if GE 1 prints debug informations
-                               # if GE 2 prints out gaussian cube files with 
+                               # if GE 2 prints out gaussian cube files with
                                # dielectric function, polarization charges, etc
                                # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d-1'            # electronic convergence threshold for the onset  
+environ_thr='1.d-1'            # electronic convergence threshold for the onset
                                # of solvation correction
 environ_type="vacuum"          # type of environment
                                # input: read parameters from input
-                               # vacuum: all flags off, no environ 
+                               # vacuum: all flags off, no environ
 env_static_permittivity=78.5   # static permittivity of water
 env_optical_permittivity=1.776 # optical permittivity of water
 env_surface_tension=0.0        # surface tension (not supported by TDDFPT)
@@ -91,7 +97,7 @@ env_pressure=0.0               # pressure (not supported by TDDFPT)
 tol='1.d-12'  # tolerance of the iterative solver
 #####################################################################
 
-for environ_type in vacuum input ; do 
+for environ_type in vacuum input ; do
 
 # clean TMP_DIR
 $ECHO "  cleaning $TMP_DIR...\c"
@@ -138,7 +144,7 @@ cat > environ.in << EOF
  /
 EOF
 fi
- 
+
 prefix=CH4_$prefix_environ
 
 # Ground-state SCF calculation
@@ -172,7 +178,7 @@ prefix=CH4_$prefix_environ
    electron_maxstep = 100
    !
  /
-ATOMIC_SPECIES  
+ATOMIC_SPECIES
  H   1  H.pz-vbc.UPF
  C  12  C.pz-vbc.UPF
 ATOMIC_POSITIONS {Angstrom}
@@ -187,8 +193,6 @@ $ECHO "  running the scf calculation...\c"
 $PW_COMMAND < ${prefix}.scf.in > ${prefix}.scf.out
 check_failure $?
 $ECHO " done"
-
-
 
 # TDDFPT calculation using the Davidson algorithm
 cat > ${prefix}.turbo-davidson.in << EOF
@@ -218,9 +222,7 @@ $TURBO_DAVIDSON_COMMAND < ${prefix}.turbo-davidson.in > ${prefix}.turbo-davidson
 check_failure $?
 $ECHO " done"
 
-
 done
-
 
 $ECHO
 $ECHO "$EXAMPLE_DIR : done"

@@ -32,9 +32,13 @@ $ECHO "          F. Nattino, M. Truscott, N. Marzari, O. Andreussi,"
 $ECHO "                   J. Chem. Phys. 150, 041722 (2019)."
 $ECHO
 
-
 # set the needed environment variables
 . ../../../environment_variables
+
+# compatibility with QE for versions prior to 6.4
+if [ -z $NETWORK_PSEUDO ]; then
+    NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+fi
 
 # required executables and pseudopotentials
 BIN_LIST="pw.x"
@@ -77,7 +81,8 @@ for FILE in $PSEUDO_LIST ; do
     if test ! -r $PSEUDO_DIR/$FILE ; then
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
-            $WGET $PSEUDO_DIR/$FILE $NETWORK_PSEUDO/$FILE 2> /dev/null 
+            $WGET $PSEUDO_DIR/$FILE \
+                $NETWORK_PSEUDO/$FILE 2> /dev/null
     fi
     if test $? != 0; then
         $ECHO
@@ -261,9 +266,9 @@ for model in PB MPB ; do
    env_pressure = 0.D0
    env_electrolyte_ntyp = $env_electrolyte_ntyp
    zion(1) = $zion
-   zion(2) = -$zion                  
+   zion(2) = -$zion
    cion(1) = $cion
-   cion(2) = $cion             
+   cion(2) = $cion
    cionmax = $cionmax
    temperature = $temperature
    system_dim = $system_dim            
@@ -279,8 +284,8 @@ for model in PB MPB ; do
 /
 &ELECTROSTATIC
    pbc_correction = '$pbc_correction'
-   pbc_dim = $pbc_dim                 
-   pbc_axis = $pbc_axis   
+   pbc_dim = $pbc_dim
+   pbc_axis = $pbc_axis
    tol = 5.D-13
    inner_tol = 5.D-18
 /

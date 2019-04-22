@@ -511,7 +511,12 @@ MODULE environ_input
 !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE read_environ(prog,nelec,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     USE environ_init, ONLY : set_environ_base
@@ -519,7 +524,13 @@ CONTAINS
     !
     CHARACTER(len=*), INTENT(IN) :: prog
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-    INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp
+    INTEGER, INTENT(IN) :: nelec, nat, ntyp
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
     REAL( DP ), DIMENSION(:), INTENT(IN), OPTIONAL :: ion_radius
     !
@@ -578,13 +589,23 @@ CONTAINS
                                   screening_type, screening, core,       &
                                   boundary_core, ifdtype, nfdpoint,      &
                                   use_internal_pbc_corr, pbc_correction, &
-                                  pbc_dim, pbc_axis, nspin, prog,        &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!                                  pbc_dim, pbc_axis, nspin, prog,        &
+! Compatible with QE-6.4.X QE-GIT
+                                  pbc_dim, pbc_axis, prog,        &
+! END BACKWARD COMPATIBILITY
                                   inner_tol, inner_solver, inner_maxstep,&
                                   inner_mix )
     !
     ! ... Then set environ base
     !
-    CALL set_environ_base  ( prog, nelec, nspin,                         &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL set_environ_base  ( prog, nelec, nspin,                         &
+! Compatible with QE-6.4.X QE-GIT
+    CALL set_environ_base  ( prog, nelec,                                &
+! END BACKWARD COMPATIBILITY
                              nat, ntyp, atom_label, atomicspread,        &
                              corespread, solvationrad,                   &
                              oldenviron, environ_restart, environ_thr,   &
