@@ -14,14 +14,15 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains the main drivers and routines to compute the
-! electrostatic potential that is the solution of a
-! generalized Poisson equation:
-!
-!      \nabla \cdot \epsilon (r) \nabla \phi = -4 \pi \rho
-!
-! Different algorithms (gradient descent on potential and iterative
-! on the polarization charge) are available and implemented.
+!> This module contains the main drivers and routines to compute the
+!! electrostatic potential that is the solution of a
+!! generalized Poisson equation:
+!! \f[
+!!      \nabla \cdot \epsilon (r) \nabla \phi = -4 \pi \rho
+!! \f]
+!!
+!! Different algorithms (gradient descent on potential and iterative
+!! on the polarization charge) are available and implemented.
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -35,7 +36,7 @@ MODULE problem_generalized
   USE environ_types
   USE electrostatic_types
   USE environ_output
-  USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct, poisson_energy
+  USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct!, poisson_energy
   USE environ_base, ONLY : e2, oldenviron, add_jellium, ltddfpt
   USE correction_periodic, ONLY : calc_v0periodic
   !
@@ -43,7 +44,7 @@ MODULE problem_generalized
   !
   PRIVATE
   !
-  PUBLIC :: generalized_gradient, generalized_energy
+  PUBLIC :: generalized_gradient!, generalized_energy
   !
   INTERFACE generalized_gradient
      MODULE PROCEDURE generalized_gradient_charges, generalized_gradient_density
@@ -75,15 +76,18 @@ CONTAINS
              !
           CASE ( 'none' )
              !
-             CALL generalized_gradient_none( solver % gradient, core, charges%density, charges%dielectric, potential )
+             CALL generalized_gradient_none( solver % gradient, core, charges%density, &
+                                    charges%dielectric, potential, charges%electrolyte )
              !
           CASE ( 'sqrt' )
              !
-             CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, charges%dielectric, potential )
+             CALL generalized_gradient_sqrt( solver % gradient, core, charges%density, &
+                                    charges%dielectric, potential, charges%electrolyte )
              !
           CASE ( 'left' )
              !
-             CALL generalized_gradient_left( solver % gradient, core, charges%density, charges%dielectric, potential )
+             CALL generalized_gradient_left( solver % gradient, core, charges%density, &
+                                    charges%dielectric, potential, charges%electrolyte )
              !
           CASE DEFAULT
              !
@@ -102,7 +106,8 @@ CONTAINS
        !
        IF ( solver % auxiliary .EQ. 'full' ) THEN
           !
-          CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, potential )
+          CALL generalized_iterative( solver % iterative, core, charges%density, &
+                              charges%dielectric, potential, charges%electrolyte )
           !
        ELSE
           !
@@ -125,7 +130,7 @@ CONTAINS
   END SUBROUTINE generalized_gradient_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, potential )
+  SUBROUTINE generalized_gradient_density( solver, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -135,6 +140,7 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: charges
     TYPE( environ_dielectric ), INTENT(IN) :: dielectric
     TYPE( environ_density ), INTENT(INOUT) :: potential
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     CHARACTER*20 :: sub_name = 'generalized_gradient'
     !
@@ -150,15 +156,15 @@ CONTAINS
              !
           CASE ( 'none' )
              !
-             CALL generalized_gradient_none( solver % gradient, core, charges, dielectric, potential )
+             CALL generalized_gradient_none( solver % gradient, core, charges, dielectric, potential, electrolyte )
              !
           CASE ( 'sqrt' )
              !
-             CALL generalized_gradient_sqrt( solver % gradient, core, charges, dielectric, potential )
+             CALL generalized_gradient_sqrt( solver % gradient, core, charges, dielectric, potential, electrolyte )
              !
           CASE ( 'left' )
              !
-             CALL generalized_gradient_left( solver % gradient, core, charges, dielectric, potential )
+             CALL generalized_gradient_left( solver % gradient, core, charges, dielectric, potential, electrolyte )
              !
           CASE DEFAULT
              !
@@ -177,7 +183,7 @@ CONTAINS
        !
        IF ( solver % auxiliary .EQ. 'full' ) THEN
           !
-          CALL generalized_iterative( solver % iterative, core, charges, dielectric, potential )
+          CALL generalized_iterative( solver % iterative, core, charges, dielectric, potential, electrolyte )
           !
        ELSE
           !
@@ -199,72 +205,72 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE generalized_gradient_density
 !--------------------------------------------------------------------
+!!--------------------------------------------------------------------
+!  SUBROUTINE generalized_energy( core, charges, potential, energy )
+!!--------------------------------------------------------------------
+!    !
+!    IMPLICIT NONE
+!    !
+!    TYPE( electrostatic_core ), INTENT(IN) :: core
+!    TYPE( environ_charges ), INTENT(IN) :: charges
+!    TYPE( environ_density ), INTENT(IN) :: potential
+!    REAL( DP ), INTENT(OUT) :: energy
+!    !
+!    REAL( DP ) :: degauss, eself
+!    CHARACTER*20 :: sub_name = 'generalized_energy'
+!    !
+!    CALL start_clock( 'calc_esolv' )
+!    !
+!    ! Aliases and sanity checks
+!    !
+!    IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
+!         & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
+!    !
+!    energy = 0.D0
+!    !
+!    CALL poisson_energy( core, charges, potential, energy )
+!    !
+!    ! Adding correction for point-like nuclei: only affects simulations of charged
+!    ! systems, it does not affect forces, but shift the energy depending on the
+!    ! fictitious Gaussian spread of the nuclei
+!    !
+!    eself = 0.D0
+!    degauss = 0.D0
+!    !
+!    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
+!       !
+!       ! Compute spurious self-polarization energy
+!       !
+!       eself = 0.D0
+!       !
+!       IF ( core % use_qe_fft ) THEN
+!          !
+!          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+!             !
+!             degauss = 0.D0
+!             !
+!          ELSE
+!             !
+!             degauss = - charges % ions % quadrupole_correction * charges % dielectric % charge * e2 * pi &
+!                  & / charges % density % cell % omega
+!             !
+!          ENDIF
+!          !
+!       ENDIF
+!       !
+!    ENDIF
+!    !
+!    energy = energy + eself + degauss
+!    !
+!    CALL stop_clock( 'calc_esolv' )
+!    !
+!    RETURN
+!    !
+!!--------------------------------------------------------------------
+!  END SUBROUTINE generalized_energy
+!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generalized_energy( core, charges, potential, energy )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(IN) :: charges
-    TYPE( environ_density ), INTENT(IN) :: potential
-    REAL( DP ), INTENT(OUT) :: energy
-    !
-    REAL( DP ) :: degauss, eself
-    CHARACTER*20 :: sub_name = 'generalized_energy'
-    !
-    CALL start_clock( 'calc_esolv' )
-    !
-    ! Aliases and sanity checks
-    !
-    IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
-         & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
-    !
-    energy = 0.D0
-    !
-    CALL poisson_energy( core, charges, potential, energy )
-    !
-    ! Adding correction for point-like nuclei: only affects simulations of charged
-    ! systems, it does not affect forces, but shift the energy depending on the
-    ! fictitious Gaussian spread of the nuclei
-    !
-    eself = 0.D0
-    degauss = 0.D0
-    !
-    IF ( charges % include_ions .AND. charges % ions % use_smeared_ions ) THEN
-       !
-       ! Compute spurious self-polarization energy
-       !
-       eself = 0.D0
-       !
-       IF ( core % use_qe_fft ) THEN
-          !
-          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
-             !
-             degauss = 0.D0
-             !
-          ELSE
-             !
-             degauss = - charges % ions % quadrupole_correction * charges % dielectric % charge * e2 * pi &
-                  & / charges % density % cell % omega
-             !
-          ENDIF
-          !
-       ENDIF
-       !
-    ENDIF
-    !
-    energy = energy + eself + degauss
-    !
-    CALL stop_clock( 'calc_esolv' )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE generalized_energy
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential )
+  SUBROUTINE generalized_iterative( iterative, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -274,6 +280,7 @@ CONTAINS
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: eps, rhoiter, rhotot
@@ -342,7 +349,7 @@ CONTAINS
        !
        rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
        !
-       CALL poisson_gradient_direct( core, rhotot, gradpoisson )
+       CALL poisson_gradient_direct( core, rhotot, gradpoisson, electrolyte )
        !
        CALL scalar_product_environ_gradient( gradlogeps, gradpoisson, residual )
        !
@@ -358,7 +365,7 @@ CONTAINS
        totiter = integrate_environ_density( rhoiter )
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
 9003   FORMAT(' Total iterative polarization charge = ',4F13.6)
        IF ( delta_en .LT. tolrhoaux .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
@@ -378,7 +385,7 @@ CONTAINS
     !
     rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
     !
-    CALL poisson_direct( core, rhotot, potential )
+    CALL poisson_direct( core, rhotot, potential, electrolyte )
     !
     ! ... In rhotot store total polarization charge
     !
@@ -396,7 +403,7 @@ CONTAINS
   END SUBROUTINE generalized_iterative
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, potential )
+  SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -406,6 +413,7 @@ CONTAINS
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: x, b, eps
@@ -515,7 +523,7 @@ CONTAINS
        r%of_r = r%of_r - alpha * Ap%of_r
        !
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,*)'alpha = ',alpha,' beta = ',beta
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' pAp = ',pAp
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' pAp = ',pAp
        !
        ! ... If residual is small enough exit
        !
@@ -551,7 +559,7 @@ CONTAINS
   END SUBROUTINE generalized_gradient_none
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, potential )
+  SUBROUTINE generalized_gradient_sqrt( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -561,6 +569,7 @@ CONTAINS
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: x, b, eps, factsqrt
@@ -618,7 +627,7 @@ CONTAINS
        ! ... Preconditioning step
        !
        z%of_r = r%of_r * invsqrt%of_r
-       CALL poisson_direct( core, z, z )
+       CALL poisson_direct( core, z, z, electrolyte )
        z%of_r = z%of_r * invsqrt%of_r
        !
        rzold = scalar_product_environ_density( r, z )
@@ -659,7 +668,7 @@ CONTAINS
        ! ... Apply preconditioner to new state
        !
        z%of_r = r%of_r * invsqrt%of_r
-       CALL poisson_direct( core, z, z )
+       CALL poisson_direct( core, z, z, electrolyte )
        z%of_r = z%of_r * invsqrt%of_r
        !
        rznew = scalar_product_environ_density( r, z )
@@ -673,7 +682,7 @@ CONTAINS
        ELSE
           beta = 0.D0
        END IF
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
        rzold = rznew
        !
        p%of_r = z%of_r + beta * p%of_r
@@ -740,7 +749,7 @@ CONTAINS
   END SUBROUTINE generalized_gradient_sqrt
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, potential )
+  SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -750,6 +759,7 @@ CONTAINS
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
+    TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: x, b, eps
@@ -855,7 +865,7 @@ CONTAINS
        ! ... Apply preconditioner to new state
        !
        z%of_r = r%of_r / eps%of_r
-       CALL poisson_direct( core, z, z )
+       CALL poisson_direct( core, z, z, electrolyte )
        !
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
@@ -868,7 +878,7 @@ CONTAINS
        ELSE
           beta = 0.D0
        END IF
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
        rzold = rznew
        !
        p%of_r = z%of_r + beta * p%of_r

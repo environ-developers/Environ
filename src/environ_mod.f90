@@ -14,8 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains all control variables and stored variables
-! needed for the Environ calculation
+!> This module contains all control variables and stored variables
+!! needed for the Environ calculation
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -150,6 +150,13 @@ MODULE environ_base
   REAL (KIND=DP) ::                 &
        env_pressure
   !
+  ! Confinement potential parameters
+  !
+  LOGICAL ::                        &
+       lconfine
+  REAL (KIND=DP) ::                 &
+       env_confine
+  !
   ! Periodicity correction parameters
   !
   LOGICAL ::                        &
@@ -170,11 +177,13 @@ MODULE environ_base
        esurface,                    &
        evolume,                     &
        eelectrolyte,                &
-       fermi_shift
+       econfine,                    &
+       potential_shift
   TYPE ( environ_density ) ::       &
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
+       vconfine,                    &
        vsoftcavity
 !----------------------------------------------------------------------------
 END MODULE environ_base

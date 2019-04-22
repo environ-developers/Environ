@@ -14,7 +14,7 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to initialize electrostatic-related variables
+!> Module to initialize electrostatic-related variables
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -34,6 +34,10 @@ MODULE electrostatic_init
   !
 CONTAINS
   !
+  !  Subroutine: set_electrostatic_base
+  !
+  !> Copies input variables read in input to global variables
+  !! kept in the electrostatic_base module
 !--------------------------------------------------------------------
   SUBROUTINE set_electrostatic_base                         &
        ( problem, tol, solver_type, auxiliary,              &
@@ -41,32 +45,48 @@ CONTAINS
        preconditioner, screening_type, screening,           &
        core_type, boundary_core_, ifdtype, nfdpoint,        &
        use_internal_pbc_corr, pbc_correction, pbc_dim_,     &
-       pbc_axis_, nspin, prog )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!       pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
+! Compatbile with QE-6.4.X QE-GIT
+       pbc_axis_, prog, inner_tol, inner_solver_type, &
+! END BACKWARD COMPATIBILITY
+       inner_maxstep, inner_mix )
 !--------------------------------------------------------------------
-    !
-    ! ... this routine copies input variables read in input
-    ! ... to global variables kept in the electrostatic_base module
-    !
     IMPLICIT NONE
     !
     CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
     INTEGER, INTENT(IN) :: maxstep, ndiis, ifdtype, nfdpoint,       &
-         pbc_dim_, pbc_axis_, nspin
-    REAL(DP), INTENT(IN) :: tol, step, mix, screening
+         pbc_dim_, pbc_axis_, inner_maxstep
+    REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol,   &
+         inner_mix
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatbile with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
+    !
     CHARACTER( LEN = * ), INTENT(IN) :: problem, solver_type,       &
          auxiliary, step_type, mix_type, preconditioner,            &
          screening_type, core_type, boundary_core_,                 &
-         pbc_correction, prog
+         pbc_correction, prog, inner_solver_type
     !
     INTEGER :: i
-    CHARACTER( LEN = 80 ) :: local_type
+    CHARACTER( LEN = 80 ) :: local_type, local_auxiliary, local_problem, inner_problem
     !
     ! Initial setup of core flags
     !
     lfd = .FALSE.
     loned_analytic = .FALSE.
     lqe_fft = .FALSE.
+    !
+    ! Setup nested scheme if required
+    !
+    lnested = .FALSE.
+    IF ( .NOT. inner_solver_type .EQ. 'none' ) lnested = .TRUE.
     !
     ! Set reference core according to calling program
     !
@@ -93,6 +113,7 @@ CONTAINS
     ! Numerical core for periodic boundary correction
     !
     need_pbc_correction = .FALSE.
+    need_electrolyte = .FALSE.
     CALL create_electrostatic_core( pbc_core )
     !
     ! first check keywords specfied in input
@@ -106,6 +127,12 @@ CONTAINS
        CASE ( 'parabolic' )
           need_pbc_correction = .TRUE.
           loned_analytic = .TRUE.
+          local_type = '1da'
+       CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
+          need_pbc_correction = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'gcs'
        CASE DEFAULT
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT
@@ -113,37 +140,46 @@ CONTAINS
     END IF
     !
     IF ( need_pbc_correction ) THEN
-       IF ( loned_analytic ) THEN
-          local_type = "1da"
+       IF ( loned_analytic ) &
           CALL init_electrostatic_core( type = local_type, oned_analytic = oned_analytic , core = pbc_core )
-       ENDIF
     ENDIF
     !
-    ! Set up main (outer) core
+    ! Set up main (outer) core and inner core (if nested scheme)
     !
     CALL create_electrostatic_core( outer_core )
+    IF ( lnested ) CALL create_electrostatic_core( inner_core )
     SELECT CASE ( core_type )
     CASE ( 'fft' )
        lqe_fft = .TRUE.
        CALL init_electrostatic_core( type = core_type, qe_fft = qe_fft, core = outer_core )
+       IF ( lnested ) CALL init_electrostatic_core( type = core_type, qe_fft = qe_fft, core = inner_core )
     CASE( '1d-analytic', '1da' )
        loned_analytic = .TRUE.
        CALL init_electrostatic_core( type = core_type, oned_analytic = oned_analytic, core = outer_core )
+       IF ( lnested ) CALL init_electrostatic_core( type = core_type, oned_analytic = oned_analytic, core = inner_core )
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected value for electrostatic core_type keyword',1)
     END SELECT
     IF ( need_pbc_correction ) CALL add_correction( correction = pbc_core, core = outer_core )
+    IF ( lnested .AND. need_pbc_correction ) CALL add_correction( correction = pbc_core, core = inner_core )
     !
     ! Set up active numerical cores
     !
     IF ( lfd ) CALL init_fd_core( ifdtype, nfdpoint, fd )
-    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+! Compatible with QE-6.4.X QE-GIT
+    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr )
+! END BACKWARD COMPATIBILITY
     IF ( loned_analytic ) CALL init_oned_analytic_core_first( pbc_dim, pbc_axis, oned_analytic )
     !
     ! Initial setup of solver flags
     !
     lgradient = .FALSE.
+    lconjugate = .FALSE.
     literative = .FALSE.
+    lnewton = .FALSE.
     !
     ! Set reference solver according to calling program
     !
@@ -164,47 +200,103 @@ CONTAINS
        CALL init_electrostatic_solver( type = solver_type, solver = outer_solver )
     CASE ( 'cg', 'sd' )
        lgradient = .TRUE.
+       IF ( TRIM(ADJUSTL(solver_type)) .EQ. "cg" ) lconjugate = .TRUE.
        CALL init_electrostatic_solver( type = solver_type, auxiliary = auxiliary, &
             & gradient = gradient, solver = outer_solver )
     CASE ( 'iterative' )
        literative = .TRUE.
        CALL init_electrostatic_solver( type = solver_type, auxiliary = auxiliary, &
             & iterative = iterative, solver = outer_solver )
+    CASE ( 'newton' )
+       lnewton = .TRUE.
+       CALL init_electrostatic_solver( type = solver_type, auxiliary = auxiliary, &
+            & newton = newton, solver = outer_solver )
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected value for electrostatic solver keyword',1)
     END SELECT
     !
-    ! Set up active solvers
+    ! Set up active outer solvers
     !
-    IF ( lgradient ) CALL init_gradient_solver( solver_type, tol, step_type, step, maxstep, &
+    IF ( lgradient ) CALL init_gradient_solver( lconjugate, tol, step_type, step, maxstep, &
          & preconditioner, screening_type, screening, gradient )
     IF ( literative ) CALL init_iterative_solver( tol, mix_type, mix, maxstep, ndiis, iterative )
+    IF ( lnewton ) CALL init_newton_solver( tol, maxstep, newton )
+    !
+    ! If nested scheme, set up inner solver
+    !
+    IF ( lnested ) THEN
+       !
+       lgradient = .FALSE.
+       lconjugate = .FALSE.
+       literative = .FALSE.
+       !
+       CALL create_electrostatic_solver( inner_solver )
+       !
+       SELECT CASE ( solver_type )
+       CASE ( 'iterative' )
+          IF (auxiliary .EQ. 'ioncc') THEN
+             inner_problem = 'generalized'
+             SELECT CASE ( inner_solver_type )
+             CASE ( 'cg', 'sd' )
+                lgradient  = .TRUE.
+                IF ( TRIM(ADJUSTL(inner_solver_type)) .EQ. "cg" ) lconjugate = .TRUE.
+                CALL init_electrostatic_solver( type = inner_solver_type, gradient = inner_gradient, &
+                     & solver = inner_solver )
+             CASE ( 'iterative' )
+                literative = .TRUE.
+                local_auxiliary = 'full'
+                CALL init_electrostatic_solver( type = inner_solver_type, auxiliary = local_auxiliary, &
+                     & iterative = inner_iterative, solver = inner_solver )
+             END SELECT
+          ELSE
+             CALL errore(sub_name,'Unexpected value for auxiliary charge in nested solver',1)
+          END IF
+       CASE ( 'newton' )
+          inner_problem = 'linpb'
+          lgradient  = .TRUE.
+          lconjugate = .TRUE.
+          CALL init_electrostatic_solver( type = inner_solver_type, gradient = inner_gradient, &
+                     & solver = inner_solver )
+       END SELECT
+       IF ( lgradient ) CALL init_gradient_solver( lconjugate, inner_tol, step_type, step, &
+         & inner_maxstep, preconditioner, screening_type, screening, inner_gradient )
+       IF ( literative ) CALL init_iterative_solver( inner_tol, mix_type, inner_mix, inner_maxstep, &
+         & ndiis, inner_iterative )
+    END IF
     !
     ! Set reference setup according to calling program
     !
     CALL create_electrostatic_setup( reference )
     SELECT CASE ( prog )
     CASE ( 'PW', 'CP', 'TD' )
-       local_type = "poisson"
+       local_problem = "poisson"
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected name of host code',1)
     END SELECT
-    CALL init_electrostatic_setup( local_type , reference_solver, reference_core, reference )
+    CALL init_electrostatic_setup( local_problem , reference_solver, reference_core, reference )
     !
     ! Create outer setup
     !
     CALL create_electrostatic_setup( outer )
     CALL init_electrostatic_setup( problem, outer_solver, outer_core, outer )
     !
+    ! If nested scheme, create inner setup
+    !
+    IF ( lnested ) THEN
+       CALL create_electrostatic_setup( inner )
+       CALL init_electrostatic_setup( inner_problem, inner_solver, inner_core, inner )
+       CALL add_inner_setup( inner, outer )
+    END IF
+    !
     ! Set logical flags according to electrostatic set up
     !
     need_gradient = .FALSE.
     need_factsqrt = .FALSE.
     need_auxiliary = .FALSE.
-    linearized = .FALSE.
     !
-    CALL set_electrostatic_flags( reference, need_auxiliary, need_gradient, need_factsqrt, linearized )
-    CALL set_electrostatic_flags( outer, need_auxiliary, need_gradient, need_factsqrt, linearized )
+    CALL set_electrostatic_flags( reference, need_auxiliary, need_gradient, need_factsqrt)
+    CALL set_electrostatic_flags( outer, need_auxiliary, need_gradient, need_factsqrt)
+    IF (lnested ) CALL set_electrostatic_flags( inner, need_auxiliary, need_gradient, need_factsqrt)
     !
     RETURN
     !

@@ -14,11 +14,11 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to compute a cavitation functional, defined as the quantum surface
-! of the system times the surface tension of the environment.
-! Original method developed in Scherlis et al, J. Chem. Phys. (2006),
-! but formulas for the quantum surface were not correct and have been
-! rederived by Andreussi et al., J. Chem. Phys. 136, 064102 (2012)
+!> Module to compute a cavitation functional, defined as the quantum surface
+!! of the system times the surface tension of the environment.
+!! Original method developed in Scherlis et al, J. Chem. Phys. (2006),
+!! but formulas for the quantum surface were not correct and have been
+!! rederived by Andreussi et al., J. Chem. Phys. 136, 064102 (2012)
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -43,12 +43,13 @@ MODULE embedding_surface
   PUBLIC :: calc_desurface_dboundary, calc_esurface
   !
 CONTAINS
+!  
+!  Subroutine: calc_desurface_dboundary
+!
+!> Calculates the cavitation contribution to the potential
 !--------------------------------------------------------------------
   SUBROUTINE calc_desurface_dboundary( surface_tension, boundary, de_dboundary )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the cavitation contribution to the potential
-    !
     IMPLICIT NONE
     !
     ! ... Declares variables
@@ -67,12 +68,12 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_desurface_dboundary
 !--------------------------------------------------------------------
+!  Subroutine: calc_esurface
+!
+!> Calculates the cavitation contribution to the energy
 !--------------------------------------------------------------------
   SUBROUTINE calc_esurface( surface_tension, boundary, esurface )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the cavitation contribution to the energy
-    !
     IMPLICIT NONE
     !
     ! ... Declares variables

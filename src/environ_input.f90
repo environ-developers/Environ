@@ -147,17 +147,29 @@ MODULE environ_input
         REAL(DP) :: env_pressure = 0.D0
         ! external pressure for PV energy, if equal to zero no pressure term
 !
+! Confine energy parameters
+!
+        REAL(DP) :: env_confine = 0.D0
+        ! confinement potential
+!
 ! Ionic countercharge parameters
 !
+        LOGICAL :: electrolyte_linearized = .false.
+        ! solve linear-regime poisson-boltzmann problem
         INTEGER :: env_electrolyte_ntyp = 0
         ! number of counter-charge species in the electrolyte ( if != 0 must be >= 2 )
-        CHARACTER( LEN = 80 ) :: stern_entropy = 'full'
-        CHARACTER( LEN = 80 ) :: stern_entropy_allowed(2)
-        DATA stern_entropy_allowed / 'ions', 'full' /
+        CHARACTER( LEN = 80 ) :: electrolyte_entropy = 'full'
+        CHARACTER( LEN = 80 ) :: electrolyte_entropy_allowed(2)
+        DATA electrolyte_entropy_allowed / 'ions', 'full' /
         ! keyword to set the electrolyte entropy terms that are affected by the
         ! Stern-layer correction.
         ! ions = only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 )
         ! full = all terms ( Dabo et al. arXiv 0901.0096 )
+        CHARACTER( LEN = 80 ) :: ion_adsorption = 'none'
+        CHARACTER( LEN = 80 ) :: ion_adsorption_allowed(4)
+        DATA ion_adsorption_allowed / 'none', 'anion', 'cation', 'repulsion' /
+        ! include asymmetric adsorption of electrolyte.
+        ! ( Baskin and Prendergast J. Electrochem. Soc. 164, E3438 )
         REAL(DP) :: cion(nsx) = 1.D0
         ! molar concentration of ionic countercharge (M=mol/L)
         REAL(DP) :: cionmax = 1.D3
@@ -166,8 +178,10 @@ MODULE environ_input
         ! mean atomic radius of ionic countercharge (a.u.)
         REAL(DP) :: zion(nsx) = 1.D0
         ! valence of ionic countercharge
-        REAL(DP) :: solvent_temperature = 300.D0
+        REAL(DP) :: temperature = 300.D0
         ! temperature of the solution
+        REAL(DP) :: ion_adsorption_energy = 0.D0
+        ! adsorption energy of electrolyte (Ry)
 !
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
@@ -190,8 +204,10 @@ MODULE environ_input
              env_static_permittivity, env_optical_permittivity,        &
              env_surface_tension,                                      &
              env_pressure,                                             &
+             env_confine,                                              &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
-             solvent_temperature, stern_entropy,                       &
+             temperature, electrolyte_linearized, electrolyte_entropy, &
+             ion_adsorption, ion_adsorption_energy,                    &
              env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
@@ -315,35 +331,35 @@ MODULE environ_input
 !
 ! Stern boundary parameters
 !
-        CHARACTER( LEN = 80 ) :: stern_mode = 'electronic'
-        CHARACTER( LEN = 80 ) :: stern_mode_allowed(8)
-        DATA stern_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
+        CHARACTER( LEN = 80 ) :: electrolyte_mode = 'electronic'
+        CHARACTER( LEN = 80 ) :: electrolyte_mode_allowed(8)
+        DATA electrolyte_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
                                 & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
-        ! stern_mode method for calculating the density that sets
+        ! electrolyte_mode method for calculating the density that sets
         ! the onset of ionic countercharge ( see solvent_mode above )
 !
 ! Soft Stern boundary (electronic) parameters
 !
-        REAL(DP) :: stern_rhomax = 0.005D0
+        REAL(DP) :: electrolyte_rhomax = 0.005D0
         ! first parameter of the Stern sw function, roughly corresponding
         ! to the density threshold of the ionic countercharge.
-        REAL(DP) :: stern_rhomin = 0.0001D0
+        REAL(DP) :: electrolyte_rhomin = 0.0001D0
         ! second parameter of the Stern sw function when stype=1 or 2
-        REAL(DP) :: stern_tbeta = 4.8D0
+        REAL(DP) :: electrolyte_tbeta = 4.8D0
         ! second parameter of the Stern sw function when stype=0
 !
 ! Rigid Stern boundary (ionic) parameters
 !
-        REAL(DP) :: stern_alpha = 1.D0
-        ! scaling factor for ionic radii when stern_mode = 'ionic'
-        REAL(DP) :: stern_softness = 0.5D0
+        REAL(DP) :: electrolyte_alpha = 1.D0
+        ! scaling factor for ionic radii when electrolyte_mode = 'ionic'
+        REAL(DP) :: electrolyte_softness = 0.5D0
         ! spread of the rigid Stern interfaces
 !
 ! Simplified Stern boundary (system) parameters
 !
-        REAL(DP) :: stern_distance = 0.D0
+        REAL(DP) :: electrolyte_distance = 0.D0
         ! distance from the system where the electrolyte boundary starts
-        REAL(DP) :: stern_spread = 0.5D0
+        REAL(DP) :: electrolyte_spread = 0.5D0
         ! spread of the interfaces for the electrolyte boundary
 !
         NAMELIST /boundary/                      &
@@ -356,10 +372,10 @@ MODULE environ_input
              solvent_radius, radial_scale,       &
              radial_spread, filling_threshold,   &
              filling_spread,                     &
-             stern_mode, stern_distance,         &
-             stern_spread, stern_rhomax,         &
-             stern_rhomin, stern_tbeta,          &
-             stern_alpha, stern_softness,        &
+             electrolyte_mode, electrolyte_distance,         &
+             electrolyte_spread, electrolyte_rhomax,         &
+             electrolyte_rhomin, electrolyte_tbeta,          &
+             electrolyte_alpha, electrolyte_softness,        &
              boundary_core,                      &
              ifdtype, nfdpoint
 !
@@ -369,7 +385,7 @@ MODULE environ_input
 !
 ! Global parameters
 !
-        CHARACTER( LEN = 80 ) :: problem = 'poisson'
+        CHARACTER( LEN = 80 ) :: problem = 'none'
         CHARACTER( LEN = 80 ) :: problem_allowed(6)
         DATA problem_allowed / 'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb' /
         ! type of electrostatic problem:
@@ -381,10 +397,12 @@ MODULE environ_input
         ! linmodpb    = linearized modified poisson-boltzmann equation
         REAL(DP) :: tol = 1.D-5
         ! convergence threshold for electrostatic potential or auxiliary charge
+        REAL(DP) :: inner_tol = 1.D-5
+        ! same as tol for inner loop in nested algorithms
 !
 ! Driver's parameters
 !
-        CHARACTER( LEN = 80 ) :: solver = 'direct'
+        CHARACTER( LEN = 80 ) :: solver = 'none'
         CHARACTER( LEN = 80 ) :: solver_allowed(7)
         DATA solver_allowed / 'cg', 'sd', 'iterative', 'lbfgs', 'newton', 'nested', 'direct' /
         ! type of numerical solver
@@ -414,6 +432,12 @@ MODULE environ_input
         ! step size to be used if step_type = 'input' (inherits the tasks of the old mixrhopol)
         INTEGER :: maxstep = 200
         ! maximum number of steps to be performed by gradient or iterative solvers
+        CHARACTER( LEN = 80 ) :: inner_solver = 'none'
+        CHARACTER( LEN = 80 ) :: inner_solver_allowed(5)
+        DATA inner_solver_allowed / 'none', 'cg', 'sd', 'iterative', 'direct' /
+        ! type of numerical solver for inner loop in nested algorithms
+        INTEGER :: inner_maxstep = 200
+        ! same as maxstep for inner loop in nested algorithms
 !
 ! Iterative driver's parameters (OBSOLETE)
 !
@@ -426,6 +450,8 @@ MODULE environ_input
         ! order of DIIS interpolation of iterative calculation
         REAL(DP) :: mix = 0.5
         ! mixing parameter to be used in the iterative driver
+        REAL(DP) :: inner_mix = 0.5
+        ! same as mix but for inner loop in nested algorithm
 !
 ! Preconditioner's parameters
 !
@@ -462,8 +488,8 @@ MODULE environ_input
         ! dimensionality of the simulation cell
         ! periodic boundary conditions on 3/2/1/0 sides of the cell
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
-        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(2)
-        DATA pbc_correction_allowed / 'none', 'parabolic' /
+        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(3)
+        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
         INTEGER :: pbc_axis = 3
@@ -479,11 +505,18 @@ MODULE environ_input
              preconditioner,                     &
              screening_type, screening,          &
              core,                               &
-             pbc_dim, pbc_correction, pbc_axis
+             pbc_dim, pbc_correction, pbc_axis,  &
+             inner_tol, inner_solver,            &
+             inner_maxstep, inner_mix
 !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE read_environ(prog,nelec,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     USE environ_init, ONLY : set_environ_base
@@ -491,7 +524,13 @@ CONTAINS
     !
     CHARACTER(len=*), INTENT(IN) :: prog
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-    INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp
+    INTEGER, INTENT(IN) :: nelec, nat, ntyp
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
     REAL( DP ), DIMENSION(:), INTENT(IN), OPTIONAL :: ion_radius
     !
@@ -550,11 +589,23 @@ CONTAINS
                                   screening_type, screening, core,       &
                                   boundary_core, ifdtype, nfdpoint,      &
                                   use_internal_pbc_corr, pbc_correction, &
-                                  pbc_dim, pbc_axis, nspin, prog )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!                                  pbc_dim, pbc_axis, nspin, prog,        &
+! Compatible with QE-6.4.X QE-GIT
+                                  pbc_dim, pbc_axis, prog,        &
+! END BACKWARD COMPATIBILITY
+                                  inner_tol, inner_solver, inner_maxstep,&
+                                  inner_mix )
     !
     ! ... Then set environ base
     !
-    CALL set_environ_base  ( prog, nelec, nspin,                         &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL set_environ_base  ( prog, nelec, nspin,                         &
+! Compatible with QE-6.4.X QE-GIT
+    CALL set_environ_base  ( prog, nelec,                                &
+! END BACKWARD COMPATIBILITY
                              nat, ntyp, atom_label, atomicspread,        &
                              corespread, solvationrad,                   &
                              oldenviron, environ_restart, environ_thr,   &
@@ -572,12 +623,16 @@ CONTAINS
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
-                             env_electrolyte_ntyp, stern_entropy,        &
-                             stern_mode, stern_distance, stern_spread,   &
-                             cion, cionmax, rion, zion, stern_rhomax,    &
-                             stern_rhomin, stern_tbeta,                  &
-                             stern_alpha, stern_softness,                &
-                             solvent_temperature,                        &
+                             env_confine,                                &
+                             env_electrolyte_ntyp,                       &
+                             electrolyte_linearized, electrolyte_entropy,&
+                             electrolyte_mode, electrolyte_distance,     &
+                             electrolyte_spread, cion, cionmax, rion,    &
+                             zion, electrolyte_rhomax,                   &
+                             electrolyte_rhomin, electrolyte_tbeta,      &
+                             electrolyte_alpha, electrolyte_softness,    &
+                             ion_adsorption, ion_adsorption_energy,      &
+                             temperature,                                &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
                              extcharge_axis, extcharge_pos,              &
@@ -673,6 +728,10 @@ CONTAINS
     !
     CALL electrostatic_bcast()
     !
+    ! ... Set electrostatic problem
+    !
+    CALL set_electrostatic_problem( )
+    !
     ! ... Check &ELECTROSTATIC variables
     !
     CALL electrostatic_checkin()
@@ -712,13 +771,19 @@ CONTAINS
     !
     env_pressure = 0.D0
     !
+    env_confine = 0.D0
+    !
     env_electrolyte_ntyp = 0
-    stern_entropy = 'full'
+    electrolyte_linearized = .false.
+    electrolyte_entropy = 'full'
     cion(:) = 1.0D0
     cionmax = 0.0D0 ! if remains zero, pb or linpb
     rion = 0.D0
     zion(:) = 0.D0
-    solvent_temperature = 300.0D0
+    temperature = 300.0D0
+    !
+    ion_adsorption = 'none'
+    ion_adsorption_energy = 0.D0
     !
     env_external_charges = 0
     env_dielectric_regions = 0
@@ -759,17 +824,17 @@ CONTAINS
     filling_threshold  = 0.825D0
     filling_spread     = 0.02D0
     !
-    stern_mode = 'electronic'
+    electrolyte_mode = 'electronic'
     !
-    stern_distance = 0.D0
-    stern_spread = 0.5D0
+    electrolyte_distance = 0.D0
+    electrolyte_spread = 0.5D0
     !
-    stern_rhomax = 0.005D0
-    stern_rhomin = 0.0001D0
-    stern_tbeta = 4.8D0
+    electrolyte_rhomax = 0.005D0
+    electrolyte_rhomin = 0.0001D0
+    electrolyte_tbeta = 4.8D0
     !
-    stern_alpha = 1.D0
-    stern_softness = 0.5D0
+    electrolyte_alpha = 1.D0
+    electrolyte_softness = 0.5D0
     !
     boundary_core = 'analytic'
     ifdtype  = 1
@@ -788,14 +853,18 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    problem = 'poisson'
+    problem = 'none'
     tol = 1.D-5
     !
-    solver = 'direct'
+    solver = 'none'
     auxiliary = 'none'
     step_type = 'optimal'
     step = 0.3D0
     maxstep = 200
+    inner_solver = 'none'
+    inner_tol = 1.D-10
+    inner_maxstep = 200
+    inner_mix = 0.5D0
     !
     mix_type = 'linear'
     ndiis = 1
@@ -846,13 +915,19 @@ CONTAINS
     !
     CALL mp_bcast( env_pressure,               ionode_id, comm )
     !
+    CALL mp_bcast( env_confine,                ionode_id, comm )
+    !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
-    CALL mp_bcast( stern_entropy,              ionode_id, comm )
+    CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
+    CALL mp_bcast( electrolyte_entropy,              ionode_id, comm )
     CALL mp_bcast( cion,                       ionode_id, comm )
     CALL mp_bcast( cionmax,                    ionode_id, comm )
     CALL mp_bcast( rion,                       ionode_id, comm )
     CALL mp_bcast( zion,                       ionode_id, comm )
-    CALL mp_bcast( solvent_temperature,        ionode_id, comm )
+    CALL mp_bcast( temperature,        ionode_id, comm )
+    !
+    CALL mp_bcast( ion_adsorption,             ionode_id, comm )
+    CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
     !
     CALL mp_bcast( env_external_charges,       ionode_id, comm )
     CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
@@ -893,17 +968,17 @@ CONTAINS
     CALL mp_bcast( filling_threshold,          ionode_id, comm )
     CALL mp_bcast( filling_spread,             ionode_id, comm )
     !
-    CALL mp_bcast( stern_mode,                 ionode_id, comm )
+    CALL mp_bcast( electrolyte_mode,                 ionode_id, comm )
     !
-    CALL mp_bcast( stern_distance,             ionode_id, comm )
-    CALL mp_bcast( stern_spread,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_distance,             ionode_id, comm )
+    CALL mp_bcast( electrolyte_spread,               ionode_id, comm )
     !
-    CALL mp_bcast( stern_rhomax,               ionode_id, comm )
-    CALL mp_bcast( stern_rhomin,               ionode_id, comm )
-    CALL mp_bcast( stern_tbeta,                ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomax,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomin,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_tbeta,                ionode_id, comm )
     !
-    CALL mp_bcast( stern_alpha,                ionode_id, comm )
-    CALL mp_bcast( stern_softness,             ionode_id, comm )
+    CALL mp_bcast( electrolyte_alpha,                ionode_id, comm )
+    CALL mp_bcast( electrolyte_softness,             ionode_id, comm )
     !
     CALL mp_bcast( boundary_core,              ionode_id, comm )
     CALL mp_bcast( ifdtype,                    ionode_id, comm )
@@ -926,6 +1001,11 @@ CONTAINS
     CALL mp_bcast( tol,                        ionode_id, comm )
     !
     CALL mp_bcast( solver,                     ionode_id, comm )
+    CALL mp_bcast( inner_solver,               ionode_id, comm )
+    CALL mp_bcast( inner_tol,                  ionode_id, comm )
+    CALL mp_bcast( inner_maxstep,              ionode_id, comm )
+    CALL mp_bcast( inner_mix,                  ionode_id, comm )
+
     CALL mp_bcast( auxiliary,                  ionode_id, comm )
     CALL mp_bcast( step_type,                  ionode_id, comm )
     CALL mp_bcast( step,                       ionode_id, comm )
@@ -998,14 +1078,34 @@ CONTAINS
     IF( env_electrolyte_ntyp < 0 .OR. env_electrolyte_ntyp .EQ. 1 ) &
          CALL errore( sub_name,' env_electrolyte_ntyp out of range ', 1 )
     allowed = .FALSE.
-    DO i = 1, SIZE( stern_entropy_allowed )
-       IF( TRIM(stern_entropy) == stern_entropy_allowed(i) ) allowed = .TRUE.
+    DO i = 1, SIZE( electrolyte_entropy_allowed )
+       IF( TRIM(electrolyte_entropy) == electrolyte_entropy_allowed(i) ) allowed = .TRUE.
     END DO
     IF( .NOT. allowed ) &
-         CALL errore( sub_name, ' stern_entropy '''// &
-         & TRIM(stern_entropy)//''' not allowed ', 1 )
-    IF( solvent_temperature < 0.0_DP ) &
-         CALL errore( sub_name,' solvent_temperature out of range ', 1 )
+         CALL errore( sub_name, ' electrolyte_entropy '''// &
+         & TRIM(electrolyte_entropy)//''' not allowed ', 1 )
+    IF( temperature < 0.0_DP ) &
+         CALL errore( sub_name,' temperature out of range ', 1 )
+    DO i = 1, env_electrolyte_ntyp
+       IF ( cion(i) .LT. 0.D0 ) THEN
+          CALL errore( sub_name, ' cion cannot be negative ', 1 )
+       END IF
+    END DO
+    IF ( cionmax .LT. 0.D0 .OR. rion .LT. 0.D0 ) &
+         CALL errore( sub_name,'cionmax and rion cannot be negative ', 1 )
+    IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
+         CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
+    allowed = .FALSE.
+    DO i = 1, SIZE( ion_adsorption_allowed )
+       IF( TRIM(ion_adsorption) == ion_adsorption_allowed(i) ) allowed = .TRUE.
+    END DO
+    IF( .NOT. allowed ) &
+         CALL errore( sub_name, ' ion_adsorption '''// &
+         & TRIM(ion_adsorption)//''' not allowed ', 1 )
+    IF ( ion_adsorption_energy .LT. 0D0 ) &
+         CALL errore( sub_name,'ion_adsorption_energy must be positive', 1 )
+    IF( .NOT. TRIM(ion_adsorption) .EQ. 'none' ) &
+         & CALL errore( sub_name,'ion_adsorption not implemented', 1 )
     !
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
@@ -1076,28 +1176,28 @@ CONTAINS
          CALL errore( sub_name, 'filling_spread out of range ', 1 )
     !
     allowed = .FALSE.
-    DO i = 1, SIZE( stern_mode_allowed )
-       IF( TRIM(stern_mode) == stern_mode_allowed(i) ) allowed = .TRUE.
+    DO i = 1, SIZE( electrolyte_mode_allowed )
+       IF( TRIM(electrolyte_mode) == electrolyte_mode_allowed(i) ) allowed = .TRUE.
     END DO
     IF( .NOT. allowed ) &
-         CALL errore( sub_name, ' stern_mode '''// &
-         & TRIM(stern_mode)//''' not allowed ', 1 )
-    IF( stern_distance < 0.0_DP ) &
-         CALL errore( sub_name,' stern_distance out of range ', 1 )
-    IF( stern_spread <= 0.0_DP ) &
-         CALL errore( sub_name,' stern_spread out of range ', 1 )
-    IF( stern_rhomax < 0.0_DP ) &
-         CALL errore( sub_name,' stern_rhomax out of range ', 1 )
-    IF( stern_rhomin < 0.0_DP ) &
-         CALL errore( sub_name,' stern_rhomin out of range ', 1 )
-    IF( stern_rhomax < stern_rhomin ) &
-         CALL errore( sub_name,' inconsistent stern_rhomax and stern_rhomin', 1 )
-    IF( stern_tbeta < 0.0_DP ) &
-         CALL errore( sub_name,' stern_tbeta out of range ', 1 )
-    IF( stern_alpha <= 0.0_DP ) &
-         CALL errore( sub_name,' stern_alpha out of range ', 1 )
-    IF( stern_softness <= 0.0_DP ) &
-         CALL errore( sub_name,' stern_softness out of range ', 1 )
+         CALL errore( sub_name, ' electrolyte_mode '''// &
+         & TRIM(electrolyte_mode)//''' not allowed ', 1 )
+    IF( electrolyte_distance < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_distance out of range ', 1 )
+    IF( electrolyte_spread <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_spread out of range ', 1 )
+    IF( electrolyte_rhomax < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_rhomax out of range ', 1 )
+    IF( electrolyte_rhomin < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_rhomin out of range ', 1 )
+    IF( electrolyte_rhomax < electrolyte_rhomin ) &
+         CALL errore( sub_name,' inconsistent electrolyte_rhomax and electrolyte_rhomin', 1 )
+    IF( electrolyte_tbeta < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_tbeta out of range ', 1 )
+    IF( electrolyte_alpha <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_alpha out of range ', 1 )
+    IF( electrolyte_softness <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_softness out of range ', 1 )
     !
     allowed = .FALSE.
     DO i = 1, SIZE( boundary_core_allowed )
@@ -1213,16 +1313,21 @@ CONTAINS
     IF( .NOT. allowed ) &
          CALL errore( sub_name, ' pbc_correction '''// &
          & TRIM(pbc_correction)//''' not allowed ', 1 )
-    !
-    DO i = 1, env_electrolyte_ntyp
-       IF ( cion(i) .LT. 0.D0 ) THEN
-          CALL errore( sub_name, ' cion cannot be negative ', 1 )
-       END IF
+    IF( TRIM(pbc_correction) .EQ. 'gcs' .AND. TRIM(electrolyte_mode) .NE. 'system' ) &
+       & CALL errore( sub_name, 'Only system boundary for gcs correction', 1)
+    allowed = .FALSE.
+    DO i = 1, SIZE( inner_solver_allowed )
+       IF( TRIM(inner_solver) == inner_solver_allowed(i) ) allowed = .TRUE.
     END DO
-    IF ( cionmax .LT. 0.D0 .OR. rion .LT. 0.D0 ) &
-         CALL errore( sub_name,'cionmax and rion cannot be negative ', 1 )
-    IF ( cionmax .GT. 0.D0 .AND. rion .GT. 0.D0 ) &
-         CALL errore( sub_name,'either cionmax or rion can be set ', 1 )
+    IF( .NOT. allowed ) &
+         CALL errore( sub_name, ' inner solver '''// &
+         & TRIM(inner_solver)//''' not allowed ',1)
+    IF( inner_mix <= 0.0_DP ) &
+         CALL errore( sub_name,' inner_mix out of range ', 1 )
+    IF( inner_tol <= 0.0_DP ) &
+         CALL errore( sub_name,' inner_tol out of range ', 1 )
+    IF( inner_maxstep <= 1 ) &
+         CALL errore( sub_name,' inner_maxstep out of range ', 1 )
     RETURN
     !
 !--------------------------------------------------------------------
@@ -1249,6 +1354,7 @@ CONTAINS
          & lboundary = .TRUE.
     IF ( env_surface_tension .GT. 0.D0 ) lboundary = .TRUE.
     IF ( env_pressure .NE. 0.D0 ) lboundary = .TRUE.
+    IF ( env_confine .NE. 0.D0 ) lboundary = .TRUE.
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
@@ -1366,7 +1472,6 @@ CONTAINS
     !
     LOGICAL, INTENT(OUT) :: lelectrostatic
     !
-    INTEGER           :: ityp
     CHARACTER(LEN=20) :: sub_name = ' fix_electrostatic '
     !
     lelectrostatic = env_electrostatic
@@ -1374,24 +1479,61 @@ CONTAINS
          & lelectrostatic = .TRUE.
     IF ( env_external_charges .GT. 0 ) lelectrostatic = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lelectrostatic = .TRUE.
+    IF ( env_electrolyte_ntyp .GT. 0 ) lelectrostatic = .TRUE.
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE fix_electrostatic
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE set_electrostatic_problem( )
+!--------------------------------------------------------------------
+    !
+    !  Set problem according to the ENVIRON and ELECTROSTATIC namelists
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=80) :: sub_name = ' set_electrostatic_problem '
+    !
+    IF ( env_electrolyte_ntyp .GT. 0 ) THEN
+       IF ( .NOT. TRIM(pbc_correction) == 'gcs' ) THEN
+          IF ( electrolyte_linearized ) THEN
+             IF (problem == 'none') problem = 'linpb'
+             IF (solver == 'none' ) solver  = 'cg'
+             IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'
+          ELSE
+             IF (problem == 'none') problem = 'pb'
+             IF (solver == 'none' ) solver  = 'newton'
+             IF (inner_solver == 'none') inner_solver = 'cg'
+             IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'modpb'
+          END IF
+       END IF
+    END IF
     !
     IF ( env_static_permittivity > 1.D0 &
          .OR. env_dielectric_regions > 0 ) THEN
-       problem = 'generalized'
-       solver = 'cg'
+         IF (problem == 'none') problem = 'generalized'
+       IF ( .NOT. TRIM(pbc_correction) == 'gcs' ) THEN
+         IF (solver == 'none' ) solver = 'cg'
+       ELSE
+         IF (solver == 'none' ) solver = 'iterative'
+         IF (solver == 'iterative' &
+            & .AND. auxiliary == 'none' ) auxiliary = 'full'
+         IF (solver .NE. 'iterative') &
+            & CALL errore( sub_name, 'GCS correction requires iterative solver', 1)
+       END IF
+    ELSE
+       IF (problem == 'none') problem = 'poisson'
+       IF (solver == 'none' ) solver = 'direct'
     ENDIF
     !
-    IF ( env_electrolyte_ntyp .GT. 0 ) THEN
-       lelectrostatic = .TRUE.
-       problem = 'linpb'
-       solver  = 'cg'
-       IF ( cionmax .GT. 0.D0 .OR. rion .GT. 0.D0 ) problem = 'linmodpb'
-    END IF
+    IF (.NOT. (problem == 'pb' .OR. problem == 'modpb') &
+        .AND. (inner_solver .NE. 'none')) &
+        CALL errore( sub_name, 'Only pb or modpb problems allow inner solver', 1)
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE fix_electrostatic
+  END SUBROUTINE set_electrostatic_problem
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE environ_read_cards( unit )
@@ -1496,7 +1638,7 @@ CONTAINS
      IMPLICIT NONE
      !
      CHARACTER(len=256) :: input_line
-     INTEGER            :: ie, ierr, nfield
+     INTEGER            :: ie, ix, ierr, nfield
      LOGICAL            :: tend
      LOGICAL, EXTERNAL  :: matches
      CHARACTER(len=4)   :: lb_pos
@@ -1580,7 +1722,12 @@ CONTAINS
      ENDDO
      taextchg = .true.
      !
-     CALL convert_pos( external_charges, env_external_charges, extcharge_pos )
+     DO ie = 1, env_external_charges
+        DO ix = 1, 3
+           CALL convert_length( external_charges, extcharge_pos(ix, ie))
+        ENDDO
+        CALL convert_length( external_charges, extcharge_spread(ie))
+     ENDDO
      !
      RETURN
      !
@@ -1664,7 +1811,7 @@ CONTAINS
      IMPLICIT NONE
      !
      CHARACTER(len=256) :: input_line
-     INTEGER            :: ie, ierr, nfield
+     INTEGER            :: ie, ix, ierr, nfield
      LOGICAL            :: tend
      LOGICAL, EXTERNAL  :: matches
      CHARACTER(len=4)   :: lb_pos
@@ -1761,7 +1908,13 @@ CONTAINS
      ENDDO
      taepsreg = .true.
      !
-     CALL convert_pos( dielectric_regions, env_dielectric_regions, epsregion_pos )
+     DO ie = 1, env_dielectric_regions
+        DO ix = 1, 3
+           CALL convert_length( dielectric_regions, epsregion_pos(ix, ie))
+        ENDDO
+        CALL convert_length( dielectric_regions, epsregion_width(ie))
+        CALL convert_length( dielectric_regions, epsregion_spread(ie))
+     ENDDO
      !
      RETURN
      !
@@ -1803,38 +1956,37 @@ CONTAINS
    END SUBROUTINE allocate_input_epsregion
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-   SUBROUTINE convert_pos (pos_format, n, pos)
+   SUBROUTINE convert_length(length_format, length)
 !--------------------------------------------------------------------
      !
-     ! ... convert input positions to atomic units
+     ! ... convert input length to atomic units
      !
      IMPLICIT NONE
-     CHARACTER (len=*), INTENT(in)  :: pos_format
-     INTEGER, INTENT(in)  :: n
-     REAL (DP), INTENT(inout) :: pos(3,n)
+     CHARACTER (len=*), INTENT(in)  :: length_format
+     REAL (DP), INTENT(inout) :: length
      !
-     SELECT CASE( pos_format )
+     SELECT CASE( length_format )
      CASE( 'bohr' )
         !
-        ! ... input positions are in a.u., do nothing
+        ! ... input length are in a.u., do nothing
         !
-        pos = pos
+        length = length
         !
      CASE( 'angstrom' )
         !
-        ! ... positions in A: convert to a.u.
+        ! ... length in A: convert to a.u.
         !
-        pos = pos / bohr_radius_angs
+        length = length / bohr_radius_angs
         !
      CASE DEFAULT
         !
-        CALL errore( 'iosys','pos_format=' // &
-             & trim( pos_format ) // ' not implemented', 1 )
+        CALL errore( 'iosys','length_format=' // &
+             & trim( length_format ) // ' not implemented', 1 )
         !
      END SELECT
      !
 !--------------------------------------------------------------------
-   END SUBROUTINE convert_pos
+   END SUBROUTINE convert_length
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE environ_input

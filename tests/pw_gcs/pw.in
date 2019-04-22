@@ -1,0 +1,33 @@
+&CONTROL
+    calculation = 'scf',
+    tprnfor = .true.,
+ /
+ &SYSTEM
+    nspin = 1,
+    ecutwfc = 35,
+    nat = 2,
+    occupations = 'smearing',
+    ibrav = 0,
+    degauss = 0.01,
+    smearing = 'marzari-vanderbilt',
+    tot_charge = 0,
+    ntyp = 1,
+    ecutrho = 350,
+ /
+ &ELECTRONS
+    electron_maxstep = 200,
+    conv_thr = 5e-09,
+ /
+ &IONS
+ /
+ATOMIC_SPECIES
+ Ag 107.868000 Ag.pbe-n-rrkjus_psl.1.0.0.UPF
+ATOMIC_POSITIONS {bohr}
+ Ag 2.771763  2.771763  18.897260 
+ Ag 0.000000  0.000000  22.740340 
+K_POINTS {automatic}
+   1 1 1   0 0 0
+CELL_PARAMETERS {bohr}
+5.543526 0.000000 0.000000
+0.000000 5.543526 0.000000
+0.000000 0.000000 65.08548

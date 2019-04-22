@@ -8,5 +8,6 @@
  &BOUNDARY
    !
    boundary_core = 'fft'   
+   stype = 1
    !
  /

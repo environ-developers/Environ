@@ -25,7 +25,7 @@
 
 #source ${ENVIRON_ROOT}/tests/ENVIRONMENT
 
-if [ $QE_USE_MPI == 1 ]; then
+if [ $QE_USE_MPI = 1 ]; then
   export PARA_PREFIX="mpirun -np ${TESTCODE_NPROCS}"
 else
   unset PARA_PREFIX

@@ -14,12 +14,12 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to include a real-space correction of the potential in order to
-! remove periodic boundary conditions on a partially periodic system.
-! The correction is computed for the time being using the planar average
-! approximation and is of quadratic nature: the first order proportional
-! to the dipole of the system along the direction perpendicular to the slab,
-! the second order proportional to the total charge of the system.
+!> Module to include a real-space correction of the potential in order to
+!! remove periodic boundary conditions on a partially periodic system.
+!! The correction is computed for the time being using the planar average
+!! approximation and is of quadratic nature: the first order proportional
+!! to the dipole of the system along the direction perpendicular to the slab,
+!! the second order proportional to the total charge of the system.
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -28,9 +28,9 @@
 MODULE correction_periodic
 !----------------------------------------------------------------------------
   !
-  ! ... The variables needed to correct periodic boundary conditions
-  !     for a partially periodic system. Real space correction with planar
-  !     average approximation.
+  !> The variables needed to correct periodic boundary conditions
+  !! for a partially periodic system. Real space correction with planar
+  !! average approximation.
   !
   USE environ_types
   USE electrostatic_types
@@ -46,13 +46,13 @@ MODULE correction_periodic
   PUBLIC :: calc_v0periodic, calc_vperiodic, calc_fperiodic, calc_gradvperiodic
   !
 CONTAINS
+  !  Subroutine: calc_v0periodic
+  !
+  !> Computes potential to correct for pbc along the direction orthogonal
+  !! to the slab
 !---------------------------------------------------------------------------
   SUBROUTINE calc_v0periodic( oned_analytic, charges, v0 )
 !---------------------------------------------------------------------------
-    !
-    ! ... Compute potential to correct for pbc along the direction
-    !     orthogonal to the slab
-    !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
@@ -85,7 +85,12 @@ CONTAINS
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -125,13 +130,14 @@ CONTAINS
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_v0periodic
 !---------------------------------------------------------------------------
+!
+!  Subroutine: calc_vperiodic
+!
+!> Computes potential to correct for pbc along the direction orthogonal
+!! to the slab.
 !---------------------------------------------------------------------------
   SUBROUTINE calc_vperiodic( oned_analytic, charges, potential )
 !---------------------------------------------------------------------------
-    !
-    ! ... Compute potential to correct for pbc along the direction
-    !     orthogonal to the slab
-    !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
@@ -180,7 +186,12 @@ CONTAINS
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -233,15 +244,17 @@ CONTAINS
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_vperiodic
 !---------------------------------------------------------------------------
+!
+!  Subroutine: calc_gradvperiodic
+!
+!> Note that in this subroutine the ionic density is implicit (and thus
+!! spread gaussians). Since the gradient of the corrective potential does
+!! not depend on the quadrupole moment of rhotot, it should be independent
+!! on the shape of the ionic density
+!
 !---------------------------------------------------------------------------
   SUBROUTINE calc_gradvperiodic( oned_analytic, charges, gvtot )
 !---------------------------------------------------------------------------
-    !
-    ! NOTE THAT IN THIS SUBROUTINE THE IONIC DENSITY IS IMPLICIT (AND THUS
-    ! SPREAD GAUSSIANS). SINCE THE GRADIENT OF THE CORRECTIVE POTENTIAL DOES
-    ! NOT DEPEND ON THE QUADRUPOLE MOMENT OF RHOTOT, IT SHOULD BE INDEPENDENT
-    ! ON THE SHAPE OF THE IONIC DENSITY.
-    !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
@@ -289,7 +302,12 @@ CONTAINS
     !
     ! ... Compute dipole of the system with respect to the center of charge
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -337,12 +355,14 @@ CONTAINS
 !---------------------------------------------------------------------------
   END SUBROUTINE calc_gradvperiodic
 !---------------------------------------------------------------------------
+!
+!  Subroutine: calc_fperiodic
+!
+!> Computes the contribution to the atomic forces
+!
 !---------------------------------------------------------------------------
   SUBROUTINE calc_fperiodic( oned_analytic, natoms, charges, auxiliary, f )
 !---------------------------------------------------------------------------
-    !
-    ! ... Compute contribution to the atomic forces
-    !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
@@ -393,7 +413,12 @@ CONTAINS
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     DEALLOCATE( rhotot )
     !
     tot_charge = dipole(0)

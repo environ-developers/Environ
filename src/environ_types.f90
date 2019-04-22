@@ -14,10 +14,10 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains the main control and parameter variables
-! from QE Modules, the definitions of Environ derived data types
-! and the routines to handle the basic derived data types
-! (cell, density, gradient, hessian, electrons, system)
+!> This module contains the main control and parameter variables
+!! from QE Modules, the definitions of Environ derived data types
+!! and the routines to handle the basic derived data types
+!! (cell, density, gradient, hessian, electrons, system)
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -49,6 +49,7 @@ MODULE environ_types
      REAL( DP ) :: domega
      REAL( DP ) :: origin( 3 )
      REAL( DP ), DIMENSION( 3, 3 ) :: at
+     REAL( DP ), DIMENSION( 3, 8 ) :: corners
      !
      ! Properties of the processor-specific partition
      !
@@ -62,23 +63,23 @@ MODULE environ_types
   !
   TYPE environ_density
      !
-     ! Optionally have an associated logical status
+     !> Optionally have an associated logical status
      !
      LOGICAL :: update = .FALSE.
      !
-     ! Optionally have an associated label, used for printout and debugs
+     !> Optionally have an associated label, used for printout and debugs
      !
      CHARACTER( LEN=80 ) :: label = ' '
      !
-     ! Each quantity in real-space is associated with its definition domain
+     !> Each quantity in real-space is associated with its definition domain
      !
      TYPE( environ_cell ), POINTER :: cell => NULL()
      !
-     ! The quantity in real-space, local to each processor
+     !> The quantity in real-space, local to each processor
      !
      REAL( DP ), DIMENSION(:), ALLOCATABLE :: of_r
      !
-     ! Multipole moments of the quantity
+     !> Multipole moments of the quantity
      !
      REAL( DP ) :: charge
      !
@@ -90,19 +91,19 @@ MODULE environ_types
   !
   TYPE environ_gradient
      !
-     ! Optionally have an associated logical status
+     !> Optionally have an associated logical status
      !
      LOGICAL :: update = .FALSE.
      !
-     ! Optionally have an associated label, used for printout and debugs
+     !> Optionally have an associated label, used for printout and debugs
      !
      CHARACTER( LEN=80 ) :: label = ' '
      !
-     ! Each quantity in real-space is associated with its definition domain
+     !> Each quantity in real-space is associated with its definition domain
      !
      TYPE( environ_cell ), POINTER :: cell => NULL()
      !
-     ! The quantity in real-space, local to each processor
+     !> The quantity in real-space, local to each processor
      !
      REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: of_r
      !
@@ -112,19 +113,19 @@ MODULE environ_types
   !
   TYPE environ_hessian
      !
-     ! Optionally have an associated logical status
+     !> Optionally have an associated logical status
      !
      LOGICAL :: update = .FALSE.
      !
-     ! Optionally have an associated label, used for printout and debugs
+     !> Optionally have an associated label, used for printout and debugs
      !
      CHARACTER( LEN=80 ) :: label = ' '
      !
-     ! Each quantity in real-space is associated with its definition domain
+     !> Each quantity in real-space is associated with its definition domain
      !
      TYPE( environ_cell ), POINTER :: cell => NULL()
      !
-     ! The quantity in real-space, local to each processor
+     !> The quantity in real-space, local to each processor
      !
      REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: of_r
      !
@@ -197,7 +198,12 @@ MODULE environ_types
      LOGICAL :: update = .FALSE.
      LOGICAL :: initialized = .FALSE.
      INTEGER :: number = 0
-     INTEGER :: nspin = 1
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!     INTEGER :: nspin = 1
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
      !
      TYPE( environ_density ) :: density
      !
@@ -271,11 +277,11 @@ MODULE environ_types
   !
   TYPE environ_boundary
      !
-     ! Boundary label
+     !> Boundary label
      !
      CHARACTER (LEN=80) :: label
      !
-     ! Choice of the interface
+     !> Choice of the interface
      !
      CHARACTER (LEN=80) :: mode
      !
@@ -300,8 +306,8 @@ MODULE environ_types
      LOGICAL :: need_system
      TYPE( environ_system ), POINTER :: system
      !
-     ! scaled switching function of interface
-     ! varying from 1 (QM region) to 0 (environment region)
+     !> scaled switching function of interface
+     !! varying from 1 (QM region) to 0 (environment region)
      !
      TYPE( environ_density ) :: scaled
      !
@@ -368,17 +374,17 @@ MODULE environ_types
      TYPE( environ_gradient ) :: gradbackground
      TYPE( environ_density ) :: laplbackground
      !
-     ! Boundary is the pointer to the object controlling
-     ! the interface between the QM and the continuum region
+     !> Boundary is the pointer to the object controlling
+     !! the interface between the QM and the continuum region
      !
      TYPE( environ_boundary ), POINTER :: boundary
      !
-     ! The dielectric function over space is built from the
-     ! boundary of the continuum environment and the basic dielectric
-     ! properties of space
+     !> The dielectric function over space is built from the
+     !! boundary of the continuum environment and the basic dielectric
+     !! properties of space
      !
      TYPE( environ_density ) :: epsilon
-     TYPE( environ_density ) :: depsilon ! This is needed in the extra term of kohn-sham/forces
+     TYPE( environ_density ) :: depsilon !> This is needed in the extra term of kohn-sham/forces
      !
      ! Quantities related to the dielectric permittivity and
      ! thay may be needed by the different solvers
@@ -406,11 +412,13 @@ MODULE environ_types
   TYPE environ_ioncctype
      !
      INTEGER :: index
-     REAL( DP ) :: cbulk   ! bulk concentration
-     REAL( DP ) :: z       ! charge
+     REAL( DP ) :: cbulk   !> bulk concentration
+     REAL( DP ) :: z       !> charge
      !
-     TYPE( environ_density ) :: c ! local concentration
-     TYPE( environ_density ) :: cfactor ! exp(-z\phi\beta) or 1 - z\phi\beta
+     TYPE( environ_density ) :: c !> local concentration
+     TYPE( environ_density ) :: cfactor !> exp(-z\phi\beta) or 1 - z\phi\beta
+     !
+     TYPE( environ_density )   :: potential
      !
   END TYPE environ_ioncctype
   !
@@ -422,7 +430,9 @@ MODULE environ_types
      !
      LOGICAL :: initialized = .FALSE.
      !
-     CHARACTER( LEN=80 ) :: stern_entropy
+     CHARACTER( LEN=80 ) :: electrolyte_entropy
+     CHARACTER( LEN=80 ) :: ion_adsorption
+     !
      LOGICAL :: linearized = .FALSE.
      INTEGER :: ntyp
      TYPE( environ_ioncctype ), DIMENSION(:), ALLOCATABLE :: ioncctype
@@ -430,6 +440,8 @@ MODULE environ_types
      REAL( DP ) :: temperature
      REAL( DP ) :: k2
      REAL( DP ) :: cionmax
+     REAL( DP ) :: permittivity
+     REAL( DP ) :: adsorption_energy
      !
      TYPE( environ_boundary ) :: boundary
      !
@@ -440,6 +452,8 @@ MODULE environ_types
      TYPE( environ_density ) :: gamma
      TYPE( environ_density ) :: dgamma
      !
+     TYPE( environ_functions ) :: function
+     !
      TYPE( environ_density ) :: de_dboundary_second_order
      REAL( DP ) :: energy_second_order
      !
@@ -448,9 +462,6 @@ MODULE environ_types
   END TYPE environ_electrolyte
   !
 CONTAINS
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- CELL ---------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
 !--------------------------------------------------------------------
@@ -461,6 +472,10 @@ CONTAINS
     INTEGER, INTENT(IN) :: nnr, ir_end, comm, me, root
     REAL( DP ), INTENT(IN) :: alat, omega, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
+    !
+    INTEGER :: ic, ix, iy, iz
+    REAL( DP ) :: dx, dy, dz
+    !
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
     !
     cell % n1 = n1
@@ -481,6 +496,30 @@ CONTAINS
     cell % domega = cell % omega / cell % ntot
     !
     cell % origin = 0.D0
+    !
+    ic = 0
+    DO ix = 0,1
+       !
+       dx = DBLE(-ix)
+       !
+       DO iy = 0,1
+          !
+          dy = DBLE(-iy)
+          !
+          DO iz = 0,1
+             !
+             dz = DBLE(-iz)
+             !
+             ic = ic + 1
+             cell%corners(1,ic) = dx*at(1,1) + dy*at(1,2) + dz*at(1,3)
+             cell%corners(2,ic) = dx*at(2,1) + dy*at(2,2) + dz*at(2,3)
+             cell%corners(3,ic) = dx*at(3,1) + dy*at(3,2) + dz*at(3,3)
+             !
+          ENDDO
+          !
+       ENDDO
+       !
+    ENDDO
     !
     RETURN
     !
@@ -507,9 +546,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE update_environ_cell
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- DENSITY ------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_density(density,local_label)
 !--------------------------------------------------------------------
@@ -713,7 +749,12 @@ CONTAINS
     REAL( DP ), DIMENSION(0:3) :: dipole
     REAL( DP ), DIMENSION(3) :: quadrupole
     !
-    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( density%cell%nnr, density%of_r, density%cell%origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     density % charge = dipole(0)
     density % dipole = dipole(1:3)
@@ -786,9 +827,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_density
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- GRADIENT -----------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_gradient(gradient,label)
 !--------------------------------------------------------------------
@@ -980,9 +1018,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION scalar_product_environ_gradient_density
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- HESSIAN ------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_hessian(hessian,label)
 !--------------------------------------------------------------------
@@ -1115,9 +1150,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_hessian
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- ELECTRONS ----------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_electrons(electrons)
 !--------------------------------------------------------------------
@@ -1129,7 +1161,12 @@ CONTAINS
     !
     electrons%update = .FALSE.
     electrons%number = 0
-    electrons%nspin  = 1
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    electrons%nspin  = 1
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     electrons%charge = 0.D0
     CALL create_environ_density( electrons%density,label )
     !
@@ -1139,17 +1176,33 @@ CONTAINS
   END SUBROUTINE create_environ_electrons
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_electrons_first( nelec, nspin, electrons )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!  SUBROUTINE init_environ_electrons_first( nelec, nspin, electrons )
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE init_environ_electrons_first( nelec, electrons )
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: nelec, nspin
+    INTEGER, INTENT(IN) :: nelec
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
     !
     electrons%initialized = .FALSE.
     electrons%number = nelec
-    electrons%nspin = nspin
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    electrons%nspin  = nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     !
     RETURN
     !
@@ -1175,30 +1228,51 @@ CONTAINS
   END SUBROUTINE init_environ_electrons_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!  SUBROUTINE update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE update_environ_electrons( nnr, rho, electrons, nelec )
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: nspin, nnr
-    REAL( DP ), DIMENSION(nnr,nspin), INTENT(IN) :: rho
+    INTEGER, INTENT(IN) :: nnr
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+!    REAL( DP ), DIMENSION(nnr,nspin), INTENT(IN) :: rho
+! Compatible with QE-6.4.X QE-GIT
+    REAL( DP ), DIMENSION(nnr), INTENT(IN) :: rho
+! END BACKWARD COMPATIBILITY
     TYPE( environ_electrons ), INTENT(INOUT) :: electrons
     REAL( DP ), INTENT(IN), OPTIONAL :: nelec
     !
-    REAL( DP ), PARAMETER :: tol = 1.D-8
+    REAL( DP ), PARAMETER :: tol = 1.D-4
     REAL( DP ) :: charge
     CHARACTER( LEN= 80 ) :: sub_name = 'update_environ_electrons'
     !
     ! Check on dimensions
     !
-    IF ( nspin .NE. electrons%nspin ) CALL errore(sub_name,'Missmatch in spin size',1)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    IF ( nspin .NE. electrons%nspin ) CALL errore(sub_name,'Missmatch in spin size',1)
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     !
     IF ( nnr .NE. electrons%density%cell%nnr ) CALL errore(sub_name,'Missmatch in grid size',1)
     !
     ! Assign input density to electrons%density%of_r
     !
-    electrons%density%of_r(:) = rho(:,1)
-    IF ( electrons%nspin .EQ. 2 ) electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:,2)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    electrons%density%of_r(:) = rho(:,1)
+!    IF ( electrons%nspin .EQ. 2 ) electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:,2)
+! Compatible with QE-6.4.X and QE-GIT
+    electrons%density%of_r = rho
+! END BACKWARD COMPATIBILITY
     !
     ! Update integral of electronic density and, if provided, check against input value
     !
@@ -1234,9 +1308,6 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_electrons
 !--------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
-!- SYSTEM -------------------------------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_system(system)
 !--------------------------------------------------------------------
@@ -1280,13 +1351,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE init_environ_system
 !--------------------------------------------------------------------
+!  Subroutine: update_environ_system
+!
+!> Given the system definition compute position (centre of charge)
+!! and width (maximum distance from centre) of the system.
 !--------------------------------------------------------------------
   SUBROUTINE update_environ_system( system )
 !--------------------------------------------------------------------
-    !
-    ! Given the system definition compute position (center of charge)
-    ! and width (maximum distance from center) of the system
-    !
     IMPLICIT NONE
     !
     TYPE( environ_system ), INTENT(INOUT) :: system

@@ -18,6 +18,11 @@ $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012
 # set the needed environment variables
 . ../../../environment_variables
 
+# compatibility with QE for versions prior to 6.4
+if [ -z $NETWORK_PSEUDO ]; then
+    NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+fi
+
 # required executables and pseudopotentials
 BIN_LIST="cp.x"
 PSEUDO_LIST="O.pbe-rrkjus.UPF H.pbe-rrkjus.UPF"
@@ -60,7 +65,7 @@ for FILE in $PSEUDO_LIST ; do
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
             $WGET $PSEUDO_DIR/$FILE \
-                http://www.quantum-espresso.org/upf_files/UPF/$FILE 2> /dev/null 
+                $NETWORK_PSEUDO/$FILE 2> /dev/null
     fi
     if test $? != 0; then
         $ECHO
@@ -79,33 +84,33 @@ $ECHO
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
 verbose=0             # if GE 1 prints debug informations
-                      # if GE 2 prints out gaussian cube files with 
+                      # if GE 2 prints out gaussian cube files with
                       # dielectric function, polarization charges, etc
                       # WARNING: if GE 2 lot of I/O, much slower
-environ_nskip='300'   # number of CP steps that need to be skipped 
-                      # before starting to add environ contributions   
+environ_nskip='300'   # number of CP steps that need to be skipped
+                      # before starting to add environ contributions
 environ_type='vacuum' # type of environment
                       # input: read parameters from input
-                      # vacuum: all flags off, no environ 
-                      # water: parameters from experimental values 
+                      # vacuum: all flags off, no environ
+                      # water: parameters from experimental values
                       #        and specifically tuned
 ### ITERATIVE SOLVER PARAMETERS #####################################
 tol='1.d-12'  # tolerance of the iterative solver
 #####################################################################
 
-for environ_type in vacuum water ; do 
+for environ_type in vacuum water ; do
 
     # clean TMP_DIR
     $ECHO "  cleaning $TMP_DIR...\c"
     rm -rf $TMP_DIR/*
     $ECHO " done"
-    
+
     $ECHO "  running the relax calculation in $environ_type"
 
   prefix=h2o_$environ_type
   input=${prefix}'.in'
   output=${prefix}'.out'
-  cat > $input << EOF 
+  cat > $input << EOF
  &CONTROL
    !
    calculation = 'cp'
@@ -147,7 +152,7 @@ for environ_type in vacuum water ; do
  /
  &IONS
    !
-   ion_dynamics    = 'none' 
+   ion_dynamics    = 'none'
    ion_damping = 0.1d0
    !
  /
@@ -177,9 +182,9 @@ EOF
    !
  /
 EOF
-   
+
   cp environ_${environ_type}.in environ.in
-  $CP_COMMAND < $input > $output 
+  $CP_COMMAND < $input > $output
   check_failure $?
   $ECHO " done"
 
@@ -187,14 +192,14 @@ done
 
 evac=$(awk '/total energy =/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_vacuum.out)
 esol=$(awk '/total energy =/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_water.out)
-dgsol=$($ECHO "($esol+(-1)*$evac)*313.68*2" | bc -l) 
-ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_water.out) 
+dgsol=$($ECHO "($esol+(-1)*$evac)*313.68*2" | bc -l)
+ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_water.out)
 epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {printf("% 16.8f \n",en)}' h2o_water.out)
 
 $ECHO "  Solvation Energy     = $dgsol Kcal/mol" > results.txt
 iprint=0
 dgelec=$dgsol
-if [ $ecav != 0 ]; then 
+if [ $ecav != 0 ]; then
   iprint=1
   dgcav=$($ECHO "$ecav*313.68*2" | bc -l)
   $ECHO "  Cavitation Energy    =  $dgcav Kcal/mol" >> results.txt

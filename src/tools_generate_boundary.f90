@@ -14,11 +14,11 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module contains all the procedures to generate the boundary
-! function and its derivative, either as a functional of the electronic
-! density (self-consistent boundary), or as a function of the ionic
-! positions (soft-sphere boundary), or a simple geometric surface
-! centered on the system position (system boundary)
+!> This module contains all the procedures to generate the boundary
+!! function and its derivative, either as a functional of the electronic
+!! density (self-consistent boundary), or as a function of the ionic
+!! positions (soft-sphere boundary), or a simple geometric surface
+!! centered on the system position (system boundary)
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Ismaila Dabo       (DMSE, Penn State)
@@ -39,6 +39,15 @@ MODULE tools_generate_boundary
        & solvent_aware_de_dboundary, test_de_dboundary
   !
 CONTAINS
+!  Function: sfunct0
+!
+!> Switching function 0: goes from 1 to 0 when passing through the
+!! threshold
+!!
+!! \f[
+!!    1 + \frac{1 - (x/x_t)^k}{1 + (x/x_t)^k}
+!! \f]
+!! where \f$x_t\f$ is the threshold
 !--------------------------------------------------------------------
   FUNCTION sfunct0( x, xthr, fact )
 !--------------------------------------------------------------------
@@ -63,12 +72,12 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION sfunct0
 !--------------------------------------------------------------------
+!  Function: dsfunct0
+!
+!> Derivative of switching function 0
 !--------------------------------------------------------------------
   FUNCTION dsfunct0( x, xthr, fact )
 !--------------------------------------------------------------------
-    !
-    ! ... Derivative of switching function 0
-    !
     IMPLICIT NONE
     !
     REAL( DP )             :: dsfunct0
@@ -87,16 +96,20 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dsfunct0
 !--------------------------------------------------------------------
+!  Function: sfunct1
+!
+!> Switching function 1 that goes from 1 to 0 when passing from
+!! xmin to xmax. 
+!!
+!! NOTE: fact should be equal to LOG(xmax/xmin) but is
+!! passed in input to save time
+!!
+!! \f[
+!!    x - \sin(x)
+!! \f]
 !--------------------------------------------------------------------
   FUNCTION sfunct1( x, xmax, xmin, fact )
 !--------------------------------------------------------------------
-    !
-    ! ... Switching function 1: x - sin(x)
-    !     goes from 1 to 0 when passing from xmin to xmax
-    !
-    !     NOTE: fact should be equal to LOG(xmax/xmin)
-    !     but is passed in input to save time
-    !
     IMPLICIT NONE
     !
     REAL( DP )             :: sfunct1
@@ -120,15 +133,15 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION sfunct1
 !--------------------------------------------------------------------
+!  Function: dsfunct
+!
+!> Derivative of switching function 1
+!! 
+!! NOTE: fact should be equal to LOG(xmax/xmin) but is passed in
+!! input to save time.
 !--------------------------------------------------------------------
   FUNCTION dsfunct1( x, xmax, xmin, fact )
 !--------------------------------------------------------------------
-    !
-    ! ... Derivative of switching function 1
-    !
-    !     NOTE: fact should be equal to LOG(xmax/xmin)
-    !     but is passed in input to save time
-    !
     IMPLICIT NONE
     !
     REAL( DP )             :: dsfunct1
@@ -152,15 +165,15 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dsfunct1
 !--------------------------------------------------------------------
+!  Function: d2sfunct1
+!
+!> Second derivative of switching function 1
+!!
+!! Note: fact should be equal to LOG(xmax/xmin) but is passed in
+!! input to save time
 !--------------------------------------------------------------------
   FUNCTION d2sfunct1( x, xmax, xmin, fact )
 !--------------------------------------------------------------------
-    !
-    ! ... Second derivative of switching function 1
-    !
-    !     NOTE: fact should be equal to LOG(xmax/xmin)
-    !     but is passed in input to save time
-    !
     IMPLICIT NONE
     !
     REAL( DP )             :: d2sfunct1
@@ -185,13 +198,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION d2sfunct1
 !--------------------------------------------------------------------
+!  Function: sfunct2
+!
+!> Switching function 2, erfc() that goes from 1 to 0 when passing 
+!! through xthr. 
 !--------------------------------------------------------------------
   FUNCTION sfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
-    !
-    ! ... Switching function 2: erfc()
-    !     goes from 1 to 0 when passing through xthr
-    !
     IMPLICIT NONE
     !
     REAL( DP )             :: sfunct2
@@ -210,12 +223,12 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION sfunct2
 !--------------------------------------------------------------------
+!  Function: dsfunct2
+!
+!> Derivative of switching function 2
 !--------------------------------------------------------------------
   FUNCTION dsfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
-    !
-    ! ... Derivative of switching function 2
-    !
     IMPLICIT NONE
     !
     REAL( DP )             :: dsfunct2
@@ -237,12 +250,12 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dsfunct2
 !--------------------------------------------------------------------
+!  Function: d2sfunct2
+!
+!> Second derivative of switching function 2
 !--------------------------------------------------------------------
   FUNCTION d2sfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
-    !
-    ! ... Second derivative of switching function 2
-    !
     IMPLICIT NONE
     !
     REAL( DP )             :: d2sfunct2
@@ -264,13 +277,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION d2sfunct2
 !--------------------------------------------------------------------
+!  Function: boundfunct
+!
+!> Calculates the density-dependent dielectric constant
+!! ifunct = 0 => original Fattebert and Gygi function
 !--------------------------------------------------------------------
   FUNCTION boundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the density-dependent dielectric constant
-    ! ... ifunct = 0 => original Fattebert and Gygi function
-    !
     IMPLICIT NONE
     !
     REAL( DP ) :: boundfunct
@@ -312,14 +325,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION boundfunct
 !--------------------------------------------------------------------
+!  Function: dboundfunct
+!
+!> Calculates the derivative of the density-dependent dielectric
+!! constant
+!! ifunct = 0 => original Fattebert and Gygi function
 !--------------------------------------------------------------------
   FUNCTION dboundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the derivative of the
-    ! ... density-dependent dielectric constant
-    ! ... ifunct = 0 => original Fattebert and Gygi function
-    !
     IMPLICIT NONE
     !
     REAL( DP ) :: dboundfunct
@@ -361,14 +374,15 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dboundfunct
 !--------------------------------------------------------------------
+!  Function: d2boundfunct
+!
+!> Calculates the second derivative of the density-dependent
+!! dielectric constant
+!!
+!! ifunct = 0 => original Fattebery and Gygi function
 !--------------------------------------------------------------------
   FUNCTION d2boundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the derivative of the
-    ! ... density-dependent dielectric constant
-    ! ... ifunct = 0 => original Fattebert and Gygi function
-    !
     IMPLICIT NONE
     !
     REAL( DP ) :: d2boundfunct
@@ -411,15 +425,16 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION d2boundfunct
 !--------------------------------------------------------------------
+!  Subroutine: boundary_of_density
+!
+!> Calculates the dielectric constant as a function of the charge
+!! density, and the derivative of the the dielectric constant
+!! with respect to the charge density. 
 !--------------------------------------------------------------------
   SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
     !
     USE tools_fd_gradient, ONLY : calc_fd_gradient
-    !
-    ! ... Calculates the dielectric constant as a function
-    ! ... of the charge density, and the derivative of
-    ! ... the dielectric constant wrt the charge density.
     !
     IMPLICIT NONE
     !
@@ -597,14 +612,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_dsurface
 !--------------------------------------------------------------------
+!  Subroutine: boundary_of_functions
+!
+!> Calculates the dielectric constant as a function of the charge
+!! density, and derivative of the dielectric constant with respect
+!! to the charge density
 !--------------------------------------------------------------------
   SUBROUTINE boundary_of_functions( nsoft_spheres, soft_spheres, boundary )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the dielectric constant as a function
-    ! ... of the charge density, and the derivative of
-    ! ... the dielectric constant wrt the charge density.
-    !
     USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions
     !
@@ -657,6 +672,7 @@ CONTAINS
        IF ( boundary%solvent_aware ) THEN
           !
           hessian => boundary%hessian
+          hessian%of_r = 0.D0
           !
        ELSE
           !
@@ -1018,14 +1034,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_dboundary_dions
 !--------------------------------------------------------------------
+!  Subroutine: boundary_of_system
+!
+!> Calculates the dielectric constant as a function of the charge
+!! density, and the derivative of the dielectric constant with
+!! respect to the charge density.
 !--------------------------------------------------------------------
   SUBROUTINE boundary_of_system( simple, boundary )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the dielectric constant as a function
-    ! ... of the charge density, and the derivative of
-    ! ... the dielectric constant wrt the charge density.
-    !
     USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions
     !
@@ -1157,7 +1173,7 @@ CONTAINS
     TYPE( environ_cell ), POINTER :: cell
     !
     INTEGER :: ir, ipol, jpol
-    REAL( DP ) :: probe_volume
+!    REAL( DP ) :: probe_volume
     TYPE( environ_density ) :: filled_fraction
     TYPE( environ_density ) :: d2filling
     !
@@ -1189,8 +1205,9 @@ CONTAINS
     !
     CALL density_of_functions( boundary%solvent_probe, boundary%probe, .TRUE. )
     !
-    probe_volume = integrate_environ_density( boundary%probe )
-    boundary%probe%of_r = boundary%probe%of_r / probe_volume
+!    probe_volume = integrate_environ_density( boundary%probe )
+!    boundary%probe%of_r = boundary%probe%of_r / probe_volume
+    boundary%probe%of_r = boundary%probe%of_r / integrate_environ_density( boundary%probe )
     !
     ! Step 2: compute filled fraction, i.e. convolution of local boundary with probe
     !
@@ -1234,8 +1251,9 @@ CONTAINS
        !
        ! Compute derivative of convolution with probe
        !
-       IF ( deriv .GE. 1 ) CALL compute_convolution_deriv( deriv, boundary%solvent_probe, &
-            & boundary%local, gradlocal, lapllocal, hesslocal, probe_volume )
+!       IF ( deriv .GE. 1 ) CALL compute_convolution_deriv( deriv, boundary%solvent_probe, &
+!            & boundary%local, gradlocal, lapllocal, hesslocal, probe_volume )
+       IF ( deriv .GE. 1 ) CALL compute_convolution_deriv( deriv, boundary, gradlocal, lapllocal, hesslocal )
        !
        ! Update derivatives of interface function in reverse order
        !
@@ -1318,13 +1336,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE solvent_aware_boundary
 !--------------------------------------------------------------------
+!  Subroutine: solvent_aware_de_dboundary
+!
+!> Fill voids of the continuum interface that are too small to
+!! fit a solvent molecule
 !--------------------------------------------------------------------
   SUBROUTINE solvent_aware_de_dboundary( boundary, de_dboundary )
 !--------------------------------------------------------------------
-    !
-    ! ... Fill voids of the continuum interface that are too small
-    ! ... to fit a solvent molecule
-    !
     USE tools_generate_functions, ONLY : compute_convolution_fft
     !
     IMPLICIT NONE
@@ -1367,19 +1385,82 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE solvent_aware_de_dboundary
 !--------------------------------------------------------------------
+!!--------------------------------------------------------------------
+!  SUBROUTINE compute_convolution_deriv( deriv, probe, f, grad, lapl, hess, probe_vol )
+!!--------------------------------------------------------------------
+!    !
+!    USE utils_functions, ONLY : gradient_of_functions, laplacian_of_functions, hessian_of_functions
+!    USE tools_generate_functions, ONLY : compute_convolution_fft
+!    !
+!    IMPLICIT NONE
+!    !
+!    INTEGER, INTENT(IN) :: deriv
+!    REAL( DP ), INTENT( IN ) :: probe_vol
+!    TYPE( environ_functions ), INTENT(IN) :: probe
+!    TYPE( environ_density ), INTENT(IN) :: f
+!    TYPE( environ_gradient ), INTENT(INOUT) :: grad
+!    TYPE( environ_density ), INTENT(INOUT) :: lapl
+!    TYPE( environ_hessian ), INTENT(INOUT) :: hess
+!    !
+!    INTEGER, POINTER :: nnr
+!    !
+!    INTEGER :: ipol, jpol
+!    !
+!    nnr => f % cell % nnr
+!    !
+!    IF ( deriv .LE. 0 ) RETURN
+!    !
+!    IF ( deriv .GE. 1 ) THEN
+!       !
+!       CALL gradient_of_functions( probe, grad, .FALSE. )
+!       grad%of_r(:,:) = grad%of_r(:,:) / probe_vol
+!       !
+!       DO ipol = 1, 3
+!          CALL compute_convolution_fft( nnr, f%of_r, grad%of_r(ipol,:), grad%of_r(ipol,:))
+!       ENDDO
+!       !
+!       CALL update_gradient_modulus( grad )
+!       !
+!    ENDIF
+!    !
+!    IF ( deriv .GE. 2 ) THEN
+!       !
+!       CALL laplacian_of_functions( probe, lapl, .FALSE. )
+!       lapl%of_r = lapl%of_r / probe_vol
+!       !
+!       CALL compute_convolution_fft( nnr, f%of_r, lapl%of_r, lapl%of_r )
+!       !
+!    END IF
+!    !
+!    IF ( deriv .GE. 3 ) THEN
+!       !
+!       CALL hessian_of_functions( probe, hess, .FALSE. )
+!       hess%of_r(:,:,:) = hess%of_r(:,:,:) / probe_vol
+!       !
+!       DO ipol = 1, 3
+!          DO jpol = 1, 3
+!             CALL compute_convolution_fft( nnr, f%of_r, hess%of_r(ipol,jpol,:), &
+!                  & hess%of_r(ipol,jpol,:) )
+!          ENDDO
+!       ENDDO
+!       !
+!    ENDIF
+!    !
+!    RETURN
+!    !
+!!--------------------------------------------------------------------
+!  END SUBROUTINE compute_convolution_deriv
+!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE compute_convolution_deriv( deriv, probe, f, grad, lapl, hess, probe_vol )
+  SUBROUTINE compute_convolution_deriv( deriv, bound, grad, lapl, hess )
 !--------------------------------------------------------------------
     !
-    USE utils_functions, ONLY : gradient_of_functions, laplacian_of_functions, hessian_of_functions
     USE tools_generate_functions, ONLY : compute_convolution_fft
     !
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: deriv
-    REAL( DP ), INTENT( IN ) :: probe_vol
-    TYPE( environ_functions ), INTENT(IN) :: probe
-    TYPE( environ_density ), INTENT(IN) :: f
+    TYPE( environ_boundary ), INTENT(IN) :: bound
     TYPE( environ_gradient ), INTENT(INOUT) :: grad
     TYPE( environ_density ), INTENT(INOUT) :: lapl
     TYPE( environ_hessian ), INTENT(INOUT) :: hess
@@ -1388,17 +1469,15 @@ CONTAINS
     !
     INTEGER :: ipol, jpol
     !
-    nnr => f % cell % nnr
+    nnr => bound % probe % cell % nnr
     !
     IF ( deriv .LE. 0 ) RETURN
     !
     IF ( deriv .GE. 1 ) THEN
        !
-       CALL gradient_of_functions( probe, grad, .FALSE. )
-       grad%of_r(:,:) = grad%of_r(:,:) / probe_vol
-       !
        DO ipol = 1, 3
-          CALL compute_convolution_fft( nnr, f%of_r, grad%of_r(ipol,:), grad%of_r(ipol,:))
+          CALL compute_convolution_fft( nnr, bound%probe%of_r, bound%gradient%of_r(ipol,:), &
+               & grad%of_r(ipol,:))
        ENDDO
        !
        CALL update_gradient_modulus( grad )
@@ -1407,21 +1486,15 @@ CONTAINS
     !
     IF ( deriv .GE. 2 ) THEN
        !
-       CALL laplacian_of_functions( probe, lapl, .FALSE. )
-       lapl%of_r = lapl%of_r / probe_vol
-       !
-       CALL compute_convolution_fft( nnr, f%of_r, lapl%of_r, lapl%of_r )
+       CALL compute_convolution_fft( nnr, bound%probe%of_r, bound%laplacian%of_r, lapl%of_r )
        !
     END IF
     !
     IF ( deriv .GE. 3 ) THEN
        !
-       CALL hessian_of_functions( probe, hess, .FALSE. )
-       hess%of_r(:,:,:) = hess%of_r(:,:,:) / probe_vol
-       !
        DO ipol = 1, 3
           DO jpol = 1, 3
-             CALL compute_convolution_fft( nnr, f%of_r, hess%of_r(ipol,jpol,:), &
+             CALL compute_convolution_fft( nnr, bound%probe%of_r, bound%hessian%of_r(ipol,jpol,:), &
                   & hess%of_r(ipol,jpol,:) )
           ENDDO
        ENDDO

@@ -15,8 +15,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main drivers to compute Environ contributions
-! to Kohn-Sham potential, total energy and inter-atomic forces
+!> Module containing the main drivers to compute Environ contributions
+!! to Kohn-Sham potential, total energy and inter-atomic forces
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -36,21 +36,21 @@ PRIVATE
 PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron, calc_dvenviron
 !
 CONTAINS
+!  Subroutine: calc_venviron
+!
+!> Calculates the Environ contribution to the local potential. All
+!! the Environ modules need to be called here. The potentials are
+!! all computed on the dense real-space grid and added to vtot.
 !--------------------------------------------------------------------
-  SUBROUTINE calc_venviron( update, nnr, vtot )
+  SUBROUTINE calc_venviron( update, nnr, vtot, local_verbose )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the local
-    !     potential. All the Environ modules need to be called here.
-    !     The potentials are all computed on the dense real-space
-    !     grid and added to vtot.
-    !
     USE environ_base,  ONLY : vzero, solvent,                       &
                               lelectrostatic, velectrostatic,       &
                               vreference, lexternals,               &
                               lsoftcavity, vsoftcavity,             &
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
+                              lconfine, env_confine, vconfine,      &
                               charges, lstatic, static,             &
                               lelectrolyte, electrolyte,            &
                               cell, lsoftsolvent, lsoftelectrolyte
@@ -61,6 +61,8 @@ CONTAINS
     USE embedding_electrostatic, ONLY : calc_velectrostatic
     USE embedding_surface,       ONLY : calc_desurface_dboundary
     USE embedding_volume,        ONLY : calc_devolume_dboundary
+    USE embedding_confine,       ONLY : calc_vconfine, &
+                                        calc_deconfine_dboundary
     USE utils_dielectric,        ONLY : calc_dedielectric_dboundary
     USE utils_electrolyte,       ONLY : calc_deelectrolyte_dboundary
     USE utils_charges,           ONLY : update_environ_charges, &
@@ -74,6 +76,7 @@ CONTAINS
     LOGICAL, INTENT(IN)       :: update
     INTEGER, INTENT(IN)       :: nnr
     REAL( DP ), INTENT(OUT)   :: vtot( nnr )
+    INTEGER, INTENT(IN), OPTIONAL :: local_verbose
     !
     TYPE( environ_density ) :: de_dboundary
     !
@@ -82,9 +85,23 @@ CONTAINS
     vtot = vzero % of_r
     !
     IF ( .NOT. update ) THEN
+       !
        IF ( lelectrostatic ) vtot = vtot + velectrostatic % of_r - vreference % of_r
+       IF ( lconfine ) vtot = vtot + vconfine % of_r
        IF ( lsoftcavity ) vtot = vtot + vsoftcavity % of_r
+       !
+       IF ( PRESENT( local_verbose ) ) THEN
+          !
+          IF ( lelectrostatic ) CALL print_environ_density( vreference, local_verbose )
+          IF ( lelectrostatic ) CALL print_environ_density( velectrostatic, local_verbose )
+          IF ( lelectrostatic ) CALL print_environ_charges( charges, local_verbose, local_depth=0 )
+          IF ( lconfine ) CALL print_environ_density( vconfine, local_verbose )
+          IF ( lsoftcavity ) CALL print_environ_density( vsoftcavity, local_verbose )
+          !
+       END IF
+       !
        RETURN
+       !
     END IF
     !
     ! ... If any form of electrostatic embedding is present, calculate its contribution
@@ -94,19 +111,28 @@ CONTAINS
        ! ... Electrostatics is also computed inside the calling program, need to remove the reference
        !
        CALL calc_velectrostatic( reference, charges, vreference )
-       IF ( verbose .GE. 2 ) CALL print_environ_density( vreference )
+       CALL print_environ_density( vreference )
        !
        IF ( lexternals ) CALL update_environ_charges( charges, lexternals )
        !
        CALL calc_velectrostatic( outer, charges, velectrostatic )
-       IF ( verbose .GE. 2 ) CALL print_environ_density( velectrostatic )
+       CALL print_environ_density( velectrostatic )
        !
        vtot = vtot + velectrostatic % of_r - vreference % of_r
        !
        CALL charges_of_potential( velectrostatic, charges )
        !
        IF ( lexternals ) CALL update_environ_charges( charges )
-       IF ( verbose .GE. 2 ) CALL print_environ_charges( charges )
+       CALL print_environ_charges( charges )
+       !
+    END IF
+    !
+    IF ( lconfine ) THEN
+       !
+       CALL calc_vconfine( env_confine, solvent, vconfine )
+       CALL print_environ_density( vconfine )
+       !
+       vtot = vtot + vconfine % of_r
        !
     END IF
     !
@@ -128,6 +154,10 @@ CONTAINS
           ! ... If external pressure different from zero, calculates PV contribution
           !
           IF ( lvolume ) CALL calc_devolume_dboundary( env_pressure, solvent, de_dboundary )
+          !
+          ! ... If confinement potential different from zero, calculates confine contribution
+          !
+          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, charges%electrons%density, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !
@@ -161,7 +191,7 @@ CONTAINS
           !
        END IF
        !
-       IF ( verbose .GE. 4 ) CALL print_environ_density( vsoftcavity )
+       CALL print_environ_density( vsoftcavity )
        vtot = vtot + vsoftcavity % of_r
        !
        CALL destroy_environ_density( de_dboundary )
@@ -172,22 +202,22 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_venviron
 !--------------------------------------------------------------------
+!  Subroutine: calc_eenviron
+!
+!> Calculates the Environ contribution to the energy. We must remove
+!! int v_environ * rhoelec that is automatically included in the
+!! energy computed as the sum of Kohn-Sham eigenvalues.
 !--------------------------------------------------------------------
   SUBROUTINE calc_eenviron( deenviron, eelectrostatic, esurface, &
-       & evolume, eelectrolyte )
+       & evolume, econfine, eelectrolyte )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the Energy.
-    !     We must remove \int v_environ * rhoelec that is
-    !     automatically included in the energy computed as sum of
-    !     Kohn-Sham eigenvalues.
-    !
     USE environ_base,  ONLY : electrons, solvent,                   &
                               lelectrostatic, velectrostatic,       &
                               vreference, lexternals,               &
                               lsoftcavity, vsoftcavity,             &
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
+                              lconfine, vconfine, env_confine,      &
                               charges, lstatic, static,             &
                               lelectrolyte, electrolyte
     USE electrostatic_base, ONLY : reference, outer
@@ -197,6 +227,7 @@ CONTAINS
     USE embedding_electrostatic, ONLY : calc_eelectrostatic
     USE embedding_surface,       ONLY : calc_esurface
     USE embedding_volume,        ONLY : calc_evolume
+!    USE embedding_confine,       ONLY : calc_econfine
     USE utils_electrolyte,       ONLY : calc_eelectrolyte
     USE utils_charges,           ONLY : update_environ_charges
     !
@@ -205,7 +236,7 @@ CONTAINS
     ! ... Declares variables
     !
     REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, esurface, &
-         evolume, eelectrolyte
+         evolume, econfine, eelectrolyte
     REAL( DP ) :: ereference
     !
     ! ... Initializes the variables
@@ -214,6 +245,7 @@ CONTAINS
     eelectrostatic = 0.D0
     esurface       = 0.D0
     evolume        = 0.D0
+    econfine       = 0.D0
     eelectrolyte   = 0.D0
     !
     ! ... Calculates the energy corrections
@@ -225,19 +257,20 @@ CONTAINS
        deenviron = deenviron + &
             & scalar_product_environ_density(electrons%density,vreference)
        !
-       CALL calc_eelectrostatic( reference, charges, vreference, ereference )
+       CALL calc_eelectrostatic( reference%core, charges, vreference, ereference )
        !
        deenviron = deenviron - &
             & scalar_product_environ_density(electrons%density,velectrostatic)
        !
-       IF ( lexternals ) CALL update_environ_charges( charges, add_externals=lexternals )
-       !
-       CALL calc_eelectrostatic( outer, charges, velectrostatic, eelectrostatic )
+!       IF ( lexternals ) CALL update_environ_charges( charges, add_externals=lexternals )
+!       !
+       CALL calc_eelectrostatic( outer%core, charges, velectrostatic, eelectrostatic, &
+                                 add_environment=.true. )
        !
        eelectrostatic = eelectrostatic - ereference
        !
-       IF ( lexternals ) CALL update_environ_charges( charges )
-       !
+!       IF ( lexternals ) CALL update_environ_charges( charges )
+!       !
     END IF
     !
     IF ( lsoftcavity ) deenviron = deenviron - &
@@ -251,6 +284,10 @@ CONTAINS
     !
     IF ( lvolume ) CALL calc_evolume( env_pressure, solvent, evolume )
     !
+    !  if confinement potential different from zero compute confine energy
+    !
+    IF ( lconfine ) econfine = scalar_product_environ_density( electrons%density, vconfine )
+    !
     !  if electrolyte is present calculate its non-electrostatic contribution
     !
     IF ( lelectrolyte ) CALL calc_eelectrolyte( electrolyte, eelectrolyte )
@@ -260,14 +297,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_eenviron
 !--------------------------------------------------------------------
+!  Subroutine: calc_fenviron
+!
+!> Calculates the Environ contribution to the forces. Due to
+!! Hellman-Feynman only a few of the Environ modules have an
+!! effect on the atomic forces.
 !--------------------------------------------------------------------
   SUBROUTINE calc_fenviron( nat, force_environ )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the forces.
-    !     Due to Hellman-Feynman only a few of Environ modules
-    !     have an effect on atomic forces.
-    !
     USE environ_base, ONLY : lelectrostatic, velectrostatic,    &
                              charges, lstatic, static,          &
                              lelectrolyte, electrolyte,         &
@@ -275,6 +312,7 @@ CONTAINS
                              lrigidelectrolyte,                 &
                              lsurface, env_surface_tension,     &
                              lvolume, env_pressure,             &
+                             lconfine, env_confine,             &
                              lsolvent, solvent, cell
     !
     USE electrostatic_base, ONLY : outer
@@ -284,6 +322,7 @@ CONTAINS
     USE embedding_electrostatic, ONLY : calc_felectrostatic
     USE embedding_surface,       ONLY : calc_desurface_dboundary
     USE embedding_volume,        ONLY : calc_devolume_dboundary
+    USE embedding_confine,       ONLY : calc_deconfine_dboundary
     USE utils_dielectric,        ONLY : calc_dedielectric_dboundary
     USE utils_electrolyte,       ONLY : calc_deelectrolyte_dboundary
     USE tools_generate_boundary, ONLY : calc_dboundary_dions, solvent_aware_de_dboundary
@@ -320,6 +359,10 @@ CONTAINS
           ! ... If external pressure different from zero, calculates PV contribution
           !
           IF ( lvolume ) CALL calc_devolume_dboundary( env_pressure, solvent, de_dboundary )
+          !
+          ! ... If confinement potential different from zero, calculates confine contribution
+          !
+          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, charges%electrons%density, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !
@@ -378,15 +421,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_fenviron
 !--------------------------------------------------------------------
+!  Subroutine: calc_denviron
+!
+!> Calculates the Environ contribution to the local potential. All
+!! the Environ modules need to be called here. The potentials are
+!! all computed on the dense real-space grid and added to vtot.
 !--------------------------------------------------------------------
   SUBROUTINE calc_dvenviron( nnr, rho, drho, dvtot )
 !--------------------------------------------------------------------
-    !
-    ! ... Calculates the environ contribution to the local
-    !     potential. All the Environ modules need to be called here.
-    !     The potentials are all computed on the dense real-space
-    !     grid and added to vtot.
-    !
     USE environ_base,  ONLY : vzero, solvent,                       &
                               lelectrostatic, loptical
     !
@@ -399,8 +441,8 @@ CONTAINS
     ! ... Declares variables
     !
     INTEGER, INTENT(IN)     :: nnr
-    REAL( DP ), INTENT(IN)  :: rho( nnr )    ! ground-state charge-density
-    REAL( DP ), INTENT(IN)  :: drho( nnr )   ! response charge-density
+    REAL( DP ), INTENT(IN)  :: rho( nnr )    !> ground-state charge-density
+    REAL( DP ), INTENT(IN)  :: drho( nnr )   !> response charge-density
     REAL( DP ), INTENT(OUT) :: dvtot( nnr )
     !
     ! ... Local variables
@@ -420,7 +462,12 @@ CONTAINS
           ALLOCATE( dvepsilon( nnr ) )
           dvepsilon = 0.D0
           !
-          CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!          CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
+! Compatible with QE-6.4.X QE-GIT
+          CALL calc_vsolvent_tddfpt(nnr, rho, drho, dvpol, dvepsilon)
+! END BACKWARD COMPATIBILITY
           !
           dvtot = dvtot + dvpol + dvepsilon
           !

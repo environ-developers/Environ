@@ -14,9 +14,9 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! This module provide output subroutines for Environ, including summary
-! of input parameters, timings, print of energy contributions, and print
-! subroutines for Environ derived data types
+!> This module provides output subroutines for Environ, including summary
+!! of input parameters, timings, print of energy contributions, and print
+!! subroutines for Environ derived data types
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -42,14 +42,15 @@ MODULE environ_output
   !
   CHARACTER( LEN = 2 ) :: prog
   !
-  INTEGER, PARAMETER :: nbibliography = 4
+  INTEGER, PARAMETER :: nbibliography = 6
   CHARACTER( LEN = 80 ), DIMENSION( nbibliography ) :: bibliography
   !
   PRIVATE
   !
   PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, &
        & verbose, prog, set_environ_output, environ_print_energies, &
-       & environ_print_fermi_shift, environ_summary, environ_clock, write_cube, &
+       & environ_print_potential_shift, environ_print_potential_warning, &
+       & environ_summary, environ_clock, write_cube, &
        & print_environ_density, print_environ_gradient, &
        & print_environ_hessian, &
        & print_environ_functions, print_environ_iontype, &
@@ -75,6 +76,12 @@ CONTAINS
                       & Chem. Phys. 136, 064102 (2012)"
     bibliography(4) = "O. Andreussi, I. Dabo and N. Marzari, J.&
                       & Chem. Phys. 136, 064102 (2012)"
+    bibliography(5) = "O. Andreussi, N.G. Hoermann, F. Nattino,&
+                      & G. Fisicaro, S. Goedecker, and N. Marzari,&
+                      & J. Chem. Theory Comput. 15, 1996 (2019)"
+    bibliography(6) = "F. Nattino, M. Truscott, N. Marzari, and&
+                      & O. Andreussi, J. Chem. Phys. 150, 041722&
+                      & (2019)"
     !
     RETURN
     !
@@ -159,11 +166,11 @@ CONTAINS
     IF ( verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1000 )
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1001 )cell%ibrav,cell%alat,cell%omega
-       IF ( verbosity .GE. 2 ) THEN
+       IF ( verbosity .GE. 3 ) THEN
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1004 )cell%ntot,cell%nnr,cell%domega
-          IF ( verbosity .GE. 3 ) THEN
+          IF ( verbosity .GE. 4 ) THEN
              IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1005 )cell%me,cell%root,cell%comm
           END IF
        END IF
@@ -228,7 +235,7 @@ CONTAINS
        integral = integrate_environ_density(density)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1102 )integral
        ! MAY ADD MAXVAL AND MINVAL
-       IF ( verbosity .GE. 2 ) THEN
+       IF ( verbosity .GE. 3 ) THEN
           CALL print_environ_cell( density%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
              IF ( ionode ) WRITE(environ_unit,*)'present local ions'
@@ -296,7 +303,7 @@ CONTAINS
        integral = integrate_environ_density(gradient%modulus)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1202 )integral
        ! MAY ADD MAXVAL AND MINVAL
-       IF ( verbosity .GE. 2 ) THEN
+       IF ( verbosity .GE. 3 ) THEN
           CALL print_environ_cell( gradient%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
              CALL write_cube( gradient%modulus, local_ions )
@@ -306,7 +313,7 @@ CONTAINS
              CALL write_cube( gradient%modulus )
           END IF
        END IF
-       IF ( verbosity .GE. 3 ) THEN
+       IF ( verbosity .GE. 4 ) THEN
           cell => gradient % cell
           CALL init_environ_density( cell, dens )
           dens % label = TRIM(ADJUSTL(gradient % label))//'_x'
@@ -375,7 +382,7 @@ CONTAINS
        integral = integrate_environ_density(hessian%laplacian)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1252 )integral
        ! MAY ADD MAXVAL AND MINVAL
-       IF ( verbosity .GE. 2 ) THEN
+       IF ( verbosity .GE. 3 ) THEN
           CALL print_environ_cell( hessian%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
              CALL write_cube( hessian%laplacian, local_ions )
@@ -385,7 +392,7 @@ CONTAINS
              CALL write_cube( hessian%laplacian )
           END IF
        END IF
-       IF ( verbosity .GE. 3 ) THEN
+       IF ( verbosity .GE. 4 ) THEN
           cell => hessian % cell
           CALL init_environ_density( cell, dens )
           dens % label = TRIM(ADJUSTL( hessian % label ))//'_xx'
@@ -484,7 +491,7 @@ CONTAINS
           CASE DEFAULT
              CALL errore(sub_name,'Unexpected function type',1)
           END SELECT
-          IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1307 )&
+          IF ( verbosity .GE. 3 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1307 )&
                & functions(ifunctions)%pos
        END DO
     END IF
@@ -570,7 +577,7 @@ CONTAINS
        DO ityp = 1, ntyp
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1402 )ityp,iontype(ityp)%index,&
                & iontype(ityp)%label,iontype(ityp)%atmnum,iontype(ityp)%zv
-          IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1403 )&
+          IF ( verbosity .GE. 3 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1403 )&
                & iontype(ityp)%atomicspread,iontype(ityp)%corespread,&
                & iontype(ityp)%solvationrad
        END DO
@@ -631,17 +638,17 @@ CONTAINS
        DO i = 1, ions%number
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1507 )i,ions%ityp(i),ions%tau(:,i)*ions%alat
        END DO
-       IF ( verbosity .GE. 2 ) THEN
+       IF ( verbosity .GE. 3 ) THEN
           CALL print_environ_iontype(ions%ntyp,ions%iontype,passed_verbosity,passed_depth)
           IF ( ions%use_smeared_ions ) THEN
              CALL print_environ_density(ions%density,passed_verbosity,passed_depth)
-             IF ( verbosity .GE. 3 ) &
+             IF ( verbosity .GE. 4 ) &
                   & CALL print_environ_functions(ions%number,&
                   & ions%smeared_ions,passed_verbosity,passed_depth)
           END IF
           IF ( ions%use_core_electrons ) THEN
-             IF ( verbosity .GE. 3 ) CALL print_environ_density(ions%core,passed_verbosity,passed_depth)
-             IF ( verbosity .GE. 4 ) CALL print_environ_functions(ions%number,&
+             IF ( verbosity .GE. 4 ) CALL print_environ_density(ions%core,passed_verbosity,passed_depth)
+             IF ( verbosity .GE. 5 ) CALL print_environ_functions(ions%number,&
                   & ions%core_electrons,passed_verbosity,passed_depth)
           END IF
        END IF
@@ -698,8 +705,7 @@ CONTAINS
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1600 )
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1601 )electrons%number
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1602 )electrons%charge
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1603 )electrons%nspin
-       IF ( verbosity .GE. 2 ) &
+       IF ( verbosity .GE. 3 ) &
             & CALL print_environ_density(electrons%density,passed_verbosity,passed_depth)
     END IF
     !
@@ -710,7 +716,6 @@ CONTAINS
 1600 FORMAT(/,4('%'),' ELECTRONS ',65('%'))
 1601 FORMAT(1x,'number of electrons        = ',I10)
 1602 FORMAT(1x,'total electronic charge    = ',F14.7)
-1603 FORMAT(1x,'number of spin components  = ',I2)
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_electrons
 !--------------------------------------------------------------------
@@ -750,7 +755,7 @@ CONTAINS
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1700 )
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1701 )externals%number
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1702 )externals%charge
-       IF ( verbosity .GE. 2 ) THEN
+       IF ( verbosity .GE. 3 ) THEN
           CALL print_environ_functions(externals%number,externals%functions,&
                & passed_verbosity,passed_depth)
           CALL print_environ_density(externals%density,passed_verbosity,passed_depth)
@@ -803,7 +808,7 @@ CONTAINS
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1800 )
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1801 )charges%number
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1802 )charges%charge
-       IF ( verbosity .GE. 2 ) THEN
+       IF ( verbosity .GE. 3 ) THEN
           CALL print_environ_density(charges%density,passed_verbosity,passed_depth)
           IF ( charges % include_ions ) &
                & CALL print_environ_ions(charges%ions,passed_verbosity,passed_depth)
@@ -869,7 +874,7 @@ CONTAINS
        END IF
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1903 )system%dim,system%axis
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1904 )system%pos,system%width
-       IF ( verbosity .GE. 2 ) &
+       IF ( verbosity .GE. 3 ) &
           & CALL print_environ_ions(system % ions, passed_verbosity, passed_depth )
     END IF
     !
@@ -930,24 +935,24 @@ CONTAINS
              IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2004 ) boundary % rhozero, boundary % tbeta
           CASE ( 1 )
              IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2005 ) boundary % rhomax, boundary % rhomin
-             IF ( verbosity .GE. 2 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2006 ) boundary % fact
+             IF ( verbosity .GE. 3 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2006 ) boundary % fact
           CASE ( 2 )
              IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2007 ) boundary % rhomax, boundary % rhomin
           END SELECT
-          IF ( verbosity .GE. 3 ) THEN
+          IF ( verbosity .GE. 4 ) THEN
              CALL print_environ_density(boundary%density,passed_verbosity,passed_depth)
              IF ( boundary % need_ions ) THEN
                 IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2008 )
-                IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%ions%core)
+                IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%ions%core)
              END IF
-             IF ( verbosity .GE. 3 ) &
+             IF ( verbosity .GE. 4 ) &
                   & CALL print_environ_electrons(boundary%electrons,passed_verbosity,passed_depth)
           END IF
-          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 5 ) CALL print_environ_density(boundary%dscaled,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 5 ) CALL print_environ_density(boundary%d2scaled,passed_verbosity,passed_depth)
        ELSE IF ( boundary % need_ions ) THEN
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2009 ) boundary%alpha, boundary%softness
-          IF ( verbosity .GE. 2 ) &
+          IF ( verbosity .GE. 3 ) &
                & CALL print_environ_functions(boundary%ions%number,boundary%soft_spheres,&
                & passed_verbosity,passed_depth)
        ELSE IF ( boundary % need_system ) THEN
@@ -956,20 +961,20 @@ CONTAINS
        END IF
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2011 ) boundary%volume
        IF ( boundary%deriv .GE. 1 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 2012 ) boundary%surface
-       IF ( verbosity .GE. 2 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%scaled,passed_verbosity,passed_depth)
        IF ( boundary%solvent_aware ) THEN
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2013 ) boundary%filling_threshold,boundary%filling_spread,&
                & boundary%solvent_probe%width,boundary%solvent_probe%spread
-          IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%local,passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 3 ) CALL print_environ_density(boundary%filling,passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%dfilling,passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%probe,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%local,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(boundary%filling,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 5 ) CALL print_environ_density(boundary%dfilling,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 5 ) CALL print_environ_density(boundary%probe,passed_verbosity,passed_depth)
        END IF
-       IF ( verbosity .GE. 4 .AND. boundary%deriv .GE. 1 ) &
+       IF ( verbosity .GE. 5 .AND. boundary%deriv .GE. 1 ) &
             & CALL print_environ_gradient(boundary%gradient,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 4 .AND. boundary%deriv .GE. 2 ) &
+       IF ( verbosity .GE. 5 .AND. boundary%deriv .GE. 2 ) &
             & CALL print_environ_density(boundary%laplacian,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 4 .AND. boundary%deriv .EQ. 3 ) &
+       IF ( verbosity .GE. 5 .AND. boundary%deriv .EQ. 3 ) &
             & CALL print_environ_density(boundary%dsurface,passed_verbosity,passed_depth)
     END IF
     !
@@ -1051,16 +1056,16 @@ CONTAINS
        ELSE
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2102 )dielectric%constant,dielectric%nregions
           CALL print_environ_functions(dielectric%nregions,dielectric%regions,passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%background,passed_verbosity,passed_depth)
+          IF ( verbosity .GE. 4 ) CALL print_environ_density(dielectric%background,passed_verbosity,passed_depth)
        END IF
 !       CALL print_environ_boundary(dielectric%boundary,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%density,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 2 ) CALL print_environ_density(dielectric%epsilon,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 4 ) CALL print_environ_density(dielectric%depsilon,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%density,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 3 ) CALL print_environ_density(dielectric%epsilon,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 5 ) CALL print_environ_density(dielectric%depsilon,passed_verbosity,passed_depth)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2103 )dielectric%need_gradient,&
             & dielectric%need_factsqrt
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 2104 )dielectric%charge
-       IF ( verbosity .GE. 4 ) THEN
+       IF ( verbosity .GE. 5 ) THEN
           CALL print_environ_gradient(dielectric%gradlog,passed_verbosity,passed_depth)
           IF ( dielectric%need_gradient ) CALL print_environ_gradient(dielectric%gradient,passed_verbosity,passed_depth)
           IF ( dielectric%need_factsqrt ) CALL print_environ_density(dielectric%factsqrt,passed_verbosity,passed_depth)
@@ -1130,15 +1135,15 @@ CONTAINS
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3107 )electrolyte%ioncctype(ityp)%cbulk &
                                                                  & * amu_si / bohr_radius_si**3
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3108 )electrolyte%ioncctype(ityp)%z
-          IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%c, &
+          IF ( verbosity .GE. 5 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%c, &
               & passed_verbosity,passed_depth)
-          IF ( verbosity .GE. 4 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
+          IF ( verbosity .GE. 5 ) CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
               & passed_verbosity,passed_depth)
        END DO
 !       CALL print_environ_boundary(electrolyte%boundary,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 2 ) CALL print_environ_density(electrolyte%density,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%density,passed_verbosity,passed_depth)
        IF ( verbosity .GE. 3 ) CALL print_environ_density(electrolyte%gamma,passed_verbosity,passed_depth)
-       IF ( verbosity .GE. 4 ) CALL print_environ_density(electrolyte%dgamma,passed_verbosity,passed_depth)
+       IF ( verbosity .GE. 5 ) CALL print_environ_density(electrolyte%dgamma,passed_verbosity,passed_depth)
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3109 )electrolyte%linearized
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 3110 )electrolyte%charge
     END IF
@@ -1173,6 +1178,7 @@ CONTAINS
                              lsurface, esurface, &
                              lvolume, evolume, &
                              lelectrolyte, eelectrolyte, &
+                             lconfine, econfine, &
                              deenviron
     !
     CHARACTER( LEN=80 ) :: sub_name = 'environ_print_energies'
@@ -1183,12 +1189,14 @@ CONTAINS
           IF ( lsurface ) WRITE( program_unit, 9202 ) esurface
           IF ( lvolume ) WRITE( program_unit, 9203 ) evolume
           IF ( lelectrolyte ) WRITE( program_unit, 9205 ) eelectrolyte
+          IF ( lconfine ) WRITE( program_unit, 9206 ) econfine
           WRITE( program_unit, 9204 ) deenviron
        ELSE IF ( prog .EQ. 'CP' ) THEN
           IF ( lelectrostatic ) WRITE( program_unit, 9301 ) eelectrostatic
           IF ( lsurface ) WRITE( program_unit, 9302 ) esurface
           IF ( lvolume ) WRITE( program_unit, 9303 ) evolume
           IF ( lelectrolyte ) WRITE( program_unit, 9305 ) eelectrolyte
+          IF ( lconfine ) WRITE( program_unit, 9306 ) econfine
           WRITE( program_unit, 9304 ) deenviron
        ELSE
           CALL errore(sub_name,'Wrong program calling Environ',1)
@@ -1200,44 +1208,60 @@ CONTAINS
 9201 FORMAT( '     electrostatic embedding   =',F17.8,' Ry')
 9202 FORMAT( '     cavitation energy         =',F17.8,' Ry')
 9203 FORMAT( '     PV energy                 =',F17.8,' Ry')
+9206 FORMAT( '     confinement energy        =',F17.8,' Ry')
 9205 FORMAT( '     electrolyte free energy   =',F17.8,' Ry')
 9204 FORMAT( '     correction to one-el term =',F17.8,' Ry')
 9301 FORMAT( '     electrostatic embedding = ',F14.5,' Hartree a.u.')
 9302 FORMAT( '           cavitation energy = ',F14.5,' Hartree a.u.')
 9303 FORMAT( '                   PV energy = ',F14.5,' Hartree a.u.')
 9305 FORMAT( '     electrolyte free energy = ',F14.5,' Hartree a.u.')
+9306 FORMAT( '          confinement energy = ',F14.5,' Hartree a.u.')
 9304 FORMAT( '   correction to one-el term = ',F14.5,' Hartree a.u.')
     !
 !----------------------------------------------------------------------
   END SUBROUTINE environ_print_energies
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
-  SUBROUTINE environ_print_fermi_shift( )
+  SUBROUTINE environ_print_potential_shift( )
 !----------------------------------------------------------------------
     !
     ! If Gaussian nuclei are used, write out the corresponding
-    ! Fermi energy shift
+    ! potential shift
     !
-    USE environ_base, ONLY : lsmearedions, lperiodic, fermi_shift
+    USE environ_base, ONLY : lsmearedions, potential_shift
 
-    IF (lsmearedions .AND. lperiodic) &
-         WRITE( program_unit, 9400 ) fermi_shift * rytoev
+    IF (lsmearedions) WRITE( program_unit, 9400 ) potential_shift * rytoev
 
 9400 FORMAT(/,5(' '),&
-          'the Fermi energy shift due to the parabolic pbc-correction is ',&
+          'the potential shift due to the Gaussian-smeared nuclei is ',&
           F10.4,' ev')
     !
 !----------------------------------------------------------------------
-  END SUBROUTINE environ_print_fermi_shift
+  END SUBROUTINE environ_print_potential_shift
 !----------------------------------------------------------------------
+  SUBROUTINE environ_print_potential_warning( )
+!----------------------------------------------------------------------
+    !
+    USE electrostatic_base, ONLY : need_pbc_correction
+
+    IF (need_pbc_correction) WRITE( program_unit, 9401 ) 
+
+9401 FORMAT(/,&
+     5(' '),'WARNING: you are using the parabolic pbc correction;',/,&
+     5(' '),'         the potential shift above must be added to ',/,&
+     5(' '),'         band and Fermi energies.')
+    !
+!----------------------------------------------------------------------
+  END SUBROUTINE environ_print_potential_warning
+!----------------------------------------------------------------------
+!  Subroutine: environ_summary
+!
+!> Write out the main parameters of Environ calculations, summarizing
+!! the input keywords (some info also on internal vs input units).
+!! Called by summary.f90
 !----------------------------------------------------------------------
   SUBROUTINE environ_summary( )
 !----------------------------------------------------------------------
-    !
-    ! Write out the main parameters of Environ calculations,
-    ! summarizing the input keywords (some info also on internal
-    ! vs input units). Called by summary.f90
-    !
     USE environ_base,       ONLY : environ_thr, lsolvent, solvent,   &
                                    env_static_permittivity,          &
                                    env_optical_permittivity,         &
@@ -1341,13 +1365,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE environ_summary
 !--------------------------------------------------------------------
+!  Subroutine: environ_clock
+!
+!> Writes out the time informations of the Environ dependent
+!! calculations. Called by print_clock_pw.f90
 !--------------------------------------------------------------------
   SUBROUTINE environ_clock( passed_unit )
 !--------------------------------------------------------------------
-    !
-    ! Write out the time informations of the Environ dependent
-    ! calculations. Called by print_clock_pw.f90
-    !
     USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume, ltddfpt
     !
     IMPLICIT NONE
@@ -1367,6 +1391,7 @@ CONTAINS
     IF ( lelectrostatic ) THEN
        CALL print_clock ('calc_eelect')
        CALL print_clock ('calc_velect')
+       CALL print_clock ('calc_vgcs')
        CALL print_clock ('dielectric')
        CALL print_clock ('electrolyte')
        CALL print_clock ('calc_felect')

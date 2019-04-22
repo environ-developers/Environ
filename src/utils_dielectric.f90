@@ -14,19 +14,16 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_dielectric
-!
-! derived data types.
-!
-! Environ_dielectric is the type to store the details of the dielectric
-! embedding. It contains the specifics of externally-defined dielectric
-! regions and it links the boundary details. Starting from these quantities,
-! It builds the dielectric function in space (stored in %epsilon component)
-! and the factors derived from it that are required by the generalized
-! Poisson solver (gradient of the logarithm, sqrt factor needed by
-! preconditioned conjugate gradient, etc.).
+!> Module containing the main routines to handle environ_dielectric
+!! derived data types.
+!!
+!! Environ_dielectric is the type to store the details of the dielectric
+!! embedding. It contains the specifics of externally-defined dielectric
+!! regions and it links the boundary details. Starting from these quantities,
+!! It builds the dielectric function in space (stored in %epsilon component)
+!! and the factors derived from it that are required by the generalized
+!! Poisson solver (gradient of the logarithm, sqrt factor needed by
+!! preconditioned conjugate gradient, etc.).
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_dielectric

@@ -27,9 +27,11 @@ MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../../Modules $(MOD_FLAG).
 
 ENVIRONOBJS = \
 correction_periodic.o      \
+correction_gcs.o	   \
 electrostatic_init.o       \
 electrostatic_mod.o        \
 electrostatic_types.o      \
+embedding_confine.o        \
 embedding_electrostatic.o  \
 embedding_surface.o        \
 embedding_volume.o         \
@@ -41,6 +43,7 @@ environ_output.o           \
 environ_types.o            \
 problem_generalized.o      \
 problem_linearized_pb.o    \
+problem_pb.o               \
 problem_poisson.o          \
 solvent_tddfpt.o           \
 tools_fd_gradient.o        \

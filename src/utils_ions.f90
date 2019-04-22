@@ -14,18 +14,15 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_ions
-!
-! derived data types.
-!
-! Environ_ions contains all the details of the ions of the QM system,
-! including the atomic type, mass and charge, the solvation radii,
-! the sizes of the ionic cores and the spread to be used when treating
-! the ions as gaussians. The module also contains all the routines
-! to handle environ_ions and to generate smooth ionic density from the
-! ions specification.
+!! Module containing the main routines to handle environ_ions
+!! derived data types.
+!!
+!! Environ_ions contains all the details of the ions of the QM system,
+!! including the atomic type, mass and charge, the solvation radii,
+!! the sizes of the ionic cores and the spread to be used when treating
+!! the ions as gaussians. The module also contains all the routines
+!! to handle environ_ions and to generate smooth ionic density from the
+!! ions specification.
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_ions
@@ -74,7 +71,7 @@
 MODULE utils_ions
 !----------------------------------------------------------------------------
   !
-  USE environ_base,  ONLY : e2, fermi_shift
+  USE environ_base,  ONLY : e2, potential_shift
   USE environ_output
   USE environ_types
   USE utils_functions
@@ -357,8 +354,8 @@ CONTAINS
        !
     END DO
     !
-    ! Calculate Fermi energy shift due to Gaussian nuclei
-    IF ( ions%use_smeared_ions ) fermi_shift = ions%quadrupole_correction * &
+    ! Calculate potential shift due to Gaussian nuclei
+    IF ( ions%use_smeared_ions ) potential_shift = ions%quadrupole_correction * &
                                  & tpi * e2 / ions%density%cell%omega
     IF ( ions%use_smeared_ions ) ions%quadrupole_gauss(:) = ions%quadrupole_pc(:) + ions%quadrupole_correction
     !

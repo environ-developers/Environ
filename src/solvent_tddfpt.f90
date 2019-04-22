@@ -14,9 +14,9 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module for calculation of the response "polarization" and "dielectric"
-! potentials, to be coupled with the TDDFPT algorithms of Quantum ESPRESSO.
-! Original formulas derived in I. Timrov et al, JCP (2015)
+!> Module for calculation of the response "polarization" and "dielectric"
+!! potentials, to be coupled with the TDDFPT algorithms of Quantum ESPRESSO.
+!! Original formulas derived in I. Timrov et al, JCP (2015)
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Iurii Timrov       (THEOS and NCCR-MARVEL, EPFL)
@@ -41,12 +41,12 @@ MODULE solvent_tddfpt
   PUBLIC :: solvent_clean_tddfpt, calc_vsolvent_tddfpt
   !
 CONTAINS
+!  Subroutine: solvent_clean_tddfpt
+!
+!> Local clean up
 !--------------------------------------------------------------------
  SUBROUTINE solvent_clean_tddfpt()
 !--------------------------------------------------------------------
-   !
-   ! ... Local clean up
-   !
    USE environ_init, ONLY : environ_clean_tddfpt
    !
    IMPLICIT NONE
@@ -58,23 +58,34 @@ CONTAINS
 !--------------------------------------------------------------------
  END SUBROUTINE solvent_clean_tddfpt
 !--------------------------------------------------------------------
+!  Subroutine: calc_vsolvent_tddfpt
+!
+!> This subroutine calculates:
+!! -# the response "polarization" from the response polarization
+!! density
+!! -# the response "dielectric" potential
 !--------------------------------------------------------------------
- SUBROUTINE calc_vsolvent_tddfpt(nnr, nspin, rho_0, drho_elec, dv_pol, dv_epsilon)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+! SUBROUTINE calc_vsolvent_tddfpt(nnr, nspin, rho_0, drho_elec, dv_pol, dv_epsilon)
+! Compatible with QE-6.4.X QE-GIT
+ SUBROUTINE calc_vsolvent_tddfpt(nnr, rho_0, drho_elec, dv_pol, dv_epsilon)
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
-   !
-   ! ... This subroutine calculates:
-   ! ... 1. the response "polarization" potential from the response polarization density
-   ! ... 2. the response "dielectric" potential
-   !
-   USE environ_base, ONLY : cell, velectrostatic, lsoftsolvent, loptical, optical, ltddfpt
+   USE environ_base, ONLY: cell, velectrostatic, lsoftsolvent, loptical, optical, ltddfpt
    USE electrostatic_base, ONLY : reference, outer
    USE embedding_electrostatic, ONLY : calc_velectrostatic
    USE utils_charges
    !
    IMPLICIT NONE
    !
-   INTEGER, INTENT(IN)     :: nnr,           & ! number of grid points in R-space
-                              nspin            ! if nspin=2 spin-polarized case (not supported)
+   INTEGER, INTENT(IN)     :: nnr              ! number of grid points in R-space
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!   INTEGER, INTENT(IN)     :: nspin            ! if nspin=2 spin-polarized case (not supported)
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
    REAL( DP ), INTENT(IN)  :: rho_0(nnr),    & ! ground-state charge-density
                               drho_elec(nnr)   ! response charge-density
    REAL( DP ), INTENT(OUT) :: dv_pol(nnr),   & ! response polarization potential
@@ -102,9 +113,16 @@ CONTAINS
    ! ... Create source response electronic density
    !
    CALL create_environ_electrons( response_electrons )
-   CALL init_environ_electrons_first( 0, 1, response_electrons )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!   CALL init_environ_electrons_first( 0, 1, response_electrons )
+!   CALL init_environ_electrons_second( cell, response_electrons )
+!   CALL update_environ_electrons( 1, nnr, drho_elec, response_electrons, 0.D0 )
+! Compatible with QE-6.4.X QE-GIT
+   CALL init_environ_electrons_first( 0, response_electrons )
    CALL init_environ_electrons_second( cell, response_electrons )
-   CALL update_environ_electrons( 1, nnr, drho_elec, response_electrons, 0.D0 )
+   CALL update_environ_electrons( nnr, drho_elec, response_electrons, 0.D0 )
+! END BACKWARD COMPATIBILITY
    !
    ! ... Link together different sources of electrostatic potential ( charges + dielectric + electrolyte )
    !

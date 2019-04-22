@@ -1,0 +1,11 @@
+PB model (linearized) 
+2D-analytic solution : potential = -(-4.8330 + -0.5949) V = 5.4279 V (abs. scale)
+numerical solution   : potential = -(-4.8392 + -0.5949) V = 5.4341 V (abs. scale)
+
+PB model 
+2D-analytic solution : potential = -(-4.7378 + -0.5949) V = 5.3327 V (abs. scale)
+numerical solution   : potential = -(-4.7406 + -0.5949) V = 5.3355 V (abs. scale)
+
+MPB model 
+numerical solution   : potential = -(-4.8570 + -0.5949) V = 5.4519 V (abs. scale)
+

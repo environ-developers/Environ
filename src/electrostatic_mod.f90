@@ -14,18 +14,16 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module used to store global electrostatic-related variables and parameters
+!> Module used to store global electrostatic-related variables and parameters.
+!! Contains all the main variables needed for the electrostatic solvers.
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
-!
+!  
 !----------------------------------------------------------------------------
 MODULE electrostatic_base
 !----------------------------------------------------------------------------
-  !
-  ! ... this module contains all the main variables needed for the
-  ! ... electrostatic solvers.
   !
   USE electrostatic_types
   !
@@ -76,18 +74,23 @@ MODULE electrostatic_base
   ! Internal setup of numerical solvers
   !
   LOGICAL ::                           &
-       lgradient
+       lgradient, lconjugate
   TYPE( gradient_solver ) ::           &
-       gradient
+       gradient, inner_gradient
   LOGICAL ::                           &
        literative
   TYPE( iterative_solver ) ::          &
-       iterative
+       iterative, inner_iterative
+  LOGICAL ::                           &
+       lnested, lnewton
+  TYPE( newton_solver ) ::             &
+       newton
   !
   ! General setup of periodic boundary conditions
   !
   LOGICAL ::                           &
-       need_pbc_correction
+       need_pbc_correction,            &
+       need_electrolyte
   INTEGER ::                           &
        pbc_dim,                        &
        pbc_axis
@@ -97,7 +100,6 @@ MODULE electrostatic_base
   LOGICAL ::                       &
        need_gradient,              &
        need_factsqrt,              &
-       need_auxiliary,             &
-       linearized
+       need_auxiliary
   !
 END MODULE electrostatic_base

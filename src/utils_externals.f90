@@ -14,16 +14,13 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module containing the main routines to handle
-!
-!              environ_externals
-!
-! derived data types.
-!
-! Environ_externals contains all the specifications and the details of
-! the external user-defined (thus fixed) smooth charge distributions
-! introduced in the Environ simulation cell. Distributions of gaussian
-! shape and different dimensionalities (0D,1D,2D) are available.
+!> Module containing the main routines to handle environ_externals
+!! derived data types.
+!!
+!! Environ_externals contains all the specifications and the details of
+!! the external user-defined (thus fixed) smooth charge distributions
+!! introduced in the Environ simulation cell. Distributions of gaussian
+!! shape and different dimensionalities (0D,1D,2D) are available.
 !
 !----------------------------------------------------------------------------
 !  TYPE environ_externals
