@@ -1,0 +1,1042 @@
+
+     Program PWSCF v.6.3MaX starts on 22Apr2019 at  9:19:36 
+
+     This program is part of the open-source Quantum ESPRESSO suite
+     for quantum simulation of materials; please cite
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
+          URL http://www.quantum-espresso.org", 
+     in publications or presentations arising from this work. More details at
+     http://www.quantum-espresso.org/quote
+
+     Parallel version (MPI), running on     1 processors
+
+     MPI processes distributed on     1 nodes
+     Reading input from pw.in
+Warning: card  &IONS ignored
+Warning: card  / ignored
+
+     Current dimensions of program PWSCF are:
+     Max number of different atomic species (ntypx) = 10
+     Max number of k-points (npk) =  40000
+     Max angular momentum in pseudopotentials (lmaxx) =  3
+
+     Subspace diagonalization in iterative solution of the eigenvalue problem:
+     a serial algorithm will be used
+
+ 
+     G-vector sticks info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Sum         861     341     89               221431    56001    7059
+ 
+
+
+     bravais-lattice index     =            0
+     lattice parameter (alat)  =       5.5435  a.u.
+     unit-cell volume          =    2000.1211 (a.u.)^3
+     number of atoms/cell      =            2
+     number of atomic types    =            1
+     number of electrons       =        22.00
+     number of Kohn-Sham states=           15
+     kinetic-energy cutoff     =      35.0000  Ry
+     charge density cutoff     =     350.0000  Ry
+     convergence threshold     =      5.0E-09
+     mixing beta               =       0.7000
+     number of iterations used =            8  plain     mixing
+     Exchange-correlation      = PBE ( 1  4  3  4 0 0)
+ 
+
+     Environ Module
+     ==============
+
+     Plese cite
+         O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)         
+     in publications or presentations arising from this work.
+
+     compensation onset threshold      =               0.1000E+02 
+
+     Electrostatic Setup
+     -------------------
+     electrostatic problem to solve    = poisson                  
+     numerical solver adopted          = direct                   
+     type of auxiliary density adopted = none                     
+     type of core tool for poisson     = fft                      
+     type of core tool for s(r) deriv  = analytic                 
+
+
+
+     celldm(1)=   5.543526  celldm(2)=   0.000000  celldm(3)=   0.000000
+     celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
+
+     crystal axes: (cart. coord. in units of alat)
+               a(1) = (   1.000000   0.000000   0.000000 )  
+               a(2) = (   0.000000   1.000000   0.000000 )  
+               a(3) = (   0.000000   0.000000  11.740809 )  
+
+     reciprocal axes: (cart. coord. in units 2 pi/alat)
+               b(1) = (  1.000000  0.000000  0.000000 )  
+               b(2) = (  0.000000  1.000000  0.000000 )  
+               b(3) = (  0.000000  0.000000  0.085173 )  
+
+
+     PseudoPot. # 1 for Ag read from file:
+     /home/fnattino/Programs/quantumespresso/q-e-qe-6.3-develop/Environ/tests/../..//pseudo/Ag.pbe-n-rrkjus_psl.1.0.0.UPF
+     MD5 check sum: d841cbfac2b0861aec33b46768a516bf
+     Pseudo is Ultrasoft + core correction, Zval = 11.0
+     Generated using "atomic" code by A. Dal Corso v.6.2.2
+     Using radial grid of 1237 points,  6 beta functions with: 
+                l(1) =   0
+                l(2) =   0
+                l(3) =   1
+                l(4) =   1
+                l(5) =   2
+                l(6) =   2
+     Q(r) pseudized with 0 coefficients 
+
+
+     atomic species   valence    mass     pseudopotential
+        Ag            11.00   107.86800     Ag( 1.00)
+
+      8 Sym. Ops. (no inversion) found
+
+
+
+   Cartesian axes
+
+     site n.     atom                  positions (alat units)
+         1           Ag  tau(   1) = (   0.5000000   0.5000000   3.4088881  )
+         2           Ag  tau(   2) = (   0.0000000   0.0000000   4.1021437  )
+
+     number of k points=     1  Marzari-Vanderbilt smearing, width (Ry)=  0.0100
+                       cart. coord. in units 2pi/alat
+        k(    1) = (   0.0000000   0.0000000   0.0000000), wk =   2.0000000
+
+     Dense  grid:   221431 G-vectors     FFT dimensions: (  36,  36, 400)
+
+     Smooth grid:    56001 G-vectors     FFT dimensions: (  24,  24, 250)
+
+     Estimated max dynamical RAM per process >     776.84 MB
+ WARNING: significant discrepancy between the numerical and the expected erfc ch
+ arge
+ WARNING: significant discrepancy between the numerical and the expected erfc ch
+ arge
+ WARNING: significant discrepancy between the numerical and the expected erfc ch
+ arge
+
+     Initial potential from superposition of free atoms
+     Check: negative starting charge=   -0.000137
+
+     starting charge   21.99920, renormalised to   22.00000
+
+     negative rho (up, down):  1.367E-04 0.000E+00
+     Starting wfcs are   18 randomized atomic wfcs
+
+     total cpu time spent up to now is        2.7 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-02,  avg # of iterations =  8.0
+
+     negative rho (up, down):  4.478E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is        4.3 secs
+
+     total energy              =    -168.74133422 Ry
+     Harris-Foulkes estimate   =    -168.92013544 Ry
+     estimated scf accuracy    <       0.24833721 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000678 Ry
+     correction to one-el term =       0.00000000 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.13E-03,  avg # of iterations =  5.0
+
+     negative rho (up, down):  3.270E-04 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is        5.9 secs
+
+     total energy              =    -168.46598863 Ry
+     Harris-Foulkes estimate   =    -171.15130385 Ry
+     estimated scf accuracy    <       3.10134803 Ry
+     electrostatic embedding   =       0.00000003 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       1.95342603 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.13E-03,  avg # of iterations =  3.0
+
+     negative rho (up, down):  6.949E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is        7.4 secs
+
+     total energy              =    -168.85626013 Ry
+     Harris-Foulkes estimate   =    -171.85746857 Ry
+     estimated scf accuracy    <       0.08066478 Ry
+     electrostatic embedding   =       0.00000005 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.98513757 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.67E-04,  avg # of iterations =  2.0
+
+     negative rho (up, down):  3.951E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is        8.9 secs
+
+     total energy              =    -168.85093945 Ry
+     Harris-Foulkes estimate   =    -171.68620080 Ry
+     estimated scf accuracy    <       0.04148486 Ry
+     electrostatic embedding   =       0.00000016 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.82776238 Ry
+
+     iteration #  5     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.89E-04,  avg # of iterations =  3.0
+
+     negative rho (up, down):  7.769E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       10.4 secs
+
+     total energy              =    -168.84926558 Ry
+     Harris-Foulkes estimate   =    -171.56182671 Ry
+     estimated scf accuracy    <       0.07589701 Ry
+     electrostatic embedding   =       0.00002617 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.70434421 Ry
+
+     iteration #  6     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.89E-04,  avg # of iterations =  1.0
+
+     negative rho (up, down):  4.965E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       11.9 secs
+
+     total energy              =    -168.84741931 Ry
+     Harris-Foulkes estimate   =    -171.53027731 Ry
+     estimated scf accuracy    <       0.01824493 Ry
+     electrostatic embedding   =       0.00000036 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.67882038 Ry
+
+     iteration #  7     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  8.29E-05,  avg # of iterations =  3.0
+
+     negative rho (up, down):  4.810E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       13.4 secs
+
+     total energy              =    -168.84557255 Ry
+     Harris-Foulkes estimate   =    -171.41237242 Ry
+     estimated scf accuracy    <       0.01040543 Ry
+     electrostatic embedding   =       0.00000154 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.56424525 Ry
+
+     iteration #  8     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  4.73E-05,  avg # of iterations =  7.0
+
+     negative rho (up, down):  8.736E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       14.9 secs
+
+     total energy              =    -168.84592699 Ry
+     Harris-Foulkes estimate   =    -171.33359615 Ry
+     estimated scf accuracy    <       0.00567292 Ry
+     electrostatic embedding   =       0.00000020 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.48807319 Ry
+
+     iteration #  9     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.58E-05,  avg # of iterations =  5.0
+
+     negative rho (up, down):  4.979E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       16.4 secs
+
+     total energy              =    -168.84445876 Ry
+     Harris-Foulkes estimate   =    -171.33642161 Ry
+     estimated scf accuracy    <       0.00640084 Ry
+     electrostatic embedding   =       0.00000011 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.49048636 Ry
+
+     iteration # 10     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.58E-05,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.934E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       17.9 secs
+
+     total energy              =    -168.84411495 Ry
+     Harris-Foulkes estimate   =    -171.32889464 Ry
+     estimated scf accuracy    <       0.00166514 Ry
+     electrostatic embedding   =       0.00000001 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.48439653 Ry
+
+     iteration # 11     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  7.57E-06,  avg # of iterations =  2.0
+
+     negative rho (up, down):  4.001E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       19.4 secs
+
+     total energy              =    -168.84413291 Ry
+     Harris-Foulkes estimate   =    -171.32344485 Ry
+     estimated scf accuracy    <       0.00047793 Ry
+     electrostatic embedding   =       0.00000001 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47923140 Ry
+
+     iteration # 12     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.17E-06,  avg # of iterations =  6.0
+
+     negative rho (up, down):  4.058E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       21.0 secs
+
+     total energy              =    -168.84411472 Ry
+     Harris-Foulkes estimate   =    -171.31619685 Ry
+     estimated scf accuracy    <       0.00030297 Ry
+     electrostatic embedding   =       0.00000001 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47199807 Ry
+
+     iteration # 13     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.38E-06,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.995E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       22.5 secs
+
+     total energy              =    -168.84409061 Ry
+     Harris-Foulkes estimate   =    -171.31249477 Ry
+     estimated scf accuracy    <       0.00092512 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.46826970 Ry
+
+     iteration # 14     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.38E-06,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.969E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       23.9 secs
+
+     total energy              =    -168.84416305 Ry
+     Harris-Foulkes estimate   =    -171.31544147 Ry
+     estimated scf accuracy    <       0.00010505 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47126444 Ry
+
+     iteration # 15     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  4.77E-07,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.966E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       25.4 secs
+
+     total energy              =    -168.84416565 Ry
+     Harris-Foulkes estimate   =    -171.31442909 Ry
+     estimated scf accuracy    <       0.00000811 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47025874 Ry
+
+     iteration # 16     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.69E-08,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.966E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       26.9 secs
+
+     total energy              =    -168.84416569 Ry
+     Harris-Foulkes estimate   =    -171.31441779 Ry
+     estimated scf accuracy    <       0.00000212 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47024772 Ry
+
+     iteration # 17     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  9.62E-09,  avg # of iterations =  3.0
+
+     negative rho (up, down):  3.966E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       28.4 secs
+
+     total energy              =    -168.84416592 Ry
+     Harris-Foulkes estimate   =    -171.31431038 Ry
+     estimated scf accuracy    <       0.00000022 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47014026 Ry
+
+     iteration # 18     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-09,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.966E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       29.9 secs
+
+     total energy              =    -168.84416584 Ry
+     Harris-Foulkes estimate   =    -171.31434096 Ry
+     estimated scf accuracy    <       0.00000091 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47017080 Ry
+
+     iteration # 19     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-09,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.968E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       31.4 secs
+
+     total energy              =    -168.84416588 Ry
+     Harris-Foulkes estimate   =    -171.31425238 Ry
+     estimated scf accuracy    <       0.00000002 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.47008227 Ry
+
+     iteration # 20     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  8.07E-11,  avg # of iterations =  2.0
+
+     negative rho (up, down):  3.967E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       32.9 secs
+
+     total energy              =    -168.84416588 Ry
+     Harris-Foulkes estimate   =    -171.31415781 Ry
+     estimated scf accuracy    <       0.00000004 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.46998770 Ry
+
+     iteration # 21     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  8.07E-11,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.967E-05 0.000E+00
+
+     add environment contribution to local potential
+
+     total cpu time spent up to now is       34.4 secs
+
+     total energy              =    -168.84416588 Ry
+     Harris-Foulkes estimate   =    -171.31416851 Ry
+     estimated scf accuracy    <       0.00000001 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.46999841 Ry
+
+     iteration # 22     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  5.11E-11,  avg # of iterations =  1.0
+
+     negative rho (up, down):  3.967E-05 0.000E+00
+
+     the potential shift due to the Gaussian-smeared nuclei is    -0.2351 ev
+
+     total cpu time spent up to now is       35.8 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+    -8.1084  -7.5886  -7.3562  -6.5919  -6.0395  -6.0395  -6.0187  -5.1002
+    -5.0613  -5.0613  -4.7056  -4.4959  -1.7919   0.0149   0.0944
+
+     the Fermi energy is    -4.6001 ev
+
+!    total energy              =    -168.84416588 Ry
+     Harris-Foulkes estimate   =    -171.31415836 Ry
+     estimated scf accuracy    <          6.6E-10 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -1723.17957627 Ry
+     hartree contribution      =     874.27504811 Ry
+     xc contribution           =     -44.70555464 Ry
+     ewald contribution        =     722.29669101 Ry
+     smearing contrib. (-TS)   =      -0.00076658 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.46998826 Ry
+
+     WARNING: you are using the parabolic pbc correction;
+              the potential shift above must be added to 
+              band and Fermi energies.
+
+     convergence has been achieved in  22 iterations
+
+     negative rho (up, down):  3.967E-05 0.000E+00
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.01627921
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.01627921
+
+     Total force =     0.023022     Total SCF correction =     0.000024
+
+     Writing output data file pwscf.save/
+ 
+     init_run     :      1.71s CPU      2.00s WALL (       1 calls)
+     electrons    :     24.70s CPU     33.08s WALL (       1 calls)
+     forces       :      0.95s CPU      1.17s WALL (       1 calls)
+
+     Called by init_run:
+     wfcinit      :      0.06s CPU      0.06s WALL (       1 calls)
+     potinit      :      0.32s CPU      0.35s WALL (       1 calls)
+     hinit0       :      0.90s CPU      0.91s WALL (       1 calls)
+
+     Called by electrons:
+     c_bands      :      2.76s CPU      2.78s WALL (      22 calls)
+     sum_band     :      9.97s CPU     13.99s WALL (      22 calls)
+     v_of_rho     :      2.89s CPU      3.05s WALL (      23 calls)
+     newd         :      7.00s CPU     11.40s WALL (      23 calls)
+     mix_rho      :      0.46s CPU      0.46s WALL (      22 calls)
+
+     Called by c_bands:
+     init_us_2    :      0.05s CPU      0.09s WALL (      45 calls)
+     cegterg      :      2.41s CPU      2.43s WALL (      22 calls)
+
+     Called by sum_band:
+     sum_band:bec :      0.00s CPU      0.00s WALL (      22 calls)
+     addusdens    :      8.99s CPU     12.99s WALL (      22 calls)
+
+     Called by *egterg:
+     h_psi        :      2.19s CPU      2.21s WALL (      82 calls)
+     s_psi        :      0.04s CPU      0.05s WALL (      82 calls)
+     g_psi        :      0.03s CPU      0.02s WALL (      59 calls)
+     cdiaghg      :      0.02s CPU      0.02s WALL (      81 calls)
+
+     Called by h_psi:
+     h_psi:pot    :      2.19s CPU      2.20s WALL (      82 calls)
+     h_psi:calbec :      0.04s CPU      0.05s WALL (      82 calls)
+     vloc_psi     :      2.06s CPU      2.10s WALL (      82 calls)
+     add_vuspsi   :      0.08s CPU      0.05s WALL (      82 calls)
+
+     General routines
+     calbec       :      0.06s CPU      0.07s WALL (     108 calls)
+     fft          :      1.82s CPU      1.80s WALL (     394 calls)
+     ffts         :      0.05s CPU      0.07s WALL (      45 calls)
+     fftw         :      2.28s CPU      2.30s WALL (    1840 calls)
+     interpolate  :      0.17s CPU      0.18s WALL (      23 calls)
+ 
+     Parallel routines
+ 
+     Environ routines
+     calc_eelect  :      0.02s CPU      0.02s WALL (      44 calls)
+     calc_velect  :      1.31s CPU      1.32s WALL (      42 calls)
+     calc_vgcs    :      0.66s CPU      0.66s WALL (      21 calls)
+     electrolyte  :      0.00s CPU      0.00s WALL (       2 calls)
+     calc_felect  :      0.04s CPU      0.04s WALL (       1 calls)
+ 
+     PWSCF        :    28.09s CPU        37.00s WALL
+
+ 
+   This run was terminated on:   9:20:13  22Apr2019            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=
+
+%%%% IONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of ions             =          2
+ ionic center of charge     =      0.2500000     0.2500000     3.7555159
+ total ionic charge         =    -22.0000000
+ ionic dipole               =      0.0000000     0.0000000     0.0000000
+ ionic quadrupole (pc)      =    -42.2546857   -42.2546857   -81.2309514
+ ionic quadrupole (gauss)   =    -45.0046857   -45.0046857   -83.9809514
+ ion   1 type =  1 coordinates =      2.7717630     2.7717630    18.8972600
+ ion   2 type =  1 coordinates =      0.0000000     0.0000000    22.7403400
+
+%%%% SYSTEM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ system is built from all present ionic types
+ system defined dimension   =  2 
+ system defined axis        =  3 
+ system center              =      0.2500000     0.2500000     3.7555159 
+ system width               =      0.3466278 
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = electrolyte          
+ boundary mode              = system               
+ boundary is built as an analytic function centered on system position
+ center of the boundary     =      0.2500000     0.2500000     3.7555159 
+ distance from the center   =     20.2137000 
+ spread of the interface    =      0.0010000 
+ dimensionality             =  2 
+ axis                       =  3 
+ volume of the QM region    =   1245.0753797 
+ surface of the QM region   =      0.0000000 
+
+%%%% ELECTROLYTE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number electrol. species   =    2
+ solvent temperature        =   300.0
+ Debye length / sqrt(eps)   =      6.5084097
+ electrolyte species    1
+ bulk concentration  (a.u.) =      0.8924E-06
+ bulk concentration (mol/L) =      0.0100000
+ ionic charge               =   -1.00
+ electrolyte species    2
+ bulk concentration  (a.u.) =      0.8924E-06
+ bulk concentration (mol/L) =      0.0100000
+ ionic charge               =    1.00
+ electrolyte flags
+ linearized                 =  F
+ total electrolyte charge   =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =      0.000000000    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =      0.000000000    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.1178631243E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -177.5909913    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.2611888192E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -271.3975245    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.1224177666E-11
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -257.0757082    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.5943098394E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -245.9872159    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.1874322640E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -243.5300823    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.2830957945E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -233.1562817    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.8905179925E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -226.2126202    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.7304504529E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -226.4291317    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.1132794397E-11
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -225.8696346    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.5388793379E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -225.4002223    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.3290550427E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.7390409    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.6736559692E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.4008240    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.3490936505E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.6733445    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.1969674490E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5826278    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.5934074608E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5816020    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.2528606250E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5718092    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.2562985304E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5745793    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.2612370089E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5665893    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.3184379457E-13
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5578193    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.5119919590E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5588861    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.5393277696E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5579678    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+ number of spin components  =  1
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.5393277696E-12
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -224.5579678    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
