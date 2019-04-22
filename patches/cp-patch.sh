@@ -152,29 +152,49 @@ USE environ_init,     ONLY : environ_initelectrons \
 !Environ patch
 ' plugin_get_potential.f90 > tmp.1
 
-sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-     IF(use_environ) THEN \
-        ! \
-        ! update electrons-related quantities in environ \
-        ! \
-        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin ) ! \
-        ! \
-        ! environ contribution to the local potential, saved in vzero \
-        ! \
-        vzero%of_r = 0.D0 \
-        ! \
-        update_venviron = ( nfi .GT. environ_nskip ) .OR. environ_restart \
-        ! \
-        IF ( update_venviron .AND. verbose .GT. 1 ) WRITE( stdout, 9200 ) \
-        CALL calc_venviron( update_venviron, dfftp%nnr, vzero%of_r ) \
-        ! \
-9200 FORMAT(/"     add environment contribution to local potential") \
-     ENDIF \
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!\
+! Compatible with QE-6.4.X QE-GIT\
+REAL(DP), DIMENSION(:), ALLOCATABLE :: rhoaux\
+! END BACKWARD COMPATIBILITY\
 !Environ patch
 ' tmp.1 > tmp.2
 
-mv tmp.2 plugin_get_potential.f90
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch\
+     IF(use_environ) THEN\
+        !\
+        ! update electrons-related quantities in environ\
+        !\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin )\
+! Compatible with QE-6.4.X QE-GIT\
+        ALLOCATE(rhoaux(dfftp%nnr))\
+        rhoaux = rhoin(:,1)\
+        IF ( nspin .EQ. 2) rhoaux = rhoaux + rhoin(:,2)\
+        CALL environ_initelectrons( dfftp%nnr, rhoaux )\
+        DEALLOCATE(rhoaux)\
+! END BACKWARD COMPATIBILITY\
+        !\
+        ! environ contribution to the local potential, saved in vzero\
+        !\
+        vzero%of_r = 0.D0\
+        !\
+        update_venviron = ( nfi .GT. environ_nskip ) .OR. environ_restart\
+        !\
+        IF ( update_venviron .AND. verbose .GT. 1 ) WRITE( stdout, 9200 )\
+        CALL calc_venviron( update_venviron, dfftp%nnr, vzero%of_r )\
+        !\
+9200 FORMAT(/"     add environment contribution to local potential")\
+     ENDIF\
+!Environ patch
+' tmp.2 > tmp.3
+
+mv tmp.3 plugin_get_potential.f90
 
 #plugin_init_base.f90
 
@@ -355,7 +375,13 @@ sed '/Environ MODULES BEGIN/ a\
 USE io_global,        ONLY : ionode, ionode_id, stdout \
 USE mp_images,        ONLY : intra_image_comm \
 USE environ_input,    ONLY : read_environ \
-USE input_parameters, ONLY : ion_radius, atom_label, nspin \
+USE input_parameters, ONLY : ion_radius, atom_label \
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!USE input_parameters, ONLY : nspin\
+! Compatible with QE-6.4.X QE-GIT\
+!\
+! END BACKWARD COMPATIBILITY\
 USE environ_output,   ONLY : set_environ_output \
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
@@ -367,11 +393,16 @@ INTEGER :: is \
 ' tmp.1 > tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-   IF ( use_environ ) THEN \
-      CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout) \
-      CALL read_environ("CP",1, nspin, nat, ntyp, atom_label, assume_isolated, ion_radius) \
-   ENDIF \
+!Environ patch\
+   IF ( use_environ ) THEN\
+      CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout)\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
+!      CALL read_environ("CP", 1, nspin, nat, ntyp, atom_label, .FALSE., ion_radius)\
+! Compatible with QE-6.4.X QE-GIT\
+       CALL read_environ("CP", 1, nat, ntyp, atom_label, .FALSE., ion_radius)\
+! END BACKWARD COMPATIBILITY\
+   ENDIF\
 !Environ patch
 ' tmp.2 > tmp.1
 
@@ -381,8 +412,7 @@ rm tmp.2
 
 #plugin_utilities.f90
 
-cat >> plugin_utilities.f90 <<EOF
-!Environ patch
+cat > tmp.1 <<EOF
 !-----------------------------------------------------------------------
   SUBROUTINE external_laplacian( a, lapla )
 !-----------------------------------------------------------------------
@@ -392,7 +422,7 @@ cat >> plugin_utilities.f90 <<EOF
       !
       USE kinds,            ONLY : DP
       USE fft_base,         ONLY : dfftp
-      USE gvect,            ONLY : ngm, nl, g
+      USE gvect,            ONLY : ngm, g
       USE fft_interfaces,   ONLY : fwfft, invfft
       !
       IMPLICIT NONE
@@ -411,8 +441,8 @@ cat >> plugin_utilities.f90 <<EOF
       ALLOCATE( auxg( ngm ) )
       ALLOCATE( auxr( dfftp%nnr ) )
       auxr(:) = CMPLX(a( : ),0.D0,kind=dp)
-      CALL fwfft ('Dense', auxr, dfftp)
-      auxg(:) = auxr(nl(:))
+      CALL fwfft ("Rho", auxr, dfftp)
+      auxg(:) = auxr(dfftp%nl(:))
       DEALLOCATE( auxr )
       !
       ALLOCATE( grada(dfftp%nnr) )
@@ -432,6 +462,9 @@ cat >> plugin_utilities.f90 <<EOF
 !-----------------------------------------------------------------------
   END SUBROUTINE external_laplacian
 !-----------------------------------------------------------------------
+EOF
+
+cat > tmp.2 <<EOF
 !-----------------------------------------------------------------------
   SUBROUTINE external_force_lc( rho, force )
 !-----------------------------------------------------------------------
@@ -440,13 +473,23 @@ cat >> plugin_utilities.f90 <<EOF
     USE cell_base,         ONLY : omega
     USE fft_base,          ONLY : dfftp
     USE fft_interfaces,    ONLY : fwfft
-    USE electrons_base,    ONLY : nspin
-    USE gvect,             ONLY : ngm, nl, eigts1, eigts2, eigts3
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    USE electrons_base,    ONLY : nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
+    USE gvect,             ONLY : ngm, eigts1, eigts2, eigts3
     USE ions_base,         ONLY : nat
 
     IMPLICIT NONE
     !
-    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
+! Compatible with QE-6.4.X QE-GIT
+    REAL(DP), DIMENSION(dfftp%nnr), INTENT(IN) :: rho
+! END BACKWARD COMPATIBILITY
     REAL(DP), DIMENSION(3,nat), INTENT(OUT) :: force
     !
     ! aux is used to store a possible additional density
@@ -457,11 +500,16 @@ cat >> plugin_utilities.f90 <<EOF
     force = 0.D0
     !
     ALLOCATE( auxr( dfftp%nnr ) )
-    auxr = CMPLX(rho(:,1),0.0, kind=DP)
-    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
-    CALL fwfft( "Dense", auxr, dfftp )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    auxr = CMPLX(rho(:,1),0.0, kind=DP)
+!    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
+! Compatible with QE-6.4.X QE-GIT
+    auxr = CMPLX(rho,0.0, kind=DP)
+! END BACKWARD COMPATIBILITY
+    CALL fwfft( "Rho", auxr, dfftp )
     ALLOCATE( auxg( ngm ) )
-    auxg(:) = auxr( nl (:) )
+    auxg(:) = auxr( dfftp%nl (:) )
     !
     CALL force_h_of_rho_g( auxg, eigts1, eigts2, eigts3, omega, force )
     !
@@ -472,8 +520,52 @@ cat >> plugin_utilities.f90 <<EOF
 !-----------------------------------------------------------------------
   END SUBROUTINE external_force_lc
 !-----------------------------------------------------------------------
-!Environ patch
+!-----------------------------------------------------------------------
+  SUBROUTINE external_wg_corr_force( rhor, force )
+!-----------------------------------------------------------------------
+
+    USE kinds,             ONLY : DP
+    USE ions_base,         ONLY : nat
+    USE fft_base,          ONLY : dfftp
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    USE electrons_base,    ONLY : nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
+    !
+    IMPLICIT NONE
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr, nspin )
+! Compatible with QE-6.4.X QE-GIT
+    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr )
+! END BACKWARD COMPATIBILITY
+    REAL( DP ), INTENT(IN) :: force (3, nat)
+    !
+    CHARACTER(LEN=80) :: sub_name = "external_wg_corr_force"
+    !
+    ! dummy routine, avoiding cross dependencies with pw objects
+    !
+    CALL errore(sub_name,&
+       "the martyna-tuckerman correction is not available in cp",1)
+    !
+    RETURN
+    !
+!-----------------------------------------------------------------------
+  END SUBROUTINE external_wg_corr_force
+!-----------------------------------------------------------------------
 EOF
+
+echo "!Environ patch" >> plugin_utilities.f90
+# BACKWARD COMPATIBILITY
+# Compatible with QE-6.0 QE-6.1.X QE-6.2.X
+#cat tmp.1             >> plugin_utilities.f90
+# END BACKWARD COMPATIBILITY
+cat tmp.2             >> plugin_utilities.f90
+echo "!Environ patch" >> plugin_utilities.f90
+rm tmp.1 tmp.2
 
 echo "- DONE!"
 

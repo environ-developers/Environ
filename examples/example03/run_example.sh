@@ -18,10 +18,15 @@ $ECHO "   O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012
 $ECHO
 $ECHO "coupled with different periodic-boundary correction schemes "
 $ECHO
-$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) " 
+$ECHO "   O. Andreussi and N. Marzari, Phys. Rev. B 90, 245101 (2014) "
 
 # set the needed environment variables
 . ../../../environment_variables
+
+# compatibility with QE for versions prior to 6.4
+if [ -z $NETWORK_PSEUDO ]; then
+    NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+fi
 
 # required executables and pseudopotentials
 BIN_LIST="pw.x"
@@ -64,7 +69,8 @@ for FILE in $PSEUDO_LIST ; do
     if test ! -r $PSEUDO_DIR/$FILE ; then
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
-            $WGET $PSEUDO_DIR/$FILE $NETWORK_PSEUDO/$FILE 2> /dev/null 
+            $WGET $PSEUDO_DIR/$FILE \
+                $NETWORK_DIR/$FILE 2> /dev/null
     fi
     if test $? != 0; then
         $ECHO
@@ -83,15 +89,15 @@ $ECHO
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS ##############################
 verbose=0             # if GE 1 prints debug informations
-                      # if GE 2 prints out gaussian cube files with 
+                      # if GE 2 prints out gaussian cube files with
                       # dielectric function, polarization charges, etc
                       # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d-1'   # electronic convergence threshold for the onset  
+environ_thr='1.d-1'   # electronic convergence threshold for the onset
                       # of solvation correction
 environ_type='input'  # type of environment
                       # input: read parameters from input
-                      # vacuum: all flags off, no environ 
-                      # water: parameters from experimental values 
+                      # vacuum: all flags off, no environ
+                      # water: parameters from experimental values
                       #        and specifically tuned
 ### PERIODIC BOUNDARY CONDITIONS ####################################
 correction='none'      # correction scheme to remove pbc 
@@ -158,7 +164,7 @@ for environment in vacuum water ; do
    celldm(1) = 30
    nat = 12
    ntyp = 3
-   tot_charge = 1 
+   tot_charge = 1
    assume_isolated = '$assume_isolated'
    !
 /
@@ -174,7 +180,7 @@ for environment in vacuum water ; do
    ion_dynamics    = 'bfgs'
  /
 K_POINTS (gamma)
-ATOMIC_SPECIES  
+ATOMIC_SPECIES
 N   14      N.pbe-rrkjus.UPF
 C   12      C.pbe-rrkjus.UPF
 H    1      H.pbe-rrkjus.UPF

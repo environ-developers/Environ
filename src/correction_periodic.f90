@@ -85,7 +85,12 @@ CONTAINS
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -181,7 +186,12 @@ CONTAINS
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -292,7 +302,12 @@ CONTAINS
     !
     ! ... Compute dipole of the system with respect to the center of charge
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -398,7 +413,12 @@ CONTAINS
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
     !
-    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
+! Compatible with QE-6.4.X, and QE-GIT
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+! END BACKWARD COMPATIBILITY
     DEALLOCATE( rhotot )
     !
     tot_charge = dipole(0)
