@@ -86,6 +86,7 @@ CONTAINS
        !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!       ALLOCATE( rhoaux( cell % nnr, core % qe_fft % nspin ) )
 !       rhoaux( :, 1 ) = charges % density % of_r
 !       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
 !       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
