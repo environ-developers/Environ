@@ -113,7 +113,7 @@ NAMELIST: &ENVIRON
                    verbose .EQ. 0  minimal information written to standard output
                    verbose .EQ. 1  additional information written to environ.debug file
                    verbose .EQ. 2  dumping of main physical quantities on the real-space grid in the form of
-                                     *.cube files
+                                     *.cube files (only at the end of each SCF cycle)
                    verbose .GE. 3  dumping of several intermediate physical quantites on the real-space grid
                                    as this is done at every SCF step it will slow down the calculation significantly
    Status:         OPTIONAL
@@ -125,7 +125,8 @@ NAMELIST: &ENVIRON
    Type:           LOGICAL
    Default:        .false.
    Description:    Compute environ contributions during the initialization step, useful for 'restart' calculations
-                   and systems with a good-enough initial guess
+                   and systems with a good-enough initial guess.
+                   Must be set to activate environ in nscf calculations.
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -267,6 +268,23 @@ NAMELIST: &ENVIRON
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       env_confine
+   
+   Type:           REAL
+   Default:        0.D0
+   Description:    Confinement potential barrier in Rydberg atomic units.
+                   This keyword controls the activation of the confinement potential contribution
+                   to the solute's Hamiltonian: if set equal to 0.D0 no confinement contribution
+                   from the environment.
+                   
+                   The confinement potential may be used to favour electron localization: a potential that
+                   smoothly switches between zero and env_confine, following the complementary of
+                   the interface function, provides a destabilizing contribution that penalizes
+                   delocalized states.
+   Status:         REQUIRED
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       env_external_charges
    
    Type:           INTEGER
@@ -299,13 +317,24 @@ NAMELIST: &ENVIRON
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_entropy
+   Variable:       electrolyte_entropy
    
    Type:           CHARACTER
    Default:        'full'
    Description:    Keyword to set the electrolyte entropy terms that are affected by the Stern-layer correction.
                    'ions' : only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 ).
                    'full' : all terms ( Dabo et al. arXiv 0901.0096 ).
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       electrolyte_linearized
+   
+   Type:           LOGICAL
+   Default:        .FALSE.
+   Description:    Control if the linear-regime approximation is employed for the electrolyte model.
+                   It can be used in combination with the numerical Poisson-Boltzmann (PB) model as well as with the
+                   Gouy-Chapman-Stern correction that exploits the 1D-solution of the PB equation (see pbc_correction).
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -346,7 +375,7 @@ NAMELIST: &ENVIRON
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       solvent_temperature
+   Variable:       temperature
    
    Type:           REAL
    Default:        300.0
@@ -485,14 +514,14 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_mode
+   Variable:       electrolyte_mode
    
    Type:           CHARACTER
    Default:        'electronic'
    Description:    Choice of the interface function representing the boundary between the
                    QM region and the electrolyte embedding environment. Please note that a
                    separate set of keywords is used to specify the parameters of the electrolyte
-                   interface function (all exploiting the stern_ prefix).
+                   interface function (all exploiting the electrolyte_ prefix).
                    
                    'electronic':
                           interface depends self-consist. on electronic density, corresponds
@@ -515,7 +544,7 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_rhomax
+   Variable:       electrolyte_rhomax
    
    Type:           REAL
    Default:        0.005
@@ -526,7 +555,7 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_rhomin
+   Variable:       electrolyte_rhomin
    
    Type:           REAL
    Default:        0.0001
@@ -536,7 +565,7 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_tbeta
+   Variable:       electrolyte_tbeta
    
    Type:           REAL
    Default:        4.8
@@ -546,7 +575,7 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_alpha
+   Variable:       electrolyte_alpha
    
    Type:           REAL
    Default:        1.0
@@ -557,7 +586,7 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_softness
+   Variable:       electrolyte_softness
    
    Type:           REAL
    Default:        0.5
@@ -567,7 +596,7 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_distance
+   Variable:       electrolyte_distance
    
    Type:           REAL
    Default:        1.0
@@ -579,7 +608,7 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       stern_spread
+   Variable:       electrolyte_spread
    
    Type:           REAL
    Default:        0.5
@@ -592,7 +621,7 @@ NAMELIST: &BOUNDARY
    Variable:       stype
    
    Type:           INTEGER
-   Default:        1
+   Default:        2
    Description:    The shape of the environment region is defined according to a specific switching function of the electronic
                    density:
                    
@@ -787,6 +816,7 @@ NAMELIST: &ELECTROSTATIC
                    'iterative' : Use a fixed-point search algorithm (used to be the default for the 'generalized' problem in Environ v0.2).
                    'sd'        : Use a steepest-descent algorithm, possibly preconditioned.
                    'cg'        : Use a conjugate-gradient algorithm, possibly preconditioned.
+                   'newton'    : Use Newton's rooth-finding method.
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -800,6 +830,7 @@ NAMELIST: &ELECTROSTATIC
                    'none' : solve for the electrostatic potential.
                    'full' : solve for the auxiliary charge (e.g. for 'generalized' problems solve for the polarization charge,
                             used to be the default in Environ v0.2).
+                   'ioncc': solve for the electrolyte charge.
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -818,12 +849,63 @@ NAMELIST: &ELECTROSTATIC
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
+   Variable:       maxstep
+   
+   Type:           INTEGER
+   Default:        200
+   Description:    Maximum number of steps to get the solution of the electrostatic problem.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
    Variable:       mix
    
    Type:           REAL
    Default:        0.5
    Description:    Linear mixing parameter for iterative solver. Usually does not affect results (and it shouldn't)
                    and does not affect performances, large values work fine in most common applications.
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       inner_solver
+   
+   Type:           CHARACTER
+   Default:        'none'
+   Description:    Same as solver, but refers to the algorithm used to get the solution of the inner loop
+                   in the electrostatic problem (nested schemes only).
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       inner_tol
+   
+   Type:           REAL
+   Default:        1.D-10
+   Description:    Accuracy of the inner loop in the electrostatic calculation (nested schemes only).
+                   As for the tol parameter, higher accuracies will require more cycles, but will ensure
+                   smoother convergence of the outer electrostatic loop (thresholds smaller that 1.D-15
+                   are recommended).
+   Status:         IMPORTANT
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       inner_maxstep
+   
+   Type:           INTEGER
+   Default:        200
+   Description:    Same as maxstep, but refers to the inner loop in the electrostatic calculation (nested schemes
+                   only).
+   Status:         OPTIONAL
+   +--------------------------------------------------------------------
+   
+   +--------------------------------------------------------------------
+   Variable:       inner_mix
+   
+   Type:           REAL
+   Default:        0.5
+   Description:    Same as mix, but refers to the inner loop in the electrostatic calculation (nested schemes
+                   only).
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -857,6 +939,10 @@ NAMELIST: &ELECTROSTATIC
    Description:    Type of pbc correction scheme to be used.
                    'none' : no correction.
                    'parabolic' : parabolic point-counter-charge (PCC) correction, only implemeted for 0D and 2D systems.
+                   'gcs' : Gouy-Chapman-Stern correction, only implemented for 2D systems. It exploits the one-dimensional
+                           analytic solution of the Poisson-Boltzmann equation. The analytic potential replaces the numerical
+                           one where the distance from the system is larger than electrolyte_distance (all charge
+                           distributions, including the polarization charge, must be fully included within this distance).
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -1054,4 +1140,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Wed Feb 07 19:48:09 CET 2018
+This file has been created by helpdoc utility on Wed Apr 24 00:16:59 CEST 2019
