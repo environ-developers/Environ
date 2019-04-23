@@ -107,7 +107,7 @@ Control the amount of output written to specific output files, mostly useful for
 verbose .EQ. 0  minimal information written to standard output
 verbose .EQ. 1  additional information written to environ.debug file
 verbose .EQ. 2  dumping of main physical quantities on the real-space grid in the form of
-                  *.cube files
+                  *.cube files (only at the end of each SCF cycle)
 verbose .GE. 3  dumping of several intermediate physical quantites on the real-space grid
                 as this is done at every SCF step it will slow down the calculation significantly
          </info>
@@ -119,7 +119,8 @@ verbose .GE. 3  dumping of several intermediate physical quantites on the real-s
          </default>
          <info>
 Compute environ contributions during the initialization step, useful for &apos;restart&apos; calculations
-and systems with a good-enough initial guess
+and systems with a good-enough initial guess.
+Must be set to activate environ in nscf calculations.
          </info>
          <status> OPTIONAL
          </status>
@@ -257,6 +258,23 @@ J. Chem. Phys. 136 064102 (2012)
          <status> REQUIRED
          </status>
       </var>
+      <var name="env_confine" type="REAL" >
+         <default> 0.D0
+         </default>
+         <info>
+Confinement potential barrier in Rydberg atomic units.
+This keyword controls the activation of the confinement potential contribution
+to the solute&apos;s Hamiltonian: if set equal to 0.D0 no confinement contribution
+from the environment.
+
+The confinement potential may be used to favour electron localization: a potential that
+smoothly switches between zero and env_confine, following the complementary of
+the interface function, provides a destabilizing contribution that penalizes
+delocalized states.
+         </info>
+         <status> REQUIRED
+         </status>
+      </var>
       <var name="env_external_charges" type="INTEGER" >
          <default> 0
          </default>
@@ -289,13 +307,24 @@ from zero, must be greater or equal to 2, in order for the electrolyte to be cha
          <status> REQUIRED
          </status>
       </var>
-      <var name="stern_entropy" type="CHARACTER" >
+      <var name="electrolyte_entropy" type="CHARACTER" >
          <default> &apos;full&apos;
          </default>
          <info>
 Keyword to set the electrolyte entropy terms that are affected by the Stern-layer correction.
 &apos;ions&apos; : only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 ).
 &apos;full&apos; : all terms ( Dabo et al. arXiv 0901.0096 ).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="electrolyte_linearized" type="LOGICAL" >
+         <default> .FALSE.
+         </default>
+         <info>
+Control if the linear-regime approximation is employed for the electrolyte model.
+It can be used in combination with the numerical Poisson-Boltzmann (PB) model as well as with the
+Gouy-Chapman-Stern correction that exploits the 1D-solution of the PB equation (see pbc_correction).
          </info>
          <status> OPTIONAL
          </status>
@@ -336,7 +365,7 @@ Valence of ionic countercharge.
          <status> OPTIONAL
          </status>
       </dimension>
-      <var name="solvent_temperature" type="REAL" >
+      <var name="temperature" type="REAL" >
          <default> 300.0
          </default>
          <info>
@@ -471,14 +500,14 @@ Numerical spread of the analytical function used for the system-dependent interf
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stern_mode" type="CHARACTER" >
+      <var name="electrolyte_mode" type="CHARACTER" >
          <default> &apos;electronic&apos;
          </default>
          <info>
 Choice of the interface function representing the boundary between the
 QM region and the electrolyte embedding environment. Please note that a
 separate set of keywords is used to specify the parameters of the electrolyte
-interface function (all exploiting the stern_ prefix).
+interface function (all exploiting the electrolyte_ prefix).
 
 &apos;electronic&apos;:
        interface depends self-consist. on electronic density, corresponds
@@ -501,7 +530,7 @@ interface function (all exploiting the stern_ prefix).
          <status> REQUIRED
          </status>
       </var>
-      <var name="stern_rhomax" type="REAL" >
+      <var name="electrolyte_rhomax" type="REAL" >
          <default> 0.005
          </default>
          <info>
@@ -512,7 +541,7 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stern_rhomin" type="REAL" >
+      <var name="electrolyte_rhomin" type="REAL" >
          <default> 0.0001
          </default>
          <info>
@@ -522,7 +551,7 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stern_tbeta" type="REAL" >
+      <var name="electrolyte_tbeta" type="REAL" >
          <default> 4.8
          </default>
          <info>
@@ -532,7 +561,7 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stern_alpha" type="REAL" >
+      <var name="electrolyte_alpha" type="REAL" >
          <default> 1.0
          </default>
          <info>
@@ -543,7 +572,7 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stern_softness" type="REAL" >
+      <var name="electrolyte_softness" type="REAL" >
          <default> 0.5
          </default>
          <info>
@@ -553,7 +582,7 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stern_distance" type="REAL" >
+      <var name="electrolyte_distance" type="REAL" >
          <default> 1.0
          </default>
          <info>
@@ -565,7 +594,7 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stern_spread" type="REAL" >
+      <var name="electrolyte_spread" type="REAL" >
          <default> 0.5
          </default>
          <info>
@@ -576,7 +605,7 @@ Used for the electrolyte interface.
          </status>
       </var>
       <var name="stype" type="INTEGER" >
-         <default> 1
+         <default> 2
          </default>
          <info>
 The shape of the environment region is defined according to a specific switching function of the electronic
@@ -769,6 +798,7 @@ Type of numerical solver used to get the solution of the electrostatic problem.
 &apos;iterative&apos; : Use a fixed-point search algorithm (used to be the default for the &apos;generalized&apos; problem in Environ v0.2).
 &apos;sd&apos;        : Use a steepest-descent algorithm, possibly preconditioned.
 &apos;cg&apos;        : Use a conjugate-gradient algorithm, possibly preconditioned.
+&apos;newton&apos;    : Use Newton&apos;s rooth-finding method.
          </info>
          <status> OPTIONAL
          </status>
@@ -782,6 +812,7 @@ The electrostatic problem is defined and solved in terms of the electrostatic po
 &apos;none&apos; : solve for the electrostatic potential.
 &apos;full&apos; : solve for the auxiliary charge (e.g. for &apos;generalized&apos; problems solve for the polarization charge,
          used to be the default in Environ v0.2).
+&apos;ioncc&apos;: solve for the electrolyte charge.
          </info>
          <status> OPTIONAL
          </status>
@@ -800,12 +831,63 @@ should be adopted (e.g. lower than 1.D-8).
          <status> IMPORTANT
          </status>
       </var>
+      <var name="maxstep" type="INTEGER" >
+         <default> 200
+         </default>
+         <info>
+Maximum number of steps to get the solution of the electrostatic problem.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <var name="mix" type="REAL" >
          <default> 0.5
          </default>
          <info>
 Linear mixing parameter for iterative solver. Usually does not affect results (and it shouldn&apos;t)
 and does not affect performances, large values work fine in most common applications.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_solver" type="CHARACTER" >
+         <default> &apos;none&apos;
+         </default>
+         <info>
+Same as solver, but refers to the algorithm used to get the solution of the inner loop
+in the electrostatic problem (nested schemes only).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_tol" type="REAL" >
+         <default> 1.D-10
+         </default>
+         <info>
+Accuracy of the inner loop in the electrostatic calculation (nested schemes only).
+As for the tol parameter, higher accuracies will require more cycles, but will ensure
+smoother convergence of the outer electrostatic loop (thresholds smaller that 1.D-15
+are recommended).
+         </info>
+         <status> IMPORTANT
+         </status>
+      </var>
+      <var name="inner_maxstep" type="INTEGER" >
+         <default> 200
+         </default>
+         <info>
+Same as maxstep, but refers to the inner loop in the electrostatic calculation (nested schemes
+only).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_mix" type="REAL" >
+         <default> 0.5
+         </default>
+         <info>
+Same as mix, but refers to the inner loop in the electrostatic calculation (nested schemes
+only).
          </info>
          <status> OPTIONAL
          </status>
@@ -839,6 +921,10 @@ For partially periodic simulation cells (1D or 2D), choice of the sides with per
 Type of pbc correction scheme to be used.
 &apos;none&apos; : no correction.
 &apos;parabolic&apos; : parabolic point-counter-charge (PCC) correction, only implemeted for 0D and 2D systems.
+&apos;gcs&apos; : Gouy-Chapman-Stern correction, only implemented for 2D systems. It exploits the one-dimensional
+        analytic solution of the Poisson-Boltzmann equation. The analytic potential replaces the numerical
+        one where the distance from the system is larger than electrolyte_distance (all charge
+        distributions, including the polarization charge, must be fully included within this distance).
          </info>
          <status> OPTIONAL
          </status>
