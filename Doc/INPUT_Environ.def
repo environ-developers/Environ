@@ -106,7 +106,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 		 verbose .EQ. 0  minimal information written to standard output
 		 verbose .EQ. 1  additional information written to environ.debug file
 		 verbose .EQ. 2  dumping of main physical quantities on the real-space grid in the form of
-		  	         *.cube files
+		  	         *.cube files (only at the end of each SCF cycle)
 		 verbose .GE. 3  dumping of several intermediate physical quantites on the real-space grid
 		                 as this is done at every SCF step it will slow down the calculation significantly
 		 }
@@ -117,7 +117,8 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    default { .false. }
 	    info {
 		 Compute environ contributions during the initialization step, useful for 'restart' calculations
-		 and systems with a good-enough initial guess
+		 and systems with a good-enough initial guess.
+		 Must be set to activate environ in nscf calculations.
 		 }
 	    status { OPTIONAL }
 	}
@@ -248,6 +249,22 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { REQUIRED }
 	}
 
+	var env_confine -type REAL {
+	    default { 0.D0 }
+	    info {
+		 Confinement potential barrier in Rydberg atomic units.
+		 This keyword controls the activation of the confinement potential contribution
+		 to the solute's Hamiltonian: if set equal to 0.D0 no confinement contribution
+		 from the environment.
+
+		 The confinement potential may be used to favour electron localization: a potential that 
+		 smoothly switches between zero and env_confine, following the complementary of 
+		 the interface function, provides a destabilizing contribution that penalizes 
+		 delocalized states.
+	    }
+	    status { REQUIRED }
+	}
+
 	var env_external_charges -type INTEGER {
 	    default { 0 }
 	    info {
@@ -277,12 +294,22 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { REQUIRED }
 	}
 
-	var stern_entropy -type CHARACTER {
+	var electrolyte_entropy -type CHARACTER {
 	    default { 'full' }
 	    info {
 		 Keyword to set the electrolyte entropy terms that are affected by the Stern-layer correction.
 		 'ions' : only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 ).
 	         'full' : all terms ( Dabo et al. arXiv 0901.0096 ).
+	    }
+	    status { OPTIONAL }
+	}
+
+	var electrolyte_linearized -type LOGICAL {
+	    default { .FALSE. }
+	    info {
+		 Control if the linear-regime approximation is employed for the electrolyte model.
+		 It can be used in combination with the numerical Poisson-Boltzmann (PB) model as well as with the  
+		 Gouy-Chapman-Stern correction that exploits the 1D-solution of the PB equation (see pbc_correction).
 	    }
 	    status { OPTIONAL }
 	}
@@ -319,7 +346,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var solvent_temperature -type REAL {
+	var temperature -type REAL {
 	    default { 300.0 }
 	    info {
 		 Temperature of electrolyte solution, needed by Poisson-Boltzmann equation.
@@ -444,13 +471,13 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var stern_mode -type CHARACTER {
+	var electrolyte_mode -type CHARACTER {
 	    default { 'electronic' }
 	    info {
 		 Choice of the interface function representing the boundary between the
 		 QM region and the electrolyte embedding environment. Please note that a
 		 separate set of keywords is used to specify the parameters of the electrolyte
-		 interface function (all exploiting the stern_ prefix).
+		 interface function (all exploiting the electrolyte_ prefix).
 
                  'electronic':
 			interface depends self-consist. on electronic density, corresponds
@@ -473,7 +500,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { REQUIRED }
 	}
 
-	var stern_rhomax -type REAL {
+	var electrolyte_rhomax -type REAL {
 	    default { 0.005 }
 	    info {
 		 First parameter of the density-dependent interface function,
@@ -483,7 +510,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var stern_rhomin -type REAL {
+	var electrolyte_rhomin -type REAL {
 	    default { 0.0001 }
 	    info {
 		 Second parameter of the density-dependent interface function, when stype=1.
@@ -492,7 +519,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var stern_tbeta -type REAL {
+	var electrolyte_tbeta -type REAL {
 	    default { 4.8 }
 	    info {
 		 Second parameter of the density-dependent interface function, when stype=0
@@ -501,7 +528,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var stern_alpha -type REAL {
+	var electrolyte_alpha -type REAL {
 	    default { 1.0 }
 	    info {
 		 Main parameter of ions-dependent interface function, corresponding to the homogeneous
@@ -511,7 +538,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var stern_softness -type REAL {
+	var electrolyte_softness -type REAL {
 	    default { 0.5 }
 	    info {
 		 Numerical spread of the soft-sphere functions used for the ions-dependent interfaces.
@@ -520,7 +547,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var stern_distance -type REAL {
+	var electrolyte_distance -type REAL {
 	    default { 1.0 }
 	    info {
 		 Distance of the system-dependent interface from the center of the system, computed as the
@@ -531,7 +558,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { OPTIONAL }
 	}
 
-	var stern_spread -type REAL {
+	var electrolyte_spread -type REAL {
 	    default { 0.5 }
 	    info {
 		 Numerical spread of the analytical function used for the system-dependent interface.
@@ -541,7 +568,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	}
 
 	var stype -type INTEGER {
-	    default { 1 }
+	    default { 2 }
 	    info {
 		 The shape of the environment region is defined according to a specific switching function of the electronic
 		 density:
@@ -724,6 +751,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 		 'iterative' : Use a fixed-point search algorithm (used to be the default for the 'generalized' problem in Environ v0.2).
 		 'sd'        : Use a steepest-descent algorithm, possibly preconditioned.
 		 'cg'        : Use a conjugate-gradient algorithm, possibly preconditioned.
+                 'newton'    : Use Newton's rooth-finding method.
 	    }
 	    status { OPTIONAL }
 	}
@@ -736,6 +764,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 		 'none' : solve for the electrostatic potential.
 		 'full' : solve for the auxiliary charge (e.g. for 'generalized' problems solve for the polarization charge,
 			  used to be the default in Environ v0.2).
+                 'ioncc': solve for the electrolyte charge.
 	    }
 	    status { OPTIONAL }
 	}
@@ -753,11 +782,57 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 	    status { IMPORTANT }
 	}
 
+        var maxstep -type INTEGER {
+            default { 200 }
+            info {
+		 Maximum number of steps to get the solution of the electrostatic problem.
+            }
+            status { OPTIONAL }
+        }
+
 	var mix -type REAL {
 	    default { 0.5 }
 	    info {
 		 Linear mixing parameter for iterative solver. Usually does not affect results (and it shouldn't)
 		 and does not affect performances, large values work fine in most common applications.
+	    }
+	    status { OPTIONAL }
+	}
+
+	var inner_solver -type CHARACTER {
+	    default { 'none' }
+	    info {
+		 Same as solver, but refers to the algorithm used to get the solution of the inner loop 
+		 in the electrostatic problem (nested schemes only).
+	    }
+	    status { OPTIONAL }
+	}
+
+	var inner_tol -type REAL {
+	    default { 1.D-10 }
+	    info {
+		 Accuracy of the inner loop in the electrostatic calculation (nested schemes only).
+		 As for the tol parameter, higher accuracies will require more cycles, but will ensure 
+		 smoother convergence of the outer electrostatic loop (thresholds smaller that 1.D-15 
+		 are recommended). 
+	    }
+	    status { IMPORTANT }
+	}
+
+	var inner_maxstep -type INTEGER {
+	    default { 200 }
+	    info {
+		 Same as maxstep, but refers to the inner loop in the electrostatic calculation (nested schemes
+		 only). 
+	    }
+	    status { OPTIONAL }
+	}
+
+	var inner_mix -type REAL {
+	    default { 0.5 }
+	    info {
+		 Same as mix, but refers to the inner loop in the electrostatic calculation (nested schemes
+		 only).
 	    }
 	    status { OPTIONAL }
 	}
@@ -788,6 +863,10 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 		 Type of pbc correction scheme to be used.
 		 'none' : no correction.
 		 'parabolic' : parabolic point-counter-charge (PCC) correction, only implemeted for 0D and 2D systems.
+		 'gcs' : Gouy-Chapman-Stern correction, only implemented for 2D systems. It exploits the one-dimensional 
+			 analytic solution of the Poisson-Boltzmann equation. The analytic potential replaces the numerical
+			 one where the distance from the system is larger than electrolyte_distance (all charge
+			 distributions, including the polarization charge, must be fully included within this distance).
 	    }
 	    status { OPTIONAL }
 	}
