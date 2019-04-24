@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.4.1 starts on 24Apr2019 at 11: 3:57 
+     Program PWSCF v.6.4.1 starts on 24Apr2019 at 16:33:20 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -163,7 +163,7 @@
      negative rho (up, down):  3.049E-03 0.000E+00
      Starting wfcs are   80 randomized atomic wfcs
 
-     total cpu time spent up to now is        6.0 secs
+     total cpu time spent up to now is        6.4 secs
 
      Self-consistent Calculation
 
@@ -175,7 +175,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is        9.0 secs
+     total cpu time spent up to now is        9.5 secs
 
      total energy              =    -622.68849484 Ry
      Harris-Foulkes estimate   =    -624.21151040 Ry
@@ -189,7 +189,7 @@
 
      negative rho (up, down):  3.614E-02 0.000E+00
 
-     total cpu time spent up to now is       12.3 secs
+     total cpu time spent up to now is       13.1 secs
 
      total energy              =    -611.52998777 Ry
      Harris-Foulkes estimate   =    -653.51722632 Ry
@@ -205,7 +205,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       15.3 secs
+     total cpu time spent up to now is       16.3 secs
 
      total energy              =    -622.77032816 Ry
      Harris-Foulkes estimate   =    -639.05314014 Ry
@@ -221,7 +221,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       17.9 secs
+     total cpu time spent up to now is       18.9 secs
 
      total energy              =    -622.83991441 Ry
      Harris-Foulkes estimate   =    -638.80734722 Ry
@@ -237,7 +237,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       20.4 secs
+     total cpu time spent up to now is       21.4 secs
 
      total energy              =    -622.96895058 Ry
      Harris-Foulkes estimate   =    -638.50814484 Ry
@@ -253,7 +253,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       22.9 secs
+     total cpu time spent up to now is       23.9 secs
 
      total energy              =    -623.08167269 Ry
      Harris-Foulkes estimate   =    -638.39655500 Ry
@@ -269,7 +269,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       25.4 secs
+     total cpu time spent up to now is       26.5 secs
 
      total energy              =    -623.13120668 Ry
      Harris-Foulkes estimate   =    -638.22832141 Ry
@@ -285,7 +285,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       27.9 secs
+     total cpu time spent up to now is       29.2 secs
 
      total energy              =    -623.14927064 Ry
      Harris-Foulkes estimate   =    -638.23255027 Ry
@@ -301,7 +301,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       30.6 secs
+     total cpu time spent up to now is       31.7 secs
 
      total energy              =    -623.16139101 Ry
      Harris-Foulkes estimate   =    -638.18206144 Ry
@@ -317,7 +317,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       33.4 secs
+     total cpu time spent up to now is       34.4 secs
 
      total energy              =    -623.15558400 Ry
      Harris-Foulkes estimate   =    -638.16785174 Ry
@@ -333,7 +333,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       36.1 secs
+     total cpu time spent up to now is       37.0 secs
 
      total energy              =    -623.13656626 Ry
      Harris-Foulkes estimate   =    -638.15924306 Ry
@@ -349,7 +349,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       38.9 secs
+     total cpu time spent up to now is       39.9 secs
 
      total energy              =    -623.13673509 Ry
      Harris-Foulkes estimate   =    -638.14320608 Ry
@@ -365,7 +365,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       41.5 secs
+     total cpu time spent up to now is       42.6 secs
 
      total energy              =    -623.12468031 Ry
      Harris-Foulkes estimate   =    -638.14378311 Ry
@@ -381,7 +381,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       44.1 secs
+     total cpu time spent up to now is       45.3 secs
 
      total energy              =    -623.13268134 Ry
      Harris-Foulkes estimate   =    -638.14112772 Ry
@@ -397,7 +397,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       46.6 secs
+     total cpu time spent up to now is       47.9 secs
 
      total energy              =    -623.13590084 Ry
      Harris-Foulkes estimate   =    -638.13693839 Ry
@@ -413,7 +413,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       49.3 secs
+     total cpu time spent up to now is       50.7 secs
 
      total energy              =    -623.13569982 Ry
      Harris-Foulkes estimate   =    -638.13731560 Ry
@@ -429,7 +429,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       51.8 secs
+     total cpu time spent up to now is       53.3 secs
 
      total energy              =    -623.13618529 Ry
      Harris-Foulkes estimate   =    -638.13692665 Ry
@@ -445,7 +445,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       54.3 secs
+     total cpu time spent up to now is       55.9 secs
 
      total energy              =    -623.13635329 Ry
      Harris-Foulkes estimate   =    -638.13675760 Ry
@@ -461,7 +461,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       56.9 secs
+     total cpu time spent up to now is       58.5 secs
 
      total energy              =    -623.13642262 Ry
      Harris-Foulkes estimate   =    -638.13672542 Ry
@@ -477,7 +477,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       59.7 secs
+     total cpu time spent up to now is       61.1 secs
 
      total energy              =    -623.13644796 Ry
      Harris-Foulkes estimate   =    -638.13670489 Ry
@@ -493,7 +493,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       62.2 secs
+     total cpu time spent up to now is       63.7 secs
 
      total energy              =    -623.13645384 Ry
      Harris-Foulkes estimate   =    -638.13670016 Ry
@@ -509,7 +509,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       64.7 secs
+     total cpu time spent up to now is       66.3 secs
 
      total energy              =    -623.13645381 Ry
      Harris-Foulkes estimate   =    -638.13670026 Ry
@@ -525,7 +525,7 @@
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       67.2 secs
+     total cpu time spent up to now is       68.9 secs
 
      total energy              =    -623.13645478 Ry
      Harris-Foulkes estimate   =    -638.13669969 Ry
@@ -541,7 +541,7 @@
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.4600 ev
 
-     total cpu time spent up to now is       69.6 secs
+     total cpu time spent up to now is       71.4 secs
 
      End of self-consistent calculation
 
@@ -595,60 +595,60 @@
 
      Writing output data file pwscf.save/
  
-     init_run     :      5.00s CPU      5.30s WALL (       1 calls)
-     electrons    :     52.02s CPU     63.58s WALL (       1 calls)
-     forces       :      2.81s CPU      2.99s WALL (       1 calls)
+     init_run     :      5.21s CPU      5.51s WALL (       1 calls)
+     electrons    :     53.55s CPU     64.96s WALL (       1 calls)
+     forces       :      2.83s CPU      3.07s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.29s CPU      0.30s WALL (       1 calls)
-     potinit      :      1.30s CPU      1.32s WALL (       1 calls)
-     hinit0       :      2.98s CPU      3.00s WALL (       1 calls)
+     wfcinit      :      0.32s CPU      0.32s WALL (       1 calls)
+     potinit      :      1.41s CPU      1.45s WALL (       1 calls)
+     hinit0       :      2.97s CPU      3.00s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :     17.95s CPU     18.78s WALL (      24 calls)
-     sum_band     :     15.93s CPU     20.95s WALL (      24 calls)
-     v_of_rho     :      6.21s CPU      6.51s WALL (      25 calls)
-     newd         :     10.12s CPU     15.74s WALL (      25 calls)
-     mix_rho      :      0.64s CPU      0.68s WALL (      24 calls)
+     c_bands      :     19.16s CPU     19.96s WALL (      24 calls)
+     sum_band     :     16.37s CPU     21.25s WALL (      24 calls)
+     v_of_rho     :      6.24s CPU      6.58s WALL (      25 calls)
+     newd         :      9.95s CPU     15.60s WALL (      25 calls)
+     mix_rho      :      0.74s CPU      0.73s WALL (      24 calls)
 
      Called by c_bands:
-     init_us_2    :      0.21s CPU      0.24s WALL (      49 calls)
-     regterg      :     16.39s CPU     17.20s WALL (      24 calls)
+     init_us_2    :      0.22s CPU      0.24s WALL (      49 calls)
+     regterg      :     17.59s CPU     18.37s WALL (      24 calls)
 
      Called by sum_band:
      sum_band:bec :      0.00s CPU      0.00s WALL (      24 calls)
-     addusdens    :     12.51s CPU     17.42s WALL (      24 calls)
+     addusdens    :     12.54s CPU     17.39s WALL (      24 calls)
 
      Called by *egterg:
-     h_psi        :     13.05s CPU     13.15s WALL (      78 calls)
-     s_psi        :      0.66s CPU      0.63s WALL (      78 calls)
+     h_psi        :     14.24s CPU     14.27s WALL (      78 calls)
+     s_psi        :      0.67s CPU      0.66s WALL (      78 calls)
      g_psi        :      0.11s CPU      0.10s WALL (      53 calls)
-     rdiaghg      :      0.49s CPU      0.51s WALL (      77 calls)
+     rdiaghg      :      0.51s CPU      0.51s WALL (      77 calls)
 
      Called by h_psi:
-     h_psi:pot    :     13.02s CPU     13.09s WALL (      78 calls)
-     h_psi:calbec :      0.55s CPU      0.58s WALL (      78 calls)
-     vloc_psi     :     11.89s CPU     11.93s WALL (      78 calls)
-     add_vuspsi   :      0.58s CPU      0.58s WALL (      78 calls)
+     h_psi:pot    :     14.18s CPU     14.20s WALL (      78 calls)
+     h_psi:calbec :      0.58s CPU      0.58s WALL (      78 calls)
+     vloc_psi     :     13.00s CPU     13.02s WALL (      78 calls)
+     add_vuspsi   :      0.60s CPU      0.61s WALL (      78 calls)
 
      General routines
-     calbec       :      0.83s CPU      0.85s WALL (     106 calls)
-     fft          :      2.43s CPU      2.52s WALL (     371 calls)
-     ffts         :      0.14s CPU      0.11s WALL (      49 calls)
-     fftw         :     12.16s CPU     12.35s WALL (    5338 calls)
-     interpolate  :      0.30s CPU      0.30s WALL (      25 calls)
+     calbec       :      0.85s CPU      0.84s WALL (     106 calls)
+     fft          :      2.65s CPU      2.69s WALL (     371 calls)
+     ffts         :      0.11s CPU      0.11s WALL (      49 calls)
+     fftw         :     13.09s CPU     13.15s WALL (    5338 calls)
+     interpolate  :      0.31s CPU      0.31s WALL (      25 calls)
  
      Parallel routines
  
      Environ routines
-     calc_eelect  :      0.04s CPU      0.04s WALL (      48 calls)
-     calc_velect  :      0.94s CPU      0.95s WALL (      44 calls)
+     calc_eelect  :      0.06s CPU      0.04s WALL (      48 calls)
+     calc_velect  :      0.98s CPU      0.98s WALL (      44 calls)
      calc_felect  :      0.04s CPU      0.04s WALL (       1 calls)
  
-     PWSCF        :   1m 0.57s CPU   1m12.62s WALL
+     PWSCF        :   1m 2.48s CPU   1m14.46s WALL
 
  
-   This run was terminated on:  11: 5:10  24Apr2019            
+   This run was terminated on:  16:34:35  24Apr2019            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
