@@ -15,7 +15,7 @@
     ecutrho = 350,
  /
  &ELECTRONS
-    electron_maxstep = 200,
+    mixing_beta = 0.3
     conv_thr = 5e-09,
  /
  &IONS

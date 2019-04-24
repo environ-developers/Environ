@@ -4,7 +4,7 @@ extract_program = XXXXXX/tests/extract-pw.sh
 inputs_args = ('*.in', '')
 run_cmd_template = cp tc.args environ.in; tc.program -input tc.input > tc.output 2> tc.error
 tolerance = ( (5.0e-5, None, 'e1'),
-              (1.5, None, 'n1'),
+              (2.5, None, 'n1'),
               (1.0e-3, None, 'f1'),
               (1.0e-1, None, 'p1') )
 skip_program = grep
