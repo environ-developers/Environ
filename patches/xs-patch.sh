@@ -43,10 +43,10 @@ echo "$ENVIRON_VERSION"                                                  >> Envi
 
 cat > tmp.XS.1 <<EOF
 diff --git a/XSpectra/src/read_input_and_bcast.f90 b/XSpectra/src/read_input_and_bcast.f90
-index 4b8efc5..3228cb5 100644
+index dd5c371..3997245 100644
 --- a/XSpectra/src/read_input_and_bcast.f90
 +++ b/XSpectra/src/read_input_and_bcast.f90
-@@ -155,6 +155,8 @@ subroutine read_input_and_bcast(filerecon, r_paw)
+@@ -153,6 +153,8 @@ subroutine read_input_and_bcast(filerecon, r_paw)
  
    ENDIF
  
@@ -59,36 +59,37 @@ EOF
 
 cat > tmp.XS.2 <<EOF
 diff --git a/XSpectra/src/reset_k_points_and_reinit.f90 b/XSpectra/src/reset_k_points_and_reinit.f90
-index 08940b3..ae6035e 100644
+index 3f61ed0..8e6bbda 100644
 --- a/XSpectra/src/reset_k_points_and_reinit.f90
 +++ b/XSpectra/src/reset_k_points_and_reinit.f90
-@@ -34,6 +34,9 @@ SUBROUTINE reset_k_points_and_reinit_nscf()
-   
+@@ -35,6 +35,9 @@ SUBROUTINE reset_k_points_and_reinit_nscf()
    CALL read_k_points()
    
+   nkstot=nks
++
 +  CALL plugin_read_input("XS")
 +  CALL plugin_summary()
-+
-   nkstot=nks
    
    CALL divide_et_impera( nkstot, xk, wk, isk, nks )
+ 
+
 EOF
 
 cat > tmp.XS.3 <<EOF
 diff --git a/XSpectra/src/xspectra.f90 b/XSpectra/src/xspectra.f90
-index 223e8bb..3a2f449 100644
+index c8f9685..37f2708 100644
 --- a/XSpectra/src/xspectra.f90
 +++ b/XSpectra/src/xspectra.f90
-@@ -110,6 +110,8 @@ PROGRAM X_Spectra
- 
-   CALL banner_xspectra()
+@@ -107,6 +107,8 @@ PROGRAM X_Spectra
+ #endif
+   CALL environment_start ( 'XSpectra' )
  
 +  CALL plugin_arguments()
 +
-   CALL read_input_and_bcast(filerecon, r_paw)
+   CALL banner_xspectra()
  
-   call write_sym_param_to_stdout()
-@@ -409,6 +411,7 @@ PROGRAM X_Spectra
+   CALL read_input_and_bcast(filerecon, r_paw)
+@@ -408,6 +410,7 @@ PROGRAM X_Spectra
  
    CALL stop_clock( calculation  )
    CALL print_clock( calculation )
