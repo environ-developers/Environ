@@ -98,7 +98,12 @@ MODULE electrostatic_types
   TYPE qe_fft_core
      !
      INTEGER :: index
-     INTEGER :: nspin
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!     INTEGER :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
      LOGICAL :: use_internal_pbc_corr = .false.
      !
   END TYPE qe_fft_core
@@ -374,14 +379,24 @@ CONTAINS
   END SUBROUTINE destroy_fd_core
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr )
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( qe_fft_core ), INTENT(INOUT) :: qe_fft
     LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
-    INTEGER, INTENT(IN), OPTIONAL :: nspin
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN), OPTIONAL :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     !
     qe_fft % index = 1
     !
@@ -391,11 +406,16 @@ CONTAINS
        qe_fft % use_internal_pbc_corr = .FALSE.
     END IF
     !
-    IF ( PRESENT( nspin ) ) THEN
-       qe_fft % nspin = nspin
-    ELSE
-       qe_fft % nspin = 1
-    ENDIF
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    IF ( PRESENT( nspin ) ) THEN
+!       qe_fft % nspin = nspin
+!    ELSE
+!       qe_fft % nspin = 1
+!    ENDIF
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     !
     RETURN
     !
@@ -708,16 +728,24 @@ CONTAINS
        IF ( solver % use_direct .OR. solver % use_iterative ) &
             & CALL errore(sub_name,'Only gradient-based solver for the linearized Poisson-Boltzmann eq.',1)
        !
-       IF ( .NOT.( core % need_correction .AND. core % correction % type .EQ. '1da' ) ) &
-          & CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
+       IF ( core % need_correction ) THEN
+          IF (.NOT. core % correction % type .EQ. '1da' ) &
+            & CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
+       ELSE 
+          CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
+       END IF 
        !
     CASE ( 'pb', 'modpb', 'poisson-boltzmann' )
        !
        IF ( solver % use_direct .OR. solver % use_gradient ) &
           & CALL errore(sub_name,'No direct or gradient-based solver for the full Poisson-Boltzmann eq.',1)
        !
-       IF ( .NOT. ( core % need_correction .AND. core % correction % type .EQ. '1da' ) ) &
-          & CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
+       IF ( core % need_correction ) THEN
+          IF (.NOT. core % correction % type .EQ. '1da' ) &
+            & CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
+       ELSE 
+          CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
+       END IF 
        !
     CASE DEFAULT
        !

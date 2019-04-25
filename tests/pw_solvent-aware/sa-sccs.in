@@ -10,5 +10,6 @@
    !
    solvent_radius = 3.0
    filling_threshold = 0.30
+   stype = 1
    !
  /

@@ -147,6 +147,11 @@ MODULE environ_input
         REAL(DP) :: env_pressure = 0.D0
         ! external pressure for PV energy, if equal to zero no pressure term
 !
+! Confine energy parameters
+!
+        REAL(DP) :: env_confine = 0.D0
+        ! confinement potential
+!
 ! Ionic countercharge parameters
 !
         LOGICAL :: electrolyte_linearized = .false.
@@ -199,6 +204,7 @@ MODULE environ_input
              env_static_permittivity, env_optical_permittivity,        &
              env_surface_tension,                                      &
              env_pressure,                                             &
+             env_confine,                                              &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              temperature, electrolyte_linearized, electrolyte_entropy, &
              ion_adsorption, ion_adsorption_energy,                    &
@@ -505,7 +511,12 @@ MODULE environ_input
 !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!  SUBROUTINE read_environ(prog,nelec,nspin,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! Compatible with QE-6.4.X QE-GIT
+  SUBROUTINE read_environ(prog,nelec,nat,ntyp,atom_label,use_internal_pbc_corr,ion_radius)
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     USE environ_init, ONLY : set_environ_base
@@ -513,7 +524,13 @@ CONTAINS
     !
     CHARACTER(len=*), INTENT(IN) :: prog
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-    INTEGER, INTENT(IN) :: nelec, nspin, nat, ntyp
+    INTEGER, INTENT(IN) :: nelec, nat, ntyp
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
     CHARACTER(len=3), DIMENSION(:), INTENT(IN) :: atom_label
     REAL( DP ), DIMENSION(:), INTENT(IN), OPTIONAL :: ion_radius
     !
@@ -572,13 +589,23 @@ CONTAINS
                                   screening_type, screening, core,       &
                                   boundary_core, ifdtype, nfdpoint,      &
                                   use_internal_pbc_corr, pbc_correction, &
-                                  pbc_dim, pbc_axis, nspin, prog,        &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!                                  pbc_dim, pbc_axis, nspin, prog,        &
+! Compatible with QE-6.4.X QE-GIT
+                                  pbc_dim, pbc_axis, prog,        &
+! END BACKWARD COMPATIBILITY
                                   inner_tol, inner_solver, inner_maxstep,&
                                   inner_mix )
     !
     ! ... Then set environ base
     !
-    CALL set_environ_base  ( prog, nelec, nspin,                         &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL set_environ_base  ( prog, nelec, nspin,                         &
+! Compatible with QE-6.4.X QE-GIT
+    CALL set_environ_base  ( prog, nelec,                                &
+! END BACKWARD COMPATIBILITY
                              nat, ntyp, atom_label, atomicspread,        &
                              corespread, solvationrad,                   &
                              oldenviron, environ_restart, environ_thr,   &
@@ -596,6 +623,7 @@ CONTAINS
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
+                             env_confine,                                &
                              env_electrolyte_ntyp,                       &
                              electrolyte_linearized, electrolyte_entropy,&
                              electrolyte_mode, electrolyte_distance,     &
@@ -743,6 +771,8 @@ CONTAINS
     !
     env_pressure = 0.D0
     !
+    env_confine = 0.D0
+    !
     env_electrolyte_ntyp = 0
     electrolyte_linearized = .false.
     electrolyte_entropy = 'full'
@@ -884,6 +914,8 @@ CONTAINS
     CALL mp_bcast( env_surface_tension,        ionode_id, comm )
     !
     CALL mp_bcast( env_pressure,               ionode_id, comm )
+    !
+    CALL mp_bcast( env_confine,                ionode_id, comm )
     !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
     CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
@@ -1072,6 +1104,8 @@ CONTAINS
          & TRIM(ion_adsorption)//''' not allowed ', 1 )
     IF ( ion_adsorption_energy .LT. 0D0 ) &
          CALL errore( sub_name,'ion_adsorption_energy must be positive', 1 )
+    IF( .NOT. TRIM(ion_adsorption) .EQ. 'none' ) &
+         & CALL errore( sub_name,'ion_adsorption not implemented', 1 )
     !
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
@@ -1320,6 +1354,7 @@ CONTAINS
          & lboundary = .TRUE.
     IF ( env_surface_tension .GT. 0.D0 ) lboundary = .TRUE.
     IF ( env_pressure .NE. 0.D0 ) lboundary = .TRUE.
+    IF ( env_confine .NE. 0.D0 ) lboundary = .TRUE.
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
@@ -1481,7 +1516,10 @@ CONTAINS
          IF (solver == 'none' ) solver = 'cg'
        ELSE
          IF (solver == 'none' ) solver = 'iterative'
-         IF (auxiliary == 'none' ) auxiliary = 'full'
+         IF (solver == 'iterative' &
+            & .AND. auxiliary == 'none' ) auxiliary = 'full'
+         IF (solver .NE. 'iterative') &
+            & CALL errore( sub_name, 'GCS correction requires iterative solver', 1)
        END IF
     ELSE
        IF (problem == 'none') problem = 'poisson'
@@ -1600,7 +1638,7 @@ CONTAINS
      IMPLICIT NONE
      !
      CHARACTER(len=256) :: input_line
-     INTEGER            :: ie, ierr, nfield
+     INTEGER            :: ie, ix, ierr, nfield
      LOGICAL            :: tend
      LOGICAL, EXTERNAL  :: matches
      CHARACTER(len=4)   :: lb_pos
@@ -1684,7 +1722,12 @@ CONTAINS
      ENDDO
      taextchg = .true.
      !
-     CALL convert_pos( external_charges, env_external_charges, extcharge_pos )
+     DO ie = 1, env_external_charges
+        DO ix = 1, 3
+           CALL convert_length( external_charges, extcharge_pos(ix, ie))
+        ENDDO
+        CALL convert_length( external_charges, extcharge_spread(ie))
+     ENDDO
      !
      RETURN
      !
@@ -1768,7 +1811,7 @@ CONTAINS
      IMPLICIT NONE
      !
      CHARACTER(len=256) :: input_line
-     INTEGER            :: ie, ierr, nfield
+     INTEGER            :: ie, ix, ierr, nfield
      LOGICAL            :: tend
      LOGICAL, EXTERNAL  :: matches
      CHARACTER(len=4)   :: lb_pos
@@ -1865,7 +1908,13 @@ CONTAINS
      ENDDO
      taepsreg = .true.
      !
-     CALL convert_pos( dielectric_regions, env_dielectric_regions, epsregion_pos )
+     DO ie = 1, env_dielectric_regions
+        DO ix = 1, 3
+           CALL convert_length( dielectric_regions, epsregion_pos(ix, ie))
+        ENDDO
+        CALL convert_length( dielectric_regions, epsregion_width(ie))
+        CALL convert_length( dielectric_regions, epsregion_spread(ie))
+     ENDDO
      !
      RETURN
      !
@@ -1907,38 +1956,37 @@ CONTAINS
    END SUBROUTINE allocate_input_epsregion
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-   SUBROUTINE convert_pos (pos_format, n, pos)
+   SUBROUTINE convert_length(length_format, length)
 !--------------------------------------------------------------------
      !
-     ! ... convert input positions to atomic units
+     ! ... convert input length to atomic units
      !
      IMPLICIT NONE
-     CHARACTER (len=*), INTENT(in)  :: pos_format
-     INTEGER, INTENT(in)  :: n
-     REAL (DP), INTENT(inout) :: pos(3,n)
+     CHARACTER (len=*), INTENT(in)  :: length_format
+     REAL (DP), INTENT(inout) :: length
      !
-     SELECT CASE( pos_format )
+     SELECT CASE( length_format )
      CASE( 'bohr' )
         !
-        ! ... input positions are in a.u., do nothing
+        ! ... input length are in a.u., do nothing
         !
-        pos = pos
+        length = length
         !
      CASE( 'angstrom' )
         !
-        ! ... positions in A: convert to a.u.
+        ! ... length in A: convert to a.u.
         !
-        pos = pos / bohr_radius_angs
+        length = length / bohr_radius_angs
         !
      CASE DEFAULT
         !
-        CALL errore( 'iosys','pos_format=' // &
-             & trim( pos_format ) // ' not implemented', 1 )
+        CALL errore( 'iosys','length_format=' // &
+             & trim( length_format ) // ' not implemented', 1 )
         !
      END SELECT
      !
 !--------------------------------------------------------------------
-   END SUBROUTINE convert_pos
+   END SUBROUTINE convert_length
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE environ_input

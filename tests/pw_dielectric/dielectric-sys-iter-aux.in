@@ -8,7 +8,7 @@
  &BOUNDARY
    !
    solvent_mode = 'system'
-   solvent_distance = 3.D0
+   solvent_distance = 6.D0
    solvent_spread = 0.5D0
    !
  /

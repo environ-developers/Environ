@@ -365,7 +365,7 @@ CONTAINS
        totiter = integrate_environ_density( rhoiter )
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux
 9004   FORMAT(' delta_qm = ',E14.6,' delta_en = ',E14.6,' tol = ',E14.6)
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,9003)totiter,totzero,totpol,total
 9003   FORMAT(' Total iterative polarization charge = ',4F13.6)
        IF ( delta_en .LT. tolrhoaux .AND. iter .GT. 0 ) THEN
           IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9005)
@@ -523,7 +523,7 @@ CONTAINS
        r%of_r = r%of_r - alpha * Ap%of_r
        !
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,*)'alpha = ',alpha,' beta = ',beta
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' pAp = ',pAp
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' pAp = ',pAp
        !
        ! ... If residual is small enough exit
        !
@@ -682,7 +682,7 @@ CONTAINS
        ELSE
           beta = 0.D0
        END IF
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
        rzold = rznew
        !
        p%of_r = z%of_r + beta * p%of_r
@@ -878,7 +878,7 @@ CONTAINS
        ELSE
           beta = 0.D0
        END IF
-       IF ( verbose .GE. 2 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
+       IF ( verbose .GE. 3 .AND. ionode ) WRITE(environ_unit,*)'rznew = ',rznew,' rzold = ',rzold,' beta = ',beta
        rzold = rznew
        !
        p%of_r = z%of_r + beta * p%of_r

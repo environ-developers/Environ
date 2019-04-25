@@ -1,0 +1,14 @@
+&ENVIRON
+   environ_thr      = 10.0
+   environ_type     = 'vacuum'
+   env_confine      = 0.5
+/
+&BOUNDARY
+   solvent_mode     = 'full'
+   rhomax           = 0.005
+   rhomin           = 0.0001
+   stype            = 1
+/
+&ELECTROSTATIC
+/
+

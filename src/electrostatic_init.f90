@@ -45,7 +45,12 @@ CONTAINS
        preconditioner, screening_type, screening,           &
        core_type, boundary_core_, ifdtype, nfdpoint,        &
        use_internal_pbc_corr, pbc_correction, pbc_dim_,     &
-       pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!       pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
+! Compatbile with QE-6.4.X QE-GIT
+       pbc_axis_, prog, inner_tol, inner_solver_type, &
+! END BACKWARD COMPATIBILITY
        inner_maxstep, inner_mix )
 !--------------------------------------------------------------------
     IMPLICIT NONE
@@ -53,9 +58,17 @@ CONTAINS
     CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
     INTEGER, INTENT(IN) :: maxstep, ndiis, ifdtype, nfdpoint,       &
-         pbc_dim_, pbc_axis_, nspin, inner_maxstep
+         pbc_dim_, pbc_axis_, inner_maxstep
     REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol,   &
          inner_mix
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatbile with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
+    !
     CHARACTER( LEN = * ), INTENT(IN) :: problem, solver_type,       &
          auxiliary, step_type, mix_type, preconditioner,            &
          screening_type, core_type, boundary_core_,                 &
@@ -153,7 +166,12 @@ CONTAINS
     ! Set up active numerical cores
     !
     IF ( lfd ) CALL init_fd_core( ifdtype, nfdpoint, fd )
-    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+! Compatible with QE-6.4.X QE-GIT
+    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr )
+! END BACKWARD COMPATIBILITY
     IF ( loned_analytic ) CALL init_oned_analytic_core_first( pbc_dim, pbc_axis, oned_analytic )
     !
     ! Initial setup of solver flags

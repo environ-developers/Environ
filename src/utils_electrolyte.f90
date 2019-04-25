@@ -97,11 +97,11 @@ CONTAINS
     CALL create_environ_boundary( electrolyte%boundary, label )
     CALL create_environ_density( electrolyte%density, label )
     label = 'gamma'
-    CALL create_environ_density( electrolyte%gamma  , label )
+    CALL create_environ_density( electrolyte%gamma, label )
     label = 'dgamma'
-    CALL create_environ_density( electrolyte%dgamma  , label )
+    CALL create_environ_density( electrolyte%dgamma, label )
     !
-    electrolyte % charge = 0.D0
+    electrolyte%charge = 0.D0
     !
     RETURN
     !
@@ -135,26 +135,6 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_electrolyte_first'
     CHARACTER( LEN=80 ) :: ityps, label
     !
-    ! ... Fix Stern boundary parameter and initiate electrolyte boundary
-    !
-!    IF (( mode == 'electronic' .OR. mode == 'full') .AND. &
-!          distance .GT. 0.D0 .AND. spread .GT. 0.D0 ) THEN
-!       !
-!       ! ... rhomin, rhomax defined as in Ringe et al. JCTC 12, 4052 (2016)
-!       !
-!       amin = LOG( rhomin ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
-!       amax = LOG( rhomax ) + ( LOG( rhomin ) - LOG( rhomax )) * distance
-!       !
-!       rhomin_ = EXP( amin + ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
-!       rhomax_ = EXP( amax - ( amax - amin ) * ( 1.D0 - spread) * 0.5D0 )
-!       !
-!    ELSE
-!       !
-!       rhomax_ = rhomin
-!       rhomin_ = rhopb
-!       !
-!    END IF
-    !
     CALL init_environ_boundary_first( .TRUE., .TRUE., .FALSE., mode, stype, &
          & rhomax, rhomin, tbeta, const, alpha, softness, distance, spread, &
          & solvent_radius, radial_scale, radial_spread, filling_threshold, &
@@ -166,26 +146,24 @@ CONTAINS
     electrolyte%linearized = linearized
     electrolyte%ntyp = ntyp
     electrolyte%electrolyte_entropy = TRIM( electrolyte_entropy )
-    ! maybe unify these in stern_interaction : exclusion, repulsion, full.
-    electrolyte%ion_adsorption = TRIM( ion_adsorption )
+!    electrolyte%ion_adsorption = TRIM( ion_adsorption )
     electrolyte%temperature = temperature
     electrolyte%cionmax = 0.D0
-    electrolyte%permittivity = const 
+    electrolyte%permittivity = const
     !
-    IF ( electrolyte%ion_adsorption .NE. 'none' ) THEN
-       !
-       ! ... Setup exponential function
-       !
-       electrolyte%adsorption_energy = adsorption_energy
-       electrolyte%function%type = 3
-       electrolyte%function%pos => system%pos
-!      electrolyte%function%volume = 1.D0 ! 3.D0 * k_boltzmann_ry * electrolyte%temperature
-       electrolyte%function%dim = system%dim
-       electrolyte%function%axis = system%axis
-       electrolyte%function%width = distance
-       electrolyte%function%spread = spread
-       !
-    END IF
+!    IF ( electrolyte%ion_adsorption .NE. 'none' ) THEN
+!       !
+!       ! ... Setup exponential function
+!       !
+!       electrolyte%adsorption_energy = adsorption_energy
+!       electrolyte%function%type = 3
+!       electrolyte%function%pos => system%pos
+!       electrolyte%function%dim = system%dim
+!       electrolyte%function%axis = system%axis
+!       electrolyte%function%width = distance
+!       electrolyte%function%spread = spread
+!       !
+!    END IF
     !
     IF ( ALLOCATED( electrolyte%ioncctype ) ) &
        CALL errore(sub_name,'Trying to allocate an already allocated object',1)
@@ -197,39 +175,43 @@ CONTAINS
        !
        electrolyte%ioncctype(ityp)%index = ityp
        !
-       ! ... Convert bulk concentrations in atomic units
+       ! ... Convert bulk concentrations to atomic units
+       !
        electrolyte%ioncctype(ityp)%cbulk = cbulk(ityp) * bohr_radius_si**3 / amu_si
        !
        electrolyte%ioncctype(ityp)%z = -z(ityp)
        neutral = neutral + cbulk(ityp)*z(ityp)
        !
        ! ... Create density for the local electrolyte concentration and related quantities
+       !
        WRITE(ityps,'(I2.2)') ityp
        label = 'c_electrolyte_'//TRIM(ityps)
        CALL create_environ_density( electrolyte%ioncctype(ityp)%c, label)
        label = 'cfactor_electrolyte_'//TRIM(ityps)
        CALL create_environ_density( electrolyte%ioncctype(ityp)%cfactor, label)
        !
-       IF ( electrolyte%ion_adsorption .NE. 'none' ) THEN
-         label = 'potential_'//TRIM(ityps)
-         CALL create_environ_density( electrolyte%ioncctype(ityp)%potential, label)
-       END IF
+!       IF ( electrolyte%ion_adsorption .NE. 'none' ) THEN
+!         label = 'potential_'//TRIM(ityps)
+!         CALL create_environ_density( electrolyte%ioncctype(ityp)%potential, label)
+!       END IF
        !
     END DO
     !
     IF ( neutral .GT. 1.D-8 ) CALL errore(sub_name,'Bulk electrolyte is not neutral',1)
     !
     ! ... If cionmax is not provided in input but radius is, calculate cionmax
+    !
     electrolyte%cionmax = cionmax * bohr_radius_si**3 / amu_si
     IF ( cionmax .EQ. 0.D0 .AND. radius .GT. 0.D0 ) &
             & electrolyte%cionmax = 0.64D0 * 3.D0 / fpi / radius**3
     !
     ! ... Check suitability of cionmax value
+    !
     sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
     IF ( electrolyte%cionmax .GT. 0.D0 .AND. electrolyte%cionmax .LE. sumcbulk ) &
           & CALL errore( sub_name,'cionmax should be larger than the sum of cbulks',1)
     !
-    electrolyte % energy_second_order = 0.D0
+    electrolyte%energy_second_order = 0.D0
     !
     RETURN
     !
@@ -264,21 +246,18 @@ CONTAINS
       !
       sum_cz2 = sum_cz2 + electrolyte%ioncctype(ityp)%cbulk * electrolyte%ioncctype(ityp)%z ** 2
       !
-      IF ( electrolyte%ion_adsorption .NE. 'none' ) THEN
-        !
-        CALL init_environ_density( cell, electrolyte%ioncctype(ityp)%potential )
-        !
-      END IF
+!      IF ( electrolyte%ion_adsorption .NE. 'none' ) &
+!        & CALL init_environ_density( cell, electrolyte%ioncctype(ityp)%potential )
       !
     END DO
     !
-    ! k ** 2 = eps / lambda_D ** 2
+    ! ... k^2 = eps / lambda_D^2
+    !
     electrolyte%k2 = sum_cz2 / kT
     electrolyte%k2 = electrolyte%k2 * e2 * fpi
     !
-    IF ( electrolyte % linearized ) THEN
-      CALL init_environ_density( cell, electrolyte % de_dboundary_second_order )
-    END IF
+    IF ( electrolyte%linearized ) &
+       & CALL init_environ_density( cell, electrolyte%de_dboundary_second_order )
     !
     electrolyte%initialized = .TRUE.
     !
@@ -302,49 +281,50 @@ CONTAINS
     CALL start_clock( 'electrolyte' )
     !
     ! ... Check if the boundary is under update (status = 1) or has been fully updated (status = 2)
-    IF ( electrolyte % boundary % update_status .GT. 0 ) electrolyte % update = .TRUE.
     !
-    IF ( electrolyte % update ) THEN
+    IF ( electrolyte%boundary%update_status .GT. 0 ) electrolyte%update = .TRUE.
+    !
+    IF ( electrolyte%update ) THEN
+       !
        ! ... Update the electrolyte in space if the boundary is ready
-       IF ( electrolyte % boundary % update_status .EQ. 2 ) THEN
+       !
+       IF ( electrolyte%boundary%update_status .EQ. 2 ) THEN
           !
           CALL electrolyte_of_boundary( electrolyte )
           !
-          electrolyte % update = .FALSE.
+          electrolyte%update = .FALSE.
           !
-          SELECT CASE ( electrolyte%ion_adsorption )
-          CASE( 'anion' )
-             DO ityp = 1, electrolyte%ntyp
-                IF ( electrolyte%ioncctype(ityp)%z .GT. 0.D0 ) THEN
-                   CALL density_of_functions( electrolyte%function, &
-                                              electrolyte%ioncctype(ityp)%potential, .TRUE. )
-                   electrolyte%ioncctype(ityp)%potential%of_r(:) = electrolyte%adsorption_energy * &
-                                        ( electrolyte%ioncctype(ityp)%potential%of_r(:)**2 - &
-                                          electrolyte%ioncctype(ityp)%potential%of_r(:)*2.D0 )
-                ELSE
-                   electrolyte%ioncctype(ityp)%potential%of_r(:) = 0.D0
-                END IF
-!                CALL print_environ_density( electrolyte%ioncctype(ityp)%potential )
-             END DO
-          CASE( 'cation' )
-             DO ityp = 1, electrolyte%ntyp
-                IF ( electrolyte%ioncctype(ityp)%z .LT. 0.D0 ) THEN
-                   CALL density_of_functions( electrolyte%function, &
-                                              electrolyte%ioncctype(ityp)%potential, .TRUE. )
-                   electrolyte%ioncctype(ityp)%potential%of_r(:) = electrolyte%adsorption_energy * &
-                                        ( electrolyte%ioncctype(ityp)%potential%of_r(:)**2 - &
-                                          electrolyte%ioncctype(ityp)%potential%of_r(:)*2.D0 )
-                ELSE
-                   electrolyte%ioncctype(ityp)%potential%of_r(:) = 0.D0
-                END IF
-             END DO
-          CASE( 'repulsion' )
-             DO ityp = 1, electrolyte%ntyp
-                CALL density_of_functions( electrolyte%function, &
-                                           electrolyte%ioncctype(ityp)%potential, .TRUE. )
-!                CALL print_environ_density( electrolyte%ioncctype(ityp)%potential )
-             END DO
-          END SELECT
+!          SELECT CASE ( electrolyte%ion_adsorption )
+!          CASE( 'anion' )
+!             DO ityp = 1, electrolyte%ntyp
+!                IF ( electrolyte%ioncctype(ityp)%z .GT. 0.D0 ) THEN
+!                   CALL density_of_functions( electrolyte%function, &
+!                                              electrolyte%ioncctype(ityp)%potential, .TRUE. )
+!                   electrolyte%ioncctype(ityp)%potential%of_r(:) = electrolyte%adsorption_energy * &
+!                                        ( electrolyte%ioncctype(ityp)%potential%of_r(:)**2 - &
+!                                          electrolyte%ioncctype(ityp)%potential%of_r(:)*2.D0 )
+!                ELSE
+!                   electrolyte%ioncctype(ityp)%potential%of_r(:) = 0.D0
+!                END IF
+!             END DO
+!          CASE( 'cation' )
+!             DO ityp = 1, electrolyte%ntyp
+!                IF ( electrolyte%ioncctype(ityp)%z .LT. 0.D0 ) THEN
+!                   CALL density_of_functions( electrolyte%function, &
+!                                              electrolyte%ioncctype(ityp)%potential, .TRUE. )
+!                   electrolyte%ioncctype(ityp)%potential%of_r(:) = electrolyte%adsorption_energy * &
+!                                        ( electrolyte%ioncctype(ityp)%potential%of_r(:)**2 - &
+!                                          electrolyte%ioncctype(ityp)%potential%of_r(:)*2.D0 )
+!                ELSE
+!                   electrolyte%ioncctype(ityp)%potential%of_r(:) = 0.D0
+!                END IF
+!             END DO
+!          CASE( 'repulsion' )
+!             DO ityp = 1, electrolyte%ntyp
+!                CALL density_of_functions( electrolyte%function, &
+!                                           electrolyte%ioncctype(ityp)%potential, .TRUE. )
+!             END DO
+!          END SELECT
           !
        END IF
        !
@@ -365,18 +345,12 @@ CONTAINS
     !
     TYPE( environ_electrolyte ), TARGET, INTENT(INOUT) :: electrolyte
     !
-    TYPE( environ_density ), POINTER :: gam, dgam, scaled
-    !
     CHARACTER ( LEN=80 ) :: sub_name = 'electrolyte_of_boundary'
     !
-    ! ... Aliases and init local variables
-    gam    => electrolyte % gamma
-    dgam   => electrolyte % dgamma
-    scaled => electrolyte % boundary % scaled
+    ! ... Compute exclusion function gamma(r) and dgamma/ds(r)
     !
-    ! ... Compute gamma(r)
-    gam % of_r = 1.D0 - scaled % of_r
-    dgam % of_r = -1.D0
+    electrolyte%gamma%of_r = 1.D0 - electrolyte%boundary%scaled%of_r
+    electrolyte%dgamma%of_r = -1.D0
     !
     RETURN
     !
@@ -400,7 +374,7 @@ CONTAINS
     TYPE( environ_density ) :: denominator
     CHARACTER ( LEN=80 )    :: sub_name = 'calc_electrolyte_density'
     !
-    REAL( DP ), PARAMETER   :: exp_arg_limit = 40.D0 !LOG( HUGE(1.0_DP) )
+    REAL( DP ), PARAMETER   :: exp_arg_limit = 40.D0
     !
     gam => electrolyte%gamma%of_r
     pot => potential%of_r
@@ -420,16 +394,18 @@ CONTAINS
       !
       cfactor  = 1.D0
       !
-      IF ( electrolyte % linearized ) THEN
-         ! Linearized PB and Modified PB
+      IF ( electrolyte%linearized ) THEN
+         !
+         ! ... Linearized PB and modified PB
+         !
          cfactor = 1.D0 - z*pot / kT
          !
-         IF ( electrolyte % cionmax .GT. 0.D0 ) THEN
+         IF ( electrolyte%cionmax .GT. 0.D0 ) THEN
             !
             factor = cbulk / electrolyte%cionmax
             !
-            IF ( electrolyte % electrolyte_entropy == 'ions' ) THEN
-               ! Linearized Modified PB with electrolyte entropy 'ions'
+            IF ( electrolyte%electrolyte_entropy == 'ions' ) THEN
+               !
                denominator%of_r = denominator%of_r - factor * ( 1.D0 - gam )
                !
             END IF
@@ -437,13 +413,15 @@ CONTAINS
          END IF
          !
       ELSE
-         ! PB
-         DO ir = 1, potential % cell % ir_end
+         !
+         ! ... Full PB
+         !
+         DO ir = 1, potential%cell%ir_end
             ! numerical problems arise when computing exp( -z*pot/kT )
             ! in regions close to the nuclei (exponent is too large).
             arg = - z * pot(ir) / kT
-            IF ( electrolyte%ion_adsorption .NE. 'none' ) &
-               & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
+!            IF ( electrolyte%ion_adsorption .NE. 'none' ) &
+!               & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
             IF ( arg .GT. exp_arg_limit ) THEN
                 cfactor (ir) = EXP( exp_arg_limit )
             ELSE IF ( arg .LT. -exp_arg_limit ) THEN
@@ -453,11 +431,13 @@ CONTAINS
             END IF
          END DO
          !
-         IF ( electrolyte % cionmax .NE. 0.D0 ) THEN
-            ! Modified PB
+         IF ( electrolyte%cionmax .NE. 0.D0 ) THEN
+            !
+            ! ... Full modified PB
+            !
             factor = cbulk / electrolyte%cionmax
             !
-            SELECT CASE ( electrolyte % electrolyte_entropy )
+            SELECT CASE ( electrolyte%electrolyte_entropy )
                !
             CASE ( 'full' )
                !
@@ -496,28 +476,29 @@ CONTAINS
       !
    END DO
    !
-   electrolyte % charge = integrate_environ_density( electrolyte % density )
+   electrolyte%charge = integrate_environ_density( electrolyte%density )
    !
-   ! Compute energy and de_dboundary terms that depend on the potential.
-   ! These are the second order terms, first order terms are equal to zero.
-   !
-   IF ( electrolyte % linearized ) THEN
-      ! The energy term cancels the electrostatic interaction of the electrolyte, and is
-      !  identical for the various implementations of the Stern entropy.
-      electrolyte % energy_second_order = &
-           &  0.5D0 * scalar_product_environ_density( electrolyte % density, potential )
+   IF ( electrolyte%linearized ) THEN
       !
-      IF ( electrolyte % electrolyte_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
+      ! ... Compute energy and de_dboundary terms that depend on the potential.
+      !     These are the second order terms, first order terms are equal to zero.
+      !     NOTE: the energy is equal to minus the electrostatic interaction of the
+      !     electrolyte, and is identical for the various implementations of the entropy.
+      !
+      electrolyte%energy_second_order = &
+           &  0.5D0 * scalar_product_environ_density( electrolyte%density, potential )
+      !
+      IF ( electrolyte%electrolyte_entropy == 'ions' .AND. electrolyte%cionmax .GT. 0.D0 ) THEN
          !
          sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
-         electrolyte % de_dboundary_second_order % of_r = &
+         electrolyte%de_dboundary_second_order%of_r = &
               & -0.5D0 * electrolyte%k2 / e2 / fpi * ( 1.D0 - sumcbulk / electrolyte%cionmax ) * &
-              & ( pot / denominator%of_r ) ** 2 * electrolyte % dgamma % of_r
+              & ( pot / denominator%of_r ) ** 2 * electrolyte%dgamma%of_r
          !
       ELSE
          !
-         electrolyte % de_dboundary_second_order % of_r = &
-              & -0.5D0 * electrolyte%k2 / e2 / fpi * pot * pot * electrolyte % dgamma % of_r
+         electrolyte%de_dboundary_second_order%of_r = &
+              & -0.5D0 * electrolyte%k2 / e2 / fpi * pot * pot * electrolyte%dgamma%of_r
          !
       END IF
       !
@@ -551,16 +532,20 @@ CONTAINS
     CALL init_environ_density( electrolyte%gamma%cell, arg )
     CALL init_environ_density( electrolyte%gamma%cell, f )
     !
-    IF ( electrolyte % linearized ) THEN
+    IF ( electrolyte%linearized ) THEN
        !
-       IF ( electrolyte % cionmax .EQ. 0.D0 ) THEN
-          ! Linearized PB
+       IF ( electrolyte%cionmax .EQ. 0.D0 ) THEN
+          !
+          ! ... Linearized PB
+          !
           integral = integrate_environ_density( electrolyte%gamma )
           energy   = kT * sumcbulk * ( electrolyte%gamma%cell%omega - integral )
           !
        ELSE
-          ! Linearized Modified PB
-          SELECT CASE ( electrolyte % electrolyte_entropy )
+          !
+          ! ... Linearized modified PB
+          !
+          SELECT CASE ( electrolyte%electrolyte_entropy )
              !
           CASE ( 'full' )
              !
@@ -582,7 +567,7 @@ CONTAINS
           !
        END IF
        !
-       energy = energy + electrolyte % energy_second_order
+       energy = energy + electrolyte%energy_second_order
        !
     ELSE
        !
@@ -595,16 +580,20 @@ CONTAINS
           !
        END DO
        !
-       IF ( electrolyte % cionmax .EQ. 0.D0 ) THEN
-          ! PB
+       IF ( electrolyte%cionmax .EQ. 0.D0 ) THEN
+          !
+          ! ... Full PB
+          !
           f%of_r   = electrolyte%gamma%of_r * arg%of_r - sumcbulk
           integral = integrate_environ_density( f )
           !
           energy   = - kT * integral
           !
        ELSE
-          ! Modified PB
-          SELECT CASE ( electrolyte % electrolyte_entropy )
+          !
+          ! ... Full modified PB
+          !
+          SELECT CASE ( electrolyte%electrolyte_entropy )
              !
           CASE ( 'full' )
              !
@@ -656,37 +645,41 @@ CONTAINS
     gam => electrolyte%gamma%of_r
     !
     kT       = k_boltzmann_ry * electrolyte%temperature
-    sumcbulk = SUM( electrolyte % ioncctype(:)%cbulk )
+    sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
     !
-    IF ( electrolyte % linearized ) THEN
+    IF ( electrolyte%linearized ) THEN
        !
-       IF ( electrolyte % cionmax .EQ. 0.D0 ) THEN
-          ! Linearized PB
-          de_dboundary % of_r = de_dboundary % of_r - &
-               & electrolyte % dgamma % of_r * kT * sumcbulk
+       IF ( electrolyte%cionmax .EQ. 0.D0 ) THEN
+          !
+          ! ... Linearized PB
+          !
+          de_dboundary%of_r = de_dboundary%of_r - &
+               & electrolyte%dgamma%of_r * kT * sumcbulk
           !
        ELSE
-          ! Linearized Modified PB
-          SELECT CASE ( electrolyte % electrolyte_entropy )
+          !
+          ! ... Linearized modified PB
+          !
+          SELECT CASE ( electrolyte%electrolyte_entropy )
              !
           CASE ( 'full' )
              !
-             de_dboundary % of_r = de_dboundary % of_r + &
-                  & electrolyte % dgamma % of_r * kT * electrolyte%cionmax * &
+             de_dboundary%of_r = de_dboundary%of_r + &
+                  & electrolyte%dgamma%of_r * kT * electrolyte%cionmax * &
                   & LOG( 1.D0 - sumcbulk / electrolyte%cionmax )
              !
           CASE ( 'ions' )
              !
-             de_dboundary % of_r = de_dboundary % of_r - &
-                  & electrolyte % dgamma % of_r * kT * sumcbulk / &
+             de_dboundary%of_r = de_dboundary%of_r - &
+                  & electrolyte%dgamma%of_r * kT * sumcbulk / &
                   & ( 1.D0 - sumcbulk / electrolyte%cionmax * (1.D0 - gam ))
              !
           END SELECT
           !
        END IF
        !
-       de_dboundary % of_r = de_dboundary % of_r + &
-            & electrolyte % de_dboundary_second_order % of_r
+       de_dboundary%of_r = de_dboundary%of_r + &
+            & electrolyte%de_dboundary_second_order%of_r
        !
     ELSE
        !
@@ -701,26 +694,30 @@ CONTAINS
           !
        END DO
        !
-       IF ( electrolyte % cionmax .EQ. 0.D0 ) THEN
-          ! PB
-          de_dboundary % of_r = de_dboundary % of_r - &
-               & electrolyte % dgamma % of_r * kT * arg%of_r
+       IF ( electrolyte%cionmax .EQ. 0.D0 ) THEN
+          !
+          ! ... Full PB
+          !
+          de_dboundary%of_r = de_dboundary%of_r - &
+               & electrolyte%dgamma%of_r * kT * arg%of_r
           !
        ELSE
-          ! Modified PB
-          SELECT CASE ( electrolyte % electrolyte_entropy )
+          !
+          ! ... Full modified PB
+          !
+          SELECT CASE ( electrolyte%electrolyte_entropy )
              !
           CASE ( 'full' )
              !
              arg%of_r = arg%of_r / ( electrolyte%cionmax - sumcbulk )
              arg%of_r = arg%of_r + 1.D0
-             de_dboundary % of_r = de_dboundary % of_r - &
-                  & electrolyte % dgamma % of_r * kT * electrolyte%cionmax * LOG ( arg%of_r )
+             de_dboundary%of_r = de_dboundary%of_r - &
+                  & electrolyte%dgamma%of_r * kT * electrolyte%cionmax * LOG ( arg%of_r )
              !
           CASE ( 'ions' )
              !
-             de_dboundary % of_r = de_dboundary % of_r - &
-                  & electrolyte % dgamma % of_r * kT * arg%of_r / &
+             de_dboundary%of_r = de_dboundary%of_r - &
+                  & electrolyte%dgamma%of_r * kT * arg%of_r / &
                   & ( 1.D0 - ( sumcbulk - arg%of_r * gam ) / electrolyte%cionmax )
              !
           END SELECT
@@ -745,31 +742,34 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'destroy_environ_electrolyte'
     INTEGER :: ityp
     !
+    CALL destroy_environ_boundary( lflag, electrolyte%boundary )
+    !
     IF ( electrolyte%initialized ) THEN
        !
        DO ityp = 1, electrolyte%ntyp
+         !
          CALL destroy_environ_density( electrolyte%ioncctype(ityp)%c )
          CALL destroy_environ_density( electrolyte%ioncctype(ityp)%cfactor )
-         IF ( electrolyte%ion_adsorption .NE. 'none' ) THEN
-           CALL destroy_environ_density( electrolyte%ioncctype(ityp)%potential )
-         END IF
+!         IF ( electrolyte%ion_adsorption .NE. 'none' ) &
+!           & CALL destroy_environ_density( electrolyte%ioncctype(ityp)%potential )
+         !
        END DO
        !
-       CALL destroy_environ_boundary( lflag, electrolyte%boundary )
        CALL destroy_environ_density( electrolyte%gamma   )
        CALL destroy_environ_density( electrolyte%dgamma  )
        CALL destroy_environ_density( electrolyte%density )
        !
-       IF ( electrolyte % linearized ) THEN
-          CALL destroy_environ_density( electrolyte%de_dboundary_second_order )
-       END IF
+       IF ( electrolyte%linearized ) &
+          & CALL destroy_environ_density( electrolyte%de_dboundary_second_order )
        !
        electrolyte%initialized = .FALSE.
        !
     END IF
     !
     IF ( lflag ) THEN
-       ! These components were allocated first, destroy only if lflag = .TRUE.
+       !
+       ! ... These components were allocated first, destroy only if lflag = .TRUE.
+       !
        IF ( .NOT. ALLOCATED( electrolyte%ioncctype ) ) &
             & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
        DEALLOCATE( electrolyte%ioncctype )

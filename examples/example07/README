@@ -1,9 +1,13 @@
 
 This example shows how to use pw.x to calculate the energy of a water 
-cluster using a solvent-aware interface (thanks to Nicolas Hörmann for 
-the structure). This feature is particularly useful to model branched/
-open/porous systems, where pockets that are too small to fit a solvent 
-molecule should remain dielectric-free. 
+cluster (thanks to Nicolas Hörmann for the structure) using a 
+solvent-aware interface, as described in O. Andreussi, N.G. Hörmann, 
+F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, J. Chem. Theory 
+Comput. 15, 1996 (2019).
+
+This feature is particularly useful to model branched/open/porous 
+systems, where pockets that are too small to fit a solvent molecule 
+should remain dielectric-free. 
 
 Two calculations are carried out. The first calculation includes
 a standard interface between the quantum mechanical and the continuum

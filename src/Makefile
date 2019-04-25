@@ -27,10 +27,11 @@ MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../../Modules $(MOD_FLAG).
 
 ENVIRONOBJS = \
 correction_periodic.o      \
-correction_gcs.o					 \
+correction_gcs.o	   \
 electrostatic_init.o       \
 electrostatic_mod.o        \
 electrostatic_types.o      \
+embedding_confine.o        \
 embedding_electrostatic.o  \
 embedding_surface.o        \
 embedding_volume.o         \

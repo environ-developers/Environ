@@ -47,13 +47,18 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE set_environ_base &
 !--------------------------------------------------------------------
-       ( prog, nelec, nspin,                         &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
+!       ( prog, nelec, nspin,                         &
+! Compatible with QE-6.4.X QE-GIT
+       ( prog, nelec,                                &
+! END BACKWARD COMPATIBILITY
        & nat, ntyp, atom_label, atomicspread,        &
        & corespread, solvationrad,                   &
        & oldenviron_, environ_restart_, environ_thr_,&
        & environ_nskip_, environ_type,               &
        & system_ntyp, system_dim, system_axis,       &
-       & stype_, rhomax_, rhomin_, tbeta,            &
+       & stype, rhomax, rhomin, tbeta,               &
        & env_static_permittivity_,                   &
        & env_optical_permittivity_, solvent_mode,    &
        & radius_mode, alpha, softness,               &
@@ -64,6 +69,7 @@ CONTAINS
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
+       & env_confine_,                               &
        & env_electrolyte_ntyp_,                      &
        & electrolyte_linearized,                     &
        & electrolyte_entropy, electrolyte_mode,      &
@@ -94,16 +100,22 @@ CONTAINS
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
     LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, &
          add_jellium_, electrolyte_linearized
-    INTEGER, INTENT(IN) :: nspin, nelec, nat, ntyp,       &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    INTEGER, INTENT(IN) :: nspin
+! Compatible with QE-6.4.X QE-GIT
+!
+! END BACKWARD COMPATIBILITY
+    INTEGER, INTENT(IN) :: nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
-         stype_, env_electrolyte_ntyp_,                   &
+         stype, env_electrolyte_ntyp_,                    &
          env_external_charges,                            &
          extcharge_dim(:), extcharge_axis(:),             &
          env_dielectric_regions,                          &
          epsregion_dim(:), epsregion_axis(:)
-    REAL(DP), INTENT(IN) :: environ_thr_, rhomax_,        &
-         rhomin_, tbeta,                                  &
+    REAL(DP), INTENT(IN) :: environ_thr_, rhomax,         &
+         rhomin, tbeta,                                   &
          env_static_permittivity_,                        &
          env_optical_permittivity_,                       &
          alpha, softness,                                 &
@@ -112,7 +124,8 @@ CONTAINS
          solvationrad(:), corespread(:), atomicspread(:), &
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
-         electrolyte_distance, electrolyte_spread,        & 
+         env_confine_,                                    &
+         electrolyte_distance, electrolyte_spread,        &
          cion(:), cionmax, rion, zion(:),                 &
          electrolyte_rhomax, electrolyte_rhomin,          &
          electrolyte_tbeta, electrolyte_alpha,            &
@@ -127,8 +140,6 @@ CONTAINS
          electrolyte_entropy, ion_adsorption
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
-    INTEGER :: stype
-    REAL(DP) :: rhomax, rhomin
     CHARACTER( LEN = 80 ) :: label
     !
 ! BACKWARD COMPATIBILITY
@@ -167,10 +178,8 @@ CONTAINS
     env_surface_tension = &
          env_surface_tension_*1.D-3*bohr_radius_si**2/rydberg_si
     env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
+    env_confine = env_confine_
     env_electrolyte_ntyp = env_electrolyte_ntyp_
-    stype = stype_
-    rhomax = rhomax_
-    rhomin = rhomin_
     !
     ! Set basic logical flags
     !
@@ -184,6 +193,7 @@ CONTAINS
     ENDIF
     lsurface       = env_surface_tension .GT. 0.D0
     lvolume        = env_pressure .NE. 0.D0
+    lconfine       = env_confine .NE. 0.D0
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
     lperiodic      = need_pbc_correction
@@ -191,7 +201,7 @@ CONTAINS
     ! Derived flags
     !
     ldielectric    = lstatic .OR. loptical
-    lsolvent       = ldielectric .OR. lsurface .OR. lvolume
+    lsolvent       = ldielectric .OR. lsurface .OR. lvolume .OR. lconfine
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
     lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' )
@@ -219,7 +229,7 @@ CONTAINS
     !
     IF ( loptical ) CALL create_environ_dielectric(optical)
     !
-    IF ( lelectrostatic ) CALL create_environ_charges(charges)
+    IF ( lelectrostatic .OR. lconfine ) CALL create_environ_charges(charges)
     !
     ! Allocate and set basic properties of ions
     !
@@ -228,15 +238,21 @@ CONTAINS
     !
     ! Set basic properties of electrons
     !
-    CALL init_environ_electrons_first( nelec, nspin, electrons )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!    CALL init_environ_electrons_first( nelec, nspin, electrons )
+! Compatible with QE-6.4.X QE-GIT
+    CALL init_environ_electrons_first( nelec, electrons )
+! END BACKWARD COMPATIBILITY
     !
     ! Set basic properties of the selected system
     !
     CALL init_environ_system( system_ntyp, system_dim, system_axis, ions, system )
     !
-    ! Collect free charges if computing electrostatics
+    ! Collect free charges if computing electrostatics or confinement 
     !
-    IF ( lelectrostatic ) CALL init_environ_charges_first( ions=ions, electrons=electrons, charges=charges )
+    IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_first( electrons=electrons, charges=charges )
+    IF ( lelectrostatic ) CALL init_environ_charges_first( ions=ions, charges=charges )
     !
     ! Allocate and set basic properties of external charges
     !
@@ -259,7 +275,7 @@ CONTAINS
     !
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_electrolyte_ntyp, &
-            & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, & 
+            & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, &
             & electrolyte_tbeta, env_static_permittivity, &
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
@@ -324,6 +340,7 @@ CONTAINS
          loptical, optical,                       &
          lexternals, externals,                   &
          lsurface, esurface, lvolume, evolume,    &
+         lconfine, vconfine, econfine,            &
          eelectrolyte
     !
     USE electrostatic_init, ONLY : electrostatic_initbase
@@ -399,6 +416,17 @@ CONTAINS
     !
     evolume   = 0.0_DP
     !
+    ! ... Confinement contribution
+    !
+    econfine   = 0.0_DP
+    IF ( lconfine ) THEN
+       !
+       label = 'vconfine'
+       CALL create_environ_density( vconfine, label )
+       CALL init_environ_density( cell, vconfine )
+       !
+    END IF
+    !
     ! ... Non-electrostatice electrolyte contribution
     !
     eelectrolyte = 0.0_DP
@@ -417,7 +445,7 @@ CONTAINS
     !
     IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
     !
-    IF ( lelectrostatic ) CALL init_environ_charges_second( cell, charges )
+    IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_second( cell, charges )
     !
     RETURN
     !
@@ -590,10 +618,8 @@ CONTAINS
         !
      END IF
      !
-     IF ( lelectrostatic ) THEN
-        CALL update_environ_charges( charges )
-        CALL electrostatic_initions( system )
-     END IF
+     IF ( lelectrostatic .OR. lconfine ) CALL update_environ_charges( charges )
+     IF ( lelectrostatic ) CALL electrostatic_initions( system )
      !
      system%update = .FALSE.
      ions%update = .FALSE.
@@ -604,7 +630,12 @@ CONTAINS
    END SUBROUTINE environ_initions
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-   SUBROUTINE environ_initelectrons( nspin, nnr, rho, nelec )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!   SUBROUTINE environ_initelectrons( nspin, nnr, rho, nelec )
+! Compatible with QE-6.4.X QE-GIT
+   SUBROUTINE environ_initelectrons( nnr, rho, nelec )
+! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
 !
 ! Initialize the electrons-related quantities to be used in the Environ
@@ -624,18 +655,29 @@ CONTAINS
      !
      IMPLICIT NONE
      !
-     INTEGER, INTENT( IN )     :: nspin, nnr
-     REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
+     INTEGER, INTENT( IN )     :: nnr
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!     INTEGER, INTENT( IN )     :: nspin
+!     REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
+! Compatible with QE-6.4.X QE-GIT
+     REAL ( DP ), INTENT( IN ) :: rho( nnr )
+! END BACKWARD COMPATIBILITY
      REAL( DP ), INTENT( IN ), OPTIONAL  :: nelec
      !
      electrons%update = .TRUE.
      !
      ! ... Update electrons parameters
      !
-     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! BACKWARD COMPATIBILITY
+! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
+!     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
+! Compatible with QE-6.4.X QE-GIT
+     CALL update_environ_electrons( nnr, rho, electrons, nelec )
+! END BACKWARD COMPATIBILITY
      CALL print_environ_electrons( electrons )
      !
-     IF ( lelectrostatic ) CALL update_environ_charges( charges )
+     IF ( lelectrostatic .OR. lconfine ) CALL update_environ_charges( charges )
      !
      ! ... Update soft environ properties, defined on electrons
      !
@@ -717,6 +759,7 @@ CONTAINS
      USE environ_base, ONLY : vzero, lelectrostatic, vreference,      &
                               lsoftcavity, vsoftcavity, lstatic,      &
                               static, charges, lexternals, externals, &
+                              lconfine, vconfine,                     &
                               lelectrolyte, electrolyte,              &
                               ions, electrons, system
      !
@@ -736,10 +779,12 @@ CONTAINS
           & CALL destroy_environ_density( vreference )
      IF ( lsoftcavity .AND. ASSOCIATED( vsoftcavity%cell ) ) &
           & CALL destroy_environ_density( vsoftcavity )
+     IF ( lconfine .AND. ASSOCIATED( vconfine%cell ) ) &
+          & CALL destroy_environ_density( vconfine )
      !
      ! ... destroy derived types which were allocated in input
      !
-     IF ( lelectrostatic ) CALL destroy_environ_charges( lflag, charges )
+     IF ( lelectrostatic .OR. lconfine ) CALL destroy_environ_charges( lflag, charges )
      IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
      IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
      IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )

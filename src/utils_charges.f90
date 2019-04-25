@@ -222,7 +222,7 @@ CONTAINS
     ENDIF
     !
     local_charge = integrate_environ_density(charges%density)
-    IF ( ABS(local_charge-charges%charge) .GT. 1.D-8 ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
+    IF ( ABS(local_charge-charges%charge) .GT. 1.D-5 ) CALL errore(sub_name,'Inconsistent integral of total charge',1)
     !
     RETURN
     !
@@ -254,7 +254,6 @@ CONTAINS
        ! ELECTROLYTE CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
        CALL electrolyte_of_potential( potential, charges%electrolyte )
        tot_charge_density % of_r = tot_charge_density % of_r + charges % electrolyte % density % of_r
-       CALL print_environ_density( charges % electrolyte % density )
     ENDIF
     !
     IF ( charges % include_dielectric ) THEN

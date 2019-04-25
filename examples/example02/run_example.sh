@@ -21,6 +21,11 @@ $ECHO
 # set the needed environment variables
 . ../../../environment_variables
 
+# compatibility with QE for versions prior to 6.4
+if [ -z $NETWORK_PSEUDO ]; then
+    NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_files/
+fi
+
 # required executables and pseudopotentials
 BIN_LIST="pw.x"
 PSEUDO_LIST="O.pbe-rrkjus.UPF H.pbe-rrkjus.UPF"
@@ -63,7 +68,7 @@ for FILE in $PSEUDO_LIST ; do
        $ECHO
        $ECHO "Downloading $FILE to $PSEUDO_DIR...\c"
             $WGET $PSEUDO_DIR/$FILE \
-                http://www.quantum-espresso.org/upf_files/UPF/$FILE 2> /dev/null 
+                $NETWORK_PSEUDO/$FILE 2> /dev/null
     fi
     if test $? != 0; then
         $ECHO
@@ -82,62 +87,62 @@ $ECHO
 
 ### ELECTROSTATIC EMBEDDING PARAMETERS #####################################
 verbose=0                  # if GE 1 prints debug informations
-                           # if GE 2 prints out gaussian cube files with 
+                           # if GE 2 prints out gaussian cube files with
                            # dielectric function, polarization charges, etc
                            # WARNING: if GE 2 lot of I/O, much slower
-environ_thr='1.d-1'        # electronic convergence threshold for the onset  
+environ_thr='1.d-1'        # electronic convergence threshold for the onset
                            # of solvation correction
 environ_type='vacuum'      # type of environment
                            # input: read parameters from input
-                           # vacuum: all flags off, no environ 
-                           # water: parameters from experimental values 
+                           # vacuum: all flags off, no environ
+                           # water: parameters from experimental values
                            #   and specifically tuned for neutral molecules
-                           # water-anions: same as water, but parameters are 
+                           # water-anions: same as water, but parameters are
                            #   tuned for anions (Fisicaro et al., JCTC (2017))
                            # water-cations: same as water, but parameters are
                            #   tuned for cations (Fisicaro et al., JCTC (2017))
 env_electrostatic='.true.' # modify electrostatic embedding (required to
                            #   switch on PBC corrections in vacuum)
-pbc_correction='parabolic' # correction scheme to remove PBC 
-                           # none: periodic calculation, no correction 
+pbc_correction='parabolic' # correction scheme to remove PBC
+                           # none: periodic calculation, no correction
                            # parabolic: quadratic real-space correction
 pbc_dim=0                  # select the desired system dimensionality
                            # 0, 1 or 2: isolated, 1D or 2D system
-                           # if pbc_dim=1 or 2: pbc_axis set the axis along 
+                           # if pbc_dim=1 or 2: pbc_axis set the axis along
                            #   the 1D direction or normal to the 2D plane
                            #   (pbc_axis = 1, 2 or 3 for x, y or z axis)
 ### SOFT-SPHERE PARAMETERS #################################################
-solvent_mode='ionic'       # specify the charge density that is used to 
+solvent_mode='ionic'       # specify the charge density that is used to
                            # build the dielectric cavity:
                            # electronic: use the electronic density (default)
                            # ionic: use a fictitious charge density calculated
-                           #        for atomic-centered interlocking spheres, 
+                           #        for atomic-centered interlocking spheres,
                            #        whose analytical expression is based on the
-                           #        error function 
-# with solvent_mode='ionic' and environ_type='water' the following 
-# parameters take the optimized values for molecules and clusters 
+                           #        error function
+# with solvent_mode='ionic' and environ_type='water' the following
+# parameters take the optimized values for molecules and clusters
 # (Fisicaro et al., JCTC 2017)
-#radius_mode='uff'         # vdW radii parametetrization (unified force field 
-#                          # is default) 
-#alpha=1.12                # vdW radii multiplying factor      
+#radius_mode='uff'         # vdW radii parametetrization (unified force field
+#                          # is default)
+#alpha=1.12                # vdW radii multiplying factor
 #softness=0.5              # width parameter for the transition region
-#env_surface_tension=50    # non-electrostatic parameters (see example01) 
-#env_pressure=-0.35        # 
+#env_surface_tension=50    # non-electrostatic parameters (see example01)
+#env_pressure=-0.35        #
 ###########################################################################
 
-for environ_type in vacuum water ; do 
+for environ_type in vacuum water ; do
 
     # clean TMP_DIR
     $ECHO "  cleaning $TMP_DIR...\c"
     rm -rf $TMP_DIR/*
     $ECHO " done"
-    
+
     $ECHO "  running the relax calculation in $environ_type "
 
   prefix=h2o_${environ_type}
   input=${prefix}'.in'
   output=${prefix}'.out'
-  cat > $input << EOF 
+  cat > $input << EOF
  &CONTROL
    !
    calculation = 'relax'
@@ -172,7 +177,7 @@ for environ_type in vacuum water ; do
  /
 K_POINTS (automatic)
  1 1 1 0 0 0
-ATOMIC_SPECIES  
+ATOMIC_SPECIES
  H   1  H.pbe-rrkjus.UPF
  O  16  O.pbe-rrkjus.UPF
 ATOMIC_POSITIONS (bohr)
@@ -199,13 +204,13 @@ EOF
    pbc_correction = '$pbc_correction'
    pbc_dim = $pbc_dim
    !
-   tol = 1.d-11 
-   !  
+   tol = 1.d-11
+   !
  /
 EOF
-   
+
   cp environ_${environ_type}.in environ.in
-  $PW_COMMAND < $input > $output 
+  $PW_COMMAND < $input > $output
   check_failure $?
   $ECHO " done"
 
@@ -213,14 +218,14 @@ done
 
 evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum.out)
 esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water.out)
-dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l) 
-ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water.out) 
+dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l)
+ecav=$(awk 'BEGIN {en=0}; /cavitation energy/ {en=$4}; END {print en}' h2o_water.out)
 epres=$(awk 'BEGIN {en=0}; /PV energy/ {en=$4}; END {print en}' h2o_water.out)
 
 $ECHO "  Solvation Energy     = $dgsol Kcal/mol" > results.txt
 iprint=0
 dgelec=$dgsol
-if [ $ecav != 0 ]; then 
+if [ $ecav != 0 ]; then
   iprint=1
   dgcav=$($ECHO "$ecav*313.68" | bc -l)
   $ECHO "  Cavitation Energy    =  $dgcav Kcal/mol" >> results.txt
