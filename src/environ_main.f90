@@ -286,7 +286,14 @@ CONTAINS
     !
     !  if confinement potential different from zero compute confine energy
     !
-    IF ( lconfine ) econfine = scalar_product_environ_density( electrons%density, vconfine )
+    IF ( lconfine ) THEN
+       !
+       deenviron = deenviron - &
+            & scalar_product_environ_density(electrons%density,vconfine)
+       !
+       econfine = scalar_product_environ_density( electrons%density, vconfine )
+       !
+    END IF
     !
     !  if electrolyte is present calculate its non-electrostatic contribution
     !
