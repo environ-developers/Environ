@@ -453,10 +453,10 @@ CONTAINS
     !
     ! ... Compute left/right conditions for GCS potential
     !
-    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
     constl = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
-    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
     constr = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
