@@ -61,7 +61,7 @@ CONTAINS
     !
     !> Function that calculates the Gouy-Chapman correction and adds it to the
     !! potential.
-    !! 
+    !!
     !! Procedure is as follows:
     !! -# execute parabolic correction
     !! -# shift to fit open boundary conditions
@@ -80,12 +80,12 @@ CONTAINS
     !! \f[
     !!    \frac{dv}{dz} = -E_z = f\sinh( v(x) z_d / 2k_BT )
     !! \f]
-    !! where \f$z_d\f$ is the electrolyte charge and 
+    !! where \f$z_d\f$ is the electrolyte charge and
     !! \f[
     !!    f = \sqrt{\frac{ 32\pi c_d k_BT}{\epsilon_0}}
     !! \f]
     !!
-    !! By combining the equations for the electric field, one can derive the 
+    !! By combining the equations for the electric field, one can derive the
     !! analytic charge from the knowledge of the potential at the boundary,
     !! \f[
     !!    Q_{ext} = \frac{f\epsilon_0 A}{2\pi}\sinh\left(\frac{v_s z_d}
@@ -93,14 +93,14 @@ CONTAINS
     !! \f]
     !! where \f$v_s\f$ is vstern
     !!
-    !! or one can compute the value of the potential at the interface corresponding 
+    !! or one can compute the value of the potential at the interface corresponding
     !! to a certain explicit charge density,
     !! \f[
     !!    v_a = \frac{2 k_BT}{z_d} \sinh^{-1}(E_z / f)
     !! \f]
     !! where \f$v_a\f$ is the analytic value of vstern.
     !!
-    !! Eventually, by integrating the equation for potential, the analytic form 
+    !! Eventually, by integrating the equation for potential, the analytic form
     !! of the potential is found
     !! \f[
     !!    v(x) = \frac{4k_BT}{z_d}\coth(c \exp( -x f z_d / 2k_BT  ) )
@@ -108,9 +108,9 @@ CONTAINS
     !! where c is determined by the condition that v(xstern) = vstern
     !!
     !! For the linearized case, the analytic solution is calculated as follows:
-    !! 
+    !!
     !! The electric field can be calculated as in the non-linear case
-    !! 
+    !!
     !! The equation for the potential is
     !! \f[
     !!    v(x) = c \exp(-k\left|x\right|/\sqrt{\epsilon_0})
@@ -228,10 +228,10 @@ CONTAINS
     !
     ! ... Compute left/right conditions for GCS potential
     !
-    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
     constl = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
-    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
     constr = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
@@ -376,7 +376,7 @@ CONTAINS
     REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: lin_k, lin_e, lin_c
     REAL( DP ) :: f1, f2
-    REAL( DP ) :: area, dvtmp_dx
+    REAL( DP ) :: area, dv, dvtmp_dx
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvgcs'
