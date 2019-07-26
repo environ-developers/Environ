@@ -372,7 +372,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
     !
     INTEGER :: i
-    REAL( DP ) :: ez, fact, vstern, const
+    REAL( DP ) :: ez, fact, vstern, const, constl, constr
     REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: lin_k, lin_e, lin_c
     REAL( DP ) :: f1, f2
@@ -449,9 +449,16 @@ CONTAINS
     arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
-    arg = vstern * 0.25D0 * invkbt * zion
+    dv = 2.D0 * fpi * tot_dipole(slab_axis) / area
+    !
+    ! ... Compute left/right conditions for GCS potential
+    !
+    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    constl = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    constr = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
     ! ... Compute linearized quantities
     !
@@ -497,11 +504,23 @@ CONTAINS
        !
        DO i = 1, nnr
           !
-          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          IF ( axis(1,i) .LE. -xstern ) THEN
              !
              ! ... Gouy-Chapmann-Stern analytic solution on the outside
              !
-             arg = const * EXP( ABS(axis(1,i)) * f1 )
+             arg = constl * EXP( ABS(axis(1,i)) * f1 )
+             dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
+             !
+             ! ... Remove source potential (linear) and add analytic one
+             !
+             gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                         & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+             !
+          ELSE IF ( axis(1,i) .GE. xstern ) THEN
+             !
+             ! ... Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             arg = constr * EXP( ABS(axis(1,i)) * f1 )
              dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
              !
              ! ... Remove source potential (linear) and add analytic one
