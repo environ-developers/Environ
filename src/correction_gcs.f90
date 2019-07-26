@@ -145,7 +145,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: v
     !
     INTEGER :: i, icount
-    REAL( DP ) :: ez, fact, vstern, const
+    REAL( DP ) :: ez, fact, vstern, const, constl, constr
     REAL( DP ) :: dv, vbound, zion
     REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: f1, f2
@@ -224,9 +224,16 @@ CONTAINS
     arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
-    arg = vstern * 0.25D0 * invkbt * zion
+    dv = 2.D0 * fpi * tot_dipole(slab_axis) / area
+    !
+    ! ... Compute left/right conditions for GCS potential
+    !
+    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    constl = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    constr = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
     ! ... Compute linearized quantities
     !
@@ -288,11 +295,13 @@ CONTAINS
        !
        DO i = 1, nnr
           !
-          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          ! ... Gouy-Chapmann-Stern analytic solution on the outside
+          !
+          IF ( axis(1,i) .LE. -xstern ) THEN
              !
-             ! ... Gouy-Chapmann-Stern analytic solution on the outside
+             ! ... left solution
              !
-             arg = const * EXP( ABS(axis(1,i)) * f1 )
+             arg = constl * EXP( ABS(axis(1,i)) * f1 )
              IF ( ABS(arg) .GT. 1.D0 ) THEN
                 acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
              ELSE
@@ -302,7 +311,22 @@ CONTAINS
              !
              ! ... Remove source potential and add analytic one
              !
-!             v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern
+             v(i) = vtmp - potential % of_r(i)
+             !
+          ELSE IF ( axis(1,i) .GE. xstern ) THEN
+             !
+             ! ... right solution
+             !
+             arg = constr * EXP( ABS(axis(1,i)) * f1 )
+             IF ( ABS(arg) .GT. 1.D0 ) THEN
+                acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+             ELSE
+                acoth = 0.D0
+             ENDIF
+             vtmp =  f2 * acoth
+             !
+             ! ... Remove source potential and add analytic one
+             !
              v(i) = vtmp - potential % of_r(i)
              !
           ENDIF
