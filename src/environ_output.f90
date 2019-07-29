@@ -1392,7 +1392,7 @@ CONTAINS
   END SUBROUTINE environ_clock
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE write_cube( f, ions, idx )
+  SUBROUTINE write_cube( f, ions, idx, label )
 !--------------------------------------------------------------------
     !
     USE fft_base,       ONLY : dfftp
@@ -1428,6 +1428,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:,:), POINTER :: tau
     !
     INTEGER, OPTIONAL :: idx
+    CHARACTER( LEN=100 ), OPTIONAL :: label
     CHARACTER( LEN=100 ) :: filemod
     !
     nr1x = dfftp%nr1x
@@ -1443,8 +1444,12 @@ CONTAINS
     ELSE
        filemod = ""
     ENDIF
-
-    filename = TRIM(ADJUSTL(f%label))//TRIM(filemod)//".cube"
+    !
+    IF(PRESENT(label)) THEN
+       filename = TRIM(ADJUSTL(label))//TRIM(filemod)//".cube"
+    ELSE
+       filename = TRIM(ADJUSTL(f%label))//TRIM(filemod)//".cube"
+    ENDIF
     !
     alat => f%cell%alat
     at => f%cell%at

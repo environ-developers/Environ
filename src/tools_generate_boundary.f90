@@ -10,8 +10,7 @@
 !    Environ 1.0 is distributed in the hope that it will be useful,
 !    but WITHOUT ANY WARRANTY; without even the implied warranty of
 !    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more detail, either the file
-!    `License' in the root directory of the present distribution, or
+!    GNU General Public License for more detail, either the file `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
 !> This module contains all the procedures to generate the boundary
@@ -41,7 +40,7 @@ MODULE tools_generate_boundary
        & compute_ion_field, compute_ion_field_partial, &
        & compute_normal_field, compute_dion_field_drho, &
        & scaling_of_field, dscaling_of_field, &
-       & field_aware_de_drho, field_aware_dboundary_dions
+       & field_aware_de_drho, field_aware_dboundary_dions, field_aware_density
   !
 CONTAINS
 !  Function: sfunct0
@@ -2108,6 +2107,133 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dscaling_of_field
 !--------------------------------------------------------------------
+!
+!> Scales the density in the field-aware self-consistent model
+!! the function is defined in e^-f(E_norm), which multiplies the electronic
+!! density to represent the new effective density. NOTE that the exponent is
+!! applied here! The f function is the same switching function introduced
+!! by Andreussi et al. for the original SCCS
+!
+!--------------------------------------------------------------------
+  SUBROUTINE scaling_of_density( field_factor, charge_asymmetry, field_max, &
+      & field_min, normal_field, scaled )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL( DP ), INTENT(IN) :: field_factor, charge_asymmetry, field_max, field_min
+    REAL( DP ) :: arg, fact
+    REAL( DP ) :: field
+    !
+    TYPE( environ_density ), INTENT(IN) :: normal_field
+    TYPE( environ_density ), INTENT(INOUT) :: scaled
+    !
+    INTEGER, POINTER :: nnr
+    INTEGER :: i
+    !
+    ! Allocations
+    !
+    nnr => normal_field % cell % nnr
+    !
+    DO i = 1, nnr
+       !
+       field = normal_field % of_r( i )
+       !
+       fact = ( charge_asymmetry - SIGN(1.D0, field) ** 2 ) * field_factor
+       !
+       IF ( ABS( field ) .LE. field_min ) THEN
+          arg = 0.D0
+       ELSE IF ( ABS( field ) .LE. field_max ) THEN
+          arg = tpi * ( ABS( field ) - field_min ) / ( field_max - field_min )
+          arg = ( arg - SIN( arg ) ) / tpi
+       ELSE
+          arg = 1.D0
+       ENDIF
+       !
+       scaled % of_r( i ) = EXP( arg * fact * (-1.D0) )
+       !
+     ENDDO
+     !
+!--------------------------------------------------------------------
+  END SUBROUTINE scaling_of_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE dscaling_of_density( field_factor, charge_asymmetry, field_max, &
+      & field_min, normal_field, dscaled )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL( DP ), INTENT(IN) :: field_factor, charge_asymmetry, field_max, field_min
+    REAL( DP ) :: arg, fact
+    REAL( DP ) :: field
+    !
+    TYPE( environ_density ), INTENT(IN) :: normal_field
+    TYPE( environ_density ), INTENT(INOUT) :: dscaled
+    !
+    INTEGER, POINTER :: nnr
+    INTEGER :: i
+    !
+    ! Allocations
+    !
+    nnr => normal_field % cell % nnr
+    !
+    DO i = 1, nnr
+       !
+       field = normal_field % of_r( i )
+       !
+       fact = ( charge_asymmetry - SIGN(1.D0, field) ** 2 ) * field_factor
+       !
+       IF ( ABS( field ) .LE. field_min ) THEN
+          arg = 0.D0
+       ELSE IF ( ABS( field ) .LE. field_max ) THEN
+          arg = tpi * ( ABS( field ) - field_min ) / ( field_max - field_min )
+          arg = ( 1.D0 - COS( arg ) ) / ( field_max - field_min )
+       ELSE
+          arg = 0.D0
+       ENDIF
+       !
+       dscaled % of_r( i ) = arg * fact
+       !
+     ENDDO
+     !
+!--------------------------------------------------------------------
+  END SUBROUTINE dscaling_of_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE field_aware_density( electrons, boundary )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_boundary ), INTENT(INOUT) :: boundary
+    TYPE( environ_density ) :: scaling
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_electrons ), INTENT(IN) :: electrons
+    REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min
+    !
+    ! call scaling of density to get the scaling factor and add this to
+    ! the density
+    !
+    cell => boundary % electrons % density % cell
+    field_factor = boundary % field_factor
+    charge_asymmetry = boundary % charge_asymmetry
+    field_max = boundary % field_max
+    field_min = boundary % field_min
+    !
+    CALL init_environ_density( cell, scaling )
+    !
+    CALL scaling_of_density( field_factor, charge_asymmetry, field_max, field_min, &
+       & boundary % normal_field, scaling )
+    !
+    boundary % density % of_r = scaling % of_r * electrons % density % of_r
+    !
+    CALL destroy_environ_density( scaling )
+    !    
+!--------------------------------------------------------------------
+  END SUBROUTINE field_aware_density
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE field_aware_de_drho( boundary, de_dboundary, de_drho )
 !--------------------------------------------------------------------
@@ -2121,68 +2247,130 @@ CONTAINS
     TYPE( environ_density ), INTENT(INOUT) :: de_drho
     !
     TYPE( environ_cell ), POINTER :: cell
-    INTEGER, POINTER :: nsoft_spheres
+    INTEGER, POINTER :: nsoft_spheres, nnr
     !
-    INTEGER :: i, j
+    INTEGER :: i, j, ipol
     REAL( DP ) :: df
     CHARACTER( LEN=80 ) :: sub_name = 'field_aware_de_drho'
+    CHARACTER( LEN=100 ) :: label = 'test'
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     !
-    TYPE( environ_density ) :: aux
-    !
-    ! Aliases and allocations
-    !
-    IF ( boundary % mode .NE. 'fa-ionic' ) RETURN
+    TYPE( environ_density ) :: aux, daux, rhotot
+    TYPE( environ_gradient ) :: gradaux !  Aliases and allocations 
     !
     cell => de_drho % cell
+    nnr => cell % nnr
     !
-    nsoft_spheres => boundary % ions % number
-    IF ( nsoft_spheres .LE. 0 ) &
-         & CALL errore(sub_name,'Inconsistent number of soft-spheres',1)
-    !
-    ALLOCATE( local( nsoft_spheres ) )
-    !
-    ! Compute field-independent soft spheres and gradients
-    !
-    DO i = 1, nsoft_spheres
+    IF ( boundary % mode .EQ. 'fa-ionic' ) THEN
        !
-       CALL init_environ_density( cell, local(i) )
+       nsoft_spheres => boundary % ions % number
+       IF ( nsoft_spheres .LE. 0 ) &
+            & CALL errore(sub_name,'Inconsistent number of soft-spheres',1)
        !
-       CALL density_of_functions( boundary%soft_spheres(i), local(i), .FALSE. )
+       ALLOCATE( local( nsoft_spheres ) )
        !
-    ENDDO
-    !
-    CALL init_environ_density( cell, aux )
-    !
-    DO i = 1, nsoft_spheres
+       ! Compute field-independent soft spheres and gradients
        !
-       CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
-       !
-       DO j = 1, nsoft_spheres
+       DO i = 1, nsoft_spheres
           !
-          IF ( j .EQ. i ) CYCLE
+          CALL init_environ_density( cell, local(i) )
           !
-          aux % of_r = aux % of_r * local(j) % of_r
+          CALL density_of_functions( boundary%soft_spheres(i), local(i), .FALSE. )
           !
        ENDDO
        !
-       df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
-            & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+       CALL init_environ_density( cell, aux )
        !
-       df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * &
-            & scalar_product_environ_density( aux, de_dboundary )
+       DO i = 1, nsoft_spheres
+          !
+          CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
+          !
+          DO j = 1, nsoft_spheres
+             !
+             IF ( j .EQ. i ) CYCLE
+             !
+             aux % of_r = aux % of_r * local(j) % of_r
+             !
+          ENDDO
+          !
+          df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
+               & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+          !
+          df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha * &
+               & scalar_product_environ_density( aux, de_dboundary )
+          !
+          de_drho % of_r = de_drho % of_r + boundary % dion_field_drho(i) % of_r * df
+          !
+       ENDDO
        !
-       de_drho % of_r = de_drho % of_r + boundary % dion_field_drho(i) % of_r * df
+       CALL destroy_environ_density( aux )
        !
-    ENDDO
-    !
-    CALL destroy_environ_density( aux )
-    !
-    DO i = 1, nsoft_spheres
-       CALL destroy_environ_density( local(i) )
-    ENDDO
-    DEALLOCATE( local )
+       DO i = 1, nsoft_spheres
+          CALL destroy_environ_density( local(i) )
+       ENDDO
+       DEALLOCATE( local )
+       !
+    ELSE IF ( boundary % mode .EQ. 'fa-electronic' ) THEN
+       !
+       ! Try loading in components that need to be reused, use aux for the field aware function, which
+       ! is the same as the ionic function (scaling_of_field), only taken as an exponent. daux is the
+       ! result from dscaling_of_field, both of these components are used twice.
+       !
+       ! Note that this implementation is not speed optimal due to the fact that many of the components
+       ! are calculated on the fly and stored temporarily in order to save global storage.
+       !
+       CALL init_environ_density( cell, aux )
+       CALL init_environ_density( cell, daux )
+       !
+       CALL scaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+                              & boundary % field_max, boundary % field_min, & 
+                              & boundary % normal_field, aux )
+       !
+       CALL dscaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+                               & boundary % field_max, boundary % field_min, &
+                               & boundary % normal_field, daux )
+       !
+       ! compute the green's function part first
+       !
+       CALL init_environ_density( cell, rhotot )
+       CALL init_environ_gradient( cell, gradaux )
+       !
+       ! assume boundary_of_density has already been called, this contains the sccs calls that create
+       ! dscaled ( to be used here... )
+       !
+       CALL external_gradient( boundary % electrons % density % of_r, gradaux % of_r )
+       DO ipol = 1, 3
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * boundary % electrons % density % of_r( : )
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * boundary % dscaled % of_r( : )
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * aux % of_r( : )
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * daux % of_r( : )
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * de_dboundary % of_r( : )
+       ENDDO
+       !
+       CALL field_of_gradrho( gradaux % of_r, de_drho % of_r )
+       !
+       ! add remaining terms, using daux to update new term temporarily
+       !
+       rhotot % of_r = boundary % electrons % density % of_r + &
+                     & boundary % ions % density % of_r
+       daux % of_r = daux % of_r * boundary % electrons % density % of_r
+       daux % of_r = daux % of_r * rhotot % of_r
+       daux % of_r = daux % of_r * (-2.D0) * tpi
+       daux % of_r = daux % of_r + 1.D0
+       daux % of_r = daux % of_r * aux % of_r 
+       daux % of_r = daux % of_r * boundary % dscaled % of_r
+       daux % of_r = daux % of_r * de_dboundary % of_r
+       de_drho % of_r = daux % of_r - de_drho % of_r
+       !
+       ! deallocate
+       !
+       CALL destroy_environ_density( aux )
+       CALL destroy_environ_density( daux )
+       CALL destroy_environ_density( rhotot )
+       CALL destroy_environ_gradient( gradaux )
+       !
+    ENDIF
     !
     RETURN
     !
@@ -2202,7 +2390,7 @@ CONTAINS
     TYPE( environ_gradient ), INTENT(INOUT) :: partial
     !
     TYPE( environ_cell ), POINTER :: cell
-    INTEGER, POINTER :: nsoft_spheres
+    INTEGER, POINTER :: nsoft_spheres, nnr
     !
     INTEGER :: i, j, ipol
     REAL( DP ) :: df
@@ -2210,70 +2398,125 @@ CONTAINS
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     !
-    TYPE( environ_density ) :: aux
-    TYPE( environ_gradient ) :: gradaux
+    TYPE( environ_density ) :: aux, daux
+    TYPE( environ_gradient ) :: gradaux, gradlocal
+    TYPE( environ_hessian ) :: hesslocal
     !
     ! Aliases and allocations
     !
-    IF ( boundary % mode .NE. 'fa-ionic' ) RETURN
-    !
     cell => boundary % scaled % cell
+    nnr => cell % nnr
     !
-    nsoft_spheres => boundary % ions % number
-    IF ( nsoft_spheres .LE. 0 ) &
-         & CALL errore(sub_name,'Inconsistent number of soft-spheres',1)
-    !
-    ALLOCATE( local( nsoft_spheres ) )
-    !
-    ! Compute field-independent soft spheres and gradients
-    !
-    DO i = 1, nsoft_spheres
+    IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'in function field_aware_dboundary_dions'
+    IF ( boundary % mode .EQ. 'fa-ionic' ) THEN
        !
-       CALL init_environ_density( cell, local(i) )
+       nsoft_spheres => boundary % ions % number
+       IF ( nsoft_spheres .LE. 0 ) &
+            & CALL errore(sub_name,'Inconsistent number of soft-spheres',1)
        !
-       CALL density_of_functions( boundary%soft_spheres(i), local(i), .FALSE. )
+       ALLOCATE( local( nsoft_spheres ) )
        !
-    ENDDO
-    !
-    CALL init_environ_density( cell, aux )
-    !
-    CALL init_environ_gradient( cell, gradaux )
-    !
-    DO i = 1, nsoft_spheres
+       ! Compute field-independent soft spheres and gradients
        !
-       CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
-       !
-       DO j = 1, nsoft_spheres
+       DO i = 1, nsoft_spheres
           !
-          IF ( j .EQ. i ) CYCLE
+          CALL init_environ_density( cell, local(i) )
           !
-          aux % of_r = aux % of_r * local(j) % of_r
+          CALL density_of_functions( boundary%soft_spheres(i), local(i), .FALSE. )
           !
        ENDDO
        !
-       df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
-            & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+       CALL init_environ_density( cell, aux )
        !
-       df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
+       CALL init_environ_gradient( cell, gradaux )
        !
-       aux % of_r = aux % of_r * df
+       DO i = 1, nsoft_spheres
+          !
+          CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
+          !
+          DO j = 1, nsoft_spheres
+             !
+             IF ( j .EQ. i ) CYCLE
+             !
+             aux % of_r = aux % of_r * local(j) % of_r
+             !
+          ENDDO
+          !
+          df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
+               & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+          !
+          df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
+          !
+          aux % of_r = aux % of_r * df
+          !
+          DO ipol = 1, 3
+             gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) + aux % of_r(:) * boundary % partial_of_ion_field(ipol,i,index)
+          ENDDO
+          !
+       ENDDO
+       !
+       partial % of_r = partial % of_r - gradaux % of_r
+       !
+       CALL destroy_environ_gradient( gradaux )
+       !
+       CALL destroy_environ_density( aux )
+       !
+       DO i = 1, nsoft_spheres
+          CALL destroy_environ_density( local(i) )
+       ENDDO
+       DEALLOCATE( local )
+       !
+    ELSEIF ( boundary % mode .EQ. 'fa-electronic' ) THEN
+       !
+       ! Some of these terms may be able to be calculated outside of this function, which is repeated per
+       ! atom. These terms do not depend on atom, but do take up space so are currently calculated on the
+       ! fly. It may be preferable to change this (since it's only 1 environ density object...)
+       !
+       CALL init_environ_density( cell, aux )
+       CALL init_environ_density( cell, daux )
+       !
+       CALL init_environ_gradient( cell, gradaux )
+       CALL init_environ_gradient( cell, gradlocal )
+       !
+       CALL init_environ_hessian( cell, hesslocal )
+       !
+       CALL scaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+                              & boundary % field_max, boundary % field_min, & 
+                              & boundary % normal_field, aux )
+       !
+       CALL dscaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+                               & boundary % field_max, boundary % field_min, &
+                               & boundary % normal_field, daux )
+       !
+       daux % of_r = daux % of_r * boundary % electrons % density % of_r
+       daux % of_r = daux % of_r * aux % of_r
+       daux % of_r = daux % of_r * boundary % dscaled % of_r
+       !
+       ! now calculate gradaux, which will build the partial normal field, and then the partial interface
+       !
+       CALL density_of_functions( boundary % ions % smeared_ions(index), aux, .TRUE. )
+       !
+       CALL hessv_h_of_rho_r( aux % of_r, hesslocal % of_r )
+       !
+       CALL external_gradient( boundary % electrons % density % of_r, gradlocal % of_r )
+       !
+       CALL scalar_product_environ_hessian( hesslocal, gradlocal, gradaux )
        !
        DO ipol = 1, 3
-          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) + aux % of_r(:) * boundary % partial_of_ion_field(ipol,i,index)
+          gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * daux % of_r( : )
        ENDDO
        !
-    ENDDO
-    !
-    partial % of_r = partial % of_r - gradaux % of_r
-    !
-    CALL destroy_environ_gradient( gradaux )
-    !
-    CALL destroy_environ_density( aux )
-    !
-    DO i = 1, nsoft_spheres
-       CALL destroy_environ_density( local(i) )
-    ENDDO
-    DEALLOCATE( local )
+       partial % of_r = partial % of_r - gradaux % of_r
+       !
+       CALL destroy_environ_density( aux )
+       CALL destroy_environ_density( daux )
+       !
+       CALL destroy_environ_gradient( gradaux )
+       CALL destroy_environ_gradient( gradlocal )
+       !
+       CALL destroy_environ_hessian( hesslocal )
+       !
+    ENDIF
     !
     RETURN
     !

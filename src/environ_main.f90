@@ -342,7 +342,7 @@ CONTAINS
           !
           IF ( lvolume ) CALL calc_devolume_dboundary( env_pressure, solvent, de_dboundary )
           !
-          ! ... If dielectric embedding, calcultes dielectric contribution
+          ! ... If dielectric embedding, calculates dielectric contribution
           !
           IF ( lstatic ) CALL calc_dedielectric_dboundary( static, velectrostatic, de_dboundary )
           !
@@ -352,7 +352,7 @@ CONTAINS
           !
           ! ... If field-aware compute partial derivatives of field fluxes wrt ionic positions
           !
-          IF ( solvent % field_aware ) CALL compute_ion_field_partial( solvent%ions%number, solvent%soft_spheres, &
+          IF ( solvent % mode .EQ. 'fa-ionic' ) CALL compute_ion_field_partial( solvent%ions%number, solvent%soft_spheres, &
                & solvent%ions, solvent%electrons, solvent%ion_field, solvent%partial_of_ion_field )
           !
           ! ... Multiply for the derivative of the boundary wrt ionic positions
@@ -386,7 +386,7 @@ CONTAINS
           !
           ! ... If field-aware compute partial derivatives of field fluxes wrt ionic positions
           !
-          IF ( electrolyte % boundary % field_aware ) CALL compute_ion_field_partial( electrolyte%boundary%ions%number, &
+          IF ( electrolyte % boundary % mode .EQ. 'fa-ionic' ) CALL compute_ion_field_partial( electrolyte%boundary%ions%number, &
                & electrolyte%boundary%soft_spheres, electrolyte%boundary%ions, electrolyte%boundary%electrons, &
                & electrolyte%boundary%ion_field, electrolyte%boundary%partial_of_ion_field )
           !
