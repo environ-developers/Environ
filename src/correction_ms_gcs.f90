@@ -22,7 +22,7 @@ MODULE correction_ms_gcs
   !
   PRIVATE
   !
-  PUBLIC :: calc_vms_gcs, calc_grad_vms_gcs
+  PUBLIC :: calc_vms_gcs, calc_gradvms_gcs
   !
 CONTAINS
 !---------------------------------------------------------------------------
@@ -81,9 +81,9 @@ CONTAINS
     REAL( DP ) :: ez, ez_ms,ez_gcs, fact, vms, vstern
     REAL( DP ) :: arg, const, depletion_length
     REAL( DP ) :: dv, vbound
-    REAL( DP ) :: arg, asinh, coth, acoth
+    REAL( DP ) :: asinh, coth, acoth
     REAL( DP ) :: f1, f2
-    REAL( DP ) :: area, vtmp, vbound, distance
+    REAL( DP ) :: area, vtmp, distance
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms_gcs'
@@ -192,7 +192,7 @@ CONTAINS
     icount = 0
     DO i = 1, nnr
        !
-       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+       IF ( ABS(axis(1,i)) .GE. xstern_gcs ) THEN
           !
           icount = icount + 1
           vbound = vbound + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i)) - xstern_gcs)
@@ -283,15 +283,16 @@ CONTAINS
 
     !
 !---------------------------------------------------------------------------
-  END SUBROUTINE calc_vms
+END SUBROUTINE calc_vms_gcs
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_gradvms_gcs( oned_analytic, semiconductor, charges, gradv )
+  SUBROUTINE calc_gradvms_gcs( oned_analytic, electrolyte, semiconductor, charges, gradv )
 !---------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
+    TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
     TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradv
@@ -305,21 +306,26 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
-    REAL( DP ), POINTER ::  permittivity, xstern, carrier_density
+    REAL( DP ), POINTER ::  permittivity_ms, permittivity_gcs, xstern_ms, carrier_density
+    REAL( DP ), POINTER :: cion, zion, xstern_gcs, electrode_charge
     REAL( DP ) :: kbt, invkbt
     !
     TYPE( environ_gradient ), TARGET :: glocal
+    REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
     REAL( DP ), DIMENSION(:,:), POINTER :: gvms
     !
     INTEGER :: i
-    REAL( DP ) :: ez, fact, vms
-    REAL( DP ) :: arg
-    REAL( DP ) :: area, dvtmp_dx
+    REAL( DP ) :: ez, ez_ms, ez_gcs, fact, vms, vtmp
+    REAL( DP ) :: vstern, const
+    REAL( DP ) :: lin_k, lin_e, lin_c
+    REAL( DP ) :: arg, asinh, coth, acoth
+    REAL( DP ) :: f1, f2, depletion_length
+    REAL( DP ) :: area, dvtmp_dx, distance
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvms'
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvms_gcs'
     !
-    CALL start_clock ('calc_gvms')
+    CALL start_clock ('calc_gvms_gcs')
     !
     ! ... Aliases and sanity checks
     !
@@ -340,9 +346,15 @@ CONTAINS
     !
     ! ... Get parameters of semiconductor to compute analytic correction
     !
-    permittivity => semiconductor%permittivity
+    permittivity_ms => semiconductor%permittivity
+    electrode_charge => semiconductor%electrode_charge
     carrier_density => semiconductor%carrier_density
-    xstern => semiconductor%simple%width
+    xstern_ms => semiconductor%simple%width
+
+    cion => electrolyte % ioncctype(1) % cbulk
+    zion => electrolyte % ioncctype(1) % z
+    permittivity_gcs => electrolyte%permittivity
+    xstern_gcs => electrolyte%boundary%simple%width
     !
     ! ... Set Boltzmann factors
     !
@@ -361,62 +373,139 @@ CONTAINS
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
+    area = omega / axis_length
     !
     ! ... First compute the gradient of parabolic correction
     !
     fact = e2 * fpi / omega
-    gvms(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
-    gvms = gvms * fact
+    gvstern(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
+    gvstern = gvstern * fact
     !
     ! ... Compute the physical properties of the interface
     !
-!    zion = ABS(zion)
-!    ez = - tpi * e2 * tot_charge / area / permittivity
-!    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity )
-!    arg = ez/fact
-!    asinh = LOG(arg + SQRT( arg**2 + 1 ))
-!    vstern = 2.D0 * kbt / zion * asinh
-!    arg = vstern * 0.25D0 * invkbt * zion
-!    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-!    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
-!    !
-!    ! ... Compute some constants needed for the calculation
-!    !
-!    f1 = - fact * zion * invkbt * 0.5D0
-!    f2 = 4.D0 * kbt / zion
-!    !
-!    ! ... Compute the analytic gradient of potential
-!    !     Note that the only contribution different from the parabolic
-!    !     correction is in the region of the diffuse layer
-!    !
-!    DO i = 1, nnr
-!       !
-!       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-!          !
-!          ! ... Gouy-Chapmann-Stern analytic solution on the outside
-!          !
-!          arg = const * EXP( ABS(axis(1,i)) * f1 )
-!          dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
-!          !
-!          ! ... Remove source potential (linear) and add analytic one
-!          !
-!          gvstern(slab_axis,i) =  gvstern(slab_axis,i) + dvtmp_dx - ez
-!          !
-!       ENDIF
-!       !
-!    ENDDO
+    ez = - tpi * e2 * tot_charge / area !/ permittivity !! the input charge density includes explicit and
+                                                        !! polarization charges, so tot_charge already accounts
+                                                        !! for the dielectric screening. permittivity needs not
+                                                        !! to be included
+    ez_gcs = - tpi * e2 * electrode_charge / area ! / permittivity
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity )
+    arg = ez/fact
+    asinh = LOG(arg + SQRT( arg**2 + 1 ))
+    vstern = 2.D0 * kbt / zion * asinh
+    arg = vstern * 0.25D0 * invkbt * zion
+    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern_gcs )
     !
-    ! Seems like
-    gradv % of_r = gradv % of_r + gvms
+    ! ... Compute linearized quantities
+    !
+    ! note that this is simplified due to same c_ion
+    lin_k = SQRT(electrolyte%k2)
+    lin_e = SQRT(permittivity_gcs)
+    lin_c = -1.D0 * ez * lin_e / lin_k * EXP(lin_k * xstern_gcs / lin_e)
+    !
+    ! ... Compute the analytic gradient of potential
+    !     Note that the only contribution different from the parabolic
+    !     correction is in the region of the diffuse layer
+    !
+    ! Will first do this for the guoy chapman system
+    IF ( electrolyte % linearized ) THEN
+       !
+       ! ... Compute some constants needed for the calculation
+       !
+       f1 = -1.D0 * lin_k / lin_e
+       !
+       DO i = 1, nnr
+          !
+          IF ( axis(1,i) .GE. xstern_gcs ) THEN
+             !
+             ! ... Linearized Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             arg = f1 * ABS(axis(1,i))
+             dvtmp_dx = lin_c * f1 * EXP( arg )
+             !
+             ! ... Remove source potential and add analytic one
+             !
+             gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                         & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+             !
+          ENDIF
+          !
+       ENDDO
+       !
+    ELSE
+       !
+       ! ... Compute some constants needed for the calculation
+       !
+       f1 = - fact * zion * invkbt * 0.5D0
+       f2 = 4.D0 * kbt / zion
+       !
+       DO i = 1, nnr
+          !
+          IF ( axis(1,i) .GE. xstern_gcs ) THEN
+             !
+             ! ... Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             arg = const * EXP( ABS(axis(1,i)) * f1 )
+             dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
+             !
+             ! ... Remove source potential (linear) and add analytic one
+             !
+             gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                         & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+             !
+          ENDIF
+          !
+       ENDDO
+       !
+    ENDIF
+    !
+    ! Now applying the mott schottky side
+
+    ez_ms= tpi * e2 * (electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
+    fact = 1.D0/tpi / e2 /2.D0 /carrier_density !*permittivity
+    arg = fact* (ez**2.D0)
+    vms =  arg ! +kbt
+    !Finds the total length of the depletion region
+    depletion_length = 2.D0 *fact*ez_ms
+
+    DO i = 1, nnr
+
+       IF ( -axis(1,i) .GE. xstern_ms ) THEN
+          distance = ABS(axis(1,i)) - xstern_ms
+          !Only applies parabolic equation if still within the depletion width
+          !
+          IF ( distance <= depletion_length) THEN
+             !
+             ! ... Mott Schottky analytic solution on the outside
+             !
+             vtmp = 2.D0*(distance) / fact/4.D0 + ez_ms
+          ELSE
+             vtmp = 0.D0
+          END IF
+          !WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
+          !WRITE (environ_unit, *) "Distance: ", distance
+          !
+          ! ... Remove source potential (linear) and add analytic one
+          !
+          gvstern(slab_axis,i) =  gvstern(slab_axis,i) + vtmp -ez!-vms ! vtmp - potential % of_r(i)
+          !WRITE( environ_unit, *)"This is the vi: ",ez*distance
+          !
+       ENDIF
+       !
+    ENDDO
+
+
+    gradv % of_r = gradv % of_r + gvstern
+
     !
     CALL destroy_environ_gradient(glocal)
     !
-    CALL stop_clock ('calc_gvms')
+    CALL stop_clock ('calc_gvms_gcs')
     !
     RETURN
 !---------------------------------------------------------------------------
-  END SUBROUTINE calc_gradvms
+END SUBROUTINE calc_gradvms_gcs
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-END MODULE correction_ms
+END MODULE correction_ms_gcs
 !---------------------------------------------------------------------------

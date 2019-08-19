@@ -208,6 +208,13 @@ CONTAINS
           IF ( .NOT. PRESENT( semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
           CALL calc_vms( core%correction%oned_analytic, semiconductor, charges, local )
+       CASE ( 'ms-gcs', 'mott-schottky-guoy-chapman-stern')
+         !
+         IF ( .NOT. PRESENT( semiconductor ) ) &
+              & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
+            IF ( .NOT. PRESENT( electrolyte ) ) &
+                 & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+         CALL calc_vms_gcs( core%correction%oned_analytic, electrolyte, semiconductor, charges, local )
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -272,6 +279,14 @@ CONTAINS
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
           CALL calc_gradvms( core%correction%oned_analytic, charges%semiconductor, charges%density, gradient )
 
+       CASE ( 'ms-gcs', 'mott-schottky-guoy-chapman-stern')
+          IF ( .NOT. ASSOCIATED( charges%semiconductor ) ) &
+            & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
+          IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+          CALL calc_gradvms_gcs( core%correction%oned_analytic, charges%electrolyte, &
+                           & charges%semiconductor, charges%density, gradient )
+
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -333,6 +348,13 @@ CONTAINS
           IF ( .NOT. PRESENT( semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction', 1)
           CALL calc_gradvms( core%correction%oned_analytic, semiconductor, charges, gradient )
+
+       CASE ( 'ms-gcs', 'mott-schottky-guoy-chapman-stern')
+         IF ( .NOT. PRESENT( semiconductor ) ) &
+              & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction', 1)
+         IF ( .NOT. PRESENT( electrolyte ) ) &
+              & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+         CALL calc_gradvms_gcs( core%correction%oned_analytic, electrolyte, semiconductor, charges, gradient )
 
        CASE DEFAULT
           !

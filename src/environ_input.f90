@@ -491,9 +491,9 @@ MODULE environ_input
         ! dimensionality of the simulation cell
         ! periodic boundary conditions on 3/2/1/0 sides of the cell
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
-        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(7)
+        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(9)
         DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs',&
-            &'gouy-chapman', 'gouy-chapman-stern', 'ms','mott-schottky' &
+            &'gouy-chapman', 'gouy-chapman-stern', 'ms','mott-schottky', &
             & 'ms-gcs','mott-schottky-guoy-chapman-stern' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
