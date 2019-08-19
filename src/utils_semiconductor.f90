@@ -54,7 +54,7 @@
 !  END TYPE environ_semiconductor
 !
 !
-! Authors: Quinn Campbell (Department of Materials Science and Engineering, Penn State) 
+! Authors: Quinn Campbell (Department of Materials Science and Engineering, Penn State)
 !
 !----------------------------------------------------------------------------
 MODULE utils_semiconductor
@@ -97,7 +97,7 @@ CONTAINS
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE init_environ_semiconductor_first( temperature, &
-       & sc_permittivity,sc_carrier_density,sc_distance, &
+       & sc_permittivity,sc_carrier_density, sc_electrode_chg, sc_distance, &
        & sc_spread, system, semiconductor )
 !--------------------------------------------------------------------
     !
@@ -114,6 +114,11 @@ CONTAINS
 
     !   convert carrier density to units of (bohr)^-3
     semiconductor%carrier_density = semiconductor%carrier_density *1.25D-25
+
+
+    ! Possibly should have an if statement to check if electrode charge is
+    ! greater than tot_charge on DFT, need to consider this option
+    semiconductor%electrode_charge = sc_electrode_chg
 
     semiconductor%simple%type = 4
     semiconductor%simple%pos => system%pos

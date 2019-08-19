@@ -14,7 +14,7 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-! Module to initilize environ-related variables 
+! Module to initilize environ-related variables
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -75,7 +75,7 @@ CONTAINS
        & electrolyte_tbeta,                          &
        & electrolyte_alpha, electrolyte_softness,    &
        & temperature,                                &
-       & sc_permittivity, sc_carrier_density,        &
+       & sc_permittivity, sc_carrier_density, sc_electrode_chg,       &
        & sc_distance, sc_spread,                     &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
@@ -115,12 +115,12 @@ CONTAINS
          solvationrad(:), corespread(:), atomicspread(:), &
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
-         electrolyte_distance, electrolyte_spread,        & 
+         electrolyte_distance, electrolyte_spread,        &
          cion(:), cionmax, rion, zion(:),                 &
          electrolyte_rhomax, electrolyte_rhomin,          &
          electrolyte_tbeta, electrolyte_alpha,            &
          electrolyte_softness, temperature,               &
-         sc_permittivity, sc_carrier_density,             &
+         sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
          sc_distance, sc_spread,                          &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
@@ -266,7 +266,7 @@ CONTAINS
     WRITE(environ_unit, *) "electrolyte_distance: ",electrolyte_distance
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_electrolyte_ntyp, &
-            & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, & 
+            & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, &
             & electrolyte_tbeta, env_static_permittivity, &
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
@@ -281,9 +281,9 @@ CONTAINS
     WRITE(environ_unit, *)"sc_distance: ",sc_distance
     IF ( lsemiconductor ) THEN
        CALL init_environ_semiconductor_first( temperature, sc_permittivity, &
-           & sc_carrier_density , sc_distance, sc_spread, system,semiconductor)
+           & sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, system,semiconductor)
        CALL init_environ_charges_first( semiconductor=semiconductor, charges = charges )
-    ENDIF 
+    ENDIF
     !
     ! Set the parameters of the dielectric
     !

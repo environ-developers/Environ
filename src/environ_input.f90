@@ -179,6 +179,7 @@ MODULE environ_input
         REAL(DP) :: sc_carrier_density = 0.D0
         ! conncentration fo charge carriers within the semiconductor
         ! In units of (cm^-3)
+        REAL(DP) :: sc_electrode_chg = 0.D0
 !
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
@@ -203,8 +204,8 @@ MODULE environ_input
              env_pressure,                                             &
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              temperature, electrolyte_linearized, electrolyte_entropy,     &
-             sc_permittivity, sc_carrier_density,                      &
-             env_external_charges, env_dielectric_regions             
+             sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
+             env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
 !  BOUNDARY Namelist Input Parameters
@@ -364,7 +365,7 @@ MODULE environ_input
         ! distance from the system where the mott schottky boundary starts
         REAL(DP) :: sc_spread = 0.5D0
         ! spread of the interfaces for the mott schottky boundary
- 
+
         NAMELIST /boundary/                      &
              solvent_mode,                       &
              radius_mode, alpha, softness,       &
@@ -612,7 +613,7 @@ CONTAINS
                              electrolyte_rhomax, electrolyte_rhomin, electrolyte_tbeta,    &
                              electrolyte_alpha, electrolyte_softness,                &
                              temperature,                        &
-                             sc_permittivity, sc_carrier_density,        &
+                             sc_permittivity, sc_carrier_density, sc_electrode_chg    &
                              sc_distance, sc_spread,                     &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &

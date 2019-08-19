@@ -465,6 +465,7 @@ MODULE environ_types
      REAL( DP ) :: temperature
      REAL( DP ) :: permittivity
      REAL( DP ) :: carrier_density
+     REAL( DP ) :: electrode_charge
      !
      TYPE( environ_functions ) :: simple
      !
