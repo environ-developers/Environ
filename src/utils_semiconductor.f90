@@ -103,7 +103,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT(IN) :: temperature, sc_permittivity
+    REAL( DP ), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg
     REAL( DP ), INTENT(IN) :: sc_carrier_density, sc_distance, sc_spread
     TYPE( environ_system ), TARGET, INTENT(IN) :: system
     TYPE( environ_semiconductor ), INTENT(INOUT) :: semiconductor

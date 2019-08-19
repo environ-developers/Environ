@@ -613,7 +613,7 @@ CONTAINS
                              electrolyte_rhomax, electrolyte_rhomin, electrolyte_tbeta,    &
                              electrolyte_alpha, electrolyte_softness,                &
                              temperature,                        &
-                             sc_permittivity, sc_carrier_density, sc_electrode_chg    &
+                             sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
                              sc_distance, sc_spread,                     &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
