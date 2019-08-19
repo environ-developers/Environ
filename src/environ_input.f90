@@ -493,7 +493,8 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
         CHARACTER( LEN = 80 ) :: pbc_correction_allowed(7)
         DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs',&
-            &'gouy-chapman', 'gouy-chapman-stern', 'ms','mott-schottky' /
+            &'gouy-chapman', 'gouy-chapman-stern', 'ms','mott-schottky' &
+            & 'ms-gcs','mott-schottky-guoy-chapman-stern' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
         ! ms = mott-schottky calculation for semiconductor

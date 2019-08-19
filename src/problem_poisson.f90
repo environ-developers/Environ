@@ -33,6 +33,7 @@ MODULE problem_poisson
   USE correction_periodic
   USE correction_gcs
   USE correction_ms
+  USE correction_ms_gcs
   USE environ_base, ONLY : e2, oldenviron
   !
   IMPLICIT NONE
@@ -116,6 +117,13 @@ CONTAINS
           IF ( .NOT. ASSOCIATED( charges%semiconductor ) ) &
                & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
           CALL calc_vms( core%correction%oned_analytic, charges%semiconductor, charges%density, potential )
+       CASE ( 'ms-gcs', 'mott-schottky-guoy-chapman-stern')
+          IF ( .NOT. ASSOCIATED( charges%semiconductor ) ) &
+              & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
+          IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+          CALL calc_vms_gcs(core%correction%oned_analytic, charges%electrolyte, charges%semiconductor, &
+                            & charges%density, potential)
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -262,7 +270,7 @@ CONTAINS
        CASE ( 'ms','mott-schottky')
           IF ( .NOT. ASSOCIATED( charges%semiconductor ) ) &
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
-          CALL calc_gradvms( core%correction%oned_analytic, charges%semiconductor, charges%density, gradient )          
+          CALL calc_gradvms( core%correction%oned_analytic, charges%semiconductor, charges%density, gradient )
 
        CASE DEFAULT
           !

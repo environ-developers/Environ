@@ -8,7 +8,7 @@
 ! original version by Q. Campbell
 !
 !----------------------------------------------------------------------------
-MODULE correction_ms
+MODULE correction_ms_gcs
 !----------------------------------------------------------------------------
   !
   ! ...
@@ -22,11 +22,11 @@ MODULE correction_ms
   !
   PRIVATE
   !
-  PUBLIC :: calc_vms, calc_gradvms
+  PUBLIC :: calc_vms_gcs, calc_grad_vms_gcs
   !
 CONTAINS
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_vms( oned_analytic, semiconductor, charges, potential )
+  SUBROUTINE calc_vms_gcs( oned_analytic, electrolyte, semiconductor, charges, potential )
 !---------------------------------------------------------------------------
     !
     ! ... Given the total explicit charge, the value of the field at the boundary
@@ -57,6 +57,7 @@ CONTAINS
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
+    TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
@@ -69,21 +70,25 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
-    REAL( DP ), POINTER :: permittivity, xstern, carrier_density
+    REAL( DP ), POINTER :: cion, zion, permittivity_ms, permittivity_gcs
+    REAL( DP ), POINTER :: xstern_ms, xstern_gcs, electrode_charge, carrier_density
     REAL( DP ) :: kbt, invkbt
     !
     TYPE( environ_density ), TARGET :: local
     REAL( DP ), DIMENSION(:), POINTER :: v
     !
     INTEGER :: i, icount
-    REAL( DP ) :: ez, fact, vms
+    REAL( DP ) :: ez, ez_ms,ez_gcs, fact, vms, vstern
     REAL( DP ) :: arg, const, depletion_length
+    REAL( DP ) :: dv, vbound
+    REAL( DP ) :: arg, asinh, coth, acoth
+    REAL( DP ) :: f1, f2
     REAL( DP ) :: area, vtmp, vbound, distance
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
-    CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms'
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_vms_gcs'
     !
-    CALL start_clock ('calc_vms')
+    CALL start_clock ('calc_vms_gcs')
     !
     ! ... Aliases and sanity checks
     !
@@ -104,14 +109,24 @@ CONTAINS
     !
     ! ... Get parameters of semiconductor to compute analytic correction
     !
-    permittivity => semiconductor%permittivity
+
+    IF ( electrolyte % ntyp .NE. 2 ) &
+         & CALL errore(sub_name,'Unexpected number of counterionic species, different from two',1)
+    cion => electrolyte % ioncctype(1) % cbulk
+    zion => electrolyte % ioncctype(1) % z
+    permittivity_gcs => electrolyte%permittivity
+    xstern_gcs => electrolyte%boundary%simple%width
+
+
+    permittivity_ms => semiconductor%permittivity
     carrier_density => semiconductor%carrier_density
-    xstern => semiconductor%simple%width
+    electrode_charge => semiconductor%electrode_charge
+    xstern_ms => semiconductor%simple%width
 
     WRITE( environ_unit, * )"carrier density: ",carrier_density
 
     !
-    WRITE( environ_unit, * )"xstern: ",xstern
+    WRITE( environ_unit, * )"MS xstern: ",xstern_ms
     WRITE( environ_unit, * )"carrier density: ",carrier_density
     ! ... Set Boltzmann factors
     !
@@ -140,23 +155,39 @@ CONTAINS
     const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
     v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
     v(:) = fact * v(:) + const
-    !dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern
+    dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern_gcs
     !
     ! ... Compute the physical properties of the interface
     !
-    !zion = ABS(zion)
+    ! Starting with the GCS props
+
+    zion = ABS(zion)
+    ez = - tpi * e2 * tot_charge / area ! / permittivity
+    ez_gcs = - tpi * e2 * electrode_charge / area ! / permittivity
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
+    arg = ez_gcs/fact
+    asinh = LOG(arg + SQRT( arg**2 + 1 ))
+    vstern = 2.D0 * kbt / zion * asinh
+    arg = vstern * 0.25D0 * invkbt * zion
+    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern_gcs )
+
+
+
+    ! Now moving on to the ms props
     WRITE( environ_unit, *)"charge: ",tot_charge
-    ez = - tpi * e2 * tot_charge / area ! / permittivity !in units of Ry/bohr
-    WRITE( environ_unit, * )"electric field: ",ez
+    ez_ms= tpi * e2 * (electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
+    WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
     fact = 1.D0/tpi / e2 /2.D0 /carrier_density !*permittivity
-    WRITE(  environ_unit, *)"Prefactor: ",fact
+    WRITE(  environ_unit, *)"MS Prefactor: ",fact
     arg = fact* (ez**2.D0)
     vms =  arg ! +kbt
     !Finds the total length of the depletion region
-    depletion_length = 2.D0 *fact*ez
+    depletion_length = 2.D0 *fact*ez_ms
     WRITE ( environ_unit, * )"depletion length: ",depletion_length
     WRITE ( environ_unit, * )"vms: ",vms
     !
+    ! Gathering the potential at the boundary condition
     vbound = 0.D0
     icount = 0
     DO i = 1, nnr
@@ -164,7 +195,7 @@ CONTAINS
        IF ( ABS(axis(1,i)) .GE. xstern ) THEN
           !
           icount = icount + 1
-          vbound = vbound + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i)) - xstern)
+          vbound = vbound + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i)) - xstern_gcs)
           !
        ENDIF
        !
@@ -174,24 +205,52 @@ CONTAINS
     vbound = vbound / DBLE(icount)
     WRITE (environ_unit, *)"vbound: ",vbound
     !
-    ! ... Compute some constants needed for the calculation
+    ! ... Compute some constants needed for the gcs calculation
     !
-    !f1 =  fact * zion * invkbt * 0.5D0
+    f1 = - fact * zion * invkbt * 0.5D0
+    f2 = 4.D0 * kbt / zion
     !
     ! ... Compute the analytic potential and charge
+    ! ... adding in gcs effect first, only on the positive side of xstern
     !
-    v = v - vbound - vms
+    v = v - vbound + vstern
+    DO i = 1, nnr
+       !
+       IF ( axis(1,i) .GE. xstern_gcs ) THEN
+          !
+          ! ... Gouy-Chapmann-Stern analytic solution on the outside
+          !
+          arg = const * EXP( ABS(axis(1,i)) * f1 )
+          IF ( ABS(arg) .GT. 1.D0 ) THEN
+             acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+          ELSE
+             acoth = 0.D0
+          END IF
+          vtmp =  f2 * acoth
+          !
+          ! ... Remove source potential (linear) and add analytic one
+          !
+          v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) + ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+          !
+       ENDIF
+       !
+    ENDDO
+
+    !
+    !   Now adding in ms contribution on negative side of  axis
+    !
+
     DO i = 1, nnr
 
-       IF ( ABS(axis(1,i)) .GE. xstern ) THEN
-          distance = ABS(axis(1,i)) - xstern
+       IF ( -axis(1,i) .GE. xstern_ms ) THEN
+          distance = ABS(axis(1,i)) - xstern_ms
           !Only applies parabolic equation if still within the depletion width
           !
           IF ( distance <= depletion_length) THEN
              !
              ! ... Mott Schottky analytic solution on the outside
              !
-             vtmp = (distance)**2.D0 / fact/4.D0 + ez*(distance)
+             vtmp = (distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
           ELSE
              vtmp = 0.D0
           END IF
@@ -212,7 +271,7 @@ CONTAINS
     !
     CALL destroy_environ_density(local)
     !
-    CALL stop_clock ('calc_vms')
+    CALL stop_clock ('calc_vms_gcs')
     !
 
 
@@ -227,7 +286,7 @@ CONTAINS
   END SUBROUTINE calc_vms
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_gradvms( oned_analytic, semiconductor, charges, gradv )
+  SUBROUTINE calc_gradvms_gcs( oned_analytic, semiconductor, charges, gradv )
 !---------------------------------------------------------------------------
     !
     IMPLICIT NONE

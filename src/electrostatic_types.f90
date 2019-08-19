@@ -593,7 +593,7 @@ CONTAINS
        core % qe_fft => qe_fft
        !
     CASE ( '1da', '1d-analytic', 'oned_analytic', 'gcs' ,'gouy-chapman', 'gouy-chapman-stern',&
-           & 'ms','mott-schottky')
+           & 'ms','mott-schottky','ms-gcs','mott-schottky-gouy-chapman-stern')
        !
        IF ( .NOT. PRESENT( oned_analytic ) ) CALL errore(sub_name,'Missing specified core type',1)
        core % use_oned_analytic = .TRUE.

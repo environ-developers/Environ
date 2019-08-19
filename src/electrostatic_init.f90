@@ -126,6 +126,12 @@ CONTAINS
           need_semiconductor = .TRUE.
           loned_analytic = .TRUE.
           local_type = 'ms'
+       CASE ( 'ms-gcs','mott-schottky-gouy-chapman-stern')
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms-gcs'
        CASE DEFAULT
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT
