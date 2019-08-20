@@ -218,7 +218,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -286,7 +286,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -560,7 +560,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -616,7 +616,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -856,7 +856,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !

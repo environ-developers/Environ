@@ -36,6 +36,7 @@ MODULE environ_init
   USE utils_externals
   USE utils_charges
   USE utils_semiconductor
+  
   !
   PRIVATE
   !
@@ -385,11 +386,14 @@ CONTAINS
     IF ( lelectrostatic ) THEN
        !
        label = 'velectrostatic'
+       WRITE( environ_unit, * )"velectrostatic started"
        CALL create_environ_density( velectrostatic, label )
        CALL init_environ_density( cell, velectrostatic )
        !
        label = 'vreference'
+
        CALL create_environ_density( vreference, label )
+       WRITE( environ_unit, * )"vreference created"
        CALL init_environ_density( cell, vreference )
        !
        CALL electrostatic_initbase( cell )

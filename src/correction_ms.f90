@@ -113,6 +113,7 @@ CONTAINS
     !
     WRITE( environ_unit, * )"xstern: ",xstern
     WRITE( environ_unit, * )"carrier density: ",carrier_density
+    FLUSH( environ_unit)
     ! ... Set Boltzmann factors
     !
     kbt = semiconductor % temperature * k_boltzmann_ry

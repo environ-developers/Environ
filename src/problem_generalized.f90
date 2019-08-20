@@ -107,8 +107,10 @@ CONTAINS
        !
        IF ( solver % auxiliary .EQ. 'full' ) THEN
           !
+
           CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, &
                            potential, charges%electrolyte, charges%semiconductor )
+          
           !
        ELSE
           !
@@ -308,6 +310,7 @@ CONTAINS
     !
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9000)
 9000 FORMAT(/,4('%'),' COMPUTE ELECTROSTATIC POTENTIAL ',43('%'))
+
     !
     ! ... Check that fields have the same defintion domain
     !
@@ -339,6 +342,7 @@ CONTAINS
     totiter = integrate_environ_density( rhoiter )
     IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9001) totiter, jellium
 9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6, ' jellium = ',F13.6)
+
     !
     ! ... Create local variables
     !
@@ -352,11 +356,16 @@ CONTAINS
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9002) iter
 9002   FORMAT(' Iteration # ',i10)
        !
+
        rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
        !
+       WRITE(environ_unit,*)"calling poisson_gradient_direct"
+
        CALL poisson_gradient_direct( core, rhotot, gradpoisson, electrolyte, semiconductor )
+       WRITE(environ_unit,*)"finished poisson_gradient_direct"
        !
        CALL scalar_product_environ_gradient( gradlogeps, gradpoisson, residual )
+       WRITE(environ_unit,*)"finished scalar product environ gradient"
        !
        residual % of_r = residual % of_r / fpi / e2 - rhoiter % of_r
        !

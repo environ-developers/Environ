@@ -35,6 +35,7 @@ MODULE problem_poisson
   USE correction_ms
   USE correction_ms_gcs
   USE environ_base, ONLY : e2, oldenviron
+  USE environ_output,    ONLY : environ_unit
   !
   IMPLICIT NONE
   !
@@ -77,6 +78,7 @@ CONTAINS
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
     cell => charges % density % cell
     !
+
     IF ( core % use_qe_fft ) THEN
        !
        ALLOCATE( rhoaux ( cell % nnr, core % qe_fft % nspin ) )
@@ -122,6 +124,7 @@ CONTAINS
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+
           CALL calc_vms_gcs(core%correction%oned_analytic, charges%electrolyte, charges%semiconductor, &
                             & charges%density, potential)
        CASE DEFAULT
@@ -212,8 +215,9 @@ CONTAINS
          !
          IF ( .NOT. PRESENT( semiconductor ) ) &
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
-            IF ( .NOT. PRESENT( electrolyte ) ) &
-                 & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+         IF ( .NOT. PRESENT( electrolyte ) ) &
+              & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+         WRITE( environ_unit, * )"Calling calc_vms_gcs now"
          CALL calc_vms_gcs( core%correction%oned_analytic, electrolyte, semiconductor, charges, local )
        CASE DEFAULT
           !
@@ -246,6 +250,7 @@ CONTAINS
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_charges'
     !
+
     IF ( core % use_qe_fft ) THEN
        !
        CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
@@ -284,6 +289,7 @@ CONTAINS
             & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+
           CALL calc_gradvms_gcs( core%correction%oned_analytic, charges%electrolyte, &
                            & charges%semiconductor, charges%density, gradient )
 
@@ -314,6 +320,8 @@ CONTAINS
     TYPE( environ_semiconductor ), INTENT(IN), OPTIONAL :: semiconductor
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_density'
+
+
     !
     IF ( core % use_qe_fft ) THEN
        !
@@ -354,6 +362,7 @@ CONTAINS
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction', 1)
          IF ( .NOT. PRESENT( electrolyte ) ) &
               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+
          CALL calc_gradvms_gcs( core%correction%oned_analytic, electrolyte, semiconductor, charges, gradient )
 
        CASE DEFAULT

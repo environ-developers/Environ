@@ -312,7 +312,6 @@ END SUBROUTINE calc_vms_gcs
     !
     TYPE( environ_gradient ), TARGET :: glocal
     REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
-    REAL( DP ), DIMENSION(:,:), POINTER :: gvms
     !
     INTEGER :: i
     REAL( DP ) :: ez, ez_ms, ez_gcs, fact, vms, vtmp
@@ -364,8 +363,9 @@ END SUBROUTINE calc_vms_gcs
     IF ( env_periodicity .NE. 2 ) &
          & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
     !
+
     CALL init_environ_gradient( cell, glocal )
-    gvms => glocal % of_r
+    gvstern => glocal % of_r
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
@@ -380,6 +380,7 @@ END SUBROUTINE calc_vms_gcs
     fact = e2 * fpi / omega
     gvstern(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
     gvstern = gvstern * fact
+
     !
     ! ... Compute the physical properties of the interface
     !
