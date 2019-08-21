@@ -466,12 +466,15 @@ MODULE environ_types
      REAL( DP ) :: permittivity
      REAL( DP ) :: carrier_density
      REAL( DP ) :: electrode_charge
+     REAL( DP ) :: charge_threshold
      !
      TYPE( environ_functions ) :: simple
      !
      TYPE( environ_density ) :: density
      !
      REAL( DP ) :: charge = 0.0_DP
+
+
      !
   END TYPE environ_semiconductor
 

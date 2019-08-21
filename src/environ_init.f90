@@ -77,7 +77,7 @@ CONTAINS
        & electrolyte_alpha, electrolyte_softness,    &
        & temperature,                                &
        & sc_permittivity, sc_carrier_density, sc_electrode_chg,       &
-       & sc_distance, sc_spread,                     &
+       & sc_distance, sc_spread, sc_chg_thr,                     &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
        & extcharge_axis, extcharge_pos,              &
@@ -122,7 +122,7 @@ CONTAINS
          electrolyte_tbeta, electrolyte_alpha,            &
          electrolyte_softness, temperature,               &
          sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
-         sc_distance, sc_spread,                          &
+         sc_distance, sc_spread, sc_chg_thr,                          &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
          epsregion_pos(:,:), epsregion_spread(:),         &
@@ -196,7 +196,7 @@ CONTAINS
     !
     ! Derived flags
     !
-    ldielectric    = lstatic .OR. loptical .OR. lsemiconductor
+    ldielectric    = lstatic .OR. loptical !.OR. lsemiconductor
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
@@ -283,7 +283,8 @@ CONTAINS
     WRITE(environ_unit, *)"sc_distance: ",sc_distance
     IF ( lsemiconductor ) THEN
        CALL init_environ_semiconductor_first( temperature, sc_permittivity, &
-           & sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, system,semiconductor)
+           & sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, &
+           & sc_chg_thr, system,semiconductor)
        CALL init_environ_charges_first( semiconductor=semiconductor, charges = charges )
 
 

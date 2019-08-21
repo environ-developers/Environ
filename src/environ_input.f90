@@ -180,6 +180,9 @@ MODULE environ_input
         ! conncentration fo charge carriers within the semiconductor
         ! In units of (cm^-3)
         REAL(DP) :: sc_electrode_chg = 0.D0
+        ! the total charge on the electrode. In units of e
+        REAL(DP) :: sc_chg_thr = 1.D-4
+        ! The threshold for an outer loop of chg optimization in qe
 !
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
@@ -205,7 +208,7 @@ MODULE environ_input
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              temperature, electrolyte_linearized, electrolyte_entropy,     &
              sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
-             env_external_charges, env_dielectric_regions
+             sc_chg_thr, env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
 !  BOUNDARY Namelist Input Parameters
@@ -615,7 +618,7 @@ CONTAINS
                              electrolyte_alpha, electrolyte_softness,                &
                              temperature,                        &
                              sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
-                             sc_distance, sc_spread,                     &
+                             sc_distance, sc_spread, sc_chg_thr,         &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
                              extcharge_axis, extcharge_pos,              &

@@ -98,13 +98,13 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE init_environ_semiconductor_first( temperature, &
        & sc_permittivity,sc_carrier_density, sc_electrode_chg, sc_distance, &
-       & sc_spread, system, semiconductor )
+       & sc_spread, sc_chg_thr, system, semiconductor )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     REAL( DP ), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg
-    REAL( DP ), INTENT(IN) :: sc_carrier_density, sc_distance, sc_spread
+    REAL( DP ), INTENT(IN) :: sc_carrier_density, sc_distance, sc_spread, sc_chg_thr
     TYPE( environ_system ), TARGET, INTENT(IN) :: system
     TYPE( environ_semiconductor ), INTENT(INOUT) :: semiconductor
     !
@@ -119,6 +119,7 @@ CONTAINS
     ! Possibly should have an if statement to check if electrode charge is
     ! greater than tot_charge on DFT, need to consider this option
     semiconductor%electrode_charge = sc_electrode_chg
+    semiconductor%charge_threshold = sc_charge_thr
 
     semiconductor%simple%type = 4
     semiconductor%simple%pos => system%pos
