@@ -163,7 +163,7 @@ CONTAINS
 
     zion = ABS(zion)
     ez = - tpi * e2 * tot_charge / area ! / permittivity
-    ez_gcs = - tpi * e2 * electrode_charge / area ! / permittivity
+    ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
     arg = ez_gcs/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
@@ -173,19 +173,6 @@ CONTAINS
     const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern_gcs )
 
 
-
-    ! Now moving on to the ms props
-    WRITE( environ_unit, *)"charge: ",tot_charge
-    ez_ms= tpi * e2 * (electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
-    WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
-    fact = 1.D0/tpi / e2 /2.D0 /carrier_density !*permittivity
-    WRITE(  environ_unit, *)"MS Prefactor: ",fact
-    arg = fact* (ez**2.D0)
-    vms =  arg ! +kbt
-    !Finds the total length of the depletion region
-    depletion_length = 2.D0 *fact*ez_ms
-    WRITE ( environ_unit, * )"depletion length: ",depletion_length
-    WRITE ( environ_unit, * )"vms: ",vms
     !
     ! Gathering the potential at the boundary condition
     vbound = 0.D0
@@ -230,7 +217,7 @@ CONTAINS
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-          v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) + ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+          v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
           !
        ENDIF
        !
@@ -239,6 +226,19 @@ CONTAINS
     !
     !   Now adding in ms contribution on negative side of  axis
     !
+
+    ! Now moving on to the ms props
+    WRITE( environ_unit, *)"charge: ",tot_charge
+    ez_ms= tpi * e2 * (-electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
+    WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
+    fact = 1.D0/tpi / e2 /2.D0 /carrier_density !*permittivity
+    WRITE(  environ_unit, *)"MS Prefactor: ",fact
+    arg = fact* (ez_ms**2.D0)
+    vms =  arg ! +kbt
+    !Finds the total length of the depletion region
+    depletion_length = ABS(2.D0 *fact*ez_ms)
+    WRITE ( environ_unit, * )"depletion length: ",depletion_length
+    WRITE ( environ_unit, * )"vms: ",vms
 
     DO i = 1, nnr
 
@@ -250,16 +250,21 @@ CONTAINS
              !
              ! ... Mott Schottky analytic solution on the outside
              !
-             vtmp = (distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
+             IF (ez_ms < 0) THEN
+                vtmp = -(distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
+             ELSE
+                vtmp = (distance)**2.D0 / fact/4.D0 - ez_ms*(distance)
+             END IF
           ELSE
              vtmp = 0.D0
           END IF
-          !WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
-          !WRITE (environ_unit, *) "Distance: ", distance
+          ! WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
+          ! WRITE (environ_unit, *) "Distance: ", distance
+          ! WRITE (environ_unit, *) "ms correction: ", vtmp
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-          v(i) =  v(i) + vtmp -ez*distance!-vms ! vtmp - potential % of_r(i)
+          v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
           !WRITE( environ_unit, *)"This is the vi: ",ez*distance
           !
        ENDIF
