@@ -119,7 +119,7 @@ CONTAINS
     ! Possibly should have an if statement to check if electrode charge is
     ! greater than tot_charge on DFT, need to consider this option
     semiconductor%electrode_charge = sc_electrode_chg
-    semiconductor%charge_threshold = sc_charge_thr
+    semiconductor%charge_threshold = sc_chg_thr
 
     semiconductor%simple%type = 4
     semiconductor%simple%pos => system%pos
