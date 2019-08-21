@@ -36,7 +36,7 @@ MODULE environ_init
   USE utils_externals
   USE utils_charges
   USE utils_semiconductor
-
+  
   !
   PRIVATE
   !
@@ -281,10 +281,8 @@ CONTAINS
     !
     WRITE(environ_unit, *)"sc_distance: ",sc_distance
     IF ( lsemiconductor ) THEN
-       CALL init_environ_semiconductor_first( temperature,   &
-           & sc_permittivity, sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, system, &
-           & env_dielectric_regions, epsregion_eps, epsregion_dim, epsregion_axis,  &
-           & epsregion_pos, epsregion_spread, epsregion_width, nat,env_static_permittivity,semiconductor)
+       CALL init_environ_semiconductor_first( temperature, sc_permittivity, &
+           & sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, system,semiconductor)
        CALL init_environ_charges_first( semiconductor=semiconductor, charges = charges )
     ENDIF
     !
