@@ -36,7 +36,7 @@ MODULE environ_init
   USE utils_externals
   USE utils_charges
   USE utils_semiconductor
-  
+
   !
   PRIVATE
   !
@@ -132,7 +132,7 @@ CONTAINS
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
     INTEGER :: stype
-    REAL(DP) :: rhomax, rhomin
+    REAL(DP) :: rhomax, rhomin !, at_max, at_min, tot_len
     CHARACTER( LEN = 80 ) :: label
     !
 ! BACKWARD COMPATIBILITY
@@ -175,6 +175,7 @@ CONTAINS
     stype = stype_
     rhomax = rhomax_
     rhomin = rhomin_
+
     !
     ! Set basic logical flags
     !
@@ -195,7 +196,7 @@ CONTAINS
     !
     ! Derived flags
     !
-    ldielectric    = lstatic .OR. loptical
+    ldielectric    = lstatic .OR. loptical .OR. lsemiconductor
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
@@ -284,6 +285,49 @@ CONTAINS
        CALL init_environ_semiconductor_first( temperature, sc_permittivity, &
            & sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, system,semiconductor)
        CALL init_environ_charges_first( semiconductor=semiconductor, charges = charges )
+
+
+       ! Adding a dielectric region with the permittivity of the semiconductor
+       ! to the side of the slab that wil be experiencing a mott schottky correction
+       ! Appears to be much more trouble than it's worth at the moment
+       ! (making new arrays of n+1 in fortran is unnecisarily painful). We'll come back to this
+       !
+       ! env_dielectric_regions = env_dielectric_regions + 1
+       ! epsregion_eps(env_dielectric_regions) = semiconductor%permittivity
+       ! epsregion_dim(env_dielectric_regions) = 2
+       ! epsregion_axis(env_dielectric_regions) = semiconductor%simple%axis
+       !
+       ! at_max = -0.4
+       ! at_min = 10000.D0
+       ! DO i = 1, nat
+       !    IF (system%ions%tau(i,semiconductor%simple%axis) > at_max ) &
+       !         & at_max = system%ions%tau(i,semiconductor%simple%axis)
+       !    IF (system%ions%tau(i,semiconductor%simple%axis) < at_min ) &
+       !         & at_min = system%ions%tau(i,semiconductor%simple%axis)
+       ! END DO
+       !
+       ! tot_len = cell%alat*cell%at(semiconductor%simple%axis,semiconductor%simple%axis)
+       ! epsregion_width(env_dielectric_regions) = ( tot_len- (at_max-at_min))/2.D0
+       !
+       ! IF ((at_max + epsregion_width(env_dielectric_regions)) >  tot_len) THEN
+       !     DO i= 1, 3
+       !         IF (i .EQ. semiconductor%simple%axis) THEN
+       !             epsregion_pos(i,env_dielectric_regions) = at_min -epsregion_width(env_dielectric_regions)
+       !         ELSE
+       !             epsregion_pos(i,env_dielectric_regions) = 0.D0
+       !         END IF
+       !     END DO
+       ! ELSE
+       !     DO i= 1, 3
+       !         IF (i .EQ. semiconductor%simple%axis) THEN
+       !             epsregion_pos(iat,env_dielectric_regions) = at_max +epsregion_width(env_dielectric_regions)
+       !         ELSE
+       !             epsregion_pos(iat,env_dielectric_regions) = 0.D0
+       !         END IF
+       !     END DO
+       ! END IF
+       !
+       ! epsregion_spread(env_dielectric_regions) = sc_spread
     ENDIF
     !
     ! Set the parameters of the dielectric
