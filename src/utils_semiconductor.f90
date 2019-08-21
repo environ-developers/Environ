@@ -63,6 +63,7 @@ MODULE utils_semiconductor
   USE environ_types
   USE environ_output
   USE utils_functions
+
   !
   IMPLICIT NONE
   !
@@ -96,15 +97,24 @@ CONTAINS
   END SUBROUTINE create_environ_semiconductor
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_semiconductor_first( temperature, &
-       & sc_permittivity,sc_carrier_density, sc_electrode_chg, sc_distance, &
-       & sc_spread, system, semiconductor )
+  SUBROUTINE init_environ_semiconductor_first( temperature,   &
+      & sc_permittivity, sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, system, &
+      & env_dielectric_regions, epsregion_eps, epsregion_dim, epsregion_axis,  &
+      & epsregion_pos, epsregion_spread, epsregion_width, nat,env_static_permittivity,semiconductor)
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
+
+    USE environ_base, ONLY: cell, ions
     !
     REAL( DP ), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg
     REAL( DP ), INTENT(IN) :: sc_carrier_density, sc_distance, sc_spread
+    INTEGER,    INTENT(IN) :: nat
+    INTEGER,    INTENT(INOUT) :: env_dielectric_regions
+    INTEGER, DIMENSION(env_dielectric_regions+1), INTENT(INOUT) :: epsregion_dim, epsregion_axis
+    REAL( DP ), DIMENSION(env_dielectric_regions+1), INTENT(INOUT) :: epsregion_width, epsregion_spread, epsregion_eps
+    REAL( DP ), DIMENSION(3,env_dielectric_regions+1), INTENT(INOUT) :: epsregion_pos
+    REAL( DP ) :: at_max, at_min, tot_len
     TYPE( environ_system ), TARGET, INTENT(IN) :: system
     TYPE( environ_semiconductor ), INTENT(INOUT) :: semiconductor
     !
@@ -130,6 +140,35 @@ CONTAINS
 
 
     semiconductor%initialized = .FALSE.
+
+    ! Adding a dielectric region with the permittivity of the semiconductor
+    ! to the side of the slab that wil be experiencing a mott schottky correction
+    env_dielectric_regions = env_dielectric_regions + 1
+    epsregion_eps(env_dielectric_regions) = semiconductor%permittivity
+    epsregion_dim(env_dielectric_regions) = 2
+    epsregion_axis(env_dielectric_regions) = semiconductor%simple%axis
+
+    at_max = -0.4
+    at_min = 10000.D0
+    DO ipol = 1, nat
+       IF (system%ions%tau(semiconductor%simple%axis) > at_max ) &
+            & at_max = system%ions%tau(semiconductor%simple%axis)
+       IF (system%ions%tau(semiconductor%simple%axis) < at_min ) &
+            & at_min = system%ions%tau(semiconductor%simple%axis)
+    END DO
+
+    tot_len = cell%alat*cell%at(semiconductor%simple%axis,semiconductor%simple%axis)
+    epsregion_width(env_dielectric_regions) = ( tot_len- (at_max-at_min))/2.D0
+
+    IF ((at_max + epsregion_width(env_dielectric_regions)) >  tot_len) THEN
+        epsregion_center(env_dielectric_regions) = at_min -epsregion_width(env_dielectric_regions)
+    ELSE
+        epsregion_center(env_dielectric_regions) = at_max +epsregion_width(env_dielectric_regions)
+    END IF
+
+    epsregion_spread(env_dielectric_regions) = sc_spread
+
+
     !
     RETURN
     !
