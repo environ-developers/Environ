@@ -63,7 +63,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     TYPE( environ_cell ), POINTER :: cell
@@ -147,10 +147,10 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_density ), INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     TYPE( environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
-    TYPE( environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
+    TYPE( environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ) :: local
@@ -245,7 +245,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_charges'
@@ -314,10 +314,10 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_density ), INTENT(IN) :: charges
+    TYPE( environ_density ), INTENT(INOUT) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
-    TYPE( environ_semiconductor ), INTENT(IN), OPTIONAL :: semiconductor
+    TYPE( environ_semiconductor ), INTENT(INOUT), OPTIONAL :: semiconductor
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_density'
 

@@ -56,7 +56,7 @@ CONTAINS
 !    SAVE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-    TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
+    TYPE( environ_semiconductor ), TARGET, INTENT(INOUT) :: semiconductor
     TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
@@ -80,7 +80,7 @@ CONTAINS
     INTEGER :: i, icount
     REAL( DP ) :: ez, ez_ms,ez_gcs, fact, vms, vstern
     REAL( DP ) :: arg, const, depletion_length
-    REAL( DP ) :: dv, vbound
+    REAL( DP ) :: dv, vbound, v_cut
     REAL( DP ) :: asinh, coth, acoth
     REAL( DP ) :: f1, f2
     REAL( DP ) :: area, vtmp, distance
@@ -148,6 +148,7 @@ CONTAINS
     tot_dipole = dipole(1:3)
     tot_quadrupole = quadrupole
     area = omega / axis_length
+    semiconductor%surf_area_per_sq_cm = area* 2.8002D-17     ! Value of 1 square bohr in cm^2
     !
     ! ... First apply parabolic correction
     !
@@ -239,6 +240,30 @@ CONTAINS
     depletion_length = ABS(2.D0 *fact*ez_ms)
     WRITE ( environ_unit, * )"depletion length: ",depletion_length
     WRITE ( environ_unit, * )"vms: ",vms
+
+
+    !
+    ! Finding the v cutoff potential
+    v_cut= 0.D0
+    icount = 0
+    DO i = 1, nnr
+       !
+       IF ( ABS(axis(1,i)) .EQ. xstern_gcs ) THEN
+          !
+          icount = icount + 1
+          v_cut = v_cut + potential % of_r(i) + v(i)
+          !
+       ENDIF
+       !
+    ENDDO
+
+    CALL mp_sum(icount,cell%comm)
+    CALL mp_sum(vbound,cell%comm)
+    vbound = vbound / DBLE(icount)
+    WRITE (environ_unit, *)"vbound: ",vbound
+
+    semiconductor%bulk_sc_fermi = v_cut+ vms+ semiconductor%flatband_fermi
+    WRITE ( environ_unit, * )"bulk semiconductor fermi level: ",semiconductor%bulk_sc_fermi
 
     DO i = 1, nnr
 

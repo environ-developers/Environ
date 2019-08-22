@@ -467,12 +467,17 @@ MODULE environ_types
      REAL( DP ) :: carrier_density
      REAL( DP ) :: electrode_charge
      REAL( DP ) :: charge_threshold
+
      !
      TYPE( environ_functions ) :: simple
      !
      TYPE( environ_density ) :: density
      !
      REAL( DP ) :: charge = 0.0_DP
+
+     REAL( DP ) :: flatband_fermi = 0.D0
+     REAL( DP ) :: bulk_sc_fermi = 0.D0
+     REAL( DP ) :: surf_area_per_sq_cm = 0.D0
 
 
      !

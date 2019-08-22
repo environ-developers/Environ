@@ -61,7 +61,7 @@ CONTAINS
     ! ... Declares variables
     !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_velectrostatic'
@@ -216,7 +216,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     REAL( DP ), INTENT(OUT) :: energy
     !
@@ -294,7 +294,7 @@ CONTAINS
     !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
     INTEGER, INTENT(IN) :: natoms
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     REAL(DP), INTENT(INOUT) :: forces( 3, natoms )
     !
     ! ... Local variables

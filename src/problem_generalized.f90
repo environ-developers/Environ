@@ -58,7 +58,7 @@ CONTAINS
     !
     TYPE( electrostatic_solver ), INTENT(IN) :: solver
     TYPE( electrostatic_core ), INTENT(IN) :: core
-    TYPE( environ_charges ), INTENT(IN) :: charges
+    TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
     CHARACTER*20 :: sub_name = 'generalized_gradient'
@@ -110,7 +110,7 @@ CONTAINS
 
           CALL generalized_iterative( solver % iterative, core, charges%density, charges%dielectric, &
                            potential, charges%electrolyte, charges%semiconductor )
-          
+
           !
        ELSE
           !
@@ -145,7 +145,7 @@ CONTAINS
     TYPE( environ_dielectric ), INTENT(IN) :: dielectric
     TYPE( environ_density ), INTENT(INOUT) :: potential
     TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
-    TYPE( environ_semiconductor ), INTENT(IN), OPTIONAL :: semiconductor
+    TYPE( environ_semiconductor ), INTENT(INOUT), OPTIONAL :: semiconductor
     !
     CHARACTER*20 :: sub_name = 'generalized_gradient'
     !
@@ -287,7 +287,7 @@ CONTAINS
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
     TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
-    TYPE( environ_semiconductor ), INTENT(IN), OPTIONAL :: semiconductor
+    TYPE( environ_semiconductor ), INTENT(INOUT), OPTIONAL :: semiconductor
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: eps, rhoiter, rhotot
@@ -429,7 +429,7 @@ CONTAINS
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
     TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
-    TYPE( environ_semiconductor ), INTENT(IN), OPTIONAL :: semiconductor
+    TYPE( environ_semiconductor ), INTENT(INOUT), OPTIONAL :: semiconductor
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: x, b, eps
@@ -587,7 +587,7 @@ CONTAINS
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
     TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
-    TYPE( environ_semiconductor ), INTENT(IN), OPTIONAL :: semiconductor
+    TYPE( environ_semiconductor ), INTENT(INOUT), OPTIONAL :: semiconductor
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: x, b, eps, factsqrt
@@ -779,7 +779,7 @@ CONTAINS
     TYPE( environ_dielectric ), TARGET, INTENT(IN) :: dielectric
     TYPE( environ_density ), TARGET, INTENT(INOUT) :: potential
     TYPE( environ_electrolyte ), INTENT(IN), OPTIONAL :: electrolyte
-    TYPE( environ_semiconductor ), INTENT(IN), OPTIONAL :: semiconductor
+    TYPE( environ_semiconductor ), INTENT(INOUT), OPTIONAL :: semiconductor
     !
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ), POINTER :: x, b, eps
