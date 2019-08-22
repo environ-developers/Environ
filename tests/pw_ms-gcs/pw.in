@@ -1,0 +1,36 @@
+&CONTROL
+    calculation = 'scf',
+    tprnfor = .true.,
+    forc_conv_thr = 0.001,
+    pseudo_dir = '/Users/qcampbe/Documents/espresso/nc-sr-04_pbe_standard_upf'
+ /
+ &SYSTEM
+    nspin = 1,
+    ecutwfc = 35,
+    nat = 2,
+    occupations = 'smearing',
+    ibrav = 0,
+    degauss = 0.02,
+    smearing = 'marzari-vanderbilt',
+    tot_charge = 0.003,
+    ntyp = 1,
+    ecutrho = 350,
+ /
+ &ELECTRONS
+    electron_maxstep = 200,
+    conv_thr = 5e-07,
+ /
+ &IONS
+    ion_dynamics = 'bfgs',
+ /
+ATOMIC_SPECIES
+ Ag 28.85 Ag.upf
+ATOMIC_POSITIONS {bohr}
+ Ag 2.771763  2.771763  18.897260
+ Ag 0.000000  0.000000  22.740340
+K_POINTS {automatic}
+   1 1 1 0 0 0
+CELL_PARAMETERS {bohr}
+5.543526 0.000000 0.000000
+0.000000 5.543526 0.000000
+0.000000 0.000000 65.08548
