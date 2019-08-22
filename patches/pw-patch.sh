@@ -590,6 +590,7 @@ cur_fermi = ef!*rytoev \
 !CALL save_current_pot(dfftp%nnr,cur_fermi,cur_dchg,ss_chg,v_cut,chg_step) \
 cur_dchg = semiconductor%bulk_sc_fermi - cur_fermi \
 bulk_potential = (semiconductor%bulk_sc_fermi - semiconductor%flatband_fermi)*rytoev \
+ss_chg = tot_chg \
 !IF (ionode) THEN \
 ! making sure constraints are updated \
 IF (semiconductor%electrode_charge > 0) THEN \
