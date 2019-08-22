@@ -80,9 +80,9 @@ CONTAINS
     INTEGER :: i, icount
     REAL( DP ) :: ez, ez_ms,ez_gcs, fact, vms, vstern
     REAL( DP ) :: arg, const, depletion_length
-    REAL( DP ) :: dv, vbound, v_cut
+    REAL( DP ) :: dv, vbound, v_cut, v_edge
     REAL( DP ) :: asinh, coth, acoth
-    REAL( DP ) :: f1, f2
+    REAL( DP ) :: f1, f2, max_axis
     REAL( DP ) :: area, vtmp, distance
     REAL(DP) :: dipole(0:3), quadrupole(3)
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
@@ -300,7 +300,37 @@ CONTAINS
        ENDIF
        !
     ENDDO
-    !v = v - vms
+
+
+    ! Adjust the potential to always be 0 on left side
+    ! First determine max axis point
+    max_axis = 0.0
+    DO i = 1, nnr
+       !
+       IF ( axis(1,i) > max_axis) THEN
+          !
+          max_axis = axis(1,i)
+          !
+       ENDIF
+       !
+    ENDDO
+
+
+
+    v_edge= 0.D0
+    icount = 0
+    DO i = 1, nnr
+       !
+       IF ( axis(1,i) .EQ. max_axis ) THEN
+          !
+          icount = icount + 1
+          v_edge = v_edge + potential % of_r(i) + v(i)
+          !
+       ENDIF
+       !
+    ENDDO
+    v_edge = v_edge / DBLE(icount)
+    v = v - v_edge
     !
     potential % of_r = potential % of_r + v
 

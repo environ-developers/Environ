@@ -588,7 +588,7 @@ cur_fermi = ef!*rytoev \
 ! for now, will try to keep everything in Ry, should basically work the same \
  \
 !CALL save_current_pot(dfftp%nnr,cur_fermi,cur_dchg,ss_chg,v_cut,chg_step) \
-cur_dchg = -semiconductor%bulk_sc_fermi + cur_fermi \
+cur_dchg = semiconductor%bulk_sc_fermi - cur_fermi \
 bulk_potential = (semiconductor%bulk_sc_fermi - semiconductor%flatband_fermi)*rytoev \
 !IF (ionode) THEN \
 ! making sure constraints are updated \

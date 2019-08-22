@@ -18,7 +18,7 @@
  /
  &ELECTRONS
     electron_maxstep = 200,
-    conv_thr = 5e-07,
+    conv_thr = 5e-06,
  /
  &IONS
     ion_dynamics = 'bfgs',
