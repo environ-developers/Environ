@@ -16,7 +16,7 @@ MODULE correction_ms_gcs
   USE environ_types
   USE electrostatic_types
   USE environ_output,    ONLY : environ_unit
-  USE environ_base,      ONLY : e2
+  USE environ_base,      ONLY : e2, semiconductor
   !
   IMPLICIT NONE
   !
@@ -26,7 +26,7 @@ MODULE correction_ms_gcs
   !
 CONTAINS
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_vms_gcs( oned_analytic, electrolyte, semiconductor, charges, potential )
+  SUBROUTINE calc_vms_gcs( oned_analytic, electrolyte, semiconductor_in, charges, potential )
 !---------------------------------------------------------------------------
     !
     ! ... Given the total explicit charge, the value of the field at the boundary
@@ -56,7 +56,7 @@ CONTAINS
 !    SAVE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
-    TYPE( environ_semiconductor ), TARGET, INTENT(INOUT) :: semiconductor
+    TYPE( environ_semiconductor ), TARGET, INTENT(INOUT) :: semiconductor_in
     TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
@@ -99,6 +99,8 @@ CONTAINS
     cell => potential % cell
     nnr => cell % nnr
     !
+
+
     alat => oned_analytic % alat
     omega => oned_analytic % omega
     env_periodicity => oned_analytic % d
@@ -106,6 +108,7 @@ CONTAINS
     axis_length => oned_analytic % size
     origin => oned_analytic % origin
     axis => oned_analytic % x
+
     !
     ! ... Get parameters of semiconductor to compute analytic correction
     !
@@ -118,10 +121,10 @@ CONTAINS
     xstern_gcs => electrolyte%boundary%simple%width
 
 
-    permittivity_ms => semiconductor%permittivity
-    carrier_density => semiconductor%carrier_density
-    electrode_charge => semiconductor%electrode_charge
-    xstern_ms => semiconductor%simple%width
+    permittivity_ms => semiconductor_in%permittivity
+    carrier_density => semiconductor_in%carrier_density
+    electrode_charge => semiconductor_in%electrode_charge
+    xstern_ms => semiconductor_in%simple%width
 
     WRITE( environ_unit, * )"carrier density: ",carrier_density
 
@@ -130,7 +133,7 @@ CONTAINS
     WRITE( environ_unit, * )"carrier density: ",carrier_density
     ! ... Set Boltzmann factors
     !
-    kbt = semiconductor % temperature * k_boltzmann_ry
+    kbt = semiconductor_in % temperature * k_boltzmann_ry
     invkbt = 1.D0 / kbt
     !
     IF ( env_periodicity .NE. 2 ) &
@@ -148,7 +151,8 @@ CONTAINS
     tot_dipole = dipole(1:3)
     tot_quadrupole = quadrupole
     area = omega / axis_length
-    semiconductor%surf_area_per_sq_cm = area* 2.8002D-17     ! Value of 1 square bohr in cm^2
+    semiconductor_in%surf_area_per_sq_cm = area* 2.8002D-17     ! Value of 1 square bohr in cm^2
+    semiconductor%surf_area_per_sq_cm = area* 2.8002D-17
     !
     ! ... First apply parabolic correction
     !
@@ -262,8 +266,9 @@ CONTAINS
     vbound = vbound / DBLE(icount)
     WRITE (environ_unit, *)"vbound: ",vbound
 
+    semiconductor_in%bulk_sc_fermi = v_cut+ vms+ semiconductor_in%flatband_fermi
     semiconductor%bulk_sc_fermi = v_cut+ vms+ semiconductor%flatband_fermi
-    WRITE ( environ_unit, * )"bulk semiconductor fermi level: ",semiconductor%bulk_sc_fermi
+    WRITE ( environ_unit, * )"bulk semiconductor fermi level: ",semiconductor_in%bulk_sc_fermi
 
     DO i = 1, nnr
 
@@ -298,6 +303,8 @@ CONTAINS
     !v = v - vms
     !
     potential % of_r = potential % of_r + v
+
+    semiconductor = semiconductor_in
     !
     CALL destroy_environ_density(local)
     !
@@ -316,14 +323,14 @@ CONTAINS
 END SUBROUTINE calc_vms_gcs
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
-  SUBROUTINE calc_gradvms_gcs( oned_analytic, electrolyte, semiconductor, charges, gradv )
+  SUBROUTINE calc_gradvms_gcs( oned_analytic, electrolyte, semiconductor_in, charges, gradv )
 !---------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_electrolyte ), TARGET, INTENT(IN) :: electrolyte
-    TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor
+    TYPE( environ_semiconductor ), TARGET, INTENT(IN) :: semiconductor_in
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gradv
     !
@@ -375,10 +382,10 @@ END SUBROUTINE calc_vms_gcs
     !
     ! ... Get parameters of semiconductor to compute analytic correction
     !
-    permittivity_ms => semiconductor%permittivity
-    electrode_charge => semiconductor%electrode_charge
-    carrier_density => semiconductor%carrier_density
-    xstern_ms => semiconductor%simple%width
+    permittivity_ms => semiconductor_in%permittivity
+    electrode_charge => semiconductor_in%electrode_charge
+    carrier_density => semiconductor_in%carrier_density
+    xstern_ms => semiconductor_in%simple%width
 
     cion => electrolyte % ioncctype(1) % cbulk
     zion => electrolyte % ioncctype(1) % z
@@ -387,7 +394,7 @@ END SUBROUTINE calc_vms_gcs
     !
     ! ... Set Boltzmann factors
     !
-    kbt = semiconductor % temperature * k_boltzmann_ry
+    kbt = semiconductor_in % temperature * k_boltzmann_ry
     invkbt = 1.D0 / kbt
     !
     IF ( env_periodicity .NE. 2 ) &

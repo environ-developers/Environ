@@ -440,7 +440,7 @@ lforce = .TRUE. \
 lbfgs = .FALSE. \
 nstep = 100 \
 tot_charge = 0.0 \
-WRITE( stdout, 1000) \
+!WRITE( stdout, 1000) \
 WRITE( stdout, 1002) tot_charge \
 CALL stop_clock( "semiconductor" ) \
  \
@@ -502,6 +502,8 @@ USE qexsd_module,     ONLY:   qexsd_set_status \
 
 sed '! ***Environ VARIABLES BEGIN*** \
 !Environ patch \
+\
+SAVE \
 REAL(DP)                  ::   cur_chg \
 REAL(DP)                  ::   prev_chg, prev_chg2 \
 REAL(DP)                  ::   cur_dchg \
@@ -569,11 +571,12 @@ IF (chg_step == 0) THEN \
 tot_charge = 0.7*semiconductor%electrode_charge \
 semiconductor%flatband_fermi = ef!*rytoev \
 conv_ions = .FALSE. \
-CALL qexsd_set_status(255) \
-CALL punch( "config" ) \
-CALL add_qexsd_step(istep) \
+! CALL qexsd_set_status(255) \
+! CALL punch( "config" ) \
+! CALL add_qexsd_step(istep) \
+istep =  istep + 1 \
 !CALL save_flatband_pot(dfftp%nnr) \
-WRITE( stdout, 1001) semiconductor%flatband_fermi,tot_charge \
+WRITE( stdout, 1001) semiconductor%flatband_fermi*rytoev,tot_charge \
 ! \
 ! ... re-initialize atomic position-dependent quantities \
 ! \
@@ -585,7 +588,7 @@ cur_fermi = ef!*rytoev \
 ! for now, will try to keep everything in Ry, should basically work the same \
  \
 !CALL save_current_pot(dfftp%nnr,cur_fermi,cur_dchg,ss_chg,v_cut,chg_step) \
-cur_dchg = semiconductor%bulk_sc_fermi - cur_fermi \
+cur_dchg = -semiconductor%bulk_sc_fermi + cur_fermi \
 bulk_potential = (semiconductor%bulk_sc_fermi - semiconductor%flatband_fermi)*rytoev \
 !IF (ionode) THEN \
 ! making sure constraints are updated \
@@ -657,10 +660,11 @@ IF (((prev_step_size > semiconductor%charge_threshold) .OR. (.NOT. converge)) & 
 & .AND. (chg_step < nstep-1))  THEN \
 conv_ions = .FALSE. \
 WRITE( STDOUT, 1002)& \
-&chg_step,cur_fermi,ss_chg,prev_step_size,cur_dchg,tot_charge \
-CALL qexsd_set_status(255) \
-CALL punch( "config" ) \
-CALL add_qexsd_step(istep) \
+&chg_step,cur_fermi*rytoev,ss_chg,prev_step_size,cur_dchg,tot_charge \
+!CALL qexsd_set_status(255) \
+!CALL punch( "config" ) \
+!CALL add_qexsd_step(istep) \
+istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
 CALL mp_bcast(nelec, ionode_id,intra_image_comm) \
 CALL update_pot() \
