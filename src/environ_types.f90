@@ -1417,6 +1417,40 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_system
 !--------------------------------------------------------------------
+!>
+!! Function to extract the idx in a density object
+!! for given x, y, z indices
+!! TODO this probably doesn't work with MPI, need to test
+!! (I can only test serially right now)
+!--------------------------------------------------------------------
+  FUNCTION get_idx_environ_cell( cell, i, j, k ) RESULT ( idx )
+!--------------------------------------------------------------------
+    !
+    USE environ_output
+    !
+    INTEGER, INTENT(IN) :: i, j, k
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    !
+    INTEGER :: nx, ny, nz, idx
+    CHARACTER( LEN=80 ) :: fun_name = 'get_idx_environ_density'
+    !
+    nx = cell % n1
+    ny = cell % n2
+    nz = cell % n3
+    !
+    IF ( i > nx ) CALL errore( fun_name, 'i larger than cell size', 1)
+    IF ( j > ny ) CALL errore( fun_name, 'j larger than cell size', 1)
+    IF ( k > nz ) CALL errore( fun_name, 'k larger than cell size', 1)
+    !
+    idx = 1
+    idx = idx + k * (nx * ny)
+    idx = idx + j * nx
+    idx = idx + i
+    IF ( ionode ) WRITE( program_unit, '(7I8)') i, j, k, nx, ny, nz, idx
+    ! 
+!--------------------------------------------------------------------
+  END FUNCTION get_idx_environ_cell
+!--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE environ_types
 !----------------------------------------------------------------------------

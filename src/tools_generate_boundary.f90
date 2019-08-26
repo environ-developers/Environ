@@ -40,7 +40,8 @@ MODULE tools_generate_boundary
        & compute_ion_field, compute_ion_field_partial, &
        & compute_normal_field, compute_dion_field_drho, &
        & scaling_of_field, dscaling_of_field, &
-       & field_aware_de_drho, field_aware_dboundary_dions, field_aware_density
+       & field_aware_de_drho, field_aware_dboundary_dions, field_aware_density, &
+       & delectronic_field_drho
   !
 CONTAINS
 !  Function: sfunct0
@@ -488,8 +489,6 @@ CONTAINS
        !
     END DO
     !
-    boundary % volume = integrate_environ_density( boundary % scaled )
-    !
     ! ... Compute boundary derivatives, if needed
     !
     deriv => boundary % deriv
@@ -544,6 +543,8 @@ CONTAINS
     END SELECT
     !
     ! ... Final updates
+    !
+    boundary % volume = integrate_environ_density( boundary % scaled )
     !
     IF ( deriv .GE. 1 ) THEN
        CALL update_gradient_modulus( boundary%gradient )
@@ -2020,6 +2021,7 @@ CONTAINS
     TYPE( environ_cell ), POINTER :: cell
     TYPE( environ_density ) :: rho
     TYPE( environ_gradient ) :: field, gradrho
+    INTEGER :: i
     !
     cell => normal_field % cell
     !
@@ -2034,7 +2036,22 @@ CONTAINS
     CALL init_environ_gradient( cell, gradrho )
     CALL external_gradient( electrons%density%of_r, gradrho%of_r )
     !
+    !! temporary factor for testing
+    !CALL update_gradient_modulus( gradrho )
+    !! need to divide by the modulus factor ( but don't touch if zero )
+    !! loop elementwise to be safe
+    !DO i = 1, cell % nnr
+    !   !
+    !   IF ( gradrho % modulus % of_r( i ) < 1e-10 ) THEN
+    !      gradrho % modulus % of_r( i ) = 1.D0
+    !   ENDIF
+    !   !
+    !ENDDO
+    !
     CALL scalar_product_environ_gradient( field, gradrho, normal_field )
+    !
+    !! temporary modification of the normal field to remove density dependency
+    !normal_field % of_r = normal_field % of_r / gradrho % modulus % of_r
     !
     CALL destroy_environ_gradient( gradrho )
     CALL destroy_environ_gradient( field )
@@ -2115,14 +2132,14 @@ CONTAINS
 !! by Andreussi et al. for the original SCCS
 !
 !--------------------------------------------------------------------
-  SUBROUTINE scaling_of_density( field_factor, charge_asymmetry, field_max, &
+  SUBROUTINE scaling_of_density( field_factor, field_max, &
       & field_min, normal_field, scaled )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT(IN) :: field_factor, charge_asymmetry, field_max, field_min
-    REAL( DP ) :: arg, fact
+    REAL( DP ), INTENT(IN) :: field_factor, field_max, field_min
+    REAL( DP ) :: arg
     REAL( DP ) :: field
     !
     TYPE( environ_density ), INTENT(IN) :: normal_field
@@ -2139,18 +2156,17 @@ CONTAINS
        !
        field = normal_field % of_r( i )
        !
-       fact = ( charge_asymmetry - SIGN(1.D0, field) ** 2 ) * field_factor
-       !
        IF ( ABS( field ) .LE. field_min ) THEN
           arg = 0.D0
        ELSE IF ( ABS( field ) .LE. field_max ) THEN
-          arg = tpi * ( ABS( field ) - field_min ) / ( field_max - field_min )
+          arg = tpi * ( LOG( ABS( field ) ) - LOG( field_min ) ) / &
+            & ( LOG( field_max ) - LOG( field_min ) )
           arg = ( arg - SIN( arg ) ) / tpi
        ELSE
           arg = 1.D0
        ENDIF
        !
-       scaled % of_r( i ) = EXP( arg * fact * (-1.D0) )
+       scaled % of_r( i ) = EXP( arg * field_factor * (-1.D0) )
        !
      ENDDO
      !
@@ -2158,14 +2174,14 @@ CONTAINS
   END SUBROUTINE scaling_of_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE dscaling_of_density( field_factor, charge_asymmetry, field_max, &
+  SUBROUTINE dscaling_of_density( field_factor, field_max, &
       & field_min, normal_field, dscaled )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT(IN) :: field_factor, charge_asymmetry, field_max, field_min
-    REAL( DP ) :: arg, fact
+    REAL( DP ), INTENT(IN) :: field_factor, field_max, field_min
+    REAL( DP ) :: arg
     REAL( DP ) :: field
     !
     TYPE( environ_density ), INTENT(IN) :: normal_field
@@ -2182,18 +2198,22 @@ CONTAINS
        !
        field = normal_field % of_r( i )
        !
-       fact = ( charge_asymmetry - SIGN(1.D0, field) ** 2 ) * field_factor
-       !
        IF ( ABS( field ) .LE. field_min ) THEN
           arg = 0.D0
        ELSE IF ( ABS( field ) .LE. field_max ) THEN
-          arg = tpi * ( ABS( field ) - field_min ) / ( field_max - field_min )
-          arg = ( 1.D0 - COS( arg ) ) / ( field_max - field_min )
+          arg = tpi * ( LOG( ABS( field ) ) - LOG( field_min ) ) / &
+            & ( LOG( field_max ) - LOG( field_min ) )
+          arg = ( 1.D0 - COS( arg ) ) / ( LOG( field_max ) - LOG( field_min ) )
+          IF ( field > 1.D-30 ) THEN
+             arg = arg * SIGN( field, 1.D0 ) / ABS(field)
+          ELSE
+             arg = arg * SIGN( field, 1.D0 )
+          ENDIF
        ELSE
           arg = 0.D0
        ENDIF
        !
-       dscaled % of_r( i ) = arg * fact
+       dscaled % of_r( i ) = arg * field_factor
        !
      ENDDO
      !
@@ -2224,7 +2244,7 @@ CONTAINS
     !
     CALL init_environ_density( cell, scaling )
     !
-    CALL scaling_of_density( field_factor, charge_asymmetry, field_max, field_min, &
+    CALL scaling_of_density( field_factor, field_max, field_min, &
        & boundary % normal_field, scaling )
     !
     boundary % density % of_r = scaling % of_r * electrons % density % of_r
@@ -2233,6 +2253,49 @@ CONTAINS
     !    
 !--------------------------------------------------------------------
   END SUBROUTINE field_aware_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE delectronic_field_drho( boundary, funct, dfield_drho )
+!--------------------------------------------------------------------
+    !
+    USE utils_functions, ONLY : density_of_functions
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_boundary ), INTENT(IN) :: boundary
+    TYPE( environ_functions ), INTENT(IN) :: funct
+    TYPE( environ_density ), INTENT(OUT) :: dfield_drho
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_gradient ) :: gradaux
+    TYPE( environ_density ) :: gaussian
+    INTEGER :: ipol
+    !
+    cell => boundary % electrons % density % cell
+    !
+    CALL init_environ_density( cell, dfield_drho )
+    CALL init_environ_density( cell, gaussian )
+    CALL init_environ_gradient( cell, gradaux )
+    !
+    CALL external_gradient( boundary % electrons % density % of_r, gradaux % of_r )
+    CALL density_of_functions( funct, gaussian, .TRUE. )
+    DO ipol = 1, 3
+       gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * gaussian % of_r( : )
+    ENDDO
+    CALL field_of_gradrho( gradaux % of_r, dfield_drho % of_r )
+    !
+    ! use gaussian container to store auxiliary density to be added to
+    ! dfield_drho
+    gaussian % of_r = gaussian % of_r * 2.D0 * tpi
+    gaussian % of_r = gaussian % of_r * ( boundary % electrons % density % of_r + &
+      & boundary % ions % density % of_r )
+    dfield_drho % of_r = dfield_drho % of_r + gaussian % of_r
+    !
+    CALL destroy_environ_density( gaussian )
+    CALL destroy_environ_gradient( gradaux )
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE delectronic_field_drho
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE field_aware_de_drho( boundary, de_dboundary, de_drho )
@@ -2323,11 +2386,11 @@ CONTAINS
        CALL init_environ_density( cell, aux )
        CALL init_environ_density( cell, daux )
        !
-       CALL scaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+       CALL scaling_of_density( boundary % field_factor, &
                               & boundary % field_max, boundary % field_min, & 
                               & boundary % normal_field, aux )
-       !
-       CALL dscaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+       !! COMMENTED TO ISOLATE ANOTHER TERM
+       CALL dscaling_of_density( boundary % field_factor, &
                                & boundary % field_max, boundary % field_min, &
                                & boundary % normal_field, daux )
        !
@@ -2340,6 +2403,7 @@ CONTAINS
        ! dscaled ( to be used here... )
        !
        CALL external_gradient( boundary % electrons % density % of_r, gradaux % of_r )
+       ! COMMENTED THIS TERM TO ISOLATE ANOTHER TERM
        DO ipol = 1, 3
           gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * boundary % electrons % density % of_r( : )
           gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * boundary % dscaled % of_r( : )
@@ -2351,7 +2415,7 @@ CONTAINS
        CALL field_of_gradrho( gradaux % of_r, de_drho % of_r )
        !
        ! add remaining terms, using daux to update new term temporarily
-       !
+       !! COMMENTED TO ISOLATE ANOTHER TERM
        rhotot % of_r = boundary % electrons % density % of_r + &
                      & boundary % ions % density % of_r
        daux % of_r = daux % of_r * boundary % electrons % density % of_r
@@ -2359,10 +2423,14 @@ CONTAINS
        daux % of_r = daux % of_r * (-2.D0) * tpi
        daux % of_r = daux % of_r + 1.D0
        daux % of_r = daux % of_r * aux % of_r 
+       ! FOLLOWING TERM IS TEMPORARY
+       !daux % of_r = aux % of_r
+       ! THIS STUFF IS NOT TEMPORARY
        daux % of_r = daux % of_r * boundary % dscaled % of_r
        daux % of_r = daux % of_r * de_dboundary % of_r
        de_drho % of_r = daux % of_r - de_drho % of_r
-       !
+       ! FOLLOWING TERM IS TEMPORARY
+       !de_drho % of_r = daux % of_r
        ! deallocate
        !
        CALL destroy_environ_density( aux )
@@ -2395,6 +2463,8 @@ CONTAINS
     INTEGER :: i, j, ipol
     REAL( DP ) :: df
     CHARACTER( LEN=80 ) :: sub_name = 'field_aware_dboundary_dions'
+    CHARACTER(len=100) :: strd = 'daux'
+    CHARACTER(len=100) :: stra = 'aux'
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     !
@@ -2480,17 +2550,22 @@ CONTAINS
        !
        CALL init_environ_hessian( cell, hesslocal )
        !
-       CALL scaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+       CALL scaling_of_density( boundary % field_factor, &
                               & boundary % field_max, boundary % field_min, & 
                               & boundary % normal_field, aux )
+       !CALL write_cube( aux, label=stra )
        !
-       CALL dscaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
+       CALL dscaling_of_density( boundary % field_factor, &
                                & boundary % field_max, boundary % field_min, &
                                & boundary % normal_field, daux )
+       !CALL write_cube( boundary%electrons%density, label=strd )
        !
        daux % of_r = daux % of_r * boundary % electrons % density % of_r
+       !CALL write_cube( daux, label=strd )
        daux % of_r = daux % of_r * aux % of_r
        daux % of_r = daux % of_r * boundary % dscaled % of_r
+       !CALL write_cube( boundary%dscaled, label=stra )
+       !STOP
        !
        ! now calculate gradaux, which will build the partial normal field, and then the partial interface
        !

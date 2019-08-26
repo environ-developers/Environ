@@ -593,6 +593,8 @@ CONTAINS
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
+          CALL test_energy_derivatives( 1, bound )
+          !
        ELSE
           !
           IF ( bound % update_status .EQ. 2 ) bound % update_status = 0 ! boundary has not changed
@@ -635,7 +637,9 @@ CONTAINS
           !
 ! ... TO DEBUG FIELD-AWARE: testing energy derivatives
           !
+          !CALL extract_boundary_data( bound )
           CALL test_energy_derivatives( 2, bound )
+          !CALL test_normal_field_derivatives( bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -661,7 +665,7 @@ CONTAINS
           !
 ! ... TO DEBUG FIELD-AWARE: testing ion_field derivatives
 !          !
-!         CALL test_ion_field_derivatives( 2, bound )
+          CALL test_ion_field_derivatives( 2, bound )
 !          !
 ! ... TO DEBUG FIELD-AWARE: testing energy derivatives
 !          !
@@ -1105,187 +1109,126 @@ CONTAINS
   END SUBROUTINE test_ion_field_derivatives
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE test_normal_field_derivatives( ideriv, bound )
+  SUBROUTINE test_normal_field_derivatives( bound )
 !--------------------------------------------------------------------
     !
-    USE utils_ions, ONLY : update_environ_ions
-    USE tools_generate_boundary, ONLY : compute_ion_field, compute_ion_field_partial
+    USE tools_generate_boundary
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: ideriv ! .EQ. 1/2 for electronic/ionic
     TYPE( environ_boundary ), INTENT(INOUT) :: bound
     !
     TYPE( environ_cell ), POINTER :: cell
-    TYPE( environ_density ) :: rho
-    TYPE( environ_gradient ) :: field
-    !
-    INTEGER :: i, ipol
-    REAL( DP ) :: dx, x0, epsilon
-    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: fd_partial_of_ion_field
-    REAL( DP ), ALLOCATABLE, DIMENSION(:,:,:) :: analytic_partial_of_ion_field
-    !
-    INTEGER :: j
-    REAL( DP ) :: tmp
-    REAL( DP ), ALLOCATABLE, DIMENSION(:) :: fd_dion_field_drho
-    TYPE( environ_density ), ALLOCATABLE, DIMENSION(:) :: analytic_dion_field_drho
-    TYPE( environ_functions ) :: test_function
+    TYPE( environ_density ) :: normal_field
+    TYPE( environ_density ) :: dfield_drho
     TYPE( environ_density ) :: delta
+    TYPE( environ_functions ) :: test_function
+    TYPE( environ_functions ) :: eps_function
+    TYPE( environ_boundary ) :: localbound
     TYPE( environ_electrons ) :: localelectrons
+    REAL( DP ) :: de_fd, de_analytic, eps
+    INTEGER :: i, idx
+    !
+    CHARACTER(len=100) :: stra = 'pluseps'
+    CHARACTER(len=100) :: strb = 'minuseps'
+    !
+    IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'test_normal_field_derivatives'
     !
     cell => bound % scaled % cell
     !
-    ! Recompute total charge density and field
+    CALL init_environ_density( cell, normal_field )
+    CALL init_environ_density( cell, dfield_drho )
+    CALL init_environ_density( cell, delta )
+    CALL init_environ_density( cell, localelectrons % density )
     !
-    CALL init_environ_density( cell, rho )
-    rho % of_r = bound % electrons % density % of_r + bound % ions % density % of_r
+    ! Define a simple gaussian in order to integrate over the non-local
+    ! functional derivative
+    test_function % type = 1
+    test_function % dim = 0
+    test_function % axis = 3
+    test_function % spread = 1.D0
+    test_function % width = 0.D0
+    test_function % volume = 1.D0
+    ALLOCATE( test_function % pos( 3 ) )
+    test_function % pos(1) = 10.606846 / cell % alat
+    test_function % pos(2) = 10.606967 / cell % alat
+    test_function % pos(3) = 6.500000 / cell % alat
     !
-    CALL init_environ_gradient( cell, field )
-    CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
+    ! Define a simple gaussian in order to take differences wrt the electronic
+    ! density
+    eps_function % type = 1
+    eps_function % dim = 0
+    eps_function % axis = 3
+    eps_function % spread = 0.4D0
+    eps_function % width = 0.D0
+    eps_function % volume = 1.D0
+    ALLOCATE( eps_function % pos( 3 ) )
+    eps_function % pos(1) = 10.606846 / cell % alat
+    eps_function % pos(2) = 10.606967 / cell % alat
     !
-    ! Print out individual and global fluxes
+    eps = 1e-1
     !
-    DO i = 1, bound % ions % number
-       WRITE(environ_unit, '(a,i3,a,f14.7)' )&
-          & 'flux throught soft-sphere number ',i,' equal to ',bound%ion_field(i)
+    ! Compute the updated field-aware interface
+    ! ASSERT( bound % mode == 'fa-electronic' )
+    CALL compute_normal_field( bound % ions, bound % electrons, bound % normal_field )
+    !CALL write_cube( normal_field, label=stra )
+    CALL field_aware_density( bound % electrons, bound )
+    CALL boundary_of_density( bound % density, bound )
+    !
+    ! Compute functional derivative wrt electronic density
+    CALL delectronic_field_drho( bound, test_function, dfield_drho )
+    !
+    ! LOOP through the Z-axis, and apply a small change in electronic density
+    ! compute the normal field 
+    DO i = 1, cell % n3
+       !
+       de_fd = 0.D0
+       idx = get_idx_environ_cell( cell, cell % n1 / 2, cell % n2 / 2, i ) 
+       !
+       eps_function % pos(3) = DBLE(i-1) * cell % at(3, 3) / DBLE( cell % n3 )
+       !IF (eps_function % pos(3) * cell % alat .LE. 4.5 .OR. &
+       !  & eps_function % pos(3) * cell % alat .GE. 9.0) CYCLE
+       !IF (i .LE. 40) CYCLE
+       IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' z = ', eps_function%pos(3)
+       CALL density_of_functions( eps_function, delta, .TRUE. )
+       !
+       localelectrons % density % of_r = bound % electrons % density % of_r + eps * &
+         & delta % of_r
+       !
+       !CALL write_cube( localelectrons % density, label=stra )
+       CALL compute_normal_field( bound % ions, localelectrons, normal_field )
+       !CALL write_cube( normal_field, label=stra )
+       de_fd = de_fd + normal_field % of_r( idx )
+       !de_fd = de_fd + scalar_product_environ_density( normal_field, delta )
+       !
+       localelectrons % density % of_r = bound % electrons % density % of_r - eps * &
+         & delta % of_r
+       !
+       !CALL write_cube( localelectrons % density, label=strb )
+       CALL compute_normal_field( bound % ions, localelectrons, normal_field )
+       !CALL write_cube( normal_field, label=strb )
+       !STOP
+       de_fd = de_fd - normal_field % of_r( idx )
+       !de_fd = de_fd - scalar_product_environ_density( normal_field, delta )
+       !
+       de_fd = de_fd * 0.5D0 / eps
+       !
+       !de_analytic = scalar_product_environ_density( dfield_drho, delta )
+       de_analytic = dfield_drho % of_r( idx )
+       !
+       IF ( ionode ) WRITE( environ_unit, '(a,i5,3f20.10)')' z = ', &
+       !  & eps_function % pos(3) * cell % alat, &
+          & i, &
+         & de_analytic, de_fd, de_analytic - de_fd
+       !
     ENDDO
     !
-    rho % of_r = rho % of_r * bound % scaled % of_r
-    WRITE( environ_unit, '(a,f14.7,a,f14.7)' )&
-       & 'total_charge = ',integrate_environ_density(rho),' total flux throught soft-spheres = ',SUM(bound%ion_field(:))
+    DEALLOCATE( test_function % pos )
     !
-    CALL scalar_product_environ_gradient( field, bound%gradient, rho )
-    WRITE( environ_unit, '(a,f14.7)' )'actual total flux = ',integrate_environ_density(rho)
-    !
-    IF ( ideriv .EQ. 1 ) THEN
-       !
-       ! Test functional derivative wrt electronic density of each flux
-       !
-       ALLOCATE( analytic_dion_field_drho( bound%ions%number ) )
-       DO i = 1, bound % ions % number
-          CALL copy_environ_density( bound%dion_field_drho(i), analytic_dion_field_drho(i) )
-       ENDDO
-       !
-       ALLOCATE( fd_dion_field_drho( bound%ions%number ) )
-       !
-       test_function % type = 1
-       test_function % dim = 0
-       test_function % axis = 3
-       test_function % spread = 0.3D0
-       test_function % width = 0.D0
-       test_function % volume = 1.D0
-       !
-       epsilon = 0.000001
-       !
-       CALL init_environ_density( cell, delta )
-       !
-       CALL init_environ_density( cell, localelectrons%density )
-       !
-       ! We are only going to check delta functions along the z axis passing throught the O atom
-       !
-       ALLOCATE( test_function % pos( 3 ) )
-       test_function % pos(1) = 11.79D0 / cell % alat
-       test_function % pos(2) = 12.05D0 / cell % alat
-       !
-       DO i = 1, cell % n3
-          !
-          test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
-          CALL density_of_functions( test_function, delta, .TRUE. )
-          !
-          fd_dion_field_drho = 0.D0
-          !
-          localelectrons % density % of_r = bound % electrons % density % of_r - epsilon * delta%of_r
-          !
-          CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, &
-             & bound%ion_field )
-          !
-          fd_dion_field_drho = bound%ion_field
-          !
-          localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
-          !
-          CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, localelectrons, &
-             & bound%ion_field )
-          !
-          fd_dion_field_drho = bound%ion_field - fd_dion_field_drho
-          fd_dion_field_drho = fd_dion_field_drho * 0.5D0 / epsilon
-          !
-          IF ( ionode ) WRITE( environ_unit, * )' z = ',test_function % pos(3) * cell % alat
-          !
-          DO j = 1, bound % ions % number
-             tmp = scalar_product_environ_density( analytic_dion_field_drho(j), delta )
-             IF ( ionode ) WRITE(environ_unit,'(a,i3,3f20.10)')'ion = ',j,&
-                & tmp, fd_dion_field_drho(j), tmp - fd_dion_field_drho(j)
-          ENDDO
-          !
-       ENDDO
-       !
-       DEALLOCATE( test_function % pos )
-       CALL destroy_environ_density( delta )
-       !
-       DO i = 1, bound % ions % number
-          CALL destroy_environ_density( analytic_dion_field_drho(i) )
-       ENDDO
-       DEALLOCATE( analytic_dion_field_drho )
-       DEALLOCATE( fd_dion_field_drho )
-       !
-    ELSE IF ( ideriv .EQ. 2 ) THEN
-       !
-       ! Test derivative wrt atomic positions with finite differences
-       !
-       CALL compute_ion_field_partial( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, &
-          & bound%ion_field, bound%partial_of_ion_field )
-       !
-       ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
-       analytic_partial_of_ion_field = bound % partial_of_ion_field
-       !
-       dx = 0.0001D0
-       !
-       ALLOCATE( fd_partial_of_ion_field( bound%ions%number ) )
-       !
-       DO i = 1, bound % ions % number
-          !
-          DO ipol = 1, 3
-             !
-             x0 = bound % ions % tau( ipol, i )
-             bound % ions % tau( ipol, i ) = x0 - dx
-             !
-             CALL update_environ_ions( bound%ions%number, bound%ions%tau, bound%ions )
-             rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
-             CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
-             !
-             CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, &
-                & bound%ion_field )
-             !
-             fd_partial_of_ion_field = bound%ion_field
-             !
-             bound % ions % tau( ipol, i ) = x0 + dx
-             !
-             CALL update_environ_ions( bound%ions%number, bound%ions%tau, bound%ions )
-             rho % of_r = bound%electrons%density%of_r + bound%ions%density%of_r
-             CALL gradv_h_of_rho_r( rho%of_r, field%of_r )
-             !
-             CALL compute_ion_field( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, &
-                & bound%ion_field )
-             !
-             fd_partial_of_ion_field = bound%ion_field - fd_partial_of_ion_field
-             fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx / cell%alat
-             !
-             WRITE( environ_unit, * )' i  = ',i,' ipol = ',ipol
-             WRITE( environ_unit, '(a,10f20.10)' )'analytic     = ',analytic_partial_of_ion_field( ipol, :, i )
-             WRITE( environ_unit, '(a,10f20.10)' )'finite-diff  = ',fd_partial_of_ion_field(:)
-             WRITE( environ_unit, * )' '
-             !
-             bound % ions % tau( ipol, i ) = x0
-             !
-          ENDDO
-          !
-       ENDDO
-       !
-       DEALLOCATE( analytic_partial_of_ion_field )
-       DEALLOCATE( fd_partial_of_ion_field )
-       !
-    END IF
-    !
+    ! Clean up
+    CALL destroy_environ_density( normal_field )
+    CALL destroy_environ_density( dfield_drho )
+    CALL destroy_environ_density( delta )
     STOP
     !
 !--------------------------------------------------------------------
@@ -1333,17 +1276,25 @@ CONTAINS
     SELECT CASE ( bound % mode )
     CASE ( 'fa-electronic' )
        !
+       !TEMP
+       !CALL boundary_of_density( bound % electrons % density, bound )
+       !ENDTEMP
        CALL compute_normal_field( bound%ions, bound%electrons, bound%normal_field )
        !CALL write_cube( bound % normal_field )
+       !CALL write_cube( bound % scaled, label=strg )
        !
-       !CALL write_cube( bound % electrons % density, label=strl )
+       !CALL write_cube( bound % electrons % density, label=strg )
+       !CALL write_cube( bound % ions % density, label=strg )
+       !STOP
        !
        CALL field_aware_density( bound%electrons, bound )
        !
-       !CALL write_cube( bound % density, label=strg )
+       !CALL write_cube( bound % density, label=strl )
        !STOP
        !
        CALL boundary_of_density( bound % density, bound )
+       !CALL write_cube( bound % scaled, label=strl )
+       !STOP
        !
     CASE ( 'fa-ionic' )
        !
@@ -1367,10 +1318,10 @@ CONTAINS
     !
     CALL init_environ_density( cell, de_dboundary )
     !
-    localpressure = 100.D0
+    localpressure = 100
     CALL calc_devolume_dboundary( localpressure, bound, de_dboundary )
     !
-    localsurface_tension = 100.D0
+    localsurface_tension = 100
     CALL calc_desurface_dboundary( localsurface_tension, bound, de_dboundary )
     !
     IF ( ideriv .EQ. 1 ) THEN
@@ -1398,7 +1349,7 @@ CONTAINS
        test_function % width = 0.D0
        test_function % volume = 1.D0
        !
-       epsilon = 0.000001
+       epsilon = 0.000008
        !
        !CALL write_cube( bound % electrons % density, label=strg )
        !
@@ -1409,16 +1360,17 @@ CONTAINS
        ! We are only going to check delta functions along the z axis passing throught the O atom
        !
        ALLOCATE( test_function % pos( 3 ) )
-       test_function % pos(1) = 11.79D0 / cell % alat
-       test_function % pos(2) = 12.05D0 / cell % alat
+       test_function % pos(1) = 10.606846 / cell % alat
+       test_function % pos(2) = 10.606967 / cell % alat
        !
        DO i = 1, cell % n3
           !
           de_fd = 0.D0
           !
           test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
-          !IF (test_function % pos(3) * cell % alat .LE. 5.D0) CYCLE
-          IF (test_function % pos(3) * cell % alat .LE. 5.D0 .OR. test_function % pos(3) * cell % alat .GE. 10.D0) CYCLE
+          IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' z = ', test_function%pos(3)
+          !IF (test_function % pos(3) * cell % alat .LE. 5.5) CYCLE
+          !IF (test_function % pos(3) * cell % alat .LE. 4.5 .OR. test_function % pos(3) * cell % alat .GE. 7.0) CYCLE
           CALL density_of_functions( test_function, delta, .TRUE. )
           !
           localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
@@ -1430,7 +1382,6 @@ CONTAINS
              !
              CALL compute_normal_field( bound%ions, localelectrons, bound%normal_field )
              !
-             !CALL write_cube( bound % electrons % density, label=strl )
              CALL field_aware_density( localelectrons, bound )
              !CALL write_cube( bound % electrons % density, label=strg )
              !STOP
@@ -1504,7 +1455,9 @@ CONTAINS
           !
           IF ( ionode ) WRITE(environ_unit,'(a,f14.7,3f20.10)')' z = ',test_function % pos(3) * cell % alat,&
                & de_analytic, de_fd, de_analytic - de_fd
+          FLUSH(environ_unit)
           !
+          !STOP
        ENDDO
        !
        DEALLOCATE( test_function % pos )
@@ -1522,7 +1475,7 @@ CONTAINS
             & bound%partial_of_ion_field )
        ENDIF
        !
-       dx = 0.0001D0
+       dx = 0.00001D0
        !
        CALL init_environ_gradient( cell, partial )
        !
@@ -1540,10 +1493,12 @@ CONTAINS
           force = - scalar_product_environ_gradient_density( partial, de_dboundary )
           !
           DO ipol = 1, 3
+             !IF (ipol < 3) CYCLE
              !
              de_fd = 0.D0
              !
              x0 = bound % ions % tau( ipol, i )
+             !IF ( ionode ) WRITE( program_unit, '(1F20.10)' ) bound % scaled % cell % domega
              bound % ions % tau( ipol, i ) = x0 - dx
              !
              CALL update_environ_ions( bound%ions%number, bound%ions%tau, bound%ions )
@@ -1556,6 +1511,7 @@ CONTAINS
                 CALL field_aware_density( bound%electrons, bound )
                 !
                 CALL boundary_of_density( bound%density, bound )
+                !CALL write_cube( bound%scaled, label=strg )
                 !
              CASE ( 'fa-ionic' )
                 !
@@ -1563,19 +1519,17 @@ CONTAINS
                 !
                 CALL set_soft_spheres( bound, .TRUE. )
                 !
-                CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound )
-                !
-             CASE DEFAULT
+                CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound ) !  CASE DEFAULT
                 !
                 CALL errore(sub_name,'Unrecognized boundary mode',1)
                 !
              END SELECT
              !
              CALL calc_evolume( localpressure, bound, etmp )
-             de_fd = de_fd + etmp
+             de_fd = de_fd - etmp
              !
              CALL calc_esurface( localsurface_tension, bound, etmp )
-             de_fd = de_fd + etmp
+             de_fd = de_fd - etmp
              !
              bound % ions % tau( ipol, i ) = x0 + dx
              !
@@ -1589,6 +1543,8 @@ CONTAINS
                 CALL field_aware_density( bound%electrons, bound )
                 !
                 CALL boundary_of_density( bound%density, bound )
+                !CALL write_cube( bound%scaled, label=strl )
+                !STOP
                 !
              CASE ( 'fa-ionic' )
                 !
@@ -1605,15 +1561,16 @@ CONTAINS
              END SELECT
              !
              CALL calc_evolume( localpressure, bound, etmp )
-             de_fd = de_fd - etmp
+             de_fd = de_fd + etmp
              !
              CALL calc_esurface( localsurface_tension, bound, etmp )
-             de_fd = de_fd - etmp
+             de_fd = de_fd + etmp
              !
              de_fd = de_fd * 0.5D0 / dx / cell%alat
              !
              IF ( ionode ) WRITE(environ_unit,'(a,i3,a,i3,3f20.10)')' i = ',i,' ipol = ',ipol,&
                   & force(ipol), de_fd, force(ipol) - de_fd
+             !STOP
              !
              bound % ions % tau( ipol, i ) = x0
              !
@@ -1630,6 +1587,46 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE test_energy_derivatives
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE extract_boundary_data( bound )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_boundary ), INTENT(IN) :: bound
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    INTEGER :: i, ipol
+    REAL( DP ) :: epsilon
+    REAL( DP ) :: localpressure, localsurface_tension
+    REAL( DP ) :: de_fd, de_analytic, etmp
+    REAL( DP ) :: dx, x0, force(3)
+    TYPE( environ_density ) :: de_dboundary
+    TYPE( environ_density ) :: vanalytic
+    TYPE( environ_functions ) :: test_function
+    TYPE( environ_density ) :: delta
+    TYPE( environ_electrons ) :: localelectrons
+    TYPE( environ_gradient ) :: partial
+    !
+    CHARACTER(len=100) :: strg = 'e'
+    CHARACTER(len=100) :: strl = 'i'
+    CHARACTER( LEN=80 ) :: sub_name = 'extract_boundary_data'
+    !
+    !
+    cell => bound % scaled % cell
+    !
+    IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'extract_boundary_data'
+    !
+    ! Compute the field and the field-aware interface
+    !
+    CALL write_cube( bound % electrons % density, label=strg )
+    CALL write_cube( bound % ions % density, label=strl )
+    STOP
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE extract_boundary_data
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE utils_boundary
