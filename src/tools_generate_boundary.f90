@@ -44,21 +44,16 @@ MODULE tools_generate_boundary
        & delectronic_field_drho
   !
 CONTAINS
-!  Function: sfunct0
-!
-!> Switching function 0: goes from 1 to 0 when passing through the
-!! threshold
-!!
-!! \f[
-!!    1 + \frac{1 - (x/x_t)^k}{1 + (x/x_t)^k}
-!! \f]
-!! where \f$x_t\f$ is the threshold
 !--------------------------------------------------------------------
+  !> Switching function 0: goes from 1 to 0 when passing through the
+  !! threshold
+  !!
+  !! \f[
+  !!    1 + \frac{1 - (x/x_t)^k}{1 + (x/x_t)^k}
+  !! \f]
+  !! where \f$x_t\f$ is the threshold
   FUNCTION sfunct0( x, xthr, fact )
 !--------------------------------------------------------------------
-    !
-    ! ... Switching function 0: 1+(1-(x/xthr)^fact)/(1+(x/xthr)^fact)
-    !     goes from 1 to 0 when passing through the threshold
     !
     IMPLICIT NONE
     !
@@ -77,12 +72,11 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION sfunct0
 !--------------------------------------------------------------------
-!  Function: dsfunct0
-!
-!> Derivative of switching function 0
 !--------------------------------------------------------------------
+  !> Derivative of switching function 0
   FUNCTION dsfunct0( x, xthr, fact )
 !--------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     REAL( DP )             :: dsfunct0
@@ -101,18 +95,16 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dsfunct0
 !--------------------------------------------------------------------
-!  Function: sfunct1
-!
-!> Switching function 1 that goes from 1 to 0 when passing from
-!! xmin to xmax. 
-!!
-!! NOTE: fact should be equal to LOG(xmax/xmin) but is
-!! passed in input to save time
-!!
-!! \f[
-!!    x - \sin(x)
-!! \f]
 !--------------------------------------------------------------------
+  !> @brief Switching function 1 that goes from 1 to 0 when passing from
+  !! xmin to xmax. 
+  !!
+  !! NOTE: fact should be equal to LOG(xmax/xmin) but is
+  !! passed in input to save time
+  !!
+  !! \f[
+  !!    x - \sin(x)
+  !! \f]
   FUNCTION sfunct1( x, xmax, xmin, fact )
 !--------------------------------------------------------------------
     IMPLICIT NONE
@@ -138,15 +130,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION sfunct1
 !--------------------------------------------------------------------
-!  Function: dsfunct
-!
-!> Derivative of switching function 1
-!! 
-!! NOTE: fact should be equal to LOG(xmax/xmin) but is passed in
-!! input to save time.
 !--------------------------------------------------------------------
+  !> @brief Derivative of switching function 1
+  !! 
+  !! NOTE: fact should be equal to LOG(xmax/xmin) but is passed in
+  !! input to save time.
   FUNCTION dsfunct1( x, xmax, xmin, fact )
 !--------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     REAL( DP )             :: dsfunct1
@@ -170,15 +161,14 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dsfunct1
 !--------------------------------------------------------------------
-!  Function: d2sfunct1
-!
-!> Second derivative of switching function 1
-!!
-!! Note: fact should be equal to LOG(xmax/xmin) but is passed in
-!! input to save time
 !--------------------------------------------------------------------
+  !> @brief Second derivative of switching function 1
+  !!
+  !! Note: fact should be equal to LOG(xmax/xmin) but is passed in
+  !! input to save time
   FUNCTION d2sfunct1( x, xmax, xmin, fact )
 !--------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     REAL( DP )             :: d2sfunct1
@@ -203,11 +193,9 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION d2sfunct1
 !--------------------------------------------------------------------
-!  Function: sfunct2
-!
-!> Switching function 2, erfc() that goes from 1 to 0 when passing 
-!! through xthr. 
 !--------------------------------------------------------------------
+  !> Switching function 2, erfc() that goes from 1 to 0 when passing 
+  !! through xthr. 
   FUNCTION sfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
     IMPLICIT NONE
@@ -228,12 +216,10 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION sfunct2
 !--------------------------------------------------------------------
-!  Function: dsfunct2
-!
-!> Derivative of switching function 2
 !--------------------------------------------------------------------
   FUNCTION dsfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     REAL( DP )             :: dsfunct2
@@ -255,12 +241,10 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dsfunct2
 !--------------------------------------------------------------------
-!  Function: d2sfunct2
-!
-!> Second derivative of switching function 2
 !--------------------------------------------------------------------
   FUNCTION d2sfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     REAL( DP )             :: d2sfunct2
@@ -282,13 +266,13 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION d2sfunct2
 !--------------------------------------------------------------------
-!  Function: boundfunct
-!
-!> Calculates the density-dependent dielectric constant
-!! ifunct = 0 => original Fattebert and Gygi function
 !--------------------------------------------------------------------
+  !> Calculates the density-dependent dielectric constant
+  !!
+  !! ifunct = 0 => original Fattebert and Gygi function
   FUNCTION boundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     REAL( DP ) :: boundfunct
@@ -330,14 +314,21 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION boundfunct
 !--------------------------------------------------------------------
-!  Function: dboundfunct
-!
-!> Calculates the derivative of the density-dependent dielectric
-!! constant
-!! ifunct = 0 => original Fattebert and Gygi function
 !--------------------------------------------------------------------
+  !> @brief Calculates the derivative of the density-dependent dielectric
+  !! constant
+  !!
+  !! ifunct = 0 => original Fattebert and Gygi function
+  !!
+  !! @param[in]    rho      electrostatic density
+  !! @param[in]    rhomax   maximum density cutoff
+  !! @param[in]    rhomin   minimum density cutoff
+  !! @param[in]    tbeta
+  !! @param[in]    const
+  !! @param[in]    ifunct
+  !! @return       the second derivative of the boundary function
   FUNCTION dboundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
-!--------------------------------------------------------------------
+!-------------------------------------------------------------------- 
     IMPLICIT NONE
     !
     REAL( DP ) :: dboundfunct
@@ -379,13 +370,19 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dboundfunct
 !--------------------------------------------------------------------
-!  Function: d2boundfunct
-!
-!> Calculates the second derivative of the density-dependent
-!! dielectric constant
-!!
-!! ifunct = 0 => original Fattebery and Gygi function
 !--------------------------------------------------------------------
+  !> @brief Calculates the second derivative of the density-dependent
+  !! dielectric constant
+  !!
+  !! ifunct = 0 => original Fattebery and Gygi function
+  !!
+  !! @param[in]    rho      electrostatic density
+  !! @param[in]    rhomax   maximum density cutoff
+  !! @param[in]    rhomin   minimum density cutoff
+  !! @param[in]    tbeta
+  !! @param[in]    const
+  !! @param[in]    ifunct
+  !! @return       the second derivative of the boundary function
   FUNCTION d2boundfunct( rho, rhomax, rhomin, tbeta, const, ifunct )
 !--------------------------------------------------------------------
     IMPLICIT NONE
@@ -430,12 +427,16 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION d2boundfunct
 !--------------------------------------------------------------------
-!  Subroutine: boundary_of_density
-!
-!> Calculates the dielectric constant as a function of the charge
-!! density, and the derivative of the the dielectric constant
-!! with respect to the charge density. 
 !--------------------------------------------------------------------
+  !> @brief Updates boundary object using a density object
+  !!
+  !! Calculates the dielectric constant as a function of the charge
+  !! density, and the derivatives of the the dielectric constant
+  !! with respect to the charge density. Additionally calculates the
+  !! volume and surface components.
+  !!
+  !! @param[in]     density              electrostatic density to use
+  !! @param[inout]  boundary             boundary to update
   SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
     !
@@ -617,14 +618,22 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_dsurface
 !--------------------------------------------------------------------
-!  Subroutine: boundary_of_functions
-!
-!> Calculates the dielectric constant as a function of the charge
-!! density, and derivative of the dielectric constant with respect
-!! to the charge density
 !--------------------------------------------------------------------
+  !> @brief Updates boundary object using function objects
+  !!
+  !! Calculates the dielectric constant as a function of the charge
+  !! density, and derivatives of the dielectric constant with respect
+  !! to the charge density. Also updates the volume and surface
+  !! components. This function is implemented for the soft-spheres
+  !! interface model. It expects a series of environ_functions of
+  !! dimension equal to nsoft_spheres. 
+  !!
+  !! @param[in]      nsoft_spheres     number of soft-spheres
+  !! @param[in]      soft_spheres      functions for the soft-spheres
+  !! @param[inout]   boundary          boundary to update
   SUBROUTINE boundary_of_functions( nsoft_spheres, soft_spheres, boundary )
 !--------------------------------------------------------------------
+    ! 
     USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions, derivative_of_functions
     !
@@ -1210,14 +1219,19 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE calc_dboundary_dions
 !--------------------------------------------------------------------
-!  Subroutine: boundary_of_system
-!
-!> Calculates the dielectric constant as a function of the charge
-!! density, and the derivative of the dielectric constant with
-!! respect to the charge density.
 !--------------------------------------------------------------------
+  !> Updates the boundary using a function
+  !!
+  !! Calculates the dielectric constant as a function of the charge
+  !! density, and the derivatives of the dielectric constant with
+  !! respect to the charge density. Also updates the volume and surface
+  !! components. Expects an explicity defined system density function.
+  !!
+  !! @param[in]    simple         the input function
+  !! @param[inout] boundary       the boundary to be updated
   SUBROUTINE boundary_of_system( simple, boundary )
 !--------------------------------------------------------------------
+
     USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions
     !
@@ -1512,13 +1526,15 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE solvent_aware_boundary
 !--------------------------------------------------------------------
-!  Subroutine: solvent_aware_de_dboundary
-!
-!> Fill voids of the continuum interface that are too small to
-!! fit a solvent molecule
 !--------------------------------------------------------------------
+  !> @brief Compute the functional derivative of the energy wrt the boundary
+  !!
+  !! @param[in]    boundary             the boundary that contains all necessary
+  !!                                    information
+  !! @param[out]   de_dboundary         the computed derivative
   SUBROUTINE solvent_aware_de_dboundary( boundary, de_dboundary )
 !--------------------------------------------------------------------
+
     USE tools_generate_functions, ONLY : compute_convolution_fft
     !
     IMPLICIT NONE
@@ -2124,14 +2140,21 @@ CONTAINS
 !--------------------------------------------------------------------
   END FUNCTION dscaling_of_field
 !--------------------------------------------------------------------
-!
-!> Scales the density in the field-aware self-consistent model
-!! the function is defined in e^-f(E_norm), which multiplies the electronic
-!! density to represent the new effective density. NOTE that the exponent is
-!! applied here! The f function is the same switching function introduced
-!! by Andreussi et al. for the original SCCS
-!
 !--------------------------------------------------------------------
+  !> @brief Outputs a density object representing part of the field-aware 
+  !! scaling 
+  !! 
+  !! Scales the density in the field-aware self-consistent model
+  !! the function is defined in e^-f(E_norm), which multiplies the electronic
+  !! density to represent the new effective density. NOTE that the exponent is
+  !! applied here! The f function is the same switching function introduced
+  !! by Andreussi et al. for the original SCCS
+  !!
+  !! @param[in]      field_factor      the muliplicity factor
+  !! @param[in]      field_max         maximum electric field cutoff
+  !! @param[in]      field_min         minimum electric field cutoff
+  !! @param[in]      normal_field      the field to define the scaling object
+  !! @param[inout]   scaled           scaling
   SUBROUTINE scaling_of_density( field_factor, field_max, &
       & field_min, normal_field, scaled )
 !--------------------------------------------------------------------
@@ -2168,12 +2191,26 @@ CONTAINS
        !
        scaled % of_r( i ) = EXP( arg * field_factor * (-1.D0) )
        !
-     ENDDO
-     !
+    ENDDO
+    !
 !--------------------------------------------------------------------
   END SUBROUTINE scaling_of_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  !> @brief Outputs a density object representing part of the field-aware 
+  !! scaling derivative
+  !! 
+  !! Applies the derivative of the scaling of density function
+  !! Note that scaling of density is an exponential function, exp(-fx)
+  !! and the derivative function here only returns the derivative of f,
+  !! which should then be multiplied with the result of scaling of density
+  !! for the correct result
+  !!
+  !! @param[in]      field_factor      the muliplicity factor
+  !! @param[in]      field_max         maximum electric field cutoff
+  !! @param[in]      field_min         minimum electric field cutoff
+  !! @param[in]      normal_field      the field to define the scaling object
+  !! @param[inout]   dscaled           scaling derivative (wrt normal field)
   SUBROUTINE dscaling_of_density( field_factor, field_max, &
       & field_min, normal_field, dscaled )
 !--------------------------------------------------------------------
@@ -2255,6 +2292,18 @@ CONTAINS
   END SUBROUTINE field_aware_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  !> @brief d normal_field / d rho
+  !!
+  !! Intermediate function that calculates the functional derivative of
+  !! Normal electric field with respect to the electric density. To 
+  !! evaluate one needs an arbitrary function. Implemented here, the
+  !! function is only evaluated at call, and discarded afterwards.
+  !! Note that this value is only useful for debugging.
+  !!
+  !! @param[in]      boundary       the boundary object contains the normal field
+  !! @param[in]      funct          to reduce this functional, one needs to define
+  !!                                some arbitrary function to integrate over.
+  !! @param[inout]   dfield_drho    functional derivative
   SUBROUTINE delectronic_field_drho( boundary, funct, dfield_drho )
 !--------------------------------------------------------------------
     !

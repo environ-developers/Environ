@@ -1123,7 +1123,6 @@ CONTAINS
     TYPE( environ_density ) :: dfield_drho
     TYPE( environ_density ) :: delta
     TYPE( environ_functions ) :: test_function
-    TYPE( environ_functions ) :: eps_function
     TYPE( environ_boundary ) :: localbound
     TYPE( environ_electrons ) :: localelectrons
     REAL( DP ) :: de_fd, de_analytic, eps
@@ -1152,19 +1151,6 @@ CONTAINS
     ALLOCATE( test_function % pos( 3 ) )
     test_function % pos(1) = 10.606846 / cell % alat
     test_function % pos(2) = 10.606967 / cell % alat
-    test_function % pos(3) = 6.500000 / cell % alat
-    !
-    ! Define a simple gaussian in order to take differences wrt the electronic
-    ! density
-    eps_function % type = 1
-    eps_function % dim = 0
-    eps_function % axis = 3
-    eps_function % spread = 0.4D0
-    eps_function % width = 0.D0
-    eps_function % volume = 1.D0
-    ALLOCATE( eps_function % pos( 3 ) )
-    eps_function % pos(1) = 10.606846 / cell % alat
-    eps_function % pos(2) = 10.606967 / cell % alat
     !
     eps = 1e-1
     !
@@ -1175,22 +1161,22 @@ CONTAINS
     CALL field_aware_density( bound % electrons, bound )
     CALL boundary_of_density( bound % density, bound )
     !
-    ! Compute functional derivative wrt electronic density
-    CALL delectronic_field_drho( bound, test_function, dfield_drho )
-    !
     ! LOOP through the Z-axis, and apply a small change in electronic density
     ! compute the normal field 
     DO i = 1, cell % n3
        !
        de_fd = 0.D0
        idx = get_idx_environ_cell( cell, cell % n1 / 2, cell % n2 / 2, i ) 
+       test_function % pos(3) = DBLE(i-1) * cell % at(3, 3) / DBLE( cell % n3 )
        !
-       eps_function % pos(3) = DBLE(i-1) * cell % at(3, 3) / DBLE( cell % n3 )
+       ! Compute functional derivative wrt electronic density
+       CALL delectronic_field_drho( bound, test_function, dfield_drho )
+       !
        !IF (eps_function % pos(3) * cell % alat .LE. 4.5 .OR. &
        !  & eps_function % pos(3) * cell % alat .GE. 9.0) CYCLE
        !IF (i .LE. 40) CYCLE
-       IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' z = ', eps_function%pos(3)
-       CALL density_of_functions( eps_function, delta, .TRUE. )
+       IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' z = ', test_function%pos(3)
+       CALL density_of_functions( test_function, delta, .TRUE. )
        !
        localelectrons % density % of_r = bound % electrons % density % of_r + eps * &
          & delta % of_r
@@ -1255,6 +1241,7 @@ CONTAINS
     REAL( DP ) :: localpressure, localsurface_tension
     REAL( DP ) :: de_fd, de_analytic, etmp
     REAL( DP ) :: dx, x0, force(3)
+    REAL( DP ) :: flux
     TYPE( environ_density ) :: de_dboundary
     TYPE( environ_density ) :: vanalytic
     TYPE( environ_functions ) :: test_function
@@ -1277,10 +1264,15 @@ CONTAINS
     CASE ( 'fa-electronic' )
        !
        !TEMP
-       !CALL boundary_of_density( bound % electrons % density, bound )
+       CALL boundary_of_density( bound % electrons % density, bound )
        !ENDTEMP
        CALL compute_normal_field( bound%ions, bound%electrons, bound%normal_field )
-       !CALL write_cube( bound % normal_field )
+       CALL write_cube( bound % normal_field )
+       !
+       flux = scalar_product_environ_density( bound % normal_field, bound % dscaled )
+       IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' flux = ', flux
+       STOP
+       !
        !CALL write_cube( bound % scaled, label=strg )
        !
        !CALL write_cube( bound % electrons % density, label=strg )
