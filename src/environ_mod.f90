@@ -161,6 +161,8 @@ MODULE environ_base
        add_jellium
   INTEGER ::                        &
        nrep
+  INTEGER ::                        &
+       niter ! stores the iteration of environ for debugging purposes
   !
   ! Computed physical variables
   !

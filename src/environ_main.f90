@@ -208,7 +208,7 @@ CONTAINS
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
                               charges, lstatic, static,             &
-                              lelectrolyte, electrolyte
+                              lelectrolyte, electrolyte, niter
     USE electrostatic_base, ONLY : reference, outer
     !
     ! ... Each contribution to the energy is computed in its module
@@ -234,6 +234,8 @@ CONTAINS
     esurface       = 0.D0
     evolume        = 0.D0
     eelectrolyte   = 0.D0
+    !
+    niter = niter + 1
     !
     ! ... Calculates the energy corrections
     !

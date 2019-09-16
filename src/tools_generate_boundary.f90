@@ -2155,14 +2155,14 @@ CONTAINS
   !! @param[in]      field_min         minimum electric field cutoff
   !! @param[in]      normal_field      the field to define the scaling object
   !! @param[inout]   scaled           scaling
-  SUBROUTINE scaling_of_density( field_factor, field_max, &
+  SUBROUTINE scaling_of_density( field_factor, charge_asymmetry, field_max, &
       & field_min, normal_field, scaled )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT(IN) :: field_factor, field_max, field_min
-    REAL( DP ) :: arg
+    REAL( DP ), INTENT(IN) :: field_factor, field_max, field_min, charge_asymmetry
+    REAL( DP ) :: arg, fact
     REAL( DP ) :: field
     !
     TYPE( environ_density ), INTENT(IN) :: normal_field
@@ -2179,17 +2179,19 @@ CONTAINS
        !
        field = normal_field % of_r( i )
        !
+       fact = ( charge_asymmetry - SIGN(1.D0, field) ) ** 2 * field_factor
+       !
        IF ( ABS( field ) .LE. field_min ) THEN
           arg = 0.D0
        ELSE IF ( ABS( field ) .LE. field_max ) THEN
-          arg = tpi * ( LOG( ABS( field ) ) - LOG( field_min ) ) / &
-            & ( LOG( field_max ) - LOG( field_min ) )
+          arg = tpi * ( ABS( field ) - ( field_min ) ) / &
+            & ( ( field_max ) - ( field_min ) )
           arg = ( arg - SIN( arg ) ) / tpi
        ELSE
           arg = 1.D0
        ENDIF
        !
-       scaled % of_r( i ) = EXP( arg * field_factor * (-1.D0) )
+       scaled % of_r( i ) = EXP( arg * fact * (-1.D0) )
        !
     ENDDO
     !
@@ -2211,14 +2213,14 @@ CONTAINS
   !! @param[in]      field_min         minimum electric field cutoff
   !! @param[in]      normal_field      the field to define the scaling object
   !! @param[inout]   dscaled           scaling derivative (wrt normal field)
-  SUBROUTINE dscaling_of_density( field_factor, field_max, &
+  SUBROUTINE dscaling_of_density( field_factor, charge_asymmetry, field_max, &
       & field_min, normal_field, dscaled )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT(IN) :: field_factor, field_max, field_min
-    REAL( DP ) :: arg
+    REAL( DP ), INTENT(IN) :: field_factor, field_max, field_min, charge_asymmetry
+    REAL( DP ) :: arg, fact
     REAL( DP ) :: field
     !
     TYPE( environ_density ), INTENT(IN) :: normal_field
@@ -2235,22 +2237,20 @@ CONTAINS
        !
        field = normal_field % of_r( i )
        !
+       fact = ( charge_asymmetry - SIGN(1.D0, field) ) ** 2 * field_factor
+       !
        IF ( ABS( field ) .LE. field_min ) THEN
           arg = 0.D0
        ELSE IF ( ABS( field ) .LE. field_max ) THEN
-          arg = tpi * ( LOG( ABS( field ) ) - LOG( field_min ) ) / &
-            & ( LOG( field_max ) - LOG( field_min ) )
-          arg = ( 1.D0 - COS( arg ) ) / ( LOG( field_max ) - LOG( field_min ) )
-          IF ( field > 1.D-30 ) THEN
-             arg = arg * SIGN( field, 1.D0 ) / ABS(field)
-          ELSE
-             arg = arg * SIGN( field, 1.D0 )
-          ENDIF
+          arg = tpi * ( ABS( field ) - ( field_min ) ) / &
+            & ( ( field_max ) - ( field_min ) )
+          arg = ( 1.D0 - COS( arg ) ) / ( ( field_max ) - ( field_min ) )
+          arg = arg * SIGN(1.D0, field)
        ELSE
           arg = 0.D0
        ENDIF
        !
-       dscaled % of_r( i ) = arg * field_factor
+       dscaled % of_r( i ) = arg * fact * (-1.D0)
        !
      ENDDO
      !
@@ -2281,7 +2281,7 @@ CONTAINS
     !
     CALL init_environ_density( cell, scaling )
     !
-    CALL scaling_of_density( field_factor, field_max, field_min, &
+    CALL scaling_of_density( field_factor, charge_asymmetry, field_max, field_min, &
        & boundary % normal_field, scaling )
     !
     boundary % density % of_r = scaling % of_r * electrons % density % of_r
@@ -2364,7 +2364,8 @@ CONTAINS
     INTEGER :: i, j, ipol
     REAL( DP ) :: df
     CHARACTER( LEN=80 ) :: sub_name = 'field_aware_de_drho'
-    CHARACTER( LEN=100 ) :: label = 'test'
+    CHARACTER( LEN=100 ) :: l_daux = 'daux'
+    CHARACTER( LEN=100 ) :: l_aux = 'aux'
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     !
@@ -2435,13 +2436,18 @@ CONTAINS
        CALL init_environ_density( cell, aux )
        CALL init_environ_density( cell, daux )
        !
-       CALL scaling_of_density( boundary % field_factor, &
+       CALL scaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
                               & boundary % field_max, boundary % field_min, & 
                               & boundary % normal_field, aux )
        !! COMMENTED TO ISOLATE ANOTHER TERM
-       CALL dscaling_of_density( boundary % field_factor, &
+       CALL dscaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
                                & boundary % field_max, boundary % field_min, &
                                & boundary % normal_field, daux )
+
+       !CALL write_cube( boundary % normal_field )
+       !CALL write_cube( daux, label=l_daux )
+       !CALL write_cube( aux, label=l_aux )
+       !
        !
        ! compute the green's function part first
        !
@@ -2465,20 +2471,20 @@ CONTAINS
        !
        ! add remaining terms, using daux to update new term temporarily
        !! COMMENTED TO ISOLATE ANOTHER TERM
-       rhotot % of_r = boundary % electrons % density % of_r + &
-                     & boundary % ions % density % of_r
-       daux % of_r = daux % of_r * boundary % electrons % density % of_r
-       daux % of_r = daux % of_r * rhotot % of_r
-       daux % of_r = daux % of_r * (-2.D0) * tpi
-       daux % of_r = daux % of_r + 1.D0
-       daux % of_r = daux % of_r * aux % of_r 
-       ! FOLLOWING TERM IS TEMPORARY
-       !daux % of_r = aux % of_r
-       ! THIS STUFF IS NOT TEMPORARY
-       daux % of_r = daux % of_r * boundary % dscaled % of_r
-       daux % of_r = daux % of_r * de_dboundary % of_r
-       de_drho % of_r = daux % of_r - de_drho % of_r
-       ! FOLLOWING TERM IS TEMPORARY
+      !  rhotot % of_r = boundary % electrons % density % of_r + &
+      !                & boundary % ions % density % of_r
+      !  daux % of_r = daux % of_r * boundary % electrons % density % of_r
+      !  daux % of_r = daux % of_r * rhotot % of_r
+      !  daux % of_r = daux % of_r * (-2.D0) * tpi
+      !  daux % of_r = daux % of_r + 1.D0
+      !  daux % of_r = daux % of_r * aux % of_r 
+      !  ! FOLLOWING TERM IS TEMPORARY
+      !  !daux % of_r = aux % of_r
+      !  ! THIS STUFF IS NOT TEMPORARY
+      !  daux % of_r = daux % of_r * boundary % dscaled % of_r
+      !  daux % of_r = daux % of_r * de_dboundary % of_r
+      !  de_drho % of_r = daux % of_r - de_drho % of_r
+      !  ! FOLLOWING TERM IS TEMPORARY
        !de_drho % of_r = daux % of_r
        ! deallocate
        !
@@ -2574,7 +2580,7 @@ CONTAINS
           !
        ENDDO
        !
-       partial % of_r = partial % of_r - gradaux % of_r
+       partial % of_r = partial % of_r + gradaux % of_r
        !
        CALL destroy_environ_gradient( gradaux )
        !
@@ -2599,12 +2605,12 @@ CONTAINS
        !
        CALL init_environ_hessian( cell, hesslocal )
        !
-       CALL scaling_of_density( boundary % field_factor, &
+       CALL scaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
                               & boundary % field_max, boundary % field_min, & 
                               & boundary % normal_field, aux )
        !CALL write_cube( aux, label=stra )
        !
-       CALL dscaling_of_density( boundary % field_factor, &
+       CALL dscaling_of_density( boundary % field_factor, boundary % charge_asymmetry, &
                                & boundary % field_max, boundary % field_min, &
                                & boundary % normal_field, daux )
        !CALL write_cube( boundary%electrons%density, label=strd )
@@ -2630,7 +2636,7 @@ CONTAINS
           gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * daux % of_r( : )
        ENDDO
        !
-       partial % of_r = partial % of_r - gradaux % of_r
+       partial % of_r = - gradaux % of_r
        !
        CALL destroy_environ_density( aux )
        CALL destroy_environ_density( daux )

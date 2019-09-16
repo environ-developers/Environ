@@ -1426,8 +1426,6 @@ CONTAINS
   FUNCTION get_idx_environ_cell( cell, i, j, k ) RESULT ( idx )
 !--------------------------------------------------------------------
     !
-    USE environ_output
-    !
     INTEGER, INTENT(IN) :: i, j, k
     TYPE( environ_cell ), INTENT(IN) :: cell
     !
@@ -1446,7 +1444,6 @@ CONTAINS
     idx = idx + k * (nx * ny)
     idx = idx + j * nx
     idx = idx + i
-    IF ( ionode ) WRITE( program_unit, '(7I8)') i, j, k, nx, ny, nz, idx
     ! 
 !--------------------------------------------------------------------
   END FUNCTION get_idx_environ_cell

@@ -120,6 +120,7 @@ MODULE utils_boundary
   USE environ_types
   USE environ_output
   USE utils_functions
+  USE environ_base, ONLY : niter
   !
   IMPLICIT NONE
   !
@@ -593,7 +594,7 @@ CONTAINS
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
-          CALL test_energy_derivatives( 1, bound )
+          !CALL test_energy_derivatives( 1, bound )
           !
        ELSE
           !
@@ -638,7 +639,7 @@ CONTAINS
 ! ... TO DEBUG FIELD-AWARE: testing energy derivatives
           !
           !CALL extract_boundary_data( bound )
-          CALL test_energy_derivatives( 2, bound )
+          !CALL test_energy_derivatives( 2, bound )
           !CALL test_normal_field_derivatives( bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
@@ -665,11 +666,15 @@ CONTAINS
           !
 ! ... TO DEBUG FIELD-AWARE: testing ion_field derivatives
 !          !
-          CALL test_ion_field_derivatives( 2, bound )
+
+          !CALL test_ion_field_derivatives( 2, bound )
 !          !
 ! ... TO DEBUG FIELD-AWARE: testing energy derivatives
 !          !
-          CALL test_energy_derivatives( 2, bound )
+          !IF ( ionode ) WRITE(program_unit,'(1X,a,i14.7)')' niter = ', niter
+          !IF ( ionode ) WRITE(environ_unit,'(a,i14.7)')' niter = ', niter
+          IF ( niter .EQ. 1 ) CALL test_energy_derivatives( 2, bound )
+          !IF ( niter .EQ. 1 ) CALL test_ion_field_derivatives( 2, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -1236,11 +1241,11 @@ CONTAINS
     !
     TYPE( environ_cell ), POINTER :: cell
     !
-    INTEGER :: i, ipol
+    INTEGER :: i, ipol, debugcubes
     REAL( DP ) :: epsilon
     REAL( DP ) :: localpressure, localsurface_tension
     REAL( DP ) :: de_fd, de_analytic, etmp
-    REAL( DP ) :: dx, x0, force(3)
+    REAL( DP ) :: dx, x0, force(3), ssforce(3)
     REAL( DP ) :: flux
     TYPE( environ_density ) :: de_dboundary
     TYPE( environ_density ) :: vanalytic
@@ -1249,12 +1254,17 @@ CONTAINS
     TYPE( environ_electrons ) :: localelectrons
     TYPE( environ_gradient ) :: partial
     !
-    CHARACTER(len=100) :: strg = 'global'
-    CHARACTER(len=100) :: strl = 'local'
+    CHARACTER(len=100) :: stra = 'noscaling'
+    CHARACTER(len=100) :: strg = 'standard'
+    CHARACTER(len=100) :: strp = 'epsplus'
+    CHARACTER(len=100) :: strm = 'epsminus'
     CHARACTER( LEN=80 ) :: sub_name = 'test_energy_derivatives'
     !
     !
     cell => bound % scaled % cell
+    !
+    !! DEBUGCUBES is a toggle to debug certain classes of cube files
+    debugcubes = 0
     !
     IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'energy'
     !
@@ -1264,29 +1274,36 @@ CONTAINS
     CASE ( 'fa-electronic' )
        !
        !TEMP
-       CALL boundary_of_density( bound % electrons % density, bound )
+       !CALL boundary_of_density( bound % electrons % density, bound )
        !ENDTEMP
        CALL compute_normal_field( bound%ions, bound%electrons, bound%normal_field )
-       CALL write_cube( bound % normal_field )
+       !CALL write_cube( bound % normal_field, label=strg )
        !
-       flux = scalar_product_environ_density( bound % normal_field, bound % dscaled )
-       IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' flux = ', flux
-       STOP
+       !flux = scalar_product_environ_density( bound % normal_field, bound % dscaled )
+       !IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' flux = ', flux
+       !STOP
        !
-       !CALL write_cube( bound % scaled, label=strg )
+       !!CALL write_cube( bound % scaled, label=strg )
        !
-       !CALL write_cube( bound % electrons % density, label=strg )
+       !!CALL write_cube( bound % electrons % density, label=strg )
        !CALL write_cube( bound % ions % density, label=strg )
        !STOP
        !
        CALL field_aware_density( bound%electrons, bound )
        !
-       !CALL write_cube( bound % density, label=strl )
+       !CALL write_cube( bound % density, label=strg )
        !STOP
        !
        CALL boundary_of_density( bound % density, bound )
-       !CALL write_cube( bound % scaled, label=strl )
-       !STOP
+       !
+       SELECT CASE ( debugcubes )
+       CASE ( 2 )
+         CALL write_cube( bound % scaled, label=strg )
+       CASE ( 1 )
+         CALL write_cube( bound % density, label=strg )
+       CASE DEFAULT
+       END SELECT
+       !!STOP
        !
     CASE ( 'fa-ionic' )
        !
@@ -1310,10 +1327,10 @@ CONTAINS
     !
     CALL init_environ_density( cell, de_dboundary )
     !
-    localpressure = 100
+    localpressure = -0.35
     CALL calc_devolume_dboundary( localpressure, bound, de_dboundary )
     !
-    localsurface_tension = 100
+    localsurface_tension = 0
     CALL calc_desurface_dboundary( localsurface_tension, bound, de_dboundary )
     !
     IF ( ideriv .EQ. 1 ) THEN
@@ -1361,13 +1378,20 @@ CONTAINS
           !
           test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
           IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' z = ', test_function%pos(3)
-          !IF (test_function % pos(3) * cell % alat .LE. 5.5) CYCLE
+          !IF (test_function % pos(3) .LE. 0.365) CYCLE
           !IF (test_function % pos(3) * cell % alat .LE. 4.5 .OR. test_function % pos(3) * cell % alat .GE. 7.0) CYCLE
           CALL density_of_functions( test_function, delta, .TRUE. )
           !
           localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
           !
-          !CALL write_cube( localelectrons % density, label=strl )
+          SELECT CASE ( debugcubes )
+          CASE ( 2 )
+            CALL boundary_of_density( bound % electrons % density, bound )
+            CALL write_cube( bound % scaled, label=stra )
+          CASE ( 1 )
+            CALL write_cube( bound % electrons % density, label=stra )
+          CASE DEFAULT
+          END SELECT
           !
           SELECT CASE ( bound % mode )
           CASE ( 'fa-electronic' )
@@ -1375,10 +1399,17 @@ CONTAINS
              CALL compute_normal_field( bound%ions, localelectrons, bound%normal_field )
              !
              CALL field_aware_density( localelectrons, bound )
-             !CALL write_cube( bound % electrons % density, label=strg )
              !STOP
              !
              CALL boundary_of_density( bound % density, bound )
+
+             SELECT CASE ( debugcubes )
+             CASE ( 2 )
+               CALL write_cube( bound % scaled, label=strp )
+             CASE ( 1 )
+               CALL write_cube( bound % density, label=strp )
+             CASE DEFAULT
+             END SELECT
              !
           CASE ( 'fa-ionic' )
              !
@@ -1415,6 +1446,16 @@ CONTAINS
              CALL field_aware_density( localelectrons, bound )
              !
              CALL boundary_of_density( bound % density, bound )
+             
+             SELECT CASE ( debugcubes )
+             CASE ( 2 )
+               CALL write_cube( bound % scaled, label=strm )
+               STOP
+             CASE ( 1 )
+               CALL write_cube( bound % density, label=strm )
+               STOP
+             CASE DEFAULT
+             END SELECT
              !
           CASE ( 'fa-ionic' )
              !
@@ -1445,7 +1486,8 @@ CONTAINS
           !
           de_analytic = scalar_product_environ_density( vanalytic, delta )
           !
-          IF ( ionode ) WRITE(environ_unit,'(a,f14.7,3f20.10)')' z = ',test_function % pos(3) * cell % alat,&
+          !
+          IF ( ionode ) WRITE(environ_unit,'(a,i14.7,3f20.10)')' z = ', i,&
                & de_analytic, de_fd, de_analytic - de_fd
           FLUSH(environ_unit)
           !
@@ -1473,15 +1515,16 @@ CONTAINS
        !
        DO i = 1, bound%ions%number
           !
-          IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'get dboundary_dions'
-          CALL calc_dboundary_dions( i, bound, partial )
+          ! for fa-electronic, this is not necessary
+          IF ( bound % mode .EQ. 'fa-ionic' ) THEN
+             CALL calc_dboundary_dions( i, bound, partial )
+             ssforce = -scalar_product_environ_gradient_density( partial, de_dboundary )
+          ENDIF
           !
           ! ... If field-aware interface correct the derivative of the interface function
           !
-          IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'get field_aware_dboundary_dions'
           IF ( bound % field_aware ) CALL field_aware_dboundary_dions( i, bound, partial )
           !
-          IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'get force'
           force = - scalar_product_environ_gradient_density( partial, de_dboundary )
           !
           DO ipol = 1, 3
@@ -1512,6 +1555,8 @@ CONTAINS
                 CALL set_soft_spheres( bound, .TRUE. )
                 !
                 CALL boundary_of_functions( bound%ions%number, bound%soft_spheres, bound ) !  CASE DEFAULT
+                !
+             CASE DEFAULT
                 !
                 CALL errore(sub_name,'Unrecognized boundary mode',1)
                 !
@@ -1558,10 +1603,16 @@ CONTAINS
              CALL calc_esurface( localsurface_tension, bound, etmp )
              de_fd = de_fd + etmp
              !
-             de_fd = de_fd * 0.5D0 / dx / cell%alat
+             ! force is negative of the energy derivative
+             de_fd = de_fd * (-0.5D0) / dx / cell%alat
              !
-             IF ( ionode ) WRITE(environ_unit,'(a,i3,a,i3,3f20.10)')' i = ',i,' ipol = ',ipol,&
-                  & force(ipol), de_fd, force(ipol) - de_fd
+             IF ( bound % mode .EQ. 'fa-ionic') THEN
+                IF ( ionode ) WRITE(environ_unit,'(a,i3,a,i3,4f20.10)')' i = ',i,' ipol = ',ipol,&
+                     & force(ipol), ssforce(ipol), de_fd, force(ipol) - de_fd
+             ELSE
+                IF ( ionode ) WRITE(environ_unit,'(a,i3,a,i3,3f20.10)')' i = ',i,' ipol = ',ipol,&
+                     & force(ipol), de_fd, force(ipol) - de_fd
+             ENDIF
              !STOP
              !
              bound % ions % tau( ipol, i ) = x0
