@@ -2636,7 +2636,7 @@ CONTAINS
           gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * daux % of_r( : )
        ENDDO
        !
-       partial % of_r = - gradaux % of_r
+       partial % of_r = gradaux % of_r
        !
        CALL destroy_environ_density( aux )
        CALL destroy_environ_density( daux )

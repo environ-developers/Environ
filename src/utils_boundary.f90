@@ -640,6 +640,7 @@ CONTAINS
           !
           !CALL extract_boundary_data( bound )
           !CALL test_energy_derivatives( 2, bound )
+          !IF ( niter .EQ. 1 ) CALL test_energy_derivatives( 2, bound )
           !CALL test_normal_field_derivatives( bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
