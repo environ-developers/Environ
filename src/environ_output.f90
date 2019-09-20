@@ -1410,11 +1410,11 @@ CONTAINS
     !
     USE fft_base,       ONLY : dfftp
 ! BACKWARD COMPATIBILITY
-! Compatible with QE-5.1 QE-5.1.1 QE-5.1.2
+! Compatible with QE-5.1.X
 !      USE fft_base,       ONLY : grid_gather
-! Compatible with QE-5.2 QE-5.2.1
+! Compatible with QE-5.2.X
 !      USE fft_base,       ONLY : gather_grid
-! Compatible with QE-5.3 QE-6.X QE-git
+! Compatible with QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
     USE scatter_mod,    ONLY : gather_grid
 ! END BACKWARD COMPATIBILITY
     !
@@ -1443,13 +1443,13 @@ CONTAINS
     INTEGER, OPTIONAL :: idx
     CHARACTER( LEN=100 ) :: filemod
     !
-    nr1x = dfftp%nr1x
-    nr2x = dfftp%nr2x
-    nr3x = dfftp%nr3x
+    nr1x = f%cell%nr1x
+    nr2x = f%cell%nr2x
+    nr3x = f%cell%nr3x
     !
-    nr1 = dfftp%nr1
-    nr2 = dfftp%nr2
-    nr3 = dfftp%nr3
+    nr1 = f%cell%nr1
+    nr2 = f%cell%nr2
+    nr3 = f%cell%nr3
     !
     IF(PRESENT(idx)) THEN
        WRITE(filemod, '(i4.4)') idx
@@ -1473,9 +1473,9 @@ CONTAINS
     ALLOCATE( flocal( nr1x*nr2x*nr3x ) )
 #ifdef __MPI
     flocal = 0.D0
-!Compatible with QE-5.1 QE-5.1.1 QE-5.1.2
+!Compatible with QE-5.1.X
 !      CALL grid_gather( f, flocal )
-!Compatible with QE-svn
+!Compatible with QE-5.2.X QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
     CALL gather_grid( dfftp, f%of_r, flocal )
     CALL mp_sum( flocal, f%cell%comm )
 #else

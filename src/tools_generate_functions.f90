@@ -659,7 +659,7 @@ CONTAINS
        r = r * cell % alat
        dist = SQRT(r2) * cell % alat
        arg = ( dist - width ) / spread
-       ! 
+       !
        IF ( dist .GT. tol ) gradlocal( :, ir ) = EXP( - arg**2 ) * r(:) / dist
        !
     END DO
@@ -910,12 +910,11 @@ CONTAINS
        !
        CALL minimum_image( cell, r, r2 )
        !
-       distance(ir,:) = r(:)
+       distance(:,ir) = r(:)
        !
     END DO
     !
     distance = distance * cell%alat
-    !
     !
     RETURN
     !

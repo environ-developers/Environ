@@ -645,6 +645,8 @@ CONTAINS
     !
     INTEGER :: idx, i, j, k, ip
     !
+    r = 0.D0
+    !
     CALL ir2ijk( cell, ir, i, j, k, physical )
     !
     IF ( .NOT. physical ) RETURN

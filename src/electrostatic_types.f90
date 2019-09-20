@@ -483,6 +483,8 @@ CONTAINS
     oned_analytic % n = cell % nnr
     ALLOCATE( oned_analytic % x( oned_analytic % p , oned_analytic % n ) )
     !
+    CALL update_oned_analytic_core_origin( cell%origin, oned_analytic )
+    !
     oned_analytic % initialized = .TRUE.
     !
     RETURN
