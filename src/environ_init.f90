@@ -315,8 +315,15 @@ CONTAINS
   END SUBROUTINE set_environ_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE environ_initbase( n1, n2, n3, ibrav, alat, omega, at, &
-                             & nnr, ir_end, comm, me, root, e2 )
+  SUBROUTINE environ_initbase( n1, n2, n3, ibrav, alat, omega, at, bg, &
+                             & nnr, ir_end, n1x, n2x, n3x, &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!                            & idx0, &
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+                             & j0, k0, n2p, n3p, &
+!  END BACKWARD COMPATIBILITY
+                             & comm, me, root, e2 )
 !--------------------------------------------------------------------
 !
 ! Subroutine to initialize fundamental quantities needed by the
@@ -355,6 +362,13 @@ CONTAINS
     INTEGER, INTENT(IN) :: nnr
     INTEGER, INTENT(IN) :: ir_end
     INTEGER, INTENT(IN) :: n1, n2, n3
+    INTEGER, INTENT(IN) :: n1x, n2x, n3x
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!    INTEGER, INTENT(IN) :: idx0
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+    INTEGER, INTENT(IN) :: j0, k0, n2p, n3p
+! END BACKWARD COMPATIBILITY
     INTEGER, INTENT(IN) :: ibrav
     INTEGER, INTENT(IN) :: comm
     INTEGER, INTENT(IN) :: me
@@ -362,6 +376,7 @@ CONTAINS
     REAL(DP), INTENT(IN) :: alat
     REAL(DP), INTENT(IN) :: omega
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
+    REAL(DP), DIMENSION(3,3), INTENT(IN) :: bg
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
     !
     CHARACTER( LEN = 80 ) :: label = ' '
@@ -371,7 +386,15 @@ CONTAINS
     e2_ = 2.D0
     IF ( PRESENT(e2) ) e2_ = e2
     !
-    CALL init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
+    CALL init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, bg, &
+         & nnr, ir_end, n1x, n2x, n3x, &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!         & idx0, &
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+         & j0, k0, n2p, n3p, &
+! END BACKWARD COMPATIBILITY
+         & comm, me, root, cell )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !

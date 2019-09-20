@@ -161,13 +161,13 @@ CONTAINS
     !
     IF ( .NOT. ASSOCIATED( potential%cell, charges%cell ) ) &
          & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
-    IF ( potential % cell % nnr .NE. oned_analytic % n ) &
+    IF ( .NOT. ASSOCIATED( potential%cell, oned_analytic%cell ) ) &
          & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
     cell => potential % cell
     nnr => cell % nnr
+    alat => cell % alat
+    omega => cell % omega
     !
-    alat => oned_analytic % alat
-    omega => oned_analytic % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size
@@ -363,13 +363,13 @@ CONTAINS
     !
     IF ( .NOT. ASSOCIATED( gradv%cell, charges%cell ) ) &
          & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
-    IF ( gradv % cell % nnr .NE. oned_analytic % n ) &
+    IF ( .NOT. ASSOCIATED ( gradv%cell, oned_analytic%cell ) ) &
          & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
     cell => gradv % cell
     nnr => cell % nnr
+    alat => cell % alat
+    omega => cell % omega
     !
-    alat => oned_analytic % alat
-    omega => oned_analytic % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size

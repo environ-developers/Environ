@@ -326,7 +326,7 @@ CONTAINS
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
     !
-    IF ( loned_analytic ) CALL update_oned_analytic_core_cell( cell%omega, cell%at, oned_analytic )
+    IF ( loned_analytic ) CALL update_oned_analytic_core_cell( cell, oned_analytic )
     !
     RETURN
     !

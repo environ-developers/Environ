@@ -112,7 +112,9 @@ MODULE electrostatic_types
      !
      INTEGER :: n, d, p, axis
      LOGICAL :: initialized = .FALSE.
-     REAL( DP ) :: size, omega, alat, origin(3)
+     REAL( DP ) :: size
+     TYPE( environ_cell ), POINTER :: cell
+     REAL( DP ), DIMENSION(3) :: origin
      REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: x
      !
   END TYPE oned_analytic_core
@@ -476,11 +478,9 @@ CONTAINS
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'init_oned_analytic_core_second'
     !
-    oned_analytic % n = cell % nnr
-    oned_analytic % alat = cell % alat
-    oned_analytic % origin = cell % origin
-    oned_analytic % omega = cell % omega
+    CALL update_oned_analytic_core_cell( cell, oned_analytic )
     !
+    oned_analytic % n = cell % nnr
     ALLOCATE( oned_analytic % x( oned_analytic % p , oned_analytic % n ) )
     !
     oned_analytic % initialized = .TRUE.
@@ -491,22 +491,21 @@ CONTAINS
   END SUBROUTINE init_oned_analytic_core_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE update_oned_analytic_core_cell( omega, at, oned_analytic )
+  SUBROUTINE update_oned_analytic_core_cell( cell, oned_analytic )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT(IN) :: omega
-    REAL( DP ), DIMENSION( 3, 3 ), INTENT(IN) :: at
+    TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
     TYPE( oned_analytic_core ), INTENT(INOUT) :: oned_analytic
     !
-    oned_analytic % omega = omega
+    oned_analytic % cell => cell
     IF ( oned_analytic % d .EQ. 0 ) THEN
-       oned_analytic % size = omega
+       oned_analytic % size = cell % omega
     ELSE IF ( oned_analytic % d .EQ. 1 ) THEN
-       oned_analytic % size = omega / at( oned_analytic % axis, oned_analytic % axis ) / oned_analytic % alat
+       oned_analytic % size = cell % omega / cell % at( oned_analytic % axis, oned_analytic % axis ) / cell % alat
     ELSE IF ( oned_analytic % d .EQ. 2 ) THEN
-       oned_analytic % size = at( oned_analytic % axis, oned_analytic % axis ) * oned_analytic % alat
+       oned_analytic % size = cell % at( oned_analytic % axis, oned_analytic % axis ) * cell % alat
     ENDIF
     !
     RETURN
@@ -529,11 +528,11 @@ CONTAINS
     !
     oned_analytic % origin = origin
     IF ( oned_analytic % d .EQ. 0 ) THEN
-       CALL generate_distance( oned_analytic % n, oned_analytic % origin, oned_analytic % x )
+       CALL generate_distance( oned_analytic % cell, oned_analytic % origin, oned_analytic % x )
     ELSE IF ( oned_analytic % d .EQ. 1 ) THEN
        CALL errore( sub_name, 'Option not yet implemented', 1 )
     ELSE IF ( oned_analytic % d .EQ. 2 ) THEN
-       CALL generate_axis( oned_analytic % n, oned_analytic % axis, oned_analytic % origin, oned_analytic % x(1,:) )
+       CALL generate_axis( oned_analytic % cell, oned_analytic % axis, oned_analytic % origin, oned_analytic % x(1,:) )
     ENDIF
     !
     RETURN
@@ -556,6 +555,9 @@ CONTAINS
       IF ( .NOT. ALLOCATED( oned_analytic % x ) ) &
            & CALL errore(sub_name,'Trying to destroy a non-allocated component',1)
       DEALLOCATE( oned_analytic % x )
+      IF ( .NOT. ASSOCIATED( oned_analytic % cell ) ) &
+           & CALL errore(sub_name,'Trying to nullify a non-associated pointer',1)
+      NULLIFY(oned_analytic%cell)
       oned_analytic % initialized = .FALSE.
     END IF
     !

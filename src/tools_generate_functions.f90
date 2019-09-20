@@ -23,9 +23,12 @@
 MODULE tools_generate_functions
 !----------------------------------------------------------------------------
   !
-  USE kinds, ONLY: DP
+  USE environ_types
   !
   IMPLICIT NONE
+  !
+  REAL(DP), PARAMETER       :: tol = 1.D-10
+  REAL(DP), PARAMETER       :: exp_tol = 3.6D1
   !
 CONTAINS
 !
@@ -117,18 +120,16 @@ CONTAINS
   END SUBROUTINE compute_convolution_fft
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE planar_average( nnr, naxis, axis, shift, reverse, f, f1d )
+  SUBROUTINE planar_average( cell, nnr, naxis, axis, shift, reverse, f, f1d )
 !--------------------------------------------------------------------
     !
-    USE kinds,            ONLY : DP
-    USE fft_base,         ONLY : dfftp
-    USE mp,               ONLY : mp_sum
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
+    USE mp,   ONLY : mp_sum
     !
     IMPLICIT NONE
     !
     ! ... Declares variables
     !
+    TYPE( environ_cell ), INTENT( IN ) :: cell
     INTEGER, INTENT(IN)       :: nnr, naxis, axis, shift
     LOGICAL, INTENT(IN)       :: reverse
     REAL( DP ), INTENT(INOUT) :: f( nnr )
@@ -136,12 +137,11 @@ CONTAINS
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, k, ir, ir_end
-    INTEGER                   :: idx, idx0, narea
+    INTEGER                   :: i, j, k, ir
+    INTEGER                   :: idx, narea
+    LOGICAL                   :: physical
     !
-    INTEGER                   :: j0, k0
-    !
-    narea = dfftp%nr1*dfftp%nr2*dfftp%nr3 / naxis
+    narea = cell % ntot / naxis
     !
     IF ( reverse ) THEN
        f = 0.D0
@@ -149,46 +149,15 @@ CONTAINS
        f1d = 0.D0
     END IF
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
        ! ... three dimensional indexes
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2ijk( cell, ir, i, j, k, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
        SELECT CASE ( axis )
        CASE ( 1 )
@@ -216,7 +185,7 @@ CONTAINS
     END DO
     !
     IF ( .NOT. reverse ) THEN
-       CALL mp_sum( f1d(:), intra_bgrp_comm )
+       CALL mp_sum( f1d(:), cell%comm )
        f1d = f1d / DBLE(narea)
     END IF
     !
@@ -226,166 +195,87 @@ CONTAINS
   END SUBROUTINE planar_average
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_gaussian( nnr, dim, axis, charge, spread, pos, corners, rho )
+  SUBROUTINE generate_gaussian( dim, axis, charge, spread, pos, density )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE constants,        ONLY : sqrtpi
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat, omega
-    USE fft_base,         ONLY : dfftp
-    USE mp,               ONLY : mp_sum
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
-    REAL(DP), PARAMETER       :: tol = 1.D-6
-    REAL(DP), PARAMETER       :: exp_tol = 3.6D1
-    !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: charge, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners(3,8)
-    REAL( DP ), INTENT(INOUT) :: rho( nnr )
+    TYPE( environ_density), INTENT(INOUT) :: density
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end, ic
-    INTEGER                   :: idx, idx0
+    LOGICAL                   :: physical
+    INTEGER                   :: ir
+    REAL( DP )                :: scale, spr2, length
+    REAL( DP )                :: r( 3 ), r2
+    REAL( DP ), ALLOCATABLE   :: local ( : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_gaussian'
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: scale, spr2, dist, length
-    REAL( DP )                :: r( 3 ), s( 3 )
-    REAL( DP ), ALLOCATABLE   :: rholocal ( : )
+    ! ... Aliases
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF ( ABS( spread ) .LT. tol ) THEN
-       WRITE(stdout,*)'ERROR: wrong spread for Gaussian function',spread
-       STOP
-    ENDIF
+    ! ... sanity checks and initial setup
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
-    IF ( dim .EQ. 0 ) THEN
+    cell => density % cell
+    !
+    IF ( ABS( charge ) .LT. tol ) RETURN
+    IF ( ABS( spread ) .LT. tol ) &
+         & CALL errore(sub_name,'Wrong spread for Gaussian function',1)
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong axis in generate_gaussian',1)
+    !
+    SELECT CASE ( dim )
+    CASE ( 0 )
        scale = charge / ( sqrtpi * spread )**3
-    ELSE IF ( dim .EQ. 1 ) THEN
-       length = ABS( at(axis,axis) * alat )
-       IF ( length .LT. tol ) THEN
-          WRITE(stdout,*)'ERROR: unphysically small dimension of cell',length
-          STOP
-       ENDIF
+    CASE ( 1 )
+       length = ABS( cell%at(axis,axis) * cell%alat )
        scale = charge / length / ( sqrtpi * spread )**2
-    ELSE IF ( dim .EQ. 2 ) THEN
-       length = ABS( at(axis,axis) * alat )
-       IF ( length .LT. tol .OR. omega .LT. tol ) THEN
-          WRITE(stdout,*)'ERROR: unphysically small dimensions of cell',length, omega
-          STOP
-       ENDIF
-       scale = charge * length / omega / ( sqrtpi * spread )
-    ELSE
-       WRITE(stdout,*)'WARNING: wrong dim in generate_gaussian'
-    ENDIF
-    IF ( ABS( alat ) .LT. tol ) THEN
-       WRITE(stdout,*)'ERROR: unphysically small alat',alat
-       STOP
-    ENDIF
-    spr2 = ( spread / alat )**2
-    ALLOCATE( rholocal( nnr ) )
-    rholocal = 0.D0
+    CASE ( 2 )
+       length = ABS( cell%at(axis,axis) * cell%alat )
+       scale = charge * length / cell%omega / ( sqrtpi * spread )
+    CASE default
+       CALL errore(sub_name,'Wrong value of dim',1)
+    END SELECT
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
+    spr2 = ( spread / cell%alat )**2
     !
-    DO ir = 1, ir_end
+    ALLOCATE( local( cell%nnr ) )
+    local = 0.D0
+    !
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = pos(:) - r(:)
-       !
-       !  ... possibly 2D or 1D gaussians
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       dist_min = SUM( r * r )
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s )
-         IF (dist<dist_min) dist_min = dist
-       ENDDO
-       dist = dist_min / spr2
+       CALL minimum_image( cell, r, r2 )
        !
-       IF ( dist .GT. exp_tol ) THEN
-          rholocal( ir ) = 0.D0
-       ELSE
-          rholocal( ir ) = scale * EXP(-dist)
-       ENDIF
+       ! ... compute Gaussian function
+       !
+       r2 = r2 / spr2
+       !
+       IF ( r2 .LE. exp_tol ) local( ir ) = EXP( -r2 )
        !
     END DO
     !
-    rho = rho + rholocal
-    DEALLOCATE( rholocal )
+    density%of_r = density%of_r + scale * local
+    DEALLOCATE( local )
     !
     RETURN
     !
@@ -393,166 +283,88 @@ CONTAINS
   END SUBROUTINE generate_gaussian
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_gradgaussian( nnr, dim, axis, charge, spread, pos, corners, gradrho )
+  SUBROUTINE generate_gradgaussian( dim, axis, charge, spread, pos, gradient )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE constants,        ONLY : sqrtpi
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat, omega
-    USE fft_base,         ONLY : dfftp
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
-    REAL(DP), PARAMETER       :: tol = 1.D-6
-    REAL(DP), PARAMETER       :: exp_tol = 3.6D1
-    !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: charge, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners(3,8)
-    REAL( DP ), INTENT(INOUT) :: gradrho( 3, nnr )
+    TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ip, ir_end, ic
-    INTEGER                   :: idx, idx0
+    LOGICAL                   :: physical
+    INTEGER                   :: ir
+    REAL( DP )                :: scale, spr2, length
+    REAL( DP )                :: r( 3 ), r2
+    REAL( DP ), ALLOCATABLE   :: gradlocal ( :, : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_gradgaussian'
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: scale, spr2, dist, length
-    REAL( DP )                :: r( 3 ), s( 3 )
-    REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
+    ! ... Aliases
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF ( ABS( spread ) .LT. tol ) THEN
-       WRITE(stdout,*)'ERROR: wrong spread for Gaussian function',spread
-       STOP
-    ENDIF
+    ! ... sanity checks and initial setup
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_gradgaussian'
-    IF ( dim .EQ. 0 ) THEN
+    cell => gradient % cell
+    !
+    IF ( ABS( charge ) .LT. tol ) RETURN
+    IF ( ABS( spread ) .LT. tol ) &
+         & CALL errore(sub_name,'Wrong spread for Gaussian function',1)
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong value of axis',1)
+    !
+    SELECT CASE ( dim )
+    CASE ( 0 )
        scale = charge / ( sqrtpi * spread )**3
-    ELSE IF ( dim .EQ. 1 ) THEN
-       length = ABS( at(axis,axis) * alat )
-       IF ( length .LT. tol ) THEN
-          WRITE(stdout,*)'ERROR: unphysically small dimension of cell',length
-          STOP
-       ENDIF
+    CASE ( 1 )
+       length = ABS( cell%at(axis,axis) * cell%alat )
        scale = charge / length / ( sqrtpi * spread )**2
-    ELSE IF ( dim .EQ. 2 ) THEN
-       length = ABS( at(axis,axis) * alat )
-       IF ( length .LT. tol .OR. omega .LT. tol ) THEN
-          WRITE(stdout,*)'ERROR: unphysically small dimensions of cell',length, omega
-          STOP
-       ENDIF
-       scale = charge * length / omega / ( sqrtpi * spread )
-    ELSE
-       WRITE(stdout,*)'WARNING: wrong dim in generate_gradgaussian'
-    ENDIF
-    IF ( ABS( alat ) .LT. tol ) THEN
-       WRITE(stdout,*)'ERROR: unphysically small alat',alat
-       STOP
-    ENDIF
-    scale = scale * 2.D0 / spread**2 * alat
-    spr2 = ( spread / alat )**2
-    ALLOCATE( gradrholocal( 3, nnr ) )
-    gradrholocal = 0.D0
+    CASE ( 2 )
+       length = ABS( cell%at(axis,axis) * cell%alat )
+       scale = charge * length / cell%omega / ( sqrtpi * spread )
+    CASE default
+       CALL errore(sub_name,'Wrong value of dim',1)
+    END SELECT
+    scale = scale * 2.D0 / spread**2 * cell%alat
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
+    spr2 = ( spread / cell%alat )**2
     !
-    DO ir = 1, ir_end
+    ALLOCATE( gradlocal( 3, cell%nnr ) )
+    gradlocal = 0.D0
+    !
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = pos(:) - r(:)
-       !
-       !  ... possibly 2D or 1D gaussians
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       dist_min = SUM( r * r )
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s )
-         IF (dist<dist_min) dist_min = dist
-       ENDDO
-       dist = dist_min / spr2
+       CALL minimum_image( cell, r, r2 )
        !
-       IF ( dist .GT. exp_tol ) THEN
-          gradrholocal( :, ir ) = 0.D0
-       ELSE
-          gradrholocal( :, ir ) = EXP(-dist) * r(:)
-       ENDIF
+       ! ... compute gradient of Gaussian function
+       !
+       r2 = r2 / spr2
+       !
+       IF ( r2 .LE. exp_tol ) gradlocal( :, ir ) = EXP(-r2) * r(:)
        !
     END DO
     !
-    gradrho = gradrho + gradrholocal * scale
-    DEALLOCATE( gradrholocal )
+    gradient%of_r = gradient%of_r + scale * gradlocal
+    DEALLOCATE( gradlocal )
     !
     RETURN
     !
@@ -560,136 +372,69 @@ CONTAINS
   END SUBROUTINE generate_gradgaussian
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_exponential(nnr, dim, axis, width, spread, pos, corners, rho )
+  SUBROUTINE generate_exponential( dim, axis, width, spread, pos, density )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat
-    USE fft_base,         ONLY : dfftp
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners(3,8)
-    REAL( DP ), INTENT(INOUT) :: rho( nnr )
+    TYPE( environ_density ), INTENT(INOUT) :: density
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
-    INTEGER                   :: idx, idx0
+    LOGICAL                   :: physical
+    INTEGER                   :: ir
+    REAL( DP )                :: r2, dist, arg
+    REAL( DP )                :: r( 3 )
+    REAL( DP ), ALLOCATABLE   :: local ( : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_exponential'
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: dist, arg
-    REAL( DP )                :: r( 3 ), s( 3 )
-    REAL( DP ), ALLOCATABLE   :: rholocal ( : )
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 40.D0
+    ! ... Aliases
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_exponential'
+    cell => density % cell
     !
-    ALLOCATE( rholocal( nnr ) )
-    rholocal = 0.D0
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong value of axis',1)
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
+    ALLOCATE( local( cell%nnr ) )
+    local = 0.D0
     !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = pos(:) - r(:)
-       !
-       !  ... possibly 2D or 1D gaussians
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       dist_min = SUM( r * r )
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s )
-         IF (dist<dist_min) dist_min = dist
-       ENDDO
-       dist = SQRT(dist_min) * alat
+       CALL minimum_image( cell, r, r2 )
+       !
+       ! ... compute exponentially decaying function
+       !
+       dist = SQRT(r2) * cell % alat
        !
        arg = ( dist - width ) / spread
        !
-       IF( ABS( arg ) .LT. exp_arg_limit ) THEN
-          rholocal( ir ) = EXP( - arg )
-       ELSE
-          rholocal( ir ) = 0.D0
-       END IF
+       IF( ABS( arg ) .LE. exp_tol ) local( ir ) = EXP( - arg )
        !
     END DO
     !
-    rho = rho + rholocal
-    DEALLOCATE( rholocal )
+    density%of_r = density%of_r + local
+    DEALLOCATE( local )
     !
     RETURN
     !
@@ -697,136 +442,70 @@ CONTAINS
   END SUBROUTINE generate_exponential
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_gradexponential(nnr, dim, axis, width, spread, pos, corners, gradrho )
+  SUBROUTINE generate_gradexponential( dim, axis, width, spread, pos, gradient )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat
-    USE fft_base,         ONLY : dfftp
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners(3,8)
-    REAL( DP ), INTENT(INOUT) :: gradrho( 3, nnr )
+    TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
-    INTEGER                   :: idx, idx0
+    LOGICAL                   :: physical
+    INTEGER                   :: ir
+    REAL( DP )                :: r2, dist, arg
+    REAL( DP )                :: r( 3 )
+    REAL( DP ), ALLOCATABLE   :: gradlocal ( :, : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_gradexponential'
     !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: dist, arg
-    REAL( DP )                :: r( 3 ), s( 3 )
-    REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
-    REAL( DP ), PARAMETER     :: exp_arg_limit = 100.D0, tol = 1.D-10
+    ! ... Aliases
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_gradexponential'
+    cell => gradient % cell
     !
-    ALLOCATE( gradrholocal( 3, nnr ) )
-    gradrholocal = 0.D0
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong value of axis',1)
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
+    ALLOCATE( gradlocal( 3, cell%nnr ) )
+    gradlocal = 0.D0
     !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = pos(:) - r(:)
-       !
-       !  ... possibly 2D or 1D erfc
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       dist_min = SUM( r * r )
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s )
-         IF (dist<dist_min) dist_min = dist
-       ENDDO
-       dist = SQRT(dist_min) * alat
+       CALL minimum_image( cell, r, r2 )
+       !
+       ! ... compute exponentially decaying function
+       !
+       dist = SQRT( r2 ) * cell % alat
        !
        arg = ( dist - width ) / spread
        !
-       IF ( dist .GT. tol .AND. ABS( arg ) .LT. exp_arg_limit ) THEN
-          gradrholocal( :, ir ) = r(:) * alat / dist / spread * EXP( - arg )
-       ELSE
-          gradrholocal( :, ir ) = 0.D0
-       ENDIF
+       IF ( r2 .GT. tol .AND. ABS( arg ) .LE. exp_tol ) &
+          gradlocal( :, ir ) = r(:) / SQRT(r2) / spread * EXP( - arg )
        !
     END DO
     !
-    gradrho = gradrho + gradrholocal
-    DEALLOCATE( gradrholocal )
+    gradient%of_r = gradient%of_r + gradlocal
+    DEALLOCATE( gradlocal )
     !
     RETURN
     !
@@ -834,149 +513,81 @@ CONTAINS
   END SUBROUTINE generate_gradexponential
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_erfc( nnr, dim, axis, charge, width, spread, pos, corners, rho )
+  SUBROUTINE generate_erfc( dim, axis, charge, width, spread, pos, density )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat, omega
-    USE fft_base,         ONLY : dfftp
-    USE mp,               ONLY : mp_sum
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners(3,8)
-    REAL( DP ), INTENT(INOUT) :: rho( nnr )
+    TYPE( environ_density ), INTENT(INOUT) :: density
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
-    INTEGER                   :: idx, idx0, ntot
-    !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
-    REAL( DP )                :: r( 3 ), s( 3 )
-    REAL( DP ), ALLOCATABLE   :: rholocal ( : )
+    LOGICAL                   :: physical
+    INTEGER                   :: ir, ir_end, i
+    REAL( DP )                :: scale, r2, dist, arg, chargeanalytic, chargelocal
+    REAL( DP )                :: r( 3 )
+    REAL( DP ), ALLOCATABLE   :: local ( : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_erfc'
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    ! ... Aliases
     !
-    ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_erfc'
-    chargeanalytic = erfcvolume(dim,axis,width,spread,alat,omega,at)
+    cell => density % cell
+    !
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong value of axis',1)
+    !
+    chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     scale = charge / chargeanalytic * 0.5D0
     !
-    ALLOCATE( rholocal( nnr ) )
-    rholocal = 0.D0
+    ALLOCATE( local( cell%nnr ) )
+    local = 0.D0
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = r(:) - pos(:)
-       !
-       !  ... possibly 2D or 1D gaussians
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       dist_min = SUM( r * r ) 
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s ) 
-         IF (dist<dist_min) dist_min = dist
-       ENDDO
-       dist = SQRT(dist_min)
+       CALL minimum_image( cell, r, r2 )
        !
-       arg = ( dist * alat  - width ) / spread
+       ! ... compute error function
        !
-       rholocal( ir ) = qe_erfc(arg)
+       dist = SQRT(r2) * cell%alat
+       arg = ( dist  - width ) / spread
+       !
+       local( ir ) = qe_erfc(arg)
        !
     END DO
     !
-    ! ... double check that the integral of the generated charge corresponds to
-    !     what is expected
+    ! ... check integral of function is consistent with analytic one
     !
-    chargelocal = SUM(rholocal)*omega/DBLE(ntot)*0.5D0
-    CALL mp_sum(chargelocal,intra_bgrp_comm)
+    chargelocal = SUM(local)*cell%omega/DBLE(cell%ntot)*0.5D0
+    CALL mp_sum(chargelocal,cell%comm)
     IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
-         WRITE(stdout,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
+         CALL infomsg(sub_name,'WARNING: wrong integral of erfc function')
     !
-    ! ... rescale generated charge to obtain the correct integrated total charge
+    ! ... rescale generated function to obtain the requested integral
     !
-    rholocal = rholocal * scale
-    !
-    rho = rho + rholocal
-    DEALLOCATE( rholocal )
+    density%of_r = density%of_r + scale * local
+    DEALLOCATE( local )
     !
     RETURN
     !
@@ -984,161 +595,77 @@ CONTAINS
   END SUBROUTINE generate_erfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_graderfc( nnr, dim, axis, charge, width, spread, pos, corners, gradrho )
+  SUBROUTINE generate_graderfc( dim, axis, charge, width, spread, pos, gradient )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE constants,        ONLY : sqrtpi
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat, omega
-    USE fft_base,         ONLY : dfftp
-    USE mp,               ONLY : mp_sum
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
-    REAL( DP ), PARAMETER :: tol = 1.D-10
-    !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners(3,8)
-    REAL( DP ), INTENT(INOUT) :: gradrho( 3, nnr )
+    TYPE( environ_gradient ), INTENT(INOUT) :: gradient
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
-    INTEGER                   :: idx, idx0, ntot
-    !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
-    REAL( DP )                :: r( 3 ), s( 3 ), rmin( 3 )
-    REAL( DP ), ALLOCATABLE   :: gradrholocal ( :, : )
+    LOGICAL                   :: physical
+    INTEGER                   :: ir, ir_end, i
+    REAL( DP )                :: scale, r2, dist, arg, chargeanalytic
+    REAL( DP )                :: r( 3 )
+    REAL( DP ), ALLOCATABLE   :: gradlocal ( :, : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_graderfc'
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    ! ... Aliases
     !
-    ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
-    chargeanalytic = erfcvolume(dim,axis,width,spread,alat,omega,at)
+    cell => gradient % cell
+    !
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong value of axis',1)
+    !
+    chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     !
     ! ... scaling factor, take into account rescaling of generated density
     !     to obtain the correct integrated total charge
     !
     scale = charge / chargeanalytic / sqrtpi / spread
     !
-    ALLOCATE( gradrholocal( 3, nnr ) )
-    gradrholocal = 0.D0
-    chargelocal = 0.D0
+    ALLOCATE( gradlocal( 3, cell%nnr ) )
+    gradlocal = 0.D0
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = r(:) - pos(:)
-       !
-       !  ... possibly 2D or 1D erfc
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       rmin(:) = r(:)
-       dist_min = SUM( r * r ) 
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s ) 
-         IF (dist<dist_min) THEN
-           rmin(:) = s(:)
-           dist_min = dist
-         END IF
-       ENDDO
-       r = rmin * alat
-       dist = SQRT(dist_min) * alat
-       ! 
-       arg = ( dist - width ) / spread
+       CALL minimum_image( cell, r, r2 )
        !
-       IF ( dist .GT. tol ) gradrholocal( :, ir ) = - EXP( - arg**2 ) * r(:) / dist
-       chargelocal = chargelocal + qe_erfc(arg)
+       ! ... compute exponentially decaying function
+       !
+       r = r * cell % alat
+       dist = SQRT(r2) * cell % alat
+       arg = ( dist - width ) / spread
+       ! 
+       IF ( dist .GT. tol ) gradlocal( :, ir ) = EXP( - arg**2 ) * r(:) / dist
        !
     END DO
     !
-    ! ... double check that the integral of the generated charge corresponds to
-    !     what is expected
-    !
-    CALL mp_sum( chargelocal, intra_bgrp_comm )
-    chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
-    IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
-         WRITE(stdout,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
-    !
-    gradrholocal = gradrholocal * scale
-    !
-    gradrho = gradrho + gradrholocal
-    DEALLOCATE( gradrholocal )
+    gradient%of_r = gradient%of_r + gradlocal * scale
+    DEALLOCATE( gradlocal )
     !
     RETURN
     !
@@ -1146,163 +673,84 @@ CONTAINS
   END SUBROUTINE generate_graderfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_laplerfc( nnr, dim, axis, charge, width, spread, pos, corners, laplrho )
+  SUBROUTINE generate_laplerfc( dim, axis, charge, width, spread, pos, laplacian )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE constants,        ONLY : sqrtpi
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat, omega
-    USE fft_base,         ONLY : dfftp
-    USE mp,               ONLY : mp_sum
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
-    REAL( DP ), PARAMETER :: tol = 1.D-10
-    !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners( 3, 8)
-    REAL( DP ), INTENT(INOUT) :: laplrho( nnr )
+    TYPE( environ_density ), INTENT(INOUT) :: laplacian
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, ic
-    INTEGER                   :: idx, idx0, ntot
-    !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
-    REAL( DP )                :: r( 3 ), s( 3 )
-    REAL( DP ), ALLOCATABLE   :: laplrholocal ( : )
+    LOGICAL                   :: physical
+    INTEGER                   :: ir, ir_end, i
+    REAL( DP )                :: scale, r2, dist, arg, chargeanalytic
+    REAL( DP )                :: r( 3 )
+    REAL( DP ), ALLOCATABLE   :: lapllocal ( : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_laplerfc'
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    ! ... Aliases
     !
-    ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
-    chargeanalytic = erfcvolume(dim,axis,width,spread,alat,omega,at)
+    cell => laplacian % cell
+    !
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong value of axis',1)
+    !
+    chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     !
     ! ... scaling factor, take into account rescaling of generated density
     !     to obtain the correct integrated total charge
     !
     scale = charge / chargeanalytic / sqrtpi / spread
     !
-    ALLOCATE( laplrholocal( nnr ) )
-    laplrholocal = 0.D0
-    chargelocal = 0.D0
+    ALLOCATE( lapllocal( cell%nnr ) )
+    lapllocal = 0.D0
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = r(:) - pos(:)
-       !
-       !  ... possibly 2D or 1D erfc
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       dist_min = SUM( r * r ) 
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s ) 
-         IF (dist<dist_min) dist_min = dist
-       ENDDO
-       dist = SQRT(dist_min) * alat
+       CALL minimum_image( cell, r, r2 )
+       !
+       ! ... compute laplacian of error function
+       !
+       dist = SQRT(r2) * cell%alat
        !
        arg = ( dist - width ) / spread
        !
        SELECT CASE ( dim )
        CASE( 0 )
-         IF ( dist .GT. tol ) laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - arg / spread ) * 2.D0
+         IF ( dist .GT. tol ) lapllocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - arg / spread ) * 2.D0
        CASE( 1 )
-         IF ( dist .GT. tol ) laplrholocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - 2.D0 * arg / spread )
+         IF ( dist .GT. tol ) lapllocal( ir ) = - EXP( - arg**2 ) * ( 1.D0 / dist - 2.D0 * arg / spread )
        CASE( 2 )
-         laplrholocal( ir ) = EXP( - arg**2 ) * arg / spread  * 2.D0
+         lapllocal( ir ) = EXP( - arg**2 ) * arg / spread  * 2.D0
        END SELECT
-       chargelocal = chargelocal + qe_erfc(arg)
        !
     END DO
     !
-    ! ... double check that the integral of the generated charge corresponds to
-    !     what is expected
-    !
-    CALL mp_sum( chargelocal, intra_bgrp_comm )
-    chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
-    IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
-         WRITE(stdout,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
-    !
-    laplrholocal = laplrholocal * scale
-    !
-    laplrho = laplrho + laplrholocal
-    DEALLOCATE( laplrholocal )
+    laplacian%of_r = laplacian%of_r + lapllocal * scale
+    DEALLOCATE( lapllocal )
     !
     RETURN
     !
@@ -1310,141 +758,63 @@ CONTAINS
   END SUBROUTINE generate_laplerfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_hesserfc( nnr, dim, axis, charge, width, spread, pos, corners, hessrho )
+  SUBROUTINE generate_hesserfc( dim, axis, charge, width, spread, pos, hessian )
 !--------------------------------------------------------------------
-    !
-    USE kinds,            ONLY : DP
-    USE constants,        ONLY : sqrtpi
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat, omega
-    USE fft_base,         ONLY : dfftp
-    USE mp,               ONLY : mp_sum
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
-    REAL( DP ), PARAMETER :: tol = 1.D-10
-    !
     ! ... Declares variables
     !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
+    INTEGER, INTENT(IN)       :: dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(IN)    :: corners(3,8)
-    REAL( DP ), INTENT(INOUT) :: hessrho( 3, 3, nnr )
+    TYPE( environ_hessian ), INTENT(INOUT) :: hessian
     !
     ! ... Local variables
     !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip, jp, ic
-    INTEGER                   :: idx, idx0, ntot
-    !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3, dist_min
-    REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal, tmp
-    REAL( DP )                :: r( 3 ), s( 3 ), rmin( 3 )
-    REAL( DP ), ALLOCATABLE   :: hessrholocal ( :, :, : )
+    LOGICAL                   :: physical
+    INTEGER                   :: ir, ip, jp
+    REAL( DP )                :: scale, r2, dist, arg, tmp, chargeanalytic
+    REAL( DP )                :: r( 3 )
+    REAL( DP ), ALLOCATABLE   :: hesslocal ( :, :, : )
+    CHARACTER( LEN=80 )       :: sub_name = 'generate_hesserfc'
     REAL( DP ), EXTERNAL      :: qe_erfc
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+    ! ... Aliases
     !
-    ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
+    TYPE( environ_cell ), POINTER :: cell
     !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
-    chargeanalytic = erfcvolume(dim,axis,width,spread,alat,omega,at)
+    cell => hessian % cell
     !
-    ! ... scaling factor, take into account rescaling of generated density
-    !     to obtain the correct integrated total charge
+    IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
+         & CALL errore(sub_name,'Wrong value of axis',1)
     !
-    scale = charge / chargeanalytic / sqrtpi / spread
+    chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
+    scale = charge / chargeanalytic * 0.5D0
     !
-    ALLOCATE( hessrholocal( 3, 3, nnr ) )
-    hessrholocal = 0.D0
-    chargelocal = 0.D0
+    ALLOCATE( hesslocal( 3, 3, cell%nnr ) )
+    hesslocal = 0.D0
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = r(:) - pos(:)
-       !
-       !  ... possibly 2D or 1D erfc
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
+       CALL displacement( dim, axis, pos, r, r )
        !
        ! ... minimum image convention
        !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - FLOOR(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       rmin(:) = r(:)
-       dist_min = SUM( r * r )
-       DO ic = 2,8
-         s(1) = r(1) + corners(1,ic)
-         s(2) = r(2) + corners(2,ic)
-         s(3) = r(3) + corners(3,ic)
-         dist = SUM( s * s )
-         IF (dist<dist_min) THEN
-           rmin(:) = s(:)
-           dist_min  = dist
-         ENDIF 
-       ENDDO
-       r = rmin * alat
-       dist = SQRT(dist_min) * alat
+       CALL minimum_image( cell, r, r2 )
+       !
+       r = r * cell%alat
+       dist = SQRT(r2) * cell%alat
        !
        arg = ( dist - width ) / spread
        !
@@ -1453,26 +823,15 @@ CONTAINS
              DO jp = 1, 3
                 tmp = - r(ip) * r(jp) * ( 1.D0 / dist + 2.D0 * arg / spread )
                 IF ( ip .EQ. jp ) tmp = tmp + dist
-                hessrholocal( ip, jp, ir ) = - EXP( - arg**2 ) * tmp / dist**2
+                hesslocal( ip, jp, ir ) = - EXP( - arg**2 ) * tmp / dist**2
              ENDDO
           ENDDO
        END IF
-       chargelocal = chargelocal + qe_erfc(arg)
        !
     END DO
     !
-    ! ... double check that the integral of the generated charge corresponds to
-    !     what is expected
-    !
-    CALL mp_sum( chargelocal, intra_bgrp_comm )
-    chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
-    IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
-         WRITE(stdout,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
-    !
-    hessrholocal = hessrholocal * scale
-    !
-    hessrho = hessrho + hessrholocal
-    DEALLOCATE( hessrholocal )
+    hessian%of_r = hessian%of_r + hesslocal * scale
+    DEALLOCATE( hesslocal )
     !
     RETURN
     !
@@ -1480,93 +839,41 @@ CONTAINS
   END SUBROUTINE generate_hesserfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_axis( nnr, icor, pos, axis )
+  SUBROUTINE generate_axis( cell, icor, pos, axis )
 !--------------------------------------------------------------------
-    USE kinds,            ONLY : DP
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat
-    USE fft_base,         ONLY : dfftp
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
-    INTEGER, INTENT(IN) :: nnr
+    TYPE( environ_cell ), INTENT(IN) :: cell
     INTEGER, INTENT(IN) :: icor
     REAL(DP), INTENT(IN) :: pos(3)
-    REAL(DP), INTENT(OUT) :: axis( dfftp%nnr )
+    REAL(DP), INTENT(OUT) :: axis( cell%nnr )
     !
-    INTEGER  :: i, j, j0, k, k0, ir, ir_end, ip, idx, idx0
-    REAL(DP) :: inv_nr1, inv_nr2, inv_nr3
-    REAL(DP) :: r(3)
+    LOGICAL  :: physical
+    INTEGER  :: ir
+    REAL(DP) :: r(3), r2
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = r(:) - pos(:)
+       r = r - pos
        !
        ! ... minimum image convention
        !
-       CALL cryst_to_cart( 1, r, bg, -1 )
-       !
-       r(:) = r(:) - ANINT( r(:) )
-       !
-       CALL cryst_to_cart( 1, r, at, 1 )
+       CALL minimum_image( cell, r, r2 )
        !
        axis(ir) = r(icor)
        !
     END DO
     !
-    axis = axis * alat
+    axis = axis * cell%alat
     !
     RETURN
     !
@@ -1574,92 +881,41 @@ CONTAINS
   END SUBROUTINE generate_axis
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_distance( nnr, pos, distance )
+  SUBROUTINE generate_distance( cell, pos, distance )
 !--------------------------------------------------------------------
-    USE kinds,            ONLY : DP
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat
-    USE fft_base,         ONLY : dfftp
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
     !
-    INTEGER, INTENT(IN) :: nnr
+    TYPE(environ_cell), INTENT(IN) :: cell
     REAL(DP), INTENT(IN) :: pos(3)
-    REAL(DP), INTENT(OUT) :: distance( 3, dfftp%nnr )
+    REAL(DP), INTENT(OUT) :: distance( 3, cell%nnr )
     !
-    INTEGER  :: i, j, j0, k, k0, ir, ir_end, ip, idx, idx0
-    REAL(DP) :: inv_nr1, inv_nr2, inv_nr3
-    REAL(DP) :: r(3), s(3)
+    LOGICAL  :: physical
+    INTEGER  :: ir
+    REAL(DP) :: r(3), r2
     !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-       ! ... three dimensional indexes
+       ! ... position in real space grid
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
-!       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
-!       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2r( cell, ir, r, physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
+       ! ... displacement from origin
        !
-       r(:) = r(:) - pos(:)
+       r = r - pos
        !
        ! ... minimum image convention
        !
-       CALL cryst_to_cart( 1, r, bg, -1 )
+       CALL minimum_image( cell, r, r2 )
        !
-       r(:) = r(:) - ANINT( r(:) )
-       !
-       CALL cryst_to_cart( 1, r, at, 1 )
-       !
-       distance(:,ir) = r(:)
+       distance(ir,:) = r(:)
        !
     END DO
     !
-    distance = distance * alat
+    distance = distance * cell%alat
+    !
     !
     RETURN
     !
@@ -1667,28 +923,24 @@ CONTAINS
   END SUBROUTINE generate_distance
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  FUNCTION erfcvolume(dim,axis,width,spread,alat,omega,at)
+  FUNCTION erfcvolume(dim,axis,width,spread,cell)
 !--------------------------------------------------------------------
-    !
-    USE constants,        ONLY : sqrtpi, fpi, pi
-    USE io_global,        ONLY : stdout
-    !
-    REAL(DP), PARAMETER :: tol = 1.D-6
     !
     REAL(DP) :: erfcvolume
     !
     INTEGER, INTENT(IN) :: dim, axis
-    REAL(DP), INTENT(IN) :: width, spread, alat, omega
-    REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
+    REAL(DP), INTENT(IN) :: width, spread
+    TYPE( environ_cell ), INTENT(IN) :: cell
     !
     REAL(DP) :: f1 = 0.0_DP , f2 = 0.0_DP
     REAL(DP) :: t, invt
     REAL( DP ), EXTERNAL      :: qe_erf
     !
-    IF ( spread .LT. tol .OR. width .LT. tol ) THEN
-       WRITE(stdout,*)'ERROR: wrong parameters of erfc function',spread,width
-       STOP
-    ENDIF
+    CHARACTER( LEN=80 ) :: fun_name = 'erfcvolume'
+    !
+    IF ( spread .LT. tol .OR. width .LT. tol ) &
+         & CALL errore(fun_name,'Wrong parameters of erfc function',1)
+    !
     t = spread / width
     invt = width / spread
     f1 = ( 1.D0 + qe_erf(invt) ) / 2.D0 ! f1 is close to one  for t-->0
@@ -1702,12 +954,12 @@ CONTAINS
     CASE ( 1 )
        ! one-dimensional erfc, volume is approx the one of the
        ! cylinder of radius=width and length=alat*at(axis,axis)
-       erfcvolume = pi * width**2 * at(axis,axis) * alat * &
+       erfcvolume = pi * width**2 * cell%at(axis,axis) * cell%alat * &
             ( ( 1.D0 + 0.5D0 * t**2 ) * f1  + t * f2 )
     CASE ( 2 )
        ! two-dimensional erfc, volume is exactly the one of the
        ! box, does not depend on spread
-       erfcvolume = 2.D0 * width * omega / at(axis,axis) / alat
+       erfcvolume = 2.D0 * width * cell%omega / cell%at(axis,axis) / cell%alat
     END SELECT
     !
     RETURN

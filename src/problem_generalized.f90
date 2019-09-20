@@ -38,7 +38,6 @@ MODULE problem_generalized
   USE environ_output
   USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct!, poisson_energy
   USE environ_base, ONLY : e2, oldenviron, add_jellium, ltddfpt
-  USE correction_periodic, ONLY : calc_v0periodic
   !
   IMPLICIT NONE
   !

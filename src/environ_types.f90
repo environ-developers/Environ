@@ -43,13 +43,25 @@ MODULE environ_types
      !
      LOGICAL :: update = .FALSE.
      INTEGER :: ibrav
-     INTEGER :: ntot, n1, n2, n3
      REAL( DP ) :: alat
      REAL( DP ) :: omega
      REAL( DP ) :: domega
      REAL( DP ) :: origin( 3 )
      REAL( DP ), DIMENSION( 3, 3 ) :: at
+     REAL( DP ), DIMENSION( 3, 3 ) :: bg
      REAL( DP ), DIMENSION( 3, 8 ) :: corners
+     !
+     ! Properties of the grid
+     !
+     INTEGER :: ntot, n1, n2, n3
+     REAL( DP ) :: in1, in2, in3
+     INTEGER :: n1x, n2x, n3x
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!     INTEGER :: idx0
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+     INTEGER :: j0, k0 , n2p, n3p
+! END BACKWARD COMPATIBILITY
      !
      ! Properties of the processor-specific partition
      !
@@ -463,20 +475,38 @@ MODULE environ_types
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, nnr, ir_end, comm, me, root, cell )
+  SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, bg, &
+       & nnr, ir_end, n1x, n2x, n3x, &
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!         & idx0, &
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+       & j0, k0, n2p, n3p, &
+! END BACKWARD COMPATIBILITY
+       & comm, me, root, cell )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: n1, n2, n3, ibrav
+    INTEGER, INTENT(IN) :: n1x, n2x, n3x
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!    INTEGER, INTENT(IN) :: idx0
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+    INTEGER, INTENT(IN) :: j0, k0, n2p, n3p
+! END BACKWARD COMPATIBILITY
     INTEGER, INTENT(IN) :: nnr, ir_end, comm, me, root
-    REAL( DP ), INTENT(IN) :: alat, omega, at(3,3)
+    REAL( DP ), INTENT(IN) :: alat, omega, at(3,3), bg(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
     !
     INTEGER :: ic, ix, iy, iz
     REAL( DP ) :: dx, dy, dz
     !
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
+    !
+    IF ( n1 .EQ. 0 .OR. n2 .EQ. 0 .OR. n3 .EQ. 0 ) &
+         & CALL errore(sub_name,'Wrong grid dimension',1)
     !
     cell % n1 = n1
     cell % n2 = n2
@@ -485,6 +515,23 @@ CONTAINS
     cell % alat = alat
     cell % omega = omega
     cell % at = at
+    cell % bg = bg
+    !
+    cell % in1 = 1.D0 / DBLE(n1)
+    cell % in2 = 1.D0 / DBLE(n2)
+    cell % in3 = 1.D0 / DBLE(n3)
+    cell % n1x = n1x
+    cell % n2x = n2x
+    cell % n3x = n3x
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!    cell % idx0 = idx0
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+    cell % j0 = j0
+    cell % k0 = k0
+    cell % n2p = n2p
+    cell % n3p = n3p
+! END BACKWARD COMPATIBILITY
     !
     cell % nnr = nnr
     cell % ir_end = ir_end
@@ -545,6 +592,142 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE update_environ_cell
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE ir2ijk( cell, ir, i, j, k, physical )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    INTEGER, INTENT(IN) :: ir
+    INTEGER, INTENT(OUT) :: i, j, k
+    LOGICAL, INTENT(OUT) :: physical
+    !
+    INTEGER :: idx
+    !
+! BACKWARD COMPATIBILITY
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X
+!     idx = cell%idx0 + ir - 1
+!     k   = idx / (cell%n1x*cell%n2x)
+!     idx = idx - (cell%n1x*cell%n2x)*k
+!     j   = idx / cell%n1x
+!     idx = idx - cell%n1x*j
+!     i   = idx
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
+    idx = ir - 1
+    k   = idx / (cell%n1x*cell%n2p)
+    idx = idx - (cell%n1x*cell%n2p)*k
+    k   = k + cell%k0
+    j   = idx / cell%n1x
+    idx = idx - cell%n1x * j
+    j   = j + cell%j0
+    i   = idx
+! END BACKWARD COMPATIBILITY
+    !
+    physical = i < cell%n1 .AND. j < cell%n2 .AND. k < cell%n3
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE ir2ijk
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE ir2r( cell, ir, r, physical )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    INTEGER, INTENT(IN) :: ir
+    REAL( DP ), DIMENSION(3), INTENT(OUT) :: r
+    LOGICAL, INTENT(OUT) :: physical
+    !
+    INTEGER :: idx, i, j, k, ip
+    !
+    CALL ir2ijk( cell, ir, i, j, k, physical )
+    !
+    IF ( .NOT. physical ) RETURN
+    !
+    DO ip = 1, 3
+       r(ip) = DBLE( i ) * cell%in1 * cell%at(ip,1) + &
+               DBLE( j ) * cell%in2 * cell%at(ip,2) + &
+               DBLE( k ) * cell%in3 * cell%at(ip,3)
+    END DO
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE ir2r
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE displacement( dim, axis, r1, r2, dr )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: dim, axis
+    REAL( DP ), DIMENSION(3), INTENT(IN) :: r1, r2
+    REAL( DP ), DIMENSION(3), INTENT(OUT) :: dr
+    !
+    INTEGER :: i
+    !
+    dr(:) = r1(:) - r2(:)
+    !
+    !  ... possibly only in 1D or 2D
+    !
+    SELECT CASE ( dim )
+    CASE ( 1 )
+       dr(axis) = 0.D0
+    CASE ( 2 )
+       DO i = 1, 3
+          IF ( i .NE. axis ) dr(i) = 0.D0
+       ENDDO
+    END SELECT
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE displacement
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE minimum_image( cell, r, r2 )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    REAL( DP ), DIMENSION(3), INTENT(INOUT) :: r
+    REAL( DP ), INTENT(OUT) :: r2
+    !
+    INTEGER :: ic
+    REAL( DP ), DIMENSION(3) :: s
+    REAL( DP ), DIMENSION(3) :: rmin
+    REAL( DP ) :: r2min
+    !
+    s(:) = MATMUL( r(:), cell%bg(:,:) )
+    s(:) = s(:) - FLOOR(s(:))
+    r(:) = MATMUL( cell%at(:,:), s(:) )
+    !
+    rmin = r
+    r2min = SUM( r * r )
+    DO ic = 2,8
+       s(1) = r(1) + cell%corners(1,ic)
+       s(2) = r(2) + cell%corners(2,ic)
+       s(3) = r(3) + cell%corners(3,ic)
+       r2 = SUM( s * s )
+       IF (r2<r2min) THEN
+          rmin = s
+          r2min = r2
+       END IF
+    ENDDO
+    r = rmin
+    r2 = r2min
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE minimum_image
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_density(density,local_label)
