@@ -610,12 +610,11 @@ CONTAINS
     ! ... Local variables
     !
     LOGICAL                   :: physical
-    INTEGER                   :: ir, ir_end, i
+    INTEGER                   :: ir
     REAL( DP )                :: scale, r2, dist, arg, chargeanalytic
     REAL( DP )                :: r( 3 )
     REAL( DP ), ALLOCATABLE   :: gradlocal ( :, : )
     CHARACTER( LEN=80 )       :: sub_name = 'generate_graderfc'
-    REAL( DP ), EXTERNAL      :: qe_erfc
     !
     ! ... Aliases
     !
@@ -654,7 +653,7 @@ CONTAINS
        !
        CALL minimum_image( cell, r, r2 )
        !
-       ! ... compute exponentially decaying function
+       ! ... compute gradient of error function
        !
        r = r * cell % alat
        dist = SQRT(r2) * cell % alat
@@ -688,12 +687,11 @@ CONTAINS
     ! ... Local variables
     !
     LOGICAL                   :: physical
-    INTEGER                   :: ir, ir_end, i
+    INTEGER                   :: ir
     REAL( DP )                :: scale, r2, dist, arg, chargeanalytic
     REAL( DP )                :: r( 3 )
     REAL( DP ), ALLOCATABLE   :: lapllocal ( : )
     CHARACTER( LEN=80 )       :: sub_name = 'generate_laplerfc'
-    REAL( DP ), EXTERNAL      :: qe_erfc
     !
     ! ... Aliases
     !
@@ -790,7 +788,7 @@ CONTAINS
          & CALL errore(sub_name,'Wrong value of axis',1)
     !
     chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
-    scale = charge / chargeanalytic * 0.5D0
+    scale = charge / chargeanalytic / sqrtpi / spread
     !
     ALLOCATE( hesslocal( 3, 3, cell%nnr ) )
     hesslocal = 0.D0
@@ -812,6 +810,8 @@ CONTAINS
        ! ... minimum image convention
        !
        CALL minimum_image( cell, r, r2 )
+       !
+       ! ... compute hessian of error function
        !
        r = r * cell%alat
        dist = SQRT(r2) * cell%alat
