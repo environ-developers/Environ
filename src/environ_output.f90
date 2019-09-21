@@ -1443,13 +1443,13 @@ CONTAINS
     INTEGER, OPTIONAL :: idx
     CHARACTER( LEN=100 ) :: filemod
     !
-    nr1x = f%cell%nr1x
-    nr2x = f%cell%nr2x
-    nr3x = f%cell%nr3x
+    nr1x = f%cell%n1x
+    nr2x = f%cell%n2x
+    nr3x = f%cell%n3x
     !
-    nr1 = f%cell%nr1
-    nr2 = f%cell%nr2
-    nr3 = f%cell%nr3
+    nr1 = f%cell%n1
+    nr2 = f%cell%n2
+    nr3 = f%cell%n3
     !
     IF(PRESENT(idx)) THEN
        WRITE(filemod, '(i4.4)') idx

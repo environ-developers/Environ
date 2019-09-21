@@ -28,7 +28,7 @@ MODULE tools_generate_functions
   IMPLICIT NONE
   !
   REAL(DP), PARAMETER       :: tol = 1.D-10
-  REAL(DP), PARAMETER       :: exp_tol = 3.6D1
+  REAL(DP), PARAMETER       :: exp_tol = 4.D1
   !
 CONTAINS
 !
