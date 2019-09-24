@@ -200,32 +200,42 @@ mv tmp.3 plugin_get_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_init, ONLY : environ_initbase \
-USE    cell_base,    ONLY : at, alat, omega, ibrav \
-USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id \
+USE    environ_init, ONLY : environ_initbase\
+USE    cell_base,    ONLY : at, bg, alat, omega, ibrav\
+USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 !Environ patch
 ' plugin_init_base.f90 > tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
-INTEGER :: ir_end \
+INTEGER :: ir_end, idx0, j0, k0\
 !Environ patch
 ' tmp.1 > tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-! BACKWARD COMPATIBILITY \
-! Compatible with QE-5.X QE-6.1.X \
-!  ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl \
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT \
-#if defined (__MPI) \
-    ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p) \
-#else \
-    ir_end = dfftp%nnr \
-#endif \
-! END BACKWARD COMPATIBILITY \
-  IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, & \
-       & dfftp%nnr, ir_end, intra_bgrp_comm, me_bgrp, root_bgrp_id, 1.D0 ) \
+!Environ patch\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X\
+!  idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)\
+!  ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl\
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT\
+#if defined (__MPI)\
+    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p\
+    ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)\
+#else\
+    j0 = 0; k0 = 0;\
+    ir_end = dfftp%nnr\
+#endif\
+! END BACKWARD COMPATIBILITY\
+  IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, bg, &\
+                             & dfftp%nnr, ir_end, dfftp%nr1x, dfftp%nr2x, dfftp%nr3x, &\
+! BACKWARD COMPATIBILITY\
+! Compatible with QE-5.X QE-6.0.X QE-6.1.X\
+!                             & idx0, &\
+! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT\
+                             & j0, k0, dfftp%my_nr2p, dfftp%my_nr3p, &\
+! END BACKWARD COMPATIBILITY\
+                             & intra_bgrp_comm, me_bgrp, root_bgrp, 1.D0 )\
 !Environ patch
 ' tmp.2 > tmp.1
 
