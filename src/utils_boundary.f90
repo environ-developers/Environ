@@ -669,13 +669,14 @@ CONTAINS
 !          !
 
           !CALL test_ion_field_derivatives( 2, bound )
+          !CALL test_energy_derivatives( 2, bound )
 !          !
 ! ... TO DEBUG FIELD-AWARE: testing energy derivatives
 !          !
           !IF ( ionode ) WRITE(program_unit,'(1X,a,i14.7)')' niter = ', niter
           !IF ( ionode ) WRITE(environ_unit,'(a,i14.7)')' niter = ', niter
-          IF ( niter .EQ. 1 ) CALL test_energy_derivatives( 2, bound )
-          !IF ( niter .EQ. 1 ) CALL test_ion_field_derivatives( 2, bound )
+          IF ( niter .EQ. 3 ) CALL test_energy_derivatives( 1, bound )
+          !IF ( niter .EQ. 3 ) CALL test_ion_field_derivatives( 2, bound )
           !
           bound % update_status = 2 ! boundary has changes and is ready
           !
@@ -1380,7 +1381,7 @@ CONTAINS
           test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
           IF ( ionode ) WRITE( program_unit,'(a,f14.7)')' z = ', test_function%pos(3)
           !IF (test_function % pos(3) .LE. 0.365) CYCLE
-          !IF (test_function % pos(3) * cell % alat .LE. 4.5 .OR. test_function % pos(3) * cell % alat .GE. 7.0) CYCLE
+          IF (test_function % pos(3) * cell % alat .LE. 4.5 .OR. test_function % pos(3) * cell % alat .GE. 7.0) CYCLE
           CALL density_of_functions( test_function, delta, .TRUE. )
           !
           localelectrons % density % of_r = bound % electrons % density % of_r + epsilon * delta%of_r
@@ -1510,7 +1511,7 @@ CONTAINS
             & bound%partial_of_ion_field )
        ENDIF
        !
-       dx = 0.00001D0
+       dx = 0.000001D0
        !
        CALL init_environ_gradient( cell, partial )
        !

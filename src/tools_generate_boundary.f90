@@ -2133,7 +2133,7 @@ CONTAINS
        dscaling_of_field = ( 1.D0 - COS( arg ) )  / ( field_max - field_min )
     END IF
     !
-    dscaling_of_field = - dscaling_of_field * fact
+    dscaling_of_field = - dscaling_of_field * fact * SIGN(1.D0,ion_field)
     !
     RETURN
     !
@@ -2569,6 +2569,7 @@ CONTAINS
           !
           df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
                & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
+          !PRINT *, boundary%ion_field(i), df
           !
           df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
           !
