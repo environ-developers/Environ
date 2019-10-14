@@ -1887,6 +1887,7 @@ CONTAINS
           !
           ! Compute hessian of poisson potential of individual nuclei
           !
+          ! DEBUG try changing indices.. was j
           CALL density_of_functions( ions%smeared_ions(j), aux, .TRUE. ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
           !
           CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
@@ -1911,6 +1912,7 @@ CONTAINS
              !
              ! ion field times gradient of different soft-sphere
              !
+             ! DEBUG try changing indices...was i
              CALL scalar_product_environ_gradient( gradlocal(i), field, aux ) ! here aux is the normal field
              !
              DO k = 1, nsoft_spheres
@@ -1918,6 +1920,7 @@ CONTAINS
                 aux % of_r = aux % of_r * local(k) % of_r
              ENDDO
              !
+             ! DEBUG try changing indices... was j
              partial_of_ion_field( :, i, j ) = partial_of_ion_field( :, i, j ) + &
                   & scalar_product_environ_gradient_density( gradlocal(j), aux )
              !
@@ -2518,8 +2521,10 @@ CONTAINS
     INTEGER :: i, j, ipol
     REAL( DP ) :: df
     CHARACTER( LEN=80 ) :: sub_name = 'field_aware_dboundary_dions'
-    CHARACTER(len=100) :: strd = 'daux'
-    CHARACTER(len=100) :: stra = 'aux'
+    CHARACTER(len=100) :: strh1 = 'h1'
+    CHARACTER(len=100) :: strh2 = 'h2'
+    CHARACTER(len=100) :: strdh1 = 'dh1'
+    CHARACTER(len=100) :: strdh2 = 'dh2'
     !
     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: local
     !
@@ -2550,6 +2555,8 @@ CONTAINS
           CALL density_of_functions( boundary%soft_spheres(i), local(i), .FALSE. )
           !
        ENDDO
+       !CALL write_cube( local(1), label=strh1 )
+       !CALL write_cube( local(2), label=strh2 )
        !
        CALL init_environ_density( cell, aux )
        !
@@ -2558,6 +2565,8 @@ CONTAINS
        DO i = 1, nsoft_spheres
           !
           CALL derivative_of_functions( boundary%soft_spheres(i), aux, .TRUE. )
+          !IF (i .EQ. 1) CALL write_cube( aux, label=strdh1 )
+          !IF (i .EQ. 2) CALL write_cube( aux, label=strdh2 )
           !
           DO j = 1, nsoft_spheres
              !
@@ -2569,7 +2578,7 @@ CONTAINS
           !
           df = dscaling_of_field( boundary % field_factor, boundary % charge_asymmetry, &
                & boundary % field_max, boundary % field_min, boundary % ion_field(i) )
-          !PRINT *, boundary%ion_field(i), df
+          PRINT *, "df", i, boundary%ion_field(i), df
           !
           df = df * boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * boundary%alpha
           !
@@ -2580,6 +2589,7 @@ CONTAINS
           ENDDO
           !
        ENDDO
+       !STOP
        !
        partial % of_r = partial % of_r + gradaux % of_r
        !

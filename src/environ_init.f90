@@ -209,6 +209,7 @@ CONTAINS
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
                      ( lelectrolyte .AND. electrolyte_mode .EQ. 'full' )
     lsmearedions   = lelectrostatic
+    lgradient      = ldielectric .OR. ( solvent_mode(1:2) .EQ. 'fa' )
     !
     ! Create optional types
     !
@@ -255,7 +256,7 @@ CONTAINS
     ! Set the parameters of the solvent boundary
     !
     IF ( lsolvent ) THEN
-       CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
+       CALL init_environ_boundary_first( lgradient, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
             & solvent_distance, solvent_spread, solvent_radius, radial_scale, radial_spread, &
             & filling_threshold, filling_spread, field_awareness, charge_asymmetry, field_max, &

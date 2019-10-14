@@ -74,6 +74,8 @@ MODULE environ_base
        lcoredensity
   LOGICAL ::                          &
        lsmearedions
+  LOGICAL ::                          &
+       lgradient
   !
   ! Internal cell parameters
   !
