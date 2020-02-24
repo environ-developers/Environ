@@ -19,7 +19,7 @@
 
 default: all
 
-all: libenviron doc
+all: libenviron doc libfft libutil
 
 doc:
 	if test -d Doc ; then \
@@ -30,10 +30,18 @@ libenviron:
         ( cd src ; if test "$(MAKE)" = "" ; then make $(MFLAGS) $@; \
         else $(MAKE) $(MFLAGS) ; fi ) ; fi ; \
 
+libfft : 
+	( cd FFTXlib ; $(MAKE) TLDEPS= all || exit 1 )
+
+libutil : 
+	( cd UtilXlib ; $(MAKE) TLDEPS= all || exit 1 )
+
 clean :
 	if test -d src ; then \
         ( cd src ; if test "$(MAKE)" = "" ; then make clean ; \
         else $(MAKE) clean ; fi ) ; fi ;\
+	( cd FFTXlib ; $(MAKE) clean ) ; \
+	(cd UtilXlib ; $(MAKE) clean )
 
 doc_clean:
 	if test -d Doc ; then \
