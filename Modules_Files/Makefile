@@ -14,16 +14,24 @@ constants.o \
 control_flags.o \
 fft_base.o \
 invmat.o \
+io_files.o \
 io_global.o \
+ions_base.o \
 kind.o \
 mp_bands.o \
 mp_images.o \
 parameters.o \
 parser.o \
+paw_variables.o \
 problem_pb.o \
+pseudo_types.o \
+radial_grids.o \
+random_numbers.o \
 recvec.o \
 solvent_tddfpt.o \
-wrappers.o
+uspp.o \
+wrappers.o \
+ws_base.o
 
 TLDEPS=libiotk libfox libenvutil libenvfft
 

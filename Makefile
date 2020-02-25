@@ -19,7 +19,7 @@
 
 default: all
 
-all: doc mods libfft libutil libenviron
+all: doc mods libfft libutil libenvpw libenviron
 
 doc:
 	if test -d Doc ; then \
@@ -39,13 +39,17 @@ libfft :
 libutil : 
 	( cd UtilXlib ; $(MAKE) TLDEPS= all || exit 1 )
 
+libenvpw :
+	( cd PW_files ; $(MAKE) TLDEPS= all || exit 1 )
+
 clean :
 	if test -d src ; then \
         ( cd src ; if test "$(MAKE)" = "" ; then make clean ; \
         else $(MAKE) clean ; fi ) ; fi ;\
 	( cd FFTXlib ; $(MAKE) clean ) ; \
 	( cd UtilXlib ; $(MAKE) clean ) ; \
-	( cd Modules_Files ; $(MAKE) clean) ;
+	( cd Modules_Files ; $(MAKE) clean) ; \
+	( cd PW_files ; $(MAKE) clean ) ;
 
 doc_clean:
 	if test -d Doc ; then \
