@@ -24,7 +24,7 @@ thread_util.o
 all : libenvutil.a
 
 
-libutil.a:  $(UTIL)
+libenvutil.a:  $(UTIL)
 	$(AR) $(ARFLAGS) $@ $?       
 	$(RANLIB) $@    
 

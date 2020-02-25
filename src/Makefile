@@ -20,10 +20,11 @@
 #          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
 #
 
-include ../../make.sys
+include ../../make.inc
 
 # location of needed modules
-MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../../Modules $(MOD_FLAG).
+MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../UtilXlib \
+	$(MOD_FLAG)../FFTXlib $(MOD_FLAG)../Modules_Files $(MOD_FLAG).
 
 ENVIRONOBJS = \
 correction_periodic.o      \

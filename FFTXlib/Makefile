@@ -31,7 +31,7 @@ fft_param.o
 
 all : libenvfft.a
 
-libqefft.a: 	$(FFTX)
+libenvfft.a: 	$(FFTX)
 	$(AR) $(ARFLAGS) $@ $?       
 	$(RANLIB) $@    
 
