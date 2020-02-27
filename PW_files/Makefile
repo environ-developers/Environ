@@ -4,7 +4,7 @@ include ../../make.inc
 
 # location of needed modules and included files (if any)
 MODFLAGS= $(BASEMOD_FLAGS) $(MOD_FLAG)../UtilXlib \
-	$(MOD_FLAG)../FFTXlib $(MOD_FLAG).
+	$(MOD_FLAG)../FFTXlib $(MOD_FLAG)../Modules_Files $(MOD_FLAG).
 
 PWLIBS = \
 esm.o \

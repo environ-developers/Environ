@@ -17,6 +17,7 @@ embedding_electrostatic.o : environ_types.o
 embedding_electrostatic.o : problem_generalized.o
 embedding_electrostatic.o : problem_linearized_pb.o
 embedding_electrostatic.o : problem_poisson.o
+embedding_electrostatic.o : problem_pb.o
 embedding_surface.o : environ_mod.o
 embedding_surface.o : environ_output.o
 embedding_surface.o : environ_types.o
@@ -49,6 +50,7 @@ environ_main.o : tools_generate_boundary.o
 environ_main.o : utils_charges.o
 environ_main.o : utils_dielectric.o
 environ_main.o : utils_electrolyte.o
+environ_main.o : solvent_tddfpt.o
 environ_mod.o : environ_types.o
 environ_output.o : electrostatic_mod.o
 environ_output.o : environ_mod.o
@@ -64,6 +66,12 @@ problem_linearized_pb.o : environ_mod.o
 problem_linearized_pb.o : environ_output.o
 problem_linearized_pb.o : environ_types.o
 problem_linearized_pb.o : problem_poisson.o
+problem_pb.o : environ_types.o
+problem_pb.o : electrostatic_types.o
+problem_pb.o : environ_output.o
+problem_pb.o : problem_linearized_pb.o
+problem_pb.o : problem_generalized.o
+problem_pb.o : problem_poisson.o
 problem_poisson.o : correction_periodic.o
 problem_poisson.o : electrostatic_types.o
 problem_poisson.o : environ_mod.o

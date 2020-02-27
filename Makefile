@@ -19,18 +19,18 @@
 
 default: all
 
-all: doc mods libfft libutil libenvpw libenviron
+all: doc libenviron
 
 doc:
 	if test -d Doc ; then \
         (cd Doc ; $(MAKE) || exit 1 ) ; fi
 
-libenviron:
+libenviron: mods libfft libutil libenvpw
 	if test -d src ; then \
         ( cd src ; if test "$(MAKE)" = "" ; then make $(MFLAGS) $@; \
         else $(MAKE) $(MFLAGS) ; fi ) ; fi ; \
 
-mods : libutil libfft
+mods : libfft libutil
 	( cd Modules_Files ; $(MAKE) TLDEPS= all || exit 1 )
 
 libfft : 

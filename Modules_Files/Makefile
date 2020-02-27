@@ -23,17 +23,15 @@ mp_images.o \
 parameters.o \
 parser.o \
 paw_variables.o \
-problem_pb.o \
 pseudo_types.o \
 radial_grids.o \
 random_numbers.o \
 recvec.o \
-solvent_tddfpt.o \
 uspp.o \
 wrappers.o \
 ws_base.o
 
-TLDEPS=libiotk libfox libenvutil libenvfft
+TLDEPS=libenvutil libenvfft
 
 all : libenvmod.a
 
