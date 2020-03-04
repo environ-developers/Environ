@@ -6,7 +6,7 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-MODULE fft_param
+MODULE env_fft_param
 
 #if defined(__MPI)
 #if defined(__MPI_MODULE)
@@ -30,4 +30,4 @@ MODULE fft_param
 
   REAL(DP), PARAMETER :: eps8  = 1.0E-8_DP
 
-END MODULE fft_param
+END MODULE env_fft_param

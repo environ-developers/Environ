@@ -7,19 +7,19 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 
 !=----------------------------------------------------------------------=!
-    MODULE fft_scalar_arm
+    MODULE env_fft_scalar_arm
 !=----------------------------------------------------------------------=!
 
        USE iso_c_binding
-       USE fft_param
-       USE fftw_interfaces
+       USE env_fft_param
+       USE env_fftw_interfaces
 
        IMPLICIT NONE
        SAVE
 #if defined(__ARM_LIB)
 
        PRIVATE
-       PUBLIC :: cft_1z, cft_2xy, cfft3d, cfft3ds
+       PUBLIC :: env_cft_1z, env_cft_2xy, env_cfft3d, env_cfft3ds
 
 !=----------------------------------------------------------------------=!
    CONTAINS
@@ -37,7 +37,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE cft_1z(c, nsl, nz, ldz, isign, cout)
+   SUBROUTINE env_cft_1z(c, nsl, nz, ldz, isign, cout)
 
 !     driver routine for nsl 1d complex fft's of length nz
 !     ldz >= nz is the distance between sequences to be transformed
@@ -74,20 +74,20 @@
      COMPLEX (DP), SAVE :: bw_tablez( ltabl, ndims )
 
      IF( nsl < 0 ) THEN
-       CALL fftx_error__(" fft_scalar: cft_1z ", " nsl out of range ", nsl)
+       CALL env_fftx_error__(" fft_scalar: cft_1z ", " nsl out of range ", nsl)
      END IF
 
      !
      !   Here initialize table only if necessary
      !
-     CALL lookup()
+     CALL env_lookup()
 
      IF( .NOT. found ) THEN
 
        !   no table exist for these parameters
        !   initialize a new one
 
-       CALL init_plan()
+       CALL env_init_plan()
 
      END IF
 
@@ -118,16 +118,16 @@ END IF
 
    CONTAINS
 
-     SUBROUTINE lookup()
+     SUBROUTINE env_lookup()
      DO ip = 1, ndims
         !   first check if there is already a table initialized
         !   for this combination of parameters
         found = ( nz == zdims(1,ip) )
         IF (found) EXIT
      END DO
-     END SUBROUTINE lookup
+     END SUBROUTINE env_lookup
 
-     SUBROUTINE init_plan()
+     SUBROUTINE env_init_plan()
          tscale = 1.0_DP / nz
          CALL ZFFT1MX(0, tscale, .FALSE., nsl, nz, c(1), 1, ldz, &
                cout(1), 1, ldz, fw_tablez(1, icurrent), INFO)
@@ -138,9 +138,9 @@ END IF
          ip = icurrent
          icurrent = MOD( icurrent, ndims ) + 1
 
-     END SUBROUTINE init_plan
+     END SUBROUTINE env_init_plan
 
-   END SUBROUTINE cft_1z
+   END SUBROUTINE env_cft_1z
 
 !
 !
@@ -156,7 +156,7 @@ END IF
 !
 !
 
-   SUBROUTINE cft_2xy(r, nzl, nx, ny, ldx, ldy, isign, pl2ix)
+   SUBROUTINE env_cft_2xy(r, nzl, nx, ny, ldx, ldy, isign, pl2ix)
 
 !     driver routine for nzl 2d complex fft's of lengths nx and ny
 !     input : r(ldx*ldy)  complex, transform is in-place
@@ -198,7 +198,7 @@ END IF
      dofft( 1 : nx ) = .TRUE.
      IF( PRESENT( pl2ix ) ) THEN
        IF( SIZE( pl2ix ) < nx ) &
-         CALL fftx_error__( ' cft_2xy ', ' wrong dimension for arg no. 8 ', 1 )
+         CALL env_fftx_error__( ' cft_2xy ', ' wrong dimension for arg no. 8 ', 1 )
        DO i = 1, nx
          IF( pl2ix(i) < 1 ) dofft( i ) = .FALSE.
        END DO
@@ -208,14 +208,14 @@ END IF
      !   Here initialize table only if necessary
      !
 
-     CALL lookup()
+     CALL env_lookup()
 
      IF( .NOT. found ) THEN
 
        !   no table exist for these parameters
        !   initialize a new one
 
-       CALL init_plan()
+       CALL env_init_plan()
 
      END IF
 
@@ -284,7 +284,7 @@ END IF
 
    CONTAINS
 
-     SUBROUTINE lookup()
+     SUBROUTINE env_lookup()
      DO ip = 1, ndims
        !   first check if there is already a table initialized
        !   for this combination of parameters
@@ -292,9 +292,9 @@ END IF
        found = found .AND. ( ldx == dims(2,ip) ) .AND.  ( nzl == dims(4,ip) )
        IF (found) EXIT
      END DO
-     END SUBROUTINE lookup
+     END SUBROUTINE env_lookup
 
-     SUBROUTINE init_plan()
+     SUBROUTINE env_init_plan()
          tscale = 1.0_DP / ( nx * ny )
 
 #if defined(_OPENMP)
@@ -313,9 +313,9 @@ END IF
         ip = icurrent
         icurrent = MOD( icurrent, ndims ) + 1
 
-     END SUBROUTINE init_plan
+     END SUBROUTINE env_init_plan
 
-   END SUBROUTINE cft_2xy
+   END SUBROUTINE env_cft_2xy
 
 
 !
@@ -330,7 +330,7 @@ END IF
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE cfft3d( f, nx, ny, nz, ldx, ldy, ldz, howmany, isign )
+   SUBROUTINE env_cfft3d( f, nx, ny, nz, ldx, ldy, ldz, howmany, isign )
 
   !     driver routine for 3d complex fft of lengths nx, ny, nz
   !     input  :  f(ldx*ldy*ldz)  complex, transform is in-place
@@ -366,25 +366,25 @@ END IF
 
 
      IF ( nx < 1 ) &
-         call fftx_error__('cfft3d',' nx is less than 1 ', 1)
+         call env_fftx_error__('cfft3d',' nx is less than 1 ', 1)
      IF ( ny < 1 ) &
-         call fftx_error__('cfft3d',' ny is less than 1 ', 1)
+         call env_fftx_error__('cfft3d',' ny is less than 1 ', 1)
      IF ( nz < 1 ) &
-         call fftx_error__('cfft3d',' nz is less than 1 ', 1)
+         call env_fftx_error__('cfft3d',' nz is less than 1 ', 1)
      IF ( howmany /= 1 ) &
-         call fftx_error__('cfft3d',' howmany different from 1, not yet implemented for ARM ', 1)
+         call env_fftx_error__('cfft3d',' howmany different from 1, not yet implemented for ARM ', 1)
 
      !
      !   Here initialize table only if necessary
      !
-     CALL lookup()
+     CALL env_lookup()
 
      IF( ip == -1 ) THEN
 
        !   no table exist for these parameters
        !   initialize a new one
 
-       CALL init_plan()
+       CALL env_init_plan()
 
      END IF
 
@@ -414,7 +414,7 @@ END IF
 
    CONTAINS
 
-     SUBROUTINE lookup()
+     SUBROUTINE env_lookup()
      ip = -1
      DO i = 1, ndims
        !   first check if there is already a table initialized
@@ -426,11 +426,11 @@ END IF
          EXIT
        END IF
      END DO
-     END SUBROUTINE lookup
+     END SUBROUTINE env_lookup
 
-     SUBROUTINE init_plan()
+     SUBROUTINE env_init_plan()
          IF ( nx /= ldx .or. ny /= ldy .or. nz /= ldz ) &
-           call fftx_error__('cfft3','not implemented',1)
+           call env_fftx_error__('cfft3','not implemented',1)
 
 #if defined(__ARM_LIB_BUG)
          tscale = 1.0_DP / DBLE( nx * ny * nz )
@@ -448,9 +448,9 @@ END IF
          ip = icurrent
          icurrent = MOD( icurrent, ndims ) + 1
 
-     END SUBROUTINE init_plan
+     END SUBROUTINE env_init_plan
 
-   END SUBROUTINE cfft3d
+   END SUBROUTINE env_cfft3d
 
 !
 !=----------------------------------------------------------------------=!
@@ -464,7 +464,7 @@ END IF
 !=----------------------------------------------------------------------=!
 !
 
-SUBROUTINE cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
+SUBROUTINE env_cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
      do_fft_z, do_fft_y)
   !
   !     driver routine for 3d complex "reduced" fft - see cfft3d
@@ -503,18 +503,18 @@ SUBROUTINE cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
   tscale = 1.0_DP
 
   IF( ny /= ldy ) &
-    CALL fftx_error__(' cfft3ds ', ' wrong dimensions: ny /= ldy ', 1 )
+    CALL env_fftx_error__(' cfft3ds ', ' wrong dimensions: ny /= ldy ', 1 )
   IF ( howmany /= 1 ) &
-    call fftx_error__(' cfft3ds ',' howmany different from 1, not yet implemented for ARM ', 1)
+    call env_fftx_error__(' cfft3ds ',' howmany different from 1, not yet implemented for ARM ', 1)
 
-     CALL lookup()
+     CALL env_lookup()
 
      IF( ip == -1 ) THEN
 
        !   no table exist for these parameters
        !   initialize a new one
 
-       CALL init_plan()
+       CALL env_init_plan()
 
      END IF
 
@@ -594,7 +594,7 @@ SUBROUTINE cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
 
    CONTAINS
 
-     SUBROUTINE lookup()
+     SUBROUTINE env_lookup()
      ip = -1
      DO i = 1, ndims
        !   first check if there is already a table initialized
@@ -605,9 +605,9 @@ SUBROUTINE cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
          EXIT
        END IF
      END DO
-     END SUBROUTINE lookup
+     END SUBROUTINE env_lookup
 
-     SUBROUTINE init_plan()
+     SUBROUTINE env_init_plan()
          !  x - direction
          incx1 = 1;  incx2 = ldx;  m = ldy * nz
 
@@ -630,10 +630,10 @@ SUBROUTINE cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
          ip = icurrent
          icurrent = MOD( icurrent, ndims ) + 1
 
-     END SUBROUTINE init_plan
+     END SUBROUTINE env_init_plan
 
-   END SUBROUTINE cfft3ds
+   END SUBROUTINE env_cfft3ds
 #endif
 !=----------------------------------------------------------------------=!
- END MODULE fft_scalar_arm
+ END MODULE env_fft_scalar_arm
 !=----------------------------------------------------------------------=!

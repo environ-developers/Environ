@@ -8,11 +8,11 @@
 !
 
 !=----------------------------------------------------------------------------=!
-MODULE fft_types
+MODULE env_fft_types
 !=----------------------------------------------------------------------------=!
 
-  USE fft_support, ONLY : good_fft_order, good_fft_dimension
-  USE fft_param
+  USE env_fft_support, ONLY : env_good_fft_order, env_good_fft_dimension
+  USE env_fft_param
 
   IMPLICIT NONE
   PRIVATE
@@ -138,15 +138,15 @@ MODULE fft_types
   REAL(DP) :: fft_dual = 4.0d0
   INTEGER  :: incremental_grid_identifier = 0
 
-  PUBLIC :: fft_type_descriptor, fft_type_init
-  PUBLIC :: fft_type_allocate, fft_type_deallocate
-  PUBLIC :: fft_stick_index
+  PUBLIC :: fft_type_descriptor, env_fft_type_init
+  PUBLIC :: env_fft_type_allocate, env_fft_type_deallocate
+  PUBLIC :: env_fft_stick_index
 
 CONTAINS
 
 !=----------------------------------------------------------------------------=!
 
-  SUBROUTINE fft_type_allocate( desc, at, bg, gcutm, comm, fft_fact, nyfft  )
+  SUBROUTINE env_fft_type_allocate( desc, at, bg, gcutm, comm, fft_fact, nyfft  )
   !
   ! routine allocating arrays of fft_type_descriptor, called by fft_type_init
   !
@@ -162,12 +162,12 @@ CONTAINS
      !write (6,*) ' inside fft_type_allocate' ; FLUSH(6)
 
     IF ( ALLOCATED( desc%nsp ) ) &
-        CALL fftx_error__(' fft_type_allocate ', ' fft arrays already allocated ', 1 )
+        CALL env_fftx_error__(' fft_type_allocate ', ' fft arrays already allocated ', 1 )
 
     desc%comm = comm 
 #if defined(__MPI)
     IF( desc%comm == MPI_COMM_NULL ) THEN
-       CALL fftx_error__( ' fft_type_allocate ', ' fft communicator is null ', 1 )
+       CALL env_fftx_error__( ' fft_type_allocate ', ' fft communicator is null ', 1 )
     END IF
 #endif
     !
@@ -180,7 +180,7 @@ CONTAINS
 
     IF ( present(nyfft) ) THEN
       ! check on yfft group dimension
-      CALL fftx_error__( ' fft_type_allocate ', ' MOD(nproc,nyfft) .ne. 0 ', MOD(nproc,nyfft) )
+      CALL env_fftx_error__( ' fft_type_allocate ', ' MOD(nproc,nyfft) .ne. 0 ', MOD(nproc,nyfft) )
 
 !#define ZCOMPACT
 #if defined(__MPI)
@@ -223,7 +223,7 @@ CONTAINS
        desc%iproc(iproc2,iproc3) = iproc
     end do
 
-    CALL realspace_grid_init( desc, at, bg, gcutm, fft_fact )
+    CALL env_realspace_grid_init( desc, at, bg, gcutm, fft_fact )
 
     ALLOCATE( desc%nr2p ( desc%nproc2 ), desc%i0r2p( desc%nproc2 ) ) ; desc%nr2p = 0 ; desc%i0r2p = 0
     ALLOCATE( desc%nr2p_offset ( desc%nproc2 ) ) ; desc%nr2p_offset = 0
@@ -262,9 +262,9 @@ CONTAINS
     incremental_grid_identifier = incremental_grid_identifier + 1
     desc%grid_id = incremental_grid_identifier
 
-  END SUBROUTINE fft_type_allocate
+  END SUBROUTINE env_fft_type_allocate
 
-  SUBROUTINE fft_type_deallocate( desc )
+  SUBROUTINE env_fft_type_deallocate( desc )
     TYPE (fft_type_descriptor) :: desc
     INTEGER :: ierr
      !write (6,*) ' inside fft_type_deallocate' ; FLUSH(6)
@@ -320,11 +320,11 @@ CONTAINS
 
     desc%grid_id = 0
 
-  END SUBROUTINE fft_type_deallocate
+  END SUBROUTINE env_fft_type_deallocate
 
 !=----------------------------------------------------------------------------=!
 
-  SUBROUTINE fft_type_set( desc, nst, ub, lb, idx, in1, in2, ncp, ncpw, ngp, ngpw, st, stw )
+  SUBROUTINE env_fft_type_set( desc, nst, ub, lb, idx, in1, in2, ncp, ncpw, ngp, ngpw, st, stw )
 
     TYPE (fft_type_descriptor) :: desc
 
@@ -348,10 +348,10 @@ CONTAINS
      !write (6,*) ' inside fft_type_set' ; FLUSH(6)
     !
     IF (.NOT. ALLOCATED( desc%nsp ) ) &
-        CALL fftx_error__(' fft_type_set ', ' fft arrays not yet allocated ', 1 )
+        CALL env_fftx_error__(' fft_type_set ', ' fft arrays not yet allocated ', 1 )
 
     IF ( desc%nr1 == 0 .OR. desc%nr2 == 0 .OR. desc%nr3 == 0 ) &
-        CALL fftx_error__(' fft_type_set ', ' fft dimensions not yet set ', 1 )
+        CALL env_fftx_error__(' fft_type_set ', ' fft dimensions not yet set ', 1 )
 
     !  Set fft actual and leading dimensions to be used internally
 
@@ -359,18 +359,18 @@ CONTAINS
     nr1x = desc%nr1x ; nr2x = desc%nr2x ; nr3x = desc%nr3x
 
     IF( ( nr1 > nr1x ) .or. ( nr2 > nr2x ) .or. ( nr3 > nr3x ) ) &
-      CALL fftx_error__( ' fft_type_set ', ' wrong fft dimensions ', 1 )
+      CALL env_fftx_error__( ' fft_type_set ', ' wrong fft dimensions ', 1 )
 
     IF( ( size( desc%ngl ) < desc%nproc ) .or.  ( size( desc%iss ) < desc%nproc ) .or. &
         ( size( desc%nr2p ) < desc%nproc2 ) .or. ( size( desc%i0r2p ) < desc%nproc2 ) .or. &
         ( size( desc%nr3p ) < desc%nproc3 ) .or. ( size( desc%i0r3p ) < desc%nproc3 ) ) &
-      CALL fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions ', 2 )
+      CALL env_fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions ', 2 )
 
     IF( ( size( idx ) < nst ) .or. ( size( in1 ) < nst ) .or. ( size( in2 ) < nst ) ) &
-      CALL fftx_error__( ' fft_type_set ', ' wrong number of stick dimensions ', 3 )
+      CALL env_fftx_error__( ' fft_type_set ', ' wrong number of stick dimensions ', 3 )
 
     IF( ( size( ncp ) < desc%nproc ) .or. ( size( ngp ) < desc%nproc ) ) &
-      CALL fftx_error__( ' fft_type_set ', ' wrong stick dimensions ', 4 )
+      CALL env_fftx_error__( ' fft_type_set ', ' wrong stick dimensions ', 4 )
 
     !  Set the number of "Y" values for each processor in the nproc2 group
     np = nr2 / desc%nproc2
@@ -428,10 +428,10 @@ CONTAINS
     desc%nwl( 1:desc%nproc )  = ngpw( 1:desc%nproc ) ! local number of g vectors (wave) per processor
 
     IF( size( desc%isind ) < ( nr1x * nr2x ) ) &
-      CALL fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions, isind ', 5 )
+      CALL env_fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions, isind ', 5 )
 
     IF( size( desc%iplp ) < ( nr1x ) .or. size( desc%iplw ) < ( nr1x ) ) &
-      CALL fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions, ipl ', 5 )
+      CALL env_fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions, ipl ', 5 )
 
     !
     !  1. Temporarily store in the array "desc%isind" the index of the processor
@@ -484,7 +484,7 @@ CONTAINS
              write (6,*) 'WRONG iplp/iplw arrays'
              write (6,*) desc%iplp
              write (6,*) desc%iplw
-             CALL fftx_error__( ' fft_type_set ', ' iplp is wrong ', m1 )
+             CALL env_fftx_error__( ' fft_type_set ', ' iplp is wrong ', m1 )
           end if
        end if
     end do
@@ -507,7 +507,7 @@ CONTAINS
     desc%nr1p = desc%nr1w ; desc%ir1p=desc%ir1w ; desc%indp = desc%indw
     do i1 = 1, nr1
        if ( (desc%iplw(i1) > 0) .and. (desc%iplp(i1) == 0) ) &
-             CALL fftx_error__( ' fft_type_set ', ' bad distribution of X values ', i1 )
+             CALL env_fftx_error__( ' fft_type_set ', ' bad distribution of X values ', i1 )
        if ( (desc%iplw(i1) > 0) ) cycle ! this X value has already been taken care of
 
        if (desc%iplp(i1) > 0 ) then
@@ -533,7 +533,7 @@ CONTAINS
     ! iss(1:nproc) is the index offset of the first column of a given processor
 
     IF( size( desc%ismap ) < ( nst ) ) &
-      CALL fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions ', 6 )
+      CALL env_fftx_error__( ' fft_type_set ', ' wrong descriptor dimensions ', 6 )
 
     !
     !  1. Set the array desc%ismap which maps stick indexes to
@@ -565,7 +565,7 @@ CONTAINS
       DO ip = 1, desc%nproc
         WRITE( stdout,*)  ' * ', ip, ' * ', nsp( ip ), ' /= ', ncpw( ip )
       ENDDO
-      CALL fftx_error__( ' fft_type_set ', ' inconsistent number of sticks ', 7 )
+      CALL env_fftx_error__( ' fft_type_set ', ' inconsistent number of sticks ', 7 )
     ENDIF
 
     desc%nsw( 1:desc%nproc ) = nsp( 1:desc%nproc )  ! -- number of wave sticks per processor
@@ -604,7 +604,7 @@ CONTAINS
       DO ip = 1, desc%nproc
         WRITE( stdout,*)  ' * ', ip, ' * ', nsp( ip ), ' /= ', ncp( ip )
       ENDDO
-      CALL fftx_error__( ' fft_type_set ', ' inconsistent number of sticks ', 8 )
+      CALL env_fftx_error__( ' fft_type_set ', ' inconsistent number of sticks ', 8 )
     ENDIF
 
     desc%nsp( 1:desc%nproc ) = nsp( 1:desc%nproc ) ! -- number of rho sticks per processor
@@ -713,7 +713,7 @@ CONTAINS
     !write (6,*) ' desc%nnr ', desc%nnr
 
     IF( desc%nr3x * desc%nsw( desc%mype + 1 ) > desc%nnr ) &
-        CALL fftx_error__( ' task_groups_init ', ' inconsistent desc%nnr ', 1 )
+        CALL env_fftx_error__( ' task_groups_init ', ' inconsistent desc%nnr ', 1 )
     desc%tg_snd(1)  = desc%nr3x * desc%nsw( desc%mype + 1 )
     desc%tg_rcv(1)  = desc%nr3x * desc%nsw( desc%iproc(1,desc%mype3+1) )
     desc%tg_sdsp(1) = 0
@@ -727,13 +727,13 @@ CONTAINS
 
     RETURN
 
-  END SUBROUTINE fft_type_set
+  END SUBROUTINE env_fft_type_set
 
 !=----------------------------------------------------------------------------=!
 
-  SUBROUTINE fft_type_init( dfft, smap, pers, lgamma, lpara, comm, at, bg, gcut_in, dual_in, fft_fact, nyfft )
+  SUBROUTINE env_fft_type_init( dfft, smap, pers, lgamma, lpara, comm, at, bg, gcut_in, dual_in, fft_fact, nyfft )
 
-     USE stick_base
+     USE env_stick_base
 
      TYPE (fft_type_descriptor), INTENT(INOUT) :: dfft 
      TYPE (sticks_map), INTENT(INOUT) :: smap
@@ -788,15 +788,15 @@ CONTAINS
         gkcut = gcut_in
         gcut = gkcut * dual
      ELSE
-        CALL fftx_error__(' fft_type_init ', ' unknown FFT personality ', 1 )
+        CALL env_fftx_error__(' fft_type_init ', ' unknown FFT personality ', 1 )
      END IF
      !write (*,*) 'FFT_TYPE_INIT pers, gkcut,gcut', pers, gkcut, gcut
 
      IF( .NOT. ALLOCATED( dfft%nsp ) ) THEN
-        CALL fft_type_allocate( dfft, at, bg, gcut, comm, fft_fact=fft_fact, nyfft=nyfft )
+        CALL env_fft_type_allocate( dfft, at, bg, gcut, comm, fft_fact=fft_fact, nyfft=nyfft )
      ELSE
         IF( dfft%comm /= comm ) THEN
-           CALL fftx_error__(' fft_type_init ', ' FFT already allocated with a different communicator ', 1 )
+           CALL env_fftx_error__(' fft_type_init ', ' FFT already allocated with a different communicator ', 1 )
         END IF
      END IF
 
@@ -804,7 +804,7 @@ CONTAINS
      dfft%lpara = lpara  !  this descriptor can be either a descriptor for a
                          !  parallel FFT or a serial FFT even in parallel build
 
-     CALL sticks_map_allocate( smap, lgamma, dfft%lpara, dfft%nproc2, &
+     CALL env_sticks_map_allocate( smap, lgamma, dfft%lpara, dfft%nproc2, &
           dfft%iproc, dfft%iproc2, dfft%nr1, dfft%nr2, dfft%nr3, bg, dfft%comm )
 
      dfft%lgamma = smap%lgamma ! .TRUE. if the grid has Gamma symmetry
@@ -817,11 +817,11 @@ CONTAINS
      ALLOCATE( sstpw(smap%nproc) )
 
      !write(*,*) 'calling get_sticks with gkcut =',gkcut
-     CALL get_sticks(  smap, gkcut, nstpw, sstpw, stw, nstw, ngw )
+     CALL env_get_sticks(  smap, gkcut, nstpw, sstpw, stw, nstw, ngw )
      !write(*,*) 'calling get_sticks with gcut =',gcut
-     CALL get_sticks(  smap, gcut,  nstp, sstp, st, nst, ngm )
+     CALL env_get_sticks(  smap, gcut,  nstp, sstp, st, nst, ngm )
 
-     CALL fft_type_set( dfft, nst, smap%ub, smap%lb, smap%idx, &
+     CALL env_fft_type_set( dfft, nst, smap%ub, smap%lb, smap%idx, &
           smap%ist(:,1), smap%ist(:,2), nstp, nstpw, sstp, sstpw, st, stw )
 
      dfft%ngw = dfft%nwl( dfft%mype + 1 )
@@ -832,10 +832,10 @@ CONTAINS
      END IF
 
      IF( dfft%ngw /= ngw ) THEN
-        CALL fftx_error__(' fft_type_init ', ' wrong ngw ', 1 )
+        CALL env_fftx_error__(' fft_type_init ', ' wrong ngw ', 1 )
      END IF
      IF( dfft%ngm /= ngm ) THEN
-        CALL fftx_error__(' fft_type_init ', ' wrong ngm ', 1 )
+        CALL env_fftx_error__(' fft_type_init ', ' wrong ngm ', 1 )
      END IF
 
 
@@ -846,16 +846,16 @@ CONTAINS
      DEALLOCATE( nstpw )
      DEALLOCATE( sstpw )
 
-  END SUBROUTINE fft_type_init
+  END SUBROUTINE env_fft_type_init
 
 !=----------------------------------------------------------------------------=!
 
-     SUBROUTINE realspace_grid_init( dfft, at, bg, gcutm, fft_fact )
+     SUBROUTINE env_realspace_grid_init( dfft, at, bg, gcutm, fft_fact )
        !
        ! ... Sets optimal values for dfft%nr[123] and dfft%nr[123]x
        ! ... If fft_fact is present, force nr[123] to be multiple of fft_fac([123])
        !
-       USE fft_support, only: good_fft_dimension, good_fft_order
+       USE env_fft_support, only: env_good_fft_dimension, env_good_fft_order
        !
        IMPLICIT NONE
        !
@@ -880,7 +880,7 @@ CONTAINS
          !write (6,*) sqrt(gcutm)*sqrt(at(1,2)**2 + at(2,2)**2 + at(3,2)**2) , dfft%nr2
          !write (6,*) sqrt(gcutm)*sqrt(at(1,3)**2 + at(2,3)**2 + at(3,3)**2) , dfft%nr3
          !
-         CALL grid_set( dfft, bg, gcutm, dfft%nr1, dfft%nr2, dfft%nr3 )
+         CALL env_grid_set( dfft, bg, gcutm, dfft%nr1, dfft%nr2, dfft%nr3 )
          !
 #if defined (__DEBUG)
        ELSE
@@ -889,24 +889,24 @@ CONTAINS
        END IF
 
        IF (PRESENT(fft_fact)) THEN
-          dfft%nr1 = good_fft_order( dfft%nr1, fft_fact(1) )
-          dfft%nr2 = good_fft_order( dfft%nr2, fft_fact(2) )
-          dfft%nr3 = good_fft_order( dfft%nr3, fft_fact(3) )
+          dfft%nr1 = env_good_fft_order( dfft%nr1, fft_fact(1) )
+          dfft%nr2 = env_good_fft_order( dfft%nr2, fft_fact(2) )
+          dfft%nr3 = env_good_fft_order( dfft%nr3, fft_fact(3) )
        ELSE
-          dfft%nr1 = good_fft_order( dfft%nr1 )
-          dfft%nr2 = good_fft_order( dfft%nr2 )
-          dfft%nr3 = good_fft_order( dfft%nr3 )
+          dfft%nr1 = env_good_fft_order( dfft%nr1 )
+          dfft%nr2 = env_good_fft_order( dfft%nr2 )
+          dfft%nr3 = env_good_fft_order( dfft%nr3 )
        END IF
 
-       dfft%nr1x  = good_fft_dimension( dfft%nr1 )
+       dfft%nr1x  = env_good_fft_dimension( dfft%nr1 )
        dfft%nr2x  = dfft%nr2
-       dfft%nr3x  = good_fft_dimension( dfft%nr3 )
+       dfft%nr3x  = env_good_fft_dimension( dfft%nr3 )
 
-     END SUBROUTINE realspace_grid_init
+     END SUBROUTINE env_realspace_grid_init
 
 !=----------------------------------------------------------------------------=!
 
-   SUBROUTINE grid_set( dfft, bg, gcut, nr1, nr2, nr3 )
+   SUBROUTINE env_grid_set( dfft, bg, gcut, nr1, nr2, nr3 )
 
 !  this routine returns in nr1, nr2, nr3 the minimal 3D real-space FFT 
 !  grid required to fit the G-vector sphere with G^2 <= gcut
@@ -975,13 +975,13 @@ CONTAINS
 
       RETURN
    
-   END SUBROUTINE grid_set
+   END SUBROUTINE env_grid_set
 
 
-   PURE FUNCTION fft_stick_index( desc, i, j )
+   PURE FUNCTION env_fft_stick_index( desc, i, j )
       IMPLICIT NONE
       TYPE(fft_type_descriptor), INTENT(IN) :: desc
-      INTEGER :: fft_stick_index
+      INTEGER :: env_fft_stick_index
       INTEGER, INTENT(IN) :: i, j
       INTEGER :: mc, m1, m2
       m1 = mod (i, desc%nr1) + 1
@@ -989,9 +989,9 @@ CONTAINS
       m2 = mod (j, desc%nr2) + 1
       IF (m2 < 1) m2 = m2 + desc%nr2
       mc = m1 + (m2 - 1) * desc%nr1x
-      fft_stick_index = desc%isind ( mc ) 
+      env_fft_stick_index = desc%isind ( mc ) 
    END FUNCTION
 
 !=----------------------------------------------------------------------------=!
-END MODULE fft_types
+END MODULE env_fft_types
 !=----------------------------------------------------------------------------=!

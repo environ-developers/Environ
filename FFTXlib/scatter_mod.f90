@@ -13,20 +13,20 @@
 !----------------------------------------------------------------------
 !
 !=----------------------------------------------------------------------=!
-   MODULE scatter_mod
+   MODULE env_scatter_mod
 !=----------------------------------------------------------------------=!
 
-        USE fft_types, ONLY: fft_type_descriptor
-        USE fft_param
+        USE env_fft_types, ONLY: fft_type_descriptor
+        USE env_fft_param
 
         IMPLICIT NONE
 
-        INTERFACE gather_grid
-           MODULE PROCEDURE gather_real_grid, gather_complex_grid
+        INTERFACE env_gather_grid
+           MODULE PROCEDURE env_gather_real_grid, env_gather_complex_grid
         END INTERFACE
 
-        INTERFACE scatter_grid
-           MODULE PROCEDURE scatter_real_grid, scatter_complex_grid
+        INTERFACE env_scatter_grid
+           MODULE PROCEDURE env_scatter_real_grid, env_scatter_complex_grid
         END INTERFACE
 
         SAVE
@@ -34,9 +34,9 @@
         PRIVATE
 
         PUBLIC :: fft_type_descriptor
-        PUBLIC :: gather_grid, scatter_grid
-        PUBLIC :: fft_scatter_xy, fft_scatter_yz, fft_scatter_tg, fft_scatter_tg_opt
-        PUBLIC :: cgather_sym, cgather_sym_many, cscatter_sym_many
+        PUBLIC :: env_gather_grid, env_scatter_grid
+        PUBLIC :: env_fft_scatter_xy, env_fft_scatter_yz, env_fft_scatter_tg, env_fft_scatter_tg_opt
+        PUBLIC :: env_cgather_sym, env_cgather_sym_many, env_cscatter_sym_many
 
 !=----------------------------------------------------------------------=!
       CONTAINS
@@ -44,7 +44,7 @@
 !
 !
 !-----------------------------------------------------------------------
-SUBROUTINE fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
+SUBROUTINE env_fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
   !-----------------------------------------------------------------------
   !
   ! transpose of the fft xy planes across the desc%comm2 communicator
@@ -91,13 +91,13 @@ SUBROUTINE fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
   CALL start_clock ('fft_scatt_xy')
   !
   if ( abs (isgn) == 1 ) then          ! It's a potential FFT
-     CALL impl_xy( MAXVAL ( desc%nr2p ), desc%nproc2, desc%my_nr2p, desc%nr1p, desc%indp, desc%iplp)
+     CALL env_impl_xy( MAXVAL ( desc%nr2p ), desc%nproc2, desc%my_nr2p, desc%nr1p, desc%indp, desc%iplp)
   else if ( abs (isgn) == 2 ) then     ! It's a wavefunction FFT
-     CALL impl_xy( MAXVAL ( desc%nr2p ), desc%nproc2, desc%my_nr2p, desc%nr1w, desc%indw, desc%iplw)
+     CALL env_impl_xy( MAXVAL ( desc%nr2p ), desc%nproc2, desc%my_nr2p, desc%nr1w, desc%indw, desc%iplw)
   else if ( abs (isgn) == 3 ) then     ! It's a wavefunction FFT with task group
      ! in task group FFTs whole Y colums are distributed
      nr1_temp = desc%nr1w_tg
-     CALL impl_xy( desc%nr2x, 1, desc%nr2x, nr1_temp, desc%indw_tg, desc%iplw)
+     CALL env_impl_xy( desc%nr2x, 1, desc%nr2x, nr1_temp, desc%indw_tg, desc%iplw)
   end if
   !
   CALL stop_clock ('fft_scatt_xy')
@@ -106,7 +106,7 @@ SUBROUTINE fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
 
   CONTAINS
 
-  SUBROUTINE impl_xy(nr2px, nproc2, my_nr2p, nr1p_, indx, iplx)
+  SUBROUTINE env_impl_xy(nr2px, nproc2, my_nr2p, nr1p_, indx, iplx)
   IMPLICIT NONE
   !
   INTEGER, INTENT(in):: nr2px, nproc2, my_nr2p
@@ -162,7 +162,7 @@ SUBROUTINE fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
         CALL mpi_irecv( f_in( (iproc2-1)*sendsize + 1 ), sendsize, &
                         MPI_DOUBLE_COMPLEX, iproc2-1, MPI_ANY_TAG, &
                         desc%comm2, rh( iproc2 ), ierr )
-        !IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', ' forward receive info<>0', abs(ierr) )
+        !IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', ' forward receive info<>0', abs(ierr) )
      ENDDO
      
      call mpi_waitall( nproc2, sh, MPI_STATUSES_IGNORE, ierr )
@@ -171,7 +171,7 @@ SUBROUTINE fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
      CALL mpi_alltoall (f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                         sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
      !
-     IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
+     IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
 #endif
      !
 10   CONTINUE
@@ -247,13 +247,13 @@ SUBROUTINE fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
      CALL mpi_alltoall (f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                         sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
 
-     IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
+     IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
 #else
      DO iproc2 = 1, nproc2
         CALL mpi_irecv( f_aux( (iproc2-1)*sendsize + 1 ), sendsize, &
                         MPI_DOUBLE_COMPLEX, iproc2-1, MPI_ANY_TAG, &
                         desc%comm2, rh(iproc2), ierr )
-        ! IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', ' backward receive info<>0', abs(ierr) )
+        ! IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', ' backward receive info<>0', abs(ierr) )
      ENDDO
         
      call mpi_waitall( nproc2, sh, MPI_STATUSES_IGNORE, ierr )
@@ -286,14 +286,14 @@ SUBROUTINE fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
 
   ENDIF
 
-  END SUBROUTINE impl_xy
+  END SUBROUTINE env_impl_xy
 
 #endif
 
-END SUBROUTINE fft_scatter_xy
+END SUBROUTINE env_fft_scatter_xy
 !
 !-----------------------------------------------------------------------
-SUBROUTINE fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
+SUBROUTINE env_fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
   !-----------------------------------------------------------------------
   !
   ! transpose of the fft yz planes across the desc%comm3 communicator
@@ -339,11 +339,11 @@ SUBROUTINE fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
   CALL start_clock ('fft_scatt_yz')
 
   if ( abs (isgn) == 1 ) then      ! It's a potential FFT
-     CALL impl_yz(desc%mype2+1, desc%mype2+1, desc%nsp, desc%ir1p, desc%nsp_offset)
+     CALL env_impl_yz(desc%mype2+1, desc%mype2+1, desc%nsp, desc%ir1p, desc%nsp_offset)
   else if ( abs (isgn) == 2 ) then ! It's a wavefunction FFT
-     CALL impl_yz(desc%mype2+1, desc%mype2+1, desc%nsw, desc%ir1w, desc%nsw_offset)
+     CALL env_impl_yz(desc%mype2+1, desc%mype2+1, desc%nsw, desc%ir1w, desc%nsw_offset)
   else if ( abs (isgn) == 3 ) then ! It's a wavefunction FFT with task group
-     CALL impl_yz(1, desc%nproc2, desc%nsw, desc%ir1w_tg, desc%nsw_offset)
+     CALL env_impl_yz(1, desc%nproc2, desc%nsw, desc%ir1w_tg, desc%nsw_offset)
   end if
 
   CALL stop_clock ('fft_scatt_yz')
@@ -352,7 +352,7 @@ SUBROUTINE fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
 
   CONTAINS
 
-  SUBROUTINE impl_yz(me2_start, me2_end, ncp_, ir1p_, me2_iproc3_offset)
+  SUBROUTINE env_impl_yz(me2_start, me2_end, ncp_, ir1p_, me2_iproc3_offset)
   IMPLICIT NONE
   !
   INTEGER, INTENT(in) :: me2_start, me2_end
@@ -418,7 +418,7 @@ SUBROUTINE fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
         CALL mpi_irecv( f_in( (iproc3-1)*sendsize + 1 ), sendsize, &
                         MPI_DOUBLE_COMPLEX, iproc3-1, MPI_ANY_TAG, &
                         desc%comm3, rh( iproc3 ), ierr )
-        !IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', ' forward receive info<>0', abs(ierr) )
+        !IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', ' forward receive info<>0', abs(ierr) )
         !
         !
      ENDDO
@@ -429,7 +429,7 @@ SUBROUTINE fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
      CALL mpi_alltoall (f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                         sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
 
-     IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
+     IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
 #endif     
      !
 10   CONTINUE
@@ -506,13 +506,13 @@ SUBROUTINE fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
      CALL mpi_alltoall (f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                         sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
 
-     IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
+     IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', 'info<>0', abs(ierr) )
 #else
      DO iproc3 = 1, desc%nproc3
         CALL mpi_irecv( f_aux( (iproc3-1)*sendsize + 1 ), sendsize, &
                         MPI_DOUBLE_COMPLEX, iproc3-1, MPI_ANY_TAG, &
                         desc%comm3, rh(iproc3), ierr )
-        ! IF( abs(ierr) /= 0 ) CALL fftx_error__ ('fft_scatter', ' backward receive info<>0', abs(ierr) )
+        ! IF( abs(ierr) /= 0 ) CALL env_fftx_error__ ('fft_scatter', ' backward receive info<>0', abs(ierr) )
      ENDDO
         
      call mpi_waitall( desc%nproc3, sh, MPI_STATUSES_IGNORE, ierr )
@@ -548,14 +548,14 @@ SUBROUTINE fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
 
   ENDIF
 
-  END SUBROUTINE impl_yz
+  END SUBROUTINE env_impl_yz
 
 #endif
 
-END SUBROUTINE fft_scatter_yz
+END SUBROUTINE env_fft_scatter_yz
 !
 !-----------------------------------------------------------------------
-SUBROUTINE fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
+SUBROUTINE env_fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
   !-----------------------------------------------------------------------
   !
   ! task group wavefunction redistribution
@@ -578,7 +578,7 @@ SUBROUTINE fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
 
   CALL start_clock ('fft_scatt_tg')
 
-  if ( abs (isgn) /= 3 ) call fftx_error__ ('fft_scatter_tg', 'wrong call', 1 )
+  if ( abs (isgn) /= 3 ) call env_fftx_error__ ('fft_scatter_tg', 'wrong call', 1 )
 
 #if defined(__MPI)
   !
@@ -587,13 +587,13 @@ SUBROUTINE fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
 
      CALL MPI_ALLTOALLV( f_aux,  desc%tg_snd, desc%tg_sdsp, MPI_DOUBLE_COMPLEX, &
                          f_in, desc%tg_rcv, desc%tg_rdsp, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
-     IF( ierr /= 0 ) CALL fftx_error__( 'fft_scatter_tg', ' alltoall error 1 ', abs(ierr) )
+     IF( ierr /= 0 ) CALL env_fftx_error__( 'fft_scatter_tg', ' alltoall error 1 ', abs(ierr) )
 
   else
 
      CALL MPI_ALLTOALLV( f_aux,  desc%tg_rcv, desc%tg_rdsp, MPI_DOUBLE_COMPLEX, &
                          f_in, desc%tg_snd, desc%tg_sdsp, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
-     IF( ierr /= 0 ) CALL fftx_error__( 'fft_scatter_tg', ' alltoall error 2 ', abs(ierr) )
+     IF( ierr /= 0 ) CALL env_fftx_error__( 'fft_scatter_tg', ' alltoall error 2 ', abs(ierr) )
    end if
 
 #endif
@@ -601,10 +601,10 @@ SUBROUTINE fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
 
   RETURN
 
-END SUBROUTINE fft_scatter_tg
+END SUBROUTINE env_fft_scatter_tg
 !
 !-----------------------------------------------------------------------
-SUBROUTINE fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
+SUBROUTINE env_fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
   !-----------------------------------------------------------------------
   !
   ! task group wavefunction redistribution
@@ -627,7 +627,7 @@ SUBROUTINE fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
 
   CALL start_clock ('fft_scatt_tg')
 
-  if ( abs (isgn) /= 3 ) call fftx_error__ ('fft_scatter_tg', 'wrong call', 1 )
+  if ( abs (isgn) /= 3 ) call env_fftx_error__ ('fft_scatter_tg', 'wrong call', 1 )
 
 #if defined(__MPI)
   !
@@ -635,13 +635,13 @@ SUBROUTINE fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
 
      CALL MPI_ALLTOALLV( f_in,  desc%tg_snd, desc%tg_sdsp, MPI_DOUBLE_COMPLEX, &
                          f_out, desc%tg_rcv, desc%tg_rdsp, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
-     IF( ierr /= 0 ) CALL fftx_error__( 'fft_scatter_tg', ' alltoall error 1 ', abs(ierr) )
+     IF( ierr /= 0 ) CALL env_fftx_error__( 'fft_scatter_tg', ' alltoall error 1 ', abs(ierr) )
 
   else
 
      CALL MPI_ALLTOALLV( f_in,  desc%tg_rcv, desc%tg_rdsp, MPI_DOUBLE_COMPLEX, &
                          f_out, desc%tg_snd, desc%tg_sdsp, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
-     IF( ierr /= 0 ) CALL fftx_error__( 'fft_scatter_tg', ' alltoall error 2 ', abs(ierr) )
+     IF( ierr /= 0 ) CALL env_fftx_error__( 'fft_scatter_tg', ' alltoall error 2 ', abs(ierr) )
    end if
 
 #endif
@@ -649,10 +649,10 @@ SUBROUTINE fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
 
   RETURN
 
-END SUBROUTINE fft_scatter_tg_opt
+END SUBROUTINE env_fft_scatter_tg_opt
 !
 !----------------------------------------------------------------------------
-SUBROUTINE gather_real_grid ( dfft, f_in, f_out )
+SUBROUTINE env_gather_real_grid ( dfft, f_in, f_out )
   !----------------------------------------------------------------------------
   !
   ! ... gathers a distributed real-space FFT grid to dfft%root, that is,
@@ -675,7 +675,7 @@ SUBROUTINE gather_real_grid ( dfft, f_in, f_out )
   REAL(DP), ALLOCATABLE ::  f_aux(:) 
   !
   IF( size( f_in ) < dfft%nnr ) &
-     CALL fftx_error__( ' gather_real_grid ', ' f_in too small ', dfft%nnr-size( f_in ) )
+     CALL env_fftx_error__( ' gather_real_grid ', ' f_in too small ', dfft%nnr-size( f_in ) )
   !
   CALL start_clock( 'rgather_grid' )
 
@@ -694,7 +694,7 @@ SUBROUTINE gather_real_grid ( dfft, f_in, f_out )
      CALL MPI_GATHERV( f_in(offset_in) , recvcount(dfft%mype2), MPI_DOUBLE_PRECISION, &
                        f_aux(offset_aux), recvcount, displs, MPI_DOUBLE_PRECISION, dfft%root,      &
                        dfft%comm2, info )
-     CALL fftx_error__( 'gather_real_grid', 'info<>0', info )
+     CALL env_fftx_error__( 'gather_real_grid', 'info<>0', info )
     !write (6,*) 'gather grid ok 2 ir3=', ir3
      offset_in  = offset_in + dfft%nr1x * dfft%my_nr2p
      offset_aux = offset_aux + dfft%nr1x * dfft%nr2
@@ -712,29 +712,29 @@ SUBROUTINE gather_real_grid ( dfft, f_in, f_out )
                     f_out, recvcount, displs, MPI_DOUBLE_PRECISION, dfft%root,      &
                     dfft%comm3, info )
   !write (6,*) 'gather grid ok 4'
-  CALL fftx_error__( ' gather_real_grid', 'info<>0', info )
+  CALL env_fftx_error__( ' gather_real_grid', 'info<>0', info )
   !
   ! ... the following check should be performed only on processor dfft%root
   ! ... otherwise f_out must be allocated on all processors even if not used
   !
   info = size( f_out ) - displs( dfft%nproc3-1 ) - recvcount( dfft%nproc3-1 )
   IF( info < 0 ) &
-     CALL fftx_error__( ' gather_real_grid ', ' f_out too small ', -info )
+     CALL env_fftx_error__( ' gather_real_grid ', ' f_out too small ', -info )
   !
   DEALLOCATE ( f_aux )
   !
   CALL stop_clock( 'rgather_grid' )
   !
 #else
-  CALL fftx_error__(' gather_real_grid', 'do not use in serial execution', 1)
+  CALL env_fftx_error__(' gather_real_grid', 'do not use in serial execution', 1)
 #endif
   !
   RETURN
   !
-END SUBROUTINE gather_real_grid
+END SUBROUTINE env_gather_real_grid
 
 !----------------------------------------------------------------------------
-SUBROUTINE gather_complex_grid ( dfft, f_in, f_out )
+SUBROUTINE env_gather_complex_grid ( dfft, f_in, f_out )
   !----------------------------------------------------------------------------
   !
   ! ... gathers a distributed real-space FFT grid to dfft%root, that is,
@@ -760,7 +760,7 @@ SUBROUTINE gather_complex_grid ( dfft, f_in, f_out )
   CALL start_clock( 'cgather_grid' )
   !write (*,*) 'gcgather_grid size(f_in),dfft%nnr',size(f_in), dfft%nnr ; FLUSH(6)
   IF( 2*size( f_in ) < dfft%nnr ) &
-     CALL fftx_error__( ' gather_complex_grid ', ' f_in too small ', dfft%nnr-size( f_in ) )
+     CALL env_fftx_error__( ' gather_complex_grid ', ' f_in too small ', dfft%nnr-size( f_in ) )
   !
   !write (6,*) 'gather grid ok 0 ', dfft%nproc, dfft%nproc2, dfft%nproc3
   ALLOCATE ( f_aux(dfft%nr1x * dfft%nr2x * dfft%my_nr3p ) )
@@ -777,7 +777,7 @@ SUBROUTINE gather_complex_grid ( dfft, f_in, f_out )
      CALL MPI_GATHERV( f_in(offset_in) , recvcount(dfft%mype2), MPI_DOUBLE_PRECISION, &
                        f_aux(offset_aux), recvcount, displs, MPI_DOUBLE_PRECISION, dfft%root,      &
                        dfft%comm2, info )
-     CALL fftx_error__( 'gather_complex_grid', 'info<>0', info )
+     CALL env_fftx_error__( 'gather_complex_grid', 'info<>0', info )
      !write (6,*) 'gather grid ok 2 ir3=', ir3
      offset_in  = offset_in + dfft%nr1x * dfft%my_nr2p
      offset_aux = offset_aux + dfft%nr1x * dfft%nr2
@@ -796,7 +796,7 @@ SUBROUTINE gather_complex_grid ( dfft, f_in, f_out )
   !write (*,*) 'gcgather_grid 2*size(f_out)',2*size(f_out) ; FLUSH(6)
   !write (*,*) 'gcgather_grid displ+recv',dfft%nproc3, displs(dfft%nproc3-1) + recvcount(dfft%nproc3-1); FLUSH(6)
   info = 2*size( f_out ) - displs( dfft%nproc3 - 1 ) - recvcount( dfft%nproc3-1 ) ; FLUSH(6)
-  IF( info < 0 ) CALL fftx_error__( ' gather_complex_grid ', ' f_out too small ', -info )
+  IF( info < 0 ) CALL env_fftx_error__( ' gather_complex_grid ', ' f_out too small ', -info )
 
   info = 0
   !write (6,*) 'gather grid ok 3'
@@ -804,22 +804,22 @@ SUBROUTINE gather_complex_grid ( dfft, f_in, f_out )
                     f_out, recvcount, displs, MPI_DOUBLE_PRECISION, dfft%root,      &
                     dfft%comm3, info )
   !write (6,*) 'gather grid ok 4'
-  CALL fftx_error__( 'gather_complex_grid', 'info<>0', info )
+  CALL env_fftx_error__( 'gather_complex_grid', 'info<>0', info )
   !
   DEALLOCATE ( f_aux )
   !
   CALL stop_clock( 'cgather_grid' )
   !
 #else
-  CALL fftx_error__('gather_complex_grid', 'do not use in serial execution', 1)
+  CALL env_fftx_error__('gather_complex_grid', 'do not use in serial execution', 1)
 #endif
   !
   RETURN
   !
-END SUBROUTINE gather_complex_grid
+END SUBROUTINE env_gather_complex_grid
 
 !----------------------------------------------------------------------------
-SUBROUTINE scatter_real_grid ( dfft, f_in, f_out )
+SUBROUTINE env_scatter_real_grid ( dfft, f_in, f_out )
   !----------------------------------------------------------------------------
   !
   ! ... scatters a real-space FFT grid from dfft%root, first processor of
@@ -853,18 +853,18 @@ SUBROUTINE scatter_real_grid ( dfft, f_in, f_out )
      if (proc > 0) displs(proc) = displs(proc-1) + sendcount(proc-1)
   ENDDO
   info = size( f_in ) - displs( dfft%nproc3 - 1 ) - sendcount( dfft%nproc3 - 1 )
-  IF( info < 0 ) CALL fftx_error__( ' scatter_real_grid ', ' f_in too small ', -info )
+  IF( info < 0 ) CALL env_fftx_error__( ' scatter_real_grid ', ' f_in too small ', -info )
   info = 0
   !write (6,*) 'scatter grid ok 1'
   CALL MPI_SCATTERV( f_in, sendcount, displs, MPI_DOUBLE_PRECISION,   &
                      f_aux, sendcount(dfft%mype3), MPI_DOUBLE_PRECISION, &
                      dfft%root, dfft%comm3, info )
   !write (6,*) 'scatter grid ok 2'
-  CALL fftx_error__( 'scatter_real_grid', 'info<>0', info )
+  CALL env_fftx_error__( 'scatter_real_grid', 'info<>0', info )
 
   ! 2) scatter within the comm2 communicator
   IF( size( f_out ) < dfft%nnr ) &
-     CALL fftx_error__( ' scatter_real_grid ', ' f_out too small ', dfft%nnr-size( f_out ) )
+     CALL env_fftx_error__( ' scatter_real_grid ', ' f_out too small ', dfft%nnr-size( f_out ) )
   !
   displs = 0 ; f_out = 0.0D0
   DO proc =0, ( dfft%nproc2 -1 )
@@ -879,7 +879,7 @@ SUBROUTINE scatter_real_grid ( dfft, f_in, f_out )
                         f_out(offset_in), sendcount(dfft%mype2), MPI_DOUBLE_PRECISION, &
                         dfft%root, dfft%comm2, info )
   !write (6,*) 'scatter grid ok 4, ir3=', ir3
-     CALL fftx_error__( 'scatter_real_grid', 'info<>0', info )
+     CALL env_fftx_error__( 'scatter_real_grid', 'info<>0', info )
      offset_in  = offset_in + dfft%nr1x * dfft%my_nr2p
      offset_aux = offset_aux + dfft%nr1x * dfft%nr2
   end do
@@ -889,14 +889,14 @@ SUBROUTINE scatter_real_grid ( dfft, f_in, f_out )
   CALL stop_clock( 'rscatter_grid' )
   !
 #else
-  CALL fftx_error__('scatter_real_grid', 'do not use in serial execution', 1)
+  CALL env_fftx_error__('scatter_real_grid', 'do not use in serial execution', 1)
 #endif
   !
   RETURN
   !
-END SUBROUTINE scatter_real_grid
+END SUBROUTINE env_scatter_real_grid
 !----------------------------------------------------------------------------
-SUBROUTINE scatter_complex_grid ( dfft, f_in, f_out )
+SUBROUTINE env_scatter_complex_grid ( dfft, f_in, f_out )
   !----------------------------------------------------------------------------
   !
   ! ... scatters a real-space FFT grid from dfft%root, first processor of
@@ -933,7 +933,7 @@ SUBROUTINE scatter_complex_grid ( dfft, f_in, f_out )
   !write(*,*) 'cscatter_grid displ+send ', dfft%nproc3, displs(dfft%nproc3-1) + sendcount(dfft%nproc3-1); FLUSH(6)
   info = 2*size( f_in ) - displs( dfft%nproc3 - 1 ) - sendcount( dfft%nproc3 - 1 )
   IF( info < 0 ) &
-     CALL fftx_error__( ' scatter_complex_grid ', ' f_in too small ', -info )
+     CALL env_fftx_error__( ' scatter_complex_grid ', ' f_in too small ', -info )
   !
   info = 0
   !write (6,*) 'scatter grid ok 1'
@@ -941,12 +941,12 @@ SUBROUTINE scatter_complex_grid ( dfft, f_in, f_out )
                      f_aux, sendcount(dfft%mype3), MPI_DOUBLE_PRECISION, &
                      dfft%root, dfft%comm3, info )
   !write (6,*) 'scatter grid ok 2'
-  CALL fftx_error__( ' scatter_complex_grid', 'info<>0', info )
+  CALL env_fftx_error__( ' scatter_complex_grid', 'info<>0', info )
 
   ! 2) scatter within the comm2 communicator
   !write(*,*) 'cscatter_grid size(f_out), dfft%nnr ', size(f_out),dfft%nnr; FLUSH(6)
   IF( size( f_out ) < dfft%nnr ) &
-     CALL fftx_error__( ' scatter_complex_grid ', ' f_out too small ', dfft%nnr-size( f_out ) )
+     CALL env_fftx_error__( ' scatter_complex_grid ', ' f_out too small ', dfft%nnr-size( f_out ) )
   !
   displs = 0 ; f_out = 0.0D0
   DO proc =0, ( dfft%nproc2 -1 )
@@ -961,7 +961,7 @@ SUBROUTINE scatter_complex_grid ( dfft, f_in, f_out )
                         f_out(offset_in), sendcount(dfft%mype2), MPI_DOUBLE_PRECISION, &
                         dfft%root, dfft%comm2, info )
   !write (6,*) 'scatter grid ok 4, ir3=', ir3
-     CALL fftx_error__( 'scatter_complex_grid', 'info<>0', info )
+     CALL env_fftx_error__( 'scatter_complex_grid', 'info<>0', info )
      offset_in  = offset_in + dfft%nr1x * dfft%my_nr2p
      offset_aux = offset_aux + dfft%nr1x * dfft%nr2x
   end do
@@ -974,17 +974,17 @@ SUBROUTINE scatter_complex_grid ( dfft, f_in, f_out )
   CALL stop_clock( 'cscatter_grid' )
   !
 #else
-  CALL fftx_error__('scatter_complex_grid', 'do not use in serial execution', 1)
+  CALL env_fftx_error__('scatter_complex_grid', 'do not use in serial execution', 1)
 #endif
   !
   RETURN
   !
-END SUBROUTINE scatter_complex_grid
+END SUBROUTINE env_scatter_complex_grid
 !
 ! ... "gather"-like subroutines
 !
 !-----------------------------------------------------------------------
-SUBROUTINE cgather_sym( dfftp, f_in, f_out )
+SUBROUTINE env_cgather_sym( dfftp, f_in, f_out )
   !-----------------------------------------------------------------------
   !
   ! ... gather complex data for symmetrization (used in phonon code)
@@ -1023,7 +1023,7 @@ SUBROUTINE cgather_sym( dfftp, f_in, f_out )
      CALL MPI_ALLGATHERV( f_in(offset_in), recvcount(dfftp%mype2), MPI_DOUBLE_PRECISION, &
                           f_aux(offset_aux),recvcount, displs, MPI_DOUBLE_PRECISION, &
                           dfftp%comm2, info )
-     CALL fftx_error__( 'cgather_sym', 'info<>0', info )
+     CALL env_fftx_error__( 'cgather_sym', 'info<>0', info )
      offset_in  = offset_in  + dfftp%nr1x * dfftp%my_nr2p
      offset_aux = offset_aux + dfftp%nr1x * dfftp%nr2x
   end do
@@ -1038,7 +1038,7 @@ SUBROUTINE cgather_sym( dfftp, f_in, f_out )
   CALL MPI_ALLGATHERV( f_aux, recvcount(dfftp%mype3), MPI_DOUBLE_PRECISION, &
                        f_out, recvcount, displs, MPI_DOUBLE_PRECISION, &
                        dfftp%comm3, info )
-  CALL fftx_error__( 'cgather_sym', 'info<>0', info )
+  CALL env_fftx_error__( 'cgather_sym', 'info<>0', info )
   !
   ! ... the following check should be performed only on processor dfft%root
   ! ... otherwise f_out must be allocated on all processors even if not used
@@ -1048,16 +1048,16 @@ SUBROUTINE cgather_sym( dfftp, f_in, f_out )
   CALL stop_clock( 'cgather' )
   !
 #else
-  CALL fftx_error__('cgather_sym', 'do not use in serial execution', 1)
+  CALL env_fftx_error__('cgather_sym', 'do not use in serial execution', 1)
 #endif
   !
   RETURN
   !
-END SUBROUTINE cgather_sym
+END SUBROUTINE env_cgather_sym
 !
 !
 !-----------------------------------------------------------------------
-SUBROUTINE cgather_sym_many( dfftp, f_in, f_out, nbnd, nbnd_proc, start_nbnd_proc )
+SUBROUTINE env_cgather_sym_many( dfftp, f_in, f_out, nbnd, nbnd_proc, start_nbnd_proc )
   !-----------------------------------------------------------------------
   !
   ! ... Written by A. Dal Corso
@@ -1131,7 +1131,7 @@ SUBROUTINE cgather_sym_many( dfftp, f_in, f_out, nbnd, nbnd_proc, start_nbnd_pro
            CALL MPI_GATHERV( f_in(offset_in,jbnd), recvcount(dfftp%mype2), MPI_DOUBLE_PRECISION, &
                              f_aux(offset_aux), recvcount, displs, MPI_DOUBLE_PRECISION, &
                              proc2_, dfftp%comm2, info )
-           CALL fftx_error__( 'cgather_sym_many', 'info<>0', info )
+           CALL env_fftx_error__( 'cgather_sym_many', 'info<>0', info )
            offset_in  = offset_in  + dfftp%nr1x * dfftp%my_nr2p
            offset_aux = offset_aux + dfftp%nr1x * dfftp%nr2x
         end do
@@ -1164,7 +1164,7 @@ SUBROUTINE cgather_sym_many( dfftp, f_in, f_out, nbnd, nbnd_proc, start_nbnd_pro
            CALL MPI_GATHERV( f_aux, recvcount(dfftp%mype3), MPI_DOUBLE_PRECISION, &
                              f_out(1,ibnd), recvcount, displs, MPI_DOUBLE_PRECISION, &
                              proc3_, dfftp%comm3, info )
-           CALL fftx_error__( 'cgather_sym_many', 'info<>0', info )
+           CALL env_fftx_error__( 'cgather_sym_many', 'info<>0', info )
    
         !   IF (dfftp%mype3==proc3_) THEN
         !      write(*,*) ' -> f_out(...+1:...+3,ibnd) ',ibnd
@@ -1184,15 +1184,15 @@ SUBROUTINE cgather_sym_many( dfftp, f_in, f_out, nbnd, nbnd_proc, start_nbnd_pro
   CALL stop_clock( 'cgather' )
   !
 #else
-  CALL fftx_error__('cgather_sym_many', 'do not use in serial execution', 1)
+  CALL env_fftx_error__('cgather_sym_many', 'do not use in serial execution', 1)
 #endif
   !
   RETURN
   !
-END SUBROUTINE cgather_sym_many
+END SUBROUTINE env_cgather_sym_many
 !
 !----------------------------------------------------------------------------
-SUBROUTINE cscatter_sym_many( dfftp, f_in, f_out, target_ibnd, nbnd, nbnd_proc, &
+SUBROUTINE env_cscatter_sym_many( dfftp, f_in, f_out, target_ibnd, nbnd, nbnd_proc, &
                               start_nbnd_proc   )
   !----------------------------------------------------------------------------
   !
@@ -1263,7 +1263,7 @@ SUBROUTINE cscatter_sym_many( dfftp, f_in, f_out, target_ibnd, nbnd, nbnd_proc, 
            CALL MPI_SCATTERV( f_aux(offset_aux), sendcount, displs, MPI_DOUBLE_PRECISION,   &
                               f_out(offset_out), sendcount(dfftp%mype2), MPI_DOUBLE_PRECISION, &
                               proc2_, dfftp%comm2, info )
-           CALL fftx_error__( 'gather_grid', 'info<>0', info )
+           CALL env_fftx_error__( 'gather_grid', 'info<>0', info )
            offset_out = offset_out + dfftp%nr1x * dfftp%my_nr2p
            offset_aux = offset_aux + dfftp%nr1x * dfftp%nr2x
         end do
@@ -1275,21 +1275,21 @@ SUBROUTINE cscatter_sym_many( dfftp, f_in, f_out, target_ibnd, nbnd, nbnd_proc, 
   CALL stop_clock( 'cscatter_sym' )
   !
 #else
-  CALL fftx_error__('cscatter_sym_many', 'do not use in serial execution', 1)
+  CALL env_fftx_error__('cscatter_sym_many', 'do not use in serial execution', 1)
 #endif
   !
   RETURN
   !
-END SUBROUTINE cscatter_sym_many
+END SUBROUTINE env_cscatter_sym_many
 
 
 !=----------------------------------------------------------------------=!
-   END MODULE scatter_mod
+   END MODULE env_scatter_mod
 !=----------------------------------------------------------------------=!
 !
 !
 !---------------------------------------------------------------------
-subroutine fftsort (n, ia)  
+subroutine env_fftsort (n, ia)  
   !---------------------------------------------------------------------
   ! sort an integer array ia(1:n) into ascending order using heapsort algorithm.
   ! n is input, ia is replaced on output by its sorted rearrangement.
@@ -1366,5 +1366,5 @@ subroutine fftsort (n, ia)
   ia (:,i) = iia(:)  
   goto 10  
   !
-end subroutine fftsort
+end subroutine env_fftsort
 

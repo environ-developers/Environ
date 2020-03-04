@@ -8,15 +8,15 @@
 !
 
 !=----------------------------------------------------------------------=!
-   MODULE fft_support
+   MODULE env_fft_support
 !=----------------------------------------------------------------------=!
 
-       USE fft_param
+       USE env_fft_param
        IMPLICIT NONE
        SAVE
 
        PRIVATE
-       PUBLIC :: good_fft_dimension, allowed, good_fft_order
+       PUBLIC :: env_good_fft_dimension, env_allowed, env_good_fft_order
 
 !=----------------------------------------------------------------------=!
    CONTAINS
@@ -27,7 +27,7 @@
 !=----------------------------------------------------------------------=!
 !
 !
-integer function good_fft_dimension (n)
+integer function env_good_fft_dimension (n)
   !
   ! Determines the optimal maximum dimensions of fft arrays
   ! Useful on some machines to avoid memory conflicts
@@ -51,14 +51,14 @@ integer function good_fft_dimension (n)
   !
 #endif
   !
-  good_fft_dimension = nx
+  env_good_fft_dimension = nx
   return
-end function good_fft_dimension
+end function env_good_fft_dimension
 
 
 !=----------------------------------------------------------------------=!
 
-function allowed (nr)
+function env_allowed (nr)
 
 
   ! find if the fft dimension is a good one
@@ -68,7 +68,7 @@ function allowed (nr)
   implicit none
   integer :: nr
 
-  logical :: allowed
+  logical :: env_allowed
   integer :: pwr (5)
   integer :: mr, i, fac, p, maxpwr
   integer :: factors( 5 ) = (/ 2, 3, 5, 7, 11 /)
@@ -90,13 +90,13 @@ function allowed (nr)
   end do factors_loop
 
   IF ( nr /= ( mr * 2**pwr (1) * 3**pwr (2) * 5**pwr (3) * 7**pwr (4) * 11**pwr (5) ) ) &
-     CALL fftx_error__ (' allowed ', ' what ?!? ', 1 )
+     CALL env_fftx_error__ (' allowed ', ' what ?!? ', 1 )
 
   if ( mr /= 1 ) then
 
      ! fft dimension contains factors > 11 : no good in any case
 
-     allowed = .false.
+    env_allowed = .false.
 
   else
 
@@ -104,7 +104,7 @@ function allowed (nr)
 
      ! IBM machines with essl libraries
 
-     allowed =  ( pwr(1) >= 1 ) .and. ( pwr(2) <= 2 ) .and. ( pwr(3) <= 1 ) .and. &
+env_allowed =  ( pwr(1) >= 1 ) .and. ( pwr(2) <= 2 ) .and. ( pwr(3) <= 1 ) .and. &
                 ( pwr(4) <= 1 ) .and. ( pwr(5) <= 1 ) .and. &
                 ( ( (pwr(2) == 0 ) .and. ( pwr(3) + pwr(4) + pwr(5) ) <= 2 ) .or. &
                   ( (pwr(2) /= 0 ) .and. ( pwr(3) + pwr(4) + pwr(5) ) <= 1 ) )
@@ -112,18 +112,18 @@ function allowed (nr)
 
      ! fftw and all other cases: no factors 7 and 11
 
-     allowed = ( ( pwr(4) == 0 ) .and. ( pwr(5) == 0 ) )
+  env_allowed = ( ( pwr(4) == 0 ) .and. ( pwr(5) == 0 ) )
 
 #endif
 
   endif
 
   return
-end function allowed
+end function env_allowed
 
 !=----------------------------------------------------------------------=!
 
-   INTEGER FUNCTION good_fft_order( nr, np )
+   INTEGER FUNCTION env_good_fft_order( nr, np )
 
 !
 !    This function find a "good" fft order value greater or equal to "nr"
@@ -145,29 +145,29 @@ end function allowed
 
      IF (PRESENT(np)) THEN
         IF (np <= 0) &
-           CALL fftx_error__( ' good_fft_order ', ' invalid np ', new )
+           CALL env_fftx_error__( ' good_fft_order ', ' invalid np ', new )
      ENDIF
 
      new = nr
      IF( PRESENT( np ) ) THEN
-       DO WHILE( ( ( .NOT. allowed( new ) ) .OR. ( MOD( new, np ) /= 0 ) ) .AND. ( new <= nfftx ) )
+       DO WHILE( ( ( .NOT. env_allowed( new ) ) .OR. ( MOD( new, np ) /= 0 ) ) .AND. ( new <= nfftx ) )
          new = new + 1
        END DO
      ELSE
-       DO WHILE( ( .NOT. allowed( new ) ) .AND. ( new <= nfftx ) )
+       DO WHILE( ( .NOT. env_allowed( new ) ) .AND. ( new <= nfftx ) )
          new = new + 1
        END DO
      END IF
 
      IF( new > nfftx ) &
-       CALL fftx_error__( ' good_fft_order ', ' fft order too large ', new )
+       CALL env_fftx_error__( ' good_fft_order ', ' fft order too large ', new )
 
-     good_fft_order = new
+       env_good_fft_order = new
 
      RETURN
-   END FUNCTION good_fft_order
+   END FUNCTION env_good_fft_order
 
 
 !=----------------------------------------------------------------------=!
-   END MODULE fft_support
+   END MODULE env_fft_support
 !=----------------------------------------------------------------------=!

@@ -7,12 +7,12 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE fftx_error__( calling_routine, message, ierr )
+SUBROUTINE env_fftx_error__( calling_routine, message, ierr )
   !----------------------------------------------------------------------------
   !
   ! ... This is a simple routine which writes an error message to output: 
   !
-  USE fft_param
+  USE env_fft_param
   IMPLICIT NONE
   !
   CHARACTER(LEN=*), INTENT(IN) :: calling_routine, message
@@ -48,4 +48,4 @@ SUBROUTINE fftx_error__( calling_routine, message, ierr )
   !
   RETURN
   !
-END SUBROUTINE fftx_error__
+END SUBROUTINE env_fftx_error__

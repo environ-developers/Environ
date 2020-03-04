@@ -44,6 +44,9 @@ SUBROUTINE v_of_rho( rho, rho_core, rhog_core, &
     ! electric field energy - inout due to the screwed logic of add_efield
   ! ! 
   INTEGER :: is, ir
+  print *, "*************************************************"
+  print *, "running from Environ!!"
+  print *, "*************************************************"
   !
   CALL start_clock( 'v_of_rho' )
   !

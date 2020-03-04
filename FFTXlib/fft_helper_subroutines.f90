@@ -1,18 +1,18 @@
-MODULE fft_helper_subroutines
+MODULE env_fft_helper_subroutines
 
   IMPLICIT NONE
   SAVE
 
-  INTERFACE tg_reduce_rho
-    MODULE PROCEDURE tg_reduce_rho_1,tg_reduce_rho_2,tg_reduce_rho_3,tg_reduce_rho_4, &
-&                    tg_reduce_rho_5
+  INTERFACE env_tg_reduce_rho
+    MODULE PROCEDURE env_tg_reduce_rho_1,env_tg_reduce_rho_2, &
+&                    env_tg_reduce_rho_3,env_tg_reduce_rho_4,env_tg_reduce_rho_5
   END INTERFACE
 
 CONTAINS
 
-  SUBROUTINE tg_reduce_rho_1( rhos, tg_rho_nc, tg_rho, ispin, noncolin, domag, desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_reduce_rho_1( rhos, tg_rho_nc, tg_rho, ispin, noncolin, domag, desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
 
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      INTEGER, INTENT(IN) :: ispin
@@ -62,9 +62,9 @@ CONTAINS
 
 
 
-  SUBROUTINE tg_reduce_rho_2( rhos, tmp_rhos, ispin, desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_reduce_rho_2( rhos, tmp_rhos, ispin, desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
 
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      INTEGER, INTENT(IN) :: ispin
@@ -91,9 +91,9 @@ CONTAINS
  
   END SUBROUTINE
 
-  SUBROUTINE tg_reduce_rho_3( rhos, tmp_rhos, desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_reduce_rho_3( rhos, tmp_rhos, desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
 
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      REAL(DP), INTENT(INOUT)  :: tmp_rhos(:,:)
@@ -122,9 +122,9 @@ CONTAINS
   END SUBROUTINE
 
 
-  SUBROUTINE tg_reduce_rho_4( rhos, tmp_rhos, desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_reduce_rho_4( rhos, tmp_rhos, desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
 
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      COMPLEX(DP), INTENT(INOUT)  :: tmp_rhos(:)
@@ -153,9 +153,9 @@ CONTAINS
   END SUBROUTINE
 
 
-  SUBROUTINE tg_reduce_rho_5( rhos, tmp_rhos, desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_reduce_rho_5( rhos, tmp_rhos, desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
 
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      COMPLEX(DP), INTENT(INOUT)  :: tmp_rhos(:,:)
@@ -185,65 +185,65 @@ CONTAINS
 
 
 
-  SUBROUTINE tg_get_nnr( desc, right_nnr )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_get_nnr( desc, right_nnr )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      INTEGER, INTENT(OUT) :: right_nnr
      right_nnr = desc%nnr
   END SUBROUTINE
 
-  SUBROUTINE tg_get_local_nr3( desc, val )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_get_local_nr3( desc, val )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      INTEGER, INTENT(OUT) :: val
      val = desc%my_nr3p
   END SUBROUTINE
 
-  SUBROUTINE tg_get_group_nr3( desc, val )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_get_group_nr3( desc, val )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      INTEGER, INTENT(OUT) :: val
      val = desc%my_nr3p
   END SUBROUTINE
 
-  SUBROUTINE tg_get_recip_inc( desc, val )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_tg_get_recip_inc( desc, val )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      INTEGER, INTENT(OUT) :: val
      val = desc%nnr
   END SUBROUTINE
 
-  PURE FUNCTION fftx_ntgrp( desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
-     INTEGER :: fftx_ntgrp
+  PURE FUNCTION env_fftx_ntgrp( desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
+     INTEGER :: env_fftx_ntgrp
      TYPE(fft_type_descriptor), INTENT(in) :: desc
-     fftx_ntgrp = desc%nproc2
+     env_fftx_ntgrp = desc%nproc2
   END FUNCTION
 
-  PURE FUNCTION fftx_tgpe( desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
-     INTEGER :: fftx_tgpe
+  PURE FUNCTION env_fftx_tgpe( desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
+     INTEGER :: env_fftx_tgpe
      TYPE(fft_type_descriptor), INTENT(in) :: desc
-     fftx_tgpe = desc%mype2
+     env_fftx_tgpe = desc%mype2
   END FUNCTION
 
-  PURE FUNCTION fftx_tgcomm( desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
-     INTEGER :: fftx_tgcomm
+  PURE FUNCTION env_fftx_tgcomm( desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
+     INTEGER :: env_fftx_tgcomm
      TYPE(fft_type_descriptor), INTENT(in) :: desc
-     fftx_tgcomm = desc%comm2
+     env_fftx_tgcomm = desc%comm2
   END FUNCTION
 
-  SUBROUTINE fftx_add_field( r, f, desc )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_fftx_add_field( r, f, desc )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      REAL(DP), INTENT(INOUT)  :: r(:,:)
      REAL(DP), INTENT(IN) :: f(:)
@@ -270,12 +270,12 @@ CONTAINS
   END SUBROUTINE
 
 
-  SUBROUTINE c2psi_gamma( desc, psi, c, ca )
+  SUBROUTINE env_c2psi_gamma( desc, psi, c, ca )
      !
      !  Copy wave-functions from 1D array (c_bgrp) to 3D array (psi) in Fourier space
      !
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      complex(DP), INTENT(OUT) :: psi(:)
      complex(DP), INTENT(IN) :: c(:)
@@ -303,13 +303,13 @@ CONTAINS
      END IF
   END SUBROUTINE
 
-  SUBROUTINE c2psi_k( desc, psi, c, igk, ngk)
+  SUBROUTINE env_c2psi_k( desc, psi, c, igk, ngk)
      !
      !  Copy wave-functions from 1D array (c/evc) ordered according (k+G) index igk 
      !  to 3D array (psi) in Fourier space
      !
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      complex(DP), INTENT(OUT) :: psi(:)
      complex(DP), INTENT(IN) :: c(:)
@@ -328,13 +328,13 @@ CONTAINS
      !
   END SUBROUTINE
 
-  SUBROUTINE fftx_oned2threed( desc, psi, c, ca )
+  SUBROUTINE env_fftx_oned2threed( desc, psi, c, ca )
      !
      !  Copy charge density from 1D array (c) to 3D array (psi) in Fourier
      !  space
      !
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      complex(DP), INTENT(OUT) :: psi(:)
      complex(DP), INTENT(IN) :: c(:)
@@ -374,9 +374,9 @@ CONTAINS
      END IF
   END SUBROUTINE
 
-  SUBROUTINE fftx_add_threed2oned_gamma( desc, vin, vout1, vout2 )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_fftx_add_threed2oned_gamma( desc, vin, vout1, vout2 )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      complex(DP), INTENT(INOUT) :: vout1(:)
      complex(DP), OPTIONAL, INTENT(INOUT) :: vout2(:)
@@ -397,9 +397,9 @@ CONTAINS
      END IF
   END SUBROUTINE
 
-  SUBROUTINE fftx_threed2oned( desc, vin, vout1, vout2 )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_fftx_threed2oned( desc, vin, vout1, vout2 )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      complex(DP), INTENT(OUT) :: vout1(:)
      complex(DP), OPTIONAL, INTENT(OUT) :: vout2(:)
@@ -421,9 +421,9 @@ CONTAINS
   END SUBROUTINE
 
 
-  SUBROUTINE fftx_psi2c_gamma( desc, vin, vout1, vout2 )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_fftx_psi2c_gamma( desc, vin, vout1, vout2 )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      complex(DP), INTENT(OUT) :: vout1(:)
      complex(DP), OPTIONAL, INTENT(OUT) :: vout2(:)
@@ -445,13 +445,13 @@ CONTAINS
   END SUBROUTINE
 
 
-  SUBROUTINE c2psi_gamma_tg(desc, psis, c_bgrp, i, nbsp_bgrp )
+  SUBROUTINE env_c2psi_gamma_tg(desc, psis, c_bgrp, i, nbsp_bgrp )
      !
      !  Copy all wave-functions of an orbital group 
      !  from 1D array (c_bgrp) to 3D array (psi) in Fourier space
      !
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      complex(DP), INTENT(OUT) :: psis(:)
      complex(DP), INTENT(INOUT) :: c_bgrp(:,:)
@@ -463,12 +463,12 @@ CONTAINS
      !  The outer loop goes through i : i + 2*NOGRP to cover
      !  2*NOGRP eigenstates at each iteration
      !
-     CALL tg_get_nnr( desc, right_nnr )
+     CALL env_tg_get_nnr( desc, right_nnr )
 
 !$omp  parallel
 !$omp  single
 
-     do eig_index = 1, 2 * fftx_ntgrp(desc), 2
+     do eig_index = 1, 2 * env_fftx_ntgrp(desc), 2
 
 !$omp task default(none) &
 !$omp          firstprivate( eig_index, i, nbsp_bgrp, right_nnr ) &
@@ -489,7 +489,7 @@ CONTAINS
            !
            !  The  eig_index loop is executed only ONCE when NOGRP=1.
            !
-           CALL c2psi_gamma( desc, psis( eig_offset * right_nnr + 1 : eig_offset * right_nnr + right_nnr ), &
+           CALL env_c2psi_gamma( desc, psis( eig_offset * right_nnr + 1 : eig_offset * right_nnr + right_nnr ), &
                        c_bgrp( :, i+eig_index-1 ), c_bgrp( :, i+eig_index ) )
            !
         ENDIF
@@ -502,13 +502,13 @@ CONTAINS
   END SUBROUTINE
 
 
-  SUBROUTINE fft_dist_info( desc, unit )
-     USE fft_param
-     USE fft_types,      ONLY : fft_type_descriptor
+  SUBROUTINE env_fft_dist_info( desc, unit )
+     USE env_fft_param
+     USE env_fft_types,      ONLY : fft_type_descriptor
      INTEGER, INTENT(IN) :: unit
      TYPE(fft_type_descriptor), INTENT(in) :: desc
      INTEGER :: i, j, nr3l
-     CALL tg_get_local_nr3( desc, nr3l )
+     CALL env_tg_get_local_nr3( desc, nr3l )
      WRITE( stdout,1000) desc%nr1, desc%nr2, desc%nr3, &
                          desc%nr1, desc%my_nr2p, desc%my_nr3p, &
                          1, desc%nproc2, desc%nproc3
@@ -526,4 +526,4 @@ CONTAINS
      RETURN
   END SUBROUTINE
 
-END MODULE fft_helper_subroutines
+END MODULE env_fft_helper_subroutines

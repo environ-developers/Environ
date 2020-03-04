@@ -8,7 +8,7 @@
 !
 
 !=----------------------------------------------------------------------=!
-   MODULE fft_smallbox
+   MODULE env_fft_smallbox
 !=----------------------------------------------------------------------=!
 
 !! iso_c_binding provides C_PTR, C_NULL_PTR, C_ASSOCIATED
@@ -17,7 +17,7 @@
        SAVE
 
         PRIVATE
-        PUBLIC :: cft_b, cft_b_omp_init, cft_b_omp
+        PUBLIC :: env_cft_b, env_cft_b_omp_init, env_cft_b_omp
 
 ! ...   Local Parameter
 
@@ -57,7 +57,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE cft_b ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
+   SUBROUTINE env_cft_b ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
 
 !     driver routine for 3d complex fft's on box grid, parallel case
 !     fft along z for all xy values 
@@ -67,7 +67,7 @@
 !     implemented for FFTW, only for sgn=1 (f(R) => f(G))
 !     (beware: here the "essl" convention for the sign of the fft is used!)
 !
-      USE fftw_interfaces
+      USE env_fftw_interfaces
       implicit none
       integer nx,ny,nz,ldx,ldy,ldz,imin2,imax2,imin3,imax3,sgn
       complex(dp) :: f(:)
@@ -88,7 +88,7 @@
       tscale = 1.0_DP
 
       if ( isign > 0 ) then
-         call fftx_error__('cft_b','not implemented',isign)
+         call env_fftx_error__('cft_b','not implemented',isign)
       end if
 !
 ! 2d fft on xy planes - only needed planes are transformed
@@ -160,7 +160,7 @@
       end do   
 
       RETURN
-   END SUBROUTINE cft_b
+   END SUBROUTINE env_cft_b
 
 !
 !=----------------------------------------------------------------------=!
@@ -174,11 +174,11 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE cft_b_omp_init ( nx, ny, nz )
+   SUBROUTINE env_cft_b_omp_init ( nx, ny, nz )
 
 !     driver routine for 3d complex fft's on box grid, init subroutine
 !
-      USE fftw_interfaces
+      USE env_fftw_interfaces
       implicit none
       integer, INTENT(IN) :: nx,ny,nz
       !
@@ -202,10 +202,10 @@
 !$omp end parallel
 
      RETURN
-   END SUBROUTINE cft_b_omp_init
+   END SUBROUTINE env_cft_b_omp_init
 
 
-   SUBROUTINE cft_b_omp ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
+   SUBROUTINE env_cft_b_omp ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
 
 !     driver routine for 3d complex fft's on box grid, parallel (MPI+OpenMP) case
 !     fft along z for all xy values 
@@ -217,7 +217,7 @@
 !
 !     This driver is meant for calls inside parallel OpenMP sections
 !
-      USE fftw_interfaces
+      USE env_fftw_interfaces
       implicit none
       integer, INTENT(IN) :: nx,ny,nz,ldx,ldy,ldz,imin2,imax2,imin3,imax3,sgn
       complex(dp) :: f(:)
@@ -226,19 +226,19 @@
 !$omp threadprivate (k,first_index,how_many_y)
 
       if ( -sgn > 0 ) then
-         CALL fftx_error__('cft_b_omp','forward transform not implemented',1)
+         CALL env_fftx_error__('cft_b_omp','forward transform not implemented',1)
       end if
 
       IF ( .NOT. C_ASSOCIATED(cft_b_bw_planz) .or. &
            .NOT. C_ASSOCIATED(cft_b_bw_planx) .or. &
            .NOT. C_ASSOCIATED(cft_b_bw_plany) ) THEN
-         CALL fftx_error__('cft_b_omp','plan not initialized',1)
+         CALL env_fftx_error__('cft_b_omp','plan not initialized',1)
       END IF
 
       !  consistency check
 
       IF ( ( nx /= cft_b_dims(1) ) .or. ( ny /= cft_b_dims(2) ) .or. ( nz /= cft_b_dims(3) ) ) THEN
-         CALL fftx_error__('cft_b_omp', 'dimensions are inconsistent with the existing plan',1) 
+         CALL env_fftx_error__('cft_b_omp', 'dimensions are inconsistent with the existing plan',1) 
       END IF
 
       !
@@ -260,10 +260,10 @@
       end do   
 
      RETURN
-   END SUBROUTINE cft_b_omp
+   END SUBROUTINE env_cft_b_omp
 
 
 !=----------------------------------------------------------------------=!
-   END MODULE fft_smallbox
+   END MODULE env_fft_smallbox
 !=----------------------------------------------------------------------=!
 

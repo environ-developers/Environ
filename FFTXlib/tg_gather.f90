@@ -1,9 +1,9 @@
 !----------------------------------------------------------------------------------------------------------------
 !-real version 
-SUBROUTINE tg_gather( dffts, v, tg_v )
+SUBROUTINE env_tg_gather( dffts, v, tg_v )
   !
-  USE fft_param
-  USE fft_types,      ONLY : fft_type_descriptor
+  USE env_fft_param
+  USE env_fft_types,      ONLY : fft_type_descriptor
 
   IMPLICIT NONE
 
@@ -40,13 +40,13 @@ SUBROUTINE tg_gather( dffts, v, tg_v )
 #endif
   !write (6,'(20f12.7)') (tg_v(i+dffts%nr1x*(i-1)), i=1,dffts%nr1x)
   RETURN
-END SUBROUTINE tg_gather
+END SUBROUTINE env_tg_gather
 
 !-complex version of previous routine
-SUBROUTINE tg_cgather( dffts, v, tg_v )
+SUBROUTINE env_tg_cgather( dffts, v, tg_v )
   !
-  USE fft_param
-  USE fft_types,      ONLY : fft_type_descriptor
+  USE env_fft_param
+  USE env_fft_types,      ONLY : fft_type_descriptor
 
   IMPLICIT NONE
 
@@ -83,5 +83,5 @@ SUBROUTINE tg_cgather( dffts, v, tg_v )
 #endif
   !write (6,'(20f12.7)') (tg_v(i+dffts%nr1x*(i-1)), i=1,dffts%nr1x)
   RETURN
-END SUBROUTINE tg_cgather
+END SUBROUTINE env_tg_cgather
 
