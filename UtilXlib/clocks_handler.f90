@@ -29,11 +29,11 @@
 ! ... See also comments in subroutine print_this_clock about parallel case
 !
 !----------------------------------------------------------------------------
-MODULE mytime
+MODULE env_mytime
   !----------------------------------------------------------------------------
   !
-  USE util_param, ONLY : DP
-  USE parallel_include
+  USE env_util_param, ONLY : DP
+  USE env_parallel_include
   !
   IMPLICIT NONE
   !
@@ -57,34 +57,34 @@ MODULE mytime
   INTEGER :: mpime
 #endif
   INTERFACE
-     FUNCTION f_wall ( ) BIND(C,name="cclock") RESULT(t)
+     FUNCTION env_f_wall ( ) BIND(C,name="cclock") RESULT(t)
        USE ISO_C_BINDING
        REAL(kind=c_double) :: t
-     END FUNCTION f_wall
-     FUNCTION f_tcpu ( ) BIND(C,name="scnds") RESULT(t)
+     END FUNCTION env_f_wall
+     FUNCTION env_f_tcpu ( ) BIND(C,name="scnds") RESULT(t)
        USE ISO_C_BINDING
        REAL(kind=c_double) :: t
-     END FUNCTION f_tcpu
+     END FUNCTION env_f_tcpu
   END INTERFACE
   !
-END MODULE mytime
+END MODULE env_mytime
 !
 !----------------------------------------------------------------------------
 #if defined (__TRACE)
-SUBROUTINE init_clocks( go, max_print_depth_ )
+SUBROUTINE env_init_clocks( go, max_print_depth_ )
 #else
-SUBROUTINE init_clocks( go )
+SUBROUTINE env_init_clocks( go )
 #endif
   !----------------------------------------------------------------------------
   !
   ! ... go = .TRUE.  : clocks will run
   ! ... go = .FALSE. : only clock #1 will run
   !
-  USE util_param,  ONLY : DP, stdout
-  USE mytime, ONLY : called, t0cpu, cputime, no, notrunning, maxclock, &
+  USE env_util_param,  ONLY : DP, stdout
+  USE env_mytime, ONLY : called, t0cpu, cputime, no, notrunning, maxclock, &
        clock_label, walltime, t0wall, nclock, mpi_per_thread
 #if defined (__TRACE)
-  USE mytime, ONLY : mpime, max_print_depth, MPI_COMM_WORLD
+  USE env_mytime, ONLY : mpime, max_print_depth, MPI_COMM_WORLD
 #endif
   !
   IMPLICIT NONE
@@ -133,18 +133,18 @@ SUBROUTINE init_clocks( go )
   !
   RETURN
   !
-END SUBROUTINE init_clocks
+END SUBROUTINE env_init_clocks
 !
 !----------------------------------------------------------------------------
-SUBROUTINE start_clock( label )
+SUBROUTINE env_start_clock( label )
   !----------------------------------------------------------------------------
   !
-  USE util_param,     ONLY : DP, stdout
+  USE env_util_param,     ONLY : DP, stdout
 #if defined (__TRACE)
-  USE mytime,    ONLY : trace_depth, mpime, max_print_depth
+  USE env_mytime,    ONLY : trace_depth, mpime, max_print_depth
 #endif
-  USE mytime,    ONLY : nclock, clock_label, notrunning, no, maxclock, &
-                        t0cpu, t0wall, f_wall, f_tcpu
+  USE env_mytime,    ONLY : nclock, clock_label, notrunning, no, maxclock, &
+                        t0cpu, t0wall, env_f_wall, env_f_tcpu
   !
   IMPLICIT NONE
   !
@@ -177,8 +177,8 @@ SUBROUTINE start_clock( label )
 !            WRITE( stdout, '("start_clock: clock # ",I2," for ",A12, &
 !                           & " already started")' ) n, label_
         ELSE
-           t0cpu(n) = f_tcpu()
-           t0wall(n)= f_wall()
+           t0cpu(n) = env_f_tcpu()
+           t0wall(n)= env_f_wall()
         ENDIF
         !
         RETURN
@@ -197,25 +197,25 @@ SUBROUTINE start_clock( label )
      !
      nclock              = nclock + 1
      clock_label(nclock) = label_
-     t0cpu(nclock)       = f_tcpu()
-     t0wall(nclock)      = f_wall()
+     t0cpu(nclock)       = env_f_tcpu()
+     t0wall(nclock)      = env_f_wall()
      !
   ENDIF
   !
   RETURN
   !
-END SUBROUTINE start_clock
+END SUBROUTINE env_start_clock
 !
 !----------------------------------------------------------------------------
-SUBROUTINE stop_clock( label )
+SUBROUTINE env_stop_clock( label )
   !----------------------------------------------------------------------------
   !
-  USE util_param,     ONLY : DP, stdout
+  USE env_util_param,     ONLY : DP, stdout
 #if defined (__TRACE)
-  USE mytime,    ONLY : trace_depth, mpime, max_print_depth
+  USE env_mytime,    ONLY : trace_depth, mpime, max_print_depth
 #endif
-  USE mytime,    ONLY : no, nclock, clock_label, cputime, walltime, &
-                        notrunning, called, t0cpu, t0wall, f_wall, f_tcpu
+  USE env_mytime,    ONLY : no, nclock, clock_label, cputime, walltime, &
+                        notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
   !
   IMPLICIT NONE
   !
@@ -250,8 +250,8 @@ SUBROUTINE stop_clock( label )
            !
         ELSE
            !
-           cputime(n)   = cputime(n) + f_tcpu() - t0cpu(n)
-           walltime(n)  = walltime(n)+ f_wall() - t0wall(n)
+           cputime(n)   = cputime(n) + env_f_tcpu() - t0cpu(n)
+           walltime(n)  = walltime(n)+ env_f_wall() - t0wall(n)
            t0cpu(n)     = notrunning
            t0wall(n)    = notrunning
            called(n)    = called(n) + 1
@@ -270,14 +270,14 @@ SUBROUTINE stop_clock( label )
   !
   RETURN
   !
-END SUBROUTINE stop_clock
+END SUBROUTINE env_stop_clock
 !
 !----------------------------------------------------------------------------
-SUBROUTINE print_clock( label )
+SUBROUTINE env_print_clock( label )
   !----------------------------------------------------------------------------
   !
-  USE util_param, ONLY : stdout
-  USE mytime,     ONLY : nclock, clock_label
+  USE env_util_param, ONLY : stdout
+  USE env_mytime,     ONLY : nclock, clock_label
   !
   IMPLICIT NONE
   !
@@ -292,7 +292,7 @@ SUBROUTINE print_clock( label )
      !
      DO n = 1, nclock
         !
-        CALL print_this_clock( n )
+        CALL env_print_this_clock( n )
         !
      ENDDO
      !
@@ -306,7 +306,7 @@ SUBROUTINE print_clock( label )
         !
         IF ( clock_label(n) == label_ ) THEN
            !
-           CALL print_this_clock( n )
+           CALL env_print_this_clock( n )
            !
            exit
            !
@@ -318,15 +318,15 @@ SUBROUTINE print_clock( label )
   !
   RETURN
   !
-END SUBROUTINE print_clock
+END SUBROUTINE env_print_clock
 !
 !----------------------------------------------------------------------------
-FUNCTION get_cpu_and_wall( n) result (t) 
+FUNCTION env_get_cpu_and_wall( n) result (t) 
   !--------------------------------------------------------------------------
   !
-  USE util_param, ONLY : DP 
-  USE mytime,     ONLY : clock_label, cputime, walltime, mpi_per_thread, &
-                         notrunning, called, t0cpu, t0wall, f_wall, f_tcpu
+  USE env_util_param, ONLY : DP 
+  USE env_mytime,     ONLY : clock_label, cputime, walltime, mpi_per_thread, &
+                         notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
   IMPLICIT NONE 
   ! 
   INTEGER  :: n 
@@ -336,21 +336,21 @@ FUNCTION get_cpu_and_wall( n) result (t)
      t(1) = cputime(n)
      t(2)  = walltime(n)
    ELSE 
-     t(1)   = cputime(n) + f_tcpu() - t0cpu(n)
-     t(2)   = walltime(n)+ f_wall() - t0wall(n)
+     t(1)   = cputime(n) + env_f_tcpu() - t0cpu(n)
+     t(2)   = walltime(n)+ env_f_wall() - t0wall(n)
    END IF 
 #if defined(PRINT_AVG_CPU_TIME_PER_THREAD)
   ! rescale the elapsed cpu time on a per-thread basis
   t(1)    = t(1)  * mpi_per_thread
 #endif
-END FUNCTION get_cpu_and_wall      
+END FUNCTION env_get_cpu_and_wall      
 !----------------------------------------------------------------------------
-SUBROUTINE print_this_clock( n )
+SUBROUTINE env_print_this_clock( n )
   !----------------------------------------------------------------------------
   !
-  USE util_param, ONLY : DP, stdout
-  USE mytime,     ONLY : clock_label, cputime, walltime, mpi_per_thread, &
-                         notrunning, called, t0cpu, t0wall, f_wall, f_tcpu
+  USE env_util_param, ONLY : DP, stdout
+  USE env_mytime,     ONLY : clock_label, cputime, walltime, mpi_per_thread, &
+                         notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
   !
   IMPLICIT NONE
   !
@@ -370,8 +370,8 @@ SUBROUTINE print_this_clock( n )
      !
      ! ... clock not stopped, print the current value of the cpu time
      !
-     elapsed_cpu_time   = cputime(n) + f_tcpu() - t0cpu(n)
-     elapsed_wall_time  = walltime(n)+ f_wall() - t0wall(n)
+     elapsed_cpu_time   = cputime(n) + env_f_tcpu() - t0cpu(n)
+     elapsed_wall_time  = walltime(n)+ env_f_wall() - t0wall(n)
      called(n)  = called(n) + 1
      !
   ENDIF
@@ -502,19 +502,19 @@ SUBROUTINE print_this_clock( n )
   !
   RETURN
   !
-END SUBROUTINE print_this_clock
+END SUBROUTINE env_print_this_clock
 !
 !----------------------------------------------------------------------------
-FUNCTION get_clock( label )
+FUNCTION env_get_clock( label )
   !----------------------------------------------------------------------------
   !
-  USE util_param, ONLY : DP
-  USE mytime,     ONLY : no, nclock, clock_label, walltime, &
-                         notrunning, t0wall, t0cpu, f_wall
+  USE env_util_param, ONLY : DP
+  USE env_mytime,     ONLY : no, nclock, clock_label, walltime, &
+                         notrunning, t0wall, t0cpu, env_f_wall
   !
   IMPLICIT NONE
   !
-  REAL(DP)         :: get_clock
+  REAL(DP)         :: env_get_clock
   CHARACTER(len=*) :: label
   INTEGER          :: n
   !
@@ -523,11 +523,11 @@ FUNCTION get_clock( label )
      !
      IF ( label == clock_label(1) ) THEN
         !
-        get_clock = f_wall()
+      env_get_clock = env_f_wall()
         !
      ELSE
         !
-        get_clock = notrunning
+      env_get_clock = notrunning
         !
      ENDIF
      !
@@ -541,11 +541,11 @@ FUNCTION get_clock( label )
         !
         IF ( t0cpu(n) == notrunning ) THEN
            !
-           get_clock = walltime(n)
+         env_get_clock = walltime(n)
            !
         ELSE
            !
-           get_clock = walltime(n) + f_wall() - t0wall(n)
+         env_get_clock = walltime(n) + env_f_wall() - t0wall(n)
            !
         ENDIF
         !
@@ -561,8 +561,8 @@ FUNCTION get_clock( label )
   !
   ! ... clock not found
   !
-  get_clock = notrunning
+  env_get_clock = notrunning
   !
   RETURN
   !
-END FUNCTION get_clock
+END FUNCTION env_get_clock

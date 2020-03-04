@@ -7,7 +7,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE errore( calling_routine, message, ierr )
+SUBROUTINE env_errore( calling_routine, message, ierr )
   !----------------------------------------------------------------------------
   !
   ! ... This is a simple routine which writes an error message to output: 
@@ -25,11 +25,11 @@ SUBROUTINE errore( calling_routine, message, ierr )
   ! ... error, unit 0 (the message will appear in the error files
   ! ... produced by loadleveler).
   !
-  USE util_param
+  USE env_util_param
 #if defined(__PTRACE) && defined(__INTEL_COMPILER)
   USE ifcore,    ONLY : tracebackqq
 #endif
-  USE mp,        ONLY : mp_abort, mp_rank
+  USE env_mp,        ONLY : env_mp_abort, env_mp_rank
   IMPLICIT NONE
   !
   CHARACTER(LEN=*), INTENT(IN) :: calling_routine, message
@@ -84,7 +84,7 @@ SUBROUTINE errore( calling_routine, message, ierr )
 !
 #if defined(__MPI)
   !
-  mpime = mp_rank(MPI_COMM_WORLD)
+  mpime = env_mp_rank(MPI_COMM_WORLD)
   !
   !  .. write the message to a file and close it before exiting
   !  .. this will prevent loss of information on systems that
@@ -114,16 +114,16 @@ SUBROUTINE errore( calling_routine, message, ierr )
   !
   RETURN
   !
-END SUBROUTINE errore
+END SUBROUTINE env_errore
 !
 !----------------------------------------------------------------------
-SUBROUTINE infomsg( routine, message )
+SUBROUTINE env_infomsg( routine, message )
   !----------------------------------------------------------------------
   !
   ! ... This is a simple routine which writes an info message
   ! ... from a given routine to output.
   !
-  USE util_param
+  USE env_util_param
   !
   IMPLICIT NONE
   !
@@ -140,13 +140,13 @@ SUBROUTINE infomsg( routine, message )
   !
   RETURN
   !
-END SUBROUTINE infomsg
+END SUBROUTINE env_infomsg
 !
-module error_handler
+module env_error_handler
   implicit none
   private
 
-  public :: init_error, add_name, chop_name, error_mem, warning
+  public :: env_init_error, env_add_name, env_chop_name, env_error_mem, env_warning
 
   type chain
    character (len=35)   :: routine_name
@@ -157,7 +157,7 @@ module error_handler
 
 contains
 
-  subroutine init_error(routine_name)
+  subroutine env_init_error(routine_name)
     implicit none
     character (len=*), intent(in) :: routine_name
 
@@ -167,9 +167,9 @@ contains
     nullify(routine_chain%previous_link)
 
     return
-  end subroutine init_error
+  end subroutine env_init_error
 
-  subroutine add_name(routine_name)
+  subroutine env_add_name(routine_name)
     implicit none
     character (len=*), intent(in) :: routine_name
     type(chain), pointer          :: new_link
@@ -180,9 +180,9 @@ contains
     routine_chain          => new_link
 
     return
-  end subroutine add_name
+  end subroutine env_add_name
 
-  subroutine chop_name
+  subroutine env_chop_name
     implicit none
     type(chain), pointer :: chopped_chain
 
@@ -191,9 +191,9 @@ contains
     routine_chain => chopped_chain
 
     return
-  end subroutine chop_name
+  end subroutine env_chop_name
 
-  recursive subroutine trace_back(error_code)
+  recursive subroutine env_trace_back(error_code)
 
     implicit none
     integer :: error_code
@@ -211,11 +211,11 @@ contains
     end if
 
     routine_chain => routine_chain%previous_link
-    call trace_back(error_code)
+    call env_trace_back(error_code)
 
-  end subroutine trace_back
+  end subroutine env_trace_back
 
-  subroutine error_mem(message,error_code)
+  subroutine env_error_mem(message,error_code)
     character (len=*), intent(in) :: message
     integer, intent(in), optional :: error_code
     integer                       :: action_code
@@ -243,17 +243,17 @@ contains
        write(unit=*,fmt=*) &
             " +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++"
        routine_chain => routine_chain%previous_link
-       call trace_back(action_code)
+       call env_trace_back(action_code)
        routine_chain => save_chain
     end if
 
     return
-  end subroutine error_mem
+  end subroutine env_error_mem
 
-  subroutine warning(message)
+  subroutine env_warning(message)
     character (len=*), intent(in) :: message
-    call error_mem(message,-1)
+    call env_error_mem(message,-1)
     return
-  end subroutine warning
+  end subroutine env_warning
 
-end module error_handler
+end module env_error_handler

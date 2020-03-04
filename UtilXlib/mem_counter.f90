@@ -1,5 +1,5 @@
 !
-SUBROUTINE mem_counter(valore, sumsign, label)
+SUBROUTINE env_mem_counter(valore, sumsign, label)
     ! Poor-man memory counter - to be called after each allocation/deallocation
     ! if sumsign = +/-1, add/remove "valore" from allocated memory counter
     !    "label" should be the name of the allocated/deallocated variable

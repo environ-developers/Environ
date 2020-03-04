@@ -32,31 +32,31 @@
 ! depends on the __MSGSIZ_MAX definition
 
 #if defined (__CUDA)
-   SUBROUTINE allocate_buffers_gpu
-       USE data_buffer
+   SUBROUTINE env_allocate_buffers_gpu
+       USE env_data_buffer
        IMPLICIT NONE
        INTEGER, PARAMETER :: maxb = __MSGSIZ_MAX
        !    
        IF (.NOT. ALLOCATED(mp_buff_r_d)) ALLOCATE(mp_buff_r_d(maxb))
        IF (.NOT. ALLOCATED(mp_buff_i_d)) ALLOCATE(mp_buff_i_d(maxb))
        !
-   END SUBROUTINE allocate_buffers_gpu
+   END SUBROUTINE env_allocate_buffers_gpu
    
-   SUBROUTINE deallocate_buffers_gpu
-       USE data_buffer
+   SUBROUTINE env_deallocate_buffers_gpu
+       USE env_data_buffer
        IMPLICIT NONE
        !
        DEALLOCATE(mp_buff_r_d, mp_buff_i_d)
        !
-   END SUBROUTINE deallocate_buffers_gpu
+   END SUBROUTINE env_deallocate_buffers_gpu
 
 
 !=----------------------------------------------------------------------------=!
 !
 
-   SUBROUTINE bcast_real_gpu( array_d, n, root, gid )
-        USE util_param, ONLY: DP
-        USE parallel_include
+   SUBROUTINE env_bcast_real_gpu( array_d, n, root, gid )
+        USE env_util_param, ONLY: DP
+        USE env_parallel_include
         USE cudafor
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: n, root, gid
@@ -71,25 +71,25 @@
         IF( n <= 0 ) GO TO 1
 
 #if defined __USE_BARRIER
-        CALL mp_synchronize( gid )
+        CALL env_mp_synchronize( gid )
 #endif
 
         IF( n <= msgsiz_max ) THEN
            CALL MPI_BCAST( array_d, n, MPI_DOUBLE_PRECISION, root, gid, ierr )
-           IF( ierr /= 0 ) CALL errore( ' bcast_real ', ' error in mpi_bcast 1 ', ierr )
+           IF( ierr /= 0 ) CALL env_errore( ' bcast_real ', ' error in mpi_bcast 1 ', ierr )
         ELSE
            nblk   = n / msgsiz_max
            blksiz = msgsiz_max
            DO iblk = 1, nblk
               istart = (iblk-1)*msgsiz_max + 1
               CALL MPI_BCAST( array_d( istart ), blksiz, MPI_DOUBLE_PRECISION, root, gid, ierr )
-              IF( ierr /= 0 ) CALL errore( ' bcast_real ', ' error in mpi_bcast 2 ', ierr )
+              IF( ierr /= 0 ) CALL env_errore( ' bcast_real ', ' error in mpi_bcast 2 ', ierr )
            END DO
            blksiz = MOD( n, msgsiz_max )
            IF( blksiz > 0 ) THEN
               istart = nblk * msgsiz_max + 1
               CALL MPI_BCAST( array_d( istart ), blksiz, MPI_DOUBLE_PRECISION, root, gid, ierr )
-              IF( ierr /= 0 ) CALL errore( ' bcast_real ', ' error in mpi_bcast 3 ', ierr )
+              IF( ierr /= 0 ) CALL env_errore( ' bcast_real ', ' error in mpi_bcast 3 ', ierr )
            END IF
         ENDIF
 
@@ -104,10 +104,10 @@
 #endif
 
         RETURN
-   END SUBROUTINE bcast_real_gpu
+   END SUBROUTINE env_bcast_real_gpu
 
-   SUBROUTINE bcast_integer_gpu( array_d, n, root, gid )
-        USE parallel_include
+   SUBROUTINE env_bcast_integer_gpu( array_d, n, root, gid )
+        USE env_parallel_include
         USE cudafor
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: n, root, gid
@@ -123,25 +123,25 @@
         IF( n <= 0 ) GO TO 1
 
 #if defined __USE_BARRIER
-        CALL mp_synchronize( gid )
+        CALL env_mp_synchronize( gid )
 #endif
 
         IF( n <= msgsiz_max ) THEN
            CALL MPI_BCAST( array_d, n, MPI_INTEGER, root, gid, ierr )
-           IF( ierr /= 0 ) CALL errore( ' bcast_integer_gpu ', ' error in mpi_bcast 1 ', ierr )
+           IF( ierr /= 0 ) CALL env_errore( ' bcast_integer_gpu ', ' error in mpi_bcast 1 ', ierr )
         ELSE
            nblk   = n / msgsiz_max
            blksiz = msgsiz_max
            DO iblk = 1, nblk
               istart = (iblk-1)*msgsiz_max + 1
               CALL MPI_BCAST( array_d( istart ), blksiz, MPI_INTEGER, root, gid, ierr )
-              IF( ierr /= 0 ) CALL errore( ' bcast_integer_gpu ', ' error in mpi_bcast 2 ', ierr )
+              IF( ierr /= 0 ) CALL env_errore( ' bcast_integer_gpu ', ' error in mpi_bcast 2 ', ierr )
            END DO
            blksiz = MOD( n, msgsiz_max )
            IF( blksiz > 0 ) THEN
               istart = nblk * msgsiz_max + 1
               CALL MPI_BCAST( array_d( istart ), blksiz, MPI_INTEGER, root, gid, ierr )
-              IF( ierr /= 0 ) CALL errore( ' bcast_integer_gpu ', ' error in mpi_bcast 3 ', ierr )
+              IF( ierr /= 0 ) CALL env_errore( ' bcast_integer_gpu ', ' error in mpi_bcast 3 ', ierr )
            END IF
         END IF
         GO TO 2 ! Skip sync, already done by MPI call 
@@ -153,11 +153,11 @@
 #endif
 #endif
         RETURN
-   END SUBROUTINE bcast_integer_gpu
+   END SUBROUTINE env_bcast_integer_gpu
 
 
-   SUBROUTINE bcast_logical_gpu( array_d, n, root, gid )
-        USE parallel_include
+   SUBROUTINE env_bcast_logical_gpu( array_d, n, root, gid )
+        USE env_parallel_include
         USE cudafor
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: n, root, gid
@@ -173,25 +173,25 @@
         IF( n <= 0 ) GO TO 1
 
 #if defined __USE_BARRIER
-        CALL mp_synchronize( gid )
+        CALL env_mp_synchronize( gid )
 #endif
 
         IF( n <= msgsiz_max ) THEN
            CALL MPI_BCAST( array_d, n, MPI_LOGICAL, root, gid, ierr )
-           IF( ierr /= 0 ) CALL errore( ' bcast_logical_gpu ', ' error in mpi_bcast 1 ', ierr )
+           IF( ierr /= 0 ) CALL env_errore( ' bcast_logical_gpu ', ' error in mpi_bcast 1 ', ierr )
         ELSE
            nblk   = n / msgsiz_max
            blksiz = msgsiz_max
            DO iblk = 1, nblk
               istart = (iblk-1)*msgsiz_max + 1
               CALL MPI_BCAST( array_d( istart ), blksiz, MPI_LOGICAL, root, gid, ierr )
-              IF( ierr /= 0 ) CALL errore( ' bcast_logical_gpu ', ' error in mpi_bcast 2 ', ierr )
+              IF( ierr /= 0 ) CALL env_errore( ' bcast_logical_gpu ', ' error in mpi_bcast 2 ', ierr )
            END DO
            blksiz = MOD( n, msgsiz_max )
            IF( blksiz > 0 ) THEN
               istart = nblk * msgsiz_max + 1
               CALL MPI_BCAST( array_d( istart ), blksiz, MPI_LOGICAL, root, gid, ierr )
-              IF( ierr /= 0 ) CALL errore( ' bcast_logical_gpu ', ' error in mpi_bcast 3 ', ierr )
+              IF( ierr /= 0 ) CALL env_errore( ' bcast_logical_gpu ', ' error in mpi_bcast 3 ', ierr )
            END IF
         END IF
 
@@ -204,7 +204,7 @@
 #endif
 #endif
         RETURN
-   END SUBROUTINE bcast_logical_gpu
+   END SUBROUTINE env_bcast_logical_gpu
 
 
 !
@@ -213,14 +213,14 @@
 #if defined (__USE_INPLACE_MPI)
 !
 !----------------------------------------------------------------------------
-SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_reduce_base_real_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY: DP
-  USE parallel_include
+  USE env_util_param, ONLY: DP
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -244,15 +244,15 @@ SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL mp_synchronize( comm )
+  CALL env_mp_synchronize( comm )
 #endif
   !
   IF( root >= 0 ) THEN
      CALL MPI_REDUCE( MPI_IN_PLACE, ps_d, dim, MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-     IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in mpi_reduce 1', info )
+     IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in mpi_reduce 1', info )
   ELSE
      CALL MPI_ALLREDUCE( MPI_IN_PLACE, ps_d, dim, MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-     IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in mpi_allreduce 1', info )
+     IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in mpi_allreduce 1', info )
   END IF
   !
   GO TO 2 ! Skip sync, already done by MPI call 
@@ -268,20 +268,20 @@ SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE reduce_base_real_gpu
+END SUBROUTINE env_reduce_base_real_gpu
 !
 #else
 !
 !----------------------------------------------------------------------------
-SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_reduce_base_real_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY : DP
-  USE data_buffer,    ONLY : mp_buff_r_d
-  USE parallel_include
+  USE env_util_param, ONLY : DP
+  USE env_data_buffer,    ONLY : env_mp_buff_r_d
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -302,17 +302,17 @@ SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1  ! go to the end of the subroutine
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL mp_synchronize( comm )
+  CALL env_mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -321,20 +321,20 @@ SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), mp_buff_r_d, maxb, MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), mp_buff_r_d, maxb, MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !                    
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+(n-1)*maxb)), mp_buff_r_d(1), maxb, cudaMemcpyDeviceToDevice )
         !ps((1+(n-1)*maxb):(n*maxb)) = mp_buff_r(1:maxb)
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+(n-1)*maxb)), mp_buff_r_d(1), maxb, cudaMemcpyDeviceToDevice )
         !ps((1+(n-1)*maxb):(n*maxb)) = mp_buff_r(1:maxb)
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END DO
@@ -345,20 +345,20 @@ SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), mp_buff_r_d, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), mp_buff_r_d, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), mp_buff_r_d(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = mp_buff_r(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), mp_buff_r_d(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = mp_buff_r(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END IF
@@ -376,7 +376,7 @@ SUBROUTINE reduce_base_real_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE reduce_base_real_gpu
+END SUBROUTINE env_reduce_base_real_gpu
 !
 #endif
 !
@@ -384,14 +384,14 @@ END SUBROUTINE reduce_base_real_gpu
 #if defined (__USE_INPLACE_MPI)
 !
 !----------------------------------------------------------------------------
-SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_reduce_base_integer_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY: DP
-  USE parallel_include
+  USE env_util_param, ONLY: DP
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -415,15 +415,15 @@ SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL mp_synchronize( comm )
+  CALL env_mp_synchronize( comm )
 #endif
   !
   IF( root >= 0 ) THEN
      CALL MPI_REDUCE( MPI_IN_PLACE, ps_d, dim, MPI_INTEGER, MPI_SUM, root, comm, info )
-     IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_reduce 1', info )
+     IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_reduce 1', info )
   ELSE
      CALL MPI_ALLREDUCE( MPI_IN_PLACE, ps_d, dim, MPI_INTEGER, MPI_SUM, comm, info )
-     IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_allreduce 1', info )
+     IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_allreduce 1', info )
   END IF
   !
   GO TO 2 ! Skip sync, already done by MPI call 
@@ -439,20 +439,20 @@ SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE reduce_base_integer_gpu
+END SUBROUTINE env_reduce_base_integer_gpu
 !
 #else
 !
 !----------------------------------------------------------------------------
-SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_reduce_base_integer_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY : DP
-  USE data_buffer,    ONLY : mp_buff_i_d
-  USE parallel_include  
+  USE env_util_param, ONLY : DP
+  USE env_data_buffer,    ONLY : mp_buff_i_d
+  USE env_parallel_include  
   USE cudafor
   !
   IMPLICIT NONE
@@ -473,17 +473,17 @@ SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1  ! go to the end of the subroutine
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL mp_synchronize( comm )
+  CALL env_mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -492,20 +492,20 @@ SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), mp_buff_i_d, maxb, MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), mp_buff_i_d, maxb, MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !                    
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+(n-1)*maxb)), mp_buff_i_d(1), maxb, cudaMemcpyDeviceToDevice )
         !ps((1+(n-1)*maxb):(n*maxb)) = mp_buff_r(1:maxb)
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+(n-1)*maxb)), mp_buff_i_d(1), maxb, cudaMemcpyDeviceToDevice )
         !ps((1+(n-1)*maxb):(n*maxb)) = mp_buff_r(1:maxb)
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END DO
@@ -516,20 +516,20 @@ SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), mp_buff_i_d, (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), mp_buff_i_d, (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), mp_buff_i_d(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = mp_buff_r(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), mp_buff_i_d(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = mp_buff_r(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END IF
@@ -547,22 +547,22 @@ SUBROUTINE reduce_base_integer_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE reduce_base_integer_gpu
+END SUBROUTINE env_reduce_base_integer_gpu
 !
 #endif
 !
 ! ... "reduce"-like subroutines
 !
 !----------------------------------------------------------------------------
-SUBROUTINE reduce_base_real_to_gpu( dim, ps_d, psout_d, comm, root )
+SUBROUTINE env_reduce_base_real_to_gpu( dim, ps_d, psout_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors,
   ! ... and store the results in variable psout.
   ! ... This version uses a fixed-length buffer of appropriate (?) length
   !
-  USE util_param, ONLY : DP
-  USE parallel_include  
+  USE env_util_param, ONLY : DP
+  USE env_parallel_include  
   USE cudafor
   !
   IMPLICIT NONE
@@ -584,10 +584,10 @@ SUBROUTINE reduce_base_real_to_gpu( dim, ps_d, psout_d, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_real_to_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_real_to_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim > 0 .AND. nproc <= 1 ) THEN
      psout_d = ps_d
@@ -606,10 +606,10 @@ SUBROUTINE reduce_base_real_to_gpu( dim, ps_d, psout_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), psout_d(1+(n-1)*maxb), maxb, MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_to_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), psout_d(1+(n-1)*maxb), maxb, MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_to_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !                    
   END DO
@@ -620,10 +620,10 @@ SUBROUTINE reduce_base_real_to_gpu( dim, ps_d, psout_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), psout_d(1+nbuf*maxb), (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_to_gpu', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to_gpu', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), psout_d(1+nbuf*maxb), (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_real_to_gpu', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to_gpu', 'error in mpi_allreduce 2', info )
      END IF
      !
   END IF
@@ -641,20 +641,20 @@ SUBROUTINE reduce_base_real_to_gpu( dim, ps_d, psout_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE reduce_base_real_to_gpu
+END SUBROUTINE env_reduce_base_real_to_gpu
 !
 !
 !
 !----------------------------------------------------------------------------
-SUBROUTINE reduce_base_integer_to_gpu( dim, ps_d, psout_d, comm, root )
+SUBROUTINE env_reduce_base_integer_to_gpu( dim, ps_d, psout_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed integer variable ps(dim) over the processors, and
   ! ... saves the result on the output variable psout.
   ! ... This version uses a fixed-length buffer of appropriate (?) length
   !
-  USE util_param, ONLY : DP
-  USE parallel_include
+  USE env_util_param, ONLY : DP
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -676,10 +676,10 @@ SUBROUTINE reduce_base_integer_to_gpu( dim, ps_d, psout_d, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_integer_to_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'reduce_base_integer_to_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim > 0 .AND. nproc <= 1 ) THEN
      psout_d = ps_d
@@ -698,10 +698,10 @@ SUBROUTINE reduce_base_integer_to_gpu( dim, ps_d, psout_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), psout_d( 1+(n-1)*maxb ), maxb, MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), psout_d( 1+(n-1)*maxb ), maxb, MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !                    
   END DO
@@ -712,10 +712,10 @@ SUBROUTINE reduce_base_integer_to_gpu( dim, ps_d, psout_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), psout_d(1+nbuf*maxb), (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to_gpu', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to_gpu', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), psout_d(1+nbuf*maxb), (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to_gpu', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to_gpu', 'error in mpi_allreduce 2', info )
      END IF
      !
   END IF
@@ -733,22 +733,22 @@ SUBROUTINE reduce_base_integer_to_gpu( dim, ps_d, psout_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE reduce_base_integer_to_gpu
+END SUBROUTINE env_reduce_base_integer_to_gpu
 !
 !
 !  Parallel MIN and MAX
 !
 
 !----------------------------------------------------------------------------
-SUBROUTINE parallel_min_integer_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_parallel_min_integer_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the minimum of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY : DP
-  USE data_buffer, ONLY : buff => mp_buff_i_d
-  USE parallel_include
+  USE env_util_param, ONLY : DP
+  USE env_data_buffer, ONLY : buff => mp_buff_i_d
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -769,17 +769,17 @@ SUBROUTINE parallel_min_integer_gpu( dim, ps_d, comm, root )
 #endif
   !
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1 ! go to the sync and later to the end of the subroutine
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL mp_synchronize( comm )
+  CALL env_mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -788,20 +788,20 @@ SUBROUTINE parallel_min_integer_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
         !ps_d((1+(n-1)*maxb):(n*maxb)) = buff(1:maxb)
         info = cudaMemcpy( ps_d(1+(n-1)*maxb), buff(1), maxb, cudaMemcpyDeviceToDevice )
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         !ps_d((1+(n-1)*maxb):(n*maxb)) = buff(1:maxb)
         info = cudaMemcpy( ps_d((1+(n-1)*maxb)), buff(1), maxb, cudaMemcpyDeviceToDevice )
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END DO
@@ -812,20 +812,20 @@ SUBROUTINE parallel_min_integer_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END IF
@@ -843,19 +843,19 @@ SUBROUTINE parallel_min_integer_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE parallel_min_integer_gpu
+END SUBROUTINE env_parallel_min_integer_gpu
 
 !
 !----------------------------------------------------------------------------
-SUBROUTINE parallel_max_integer_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_parallel_max_integer_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the maximum of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY : DP
-  USE data_buffer, ONLY : buff => mp_buff_i_d
-  USE parallel_include
+  USE env_util_param, ONLY : DP
+  USE env_data_buffer, ONLY : buff => mp_buff_i_d
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -875,17 +875,17 @@ SUBROUTINE parallel_max_integer_gpu( dim, ps_d, comm, root )
   write(*,*) 'parallel_max_integer_gpu IN'
 #endif
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1 ! go to the sync and later to the end of the subroutine
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL mp_synchronize( comm )
+  CALL env_mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -894,20 +894,20 @@ SUBROUTINE parallel_max_integer_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MAX, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MAX, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
         !ps_d((1+(n-1)*maxb):(n*maxb)) = buff(1:maxb)
         info = cudaMemcpy( ps_d(1+(n-1)*maxb), buff(1), maxb, cudaMemcpyDeviceToDevice )
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         !ps_d((1+(n-1)*maxb):(n*maxb)) = buff(1:maxb)
         info = cudaMemcpy( ps_d((1+(n-1)*maxb)), buff(1), maxb, cudaMemcpyDeviceToDevice )
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END DO
@@ -918,20 +918,20 @@ SUBROUTINE parallel_max_integer_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MAX, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MAX, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END IF
@@ -948,19 +948,19 @@ SUBROUTINE parallel_max_integer_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE parallel_max_integer_gpu
+END SUBROUTINE env_parallel_max_integer_gpu
 
 
 !----------------------------------------------------------------------------
-SUBROUTINE parallel_min_real_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_parallel_min_real_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the minimum of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY : DP
-  USE data_buffer, ONLY : buff => mp_buff_r_d
-  USE parallel_include
+  USE env_util_param, ONLY : DP
+  USE env_data_buffer, ONLY : buff => mp_buff_r_d
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -980,10 +980,10 @@ SUBROUTINE parallel_min_real_gpu( dim, ps_d, comm, root )
   write(*,*) 'parallel_min_real_gpu IN'
 #endif
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'parallel_min_real_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_min_real_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'parallel_min_real_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_min_real_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1 ! go to the sync and later to the end of the subroutine
   !
@@ -999,10 +999,10 @@ SUBROUTINE parallel_min_real_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_real_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_real_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_real_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_real_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -1021,20 +1021,20 @@ SUBROUTINE parallel_min_real_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_real_gpu', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_real_gpu', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_min_real_gpu', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_min_real_gpu', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END IF
@@ -1051,19 +1051,19 @@ SUBROUTINE parallel_min_real_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE parallel_min_real_gpu
+END SUBROUTINE env_parallel_min_real_gpu
 
 !
 !----------------------------------------------------------------------------
-SUBROUTINE parallel_max_real_gpu( dim, ps_d, comm, root )
+SUBROUTINE env_parallel_max_real_gpu( dim, ps_d, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the maximum of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE util_param, ONLY : DP
-  USE data_buffer, ONLY : buff => mp_buff_r_d
-  USE parallel_include
+  USE env_util_param, ONLY : DP
+  USE env_data_buffer, ONLY : buff => mp_buff_r_d
+  USE env_parallel_include
   USE cudafor
   !
   IMPLICIT NONE
@@ -1084,17 +1084,17 @@ SUBROUTINE parallel_max_real_gpu( dim, ps_d, comm, root )
 #endif
   !
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL mp_synchronize( comm )
+  CALL env_mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -1103,20 +1103,20 @@ SUBROUTINE parallel_max_real_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_max, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_max, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
         !ps_d((1+(n-1)*maxb):(n*maxb)) = buff(1:maxb)
         info = cudaMemcpy( ps_d(1+(n-1)*maxb), buff(1), maxb, cudaMemcpyDeviceToDevice )
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         !ps_d((1+(n-1)*maxb):(n*maxb)) = buff(1:maxb)
         info = cudaMemcpy( ps_d((1+(n-1)*maxb)), buff(1), maxb, cudaMemcpyDeviceToDevice )
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END DO
@@ -1127,20 +1127,20 @@ SUBROUTINE parallel_max_real_gpu( dim, ps_d, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_max, root, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps_d(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_max, comm, info )
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
      ELSE IF( root == myid ) THEN
         info = cudaMemcpy( ps_d((1+nbuf*maxb)), buff(1), dim-nbuf*maxb, cudaMemcpyDeviceToDevice )
         !ps((1+nbuf*maxb):dim) = buff(1:(dim-nbuf*maxb))
-        IF( info /= 0 ) CALL errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
+        IF( info /= 0 ) CALL env_errore( 'parallel_max_real_gpu', 'error in cudaMemcpy ', info )
      END IF
      !
   END IF
@@ -1158,5 +1158,5 @@ SUBROUTINE parallel_max_real_gpu( dim, ps_d, comm, root )
   !
   RETURN
   !
-END SUBROUTINE parallel_max_real_gpu
+END SUBROUTINE env_parallel_max_real_gpu
 #endif

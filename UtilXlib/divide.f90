@@ -7,7 +7,7 @@
 !
 !
 !-----------------------------------------------------------------------
-SUBROUTINE divide (comm, ntodiv, startn, lastn)
+SUBROUTINE env_divide (comm, ntodiv, startn, lastn)
   !-----------------------------------------------------------------------
   !
   ! Given "ntodiv" objects, distribute index across a group of processors
@@ -16,7 +16,7 @@ SUBROUTINE divide (comm, ntodiv, startn, lastn)
   ! If the number of processors nproc exceeds the number of objects,
   ! the last nproc-ntodiv processors return startn = ntodiv+1 > lastn = ntodiv
   !
-  USE mp, ONLY : mp_size, mp_rank
+  USE env_mp, ONLY : env_mp_size, env_mp_rank
   IMPLICIT NONE
   !
   INTEGER, INTENT(in) :: comm
@@ -34,8 +34,8 @@ SUBROUTINE divide (comm, ntodiv, startn, lastn)
   ! number of points per processor
   ! number of processors having one more points
   !
-  nproc_comm = mp_size(comm)
-  me_comm = mp_rank(comm)
+  nproc_comm = env_mp_size(comm)
+  me_comm = env_mp_rank(comm)
   !
   rest = mod ( ntodiv, nproc_comm )
   ndiv = int( ntodiv / nproc_comm ) 
@@ -50,9 +50,9 @@ SUBROUTINE divide (comm, ntodiv, startn, lastn)
 
   RETURN
 
-END SUBROUTINE divide
+END SUBROUTINE env_divide
 
-SUBROUTINE divide_all (comm, ntodiv, startn, lastn, counts, displs)
+SUBROUTINE env_divide_all (comm, ntodiv, startn, lastn, counts, displs)
   !-----------------------------------------------------------------------
   !
   ! Given "ntodiv" objects, distribute index across a group of processors
@@ -61,7 +61,7 @@ SUBROUTINE divide_all (comm, ntodiv, startn, lastn, counts, displs)
   ! If the number of processors nproc exceeds the number of objects,
   ! the last nproc-ntodiv processors return startn = ntodiv+1 > lastn = ntodiv
   !
-  USE mp, ONLY : mp_size, mp_rank
+  USE env_mp, ONLY : env_mp_size, env_mp_rank
   IMPLICIT NONE
   !
   INTEGER, INTENT(in) :: comm
@@ -82,8 +82,8 @@ SUBROUTINE divide_all (comm, ntodiv, startn, lastn, counts, displs)
   ! number of processors having one more points
   INTEGER :: ip
   !
-  nproc_comm = mp_size(comm)
-  me_comm = mp_rank(comm)
+  nproc_comm = env_mp_size(comm)
+  me_comm = env_mp_rank(comm)
   !
   rest = mod ( ntodiv, nproc_comm )
   ndiv = int( ntodiv / nproc_comm )
@@ -103,4 +103,4 @@ SUBROUTINE divide_all (comm, ntodiv, startn, lastn, counts, displs)
 
   RETURN
 
-END SUBROUTINE divide_all
+END SUBROUTINE env_divide_all

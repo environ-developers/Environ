@@ -8,7 +8,7 @@
 !------------------------------------------------------------------------------!
 !   SISSA Code Interface -- Carlo Cavazzoni
 !------------------------------------------------------------------------------C
-      MODULE parallel_include
+      MODULE env_parallel_include
 
 #if defined (__MPI)
         !
@@ -26,4 +26,4 @@
         INTEGER, PARAMETER :: MPI_COMM_SELF  = -2
 #endif
 
-      END MODULE parallel_include
+      END MODULE env_parallel_include
