@@ -6,14 +6,14 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 #undef TESTING
-MODULE martyna_tuckerman
+MODULE env_martyna_tuckerman
   !
   ! ... The variables needed to the Martyna-Tuckerman method for isolated
   !     systems
   !
-  USE kinds, ONLY: dp
-  USE constants, ONLY : e2, pi, tpi, fpi
-  USE ws_base
+  USE env_kinds, ONLY: dp
+  USE env_constants, ONLY : e2, pi, tpi, fpi
+  USE env_ws_base
   !
   IMPLICIT NONE
   !
@@ -29,17 +29,17 @@ MODULE martyna_tuckerman
 
   PRIVATE
 
-  PUBLIC :: tag_wg_corr_as_obsolete, do_comp_mt, &
-            wg_corr_ewald, wg_corr_loc, wg_corr_h, wg_corr_force
+  PUBLIC :: env_tag_wg_corr_as_obsolete, do_comp_mt, &
+  env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force
 
 CONTAINS
 !----------------------------------------------------------------------------
-  SUBROUTINE tag_wg_corr_as_obsolete
+  SUBROUTINE env_tag_wg_corr_as_obsolete
 !----------------------------------------------------------------------------
      wg_corr_is_updated = .FALSE.
-  END SUBROUTINE tag_wg_corr_as_obsolete
+  END SUBROUTINE env_tag_wg_corr_as_obsolete
 !----------------------------------------------------------------------------
-  SUBROUTINE wg_corr_h( omega, ngm, rho, v, eh_corr )
+  SUBROUTINE env_wg_corr_h( omega, ngm, rho, v, eh_corr )
 !----------------------------------------------------------------------------
   INTEGER, INTENT(IN) :: ngm
   REAL(DP), INTENT(IN) :: omega
@@ -49,7 +49,7 @@ CONTAINS
 
   INTEGER :: ig
 
-  IF (.NOT.wg_corr_is_updated) CALL init_wg_corr
+  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
 !
   v(:) = (0._dp,0._dp)
 
@@ -63,9 +63,9 @@ CONTAINS
   eh_corr = 0.5_dp * e2 * eh_corr * omega
 
   RETURN
-  END SUBROUTINE wg_corr_h
+  END SUBROUTINE env_wg_corr_h
 !----------------------------------------------------------------------------
-  SUBROUTINE wg_corr_loc( omega, ntyp, ngm, zv, strf, v )
+  SUBROUTINE env_wg_corr_loc( omega, ntyp, ngm, zv, strf, v )
 !----------------------------------------------------------------------------
   INTEGER, INTENT(IN) :: ntyp, ngm
   REAL(DP), INTENT(IN) :: omega, zv(ntyp)
@@ -73,7 +73,7 @@ CONTAINS
   COMPLEX(DP), INTENT(OUT) :: v(ngm)
   INTEGER :: ig
 
-  IF (.NOT.wg_corr_is_updated) CALL init_wg_corr
+  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
 !
   do ig=1,ngm
      v(ig) = - e2 * wg_corr(ig) * SUM(zv(1:ntyp)*strf(ig,1:ntyp)) / omega
@@ -81,14 +81,14 @@ CONTAINS
   iF (gamma_only) v(gstart:ngm) = 0.5_dp * v(gstart:ngm)
 
   RETURN
-  END SUBROUTINE wg_corr_loc
+  END SUBROUTINE env_wg_corr_loc
 !----------------------------------------------------------------------------
-  SUBROUTINE wg_corr_force( lnuclei, omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, &
+  SUBROUTINE env_wg_corr_force( lnuclei, omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, &
                             rho, force )
 !----------------------------------------------------------------------------
-  USE cell_base, ONLY : tpiba
-  USE mp_bands,  ONLY : intra_bgrp_comm
-  USE mp,        ONLY : mp_sum
+  USE env_cell_base, ONLY : tpiba
+  USE env_mp_bands,  ONLY : intra_bgrp_comm
+  USE env_mp,        ONLY : env_mp_sum
   INTEGER, INTENT(IN) :: nat, ntyp, ityp(nat), ngm
   REAL(DP), INTENT(IN) :: omega, zv(ntyp), tau(3,nat), g(3,ngm)
   COMPLEX(DP), INTENT(IN) :: strf(ngm,ntyp), rho(ngm)
@@ -101,7 +101,7 @@ CONTAINS
   COMPLEX(DP), ALLOCATABLE :: v(:)
   COMPLEX(DP) :: rho_tot
   !
-  IF (.NOT.wg_corr_is_updated) CALL init_wg_corr
+  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
   !
   allocate ( v(ngm) )
   do ig=1,ngm
@@ -119,19 +119,19 @@ CONTAINS
   end do
   deallocate ( v )
   !
-  call mp_sum(  force, intra_bgrp_comm )
+  call env_mp_sum(  force, intra_bgrp_comm )
   !
   RETURN
-  END SUBROUTINE wg_corr_force
+  END SUBROUTINE env_wg_corr_force
 !----------------------------------------------------------------------------
-  SUBROUTINE init_wg_corr
+  SUBROUTINE env_init_wg_corr
 !----------------------------------------------------------------------------
-  USE mp_bands,      ONLY : me_bgrp
-  USE fft_base,      ONLY : dfftp
-  USE fft_interfaces,ONLY : fwfft, invfft
-  USE control_flags, ONLY : gamma_only_ => gamma_only
-  USE gvect,         ONLY : ngm, gg, gstart_ => gstart, ecutrho
-  USE cell_base,     ONLY : at, alat, tpiba2, omega
+  USE env_mp_bands,      ONLY : me_bgrp
+  USE env_fft_base,      ONLY : dfftp
+  USE env_fft_interfaces,ONLY : env_fwfft, env_invfft
+  USE env_control_flags, ONLY : gamma_only_ => gamma_only
+  USE env_gvect,         ONLY : ngm, gg, gstart_ => gstart, ecutrho
+  USE env_cell_base,     ONLY : at, alat, tpiba2, omega
 
   INTEGER :: idx, ir, i,j,k, j0, k0, ig, nt
   REAL(DP) :: r(3), rws, upperbound, rws2
@@ -148,14 +148,14 @@ CONTAINS
   upperbound = 1._dp
   DO WHILE ( upperbound > 1.e-7_dp) 
      alpha = alpha - 0.1_dp  
-     if (alpha<=0._dp) call errore('init_wg_corr','optimal alpha not found',1)
+     if (alpha<=0._dp) call env_errore('init_wg_corr','optimal alpha not found',1)
      upperbound = e2 * sqrt (2.d0 * alpha / tpi) * &
                        qe_erfc ( sqrt ( ecutrho / 4.d0 / alpha) )
   END DO
   beta = 0.5_dp/alpha ! 1._dp/alpha
   ! write (*,*) " alpha, beta MT = ", alpha, beta
   !
-  call ws_init(at,ws)
+  call env_ws_init(at,ws)
   !
   gstart = gstart_
   gamma_only = gamma_only_
@@ -182,16 +182,16 @@ CONTAINS
 
      r(:) = ( at(:,1)/dfftp%nr1*i + at(:,2)/dfftp%nr2*j + at(:,3)/dfftp%nr3*k )
 
-     rws = ws_dist(r,ws)
+     rws = env_ws_dist(r,ws)
 
-     aux(ir) = smooth_coulomb_r( rws*alat )
+     aux(ir) = env_smooth_coulomb_r( rws*alat )
 
   END DO
 
-  CALL fwfft ('Rho', aux, dfftp)
+  CALL env_fwfft ('Rho', aux, dfftp)
 
   do ig =1, ngm
-     wg_corr(ig) = omega * REAL(aux(dfftp%nl(ig))) - smooth_coulomb_g( tpiba2*gg(ig))
+     wg_corr(ig) = omega * REAL(aux(dfftp%nl(ig))) - env_smooth_coulomb_g( tpiba2*gg(ig))
   end do
   wg_corr(:) =  wg_corr(:) * exp(-tpiba2*gg(:)*beta/4._dp)**2
   !
@@ -203,9 +203,9 @@ CONTAINS
 
   RETURN
 
-  END SUBROUTINE init_wg_corr 
+  END SUBROUTINE env_init_wg_corr 
 !----------------------------------------------------------------------------
-  REAL(DP) FUNCTION wg_corr_ewald ( omega, ntyp, ngm, zv, strf )
+  REAL(DP) FUNCTION env_wg_corr_ewald ( omega, ntyp, ngm, zv, strf )
 !----------------------------------------------------------------------------
   INTEGER, INTENT(IN) :: ntyp, ngm
   REAL(DP), INTENT(IN) :: omega, zv(ntyp)
@@ -213,41 +213,41 @@ CONTAINS
   INTEGER :: ig
   COMPLEX(DP)  :: rhoion
 
-  IF (.NOT.wg_corr_is_updated) CALL init_wg_corr
+  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
 !
-  wg_corr_ewald = 0._dp
+  env_wg_corr_ewald = 0._dp
   DO ig=1,ngm
      rhoion = SUM (zv(1:ntyp)* strf(ig,1:ntyp) ) / omega
-     wg_corr_ewald = wg_corr_ewald + ABS(rhoion)**2 * wg_corr(ig) 
+     env_wg_corr_ewald = env_wg_corr_ewald + ABS(rhoion)**2 * wg_corr(ig) 
   END DO
-  wg_corr_ewald = 0.5_dp * e2 * wg_corr_ewald * omega
+  env_wg_corr_ewald = 0.5_dp * e2 * env_wg_corr_ewald * omega
 !  write(*,*) "ewald correction   = ", wg_corr_ewald
 
-  END FUNCTION wg_corr_ewald
+  END FUNCTION env_wg_corr_ewald
 !----------------------------------------------------------------------------
-  REAL(DP) FUNCTION smooth_coulomb_r(r)
+  REAL(DP) FUNCTION env_smooth_coulomb_r(r)
 !----------------------------------------------------------------------------
   REAL(DP), INTENT(IN) :: r
   REAL(DP), EXTERNAL :: qe_erf
 !  smooth_coulomb_r = sqrt(2._dp*alpha/tpi)**3 * exp(-alpha*r*r) ! to be modified
   IF (r>1.e-6_dp) THEN
-     smooth_coulomb_r = qe_erf(sqrt(alpha)*r)/r
+    env_smooth_coulomb_r = qe_erf(sqrt(alpha)*r)/r
   ELSE
-     smooth_coulomb_r = 2._dp/sqrt(pi) * sqrt(alpha)
+    env_smooth_coulomb_r = 2._dp/sqrt(pi) * sqrt(alpha)
   END IF
 
-  END FUNCTION smooth_coulomb_r
+  END FUNCTION env_smooth_coulomb_r
 !----------------------------------------------------------------------------
-  REAL(DP) FUNCTION smooth_coulomb_g(q2)
+  REAL(DP) FUNCTION env_smooth_coulomb_g(q2)
 !----------------------------------------------------------------------------
   REAL(DP), INTENT(IN) :: q2
 !  smooth_coulomb_g = exp(-q2/4._dp/alpha) ! to be modified
   IF (q2>1.e-6_dp) THEN
-     smooth_coulomb_g = fpi * exp(-q2/4._dp/alpha)/q2 ! to be modified
+    env_smooth_coulomb_g = fpi * exp(-q2/4._dp/alpha)/q2 ! to be modified
   ELSE 
-     smooth_coulomb_g = - 1._dp * fpi * (1._dp/4._dp/alpha + 2._dp*beta/4._dp)
+    env_smooth_coulomb_g = - 1._dp * fpi * (1._dp/4._dp/alpha + 2._dp*beta/4._dp)
   END IF
-  END FUNCTION smooth_coulomb_g
+  END FUNCTION env_smooth_coulomb_g
 !----------------------------------------------------------------------------
 
-END MODULE martyna_tuckerman
+END MODULE env_martyna_tuckerman

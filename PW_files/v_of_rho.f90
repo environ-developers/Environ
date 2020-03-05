@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE v_of_rho( rho, rho_core, rhog_core, &
+SUBROUTINE env_v_of_rho( rho, rho_core, rhog_core, &
                      ehart, etxc, vtxc, eth, etotefield, charge, v )
   !----------------------------------------------------------------------------
   !
@@ -15,13 +15,13 @@ SUBROUTINE v_of_rho( rho, rho_core, rhog_core, &
   ! ... The XC potential is computed in real space, while the
   ! ... Hartree potential is computed in reciprocal space.
   !
-  USE kinds,            ONLY : DP
-  USE fft_base,         ONLY : dfftp
-  USE gvect,            ONLY : ngm
-  USE ions_base,        ONLY : nat, tau
-  USE scf,              ONLY : scf_type
-  USE cell_base,        ONLY : alat
-  USE control_flags,    ONLY : ts_vdw
+  USE env_kinds,            ONLY : DP
+  USE env_fft_base,         ONLY : dfftp
+  USE env_gvect,            ONLY : ngm
+  USE env_ions_base,        ONLY : nat, tau
+  USE env_scf,              ONLY : scf_type
+  USE env_cell_base,        ONLY : alat
+  USE env_control_flags,    ONLY : ts_vdw
   !
   IMPLICIT NONE
   !
@@ -48,44 +48,44 @@ SUBROUTINE v_of_rho( rho, rho_core, rhog_core, &
   print *, "running from Environ!!"
   print *, "*************************************************"
   !
-  CALL start_clock( 'v_of_rho' )
+  CALL env_start_clock( 'v_of_rho' )
   !
   ! ... calculate exchange-correlation potential
   !
-  CALL v_xc( rho, rho_core, rhog_core, etxc, vtxc, v%of_r )
+  CALL env_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v%of_r )
   !
   ! ... add a magnetic field  (if any)
   !
-  CALL add_bfield( v%of_r, rho%of_r )
+  CALL env_add_bfield( v%of_r, rho%of_r )
   !
   ! ... calculate hartree potential
   !
-  CALL v_h( rho%of_g(:,1), ehart, charge, v%of_r )
+  CALL env_v_h( rho%of_g(:,1), ehart, charge, v%of_r )
   !
-  CALL stop_clock( 'v_of_rho' )
+  CALL env_stop_clock( 'v_of_rho' )
   !
   RETURN
   !
-END SUBROUTINE v_of_rho
+END SUBROUTINE env_v_of_rho
 !
 !----------------------------------------------------------------------------
-SUBROUTINE v_h( rhog, ehart, charge, v )
+SUBROUTINE env_v_h( rhog, ehart, charge, v )
   !----------------------------------------------------------------------------
   !
   ! ... Hartree potential VH(r) from n(G)
   !
-  USE constants, ONLY : fpi, e2
-  USE kinds,     ONLY : DP
-  USE fft_base,  ONLY : dfftp
-  USE fft_interfaces,ONLY : invfft
-  USE gvect,     ONLY : ngm, gg, gstart
-  USE lsda_mod,  ONLY : nspin
-  USE cell_base, ONLY : omega, tpiba2
-  USE control_flags, ONLY : gamma_only
-  USE mp_bands,  ONLY: intra_bgrp_comm
-  USE mp,        ONLY: mp_sum
-  USE martyna_tuckerman, ONLY : wg_corr_h, do_comp_mt
-  USE esm,       ONLY: do_comp_esm, esm_hartree, esm_bc
+  USE env_constants, ONLY : fpi, e2
+  USE env_kinds,     ONLY : DP
+  USE env_fft_base,  ONLY : dfftp
+  USE env_fft_interfaces,ONLY : env_invfft
+  USE env_gvect,     ONLY : ngm, gg, gstart
+  USE env_lsda_mod,  ONLY : nspin
+  USE env_cell_base, ONLY : omega, tpiba2
+  USE env_control_flags, ONLY : gamma_only
+  USE env_mp_bands,  ONLY: intra_bgrp_comm
+  USE env_mp,        ONLY: env_mp_sum
+  USE env_martyna_tuckerman, ONLY : env_wg_corr_h, do_comp_mt
+  USE env_esm,       ONLY: do_comp_esm, env_esm_hartree, esm_bc
   !
   IMPLICIT NONE
   !
@@ -100,7 +100,7 @@ SUBROUTINE v_h( rhog, ehart, charge, v )
   COMPLEX(DP), ALLOCATABLE :: aux(:), rgtot(:), vaux(:)
   INTEGER               :: nt
   !
-  CALL start_clock( 'v_h' )
+  CALL env_start_clock( 'v_h' )
   !
   ALLOCATE( aux( dfftp%nnr ), aux1( 2, ngm ) )
   charge = 0.D0
@@ -111,7 +111,7 @@ SUBROUTINE v_h( rhog, ehart, charge, v )
      !
   END IF
   !
-  CALL mp_sum(  charge , intra_bgrp_comm )
+  CALL env_mp_sum(  charge , intra_bgrp_comm )
   !
   ! ... calculate hartree potential in G-space (NB: V(G=0)=0 )
   !
@@ -119,7 +119,7 @@ SUBROUTINE v_h( rhog, ehart, charge, v )
      !
      ! ... calculate modified Hartree potential for ESM
      !
-     CALL esm_hartree (rhog, ehart, aux)
+     CALL env_esm_hartree (rhog, ehart, aux)
      !
   ELSE
      !
@@ -161,14 +161,14 @@ SUBROUTINE v_h( rhog, ehart, charge, v )
    if (do_comp_mt) then
       ALLOCATE( vaux( ngm ), rgtot(ngm) )
       rgtot(:) = rhog(:)
-      CALL wg_corr_h (omega, ngm, rgtot, vaux, eh_corr)
+      CALL env_wg_corr_h (omega, ngm, rgtot, vaux, eh_corr)
       aux1(1,1:ngm) = aux1(1,1:ngm) + REAL( vaux(1:ngm))
       aux1(2,1:ngm) = aux1(2,1:ngm) + AIMAG(vaux(1:ngm))
       ehart = ehart + eh_corr
       DEALLOCATE( rgtot, vaux )
    end if
    !
-   CALL mp_sum(  ehart , intra_bgrp_comm )
+   CALL env_mp_sum(  ehart , intra_bgrp_comm )
    ! 
    aux(:) = 0.D0
    !
@@ -182,7 +182,7 @@ SUBROUTINE v_h( rhog, ehart, charge, v )
   !
   ! ... transform hartree potential to real space
   !
-  CALL invfft ('Rho', aux, dfftp)
+  CALL env_invfft ('Rho', aux, dfftp)
   !
   ! ... add hartree potential to the xc potential
   !
@@ -202,22 +202,22 @@ SUBROUTINE v_h( rhog, ehart, charge, v )
   !
   DEALLOCATE( aux, aux1 )
   !
-  CALL stop_clock( 'v_h' )
+  CALL env_stop_clock( 'v_h' )
   !
   RETURN
   !
-END SUBROUTINE v_h
+END SUBROUTINE env_v_h
 
 !----------------------------------------------------------------------------
-SUBROUTINE v_h_of_rho_r( rhor, ehart, charge, v )
+SUBROUTINE env_v_h_of_rho_r( rhor, ehart, charge, v )
   !----------------------------------------------------------------------------
   !
   ! ... Hartree potential VH(r) from a density in R space n(r)
   !
-  USE kinds,           ONLY : DP
-  USE fft_base,        ONLY : dfftp
-  USE fft_interfaces,  ONLY : fwfft
-  USE lsda_mod,        ONLY : nspin
+  USE env_kinds,           ONLY : DP
+  USE env_fft_base,        ONLY : dfftp
+  USE env_fft_interfaces,  ONLY : env_fwfft
+  USE env_lsda_mod,        ONLY : nspin
   !
   IMPLICIT NONE
   !
@@ -239,7 +239,7 @@ SUBROUTINE v_h_of_rho_r( rhor, ehart, charge, v )
   ALLOCATE( rhog( dfftp%ngm ) )
   ALLOCATE( aux( dfftp%nnr ) )
   aux = CMPLX(rhor,0.D0,kind=dp)
-  CALL fwfft ('Rho', aux, dfftp)
+  CALL env_fwfft ('Rho', aux, dfftp)
   rhog(:) = aux(dfftp%nl(:))
   DEALLOCATE( aux )
   !
@@ -247,7 +247,7 @@ SUBROUTINE v_h_of_rho_r( rhor, ehart, charge, v )
   !
   ALLOCATE( vaux( dfftp%nnr, nspin ) )
   vaux = 0.D0
-  CALL v_h( rhog, ehart, charge, vaux )
+  CALL env_v_h( rhog, ehart, charge, vaux )
   v(:) = v(:) + vaux(:,1)
   !
   DEALLOCATE( rhog )
@@ -255,22 +255,22 @@ SUBROUTINE v_h_of_rho_r( rhor, ehart, charge, v )
   !
   RETURN
   !
-END SUBROUTINE v_h_of_rho_r
+END SUBROUTINE env_v_h_of_rho_r
 !----------------------------------------------------------------------------
-SUBROUTINE gradv_h_of_rho_r( rho, gradv )
+SUBROUTINE env_gradv_h_of_rho_r( rho, gradv )
   !----------------------------------------------------------------------------
   !
   ! ... Gradient of Hartree potential in R space from a total
   !     (spinless) density in R space n(r)
   !
-  USE kinds,           ONLY : DP
-  USE fft_base,        ONLY : dfftp
-  USE fft_interfaces,  ONLY : fwfft, invfft
-  USE constants,       ONLY : fpi, e2
-  USE control_flags,   ONLY : gamma_only
-  USE cell_base,       ONLY : tpiba, omega
-  USE gvect,           ONLY : ngm, gg, gstart, g
-  USE martyna_tuckerman, ONLY : wg_corr_h, do_comp_mt
+  USE env_kinds,           ONLY : DP
+  USE env_fft_base,        ONLY : dfftp
+  USE env_fft_interfaces,  ONLY : env_fwfft, env_invfft
+  USE env_constants,       ONLY : fpi, e2
+  USE env_control_flags,   ONLY : gamma_only
+  USE env_cell_base,       ONLY : tpiba, omega
+  USE env_gvect,           ONLY : ngm, gg, gstart, g
+  USE env_martyna_tuckerman, ONLY : env_wg_corr_h, do_comp_mt
   !
   IMPLICIT NONE
   !
@@ -292,7 +292,7 @@ SUBROUTINE gradv_h_of_rho_r( rho, gradv )
   ALLOCATE( rhoaux( dfftp%nnr ) )
   rhoaux( : ) = CMPLX( rho( : ), 0.D0, KIND=dp ) 
   !
-  CALL fwfft('Rho', rhoaux, dfftp)
+  CALL env_fwfft('Rho', rhoaux, dfftp)
   !
   ! ... Compute total potential in G space
   !
@@ -320,7 +320,7 @@ SUBROUTINE gradv_h_of_rho_r( rho, gradv )
     if (do_comp_mt) then
        ALLOCATE( vaux( ngm ), rgtot(ngm) )
        rgtot(1:ngm) = rhoaux(dfftp%nl(1:ngm))
-       CALL wg_corr_h (omega, ngm, rgtot, vaux, eh_corr)
+       CALL env_wg_corr_h (omega, ngm, rgtot, vaux, eh_corr)
        DO ig = gstart, ngm
          fac = g(ipol,ig) * tpiba
          gaux(dfftp%nl(ig)) = gaux(dfftp%nl(ig)) + CMPLX(-AIMAG(vaux(ig)),REAL(vaux(ig)),kind=dp)*fac 
@@ -337,7 +337,7 @@ SUBROUTINE gradv_h_of_rho_r( rho, gradv )
     !
     ! ... bring back to R-space, (\grad_ipol a)(r) ...
     !
-    CALL invfft ('Rho', gaux, dfftp)
+    CALL env_invfft ('Rho', gaux, dfftp)
     !
     gradv(ipol,:) = REAL( gaux(:) )
     !
@@ -349,4 +349,4 @@ SUBROUTINE gradv_h_of_rho_r( rho, gradv )
   !
   RETURN
   !
-END SUBROUTINE gradv_h_of_rho_r
+END SUBROUTINE env_gradv_h_of_rho_r

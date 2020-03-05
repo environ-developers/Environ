@@ -1,9 +1,9 @@
-MODULE lsda_mod
+MODULE env_lsda_mod
     !
     ! ... The variables needed for the lsda calculation
     !
-    USE kinds,      ONLY : DP
-    USE parameters, ONLY : ntypx, npk
+    USE env_kinds,      ONLY : DP
+    USE env_parameters, ONLY : ntypx, npk
     !
     IMPLICIT NONE
     SAVE
@@ -19,4 +19,4 @@ MODULE lsda_mod
          current_spin,    &! spin of the current kpoint
          isk(npk)          ! for each k-point: 1=spin up, 2=spin down
     !
-  END MODULE lsda_mod
+  END MODULE env_lsda_mod

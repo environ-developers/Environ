@@ -1,9 +1,9 @@
-MODULE vlocal
+MODULE env_vlocal
     !
     ! ... The variables needed for the local potential in reciprocal space
     !
-    USE kinds, ONLY : DP
-    USE parameters, ONLY : ntypx
+    USE env_kinds, ONLY : DP
+    USE env_parameters, ONLY : ntypx
     !
     SAVE
     !
@@ -14,5 +14,5 @@ MODULE vlocal
     REAL(DP) :: &
          starting_charge(ntypx) ! the atomic charge used to start with
     !
-  END MODULE vlocal
+  END MODULE env_vlocal
 

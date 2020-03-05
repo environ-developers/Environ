@@ -7,24 +7,24 @@
 !
 !--------------------------------------------------------------------------
 !
-MODULE scf
+MODULE env_scf
   !  
   !  This module contains variables and auxiliary routines needed for
   !  the self-consistent cycle
   !
   !  ROUTINES: allocate_scf_type
   !
-  USE kinds,      ONLY : DP
-  USE lsda_mod,     ONLY : nspin
-  USE ions_base,    ONLY : nat
-  USE fft_base,     ONLY : dfftp
-  USE fft_interfaces,ONLY: invfft
-  USE gvect,        ONLY : ngm
-  USE gvecs,        ONLY : ngms
-  USE paw_variables,ONLY : okpaw
-  USE uspp_param,   ONLY : nhm
-  USE extfield,     ONLY : dipfield, emaxpos, eopreg, edir
-  USE control_flags,ONLY : lxdm
+  USE env_kinds,      ONLY : DP
+  USE env_lsda_mod,     ONLY : nspin
+  USE env_ions_base,    ONLY : nat
+  USE env_fft_base,     ONLY : dfftp
+  USE env_fft_interfaces,ONLY: env_invfft
+  USE env_gvect,        ONLY : ngm
+  USE env_gvecs,        ONLY : ngms
+  USE env_paw_variables,ONLY : okpaw
+  USE env_uspp_param,   ONLY : nhm
+  USE env_extfield,     ONLY : dipfield, emaxpos, eopreg, edir
+  USE env_control_flags,ONLY : lxdm
   !
   SAVE
   !
@@ -79,7 +79,7 @@ MODULE scf
   COMPLEX(DP), PRIVATE, ALLOCATABLE:: io_buffer(:)
 CONTAINS
 
- SUBROUTINE create_scf_type ( rho, do_not_allocate_becsum )
+ SUBROUTINE env_create_scf_type ( rho, do_not_allocate_becsum )
    IMPLICIT NONE
    TYPE (scf_type) :: rho
    LOGICAL,INTENT(IN),OPTIONAL :: do_not_allocate_becsum ! PAW hack
@@ -99,9 +99,9 @@ CONTAINS
    endif
    
  return
- END SUBROUTINE create_scf_type
+ END SUBROUTINE env_create_scf_type
 
- SUBROUTINE destroy_scf_type ( rho )
+ SUBROUTINE env_destroy_scf_type ( rho )
    IMPLICIT NONE
    TYPE (scf_type) :: rho
 
@@ -114,10 +114,10 @@ CONTAINS
    if (ALLOCATED(rho%bec))   deallocate(rho%bec)
 
    return
- END SUBROUTINE destroy_scf_type
+ END SUBROUTINE env_destroy_scf_type
  !
  
- SUBROUTINE create_mix_type ( rho )
+ SUBROUTINE env_create_mix_type ( rho )
    IMPLICIT NONE
    TYPE (mix_type) :: rho
    allocate ( rho%of_g( ngms, nspin ) )
@@ -129,9 +129,9 @@ CONTAINS
    rho%el_dipole =  0._dp
    
  return
- END SUBROUTINE create_mix_type
+ END SUBROUTINE env_create_mix_type
 
- SUBROUTINE destroy_mix_type ( rho )
+ SUBROUTINE env_destroy_mix_type ( rho )
    IMPLICIT NONE
    TYPE (mix_type) :: rho
 
@@ -142,9 +142,9 @@ CONTAINS
    if (ALLOCATED(rho%bec))   deallocate(rho%bec)
 
    return
- END SUBROUTINE destroy_mix_type
+ END SUBROUTINE env_destroy_mix_type
  !
- subroutine assign_scf_to_mix_type(rho_s, rho_m)
+ subroutine env_assign_scf_to_mix_type(rho_s, rho_m)
    IMPLICIT NONE
    TYPE (scf_type), INTENT(IN)  :: rho_s
    TYPE (mix_type), INTENT(INOUT) :: rho_m
@@ -159,13 +159,13 @@ CONTAINS
    endif
    
  return
- end subroutine assign_scf_to_mix_type
+ end subroutine env_assign_scf_to_mix_type
  !
  !----------------------------------------------------------------------------
- subroutine scf_type_COPY (X,Y)
+ subroutine env_scf_type_COPY (X,Y)
   !----------------------------------------------------------------------------
   ! works like DCOPY for scf_type copy variables :  Y = X 
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   IMPLICIT NONE
   TYPE(scf_type), INTENT(IN)    :: X
   TYPE(scf_type), INTENT(INOUT) :: Y
@@ -178,14 +178,14 @@ CONTAINS
   if (okpaw)      Y%bec = X%bec
   !
   RETURN
- end subroutine scf_type_COPY
+ end subroutine env_scf_type_COPY
  !
  !----------------------------------------------------------------------------
- subroutine mix_type_AXPY (A,X,Y)
+ subroutine env_mix_type_AXPY (A,X,Y)
   !----------------------------------------------------------------------------
   ! works like daxpy for scf_type variables :  Y = A * X + Y
   ! NB: A is a REAL(DP) number
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   IMPLICIT NONE
   REAL(DP)                      :: A
   TYPE(mix_type), INTENT(IN)    :: X
@@ -195,13 +195,13 @@ CONTAINS
   if (dipfield)  Y%el_dipole =  Y%el_dipole + A * X%el_dipole
   !
   RETURN
- END SUBROUTINE mix_type_AXPY
+ END SUBROUTINE env_mix_type_AXPY
  !
  !----------------------------------------------------------------------------
- subroutine mix_type_COPY (X,Y)
+ subroutine env_mix_type_COPY (X,Y)
   !----------------------------------------------------------------------------
   ! works like DCOPY for mix_type copy variables :  Y = X 
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   IMPLICIT NONE
   TYPE(mix_type), INTENT(IN)    :: X
   TYPE(mix_type), INTENT(INOUT) :: Y
@@ -210,14 +210,14 @@ CONTAINS
   if (dipfield)   Y%el_dipole =  X%el_dipole
   !
   RETURN
- end subroutine mix_type_COPY
+ end subroutine env_mix_type_COPY
  !
  !----------------------------------------------------------------------------
- subroutine mix_type_SCAL (A,X)
+ subroutine env_mix_type_SCAL (A,X)
   !----------------------------------------------------------------------------
   ! works like DSCAL for mix_type copy variables :  X = A * X 
   ! NB: A is a REAL(DP) number
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   IMPLICIT NONE
   REAL(DP),       INTENT(IN)    :: A
   TYPE(mix_type), INTENT(INOUT) :: X
@@ -226,47 +226,47 @@ CONTAINS
   if (dipfield)   X%el_dipole =  A * X%el_dipole
   !
   RETURN
- end subroutine mix_type_SCAL
+ end subroutine env_mix_type_SCAL
  !
  !----------------------------------------------------------------------------
- FUNCTION rho_ddot( rho1, rho2, gf )
+ FUNCTION env_rho_ddot( rho1, rho2, gf )
   !----------------------------------------------------------------------------
   !
   ! ... calculates 4pi/G^2*rho1(-G)*rho2(G) = V1_Hartree(-G)*rho2(G)
   ! ... used as an estimate of the self-consistency error on the energy
   !
-  USE kinds,         ONLY : DP
-  USE constants,     ONLY : e2, tpi, fpi
-  USE cell_base,     ONLY : omega, tpiba2
-  USE gvect,         ONLY : gg, gstart
-  USE control_flags, ONLY : gamma_only
+  USE env_kinds,         ONLY : DP
+  USE env_constants,     ONLY : e2, tpi, fpi
+  USE env_cell_base,     ONLY : omega, tpiba2
+  USE env_gvect,         ONLY : gg, gstart
+  USE env_control_flags, ONLY : gamma_only
   !USE paw_onecenter, ONLY : paw_ddot
-  USE mp_bands,      ONLY : intra_bgrp_comm
-  USE mp,            ONLY : mp_sum
+  USE env_mp_bands,      ONLY : intra_bgrp_comm
+  USE env_mp,            ONLY : env_mp_sum
   !
   IMPLICIT NONE
   !
   type(mix_type), INTENT(IN) :: rho1, rho2
   INTEGER,        INTENT(IN) :: gf
-  REAL(DP)                :: rho_ddot
+  REAL(DP)                :: env_rho_ddot
   !
   REAL(DP) :: fac
   INTEGER  :: ig
   !
   fac = e2 * fpi / tpiba2
   !
-  rho_ddot = 0.D0
+  env_rho_ddot = 0.D0
   !
   DO ig = gstart, gf
      !
-     rho_ddot = rho_ddot + &
+   env_rho_ddot = env_rho_ddot + &
                 REAL( CONJG( rho1%of_g(ig,1) )*rho2%of_g(ig,1), DP ) / gg(ig)
      !
   END DO
   !
-  rho_ddot = fac*rho_ddot
+  env_rho_ddot = fac*env_rho_ddot
   !
-  IF ( gamma_only ) rho_ddot = 2.D0 * rho_ddot
+  IF ( gamma_only ) env_rho_ddot = 2.D0 * env_rho_ddot
   !
   IF ( nspin >= 2 )  THEN
      !
@@ -274,7 +274,7 @@ CONTAINS
      !
      IF ( gstart == 2 ) THEN
         !
-        rho_ddot = rho_ddot + &
+      env_rho_ddot = env_rho_ddot + &
                 fac * SUM( REAL( CONJG( rho1%of_g(1,2:nspin))*(rho2%of_g(1,2:nspin) ), DP ) )
         !
      END IF
@@ -283,69 +283,69 @@ CONTAINS
      !
      DO ig = gstart, gf
         !
-        rho_ddot = rho_ddot + &
+      env_rho_ddot = env_rho_ddot + &
                 fac * SUM( REAL( CONJG( rho1%of_g(ig,2:nspin))*(rho2%of_g(ig,2:nspin) ), DP ) )
      !
      END DO
      !
   END IF
   !
-  rho_ddot = rho_ddot * omega * 0.5D0
+  env_rho_ddot = env_rho_ddot * omega * 0.5D0
   !
-  CALL mp_sum(  rho_ddot , intra_bgrp_comm )
+  CALL env_mp_sum(  env_rho_ddot , intra_bgrp_comm )
   ! 
   ! Beware: paw_ddot has a hidden parallelization on all processors
   !         it must be called on all processors or else it will hang
   ! Beware: commented out because it yields too often negative values
   ! IF (okpaw)         rho_ddot = rho_ddot + paw_ddot(rho1%bec, rho2%bec)
-  IF (dipfield)      rho_ddot = rho_ddot + (e2/2.0_DP)* &
+  IF (dipfield)      env_rho_ddot = env_rho_ddot + (e2/2.0_DP)* &
                                     (rho1%el_dipole * rho2%el_dipole)*omega/fpi
 
   RETURN
   !
- END FUNCTION rho_ddot
+ END FUNCTION env_rho_ddot
  !
 !----------------------------------------------------------------------------
-FUNCTION tauk_ddot( rho1, rho2, gf )
+FUNCTION env_tauk_ddot( rho1, rho2, gf )
   !----------------------------------------------------------------------------
   !
   ! ... calculates 4pi/G^2*rho1(-G)*rho2(G) = V1_Hartree(-G)*rho2(G)
   ! ... used as an estimate of the self-consistency error on the energy
   !
-  USE kinds,         ONLY : DP
-  USE constants,     ONLY : e2, tpi, fpi
-  USE cell_base,     ONLY : omega, tpiba2
-  USE gvect,         ONLY : gg, gstart
-  USE control_flags, ONLY : gamma_only
-  USE mp_bands,      ONLY : intra_bgrp_comm
-  USE mp,            ONLY : mp_sum
+  USE env_kinds,         ONLY : DP
+  USE env_constants,     ONLY : e2, tpi, fpi
+  USE env_cell_base,     ONLY : omega, tpiba2
+  USE env_gvect,         ONLY : gg, gstart
+  USE env_control_flags, ONLY : gamma_only
+  USE env_mp_bands,      ONLY : intra_bgrp_comm
+  USE env_mp,            ONLY : env_mp_sum
   !
   IMPLICIT NONE
   !
   type(mix_type), INTENT(IN) :: rho1, rho2
   INTEGER,     INTENT(IN) :: gf
-  REAL(DP)                :: tauk_ddot
+  REAL(DP)                :: env_tauk_ddot
   !
   REAL(DP) :: fac
   INTEGER  :: ig
   !
-  tauk_ddot = 0.D0
+  env_tauk_ddot = 0.D0
   !
 !  write (*,*) rho1%kin_g(1:4,1)
 !  if (.true. ) stop
   !
   DO ig = gstart, gf
-     tauk_ddot = tauk_ddot + &
+   env_tauk_ddot = env_tauk_ddot + &
                  REAL( CONJG( rho1%kin_g(ig,1) )*rho2%kin_g(ig,1) ) 
   END DO
   !
-  IF ( nspin==1 .and. gamma_only ) tauk_ddot = 2.D0 * tauk_ddot
+  IF ( nspin==1 .and. gamma_only ) env_tauk_ddot = 2.D0 * env_tauk_ddot
   !
   ! ... G=0 term
   !
   IF ( gstart == 2 ) THEN
      !
-     tauk_ddot = tauk_ddot + &
+   env_tauk_ddot = env_tauk_ddot + &
                  REAL( CONJG( rho1%kin_g(1,1) ) * rho2%kin_g(1,1) )
      !
   END IF
@@ -354,106 +354,106 @@ FUNCTION tauk_ddot( rho1, rho2, gf )
      !
      DO ig = gstart, gf
         !
-        tauk_ddot = tauk_ddot + &
+      env_tauk_ddot = env_tauk_ddot + &
                 SUM( REAL( CONJG( rho1%kin_g(1,2:nspin))*(rho2%kin_g(1,2:nspin) ), DP ) )
         !
      END DO
      !
-     IF ( gamma_only ) tauk_ddot = 2.D0 * tauk_ddot
+     IF ( gamma_only ) env_tauk_ddot = 2.D0 * env_tauk_ddot
      !
      ! ... G=0 term
      !
      IF ( gstart == 2 ) THEN
         !
-        tauk_ddot = tauk_ddot + &
+      env_tauk_ddot = env_tauk_ddot + &
                 SUM( REAL( CONJG( rho1%kin_g(1,1:nspin))*(rho2%kin_g(1,1:nspin) ), DP ) )
         !
      END IF
-     IF ( nspin == 2 ) tauk_ddot = 0.5D0 *  tauk_ddot 
+     IF ( nspin == 2 ) env_tauk_ddot = 0.5D0 *  env_tauk_ddot 
      !
   END IF
   !
   fac = e2 * fpi / tpi**2  ! lambda = 1 a.u.
   !
-  tauk_ddot = fac * tauk_ddot * omega * 0.5D0
+  env_tauk_ddot = fac * env_tauk_ddot * omega * 0.5D0
   !
-  CALL mp_sum(  tauk_ddot , intra_bgrp_comm )
+  CALL env_mp_sum(  env_tauk_ddot , intra_bgrp_comm )
   !
   RETURN
   !
-END FUNCTION tauk_ddot
+END FUNCTION env_tauk_ddot
  !----------------------------------------------------------------------------
- FUNCTION local_tf_ddot( rho1, rho2, ngm0 )
+ FUNCTION env_local_tf_ddot( rho1, rho2, ngm0 )
   !----------------------------------------------------------------------------
   !
   ! ... calculates 4pi/G^2*rho1(-G)*rho2(G) = V1_Hartree(-G)*rho2(G)
   ! ... used as an estimate of the self-consistency error on the energy
   !
-  USE kinds,         ONLY : DP
-  USE constants,     ONLY : e2, fpi
-  USE cell_base,     ONLY : omega, tpiba2
-  USE gvect,         ONLY : gg, gstart
-  USE control_flags, ONLY : gamma_only
-  USE mp_bands,      ONLY : intra_bgrp_comm
-  USE mp,            ONLY : mp_sum
+  USE env_kinds,         ONLY : DP
+  USE env_constants,     ONLY : e2, fpi
+  USE env_cell_base,     ONLY : omega, tpiba2
+  USE env_gvect,         ONLY : gg, gstart
+  USE env_control_flags, ONLY : gamma_only
+  USE env_mp_bands,      ONLY : intra_bgrp_comm
+  USE env_mp,            ONLY : env_mp_sum
   !
   IMPLICIT NONE
   !
   INTEGER, INTENT(IN)     :: ngm0
   COMPLEX(DP), INTENT(IN) :: rho1(ngm0), rho2(ngm0)
-  REAL(DP)                :: local_tf_ddot
+  REAL(DP)                :: env_local_tf_ddot
   !
   REAL(DP) :: fac
   INTEGER  :: ig
   !
-  local_tf_ddot = 0.D0
+  env_local_tf_ddot = 0.D0
   !
   fac = e2 * fpi / tpiba2
   !
   !$omp parallel do reduction(+:local_tf_ddot)
   DO ig = gstart, ngm0
-     local_tf_ddot = local_tf_ddot + REAL( CONJG(rho1(ig))*rho2(ig) ) / gg(ig)
+   env_local_tf_ddot = env_local_tf_ddot + REAL( CONJG(rho1(ig))*rho2(ig) ) / gg(ig)
   END DO
   !$omp end parallel do
   !
-  local_tf_ddot = fac * local_tf_ddot * omega * 0.5D0
+  env_local_tf_ddot = fac * env_local_tf_ddot * omega * 0.5D0
   !
-  IF ( gamma_only ) local_tf_ddot = 2.D0 * local_tf_ddot
+  IF ( gamma_only ) env_local_tf_ddot = 2.D0 * env_local_tf_ddot
   !
-  CALL mp_sum(  local_tf_ddot , intra_bgrp_comm )
+  CALL env_mp_sum(  env_local_tf_ddot , intra_bgrp_comm )
   !
   RETURN
   !
- END FUNCTION local_tf_ddot
+ END FUNCTION env_local_tf_ddot
  !
- SUBROUTINE bcast_scf_type ( rho, root, comm )
+ SUBROUTINE env_bcast_scf_type ( rho, root, comm )
   !----------------------------------------------------------------------------
   ! ... Broadcast all mixed quantities from first pool to all others
   ! ... Needed to prevent divergencies in k-point parallization
   !
-  USE mp,            ONLY : mp_bcast
+  USE env_mp,            ONLY : env_mp_bcast
   !
   IMPLICIT NONE
   !
   type(scf_type), INTENT(INOUT) :: rho
   INTEGER, INTENT(IN) :: root, comm
   !
-  CALL mp_bcast ( rho%of_g, root, comm )
-  CALL mp_bcast ( rho%of_r, root, comm )
+  CALL env_mp_bcast ( rho%of_g, root, comm )
+  CALL env_mp_bcast ( rho%of_r, root, comm )
   IF (lxdm) THEN
-     CALL mp_bcast ( rho%kin_g, root, comm )
-     CALL mp_bcast ( rho%kin_r, root, comm )
+     CALL env_mp_bcast ( rho%kin_g, root, comm )
+     CALL env_mp_bcast ( rho%kin_r, root, comm )
   END IF
-  IF ( okpaw )        CALL mp_bcast ( rho%bec,   root, comm )
+  IF ( okpaw )        CALL env_mp_bcast ( rho%bec,   root, comm )
   !
   END SUBROUTINE
   !
-  SUBROUTINE rhoz_or_updw( rho, sp, dir )
+  SUBROUTINE env_rhoz_or_updw( rho, sp, dir )
   !--------------------------------------------------------------------------
   ! ... Converts rho(up,dw) into rho(up+dw,up-dw) if dir='->rhoz' and
   ! ... vice versa if dir='->updw'.
   !
-  USE gvect,  ONLY : ngm
+  USE env_gvect,  ONLY : ngm
   !
   IMPLICIT NONE
   !
@@ -467,7 +467,7 @@ END FUNCTION tauk_ddot
   vi = 0._dp
   IF (dir == '->updw')  vi = 0.5_dp
   IF (dir == '->rhoz')  vi = 1.0_dp
-  IF (vi  == 0._dp)  CALL errore( 'rhoz_or_updw', 'wrong input', 1 )
+  IF (vi  == 0._dp)  CALL env_errore( 'rhoz_or_updw', 'wrong input', 1 )
   !
   IF ( sp /= 'only_g' ) THEN
 !   !$omp parallel do
@@ -491,4 +491,4 @@ END FUNCTION tauk_ddot
   END SUBROUTINE
   !
   !
-END MODULE scf
+END MODULE env_scf

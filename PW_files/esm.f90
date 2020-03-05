@@ -32,13 +32,13 @@
 ! Ewald term. Constant-mu parts are contained in the fcp.f90.
 !
 !----------------------------------------------------------------------------
-MODULE esm
+MODULE env_esm
   !--------------------------------------------------------------------------
   !
   ! ... this module contains the variables and SUBROUTINEs needed for the 
   ! ... EFFECTIVE SCREENING MEDIUM (ESM) METHOD 
   !
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -48,9 +48,9 @@ MODULE esm
   !
   PUBLIC :: do_comp_esm, esm_nfit, esm_efield, esm_w, esm_a, esm_bc, &
             mill_2d, imill_2d, ngm_2d, &
-            esm_init, esm_hartree, esm_local, esm_ewald, esm_force_lc, &
-            esm_force_ew, esm_printpot, esm_summary
-  PUBLIC :: esm_stres_har, esm_stres_ewa, esm_stres_loclong
+            env_esm_init, env_esm_hartree, env_esm_local, env_esm_ewald, env_esm_force_lc, &
+            env_esm_force_ew, env_esm_printpot, env_esm_summary
+  PUBLIC :: env_esm_stres_har, env_esm_stres_ewa, env_esm_stres_loclong
   !
   LOGICAL              :: do_comp_esm=.FALSE.
   INTEGER              :: esm_nfit
@@ -65,163 +65,163 @@ MODULE esm
   !-----------------------------------------------------------------------
   !--------------ESM ENERGY AND POTENTIAL SUBROUTINE----------------------
   !-----------------------------------------------------------------------
-     subroutine esm_hartree( rhog, ehart, aux )
-        USE kinds,    ONLY : DP
-        USE gvect,    ONLY : ngm
-        USE fft_base, ONLY : dfftp
+     subroutine env_esm_hartree( rhog, ehart, aux )
+        USE env_kinds,    ONLY : DP
+        USE env_gvect,    ONLY : ngm
+        USE env_fft_base, ONLY : dfftp
         IMPLICIT NONE
         real(DP)    :: ehart             !  Hartree energy
         complex(DP) :: rhog(ngm)         !  n(G)
         complex(DP) :: aux(dfftp%nnr)    !  v_h(G)
 
         if( esm_bc == 'pbc' ) then
-           call esm_hartree_pbc ( rhog, ehart, aux )
+           call env_esm_hartree_pbc ( rhog, ehart, aux )
         else if ( esm_bc == 'bc1' ) then
-           call esm_hartree_bc1 ( rhog, ehart, aux )
+           call env_esm_hartree_bc1 ( rhog, ehart, aux )
         else if ( esm_bc == 'bc2' ) then
-           call esm_hartree_bc2 ( rhog, ehart, aux )
+           call env_esm_hartree_bc2 ( rhog, ehart, aux )
         else if ( esm_bc == 'bc3' ) then
-           call esm_hartree_bc3 ( rhog, ehart, aux )
+           call env_esm_hartree_bc3 ( rhog, ehart, aux )
         else if ( esm_bc == 'bc4' ) then
-           call esm_hartree_bc4 ( rhog, ehart, aux )
+           call env_esm_hartree_bc4 ( rhog, ehart, aux )
         end if
 
  
-     end subroutine esm_hartree
+     end subroutine env_esm_hartree
 
-     SUBROUTINE esm_ewaldr( alpha_g, ewr )
-        USE kinds,    ONLY : DP
+     SUBROUTINE env_esm_ewaldr( alpha_g, ewr )
+        USE env_kinds,    ONLY : DP
         implicit none
         real(DP), intent(in)  :: alpha_g
         real(DP), intent(out) :: ewr
 
         if( esm_bc == 'pbc' ) then
-           call esm_ewaldr_pbc ( alpha_g, ewr )
+           call env_esm_ewaldr_pbc ( alpha_g, ewr )
         else if ( esm_bc == 'bc1' ) then
-           call esm_ewaldr_pbc ( alpha_g, ewr )
+           call env_esm_ewaldr_pbc ( alpha_g, ewr )
         else if ( esm_bc == 'bc2' ) then
-           call esm_ewaldr_pbc ( alpha_g, ewr )
+           call env_esm_ewaldr_pbc ( alpha_g, ewr )
         else if ( esm_bc == 'bc3' ) then
-           call esm_ewaldr_pbc ( alpha_g, ewr )
+           call env_esm_ewaldr_pbc ( alpha_g, ewr )
         else if ( esm_bc == 'bc4' ) then
-           call esm_ewaldr_bc4 ( alpha_g, ewr )
+           call env_esm_ewaldr_bc4 ( alpha_g, ewr )
         end if
 
-     END SUBROUTINE esm_ewaldr
+     END SUBROUTINE env_esm_ewaldr
 
-     SUBROUTINE esm_ewaldg( alpha_g, ewg )
-        USE kinds,    ONLY : DP
+     SUBROUTINE env_esm_ewaldg( alpha_g, ewg )
+        USE env_kinds,    ONLY : DP
         implicit none
         real(DP), intent(in)  :: alpha_g
         real(DP), intent(out) :: ewg
 
         if( esm_bc == 'pbc' ) then
-           call esm_ewaldg_pbc ( alpha_g, ewg )
+           call env_esm_ewaldg_pbc ( alpha_g, ewg )
         else if ( esm_bc == 'bc1' ) then
-           call esm_ewaldg_bc1 ( alpha_g, ewg )
+           call env_esm_ewaldg_bc1 ( alpha_g, ewg )
         else if ( esm_bc == 'bc2' ) then
-           call esm_ewaldg_bc2 ( alpha_g, ewg )
+           call env_esm_ewaldg_bc2 ( alpha_g, ewg )
         else if ( esm_bc == 'bc3' ) then
-           call esm_ewaldg_bc3 ( alpha_g, ewg )
+           call env_esm_ewaldg_bc3 ( alpha_g, ewg )
         else if ( esm_bc == 'bc4' ) then
-           call esm_ewaldg_bc4 ( alpha_g, ewg )
+           call env_esm_ewaldg_bc4 ( alpha_g, ewg )
         end if
 
-     END SUBROUTINE esm_ewaldg
+     END SUBROUTINE env_esm_ewaldg
 
-     SUBROUTINE esm_local( aux )
-        USE kinds,    ONLY : DP
-        USE fft_base, ONLY : dfftp
+     SUBROUTINE env_esm_local( aux )
+        USE env_kinds,    ONLY : DP
+        USE env_fft_base, ONLY : dfftp
         implicit none
         complex(DP), intent(inout) :: aux( dfftp%nnr )
 
         if( esm_bc == 'pbc' ) then
-           call esm_local_pbc ( aux )
+           call env_esm_local_pbc ( aux )
         else if ( esm_bc == 'bc1' ) then
-           call esm_local_bc1 ( aux )
+           call env_esm_local_bc1 ( aux )
         else if ( esm_bc == 'bc2' ) then
-           call esm_local_bc2 ( aux )
+           call env_esm_local_bc2 ( aux )
         else if ( esm_bc == 'bc3' ) then
-           call esm_local_bc3 ( aux )
+           call env_esm_local_bc3 ( aux )
         else if ( esm_bc == 'bc4' ) then
-           call esm_local_bc4 ( aux )
+           call env_esm_local_bc4 ( aux )
         end if
 
-     END SUBROUTINE esm_local
+     END SUBROUTINE env_esm_local
      
   !-----------------------------------------------------------------------
   !--------------ESM FORCE SUBROUTINE-------------------------------------
   !-----------------------------------------------------------------------
-     SUBROUTINE esm_force_ewr( alpha_g, forceion ) 
-        USE kinds,     ONLY : DP
-        USE ions_base, ONLY : nat
+     SUBROUTINE env_esm_force_ewr( alpha_g, forceion ) 
+        USE env_kinds,     ONLY : DP
+        USE env_ions_base, ONLY : nat
         implicit none
         real(DP),intent(in)    :: alpha_g
         real(DP),intent(inout) :: forceion(3,nat) 
 
         if( esm_bc == 'pbc' ) then
-           call esm_force_ewr_pbc ( alpha_g, forceion )
+           call env_esm_force_ewr_pbc ( alpha_g, forceion )
         else if ( esm_bc == 'bc1' ) then
-           call esm_force_ewr_pbc ( alpha_g, forceion )
+           call env_esm_force_ewr_pbc ( alpha_g, forceion )
         else if ( esm_bc == 'bc2' ) then
-           call esm_force_ewr_pbc ( alpha_g, forceion )
+           call env_esm_force_ewr_pbc ( alpha_g, forceion )
         else if ( esm_bc == 'bc3' ) then
-           call esm_force_ewr_pbc ( alpha_g, forceion )
+           call env_esm_force_ewr_pbc ( alpha_g, forceion )
         else if ( esm_bc == 'bc4' ) then
-           call esm_force_ewr_bc4 ( alpha_g, forceion )
+           call env_esm_force_ewr_bc4 ( alpha_g, forceion )
         end if
 
-     END SUBROUTINE esm_force_ewr
+     END SUBROUTINE env_esm_force_ewr
 
-     SUBROUTINE esm_force_ewg( alpha_g, forceion )
-        USE kinds,     ONLY : DP
-        USE ions_base, ONLY : nat
+     SUBROUTINE env_esm_force_ewg( alpha_g, forceion )
+        USE env_kinds,     ONLY : DP
+        USE env_ions_base, ONLY : nat
         implicit none
         real(DP), intent(in)    :: alpha_g
         real(DP), intent(out)   :: forceion(3,nat) 
 
         if( esm_bc == 'pbc' ) then
-           call esm_force_ewg_pbc ( alpha_g, forceion )
+           call env_esm_force_ewg_pbc ( alpha_g, forceion )
         else if ( esm_bc == 'bc1' ) then
-           call esm_force_ewg_bc1 ( alpha_g, forceion )
+           call env_esm_force_ewg_bc1 ( alpha_g, forceion )
         else if ( esm_bc == 'bc2' ) then
-           call esm_force_ewg_bc2 ( alpha_g, forceion )
+           call env_esm_force_ewg_bc2 ( alpha_g, forceion )
         else if ( esm_bc == 'bc3' ) then
-           call esm_force_ewg_bc3 ( alpha_g, forceion )
+           call env_esm_force_ewg_bc3 ( alpha_g, forceion )
         else if ( esm_bc == 'bc4' ) then
-           call esm_force_ewg_bc4 ( alpha_g, forceion )
+           call env_esm_force_ewg_bc4 ( alpha_g, forceion )
         end if
 
-     END SUBROUTINE esm_force_ewg
+     END SUBROUTINE env_esm_force_ewg
 
-     SUBROUTINE esm_force_lc( aux, forcelc )
-        USE kinds,     ONLY : DP
-        USE ions_base, ONLY : nat
-        USE fft_base,  ONLY : dfftp
+     SUBROUTINE env_esm_force_lc( aux, forcelc )
+        USE env_kinds,     ONLY : DP
+        USE env_ions_base, ONLY : nat
+        USE env_fft_base,  ONLY : dfftp
         implicit none
         complex(DP), intent(in)    :: aux(dfftp%nnr) ! aux contains n(G) (input)
         real(DP)   , intent(inout) :: forcelc(3,nat)
 
         if( esm_bc == 'pbc' ) then
-           call esm_force_lc_pbc ( aux, forcelc )
+           call env_esm_force_lc_pbc ( aux, forcelc )
         else if ( esm_bc == 'bc1' ) then
-           call esm_force_lc_bc1 ( aux, forcelc )
+           call env_esm_force_lc_bc1 ( aux, forcelc )
         else if ( esm_bc == 'bc2' ) then
-           call esm_force_lc_bc2 ( aux, forcelc )
+           call env_esm_force_lc_bc2 ( aux, forcelc )
         else if ( esm_bc == 'bc3' ) then
-           call esm_force_lc_bc3 ( aux, forcelc )
+           call env_esm_force_lc_bc3 ( aux, forcelc )
         else if ( esm_bc == 'bc4' ) then
-           call esm_force_lc_bc4 ( aux, forcelc )
+           call env_esm_force_lc_bc4 ( aux, forcelc )
         end if
 
-     END SUBROUTINE esm_force_lc
+     END SUBROUTINE env_esm_force_lc
 
   !-----------------------------------------------------------------------
   !--------------ESM STRESS SUBROUTINE------------------------------------
   !-----------------------------------------------------------------------
-  subroutine esm_stres_har( sigmahar, rhog )
-    USE kinds,    ONLY : DP
-    USE gvect,    ONLY : ngm
+  subroutine env_esm_stres_har( sigmahar, rhog )
+    USE env_kinds,    ONLY : DP
+    USE env_gvect,    ONLY : ngm
     IMPLICIT NONE
     real(DP), intent(out)   :: sigmahar(3,3)
     complex(DP), intent(in) :: rhog(ngm)   !  n(G)
@@ -230,29 +230,29 @@ MODULE esm
     case( 'pbc' )
        stop 'esm_stres_har must not be called for esm_bc = pbc'
     case( 'bc1' )
-       call esm_stres_har_bc1( sigmahar, rhog )
+       call env_esm_stres_har_bc1( sigmahar, rhog )
     case( 'bc2' )
-       call esm_stres_har_bc2( sigmahar, rhog )
+       call env_esm_stres_har_bc2( sigmahar, rhog )
     case( 'bc3' )
-       call esm_stres_har_bc3( sigmahar, rhog )
+       call env_esm_stres_har_bc3( sigmahar, rhog )
     case( 'bc4' )
        stop 'esm_stres_har has not yet implemented for esm_bc = bc4'
     end select
 
     return
-  end subroutine esm_stres_har
+  end subroutine env_esm_stres_har
 
-  subroutine esm_stres_ewa( sigmaewa )
+  subroutine env_esm_stres_ewa( sigmaewa )
     !-----------------------------------------------------------------------
     !
     ! Calculates Ewald stresswith both G- and R-space terms.
     ! Determines optimal alpha. Should hopefully work for any structure.
     !
-    USE kinds,     ONLY : DP
-    USE constants, ONLY : tpi
-    USE cell_base, ONLY : tpiba2
-    USE ions_base, ONLY : zv, nat, ityp
-    USE gvect,     ONLY : gcutm
+    USE env_kinds,     ONLY : DP
+    USE env_constants, ONLY : tpi
+    USE env_cell_base, ONLY : tpiba2
+    USE env_ions_base, ONLY : zv, nat, ityp
+    USE env_gvect,     ONLY : gcutm
     implicit none
     real(DP), intent(out) :: sigmaewa(3,3)
 
@@ -278,7 +278,7 @@ MODULE esm
     alpha = 2.9d0
     do
        alpha = alpha - 0.1d0
-       if (alpha.le.0.d0) call errore ('esm_stres_ewa', 'optimal alpha not found', 1)
+       if (alpha.le.0.d0) call env_errore ('esm_stres_ewa', 'optimal alpha not found', 1)
        upperbound = 2.d0 * charge**2 * sqrt (2.d0 * alpha / tpi) * &
             qe_erfc ( sqrt (tpiba2 * gcutm / 4.d0 / alpha) )
        if ( upperbound < 1.0d-7 ) exit
@@ -286,19 +286,19 @@ MODULE esm
 
     ! G-space sum here.
     ! Determine if this processor contains G=0 and set the constant term
-    CALL esm_stres_ewg( alpha, sigmaewg )
+    CALL env_esm_stres_ewg( alpha, sigmaewg )
 
     ! R-space sum here (only for the processor that contains G=0)
-    CALL esm_stres_ewr( alpha, sigmaewr )
+    CALL env_esm_stres_ewr( alpha, sigmaewr )
 
     sigmaewa(:,:) = sigmaewg(:,:) + sigmaewr(:,:)
 
     return
-  end subroutine esm_stres_ewa
+  end subroutine env_esm_stres_ewa
 
-  subroutine esm_stres_loclong( sigmaloclong, rhog )
-    USE kinds,    ONLY : DP
-    USE gvect,    ONLY : ngm
+  subroutine env_esm_stres_loclong( sigmaloclong, rhog )
+    USE env_kinds,    ONLY : DP
+    USE env_gvect,    ONLY : ngm
     IMPLICIT NONE
     real(DP), intent(out)   :: sigmaloclong(3,3)
     complex(DP), intent(in) :: rhog(ngm)   !  n(G)
@@ -307,19 +307,19 @@ MODULE esm
     case( 'pbc' )
        stop 'esm_stres_loclong must not be called for esm_bc = pbc'
     case( 'bc1' )
-       call esm_stres_loclong_bc1( sigmaloclong, rhog )
+       call env_esm_stres_loclong_bc1( sigmaloclong, rhog )
     case( 'bc2' )
-       call esm_stres_loclong_bc2( sigmaloclong, rhog )
+       call env_esm_stres_loclong_bc2( sigmaloclong, rhog )
     case( 'bc3' )
-       call esm_stres_loclong_bc3( sigmaloclong, rhog )
+       call env_esm_stres_loclong_bc3( sigmaloclong, rhog )
     case( 'bc4' )
        stop 'esm_stres_loclong has not yet implemented for esm_bc = bc4'
     end select
 
     return
-  end subroutine esm_stres_loclong
+  end subroutine env_esm_stres_loclong
 
-SUBROUTINE esm_rgen_2d ( dtau, rmax, mxr, at, bg, r, r2, nrm)
+SUBROUTINE env_esm_rgen_2d ( dtau, rmax, mxr, at, bg, r, r2, nrm)
   !-----------------------------------------------------------------------
   !
   !   generates neighbours shells (cartesian, in units of lattice parameter)
@@ -332,7 +332,7 @@ SUBROUTINE esm_rgen_2d ( dtau, rmax, mxr, at, bg, r, r2, nrm)
   !   Other output variables:
   !     nrm = the number of vectors with r^2 < rmax^2
   !
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   !
   IMPLICIT NONE
   INTEGER, INTENT(in)   :: mxr
@@ -376,7 +376,7 @@ SUBROUTINE esm_rgen_2d ( dtau, rmax, mxr, at, bg, r, r2, nrm)
         ENDDO
         IF (tt<=rmax**2.and.abs (tt) >1.d-10) THEN
            nrm = nrm + 1
-           IF (nrm>mxr) CALL errore ('esm_rgen_2d', 'too many r-vectors', nrm)
+           IF (nrm>mxr) CALL env_errore ('esm_rgen_2d', 'too many r-vectors', nrm)
            DO ipol = 1, 3
               r (ipol, nrm) = t (ipol)
            ENDDO
@@ -390,7 +390,7 @@ SUBROUTINE esm_rgen_2d ( dtau, rmax, mxr, at, bg, r, r2, nrm)
   !   initialize the index inside sorting routine
   !
   irr (1) = 0
-  IF (nrm>1) CALL hpsort (nrm, r2, irr)
+  IF (nrm>1) CALL env_hpsort (nrm, r2, irr)
   DO ir = 1, nrm - 1
 20   indsw = irr (ir)
      IF (indsw/=ir) THEN
@@ -408,19 +408,19 @@ SUBROUTINE esm_rgen_2d ( dtau, rmax, mxr, at, bg, r, r2, nrm)
   DEALLOCATE(irr)
   !
   RETURN
-END SUBROUTINE esm_rgen_2d
+END SUBROUTINE env_esm_rgen_2d
 
-SUBROUTINE esm_init()
-   USE fft_base, ONLY : dfftp
+SUBROUTINE env_esm_init()
+   USE env_fft_base, ONLY : dfftp
    IMPLICIT NONE
    
-   call esm_ggen_2d()
+   call env_esm_ggen_2d()
 
-END SUBROUTINE esm_init
+END SUBROUTINE env_esm_init
 
-SUBROUTINE esm_ggen_2d()
-  USE fft_base,         ONLY : dfftp
-  USE gvect,            ONLY : ngm, mill
+SUBROUTINE env_esm_ggen_2d()
+  USE env_fft_base,         ONLY : dfftp
+  USE env_gvect,            ONLY : ngm, mill
   !
   IMPLICIT NONE
   !
@@ -465,15 +465,15 @@ SUBROUTINE esm_ggen_2d()
 !**** ng_2d = total number of 2d g vectors on this proc
 
   RETURN
-END SUBROUTINE esm_ggen_2d
+END SUBROUTINE env_esm_ggen_2d
 
 !
 !-----------------------------------------------------------------------
 !--------------ESM HARTREE SUBROUTINE-----------------------------------
 !-----------------------------------------------------------------------
-SUBROUTINE esm_hartree_pbc (rhog, ehart, aux)
-  USE gvect,    ONLY : ngm
-  USE fft_base, ONLY : dfftp
+SUBROUTINE env_esm_hartree_pbc (rhog, ehart, aux)
+  USE env_gvect,    ONLY : ngm
+  USE env_fft_base, ONLY : dfftp
   IMPLICIT NONE
   real(DP)    :: ehart             !  Hartree energy
   complex(DP) :: rhog(ngm)   !  n(G)
@@ -481,18 +481,18 @@ SUBROUTINE esm_hartree_pbc (rhog, ehart, aux)
   
   stop 'esm_hartree must not be called for esm_bc = pbc'
 
-END SUBROUTINE esm_hartree_pbc
+END SUBROUTINE env_esm_hartree_pbc
 
-SUBROUTINE esm_hartree_bc1(rhog, ehart, aux)
+SUBROUTINE env_esm_hartree_bc1(rhog, ehart, aux)
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE mp_bands,         ONLY : intra_bgrp_comm
-  USE mp,               ONLY : mp_sum
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
+  USE env_mp,               ONLY : env_mp_sum
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
 
   !
   IMPLICIT NONE
@@ -572,7 +572,7 @@ SUBROUTINE esm_hartree_bc1(rhog, ehart, aux)
         vg_r(iz)=-tpi/gp*(exp(arg1)*tmp1+exp(arg2)*tmp2)
      enddo
      
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      vg3(:,ng_2d)=(vg3(:,ng_2d)+vg(:))*e2 ! factor e2: hartree -> Ry.
   enddo
   deallocate(vg,vg_r)
@@ -646,7 +646,7 @@ SUBROUTINE esm_hartree_bc1(rhog, ehart, aux)
      enddo
      ! end smoothing
 
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      vg3(:,ng_2d)=(vg3(:,ng_2d)+vg(:))*e2 ! factor e2: hartree -> Ry.
 
      deallocate (vg,vg_r)
@@ -670,7 +670,7 @@ SUBROUTINE esm_hartree_bc1(rhog, ehart, aux)
   endif
   ehart = ehart*omega*0.5d0
   !
-  call mp_sum( ehart, intra_bgrp_comm )
+  call env_mp_sum( ehart, intra_bgrp_comm )
   !
 ! Map to FFT mesh (dfftp%nrx)
   aux=0.0d0
@@ -689,18 +689,18 @@ SUBROUTINE esm_hartree_bc1(rhog, ehart, aux)
   deallocate (rhog3,vg3)
 
   RETURN
-END SUBROUTINE esm_hartree_bc1
+END SUBROUTINE env_esm_hartree_bc1
 
-SUBROUTINE esm_hartree_bc2 (rhog, ehart, aux)
+SUBROUTINE env_esm_hartree_bc2 (rhog, ehart, aux)
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE mp_bands,         ONLY : intra_bgrp_comm
-  USE mp,               ONLY : mp_sum
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
+  USE env_mp,               ONLY : env_mp_sum
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
   !
   IMPLICIT NONE
   !
@@ -787,7 +787,7 @@ SUBROUTINE esm_hartree_bc2 (rhog, ehart, aux)
         vg_r(iz)=-fpi*(exp(arg1)-exp(arg4))*tmp1/(1.d0-exp(arg5)) &
            +fpi*(exp(arg3)-exp(arg2))*tmp2/(1.d0-exp(arg5))
      enddo
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      vg3(:,ng_2d)=(vg3(:,ng_2d)+vg(:))*e2 ! factor e2: hartree -> Ry.
   enddo
   deallocate(vg,vg_r)
@@ -866,7 +866,7 @@ SUBROUTINE esm_hartree_bc2 (rhog, ehart, aux)
      enddo
      ! end smoothing
      
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      vg3(:,ng_2d)=(vg3(:,ng_2d)+vg(:))*e2 ! factor e2: hartree -> Ry.
 
      deallocate (vg,vg_r)
@@ -890,7 +890,7 @@ SUBROUTINE esm_hartree_bc2 (rhog, ehart, aux)
   endif
   ehart = ehart*omega*0.5d0
   !
-  call mp_sum( ehart, intra_bgrp_comm )
+  call env_mp_sum( ehart, intra_bgrp_comm )
   !
 ! Map to FFT mesh (dfftp%nrx)
   aux=0.0d0
@@ -909,18 +909,18 @@ SUBROUTINE esm_hartree_bc2 (rhog, ehart, aux)
   deallocate (rhog3,vg3)
 
   RETURN
-END SUBROUTINE esm_hartree_bc2
+END SUBROUTINE env_esm_hartree_bc2
 
-SUBROUTINE esm_hartree_bc3 (rhog, ehart, aux)
+SUBROUTINE env_esm_hartree_bc3 (rhog, ehart, aux)
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE mp_bands,         ONLY : intra_bgrp_comm
-  USE mp,               ONLY : mp_sum
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
+  USE env_mp,               ONLY : env_mp_sum
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
   !
   IMPLICIT NONE
   !
@@ -1005,7 +1005,7 @@ SUBROUTINE esm_hartree_bc3 (rhog, ehart, aux)
         vg_r(iz)=-fpi*exp(arg1)*tmp1+tpi*(exp(arg3)-exp(arg2))*tmp2
      enddo
      
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      vg3(:,ng_2d)=(vg3(:,ng_2d)+vg(:))*e2 ! factor e2: hartree -> Ry.
   enddo
   deallocate(vg,vg_r)
@@ -1076,7 +1076,7 @@ SUBROUTINE esm_hartree_bc3 (rhog, ehart, aux)
      enddo
      ! end smoothing
 
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      vg3(:,ng_2d)=(vg3(:,ng_2d)+vg(:))*e2 ! factor e2: hartree -> Ry.
 
      deallocate (vg,vg_r)
@@ -1100,7 +1100,7 @@ SUBROUTINE esm_hartree_bc3 (rhog, ehart, aux)
   endif
   ehart = ehart*omega*0.5d0
   !
-  call mp_sum( ehart, intra_bgrp_comm )
+  call env_mp_sum( ehart, intra_bgrp_comm )
   !
 ! Map to FFT mesh (dfftp%nrx)
   aux=0.0d0
@@ -1119,18 +1119,18 @@ SUBROUTINE esm_hartree_bc3 (rhog, ehart, aux)
   deallocate (rhog3,vg3)
 
   RETURN
-END SUBROUTINE esm_hartree_bc3
+END SUBROUTINE env_esm_hartree_bc3
 
-SUBROUTINE esm_hartree_bc4 (rhog, ehart, aux)
+SUBROUTINE env_esm_hartree_bc4 (rhog, ehart, aux)
 
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE mp_bands,         ONLY : intra_bgrp_comm
-  USE mp,               ONLY : mp_sum
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
+  USE env_mp,               ONLY : env_mp_sum
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
   !
   IMPLICIT NONE
   !
@@ -1220,9 +1220,9 @@ SUBROUTINE esm_hartree_bc4 (rhog, ehart, aux)
            /(gp**2+kn**2+ci*2.d0*aaa*kn)
      enddo
      
-     call cft_1z(vg,1,dfftp%nr3,dfftp%nr3,1,vg_r)
+     call env_cft_1z(vg,1,dfftp%nr3,dfftp%nr3,1,vg_r)
      ! bc4
-     CALL cft_1z(vr,1,dfftp%nr3,dfftp%nr3,1,vr_r)
+     CALL env_cft_1z(vr,1,dfftp%nr3,dfftp%nr3,1,vr_r)
      
      do iz=1,dfftp%nr3
         k3=iz-1
@@ -1248,7 +1248,7 @@ SUBROUTINE esm_hartree_bc4 (rhog, ehart, aux)
         endif
      enddo
      
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      vg3(:,ng_2d)=vg(:)*e2 ! factor e2: hartree -> Ry.
   enddo
   deallocate(vg,vg_r,vr,vr_r)
@@ -1304,9 +1304,9 @@ SUBROUTINE esm_hartree_bc4 (rhog, ehart, aux)
         !
      enddo
      
-     call cft_1z(vg,1,dfftp%nr3,dfftp%nr3,1,vg_r)
+     call env_cft_1z(vg,1,dfftp%nr3,dfftp%nr3,1,vg_r)
      ! bc4
-     call cft_1z(vr,1,dfftp%nr3,dfftp%nr3,1,vr_r)
+     call env_cft_1z(vr,1,dfftp%nr3,dfftp%nr3,1,vr_r)
      
      rg3=rhog3(1,ng_2d)
      do iz=1,dfftp%nr3
@@ -1369,7 +1369,7 @@ SUBROUTINE esm_hartree_bc4 (rhog, ehart, aux)
         vg_r(iz)=(a0+a1*z+a2*z**2+a3*z**3)
      enddo
      
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      
      vg3(:,ng_2d)=vg(:)*e2 ! factor e2: hartree -> Ry.
 
@@ -1394,7 +1394,7 @@ SUBROUTINE esm_hartree_bc4 (rhog, ehart, aux)
   endif
   ehart = ehart*omega*0.5d0
   !
-  call mp_sum( ehart, intra_bgrp_comm )
+  call env_mp_sum( ehart, intra_bgrp_comm )
   !
 ! Map to FFT mesh (dfftp%nrx)
   aux=0.0d0
@@ -1413,9 +1413,9 @@ SUBROUTINE esm_hartree_bc4 (rhog, ehart, aux)
   deallocate (rhog3,vg3)
 
   RETURN
-END SUBROUTINE esm_hartree_bc4
+END SUBROUTINE env_esm_hartree_bc4
 
-  complex(DP) function qe_exp( x )
+  complex(DP) function env_qe_exp( x )
     complex(DP), intent(in) :: x
     real(DP) :: r, i, c, s
 
@@ -1424,12 +1424,12 @@ END SUBROUTINE esm_hartree_bc4
     c = cos(i)
     s = sin(i)
 
-    qe_exp = exp(r)*cmplx(c,s,kind=DP)
+    env_qe_exp = exp(r)*cmplx(c,s,kind=DP)
 
-  end function qe_exp
+  end function env_qe_exp
 
 
-  complex(DP) function qe_sinh( x )
+  complex(DP) function env_qe_sinh( x )
     complex(DP), intent(in) :: x
     real(DP) :: r, i, c, s
 
@@ -1438,11 +1438,11 @@ END SUBROUTINE esm_hartree_bc4
     c = cos(i)
     s = sin(i)
 
-    qe_sinh = 0.5d0*(exp(r)*cmplx(c,s,kind=DP) - exp(-r)*cmplx(c,-s,kind=DP) )
+    env_qe_sinh = 0.5d0*(exp(r)*cmplx(c,s,kind=DP) - exp(-r)*cmplx(c,-s,kind=DP) )
 
-  end function qe_sinh
+  end function env_qe_sinh
 
-  complex(DP) function qe_cosh( x )
+  complex(DP) function env_qe_cosh( x )
     complex(DP), intent(in) :: x
     real(DP) :: r, i, c, s
 
@@ -1451,20 +1451,20 @@ END SUBROUTINE esm_hartree_bc4
     c = cos(i)
     s = sin(i)
 
-    qe_cosh = 0.5d0*(exp(r)*cmplx(c,s,kind=DP) + exp(-r)*cmplx(c,-s,kind=DP) )
+    env_qe_cosh = 0.5d0*(exp(r)*cmplx(c,s,kind=DP) + exp(-r)*cmplx(c,-s,kind=DP) )
 
-  end function qe_cosh
+  end function env_qe_cosh
 
-  subroutine esm_stres_har_bc1( sigmahar, rhog )
-    use kinds,         only : DP
-    use gvect,         only : ngm, mill
-    use constants,     only : tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use control_flags, only : gamma_only
-    use fft_base,      only : dfftp
-    use fft_scalar,    only : cft_1z
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_har_bc1( sigmahar, rhog )
+    use env_kinds,         only : DP
+    use env_gvect,         only : ngm, mill
+    use env_constants,     only : tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_control_flags, only : gamma_only
+    use env_fft_base,      only : dfftp
+    use env_fft_scalar,    only : env_cft_1z
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(out)   :: sigmahar(3,3)
@@ -1561,10 +1561,10 @@ END SUBROUTINE esm_hartree_bc4
           end if
 
           rg3 = rhog3(igz,igp)
-          sum1p = sum1p + rg3*qe_exp(+ci*gz*z0)/(gp-ci*gz)
-          sum1m = sum1m + rg3*qe_exp(-ci*gz*z0)/(gp+ci*gz)
-          sum2p = sum2p + rg3*qe_exp(+ci*gz*z0)/(gp-ci*gz)**2
-          sum2m = sum2m + rg3*qe_exp(-ci*gz*z0)/(gp+ci*gz)**2
+          sum1p = sum1p + rg3*env_qe_exp(+ci*gz*z0)/(gp-ci*gz)
+          sum1m = sum1m + rg3*env_qe_exp(-ci*gz*z0)/(gp+ci*gz)
+          sum2p = sum2p + rg3*env_qe_exp(+ci*gz*z0)/(gp-ci*gz)**2
+          sum2m = sum2m + rg3*env_qe_exp(-ci*gz*z0)/(gp+ci*gz)**2
        end do ! igz
 
        ! calculate dV(z)/deps
@@ -1589,7 +1589,7 @@ END SUBROUTINE esm_hartree_bc4
        ! convert dV(z)/deps to dV(gz)/deps
        do la=1, 2
           do mu=1, 2
-             call cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
+             call env_cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
           end do
        end do
 
@@ -1687,7 +1687,7 @@ END SUBROUTINE esm_hartree_bc4
        enddo
 
        ! convert V(z) to V(gz) without polynomial
-       call cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
+       call env_cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
 
        ! add polynomial to V(gz)
        do igz=2, dfftp%nr3
@@ -1735,7 +1735,7 @@ END SUBROUTINE esm_hartree_bc4
     ! e2 means hartree -> Ry.
     sigmahar(:,:) = sigmahar(:,:) * (-0.5d0*e2)
 
-    call mp_sum(  sigmahar, intra_bgrp_comm )
+    call env_mp_sum(  sigmahar, intra_bgrp_comm )
 
     deallocate( rhog3 )
     deallocate( dVr_deps )
@@ -1744,21 +1744,21 @@ END SUBROUTINE esm_hartree_bc4
     deallocate( Vg )
 
     return
-  end subroutine esm_stres_har_bc1
+  end subroutine env_esm_stres_har_bc1
 
 
 
 
-  subroutine esm_stres_har_bc2( sigmahar, rhog )
-    use kinds,         only : DP
-    use gvect,         only : ngm, mill
-    use constants,     only : tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use control_flags, only : gamma_only
-    use fft_base,      only : dfftp
-    use fft_scalar,    only : cft_1z
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_har_bc2( sigmahar, rhog )
+    use env_kinds,         only : DP
+    use env_gvect,         only : ngm, mill
+    use env_constants,     only : tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_control_flags, only : gamma_only
+    use env_fft_base,      only : dfftp
+    use env_fft_scalar,    only : env_cft_1z
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(out)   :: sigmahar(3,3)
@@ -1861,19 +1861,19 @@ END SUBROUTINE esm_hartree_bc4
 
           rg3 = rhog3(igz,igp)
 
-          sum1p = sum1p + rg3*qe_exp(+ci*gz*z0)/(gp-ci*gz)
-          sum1m = sum1m + rg3*qe_exp(-ci*gz*z0)/(gp+ci*gz)
-          sum2p = sum2p + rg3*qe_exp(+ci*gz*z0)/(gp-ci*gz)**2
-          sum2m = sum2m + rg3*qe_exp(-ci*gz*z0)/(gp+ci*gz)**2
+          sum1p = sum1p + rg3*env_qe_exp(+ci*gz*z0)/(gp-ci*gz)
+          sum1m = sum1m + rg3*env_qe_exp(-ci*gz*z0)/(gp+ci*gz)
+          sum2p = sum2p + rg3*env_qe_exp(+ci*gz*z0)/(gp-ci*gz)**2
+          sum2m = sum2m + rg3*env_qe_exp(-ci*gz*z0)/(gp+ci*gz)**2
 
-          sum1sp = sum1sp + rg3*qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)
-          sum1sm = sum1sm + rg3*qe_sinh(gp*z0-ci*gz*z0)/(gp-ci*gz)
+          sum1sp = sum1sp + rg3*env_qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)
+          sum1sm = sum1sm + rg3*env_qe_sinh(gp*z0-ci*gz*z0)/(gp-ci*gz)
 
-          sum1cp = sum1cp + rg3*qe_cosh(gp*z0+ci*gz*z0)/(gp+ci*gz)*z0
-          sum1cm = sum1cm + rg3*qe_cosh(gp*z0-ci*gz*z0)/(gp-ci*gz)*z0
+          sum1cp = sum1cp + rg3*env_qe_cosh(gp*z0+ci*gz*z0)/(gp+ci*gz)*z0
+          sum1cm = sum1cm + rg3*env_qe_cosh(gp*z0-ci*gz*z0)/(gp-ci*gz)*z0
 
-          sum2sp = sum2sp + rg3*qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)**2
-          sum2sm = sum2sm + rg3*qe_sinh(gp*z0-ci*gz*z0)/(gp-ci*gz)**2
+          sum2sp = sum2sp + rg3*env_qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)**2
+          sum2sm = sum2sm + rg3*env_qe_sinh(gp*z0-ci*gz*z0)/(gp-ci*gz)**2
        end do ! igz
 
        ! calculate dV(z)/deps
@@ -1917,7 +1917,7 @@ END SUBROUTINE esm_hartree_bc4
        ! convert dV(z)/deps to dV(gz)/deps
        do la=1, 2
           do mu=1, 2
-             call cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
+             call env_cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
           end do
        end do
 
@@ -2033,7 +2033,7 @@ END SUBROUTINE esm_hartree_bc4
        enddo
 
        ! convert V(z) to V(gz) without polynomial
-       call cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
+       call env_cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
 
        ! add polynomial to V(gz)
        do igz=2, dfftp%nr3
@@ -2080,7 +2080,7 @@ END SUBROUTINE esm_hartree_bc4
     ! e2 means hartree -> Ry.
     sigmahar(:,:) = sigmahar(:,:) * (-0.5d0*e2)
 
-    call mp_sum(  sigmahar, intra_bgrp_comm )
+    call env_mp_sum(  sigmahar, intra_bgrp_comm )
 
     deallocate( rhog3 )
     deallocate( dVr_deps )
@@ -2089,19 +2089,19 @@ END SUBROUTINE esm_hartree_bc4
     deallocate( Vg )
 
     return
-  end subroutine esm_stres_har_bc2
+  end subroutine env_esm_stres_har_bc2
 
 
-  subroutine esm_stres_har_bc3( sigmahar, rhog )
-    use kinds,         only : DP
-    use gvect,         only : ngm, mill
-    use constants,     only : tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use control_flags, only : gamma_only
-    use fft_base,      only : dfftp
-    use fft_scalar,    only : cft_1z
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_har_bc3( sigmahar, rhog )
+    use env_kinds,         only : DP
+    use env_gvect,         only : ngm, mill
+    use env_constants,     only : tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_control_flags, only : gamma_only
+    use env_fft_base,      only : dfftp
+    use env_fft_scalar,    only : env_cft_1z
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(out)   :: sigmahar(3,3)
@@ -2204,13 +2204,13 @@ END SUBROUTINE esm_hartree_bc4
           end if
 
           rg3 = rhog3(igz,igp)
-          sum1p = sum1p + rg3*qe_exp(+ci*gz*z0)/(gp-ci*gz)
-          sum1m = sum1m + rg3*qe_exp(-ci*gz*z0)/(gp+ci*gz)
-          sum2p = sum2p + rg3*qe_exp(+ci*gz*z0)/(gp-ci*gz)**2
-          sum2m = sum2m + rg3*qe_exp(-ci*gz*z0)/(gp+ci*gz)**2
-          sum1sh = sum1sh + rg3*qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)
-          sum1ch = sum1ch + rg3*qe_cosh(gp*z0+ci*gz*z0)/(gp+ci*gz)*z0
-          sum2sh = sum2sh + rg3*qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)**2
+          sum1p = sum1p + rg3*env_qe_exp(+ci*gz*z0)/(gp-ci*gz)
+          sum1m = sum1m + rg3*env_qe_exp(-ci*gz*z0)/(gp+ci*gz)
+          sum2p = sum2p + rg3*env_qe_exp(+ci*gz*z0)/(gp-ci*gz)**2
+          sum2m = sum2m + rg3*env_qe_exp(-ci*gz*z0)/(gp+ci*gz)**2
+          sum1sh = sum1sh + rg3*env_qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)
+          sum1ch = sum1ch + rg3*env_qe_cosh(gp*z0+ci*gz*z0)/(gp+ci*gz)*z0
+          sum2sh = sum2sh + rg3*env_qe_sinh(gp*z0+ci*gz*z0)/(gp+ci*gz)**2
        end do ! igz
 
        ! calculate dV(z)/deps
@@ -2246,7 +2246,7 @@ END SUBROUTINE esm_hartree_bc4
        ! convert dV(z)/deps to dV(gz)/deps
        do la=1, 2
           do mu=1, 2
-             call cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
+             call env_cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
           end do
        end do
 
@@ -2360,7 +2360,7 @@ END SUBROUTINE esm_hartree_bc4
        enddo
 
        ! convert V(z) to V(gz) without polynomial
-       call cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
+       call env_cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
 
        ! add polynomial to V(gz)
        do igz=2, dfftp%nr3
@@ -2408,7 +2408,7 @@ END SUBROUTINE esm_hartree_bc4
     ! e2 means hartree -> Ry.
     sigmahar(:,:) = sigmahar(:,:) * (-0.5d0*e2)
 
-    call mp_sum(  sigmahar, intra_bgrp_comm )
+    call env_mp_sum(  sigmahar, intra_bgrp_comm )
 
     deallocate( rhog3 )
     deallocate( dVr_deps )
@@ -2417,24 +2417,24 @@ END SUBROUTINE esm_hartree_bc4
     deallocate( Vg )
 
     return
-  end subroutine esm_stres_har_bc3
+  end subroutine env_esm_stres_har_bc3
 
-FUNCTION esm_ewald()
+FUNCTION env_esm_ewald()
   !-----------------------------------------------------------------------
   !
   ! Calculates Ewald energy with both G- and R-space terms.
   ! Determines optimal alpha. Should hopefully work for any structure.
   !
-  USE kinds,     ONLY : DP
-  USE constants, ONLY : tpi, e2
-  USE mp_bands,  ONLY : intra_bgrp_comm
-  USE mp,        ONLY : mp_sum
-  USE cell_base, ONLY : tpiba2
-  USE ions_base, ONLY : zv, nat, ityp
-  USE gvect,     ONLY : gcutm
+  USE env_kinds,     ONLY : DP
+  USE env_constants, ONLY : tpi, e2
+  USE env_mp_bands,  ONLY : intra_bgrp_comm
+  USE env_mp,        ONLY : env_mp_sum
+  USE env_cell_base, ONLY : tpiba2
+  USE env_ions_base, ONLY : zv, nat, ityp
+  USE env_gvect,     ONLY : gcutm
   implicit none
 
-  real(DP) :: esm_ewald
+  real(DP) :: env_esm_ewald
   ! output: the ewald energy
   !
   !    here the local variables
@@ -2467,33 +2467,33 @@ FUNCTION esm_ewald()
 
   ! G-space sum here.
   ! Determine if this processor contains G=0 and set the constant term
-  CALL esm_ewaldg( alpha, ewaldg )
+  CALL env_esm_ewaldg( alpha, ewaldg )
 
   ! R-space sum here (only for the processor that contains G=0)
-  CALL esm_ewaldr( alpha, ewaldr )
+  CALL env_esm_ewaldr( alpha, ewaldr )
 
-  esm_ewald = 0.5d0 * e2 * ( ewaldg + ewaldr )
+  env_esm_ewald = 0.5d0 * e2 * ( ewaldg + ewaldr )
 
-  call mp_sum(  esm_ewald, intra_bgrp_comm )
+  call env_mp_sum(  env_esm_ewald, intra_bgrp_comm )
   !write( *,'(5x,"alpha used in ewald term: ",f5.2 )')alpha
 
   return
-END FUNCTION esm_ewald
+END FUNCTION env_esm_ewald
 
 
 !-----------------------------------------------------------------------
 !--------------ESM EWALD RSUM SUBROUTINE--------------------------------
 !-----------------------------------------------------------------------
-SUBROUTINE esm_ewaldr_pbc ( alpha_g, ewr )
+SUBROUTINE env_esm_ewaldr_pbc ( alpha_g, ewr )
 
-  USE io_global,        ONLY : stdout
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : alat, tpiba2, at, bg
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE control_flags,    ONLY : iverbosity
-  USE mp,               ONLY : mp_rank, mp_size
-  USE mp_bands,         ONLY : intra_bgrp_comm
+  USE env_io_global,        ONLY : stdout
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : alat, tpiba2, at, bg
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_control_flags,    ONLY : iverbosity
+  USE env_mp,               ONLY : env_mp_rank, env_mp_size
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
 
   implicit none
   real(DP), intent(in)  :: alpha_g
@@ -2524,8 +2524,8 @@ SUBROUTINE esm_ewaldr_pbc ( alpha_g, ewr )
   tmp=sqrt(alpha_g)
   rmax0=4.d0/tmp/alat
 
-  ip = mp_rank( intra_bgrp_comm )
-  np = mp_size( intra_bgrp_comm )
+  ip = env_mp_rank( intra_bgrp_comm )
+  np = env_mp_size( intra_bgrp_comm )
 
   ew = 0.d0
   do na = ip+1, nat, np
@@ -2549,18 +2549,18 @@ SUBROUTINE esm_ewaldr_pbc ( alpha_g, ewr )
   enddo
   ewr = ewr + ew
 
-END SUBROUTINE esm_ewaldr_pbc
+END SUBROUTINE env_esm_ewaldr_pbc
 
-SUBROUTINE esm_ewaldr_bc4 ( alpha_g, ewr )
+SUBROUTINE env_esm_ewaldr_bc4 ( alpha_g, ewr )
 
-  USE io_global,        ONLY : stdout
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : alat, tpiba2, at, bg
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE control_flags,    ONLY : iverbosity
-  USE mp,               ONLY : mp_rank, mp_size
-  USE mp_bands,         ONLY : intra_bgrp_comm
+  USE env_io_global,        ONLY : stdout
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : alat, tpiba2, at, bg
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_control_flags,    ONLY : iverbosity
+  USE env_mp,               ONLY : env_mp_rank, env_mp_size
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
 
   implicit none
   real(DP), intent(in)  :: alpha_g
@@ -2605,8 +2605,8 @@ SUBROUTINE esm_ewaldr_bc4 ( alpha_g, ewr )
   do
      gpmax=gpmax+1.d0
      if (gpmax.gt.1000.d0) &
-        call errore ('esm_ewaldr', 'optimal gpmax not found', 1)
-     call qromb(vl11,aaa,tmp,z1,z1-zbuff,z1-zbuff,0.0_DP,gpmax,ss)
+        call env_errore ('esm_ewaldr', 'optimal gpmax not found', 1)
+     call env_qromb(env_vl11,aaa,tmp,z1,z1-zbuff,z1-zbuff,0.0_DP,gpmax,ss)
      err=abs(ss-ss0); ss0=ss
      if ( err.lt.eps ) exit
   enddo
@@ -2615,8 +2615,8 @@ SUBROUTINE esm_ewaldr_bc4 ( alpha_g, ewr )
   do
      znrm=znrm-0.01d0
      if ( znrm.le.-z0 ) &
-        call errore ('esm_ewaldr', 'optimal znrm not found', 1)
-     call qromb(vl11,aaa,tmp,z1,znrm,znrm,0.0_DP,gpmax,ss)
+        call env_errore ('esm_ewaldr', 'optimal znrm not found', 1)
+     call env_qromb(env_vl11,aaa,tmp,z1,znrm,znrm,0.0_DP,gpmax,ss)
      err=-2.d0*tmp/sqrt(pi)-ss*2.d0
      if(abs(err).lt.eps) exit
   enddo
@@ -2625,8 +2625,8 @@ SUBROUTINE esm_ewaldr_bc4 ( alpha_g, ewr )
   do
      rmax=rmax+1.d0
      if ( rmax.gt.200.d0 ) &
-        call errore ('esm_ewaldr', 'optimal rmax not found', 1)
-     call qromb(vl11j0,aaa,tmp,z1,z1-zbuff,z1-zbuff,rmax,gpmax,ss)
+        call env_errore ('esm_ewaldr', 'optimal rmax not found', 1)
+     call env_qromb(env_vl11j0,aaa,tmp,z1,z1-zbuff,z1-zbuff,rmax,gpmax,ss)
      err=1.d0/rmax+ss*2.d0
      if(abs(err).lt.epsneib) exit
   enddo
@@ -2642,8 +2642,8 @@ SUBROUTINE esm_ewaldr_bc4 ( alpha_g, ewr )
      write( stdout, '(5x,"===========================================")')
   endif
 
-  ip = mp_rank( intra_bgrp_comm )
-  np = mp_size( intra_bgrp_comm )
+  ip = env_mp_rank( intra_bgrp_comm )
+  np = env_mp_size( intra_bgrp_comm )
 
   ew = 0.d0
   do na = ip+1, nat, np
@@ -2672,50 +2672,50 @@ SUBROUTINE esm_ewaldr_bc4 ( alpha_g, ewr )
                  ew=ew+fac*qe_erfc(tmp*rr)/rr
               enddo
            elseif ( zp < z1 ) then ! z in I, zp in I
-              call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+              call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
                  rxyz = sqrt(r2(nr)+dtau(3)**2)*alat
-                 call qromb(vl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  ew=ew+fac*(1.d0/rxyz+ss*2.d0)
               enddo
            else ! z in I, zp in II
-              call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+              call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
-                 call qromb(vl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  ew=ew+fac*ss*2.d0
               enddo
            endif ! if for zp
         elseif ( z < z1 ) then ! znrm < z < z1
-           call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+           call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
            if ( zp < z1 ) then ! z in I, zp in I
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
                  rxyz = sqrt(r2(nr)+dtau(3)**2)*alat
-                 call qromb(vl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  ew=ew+fac*(1.d0/rxyz+ss*2.d0)
               enddo
            else ! z in I, zp in II
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
-                 call qromb(vl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  ew=ew+fac*ss*2.d0
               enddo
            endif ! if for zp
         else ! z1 < z
-           call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+           call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
            if ( zp < z1 ) then ! z in II, zp in I
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
-                 call qromb(vl21j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl21j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  ew=ew+fac*ss*2.d0
               enddo
            else ! z in II, zp in II
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
                  rxyz = sqrt(r2(nr)+dtau(3)**2)*alat
-                 call qromb(vl22j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl22j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  ew=ew+fac*(exp(-aaa*(rxyz+z+zp-2.d0*z1))/rxyz+ss*2.d0)
               enddo
            endif
@@ -2724,18 +2724,18 @@ SUBROUTINE esm_ewaldr_bc4 ( alpha_g, ewr )
      if (z < znrm ) then
         ss=-tmp/sqrt(pi)
      elseif (z < z1) then
-        call qromb(vl11,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
+        call env_qromb(env_vl11,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
      else
-        call qromb(vl22,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
+        call env_qromb(env_vl22,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
      endif
      ew=ew+zv(ityp(na))**2*ss*2.d0 ! 2.0: fit to original code
   enddo
   ewr = ewr + ew
 
-END SUBROUTINE esm_ewaldr_bc4
+END SUBROUTINE env_esm_ewaldr_bc4
 
-  subroutine esm_stres_ewr( alpha, sigmaewa )
-    use kinds,     only : DP
+  subroutine env_esm_stres_ewr( alpha, sigmaewa )
+    use env_kinds,     only : DP
     implicit none
 
     real(DP), intent(in)  :: alpha
@@ -2745,26 +2745,26 @@ END SUBROUTINE esm_ewaldr_bc4
     case( 'pbc')
        stop 'esm_stres_ewa must not be called for esm_bc = pbc'
     case( 'bc1' )
-       call esm_stres_ewr_pbc( alpha, sigmaewa )
+       call env_esm_stres_ewr_pbc( alpha, sigmaewa )
     case( 'bc2' )
-       call esm_stres_ewr_pbc( alpha, sigmaewa )
+       call env_esm_stres_ewr_pbc( alpha, sigmaewa )
     case( 'bc3' )
-       call esm_stres_ewr_pbc( alpha, sigmaewa )
+       call env_esm_stres_ewr_pbc( alpha, sigmaewa )
     case( 'bc4' )
        stop 'esm_stres_ewa has not yet implemented for esm_bc = bc4'
     end select
 
     return
-  end subroutine esm_stres_ewr
+  end subroutine env_esm_stres_ewr
 
-  subroutine esm_stres_ewr_pbc( alpha, sigmaewa )
-    use kinds,     only : DP
-    use constants, only : pi, sqrtpm1, tpi, fpi, e2
-    use cell_base, only : omega, alat, at, tpiba, bg
-    use ions_base, only : zv, nat, tau, ityp
-    use gvect,     only : gstart
-    USE mp_bands,  ONLY : intra_bgrp_comm
-    USE mp,        ONLY : mp_sum
+  subroutine env_esm_stres_ewr_pbc( alpha, sigmaewa )
+    use env_kinds,     only : DP
+    use env_constants, only : pi, sqrtpm1, tpi, fpi, e2
+    use env_cell_base, only : omega, alat, at, tpiba, bg
+    use env_ions_base, only : zv, nat, tau, ityp
+    use env_gvect,     only : gstart
+    USE env_mp_bands,  ONLY : intra_bgrp_comm
+    USE env_mp,        ONLY : env_mp_sum
     implicit none
 
     real(DP), intent(in)  :: alpha
@@ -2818,23 +2818,23 @@ END SUBROUTINE esm_ewaldr_bc4
 
     sigmaewa(:,:) = sigmaewa(:,:)*(e2/2.0d0/omega)
 
-    call mp_sum( sigmaewa, intra_bgrp_comm )
+    call env_mp_sum( sigmaewa, intra_bgrp_comm )
 
     return
-  end subroutine esm_stres_ewr_pbc
+  end subroutine env_esm_stres_ewr_pbc
 
 !-----------------------------------------------------------------------
 !--------------ESM EWALD GSUM SUBROUTINE--------------------------------
 !-----------------------------------------------------------------------
-SUBROUTINE esm_ewaldg_pbc ( alpha_g, ewg )
+SUBROUTINE env_esm_ewaldg_pbc ( alpha_g, ewg )
 
-  USE constants,        ONLY : tpi
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : omega, tpiba2
-  USE ions_base,        ONLY : zv, nat, nsp, ityp
-  USE control_flags,    ONLY : gamma_only
-  USE gvect,            ONLY : ngm, gg
-  USE vlocal,           ONLY : strf
+  USE env_constants,        ONLY : tpi
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : omega, tpiba2
+  USE env_ions_base,        ONLY : zv, nat, nsp, ityp
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_gvect,            ONLY : ngm, gg
+  USE env_vlocal,           ONLY : strf
 
   implicit none
   real(DP), intent(in)  :: alpha_g
@@ -2864,15 +2864,15 @@ SUBROUTINE esm_ewaldg_pbc ( alpha_g, ewg )
   enddo
   ewg = 2.d0 * tpi / omega * ewg
 
-END SUBROUTINE esm_ewaldg_pbc
+END SUBROUTINE env_esm_ewaldg_pbc
 
-SUBROUTINE esm_ewaldg_bc1 ( alpha_g, ewg )
+SUBROUTINE env_esm_ewaldg_bc1 ( alpha_g, ewg )
 
-  USE constants,        ONLY : pi, tpi, fpi
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE ions_base,        ONLY : zv, nat, nsp, ityp, tau
-  USE control_flags,    ONLY : gamma_only
+  USE env_constants,        ONLY : pi, tpi, fpi
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_ions_base,        ONLY : zv, nat, nsp, ityp, tau
+  USE env_control_flags,    ONLY : gamma_only
 
   implicit none
   real(DP), intent(in)  :: alpha_g
@@ -2922,8 +2922,8 @@ SUBROUTINE esm_ewaldg_bc1 ( alpha_g, ewg )
         arg002= gp*(z-zp)
         arg101=gp/2.d0/tmp-tmp*(z-zp)
         arg102=gp/2.d0/tmp+tmp*(z-zp)
-        t1=exp_erfc(arg001,arg101)
-        t2=exp_erfc(arg002,arg102)
+        t1=env_exp_erfc(arg001,arg101)
+        t2=env_exp_erfc(arg002,arg102)
         cc1=cc1+cos(ff)*(t1+t2)/4.d0/gp
         cc2=0.d0
      enddo
@@ -2939,15 +2939,15 @@ SUBROUTINE esm_ewaldg_bc1 ( alpha_g, ewg )
   ewg=ewg+ew
 
   return
-END SUBROUTINE esm_ewaldg_bc1
+END SUBROUTINE env_esm_ewaldg_bc1
 
-SUBROUTINE esm_ewaldg_bc2 ( alpha_g, ewg )
+SUBROUTINE env_esm_ewaldg_bc2 ( alpha_g, ewg )
 
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE ions_base,        ONLY : zv, nat, nsp, ityp, tau
-  USE control_flags,    ONLY : gamma_only
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_ions_base,        ONLY : zv, nat, nsp, ityp, tau
+  USE env_control_flags,    ONLY : gamma_only
 
   implicit none
   real(DP), intent(in)  :: alpha_g
@@ -3012,8 +3012,8 @@ SUBROUTINE esm_ewaldg_bc2 ( alpha_g, ewg )
         arg007=-4.d0*gp*z1
         arg101=gp/2.d0/tmp-tmp*(z-zp)
         arg102=gp/2.d0/tmp+tmp*(z-zp)
-        t1=exp_erfc(arg001,arg101)
-        t2=exp_erfc(arg002,arg102)
+        t1=env_exp_erfc(arg001,arg101)
+        t2=env_exp_erfc(arg002,arg102)
         cc1=cc1+cos(ff)*(t1+t2)/4.d0/gp
         cc2=cc2+cos(ff)*(exp(arg006)+exp(arg005) &
            -exp(arg004)-exp(arg003) ) &
@@ -3031,15 +3031,15 @@ SUBROUTINE esm_ewaldg_bc2 ( alpha_g, ewg )
   ewg=ewg+ew
 
   return
-END SUBROUTINE esm_ewaldg_bc2
+END SUBROUTINE env_esm_ewaldg_bc2
 
-SUBROUTINE esm_ewaldg_bc3 ( alpha_g, ewg )
+SUBROUTINE env_esm_ewaldg_bc3 ( alpha_g, ewg )
 
-  USE constants,        ONLY : pi, tpi, fpi
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE ions_base,        ONLY : zv, nat, nsp, ityp, tau
-  USE control_flags,    ONLY : gamma_only
+  USE env_constants,        ONLY : pi, tpi, fpi
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_ions_base,        ONLY : zv, nat, nsp, ityp, tau
+  USE env_control_flags,    ONLY : gamma_only
 
   implicit none
   real(DP), intent(in)  :: alpha_g
@@ -3091,8 +3091,8 @@ SUBROUTINE esm_ewaldg_bc3 ( alpha_g, ewg )
         arg003= gp*(z+zp-2.d0*z1)
         arg101=gp/2.d0/tmp-tmp*(z-zp)
         arg102=gp/2.d0/tmp+tmp*(z-zp)
-        t1=exp_erfc(arg001,arg101)
-        t2=exp_erfc(arg002,arg102)
+        t1=env_exp_erfc(arg001,arg101)
+        t2=env_exp_erfc(arg002,arg102)
         cc1=cc1+cos(ff)*(t1+t2)/4.d0/gp
         cc2=cc2+cos(ff)*(-exp(arg003))/2.d0/gp
      enddo
@@ -3108,15 +3108,15 @@ SUBROUTINE esm_ewaldg_bc3 ( alpha_g, ewg )
   ewg=ewg+ew
 
   return
-END SUBROUTINE esm_ewaldg_bc3
+END SUBROUTINE env_esm_ewaldg_bc3
 
-SUBROUTINE esm_ewaldg_bc4 ( alpha_g, ewg )
+SUBROUTINE env_esm_ewaldg_bc4 ( alpha_g, ewg )
 
-  USE constants,        ONLY : pi, tpi, fpi
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE ions_base,        ONLY : zv, nat, nsp, ityp, tau
-  USE control_flags,    ONLY : gamma_only
+  USE env_constants,        ONLY : pi, tpi, fpi
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_ions_base,        ONLY : zv, nat, nsp, ityp, tau
+  USE env_control_flags,    ONLY : gamma_only
 
   implicit none
   real(DP), intent(in)  :: alpha_g
@@ -3160,14 +3160,14 @@ SUBROUTINE esm_ewaldg_bc4 ( alpha_g, ewg )
      arg106= aaa/tmp+tmp*(z1-zp)
      if (z < z1) then
         t1=-(z-zp)*qe_erf(arg101)+(0.5d0/aaa+z1-zp)*qe_erf(arg102)
-        t2=0.5d0/aaa*exp_erfc(arg006,arg106)
+        t2=0.5d0/aaa*env_exp_erfc(arg006,arg106)
         t3=0.5d0/aaa-(z-z1)+exp(arg002)/tmp/sqrt(pi) &
            -exp(arg001)/tmp/sqrt(pi)
         kk1=(t1+t2)/2.d0
         kk2=t3/2.d0
      else
-        t1=-exp_erfc(arg005,arg101)/aaa 
-        t2= exp_erfc(arg006,arg104)/aaa
+        t1=-env_exp_erfc(arg005,arg101)/aaa 
+        t2= env_exp_erfc(arg006,arg104)/aaa
         t3= exp(arg005)/aaa
         kk1=(t1+t2)/4.d0
         kk2=t3/2.d0
@@ -3208,17 +3208,17 @@ SUBROUTINE esm_ewaldg_bc4 ( alpha_g, ewg )
         arg111=chi/2.d0/tmp+tmp*(z-zp)
         arg113=chi/2.d0/tmp+tmp*(z1-zp)
         if (z < z1) then
-           t1= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103)
-           t2= exp_erfc(arg002,arg102) &
-              -kappa/alpha*exp_erfc(arg003,arg104)
-           t3= exp_erfc(arg006,arg109)/alpha
+           t1= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103)
+           t2= env_exp_erfc(arg002,arg102) &
+              -kappa/alpha*env_exp_erfc(arg003,arg104)
+           t3= env_exp_erfc(arg006,arg109)/alpha
            cc1=cc1+cos(ff)*(t1+t2)/4.d0/gp
            cc2=cc2+cos(ff)*t3/2.d0
         else
-           t1= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111)
-           t2= exp_erfc(arg008,arg107) &
-              -beta/alpha*exp_erfc(arg009,arg109)
-           t3= exp_erfc(arg005,arg104)/alpha
+           t1= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111)
+           t2= env_exp_erfc(arg008,arg107) &
+              -beta/alpha*env_exp_erfc(arg009,arg109)
+           t3= env_exp_erfc(arg005,arg104)/alpha
            cc1=cc1+cos(ff)*(t1+t2)/4.d0/lambda
            cc2=cc2+cos(ff)*t3/2.d0
         endif
@@ -3235,11 +3235,11 @@ SUBROUTINE esm_ewaldg_bc4 ( alpha_g, ewg )
   ewg=ewg+ew
 
   return
-END SUBROUTINE esm_ewaldg_bc4
+END SUBROUTINE env_esm_ewaldg_bc4
 
 
-  subroutine esm_stres_ewg( alpha, sigmaewa )
-    USE kinds,     ONLY : DP
+  subroutine env_esm_stres_ewg( alpha, sigmaewa )
+    USE env_kinds,     ONLY : DP
     implicit none
 
     real(DP), intent(in)  :: alpha
@@ -3249,21 +3249,21 @@ END SUBROUTINE esm_ewaldg_bc4
     case( 'pbc' )
        stop 'esm_stres_ewa must not be called for esm_bc = pbc'
     case( 'bc1' )
-       call esm_stres_ewg_bc1( alpha, sigmaewa )
+       call env_esm_stres_ewg_bc1( alpha, sigmaewa )
     case( 'bc2' )
-       call esm_stres_ewg_bc2( alpha, sigmaewa )
+       call env_esm_stres_ewg_bc2( alpha, sigmaewa )
     case( 'bc3' )
-       call esm_stres_ewg_bc3( alpha, sigmaewa )
+       call env_esm_stres_ewg_bc3( alpha, sigmaewa )
     case( 'bc4' )
        stop 'esm_stres_ewa must not be called for esm_bc = bc4'
     end select
 
     return
-  end subroutine esm_stres_ewg
+  end subroutine env_esm_stres_ewg
 
-  function qe_gauss(x) result(gauss)
-    use kinds,     only : DP
-    use constants, only : sqrtpm1  ! 1/sqrt(pi)
+  function env_qe_gauss(x) result(gauss)
+    use env_kinds,     only : DP
+    use env_constants, only : sqrtpm1  ! 1/sqrt(pi)
     implicit none
 
     real(DP), intent(in) :: x
@@ -3271,17 +3271,17 @@ END SUBROUTINE esm_ewaldg_bc4
 
     gauss = 2.0d0*sqrtpm1*exp(-x*x)
 
-  end function qe_gauss
+  end function env_qe_gauss
 
-  subroutine esm_stres_ewg_bc1( alpha, sigmaewa )
-    use kinds,         only : DP
-    use constants,     only : pi, sqrtpm1, tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use ions_base,     only : zv, nat, tau, ityp
-    use control_flags, only : gamma_only
-    use gvect,         only : gstart
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_ewg_bc1( alpha, sigmaewa )
+    use env_kinds,         only : DP
+    use env_constants,     only : pi, sqrtpm1, tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_ions_base,     only : zv, nat, tau, ityp
+    use env_control_flags, only : gamma_only
+    use env_gvect,         only : gstart
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(in)  :: alpha
@@ -3343,12 +3343,12 @@ END SUBROUTINE esm_ewaldg_bc4
 
              ! coefficients
              cosgpr   = cos(g(1)*(rb(1)-ra(1)) + g(2)*(rb(2)-ra(2)))
-             experfcm = exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) )
-             experfcp = exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) )
-             dexperfcm_dgp = -(zb-za)*exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) ) &
-                  - exp( -gp*(zb-za) ) * qe_gauss( gp/2.d0/salp-salp*(zb-za) )/2.d0/salp
-             dexperfcp_dgp = +(zb-za)*exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) ) &
-                  - exp( +gp*(zb-za) ) * qe_gauss( gp/2.d0/salp+salp*(zb-za) )/2.d0/salp
+             experfcm = env_exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) )
+             experfcp = env_exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) )
+             dexperfcm_dgp = -(zb-za)*env_exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) ) &
+                  - exp( -gp*(zb-za) ) * env_qe_gauss( gp/2.d0/salp-salp*(zb-za) )/2.d0/salp
+             dexperfcp_dgp = +(zb-za)*env_exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) ) &
+                  - exp( +gp*(zb-za) ) * env_qe_gauss( gp/2.d0/salp+salp*(zb-za) )/2.d0/salp
 
              dE_deps(:,:) = dE_deps(:,:) &
                   + gp*dinvgp_deps(:,:) * pi/gp * Qb*Qa/S * cosgpr * experfcm &
@@ -3405,22 +3405,22 @@ END SUBROUTINE esm_ewaldg_bc4
     ! e2 means hartree -> Ry.
     sigmaewa(:,:) = sigmaewa(:,:) * (0.5d0*e2)
 
-    call mp_sum( sigmaewa, intra_bgrp_comm )
+    call env_mp_sum( sigmaewa, intra_bgrp_comm )
 
     return
-  end subroutine esm_stres_ewg_bc1
+  end subroutine env_esm_stres_ewg_bc1
 
 
 
-  subroutine esm_stres_ewg_bc2( alpha, sigmaewa )
-    use kinds,         only : DP
-    use constants,     only : pi, sqrtpm1, tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use ions_base,     only : zv, nat, tau, ityp
-    use control_flags, only : gamma_only
-    use gvect,         only : gstart
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_ewg_bc2( alpha, sigmaewa )
+    use env_kinds,         only : DP
+    use env_constants,     only : pi, sqrtpm1, tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_ions_base,     only : zv, nat, tau, ityp
+    use env_control_flags, only : gamma_only
+    use env_gvect,         only : gstart
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(in)  :: alpha
@@ -3486,12 +3486,12 @@ END SUBROUTINE esm_ewaldg_bc4
              ! coefficients
              cosgpr = cos(g(1)*(rb(1)-ra(1)) + g(2)*(rb(2)-ra(2)))
 
-             experfcm = exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) )
-             experfcp = exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) )
-             dexperfcm_dgp = -(zb-za)*exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) ) &
-                  - exp( -gp*(zb-za) ) * qe_gauss( gp/2.d0/salp-salp*(zb-za) )/2.d0/salp
-             dexperfcp_dgp = +(zb-za)*exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) ) &
-                  - exp( +gp*(zb-za) ) * qe_gauss( gp/2.d0/salp+salp*(zb-za) )/2.d0/salp
+             experfcm = env_exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) )
+             experfcp = env_exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) )
+             dexperfcm_dgp = -(zb-za)*env_exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) ) &
+                  - exp( -gp*(zb-za) ) * env_qe_gauss( gp/2.d0/salp-salp*(zb-za) )/2.d0/salp
+             dexperfcp_dgp = +(zb-za)*env_exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) ) &
+                  - exp( +gp*(zb-za) ) * env_qe_gauss( gp/2.d0/salp+salp*(zb-za) )/2.d0/salp
 
              exph1  = (cosh(gp*(zb-za))*exp(-2*gp*z1) - cosh(gp*(zb+za)) )/sinh(2*gp*z1)
              exph2  = ( (zb-za)*sinh(gp*(zb-za))*exp(-2*gp*z1) &
@@ -3568,21 +3568,21 @@ END SUBROUTINE esm_ewaldg_bc4
     ! e2 means hartree -> Ry.
     sigmaewa(:,:) = sigmaewa(:,:) * (0.5d0*e2)
 
-    call mp_sum( sigmaewa, intra_bgrp_comm )
+    call env_mp_sum( sigmaewa, intra_bgrp_comm )
 
     return
-  end subroutine esm_stres_ewg_bc2
+  end subroutine env_esm_stres_ewg_bc2
 
 
-  subroutine esm_stres_ewg_bc3( alpha, sigmaewa )
-    use kinds,         only : DP
-    use constants,     only : pi, sqrtpm1, tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use ions_base,     only : zv, nat, tau, ityp
-    use control_flags, only : gamma_only
-    use gvect,         only : gstart
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_ewg_bc3( alpha, sigmaewa )
+    use env_kinds,         only : DP
+    use env_constants,     only : pi, sqrtpm1, tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_ions_base,     only : zv, nat, tau, ityp
+    use env_control_flags, only : gamma_only
+    use env_gvect,         only : gstart
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(in)  :: alpha
@@ -3646,12 +3646,12 @@ END SUBROUTINE esm_ewaldg_bc4
 
              ! coefficients
              cosgpr   = cos(g(1)*(rb(1)-ra(1)) + g(2)*(rb(2)-ra(2)))
-             experfcm = exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) )
-             experfcp = exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) )
-             dexperfcm_dgp = -(zb-za)*exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) ) &
-                  - exp( -gp*(zb-za) ) * qe_gauss( gp/2.d0/salp-salp*(zb-za) )/2.d0/salp
-             dexperfcp_dgp = +(zb-za)*exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) ) &
-                  - exp( +gp*(zb-za) ) * qe_gauss( gp/2.d0/salp+salp*(zb-za) )/2.d0/salp
+             experfcm = env_exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) )
+             experfcp = env_exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) )
+             dexperfcm_dgp = -(zb-za)*env_exp_erfc( -gp*(zb-za), gp/2.d0/salp-salp*(zb-za) ) &
+                  - exp( -gp*(zb-za) ) * env_qe_gauss( gp/2.d0/salp-salp*(zb-za) )/2.d0/salp
+             dexperfcp_dgp = +(zb-za)*env_exp_erfc( +gp*(zb-za), gp/2.d0/salp+salp*(zb-za) ) &
+                  - exp( +gp*(zb-za) ) * env_qe_gauss( gp/2.d0/salp+salp*(zb-za) )/2.d0/salp
              expm = exp( -gp*(-zb+2*z1-za) )
 
              !! BC1 terms
@@ -3720,33 +3720,33 @@ END SUBROUTINE esm_ewaldg_bc4
     ! e2 means hartree -> Ry.
     sigmaewa(:,:) = sigmaewa(:,:) * (0.5d0*e2)
 
-    call mp_sum( sigmaewa, intra_bgrp_comm )
+    call env_mp_sum( sigmaewa, intra_bgrp_comm )
 
     return
-  end subroutine esm_stres_ewg_bc3
+  end subroutine env_esm_stres_ewg_bc3
 
 
 !-----------------------------------------------------------------------
 !--------------ESM LOCAL POTENTIAL SUBROUTINE---------------------------
 !-----------------------------------------------------------------------
-SUBROUTINE esm_local_pbc (aux)
-  USE fft_base, ONLY : dfftp
+SUBROUTINE env_esm_local_pbc (aux)
+  USE env_fft_base, ONLY : dfftp
   implicit none
   complex(DP), intent(inout) :: aux( dfftp%nnr )
 
   stop 'esm_local must not be called for esm_bc = pbc'
 
-END SUBROUTINE esm_local_pbc
+END SUBROUTINE env_esm_local_pbc
 
-SUBROUTINE esm_local_bc1 (aux)
+SUBROUTINE env_esm_local_bc1 (aux)
 
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE control_flags,    ONLY : gamma_only
-  USE cell_base,        ONLY : at, bg, alat, tpiba2, omega
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_cell_base,        ONLY : at, bg, alat, tpiba2, omega
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
   !
   implicit none
   ! aux contains v_loc_short(G) (input) and v_loc(G) (output)
@@ -3797,14 +3797,14 @@ SUBROUTINE esm_local_bc1 (aux)
            arg002=-gp*(z-zp)
            arg101= gp/2.d0/tmp+tmp*(z-zp)
            arg102= gp/2.d0/tmp-tmp*(z-zp)
-           t1=exp_erfc(arg002,arg102)
-           t2=exp_erfc(arg001,arg101)
+           t1=env_exp_erfc(arg002,arg102)
+           t2=env_exp_erfc(arg001,arg101)
            cc1=cs*(t1+t2)/4.d0/gp
            cc2=(0.d0,0.d0)
            vg_r(iz) = vg_r(iz)+tt*(cc1+cc2)*e2 ! factor e2: hartree -> Ry.
         enddo
      enddo
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -3864,7 +3864,7 @@ SUBROUTINE esm_local_bc1 (aux)
         z=dble(iz-1)/dble(dfftp%nr3)*L
         vg_r(iz)=(a0+a1*z+a2*z**2+a3*z**3)
      enddo
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -3888,17 +3888,17 @@ SUBROUTINE esm_local_bc1 (aux)
   deallocate(vloc3)
 
   return
-END SUBROUTINE esm_local_bc1
+END SUBROUTINE env_esm_local_bc1
 
-SUBROUTINE esm_local_bc2 (aux)
+SUBROUTINE env_esm_local_bc2 (aux)
 
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE control_flags,    ONLY : gamma_only
-  USE cell_base,        ONLY : at, bg, alat, tpiba2, omega
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_cell_base,        ONLY : at, bg, alat, tpiba2, omega
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
   !
   implicit none
   ! aux contains v_loc_short(G) (input) and v_loc(G) (output)
@@ -3957,8 +3957,8 @@ SUBROUTINE esm_local_bc2 (aux)
            arg007=-4.d0*gp*z1
            arg101= gp/2.d0/tmp+tmp*(z-zp)
            arg102= gp/2.d0/tmp-tmp*(z-zp)
-           t1=exp_erfc(arg002,arg102)
-           t2=exp_erfc(arg001,arg101)
+           t1=env_exp_erfc(arg002,arg102)
+           t2=env_exp_erfc(arg001,arg101)
            cc1=cs*(t1+t2)/4.d0/gp
            cc2=cs*(exp(arg006)+exp(arg005)-exp(arg004)-exp(arg003)) &
               /(1.d0-exp(arg007))/2.d0/gp 
@@ -3966,7 +3966,7 @@ SUBROUTINE esm_local_bc2 (aux)
            vg_r(iz) = vg_r(iz)+tt*(cc1+cc2)*e2 ! factor e2: hartree -> Ry.
         enddo
      enddo
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -4043,7 +4043,7 @@ SUBROUTINE esm_local_bc2 (aux)
         z=dble(iz-1)/dble(dfftp%nr3)*L
         vg_r(iz)=(a0+a1*z+a2*z**2+a3*z**3)
      enddo
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -4067,17 +4067,17 @@ SUBROUTINE esm_local_bc2 (aux)
   deallocate(vloc3)
 
   return
-END SUBROUTINE esm_local_bc2
+END SUBROUTINE env_esm_local_bc2
 
-SUBROUTINE esm_local_bc3 (aux)
+SUBROUTINE env_esm_local_bc3 (aux)
 
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE control_flags,    ONLY : gamma_only
-  USE cell_base,        ONLY : at, bg, alat, tpiba2, omega
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_cell_base,        ONLY : at, bg, alat, tpiba2, omega
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
   !
   implicit none
   ! aux contains v_loc_short(G) (input) and v_loc(G) (output)
@@ -4130,15 +4130,15 @@ SUBROUTINE esm_local_bc3 (aux)
            arg003= gp*(z+zp-2.d0*z1)
            arg101= gp/2.d0/tmp+tmp*(z-zp)
            arg102= gp/2.d0/tmp-tmp*(z-zp)
-           t1=exp_erfc(arg002,arg102)
-           t2=exp_erfc(arg001,arg101)
+           t1=env_exp_erfc(arg002,arg102)
+           t2=env_exp_erfc(arg001,arg101)
            cc1=cs*(t1+t2)/4.d0/gp
            cc2=cs*(-exp(arg003))/2.d0/gp
 
            vg_r(iz) = vg_r(iz)+tt*(cc1+cc2)*e2 ! factor e2: hartree -> Ry.
         enddo
      enddo
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -4204,7 +4204,7 @@ SUBROUTINE esm_local_bc3 (aux)
         vg_r(iz)=(a0+a1*z+a2*z**2+a3*z**3)
      enddo
 
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -4228,17 +4228,17 @@ SUBROUTINE esm_local_bc3 (aux)
   deallocate(vloc3)
 
   return
-END SUBROUTINE esm_local_bc3
+END SUBROUTINE env_esm_local_bc3
 
-SUBROUTINE esm_local_bc4 (aux)
+SUBROUTINE env_esm_local_bc4 (aux)
 
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE control_flags,    ONLY : gamma_only
-  USE cell_base,        ONLY : at, bg, alat, tpiba2, omega
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_cell_base,        ONLY : at, bg, alat, tpiba2, omega
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
   !
   implicit none
   ! aux contains v_loc_short(G) (input) and v_loc(G) (output)
@@ -4314,17 +4314,17 @@ SUBROUTINE esm_local_bc4 (aux)
            arg111= chi/2.d0/tmp+tmp*(z-zp)
            arg113= chi/2.d0/tmp+tmp*(z1-zp)
            if (z < z1) then
-              t1= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103)
-              t2= exp_erfc(arg002,arg102) &
-                 -kappa/alpha*exp_erfc(arg003,arg104)
-              t3= exp_erfc(arg006,arg109)/alpha
+              t1= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103)
+              t2= env_exp_erfc(arg002,arg102) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg104)
+              t3= env_exp_erfc(arg006,arg109)/alpha
               cc1=cs*(t1+t2)/4.d0/gp
               cc2=cs*t3/2.d0
            else
-              t1= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111)
-              t2= exp_erfc(arg008,arg107) &
-                 -beta/alpha*exp_erfc(arg009,arg109)
-              t3= exp_erfc(arg005,arg104)/alpha
+              t1= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111)
+              t2= env_exp_erfc(arg008,arg107) &
+                 -beta/alpha*env_exp_erfc(arg009,arg109)
+              t3= env_exp_erfc(arg005,arg104)/alpha
               cc1=cs*(t1+t2)/4.d0/lambda
               cc2=cs*t3/2.d0
            endif
@@ -4332,7 +4332,7 @@ SUBROUTINE esm_local_bc4 (aux)
            vg_r(iz) = vg_r(iz)+tt*(cc1+cc2)*e2 ! factor e2: hartree -> Ry.
         enddo
      enddo
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -4370,14 +4370,14 @@ SUBROUTINE esm_local_bc4 (aux)
            arg106= aaa/tmp+tmp*(z1-zp)
            if (z < z1) then
               t1=-(z-zp)*qe_erf(arg101)+(0.5d0/aaa+z1-zp)*qe_erf(arg102)
-              t2=0.5d0/aaa*exp_erfc(arg006,arg106)
+              t2=0.5d0/aaa*env_exp_erfc(arg006,arg106)
               t3=0.5d0/aaa-(z-z1)+exp(arg002)/tmp/sqrt(pi) &
                  -exp(arg001)/tmp/sqrt(pi)
               cc1=(t1+t2)/2.d0
               cc2=t3/2.d0
            else
-              t1=-exp_erfc(arg005,arg101)/aaa
-              t2= exp_erfc(arg006,arg104)/aaa
+              t1=-env_exp_erfc(arg005,arg101)/aaa
+              t2= env_exp_erfc(arg006,arg104)/aaa
               t3= exp(arg005)/aaa
               cc1=(t1+t2)/4.d0
               cc2=t3/2.d0
@@ -4396,8 +4396,8 @@ SUBROUTINE esm_local_bc4 (aux)
         arg101= tmp*(z_r-zp)
         arg104= aaa/tmp+tmp*(z_r-zp)
         !--
-        t1=-exp_erfc(arg005,arg101)/aaa
-        t2= exp_erfc(arg006,arg104)/aaa
+        t1=-env_exp_erfc(arg005,arg101)/aaa
+        t2= env_exp_erfc(arg006,arg104)/aaa
         t3= exp(arg005)/aaa
         f1=f1+tt*((t1+t2)/2.d0+t3)/2.d0
         f3=f3-tt*0.5d0*exp(arg005)*(1.d0+qe_erf(arg101))
@@ -4406,7 +4406,7 @@ SUBROUTINE esm_local_bc4 (aux)
         arg101= tmp*(z_l-zp)
         !--
         t1=-(z_l-zp)*qe_erf(arg101)+(0.5d0/aaa+z1-zp)*qe_erf(arg102)
-        t2=0.5d0/aaa*exp_erfc(arg006,arg106)
+        t2=0.5d0/aaa*env_exp_erfc(arg006,arg106)
         t3=0.5d0/aaa-(z_l-z1)+exp(arg002)/tmp/sqrt(pi) &
            -exp(arg001)/tmp/sqrt(pi)
         f2=f2+tt*(t1+t2+t3)/2.d0
@@ -4429,7 +4429,7 @@ SUBROUTINE esm_local_bc4 (aux)
         vg_r(iz)=(a0+a1*z+a2*z**2+a3*z**3)
      enddo
 
-     call cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
+     call env_cft_1z(vg_r,1,dfftp%nr3,dfftp%nr3,-1,vg)
      do iz=1,dfftp%nr3
         vloc3(iz,ng_2d)=vg(iz)
      enddo
@@ -4453,20 +4453,20 @@ SUBROUTINE esm_local_bc4 (aux)
   deallocate(vloc3)
 
   return
-END SUBROUTINE esm_local_bc4
+END SUBROUTINE env_esm_local_bc4
 
 
-  subroutine esm_stres_loclong_bc1( sigmaloclong, rhog )
-    use kinds,         only : DP
-    use gvect,         only : ngm, mill
-    use constants,     only : pi, sqrtpm1, tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use ions_base,     only : zv, nat, tau, ityp
-    use control_flags, only : gamma_only
-    use fft_base,      only : dfftp
-    use fft_scalar,    only : cft_1z
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_loclong_bc1( sigmaloclong, rhog )
+    use env_kinds,         only : DP
+    use env_gvect,         only : ngm, mill
+    use env_constants,     only : pi, sqrtpm1, tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_ions_base,     only : zv, nat, tau, ityp
+    use env_control_flags, only : gamma_only
+    use env_fft_base,      only : dfftp
+    use env_fft_scalar,    only : env_cft_1z
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(out) :: sigmaloclong(3,3)
@@ -4567,13 +4567,13 @@ END SUBROUTINE esm_local_bc4
                 za = za - L
              end if
 
-             expimgpr = qe_exp( - ci*(g(1)*ra(1) + g(2)*ra(2)) )
-             experfcm = exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) )
-             experfcp = exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) )
-             dexperfcm_dgp = -(z-za)*exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) ) &
-                  - exp( -gp*(z-za) ) * qe_gauss( gp/2.d0/salp-salp*(z-za) )/2.d0/salp
-             dexperfcp_dgp = +(z-za)*exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) ) &
-                  - exp( +gp*(z-za) ) * qe_gauss( gp/2.d0/salp+salp*(z-za) )/2.d0/salp
+             expimgpr = env_qe_exp( - ci*(g(1)*ra(1) + g(2)*ra(2)) )
+             experfcm = env_exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) )
+             experfcp = env_exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) )
+             dexperfcm_dgp = -(z-za)*env_exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) ) &
+                  - exp( -gp*(z-za) ) * env_qe_gauss( gp/2.d0/salp-salp*(z-za) )/2.d0/salp
+             dexperfcp_dgp = +(z-za)*env_exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) ) &
+                  - exp( +gp*(z-za) ) * env_qe_gauss( gp/2.d0/salp+salp*(z-za) )/2.d0/salp
 
              dVr_deps(iz,:,:) = dVr_deps(iz,:,:) &
                   + gp*dinvgp_deps(:,:) * pi/gp * Qa/S * expimgpr * experfcm &
@@ -4590,7 +4590,7 @@ END SUBROUTINE esm_local_bc4
        ! convert dV(z)/deps to dV(gz)/deps
        do la=1, 2
           do mu=1, 2
-             call cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
+             call env_cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
           end do
        end do
 
@@ -4666,7 +4666,7 @@ END SUBROUTINE esm_local_bc4
        enddo
 
        ! convert V(z) to V(gz) without polynomial
-       call cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
+       call env_cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
 
        ! add polynomial to V(gz)
        do igz=2, dfftp%nr3
@@ -4700,7 +4700,7 @@ END SUBROUTINE esm_local_bc4
     ! e2 means hartree -> Ry.
     sigmaloclong(:,:) = sigmaloclong(:,:)*(e2)
 
-    call mp_sum( sigmaloclong, intra_bgrp_comm )
+    call env_mp_sum( sigmaloclong, intra_bgrp_comm )
 
     deallocate( rhog3 )
     deallocate( dVr_deps )
@@ -4709,21 +4709,21 @@ END SUBROUTINE esm_local_bc4
     deallocate( Vg )
 
     return
-  end subroutine esm_stres_loclong_bc1
+  end subroutine env_esm_stres_loclong_bc1
 
 
 
-  subroutine esm_stres_loclong_bc2( sigmaloclong, rhog )
-    use kinds,         only : DP
-    use gvect,         only : ngm, mill
-    use constants,     only : pi, sqrtpm1, tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use ions_base,     only : zv, nat, tau, ityp
-    use control_flags, only : gamma_only
-    use fft_base,      only : dfftp
-    use fft_scalar,    only : cft_1z
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_loclong_bc2( sigmaloclong, rhog )
+    use env_kinds,         only : DP
+    use env_gvect,         only : ngm, mill
+    use env_constants,     only : pi, sqrtpm1, tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_ions_base,     only : zv, nat, tau, ityp
+    use env_control_flags, only : gamma_only
+    use env_fft_base,      only : dfftp
+    use env_fft_scalar,    only : env_cft_1z
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(out) :: sigmaloclong(3,3)
@@ -4824,13 +4824,13 @@ END SUBROUTINE esm_local_bc4
                 za = za - L
              end if
 
-             expimgpr = qe_exp( - ci*(g(1)*ra(1)+g(2)*ra(2)) )
-             experfcm = exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) )
-             experfcp = exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) )
-             dexperfcm_dgp = -(z-za)*exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) ) &
-                  - exp( -gp*(z-za) ) * qe_gauss( gp/2.d0/salp-salp*(z-za) )/2.d0/salp
-             dexperfcp_dgp = +(z-za)*exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) ) &
-                  - exp( +gp*(z-za) ) * qe_gauss( gp/2.d0/salp+salp*(z-za) )/2.d0/salp
+             expimgpr = env_qe_exp( - ci*(g(1)*ra(1)+g(2)*ra(2)) )
+             experfcm = env_exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) )
+             experfcp = env_exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) )
+             dexperfcm_dgp = -(z-za)*env_exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) ) &
+                  - exp( -gp*(z-za) ) * env_qe_gauss( gp/2.d0/salp-salp*(z-za) )/2.d0/salp
+             dexperfcp_dgp = +(z-za)*env_exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) ) &
+                  - exp( +gp*(z-za) ) * env_qe_gauss( gp/2.d0/salp+salp*(z-za) )/2.d0/salp
 
              exph1  = (cosh(gp*(z-za))*exp(-2*gp*z1) - cosh(gp*(z+za)) )/sinh(2*gp*z1)
              exph2  = ( (z-za)*sinh(gp*(z-za))*exp(-2*gp*z1) &
@@ -4861,7 +4861,7 @@ END SUBROUTINE esm_local_bc4
        ! convert dV(z)/deps to dV(gz)/deps
        do la=1, 2
           do mu=1, 2
-             call cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
+             call env_cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
           end do
        end do
 
@@ -4951,7 +4951,7 @@ END SUBROUTINE esm_local_bc4
        enddo
 
        ! convert V(z) to V(gz) without polynomial
-       call cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
+       call env_cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
 
        ! add polynomial to V(gz)
        do igz=2, dfftp%nr3
@@ -4985,7 +4985,7 @@ END SUBROUTINE esm_local_bc4
     ! e2 means hartree -> Ry.
     sigmaloclong(:,:) = sigmaloclong(:,:)*(e2)
 
-    call mp_sum( sigmaloclong, intra_bgrp_comm )
+    call env_mp_sum( sigmaloclong, intra_bgrp_comm )
 
     deallocate( rhog3 )
     deallocate( dVr_deps )
@@ -4994,21 +4994,21 @@ END SUBROUTINE esm_local_bc4
     deallocate( Vg )
 
     return
-  end subroutine esm_stres_loclong_bc2
+  end subroutine env_esm_stres_loclong_bc2
 
 
 
-  subroutine esm_stres_loclong_bc3( sigmaloclong, rhog )
-    use kinds,         only : DP
-    use gvect,         only : ngm, mill
-    use constants,     only : pi, sqrtpm1, tpi, fpi, e2
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use ions_base,     only : zv, nat, tau, ityp
-    use control_flags, only : gamma_only
-    use fft_base,      only : dfftp
-    use fft_scalar,    only : cft_1z
-    use mp_bands,      only : intra_bgrp_comm
-    use mp,            only : mp_sum
+  subroutine env_esm_stres_loclong_bc3( sigmaloclong, rhog )
+    use env_kinds,         only : DP
+    use env_gvect,         only : ngm, mill
+    use env_constants,     only : pi, sqrtpm1, tpi, fpi, e2
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_ions_base,     only : zv, nat, tau, ityp
+    use env_control_flags, only : gamma_only
+    use env_fft_base,      only : dfftp
+    use env_fft_scalar,    only : env_cft_1z
+    use env_mp_bands,      only : intra_bgrp_comm
+    use env_mp,            only : env_mp_sum
     implicit none
 
     real(DP), intent(out) :: sigmaloclong(3,3)
@@ -5111,13 +5111,13 @@ END SUBROUTINE esm_local_bc4
                 za = za - L
              end if
 
-             expimgpr = qe_exp( - ci*(g(1)*ra(1)+g(2)*ra(2)) )
-             experfcm = exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) )
-             experfcp = exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) )
-             dexperfcm_dgp = -(z-za)*exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) ) &
-                  - exp( -gp*(z-za) ) * qe_gauss( gp/2.d0/salp-salp*(z-za) )/2.d0/salp
-             dexperfcp_dgp = +(z-za)*exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) ) &
-                  - exp( +gp*(z-za) ) * qe_gauss( gp/2.d0/salp+salp*(z-za) )/2.d0/salp
+             expimgpr = env_qe_exp( - ci*(g(1)*ra(1)+g(2)*ra(2)) )
+             experfcm = env_exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) )
+             experfcp = env_exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) )
+             dexperfcm_dgp = -(z-za)*env_exp_erfc( -gp*(z-za), gp/2.d0/salp-salp*(z-za) ) &
+                  - exp( -gp*(z-za) ) * env_qe_gauss( gp/2.d0/salp-salp*(z-za) )/2.d0/salp
+             dexperfcp_dgp = +(z-za)*env_exp_erfc( +gp*(z-za), gp/2.d0/salp+salp*(z-za) ) &
+                  - exp( +gp*(z-za) ) * env_qe_gauss( gp/2.d0/salp+salp*(z-za) )/2.d0/salp
 
              expm = exp( -gp*(-z+2*z1-za) )
 
@@ -5144,7 +5144,7 @@ END SUBROUTINE esm_local_bc4
        ! convert dV(z)/deps to dV(gz)/deps
        do la=1, 2
           do mu=1, 2
-             call cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
+             call env_cft_1z( dVr_deps(:,la,mu), 1, dfftp%nr3, dfftp%nr3, -1, dVg_deps(:,la,mu) )
           end do
        end do
 
@@ -5231,7 +5231,7 @@ END SUBROUTINE esm_local_bc4
        enddo
 
        ! convert V(z) to V(gz) without polynomial
-       call cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
+       call env_cft_1z(Vr,1,dfftp%nr3,dfftp%nr3,-1,Vg)
 
        ! add polynomial to V(gz)
        do igz=2, dfftp%nr3
@@ -5265,7 +5265,7 @@ END SUBROUTINE esm_local_bc4
     ! e2 means hartree -> Ry.
     sigmaloclong(:,:) = sigmaloclong(:,:)*(e2)
 
-    call mp_sum( sigmaloclong, intra_bgrp_comm )
+    call env_mp_sum( sigmaloclong, intra_bgrp_comm )
 
     deallocate( rhog3 )
     deallocate( dVr_deps )
@@ -5274,21 +5274,21 @@ END SUBROUTINE esm_local_bc4
     deallocate( Vg )
 
     return
-  end subroutine esm_stres_loclong_bc3
+  end subroutine env_esm_stres_loclong_bc3
 
-SUBROUTINE esm_force_ew( forceion )
+SUBROUTINE env_esm_force_ew( forceion )
   !-----------------------------------------------------------------------
   !
   !  This routine computes the Ewald contribution to the forces,
   !  both the real- and reciprocal-space terms are present
   !
-  USE kinds
-  USE constants, ONLY : tpi, e2
-  USE mp_bands,  ONLY : intra_bgrp_comm
-  USE mp,        ONLY : mp_sum
-  USE ions_base, ONLY : zv, nat, ityp
-  USE gvect,     ONLY : gcutm
-  USE cell_base, ONLY : tpiba2
+  USE env_kinds
+  USE env_constants, ONLY : tpi, e2
+  USE env_mp_bands,  ONLY : intra_bgrp_comm
+  USE env_mp,        ONLY : env_mp_sum
+  USE env_ions_base, ONLY : zv, nat, ityp
+  USE env_gvect,     ONLY : gcutm
+  USE env_cell_base, ONLY : tpiba2
   implicit none
 
   real(DP), intent(out) :: forceion( 3, nat )
@@ -5309,7 +5309,7 @@ SUBROUTINE esm_force_ew( forceion )
   do
      alpha = alpha - 0.1d0
      if( alpha == 0.d0) then
-        call errore ('esm_force_ew', 'optimal alpha not found', 1)
+        call env_errore ('esm_force_ew', 'optimal alpha not found', 1)
      end if
      upperbound = e2 * charge**2 * sqrt (2.d0 * alpha / tpi) * &
         qe_erfc ( sqrt (tpiba2 * gcutm / 4.d0 / alpha) )
@@ -5317,25 +5317,25 @@ SUBROUTINE esm_force_ew( forceion )
   end do
   !write(*,'(5X,A,F5.2)')'alpha used in esm ewald force :',alpha
 
-  CALL esm_force_ewg ( alpha, forceion )
+  CALL env_esm_force_ewg ( alpha, forceion )
 
-  CALL esm_force_ewr ( alpha, forceion )
+  CALL env_esm_force_ewr ( alpha, forceion )
 
-  CALL mp_sum( forceion, intra_bgrp_comm )
+  CALL env_mp_sum( forceion, intra_bgrp_comm )
 
   return
-END SUBROUTINE esm_force_ew
+END SUBROUTINE env_esm_force_ew
 
 
 !-----------------------------------------------------------------------
 !--------------ESM EWALD-DERIVED FORCE (RSUM) SUBROUTINE ---------------
 !-----------------------------------------------------------------------
-SUBROUTINE esm_force_ewr_pbc ( alpha_g, forceion ) 
-  USE constants,        ONLY : pi, e2
-  USE cell_base,        ONLY : alat, at, bg
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE mp,               ONLY : mp_rank, mp_size
-  USE mp_bands,         ONLY : intra_bgrp_comm
+SUBROUTINE env_esm_force_ewr_pbc ( alpha_g, forceion ) 
+  USE env_constants,        ONLY : pi, e2
+  USE env_cell_base,        ONLY : alat, at, bg
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_mp,               ONLY : env_mp_rank, env_mp_size
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
 
   implicit none
   integer               :: na, nb, nr, nrm, ip, np
@@ -5361,8 +5361,8 @@ SUBROUTINE esm_force_ewr_pbc ( alpha_g, forceion )
   tmp=sqrt(alpha_g)
   rmax0 = 5.d0 / tmp / alat
 
-  ip = mp_rank( intra_bgrp_comm )
-  np = mp_size( intra_bgrp_comm )
+  ip = env_mp_rank( intra_bgrp_comm )
+  np = env_mp_size( intra_bgrp_comm )
 
   allocate( force(3,nat) )
   force(:,:)=0.d0
@@ -5389,17 +5389,17 @@ SUBROUTINE esm_force_ewr_pbc ( alpha_g, forceion )
   forceion(:,:)=forceion(:,:)+force(:,:)
   deallocate( force )
 
-END SUBROUTINE esm_force_ewr_pbc
+END SUBROUTINE env_esm_force_ewr_pbc
 
-SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion ) 
-  USE io_global,        ONLY : stdout
-  USE constants,        ONLY : pi, tpi, fpi, e2
-  USE gvect,            ONLY : gstart
-  USE cell_base,        ONLY : alat, tpiba2, at, bg
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE control_flags,    ONLY : iverbosity
-  USE mp,               ONLY : mp_rank, mp_size
-  USE mp_bands,         ONLY : intra_bgrp_comm
+SUBROUTINE env_esm_force_ewr_bc4 ( alpha_g, forceion ) 
+  USE env_io_global,        ONLY : stdout
+  USE env_constants,        ONLY : pi, tpi, fpi, e2
+  USE env_gvect,            ONLY : gstart
+  USE env_cell_base,        ONLY : alat, tpiba2, at, bg
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_control_flags,    ONLY : iverbosity
+  USE env_mp,               ONLY : env_mp_rank, env_mp_size
+  USE env_mp_bands,         ONLY : intra_bgrp_comm
 
   implicit none
   integer               :: na, nb, nr, nrm, ipol, ip, np
@@ -5441,8 +5441,8 @@ SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion )
   do
      gpmax=gpmax+1.d0
      if (gpmax.gt.1000.d0) &
-        call errore ('esm_force_ewr', 'optimal gpmax not found', 1)
-     call qromb(vl11,aaa,tmp,z1,z1-zbuff,z1-zbuff,0.0_DP,gpmax,ss)
+        call env_errore ('esm_force_ewr', 'optimal gpmax not found', 1)
+     call env_qromb(env_vl11,aaa,tmp,z1,z1-zbuff,z1-zbuff,0.0_DP,gpmax,ss)
      err=abs(ss-ss0); ss0=ss
      if(err.lt.eps) exit
   enddo
@@ -5451,8 +5451,8 @@ SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion )
   do
      znrm=znrm-0.01d0
      if (znrm.le.-z0) &
-        call errore ('esm_force_ewr', 'optimal znrm not found', 1)
-     call qromb(vl11,aaa,tmp,z1,znrm,znrm,0.0_DP,gpmax,ss)
+        call env_errore ('esm_force_ewr', 'optimal znrm not found', 1)
+     call env_qromb(env_vl11,aaa,tmp,z1,znrm,znrm,0.0_DP,gpmax,ss)
      err=-2.d0*tmp/sqrt(pi)-ss*2.d0
      if(abs(err).lt.eps) exit
   enddo
@@ -5461,8 +5461,8 @@ SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion )
   do
      rmax=rmax+1.d0
      if (rmax.gt.200.d0) &
-        call errore ('esm_force_ewr', 'optimal rmax not found', 1)
-     call qromb(dvl11j0,aaa,tmp,z1,z1-zbuff,z1-zbuff,rmax,gpmax,ss)
+        call env_errore ('esm_force_ewr', 'optimal rmax not found', 1)
+     call env_qromb(env_dvl11j0,aaa,tmp,z1,z1-zbuff,z1-zbuff,rmax,gpmax,ss)
      err=ss
      if(abs(err).lt.epsneib) exit
   enddo
@@ -5478,8 +5478,8 @@ SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion )
      write( stdout, '(5x,"==========================================")')
   endif
   !
-  ip = mp_rank( intra_bgrp_comm )
-  np = mp_size( intra_bgrp_comm )
+  ip = env_mp_rank( intra_bgrp_comm )
+  np = env_mp_size( intra_bgrp_comm )
 
   allocate( force(3,nat) )
   force(:,:)=0.d0
@@ -5514,69 +5514,69 @@ SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion )
                  enddo
               enddo
            elseif ( zp < z1 ) then ! z in I, zp in I
-              call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+              call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
                  rxyz = sqrt(r2(nr)+dtau(3)**2)*alat
-                 call qromb(vl11j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl11j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(1:2,nb)=force(1:2,nb) &
                     -fac*(1.d0/rxyz**3+1.d0/rxy*ss)*r(1:2,nr)*alat
-                 call qromb(dvl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_dvl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(3,nb)=force(3,nb)-fac*((z-zp)/rxyz**3+ss)
               enddo
            else ! z in I, zp in II
-              call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+              call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
-                 call qromb(vl12j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl12j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(1:2,nb)=force(1:2,nb) &
                     -fac*ss/rxy*r(1:2,nr)*alat
-                 call qromb(dvl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_dvl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(3,nb)=force(3,nb)-fac*ss
               enddo
            endif ! if for zp
         elseif ( z < z1 ) then ! znrm < z < z1
-           call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+           call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
            if (zp < z1 ) then ! z in I, zp in I
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
                  rxyz = sqrt(r2(nr)+dtau(3)**2)*alat
-                 call qromb(vl11j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl11j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(1:2,nb)=force(1:2,nb) &
                     -fac*(1.d0/rxyz**3+1.d0/rxy*ss)*r(1:2,nr)*alat
-                 call qromb(dvl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_dvl11j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(3,nb)=force(3,nb)-fac*((z-zp)/rxyz**3+ss)
               enddo
            else ! z in I, zp in II
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
-                 call qromb(vl12j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl12j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(1:2,nb)=force(1:2,nb) &
                     -fac*ss/rxy*r(1:2,nr)*alat
-                 call qromb(dvl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_dvl12j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(3,nb)=force(3,nb)-fac*ss
               enddo
            endif ! if for zp
         else ! z1 < z
-           call esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
+           call env_esm_rgen_2d(dtau,rmax,mxr,at,bg,r,r2,nrm)
            if (zp < z1 ) then ! z in II, zp in I
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
-                 call qromb(vl21j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl21j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(1:2,nb)=force(1:2,nb) &
                     -fac*ss/rxy*r(1:2,nr)*alat
-                 call qromb(dvl21j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_dvl21j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(3,nb)=force(3,nb)-fac*ss
               enddo
            else ! z in II, zp in II
               do nr = 1, nrm
                  rxy = sqrt(r2(nr))*alat
                  rxyz = sqrt(r2(nr)+dtau(3)**2)*alat
-                 call qromb(vl22j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_vl22j1,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(1:2,nb)=force(1:2,nb) &
                     -(exp(-aaa*(rxyz+z+zp-2.d0*z1))*(aaa+1.d0/rxyz)/rxyz**2 &
                     +ss/rxy)*fac*r(1:2,nr)*alat
-                 call qromb(dvl22j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
+                 call env_qromb(env_dvl22j0,aaa,tmp,z1,z,zp,rxy,gpmax,ss)
                  force(3,nb)=force(3,nb) &
                     -(exp(-aaa*(rxyz+z+zp-2.d0*z1))*(aaa+1.d0/rxyz)/rxyz**2 &
                     *(z-zp)-aaa*exp(-aaa*(rxyz+z+zp-2.d0*z1))/rxyz+ss)*fac
@@ -5587,9 +5587,9 @@ SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion )
      if (z < znrm) then
         ss=0.d0
      elseif (z < z1) then
-        call qromb(dvl11,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
+        call env_qromb(env_dvl11,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
      else
-        call qromb(dvl22,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
+        call env_qromb(env_dvl22,aaa,tmp,z1,z,z,0.0_DP,gpmax,ss)
      endif
      ! factor e2: hartree -> Ry.
      force(3,na)=force(3,na)-zv(ityp(na))**2*e2*ss
@@ -5597,19 +5597,19 @@ SUBROUTINE esm_force_ewr_bc4 ( alpha_g, forceion )
   forceion(:,:)=forceion(:,:)+force(:,:)
   deallocate( force )
 
-END SUBROUTINE esm_force_ewr_bc4
+END SUBROUTINE env_esm_force_ewr_bc4
 
 !-----------------------------------------------------------------------
 !--------------ESM EWALD-DERIVED FORCE (GSUM) SUBROUTINE ---------------
 !-----------------------------------------------------------------------
-SUBROUTINE esm_force_ewg_pbc ( alpha_g, forceion )
+SUBROUTINE env_esm_force_ewg_pbc ( alpha_g, forceion )
 
-  USE constants,        ONLY : tpi, e2
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, nsp, tau, ityp
-  USE gvect,            ONLY : gstart, ngm, gg, g
-  USE vlocal,           ONLY : strf
+  USE env_constants,        ONLY : tpi, e2
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, nsp, tau, ityp
+  USE env_gvect,            ONLY : gstart, ngm, gg, g
+  USE env_vlocal,           ONLY : strf
 
   implicit none
   real(DP), intent(in)     :: alpha_g
@@ -5656,15 +5656,15 @@ SUBROUTINE esm_force_ewg_pbc ( alpha_g, forceion )
   deallocate (aux)
 
   return
-END SUBROUTINE esm_force_ewg_pbc
+END SUBROUTINE env_esm_force_ewg_pbc
 
-SUBROUTINE esm_force_ewg_bc1 ( alpha_g, forceion )
+SUBROUTINE env_esm_force_ewg_bc1 ( alpha_g, forceion )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, nsp, tau, ityp
-  USE gvect,            ONLY : gstart, ngm, g
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, nsp, tau, ityp
+  USE env_gvect,            ONLY : gstart, ngm, g
 
   implicit none
   real(DP), intent(in)    :: alpha_g
@@ -5720,8 +5720,8 @@ SUBROUTINE esm_force_ewg_bc1 ( alpha_g, forceion )
         arg002= gp*(z-zp)
         arg101=gp/2.d0/tmp-tmp*(z-zp)
         arg102=gp/2.d0/tmp+tmp*(z-zp)
-        t1=exp_erfc(arg001,arg101)
-        t2=exp_erfc(arg002,arg102)
+        t1=env_exp_erfc(arg001,arg101)
+        t2=env_exp_erfc(arg002,arg102)
         c1_for(1)=c1_for(1)+sin(ff)*(t1+t2)/4.d0/gp*k1
         c1_for(2)=c1_for(2)+sin(ff)*(t1+t2)/4.d0/gp*k2
         c1_for(3)=c1_for(3)+cos(ff)*(t1-t2)/4.d0
@@ -5744,15 +5744,15 @@ SUBROUTINE esm_force_ewg_bc1 ( alpha_g, forceion )
   enddo
   
   return
-END SUBROUTINE esm_force_ewg_bc1
+END SUBROUTINE env_esm_force_ewg_bc1
 
-SUBROUTINE esm_force_ewg_bc2 ( alpha_g, forceion )
+SUBROUTINE env_esm_force_ewg_bc2 ( alpha_g, forceion )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, nsp, tau, ityp
-  USE gvect,            ONLY : gstart, ngm, g
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, nsp, tau, ityp
+  USE env_gvect,            ONLY : gstart, ngm, g
 
   implicit none
   real(DP), intent(in)    :: alpha_g
@@ -5814,8 +5814,8 @@ SUBROUTINE esm_force_ewg_bc2 ( alpha_g, forceion )
         arg007=-4.d0*gp*z1
         arg101=gp/2.d0/tmp-tmp*(z-zp)
         arg102=gp/2.d0/tmp+tmp*(z-zp)
-        t1=exp_erfc(arg001,arg101)
-        t2=exp_erfc(arg002,arg102)
+        t1=env_exp_erfc(arg001,arg101)
+        t2=env_exp_erfc(arg002,arg102)
         c1_for(1)=c1_for(1)+sin(ff)*(t1+t2)/4.d0/gp*k1
         c1_for(2)=c1_for(2)+sin(ff)*(t1+t2)/4.d0/gp*k2
         c1_for(3)=c1_for(3)+cos(ff)*(t1-t2)/4.d0
@@ -5848,15 +5848,15 @@ SUBROUTINE esm_force_ewg_bc2 ( alpha_g, forceion )
   enddo
   
   return
-END SUBROUTINE esm_force_ewg_bc2
+END SUBROUTINE env_esm_force_ewg_bc2
 
-SUBROUTINE esm_force_ewg_bc3 ( alpha_g, forceion )
+SUBROUTINE env_esm_force_ewg_bc3 ( alpha_g, forceion )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, nsp, tau, ityp
-  USE gvect,            ONLY : gstart, ngm, g
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, nsp, tau, ityp
+  USE env_gvect,            ONLY : gstart, ngm, g
 
   implicit none
   real(DP), intent(in)    :: alpha_g
@@ -5913,8 +5913,8 @@ SUBROUTINE esm_force_ewg_bc3 ( alpha_g, forceion )
         arg003= gp*(z+zp-2.d0*z1)
         arg101= gp/2.d0/tmp-tmp*(z-zp)
         arg102= gp/2.d0/tmp+tmp*(z-zp)
-        t1=exp_erfc(arg001,arg101)
-        t2=exp_erfc(arg002,arg102)
+        t1=env_exp_erfc(arg001,arg101)
+        t2=env_exp_erfc(arg002,arg102)
         c1_for(1)=c1_for(1)+sin(ff)*(t1+t2)/4.d0/gp*k1
         c1_for(2)=c1_for(2)+sin(ff)*(t1+t2)/4.d0/gp*k2
         c1_for(3)=c1_for(3)+cos(ff)*(t1-t2)/4.d0
@@ -5940,15 +5940,15 @@ SUBROUTINE esm_force_ewg_bc3 ( alpha_g, forceion )
   enddo
   
   return
-END SUBROUTINE esm_force_ewg_bc3
+END SUBROUTINE env_esm_force_ewg_bc3
 
-SUBROUTINE esm_force_ewg_bc4 ( alpha_g, forceion )
+SUBROUTINE env_esm_force_ewg_bc4 ( alpha_g, forceion )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, nsp, tau, ityp
-  USE gvect,            ONLY : gstart, ngm, g
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, nsp, tau, ityp
+  USE env_gvect,            ONLY : gstart, ngm, g
 
   implicit none
   real(DP), intent(in)    :: alpha_g
@@ -6003,20 +6003,20 @@ SUBROUTINE esm_force_ewg_bc4 ( alpha_g, forceion )
      if (z < z1)then  ! factor 1/2 <- non-reciprocality
         if (zp < z1)then
            kk1_for= 0.5d0*(qe_erf(arg101)-qe_erf(arg102))/2.d0 &
-              -0.5d0*exp_erfc(arg006,arg106)/2.d0
+              -0.5d0*env_exp_erfc(arg006,arg106)/2.d0
            kk2_for=-0.5d0*qe_erfc(arg101)/2.d0
         else
            kk1_for= 0.5d0*(qe_erf(arg101)-qe_erf(arg102))/2.d0 &
-              -0.5d0*exp_erfc(arg006,arg106)/2.d0
-           kk2_for=-0.5d0*exp_erfc(arg004,arg101)/2.d0
+              -0.5d0*env_exp_erfc(arg006,arg106)/2.d0
+           kk2_for=-0.5d0*env_exp_erfc(arg004,arg101)/2.d0
         endif
      else
         if ( zp < z1 )then
-           kk1_for=-0.5d0*exp_erfc(arg006,arg104)/2.d0
+           kk1_for=-0.5d0*env_exp_erfc(arg006,arg104)/2.d0
            kk2_for=-0.5d0*qe_erfc(arg101)/2.d0
         else
-           kk1_for=-0.5d0*exp_erfc(arg006,arg104)/2.d0
-           kk2_for=-0.5d0*exp_erfc(arg004,arg101)/2.d0
+           kk1_for=-0.5d0*env_exp_erfc(arg006,arg104)/2.d0
+           kk2_for=-0.5d0*env_exp_erfc(arg004,arg101)/2.d0
         endif
      endif
      c1_for(:)=0.d0; c2_for(:)=0.d0
@@ -6064,98 +6064,98 @@ SUBROUTINE esm_force_ewg_bc4 ( alpha_g, forceion )
         arg114= chi/2.d0/tmp-tmp*(z-z1)
         if (z < z1) then ! factor 1/2 <- non-reciprocality
            if (zp < z1) then
-              t1= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103)
-              t2= exp_erfc(arg002,arg102) &
-                 -kappa/alpha*exp_erfc(arg003,arg104)
-              t3= exp_erfc(arg006,arg109)/alpha
+              t1= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103)
+              t2= env_exp_erfc(arg002,arg102) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg104)
+              t3= env_exp_erfc(arg006,arg109)/alpha
               c1_for(1)=c1_for(1)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k1/2.d0
               c1_for(2)=c1_for(2)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k2/2.d0
-              t1= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106)
-              t2= exp_erfc(arg001,arg101) &
-                 -kappa/alpha*exp_erfc(arg003,arg105)
-              t3= exp_erfc(arg007,arg110)/alpha
+              t1= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106)
+              t2= env_exp_erfc(arg001,arg101) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg105)
+              t3= env_exp_erfc(arg007,arg110)/alpha
               c2_for(1)=c2_for(1)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k1/2.d0
               c2_for(2)=c2_for(2)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k2/2.d0
-              t1= exp_erfc(arg001,arg103)-exp_erfc(arg001,arg101)
-              t2= exp_erfc(arg002,arg102) &
-                 -kappa/alpha*exp_erfc(arg003,arg104)
-              t3=-xi/alpha*exp_erfc(arg006,arg109)
+              t1= env_exp_erfc(arg001,arg103)-env_exp_erfc(arg001,arg101)
+              t2= env_exp_erfc(arg002,arg102) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg104)
+              t3=-xi/alpha*env_exp_erfc(arg006,arg109)
               c1_for(3)=c1_for(3)+cos(ff)*((t1+t2)/4.d0+t3/2.d0)/2.d0 
-              t1= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106)
-              t2=-exp_erfc(arg001,arg101) &
-                 -kappa/alpha*exp_erfc(arg003,arg105)
-              t3= gp/alpha*exp_erfc(arg007,arg110)
+              t1= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106)
+              t2=-env_exp_erfc(arg001,arg101) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg105)
+              t3= gp/alpha*env_exp_erfc(arg007,arg110)
               c2_for(3)=c2_for(3)+cos(ff)*((t1+t2)/4.d0+t3/2.d0)/2.d0
            else
-              t1= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103)
-              t2= exp_erfc(arg002,arg102) &
-                 -kappa/alpha*exp_erfc(arg003,arg104)
-              t3= exp_erfc(arg006,arg109)/alpha
+              t1= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103)
+              t2= env_exp_erfc(arg002,arg102) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg104)
+              t3= env_exp_erfc(arg006,arg109)/alpha
               c1_for(1)=c1_for(1)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k1/2.d0
               c1_for(2)=c1_for(2)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k2/2.d0
-              t1= exp_erfc(arg012,arg114)-exp_erfc(arg012,arg112)
-              t2= exp_erfc(arg010,arg108) &
-                 -beta/alpha*exp_erfc(arg009,arg110)
-              t3= exp_erfc(arg004,arg105)/alpha
+              t1= env_exp_erfc(arg012,arg114)-env_exp_erfc(arg012,arg112)
+              t2= env_exp_erfc(arg010,arg108) &
+                 -beta/alpha*env_exp_erfc(arg009,arg110)
+              t3= env_exp_erfc(arg004,arg105)/alpha
               c2_for(1)=c2_for(1)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k1/2.d0
               c2_for(2)=c2_for(2)+sin(ff)*((t1+t2)/4.d0/gp+t3/2.d0)*k2/2.d0
-              t1= exp_erfc(arg001,arg103)-exp_erfc(arg001,arg101)
-              t2= exp_erfc(arg002,arg102) &
-                 -kappa/alpha*exp_erfc(arg003,arg104)
-              t3=-xi/alpha*exp_erfc(arg006,arg109)
+              t1= env_exp_erfc(arg001,arg103)-env_exp_erfc(arg001,arg101)
+              t2= env_exp_erfc(arg002,arg102) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg104)
+              t3=-xi/alpha*env_exp_erfc(arg006,arg109)
               c1_for(3)=c1_for(3)+cos(ff)*((t1+t2)/4.d0+t3/2.d0)/2.d0 
-              t1= xi*(exp_erfc(arg012,arg112)-exp_erfc(arg012,arg114))
-              t2=-chi*exp_erfc(arg010,arg108) &
-                 +xi*beta/alpha*exp_erfc(arg009,arg110)
-              t3=-xi/alpha*exp_erfc(arg004,arg105)
+              t1= xi*(env_exp_erfc(arg012,arg112)-env_exp_erfc(arg012,arg114))
+              t2=-chi*env_exp_erfc(arg010,arg108) &
+                 +xi*beta/alpha*env_exp_erfc(arg009,arg110)
+              t3=-xi/alpha*env_exp_erfc(arg004,arg105)
               c2_for(3)=c2_for(3)+cos(ff)*((t1+t2)/4.d0+t3/2.d0)/2.d0
            endif
         else
            if(zp < z1)then
-              t1= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111)
-              t2= exp_erfc(arg008,arg107) &
-                 -beta/alpha*exp_erfc(arg009,arg109)
-              t3= exp_erfc(arg005,arg104)/alpha
+              t1= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111)
+              t2= env_exp_erfc(arg008,arg107) &
+                 -beta/alpha*env_exp_erfc(arg009,arg109)
+              t3= env_exp_erfc(arg005,arg104)/alpha
               c1_for(1)=c1_for(1)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k1/2.d0
               c1_for(2)=c1_for(2)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k2/2.d0
-              t1= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106)
-              t2= exp_erfc(arg001,arg101) &
-                 -kappa/alpha*exp_erfc(arg003,arg105)
-              t3= exp_erfc(arg007,arg110)/alpha
+              t1= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106)
+              t2= env_exp_erfc(arg001,arg101) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg105)
+              t3= env_exp_erfc(arg007,arg110)/alpha
               c2_for(1)=c2_for(1)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k1/2.d0
               c2_for(2)=c2_for(2)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k2/2.d0
-              t1= chi*(exp_erfc(arg011,arg111)-exp_erfc(arg011,arg113))
-              t2=-xi*exp_erfc(arg008,arg107) &
-                 +xi*beta/alpha*exp_erfc(arg009,arg109)
-              t3= gp/alpha*exp_erfc(arg005,arg104)
+              t1= chi*(env_exp_erfc(arg011,arg111)-env_exp_erfc(arg011,arg113))
+              t2=-xi*env_exp_erfc(arg008,arg107) &
+                 +xi*beta/alpha*env_exp_erfc(arg009,arg109)
+              t3= gp/alpha*env_exp_erfc(arg005,arg104)
               c1_for(3)=c1_for(3)+cos(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)/2.d0
-              t1= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106)
-              t2=-exp_erfc(arg001,arg101) &
-                 -kappa/alpha*exp_erfc(arg003,arg105)
-              t3= gp/alpha*exp_erfc(arg007,arg110)
+              t1= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106)
+              t2=-env_exp_erfc(arg001,arg101) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg105)
+              t3= gp/alpha*env_exp_erfc(arg007,arg110)
               c2_for(3)=c2_for(3)+cos(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)/2.d0
             else
-              t1= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111)
-              t2= exp_erfc(arg008,arg107) &
-                 -beta/alpha*exp_erfc(arg009,arg109)
-              t3= exp_erfc(arg005,arg104)/alpha
+              t1= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111)
+              t2= env_exp_erfc(arg008,arg107) &
+                 -beta/alpha*env_exp_erfc(arg009,arg109)
+              t3= env_exp_erfc(arg005,arg104)/alpha
               c1_for(1)=c1_for(1)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k1/2.d0
               c1_for(2)=c1_for(2)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k2/2.d0
-              t1= exp_erfc(arg012,arg114)-exp_erfc(arg012,arg112)
-              t2= exp_erfc(arg010,arg108) &
-                 -beta/alpha*exp_erfc(arg009,arg110)
-              t3= exp_erfc(arg004,arg105)/alpha
+              t1= env_exp_erfc(arg012,arg114)-env_exp_erfc(arg012,arg112)
+              t2= env_exp_erfc(arg010,arg108) &
+                 -beta/alpha*env_exp_erfc(arg009,arg110)
+              t3= env_exp_erfc(arg004,arg105)/alpha
               c2_for(1)=c2_for(1)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k1/2.d0
               c2_for(2)=c2_for(2)+sin(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)*k2/2.d0
-              t1= chi*(exp_erfc(arg011,arg111)-exp_erfc(arg011,arg113))
-              t2=-xi*exp_erfc(arg008,arg107) &
-                 +xi*beta/alpha*exp_erfc(arg009,arg109)
-              t3= gp/alpha*exp_erfc(arg005,arg104)
+              t1= chi*(env_exp_erfc(arg011,arg111)-env_exp_erfc(arg011,arg113))
+              t2=-xi*env_exp_erfc(arg008,arg107) &
+                 +xi*beta/alpha*env_exp_erfc(arg009,arg109)
+              t3= gp/alpha*env_exp_erfc(arg005,arg104)
               c1_for(3)=c1_for(3)+cos(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)/2.d0
-              t1= xi*(exp_erfc(arg012,arg112)-exp_erfc(arg012,arg114))
-              t2=-chi*exp_erfc(arg010,arg108) &
-                 +xi*beta/alpha*exp_erfc(arg009,arg110)
-              t3=-xi/alpha*exp_erfc(arg004,arg105)
+              t1= xi*(env_exp_erfc(arg012,arg112)-env_exp_erfc(arg012,arg114))
+              t2=-chi*env_exp_erfc(arg010,arg108) &
+                 +xi*beta/alpha*env_exp_erfc(arg009,arg110)
+              t3=-xi/alpha*env_exp_erfc(arg004,arg105)
               c2_for(3)=c2_for(3)+cos(ff)*((t1+t2)/4.d0/lambda+t3/2.d0)/2.d0
            endif
         endif
@@ -6178,32 +6178,32 @@ SUBROUTINE esm_force_ewg_bc4 ( alpha_g, forceion )
   enddo
   
   return
-END SUBROUTINE esm_force_ewg_bc4
+END SUBROUTINE env_esm_force_ewg_bc4
 
 
 !-----------------------------------------------------------------------
 !--------------ESM LOCAL POTENTIAL-DERIVED FORCE SUBROUTINE-------------
 !-----------------------------------------------------------------------
-SUBROUTINE esm_force_lc_pbc( aux, forcelc )
-  USE ions_base, ONLY : nat
-  USE fft_base,  ONLY : dfftp
+SUBROUTINE env_esm_force_lc_pbc( aux, forcelc )
+  USE env_ions_base, ONLY : nat
+  USE env_fft_base,  ONLY : dfftp
   implicit none
   complex(DP), intent(in)    :: aux(dfftp%nnr) ! aux contains n(G) (input)
   real(DP),    intent(inout) :: forcelc(3,nat)
 
   stop 'esm_force_lc must not be called for esm_bc = pbc'
 
-END SUBROUTINE esm_force_lc_pbc
+END SUBROUTINE env_esm_force_lc_pbc
 
-SUBROUTINE esm_force_lc_bc1 ( aux, forcelc )
+SUBROUTINE env_esm_force_lc_bc1 ( aux, forcelc )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
 
   implicit none
   complex(DP), intent(in)    :: aux(dfftp%nnr) ! aux contains n(G) (input)   
@@ -6280,17 +6280,17 @@ SUBROUTINE esm_force_lc_bc1 ( aux, forcelc )
            arg002=-gp*(z-zp)
            arg101= gp/2.d0/tmp+tmp*(z-zp)
            arg102= gp/2.d0/tmp-tmp*(z-zp)
-           t1=exp_erfc(arg002,arg102)
-           t2=exp_erfc(arg001,arg101)
+           t1=env_exp_erfc(arg002,arg102)
+           t2=env_exp_erfc(arg001,arg101)
            c1(1)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k1
            c1(2)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k2
            c1(3)=CMPLX(cc, ss,kind=DP)*(t1-t2)/4.d0
            c2(:)=(0.d0,0.d0)
            vg_f_r(iz,:) = tt*(c1(:)+c2(:))
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
-        call cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
-        call cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
+        call env_cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6323,7 +6323,7 @@ SUBROUTINE esm_force_lc_bc1 ( aux, forcelc )
 
            vg_f_r(iz,1) = tt*(cc1+cc2)
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6353,17 +6353,17 @@ SUBROUTINE esm_force_lc_bc1 ( aux, forcelc )
   deallocate(rhog3)
 
   return
-END SUBROUTINE esm_force_lc_bc1
+END SUBROUTINE env_esm_force_lc_bc1
 
-SUBROUTINE esm_force_lc_bc2 ( aux, forcelc )
+SUBROUTINE env_esm_force_lc_bc2 ( aux, forcelc )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
 
   implicit none
   complex(DP), intent(in)    :: aux(dfftp%nnr) ! aux contains n(G) (input)   
@@ -6446,8 +6446,8 @@ SUBROUTINE esm_force_lc_bc2 ( aux, forcelc )
            arg009=-4.d0*gp*z1
            arg101= gp/2.d0/tmp+tmp*(z-zp)
            arg102= gp/2.d0/tmp-tmp*(z-zp)
-           t1=exp_erfc(arg002,arg102)
-           t2=exp_erfc(arg001,arg101)
+           t1=env_exp_erfc(arg002,arg102)
+           t2=env_exp_erfc(arg001,arg101)
            c1(1)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k1
            c1(2)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k2
            c1(3)=CMPLX(cc, ss,kind=DP)*(t1-t2)/4.d0
@@ -6459,9 +6459,9 @@ SUBROUTINE esm_force_lc_bc2 ( aux, forcelc )
               -exp(arg005)+exp(arg003))/(1.d0-exp(arg009))/2.d0
            vg_f_r(iz,:) = tt*(c1(:)+c2(:))
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
-        call cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
-        call cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
+        call env_cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6493,7 +6493,7 @@ SUBROUTINE esm_force_lc_bc2 ( aux, forcelc )
            cc2=-0.5d0*(z/z1)
            vg_f_r(iz,1) = tt*(cc1+cc2)
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6522,17 +6522,17 @@ SUBROUTINE esm_force_lc_bc2 ( aux, forcelc )
   deallocate(rhog3)
 
   return
-END SUBROUTINE esm_force_lc_bc2
+END SUBROUTINE env_esm_force_lc_bc2
 
-SUBROUTINE esm_force_lc_bc3 ( aux, forcelc )
+SUBROUTINE env_esm_force_lc_bc3 ( aux, forcelc )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
 
   implicit none
   complex(DP), intent(in)    :: aux(dfftp%nnr) ! aux contains n(G) (input)   
@@ -6610,8 +6610,8 @@ SUBROUTINE esm_force_lc_bc3 ( aux, forcelc )
            arg003= gp*(z+zp-2.d0*z1)
            arg101= gp/2.d0/tmp+tmp*(z-zp)
            arg102= gp/2.d0/tmp-tmp*(z-zp)
-           t1=exp_erfc(arg002,arg102)
-           t2=exp_erfc(arg001,arg101)
+           t1=env_exp_erfc(arg002,arg102)
+           t2=env_exp_erfc(arg001,arg101)
            c1(1)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k1
            c1(2)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k2
            c1(3)=CMPLX(cc, ss,kind=DP)*(t1-t2)/4.d0
@@ -6621,9 +6621,9 @@ SUBROUTINE esm_force_lc_bc3 ( aux, forcelc )
 
            vg_f_r(iz,:) = tt*(c1(:)+c2(:))
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
-        call cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
-        call cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
+        call env_cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6655,7 +6655,7 @@ SUBROUTINE esm_force_lc_bc3 ( aux, forcelc )
            cc2=-0.5d0
            vg_f_r(iz,1) = tt*(cc1+cc2)
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6685,17 +6685,17 @@ SUBROUTINE esm_force_lc_bc3 ( aux, forcelc )
   deallocate(rhog3)
 
   return
-END SUBROUTINE esm_force_lc_bc3
+END SUBROUTINE env_esm_force_lc_bc3
 
-SUBROUTINE esm_force_lc_bc4 ( aux, forcelc )
+SUBROUTINE env_esm_force_lc_bc4 ( aux, forcelc )
 
-  USE constants,        ONLY : tpi, fpi, e2
-  USE gvect,            ONLY : ngm, mill
-  USE cell_base,        ONLY : omega, alat, tpiba2, at, bg
-  USE control_flags,    ONLY : gamma_only
-  USE ions_base,        ONLY : zv, nat, tau, ityp
-  USE fft_base,         ONLY : dfftp
-  USE fft_scalar,       ONLY : cft_1z
+  USE env_constants,        ONLY : tpi, fpi, e2
+  USE env_gvect,            ONLY : ngm, mill
+  USE env_cell_base,        ONLY : omega, alat, tpiba2, at, bg
+  USE env_control_flags,    ONLY : gamma_only
+  USE env_ions_base,        ONLY : zv, nat, tau, ityp
+  USE env_fft_base,         ONLY : dfftp
+  USE env_fft_scalar,       ONLY : env_cft_1z
 
   implicit none
   complex(DP), intent(in)    :: aux(dfftp%nnr) ! aux contains n(G) (input)   
@@ -6796,41 +6796,41 @@ SUBROUTINE esm_force_lc_bc4 ( aux, forcelc )
            arg111= chi/2.d0/tmp+tmp*(z-zp)
            arg113= chi/2.d0/tmp+tmp*(z1-zp)
            if (z < z1) then
-              t1= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103)
-              t2= exp_erfc(arg002,arg102) &
-                 -kappa/alpha*exp_erfc(arg003,arg104)
-              t3= exp_erfc(arg006,arg109)/alpha
+              t1= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103)
+              t2= env_exp_erfc(arg002,arg102) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg104)
+              t3= env_exp_erfc(arg006,arg109)/alpha
               c1(1)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k1
               c1(2)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/gp*k2
               c2(1)=CMPLX(ss,-cc,kind=DP)*t3/2.d0*k1
               c2(2)=CMPLX(ss,-cc,kind=DP)*t3/2.d0*k2
-              t1= exp_erfc(arg001,arg103)-exp_erfc(arg001,arg101)
-              t2= exp_erfc(arg002,arg102) &
-                 -kappa/alpha*exp_erfc(arg003,arg104)
-              t3=-xi/alpha*exp_erfc(arg006,arg109)
+              t1= env_exp_erfc(arg001,arg103)-env_exp_erfc(arg001,arg101)
+              t2= env_exp_erfc(arg002,arg102) &
+                 -kappa/alpha*env_exp_erfc(arg003,arg104)
+              t3=-xi/alpha*env_exp_erfc(arg006,arg109)
               c1(3)=CMPLX(cc, ss,kind=DP)*(t1+t2)/4.d0
               c2(3)=CMPLX(cc, ss,kind=DP)*t3/2.d0
            else
-              t1= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111)
-              t2= exp_erfc(arg008,arg107) &
-                 -beta/alpha*exp_erfc(arg009,arg109)
-              t3= exp_erfc(arg005,arg104)/alpha
+              t1= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111)
+              t2= env_exp_erfc(arg008,arg107) &
+                 -beta/alpha*env_exp_erfc(arg009,arg109)
+              t3= env_exp_erfc(arg005,arg104)/alpha
               c1(1)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/lambda*k1
               c1(2)=CMPLX(ss,-cc,kind=DP)*(t1+t2)/4.d0/lambda*k2
               c2(1)=CMPLX(ss,-cc,kind=DP)*t3/2.d0*k1
               c2(2)=CMPLX(ss,-cc,kind=DP)*t3/2.d0*k2
-              t1= chi*(exp_erfc(arg011,arg111)-exp_erfc(arg011,arg113))
-              t2=-xi*(exp_erfc(arg008,arg107) &
-                 +beta/alpha*exp_erfc(arg009,arg109))
-              t3= gp/alpha*exp_erfc(arg005,arg104)
+              t1= chi*(env_exp_erfc(arg011,arg111)-env_exp_erfc(arg011,arg113))
+              t2=-xi*(env_exp_erfc(arg008,arg107) &
+                 +beta/alpha*env_exp_erfc(arg009,arg109))
+              t3= gp/alpha*env_exp_erfc(arg005,arg104)
               c1(3)=CMPLX(cc, ss,kind=DP)*(t1+t2)/4.d0/lambda
               c2(3)=CMPLX(cc, ss,kind=DP)*t3/2.d0
            endif
            vg_f_r(iz,:) = tt*(c1(:)+c2(:))
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
-        call cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
-        call cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,2),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,2))
+        call env_cft_1z(vg_f_r(:,3),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,3))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6865,14 +6865,14 @@ SUBROUTINE esm_force_lc_bc4 ( aux, forcelc )
            arg106= aaa/tmp+tmp*(z1-zp)
            if (z < z1)then
               cc1= 0.5d0*(qe_erf(arg101)-qe_erf(arg102))
-              cc2=-0.5d0*exp_erfc(arg006,arg106)
+              cc2=-0.5d0*env_exp_erfc(arg006,arg106)
            else
               cc1= 0.d0
-              cc2=-0.5d0*exp_erfc(arg006,arg104)
+              cc2=-0.5d0*env_exp_erfc(arg006,arg104)
            endif
            vg_f_r(iz,1) = tt*(cc1+cc2)
         enddo
-        call cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
+        call env_cft_1z(vg_f_r(:,1),1,dfftp%nr3,dfftp%nr3,-1,vg_f(:,1))
         do iz=1,dfftp%nr3
            r1= dble(rhog3(iz,ng_2d))
            r2=aimag(rhog3(iz,ng_2d))
@@ -6901,7 +6901,7 @@ SUBROUTINE esm_force_lc_bc4 ( aux, forcelc )
   deallocate(rhog3)
 
   return
-END SUBROUTINE esm_force_lc_bc4
+END SUBROUTINE env_esm_force_lc_bc4
 
 !-----------------------------------------------------------------------
 !--------------ESM FINAL PRINTOUT SUBROUTINE----------------------------
@@ -6917,18 +6917,18 @@ END SUBROUTINE esm_force_lc_bc4
 ! Prints out vlocal and vhartree to stdout once electrons are converged
 ! Format: z, rho(r), v_hartree, v_local, (v_hartree + v_local) 
 !
-SUBROUTINE esm_printpot( rhog )
-    use kinds,         only : DP
-    use gvect,         only : ngm, mill, igtongl
-    use constants,     only : pi, sqrtpm1, tpi, fpi, e2
-    use constants,     only : AUTOEV, BOHR_RADIUS_ANGS
-    use cell_base,     only : omega, alat, at, tpiba, bg
-    use ions_base,     only : zv, nat, tau, ityp, ntyp => nsp
-    USE vlocal,        only : strf, vloc
-    use control_flags, only : gamma_only
-    use fft_base,      only : dfftp
-    use fft_scalar,    only : cft_1z
-    USE io_files,      only : prefix, tmp_dir
+SUBROUTINE env_esm_printpot( rhog )
+    use env_kinds,         only : DP
+    use env_gvect,         only : ngm, mill, igtongl
+    use env_constants,     only : pi, sqrtpm1, tpi, fpi, e2
+    use env_constants,     only : AUTOEV, BOHR_RADIUS_ANGS
+    use env_cell_base,     only : omega, alat, at, tpiba, bg
+    use env_ions_base,     only : zv, nat, tau, ityp, ntyp => nsp
+    USE env_vlocal,        only : strf, vloc
+    use env_control_flags, only : gamma_only
+    use env_fft_base,      only : dfftp
+    use env_fft_scalar,    only : env_cft_1z
+    USE env_io_files,      only : prefix, tmp_dir
     implicit none
 
     complex(DP), intent(in) :: rhog(ngm)   !  n(G)
@@ -6986,7 +6986,7 @@ SUBROUTINE esm_printpot( rhog )
        end if
     end do ! ig
 
-    call cft_1z( rho0g,1,dfftp%nr3,dfftp%nr3,+1,rho0r )
+    call env_cft_1z( rho0g,1,dfftp%nr3,dfftp%nr3,+1,rho0r )
 
     !!---- calculate hartree potential
     Vhar0g(:) = 0.0d0
@@ -7001,7 +7001,7 @@ SUBROUTINE esm_printpot( rhog )
        Vhar0g(igz) = fpi*rg3/gz**2
     end do ! igz
 
-    call cft_1z(Vhar0g,1,dfftp%nr3,dfftp%nr3,+1,Vhar0r)
+    call env_cft_1z(Vhar0g,1,dfftp%nr3,dfftp%nr3,+1,Vhar0r)
 
     ! summations over gz
     sum1c = (0.d0,0.d0)
@@ -7073,7 +7073,7 @@ SUBROUTINE esm_printpot( rhog )
           Vloc0g(igz) = CONJG(vg3)
        end if
     end do
-    call cft_1z( Vloc0g,1,dfftp%nr3,dfftp%nr3,+1,Vloc0r )
+    call env_cft_1z( Vloc0g,1,dfftp%nr3,dfftp%nr3,+1,Vloc0r )
 
     ! long range
     do iz=1, dfftp%nr3
@@ -7150,7 +7150,7 @@ SUBROUTINE esm_printpot( rhog )
 9050 FORMAT( '#z (A)',2X,'Tot chg (e/A)',2X,'Avg v_hartree (eV)',2X,&
          &'Avg v_local (eV)',2x,'Avg v_hart+v_loc (eV)' )
 9051 FORMAT( F6.2,F20.7,F20.7,F18.7,F18.7 )
-END SUBROUTINE esm_printpot
+END SUBROUTINE env_esm_printpot
 !
 !-----------------------------------------------------------------------
 !--------------ESM SUMMARY PRINTOUT SUBROUTINE--------------------------
@@ -7158,10 +7158,10 @@ END SUBROUTINE esm_printpot
 !
 ! Prints summary of ESM parameters to stdout
 !
-SUBROUTINE esm_summary ()
+SUBROUTINE env_esm_summary ()
       !
-      USE io_global,        ONLY : stdout, ionode
-      USE constants,        ONLY : rytoev, BOHR_RADIUS_ANGS
+      USE env_io_global,        ONLY : stdout, ionode
+      USE env_constants,        ONLY : rytoev, BOHR_RADIUS_ANGS
       !
       IMPLICIT NONE
       !
@@ -7212,12 +7212,12 @@ SUBROUTINE esm_summary ()
 9053  FORMAT( '     grid points for fit at edges     = ', I8,' ')
 9054  FORMAT( '     smoothness parameter             = ', F8.2,' 1/a.u.' )
 
-END SUBROUTINE esm_summary
+END SUBROUTINE env_esm_summary
 
-function vl11j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl11j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl11j0
+   real(DP)            :: env_vl11j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, kappa, xi, t1, t2, t3, arg001, arg002, &
@@ -7237,18 +7237,18 @@ function vl11j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg104=  gp/2.d0/tmp-tmp*(z1-zp)
    arg109=  xi/2.d0/tmp+tmp*(z1-zp)
    t1=-exp(arg003)*kappa/alpha
-   t2= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103) &
-      +exp_erfc(arg002,arg102)-kappa/alpha*exp_erfc(arg003,arg104)
-   t3= exp_erfc(arg006,arg109)/alpha
-   vl11j0=(t1/2.d0-(t2/4.d0+gp*t3/2.d0))*dbesj0(gp*rxy)
+   t2= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103) &
+      +env_exp_erfc(arg002,arg102)-kappa/alpha*env_exp_erfc(arg003,arg104)
+   t3= env_exp_erfc(arg006,arg109)/alpha
+   env_vl11j0=(t1/2.d0-(t2/4.d0+gp*t3/2.d0))*dbesj0(gp*rxy)
    !
    return
-end function vl11j0
+end function env_vl11j0
 
-function vl11j1(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl11j1(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl11j1
+   real(DP)            :: env_vl11j1
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, kappa, xi, t1, t2, t3, arg001, arg002, &
@@ -7272,21 +7272,21 @@ function vl11j1(gp,aaa,tmp,z1,z,zp,rxy)
    arg109=  xi/2.d0/tmp+tmp*(z1-zp)
    arg110=  xi/2.d0/tmp-tmp*(z-z1)
    t1=-exp(arg003)*kappa/alpha
-   t2= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103) &
-      +exp_erfc(arg002,arg102)-kappa/alpha*exp_erfc(arg003,arg104) &
-      +exp_erfc(arg006,arg109)*2.d0*gp/alpha
-   t3= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106) &
-      +exp_erfc(arg001,arg101)-kappa/alpha*exp_erfc(arg003,arg105) &
-      +exp_erfc(arg007,arg110)*2.d0*gp/alpha
-   vl11j1=gp*(t1-(t2+t3)/4.d0)*dbesj1(gp*rxy)
+   t2= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103) &
+      +env_exp_erfc(arg002,arg102)-kappa/alpha*env_exp_erfc(arg003,arg104) &
+      +env_exp_erfc(arg006,arg109)*2.d0*gp/alpha
+   t3= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106) &
+      +env_exp_erfc(arg001,arg101)-kappa/alpha*env_exp_erfc(arg003,arg105) &
+      +env_exp_erfc(arg007,arg110)*2.d0*gp/alpha
+      env_vl11j1=gp*(t1-(t2+t3)/4.d0)*dbesj1(gp*rxy)
    !
    return
-end function vl11j1
+end function env_vl11j1
 
-function vl12j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl12j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl12j0
+   real(DP)            :: env_vl12j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, kappa, xi, t1, t2, t3, arg001, arg002, &
@@ -7307,16 +7307,16 @@ function vl12j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg104=  gp/2.d0/tmp-tmp*(z1-zp)
    arg109=  xi/2.d0/tmp+tmp*(z1-zp)
    t1= exp(arg004)/alpha
-   t2= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103) &
-      +exp_erfc(arg002,arg102)-kappa/alpha*exp_erfc(arg003,arg104)
-   t3= exp_erfc(arg006,arg109)/alpha
-   vl12j0=(gp*t1-(t2/4.d0+gp*t3/2.d0))*dbesj0(gp*rxy)   
-end function vl12j0
+   t2= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103) &
+      +env_exp_erfc(arg002,arg102)-kappa/alpha*env_exp_erfc(arg003,arg104)
+   t3= env_exp_erfc(arg006,arg109)/alpha
+   env_vl12j0=(gp*t1-(t2/4.d0+gp*t3/2.d0))*dbesj0(gp*rxy)   
+end function env_vl12j0
 
-function vl12j1(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl12j1(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl12j1
+   real(DP)            :: env_vl12j1
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, kappa, xi, chi, lambda, t1, t2, t3, &
@@ -7349,19 +7349,19 @@ function vl12j1(gp,aaa,tmp,z1,z,zp,rxy)
    arg112= chi/2.d0/tmp-tmp*(z-zp)
    arg114= chi/2.d0/tmp-tmp*(z-z1)
    t1= exp(arg004)/alpha
-   t2= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103) &
-      +exp_erfc(arg002,arg102)-kappa/alpha*exp_erfc(arg003,arg104) &
-      +exp_erfc(arg006,arg109)*2.d0*gp/alpha
-   t3= exp_erfc(arg012,arg114)-exp_erfc(arg012,arg112) &
-      +exp_erfc(arg010,arg108)-beta/alpha*exp_erfc(arg009,arg110) &
-      +exp_erfc(arg004,arg105)*2.d0*lambda/alpha
-   vl12j1=(2.d0*t1*gp**2-(gp*t2+gp**2*t3/lambda)/4.d0)*dbesj1(gp*rxy)
-end function vl12j1
+   t2= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103) &
+      +env_exp_erfc(arg002,arg102)-kappa/alpha*env_exp_erfc(arg003,arg104) &
+      +env_exp_erfc(arg006,arg109)*2.d0*gp/alpha
+   t3= env_exp_erfc(arg012,arg114)-env_exp_erfc(arg012,arg112) &
+      +env_exp_erfc(arg010,arg108)-beta/alpha*env_exp_erfc(arg009,arg110) &
+      +env_exp_erfc(arg004,arg105)*2.d0*lambda/alpha
+      env_vl12j1=(2.d0*t1*gp**2-(gp*t2+gp**2*t3/lambda)/4.d0)*dbesj1(gp*rxy)
+end function env_vl12j1
 
-function vl21j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl21j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl21j0
+   real(DP)            :: env_vl21j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, xi, chi, lambda, t1, t2, t3, arg005, &
@@ -7383,16 +7383,16 @@ function vl21j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg111= chi/2.d0/tmp+tmp*(z-zp)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    t1= exp(arg005)/alpha
-   t2= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111) &
-      +exp_erfc(arg008,arg107)-beta/alpha*exp_erfc(arg009,arg109)
-   t3= exp_erfc(arg005,arg104)/alpha
-   vl21j0=gp*(t1-(t2/4.d0/lambda+t3/2.d0))*dbesj0(gp*rxy)
-end function vl21j0
+   t2= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111) &
+      +env_exp_erfc(arg008,arg107)-beta/alpha*env_exp_erfc(arg009,arg109)
+   t3= env_exp_erfc(arg005,arg104)/alpha
+   env_vl21j0=gp*(t1-(t2/4.d0/lambda+t3/2.d0))*dbesj0(gp*rxy)
+end function env_vl21j0
 
-function vl21j1(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl21j1(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl21j1
+   real(DP)            :: env_vl21j1
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, kappa, xi, chi, lambda, t1, t2, t3, &
@@ -7425,19 +7425,19 @@ function vl21j1(gp,aaa,tmp,z1,z,zp,rxy)
    arg111= chi/2.d0/tmp+tmp*(z-zp)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    t1= exp(arg005)/alpha
-   t2= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111) &
-      +exp_erfc(arg008,arg107)-beta/alpha*exp_erfc(arg009,arg109) &
-      +exp_erfc(arg005,arg104)*2.d0*lambda/alpha
-   t3= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106) &
-      +exp_erfc(arg001,arg101)-kappa/alpha*exp_erfc(arg003,arg105) &
-      +exp_erfc(arg007,arg110)*2.d0*gp/alpha
-   vl21j1=(2.d0*t1*gp**2-(gp**2*t2/lambda+gp*t3)/4.d0)*dbesj1(gp*rxy)
-end function vl21j1
+   t2= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111) &
+      +env_exp_erfc(arg008,arg107)-beta/alpha*env_exp_erfc(arg009,arg109) &
+      +env_exp_erfc(arg005,arg104)*2.d0*lambda/alpha
+   t3= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106) &
+      +env_exp_erfc(arg001,arg101)-kappa/alpha*env_exp_erfc(arg003,arg105) &
+      +env_exp_erfc(arg007,arg110)*2.d0*gp/alpha
+      env_vl21j1=(2.d0*t1*gp**2-(gp**2*t2/lambda+gp*t3)/4.d0)*dbesj1(gp*rxy)
+end function env_vl21j1
 
-function vl22j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl22j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl22j0
+   real(DP)            :: env_vl22j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, xi, chi, lambda, t1, t2, t3, arg000, &
@@ -7460,18 +7460,18 @@ function vl22j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg111= chi/2.d0/tmp+tmp*(z-zp)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    t1=-exp(arg000)*beta/alpha
-   t2= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111) &
-      +exp_erfc(arg008,arg107)-beta/alpha*exp_erfc(arg009,arg109)
-   t3= exp_erfc(arg005,arg104)/alpha
-   vl22j0=gp*(t1/2.d0/lambda-(t2/4.d0/lambda+t3/2.d0))*dbesj0(gp*rxy)
+   t2= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111) &
+      +env_exp_erfc(arg008,arg107)-beta/alpha*env_exp_erfc(arg009,arg109)
+   t3= env_exp_erfc(arg005,arg104)/alpha
+   env_vl22j0=gp*(t1/2.d0/lambda-(t2/4.d0/lambda+t3/2.d0))*dbesj0(gp*rxy)
    !
    return
-end function vl22j0
+end function env_vl22j0
 
-function vl22j1(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl22j1(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl22j1
+   real(DP)            :: env_vl22j1
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, xi, chi, lambda, t1, t2, t3, arg000, &
@@ -7503,21 +7503,21 @@ function vl22j1(gp,aaa,tmp,z1,z,zp,rxy)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    arg114= chi/2.d0/tmp-tmp*(z-z1)
    t1=-exp(arg000)*beta/alpha
-   t2= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111) &
-      +exp_erfc(arg008,arg107)-beta/alpha*exp_erfc(arg009,arg109) &
-      +exp_erfc(arg005,arg104)*2.d0*lambda/alpha
-   t3= exp_erfc(arg012,arg114)-exp_erfc(arg012,arg112) &
-      +exp_erfc(arg010,arg108)-beta/alpha*exp_erfc(arg009,arg110) &
-      +exp_erfc(arg004,arg105)*2.d0*lambda/alpha
-   vl22j1=gp**2*(t1-(t2+t3)/4.d0)*dbesj1(gp*rxy)/lambda
+   t2= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111) &
+      +env_exp_erfc(arg008,arg107)-beta/alpha*env_exp_erfc(arg009,arg109) &
+      +env_exp_erfc(arg005,arg104)*2.d0*lambda/alpha
+   t3= env_exp_erfc(arg012,arg114)-env_exp_erfc(arg012,arg112) &
+      +env_exp_erfc(arg010,arg108)-beta/alpha*env_exp_erfc(arg009,arg110) &
+      +env_exp_erfc(arg004,arg105)*2.d0*lambda/alpha
+      env_vl22j1=gp**2*(t1-(t2+t3)/4.d0)*dbesj1(gp*rxy)/lambda
    !
    return
-end function vl22j1
+end function env_vl22j1
 
-function vl11(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl11(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl11
+   real(DP)            :: env_vl11
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, kappa, xi, t1, t2, t3, arg001, arg002, &
@@ -7537,18 +7537,18 @@ function vl11(gp,aaa,tmp,z1,z,zp,rxy)
    arg104=  gp/2.d0/tmp-tmp*(z1-zp)
    arg109=  xi/2.d0/tmp+tmp*(z1-zp)
    t1=-exp(arg003)*kappa/alpha
-   t2= exp_erfc(arg001,arg101)-exp_erfc(arg001,arg103) &
-      +exp_erfc(arg002,arg102)-kappa/alpha*exp_erfc(arg003,arg104)
-   t3= exp_erfc(arg006,arg109)/alpha
-   vl11=t1/2.d0-(t2/4.d0+gp*t3/2.d0)
+   t2= env_exp_erfc(arg001,arg101)-env_exp_erfc(arg001,arg103) &
+      +env_exp_erfc(arg002,arg102)-kappa/alpha*env_exp_erfc(arg003,arg104)
+   t3= env_exp_erfc(arg006,arg109)/alpha
+   env_vl11=t1/2.d0-(t2/4.d0+gp*t3/2.d0)
    !
    return
-end function vl11
+end function env_vl11
 
-function vl22(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_vl22(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: vl22
+   real(DP)            :: env_vl22
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, xi, chi, lambda, t1, t2, t3, arg000, &
@@ -7571,18 +7571,18 @@ function vl22(gp,aaa,tmp,z1,z,zp,rxy)
    arg111= chi/2.d0/tmp+tmp*(z-zp)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    t1=-exp(arg000)*beta/alpha
-   t2= exp_erfc(arg011,arg113)-exp_erfc(arg011,arg111) &
-      +exp_erfc(arg008,arg107)-beta/alpha*exp_erfc(arg009,arg109)
-   t3= exp_erfc(arg005,arg104)/alpha
-   vl22=gp*t1/2.d0/lambda-gp*(t2/4.d0/lambda+t3/2.d0)
+   t2= env_exp_erfc(arg011,arg113)-env_exp_erfc(arg011,arg111) &
+      +env_exp_erfc(arg008,arg107)-beta/alpha*env_exp_erfc(arg009,arg109)
+   t3= env_exp_erfc(arg005,arg104)/alpha
+   env_vl22=gp*t1/2.d0/lambda-gp*(t2/4.d0/lambda+t3/2.d0)
    !
    return
-end function vl22
+end function env_vl22
 
-function dvl11(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_dvl11(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: dvl11
+   real(DP)            :: env_dvl11
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, kappa, xi, t1, t2, t3, arg001, arg002, &
@@ -7606,21 +7606,21 @@ function dvl11(gp,aaa,tmp,z1,z,zp,rxy)
    arg109=  xi/2.d0/tmp+tmp*(z1-zp)
    arg110=  xi/2.d0/tmp-tmp*(z-z1)
    t1=-exp(arg003)*kappa/alpha
-   t2= exp_erfc(arg001,arg103)-exp_erfc(arg001,arg101) &
-      +exp_erfc(arg002,arg102)-exp_erfc(arg003,arg104)*kappa/alpha &
-      -exp_erfc(arg006,arg109)*xi/alpha*2.d0
-   t3= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106) &
-      -exp_erfc(arg001,arg101)-exp_erfc(arg003,arg105)*kappa/alpha &
-      +exp_erfc(arg007,arg110)*gp/alpha*2.d0
-   dvl11=gp*(t1-(t2+t3)/4.d0)
+   t2= env_exp_erfc(arg001,arg103)-env_exp_erfc(arg001,arg101) &
+      +env_exp_erfc(arg002,arg102)-env_exp_erfc(arg003,arg104)*kappa/alpha &
+      -env_exp_erfc(arg006,arg109)*xi/alpha*2.d0
+   t3= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106) &
+      -env_exp_erfc(arg001,arg101)-env_exp_erfc(arg003,arg105)*kappa/alpha &
+      +env_exp_erfc(arg007,arg110)*gp/alpha*2.d0
+      env_dvl11=gp*(t1-(t2+t3)/4.d0)
    !
    return
-end function dvl11
+end function env_dvl11
 
-function dvl22(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_dvl22(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: dvl22
+   real(DP)            :: env_dvl22
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, kappa, xi, chi, lambda, arg000, &
@@ -7653,23 +7653,23 @@ function dvl22(gp,aaa,tmp,z1,z,zp,rxy)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    arg114= chi/2.d0/tmp-tmp*(z-z1)
    t1= exp(arg000)*beta*xi/alpha/lambda
-   t2= (exp_erfc(arg011,arg111)-exp_erfc(arg011,arg113))*chi/lambda &
-      -exp_erfc(arg008,arg107)*xi/lambda &
-      +exp_erfc(arg009,arg109)*xi*beta/alpha/lambda &
-      +exp_erfc(arg005,arg104)*gp/alpha*2.d0
-   t3= (exp_erfc(arg012,arg112)-exp_erfc(arg012,arg114))*xi/lambda &
-      -exp_erfc(arg010,arg108)*chi/lambda &
-      +exp_erfc(arg009,arg110)*xi*beta/alpha/lambda &
-      -exp_erfc(arg004,arg105)*xi/alpha*2.d0
-   dvl22=gp*(t1-(t2+t3)/4.d0)
+   t2= (env_exp_erfc(arg011,arg111)-env_exp_erfc(arg011,arg113))*chi/lambda &
+      -env_exp_erfc(arg008,arg107)*xi/lambda &
+      +env_exp_erfc(arg009,arg109)*xi*beta/alpha/lambda &
+      +env_exp_erfc(arg005,arg104)*gp/alpha*2.d0
+   t3= (env_exp_erfc(arg012,arg112)-env_exp_erfc(arg012,arg114))*xi/lambda &
+      -env_exp_erfc(arg010,arg108)*chi/lambda &
+      +env_exp_erfc(arg009,arg110)*xi*beta/alpha/lambda &
+      -env_exp_erfc(arg004,arg105)*xi/alpha*2.d0
+      env_dvl22=gp*(t1-(t2+t3)/4.d0)
    !
    return
-end function dvl22
+end function env_dvl22
 
-function dvl11j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_dvl11j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: dvl11j0
+   real(DP)            :: env_dvl11j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, kappa, xi, t1, t2, t3, arg001, arg002, &
@@ -7693,21 +7693,21 @@ function dvl11j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg109=  xi/2.d0/tmp+tmp*(z1-zp)
    arg110=  xi/2.d0/tmp-tmp*(z-z1)
    t1=-exp(arg003)*kappa/alpha
-   t2= exp_erfc(arg001,arg103)-exp_erfc(arg001,arg101) &
-      +exp_erfc(arg002,arg102)-exp_erfc(arg003,arg104)*kappa/alpha &
-      -exp_erfc(arg006,arg109)*xi/alpha*2.d0
-   t3= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106) &
-      -exp_erfc(arg001,arg101)-exp_erfc(arg003,arg105)*kappa/alpha &
-      +exp_erfc(arg007,arg110)*gp/alpha*2.d0
-   dvl11j0=gp*(t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
+   t2= env_exp_erfc(arg001,arg103)-env_exp_erfc(arg001,arg101) &
+      +env_exp_erfc(arg002,arg102)-env_exp_erfc(arg003,arg104)*kappa/alpha &
+      -env_exp_erfc(arg006,arg109)*xi/alpha*2.d0
+   t3= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106) &
+      -env_exp_erfc(arg001,arg101)-env_exp_erfc(arg003,arg105)*kappa/alpha &
+      +env_exp_erfc(arg007,arg110)*gp/alpha*2.d0
+      env_dvl11j0=gp*(t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
    !
    return
-end function dvl11j0
+end function env_dvl11j0
 
-function dvl12j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_dvl12j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: dvl12j0
+   real(DP)            :: env_dvl12j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, kappa, xi, chi, lambda, arg001, &
@@ -7740,22 +7740,22 @@ function dvl12j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg112= chi/2.d0/tmp-tmp*(z-zp)
    arg114= chi/2.d0/tmp-tmp*(z-z1)
    t1=-exp(arg004)*xi/alpha
-   t2= exp_erfc(arg001,arg103)-exp_erfc(arg001,arg101) &
-      +exp_erfc(arg002,arg102)-exp_erfc(arg003,arg104)*kappa/alpha &
-      -exp_erfc(arg006,arg109)*xi/alpha*2.d0
-   t3= (exp_erfc(arg012,arg112)-exp_erfc(arg012,arg114))*xi/lambda &
-      -exp_erfc(arg010,arg108)*chi/lambda &
-      +exp_erfc(arg009,arg110)*xi*beta/alpha/lambda &
-      -exp_erfc(arg004,arg105)*xi/alpha*2.d0
-   dvl12j0=gp*(2.d0*t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
+   t2= env_exp_erfc(arg001,arg103)-env_exp_erfc(arg001,arg101) &
+      +env_exp_erfc(arg002,arg102)-env_exp_erfc(arg003,arg104)*kappa/alpha &
+      -env_exp_erfc(arg006,arg109)*xi/alpha*2.d0
+   t3= (env_exp_erfc(arg012,arg112)-env_exp_erfc(arg012,arg114))*xi/lambda &
+      -env_exp_erfc(arg010,arg108)*chi/lambda &
+      +env_exp_erfc(arg009,arg110)*xi*beta/alpha/lambda &
+      -env_exp_erfc(arg004,arg105)*xi/alpha*2.d0
+      env_dvl12j0=gp*(2.d0*t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
    !
    return
-end function dvl12j0
+end function env_dvl12j0
 
-function dvl21j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_dvl21j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: dvl21j0
+   real(DP)            :: env_dvl21j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, kappa, xi, chi, lambda, arg001, &
@@ -7788,22 +7788,22 @@ function dvl21j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg111= chi/2.d0/tmp+tmp*(z-zp)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    t1= exp(arg005)*gp/alpha
-   t2= (exp_erfc(arg011,arg111)-exp_erfc(arg011,arg113))*chi/lambda &
-      -exp_erfc(arg008,arg107)*xi/lambda &
-      +exp_erfc(arg009,arg109)*xi*beta/alpha/lambda &
-      +exp_erfc(arg005,arg104)*gp/alpha*2.d0
-   t3= exp_erfc(arg002,arg102)-exp_erfc(arg002,arg106) &
-      -exp_erfc(arg001,arg101)-exp_erfc(arg003,arg105)*kappa/alpha &
-      +exp_erfc(arg007,arg110)*gp/alpha*2.d0
-   dvl21j0=gp*(2.d0*t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
+   t2= (env_exp_erfc(arg011,arg111)-env_exp_erfc(arg011,arg113))*chi/lambda &
+      -env_exp_erfc(arg008,arg107)*xi/lambda &
+      +env_exp_erfc(arg009,arg109)*xi*beta/alpha/lambda &
+      +env_exp_erfc(arg005,arg104)*gp/alpha*2.d0
+   t3= env_exp_erfc(arg002,arg102)-env_exp_erfc(arg002,arg106) &
+      -env_exp_erfc(arg001,arg101)-env_exp_erfc(arg003,arg105)*kappa/alpha &
+      +env_exp_erfc(arg007,arg110)*gp/alpha*2.d0
+      env_dvl21j0=gp*(2.d0*t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
    !
    return
-end function dvl21j0
+end function env_dvl21j0
 
-function dvl22j0(gp,aaa,tmp,z1,z,zp,rxy)
-   USE kinds,            ONLY : DP
+function env_dvl22j0(gp,aaa,tmp,z1,z,zp,rxy)
+   USE env_kinds,            ONLY : DP
    implicit none
-   real(DP)            :: dvl22j0
+   real(DP)            :: env_dvl22j0
    real(DP),intent(in) :: gp, aaa, tmp, z1, z, zp, rxy
    !local
    real(DP)            ::alpha, beta, kappa, xi, chi, lambda, arg000, &
@@ -7836,21 +7836,21 @@ function dvl22j0(gp,aaa,tmp,z1,z,zp,rxy)
    arg113= chi/2.d0/tmp+tmp*(z1-zp)
    arg114= chi/2.d0/tmp-tmp*(z-z1)
    t1= exp(arg000)*beta*xi/alpha/lambda
-   t2= (exp_erfc(arg011,arg111)-exp_erfc(arg011,arg113))*chi/lambda &
-      -exp_erfc(arg008,arg107)*xi/lambda &
-      +exp_erfc(arg009,arg109)*xi*beta/alpha/lambda &
-      +exp_erfc(arg005,arg104)*gp/alpha*2.d0
-   t3= (exp_erfc(arg012,arg112)-exp_erfc(arg012,arg114))*xi/lambda &
-      -exp_erfc(arg010,arg108)*chi/lambda &
-      +exp_erfc(arg009,arg110)*xi*beta/alpha/lambda &
-      -exp_erfc(arg004,arg105)*xi/alpha*2.d0
-   dvl22j0=gp*(t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
+   t2= (env_exp_erfc(arg011,arg111)-env_exp_erfc(arg011,arg113))*chi/lambda &
+      -env_exp_erfc(arg008,arg107)*xi/lambda &
+      +env_exp_erfc(arg009,arg109)*xi*beta/alpha/lambda &
+      +env_exp_erfc(arg005,arg104)*gp/alpha*2.d0
+   t3= (env_exp_erfc(arg012,arg112)-env_exp_erfc(arg012,arg114))*xi/lambda &
+      -env_exp_erfc(arg010,arg108)*chi/lambda &
+      +env_exp_erfc(arg009,arg110)*xi*beta/alpha/lambda &
+      -env_exp_erfc(arg004,arg105)*xi/alpha*2.d0
+      env_dvl22j0=gp*(t1-(t2+t3)/4.d0)*dbesj0(gp*rxy)
    !
    return
-end function dvl22j0
+end function env_dvl22j0
 
-SUBROUTINE qromb(func,aaa,tmp,z1,z,zp,rxy,b,ss)
-   USE kinds,            ONLY : DP
+SUBROUTINE env_qromb(func,aaa,tmp,z1,z,zp,rxy,b,ss)
+   USE env_kinds,            ONLY : DP
    integer, parameter   ::jmax=20, jmaxp=jmax+1, k=5, km=k-1
    integer              ::j
    real(DP),intent(in)  ::aaa, tmp, z1, z, zp, rxy, b
@@ -7863,9 +7863,9 @@ SUBROUTINE qromb(func,aaa,tmp,z1,z,zp,rxy,b,ss)
    !
    h(1)=1.0_DP
    do j=1,jmax
-     call trapzd(func,aaa,tmp,z1,z,zp,rxy,a,b,s(j),j)
+     call env_trapzd(func,aaa,tmp,z1,z,zp,rxy,a,b,s(j),j)
      if (j.ge.k) then
-       call polint(h(j-km),s(j-km),k,0.0_DP,ss,dss)
+       call env_polint(h(j-km),s(j-km),k,0.0_DP,ss,dss)
        if (abs(ss).le.1.e-8 ) return
        if (abs(dss).le.eps*abs(ss)) return
      endif
@@ -7873,10 +7873,10 @@ SUBROUTINE qromb(func,aaa,tmp,z1,z,zp,rxy,b,ss)
      h(j+1)=0.25*h(j)
    enddo
    stop 'too many steps in qromb'
-END SUBROUTINE qromb
+END SUBROUTINE env_qromb
 
-SUBROUTINE trapzd(func,aaa,tmp,z1,z,zp,rxy,a,b,s,n)
-   USE kinds,            ONLY : DP
+SUBROUTINE env_trapzd(func,aaa,tmp,z1,z,zp,rxy,a,b,s,n)
+   USE env_kinds,            ONLY : DP
    integer,intent(in)::n
    real(DP),intent(in)::aaa, tmp, z1, z, zp, rxy, a, b
    real(DP),intent(inout)::s
@@ -7899,10 +7899,10 @@ SUBROUTINE trapzd(func,aaa,tmp,z1,z,zp,rxy,a,b,s,n)
      s=0.5*(s+(b-a)*sum/tnm)
    endif
    return
-END SUBROUTINE trapzd
+END SUBROUTINE env_trapzd
 
-SUBROUTINE polint(xa,ya,n,x,y,dy)
-   USE kinds,            ONLY : DP
+SUBROUTINE env_polint(xa,ya,n,x,y,dy)
+   USE env_kinds,            ONLY : DP
    integer, intent(in)  ::n
    integer, parameter   ::nmax=10
    integer              ::i, m, ns
@@ -7943,11 +7943,11 @@ SUBROUTINE polint(xa,ya,n,x,y,dy)
      y=y+dy
    enddo
    return
-END SUBROUTINE polint
+END SUBROUTINE env_polint
 !
 ! Bessel J_0(x) function in double precision
 !
-real(8) FUNCTION dbesj0(x)
+real(8) FUNCTION env_dbesj0(x)
    implicit none
    real(8), intent(in) :: x
    real(8), parameter  :: pi4 = 0.78539816339744830962d0
@@ -8099,11 +8099,11 @@ real(8) FUNCTION dbesj0(x)
       theta = theta * v - pi4
       y = y * cos( w + theta )
    end if
-   dbesj0 = y
-END FUNCTION dbesj0
+   env_dbesj0 = y
+END FUNCTION env_dbesj0
 
 
-real(8) FUNCTION dbesj1(x)
+real(8) FUNCTION env_dbesj1(x)
    implicit none
    real(8), intent(in) :: x
    real(8), parameter :: pi4 = 0.78539816339744830962d0
@@ -8258,12 +8258,12 @@ real(8) FUNCTION dbesj1(x)
       y = y * sin(w + theta)
    end if
    if( x < 0.0d0 ) y = -y
-   dbesj1 = y
-END FUNCTION dbesj1
+   env_dbesj1 = y
+END FUNCTION env_dbesj1
 
 ! exp(x) * erfc(y)
 ! This function is to avoid INFINITY * ZERO for large positive x and y.
-real(8) function exp_erfc (x, y)
+real(8) function env_exp_erfc (x, y)
    implicit none
    real(8), intent(in) :: x, y
    real(8)             :: ym, ym2, nume, deno
@@ -8278,16 +8278,16 @@ real(8) function exp_erfc (x, y)
       1.00000000000000000d0 /)
    
    if( x < 709.0d0 .or. y < 4.0d0 ) then
-      exp_erfc = exp(x) * qe_erfc(y)
+      env_exp_erfc = exp(x) * qe_erfc(y)
    else
       ym  = 1d0 / y
       ym2 = ym ** 2
       nume =( ( ( r(4) * ym2 + r(3) ) * ym2 + r(2) ) * ym2 + r(1) ) * ym2 + r(0)
       deno =( ( ( s(4) * ym2 + s(3) ) * ym2 + s(2) ) * ym2 + s(1) ) * ym2 + s(0)
-      exp_erfc = exp( - y**2 + x) * ym * ( rtpim + ym2 * nume / deno )
+      env_exp_erfc = exp( - y**2 + x) * ym * ( rtpim + ym2 * nume / deno )
    end if
    
    return
-end function exp_erfc
+end function env_exp_erfc
 
-END MODULE esm
+END MODULE env_esm

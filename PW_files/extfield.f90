@@ -7,11 +7,11 @@
 !
 !--------------------------------------------------------------------------
 !
-MODULE extfield
+MODULE env_extfield
   !
   ! ... The quantities needed in calculations with external field
   !
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   !
   SAVE
   !
@@ -48,7 +48,7 @@ CONTAINS
 !
 !------------------------------------------------------------------------------!
 !
-      FUNCTION saw(emaxpos,eopreg,x) RESULT (sawout)
+      FUNCTION env_saw(emaxpos,eopreg,x) RESULT (sawout)
         IMPLICIT NONE
         REAL(DP) :: emaxpos,eopreg,x
         REAL(DP) :: y, sawout, z
@@ -68,7 +68,7 @@ CONTAINS
         
         end if
         
-      END FUNCTION saw
+      END FUNCTION env_saw
 
 !TB - start
 !------------------------------------------------------------------------------!
@@ -77,7 +77,7 @@ CONTAINS
 !          I split those in order to plot both independently
 ! cite PRB 89, 245406 (2014)
 !
-      FUNCTION mopopla(zgate,x,kflag) RESULT (mopoplaout)
+      FUNCTION env_mopopla(zgate,x,kflag) RESULT (mopoplaout)
         IMPLICIT NONE
         REAL(DP) :: zgate,x
         REAL(DP) :: mopoplaout, z
@@ -114,6 +114,6 @@ CONTAINS
            ENDIF
         ENDIF
 
-      END FUNCTION mopopla
+      END FUNCTION env_mopopla
 
-END MODULE extfield
+END MODULE env_extfield
