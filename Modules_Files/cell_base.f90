@@ -6,12 +6,12 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !------------------------------------------------------------------------------!
-  MODULE cell_base
+  MODULE env_cell_base
 !------------------------------------------------------------------------------!
 
-    USE kinds, ONLY : DP
-    USE constants, ONLY : pi, bohr_radius_angs
-    USE io_global, ONLY : stdout
+    USE env_kinds, ONLY : DP
+    USE env_constants, ONLY : pi, bohr_radius_angs
+    USE env_io_global, ONLY : stdout
 !
     IMPLICIT NONE
     SAVE
@@ -93,26 +93,26 @@
 
         LOGICAL :: tcell_base_init = .FALSE.
 
-        INTERFACE cell_init
-          MODULE PROCEDURE cell_init_ht, cell_init_a
+        INTERFACE env_cell_init
+          MODULE PROCEDURE env_cell_init_ht, env_cell_init_a
         END INTERFACE
 
-        INTERFACE pbcs
-          MODULE PROCEDURE pbcs_components, pbcs_vectors
+        INTERFACE env_pbcs
+          MODULE PROCEDURE env_pbcs_components, env_pbcs_vectors
         END INTERFACE
 
-        INTERFACE s_to_r
-          MODULE PROCEDURE s_to_r1, s_to_r1b, s_to_r3
+        INTERFACE env_s_to_r
+          MODULE PROCEDURE env_s_to_r1, env_s_to_r1b, env_s_to_r3
         END INTERFACE
 
-        INTERFACE r_to_s
-          MODULE PROCEDURE r_to_s1, r_to_s1b, r_to_s3
+        INTERFACE env_r_to_s
+          MODULE PROCEDURE env_r_to_s1, env_r_to_s1b, env_r_to_s3
         END INTERFACE
 !------------------------------------------------------------------------------!
   CONTAINS
 !------------------------------------------------------------------------------!
 !
-  SUBROUTINE cell_base_init( ibrav_, celldm_, a_, b_, c_, cosab_, cosac_, &
+  SUBROUTINE env_cell_base_init( ibrav_, celldm_, a_, b_, c_, cosab_, cosac_, &
                cosbc_, trd_ht, rd_ht, cell_units_ )
     !
     ! ... initialize cell_base module variables, set up crystal lattice
@@ -129,9 +129,9 @@
     REAL(DP) :: units
     !
     IF ( ibrav_ == 0 .and. .not. trd_ht ) THEN
-       CALL errore('cell_base_init', 'ibrav=0: must read cell parameters', 1)
+       CALL env_errore('cell_base_init', 'ibrav=0: must read cell parameters', 1)
     ELSE IF ( ibrav_ /= 0 .and. trd_ht ) THEN
-       CALL errore('cell_base_init', 'redundant data for cell parameters', 2)
+       CALL env_errore('cell_base_init', 'redundant data for cell parameters', 2)
     END IF
     !
     ibrav  = ibrav_
@@ -146,11 +146,11 @@
       !
       SELECT CASE ( TRIM( cell_units ) )
         CASE ( 'bohr' )
-          IF( celldm( 1 ) /= 0.0_DP .OR. a /= 0.0_dp ) CALL errore &
+          IF( celldm( 1 ) /= 0.0_DP .OR. a /= 0.0_dp ) CALL env_errore &
               ('cell_base_init','lattice parameter specified twice',1)
           units = 1.0_DP
         CASE ( 'angstrom' )
-          IF( celldm( 1 ) /= 0.0_DP .OR. a /= 0.0_dp ) CALL errore &
+          IF( celldm( 1 ) /= 0.0_DP .OR. a /= 0.0_dp ) CALL env_errore &
               ('cell_base_init','lattice parameter specified twice',2)
           units = 1.0_DP / bohr_radius_angs
         CASE ( 'alat' ) 
@@ -159,7 +159,7 @@
           ELSE IF ( a /= 0.0_dp ) THEN
              units = a / bohr_radius_angs
           ELSE
-            CALL errore ('cell_base_init', &
+            CALL env_errore ('cell_base_init', &
                          'lattice parameter not specified',1) 
           END IF
           ! following case is deprecated and should be removed
@@ -177,7 +177,7 @@
           END IF
           !
         CASE DEFAULT
-          CALL errore ('cell_base_init', &
+          CALL env_errore ('cell_base_init', &
                        'unexpected cell_units '//TRIM(cell_units),1) 
      END SELECT
      !
@@ -198,7 +198,7 @@
      celldm(1) = alat
      !
      at(:,:) = at(:,:) / alat
-     CALL volume( alat, at(1,1), at(1,2), at(1,3), omega )
+     CALL env_volume( alat, at(1,1), at(1,2), at(1,3), omega )
      !
   ELSE
      !
@@ -208,17 +208,17 @@
         !
         ! ... convert crystallographic parameters into celldm parameters
         !
-        CALL abc2celldm ( ibrav, a,b,c,cosab,cosac,cosbc, celldm )
+        CALL env_abc2celldm ( ibrav, a,b,c,cosab,cosac,cosbc, celldm )
         !
      ELSE IF ( celldm(1) /= 0.D0 .and. a /= 0.D0 ) THEN
         !
-        CALL errore( 'input', 'do not specify both celldm and a,b,c!', 1 )
+        CALL env_errore( 'input', 'do not specify both celldm and a,b,c!', 1 )
         !
      END IF
      !
      ! ... generate at (in atomic units) from ibrav and celldm
      !
-     CALL latgen( ibrav, celldm, at(1,1), at(1,2), at(1,3), omega )
+     CALL env_latgen( ibrav, celldm, at(1,1), at(1,2), at(1,3), omega )
      !
      ! ... define lattice constants alat, divide at by alat
      !
@@ -229,16 +229,16 @@
   !
   ! ... Generate the reciprocal lattice vectors
   !
-  CALL recips( at(1,1), at(1,2), at(1,3), bg(1,1), bg(1,2), bg(1,3) )
+  CALL env_recips( at(1,1), at(1,2), at(1,3), bg(1,1), bg(1,2), bg(1,3) )
   !
   tpiba  = 2.0_DP * pi / alat
   tpiba2 = tpiba * tpiba
   init_tpiba2 = tpiba2 ! BS : this is used in CPV/src/init_run.f90 
   RETURN
   !
-  END SUBROUTINE cell_base_init
+  END SUBROUTINE env_cell_base_init
   !
-  SUBROUTINE ref_cell_base_init( ref_alat, rd_ref_ht, ref_cell_units )
+  SUBROUTINE env_ref_cell_base_init( ref_alat, rd_ref_ht, ref_cell_units )
       !
       ! ... initialize cell_base module variables, set up crystal lattice
       !
@@ -262,7 +262,7 @@
         IF( ref_alat .GT. 0.0_DP ) THEN
           units = ref_alat 
         ELSE
-          CALL errore('ref_cell_base_init', 'ref_alat must be set to a positive value (in A.U.) in SYSTEM namelist', 1)
+          CALL env_errore('ref_cell_base_init', 'ref_alat must be set to a positive value (in A.U.) in SYSTEM namelist', 1)
         END IF
         !
       END SELECT
@@ -279,11 +279,11 @@
       !
       ! ... Generate the reciprocal lattice vectors from the reference cell
       !
-      CALL recips( ref_at(1,1), ref_at(1,2), ref_at(1,3), ref_bg(1,1), ref_bg(1,2), ref_bg(1,3) )
+      CALL env_recips( ref_at(1,1), ref_at(1,2), ref_at(1,3), ref_bg(1,1), ref_bg(1,2), ref_bg(1,3) )
       !
       ref_tpiba2  = (2.0_DP * pi / ref_alat)**2
       !
-      CALL volume( ref_alat, ref_at(1,1), ref_at(1,2), ref_at(1,3), ref_omega )
+      CALL env_volume( ref_alat, ref_at(1,1), ref_at(1,2), ref_at(1,3), ref_omega )
       !
       WRITE( stdout, * )
       WRITE( stdout, '(3X,"Reference Cell read from REF_CELL_PARAMETERS Card")' )
@@ -299,7 +299,7 @@
       !
       RETURN
       !
-  END SUBROUTINE ref_cell_base_init
+  END SUBROUTINE env_ref_cell_base_init
 !------------------------------------------------------------------------------!
 ! ...     set box
 ! ...     box%m1(i,1) == b1(i)   COLUMN are B vectors
@@ -308,7 +308,7 @@
 ! ...     box%g(i,j)  == metric tensor G
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE cell_init_ht( what, box, hval )
+        SUBROUTINE env_cell_init_ht( what, box, hval )
           TYPE (boxdimensions) :: box
           REAL(DP),  INTENT(IN) :: hval(3,3)
           CHARACTER, INTENT(IN) :: what
@@ -321,18 +321,18 @@
                box%hmat = hval
                box%a = TRANSPOSE( hval )
             END IF
-            CALL gethinv( box )
+            CALL env_gethinv( box )
             box%g = MATMUL( box%a(:,:), box%hmat(:,:) )
             box%gvel = 0.0_DP
             box%hvel = 0.0_DP
             box%pail = 0.0_DP
             box%paiu = 0.0_DP
           RETURN
-        END SUBROUTINE cell_init_ht
+        END SUBROUTINE env_cell_init_ht
           
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE cell_init_a( alat, at, box )
+        SUBROUTINE env_cell_init_a( alat, at, box )
           TYPE (boxdimensions) :: box
           REAL(DP), INTENT(IN) :: alat, at(3,3)
           INTEGER :: i
@@ -349,15 +349,15 @@
             box%pail = 0.0_DP
             box%paiu = 0.0_DP
             box%hvel = 0.0_DP
-            CALL gethinv(box)
+            CALL env_gethinv(box)
             box%g    = MATMUL( box%a(:,:), box%hmat(:,:) )
             box%gvel = 0.0_DP
           RETURN
-        END SUBROUTINE cell_init_a
+        END SUBROUTINE env_cell_init_a
 
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE r_to_s1 (r,s,box)
+        SUBROUTINE env_r_to_s1 (r,s,box)
           REAL(DP), intent(out) ::  S(3)
           REAL(DP), intent(in) :: R(3)
           type (boxdimensions), intent(in) :: box
@@ -369,11 +369,11 @@
             END DO
           END DO
           RETURN
-        END SUBROUTINE r_to_s1
+        END SUBROUTINE env_r_to_s1
 
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE r_to_s3 ( r, s, na, nsp, hinv )
+        SUBROUTINE env_r_to_s3 ( r, s, na, nsp, hinv )
           REAL(DP), intent(out) ::  S(:,:)
           INTEGER, intent(in) ::  na(:), nsp
           REAL(DP), intent(in) :: R(:,:)
@@ -392,11 +392,11 @@
             END DO
           END DO
           RETURN
-        END SUBROUTINE r_to_s3
+        END SUBROUTINE env_r_to_s3
 
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE r_to_s1b ( r, s, hinv )
+        SUBROUTINE env_r_to_s1b ( r, s, hinv )
           REAL(DP), intent(out) ::  S(:)
           REAL(DP), intent(in) :: R(:)
           REAL(DP), intent(in) :: hinv(:,:)    ! hinv = TRANSPOSE( box%m1 )
@@ -408,12 +408,12 @@
             END DO
           END DO
           RETURN
-        END SUBROUTINE r_to_s1b
+        END SUBROUTINE env_r_to_s1b
 
 
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE s_to_r1 (S,R,box)
+        SUBROUTINE env_s_to_r1 (S,R,box)
           REAL(DP), intent(in) ::  S(3)
           REAL(DP), intent(out) :: R(3)
           type (boxdimensions), intent(in) :: box
@@ -425,11 +425,11 @@
             END DO
           END DO
           RETURN
-        END SUBROUTINE s_to_r1
+        END SUBROUTINE env_s_to_r1
 
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE s_to_r1b (S,R,h)
+        SUBROUTINE env_s_to_r1b (S,R,h)
           REAL(DP), intent(in) ::  S(3)
           REAL(DP), intent(out) :: R(3)
           REAL(DP), intent(in) :: h(:,:)    ! h = TRANSPOSE( box%a )
@@ -441,11 +441,11 @@
             END DO
           END DO
           RETURN
-        END SUBROUTINE s_to_r1b
+        END SUBROUTINE env_s_to_r1b
 
 !------------------------------------------------------------------------------!
 
-        SUBROUTINE s_to_r3 ( S, R, na, nsp, h )
+        SUBROUTINE env_s_to_r3 ( S, R, na, nsp, h )
           REAL(DP), intent(in) ::  S(:,:)
           INTEGER, intent(in) ::  na(:), nsp
           REAL(DP), intent(out) :: R(:,:)
@@ -464,39 +464,39 @@
             END DO
           END DO
           RETURN
-        END SUBROUTINE s_to_r3
+        END SUBROUTINE env_s_to_r3
 
 
 !
 !------------------------------------------------------------------------------!
 !
 
-      SUBROUTINE gethinv(box)
-        USE matrix_inversion
+      SUBROUTINE env_gethinv(box)
+        USE env_matrix_inversion
         IMPLICIT NONE
         TYPE (boxdimensions), INTENT (INOUT) :: box
         !
-        CALL invmat( 3, box%a, box%m1, box%omega )
+        CALL env_invmat( 3, box%a, box%m1, box%omega )
         box%deth = box%omega
         box%hinv = TRANSPOSE( box%m1 )
         !
         RETURN
-      END SUBROUTINE gethinv
+      END SUBROUTINE env_gethinv
 
 
-      FUNCTION get_volume( hmat )
+      FUNCTION env_get_volume( hmat )
          IMPLICIT NONE
-         REAL(DP) :: get_volume
+         REAL(DP) :: env_get_volume
          REAL(DP) :: hmat( 3, 3 )
-         get_volume = hmat(1,1)*(hmat(2,2)*hmat(3,3)-hmat(2,3)*hmat(3,2)) + &
+         env_get_volume = hmat(1,1)*(hmat(2,2)*hmat(3,3)-hmat(2,3)*hmat(3,2)) + &
                       hmat(1,2)*(hmat(2,3)*hmat(3,1)-hmat(2,1)*hmat(3,3)) + &
                       hmat(1,3)*(hmat(2,1)*hmat(3,2)-hmat(2,2)*hmat(3,1))
          RETURN
-      END FUNCTION get_volume
+      END FUNCTION env_get_volume
 !
 !------------------------------------------------------------------------------!
 !
-      FUNCTION pbc(rin,box,nl) RESULT (rout)
+      FUNCTION env_pbc(rin,box,nl) RESULT (rout)
         IMPLICIT NONE
         TYPE (boxdimensions) :: box
         REAL (DP) :: rin(3)
@@ -510,11 +510,11 @@
           s = REAL( nl, DP )
           rout = rout + matmul(box%hmat(:,:),s)
         END IF
-      END FUNCTION pbc
+      END FUNCTION env_pbc
 !
 !------------------------------------------------------------------------------!
 !
-          SUBROUTINE get_cell_param(box,cell,ang)
+          SUBROUTINE env_get_cell_param(box,cell,ang)
           IMPLICIT NONE
           TYPE(boxdimensions), INTENT(in) :: box
           REAL(DP), INTENT(out), DIMENSION(3) :: cell
@@ -545,14 +545,14 @@
 !           ang=ang*180.0_DP/pi
 
           ENDIF
-          END SUBROUTINE get_cell_param
+          END SUBROUTINE env_get_cell_param
 
 !------------------------------------------------------------------------------!
 
-      SUBROUTINE pbcs_components(x1, y1, z1, x2, y2, z2, m)
+      SUBROUTINE env_pbcs_components(x1, y1, z1, x2, y2, z2, m)
 ! ... This subroutine compute the periodic boundary conditions in the scaled
 ! ... variables system
-        USE kinds
+        USE env_kinds
         INTEGER, INTENT(IN)  :: M
         REAL(DP),  INTENT(IN)  :: X1,Y1,Z1
         REAL(DP),  INTENT(OUT) :: X2,Y2,Z2
@@ -562,14 +562,14 @@
         Y2 = Y1 - DNINT(Y1/MIC)*MIC
         Z2 = Z1 - DNINT(Z1/MIC)*MIC
         RETURN
-      END SUBROUTINE pbcs_components
+      END SUBROUTINE env_pbcs_components
 
 !------------------------------------------------------------------------------!
 
-      SUBROUTINE pbcs_vectors(v, w, m)
+      SUBROUTINE env_pbcs_vectors(v, w, m)
 ! ... This subroutine compute the periodic boundary conditions in the scaled
 ! ... variables system
-        USE kinds
+        USE env_kinds
         INTEGER, INTENT(IN)  :: m
         REAL(DP),  INTENT(IN)  :: v(3)
         REAL(DP),  INTENT(OUT) :: w(3)
@@ -579,11 +579,11 @@
         w(2) = v(2) - DNINT(v(2)/MIC)*MIC
         w(3) = v(3) - DNINT(v(3)/MIC)*MIC
         RETURN
-      END SUBROUTINE pbcs_vectors
+      END SUBROUTINE env_pbcs_vectors
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE set_h_ainv()
+  SUBROUTINE env_set_h_ainv()
     !
     ! CP-PW compatibility: align CP arrays H and ainv to at and bg
     !
@@ -599,15 +599,15 @@
     ainv(2,:) = bg(:,2)/alat
     ainv(3,:) = bg(:,3)/alat
     !
-  END SUBROUTINE set_h_ainv
+  END SUBROUTINE env_set_h_ainv
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE cell_dyn_init( trd_ht, rd_ht, wc_ , total_ions_mass , press_ , &
+  SUBROUTINE env_cell_dyn_init( trd_ht, rd_ht, wc_ , total_ions_mass , press_ , &
                frich_ , greash_ , cell_dofree )
 
-    USE constants, ONLY: au_gpa, amu_au
-    USE io_global, ONLY: stdout
+    USE env_constants, ONLY: au_gpa, amu_au
+    USE env_io_global, ONLY: stdout
 
     IMPLICIT NONE
     CHARACTER(LEN=*), INTENT(IN) :: cell_dofree
@@ -640,7 +640,7 @@
 130 format(3X,'wmass (calculated)      = ',f15.2,' [AU]')
 
     IF( wmass <= 0.0_DP ) &
-      CALL errore(' cell_dyn_init',' wmass out of range ',0)
+      CALL env_errore(' cell_dyn_init',' wmass out of range ',0)
 
     IF ( trd_ht ) THEN
       !
@@ -658,7 +658,7 @@
     ainv(2,:) = bg(:,2)/alat
     ainv(3,:) = bg(:,3)/alat
     !
-    CALL init_dofree ( cell_dofree ) 
+    CALL env_init_dofree ( cell_dofree ) 
     !
     tcell_base_init = .TRUE.
 
@@ -684,10 +684,10 @@
 
 
     RETURN
-  END SUBROUTINE cell_dyn_init
+  END SUBROUTINE env_cell_dyn_init
 
 !------------------------------------------------------------------------------!
-  SUBROUTINE init_dofree ( cell_dofree ) 
+  SUBROUTINE env_init_dofree ( cell_dofree ) 
 
      ! set constraints on cell dynamics/optimization
 
@@ -717,10 +717,10 @@
               fix_area = .true.
 ! 2DSHAPE
             CASE ( 'volume' )
-              !CALL errore(' init_dofree ', &
+              !CALL env_errore(' init_dofree ', &
               !   ' cell_dofree = '//TRIM(cell_dofree)//' not yet implemented ', 1 )
               IF ( ibrav /= 1 ) THEN
-                CALL errore('cell_dofree', 'Isotropic expansion is only allowed for ibrav=1; i.e. for simple cubic', 1)
+                CALL env_errore('cell_dofree', 'Isotropic expansion is only allowed for ibrav=1; i.e. for simple cubic', 1)
               END IF
               iforceh      = 0
               iforceh(1,1) = 1
@@ -785,16 +785,16 @@
               iforceh(2,1) = 1
               iforceh(3,1) = 1
             CASE DEFAULT
-              CALL errore(' init_dofree ',' unknown cell_dofree '//TRIM(cell_dofree), 1 )
+              CALL env_errore(' init_dofree ',' unknown cell_dofree '//TRIM(cell_dofree), 1 )
 
      END SELECT
-  END SUBROUTINE init_dofree 
+  END SUBROUTINE env_init_dofree 
       
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE cell_base_reinit( ht )
+  SUBROUTINE env_cell_base_reinit( ht )
 
-    USE control_flags, ONLY: iverbosity
+    USE env_control_flags, ONLY: iverbosity
 
     IMPLICIT NONE
     REAL(DP), INTENT(IN) :: ht (3,3)
@@ -819,8 +819,8 @@
     !
     at     = TRANSPOSE( ht ) / alat
     !
-    CALL recips( at(1,1), at(1,2), at(1,3), bg(1,1), bg(1,2), bg(1,3) )
-    CALL volume( alat, at(1,1), at(1,2), at(1,3), deth )
+    CALL env_recips( at(1,1), at(1,2), at(1,3), bg(1,1), bg(1,2), bg(1,3) )
+    CALL env_volume( alat, at(1,1), at(1,2), at(1,3), deth )
     omega = deth
     !
     ainv(1,:) = bg(:,1)/alat
@@ -850,13 +850,13 @@
 
 
     RETURN
-  END SUBROUTINE cell_base_reinit
+  END SUBROUTINE env_cell_base_reinit
 
 
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE cell_steepest( hnew, h, delt, iforceh, fcell )
+  SUBROUTINE env_cell_steepest( hnew, h, delt, iforceh, fcell )
     REAL(DP), INTENT(OUT) :: hnew(3,3)
     REAL(DP), INTENT(IN) :: h(3,3), fcell(3,3)
     INTEGER,      INTENT(IN) :: iforceh(3,3)
@@ -888,12 +888,12 @@
     END IF
     !
     RETURN
-  END SUBROUTINE cell_steepest
+  END SUBROUTINE env_cell_steepest
 
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE cell_verlet( hnew, h, hold, delt, iforceh, fcell, frich, tnoseh, hnos )
+  SUBROUTINE env_cell_verlet( hnew, h, hold, delt, iforceh, fcell, frich, tnoseh, hnos )
     REAL(DP), INTENT(OUT) :: hnew(3,3)
     REAL(DP), INTENT(IN) :: h(3,3), hold(3,3), hnos(3,3), fcell(3,3)
     INTEGER,      INTENT(IN) :: iforceh(3,3)
@@ -946,11 +946,11 @@
     END IF
   
     RETURN
-  END SUBROUTINE cell_verlet
+  END SUBROUTINE env_cell_verlet
 
 !------------------------------------------------------------------------------!
 
-  subroutine cell_hmove( h, hold, delt, iforceh, fcell )
+  subroutine env_cell_hmove( h, hold, delt, iforceh, fcell )
     REAL(DP), intent(out) :: h(3,3)
     REAL(DP), intent(in) :: hold(3,3), fcell(3,3)
     REAL(DP), intent(in) :: delt
@@ -965,12 +965,12 @@
       end do
     end do
     return
-  end subroutine cell_hmove
+  end subroutine env_cell_hmove
 
 !------------------------------------------------------------------------------!
 
-  subroutine cell_force( fcell, ainv, stress, omega, press, wmassIN )
-    USE constants, ONLY : eps8
+  subroutine env_cell_force( fcell, ainv, stress, omega, press, wmassIN )
+    USE env_constants, ONLY : eps8
     REAL(DP), intent(out) :: fcell(3,3)
     REAL(DP), intent(in) :: stress(3,3), ainv(3,3)
     REAL(DP), intent(in) :: omega, press
@@ -993,7 +993,7 @@
       end do
     end do
     IF( wmass < eps8 ) &
-       CALL errore( ' movecell ',' cell mass is less than 0 ! ', 1 )
+       CALL env_errore( ' movecell ',' cell mass is less than 0 ! ', 1 )
     fcell = omega * fcell / wmass
 ! added this :
     IF( isotropic ) THEN
@@ -1007,11 +1007,11 @@
     END IF
 ! 
     return
-  end subroutine cell_force
+  end subroutine env_cell_force
 
 !------------------------------------------------------------------------------!
 
-  subroutine cell_move( hnew, h, hold, delt, iforceh, fcell, frich, tnoseh, vnhh, velh, tsdc )
+  subroutine env_cell_move( hnew, h, hold, delt, iforceh, fcell, frich, tnoseh, vnhh, velh, tsdc )
     REAL(DP), intent(out) :: hnew(3,3)
     REAL(DP), intent(in) :: h(3,3), hold(3,3), fcell(3,3)
     REAL(DP), intent(in) :: vnhh(3,3), velh(3,3)
@@ -1030,17 +1030,17 @@
     end if
 !
     IF( tsdc ) THEN
-      call cell_steepest( hnew, h, delt, iforceh, fcell )
+      call env_cell_steepest( hnew, h, delt, iforceh, fcell )
     ELSE
-      call cell_verlet( hnew, h, hold, delt, iforceh, fcell, frich, tnoseh, hnos )
+      call env_cell_verlet( hnew, h, hold, delt, iforceh, fcell, frich, tnoseh, hnos )
     END IF
 
     return
-  end subroutine cell_move
+  end subroutine env_cell_move
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE cell_gamma( hgamma, ainv, h, velh )
+  SUBROUTINE env_cell_gamma( hgamma, ainv, h, velh )
     !
     ! Compute hgamma = g^-1 * dg/dt
     ! that enters in the ions equation of motion
@@ -1061,11 +1061,11 @@
     hgamma = MATMUL( gm1, gdot )
     !
     RETURN
-  END SUBROUTINE cell_gamma
+  END SUBROUTINE env_cell_gamma
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE cell_update_vel( htp, ht0, htm, delt, velh )
+  SUBROUTINE env_cell_update_vel( htp, ht0, htm, delt, velh )
     !
     IMPLICIT NONE
     TYPE (boxdimensions)  :: htp, ht0, htm
@@ -1077,13 +1077,13 @@
     ht0%hvel = velh
 
     RETURN
-  END SUBROUTINE cell_update_vel
+  END SUBROUTINE env_cell_update_vel
 
 
 !------------------------------------------------------------------------------!
 
-  subroutine cell_kinene( ekinh, temphh, velh )
-    use constants, only: k_boltzmann_au
+  subroutine env_cell_kinene( ekinh, temphh, velh )
+    use env_constants, only: k_boltzmann_au
     implicit none
     REAL(DP), intent(out) :: ekinh, temphh(3,3)
     REAL(DP), intent(in)  :: velh(3,3)
@@ -1096,18 +1096,18 @@
        end do
     end do
     return
-  end subroutine cell_kinene
+  end subroutine env_cell_kinene
 
 !------------------------------------------------------------------------------!
 
-  function cell_alat( )
-    real(DP) :: cell_alat
+  function env_cell_alat( )
+    real(DP) :: env_cell_alat
     if( .NOT. tcell_base_init ) &
-      call errore( ' cell_alat ', ' alat has not been set ', 1 )
-    cell_alat = alat
+      call env_errore( ' cell_alat ', ' alat has not been set ', 1 )
+      env_cell_alat = alat
     return 
-  end function cell_alat
+  end function env_cell_alat
 !
 !------------------------------------------------------------------------------!
-   END MODULE cell_base
+   END MODULE env_cell_base
 !------------------------------------------------------------------------------!

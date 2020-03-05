@@ -5,7 +5,7 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-MODULE ws_base
+MODULE env_ws_base
   !============================================================================
   !
   !   Module containing type definitions and auxiliary routines to deal with
@@ -50,7 +50,7 @@ MODULE ws_base
   !
   !============================================================================
   !
-  USE kinds, ONLY: dp
+  USE env_kinds, ONLY: dp
   !
   IMPLICIT NONE
   !
@@ -70,15 +70,15 @@ MODULE ws_base
   END TYPE ws_type
 
   PRIVATE
-  PUBLIC :: ws_type, ws_init, ws_clean, ws_test, ws_vect, ws_dist, ws_weight, ws_dist_stupid
+  PUBLIC :: ws_type, env_ws_init, env_ws_clean, env_ws_test, env_ws_vect, env_ws_dist, env_ws_weight, env_ws_dist_stupid
 
   !============================================================================
   !
  CONTAINS
 !---------------------------------------------------------------
-    SUBROUTINE ws_init(a,ws)
+    SUBROUTINE env_ws_init(a,ws)
 !---------------------------------------------------------------
-      USE matrix_inversion
+      USE env_matrix_inversion
       REAL(DP), INTENT(IN) :: a(3,3)
       TYPE(ws_type), INTENT(OUT) :: ws
       INTEGER :: i
@@ -92,31 +92,31 @@ MODULE ws_base
       ws%initialized = .TRUE.
 
       RETURN
-    END SUBROUTINE ws_init
+    END SUBROUTINE env_ws_init
 !
 !---------------------------------------------------------------
-    SUBROUTINE ws_clean(ws)
+    SUBROUTINE env_ws_clean(ws)
 !---------------------------------------------------------------
       TYPE(ws_type), INTENT(OUT) :: ws
 
       ws%initialized = .FALSE.
 
       RETURN
-    END SUBROUTINE ws_clean
+    END SUBROUTINE env_ws_clean
 !
 !---------------------------------------------------------------
-    SUBROUTINE ws_test(ws)
+    SUBROUTINE env_ws_test(ws)
 !---------------------------------------------------------------
       TYPE(ws_type), INTENT(IN) :: ws
 
-      IF (.NOT.ws%initialized) CALL errore &
+      IF (.NOT.ws%initialized) CALL env_errore &
                ('ws_test','trying to use an uninitialized ws_type variable',1)
 
       RETURN
-    END SUBROUTINE ws_test
+    END SUBROUTINE env_ws_test
 
 !---------------------------------------------------------------
-    SUBROUTINE ws_vect(r,ws,r_ws)
+    SUBROUTINE env_ws_vect(r,ws,r_ws)
 !---------------------------------------------------------------
       REAL(DP), INTENT(IN) :: r(3)
       TYPE(ws_type), INTENT(IN) :: ws
@@ -124,7 +124,7 @@ MODULE ws_base
       REAL(DP) :: x(3), y(3), c, ctest
       INTEGER :: lb(3), ub(3), i1, i2, i3, m(3)
 
-      CALL ws_test(ws)
+      CALL env_ws_test(ws)
 
       x = MATMUL(ws%b,r)
       x(:) = x(:) - NINT(x(:))
@@ -153,20 +153,20 @@ MODULE ws_base
       r_ws =  MATMUL(ws%a,y)
 
       RETURN
-    END SUBROUTINE ws_vect
+    END SUBROUTINE env_ws_vect
 !
 !---------------------------------------------------------------
-    FUNCTION ws_dist_stupid(r,ws)
+    FUNCTION env_ws_dist_stupid(r,ws)
 !---------------------------------------------------------------
       REAL(DP), INTENT(IN) :: r(3)
       TYPE(ws_type), INTENT(IN) :: ws
-      REAL(DP) :: ws_dist_stupid
+      REAL(DP) :: env_ws_dist_stupid
       REAL(DP) :: r_ws(3)
  
       integer :: i1,i2,i3
       real(DP) :: rr, rmin, rtest(3)
 
-      CALL ws_test(ws)
+      CALL env_ws_test(ws)
 
       rmin = 1.d+9
       
@@ -180,43 +180,43 @@ MODULE ws_base
       end do
       end do
 
-      ws_dist_stupid = DSQRT(rmin)
+      env_ws_dist_stupid = DSQRT(rmin)
 
       RETURN
-    END FUNCTION ws_dist_stupid
+    END FUNCTION env_ws_dist_stupid
 !
 !---------------------------------------------------------------
-    FUNCTION ws_dist(r,ws)
+    FUNCTION env_ws_dist(r,ws)
 !---------------------------------------------------------------
       REAL(DP), INTENT(IN) :: r(3)
       TYPE(ws_type), INTENT(IN) :: ws
-      REAL(DP) :: ws_dist
+      REAL(DP) :: env_ws_dist
       REAL(DP) :: r_ws(3)
 
-      CALL ws_test(ws)
+      CALL env_ws_test(ws)
 
-      CALL ws_vect(r,ws,r_ws)
+      CALL env_ws_vect(r,ws,r_ws)
 
-      ws_dist = DSQRT(SUM(r_ws**2))
+      env_ws_dist = DSQRT(SUM(r_ws**2))
 
       RETURN
-    END FUNCTION ws_dist
+    END FUNCTION env_ws_dist
 !
 !---------------------------------------------------------------
-    FUNCTION ws_weight(r,ws)
+    FUNCTION env_ws_weight(r,ws)
 !---------------------------------------------------------------
       REAL(DP), INTENT(IN) :: r(3)
       TYPE(ws_type), INTENT(IN) :: ws
-      REAL(DP) :: ws_weight
+      REAL(DP) :: env_ws_weight
 
       REAL(DP) :: x(3), y(3), c, ctest
       INTEGER :: lb(3), ub(3), i1, i2, i3, m(3)
 
       REAL(DP), PARAMETER  :: eps6  = 1.0E-6_DP
 
-      ws_weight = 0.0_DP
+      env_ws_weight = 0.0_DP
 
-      CALL ws_test(ws)
+      CALL env_ws_test(ws)
 
       x = MATMUL(ws%b,r)
       c  = SUM(x*MATMUL(ws%aa,x))
@@ -232,21 +232,21 @@ MODULE ws_base
                y = x - (/i1,i2,i3/)
                ctest = SUM(y*MATMUL(ws%aa,y))
                IF (ctest < c - eps6 ) THEN
-                  ws_weight = 0.0_DP
+                env_ws_weight = 0.0_DP
                   RETURN
                END IF
                IF (ctest < c + eps6 ) THEN
-                  ws_weight = ws_weight + 1.0_DP
+                env_ws_weight = env_ws_weight + 1.0_DP
                END IF
             END DO
          END DO
       END DO
 
-      IF (ws_weight == 0.0_DP) CALL errore ('ws_weight','unexpected error',1)
+      IF (env_ws_weight == 0.0_DP) CALL errore ('ws_weight','unexpected error',1)
 
-      ws_weight = 1.0_dp / ws_weight
+      env_ws_weight = 1.0_dp / env_ws_weight
 
       RETURN
-    END FUNCTION ws_weight
+    END FUNCTION env_ws_weight
 !
-END MODULE ws_base
+END MODULE env_ws_base

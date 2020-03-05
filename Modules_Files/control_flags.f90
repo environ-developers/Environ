@@ -6,15 +6,15 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !=----------------------------------------------------------------------------=!
-MODULE control_flags
+MODULE env_control_flags
   !=--------------------------------------------------------------------------=!
   !
   ! ... this module contains all basic variables that controls the
   ! ... execution flow
   !----------------------------------------------
   !
-  USE kinds
-  USE parameters
+  USE env_kinds
+  USE env_parameters
   !
   IMPLICIT NONE
   !
@@ -41,7 +41,7 @@ MODULE control_flags
             tscreen, gamma_only, force_pairing, lecrpa, tddfpt, smallmem,    &
             tfirst, tlast, tprint, trescalee 
   !
-  PUBLIC :: fix_dependencies, check_flags
+  PUBLIC :: env_fix_dependencies, env_check_flags
   PUBLIC :: tksw, trhor, thdyn, trhow
   !
   ! ...   declare execution control variables
@@ -279,7 +279,7 @@ MODULE control_flags
   !=--------------------------------------------------------------------------=!
     !
     !------------------------------------------------------------------------
-    SUBROUTINE fix_dependencies()
+    SUBROUTINE env_fix_dependencies()
       !------------------------------------------------------------------------
       !
       IMPLICIT NONE
@@ -319,34 +319,34 @@ MODULE control_flags
       !
       IF ( tsde ) tnosee = .FALSE.
       !
-      CALL check_flags()
+      CALL env_check_flags()
       !
       RETURN
       !
-    END SUBROUTINE fix_dependencies
+    END SUBROUTINE env_fix_dependencies
     !
     !------------------------------------------------------------------------
-    SUBROUTINE check_flags()
+    SUBROUTINE env_check_flags()
       !------------------------------------------------------------------------
       !
       ! ...  do some checks for consistency
       !
       IF ( tnosep .AND. tcp ) &
-         CALL errore( ' control_flags ', ' TCP AND TNOSEP BOTH TRUE', 0 )
+         CALL env_errore( ' control_flags ', ' TCP AND TNOSEP BOTH TRUE', 0 )
       !
       IF ( tnosep .AND. tcap ) &
-         CALL errore( ' control_flags ', ' TCAP AND TNOSEP BOTH TRUE', 0 )
+         CALL env_errore( ' control_flags ', ' TCAP AND TNOSEP BOTH TRUE', 0 )
       !
       IF ( tcp .AND. tcap ) &
-         CALL errore( ' control_flags ', ' TCP AND TCAP BOTH TRUE', 0 )
+         CALL env_errore( ' control_flags ', ' TCP AND TCAP BOTH TRUE', 0 )
       !
       IF ( tv0rd .AND. tsdp ) &
-         CALL errore( ' control_flags ', &
+         CALL env_errore( ' control_flags ', &
                     & ' READING IONS VELOCITY WITH STEEPEST D.', 0 )
       !
       RETURN
       !
-    END SUBROUTINE check_flags
+    END SUBROUTINE env_check_flags
     !
-END MODULE control_flags
+END MODULE env_control_flags
 

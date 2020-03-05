@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !=----------------------------------------------------------------------------=!
-   MODULE gvect
+   MODULE env_gvect
 !=----------------------------------------------------------------------------=!
 
      ! ... variables describing the reciprocal lattice vectors
@@ -15,7 +15,7 @@
      ! ... G> and G<, containing G and -G (G=0 is in G>)
      ! ... This is referred to as the "dense" (or "hard", or "thick") grid
 
-     USE kinds, ONLY: DP
+     USE env_kinds, ONLY: DP
 
      IMPLICIT NONE
      SAVE
@@ -70,11 +70,11 @@
      !
    CONTAINS
 
-     SUBROUTINE gvect_init( ngm_ , comm )
+     SUBROUTINE env_gvect_init( ngm_ , comm )
        !
        ! Set local and global dimensions, allocate arrays
        !
-       USE mp, ONLY: mp_max, mp_sum
+       USE env_mp, ONLY: env_mp_max, env_mp_sum
        IMPLICIT NONE
        INTEGER, INTENT(IN) :: ngm_
        INTEGER, INTENT(IN) :: comm  ! communicator of the group on which g-vecs are distributed
@@ -84,12 +84,12 @@
        !  calculate maximum over all processors
        !
        ngmx = ngm
-       CALL mp_max( ngmx, comm )
+       CALL env_mp_max( ngmx, comm )
        !
        !  calculate sum over all processors
        !
        ngm_g = ngm
-       CALL mp_sum( ngm_g, comm )
+       CALL env_mp_sum( ngm_g, comm )
        !
        !  allocate arrays - only those that are always kept until the end
        !
@@ -101,9 +101,9 @@
        !
        RETURN 
        !
-     END SUBROUTINE gvect_init
+     END SUBROUTINE env_gvect_init
 
-     SUBROUTINE deallocate_gvect(vc)
+     SUBROUTINE env_deallocate_gvect(vc)
        IMPLICIT NONE
        !
        LOGICAL, OPTIONAL, INTENT(IN) :: vc
@@ -124,25 +124,25 @@
        IF( ALLOCATED( eigts1 ) ) DEALLOCATE( eigts1 )
        IF( ALLOCATED( eigts2 ) ) DEALLOCATE( eigts2 )
        IF( ALLOCATED( eigts3 ) ) DEALLOCATE( eigts3 )
-     END SUBROUTINE deallocate_gvect
+     END SUBROUTINE env_deallocate_gvect
 
-     SUBROUTINE deallocate_gvect_exx()
+     SUBROUTINE env_deallocate_gvect_exx()
        IF( ALLOCATED( gg ) ) DEALLOCATE( gg )
        IF( ALLOCATED( g ) )  DEALLOCATE( g )
        IF( ALLOCATED( mill ) ) DEALLOCATE( mill )
        IF( ALLOCATED( igtongl ) ) DEALLOCATE( igtongl )
        IF( ALLOCATED( ig_l2g ) ) DEALLOCATE( ig_l2g )
-     END SUBROUTINE deallocate_gvect_exx
+     END SUBROUTINE env_deallocate_gvect_exx
      !
      !-----------------------------------------------------------------------
-     SUBROUTINE gshells ( vc )
+     SUBROUTINE env_gshells ( vc )
         !----------------------------------------------------------------------
         !
         ! calculate number of G shells: ngl, and the index ng = igtongl(ig)
         ! that gives the shell index ng for (local) G-vector of index ig
         !
-        USE kinds,              ONLY : DP
-        USE constants,          ONLY : eps8
+        USE env_kinds,              ONLY : DP
+        USE env_constants,          ONLY : eps8
         !
         IMPLICIT NONE
         !
@@ -182,18 +182,18 @@
               ENDIF
            ENDDO
 
-           IF (igl /= ngl) CALL errore ('gshells', 'igl <> ngl', ngl)
+           IF (igl /= ngl) CALL env_errore ('gshells', 'igl <> ngl', ngl)
 
         ENDIF
-     END SUBROUTINE gshells
+     END SUBROUTINE env_gshells
 !=----------------------------------------------------------------------------=!
-   END MODULE gvect
+   END MODULE env_gvect
 !=----------------------------------------------------------------------------=!
 
 !=----------------------------------------------------------------------------=!
-   MODULE gvecs
+   MODULE env_gvecs
 !=----------------------------------------------------------------------------=!
-     USE kinds, ONLY: DP
+     USE env_kinds, ONLY: DP
 
      IMPLICIT NONE
      SAVE
@@ -215,8 +215,8 @@
 
    CONTAINS
 
-     SUBROUTINE gvecs_init( ngs_ , comm )
-       USE mp, ONLY: mp_max, mp_sum
+     SUBROUTINE env_gvecs_init( ngs_ , comm )
+       USE env_mp, ONLY: env_mp_max, env_mp_sum
        IMPLICIT NONE
        INTEGER, INTENT(IN) :: ngs_
        INTEGER, INTENT(IN) :: comm  ! communicator of the group on which g-vecs are distributed
@@ -226,12 +226,12 @@
        !  calculate maximum over all processors
        !
        ngsx = ngms
-       CALL mp_max( ngsx, comm )
+       CALL env_mp_max( ngsx, comm )
        !
        !  calculate sum over all processors
        !
        ngms_g = ngms
-       CALL mp_sum( ngms_g, comm )
+       CALL env_mp_sum( ngms_g, comm )
        !
        !  allocate arrays 
        !
@@ -240,9 +240,9 @@
        !
        RETURN 
        !
-     END SUBROUTINE gvecs_init
+     END SUBROUTINE env_gvecs_init
 
 !=----------------------------------------------------------------------------=!
-   END MODULE gvecs
+   END MODULE env_gvecs
 !=----------------------------------------------------------------------------=!
 

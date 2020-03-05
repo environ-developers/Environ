@@ -6,23 +6,23 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-MODULE random_numbers
+MODULE env_random_numbers
   !----------------------------------------------------------------------------
   !
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   !
   IMPLICIT NONE
   !
-  INTERFACE gauss_dist
+  INTERFACE env_gauss_dist
      !
-     MODULE PROCEDURE gauss_dist_scal, gauss_dist_vect
+     MODULE PROCEDURE env_gauss_dist_scal, env_gauss_dist_vect
      !
   END INTERFACE
   !
   CONTAINS
     !
     !------------------------------------------------------------------------
-    FUNCTION randy ( irand )
+    FUNCTION env_randy ( irand )
       !------------------------------------------------------------------------
       !
       ! x=randy(n): reseed with initial seed idum=n ( 0 <= n <= ic, see below)
@@ -30,7 +30,7 @@ MODULE random_numbers
       !             initialized with seed idum=0 the first time it is called
       ! x=randy() : generate uniform real(DP) numbers x in [0,1]
       !
-      REAL(DP) :: randy
+      REAL(DP) :: env_randy
       INTEGER, optional    :: irand
       !
       INTEGER , PARAMETER  :: m    = 714025, &
@@ -60,18 +60,18 @@ MODULE random_numbers
          iy=idum
       END IF
       j=1+(ntab*iy)/m
-      IF( j > ntab .OR. j <  1 ) call errore('randy','j out of range',ABS(j)+1)
+      IF( j > ntab .OR. j <  1 ) call env_errore('randy','j out of range',ABS(j)+1)
       iy=ir(j)
-      randy=iy*rm
+      env_randy=iy*rm
       idum=mod(ia*idum+ic,m)
       ir(j)=idum
       !
       RETURN
       !
-    END FUNCTION randy
+    END FUNCTION env_randy
     !
     !------------------------------------------------------------------------
-    SUBROUTINE set_random_seed ( )
+    SUBROUTINE env_set_random_seed ( )
       !------------------------------------------------------------------------
       !
       ! poor-man random seed for randy
@@ -83,12 +83,12 @@ MODULE random_numbers
       ! itime contains: year, month, day, time difference in minutes, hours,
       !                 minutes, seconds and milliseconds. 
       iseed = ( itime(8) + itime(6) ) * ( itime(7) + itime(4) )
-      irand = randy ( iseed )
+      irand = env_randy ( iseed )
       !
-    END SUBROUTINE set_random_seed
+    END SUBROUTINE env_set_random_seed
     !
     !-----------------------------------------------------------------------
-    FUNCTION gauss_dist_scal( mu, sigma )
+    FUNCTION env_gauss_dist_scal( mu, sigma )
       !-----------------------------------------------------------------------
       !
       ! ... this function generates a number taken from a normal
@@ -98,15 +98,15 @@ MODULE random_numbers
       !
       REAL(DP), INTENT(IN) :: mu
       REAL(DP), INTENT(IN) :: sigma
-      REAL(DP)             :: gauss_dist_scal
+      REAL(DP)             :: env_gauss_dist_scal
       !
       REAL(DP) :: x1, x2, w
       !
       !
       gaussian_loop: DO
          !
-         x1 = 2.0_DP * randy() - 1.0_DP
-         x2 = 2.0_DP * randy() - 1.0_DP
+         x1 = 2.0_DP * env_randy() - 1.0_DP
+         x2 = 2.0_DP * env_randy() - 1.0_DP
          !
          w = x1 * x1 + x2 * x2
          !
@@ -116,14 +116,14 @@ MODULE random_numbers
       !
       w = SQRT( ( - 2.0_DP * LOG( w ) ) / w )
       !
-      gauss_dist_scal = x1 * w * sigma + mu
+      env_gauss_dist_scal = x1 * w * sigma + mu
       !
       RETURN
       !
-    END FUNCTION gauss_dist_scal
+    END FUNCTION env_gauss_dist_scal
     !
     !-----------------------------------------------------------------------
-    FUNCTION gauss_dist_cmplx( mu, sigma )
+    FUNCTION env_gauss_dist_cmplx( mu, sigma )
       !-----------------------------------------------------------------------
       !
       ! ... this function generates a number taken from a normal
@@ -133,15 +133,15 @@ MODULE random_numbers
       !
       REAL(DP), INTENT(IN) :: mu
       REAL(DP), INTENT(IN) :: sigma
-      COMPLEX(DP)          :: gauss_dist_cmplx
+      COMPLEX(DP)          :: env_gauss_dist_cmplx
       !
       REAL(DP) :: x1, x2, w
       !
       !
       gaussian_loop: DO
          !
-         x1 = 2.0_DP * randy() - 1.0_DP
-         x2 = 2.0_DP * randy() - 1.0_DP
+         x1 = 2.0_DP * env_randy() - 1.0_DP
+         x2 = 2.0_DP * env_randy() - 1.0_DP
          !
          w = x1 * x1 + x2 * x2
          !
@@ -151,14 +151,14 @@ MODULE random_numbers
       !
       w = SQRT( ( - 2.0_DP * LOG( w ) ) / w )
       !
-      gauss_dist_cmplx = CMPLX( x1 * w * sigma + mu, x2 * w * sigma + mu, kind=DP)
+      env_gauss_dist_cmplx = CMPLX( x1 * w * sigma + mu, x2 * w * sigma + mu, kind=DP)
       !
       RETURN
       !
-    END FUNCTION gauss_dist_cmplx
+    END FUNCTION env_gauss_dist_cmplx
     !    
     !-----------------------------------------------------------------------
-    FUNCTION gauss_dist_vect( mu, sigma, dim )
+    FUNCTION env_gauss_dist_vect( mu, sigma, dim )
       !-----------------------------------------------------------------------
       !
       ! ... this function generates an array of numbers taken from a normal
@@ -169,7 +169,7 @@ MODULE random_numbers
       REAL(DP), INTENT(IN) :: mu
       REAL(DP), INTENT(IN) :: sigma
       INTEGER,  INTENT(IN) :: dim
-      REAL(DP)             :: gauss_dist_vect( dim )
+      REAL(DP)             :: env_gauss_dist_vect( dim )
       !
       REAL(DP) :: x1, x2, w
       INTEGER  :: i
@@ -179,8 +179,8 @@ MODULE random_numbers
          !
          gaussian_loop: DO
             !
-            x1 = 2.0_DP * randy() - 1.0_DP
-            x2 = 2.0_DP * randy() - 1.0_DP
+            x1 = 2.0_DP * env_randy() - 1.0_DP
+            x2 = 2.0_DP * env_randy() - 1.0_DP
             !
             w = x1 * x1 + x2 * x2
             !
@@ -190,18 +190,18 @@ MODULE random_numbers
          !
          w = SQRT( ( - 2.0_DP * LOG( w ) ) / w )
          !
-         gauss_dist_vect(i) = x1 * w * sigma
+         env_gauss_dist_vect(i) = x1 * w * sigma
          !
          IF ( i >= dim ) EXIT
          !
-         gauss_dist_vect(i+1) = x2 * w * sigma
+         env_gauss_dist_vect(i+1) = x2 * w * sigma
          !
       END DO
       !
-      gauss_dist_vect(:) = gauss_dist_vect(:) + mu
+      env_gauss_dist_vect(:) = env_gauss_dist_vect(:) + mu
       !
       RETURN
       !
-    END FUNCTION gauss_dist_vect
+    END FUNCTION env_gauss_dist_vect
     !
-END MODULE random_numbers
+END MODULE env_random_numbers

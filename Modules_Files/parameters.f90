@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !
-MODULE parameters
+MODULE env_parameters
   
   IMPLICIT NONE
   SAVE
@@ -19,4 +19,4 @@ MODULE parameters
        lmaxx  = 3,      &! max non local angular momentum (l=0 to lmaxx)      
        lqmax= 2*lmaxx+1  ! max number of angular momenta of Q
 
-END MODULE parameters
+END MODULE env_parameters

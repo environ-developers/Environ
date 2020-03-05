@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-MODULE io_global
+MODULE env_io_global
   !----------------------------------------------------------------------------
   !
   IMPLICIT NONE
@@ -35,4 +35,4 @@ MODULE io_global
   !
   INTEGER :: xmloutputunit = 51    ! unit connected to the xml output
   !    
-END MODULE io_global
+END MODULE env_io_global

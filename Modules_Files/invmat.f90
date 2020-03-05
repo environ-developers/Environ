@@ -5,19 +5,19 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-MODULE matrix_inversion
+MODULE env_matrix_inversion
 
    IMPLICIT NONE
    PRIVATE
-   PUBLIC :: invmat
+   PUBLIC :: env_invmat
 
-   INTERFACE invmat
-      MODULE PROCEDURE invmat_r, invmat_c
+   INTERFACE env_invmat
+      MODULE PROCEDURE env_invmat_r, env_invmat_c
    END INTERFACE
 
    CONTAINS
 
-  SUBROUTINE invmat_r (n, a, a_inv, da)
+  SUBROUTINE env_invmat_r (n, a, a_inv, da)
   !-----------------------------------------------------------------------
   ! computes the inverse of a n*n real matrix "a" using LAPACK routines 
   ! if "a_inv" is not present, "a" contains the inverse on output
@@ -25,7 +25,7 @@ MODULE matrix_inversion
   ! if "da" is specified and if the matrix is dimensioned 3x3, 
   ! it also returns the determinant in "da"
   !
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   IMPLICIT NONE
   INTEGER, INTENT(in) :: n
   REAL(DP), DIMENSION (n,n), INTENT(inout)  :: a
@@ -62,24 +62,24 @@ MODULE matrix_inversion
   ELSE
      CALL dgetrf (n, n, a, lda, ipiv, info)
   END IF
-  CALL errore ('invmat', 'error in DGETRF', abs (info) )
+  CALL env_errore ('invmat', 'error in DGETRF', abs (info) )
   IF ( PRESENT(a_inv) ) THEN
      CALL dgetri (n, a_inv, lda, ipiv, work, lwork, info)
   ELSE
      CALL dgetri (n, a, lda, ipiv, work, lwork, info)
   END IF 
-  CALL errore ('invmat', 'error in DGETRI', abs (info) )
+  CALL env_errore ('invmat', 'error in DGETRI', abs (info) )
   !
   lworkfact = INT (work(1)/n)
   DEALLOCATE ( work, ipiv )
 
-  END SUBROUTINE invmat_r
+  END SUBROUTINE env_invmat_r
 
-  SUBROUTINE invmat_c (n, a, a_inv, da)
+  SUBROUTINE env_invmat_c (n, a, a_inv, da)
   !-----------------------------------------------------------------------
   ! as invmat_r, for a complex matrix
   !
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: n
   COMPLEX (DP), DIMENSION (n,n), INTENT(INOUT)  :: a
@@ -116,17 +116,17 @@ MODULE matrix_inversion
   ELSE
      CALL zgetrf (n, n, a, lda, ipiv, info)
   END IF
-  CALL errore ('invmat', 'error in ZGETRF', abs (info) )
+  CALL env_errore ('invmat', 'error in ZGETRF', abs (info) )
   IF ( PRESENT(a_inv) ) THEN
      CALL zgetri (n, a_inv, lda, ipiv, work, lwork, info)
   ELSE
      CALL zgetri (n, a, lda, ipiv, work, lwork, info)
   END IF
-  CALL errore ('invmat', 'error in ZGETRI', abs (info) )
+  CALL env_errore ('invmat', 'error in ZGETRI', abs (info) )
   !
   lworkfact = INT (work(1)/n)
   DEALLOCATE ( work, ipiv )
   !
-  END SUBROUTINE invmat_c
+  END SUBROUTINE env_invmat_c
 
-END MODULE matrix_inversion
+END MODULE env_matrix_inversion

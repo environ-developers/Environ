@@ -6,11 +6,11 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-MODULE mp_bands
+MODULE env_mp_bands
   !----------------------------------------------------------------------------
   !
-  USE mp, ONLY : mp_barrier, mp_bcast, mp_size, mp_rank, mp_comm_split
-  USE parallel_include
+  USE env_mp, ONLY : env_mp_barrier, env_mp_bcast, env_mp_size, env_mp_rank, env_mp_comm_split
+  USE env_parallel_include
   !
   IMPLICIT NONE 
   SAVE
@@ -41,7 +41,7 @@ MODULE mp_bands
 CONTAINS
   !
   !----------------------------------------------------------------------------
-  SUBROUTINE mp_start_bands( nband_, ntg_, nyfft_, parent_comm )
+  SUBROUTINE env_mp_start_bands( nband_, ntg_, nyfft_, parent_comm )
     !---------------------------------------------------------------------------
     !
     ! ... Divide processors (of the "parent_comm" group) into nband_ pools
@@ -58,17 +58,17 @@ CONTAINS
     !
 #if defined (__MPI)
     !
-    parent_nproc = mp_size( parent_comm )
-    parent_mype  = mp_rank( parent_comm )
+    parent_nproc = env_mp_size( parent_comm )
+    parent_mype  = env_mp_rank( parent_comm )
     !
     ! ... nband_ must have been previously read from command line argument
     ! ... by a call to routine get_command_line
     !
     nbgrp = nband_
     !
-    IF ( nbgrp < 1 .OR. nbgrp > parent_nproc ) CALL errore( 'mp_start_bands',&
+    IF ( nbgrp < 1 .OR. nbgrp > parent_nproc ) CALL env_errore( 'mp_start_bands',&
                           'invalid number of band groups, out of range', 1 )
-    IF ( MOD( parent_nproc, nbgrp ) /= 0 ) CALL errore( 'mp_start_bands', &
+    IF ( MOD( parent_nproc, nbgrp ) /= 0 ) CALL env_errore( 'mp_start_bands', &
         'n. of band groups  must be divisor of parent_nproc', 1 )
     !
     ! set logical flag so that band parallelization in H\psi is allowed
@@ -88,17 +88,17 @@ CONTAINS
     !
     me_bgrp    = MOD( parent_mype, nproc_bgrp )
     !
-    CALL mp_barrier( parent_comm )
+    CALL env_mp_barrier( parent_comm )
     !
     ! ... the intra_bgrp_comm communicator is created
     !
-    CALL mp_comm_split( parent_comm, my_bgrp_id, parent_mype, intra_bgrp_comm )
+    CALL env_mp_comm_split( parent_comm, my_bgrp_id, parent_mype, intra_bgrp_comm )
     !
-    CALL mp_barrier( parent_comm )
+    CALL env_mp_barrier( parent_comm )
     !
     ! ... the inter_bgrp_comm communicator is created                     
     !     
-    CALL mp_comm_split( parent_comm, me_bgrp, parent_mype, inter_bgrp_comm )  
+    CALL env_mp_comm_split( parent_comm, me_bgrp, parent_mype, inter_bgrp_comm )  
     !
     IF ( PRESENT(ntg_) ) THEN
        ntask_groups = ntg_
@@ -106,17 +106,17 @@ CONTAINS
     IF ( PRESENT(nyfft_) ) THEN
        nyfft = nyfft_
     END IF
-    call errore('mp_bands',' nyfft value incompatible with nproc_bgrp ', MOD(nproc_bgrp, nyfft) )
+    call env_errore('mp_bands',' nyfft value incompatible with nproc_bgrp ', MOD(nproc_bgrp, nyfft) )
     !
 #endif
     RETURN
     !
-  END SUBROUTINE mp_start_bands
+  END SUBROUTINE env_mp_start_bands
   !
-END MODULE mp_bands
+END MODULE env_mp_bands
 !
 !     
-MODULE mp_bands_TDDFPT
+MODULE env_mp_bands_TDDFPT
 !
 ! NB: These two variables used to be in mp_bands and are loaded from mp_global in TDDFPT 
 !     I think they would better stay in a TDDFPT specific module but leave them here not to
@@ -125,5 +125,5 @@ MODULE mp_bands_TDDFPT
   INTEGER :: ibnd_start = 0              ! starting band index used in bgrp parallelization
   INTEGER :: ibnd_end = 0                ! ending band index used in bgrp parallelization
 !     
-END MODULE mp_bands_TDDFPT
+END MODULE env_mp_bands_TDDFPT
 !     

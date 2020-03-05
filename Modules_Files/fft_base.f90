@@ -11,14 +11,14 @@
 !----------------------------------------------------------------------
 !
 !=----------------------------------------------------------------------=!
-   MODULE fft_base
+   MODULE env_fft_base
 !=----------------------------------------------------------------------=!
 
-        USE parallel_include
+        USE env_parallel_include
 
-        USE fft_types, ONLY: fft_type_descriptor
-        USE fft_smallbox_type, ONLY: fft_box_descriptor
-        USE stick_base, ONLY: sticks_map, sticks_map_deallocate
+        USE env_fft_types, ONLY: fft_type_descriptor
+        USE env_fft_smallbox_type, ONLY: fft_box_descriptor
+        USE env_stick_base, ONLY: sticks_map, env_sticks_map_deallocate
 
 
         IMPLICIT NONE
@@ -49,18 +49,18 @@
         PRIVATE
 
         PUBLIC :: dfftp, dffts, dfft3d, fft_type_descriptor
-        PUBLIC :: dfftb, fft_box_descriptor, fft_base_info
-        PUBLIC :: smap, pstickdealloc
+        PUBLIC :: dfftb, fft_box_descriptor, env_fft_base_info
+        PUBLIC :: smap, env_pstickdealloc
 
    CONTAINS
 
 
-      SUBROUTINE pstickdealloc()
-         CALL sticks_map_deallocate( smap )
-      END SUBROUTINE pstickdealloc
+      SUBROUTINE env_pstickdealloc()
+         CALL env_sticks_map_deallocate( smap )
+      END SUBROUTINE env_pstickdealloc
 
 
-      SUBROUTINE fft_base_info( ionode, stdout )
+      SUBROUTINE env_fft_base_info( ionode, stdout )
 
           LOGICAL, INTENT(IN) :: ionode
           INTEGER, INTENT(IN) :: stdout
@@ -93,8 +93,8 @@
           IF(ionode) WRITE( stdout,*)
 
           RETURN
-        END SUBROUTINE fft_base_info
+        END SUBROUTINE env_fft_base_info
 
 !=----------------------------------------------------------------------=!
-   END MODULE fft_base
+   END MODULE env_fft_base
 !=----------------------------------------------------------------------=!

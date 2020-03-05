@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !------------------------------------------------------------------------------!
-    MODULE kinds
+    MODULE env_kinds
 !------------------------------------------------------------------------------!
 
       IMPLICIT NONE
@@ -16,7 +16,7 @@
       INTEGER, PARAMETER :: sgl = selected_real_kind(6,30)
       INTEGER, PARAMETER :: i4b = selected_int_kind(9)
       PRIVATE
-      PUBLIC :: i4b, sgl, DP, print_kind_info
+      PUBLIC :: i4b, sgl, DP, env_print_kind_info
 !
 !------------------------------------------------------------------------------!
 !
@@ -26,7 +26,7 @@
 !
 !!   Print information about the used data types.
 !
-      SUBROUTINE print_kind_info (stdout)
+      SUBROUTINE env_print_kind_info (stdout)
 !
 !------------------------------------------------------------------------------!
 !
@@ -57,8 +57,8 @@
           'CHARACTER: Data type name:', '(default)', '           Kind value:', &
           kind('C')
 !
-      END SUBROUTINE print_kind_info
+      END SUBROUTINE env_print_kind_info
 !
 !------------------------------------------------------------------------------!
-    END MODULE kinds
+    END MODULE env_kinds
 !------------------------------------------------------------------------------!

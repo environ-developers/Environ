@@ -1,6 +1,6 @@
-MODULE paw_variables
+MODULE env_paw_variables
     !
-    USE kinds,      ONLY : DP
+    USE env_kinds,      ONLY : DP
     !
     IMPLICIT NONE
     PUBLIC
@@ -76,4 +76,4 @@ MODULE paw_variables
 
     REAL(DP), ALLOCATABLE ::  vs_rad(:,:,:)
 
- END MODULE paw_variables
+ END MODULE env_paw_variables

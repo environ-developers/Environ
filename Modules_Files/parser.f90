@@ -33,16 +33,16 @@
 ! 
 !
 !----------------------------------------------------------------------------
-MODULE parser
+MODULE env_parser
   !----------------------------------------------------------------------------
   !
-  USE io_global, ONLY : stdout
-  USE kinds, ONLY : DP
+  USE env_io_global, ONLY : stdout
+  USE env_kinds, ONLY : DP
   !
   PRIVATE
   !
-  PUBLIC :: parse_unit, field_count, read_line, get_field
-  PUBLIC :: version_parse, version_compare
+  PUBLIC :: env_parse_unit, env_field_count, env_read_line, env_get_field
+  PUBLIC :: env_version_parse, env_version_compare
   !
   INTEGER :: parse_unit = 5 ! normally 5, but can be set otherwise
   !
@@ -50,7 +50,7 @@ MODULE parser
   !
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE field_count( num, line, car )
+  SUBROUTINE env_field_count( num, line, car )
     !--------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -115,16 +115,16 @@ MODULE parser
     !
     RETURN
     !
-  END SUBROUTINE field_count
+  END SUBROUTINE env_field_count
   !
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE read_line( line, nfield, field, end_of_file, error )
+  SUBROUTINE env_read_line( line, nfield, field, end_of_file, error )
     !--------------------------------------------------------------------------
     !
-    USE mp,        ONLY : mp_bcast
-    USE mp_images, ONLY : intra_image_comm
-    USE io_global, ONLY : ionode, ionode_id
+    USE env_mp,        ONLY : env_mp_bcast
+    USE env_mp_images, ONLY : intra_image_comm
+    USE env_io_global, ONLY : ionode, ionode_id
     !
     IMPLICIT NONE
     !
@@ -136,7 +136,7 @@ MODULE parser
     !
     !
     IF( LEN( line ) < 256 ) THEN
-       CALL errore(' read_line ', ' input line too short ', MAX(LEN(line),1) )
+       CALL env_errore(' read_line ', ' input line too short ', MAX(LEN(line),1) )
     END IF
     !
     tend = .FALSE.
@@ -151,28 +151,28 @@ MODULE parser
 20     CONTINUE
     END IF
     !
-    CALL mp_bcast( tend, ionode_id, intra_image_comm )
-    CALL mp_bcast( terr, ionode_id, intra_image_comm )
-    CALL mp_bcast( line, ionode_id, intra_image_comm )
+    CALL env_mp_bcast( tend, ionode_id, intra_image_comm )
+    CALL env_mp_bcast( terr, ionode_id, intra_image_comm )
+    CALL env_mp_bcast( line, ionode_id, intra_image_comm )
     !
     IF( PRESENT(end_of_file) ) THEN
        end_of_file = tend
     ELSE IF( tend ) THEN
-       CALL infomsg(' read_line ', ' end of file ' )
+       CALL env_infomsg(' read_line ', ' end of file ' )
     END IF
     IF( PRESENT(error) ) THEN
        error = terr
     ELSE IF( terr ) THEN
-       CALL infomsg(' read_line ', ' read error ' )
+       CALL env_infomsg(' read_line ', ' read error ' )
     END IF
     IF( PRESENT(field) .and. .not.(tend.or.terr) ) &
-     &CALL field_compare( line, nfield, field )
+     &CALL env_field_compare( line, nfield, field )
     !
-  END SUBROUTINE read_line
+  END SUBROUTINE env_read_line
   !
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE field_compare( str, nf, var )
+  SUBROUTINE env_field_compare( str, nf, var )
     !--------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -182,19 +182,19 @@ MODULE parser
     CHARACTER(LEN=*), INTENT(IN) :: str
     INTEGER                      :: nc
     !
-    CALL field_count( nc, str )
+    CALL env_field_count( nc, str )
     !
     IF( nc < nf ) &
-      CALL errore( ' field_compare ', &
+      CALL env_errore( ' field_compare ', &
                  & ' wrong number of fields: ' // TRIM( var ), 1 )
     !
     RETURN
     !
-  END SUBROUTINE field_compare
+  END SUBROUTINE env_field_compare
   !
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE con_cam(num, line, car)
+  SUBROUTINE env_con_cam(num, line, car)
     !--------------------------------------------------------------------------
     CHARACTER(LEN=*) :: line
     CHARACTER(LEN=1) :: sep
@@ -227,10 +227,10 @@ MODULE parser
        END IF
     END DO
     RETURN
-  END SUBROUTINE con_cam
+  END SUBROUTINE env_con_cam
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE version_parse(str, major, minor, patch, ierr)
+  SUBROUTINE env_version_parse(str, major, minor, patch, ierr)
     !--------------------------------------------------------------------------
     !   
     ! Determine the major, minor and patch numbers from 
@@ -289,10 +289,10 @@ MODULE parser
     READ( num(3), *, IOSTAT=ierr ) patch
     IF (ierr/=0) RETURN
     !
-  END SUBROUTINE version_parse
+  END SUBROUTINE env_version_parse
   !
   !--------------------------------------------------------------------------
-  FUNCTION version_compare(str1, str2)
+  FUNCTION env_version_compare(str1, str2)
     !--------------------------------------------------------------------------
     !   
     ! Compare two version strings; the result is
@@ -304,19 +304,19 @@ MODULE parser
     !   
     IMPLICIT NONE
     CHARACTER(*)  :: str1, str2
-    CHARACTER(10) :: version_compare
+    CHARACTER(10) :: env_version_compare
     !
     INTEGER   :: version1(3), version2(3)
     INTEGER   :: basis, icheck1, icheck2
     INTEGER   :: ierr
     !
 
-    version_compare = " "
+    env_version_compare = " "
     !
-    CALL version_parse( str1, version1(1), version1(2), version1(3), ierr) 
+    CALL env_version_parse( str1, version1(1), version1(2), version1(3), ierr) 
     IF ( ierr/=0 ) RETURN
     !
-    CALL version_parse( str2, version2(1), version2(2), version2(3), ierr) 
+    CALL env_version_parse( str2, version2(1), version2(2), version2(3), ierr) 
     IF ( ierr/=0 ) RETURN
     !
     ! 
@@ -327,22 +327,22 @@ MODULE parser
     !
     IF ( icheck1 > icheck2 ) THEN
        !
-       version_compare = 'newer'
+      env_version_compare = 'newer'
        !
     ELSEIF( icheck1 == icheck2 ) THEN
        !
-       version_compare = 'equal'
+      env_version_compare = 'equal'
        !
     ELSE
        !
-       version_compare = 'older'
+      env_version_compare = 'older'
        !
     ENDIF
     !
-  END FUNCTION version_compare
+  END FUNCTION env_version_compare
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE get_field(n, field, str, sep)
+  SUBROUTINE env_get_field(n, field, str, sep)
     !--------------------------------------------------------------------------
     ! Extract whitespace-separated nth block from string
     IMPLICIT NONE
@@ -404,6 +404,6 @@ MODULE parser
     ENDIF
     !print*, "------------- parser end -------------"
 
-  END SUBROUTINE get_field
+  END SUBROUTINE env_get_field
 
-END MODULE parser
+END MODULE env_parser

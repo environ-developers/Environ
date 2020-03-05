@@ -6,11 +6,11 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !------------------------------------------------------------------------------!
-  MODULE ions_base
+  MODULE env_ions_base
 !------------------------------------------------------------------------------!
 
-      USE kinds,      ONLY : DP
-      USE parameters, ONLY : ntypx
+      USE env_kinds,      ONLY : DP
+      USE env_parameters, ONLY : ntypx
 !
       IMPLICIT NONE
       SAVE
@@ -84,8 +84,8 @@
       LOGICAL, PRIVATE :: tdebug = .FALSE.
 
       
-      INTERFACE ions_vel
-         MODULE PROCEDURE ions_vel3, ions_vel2
+      INTERFACE env_ions_vel
+         MODULE PROCEDURE env_ions_vel3, env_ions_vel2
       END INTERFACE
 
 
@@ -93,7 +93,7 @@
   CONTAINS
 !------------------------------------------------------------------------------!
 
-    SUBROUTINE sort_tau( tausrt, isrt, tau, isp, nat, nsp )
+    SUBROUTINE env_sort_tau( tausrt, isrt, tau, isp, nat, nsp )
       IMPLICIT NONE
       REAL(DP), INTENT(OUT) :: tausrt( :, : )
       INTEGER, INTENT(OUT) :: isrt( : )
@@ -107,11 +107,11 @@
       DO ia = 1, nat
         is  =  isp( ia )
         IF( is < 1 .OR. is > nsp ) &
-          CALL errore(' sorttau ', ' wrong species index for positions ', ia )
+          CALL env_errore(' sorttau ', ' wrong species index for positions ', ia )
         na( is ) = na( is ) + 1
       END DO
       IF ( ANY ( na(1:nsp) == 0 ) ) &
-         CALL errore ('sort_atoms', 'some atomic species have no atoms',1)
+         CALL env_errore ('sort_atoms', 'some atomic species have no atoms',1)
       ! ... compute the index of the first atom in each specie
       ina( 1 ) = 0
       DO is = 2, nsp
@@ -127,11 +127,11 @@
         isrt  (    na(is) + ina(is) ) = ia
       END DO
       RETURN
-    END SUBROUTINE sort_tau
+    END SUBROUTINE env_sort_tau
 
 !------------------------------------------------------------------------------!
 
-    SUBROUTINE unsort_tau( tau, tausrt, isrt, nat )
+    SUBROUTINE env_unsort_tau( tau, tausrt, isrt, nat )
       IMPLICIT NONE
       REAL(DP), INTENT(IN) :: tausrt( :, : )
       INTEGER, INTENT(IN) :: isrt( : )
@@ -143,16 +143,16 @@
         tau( :, ia ) = tausrt( :, isa )
       END DO
       RETURN
-    END SUBROUTINE unsort_tau
+    END SUBROUTINE env_unsort_tau
 
     !-------------------------------------------------------------------------
-    SUBROUTINE ions_base_init( nsp_, nat_, na_, ityp_, tau_, vel_, amass_,&
+    SUBROUTINE env_ions_base_init( nsp_, nat_, na_, ityp_, tau_, vel_, amass_,&
                                atm_, if_pos_, tau_format_, alat_, at_,    & 
                                rcmax_ , extfor_ )
       !-------------------------------------------------------------------------
       !
-      USE constants, ONLY: bohr_radius_angs
-      USE io_global, ONLY: stdout
+      USE env_constants, ONLY: bohr_radius_angs
+      USE env_io_global, ONLY: stdout
       !
       IMPLICIT NONE
       !
@@ -174,11 +174,11 @@
       nat = nat_
       !
       IF ( nat < 1 ) &
-         CALL errore( 'ions_base_init ', 'nax out of range', 1 )
+         CALL env_errore( 'ions_base_init ', 'nax out of range', 1 )
       IF ( nsp < 1 ) &
-         CALL errore( 'ions_base_init ', 'nsp out of range', 1 )
+         CALL env_errore( 'ions_base_init ', 'nsp out of range', 1 )
       IF ( nsp > SIZE( na ) ) &
-         CALL errore( 'ions_base_init ', &
+         CALL env_errore( 'ions_base_init ', &
                     & 'nsp too large, increase ntypx parameter ', 1 )
       !
       na(1:nsp) = na_(1:nsp)
@@ -188,9 +188,9 @@
       tau_format = TRIM( tau_format_ )
       !
       IF ( nat /= SUM( na(1:nsp) ) ) &
-         CALL errore( 'ions_base_init ','inconsistent nat and na ', 1 )
+         CALL env_errore( 'ions_base_init ','inconsistent nat and na ', 1 )
       !
-      CALL deallocate_ions_base()
+      CALL env_deallocate_ions_base()
       !
       ALLOCATE( ityp( nat ) )
       ALLOCATE( tau( 3, nat ) )
@@ -216,7 +216,7 @@
          rcmax(is) = rcmax_(is)
          !
          IF( rcmax(is) <= 0.0_DP ) &
-            CALL errore( 'ions_base_init ', 'invalid rcmax', is )
+            CALL env_errore( 'ions_base_init ', 'invalid rcmax', is )
          !
       END DO
       !
@@ -268,7 +268,7 @@
             !
          CASE DEFAULT
             !
-            CALL errore( 'ions_base_init',' tau_format = ' // &
+            CALL env_errore( 'ions_base_init',' tau_format = ' // &
                        & TRIM( tau_format ) // ' not implemented ', 1 )
             !
       END SELECT
@@ -278,7 +278,7 @@
       ! ... according to the ATOMIC_POSITIONS input card.
       ! ... ind_srt : can be used to restore the original position
       !
-      CALL sort_tau( tau_srt, ind_srt, tau, ityp, nat, nsp )
+      CALL env_sort_tau( tau_srt, ind_srt, tau, ityp, nat, nsp )
       !
       vel_srt(:,:) = vel(:,ind_srt(:))
       !
@@ -332,9 +332,9 @@
       amass(1:nsp) = amass_(1:nsp)
       !
       IF ( ANY( amass(1:nsp) <= 0.0_DP ) ) &
-         CALL errore( 'ions_base_init ', 'invalid  mass', 1 ) 
+         CALL env_errore( 'ions_base_init ', 'invalid  mass', 1 ) 
       !
-      CALL ions_cofmass( tau_srt, amass, na, nsp, cdmi )
+      CALL env_ions_cofmass( tau_srt, amass, na, nsp, cdmi )
       !
       DO ia = 1, nat
          !
@@ -346,10 +346,10 @@
       !
       RETURN
       !
-    END SUBROUTINE ions_base_init
+    END SUBROUTINE env_ions_base_init
     !
     !-------------------------------------------------------------------------
-    SUBROUTINE deallocate_ions_base()
+    SUBROUTINE env_deallocate_ions_base()
       !-------------------------------------------------------------------------
       !
       IMPLICIT NONE
@@ -371,12 +371,12 @@
       !
       RETURN
       !
-    END SUBROUTINE deallocate_ions_base
+    END SUBROUTINE env_deallocate_ions_base
     !
     !-------------------------------------------------------------------------
-    SUBROUTINE ions_vel3( vel, taup, taum, na, nsp, dt )
+    SUBROUTINE env_ions_vel3( vel, taup, taum, na, nsp, dt )
       !-------------------------------------------------------------------------
-      USE constants, ONLY : eps8
+      USE env_constants, ONLY : eps8
       IMPLICIT NONE
       REAL(DP) :: vel(:,:), taup(:,:), taum(:,:)
       INTEGER :: na(:), nsp
@@ -384,7 +384,7 @@
       INTEGER :: ia, is, i, isa
       REAL(DP) :: fac
       IF( dt < eps8 ) &
-         CALL errore( ' ions_vel3 ', ' dt <= 0 ', 1 )
+         CALL env_errore( ' ions_vel3 ', ' dt <= 0 ', 1 )
       fac  = 1.0_DP / ( dt * 2.0_DP )
       isa = 0
       DO is = 1, nsp
@@ -396,12 +396,12 @@
         END DO
       END DO
       RETURN
-    END SUBROUTINE ions_vel3
+    END SUBROUTINE env_ions_vel3
 
 !------------------------------------------------------------------------------!
 
-    SUBROUTINE ions_vel2( vel, taup, taum, nat, dt )
-      USE constants, ONLY : eps8
+    SUBROUTINE env_ions_vel2( vel, taup, taum, nat, dt )
+      USE env_constants, ONLY : eps8
       IMPLICIT NONE
       REAL(DP) :: vel(:,:), taup(:,:), taum(:,:)
       INTEGER :: nat
@@ -409,7 +409,7 @@
       INTEGER :: ia, i
       REAL(DP) :: fac
       IF( dt < eps8 ) &
-         CALL errore( ' ions_vel3 ', ' dt <= 0 ', 1 )
+         CALL env_errore( ' ions_vel3 ', ' dt <= 0 ', 1 )
       fac  = 1.0_DP / ( dt * 2.0_DP )
       DO ia = 1, nat
         DO i = 1, 3
@@ -417,12 +417,12 @@
         END DO
       END DO
       RETURN
-    END SUBROUTINE ions_vel2
+    END SUBROUTINE env_ions_vel2
 
 !------------------------------------------------------------------------------!
 
-    SUBROUTINE ions_cofmass( tau, pmass, na, nsp, cdm )
-      USE constants, ONLY : eps8
+    SUBROUTINE env_ions_cofmass( tau, pmass, na, nsp, cdm )
+      USE env_constants, ONLY : eps8
       IMPLICIT NONE
       REAL(DP), INTENT(IN) :: tau(:,:), pmass(:)
       REAL(DP), INTENT(OUT) :: cdm(3)
@@ -437,7 +437,7 @@
       end do
 
       if( tmas < eps8 ) &
-         call errore(' ions_cofmass ', ' total mass <= 0 ', 1 )
+         call env_errore(' ions_cofmass ', ' total mass <= 0 ', 1 )
 !
       do i=1,3
          cdm(i)=0.0_DP
@@ -452,15 +452,15 @@
       end do
 !
       RETURN
-    END SUBROUTINE ions_cofmass
+    END SUBROUTINE env_ions_cofmass
 
 !------------------------------------------------------------------------------!
 
-      SUBROUTINE randpos(tau, na, nsp, tranp, amprp, hinv, ifor )
+      SUBROUTINE env_randpos(tau, na, nsp, tranp, amprp, hinv, ifor )
         
-         USE cell_base, ONLY: r_to_s
-         USE io_global, ONLY: stdout
-         USE random_numbers, ONLY: randy
+         USE env_cell_base, ONLY: env_r_to_s
+         USE env_io_global, ONLY: stdout
+         USE env_random_numbers, ONLY: env_randy
 
          IMPLICIT NONE
          REAL(DP) :: hinv(3,3)
@@ -482,9 +482,9 @@
              WRITE( stdout,615)
              DO isa = isa_s, isa_e
                oldp = tau(:,isa)
-               rand_disp(1) = randy ()
-               rand_disp(2) = randy ()
-               rand_disp(3) = randy ()
+               rand_disp(1) = env_randy ()
+               rand_disp(2) = env_randy ()
+               rand_disp(3) = env_randy ()
                rand_disp = amprp(is) * ( rand_disp - 0.5_DP )
                rdisp     = rand_disp
                CALL r_to_s( rdisp(:), rand_disp(:), hinv )
@@ -502,11 +502,11 @@
  615     FORMAT(   3X,'     Old Positions               New Positions')
  620     FORMAT(   3X,3F10.6,2X,3F10.6)
        RETURN
-       END SUBROUTINE randpos
+       END SUBROUTINE env_randpos
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE ions_kinene( ekinp, vels, na, nsp, h, pmass )
+  SUBROUTINE env_ions_kinene( ekinp, vels, na, nsp, h, pmass )
     IMPLICIT NONE
     REAL(DP), intent(out) :: ekinp     !  ionic kinetic energy
     REAL(DP), intent(in) :: vels(:,:)  !  scaled ionic velocities
@@ -530,13 +530,13 @@
     end do
     ekinp=0.5_DP*ekinp
     return
-  END SUBROUTINE ions_kinene
+  END SUBROUTINE env_ions_kinene
 
 !------------------------------------------------------------------------------!
 
-  subroutine ions_temp( tempp, temps, ekinpr, vels, na, nsp, h, pmass, ndega, nhpdim, atm2nhp, ekin2nhp )
+  subroutine env_ions_temp( tempp, temps, ekinpr, vels, na, nsp, h, pmass, ndega, nhpdim, atm2nhp, ekin2nhp )
     !
-    use constants, only: k_boltzmann_au
+    use env_constants, only: k_boltzmann_au
     !
     implicit none
     !
@@ -584,7 +584,7 @@
     !
     !
     do is = 1, nsp
-      if( na(is) < 1 ) call errore(' ions_temp ', ' 0 number of atoms ', 1 )
+      if( na(is) < 1 ) call env_errore(' ions_temp ', ' 0 number of atoms ', 1 )
       temps( is ) = temps( is ) * 0.5_DP
       temps( is ) = temps( is ) / k_boltzmann_au / ( 1.5_DP * na(is) )
     end do
@@ -598,12 +598,12 @@
     END IF
     !
     return
-  end subroutine ions_temp
+  end subroutine env_ions_temp
 
 !------------------------------------------------------------------------------!
 
-  subroutine ions_thermal_stress( stress, nstress, pmass, omega, h, vels, nsp, na )
-    USE constants, ONLY : eps8
+  subroutine env_ions_thermal_stress( stress, nstress, pmass, omega, h, vels, nsp, na )
+    USE env_constants, ONLY : eps8
     REAL(DP), intent(inout) :: stress(3,3),nstress(3,3)
     REAL(DP), intent(in)  :: pmass(:), omega, h(3,3), vels(:,:)
     integer, intent(in) :: nsp, na(:)
@@ -611,7 +611,7 @@
 
     nstress = 0.0_DP ! BS
     isa    = 0
-    if( omega < eps8 ) call errore(' ions_thermal_stress ', ' omega <= 0 ', 1 )
+    if( omega < eps8 ) call env_errore(' ions_thermal_stress ', ' omega <= 0 ', 1 )
     do is = 1, nsp
       do ia = 1, na(is)
         isa = isa + 1
@@ -633,14 +633,14 @@
     enddo
 
     return
-  end subroutine ions_thermal_stress
+  end subroutine env_ions_thermal_stress
 
 !------------------------------------------------------------------------------!
 
-  subroutine randvel( tempw, tau0, taum, na, nsp, iforce, &
+  subroutine env_randvel( tempw, tau0, taum, na, nsp, iforce, &
                            amass, delt )
-    use constants, only: pi, k_boltzmann_au, amu_au
-    USE random_numbers, ONLY : randy
+    use env_constants, only: pi, k_boltzmann_au, amu_au
+    USE env_random_numbers, ONLY : env_randy
     implicit none
     REAL(DP), intent(out) :: taum(:,:)
     REAL(DP), intent(in) :: tau0(:,:)
@@ -663,7 +663,7 @@
         do is=1,nsp
           do ia=1,na(is)
             isa = isa + 1
-            alfar=gausp/sqrt(amass(is)*amu_au)*cos(2.0_DP*pi*randy())*sqrt(-2.0_DP*log(randy()))
+            alfar=gausp/sqrt(amass(is)*amu_au)*cos(2.0_DP*pi*env_randy())*sqrt(-2.0_DP*log(env_randy()))
             taum(i,isa)=alfar
             qr(i)=qr(i)+alfar
           end do
@@ -683,14 +683,14 @@
         end do
       end do
     return
-  end subroutine randvel
+  end subroutine env_randvel
 
 !------------------------------------------------------------------------------!
 
-  subroutine ions_vrescal( tcap, tempw, tempp, taup, tau0, taum, na, nsp, fion, iforce, &
+  subroutine env_ions_vrescal( tcap, tempw, tempp, taup, tau0, taum, na, nsp, fion, iforce, &
                            pmass, delt )
-    use constants, only: pi, k_boltzmann_au, eps8
-    USE random_numbers, ONLY : randy
+    use env_constants, only: pi, k_boltzmann_au, eps8
+    USE env_random_numbers, ONLY : env_randy
     implicit none
     logical, intent(in) :: tcap
     REAL(DP), intent(inout) :: taup(:,:)
@@ -708,7 +708,7 @@
     nat = SUM( na( 1:nsp ) )
 
     if(.not.tcap) then
-      if( tempp < eps8 ) call errore(' ions_vrescal ', ' tempp <= 0 ', 1 )
+      if( tempp < eps8 ) call env_errore(' ions_vrescal ', ' tempp <= 0 ', 1 )
       alfap = 0.5_DP * sqrt(tempw/tempp)
       isa = 0
       do is=1,nsp
@@ -729,7 +729,7 @@
         do is=1,nsp
           do ia=1,na(is)
             isa = isa + 1
-            alfar=gausp/sqrt(pmass(is))*cos(2.0_DP*pi*randy())*sqrt(-2.0_DP*log(randy()))
+            alfar=gausp/sqrt(pmass(is))*cos(2.0_DP*pi*env_randy())*sqrt(-2.0_DP*log(env_randy()))
             taup(i,isa)=alfar
             qr(i)=qr(i)+alfar
           end do
@@ -750,22 +750,22 @@
       end do
     end if
     return
-  end subroutine ions_vrescal
+  end subroutine env_ions_vrescal
 
 !------------------------------------------------------------------------------!
 
-  subroutine ions_shiftvar( varp, var0, varm )
+  subroutine env_ions_shiftvar( varp, var0, varm )
     implicit none
     REAL(DP), intent(in) :: varp(:,:)
     REAL(DP), intent(out) :: varm(:,:), var0(:,:)
       varm = var0
       var0 = varp
     return
-  end subroutine ions_shiftvar
+  end subroutine env_ions_shiftvar
 
 !------------------------------------------------------------------------------!
 
-  SUBROUTINE ions_reference_positions( tau )
+  SUBROUTINE env_ions_reference_positions( tau )
 
      !  Calculate the real position of atoms relative to the center of mass (cdm)
      !  and store them in taui
@@ -777,19 +777,19 @@
 
      INTEGER  :: isa
 
-     CALL ions_cofmass( tau, amass, na, nsp, cdmi )
+     CALL env_ions_cofmass( tau, amass, na, nsp, cdmi )
      DO isa = 1, nat
         taui(:,isa) = tau(:,isa) - cdmi(:)
      END DO
 
      RETURN
-  END SUBROUTINE ions_reference_positions
+  END SUBROUTINE env_ions_reference_positions
 
 
 !------------------------------------------------------------------------------!
 
 
-   SUBROUTINE ions_displacement( dis, tau )
+   SUBROUTINE env_ions_displacement( dis, tau )
 
       !  Calculate the sum of the quadratic displacements of the atoms in the ref.
       !    of cdm respect to the initial positions.
@@ -809,10 +809,10 @@
 
       ! ...   Compute the current value of cdm "Center of Mass"
       !
-      CALL ions_cofmass(tau, amass, na, nsp, cdm )
+      CALL env_ions_cofmass(tau, amass, na, nsp, cdm )
       !
       IF( SIZE( dis ) < nsp ) &
-          CALL errore(' displacement ',' size of dis too small ', 1)
+          CALL env_errore(' displacement ',' size of dis too small ', 1)
       isa = 0
       DO is = 1, nsp
          dis(is) = 0.0_DP
@@ -826,10 +826,10 @@
       END DO
 
       RETURN
-   END SUBROUTINE ions_displacement
+   END SUBROUTINE env_ions_displacement
 
   !--------------------------------------------------------------------------
-  SUBROUTINE ions_cofmsub( tausp, iforce, nat, cdm, cdm0 )
+  SUBROUTINE env_ions_cofmsub( tausp, iforce, nat, cdm, cdm0 )
     !--------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -853,15 +853,15 @@
     !
     RETURN
     !
-  END SUBROUTINE ions_cofmsub
+  END SUBROUTINE env_ions_cofmsub
 
 
-  REAL(DP) FUNCTION compute_eextfor( tau0 )
+  REAL(DP) FUNCTION env_compute_eextfor( tau0 )
      IMPLICIT NONE
      REAL(DP), OPTIONAL, INTENT(IN) :: tau0(:,:)
      INTEGER :: i
      REAL(DP) :: e
-     compute_eextfor = 0.0d0
+     env_compute_eextfor = 0.0d0
      e = 0.0d0
      IF( PRESENT( tau0 ) ) THEN
         DO i = 1, SIZE( extfor,2 )
@@ -876,12 +876,12 @@
                 + extfor( 1, i ) *  tau( 1, i )
         END DO
      END IF
-     compute_eextfor = - e
+     env_compute_eextfor = - e
      RETURN
-  END FUNCTION compute_eextfor
+  END FUNCTION env_compute_eextfor
   
 
 
 !------------------------------------------------------------------------------!
-  END MODULE ions_base
+  END MODULE env_ions_base
 !------------------------------------------------------------------------------!

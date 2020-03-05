@@ -5,13 +5,13 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-MODULE uspp_param
+MODULE env_uspp_param
   !
   ! ... Ultrasoft and Norm-Conserving pseudopotential parameters
   !  
-  USE kinds,        ONLY : DP
-  USE parameters,   ONLY : npsx
-  USE pseudo_types, ONLY : pseudo_upf
+  USE env_kinds,        ONLY : DP
+  USE env_parameters,   ONLY : npsx
+  USE env_pseudo_types, ONLY : pseudo_upf
   !
   SAVE
   PUBLIC :: n_atom_wfc
@@ -33,7 +33,7 @@ MODULE uspp_param
 CONTAINS
   !
   !----------------------------------------------------------------------------
-  FUNCTION n_atom_wfc( nat, ityp, noncolin )
+  FUNCTION env_n_atom_wfc( nat, ityp, noncolin )
   !----------------------------------------------------------------------------
   !
   ! ... Find number of starting atomic orbitals
@@ -42,7 +42,7 @@ CONTAINS
   !
   INTEGER, INTENT(IN)  :: nat, ityp(nat)
   LOGICAL, INTENT(IN), OPTIONAL  :: noncolin
-  INTEGER  :: n_atom_wfc
+  INTEGER  :: env_n_atom_wfc
   !
   INTEGER  :: na, nt, n
   LOGICAL  :: non_col
@@ -50,7 +50,7 @@ CONTAINS
   !
   non_col = .FALSE.
   IF ( PRESENT (noncolin) ) non_col=noncolin
-  n_atom_wfc = 0
+  env_n_atom_wfc = 0
   !
   DO na = 1, nat
      !
@@ -64,20 +64,20 @@ CONTAINS
               !
               IF ( upf(nt)%has_so ) THEN
                  !
-                 n_atom_wfc = n_atom_wfc + 2 * upf(nt)%lchi(n)
+               env_n_atom_wfc = env_n_atom_wfc + 2 * upf(nt)%lchi(n)
                  !
                  IF ( ABS( upf(nt)%jchi(n)-upf(nt)%lchi(n) - 0.5D0 ) < 1.D-6 ) &
-                    n_atom_wfc = n_atom_wfc + 2
+                 env_n_atom_wfc = env_n_atom_wfc + 2
                  !
               ELSE
                  !
-                 n_atom_wfc = n_atom_wfc + 2 * ( 2 * upf(nt)%lchi(n) + 1 )
+               env_n_atom_wfc = env_n_atom_wfc + 2 * ( 2 * upf(nt)%lchi(n) + 1 )
                  !
               END IF
               !
            ELSE
               !
-              n_atom_wfc = n_atom_wfc + 2 * upf(nt)%lchi(n) + 1
+               env_n_atom_wfc = env_n_atom_wfc + 2 * upf(nt)%lchi(n) + 1
               !
            END IF
         END IF
@@ -86,25 +86,25 @@ CONTAINS
   !
   RETURN
   !
-  END FUNCTION n_atom_wfc
-END MODULE uspp_param
+  END FUNCTION env_n_atom_wfc
+END MODULE env_uspp_param
 
 ! <<<<<<<<<<<<<<<~~~~<<<<<<<<<<<<<<<<-----------------
 
-MODULE uspp
+MODULE env_uspp
   !
   ! Ultrasoft PPs:
   ! - Clebsch-Gordan coefficients "ap", auxiliary variables "lpx", "lpl"
   ! - beta and q functions of the solid
   !
-  USE kinds, ONLY: DP
-  USE parameters, ONLY: lmaxx, lqmax
+  USE env_kinds, ONLY: DP
+  USE env_parameters, ONLY: lmaxx, lqmax
   IMPLICIT NONE
   PRIVATE
   SAVE
-  PUBLIC :: nlx, lpx, lpl, ap, aainit, indv, nhtol, nhtolm, indv_ijkb0, &
+  PUBLIC :: nlx, lpx, lpl, ap, env_aainit, indv, nhtol, nhtolm, indv_ijkb0, &
             nkb, nkbus, vkb, dvan, deeq, qq_at, qq_nt, nhtoj, ijtoh, beta, &
-            becsum, ebecsum, deallocate_uspp
+            becsum, ebecsum, env_deallocate_uspp
        
   PUBLIC :: okvan, nlcc_any
   PUBLIC :: qq_so, dvan_so, deeq_nc 
@@ -162,7 +162,7 @@ MODULE uspp
 CONTAINS
   !
   !-----------------------------------------------------------------------
-  subroutine aainit(lli)
+  subroutine env_aainit(lli)
     !-----------------------------------------------------------------------
     !
     ! this routine computes the coefficients of the expansion of the product
@@ -178,7 +178,7 @@ CONTAINS
     ! The indices limi,ljmj and LM assume the order for real spherical
     ! harmonics given in routine ylmr2
     !
-    USE matrix_inversion
+    USE env_matrix_inversion
     implicit none
     !
     ! input: the maximum li considered
@@ -194,13 +194,13 @@ CONTAINS
     ! the real spherical harmonics for array r: ylm(llx,llx)
     ! the inverse of ylm considered as a matrix: mly(llx,llx)
     !
-    if (lli < 0) call errore('aainit','lli not allowed',lli)
+    if (lli < 0) call env_errore('aainit','lli not allowed',lli)
 
-    if (lli*lli > nlx) call errore('aainit','nlx is too small ',lli*lli)
+    if (lli*lli > nlx) call env_errore('aainit','nlx is too small ',lli*lli)
 
     llx = (2*lli-1)**2
     if (2*lli-1 > lqmax) &
-         call errore('aainit','ap leading dimension is too small',llx)
+         call env_errore('aainit','ap leading dimension is too small',llx)
 
     allocate (r( 3, llx ))    
     allocate (rr( llx ))    
@@ -214,7 +214,7 @@ CONTAINS
 
     ! - generate an array of random vectors (uniform deviate on unitary sphere)
 
-    call gen_rndm_r(llx,r,rr)
+    call env_gen_rndm_r(llx,r,rr)
 
     ! - generate the real spherical harmonics for the array: ylm(ir,lm)
 
@@ -222,18 +222,18 @@ CONTAINS
 
     !-  store the inverse of ylm(ir,lm) in mly(lm,ir)
 
-    call invmat(llx, ylm, mly)
+    call env_invmat(llx, ylm, mly)
 
     !-  for each li,lj compute ap(l,li,lj) and the indices, lpx and lpl
     do li = 1, lli*lli
        do lj = 1, lli*lli
           lpx(li,lj)=0
           do l = 1, llx
-             ap(l,li,lj) = compute_ap(l,li,lj,llx,ylm,mly)
+             ap(l,li,lj) = env_compute_ap(l,li,lj,llx,ylm,mly)
              if (abs(ap(l,li,lj)) > 1.d-3) then
                 lpx(li,lj) = lpx(li,lj) + 1
                 if (lpx(li,lj) > mx) &
-                     call errore('aainit','mx dimension too small', lpx(li,lj))
+                     call env_errore('aainit','mx dimension too small', lpx(li,lj))
                 lpl(li,lj,lpx(li,lj)) = l
              end if
           end do
@@ -246,15 +246,15 @@ CONTAINS
     deallocate(r)
     
     return
-  end subroutine aainit
+  end subroutine env_aainit
   !
   !-----------------------------------------------------------------------
-  subroutine gen_rndm_r(llx,r,rr)
+  subroutine env_gen_rndm_r(llx,r,rr)
     !-----------------------------------------------------------------------
     ! - generate an array of random vectors (uniform deviate on unitary sphere)
     !
-    USE constants,      ONLY: tpi
-    USE random_numbers, ONLY: randy
+    USE env_constants,      ONLY: tpi
+    USE env_random_numbers, ONLY: env_randy
     
     implicit none
     !
@@ -272,9 +272,9 @@ CONTAINS
     real(DP) :: costheta, sintheta, phi
     
     do ir = 1, llx
-       costheta = 2.0_DP * randy() - 1.0_DP
+       costheta = 2.0_DP * env_randy() - 1.0_DP
        sintheta = SQRT ( 1.0_DP - costheta*costheta)
-       phi = tpi * randy()
+       phi = tpi * env_randy()
        r (1,ir) = sintheta * cos(phi)
        r (2,ir) = sintheta * sin(phi)
        r (3,ir) = costheta
@@ -282,10 +282,10 @@ CONTAINS
     end do
     
     return
-  end subroutine gen_rndm_r
+  end subroutine env_gen_rndm_r
   !
   !-----------------------------------------------------------------------
-  function compute_ap(l,li,lj,llx,ylm,mly)
+  function env_compute_ap(l,li,lj,llx,ylm,mly)
     !-----------------------------------------------------------------------
     !-  given an l and a li,lj pair compute ap(l,li,lj)
     implicit none
@@ -297,7 +297,7 @@ CONTAINS
          l,li,lj       ! the arguments of the array ap
     
     real(DP) :: &
-         compute_ap,  &! this function
+    env_compute_ap,  &! this function
          ylm(llx,llx),&! the real spherical harmonics for array r
          mly(llx,llx)  ! the inverse of ylm considered as a matrix
     !
@@ -305,16 +305,16 @@ CONTAINS
     !
     integer :: ir
     
-    compute_ap = 0.0_DP
+    env_compute_ap = 0.0_DP
     do ir = 1,llx
-       compute_ap = compute_ap + mly(l,ir)*ylm(ir,li)*ylm(ir,lj)
+     env_compute_ap = env_compute_ap + mly(l,ir)*ylm(ir,li)*ylm(ir,lj)
     end do
     
     return
-  end function compute_ap
+  end function env_compute_ap
   !
   !-----------------------------------------------------------------------
-  SUBROUTINE deallocate_uspp()
+  SUBROUTINE env_deallocate_uspp()
     !-----------------------------------------------------------------------
     !
     IF( ALLOCATED( nhtol ) )      DEALLOCATE( nhtol )
@@ -336,7 +336,7 @@ CONTAINS
     IF( ALLOCATED( beta ) )       DEALLOCATE( beta )
     IF( ALLOCATED( dbeta ) )      DEALLOCATE( dbeta )
     !
-  END SUBROUTINE deallocate_uspp
+  END SUBROUTINE env_deallocate_uspp
   !
-END MODULE uspp
+END MODULE env_uspp
 

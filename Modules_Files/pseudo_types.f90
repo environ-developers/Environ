@@ -5,13 +5,13 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-MODULE pseudo_types
+MODULE env_pseudo_types
 
   !  this module contains the definitions of several TYPE structures,
   !  together with their allocation/deallocation routines
 
-  USE kinds, ONLY: DP
-  use radial_grids, ONLY: radial_grid_type
+  USE env_kinds, ONLY: DP
+  use env_radial_grids, ONLY: radial_grid_type
 
   IMPLICIT NONE
   SAVE
@@ -185,7 +185,7 @@ MODULE pseudo_types
 
 CONTAINS
 
-  SUBROUTINE nullify_paw_in_upf( paw )
+  SUBROUTINE env_nullify_paw_in_upf( paw )
     TYPE( paw_in_upf ), INTENT(INOUT) :: paw
     NULLIFY( paw%ae_rho_atc )
     NULLIFY( paw%aewfc_rel )
@@ -200,9 +200,9 @@ CONTAINS
     paw%iraug = 0
     paw%lmax_aug = 0
     paw%augshape = ' '
-  END SUBROUTINE nullify_paw_in_upf
+  END SUBROUTINE env_nullify_paw_in_upf
 
-  SUBROUTINE deallocate_paw_in_upf( paw )
+  SUBROUTINE env_deallocate_paw_in_upf( paw )
     TYPE( paw_in_upf ), INTENT(INOUT) :: paw
     IF( ASSOCIATED( paw%ae_rho_atc ) ) DEALLOCATE ( paw%ae_rho_atc )
     IF( ASSOCIATED( paw%aewfc_rel ) )  DEALLOCATE (paw%aewfc_rel )
@@ -212,9 +212,9 @@ CONTAINS
     IF( ASSOCIATED( paw%ae_vloc )  )   DEALLOCATE ( paw%ae_vloc )
     IF( ASSOCIATED( paw%augmom ) )     DEALLOCATE ( paw%augmom )
     IF( ASSOCIATED( paw%oc ) )         DEALLOCATE ( paw%oc )
-  END SUBROUTINE deallocate_paw_in_upf
+  END SUBROUTINE env_deallocate_paw_in_upf
   !
-   SUBROUTINE deallocate_pseudo_config(conf)
+   SUBROUTINE env_deallocate_pseudo_config(conf)
       TYPE(pseudo_config),INTENT(INOUT) :: conf
       if (associated(conf%els)   ) deallocate(conf%els)
       if (associated(conf%nns)   ) deallocate(conf%nns)
@@ -223,13 +223,13 @@ CONTAINS
       if (associated(conf%rcut)  ) deallocate(conf%rcut)
       if (associated(conf%rcutus)) deallocate(conf%rcutus)
       if (associated(conf%enls)  ) deallocate(conf%enls)
-   END SUBROUTINE deallocate_pseudo_config
+   END SUBROUTINE env_deallocate_pseudo_config
 
 
   !
-  SUBROUTINE nullify_pseudo_upf( upf )
+  SUBROUTINE env_nullify_pseudo_upf( upf )
     TYPE( pseudo_upf ), INTENT(INOUT) :: upf
-    CALL nullify_paw_in_upf( upf%paw )
+    CALL env_nullify_paw_in_upf( upf%paw )
     NULLIFY( upf%grid ) 
     NULLIFY( upf%els, upf%lchi, upf%nchi, upf%jchi, upf%oc )
     NULLIFY( upf%r, upf%rab )
@@ -290,11 +290,11 @@ CONTAINS
     upf%gipaw_ncore_orbitals = 0
     upf%gipaw_wfs_nchannels = 0
     RETURN
-  END SUBROUTINE nullify_pseudo_upf
+  END SUBROUTINE env_nullify_pseudo_upf
 
-  SUBROUTINE deallocate_pseudo_upf( upf )
+  SUBROUTINE env_deallocate_pseudo_upf( upf )
     TYPE( pseudo_upf ), INTENT(INOUT) :: upf
-    CALL deallocate_paw_in_upf( upf%paw )
+    CALL env_deallocate_paw_in_upf( upf%paw )
     IF( ASSOCIATED( upf%els ) )     DEALLOCATE( upf%els )
     IF( ASSOCIATED( upf%lchi ) )    DEALLOCATE( upf%lchi )
     IF( ASSOCIATED( upf%nchi ) )    DEALLOCATE( upf%nchi )
@@ -359,6 +359,6 @@ CONTAINS
     IF ( ASSOCIATED ( upf%gipaw_wfs_ps ) ) &
          DEALLOCATE ( upf%gipaw_wfs_ps )
     RETURN
-  END SUBROUTINE deallocate_pseudo_upf
+  END SUBROUTINE env_deallocate_pseudo_upf
 
-END MODULE pseudo_types
+END MODULE env_pseudo_types

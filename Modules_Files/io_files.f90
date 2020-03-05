@@ -6,14 +6,14 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !=----------------------------------------------------------------------------=!
-MODULE io_files
+MODULE env_io_files
 !=----------------------------------------------------------------------------=!
   !
-  USE parameters, ONLY: ntypx
-  USE kinds,      ONLY: dp
-  USE io_global,  ONLY: ionode, ionode_id, stdout
-  USE mp,         ONLY : mp_barrier, mp_bcast, mp_sum
-  USE mp_images,  ONLY : me_image, intra_image_comm, nproc_image
+  USE env_parameters, ONLY: ntypx
+  USE env_kinds,      ONLY: dp
+  USE env_io_global,  ONLY: ionode, ionode_id, stdout
+  USE env_mp,         ONLY : env_mp_barrier, env_mp_bcast, env_mp_sum
+  USE env_mp_images,  ONLY : me_image, intra_image_comm, nproc_image
   !
   ! ... I/O related variables: file names, units, utilities
   ! ... IMPORTANT: when directory names are set, they must always end with "/"
@@ -21,8 +21,8 @@ MODULE io_files
   IMPLICIT NONE
   !
   SAVE
-  PUBLIC :: create_directory, check_tempdir, clean_tempdir, check_file_exist, &
-       delete_if_present, check_writable, restart_dir, check_restartfile
+  PUBLIC :: env_create_directory, env_check_tempdir, env_clean_tempdir, env_check_file_exist, &
+  env_delete_if_present, env_check_writable, env_restart_dir, env_check_restartfile
   !
   ! ... directory for all temporary files
   CHARACTER(len=256) :: tmp_dir = './'
@@ -102,10 +102,10 @@ MODULE io_files
 CONTAINS
   !
   !------------------------------------------------------------------------
-  SUBROUTINE create_directory( dirname )
+  SUBROUTINE env_create_directory( dirname )
     !------------------------------------------------------------------------
     !
-    USE wrappers,  ONLY : f_mkdir_safe
+    USE env_wrappers,  ONLY : env_f_mkdir_safe
     !
     CHARACTER(LEN=*), INTENT(IN) :: dirname
     !
@@ -118,30 +118,30 @@ CONTAINS
     ! Windows returns error if tmp_dir ends with a backslash
     IF ( dirname(length:length) == '\' ) length=length-1
 #endif
-    IF ( ionode ) ierr = f_mkdir_safe( dirname(1:length ) )
-    CALL mp_bcast ( ierr, ionode_id, intra_image_comm )
+    IF ( ionode ) ierr = env_f_mkdir_safe( dirname(1:length ) )
+    CALL env_mp_bcast ( ierr, ionode_id, intra_image_comm )
     !
-    CALL errore( 'create_directory', &
+    CALL env_errore( 'create_directory', &
          'unable to create directory ' // TRIM( dirname ), ierr )
     !
     ! ... syncronize all jobs (not sure it is really useful)
     !
-    CALL mp_barrier( intra_image_comm )
+    CALL env_mp_barrier( intra_image_comm )
     !
     ! ... check whether the scratch directory is writable
     !
-    IF ( ionode ) ierr = check_writable ( dirname, me_image )
-    CALL mp_bcast( ierr, ionode_id, intra_image_comm )
+    IF ( ionode ) ierr = env_check_writable ( dirname, me_image )
+    CALL env_mp_bcast( ierr, ionode_id, intra_image_comm )
     !
-    CALL errore( 'create_directory:', &
+    CALL env_errore( 'create_directory:', &
          TRIM( dirname ) // ' non existent or non writable', ierr )
     !
     RETURN
     !
-  END SUBROUTINE create_directory
+  END SUBROUTINE env_create_directory
   !
   !-----------------------------------------------------------------------
-  SUBROUTINE check_tempdir ( tmp_dir, exst, pfs )
+  SUBROUTINE env_check_tempdir ( tmp_dir, exst, pfs )
     !-----------------------------------------------------------------------
     !
     ! ... Verify if tmp_dir exists, creates it if not
@@ -149,7 +149,7 @@ CONTAINS
     ! ...    exst= .t. if tmp_dir exists
     ! ...    pfs = .t. if tmp_dir visible from all procs of an image
     !
-    USE wrappers,      ONLY : f_mkdir_safe
+    USE env_wrappers,      ONLY : env_f_mkdir_safe
     !
     IMPLICIT NONE
     !
@@ -170,24 +170,24 @@ CONTAINS
     ! Windows returns error if tmp_dir ends with a backslash
     IF ( tmp_dir(length:length) == '\' ) length=length-1
 #endif
-    IF ( ionode ) ios = f_mkdir_safe( tmp_dir(1:length) )
-    CALL mp_bcast ( ios, ionode_id, intra_image_comm )
+    IF ( ionode ) ios = env_f_mkdir_safe( tmp_dir(1:length) )
+    CALL env_mp_bcast ( ios, ionode_id, intra_image_comm )
     exst = ( ios == -1 )
     IF ( ios > 0 ) CALL errore ('check_tempdir','tmp_dir cannot be opened',1)
     !
     ! ... let us check now if tmp_dir is visible on all nodes
     ! ... if not, a local tmp_dir is created on each node
     !
-    ios = f_mkdir_safe( TRIM(tmp_dir) )
-    CALL mp_sum ( ios, intra_image_comm )
+    ios = env_f_mkdir_safe( TRIM(tmp_dir) )
+    CALL env_mp_sum ( ios, intra_image_comm )
     pfs = ( ios == -nproc_image ) ! actually this is true only if .not.exst 
     !
     RETURN
     !
-  END SUBROUTINE check_tempdir
+  END SUBROUTINE env_check_tempdir
   !
   !-----------------------------------------------------------------------
-  SUBROUTINE clean_tempdir( tmp_dir )
+  SUBROUTINE env_clean_tempdir( tmp_dir )
     !-----------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -200,22 +200,22 @@ CONTAINS
     !
     file_path = trim( tmp_dir ) // trim( prefix )
     IF ( ionode ) THEN
-       CALL delete_if_present( trim( file_path ) // '.update' )
-       CALL delete_if_present( trim( file_path ) // '.md' )
-       CALL delete_if_present( trim( file_path ) // '.bfgs' )
+       CALL env_delete_if_present( trim( file_path ) // '.update' )
+       CALL env_delete_if_present( trim( file_path ) // '.md' )
+       CALL env_delete_if_present( trim( file_path ) // '.bfgs' )
     ENDIF
     !
     RETURN
     !
-  END SUBROUTINE clean_tempdir
+  END SUBROUTINE env_clean_tempdir
   !
   !------------------------------------------------------------------------
-  FUNCTION check_file_exist( filename )
+  FUNCTION env_check_file_exist( filename )
     !------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    LOGICAL          :: check_file_exist
+    LOGICAL          :: env_check_file_exist
     CHARACTER(LEN=*) :: filename
     !
     LOGICAL :: lexists
@@ -226,15 +226,15 @@ CONTAINS
        !
     ENDIF
     !
-    CALL mp_bcast ( lexists, ionode_id, intra_image_comm )
+    CALL env_mp_bcast ( lexists, ionode_id, intra_image_comm )
     !
-    check_file_exist = lexists
+    env_check_file_exist = lexists
     RETURN
     !
-  END FUNCTION check_file_exist
+  END FUNCTION env_check_file_exist
   !
   !--------------------------------------------------------------------------
-  SUBROUTINE delete_if_present( filename, in_warning )
+  SUBROUTINE env_delete_if_present( filename, in_warning )
     !--------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -268,10 +268,10 @@ CONTAINS
     !
     RETURN
     !
-  END SUBROUTINE delete_if_present
+  END SUBROUTINE env_delete_if_present
   !
   !--------------------------------------------------------------------------
-  FUNCTION check_writable ( file_path, process_id ) RESULT ( ios )
+  FUNCTION env_check_writable ( file_path, process_id ) RESULT ( ios )
     !--------------------------------------------------------------------------
     !
     ! ... if run by multiple processes, specific "process_id" to avoid
@@ -302,16 +302,16 @@ CONTAINS
     CLOSE( UNIT = 4, STATUS = 'DELETE' )
     !
     !-----------------------------------------------------------------------
-  END FUNCTION check_writable 
+  END FUNCTION env_check_writable 
   !-----------------------------------------------------------------------
   !
   !
   !------------------------------------------------------------------------
-  FUNCTION restart_dir( outdir, runit )
+  FUNCTION env_restart_dir( outdir, runit )
     !------------------------------------------------------------------------
     !
     ! CP specific
-    CHARACTER(LEN=256)           :: restart_dir
+    CHARACTER(LEN=256)           :: env_restart_dir
     CHARACTER(LEN=*), INTENT(IN) :: outdir
     INTEGER,          INTENT(IN) :: runit
     !
@@ -331,26 +331,26 @@ CONTAINS
        !
     END IF
     !
-    restart_dir = TRIM( dirname )
+    env_restart_dir = TRIM( dirname )
     !
     RETURN
     !
-    END FUNCTION restart_dir
+    END FUNCTION env_restart_dir
     !
     !------------------------------------------------------------------------
-    FUNCTION check_restartfile( outdir, ndr )
+    FUNCTION env_check_restartfile( outdir, ndr )
       !------------------------------------------------------------------------
       !
       IMPLICIT NONE
       !
-      LOGICAL                      :: check_restartfile
+      LOGICAL                      :: env_check_restartfile
       INTEGER,          INTENT(IN) :: ndr
       CHARACTER(LEN=*), INTENT(IN) :: outdir
       CHARACTER(LEN=256)           :: filename
       LOGICAL                      :: lval
       !
       !
-      filename = restart_dir( outdir, ndr )
+      filename = env_restart_dir( outdir, ndr )
       !
       IF ( ionode ) THEN
          !
@@ -360,16 +360,16 @@ CONTAINS
          !
       END IF
       !
-      CALL mp_bcast( lval, ionode_id, intra_image_comm )
+      CALL env_mp_bcast( lval, ionode_id, intra_image_comm )
       !
-      check_restartfile = lval
+      env_check_restartfile = lval
       !
       RETURN
       !
-    END FUNCTION check_restartfile
+    END FUNCTION env_check_restartfile
 !
 !-----------------------------------------------------------------------
-subroutine diropn (unit, extension, recl, exst, tmp_dir_)
+subroutine env_diropn (unit, extension, recl, exst, tmp_dir_)
   !-----------------------------------------------------------------------
   !
   !     Opens a direct-access file named "prefix"."extension" in directory
@@ -405,17 +405,17 @@ subroutine diropn (unit, extension, recl, exst, tmp_dir_)
   !
   !    initial checks
   !
-  if (unit < 0) call errore ('diropn', 'wrong unit', 1)
+  if (unit < 0) call env_errore ('diropn', 'wrong unit', 1)
   !
   !    ifirst we check that the file is not already openend
   !
   ios = 0
   inquire (unit = unit, opened = opnd)
-  if (opnd) call errore ('diropn', "can't open a connected unit", abs(unit))
+  if (opnd) call env_errore ('diropn', "can't open a connected unit", abs(unit))
   !
   !    then we check the filename extension
   !
-  if (extension == ' ') call errore ('diropn','filename extension not given',2)
+  if (extension == ' ') call env_errore ('diropn','filename extension not given',2)
   filename = trim(prefix) // "." // trim(extension)
   if (present(tmp_dir_)) then
      tempfile = trim(tmp_dir_) // trim(filename) //nd_nmbr
@@ -431,19 +431,19 @@ subroutine diropn (unit, extension, recl, exst, tmp_dir_)
   !
   INQUIRE (IOLENGTH=direct_io_factor) dummy
   unf_recl = direct_io_factor * int(recl, kind=kind(unf_recl))
-  if (unf_recl <= 0) call errore ('diropn', 'wrong record length', 3)
+  if (unf_recl <= 0) call env_errore ('diropn', 'wrong record length', 3)
   !
   open (unit, file=trim(adjustl(tempfile)), iostat=ios, form='unformatted', &
        status = 'unknown', access = 'direct', recl = unf_recl)
 
-  if (ios /= 0) call errore ('diropn', 'error opening '//trim(tempfile), unit)
+  if (ios /= 0) call env_errore ('diropn', 'error opening '//trim(tempfile), unit)
   return
   !-----------------------------------------------------------------------
-end subroutine diropn
+end subroutine env_diropn
 !-----------------------------------------------------------------------
 !
 !-----------------------------------------------------------------------
-subroutine seqopn (unit, extension, formatt, exst, tmp_dir_)
+subroutine env_seqopn (unit, extension, formatt, exst, tmp_dir_)
   !-----------------------------------------------------------------------
   !
   !     this routine opens a file named "prefix"."extension"
@@ -474,18 +474,18 @@ subroutine seqopn (unit, extension, formatt, exst, tmp_dir_)
   ! true if the file is already opened
 
 
-  if (unit < 1) call errore ('seqopn', 'wrong unit', 1)
+  if (unit < 1) call env_errore ('seqopn', 'wrong unit', 1)
   !
   !    test if the file is already opened
   !
   ios = 0
   inquire (unit = unit, opened = opnd)
-  if (opnd) call errore ('seqopn', "can't open a connected unit", &
+  if (opnd) call env_errore ('seqopn', "can't open a connected unit", &
        abs (unit) )
   !
   !      then we check the extension of the filename
   !
-  if (extension.eq.' ') call errore ('seqopn','filename extension  not given',2)
+  if (extension.eq.' ') call env_errore ('seqopn','filename extension  not given',2)
   filename = trim(prefix) // "." // trim(extension)
   ! Use the tmp_dir from input, if available
   if ( present(tmp_dir_) ) then
@@ -511,24 +511,24 @@ subroutine seqopn (unit, extension, formatt, exst, tmp_dir_)
   open (unit = unit, file = tempfile, form = formatt, status = &
        'unknown', iostat = ios)
 
-  if (ios /= 0) call errore ('seqopn', 'error opening '//trim(tempfile), unit)
+  if (ios /= 0) call env_errore ('seqopn', 'error opening '//trim(tempfile), unit)
   return
   !-----------------------------------------------------------------------
-end subroutine seqopn
+end subroutine env_seqopn
 !-----------------------------------------------------------------------
 !
 !=----------------------------------------------------------------------------=!
-END MODULE io_files
+END MODULE env_io_files
 !=----------------------------------------------------------------------------=!
 !
 !----------------------------------------------------------------------------
-SUBROUTINE davcio( vect, nword, unit, nrec, io )
+SUBROUTINE env_davcio( vect, nword, unit, nrec, io )
   !----------------------------------------------------------------------------
   !
   ! ... direct-access vector input/output
   ! ... read/write nword words starting from the address specified by vect
   !
-  USE kinds ,     ONLY : DP
+  USE env_kinds ,     ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -546,37 +546,37 @@ SUBROUTINE davcio( vect, nword, unit, nrec, io )
   CHARACTER*256 :: name
   !
   !
-  CALL start_clock( 'davcio' )
+  CALL env_start_clock( 'davcio' )
   !
-  IF ( unit  <= 0 ) CALL errore(  'davcio', 'wrong unit', 1 )
-  IF ( nrec  <= 0 ) CALL errore(  'davcio', 'wrong record number', 2 )
-  IF ( nword <= 0 ) CALL errore(  'davcio', 'wrong record length', 3 )
-  IF ( io    == 0 ) CALL infomsg( 'davcio', 'nothing to do?' )
+  IF ( unit  <= 0 ) CALL env_errore(  'davcio', 'wrong unit', 1 )
+  IF ( nrec  <= 0 ) CALL env_errore(  'davcio', 'wrong record number', 2 )
+  IF ( nword <= 0 ) CALL env_errore(  'davcio', 'wrong record length', 3 )
+  IF ( io    == 0 ) CALL env_infomsg( 'davcio', 'nothing to do?' )
   !
   INQUIRE( UNIT = unit, OPENED = opnd, NAME = name )
   !
   IF ( .NOT. opnd ) &
-     CALL errore(  'davcio', 'unit is not opened', unit )
+     CALL env_errore(  'davcio', 'unit is not opened', unit )
   !
   ios = 0
   !
   IF ( io < 0 ) THEN
      !
      READ( UNIT = unit, REC = nrec, IOSTAT = ios ) vect
-     IF ( ios /= 0 ) CALL errore( 'davcio', &
+     IF ( ios /= 0 ) CALL env_errore( 'davcio', &
          & 'error while reading from file "' // TRIM(name) // '"', unit )
      !
   ELSE IF ( io > 0 ) THEN
      !
      WRITE( UNIT = unit, REC = nrec, IOSTAT = ios ) vect
-     IF ( ios /= 0 ) CALL errore( 'davcio', &
+     IF ( ios /= 0 ) CALL env_errore( 'davcio', &
          & 'error while writing from file "' // TRIM(name) // '"', unit )
      !
   END IF
   !
-  CALL stop_clock( 'davcio' )
+  CALL env_stop_clock( 'davcio' )
   !
   RETURN
   !
-END SUBROUTINE davcio
+END SUBROUTINE env_davcio
 

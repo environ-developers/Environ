@@ -6,10 +6,10 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-MODULE constants
+MODULE env_constants
   !----------------------------------------------------------------------------
   !
-  USE kinds, ONLY : DP
+  USE env_kinds, ONLY : DP
   !
   ! ... The constants needed everywhere
   !
@@ -119,7 +119,7 @@ MODULE constants
   !
   REAL(DP), PARAMETER :: AVOGADRO = 6.02214129D+23
 
-END MODULE constants
+END MODULE env_constants
 
 ! perl script to create a program to list the available constants:
 ! extract with: grep '^!XX!' constants.f90 | sed 's,!XX!,,' > mkconstlist.pl
