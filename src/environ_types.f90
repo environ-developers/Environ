@@ -27,10 +27,10 @@
 MODULE environ_types
 !----------------------------------------------------------------------------
   !
-  USE kinds,             ONLY : DP
-  USE constants,         ONLY : rydberg_si, bohr_radius_si, bohr_radius_angs, &
+  USE env_kinds,             ONLY : DP
+  USE env_constants,         ONLY : rydberg_si, bohr_radius_si, bohr_radius_angs, &
                          & amu_si, fpi, tpi, pi, sqrtpi, k_boltzmann_ry, rytoev
-  USE mp,                ONLY : mp_sum
+  USE env_mp,                ONLY : env_mp_sum
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
 !  USE control_flags,     ONLY : tddfpt
@@ -506,7 +506,7 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
     !
     IF ( n1 .EQ. 0 .OR. n2 .EQ. 0 .OR. n3 .EQ. 0 ) &
-         & CALL errore(sub_name,'Wrong grid dimension',1)
+         & CALL env_errore(sub_name,'Wrong grid dimension',1)
     !
     cell % n1 = n1
     cell % n2 = n2
@@ -750,7 +750,7 @@ CONTAINS
     END IF
     !
     NULLIFY(density%cell)
-    IF ( ALLOCATED( density%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( density%of_r ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
     !
     RETURN
     !
@@ -769,10 +769,10 @@ CONTAINS
     !
     density%update = .FALSE.
     !
-    IF ( ASSOCIATED( density%cell ) ) CALL errore(sub_name,'Trying to associate an associated object',1)
+    IF ( ASSOCIATED( density%cell ) ) CALL env_errore(sub_name,'Trying to associate an associated object',1)
     density%cell => cell
     !
-    IF ( ALLOCATED( density%of_r ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
+    IF ( ALLOCATED( density%of_r ) ) CALL env_errore(sub_name,'Trying to allocate an allocated object',1)
     ALLOCATE(density%of_r(density%cell%nnr))
     density%of_r = 0.D0
     !
@@ -797,7 +797,7 @@ CONTAINS
     !
     INTEGER :: n
     !
-    IF ( .NOT. ASSOCIATED( doriginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    IF ( .NOT. ASSOCIATED( doriginal % cell ) ) CALL env_errore(sub_name,'Trying to copy a non associated object',1)
     dcopy % cell => doriginal % cell
     !
     dcopy % update     = doriginal % update
@@ -829,7 +829,7 @@ CONTAINS
     REAL( DP ) :: integral
     !
     integral = SUM(density%of_r(1:density%cell%ir_end))
-    CALL mp_sum( integral, density%cell%comm )
+    CALL env_mp_sum( integral, density%cell%comm )
     integral = integral * density%cell%domega
     !
     RETURN
@@ -850,10 +850,10 @@ CONTAINS
     CHARACTER( LEN=80 ) :: fun_name = 'scalar_product_environ_density'
     !
     IF ( .NOT.ASSOCIATED(density1%cell,density2%cell) ) &
-         & CALL errore(fun_name,'operation on fields with inconsistent domains',1)
+         & CALL env_errore(fun_name,'operation on fields with inconsistent domains',1)
     ir_end => density1 % cell % ir_end
     scalar_product = DOT_PRODUCT(density1%of_r(1:ir_end),density2%of_r(1:ir_end))
-    CALL mp_sum( scalar_product, density1%cell%comm )
+    CALL env_mp_sum( scalar_product, density1%cell%comm )
     scalar_product = scalar_product * density1%cell%domega
     !
     RETURN
@@ -874,7 +874,7 @@ CONTAINS
     !
     ir_end => density % cell % ir_end
     euclidean_norm = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
-    CALL mp_sum( euclidean_norm, density%cell%comm )
+    CALL env_mp_sum( euclidean_norm, density%cell%comm )
     !
     RETURN
     !
@@ -894,7 +894,7 @@ CONTAINS
     !
     ir_end => density % cell % ir_end
     quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
-    CALL mp_sum( quadratic_mean, density%cell%comm )
+    CALL env_mp_sum( quadratic_mean, density%cell%comm )
     quadratic_mean = SQRT( quadratic_mean / density % cell % ntot )
     !
     RETURN
@@ -915,7 +915,7 @@ CONTAINS
     !
     ir_end => density % cell % ir_end
     quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
-    CALL mp_sum( quadratic_mean, density%cell%comm )
+    CALL env_mp_sum( quadratic_mean, density%cell%comm )
     quadratic_mean = SQRT( quadratic_mean ) / density % cell % ntot
     !
     RETURN
@@ -1000,11 +1000,11 @@ CONTAINS
     density%update = .FALSE.
     !
     IF (.NOT.ASSOCIATED(density%cell)) &
-         & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+         & CALL env_errore(sub_name,'Trying to destroy a non associated object',1)
     NULLIFY(density%cell)
     !
     IF (.NOT.ALLOCATED(density%of_r)) &
-         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+         & CALL env_errore(sub_name,'Trying to destroy a non allocated object',1)
     DEALLOCATE( density%of_r )
     !
     RETURN
@@ -1033,7 +1033,7 @@ CONTAINS
     END IF
     !
     NULLIFY( gradient%cell )
-    IF ( ALLOCATED( gradient%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( gradient%of_r ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
     CALL create_environ_density( gradient%modulus, modulus_label )
     !
     RETURN
@@ -1053,10 +1053,10 @@ CONTAINS
     !
     gradient%update = .FALSE.
     !
-    IF ( ASSOCIATED( gradient%cell ) ) CALL errore(sub_name,'Trying to associate an associated object',1)
+    IF ( ASSOCIATED( gradient%cell ) ) CALL env_errore(sub_name,'Trying to associate an associated object',1)
     gradient%cell => cell
     !
-    IF ( ALLOCATED( gradient%of_r ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
+    IF ( ALLOCATED( gradient%of_r ) ) CALL env_errore(sub_name,'Trying to allocate an allocated object',1)
     ALLOCATE(gradient%of_r(3,gradient%cell%nnr))
     gradient%of_r = 0.D0
     !
@@ -1079,7 +1079,7 @@ CONTAINS
     !
     INTEGER :: n
     !
-    IF ( .NOT. ASSOCIATED( goriginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    IF ( .NOT. ASSOCIATED( goriginal % cell ) ) CALL env_errore(sub_name,'Trying to copy a non associated object',1)
     gcopy % cell => goriginal % cell
     !
     gcopy % update = goriginal % update
@@ -1129,11 +1129,11 @@ CONTAINS
     gradient%update = .FALSE.
     !
     IF (.NOT.ASSOCIATED(gradient%cell)) &
-         & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+         & CALL env_errore(sub_name,'Trying to destroy a non associated object',1)
     NULLIFY(gradient%cell)
     !
     IF (.NOT.ALLOCATED(gradient%of_r)) &
-         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+         & CALL env_errore(sub_name,'Trying to destroy a non allocated object',1)
     DEALLOCATE( gradient%of_r )
     !
     CALL destroy_environ_density( gradient%modulus )
@@ -1157,9 +1157,9 @@ CONTAINS
     !
     dens%of_r = 0.D0
     IF ( .NOT. ASSOCIATED(gradA%cell,gradB%cell) ) &
-         & CALL errore(sub_name,'Missmatch in domain of input gradients',1)
+         & CALL env_errore(sub_name,'Missmatch in domain of input gradients',1)
     IF ( .NOT. ASSOCIATED(gradA%cell,dens%cell) ) &
-         & CALL errore(sub_name,'Missmatch in domain of input and output',1)
+         & CALL env_errore(sub_name,'Missmatch in domain of input and output',1)
     !
     DO ir = 1, dens%cell%ir_end
        dens%of_r(ir) = SUM(gradA%of_r(:,ir)*gradB%of_r(:,ir))
@@ -1189,12 +1189,12 @@ CONTAINS
     !
     res = 0.D0
     IF ( .NOT. ASSOCIATED(gradient%cell,density%cell) ) &
-         & CALL errore(sub_name,'Missmatch in domain of input vectors',1)
+         & CALL env_errore(sub_name,'Missmatch in domain of input vectors',1)
     ir_end => density%cell%ir_end
     !
     DO ipol = 1, 3
        scalar_product = DOT_PRODUCT( gradient%of_r(ipol,1:ir_end),density%of_r(1:ir_end) )
-       CALL mp_sum( scalar_product, density % cell % comm )
+       CALL env_mp_sum( scalar_product, density % cell % comm )
        res(ipol) = scalar_product * density % cell % domega
     END DO
     !
@@ -1224,7 +1224,7 @@ CONTAINS
     END IF
     !
     NULLIFY(hessian%cell)
-    IF ( ALLOCATED( hessian%of_r ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( hessian%of_r ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
     !
     CALL create_environ_density( hessian%laplacian, laplacian_label )
     !
@@ -1245,10 +1245,10 @@ CONTAINS
     !
     hessian%update = .FALSE.
     !
-    IF ( ASSOCIATED( hessian%cell ) ) CALL errore(sub_name,'Trying to associate an associated object',1)
+    IF ( ASSOCIATED( hessian%cell ) ) CALL env_errore(sub_name,'Trying to associate an associated object',1)
     hessian%cell => cell
     !
-    IF ( ALLOCATED( hessian%of_r ) ) CALL errore(sub_name,'Trying to allocate an allocated object',1)
+    IF ( ALLOCATED( hessian%of_r ) ) CALL env_errore(sub_name,'Trying to allocate an allocated object',1)
     ALLOCATE(hessian%of_r(3,3,hessian%cell%nnr))
     hessian%of_r = 0.D0
     !
@@ -1271,7 +1271,7 @@ CONTAINS
     !
     INTEGER :: n
     !
-    IF ( .NOT. ASSOCIATED( horiginal % cell ) ) CALL errore(sub_name,'Trying to copy a non associated object',1)
+    IF ( .NOT. ASSOCIATED( horiginal % cell ) ) CALL env_errore(sub_name,'Trying to copy a non associated object',1)
     hcopy % cell => horiginal % cell
     !
     hcopy % update = horiginal % update
@@ -1321,11 +1321,11 @@ CONTAINS
     hessian%update = .FALSE.
     !
     IF (.NOT.ASSOCIATED(hessian%cell)) &
-         & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+         & CALL env_errore(sub_name,'Trying to destroy a non associated object',1)
     NULLIFY(hessian%cell)
     !
     IF (.NOT.ALLOCATED(hessian%of_r)) &
-         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+         & CALL env_errore(sub_name,'Trying to destroy a non allocated object',1)
     DEALLOCATE( hessian%of_r )
     !
     CALL destroy_environ_density(hessian%laplacian)
@@ -1466,7 +1466,7 @@ CONTAINS
     !
     IF ( PRESENT( nelec ) ) THEN
        IF ( ABS(electrons%charge-nelec) .GT. tol ) &
-            & CALL errore(sub_name,'Missmatch in integrated electronic charge',1)
+            & CALL env_errore(sub_name,'Missmatch in integrated electronic charge',1)
     ENDIF
     !
     RETURN
@@ -1553,7 +1553,7 @@ CONTAINS
     INTEGER, POINTER :: ityp
     REAL( DP ), POINTER :: zv
     !
-    IF (.NOT.ASSOCIATED(system%ions)) CALL errore(sub_name,'Trying to use a non associated object',1)
+    IF (.NOT.ASSOCIATED(system%ions)) CALL env_errore(sub_name,'Trying to use a non associated object',1)
     !
     system%pos = 0.D0
     system%width = 0.D0
@@ -1570,7 +1570,7 @@ CONTAINS
        system%pos(:) = system%pos(:) + system%ions%tau(:,i) * zv
     ENDDO
     IF ( ABS(charge) .LT. 1.D-8 ) &
-         & CALL errore(sub_name,'System charge is zero',1)
+         & CALL env_errore(sub_name,'System charge is zero',1)
     system%pos(:) = system%pos(:) / charge
     !
     system%width = 0.D0
@@ -1604,7 +1604,7 @@ CONTAINS
     !
     IF ( lflag ) THEN
        IF (.NOT.ASSOCIATED(system%ions)) &
-            & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+            & CALL env_errore(sub_name,'Trying to destroy a non associated object',1)
        NULLIFY( system%ions )
     END IF
     !

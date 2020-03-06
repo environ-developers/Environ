@@ -97,7 +97,7 @@ CONTAINS
        local_type = "fft"
        CALL init_electrostatic_core( type = local_type, qe_fft = qe_fft, core = reference_core )
     CASE DEFAULT
-       CALL errore(sub_name,'Unexpected name of host code',1)
+       CALL env_errore(sub_name,'Unexpected name of host code',1)
     END SELECT
     !
     ! Numerical core for boundary derivatives NEED TO MOVE IT OUTSIDE ELECTROSTATIC
@@ -134,7 +134,7 @@ CONTAINS
           loned_analytic = .TRUE.
           local_type = 'gcs'
        CASE DEFAULT
-          CALL errore(sub_name,'Option not yet implemented',1)
+          CALL env_errore(sub_name,'Option not yet implemented',1)
        END SELECT
        !
     END IF
@@ -189,7 +189,7 @@ CONTAINS
        local_type = "direct"
        CALL init_electrostatic_solver( type = local_type, solver = reference_solver )
     CASE DEFAULT
-       CALL errore(sub_name,'Unexpected name of host code',1)
+       CALL env_errore(sub_name,'Unexpected name of host code',1)
     END SELECT
     !
     ! Set up main (outer) solver

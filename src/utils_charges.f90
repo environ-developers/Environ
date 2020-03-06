@@ -197,7 +197,7 @@ CONTAINS
     !
     IF ( charges % include_electrons ) THEN
        IF ( .NOT. ASSOCIATED( charges % electrons ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
+            & CALL env_errore(sub_name,'Missing expected charge component',1)
        charges % number = charges % number + charges % electrons % number
        charges % charge = charges % charge + charges % electrons % charge
        charges % density % of_r = charges % density % of_r + charges % electrons % density % of_r
@@ -205,7 +205,7 @@ CONTAINS
     !
     IF ( charges % include_ions ) THEN
        IF ( .NOT. ASSOCIATED( charges % ions ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
+            & CALL env_errore(sub_name,'Missing expected charge component',1)
        charges % number = charges % number + charges % ions % number
        charges % charge = charges % charge + charges % ions % charge
        charges % density % of_r = charges % density % of_r + charges % ions % density % of_r
@@ -213,7 +213,7 @@ CONTAINS
     !
     IF ( charges % include_externals ) THEN
        IF ( .NOT. ASSOCIATED( charges % externals ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
+            & CALL env_errore(sub_name,'Missing expected charge component',1)
        IF ( PRESENT( add_externals ) .AND. add_externals ) THEN
           charges % number = charges % number + charges % externals % number
           charges % charge = charges % charge + charges % externals % charge
@@ -250,7 +250,7 @@ CONTAINS
     !
     IF ( charges % include_electrolyte ) THEN
        IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
+            & CALL env_errore(sub_name,'Missing expected charge component',1)
        ! ELECTROLYTE CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
        CALL electrolyte_of_potential( potential, charges%electrolyte )
        tot_charge_density % of_r = tot_charge_density % of_r + charges % electrolyte % density % of_r
@@ -258,7 +258,7 @@ CONTAINS
     !
     IF ( charges % include_dielectric ) THEN
        IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
-            & CALL errore(sub_name,'Missing expected charge component',1)
+            & CALL env_errore(sub_name,'Missing expected charge component',1)
        ! DIELECTRIC CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
        CALL dielectric_of_potential( tot_charge_density, potential, charges%dielectric )
     ENDIF

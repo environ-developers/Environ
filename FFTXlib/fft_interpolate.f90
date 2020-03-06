@@ -23,7 +23,7 @@ subroutine env_fft_interpolate_real (dfft_in, v_in, dfft_out, v_out )
   INTEGER :: ngm
   COMPLEX(DP), ALLOCATABLE :: aux_in (:), aux_out (:)
 
-  call start_clock ('interpolate')
+  call env_start_clock ('interpolate')
 
   IF (dfft_out%grid_id == dfft_in%grid_id) THEN
 
@@ -55,7 +55,7 @@ subroutine env_fft_interpolate_real (dfft_in, v_in, dfft_out, v_out )
 
   END IF
 
-  call stop_clock ('interpolate')
+  call env_stop_clock ('interpolate')
 
   return
 
@@ -80,7 +80,7 @@ subroutine env_fft_interpolate_complex (dfft_in, v_in, dfft_out, v_out )
 
   if (dfft_out%lgamma.OR.dfft_in%lgamma) call env_fftx_error__('fft_interpolate_complex','lgamma not allowed', 1)
 
-  call start_clock ('interpolate')
+  call env_start_clock ('interpolate')
 
   IF (dfft_out%grid_id == dfft_in%grid_id) THEN
 
@@ -106,7 +106,7 @@ subroutine env_fft_interpolate_complex (dfft_in, v_in, dfft_out, v_out )
 
   END IF
 
-  call stop_clock ('interpolate')
+  call env_stop_clock ('interpolate')
 
   return
 

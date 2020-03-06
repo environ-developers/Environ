@@ -107,7 +107,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL start_clock( 'cft_1z' )
+     CALL env_start_clock( 'cft_1z' )
 #endif
 
      IF (isign < 0) THEN
@@ -121,7 +121,7 @@
      END IF
 
 #if defined(__FFT_CLOCKS)
-     CALL stop_clock( 'cft_1z' )
+     CALL env_stop_clock( 'cft_1z' )
 #endif
 
      RETURN
@@ -276,7 +276,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL start_clock( 'cft_2xy' )
+     CALL env_start_clock( 'cft_2xy' )
 #endif
 
      IF( isign < 0 ) THEN
@@ -299,7 +299,7 @@
 
 
 #if defined(__FFT_CLOCKS)
-     CALL stop_clock( 'cft_2xy' )
+     CALL env_stop_clock( 'cft_2xy' )
 #endif
 
      RETURN

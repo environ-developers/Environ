@@ -166,7 +166,7 @@ CONTAINS
 !    END IF
     !
     IF ( ALLOCATED( electrolyte%ioncctype ) ) &
-       CALL errore(sub_name,'Trying to allocate an already allocated object',1)
+       CALL env_errore(sub_name,'Trying to allocate an already allocated object',1)
     ALLOCATE( electrolyte%ioncctype(ntyp) )
     !
     neutral = 0.D0
@@ -197,7 +197,7 @@ CONTAINS
        !
     END DO
     !
-    IF ( neutral .GT. 1.D-8 ) CALL errore(sub_name,'Bulk electrolyte is not neutral',1)
+    IF ( neutral .GT. 1.D-8 ) CALL env_errore(sub_name,'Bulk electrolyte is not neutral',1)
     !
     ! ... If cionmax is not provided in input but radius is, calculate cionmax
     !
@@ -209,7 +209,7 @@ CONTAINS
     !
     sumcbulk = SUM( electrolyte%ioncctype(:)%cbulk )
     IF ( electrolyte%cionmax .GT. 0.D0 .AND. electrolyte%cionmax .LE. sumcbulk ) &
-          & CALL errore( sub_name,'cionmax should be larger than the sum of cbulks',1)
+          & CALL env_errore( sub_name,'cionmax should be larger than the sum of cbulks',1)
     !
     electrolyte%energy_second_order = 0.D0
     !
@@ -278,7 +278,7 @@ CONTAINS
     !
     INTEGER :: ityp
     !
-    CALL start_clock( 'electrolyte' )
+    CALL env_start_clock( 'electrolyte' )
     !
     ! ... Check if the boundary is under update (status = 1) or has been fully updated (status = 2)
     !
@@ -330,7 +330,7 @@ CONTAINS
        !
     END IF
     !
-    CALL stop_clock( 'electrolyte' )
+    CALL env_stop_clock( 'electrolyte' )
     !
     RETURN
     !
@@ -771,7 +771,7 @@ CONTAINS
        ! ... These components were allocated first, destroy only if lflag = .TRUE.
        !
        IF ( .NOT. ALLOCATED( electrolyte%ioncctype ) ) &
-            & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+            & CALL env_errore(sub_name,'Trying to destroy a non allocated object',1)
        DEALLOCATE( electrolyte%ioncctype )
     ENDIF
     !

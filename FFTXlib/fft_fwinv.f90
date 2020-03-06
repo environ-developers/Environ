@@ -54,7 +54,7 @@ SUBROUTINE env_invfft_y( fft_kind, f, dfft, howmany )
   END IF
   IF (clock_label == ' ') CALL env_fftx_error__( ' invfft ', ' uninitialized fft kind : '//fft_kind , 1 )
 
-  CALL start_clock(clock_label)
+  CALL env_start_clock(clock_label)
 
   IF( dfft%lpara ) THEN
 
@@ -83,7 +83,7 @@ SUBROUTINE env_invfft_y( fft_kind, f, dfft, howmany )
 
   END IF
 
-  CALL stop_clock( clock_label )
+  CALL env_stop_clock( clock_label )
 
   RETURN
 
@@ -134,7 +134,7 @@ SUBROUTINE env_fwfft_y( fft_kind, f, dfft, howmany )
   END IF
   IF (clock_label == ' ') CALL env_fftx_error__( ' fwfft ', ' uninitialized fft kind : '//fft_kind , 1 )
 
-  CALL start_clock(clock_label)
+  CALL env_start_clock(clock_label)
 
   IF( dfft%lpara ) THEN
 
@@ -163,7 +163,7 @@ SUBROUTINE env_fwfft_y( fft_kind, f, dfft, howmany )
 
   END IF
 
-  CALL stop_clock( clock_label )
+  CALL env_stop_clock( clock_label )
   
   RETURN
   !
@@ -214,7 +214,7 @@ SUBROUTINE env_invfft_b( f, dfft, ia )
   ! in the future we probably need a thread safe version of the clock
 
 !$omp master
-  CALL start_clock( 'fftb' )
+  CALL env_start_clock( 'fftb' )
 !$omp end master 
 
 #if defined(__MPI) && !defined(__USE_3D_FFT)
@@ -252,7 +252,7 @@ SUBROUTINE env_invfft_b( f, dfft, ia )
 #endif
 
 !$omp master
-  CALL stop_clock( 'fftb' )
+  CALL env_stop_clock( 'fftb' )
 !$omp end master
 
   RETURN

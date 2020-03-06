@@ -77,14 +77,14 @@ CONTAINS
     TYPE( environ_density ), TARGET :: local
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vperiodic'
     !
-    CALL start_clock ('calc_vpbc')
+    CALL env_start_clock ('calc_vpbc')
     !
     ! ... Aliases and sanity checks
     !
     IF ( .NOT. ASSOCIATED( potential%cell, charges%cell ) ) &
-         & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
+         & CALL env_errore(sub_name,'Missmatch in domains of potential and charges',1)
     IF ( .NOT. ASSOCIATED( potential%cell, oned_analytic%cell ) ) &
-         & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
+         & CALL env_errore(sub_name,'Missmatch in domains of potential and solver',1)
     !
     cell => potential % cell
     nnr => cell % nnr
@@ -133,7 +133,7 @@ CONTAINS
        !
     CASE ( 1 )
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL env_errore(sub_name,'Option not yet implemented',1)
        !
     CASE ( 2 )
        !
@@ -148,7 +148,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL errore(sub_name,'Unexpected option in dimensionality of PBC correction',1)
+       CALL env_errore(sub_name,'Unexpected option in dimensionality of PBC correction',1)
        !
     END SELECT
     !
@@ -156,7 +156,7 @@ CONTAINS
     !
     CALL destroy_environ_density(local)
     !
-    CALL stop_clock ('calc_vpbc')
+    CALL env_stop_clock ('calc_vpbc')
     !
     RETURN
 !---------------------------------------------------------------------------
@@ -201,9 +201,9 @@ CONTAINS
     ! ... Aliases and sanity checks
     !
     IF ( .NOT. ASSOCIATED( gvtot%cell, charges%cell ) ) &
-         & CALL errore(sub_name,'Missmatch in domains of gradient and charges',1)
+         & CALL env_errore(sub_name,'Missmatch in domains of gradient and charges',1)
     IF ( .NOT. ASSOCIATED( gvtot%cell, oned_analytic%cell ) ) &
-         & CALL errore(sub_name,'Missmatch in domains of gradient and solver',1)
+         & CALL env_errore(sub_name,'Missmatch in domains of gradient and solver',1)
     !
     cell => gvtot % cell
     nnr => cell % nnr
@@ -245,7 +245,7 @@ CONTAINS
        !
     CASE ( 1 )
        !
-       CALL errore(sub_name,'Option not yet implemented',1)
+       CALL env_errore(sub_name,'Option not yet implemented',1)
        !
     CASE ( 2 )
        !
@@ -257,7 +257,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL errore(sub_name,'Unexpected option',1)
+       CALL env_errore(sub_name,'Unexpected option',1)
        !
     END SELECT
     !
@@ -313,9 +313,9 @@ CONTAINS
     ! ... Aliases and sanity checks
     !
     IF ( .NOT. ASSOCIATED( charges%density%cell, oned_analytic % cell ) ) &
-         & CALL errore(sub_name,'Missmatch in domains of charges and solver',1)
+         & CALL env_errore(sub_name,'Missmatch in domains of charges and solver',1)
     IF ( natoms .NE. charges % ions % number ) &
-         & CALL errore(sub_name,'Missmatch in numbers of atoms passed in input and stored',1)
+         & CALL env_errore(sub_name,'Missmatch in numbers of atoms passed in input and stored',1)
     !
     nnr => charges % density % cell % nnr
     alat => charges % density % cell % alat
@@ -361,7 +361,7 @@ CONTAINS
           !
        CASE ( 1 )
           !
-          CALL errore(sub_name,'Option not yet implemented',1)
+          CALL env_errore(sub_name,'Option not yet implemented',1)
           !
        CASE ( 2 )
           !
@@ -373,7 +373,7 @@ CONTAINS
           !
        CASE DEFAULT
           !
-          CALL errore(sub_name,'Unexpected',1)
+          CALL env_errore(sub_name,'Unexpected',1)
           !
        END SELECT
        !
@@ -383,7 +383,7 @@ CONTAINS
     !
     f = f + ftmp
     !
-    CALL stop_clock ('calc_fpbc')
+    CALL env_stop_clock ('calc_fpbc')
     !
     RETURN
 !---------------------------------------------------------------------------

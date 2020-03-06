@@ -88,7 +88,7 @@ SUBROUTINE env_fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
   INTEGER :: nr1_temp(1)
 
 #if defined(__MPI)
-  CALL start_clock ('fft_scatt_xy')
+  CALL env_start_clock ('fft_scatt_xy')
   !
   if ( abs (isgn) == 1 ) then          ! It's a potential FFT
      CALL env_impl_xy( MAXVAL ( desc%nr2p ), desc%nproc2, desc%my_nr2p, desc%nr1p, desc%indp, desc%iplp)
@@ -100,7 +100,7 @@ SUBROUTINE env_fft_scatter_xy ( desc, f_in, f_aux, nxx_, isgn )
      CALL env_impl_xy( desc%nr2x, 1, desc%nr2x, nr1_temp, desc%indw_tg, desc%iplw)
   end if
   !
-  CALL stop_clock ('fft_scatt_xy')
+  CALL env_stop_clock ('fft_scatt_xy')
 
   RETURN
 
@@ -336,7 +336,7 @@ SUBROUTINE env_fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
 
 #if defined(__MPI)
   !
-  CALL start_clock ('fft_scatt_yz')
+  CALL env_start_clock ('fft_scatt_yz')
 
   if ( abs (isgn) == 1 ) then      ! It's a potential FFT
      CALL env_impl_yz(desc%mype2+1, desc%mype2+1, desc%nsp, desc%ir1p, desc%nsp_offset)
@@ -346,7 +346,7 @@ SUBROUTINE env_fft_scatter_yz ( desc, f_in, f_aux, nxx_, isgn )
      CALL env_impl_yz(1, desc%nproc2, desc%nsw, desc%ir1w_tg, desc%nsw_offset)
   end if
 
-  CALL stop_clock ('fft_scatt_yz')
+  CALL env_stop_clock ('fft_scatt_yz')
 
   RETURN
 
@@ -576,7 +576,7 @@ SUBROUTINE env_fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
 
   INTEGER :: ierr
 
-  CALL start_clock ('fft_scatt_tg')
+  CALL env_start_clock ('fft_scatt_tg')
 
   if ( abs (isgn) /= 3 ) call env_fftx_error__ ('fft_scatter_tg', 'wrong call', 1 )
 
@@ -597,7 +597,7 @@ SUBROUTINE env_fft_scatter_tg ( desc, f_in, f_aux, nxx_, isgn )
    end if
 
 #endif
-  CALL stop_clock ('fft_scatt_tg')
+  CALL env_stop_clock ('fft_scatt_tg')
 
   RETURN
 
@@ -625,7 +625,7 @@ SUBROUTINE env_fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
 
   INTEGER :: ierr
 
-  CALL start_clock ('fft_scatt_tg')
+  CALL env_start_clock ('fft_scatt_tg')
 
   if ( abs (isgn) /= 3 ) call env_fftx_error__ ('fft_scatter_tg', 'wrong call', 1 )
 
@@ -645,7 +645,7 @@ SUBROUTINE env_fft_scatter_tg_opt ( desc, f_in, f_out, nxx_, isgn )
    end if
 
 #endif
-  CALL stop_clock ('fft_scatt_tg')
+  CALL env_stop_clock ('fft_scatt_tg')
 
   RETURN
 
@@ -677,7 +677,7 @@ SUBROUTINE env_gather_real_grid ( dfft, f_in, f_out )
   IF( size( f_in ) < dfft%nnr ) &
      CALL env_fftx_error__( ' gather_real_grid ', ' f_in too small ', dfft%nnr-size( f_in ) )
   !
-  CALL start_clock( 'rgather_grid' )
+  CALL env_start_clock( 'rgather_grid' )
 
   !write (6,*) 'gather grid ok 0 ', dfft%nproc, dfft%nproc2, dfft%nproc3
   ALLOCATE ( f_aux(dfft%nr1x * dfft%nr2x * dfft%my_nr3p) )
@@ -723,7 +723,7 @@ SUBROUTINE env_gather_real_grid ( dfft, f_in, f_out )
   !
   DEALLOCATE ( f_aux )
   !
-  CALL stop_clock( 'rgather_grid' )
+  CALL env_stop_clock( 'rgather_grid' )
   !
 #else
   CALL env_fftx_error__(' gather_real_grid', 'do not use in serial execution', 1)
@@ -757,7 +757,7 @@ SUBROUTINE env_gather_complex_grid ( dfft, f_in, f_out )
   INTEGER :: displs(0:dfft%nproc-1), recvcount(0:dfft%nproc-1)
   !
   
-  CALL start_clock( 'cgather_grid' )
+  CALL env_start_clock( 'cgather_grid' )
   !write (*,*) 'gcgather_grid size(f_in),dfft%nnr',size(f_in), dfft%nnr ; FLUSH(6)
   IF( 2*size( f_in ) < dfft%nnr ) &
      CALL env_fftx_error__( ' gather_complex_grid ', ' f_in too small ', dfft%nnr-size( f_in ) )
@@ -808,7 +808,7 @@ SUBROUTINE env_gather_complex_grid ( dfft, f_in, f_out )
   !
   DEALLOCATE ( f_aux )
   !
-  CALL stop_clock( 'cgather_grid' )
+  CALL env_stop_clock( 'cgather_grid' )
   !
 #else
   CALL env_fftx_error__('gather_complex_grid', 'do not use in serial execution', 1)
@@ -842,7 +842,7 @@ SUBROUTINE env_scatter_real_grid ( dfft, f_in, f_out )
   INTEGER :: displs(0:dfft%nproc-1), sendcount(0:dfft%nproc-1)
   !
   !
-  CALL start_clock( 'rscatter_grid' )
+  CALL env_start_clock( 'rscatter_grid' )
   !
   !write (6,*) 'scatter grid ok 0'
   ALLOCATE ( f_aux(dfft%nr1x * dfft%nr2x * dfft%my_nr3p) )
@@ -886,7 +886,7 @@ SUBROUTINE env_scatter_real_grid ( dfft, f_in, f_out )
   !
   DEALLOCATE ( f_aux )
   !
-  CALL stop_clock( 'rscatter_grid' )
+  CALL env_stop_clock( 'rscatter_grid' )
   !
 #else
   CALL env_fftx_error__('scatter_real_grid', 'do not use in serial execution', 1)
@@ -918,7 +918,7 @@ SUBROUTINE env_scatter_complex_grid ( dfft, f_in, f_out )
   ! ... the following are automatic arrays
   INTEGER :: displs(0:dfft%nproc-1), sendcount(0:dfft%nproc-1)
   !
-  CALL start_clock( 'cscatter_grid' )
+  CALL env_start_clock( 'cscatter_grid' )
   !
   !write (6,*) 'scatter grid ok 0'
   ALLOCATE ( f_aux(dfft%nr1x * dfft%nr2x * dfft%my_nr3p ) )
@@ -971,7 +971,7 @@ SUBROUTINE env_scatter_complex_grid ( dfft, f_in, f_out )
   !
   DEALLOCATE ( f_aux )
   !
-  CALL stop_clock( 'cscatter_grid' )
+  CALL env_stop_clock( 'cscatter_grid' )
   !
 #else
   CALL env_fftx_error__('scatter_complex_grid', 'do not use in serial execution', 1)
@@ -1005,7 +1005,7 @@ SUBROUTINE env_cgather_sym( dfftp, f_in, f_out )
   ! ... the following are automatic arrays
   INTEGER :: displs(0:dfftp%nproc-1), recvcount(0:dfftp%nproc-1)
   !
-  CALL start_clock( 'cgather' )
+  CALL env_start_clock( 'cgather' )
 
   ALLOCATE ( f_aux(dfftp%nr1x * dfftp%nr2x * dfftp%my_nr3p ) )
   !
@@ -1045,7 +1045,7 @@ SUBROUTINE env_cgather_sym( dfftp, f_in, f_out )
   !
   DEALLOCATE ( f_aux )
   !
-  CALL stop_clock( 'cgather' )
+  CALL env_stop_clock( 'cgather' )
   !
 #else
   CALL env_fftx_error__('cgather_sym', 'do not use in serial execution', 1)
@@ -1085,7 +1085,7 @@ SUBROUTINE env_cgather_sym_many( dfftp, f_in, f_out, nbnd, nbnd_proc, start_nbnd
   INTEGER :: displs(0:dfftp%nproc-1), recvcount(0:dfftp%nproc-1)
   !
   !
-  CALL start_clock( 'cgather' )
+  CALL env_start_clock( 'cgather' )
   !
   ALLOCATE ( f_aux(dfftp%nr1x * dfftp%nr2x * dfftp%my_nr3p ) )
   !
@@ -1181,7 +1181,7 @@ SUBROUTINE env_cgather_sym_many( dfftp, f_in, f_out, nbnd, nbnd_proc, start_nbnd
   !
   DEALLOCATE ( f_aux )
   !
-  CALL stop_clock( 'cgather' )
+  CALL env_stop_clock( 'cgather' )
   !
 #else
   CALL env_fftx_error__('cgather_sym_many', 'do not use in serial execution', 1)
@@ -1223,7 +1223,7 @@ SUBROUTINE env_cscatter_sym_many( dfftp, f_in, f_out, target_ibnd, nbnd, nbnd_pr
   INTEGER :: displs(0:dfftp%nproc-1), sendcount(0:dfftp%nproc-1)
   INTEGER :: ibnd, jbnd
   !
-  CALL start_clock( 'cscatter_sym' )
+  CALL env_start_clock( 'cscatter_sym' )
   !
   ALLOCATE ( f_aux(dfftp%nr1x * dfftp%nr2x * dfftp%my_nr3p ) )
   !
@@ -1272,7 +1272,7 @@ SUBROUTINE env_cscatter_sym_many( dfftp, f_in, f_out, target_ibnd, nbnd, nbnd_pr
   !
   DEALLOCATE ( f_aux )
   !
-  CALL stop_clock( 'cscatter_sym' )
+  CALL env_stop_clock( 'cscatter_sym' )
   !
 #else
   CALL env_fftx_error__('cscatter_sym_many', 'do not use in serial execution', 1)

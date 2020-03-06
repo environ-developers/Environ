@@ -94,18 +94,18 @@ CONTAINS
     !
     ions%update = .FALSE.
     !
-    IF ( ALLOCATED( ions%ityp ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
-    IF ( ALLOCATED( ions%iontype ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( ions%ityp ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( ions%iontype ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
     !
     NULLIFY( ions%tau )
     !
     ions%use_smeared_ions = .FALSE.
-    IF ( ALLOCATED( ions%smeared_ions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( ions%smeared_ions ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
     label = 'smeared_ions'
     CALL create_environ_density( ions%density, label )
     !
     ions%use_core_electrons = .FALSE.
-    IF ( ALLOCATED( ions%core_electrons ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( ions%core_electrons ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
     label = 'core_electrons'
     CALL create_environ_density( ions%core, label )
     !
@@ -178,12 +178,12 @@ CONTAINS
        ! If need cavity defined exclusively on ions, check radius is not zero
        !
        IF ( .NOT. lsoftcavity .AND. ( ions%iontype(i)%solvationrad .EQ. 0.D0 ) ) &
-            & CALL errore(sub_name,'Missing solvation radius for one of the atom types',1)
+            & CALL env_errore(sub_name,'Missing solvation radius for one of the atom types',1)
        !
        ! If need smeared ions, check spread is not zero
        !
        IF ( lsmearedions .AND. ( ions%iontype(i)%atomicspread .EQ. 0.D0 ) ) &
-            & CALL errore(sub_name,'Missing atomic spread for one of the atom types',1)
+            & CALL env_errore(sub_name,'Missing atomic spread for one of the atom types',1)
        !
     END DO
     !
@@ -217,8 +217,8 @@ CONTAINS
     !
     ! Check on dimensions, can skip if merged with first step
     !
-    IF ( ions%number .NE. nat ) CALL errore(sub_name,'Mismatch in number of atoms',1)
-    IF ( ions%ntyp .NE. ntyp ) CALL errore(sub_name,'Mismatch in number of atom types',1)
+    IF ( ions%number .NE. nat ) CALL env_errore(sub_name,'Mismatch in number of atoms',1)
+    IF ( ions%ntyp .NE. ntyp ) CALL env_errore(sub_name,'Mismatch in number of atom types',1)
     !
     ions%alat = cell % alat ! This is needed because the ionic positions are scaled by alat
     ions%ityp = ityp
@@ -308,7 +308,7 @@ CONTAINS
     !
     ! Check on dimensions
     !
-    IF ( ions%number .NE. nat ) CALL errore(sub_name,'Mismatch in number of atoms',1)
+    IF ( ions%number .NE. nat ) CALL env_errore(sub_name,'Mismatch in number of atoms',1)
     !
     ! Update positions
     !
@@ -324,7 +324,7 @@ CONTAINS
     ENDDO
     !
     IF ( ABS( ions % charge ) .LT. 1.D-8 ) &
-         & CALL errore(sub_name,'Ionic charge equal to zero',1)
+         & CALL env_errore(sub_name,'Ionic charge equal to zero',1)
     ions%center = ions%center / ions%charge
     !
     ! If needed, generate a fictitious ion density using gaussians
@@ -382,14 +382,14 @@ CONTAINS
        ! These components were allocated first, only destroy if lflag = .TRUE.
        !
        IF (.NOT.ALLOCATED(ions%ityp)) &
-            & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+            & CALL env_errore(sub_name,'Trying to destroy a non allocated object',1)
        DEALLOCATE( ions%ityp )
        IF (.NOT.ALLOCATED(ions%iontype)) &
-            & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
+            & CALL env_errore(sub_name,'Trying to destroy a non allocated object',1)
        DEALLOCATE( ions%iontype )
        !
        IF (.NOT.ASSOCIATED(ions%tau)) &
-            & CALL errore(sub_name,'Trying to destroy a non associated object',1)
+            & CALL env_errore(sub_name,'Trying to destroy a non associated object',1)
        DEALLOCATE( ions%tau )
        !
     ENDIF
@@ -462,7 +462,7 @@ CONTAINS
     iontype%atmnum = get_atmnum(label)
     !
     IF ( iontype%atmnum .EQ. 0 ) &
-         & CALL errore(sub_name,'Can not assign the atom type associated with input label',1)
+         & CALL env_errore(sub_name,'Can not assign the atom type associated with input label',1)
     !
     iontype%atomicspread = 0.5D0
     iontype%corespread = 0.5D0
@@ -483,7 +483,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL errore(sub_name,'Unknown radius_mode',1)
+       CALL env_errore(sub_name,'Unknown radius_mode',1)
        !
     END SELECT
     !

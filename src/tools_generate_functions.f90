@@ -39,15 +39,15 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE compute_convolution_fft( nnr, fa, fb, fc )
 !--------------------------------------------------------------------
-    USE cell_base,      ONLY : omega
-    USE fft_base,       ONLY : dfftp
-    USE fft_interfaces, ONLY : fwfft, invfft
-    USE control_flags,  ONLY : gamma_only
+    USE env_cell_base,      ONLY : omega
+    USE env_fft_base,       ONLY : dfftp
+    USE env_fft_interfaces, ONLY : env_fwfft, env_invfft
+    USE env_control_flags,  ONLY : gamma_only
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
 !    USE gvect,          ONLY : nl, nlm, ngm, gg, gstart
 ! Compatible with QE-6.3.X, and QE-GIT
-    USE gvect,          ONLY : ngm, gg, gstart
+    USE env_gvect,          ONLY : ngm, gg, gstart
 ! END BACKWARD COMPATIBILITY
     !
     IMPLICIT NONE
@@ -64,7 +64,7 @@ CONTAINS
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
 !    CALL fwfft('Dense', auxr, dfftp)
 ! Compatible with QE-6.3.X, and QE-GIT
-    CALL fwfft('Rho', auxr, dfftp)
+    CALL env_fwfft('Rho', auxr, dfftp)
 ! END BACKWARD COMPATIBILITY
     !
     ALLOCATE( auxg( nnr ) )
@@ -82,7 +82,7 @@ CONTAINS
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
 !    CALL fwfft('Dense', auxr, dfftp)
 ! Compatible with QE-6.3.X, and QE-GIT
-    CALL fwfft('Rho', auxr, dfftp)
+    CALL env_fwfft('Rho', auxr, dfftp)
 ! END BACKWARD COMPATIBILITY
     !
 ! BACKWARD COMPATIBILITY
@@ -107,7 +107,7 @@ CONTAINS
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
 !    CALL invfft('Dense',auxg, dfftp)
 ! Compatible with QE-6.3.X, and QE-GIT
-    CALL invfft('Rho',auxg, dfftp)
+    CALL env_invfft('Rho',auxg, dfftp)
 ! END BACKWARD COMPATIBILITY
     !
     fc(:) = REAL( auxg(:) ) * omega
@@ -123,7 +123,7 @@ CONTAINS
   SUBROUTINE planar_average( cell, nnr, naxis, axis, shift, reverse, f, f1d )
 !--------------------------------------------------------------------
     !
-    USE mp,   ONLY : mp_sum
+    USE env_mp,   ONLY : env_mp_sum
     !
     IMPLICIT NONE
     !
@@ -185,7 +185,7 @@ CONTAINS
     END DO
     !
     IF ( .NOT. reverse ) THEN
-       CALL mp_sum( f1d(:), cell%comm )
+       CALL env_mp_sum( f1d(:), cell%comm )
        f1d = f1d / DBLE(narea)
     END IF
     !
@@ -226,9 +226,9 @@ CONTAINS
     !
     IF ( ABS( charge ) .LT. tol ) RETURN
     IF ( ABS( spread ) .LT. tol ) &
-         & CALL errore(sub_name,'Wrong spread for Gaussian function',1)
+         & CALL env_errore(sub_name,'Wrong spread for Gaussian function',1)
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong axis in generate_gaussian',1)
+         & CALL env_errore(sub_name,'Wrong axis in generate_gaussian',1)
     !
     SELECT CASE ( dim )
     CASE ( 0 )
@@ -240,7 +240,7 @@ CONTAINS
        length = ABS( cell%at(axis,axis) * cell%alat )
        scale = charge * length / cell%omega / ( sqrtpi * spread )
     CASE default
-       CALL errore(sub_name,'Wrong value of dim',1)
+       CALL env_errore(sub_name,'Wrong value of dim',1)
     END SELECT
     !
     spr2 = ( spread / cell%alat )**2
@@ -314,9 +314,9 @@ CONTAINS
     !
     IF ( ABS( charge ) .LT. tol ) RETURN
     IF ( ABS( spread ) .LT. tol ) &
-         & CALL errore(sub_name,'Wrong spread for Gaussian function',1)
+         & CALL env_errore(sub_name,'Wrong spread for Gaussian function',1)
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong value of axis',1)
+         & CALL env_errore(sub_name,'Wrong value of axis',1)
     !
     SELECT CASE ( dim )
     CASE ( 0 )
@@ -328,7 +328,7 @@ CONTAINS
        length = ABS( cell%at(axis,axis) * cell%alat )
        scale = charge * length / cell%omega / ( sqrtpi * spread )
     CASE default
-       CALL errore(sub_name,'Wrong value of dim',1)
+       CALL env_errore(sub_name,'Wrong value of dim',1)
     END SELECT
     scale = scale * 2.D0 / spread**2 * cell%alat
     !
@@ -400,7 +400,7 @@ CONTAINS
     cell => density % cell
     !
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong value of axis',1)
+         & CALL env_errore(sub_name,'Wrong value of axis',1)
     !
     ALLOCATE( local( cell%nnr ) )
     local = 0.D0
@@ -470,7 +470,7 @@ CONTAINS
     cell => gradient % cell
     !
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong value of axis',1)
+         & CALL env_errore(sub_name,'Wrong value of axis',1)
     !
     ALLOCATE( gradlocal( 3, cell%nnr ) )
     gradlocal = 0.D0
@@ -542,7 +542,7 @@ CONTAINS
     cell => density % cell
     !
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong value of axis',1)
+         & CALL env_errore(sub_name,'Wrong value of axis',1)
     !
     chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     scale = charge / chargeanalytic * 0.5D0
@@ -580,9 +580,9 @@ CONTAINS
     ! ... check integral of function is consistent with analytic one
     !
     chargelocal = SUM(local)*cell%omega/DBLE(cell%ntot)*0.5D0
-    CALL mp_sum(chargelocal,cell%comm)
+    CALL env_mp_sum(chargelocal,cell%comm)
     IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
-         CALL infomsg(sub_name,'WARNING: wrong integral of erfc function')
+         CALL env_infomsg(sub_name,'WARNING: wrong integral of erfc function')
     !
     ! ... rescale generated function to obtain the requested integral
     !
@@ -623,7 +623,7 @@ CONTAINS
     cell => gradient % cell
     !
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong value of axis',1)
+         & CALL env_errore(sub_name,'Wrong value of axis',1)
     !
     chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     !
@@ -700,7 +700,7 @@ CONTAINS
     cell => laplacian % cell
     !
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong value of axis',1)
+         & CALL env_errore(sub_name,'Wrong value of axis',1)
     !
     chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     !
@@ -785,7 +785,7 @@ CONTAINS
     cell => hessian % cell
     !
     IF ( axis .LT. 1 .OR. axis .GT. 3 ) &
-         & CALL errore(sub_name,'Wrong value of axis',1)
+         & CALL env_errore(sub_name,'Wrong value of axis',1)
     !
     chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     scale = charge / chargeanalytic / sqrtpi / spread
@@ -938,7 +938,7 @@ CONTAINS
     CHARACTER( LEN=80 ) :: fun_name = 'erfcvolume'
     !
     IF ( spread .LT. tol .OR. width .LT. tol ) &
-         & CALL errore(fun_name,'Wrong parameters of erfc function',1)
+         & CALL env_errore(fun_name,'Wrong parameters of erfc function',1)
     !
     t = spread / width
     invt = width / spread

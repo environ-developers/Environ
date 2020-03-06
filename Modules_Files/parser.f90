@@ -41,7 +41,7 @@ MODULE env_parser
   !
   PRIVATE
   !
-  PUBLIC :: env_parse_unit, env_field_count, env_read_line, env_get_field
+  PUBLIC :: parse_unit, env_field_count, env_read_line, env_get_field
   PUBLIC :: env_version_parse, env_version_compare
   !
   INTEGER :: parse_unit = 5 ! normally 5, but can be set otherwise
