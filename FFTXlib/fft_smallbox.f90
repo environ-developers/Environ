@@ -119,16 +119,16 @@
         !   initialize a new one
 
         if ( C_ASSOCIATED(bw_planz(icurrent)) ) &
-             call DESTROY_PLAN_1D( bw_planz(icurrent) )
-        call CREATE_PLAN_1D( bw_planz(icurrent), nz, 1 )
+             call env_DESTROY_PLAN_1D( bw_planz(icurrent) )
+        call env_CREATE_PLAN_1D( bw_planz(icurrent), nz, 1 )
 
         if ( C_ASSOCIATED(bw_planx(icurrent)) ) &
-             call DESTROY_PLAN_1D( bw_planx(icurrent) )
-        call CREATE_PLAN_1D( bw_planx(icurrent), nx, 1 )
+             call env_DESTROY_PLAN_1D( bw_planx(icurrent) )
+        call env_CREATE_PLAN_1D( bw_planx(icurrent), nx, 1 )
 
         if ( C_ASSOCIATED(bw_plany(icurrent)) ) &
-             call DESTROY_PLAN_1D( bw_plany(icurrent) )
-        call CREATE_PLAN_1D( bw_plany(icurrent), ny, 1 )
+             call env_DESTROY_PLAN_1D( bw_plany(icurrent) )
+        call env_CREATE_PLAN_1D( bw_plany(icurrent), ny, 1 )
 
 !        if ( C_ASSOCIATED(bw_planxy(icurrent)) ) &
 !             call DESTROY_PLAN_2D( bw_planxy(icurrent) )
@@ -143,19 +143,19 @@
       !
       !  fft along Z
       !
-      call FFTW_INPLACE_DRV_1D( bw_planz(ip), ldx*ldy, f(1), ldx*ldy, 1 )
+      call env_FFTW_INPLACE_DRV_1D( bw_planz(ip), ldx*ldy, f(1), ldx*ldy, 1 )
      
       do k = imin3, imax3
       !
       !  fft along Y
       !
         first_index = (k-1)*ldx*ldy + 1
-        call FFTW_INPLACE_DRV_1D( bw_plany(ip), nx, f(first_index), ldx, 1 )
+        call env_FFTW_INPLACE_DRV_1D( bw_plany(ip), nx, f(first_index), ldx, 1 )
       !
       !  fft along X
       !
         first_index = first_index + (imin2-1)*ldx ; how_many_y = imax2 + 1 - imin2
-        call FFTW_INPLACE_DRV_1D( bw_planx(ip), how_many_y, f(first_index), 1, ldx )
+        call env_FFTW_INPLACE_DRV_1D( bw_planx(ip), how_many_y, f(first_index), 1, ldx )
 
       end do   
 
@@ -187,15 +187,15 @@
 !$omp parallel
 
       IF( .NOT. C_ASSOCIATED(cft_b_bw_planz) ) THEN
-         CALL CREATE_PLAN_1D( cft_b_bw_planz, nz, 1 )
+         CALL env_CREATE_PLAN_1D( cft_b_bw_planz, nz, 1 )
          cft_b_dims(3) = nz
       END IF
       IF( .NOT. C_ASSOCIATED(cft_b_bw_planx) ) THEN
-         CALL CREATE_PLAN_1D( cft_b_bw_planx, nx, 1 )
+         CALL env_CREATE_PLAN_1D( cft_b_bw_planx, nx, 1 )
          cft_b_dims(1) = nx
       END IF
       IF( .NOT. C_ASSOCIATED(cft_b_bw_plany) ) THEN
-         CALL CREATE_PLAN_1D( cft_b_bw_plany, ny, 1 )
+         CALL env_CREATE_PLAN_1D( cft_b_bw_plany, ny, 1 )
          cft_b_dims(2) = ny
       END IF
 
@@ -244,19 +244,19 @@
       !
       !  fft along Z
       !
-      call FFTW_INPLACE_DRV_1D( cft_b_bw_planz, ldx*ldy, f(1), ldx*ldy, 1 )
+      call env_FFTW_INPLACE_DRV_1D( cft_b_bw_planz, ldx*ldy, f(1), ldx*ldy, 1 )
 
       do k = imin3, imax3
       !
       !  fft along Y
       !
         first_index = (k-1)*ldx*ldy + 1
-        call FFTW_INPLACE_DRV_1D( cft_b_bw_plany, nx, f(first_index), ldx, 1 )
+        call env_FFTW_INPLACE_DRV_1D( cft_b_bw_plany, nx, f(first_index), ldx, 1 )
       !
       !  fft along X
       !
         first_index = first_index + (imin2-1)*ldx ; how_many_y = imax2 + 1 - imin2
-        call FFTW_INPLACE_DRV_1D( cft_b_bw_planx, how_many_y, f(first_index), 1, ldx )
+        call env_FFTW_INPLACE_DRV_1D( cft_b_bw_planx, how_many_y, f(first_index), 1, ldx )
       end do   
 
      RETURN

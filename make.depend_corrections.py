@@ -1,5 +1,5 @@
 Modules_Files = ['cell_base.o', 'constants.o', 'control_flags.o', 'fft_base.o', 
-            'invmat.o', 'io_files.o', 'io_global.o', 'ions_base.o', 'kinds.o',
+            'invmat.o', 'io_files.o', 'io_global.o', 'ions_base.o', 'kind.o',
             'mp_bands.o', 'mp_images.o', 'parameters.o', 'parser.o', 'paw_variables.o',
             'pseudo_types.o', 'radial_grids.o', 'random_numbers.o', 'recvec.o',
             'solvent_tddfpt.o', 'uspp.o', 'wrappers.o', 'ws_base.o']

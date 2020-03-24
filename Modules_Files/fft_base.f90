@@ -50,14 +50,14 @@
 
         PUBLIC :: dfftp, dffts, dfft3d, fft_type_descriptor
         PUBLIC :: dfftb, fft_box_descriptor, env_fft_base_info
-        PUBLIC :: smap, env_pstickdealloc
+        PUBLIC :: smap!, env_pstickdealloc
 
    CONTAINS
 
 
-      SUBROUTINE env_pstickdealloc()
-         CALL env_sticks_map_deallocate( smap )
-      END SUBROUTINE env_pstickdealloc
+      !SUBROUTINE env_pstickdealloc()
+      !   CALL env_sticks_map_deallocate( smap )
+      !END SUBROUTINE env_pstickdealloc
 
 
       SUBROUTINE env_fft_base_info( ionode, stdout )

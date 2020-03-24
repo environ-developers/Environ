@@ -14,12 +14,11 @@ def load_files(file):
 def add_environ_dependencies(file_array):
     for i,line in enumerate(file_array):
         try:
-            if line.strip().split()[0] == 'pwlibs:':
-                file_array[i] = 'pwlibs: bindir envlibs libs mods libks_solvers dftd3'
-            elif line.strip().split()[0] == 'bindir':
-                file_array.insert(i+2,'	( cd Environ ; $(MAKE) TLDEPS= all || exit 1 )')
-                file_array.insert(i+2,'envlibs :')
-                file_array.insert(i+2,'')
+            if line.strip().split()[0] == 'MODFLAGS=$(BASEMOD_FLAGS)':
+                file_array[i+1] = file_array[i+1]+' $(MOD_FLAG)../Environ/Modules_Files \\'
+                file_array.insert(i+2,'         $(MOD_FLAG)../Environ/UtilXlib $(MOD_FLAG)../Environ/FFTXlib')
+            elif line.strip().split()[0] == 'TLDEPS=libiotk':
+                file_array[i] = file_array[i]+' libenviron'
         except IndexError:
             continue
     return file_array

@@ -23,6 +23,8 @@ ions_base.o : kind.o
 ions_base.o : parameters.o
 ions_base.o : random_numbers.o
 invmat.o : kind.o
+latgen.o : constants.o
+latgen.o : io_global.o
 mp_bands.o : ../UtilXlib/mp.o
 mp_bands.o : ../UtilXlib/parallel_include.o
 mp_images.o : ../UtilXlib/mp.o
@@ -38,6 +40,7 @@ pseudo_types.o : radial_grids.o
 radial_grids.o : constants.o
 radial_grids.o : kind.o
 random_numbers.o : kind.o
+recips.o : kind.o
 recvec.o : ../UtilXlib/mp.o
 recvec.o : constants.o
 recvec.o : kind.o
@@ -47,6 +50,7 @@ uspp.o : kind.o
 uspp.o : parameters.o
 uspp.o : pseudo_types.o
 uspp.o : random_numbers.o
+volume.o : kind.o
 wrappers.o : io_global.o
 wrappers.o : kind.o
 ws_base.o : invmat.o

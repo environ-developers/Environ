@@ -24,7 +24,8 @@ include ../../make.inc
 
 # location of needed modules
 MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../UtilXlib \
-	$(MOD_FLAG)../FFTXlib $(MOD_FLAG)../Modules_Files $(MOD_FLAG).
+	$(MOD_FLAG)../FFTXlib $(MOD_FLAG)../Modules_Files \
+	$(MOD_FLAG)../PW_files $(MOD_FLAG).
 
 ENVIRONOBJS = \
 correction_periodic.o      \

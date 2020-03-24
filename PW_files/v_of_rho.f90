@@ -50,14 +50,6 @@ SUBROUTINE env_v_of_rho( rho, rho_core, rhog_core, &
   !
   CALL env_start_clock( 'v_of_rho' )
   !
-  ! ... calculate exchange-correlation potential
-  !
-  CALL env_v_xc( rho, rho_core, rhog_core, etxc, vtxc, v%of_r )
-  !
-  ! ... add a magnetic field  (if any)
-  !
-  CALL env_add_bfield( v%of_r, rho%of_r )
-  !
   ! ... calculate hartree potential
   !
   CALL env_v_h( rho%of_g(:,1), ehart, charge, v%of_r )

@@ -458,7 +458,6 @@
 
       SUBROUTINE env_randpos(tau, na, nsp, tranp, amprp, hinv, ifor )
         
-         USE env_cell_base, ONLY: env_r_to_s
          USE env_io_global, ONLY: stdout
          USE env_random_numbers, ONLY: env_randy
 

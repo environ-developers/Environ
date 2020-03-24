@@ -18,6 +18,7 @@ io_files.o \
 io_global.o \
 ions_base.o \
 kind.o \
+latgen.o \
 mp_bands.o \
 mp_images.o \
 parameters.o \
@@ -26,8 +27,10 @@ paw_variables.o \
 pseudo_types.o \
 radial_grids.o \
 random_numbers.o \
+recips.o \
 recvec.o \
 uspp.o \
+volume.o \
 wrappers.o \
 ws_base.o
 

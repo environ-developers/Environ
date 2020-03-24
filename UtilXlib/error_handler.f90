@@ -106,7 +106,7 @@ SUBROUTINE env_errore( calling_routine, message, ierr )
   !
   ! ... try to exit in a smooth way
   !
-  CALL mp_abort(1,MPI_COMM_WORLD)
+  CALL env_mp_abort(1,MPI_COMM_WORLD)
   !
 #endif
   !

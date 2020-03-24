@@ -84,7 +84,7 @@ MODULE env_ws_base
       INTEGER :: i
       !
       ws%a = a
-      CALL invmat( 3, ws%a, ws%b )
+      CALL env_invmat( 3, ws%a, ws%b )
       ws%aa = MATMUL(TRANSPOSE(a),a)
       do i=1,3
          ws%norm_b(i) =  DSQRT(SUM(ws%b(i,:)*ws%b(i,:)))

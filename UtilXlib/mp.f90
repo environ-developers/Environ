@@ -195,7 +195,7 @@
         IF( msglen .NE. SIZE(alldata, 1) ) CALL env_mp_stop( 8014 )
         group = gid
         CALL MPI_GATHER(mydata, msglen, MPI_INTEGER, alldata, msglen, MPI_INTEGER, root, group, IERR)
-        IF (ierr/=0) CALL mp_stop( 8014 )
+        IF (ierr/=0) CALL env_mp_stop( 8014 )
 #else
         msglen = SIZE(mydata)
         IF( msglen .NE. SIZE(alldata, 1) ) CALL env_mp_stop( 8014 )
@@ -246,7 +246,7 @@
 #if defined(__CUDA)
         CALL env_deallocate_buffers_gpu()
 #endif
-        CALL env_mpi_abort(gid, errorcode, ierr)
+        CALL mpi_abort(gid, errorcode, ierr)
 #endif
       END SUBROUTINE env_mp_abort
 !
