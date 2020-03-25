@@ -7,12 +7,13 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 #if defined(__DFTI)
-#include "mkl_dfti.f90"
+!#include "mkl_dfti.f90"
 !=----------------------------------------------------------------------=!
    MODULE env_fft_scalar_dfti
 !=----------------------------------------------------------------------=!
 
        USE MKL_DFTI ! -- this can be found in the MKL include directory
+       USE MKL_DFT_TYPE
        USE env_fft_param
 
        IMPLICIT NONE
