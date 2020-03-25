@@ -39,8 +39,8 @@
 
 /* QE specific */
 
-#define fftw_destroy_plan qe_fftw_destroy_plan
-#define fftw_create_plan qe_fftw_create_plan
+#define fftw_destroy_plan env_qe_fftw_destroy_plan
+#define fftw_create_plan env_qe_fftw_create_plan
 
 /* ----------- */
 
@@ -218,35 +218,35 @@ typedef struct fftw_plan_struct *fftw_plan;
 #define FFTW_USE_WISDOM (16)
 
 extern fftw_plan fftw_create_plan(int n, fftw_direction dir, int flags);
-extern fftw_twiddle *fftw_create_twiddle(int n, int r, int m);
-extern void fftw_destroy_twiddle(fftw_twiddle * tw);
+extern fftw_twiddle *env_fftw_create_twiddle(int n, int r, int m);
+extern void env_fftw_destroy_twiddle(fftw_twiddle * tw);
 extern void fftw_print_plan(fftw_plan plan);
 extern void fftw_destroy_plan(fftw_plan plan);
 extern void fftw_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out);
 extern void fftwi_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out);
 void fftw(fftw_plan plan, int howmany, FFTW_COMPLEX *in, int istride,
 	  int idist, FFTW_COMPLEX *out, int ostride, int odist);
-extern double fftw_measure_runtime(fftw_plan plan);
-extern void fftw_die(char *s);
-extern void *fftw_malloc(size_t n);
-extern void fftw_free(void *p);
+extern double env_fftw_measure_runtime(fftw_plan plan);
+extern void env_fftw_die(char *s);
+extern void *env_fftw_malloc(size_t n);
+extern void env_fftw_free(void *p);
 extern void fftw_check_memory_leaks(void);
 extern void fftw_strided_copy(int, FFTW_COMPLEX *, int, FFTW_COMPLEX *);
 extern void fftw_executor_simple(int, const FFTW_COMPLEX *, FFTW_COMPLEX *,
 				 fftw_plan_node *, int, int);
-extern void *(*fftw_malloc_hook) (size_t n);
-extern void (*fftw_free_hook) (void *p);
+extern void *(*env_fftw_malloc_hook) (size_t n);
+extern void (*env_fftw_free_hook) (void *p);
 
 /* Wisdom: */
 #define FFTW_HAS_WISDOM /* define this symbol so that we know we are using
 			   a version of FFTW with wisdom */
 extern void fftw_forget_wisdom(void);
-extern void fftw_export_wisdom(void (*emitter)(char c, void *), void *data);
-extern fftw_status fftw_import_wisdom(int (*g)(void *), void *data);
-extern void fftw_export_wisdom_to_file(FILE *output_file);
-extern fftw_status fftw_import_wisdom_from_file(FILE *input_file);
-extern char *fftw_export_wisdom_to_string(void);
-extern fftw_status fftw_import_wisdom_from_string(const char *input_string);
+extern void env_fftw_export_wisdom(void (*emitter)(char c, void *), void *data);
+extern fftw_status env_fftw_import_wisdom(int (*g)(void *), void *data);
+extern void env_fftw_export_wisdom_to_file(FILE *output_file);
+extern fftw_status env_fftw_import_wisdom_from_file(FILE *input_file);
+extern char *env_fftw_export_wisdom_to_string(void);
+extern fftw_status env_fftw_import_wisdom_from_string(const char *input_string);
 
 /*
  * define symbol so we know this function is available (it is not in
@@ -285,17 +285,17 @@ typedef struct {
 typedef fftwnd_aux_data *fftwnd_plan;
 
 /* Initializing the FFTWND Auxiliary Data */
-fftwnd_plan fftw2d_create_plan(int nx, int ny, fftw_direction dir, int flags);
-fftwnd_plan fftw3d_create_plan(int nx, int ny, int nz,
+fftwnd_plan env_fftw2d_create_plan(int nx, int ny, fftw_direction dir, int flags);
+fftwnd_plan env_fftw3d_create_plan(int nx, int ny, int nz,
 			       fftw_direction dir, int flags);
-fftwnd_plan fftwnd_create_plan(int rank, const int *n, fftw_direction dir,
+fftwnd_plan env_fftwnd_create_plan(int rank, const int *n, fftw_direction dir,
 			       int flags);
 
 /* Freeing the FFTWND Auxiliary Data */
-void fftwnd_destroy_plan(fftwnd_plan plan);
+void env_fftwnd_destroy_plan(fftwnd_plan plan);
 
 /* Computing the N-Dimensional FFT */
-void fftwnd(fftwnd_plan plan, int howmany,
+void env_fftwnd(fftwnd_plan plan, int howmany,
 	    FFTW_COMPLEX *in, int istride, int idist,
 	    FFTW_COMPLEX *out, int ostride, int odist);
 

@@ -43,10 +43,10 @@ static void file_emitter(char c, void *data)
      putc(c,(FILE *) data);
 }
 
-void fftw_export_wisdom_to_file(FILE *output_file)
+void env_fftw_export_wisdom_to_file(FILE *output_file)
 {
      if (output_file)
-	  fftw_export_wisdom(file_emitter,(void *) output_file);
+	  env_fftw_export_wisdom(file_emitter,(void *) output_file);
 }
 
 static int file_get_input(void *data)
@@ -54,11 +54,11 @@ static int file_get_input(void *data)
      return getc((FILE *) data);
 }
 
-fftw_status fftw_import_wisdom_from_file(FILE *input_file)
+fftw_status env_fftw_import_wisdom_from_file(FILE *input_file)
 {
      if (!input_file)
 	  return FFTW_FAILURE;
-     return fftw_import_wisdom(file_get_input, (void *) input_file);
+     return env_fftw_import_wisdom(file_get_input, (void *) input_file);
 }
 
 /*************** import/export using string **************/
@@ -78,22 +78,22 @@ static void string_emitter(char c, void *data)
      **output_string = 0;
 }
 
-char *fftw_export_wisdom_to_string(void)
+char *env_fftw_export_wisdom_to_string(void)
 {
      int string_length = 0;
      char *s, *s2;
 
-     fftw_export_wisdom(emission_counter, (void *) &string_length);
+     env_fftw_export_wisdom(emission_counter, (void *) &string_length);
 
-     s = fftw_malloc(sizeof(char) * (string_length + 1));
+     s = env_fftw_malloc(sizeof(char) * (string_length + 1));
      if (!s)
 	  return 0;
      s2 = s;
 
-     fftw_export_wisdom(string_emitter, (void *) &s2);
+     env_fftw_export_wisdom(string_emitter, (void *) &s2);
 
      if (s + string_length != s2)
-	  fftw_die("Unexpected output string length!");
+	  env_fftw_die("Unexpected output string length!");
 
      return s;
 }
@@ -108,13 +108,13 @@ static int string_get_input(void *data)
 	  return 0;
 }
 
-fftw_status fftw_import_wisdom_from_string(const char *input_string)
+fftw_status env_fftw_import_wisdom_from_string(const char *input_string)
 {
      const char *s = input_string;
 
      if (!input_string)
 	  return FFTW_FAILURE;
-     return fftw_import_wisdom(string_get_input, (void *) &s);
+     return env_fftw_import_wisdom(string_get_input, (void *) &s);
 }
 /*
  * Copyright (c) 1997 Massachusetts Institute of Technology
@@ -157,48 +157,48 @@ fftw_status fftw_import_wisdom_from_string(const char *input_string)
 #include "fftw.h"
 
 /* the signature is the same as the size, for now */
-#define NOTW_CODELET(x)  { x, x, fftw_no_twiddle_##x }
-#define NOTWI_CODELET(x)  { x, x, fftwi_no_twiddle_##x }
+#define NOTW_CODELET(x)  { x, x, env_fftw_no_twiddle_##x }
+#define NOTWI_CODELET(x)  { x, x, env_fftwi_no_twiddle_##x }
 
-extern notw_codelet fftw_no_twiddle_1;
-extern notw_codelet fftw_no_twiddle_2;
-extern notw_codelet fftw_no_twiddle_3;
-extern notw_codelet fftw_no_twiddle_4;
-extern notw_codelet fftw_no_twiddle_5;
-extern notw_codelet fftw_no_twiddle_6;
-extern notw_codelet fftw_no_twiddle_7;
-extern notw_codelet fftw_no_twiddle_8;
-extern notw_codelet fftw_no_twiddle_9;
-extern notw_codelet fftw_no_twiddle_10;
-extern notw_codelet fftw_no_twiddle_11;
-extern notw_codelet fftw_no_twiddle_12;
-extern notw_codelet fftw_no_twiddle_13;
-extern notw_codelet fftw_no_twiddle_14;
-extern notw_codelet fftw_no_twiddle_15;
-extern notw_codelet fftw_no_twiddle_16;
-extern notw_codelet fftw_no_twiddle_32;
-extern notw_codelet fftw_no_twiddle_64;
+extern notw_codelet env_fftw_no_twiddle_1;
+extern notw_codelet env_fftw_no_twiddle_2;
+extern notw_codelet env_fftw_no_twiddle_3;
+extern notw_codelet env_fftw_no_twiddle_4;
+extern notw_codelet env_fftw_no_twiddle_5;
+extern notw_codelet env_fftw_no_twiddle_6;
+extern notw_codelet env_fftw_no_twiddle_7;
+extern notw_codelet env_fftw_no_twiddle_8;
+extern notw_codelet env_fftw_no_twiddle_9;
+extern notw_codelet env_fftw_no_twiddle_10;
+extern notw_codelet env_fftw_no_twiddle_11;
+extern notw_codelet env_fftw_no_twiddle_12;
+extern notw_codelet env_fftw_no_twiddle_13;
+extern notw_codelet env_fftw_no_twiddle_14;
+extern notw_codelet env_fftw_no_twiddle_15;
+extern notw_codelet env_fftw_no_twiddle_16;
+extern notw_codelet env_fftw_no_twiddle_32;
+extern notw_codelet env_fftw_no_twiddle_64;
 
-extern notw_codelet fftwi_no_twiddle_1;
-extern notw_codelet fftwi_no_twiddle_2;
-extern notw_codelet fftwi_no_twiddle_3;
-extern notw_codelet fftwi_no_twiddle_4;
-extern notw_codelet fftwi_no_twiddle_5;
-extern notw_codelet fftwi_no_twiddle_6;
-extern notw_codelet fftwi_no_twiddle_7;
-extern notw_codelet fftwi_no_twiddle_8;
-extern notw_codelet fftwi_no_twiddle_9;
-extern notw_codelet fftwi_no_twiddle_10;
-extern notw_codelet fftwi_no_twiddle_11;
-extern notw_codelet fftwi_no_twiddle_12;
-extern notw_codelet fftwi_no_twiddle_13;
-extern notw_codelet fftwi_no_twiddle_14;
-extern notw_codelet fftwi_no_twiddle_15;
-extern notw_codelet fftwi_no_twiddle_16;
-extern notw_codelet fftwi_no_twiddle_32;
-extern notw_codelet fftwi_no_twiddle_64;
+extern notw_codelet env_fftwi_no_twiddle_1;
+extern notw_codelet env_fftwi_no_twiddle_2;
+extern notw_codelet env_fftwi_no_twiddle_3;
+extern notw_codelet env_fftwi_no_twiddle_4;
+extern notw_codelet env_fftwi_no_twiddle_5;
+extern notw_codelet env_fftwi_no_twiddle_6;
+extern notw_codelet env_fftwi_no_twiddle_7;
+extern notw_codelet env_fftwi_no_twiddle_8;
+extern notw_codelet env_fftwi_no_twiddle_9;
+extern notw_codelet env_fftwi_no_twiddle_10;
+extern notw_codelet env_fftwi_no_twiddle_11;
+extern notw_codelet env_fftwi_no_twiddle_12;
+extern notw_codelet env_fftwi_no_twiddle_13;
+extern notw_codelet env_fftwi_no_twiddle_14;
+extern notw_codelet env_fftwi_no_twiddle_15;
+extern notw_codelet env_fftwi_no_twiddle_16;
+extern notw_codelet env_fftwi_no_twiddle_32;
+extern notw_codelet env_fftwi_no_twiddle_64;
 
-config_notw fftw_config_notw[] =
+config_notw env_fftw_config_notw[] =
 {
      NOTW_CODELET(1),
      NOTW_CODELET(2),
@@ -221,7 +221,7 @@ config_notw fftw_config_notw[] =
      {0, 0, (notw_codelet *) 0}
 };
 
-config_notw fftwi_config_notw[] =
+config_notw env_fftwi_config_notw[] =
 {
      NOTWI_CODELET(1),
      NOTWI_CODELET(2),
@@ -245,36 +245,36 @@ config_notw fftwi_config_notw[] =
 };
 
 /* the signature is the same as the size, for now */
-#define TWIDDLE_CODELET(x)  { x, x, fftw_twiddle_##x }
-#define TWIDDLEI_CODELET(x)  { x, x, fftwi_twiddle_##x }
+#define TWIDDLE_CODELET(x)  { x, x, env_fftw_twiddle_##x }
+#define TWIDDLEI_CODELET(x)  { x, x, env_fftwi_twiddle_##x }
 
-extern twiddle_codelet fftw_twiddle_2;
-extern twiddle_codelet fftw_twiddle_3;
-extern twiddle_codelet fftw_twiddle_4;
-extern twiddle_codelet fftw_twiddle_5;
-extern twiddle_codelet fftw_twiddle_6;
-extern twiddle_codelet fftw_twiddle_7;
-extern twiddle_codelet fftw_twiddle_8;
-extern twiddle_codelet fftw_twiddle_9;
-extern twiddle_codelet fftw_twiddle_10;
-extern twiddle_codelet fftw_twiddle_16;
-extern twiddle_codelet fftw_twiddle_32;
-extern twiddle_codelet fftw_twiddle_64;
+extern twiddle_codelet env_fftw_twiddle_2;
+extern twiddle_codelet env_fftw_twiddle_3;
+extern twiddle_codelet env_fftw_twiddle_4;
+extern twiddle_codelet env_fftw_twiddle_5;
+extern twiddle_codelet env_fftw_twiddle_6;
+extern twiddle_codelet env_fftw_twiddle_7;
+extern twiddle_codelet env_fftw_twiddle_8;
+extern twiddle_codelet env_fftw_twiddle_9;
+extern twiddle_codelet env_fftw_twiddle_10;
+extern twiddle_codelet env_fftw_twiddle_16;
+extern twiddle_codelet env_fftw_twiddle_32;
+extern twiddle_codelet env_fftw_twiddle_64;
 
-extern twiddle_codelet fftwi_twiddle_2;
-extern twiddle_codelet fftwi_twiddle_3;
-extern twiddle_codelet fftwi_twiddle_4;
-extern twiddle_codelet fftwi_twiddle_5;
-extern twiddle_codelet fftwi_twiddle_6;
-extern twiddle_codelet fftwi_twiddle_7;
-extern twiddle_codelet fftwi_twiddle_8;
-extern twiddle_codelet fftwi_twiddle_9;
-extern twiddle_codelet fftwi_twiddle_10;
-extern twiddle_codelet fftwi_twiddle_16;
-extern twiddle_codelet fftwi_twiddle_32;
-extern twiddle_codelet fftwi_twiddle_64;
+extern twiddle_codelet env_fftwi_twiddle_2;
+extern twiddle_codelet env_fftwi_twiddle_3;
+extern twiddle_codelet env_fftwi_twiddle_4;
+extern twiddle_codelet env_fftwi_twiddle_5;
+extern twiddle_codelet env_fftwi_twiddle_6;
+extern twiddle_codelet env_fftwi_twiddle_7;
+extern twiddle_codelet env_fftwi_twiddle_8;
+extern twiddle_codelet env_fftwi_twiddle_9;
+extern twiddle_codelet env_fftwi_twiddle_10;
+extern twiddle_codelet env_fftwi_twiddle_16;
+extern twiddle_codelet env_fftwi_twiddle_32;
+extern twiddle_codelet env_fftwi_twiddle_64;
 
-config_twiddle fftw_config_twiddle[] =
+config_twiddle env_fftw_config_twiddle[] =
 {
      TWIDDLE_CODELET(2),
      TWIDDLE_CODELET(3),
@@ -291,7 +291,7 @@ config_twiddle fftw_config_twiddle[] =
      {0, 0, (twiddle_codelet *) 0}
 };
 
-config_twiddle fftwi_config_twiddle[] =
+config_twiddle env_fftwi_config_twiddle[] =
 {
      TWIDDLEI_CODELET(2),
      TWIDDLEI_CODELET(3),
@@ -350,7 +350,7 @@ config_twiddle fftwi_config_twiddle[] =
  * it as static. 
  */
 
-void fftw_strided_copy(int n, FFTW_COMPLEX *in, int ostride,
+void env_fftw_strided_copy(int n, FFTW_COMPLEX *in, int ostride,
 		       FFTW_COMPLEX *out)
 {
      int i;
@@ -387,7 +387,7 @@ void fftw_strided_copy(int n, FFTW_COMPLEX *in, int ostride,
  * from executor_cilk.cilk...also, preface its name with "fftw_"
  * to avoid any possible name collisions. 
  */
-void fftw_executor_simple(int n, const FFTW_COMPLEX *in,
+void env_fftw_executor_simple(int n, const FFTW_COMPLEX *in,
 			  FFTW_COMPLEX *out,
 			  fftw_plan_node *p,
 			  int istride,
@@ -407,7 +407,7 @@ void fftw_executor_simple(int n, const FFTW_COMPLEX *in,
 		   FFTW_COMPLEX *W;
 
 		   for (i = 0; i < r; ++i) {
-			fftw_executor_simple(m, in + i * istride,
+			env_fftw_executor_simple(m, in + i * istride,
 					     out + i * (m * ostride),
 					     p->nodeu.twiddle.recurse,
 					     istride * r, ostride);
@@ -429,7 +429,7 @@ void fftw_executor_simple(int n, const FFTW_COMPLEX *in,
 		   FFTW_COMPLEX *W;
 
 		   for (i = 0; i < r; ++i) {
-			fftw_executor_simple(m, in + i * istride,
+			env_fftw_executor_simple(m, in + i * istride,
 					     out + i * (m * ostride),
 					     p->nodeu.generic.recurse,
 					     istride * r, ostride);
@@ -443,7 +443,7 @@ void fftw_executor_simple(int n, const FFTW_COMPLEX *in,
 	      }
 
 	 default:
-	      fftw_die("BUG in executor: illegal plan\n");
+	      env_fftw_die("BUG in executor: illegal plan\n");
 	      break;
      }
 }
@@ -466,13 +466,13 @@ static void executor_simple_inplace(int n, FFTW_COMPLEX *in,
 			tmp = out;
 		   else
 			tmp = (FFTW_COMPLEX *)
-			    fftw_malloc(n * sizeof(FFTW_COMPLEX));
+			    env_fftw_malloc(n * sizeof(FFTW_COMPLEX));
 
-		   fftw_executor_simple(n, in, tmp, p, istride, 1);
-		   fftw_strided_copy(n, tmp, istride, in);
+		   env_fftw_executor_simple(n, in, tmp, p, istride, 1);
+		   env_fftw_strided_copy(n, tmp, istride, in);
 
 		   if (!out)
-			fftw_free(tmp);
+			env_fftw_free(tmp);
 	      }
      }
 }
@@ -500,7 +500,7 @@ static void executor_many(int n, const FFTW_COMPLEX *in,
 	      {
 		   int s;
 		   for (s = 0; s < howmany; ++s) {
-			fftw_executor_simple(n, in + s * idist,
+			env_fftw_executor_simple(n, in + s * idist,
 					     out + s * odist,
 					     p, istride, ostride);
 		   }
@@ -534,24 +534,24 @@ static void executor_many_inplace(int n, FFTW_COMPLEX *in,
 			tmp = out;
 		   else
 			tmp = (FFTW_COMPLEX *)
-			    fftw_malloc(n * sizeof(FFTW_COMPLEX));
+			    env_fftw_malloc(n * sizeof(FFTW_COMPLEX));
 
 		   for (s = 0; s < howmany; ++s) {
-			fftw_executor_simple(n,
+			env_fftw_executor_simple(n,
 					     in + s * idist,
 					     tmp,
 					     p, istride, 1);
-			fftw_strided_copy(n, tmp, istride, in + s * idist);
+			env_fftw_strided_copy(n, tmp, istride, in + s * idist);
 		   }
 
 		   if (!out)
-			fftw_free(tmp);
+			env_fftw_free(tmp);
 	      }
      }
 }
 
 /* user interface */
-void fftw(fftw_plan plan, int howmany, FFTW_COMPLEX *in, int istride,
+void env_fftw(fftw_plan plan, int howmany, FFTW_COMPLEX *in, int istride,
 	  int idist, FFTW_COMPLEX *out, int ostride, int odist)
 {
      int n = plan->n;
@@ -565,7 +565,7 @@ void fftw(fftw_plan plan, int howmany, FFTW_COMPLEX *in, int istride,
 	  }
      } else {
 	  if (howmany == 1) {
-	       fftw_executor_simple(n, in, out, plan->root, istride, ostride);
+	       env_fftw_executor_simple(n, in, out, plan->root, istride, ostride);
 	  } else {
 	       executor_many(n, in, out, plan->root, istride, ostride,
 			     howmany, idist, odist);
@@ -629,17 +629,17 @@ static void fftwnd_in_place_aux(fftwnd_plan p, int howmany,
 
 /*********** Initializing the FFTWND Auxiliary Data **********/
 
-fftwnd_plan fftw2d_create_plan(int nx, int ny, fftw_direction dir, int flags)
+fftwnd_plan env_fftw2d_create_plan(int nx, int ny, fftw_direction dir, int flags)
 {
      int n[2];
 
      n[0] = nx;
      n[1] = ny;
 
-     return fftwnd_create_plan(2, n, dir, flags);
+     return env_fftwnd_create_plan(2, n, dir, flags);
 }
 
-fftwnd_plan fftw3d_create_plan(int nx, int ny, int nz, fftw_direction dir,
+fftwnd_plan env_fftw3d_create_plan(int nx, int ny, int nz, fftw_direction dir,
 			       int flags)
 {
      int n[3];
@@ -648,10 +648,10 @@ fftwnd_plan fftw3d_create_plan(int nx, int ny, int nz, fftw_direction dir,
      n[1] = ny;
      n[2] = nz;
 
-     return fftwnd_create_plan(3, n, dir, flags);
+     return env_fftwnd_create_plan(3, n, dir, flags);
 }
 
-fftwnd_plan fftwnd_create_plan(int rank, const int *n, 
+fftwnd_plan env_fftwnd_create_plan(int rank, const int *n, 
 			       fftw_direction dir, int flags)
 {
      int i, j, max_dim = 0;
@@ -665,7 +665,7 @@ fftwnd_plan fftwnd_create_plan(int rank, const int *n,
 	  if (n[i] <= 0)
 	       return 0;
 
-     p = (fftwnd_plan) fftw_malloc(sizeof(fftwnd_aux_data));
+     p = (fftwnd_plan) env_fftw_malloc(sizeof(fftwnd_aux_data));
      p->n = 0;
      p->n_before = 0;
      p->n_after = 0;
@@ -678,10 +678,10 @@ fftwnd_plan fftwnd_create_plan(int rank, const int *n,
      if (rank == 0)
 	  return 0;
 
-     p->n = (int *) fftw_malloc(sizeof(int) * rank);
-     p->n_before = (int *) fftw_malloc(sizeof(int) * rank);
-     p->n_after = (int *) fftw_malloc(sizeof(int) * rank);
-     p->plans = (fftw_plan *) fftw_malloc(rank * sizeof(fftw_plan));
+     p->n = (int *) env_fftw_malloc(sizeof(int) * rank);
+     p->n_before = (int *) env_fftw_malloc(sizeof(int) * rank);
+     p->n_after = (int *) env_fftw_malloc(sizeof(int) * rank);
+     p->plans = (fftw_plan *) env_fftw_malloc(rank * sizeof(fftw_plan));
      p->n_before[0] = 1;
      p->n_after[rank - 1] = 1;
 
@@ -715,7 +715,7 @@ fftwnd_plan fftwnd_create_plan(int rank, const int *n,
 	       /* generate a new plan: */
 	       p->plans[i] = fftw_create_plan(n[i], dir, cur_flags);
 	       if (!p->plans[i]) {
-		    fftwnd_destroy_plan(p);
+		    env_fftwnd_destroy_plan(p);
 		    return 0;
 	       }
 	  }
@@ -724,14 +724,14 @@ fftwnd_plan fftwnd_create_plan(int rank, const int *n,
      /* Create work array for in-place FFTs: */
      if (max_dim > 0)
 	  p->work = (FFTW_COMPLEX *)
-	      fftw_malloc(sizeof(FFTW_COMPLEX) * max_dim);
+	      env_fftw_malloc(sizeof(FFTW_COMPLEX) * max_dim);
 
      return p;
 }
 
 /************* Freeing the FFTWND Auxiliary Data *************/
 
-void fftwnd_destroy_plan(fftwnd_plan plan)
+void env_fftwnd_destroy_plan(fftwnd_plan plan)
 {
      if (plan) {
 	  if (plan->plans) {
@@ -744,27 +744,27 @@ void fftwnd_destroy_plan(fftwnd_plan plan)
 		    if (j < 0 && plan->plans[i])
 			 fftw_destroy_plan(plan->plans[i]);
 	       }
-	       fftw_free(plan->plans);
+	       env_fftw_free(plan->plans);
 	  }
 	  if (plan->n)
-	       fftw_free(plan->n);
+	       env_fftw_free(plan->n);
 
 	  if (plan->n_before)
-	       fftw_free(plan->n_before);
+	       env_fftw_free(plan->n_before);
 
 	  if (plan->n_after)
-	       fftw_free(plan->n_after);
+	       env_fftw_free(plan->n_after);
 
 	  if (plan->work)
-	       fftw_free(plan->work);
+	       env_fftw_free(plan->work);
 
-	  fftw_free(plan);
+	  env_fftw_free(plan);
      }
 }
 
 /************** Computing the N-Dimensional FFT **************/
 
-void fftwnd(fftwnd_plan plan, int howmany,
+void env_fftwnd(fftwnd_plan plan, int howmany,
 	    FFTW_COMPLEX *in, int istride, int idist,
 	    FFTW_COMPLEX *out, int ostride, int odist)
 {
@@ -773,7 +773,7 @@ void fftwnd(fftwnd_plan plan, int howmany,
 	      case 0:
 		   break;
 	      case 1:
-		   fftw(plan->plans[0], howmany, in, istride, idist,
+		   env_fftw(plan->plans[0], howmany, in, istride, idist,
 			plan->work, 1, 0);
 		   break;
 	      case 2:
@@ -786,12 +786,12 @@ void fftwnd(fftwnd_plan plan, int howmany,
 		   fftwnd_in_place_aux(plan, howmany, in, istride, idist);
      } else {
 	  if (in == out || out == 0)
-	       fftw_die("Illegal attempt to perform in-place FFT!\n");
+	       env_fftw_die("Illegal attempt to perform in-place FFT!\n");
 	  switch (plan->rank) {
 	      case 0:
 		   break;
 	      case 1:
-		   fftw(plan->plans[0], howmany, in, istride, idist,
+		   env_fftw(plan->plans[0], howmany, in, istride, idist,
 			out, ostride, odist);
 		   break;
 	      case 2:
@@ -824,11 +824,11 @@ static void fftw2d_out_of_place_aux(fftwnd_plan p, int howmany,
 
      for (fft_iter = 0; fft_iter < howmany; ++fft_iter) {
 	  /* FFT y dimension (out-of-place): */
-	  fftw(p1, n0,
+	  env_fftw(p1, n0,
 	       in + fft_iter * idist, istride, n1 * istride,
 	       out + fft_iter * odist, ostride, n1 * ostride);
 	  /* FFT x dimension (in-place): */
-	  fftw(p0, n1,
+	  env_fftw(p0, n1,
 	       out + fft_iter * odist, n1 * ostride, ostride,
 	       p->work, 1, 1);
      }
@@ -852,16 +852,16 @@ static void fftw3d_out_of_place_aux(fftwnd_plan p, int howmany,
 
      for (fft_iter = 0; fft_iter < howmany; ++fft_iter) {
 	  /* FFT z dimension (out-of-place): */
-	  fftw(p2, n0 * n1,
+	  env_fftw(p2, n0 * n1,
 	       in + fft_iter * idist, istride, n2 * istride,
 	       out + fft_iter * odist, ostride, n2 * ostride);
 	  /* FFT y dimension (in-place): */
 	  for (i = 0; i < n0; ++i)
-	       fftw(p1, n2,
+	       env_fftw(p1, n2,
 		    out + fft_iter * odist + i * n1 * n2 * ostride,
 		    n2 * ostride, ostride, p->work, 1, 0);
 	  /* FFT x dimension (in-place): */
-	  fftw(p0, n1 * n2,
+	  env_fftw(p0, n1 * n2,
 	       out + fft_iter * odist, n1 * n2 * ostride, ostride,
 	       p->work, 1, 0);
      }
@@ -878,19 +878,19 @@ static void fftwnd_out_of_place_aux(fftwnd_plan p, int howmany,
 
      for (fft_iter = 0; fft_iter < howmany; ++fft_iter) {
 	  /* do last dimension (out-of-place): */
-	  fftw(p->plans[p->rank - 1], p->n_before[p->rank - 1],
+	  env_fftw(p->plans[p->rank - 1], p->n_before[p->rank - 1],
 	     in + fft_iter * idist, istride, p->n[p->rank - 1] * istride,
 	   out + fft_iter * odist, ostride, p->n[p->rank - 1] * ostride);
 
 	  /* do first dimension (in-place): */
-	  fftw(p->plans[0], p->n_after[0],
+	  env_fftw(p->plans[0], p->n_after[0],
 	       out + fft_iter * odist, p->n_after[0] * ostride, ostride,
 	       p->work, 1, 0);
 
 	  /* do other dimensions (in-place): */
 	  for (j = 1; j < p->rank - 1; ++j)
 	       for (i = 0; i < p->n_before[j]; ++i)
-		    fftw(p->plans[j], p->n_after[j],
+		    env_fftw(p->plans[j], p->n_after[j],
 			 out + fft_iter * odist + i * ostride * p->n[j] *
 			 p->n_after[j], p->n_after[j] * ostride,
 			 ostride, p->work, 1, 0);
@@ -911,11 +911,11 @@ static void fftw2d_in_place_aux(fftwnd_plan p, int howmany,
 
      for (fft_iter = 0; fft_iter < howmany; ++fft_iter) {
 	  /* FFT y dimension: */
-	  fftw(p1, n0,
+	  env_fftw(p1, n0,
 	       in_out + fft_iter * idist, istride, istride * n1,
 	       p->work, 1, 0);
 	  /* FFT x dimension: */
-	  fftw(p0, n1,
+	  env_fftw(p0, n1,
 	       in_out + fft_iter * idist, istride * n1, istride,
 	       p->work, 1, 0);
      }
@@ -938,16 +938,16 @@ static void fftw3d_in_place_aux(fftwnd_plan p, int howmany,
 
      for (fft_iter = 0; fft_iter < howmany; ++fft_iter) {
 	  /* FFT z dimension: */
-	  fftw(p2, n0 * n1,
+	  env_fftw(p2, n0 * n1,
 	       in_out + fft_iter * idist, istride, n2 * istride,
 	       p->work, 1, 0);
 	  /* FFT y dimension: */
 	  for (i = 0; i < n0; ++i)
-	       fftw(p1, n2,
+	       env_fftw(p1, n2,
 		    in_out + fft_iter * idist + i * n1 *
 		    n2 * istride, n2 * istride, istride, p->work, 1, 0);
 	  /* FFT x dimension: */
-	  fftw(p0, n1 * n2,
+	  env_fftw(p0, n1 * n2,
 	       in_out + fft_iter * idist, n1 * n2 * istride, istride,
 	       p->work, 1, 0);
      }
@@ -962,19 +962,19 @@ static void fftwnd_in_place_aux(fftwnd_plan p, int howmany,
 
      for (fft_iter = 0; fft_iter < howmany; ++fft_iter) {
 	  /* do last dimension: */
-	  fftw(p->plans[p->rank - 1], p->n_before[p->rank - 1],
+	  env_fftw(p->plans[p->rank - 1], p->n_before[p->rank - 1],
 	  in_out + fft_iter * idist, istride, p->n[p->rank - 1] * istride,
 	       p->work, 1, 0);
 
 	  /* do first dimension: */
-	  fftw(p->plans[0], p->n_after[0],
+	  env_fftw(p->plans[0], p->n_after[0],
 	     in_out + fft_iter * idist, p->n_after[0] * istride, istride,
 	       p->work, 1, 0);
 
 	  /* do other dimensions: */
 	  for (j = 1; j < p->rank - 1; ++j)
 	       for (i = 0; i < p->n_before[j]; ++i)
-		    fftw(p->plans[j], p->n_after[j],
+		    env_fftw(p->plans[j], p->n_after[j],
 		      in_out + fft_iter * idist + i * istride * p->n[j] *
 			 p->n_after[j], p->n_after[j] * istride, istride,
 			 p->work, 1, 0);
@@ -1018,7 +1018,7 @@ static void fftwnd_in_place_aux(fftwnd_plan p, int howmany,
 
 /* This function contains 0 FP additions and 0 FP multiplications */
 
-void fftw_no_twiddle_1(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_1(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -1065,7 +1065,7 @@ void fftw_no_twiddle_1(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 108 FP additions and 32 FP multiplications */
 
-void fftw_no_twiddle_10(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_10(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -1264,7 +1264,7 @@ void fftw_no_twiddle_10(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 230 FP additions and 100 FP multiplications */
 
-void fftw_no_twiddle_11(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_11(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -1431,7 +1431,7 @@ void fftw_no_twiddle_11(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 104 FP additions and 16 FP multiplications */
 
-void fftw_no_twiddle_12(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_12(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -1702,7 +1702,7 @@ void fftw_no_twiddle_12(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 324 FP additions and 144 FP multiplications */
 
-void fftw_no_twiddle_13(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_13(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -1893,7 +1893,7 @@ void fftw_no_twiddle_13(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 208 FP additions and 72 FP multiplications */
 
-void fftw_no_twiddle_14(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_14(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -2160,7 +2160,7 @@ void fftw_no_twiddle_14(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 202 FP additions and 68 FP multiplications */
 
-void fftw_no_twiddle_15(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_15(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -2493,7 +2493,7 @@ void fftw_no_twiddle_15(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 144 FP additions and 24 FP multiplications */
 
-void fftw_no_twiddle_16(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_16(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -2896,7 +2896,7 @@ void fftw_no_twiddle_16(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 4 FP additions and 0 FP multiplications */
 
-void fftw_no_twiddle_2(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_2(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -2949,7 +2949,7 @@ void fftw_no_twiddle_2(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 14 FP additions and 4 FP multiplications */
 
-void fftw_no_twiddle_3(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_3(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -3020,7 +3020,7 @@ void fftw_no_twiddle_3(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 376 FP additions and 88 FP multiplications */
 
-void fftw_no_twiddle_32(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_32(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -3979,7 +3979,7 @@ void fftw_no_twiddle_32(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 16 FP additions and 0 FP multiplications */
 
-void fftw_no_twiddle_4(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_4(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -4064,7 +4064,7 @@ void fftw_no_twiddle_4(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 44 FP additions and 16 FP multiplications */
 
-void fftw_no_twiddle_5(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_5(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -4159,7 +4159,7 @@ void fftw_no_twiddle_5(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 40 FP additions and 8 FP multiplications */
 
-void fftw_no_twiddle_6(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_6(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -4290,7 +4290,7 @@ void fftw_no_twiddle_6(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 928 FP additions and 248 FP multiplications */
 
-void fftw_no_twiddle_64(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_64(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -6561,7 +6561,7 @@ void fftw_no_twiddle_64(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 90 FP additions and 36 FP multiplications */
 
-void fftw_no_twiddle_7(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_7(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -6680,7 +6680,7 @@ void fftw_no_twiddle_7(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 52 FP additions and 4 FP multiplications */
 
-void fftw_no_twiddle_8(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_8(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -6855,7 +6855,7 @@ void fftw_no_twiddle_8(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 92 FP additions and 40 FP multiplications */
 
-void fftw_no_twiddle_9(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftw_no_twiddle_9(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -7084,7 +7084,7 @@ void fftw_no_twiddle_9(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, i
 
 /* This function contains 0 FP additions and 0 FP multiplications */
 
-void fftwi_no_twiddle_1(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_1(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -7131,7 +7131,7 @@ void fftwi_no_twiddle_1(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 108 FP additions and 32 FP multiplications */
 
-void fftwi_no_twiddle_10(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_10(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -7330,7 +7330,7 @@ void fftwi_no_twiddle_10(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 230 FP additions and 100 FP multiplications */
 
-void fftwi_no_twiddle_11(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_11(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -7497,7 +7497,7 @@ void fftwi_no_twiddle_11(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 104 FP additions and 16 FP multiplications */
 
-void fftwi_no_twiddle_12(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_12(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -7768,7 +7768,7 @@ void fftwi_no_twiddle_12(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 324 FP additions and 144 FP multiplications */
 
-void fftwi_no_twiddle_13(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_13(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -7959,7 +7959,7 @@ void fftwi_no_twiddle_13(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 208 FP additions and 72 FP multiplications */
 
-void fftwi_no_twiddle_14(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_14(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -8226,7 +8226,7 @@ void fftwi_no_twiddle_14(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 202 FP additions and 68 FP multiplications */
 
-void fftwi_no_twiddle_15(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_15(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -8559,7 +8559,7 @@ void fftwi_no_twiddle_15(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 144 FP additions and 24 FP multiplications */
 
-void fftwi_no_twiddle_16(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_16(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -8962,7 +8962,7 @@ void fftwi_no_twiddle_16(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 4 FP additions and 0 FP multiplications */
 
-void fftwi_no_twiddle_2(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_2(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -9015,7 +9015,7 @@ void fftwi_no_twiddle_2(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 14 FP additions and 4 FP multiplications */
 
-void fftwi_no_twiddle_3(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_3(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -9086,7 +9086,7 @@ void fftwi_no_twiddle_3(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 376 FP additions and 88 FP multiplications */
 
-void fftwi_no_twiddle_32(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_32(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -10045,7 +10045,7 @@ void fftwi_no_twiddle_32(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 16 FP additions and 0 FP multiplications */
 
-void fftwi_no_twiddle_4(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_4(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -10130,7 +10130,7 @@ void fftwi_no_twiddle_4(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 44 FP additions and 16 FP multiplications */
 
-void fftwi_no_twiddle_5(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_5(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -10225,7 +10225,7 @@ void fftwi_no_twiddle_5(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 40 FP additions and 8 FP multiplications */
 
-void fftwi_no_twiddle_6(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_6(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -10356,7 +10356,7 @@ void fftwi_no_twiddle_6(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 928 FP additions and 248 FP multiplications */
 
-void fftwi_no_twiddle_64(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_64(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -12627,7 +12627,7 @@ void fftwi_no_twiddle_64(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride,
 
 /* This function contains 90 FP additions and 36 FP multiplications */
 
-void fftwi_no_twiddle_7(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_7(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -12746,7 +12746,7 @@ void fftwi_no_twiddle_7(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 52 FP additions and 4 FP multiplications */
 
-void fftwi_no_twiddle_8(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_8(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -12921,7 +12921,7 @@ void fftwi_no_twiddle_8(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 92 FP additions and 40 FP multiplications */
 
-void fftwi_no_twiddle_9(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
+void env_fftwi_no_twiddle_9(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, int ostride)
 {
      FFTW_REAL tre0_0_0;
      FFTW_REAL tim0_0_0;
@@ -13150,7 +13150,7 @@ void fftwi_no_twiddle_9(const FFTW_COMPLEX *in, FFTW_COMPLEX *out, int istride, 
 
 /* This function contains 126 FP additions and 68 FP multiplications */
 
-void fftw_twiddle_10(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_10(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -13444,7 +13444,7 @@ void fftw_twiddle_10(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 174 FP additions and 84 FP multiplications */
 
-void fftw_twiddle_16(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_16(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -14002,7 +14002,7 @@ void fftw_twiddle_16(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 6 FP additions and 4 FP multiplications */
 
-void fftw_twiddle_2(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_2(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -14070,7 +14070,7 @@ void fftw_twiddle_2(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 18 FP additions and 12 FP multiplications */
 
-void fftw_twiddle_3(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_3(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -14166,7 +14166,7 @@ void fftw_twiddle_3(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 438 FP additions and 212 FP multiplications */
 
-void fftw_twiddle_32(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_32(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -15440,7 +15440,7 @@ void fftw_twiddle_32(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 22 FP additions and 12 FP multiplications */
 
-void fftw_twiddle_4(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_4(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -15560,7 +15560,7 @@ void fftw_twiddle_4(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 52 FP additions and 32 FP multiplications */
 
-void fftw_twiddle_5(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_5(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -15700,7 +15700,7 @@ void fftw_twiddle_5(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 50 FP additions and 28 FP multiplications */
 
-void fftw_twiddle_6(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_6(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -15886,7 +15886,7 @@ void fftw_twiddle_6(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 1054 FP additions and 500 FP multiplications */
 
-void fftw_twiddle_64(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_64(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -18792,7 +18792,7 @@ void fftw_twiddle_64(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 102 FP additions and 60 FP multiplications */
 
-void fftw_twiddle_7(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_7(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -18976,7 +18976,7 @@ void fftw_twiddle_7(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 66 FP additions and 32 FP multiplications */
 
-void fftw_twiddle_8(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_8(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -19226,7 +19226,7 @@ void fftw_twiddle_8(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 108 FP additions and 72 FP multiplications */
 
-void fftw_twiddle_9(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftw_twiddle_9(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -19540,7 +19540,7 @@ void fftw_twiddle_9(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, i
 
 /* This function contains 126 FP additions and 68 FP multiplications */
 
-void fftwi_twiddle_10(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_10(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -19834,7 +19834,7 @@ void fftwi_twiddle_10(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m,
 
 /* This function contains 174 FP additions and 84 FP multiplications */
 
-void fftwi_twiddle_16(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_16(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -20392,7 +20392,7 @@ void fftwi_twiddle_16(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m,
 
 /* This function contains 6 FP additions and 4 FP multiplications */
 
-void fftwi_twiddle_2(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_2(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -20460,7 +20460,7 @@ void fftwi_twiddle_2(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 18 FP additions and 12 FP multiplications */
 
-void fftwi_twiddle_3(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_3(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -20556,7 +20556,7 @@ void fftwi_twiddle_3(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 438 FP additions and 212 FP multiplications */
 
-void fftwi_twiddle_32(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_32(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -21830,7 +21830,7 @@ void fftwi_twiddle_32(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m,
 
 /* This function contains 22 FP additions and 12 FP multiplications */
 
-void fftwi_twiddle_4(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_4(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -21950,7 +21950,7 @@ void fftwi_twiddle_4(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 52 FP additions and 32 FP multiplications */
 
-void fftwi_twiddle_5(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_5(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -22090,7 +22090,7 @@ void fftwi_twiddle_5(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 50 FP additions and 28 FP multiplications */
 
-void fftwi_twiddle_6(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_6(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -22276,7 +22276,7 @@ void fftwi_twiddle_6(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 1054 FP additions and 500 FP multiplications */
 
-void fftwi_twiddle_64(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_64(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -25182,7 +25182,7 @@ void fftwi_twiddle_64(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m,
 
 /* This function contains 102 FP additions and 60 FP multiplications */
 
-void fftwi_twiddle_7(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_7(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -25366,7 +25366,7 @@ void fftwi_twiddle_7(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 66 FP additions and 32 FP multiplications */
 
-void fftwi_twiddle_8(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_8(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -25616,7 +25616,7 @@ void fftwi_twiddle_8(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 
 /* This function contains 108 FP additions and 72 FP multiplications */
 
-void fftwi_twiddle_9(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
+void env_fftwi_twiddle_9(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, int dist)
 {
      int i;
      COMPLEX *inout;
@@ -25929,14 +25929,14 @@ void fftwi_twiddle_9(FFTW_COMPLEX *A, const FFTW_COMPLEX *W, int stride, int m, 
 #include <math.h>
 #include <stdlib.h>
 
-void fftw_twiddle_generic(FFTW_COMPLEX *A, const FFTW_COMPLEX *W,
+void env_fftw_twiddle_generic(FFTW_COMPLEX *A, const FFTW_COMPLEX *W,
 			  int m, int r, int n, int stride)
 {
      int i, j, k;
      const FFTW_COMPLEX *jp;
      FFTW_COMPLEX *kp;
      FFTW_COMPLEX *tmp = (FFTW_COMPLEX *)
-     fftw_malloc(r * sizeof(FFTW_COMPLEX));
+     env_fftw_malloc(r * sizeof(FFTW_COMPLEX));
 
      for (i = 0; i < m; ++i) {
 	  for (k = 0, kp = tmp; k < r; ++k, kp++) {
@@ -25964,17 +25964,17 @@ void fftw_twiddle_generic(FFTW_COMPLEX *A, const FFTW_COMPLEX *W,
 	       *kp = tmp[k];
      }
 
-     fftw_free(tmp);
+     env_fftw_free(tmp);
 }
 
-void fftwi_twiddle_generic(FFTW_COMPLEX *A, const FFTW_COMPLEX *W,
+void env_fftwi_twiddle_generic(FFTW_COMPLEX *A, const FFTW_COMPLEX *W,
 			   int m, int r, int n, int stride)
 {
      int i, j, k;
      const FFTW_COMPLEX *jp;
      FFTW_COMPLEX *kp;
      FFTW_COMPLEX *tmp = (FFTW_COMPLEX *)
-     fftw_malloc(r * sizeof(FFTW_COMPLEX));
+     env_fftw_malloc(r * sizeof(FFTW_COMPLEX));
 
      for (i = 0; i < m; ++i) {
 	  for (k = 0, kp = tmp; k < r; ++k, kp++) {
@@ -26002,7 +26002,7 @@ void fftwi_twiddle_generic(FFTW_COMPLEX *A, const FFTW_COMPLEX *W,
 	       *kp = tmp[k];
      }
 
-     fftw_free(tmp);
+     env_fftw_free(tmp);
 }
 /*
  * Copyright (c) 1997 Massachusetts Institute of Technology
@@ -26047,9 +26047,9 @@ void fftwi_twiddle_generic(FFTW_COMPLEX *A, const FFTW_COMPLEX *W,
 #include <stdio.h>
 #include <stdlib.h>
 
-int fftw_malloc_cnt = 0;
-void *(*fftw_malloc_hook) (size_t n) = (void *(*)(size_t n)) 0;
-void (*fftw_free_hook) (void *p) = (void (*)(void *p)) 0;
+int env_fftw_malloc_cnt = 0;
+void *(*env_fftw_malloc_hook) (size_t n) = (void *(*)(size_t n)) 0;
+void (*env_fftw_free_hook) (void *p) = (void (*)(void *p)) 0;
 
 #define FFTW_MALLOC_DEBUG 0
 /* sorry for this debugging hack ... */
@@ -26081,7 +26081,7 @@ int fftw_malloc_total = 0;
 #define WHEN_VERBOSE(a) 
 #endif
 
-void *fftw_malloc(size_t n)
+void *env_fftw_malloc(size_t n)
 {
      char *p;
      int i;
@@ -26092,13 +26092,13 @@ void *fftw_malloc(size_t n)
      })
 
      if (n == 0)
-	  fftw_die("Tried to allocate a block of zero size!\n");
+	  env_fftw_die("Tried to allocate a block of zero size!\n");
 
      fftw_malloc_total += n;
 
      p = (char *) malloc(PAD_FACTOR*n + TWOINTS);
      if (!p)
-	  fftw_die("fftw_malloc: out of memory\n");
+	  env_fftw_die("fftw_malloc: out of memory\n");
 
      /* store the size in a known position */
      ((int *) p)[0] = n;
@@ -26106,21 +26106,21 @@ void *fftw_malloc(size_t n)
      for (i = 0; i < PAD_FACTOR*n; ++i)
 	  p[i + TWOINTS] = (char) (i ^ 0xDEADBEEF);
 
-     ++fftw_malloc_cnt;
+     ++env_fftw_malloc_cnt;
 
      /* skip the size we stored previously */
      return (void *) (p + TWOINTS);
 }
 
-void fftw_free(void *p)
+void env_fftw_free(void *p)
 {
      char *q = ((char *) p) - TWOINTS;
 
      if (!p)
-	  fftw_die("fftw_free: tried to free NULL pointer!\n");
+	  env_fftw_die("fftw_free: tried to free NULL pointer!\n");
 
      if (!q)
-	  fftw_die("fftw_free: tried to free NULL+TWOINTS pointer!\n");
+	  env_fftw_die("fftw_free: tried to free NULL+TWOINTS pointer!\n");
 
      {
 	  int n = ((int *) q)[0];
@@ -26133,33 +26133,33 @@ void fftw_free(void *p)
 	  })
 	  
 	  if (n == 0)
-	       fftw_die("Tried to free a freed pointer!\n");
+	       env_fftw_die("Tried to free a freed pointer!\n");
 	  *((int *) q) = 0; /* set to zero to detect duplicate free's */
 	  
 	  if (magic != MAGIC)
-	       fftw_die("Wrong magic in fftw_free()!\n");	       
+	       env_fftw_die("Wrong magic in fftw_free()!\n");	       
 	  ((int *) q)[1] = ~MAGIC;
 
 	  if (n < 0)
-	       fftw_die("Tried to free block with corrupt size descriptor!\n");
+	       env_fftw_die("Tried to free block with corrupt size descriptor!\n");
 	  
 	  fftw_malloc_total -= n;
 	  
 	  if (fftw_malloc_total < 0)
-	       fftw_die("fftw_malloc_total went negative!\n");
+	       env_fftw_die("fftw_malloc_total went negative!\n");
 	  
 	  /* check for writing past end of array: */
 	  for (i = n; i < PAD_FACTOR*n; ++i)
 	       if (q[i+TWOINTS] != (char) (i ^ 0xDEADBEEF)) {
 		    fprintf(stderr, "Byte %d past end of array has changed!\n",
 			    i - n + 1);
-		    fftw_die("Array bounds overwritten!\n");
+		    env_fftw_die("Array bounds overwritten!\n");
 	       }
 	  
 	  for (i = 0; i < PAD_FACTOR*n; ++i)
 	       q[i + TWOINTS] = (char) (i ^ 0xBEEFDEAD);
 
-	  --fftw_malloc_cnt;
+	  --env_fftw_malloc_cnt;
 	  free(q);
      }
 }
@@ -26167,12 +26167,12 @@ void fftw_free(void *p)
 #else				/* production version, no hacks */
 #define WHEN_DEBUG(a) 
 
-void *fftw_malloc(size_t n)
+void *env_fftw_malloc(size_t n)
 {
      void *p;
 
-     if (fftw_malloc_hook)
-	  return fftw_malloc_hook(n);
+     if (env_fftw_malloc_hook)
+	  return env_fftw_malloc_hook(n);
 
      if (n == 0)
 	  n = 1;
@@ -26180,16 +26180,16 @@ void *fftw_malloc(size_t n)
      p = malloc(n);
 
      if (!p)
-	  fftw_die("fftw_malloc: out of memory\n");
+	  env_fftw_die("fftw_malloc: out of memory\n");
 
      return p;
 }
 
-void fftw_free(void *p)
+void env_fftw_free(void *p)
 {
      if (p) {
-	  if (fftw_free_hook) {
-	       fftw_free_hook(p);
+	  if (env_fftw_free_hook) {
+	       env_fftw_free_hook(p);
 	       return;
 	  }
 	  free(p);
@@ -26199,27 +26199,27 @@ void fftw_free(void *p)
 #endif
 
 /* die when fatal errors occur */
-void fftw_die(char *s)
+void env_fftw_die(char *s)
 {
      fprintf(stderr, "%s", s);
      exit(1);
 }
 
 /* check for memory leaks when debugging */
-void fftw_check_memory_leaks(void)
+void env_fftw_check_memory_leaks(void)
 {
-     extern int fftw_node_cnt, fftw_plan_cnt, fftw_twiddle_size;
+     extern int env_fftw_node_cnt, env_fftw_plan_cnt, env_fftw_twiddle_size;
 
-     if (WHEN_DEBUG(fftw_malloc_cnt ||)
+     if (WHEN_DEBUG(env_fftw_malloc_cnt ||)
 	 WHEN_DEBUG(fftw_malloc_total ||)
-	 fftw_node_cnt || fftw_plan_cnt || fftw_twiddle_size) {
+	 env_fftw_node_cnt || env_fftw_plan_cnt || env_fftw_twiddle_size) {
 	  fprintf(stderr,
 		  "MEMORY LEAK!!!\n"
 		  WHEN_DEBUG("fftw_malloc = %d")
 		  " node=%d plan=%d twiddle=%d\n"
 		  WHEN_DEBUG("fftw_malloc_total = %d\n"), 
-		  WHEN_DEBUG(fftw_malloc_cnt COMMA)
-		  fftw_node_cnt, fftw_plan_cnt, fftw_twiddle_size
+		  WHEN_DEBUG(env_fftw_malloc_cnt COMMA)
+		  env_fftw_node_cnt, env_fftw_plan_cnt, env_fftw_twiddle_size
 		  WHEN_DEBUG(COMMA fftw_malloc_total));
 	  exit(1);
      }
@@ -26261,7 +26261,7 @@ void fftw_check_memory_leaks(void)
 /*
  * Naive O(n^2) algorithm, used for testing purposes
  */
-void fftw_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out)
+void env_fftw_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out)
 {
      int i, j;
      FFTW_COMPLEX sum;
@@ -26284,7 +26284,7 @@ void fftw_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out)
 /*
  * Naive O(n^2) algorithm, for the inverse.
  */
-void fftwi_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out)
+void env_fftwi_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out)
 {
      int i, j;
      FFTW_COMPLEX sum;
@@ -26333,7 +26333,7 @@ void fftwi_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out)
  */
 
 /*
- * planner.c -- find the optimal plan
+ * env_planner.c -- find the optimal plan
  */
 
 /* $Id: fftw.c,v 1.3 2010-01-26 14:06:59 giannozz Exp $ */
@@ -26346,17 +26346,17 @@ void fftwi_naive(int n, FFTW_COMPLEX *in, FFTW_COMPLEX *out)
 #include <stdlib.h>
 #include <stdio.h>
 
-int fftw_node_cnt = 0;
-int fftw_plan_cnt = 0;
+int env_fftw_node_cnt = 0;
+int env_fftw_plan_cnt = 0;
 
 #define NOTW_OPTIMAL_SIZE 32
 #define TWIDDLE_OPTIMAL_SIZE 12
 
 /* wisdom prototypes */
-extern int fftw_wisdom_lookup(int n, int flags, fftw_direction dir,
+extern int env_fftw_wisdom_lookup(int n, int flags, fftw_direction dir,
 			    enum fftw_node_type *type,
 			    int *signature, int replace_p);
-extern void fftw_wisdom_add(int n, int flags, fftw_direction dir,
+extern void env_fftw_wisdom_add(int n, int flags, fftw_direction dir,
 			  enum fftw_node_type type,
 			  int signature);
 
@@ -26364,9 +26364,9 @@ extern void fftw_wisdom_add(int n, int flags, fftw_direction dir,
 static fftw_plan_node *make_node(void)
 {
      fftw_plan_node *p = (fftw_plan_node *)
-     fftw_malloc(sizeof(fftw_plan_node));
+     env_fftw_malloc(sizeof(fftw_plan_node));
      p->refcnt = 0;
-     fftw_node_cnt++;
+     env_fftw_node_cnt++;
      return p;
 }
 
@@ -26397,7 +26397,7 @@ static fftw_plan_node *make_node_twiddle(int n, int size, twiddle_codelet *codel
      p->nodeu.twiddle.recurse = recurse;
      use_node(recurse);
      if (flags & FFTW_MEASURE)
-	  p->nodeu.twiddle.tw = fftw_create_twiddle(n, size, n / size);
+	  p->nodeu.twiddle.tw = env_fftw_create_twiddle(n, size, n / size);
      else
 	  p->nodeu.twiddle.tw = 0;
      return p;
@@ -26417,7 +26417,7 @@ static fftw_plan_node *make_node_generic(int n, int size,
      use_node(recurse);
 
      if (flags & FFTW_MEASURE)
-	  p->nodeu.generic.tw = fftw_create_twiddle(n, 2, n);
+	  p->nodeu.generic.tw = env_fftw_create_twiddle(n, 2, n);
      else
 	  p->nodeu.generic.tw = 0;
      return p;
@@ -26434,19 +26434,19 @@ static void destroy_tree(fftw_plan_node *p)
 
 		   case FFTW_TWIDDLE:
 			if (p->nodeu.twiddle.tw)
-			     fftw_destroy_twiddle(p->nodeu.twiddle.tw);
+			     env_fftw_destroy_twiddle(p->nodeu.twiddle.tw);
 			destroy_tree(p->nodeu.twiddle.recurse);
 			break;
 
 		   case FFTW_GENERIC:
 			if (p->nodeu.generic.tw)
-			     fftw_destroy_twiddle(p->nodeu.generic.tw);
+			     env_fftw_destroy_twiddle(p->nodeu.generic.tw);
 			destroy_tree(p->nodeu.generic.recurse);
 			break;
 	       }
 
-	       fftw_free(p);
-	       fftw_node_cnt--;
+	       env_fftw_free(p);
+	       env_fftw_node_cnt--;
 	  }
      }
 }
@@ -26457,7 +26457,7 @@ static fftw_plan make_plan(int n, fftw_direction dir,
 			   enum fftw_node_type wisdom_type,
 			   int wisdom_signature)
 {
-     fftw_plan p = (fftw_plan) fftw_malloc(sizeof(struct fftw_plan_struct));
+     fftw_plan p = (fftw_plan) env_fftw_malloc(sizeof(struct fftw_plan_struct));
 
      p->n = n;
      p->dir = dir;
@@ -26469,7 +26469,7 @@ static fftw_plan make_plan(int n, fftw_direction dir,
      p->wisdom_signature = wisdom_signature;
      p->next = (fftw_plan) 0;
      p->refcnt = 0;
-     fftw_plan_cnt++;
+     env_fftw_plan_cnt++;
      return p;
 }
 
@@ -26487,14 +26487,14 @@ static void complete_twiddle(fftw_plan_node *p, int n)
 	 case FFTW_TWIDDLE:
 	      r = p->nodeu.twiddle.size;
 	      if (!p->nodeu.twiddle.tw)
-		   p->nodeu.twiddle.tw = fftw_create_twiddle(n, r, n / r);
+		   p->nodeu.twiddle.tw = env_fftw_create_twiddle(n, r, n / r);
 	      complete_twiddle(p->nodeu.twiddle.recurse, n / r);
 	      break;
 
 	 case FFTW_GENERIC:
 	      r = p->nodeu.generic.size;
 	      if (!p->nodeu.generic.tw)
-		   p->nodeu.generic.tw = fftw_create_twiddle(n, 2, n);
+		   p->nodeu.generic.tw = env_fftw_create_twiddle(n, 2, n);
 	      complete_twiddle(p->nodeu.generic.recurse, n / r);
 	      break;
      }
@@ -26511,8 +26511,8 @@ static void destroy_plan(fftw_plan p)
 
      if (p->refcnt == 0) {
 	  destroy_tree(p->root);
-	  fftw_plan_cnt--;
-	  fftw_free(p);
+	  env_fftw_plan_cnt--;
+	  env_fftw_free(p);
      }
 }
 
@@ -26580,7 +26580,7 @@ static double estimate_node(fftw_plan_node *p)
 static void compute_cost(fftw_plan plan)
 {
      if (plan->flags & FFTW_MEASURE)
-	  plan->cost = fftw_measure_runtime(plan);
+	  plan->cost = env_fftw_measure_runtime(plan);
      else {
 	  double c;
 	  c = plan->n * estimate_node(plan->root);
@@ -26625,18 +26625,18 @@ static int factor(int n)
 }
 
 /* 
- * Some macrology for the planner.  If you have to write
+ * Some macrology for the env_planner.  If you have to write
  * the same line of code twice, there must be some bug.
  */
 #define NOTW_ITERATOR(p, dir)                                \
       config_notw *p =                                       \
 	  p = (dir == FFTW_FORWARD ?                         \
-	       fftw_config_notw : fftwi_config_notw)
+	       env_fftw_config_notw : env_fftwi_config_notw)
 
 #define TWIDDLE_ITERATOR(p, dir)                             \
       config_twiddle *p =                                    \
 	  p = (dir == FFTW_FORWARD ?                         \
-	       fftw_config_twiddle : fftwi_config_twiddle);
+	       env_fftw_config_twiddle : env_fftwi_config_twiddle);
 
 #define FORALL_NOTW(p)             \
 	 for (; p->size; ++p) 
@@ -26645,9 +26645,9 @@ static int factor(int n)
 	 for (; p->size; ++p) 
 
 /******************************************
- *      Recursive planner                 *
+ *      Recursive env_planner                 *
  ******************************************/
-fftw_plan planner(fftw_plan *table, int n, fftw_direction dir, int flags);
+fftw_plan env_planner(fftw_plan *table, int n, fftw_direction dir, int flags);
 
 /*
  * the planner consists of two parts: one that tries to
@@ -26656,7 +26656,7 @@ fftw_plan planner(fftw_plan *table, int n, fftw_direction dir, int flags);
  */
 
 /* planner with wisdom: look up the codelet suggested by the wisdom */
-fftw_plan planner_wisdom(fftw_plan *table, int n,
+fftw_plan env_planner_wisdom(fftw_plan *table, int n,
 			 fftw_direction dir, int flags)
 {
      fftw_plan best = (fftw_plan) 0;
@@ -26666,7 +26666,7 @@ fftw_plan planner_wisdom(fftw_plan *table, int n,
      int wisdom_signature;
 
      /* see if we remember any wisdom for this case */
-     have_wisdom = fftw_wisdom_lookup(n, flags, dir, 
+     have_wisdom = env_fftw_wisdom_lookup(n, flags, dir, 
 				      &wisdom_type, &wisdom_signature, 0);
 
      if (!have_wisdom)
@@ -26695,7 +26695,7 @@ fftw_plan planner_wisdom(fftw_plan *table, int n,
 	       /* see if wisdom applies */
 	       if (wisdom_signature == p->signature &&
 		   (n % p->size) == 0) {
-		    fftw_plan r = planner(table, n / p->size, dir, flags);
+		    fftw_plan r = env_planner(table, n / p->size, dir, flags);
 		    node = make_node_twiddle(n, p->size, p->codelet,
 					     r->root, flags);
 		    best = make_plan(n, dir, node, flags,
@@ -26719,7 +26719,7 @@ fftw_plan planner_wisdom(fftw_plan *table, int n,
  * planner with no wisdom: try all combinations and pick
  * the best
  */
-fftw_plan planner_normal(fftw_plan *table, int n, fftw_direction dir,
+fftw_plan env_planner_normal(fftw_plan *table, int n, fftw_direction dir,
 			   int flags)
 {
      fftw_plan best = (fftw_plan) 0;
@@ -26749,7 +26749,7 @@ fftw_plan planner_normal(fftw_plan *table, int n, fftw_direction dir,
 	  FORALL_TWIDDLE(p) {
 	       if ((n % p->size) == 0 &&
 		   (!best || n != p->size)) {
-		    fftw_plan r = planner(table, n / p->size, dir, flags);
+		    fftw_plan r = env_planner(table, n / p->size, dir, flags);
 		    node = make_node_twiddle(n, p->size, p->codelet,
 					     r->root, flags);
 		    newplan = make_plan(n, dir, node, flags,
@@ -26767,9 +26767,9 @@ fftw_plan planner_normal(fftw_plan *table, int n, fftw_direction dir,
       */
      if (!best) {
 	  generic_codelet *codelet = (dir == FFTW_FORWARD ?
-			   fftw_twiddle_generic : fftwi_twiddle_generic);
+			   env_fftw_twiddle_generic : env_fftwi_twiddle_generic);
 	  int size = factor(n);
-	  fftw_plan r = planner(table, n / size, dir, flags);
+	  fftw_plan r = env_planner(table, n / size, dir, flags);
 
 	  node = make_node_generic(n, size, codelet, r->root, flags);
 	  newplan = make_plan(n, dir, node, flags, FFTW_GENERIC, 0);
@@ -26782,7 +26782,7 @@ fftw_plan planner_normal(fftw_plan *table, int n, fftw_direction dir,
      return best;
 }
 
-fftw_plan planner(fftw_plan *table, int n, fftw_direction dir,
+fftw_plan env_planner(fftw_plan *table, int n, fftw_direction dir,
 			   int flags)
 {
      fftw_plan best = (fftw_plan) 0;
@@ -26795,18 +26795,18 @@ fftw_plan planner(fftw_plan *table, int n, fftw_direction dir,
      }
 
      /* try a wise plan */
-     best = planner_wisdom(table, n, dir, flags);
+     best = env_planner_wisdom(table, n, dir, flags);
 
      if (!best) {
 	  /* No wisdom.  Plan normally. */
-	  best = planner_normal(table, n, dir, flags);
+	  best = env_planner_normal(table, n, dir, flags);
      }
 
      if (best) {
 	  insert(table, best, n);
 
 	  /* remember the wisdom */
-	  fftw_wisdom_add(n, flags, dir, best->wisdom_type,
+	  env_fftw_wisdom_add(n, flags, dir, best->wisdom_type,
 			  best->wisdom_signature);
      }
 
@@ -26826,7 +26826,7 @@ fftw_plan fftw_create_plan(int n, fftw_direction dir, int flags)
 	  return (fftw_plan) 0;
 
      make_empty_table(&table);
-     p1 = planner(&table, n, dir, flags);
+     p1 = env_planner(&table, n, dir, flags);
      destroy_table(&table);
 
      complete_twiddle(p1->root, n);
@@ -26860,15 +26860,15 @@ static void print_node(FILE * f, fftw_plan_node *p, int indent)
      }
 }
 
-void fftw_fprint_plan(FILE * f, fftw_plan p)
+void env_fftw_fprint_plan(FILE * f, fftw_plan p)
 {
      fprintf(f, "plan: (cost = %e)\n", p->cost);
      print_node(f, p->root, 0);
 }
 
-void fftw_print_plan(fftw_plan p)
+void env_fftw_print_plan(fftw_plan p)
 {
-     fftw_fprint_plan(stdout, p);
+     env_fftw_fprint_plan(stdout, p);
 }
 /*
  * Copyright (c) 1997 Massachusetts Institute of Technology
@@ -26901,7 +26901,7 @@ void fftw_print_plan(fftw_plan p)
 
 /*
  * timer.c -- this file measures the execution time of 
- *            ffts.  This information is used by the planner.
+ *            ffts.  This information is used by the env_planner.
  */
 
 /* $Id: fftw.c,v 1.3 2010-01-26 14:06:59 giannozz Exp $ */
@@ -26915,7 +26915,7 @@ void fftw_print_plan(fftw_plan p)
  * The timer keeps doubling the number of iterations
  * until the program runs for more than FFTW_TIME_MIN
  */
-double fftw_measure_runtime(fftw_plan plan)
+double env_fftw_measure_runtime(fftw_plan plan)
 {
      FFTW_COMPLEX *in, *out;
      fftw_time begin, end;
@@ -26928,8 +26928,8 @@ double fftw_measure_runtime(fftw_plan plan)
      iter = 1;
 
 retry:
-     in = (FFTW_COMPLEX *) fftw_malloc(n * sizeof(FFTW_COMPLEX));
-     out = (FFTW_COMPLEX *) fftw_malloc(n * sizeof(FFTW_COMPLEX));
+     in = (FFTW_COMPLEX *) env_fftw_malloc(n * sizeof(FFTW_COMPLEX));
+     out = (FFTW_COMPLEX *) env_fftw_malloc(n * sizeof(FFTW_COMPLEX));
 
      begin = fftw_get_time();
      for (i = 0; i < iter; ++i) {
@@ -26941,14 +26941,14 @@ retry:
 	       c_im(in[j]) = 32.432;
 	  }
 
-	  fftw(plan, 1, in, 1, 0, out, 1, 0);
+	  env_fftw(plan, 1, in, 1, 0, out, 1, 0);
      }
      end = fftw_get_time();
 
      t = fftw_time_to_sec(fftw_time_diff(end,begin));
 
-     fftw_free(in);
-     fftw_free(out);
+     env_fftw_free(in);
+     env_fftw_free(out);
 
      if (t < FFTW_TIME_MIN) {
 	  iter *= 2;
@@ -27133,9 +27133,9 @@ static void fftw_compute_twiddle(int n, int r, int m, FFTW_COMPLEX *W)
  * management of twiddle structures
  */
 static fftw_twiddle *twlist = (fftw_twiddle *) 0;
-int fftw_twiddle_size = 0;	/* total allocated size, for debugging */
+int env_fftw_twiddle_size = 0;	/* total allocated size, for debugging */
 
-fftw_twiddle *fftw_create_twiddle(int n, int r, int m)
+fftw_twiddle *env_fftw_create_twiddle(int n, int r, int m)
 {
      fftw_twiddle *tw;
      FFTW_COMPLEX *W;
@@ -27147,9 +27147,9 @@ fftw_twiddle *fftw_create_twiddle(int n, int r, int m)
 	       return tw;
 	  }
      /* not found --- allocate a new struct twiddle */
-     tw = (fftw_twiddle *) fftw_malloc(sizeof(fftw_twiddle));
-     W = (FFTW_COMPLEX *) fftw_malloc(m * (r - 1) * sizeof(FFTW_COMPLEX));
-     fftw_twiddle_size += n;
+     tw = (fftw_twiddle *) env_fftw_malloc(sizeof(fftw_twiddle));
+     W = (FFTW_COMPLEX *) env_fftw_malloc(m * (r - 1) * sizeof(FFTW_COMPLEX));
+     env_fftw_twiddle_size += n;
 
      tw->n = n;
      tw->r = r;
@@ -27165,7 +27165,7 @@ fftw_twiddle *fftw_create_twiddle(int n, int r, int m)
      return tw;
 }
 
-void fftw_destroy_twiddle(fftw_twiddle * tw)
+void env_fftw_destroy_twiddle(fftw_twiddle * tw)
 {
      fftw_twiddle **p;
      --tw->refcnt;
@@ -27175,12 +27175,12 @@ void fftw_destroy_twiddle(fftw_twiddle * tw)
 	  for (p = &twlist; p; p = &((*p)->next))
 	       if (*p == tw) {
 		    *p = tw->next;
-		    fftw_twiddle_size -= tw->n;
-		    fftw_free(tw->twarray);
-		    fftw_free(tw);
+		    env_fftw_twiddle_size -= tw->n;
+		    env_fftw_free(tw->twarray);
+		    env_fftw_free(tw);
 		    return;
 	       }
-	  fftw_die("BUG in fftw_destroy_twiddle\n");
+	  env_fftw_die("BUG in fftw_destroy_twiddle\n");
      }
 }
 /*
@@ -27233,7 +27233,7 @@ struct wisdom {
 /* list of wisdom */
 static struct wisdom *wisdom_list = (struct wisdom *) 0;
 
-int fftw_wisdom_lookup(int n, int flags, fftw_direction dir,
+int env_fftw_wisdom_lookup(int n, int flags, fftw_direction dir,
 		     enum fftw_node_type *type,
 		     int *signature, int replacep)
 {
@@ -27262,7 +27262,7 @@ int fftw_wisdom_lookup(int n, int flags, fftw_direction dir,
      return 0;
 }
 
-void fftw_wisdom_add(int n, int flags, fftw_direction dir,
+void env_fftw_wisdom_add(int n, int flags, fftw_direction dir,
 		   enum fftw_node_type type,
 		   int signature)
 {
@@ -27274,10 +27274,10 @@ void fftw_wisdom_add(int n, int flags, fftw_direction dir,
      if (!(flags & FFTW_MEASURE))
 	  return;  /* only measurements produce wisdom */
 
-     if (fftw_wisdom_lookup(n, flags, dir, &type, &signature, 1))
+     if (env_fftw_wisdom_lookup(n, flags, dir, &type, &signature, 1))
 	  return;		/* wisdom overwrote old wisdom */
 
-     p = (struct wisdom *) fftw_malloc(sizeof(struct wisdom));
+     p = (struct wisdom *) env_fftw_malloc(sizeof(struct wisdom));
 
      p->n = n;
      p->flags = flags;
@@ -27290,14 +27290,14 @@ void fftw_wisdom_add(int n, int flags, fftw_direction dir,
      wisdom_list = p;
 }
 
-void fftw_forget_wisdom(void)
+void env_fftw_forget_wisdom(void)
 {
      while (wisdom_list) {
 	  struct wisdom *p;
 
 	  p = wisdom_list;
 	  wisdom_list = wisdom_list->next;
-	  fftw_free(p);
+	  env_fftw_free(p);
      }
 }
 
@@ -27323,7 +27323,7 @@ static void emit_int(int n, void *data)
 }
 
 /* dump wisdom in lisp-like format */
-void fftw_export_wisdom(void (*emitter)(char c, void *), void *data)
+void env_fftw_export_wisdom(void (*emitter)(char c, void *), void *data)
 {
      struct wisdom *p;
 
@@ -27421,7 +27421,7 @@ static int read_int(void *data)
      }				     \
 }       			      
                                       
-fftw_status fftw_import_wisdom(int (*g)(void *), void *data)
+fftw_status env_fftw_import_wisdom(int (*g)(void *), void *data)
 {
      int n;
      int flags;
@@ -27451,7 +27451,7 @@ fftw_status fftw_import_wisdom(int (*g)(void *), void *data)
 	  EXPECT(')');
 
 	  /* the wisdom has been read properly. Add it */
-	  fftw_wisdom_add(n, flags, dir, type, signature);
+	  env_fftw_wisdom_add(n, flags, dir, type, signature);
 
 	  /* prepare for next morsel of wisdom */
 	  eat_blanks(data);
