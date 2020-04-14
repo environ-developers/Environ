@@ -30,7 +30,8 @@ MODULE env_martyna_tuckerman
   PRIVATE
 
   PUBLIC :: env_tag_wg_corr_as_obsolete, do_comp_mt, &
-  env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force
+  env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force, &
+  env_init_wg_corr
 
 CONTAINS
 !----------------------------------------------------------------------------
@@ -132,6 +133,7 @@ CONTAINS
   USE env_control_flags, ONLY : gamma_only_ => gamma_only
   USE env_gvect,         ONLY : ngm, gg, gstart_ => gstart, ecutrho
   USE env_cell_base,     ONLY : at, alat, tpiba2, omega
+  USE env_ws_base
 
   INTEGER :: idx, ir, i,j,k, j0, k0, ig, nt
   REAL(DP) :: r(3), rws, upperbound, rws2

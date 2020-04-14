@@ -50,8 +50,29 @@ if __name__ == "__main__":
     import numpy as np
     loaded_file = load_files(sys.argv[1])
     Environ_src_files = load_Environ_inc(sys.argv[2])
+    #initial removal
     for line in loaded_file:
         if line[0] in Environ_src_files and not line[1] in Environ_src_files:
+            line[1] = line[1].replace("@env_","")
+            line[1] = line[1].replace("@",".o")
+            #print(line[1])
+            if line[1] in Modules_Files:
+                line[1] = '../Environ/Modules_Files/'+line[1]
+            elif line[1] in PW_files:
+                line[1] = '../Environ/PW_Files/'+line[1]
+            elif line[1] in UtilXlib_files:
+                line[1] = '../Environ/UtilXlib/'+line[1]
+            elif line[1] in FFTXlib_files:
+                line[1] = '../Environ/FFTXlib/'+line[1]
+            elif line[1] == 'mp.o':
+                line[1] = '../Environ/UtilXlib/'+line[1]
+            elif line[1] == 'kinds.o':
+                line[1] = '../Environ/Modules_Files/kind.o'
+            else:
+                loaded_file.remove(line)
+    #double check
+    for line in loaded_file:
+        if '@' in line[1]:
             line[1] = line[1].replace("@env_","")
             line[1] = line[1].replace("@",".o")
             if line[1] in Modules_Files:
@@ -62,7 +83,9 @@ if __name__ == "__main__":
                 line[1] = '../Environ/UtilXlib/'+line[1]
             elif line[1] in FFTXlib_files:
                 line[1] = '../Environ/FFTXlib/'+line[1]
-            else:
-                loaded_file.remove(line)
+            elif line[1] == 'mp.o':
+                line[1] = '../Environ/UtilXlib/'+line[1]
+            elif line[1] == 'kinds.o':
+                line[1] = '../Environ/Modules_Files/kind.o'
     for line in loaded_file:
-       print(line[0]+' : '+line[1])
+      print(line[0]+' : '+line[1])
