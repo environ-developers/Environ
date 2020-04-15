@@ -39,7 +39,7 @@ libfft :
 libutil : 
 	( cd UtilXlib ; $(MAKE) TLDEPS= all || exit 1 )
 
-libenvpw :
+libenvpw : libfft libutil mods
 	( cd PW_files ; $(MAKE) TLDEPS= all || exit 1 )
 
 clean :

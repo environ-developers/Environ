@@ -23,7 +23,7 @@ martyna_tuckerman.o : ../Modules_Files/ions_base.o
 martyna_tuckerman.o : ../Modules_Files/kind.o
 martyna_tuckerman.o : ../Modules_Files/mp_bands.o
 martyna_tuckerman.o : ../Modules_Files/recvec.o
-martyna_tuckerman.o : ../Modules_Files/ws_base.o 
+martyna_tuckerman.o : ../Modules_Files/ws_base.o
 martyna_tuckerman.o : ../UtilXlib/mp.o
 scf_mod.o : ../FFTXlib/fft_interfaces.o
 scf_mod.o : ../Modules_Files/cell_base.o

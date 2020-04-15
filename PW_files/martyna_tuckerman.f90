@@ -30,8 +30,11 @@ MODULE env_martyna_tuckerman
   PRIVATE
 
   PUBLIC :: env_tag_wg_corr_as_obsolete, do_comp_mt, &
-  env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force, &
-  env_init_wg_corr
+            env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force
+
+  !PUBLIC :: env_tag_wg_corr_as_obsolete, do_comp_mt, &
+  !env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force, &
+  !env_init_wg_corr
 
 CONTAINS
 !----------------------------------------------------------------------------

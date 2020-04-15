@@ -68,8 +68,8 @@ if __name__ == "__main__":
                 line[1] = '../Environ/UtilXlib/'+line[1]
             elif line[1] == 'kinds.o':
                 line[1] = '../Environ/Modules_Files/kind.o'
-            else:
-                loaded_file.remove(line)
+            elif line[1] == 'gvect.o':
+                line[1] = '../Environ/Modules_Files/recvec.o'
     #double check
     for line in loaded_file:
         if '@' in line[1]:
