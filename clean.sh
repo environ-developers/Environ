@@ -1,6 +1,7 @@
 #!/bin/bash
-revertpatch=1
-removesteptwo=1
+#First install should be 0, 0, 1, 1 for the four variables below.
+revertpatch=0
+removesteptwo=0
 initialinstall=1
 steptwo=1
 ####################################################
