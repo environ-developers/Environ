@@ -1681,22 +1681,27 @@ CONTAINS
         ! ... read field 1 (total charge of the external density)
         !
         CALL get_field(1, field_str, input_line)
-        extcharge_charge(ie) = feval_infix(ierr, field_str )
+        !extcharge_charge(ie) = feval_infix(ierr, field_str )
+        read(field_str,*) extcharge_charge(ie)
         !
         ! ... read fields 2-4 (x-y-z position of external density)
         !
         CALL get_field(2, field_str, input_line)
-        extcharge_pos(1,ie) = feval_infix(ierr, field_str )
+        !extcharge_pos(1,ie) = feval_infix(ierr, field_str )
+        read(field_str,*) extcharge_pos(1,ie)
         CALL get_field(3, field_str, input_line)
-        extcharge_pos(2,ie) = feval_infix(ierr, field_str )
+        !extcharge_pos(2,ie) = feval_infix(ierr, field_str )
+        read(field_str,*) extcharge_pos(2,ie)
         CALL get_field(4, field_str, input_line)
-        extcharge_pos(3,ie) = feval_infix(ierr, field_str )
+        !extcharge_pos(3,ie) = feval_infix(ierr, field_str )
+        read(field_str,*) extcharge_pos(3,ie)
         !
         ! ... optionally read field 5 (spread of the density)
         !
         IF ( nfield >= 5 ) THEN
            CALL get_field(5, field_str, input_line)
-           extcharge_spread(ie) = feval_infix(ierr, field_str )
+           !extcharge_spread(ie) = feval_infix(ierr, field_str )
+           read(field_str,*) extcharge_spread(ie)
            IF ( extcharge_spread(ie) .LT. 0.D0 ) &
                 CALL errore( ' card_external_charges  ', ' spread must be positive', ie )
         ENDIF
@@ -1854,27 +1859,33 @@ CONTAINS
         ! ... read field 1-2 (static and optical permettivity inside dielectric region)
         !
         CALL get_field(1, field_str, input_line)
-        epsregion_eps(1,ie) = feval_infix(ierr, field_str )
+        !epsregion_eps(1,ie) = feval_infix(ierr, field_str )
+        READ(field_str, *) epsregion_eps(1,ie)
         IF ( epsregion_eps(1,ie) .LT. 1.D0 ) &
              CALL errore( ' card_dielectric_regions  ', ' static permittivity must be .gt. 1', ie )
         CALL get_field(2, field_str, input_line)
-        epsregion_eps(2,ie) = feval_infix(ierr, field_str )
+        !epsregion_eps(2,ie) = feval_infix(ierr, field_str )
+        READ(field_str, *) epsregion_eps(2,ie)
         IF ( epsregion_eps(2,ie) .LT. 1.D0 ) &
              CALL errore( ' card_dielectric_regions  ', ' optical permittivity must be .gt. 1', ie )
         !
         ! ... read fields 3-5 (x-y-z position of dielectric region)
         !
         CALL get_field(3, field_str, input_line)
-        epsregion_pos(1,ie) = feval_infix(ierr, field_str )
+        !epsregion_pos(1,ie) = feval_infix(ierr, field_str )
+        READ(field_str, *) epsregion_pos(1,ie)
         CALL get_field(4, field_str, input_line)
-        epsregion_pos(2,ie) = feval_infix(ierr, field_str )
+        !epsregion_pos(2,ie) = feval_infix(ierr, field_str )
+        READ(field_str, *) epsregion_pos(2,ie)
         CALL get_field(5, field_str, input_line)
-        epsregion_pos(3,ie) = feval_infix(ierr, field_str )
+        !epsregion_pos(3,ie) = feval_infix(ierr, field_str )
+        READ(field_str, *) epsregion_pos(3,ie)
         !
         ! ... read field 6 (size/width of the dielectric region)
         !
         CALL get_field(6, field_str, input_line)
-        epsregion_width(ie) = feval_infix(ierr, field_str )
+        !epsregion_width(ie) = feval_infix(ierr, field_str )
+        READ(field_str, *) epsregion_width(ie)
         IF ( epsregion_width(ie) .LT. 0.D0 ) &
              CALL errore( ' card_dielectric_regions  ', ' width must be positive', ie )
         !
@@ -1882,7 +1893,8 @@ CONTAINS
         !
         IF ( nfield >= 7 ) THEN
            CALL get_field(7, field_str, input_line)
-           epsregion_spread(ie) = feval_infix(ierr, field_str )
+           !epsregion_spread(ie) = feval_infix(ierr, field_str )
+           READ(field_str, *) epsregion_spread(ie)
            IF ( epsregion_spread(ie) .LT. 0.D0 ) &
                 CALL errore( ' card_dielectric_regions ', ' spread must be positive', ie )
         ENDIF
@@ -1988,47 +2000,46 @@ CONTAINS
 !--------------------------------------------------------------------
    END SUBROUTINE convert_length
 !--------------------------------------------------------------------
-  !
-  ! Two more wrappers for eval_infix (simple algebric expression parser)
-  ! and for get_md5 which computes the md5 sum of a file.
-  !
-  FUNCTION feval_infix(fierr, fstr)
-     USE ISO_C_BINDING
-     IMPLICIT NONE
-     REAL(DP) :: feval_infix
-     INTEGER :: fierr
-     CHARACTER(len=*) :: fstr
-     INTEGER :: filen
-     !
-     INTERFACE
-     FUNCTION ceval_infix(cierr, cstr, cilen) BIND(C, name="eval_infix")
-     !REAL(kind=c_double) FUNCTION ceval_infix(cierr, cstr, cilen) BIND(C, name="eval_infix")
-     !  double eval_infix( int *ierr, const char *strExpression, int len )
-       USE ISO_C_BINDING
-       REAL(kind=c_double) :: ceval_infix
-       INTEGER(kind=c_int)    :: cierr
-       CHARACTER(kind=c_char) :: cstr(*)
-       INTEGER(kind=c_int),VALUE :: cilen
-     END FUNCTION ceval_infix
-     END INTERFACE
-     !
-     INTEGER(kind=c_int) :: cierr
-     INTEGER(kind=c_int) :: cilen
-     CHARACTER(len=len_trim(fstr)+1,kind=c_char) :: cstr
-     !
-     INTEGER :: i
-     !
-     filen = len_trim(fstr)
-     cilen = INT(filen, kind=c_int)
-     DO i = 1,filen
-       cstr(i:i) = fstr(i:i)
-     ENDDO
-     cstr(filen+1:filen+1)=C_NULL_CHAR
-     !
-     feval_infix = REAL( ceval_infix(cierr, cstr, cilen), kind=DP)
-     fierr = INT(cierr)
-     RETURN
-   END FUNCTION feval_infix
-!----------------------------------------------------------------------------
+!  !
+!  ! Two more wrappers for eval_infix (simple algebric expression parser)
+!  !
+!  FUNCTION feval_infix(fierr, fstr)
+!     USE ISO_C_BINDING
+!     IMPLICIT NONE
+!     REAL(DP) :: feval_infix
+!     INTEGER :: fierr
+!     CHARACTER(len=*) :: fstr
+!     INTEGER :: filen
+!     !
+!     INTERFACE
+!     FUNCTION ceval_infix(cierr, cstr, cilen) BIND(C, name="eval_infix")
+!     !REAL(kind=c_double) FUNCTION ceval_infix(cierr, cstr, cilen) BIND(C, name="eval_infix")
+!     !  double eval_infix( int *ierr, const char *strExpression, int len )
+!       USE ISO_C_BINDING
+!       REAL(kind=c_double) :: ceval_infix
+!       INTEGER(kind=c_int)    :: cierr
+!       CHARACTER(kind=c_char) :: cstr(*)
+!       INTEGER(kind=c_int),VALUE :: cilen
+!     END FUNCTION ceval_infix
+!     END INTERFACE
+!     !
+!     INTEGER(kind=c_int) :: cierr
+!     INTEGER(kind=c_int) :: cilen
+!     CHARACTER(len=len_trim(fstr)+1,kind=c_char) :: cstr
+!     !
+!     INTEGER :: i
+!     !
+!     filen = len_trim(fstr)
+!     cilen = INT(filen, kind=c_int)
+!     DO i = 1,filen
+!       cstr(i:i) = fstr(i:i)
+!     ENDDO
+!     cstr(filen+1:filen+1)=C_NULL_CHAR
+!     !
+!     feval_infix = REAL( ceval_infix(cierr, cstr, cilen), kind=DP)
+!     fierr = INT(cierr)
+!     RETURN
+!   END FUNCTION feval_infix
+!!----------------------------------------------------------------------------
 END MODULE environ_input
 !----------------------------------------------------------------------------
