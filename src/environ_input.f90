@@ -1633,7 +1633,7 @@ CONTAINS
      !      dim(i)    ( integer )    0/1/2 point/line/plane of charge (optional, default=0)
      !      axis(i)   ( integer )    1/2/3 for x/y/z direction of line/plane (optional, default=3)
      !
-     USE wrappers, ONLY: feval_infix
+     !USE wrappers, ONLY: feval_infix
      !
      IMPLICIT NONE
      !
@@ -1806,7 +1806,7 @@ CONTAINS
      !      dim(i)     ( integer )    0/1/2 point/line/plane region (optional)
      !      axis(i)    ( integer )    1/2/3 for x/y/z direction of line/plane (optional)
      !
-     USE wrappers, ONLY: feval_infix
+     !USE wrappers, ONLY: feval_infix
      !
      IMPLICIT NONE
      !
@@ -1988,6 +1988,47 @@ CONTAINS
 !--------------------------------------------------------------------
    END SUBROUTINE convert_length
 !--------------------------------------------------------------------
+  !
+  ! Two more wrappers for eval_infix (simple algebric expression parser)
+  ! and for get_md5 which computes the md5 sum of a file.
+  !
+  FUNCTION feval_infix(fierr, fstr)
+     USE ISO_C_BINDING
+     IMPLICIT NONE
+     REAL(DP) :: feval_infix
+     INTEGER :: fierr
+     CHARACTER(len=*) :: fstr
+     INTEGER :: filen
+     !
+     INTERFACE
+     FUNCTION ceval_infix(cierr, cstr, cilen) BIND(C, name="eval_infix")
+     !REAL(kind=c_double) FUNCTION ceval_infix(cierr, cstr, cilen) BIND(C, name="eval_infix")
+     !  double eval_infix( int *ierr, const char *strExpression, int len )
+       USE ISO_C_BINDING
+       REAL(kind=c_double) :: ceval_infix
+       INTEGER(kind=c_int)    :: cierr
+       CHARACTER(kind=c_char) :: cstr(*)
+       INTEGER(kind=c_int),VALUE :: cilen
+     END FUNCTION ceval_infix
+     END INTERFACE
+     !
+     INTEGER(kind=c_int) :: cierr
+     INTEGER(kind=c_int) :: cilen
+     CHARACTER(len=len_trim(fstr)+1,kind=c_char) :: cstr
+     !
+     INTEGER :: i
+     !
+     filen = len_trim(fstr)
+     cilen = INT(filen, kind=c_int)
+     DO i = 1,filen
+       cstr(i:i) = fstr(i:i)
+     ENDDO
+     cstr(filen+1:filen+1)=C_NULL_CHAR
+     !
+     feval_infix = REAL( ceval_infix(cierr, cstr, cilen), kind=DP)
+     fierr = INT(cierr)
+     RETURN
+   END FUNCTION feval_infix
 !----------------------------------------------------------------------------
 END MODULE environ_input
 !----------------------------------------------------------------------------
