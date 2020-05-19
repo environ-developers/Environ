@@ -27,9 +27,7 @@
 MODULE environ_types
 !----------------------------------------------------------------------------
   !
-  USE env_kinds,             ONLY : DP
-  USE env_constants,         ONLY : rydberg_si, bohr_radius_si, bohr_radius_angs, &
-                         & amu_si, fpi, tpi, pi, sqrtpi, k_boltzmann_ry, rytoev
+  USE modules_constants
   USE env_mp,                ONLY : env_mp_sum
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X

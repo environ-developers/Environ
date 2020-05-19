@@ -25,31 +25,23 @@ doc:
 	if test -d Doc ; then \
         (cd Doc ; $(MAKE) || exit 1 ) ; fi
 
-libenviron: mods libfft libutil libenvpw
+libenviron: libfft libutil 
 	if test -d src ; then \
         ( cd src ; if test "$(MAKE)" = "" ; then make $(MFLAGS) $@; \
         else $(MAKE) $(MFLAGS) ; fi ) ; fi ; \
 
-mods : libfft libutil
-	( cd Modules_Files ; $(MAKE) TLDEPS= all || exit 1 )
-
 libfft : 
-	( cd FFTXlib ; $(MAKE) TLDEPS= all || exit 1 )
+	( cd libs/FFTXlib ; $(MAKE) TLDEPS= all || exit 1 )
 
 libutil : 
-	( cd UtilXlib ; $(MAKE) TLDEPS= all || exit 1 )
-
-libenvpw : libfft libutil mods
-	( cd PW_files ; $(MAKE) TLDEPS= all || exit 1 )
+	( cd libs/UtilXlib ; $(MAKE) TLDEPS= all || exit 1 )
 
 clean :
 	if test -d src ; then \
         ( cd src ; if test "$(MAKE)" = "" ; then make clean ; \
         else $(MAKE) clean ; fi ) ; fi ;\
-	( cd FFTXlib ; $(MAKE) clean ) ; \
-	( cd UtilXlib ; $(MAKE) clean ) ; \
-	( cd Modules_Files ; $(MAKE) clean) ; \
-	( cd PW_files ; $(MAKE) clean ) ;
+	( cd libs/FFTXlib ; $(MAKE) clean ) ; \
+	( cd ilbs/UtilXlib ; $(MAKE) clean )
 
 doc_clean:
 	if test -d Doc ; then \

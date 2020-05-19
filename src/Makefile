@@ -28,6 +28,7 @@ MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../UtilXlib \
 	$(MOD_FLAG)../PW_files $(MOD_FLAG).
 
 ENVIRONOBJS = \
+core_fft.o                 \
 correction_periodic.o      \
 correction_gcs.o	   \
 electrostatic_init.o       \
@@ -43,6 +44,8 @@ environ_main.o             \
 environ_mod.o              \
 environ_output.o           \
 environ_types.o            \
+modules_constants.o        \
+modules_parser.o           \
 problem_generalized.o      \
 problem_linearized_pb.o    \
 problem_pb.o               \

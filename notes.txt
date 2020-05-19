@@ -1,0 +1,51 @@
+TO DO
+* fix an fft_core type that contains dfftp, environ_cell(omega, alat, tpiba, tpiba2), martyna-tuckerman, gvectors(ngm, gg, gstart, g), gamma_only
+* cleanup backward compatibility
+* fix calls to v_of_rho_r, gradv_of_rho_r, convolution_fft
+* profile core_fft routines
+* when fixing parallelization, remember to fix ionode and comm in environ_output.f90
+* fix input readin in parser, why is it using intra_image_comm?
+* recvec needs to be moved into a derived data type
+* UtilXLib and FFTXlib should only be compiled if Environ is not inside QE, otherwise Environ should use the QE libraries.
+
+SIMPLE_TASK1: remove feval from environ_input.f90, so that we don't need modules_wrappers.f90
+SIMPLE_TASK2:
+
+* core_fft.f90
+  add tests for compatibility between inputs
+* correction_mt.f90
+  fix correction_mt (only initial calculation and calc_vmt is needed)
+  fix calls to ws_base
+  fix communicators for parallelization
+* calc_fd_gradient.f90
+  cleanup dependencies from Modules
+  fix communicators for parallelization
+* tools_generate_functions.f90
+  move away planar_average
+* environ_output.f90
+  fix write_cube that depends on dfftp and parallelization
+* ws_base.f90 (now tools_ws.f90) is only needed by Martyna-Tuckerman
+  remove call to invmat.f90 to invert 3x3 matrix
+* what is now tools_fd_gradient.f90 could become a core_fd.f90 with only some of the core functionalities (namely gradients and laplacians)
+  finite differences are anyway probably not going to be very useful, we may want to remove it
+
+DONE
+  move convolution_fft outside of tools_generate_functions.f90 and cleanup dependencies
+
+DOUBTS
+  do we want to keep martyna-tuckerman?
+
+PLANS
+  as first step let's comment out the martyna-tuckerman part
+  pass values of derived data types, as a second step we'll need to initialize them inside environ.
+  we could start by compiling Environ with its internal UtilXlibs and FFTlibs, in case we need to change something
+
+NOTES:
+  for ffts we need both the descriptor (dffte) and a stick_map (smap)
+  to initialize the fft descriptor we need the parallelization (communicator) and: gamma_only (true), lpara (either T or F),
+  at, bg, gcutm, fft_fact and nyfft
+       fft_fact(1:3) are determined inside symm_base according to this: factors that must be present in FFT grid dimensions
+       in order to ensure that fractional translations are commensurate with FFT grids. fractional translations are present
+       is we have supercells and we want to keep symmetry. we may want to give up symmetry and keep fft_fact(:) = 1
+       nyfft is related to the parallelization scheme, we may want ot keep nyfft=1 and don't push parallelization too much
+  to initialize gvect we only need the fft results (number of gvectors in each processor) and the parallelization

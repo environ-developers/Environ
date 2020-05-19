@@ -26,9 +26,7 @@
 MODULE environ_input
 !----------------------------------------------------------------------------
   !
-  USE env_kinds,      ONLY : DP
-  USE env_constants,  ONLY : bohr_radius_angs
-  USE env_parameters, ONLY : nsx
+  USE modules_constants,  ONLY : DP, bohr_radius_angs, nsx
   !
   USE env_parser,     ONLY : env_field_count, env_read_line, env_get_field, parse_unit
   USE env_mp,         ONLY : env_mp_bcast

@@ -24,7 +24,7 @@
 MODULE tools_fd_gradient
 !----------------------------------------------------------------------------
   !
-  USE env_kinds, ONLY: DP
+  USE modules_constants, ONLY: DP
   !
   IMPLICIT NONE
   !
@@ -32,7 +32,6 @@ CONTAINS
 !----------------------------------------------------------------------
   SUBROUTINE calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, f, grad )
 !----------------------------------------------------------------------
-    USE env_kinds,         ONLY : DP
     USE env_cell_base,     ONLY : at, bg, alat
     USE env_fft_base,      ONLY : dfftp
     USE env_scatter_mod,   ONLY : env_scatter_grid
@@ -149,8 +148,6 @@ CONTAINS
 !----------------------------------------------------------------------
   SUBROUTINE init_fd_gradient( ifdtype, nfdpoint, ncfd, icfd )
 !----------------------------------------------------------------------
-    !
-    USE env_kinds,         ONLY : DP
     !
     IMPLICIT NONE
     !
