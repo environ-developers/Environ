@@ -1,22 +1,20 @@
 TO DO
-* fix an fft_core type that contains dfftp, environ_cell(omega, alat, tpiba, tpiba2), martyna-tuckerman, gvectors(ngm, gg, gstart, g), gamma_only
-* cleanup backward compatibility
+* fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
 * fix calls to v_of_rho_r, gradv_of_rho_r, convolution_fft
 * profile core_fft routines
+
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
 * fix input readin in parser, why is it using intra_image_comm?
 * recvec needs to be moved into a derived data type
 * UtilXLib and FFTXlib should only be compiled if Environ is not inside QE, otherwise Environ should use the QE libraries.
+* cleanup backward compatibility
 
-SIMPLE_TASK1: remove feval from environ_input.f90, so that we don't need modules_wrappers.f90
-SIMPLE_TASK2:
+SIMPLE_TASK1: remove feval from environ_input.f90, so that we don't need modules_wrappers.f90. Merge your changes into this branch
+SIMPLE_TASK2: clean up/fix modules_parser.f90 move env_errore --> errore() stdout --> program_unit
+env_mp --> mp
 
 * core_fft.f90
   add tests for compatibility between inputs
-* correction_mt.f90
-  fix correction_mt (only initial calculation and calc_vmt is needed)
-  fix calls to ws_base
-  fix communicators for parallelization
 * calc_fd_gradient.f90
   cleanup dependencies from Modules
   fix communicators for parallelization
@@ -24,10 +22,15 @@ SIMPLE_TASK2:
   move away planar_average
 * environ_output.f90
   fix write_cube that depends on dfftp and parallelization
-* ws_base.f90 (now tools_ws.f90) is only needed by Martyna-Tuckerman
-  remove call to invmat.f90 to invert 3x3 matrix
 * what is now tools_fd_gradient.f90 could become a core_fd.f90 with only some of the core functionalities (namely gradients and laplacians)
   finite differences are anyway probably not going to be very useful, we may want to remove it
+
+* correction_mt.f90
+  fix correction_mt (only initial calculation and calc_vmt is needed)
+  fix calls to ws_base
+  fix communicators for parallelization
+* ws_base.f90 (now tools_ws.f90) is only needed by Martyna-Tuckerman
+  remove call to invmat.f90 to invert 3x3 matrix
 
 DONE
   move convolution_fft outside of tools_generate_functions.f90 and cleanup dependencies

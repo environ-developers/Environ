@@ -33,11 +33,11 @@
 ! 
 !
 !----------------------------------------------------------------------------
-MODULE env_parser
+MODULE modules_parser
   !----------------------------------------------------------------------------
   !
-  USE env_io_global, ONLY : stdout
-  USE env_kinds, ONLY : DP
+  USE environ_output, ONLY : program_unit
+  USE modules_constants, ONLY : DP
   !
   PRIVATE
   !
@@ -122,9 +122,9 @@ MODULE env_parser
   SUBROUTINE env_read_line( line, nfield, field, end_of_file, error )
     !--------------------------------------------------------------------------
     !
-    USE env_mp,        ONLY : env_mp_bcast
-    USE env_mp_images, ONLY : intra_image_comm
-    USE env_io_global, ONLY : ionode, ionode_id
+    USE mp,        ONLY : mp_bcast
+    USE environ_output, ONLY : comm !! WE MAY WANT TO ADD A SECOND COMM ON IMAGES
+    USE environ_output, ONLY : ionode, ionode_id
     !
     IMPLICIT NONE
     !
@@ -406,4 +406,4 @@ MODULE env_parser
 
   END SUBROUTINE env_get_field
 
-END MODULE env_parser
+END MODULE modules_parser

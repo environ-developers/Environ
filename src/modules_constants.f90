@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-MODULE module_constants
+MODULE modules_constants
   !----------------------------------------------------------------------------
   !
   ! ... The constants needed everywhere
@@ -79,4 +79,4 @@ MODULE module_constants
   !
   REAL(DP), PARAMETER :: AVOGADRO = 6.02214129D+23
 
-END MODULE env_constants
+END MODULE modules_constants

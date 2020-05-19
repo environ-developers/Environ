@@ -33,7 +33,7 @@ MODULE environ_output
   LOGICAL :: ionode = .TRUE.
   INTEGER :: ionode_id
   !
-  INTEGER :: comm
+  INTEGER :: comm ! WE MAY NEED A SECOND COMMUNICATOR FOR IMAGE PARALLELIZATION
   !
   INTEGER :: program_unit
   INTEGER :: environ_unit

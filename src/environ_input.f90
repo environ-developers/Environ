@@ -27,9 +27,8 @@ MODULE environ_input
 !----------------------------------------------------------------------------
   !
   USE modules_constants,  ONLY : DP, bohr_radius_angs, nsx
-  !
-  USE env_parser,     ONLY : env_field_count, env_read_line, env_get_field, parse_unit
-  USE env_mp,         ONLY : env_mp_bcast
+  USE modules_parser,     ONLY : env_field_count, env_read_line, env_get_field, parse_unit
+  USE mp,                 ONLY : mp_bcast
   !
   USE environ_output, ONLY : ionode, ionode_id, comm, program_unit, &
        & verbose_ => verbose, environ_unit
@@ -670,7 +669,7 @@ CONTAINS
     !
     ios = 0
     IF( ionode ) READ( environ_unit_input, environ, iostat = ios )
-    CALL env_mp_bcast( ios, ionode_id, comm )
+    CALL mp_bcast( ios, ionode_id, comm )
     IF( ios /= 0 ) CALL env_errore( ' read_environ ', &
          & ' reading namelist environ ', ABS(ios) )
     !
@@ -692,7 +691,7 @@ CONTAINS
     IF( ionode ) THEN
        IF ( lboundary ) READ( environ_unit_input, boundary, iostat = ios )
     END IF
-    CALL env_mp_bcast( ios, ionode_id, comm )
+    CALL mp_bcast( ios, ionode_id, comm )
     IF( ios /= 0 ) CALL env_errore( ' read_environ ', &
          & ' reading namelist boundary ', ABS(ios) )       !
     !
@@ -718,7 +717,7 @@ CONTAINS
     IF( ionode ) THEN
        IF ( lelectrostatic ) READ( environ_unit_input, electrostatic, iostat = ios )
     END IF
-    CALL env_mp_bcast( ios, ionode_id, comm )
+    CALL mp_bcast( ios, ionode_id, comm )
     IF( ios /= 0 ) CALL env_errore( ' read_environ ', &
          & ' reading namelist electrostatic ', ABS(ios) )
     !
@@ -891,44 +890,44 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    CALL env_mp_bcast( oldenviron,                 ionode_id, comm )
-    CALL env_mp_bcast( environ_restart,            ionode_id, comm )
-    CALL env_mp_bcast( verbose,                    ionode_id, comm )
-    CALL env_mp_bcast( environ_thr,                ionode_id, comm )
-    CALL env_mp_bcast( environ_nskip,              ionode_id, comm )
-    CALL env_mp_bcast( environ_type,               ionode_id, comm )
+    CALL mp_bcast( oldenviron,                 ionode_id, comm )
+    CALL mp_bcast( environ_restart,            ionode_id, comm )
+    CALL mp_bcast( verbose,                    ionode_id, comm )
+    CALL mp_bcast( environ_thr,                ionode_id, comm )
+    CALL mp_bcast( environ_nskip,              ionode_id, comm )
+    CALL mp_bcast( environ_type,               ionode_id, comm )
     !
-    CALL env_mp_bcast( system_ntyp,                ionode_id, comm )
-    CALL env_mp_bcast( system_dim,                 ionode_id, comm )
-    CALL env_mp_bcast( system_axis,                ionode_id, comm )
+    CALL mp_bcast( system_ntyp,                ionode_id, comm )
+    CALL mp_bcast( system_dim,                 ionode_id, comm )
+    CALL mp_bcast( system_axis,                ionode_id, comm )
     !
-    CALL env_mp_bcast( env_electrostatic,          ionode_id, comm )
-    CALL env_mp_bcast( atomicspread,               ionode_id, comm )
-    CALL env_mp_bcast( add_jellium,                ionode_id, comm )
+    CALL mp_bcast( env_electrostatic,          ionode_id, comm )
+    CALL mp_bcast( atomicspread,               ionode_id, comm )
+    CALL mp_bcast( add_jellium,                ionode_id, comm )
     !
-    CALL env_mp_bcast( env_static_permittivity,    ionode_id, comm )
-    CALL env_mp_bcast( env_optical_permittivity,   ionode_id, comm )
+    CALL mp_bcast( env_static_permittivity,    ionode_id, comm )
+    CALL mp_bcast( env_optical_permittivity,   ionode_id, comm )
     !
-    CALL env_mp_bcast( env_surface_tension,        ionode_id, comm )
+    CALL mp_bcast( env_surface_tension,        ionode_id, comm )
     !
-    CALL env_mp_bcast( env_pressure,               ionode_id, comm )
+    CALL mp_bcast( env_pressure,               ionode_id, comm )
     !
-    CALL env_mp_bcast( env_confine,                ionode_id, comm )
+    CALL mp_bcast( env_confine,                ionode_id, comm )
     !
-    CALL env_mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
-    CALL env_mp_bcast( electrolyte_linearized,           ionode_id, comm )
-    CALL env_mp_bcast( electrolyte_entropy,              ionode_id, comm )
-    CALL env_mp_bcast( cion,                       ionode_id, comm )
-    CALL env_mp_bcast( cionmax,                    ionode_id, comm )
-    CALL env_mp_bcast( rion,                       ionode_id, comm )
-    CALL env_mp_bcast( zion,                       ionode_id, comm )
-    CALL env_mp_bcast( temperature,        ionode_id, comm )
+    CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
+    CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
+    CALL mp_bcast( electrolyte_entropy,              ionode_id, comm )
+    CALL mp_bcast( cion,                       ionode_id, comm )
+    CALL mp_bcast( cionmax,                    ionode_id, comm )
+    CALL mp_bcast( rion,                       ionode_id, comm )
+    CALL mp_bcast( zion,                       ionode_id, comm )
+    CALL mp_bcast( temperature,        ionode_id, comm )
     !
-    CALL env_mp_bcast( ion_adsorption,             ionode_id, comm )
-    CALL env_mp_bcast( ion_adsorption_energy,      ionode_id, comm )
+    CALL mp_bcast( ion_adsorption,             ionode_id, comm )
+    CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
     !
-    CALL env_mp_bcast( env_external_charges,       ionode_id, comm )
-    CALL env_mp_bcast( env_dielectric_regions,     ionode_id, comm )
+    CALL mp_bcast( env_external_charges,       ionode_id, comm )
+    CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
     !
     RETURN
     !
@@ -943,44 +942,44 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    CALL env_mp_bcast( solvent_mode,               ionode_id, comm )
+    CALL mp_bcast( solvent_mode,               ionode_id, comm )
     !
-    CALL env_mp_bcast( stype,                      ionode_id, comm )
-    CALL env_mp_bcast( rhomax,                     ionode_id, comm )
-    CALL env_mp_bcast( rhomin,                     ionode_id, comm )
-    CALL env_mp_bcast( tbeta,                      ionode_id, comm )
+    CALL mp_bcast( stype,                      ionode_id, comm )
+    CALL mp_bcast( rhomax,                     ionode_id, comm )
+    CALL mp_bcast( rhomin,                     ionode_id, comm )
+    CALL mp_bcast( tbeta,                      ionode_id, comm )
     !
-    CALL env_mp_bcast( radius_mode,                ionode_id, comm )
-    CALL env_mp_bcast( alpha,                      ionode_id, comm )
-    CALL env_mp_bcast( softness,                   ionode_id, comm )
-    CALL env_mp_bcast( solvationrad,               ionode_id, comm )
+    CALL mp_bcast( radius_mode,                ionode_id, comm )
+    CALL mp_bcast( alpha,                      ionode_id, comm )
+    CALL mp_bcast( softness,                   ionode_id, comm )
+    CALL mp_bcast( solvationrad,               ionode_id, comm )
     !
-    CALL env_mp_bcast( corespread,                 ionode_id, comm )
+    CALL mp_bcast( corespread,                 ionode_id, comm )
     !
-    CALL env_mp_bcast( solvent_distance,           ionode_id, comm )
-    CALL env_mp_bcast( solvent_spread,             ionode_id, comm )
+    CALL mp_bcast( solvent_distance,           ionode_id, comm )
+    CALL mp_bcast( solvent_spread,             ionode_id, comm )
     !
-    CALL env_mp_bcast( solvent_radius,             ionode_id, comm )
-    CALL env_mp_bcast( radial_scale,               ionode_id, comm )
-    CALL env_mp_bcast( radial_spread,              ionode_id, comm )
-    CALL env_mp_bcast( filling_threshold,          ionode_id, comm )
-    CALL env_mp_bcast( filling_spread,             ionode_id, comm )
+    CALL mp_bcast( solvent_radius,             ionode_id, comm )
+    CALL mp_bcast( radial_scale,               ionode_id, comm )
+    CALL mp_bcast( radial_spread,              ionode_id, comm )
+    CALL mp_bcast( filling_threshold,          ionode_id, comm )
+    CALL mp_bcast( filling_spread,             ionode_id, comm )
     !
-    CALL env_mp_bcast( electrolyte_mode,                 ionode_id, comm )
+    CALL mp_bcast( electrolyte_mode,                 ionode_id, comm )
     !
-    CALL env_mp_bcast( electrolyte_distance,             ionode_id, comm )
-    CALL env_mp_bcast( electrolyte_spread,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_distance,             ionode_id, comm )
+    CALL mp_bcast( electrolyte_spread,               ionode_id, comm )
     !
-    CALL env_mp_bcast( electrolyte_rhomax,               ionode_id, comm )
-    CALL env_mp_bcast( electrolyte_rhomin,               ionode_id, comm )
-    CALL env_mp_bcast( electrolyte_tbeta,                ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomax,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomin,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_tbeta,                ionode_id, comm )
     !
-    CALL env_mp_bcast( electrolyte_alpha,                ionode_id, comm )
-    CALL env_mp_bcast( electrolyte_softness,             ionode_id, comm )
+    CALL mp_bcast( electrolyte_alpha,                ionode_id, comm )
+    CALL mp_bcast( electrolyte_softness,             ionode_id, comm )
     !
-    CALL env_mp_bcast( boundary_core,              ionode_id, comm )
-    CALL env_mp_bcast( ifdtype,                    ionode_id, comm )
-    CALL env_mp_bcast( nfdpoint,                   ionode_id, comm )
+    CALL mp_bcast( boundary_core,              ionode_id, comm )
+    CALL mp_bcast( ifdtype,                    ionode_id, comm )
+    CALL mp_bcast( nfdpoint,                   ionode_id, comm )
     !
     RETURN
     !
@@ -995,33 +994,33 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    CALL env_mp_bcast( problem,                    ionode_id, comm )
-    CALL env_mp_bcast( tol,                        ionode_id, comm )
+    CALL mp_bcast( problem,                    ionode_id, comm )
+    CALL mp_bcast( tol,                        ionode_id, comm )
     !
-    CALL env_mp_bcast( solver,                     ionode_id, comm )
-    CALL env_mp_bcast( inner_solver,               ionode_id, comm )
-    CALL env_mp_bcast( inner_tol,                  ionode_id, comm )
-    CALL env_mp_bcast( inner_maxstep,              ionode_id, comm )
-    CALL env_mp_bcast( inner_mix,                  ionode_id, comm )
+    CALL mp_bcast( solver,                     ionode_id, comm )
+    CALL mp_bcast( inner_solver,               ionode_id, comm )
+    CALL mp_bcast( inner_tol,                  ionode_id, comm )
+    CALL mp_bcast( inner_maxstep,              ionode_id, comm )
+    CALL mp_bcast( inner_mix,                  ionode_id, comm )
 
-    CALL env_mp_bcast( auxiliary,                  ionode_id, comm )
-    CALL env_mp_bcast( step_type,                  ionode_id, comm )
-    CALL env_mp_bcast( step,                       ionode_id, comm )
-    CALL env_mp_bcast( maxstep,                    ionode_id, comm )
+    CALL mp_bcast( auxiliary,                  ionode_id, comm )
+    CALL mp_bcast( step_type,                  ionode_id, comm )
+    CALL mp_bcast( step,                       ionode_id, comm )
+    CALL mp_bcast( maxstep,                    ionode_id, comm )
     !
-    CALL env_mp_bcast( mix_type,                   ionode_id, comm )
-    CALL env_mp_bcast( mix,                        ionode_id, comm )
-    CALL env_mp_bcast( ndiis,                      ionode_id, comm )
+    CALL mp_bcast( mix_type,                   ionode_id, comm )
+    CALL mp_bcast( mix,                        ionode_id, comm )
+    CALL mp_bcast( ndiis,                      ionode_id, comm )
     !
-    CALL env_mp_bcast( preconditioner,             ionode_id, comm )
-    CALL env_mp_bcast( screening_type,             ionode_id, comm )
-    CALL env_mp_bcast( screening,                  ionode_id, comm )
+    CALL mp_bcast( preconditioner,             ionode_id, comm )
+    CALL mp_bcast( screening_type,             ionode_id, comm )
+    CALL mp_bcast( screening,                  ionode_id, comm )
     !
-    CALL env_mp_bcast( core,                       ionode_id, comm )
+    CALL mp_bcast( core,                       ionode_id, comm )
     !
-    CALL env_mp_bcast( pbc_dim,                    ionode_id, comm )
-    CALL env_mp_bcast( pbc_correction,             ionode_id, comm )
-    CALL env_mp_bcast( pbc_axis,                   ionode_id, comm )
+    CALL mp_bcast( pbc_dim,                    ionode_id, comm )
+    CALL mp_bcast( pbc_correction,             ionode_id, comm )
+    CALL mp_bcast( pbc_axis,                   ionode_id, comm )
     !
     RETURN
     !
