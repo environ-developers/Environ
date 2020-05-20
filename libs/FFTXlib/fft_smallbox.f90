@@ -8,7 +8,7 @@
 !
 
 !=----------------------------------------------------------------------=!
-   MODULE env_fft_smallbox
+   MODULE fft_smallbox
 !=----------------------------------------------------------------------=!
 
 !! iso_c_binding provides C_PTR, C_NULL_PTR, C_ASSOCIATED
@@ -17,7 +17,7 @@
        SAVE
 
         PRIVATE
-        PUBLIC :: env_cft_b, env_cft_b_omp_init, env_cft_b_omp
+        PUBLIC :: cft_b, cft_b_omp_init, cft_b_omp
 
 ! ...   Local Parameter
 
@@ -57,7 +57,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE env_cft_b ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
+   SUBROUTINE cft_b ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
 
 !     driver routine for 3d complex fft's on box grid, parallel case
 !     fft along z for all xy values 
@@ -67,7 +67,7 @@
 !     implemented for FFTW, only for sgn=1 (f(R) => f(G))
 !     (beware: here the "essl" convention for the sign of the fft is used!)
 !
-      USE env_fftw_interfaces
+      USE fftw_interfaces
       implicit none
       integer nx,ny,nz,ldx,ldy,ldz,imin2,imax2,imin3,imax3,sgn
       complex(dp) :: f(:)
@@ -88,7 +88,7 @@
       tscale = 1.0_DP
 
       if ( isign > 0 ) then
-         call env_fftx_error__('cft_b','not implemented',isign)
+         call fftx_error__('cft_b','not implemented',isign)
       end if
 !
 ! 2d fft on xy planes - only needed planes are transformed
@@ -119,16 +119,16 @@
         !   initialize a new one
 
         if ( C_ASSOCIATED(bw_planz(icurrent)) ) &
-             call env_DESTROY_PLAN_1D( bw_planz(icurrent) )
-        call env_CREATE_PLAN_1D( bw_planz(icurrent), nz, 1 )
+             call DESTROY_PLAN_1D( bw_planz(icurrent) )
+        call CREATE_PLAN_1D( bw_planz(icurrent), nz, 1 )
 
         if ( C_ASSOCIATED(bw_planx(icurrent)) ) &
-             call env_DESTROY_PLAN_1D( bw_planx(icurrent) )
-        call env_CREATE_PLAN_1D( bw_planx(icurrent), nx, 1 )
+             call DESTROY_PLAN_1D( bw_planx(icurrent) )
+        call CREATE_PLAN_1D( bw_planx(icurrent), nx, 1 )
 
         if ( C_ASSOCIATED(bw_plany(icurrent)) ) &
-             call env_DESTROY_PLAN_1D( bw_plany(icurrent) )
-        call env_CREATE_PLAN_1D( bw_plany(icurrent), ny, 1 )
+             call DESTROY_PLAN_1D( bw_plany(icurrent) )
+        call CREATE_PLAN_1D( bw_plany(icurrent), ny, 1 )
 
 !        if ( C_ASSOCIATED(bw_planxy(icurrent)) ) &
 !             call DESTROY_PLAN_2D( bw_planxy(icurrent) )
@@ -143,24 +143,24 @@
       !
       !  fft along Z
       !
-      call env_FFTW_INPLACE_DRV_1D( bw_planz(ip), ldx*ldy, f(1), ldx*ldy, 1 )
+      call FFTW_INPLACE_DRV_1D( bw_planz(ip), ldx*ldy, f(1), ldx*ldy, 1 )
      
       do k = imin3, imax3
       !
       !  fft along Y
       !
         first_index = (k-1)*ldx*ldy + 1
-        call env_FFTW_INPLACE_DRV_1D( bw_plany(ip), nx, f(first_index), ldx, 1 )
+        call FFTW_INPLACE_DRV_1D( bw_plany(ip), nx, f(first_index), ldx, 1 )
       !
       !  fft along X
       !
         first_index = first_index + (imin2-1)*ldx ; how_many_y = imax2 + 1 - imin2
-        call env_FFTW_INPLACE_DRV_1D( bw_planx(ip), how_many_y, f(first_index), 1, ldx )
+        call FFTW_INPLACE_DRV_1D( bw_planx(ip), how_many_y, f(first_index), 1, ldx )
 
       end do   
 
       RETURN
-   END SUBROUTINE env_cft_b
+   END SUBROUTINE cft_b
 
 !
 !=----------------------------------------------------------------------=!
@@ -174,11 +174,11 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE env_cft_b_omp_init ( nx, ny, nz )
+   SUBROUTINE cft_b_omp_init ( nx, ny, nz )
 
 !     driver routine for 3d complex fft's on box grid, init subroutine
 !
-      USE env_fftw_interfaces
+      USE fftw_interfaces
       implicit none
       integer, INTENT(IN) :: nx,ny,nz
       !
@@ -187,25 +187,25 @@
 !$omp parallel
 
       IF( .NOT. C_ASSOCIATED(cft_b_bw_planz) ) THEN
-         CALL env_CREATE_PLAN_1D( cft_b_bw_planz, nz, 1 )
+         CALL CREATE_PLAN_1D( cft_b_bw_planz, nz, 1 )
          cft_b_dims(3) = nz
       END IF
       IF( .NOT. C_ASSOCIATED(cft_b_bw_planx) ) THEN
-         CALL env_CREATE_PLAN_1D( cft_b_bw_planx, nx, 1 )
+         CALL CREATE_PLAN_1D( cft_b_bw_planx, nx, 1 )
          cft_b_dims(1) = nx
       END IF
       IF( .NOT. C_ASSOCIATED(cft_b_bw_plany) ) THEN
-         CALL env_CREATE_PLAN_1D( cft_b_bw_plany, ny, 1 )
+         CALL CREATE_PLAN_1D( cft_b_bw_plany, ny, 1 )
          cft_b_dims(2) = ny
       END IF
 
 !$omp end parallel
 
      RETURN
-   END SUBROUTINE env_cft_b_omp_init
+   END SUBROUTINE cft_b_omp_init
 
 
-   SUBROUTINE env_cft_b_omp ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
+   SUBROUTINE cft_b_omp ( f, nx, ny, nz, ldx, ldy, ldz, imin2, imax2, imin3, imax3, sgn )
 
 !     driver routine for 3d complex fft's on box grid, parallel (MPI+OpenMP) case
 !     fft along z for all xy values 
@@ -217,7 +217,7 @@
 !
 !     This driver is meant for calls inside parallel OpenMP sections
 !
-      USE env_fftw_interfaces
+      USE fftw_interfaces
       implicit none
       integer, INTENT(IN) :: nx,ny,nz,ldx,ldy,ldz,imin2,imax2,imin3,imax3,sgn
       complex(dp) :: f(:)
@@ -226,44 +226,44 @@
 !$omp threadprivate (k,first_index,how_many_y)
 
       if ( -sgn > 0 ) then
-         CALL env_fftx_error__('cft_b_omp','forward transform not implemented',1)
+         CALL fftx_error__('cft_b_omp','forward transform not implemented',1)
       end if
 
       IF ( .NOT. C_ASSOCIATED(cft_b_bw_planz) .or. &
            .NOT. C_ASSOCIATED(cft_b_bw_planx) .or. &
            .NOT. C_ASSOCIATED(cft_b_bw_plany) ) THEN
-         CALL env_fftx_error__('cft_b_omp','plan not initialized',1)
+         CALL fftx_error__('cft_b_omp','plan not initialized',1)
       END IF
 
       !  consistency check
 
       IF ( ( nx /= cft_b_dims(1) ) .or. ( ny /= cft_b_dims(2) ) .or. ( nz /= cft_b_dims(3) ) ) THEN
-         CALL env_fftx_error__('cft_b_omp', 'dimensions are inconsistent with the existing plan',1) 
+         CALL fftx_error__('cft_b_omp', 'dimensions are inconsistent with the existing plan',1) 
       END IF
 
       !
       !  fft along Z
       !
-      call env_FFTW_INPLACE_DRV_1D( cft_b_bw_planz, ldx*ldy, f(1), ldx*ldy, 1 )
+      call FFTW_INPLACE_DRV_1D( cft_b_bw_planz, ldx*ldy, f(1), ldx*ldy, 1 )
 
       do k = imin3, imax3
       !
       !  fft along Y
       !
         first_index = (k-1)*ldx*ldy + 1
-        call env_FFTW_INPLACE_DRV_1D( cft_b_bw_plany, nx, f(first_index), ldx, 1 )
+        call FFTW_INPLACE_DRV_1D( cft_b_bw_plany, nx, f(first_index), ldx, 1 )
       !
       !  fft along X
       !
         first_index = first_index + (imin2-1)*ldx ; how_many_y = imax2 + 1 - imin2
-        call env_FFTW_INPLACE_DRV_1D( cft_b_bw_planx, how_many_y, f(first_index), 1, ldx )
+        call FFTW_INPLACE_DRV_1D( cft_b_bw_planx, how_many_y, f(first_index), 1, ldx )
       end do   
 
      RETURN
-   END SUBROUTINE env_cft_b_omp
+   END SUBROUTINE cft_b_omp
 
 
 !=----------------------------------------------------------------------=!
-   END MODULE env_fft_smallbox
+   END MODULE fft_smallbox
 !=----------------------------------------------------------------------=!
 

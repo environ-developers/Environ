@@ -7,7 +7,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !=---------------------------------------------------------------------------=!
-SUBROUTINE env_invfft_y( fft_kind, f, dfft, howmany )
+SUBROUTINE invfft_y( fft_kind, f, dfft, howmany )
   !! Compute G-space to R-space for a specific grid type
   !! 
   !! **fft_kind = 'Rho'** : 
@@ -26,11 +26,11 @@ SUBROUTINE env_invfft_y( fft_kind, f, dfft, howmany )
   !!   No check is performed on the correspondence between dfft and fft_kind. 
   !!   from all other cases
   
-  USE env_fft_scalar,    ONLY: env_cfft3d, env_cfft3ds
-  USE env_fft_smallbox,  ONLY: env_cft_b, env_cft_b_omp
-  USE env_fft_parallel,  ONLY: env_tg_cft3s
-  USE env_fft_types,     ONLY: fft_type_descriptor
-  USE env_fft_param,     ONLY: DP
+  USE fft_scalar,    ONLY: cfft3d, cfft3ds
+  USE fft_smallbox,  ONLY: cft_b, cft_b_omp
+  USE fft_parallel,  ONLY: tg_cft3s
+  USE fft_types,     ONLY: fft_type_descriptor
+  USE fft_param,     ONLY: DP
 
   IMPLICIT NONE
 
@@ -50,48 +50,48 @@ SUBROUTINE env_invfft_y( fft_kind, f, dfft, howmany )
   ELSE IF( fft_kind == 'Wave' .OR. fft_kind == 'tgWave' ) THEN
      clock_label = dfft%wave_clock_label
   ELSE
-     CALL env_fftx_error__( ' invfft ', ' unknown fft kind : '//fft_kind , 1 )
+     CALL fftx_error__( ' invfft ', ' unknown fft kind : '//fft_kind , 1 )
   END IF
-  IF (clock_label == ' ') CALL env_fftx_error__( ' invfft ', ' uninitialized fft kind : '//fft_kind , 1 )
+  IF (clock_label == ' ') CALL fftx_error__( ' invfft ', ' uninitialized fft kind : '//fft_kind , 1 )
 
-  CALL env_start_clock(clock_label)
+  CALL start_clock(clock_label)
 
   IF( dfft%lpara ) THEN
 
      IF( howmany_ /= 1 ) THEN
-        CALL env_fftx_error__( ' invfft ', ' howmany not yet implemented for parallel driver ', 1 )
+        CALL fftx_error__( ' invfft ', ' howmany not yet implemented for parallel driver ', 1 )
      END IF
      
      IF( fft_kind == 'Rho' ) THEN
-        CALL env_tg_cft3s( f, dfft, 1 )
+        CALL tg_cft3s( f, dfft, 1 )
      ELSE IF( fft_kind == 'Wave' ) THEN
-        CALL env_tg_cft3s( f, dfft, 2 )
+        CALL tg_cft3s( f, dfft, 2 )
      ELSE IF( fft_kind == 'tgWave' ) THEN
-        CALL env_tg_cft3s( f, dfft, 3 )
+        CALL tg_cft3s( f, dfft, 3 )
      END IF
 
   ELSE
 
      IF( fft_kind == 'Rho' ) THEN
-        CALL env_cfft3d( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+        CALL cfft3d( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                         dfft%nr1x, dfft%nr2x, dfft%nr3x, howmany_ , 1)
      ELSE 
-        CALL env_cfft3ds( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+        CALL cfft3ds( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                         dfft%nr1x,dfft%nr2x,dfft%nr3x, howmany_ , 1, &
                         dfft%isind, dfft%iplw )
      END IF
 
   END IF
 
-  CALL env_stop_clock( clock_label )
+  CALL stop_clock( clock_label )
 
   RETURN
 
-END SUBROUTINE env_invfft_y
+END SUBROUTINE invfft_y
 !
 !=---------------------------------------------------------------------------=!
 !
-SUBROUTINE env_fwfft_y( fft_kind, f, dfft, howmany )
+SUBROUTINE fwfft_y( fft_kind, f, dfft, howmany )
   !! Compute R-space to G-space for a specific grid type
   !! 
   !! **fft_kind = 'Rho'**
@@ -107,10 +107,10 @@ SUBROUTINE env_fwfft_y( fft_kind, f, dfft, howmany )
   !!   On output, f is overwritten
   !! 
   
-  USE env_fft_scalar,    ONLY: env_cfft3d, env_cfft3ds
-  USE env_fft_parallel,  ONLY: env_tg_cft3s
-  USE env_fft_types,     ONLY: fft_type_descriptor
-  USE env_fft_param,     ONLY: DP
+  USE fft_scalar,    ONLY: cfft3d, cfft3ds
+  USE fft_parallel,  ONLY: tg_cft3s
+  USE fft_types,     ONLY: fft_type_descriptor
+  USE fft_param,     ONLY: DP
 
   IMPLICIT NONE
 
@@ -130,49 +130,49 @@ SUBROUTINE env_fwfft_y( fft_kind, f, dfft, howmany )
   ELSE IF( fft_kind == 'Wave' .OR. fft_kind == 'tgWave' ) THEN
      clock_label = dfft%wave_clock_label
   ELSE
-     CALL env_fftx_error__( ' fwfft ', ' unknown fft kind: '//fft_kind , 1 )
+     CALL fftx_error__( ' fwfft ', ' unknown fft kind: '//fft_kind , 1 )
   END IF
-  IF (clock_label == ' ') CALL env_fftx_error__( ' fwfft ', ' uninitialized fft kind : '//fft_kind , 1 )
+  IF (clock_label == ' ') CALL fftx_error__( ' fwfft ', ' uninitialized fft kind : '//fft_kind , 1 )
 
-  CALL env_start_clock(clock_label)
+  CALL start_clock(clock_label)
 
   IF( dfft%lpara ) THEN
 
      IF( howmany_ /= 1 ) THEN
-        CALL env_fftx_error__( ' fwfft ', ' howmany not yet implemented for parallel driver ', 1 )
+        CALL fftx_error__( ' fwfft ', ' howmany not yet implemented for parallel driver ', 1 )
      END IF
      
      IF( fft_kind == 'Rho' ) THEN
-        CALL env_tg_cft3s(f,dfft,-1)
+        CALL tg_cft3s(f,dfft,-1)
      ELSE IF( fft_kind == 'Wave' ) THEN
-        CALL env_tg_cft3s(f,dfft,-2 )
+        CALL tg_cft3s(f,dfft,-2 )
      ELSE IF( fft_kind == 'tgWave' ) THEN
-        CALL env_tg_cft3s(f,dfft,-3 )
+        CALL tg_cft3s(f,dfft,-3 )
      END IF
 
   ELSE
 
      IF( fft_kind == 'Rho' ) THEN
-        CALL env_cfft3d( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+        CALL cfft3d( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                         dfft%nr1x,dfft%nr2x,dfft%nr3x, howmany_ , -1)
      ELSE 
-        CALL env_cfft3ds( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+        CALL cfft3ds( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                          dfft%nr1x,dfft%nr2x,dfft%nr3x, howmany_ , -1, &
                          dfft%isind, dfft%iplw )
      END IF
 
   END IF
 
-  CALL env_stop_clock( clock_label )
+  CALL stop_clock( clock_label )
   
   RETURN
   !
-END SUBROUTINE env_fwfft_y
+END SUBROUTINE fwfft_y
 !=---------------------------------------------------------------------------=!
 
 !
 !=---------------------------------------------------------------------------=!
-SUBROUTINE env_invfft_b( f, dfft, ia )
+SUBROUTINE invfft_b( f, dfft, ia )
   !! Not-so-parallel 3d fft for box grid, implemented ONLY for sign=1
   !!
   !! ComputeG-space to R-space, $$ output = \sum_G f(G)exp(+iG*R) $$
@@ -191,11 +191,11 @@ SUBROUTINE env_invfft_b( f, dfft, ia )
   !! **ia**   = index of the atom with a box grid. Used to find the number
   !!         of planes on this processors, contained in dfft%np3(ia)
   
-  USE env_fft_scalar,    ONLY: env_cfft3d, env_cfft3ds
-  USE env_fft_smallbox,  ONLY: env_cft_b, env_cft_b_omp
-  USE env_fft_parallel,  ONLY: env_tg_cft3s
-  USE env_fft_smallbox_type, ONLY: fft_box_descriptor
-  USE env_fft_param,     ONLY: DP
+  USE fft_scalar,    ONLY: cfft3d, cfft3ds
+  USE fft_smallbox,  ONLY: cft_b, cft_b_omp
+  USE fft_parallel,  ONLY: tg_cft3s
+  USE fft_smallbox_type, ONLY: fft_box_descriptor
+  USE fft_param,     ONLY: DP
   
   IMPLICIT NONE
 
@@ -214,7 +214,7 @@ SUBROUTINE env_invfft_b( f, dfft, ia )
   ! in the future we probably need a thread safe version of the clock
 
 !$omp master
-  CALL env_start_clock( 'fftb' )
+  CALL start_clock( 'fftb' )
 !$omp end master 
 
 #if defined(__MPI) && !defined(__USE_3D_FFT)
@@ -223,13 +223,13 @@ SUBROUTINE env_invfft_b( f, dfft, ia )
 
 #if defined(_OPENMP)
 
-     CALL env_cft_b_omp( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+     CALL cft_b_omp( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                         dfft%nr1x,dfft%nr2x,dfft%nr3x, &
                         dfft%imin2( ia ), dfft%imax2( ia ), &
                         dfft%imin3( ia ), dfft%imax3( ia ), 1 )
 
 #else
-     CALL env_cft_b( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+     CALL cft_b( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                     dfft%nr1x,dfft%nr2x,dfft%nr3x, &
                     dfft%imin2( ia ), dfft%imax2( ia ), &
                     dfft%imin3( ia ), dfft%imax3( ia ), 1 )
@@ -240,21 +240,21 @@ SUBROUTINE env_invfft_b( f, dfft, ia )
 #else
 
 #if defined(_OPENMP)
-  CALL env_cft_b_omp( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+  CALL cft_b_omp( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                      dfft%nr1x,dfft%nr2x,dfft%nr3x, &
                      dfft%imin2( ia ), dfft%imax2( ia ), &
                      dfft%imin3( ia ), dfft%imax3( ia ), 1 )
 #else
-  CALL env_cfft3d( f, dfft%nr1, dfft%nr2, dfft%nr3, &
+  CALL cfft3d( f, dfft%nr1, dfft%nr2, dfft%nr3, &
                   dfft%nr1x,dfft%nr2x,dfft%nr3x, 1, 1)
 #endif
 
 #endif
 
 !$omp master
-  CALL env_stop_clock( 'fftb' )
+  CALL stop_clock( 'fftb' )
 !$omp end master
 
   RETURN
-END SUBROUTINE env_invfft_b
+END SUBROUTINE invfft_b
 !=---------------------------------------------------------------------------=!

@@ -30,46 +30,46 @@
 ! These routines allocate buffer spaces used in reduce_base_real_gpu.
 ! These should be in data_buffer.f90 but need to be here becouse size is
 ! depends on the __MSGSIZ_MAX definition
-SUBROUTINE env_allocate_buffers
-    USE env_data_buffer
+SUBROUTINE allocate_buffers
+    USE data_buffer
     IMPLICIT NONE
     INTEGER, PARAMETER :: maxb = __MSGSIZ_MAX
     !
     IF (.NOT. ALLOCATED(mp_buff_r)) ALLOCATE(mp_buff_r(maxb))
     IF (.NOT. ALLOCATED(mp_buff_i)) ALLOCATE(mp_buff_i(maxb))
     !
-END SUBROUTINE env_allocate_buffers
+END SUBROUTINE allocate_buffers
 
-SUBROUTINE env_deallocate_buffers
-    USE env_data_buffer
+SUBROUTINE deallocate_buffers
+    USE data_buffer
     IMPLICIT NONE
     !
     DEALLOCATE(mp_buff_r, mp_buff_i)
     !
-END SUBROUTINE env_deallocate_buffers
+END SUBROUTINE deallocate_buffers
 
 !=----------------------------------------------------------------------------=!
 !
 
-SUBROUTINE env_mp_synchronize( gid )
-   USE env_parallel_include  
+SUBROUTINE mp_synchronize( gid )
+   USE parallel_include  
    IMPLICIT NONE
    INTEGER, INTENT(IN) :: gid
 #if defined __MPI && defined __USE_BARRIER
    INTEGER :: ierr
    CALL mpi_barrier( gid, ierr )
-   IF( ierr /= 0 ) CALL env_errore( 'mp_synchronize ', ' error in mpi_barrier ', ierr )
+   IF( ierr /= 0 ) CALL errore( 'mp_synchronize ', ' error in mpi_barrier ', ierr )
 #endif
    RETURN
-END SUBROUTINE env_mp_synchronize
+END SUBROUTINE mp_synchronize
 
 
 !=----------------------------------------------------------------------------=!
 !
 
-   SUBROUTINE env_bcast_real( array, n, root, gid )
-        USE env_util_param, ONLY: DP
-        USE env_parallel_include  
+   SUBROUTINE bcast_real( array, n, root, gid )
+        USE util_param, ONLY: DP
+        USE parallel_include  
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: n, root, gid
         REAL(DP) :: array( n )
@@ -83,25 +83,25 @@ END SUBROUTINE env_mp_synchronize
         IF( n <= 0 ) GO TO 1
 
 #if defined __USE_BARRIER
-        CALL env_mp_synchronize( gid )
+        CALL mp_synchronize( gid )
 #endif
 
         IF( n <= msgsiz_max ) THEN
            CALL MPI_BCAST( array, n, MPI_DOUBLE_PRECISION, root, gid, ierr )
-           IF( ierr /= 0 ) CALL env_errore( ' bcast_real ', ' error in mpi_bcast 1 ', ierr )
+           IF( ierr /= 0 ) CALL errore( ' bcast_real ', ' error in mpi_bcast 1 ', ierr )
         ELSE
            nblk   = n / msgsiz_max
            blksiz = msgsiz_max
            DO iblk = 1, nblk
               istart = (iblk-1)*msgsiz_max + 1
               CALL MPI_BCAST( array( istart ), blksiz, MPI_DOUBLE_PRECISION, root, gid, ierr )
-              IF( ierr /= 0 ) CALL env_errore( ' bcast_real ', ' error in mpi_bcast 2 ', ierr )
+              IF( ierr /= 0 ) CALL errore( ' bcast_real ', ' error in mpi_bcast 2 ', ierr )
            END DO
            blksiz = MOD( n, msgsiz_max )
            IF( blksiz > 0 ) THEN
               istart = nblk * msgsiz_max + 1
               CALL MPI_BCAST( array( istart ), blksiz, MPI_DOUBLE_PRECISION, root, gid, ierr )
-              IF( ierr /= 0 ) CALL env_errore( ' bcast_real ', ' error in mpi_bcast 3 ', ierr )
+              IF( ierr /= 0 ) CALL errore( ' bcast_real ', ' error in mpi_bcast 3 ', ierr )
            END IF
         END IF
 
@@ -113,11 +113,11 @@ END SUBROUTINE env_mp_synchronize
 #endif
 
         RETURN
-   END SUBROUTINE env_bcast_real 
+   END SUBROUTINE bcast_real 
 
 
-   SUBROUTINE env_bcast_integer( array, n, root, gid )
-        USE env_parallel_include  
+   SUBROUTINE bcast_integer( array, n, root, gid )
+        USE parallel_include  
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: n, root, gid
         INTEGER :: array( n )
@@ -132,25 +132,25 @@ END SUBROUTINE env_mp_synchronize
         IF( n <= 0 ) GO TO 1
 
 #if defined __USE_BARRIER
-        CALL env_mp_synchronize( gid )
+        CALL mp_synchronize( gid )
 #endif
 
         IF( n <= msgsiz_max ) THEN
            CALL MPI_BCAST( array, n, MPI_INTEGER, root, gid, ierr )
-           IF( ierr /= 0 ) CALL env_errore( ' bcast_integer ', ' error in mpi_bcast 1 ', ierr )
+           IF( ierr /= 0 ) CALL errore( ' bcast_integer ', ' error in mpi_bcast 1 ', ierr )
         ELSE
            nblk   = n / msgsiz_max
            blksiz = msgsiz_max
            DO iblk = 1, nblk
               istart = (iblk-1)*msgsiz_max + 1
               CALL MPI_BCAST( array( istart ), blksiz, MPI_INTEGER, root, gid, ierr )
-              IF( ierr /= 0 ) CALL env_errore( ' bcast_integer ', ' error in mpi_bcast 2 ', ierr )
+              IF( ierr /= 0 ) CALL errore( ' bcast_integer ', ' error in mpi_bcast 2 ', ierr )
            END DO
            blksiz = MOD( n, msgsiz_max )
            IF( blksiz > 0 ) THEN
               istart = nblk * msgsiz_max + 1
               CALL MPI_BCAST( array( istart ), blksiz, MPI_INTEGER, root, gid, ierr )
-              IF( ierr /= 0 ) CALL env_errore( ' bcast_integer ', ' error in mpi_bcast 3 ', ierr )
+              IF( ierr /= 0 ) CALL errore( ' bcast_integer ', ' error in mpi_bcast 3 ', ierr )
            END IF
         END IF
 1       CONTINUE
@@ -159,11 +159,11 @@ END SUBROUTINE env_mp_synchronize
 #endif
 #endif
         RETURN
-   END SUBROUTINE env_bcast_integer
+   END SUBROUTINE bcast_integer
 
 
-   SUBROUTINE env_bcast_logical( array, n, root, gid )
-        USE env_parallel_include  
+   SUBROUTINE bcast_logical( array, n, root, gid )
+        USE parallel_include  
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: n, root, gid
         LOGICAL :: array( n )
@@ -178,25 +178,25 @@ END SUBROUTINE env_mp_synchronize
         IF( n <= 0 ) GO TO 1
 
 #if defined __USE_BARRIER
-        CALL env_mp_synchronize( gid )
+        CALL mp_synchronize( gid )
 #endif
 
         IF( n <= msgsiz_max ) THEN
            CALL MPI_BCAST( array, n, MPI_LOGICAL, root, gid, ierr )
-           IF( ierr /= 0 ) CALL env_errore( ' bcast_logical ', ' error in mpi_bcast 1 ', ierr )
+           IF( ierr /= 0 ) CALL errore( ' bcast_logical ', ' error in mpi_bcast 1 ', ierr )
         ELSE
            nblk   = n / msgsiz_max
            blksiz = msgsiz_max
            DO iblk = 1, nblk
               istart = (iblk-1)*msgsiz_max + 1
               CALL MPI_BCAST( array( istart ), blksiz, MPI_LOGICAL, root, gid, ierr )
-              IF( ierr /= 0 ) CALL env_errore( ' bcast_logical ', ' error in mpi_bcast 2 ', ierr )
+              IF( ierr /= 0 ) CALL errore( ' bcast_logical ', ' error in mpi_bcast 2 ', ierr )
            END DO
            blksiz = MOD( n, msgsiz_max )
            IF( blksiz > 0 ) THEN
               istart = nblk * msgsiz_max + 1
               CALL MPI_BCAST( array( istart ), blksiz, MPI_LOGICAL, root, gid, ierr )
-              IF( ierr /= 0 ) CALL env_errore( ' bcast_logical ', ' error in mpi_bcast 3 ', ierr )
+              IF( ierr /= 0 ) CALL errore( ' bcast_logical ', ' error in mpi_bcast 3 ', ierr )
            END IF
         END IF
 
@@ -206,7 +206,7 @@ END SUBROUTINE env_mp_synchronize
 #endif
 #endif
         RETURN
-   END SUBROUTINE env_bcast_logical
+   END SUBROUTINE bcast_logical
 
 
 !
@@ -215,14 +215,14 @@ END SUBROUTINE env_mp_synchronize
 #if defined (__USE_INPLACE_MPI)
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
+SUBROUTINE reduce_base_real( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param, ONLY : DP
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -245,15 +245,15 @@ SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   IF( root >= 0 ) THEN
      CALL MPI_REDUCE( MPI_IN_PLACE, ps, dim, MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-     IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_reduce 1', info )
+     IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_reduce 1', info )
   ELSE
      CALL MPI_ALLREDUCE( MPI_IN_PLACE, ps, dim, MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-     IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_allreduce 1', info )
+     IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_allreduce 1', info )
   END IF
   !
 1 CONTINUE
@@ -266,20 +266,20 @@ SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_reduce_base_real
+END SUBROUTINE reduce_base_real
 !
 #else
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
+SUBROUTINE reduce_base_real( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param, ONLY : DP
-  USE env_data_buffer, ONLY: buff => mp_buff_r
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE data_buffer, ONLY: buff => mp_buff_r
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -300,17 +300,17 @@ SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1  ! go to the end of the subroutine
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -319,10 +319,10 @@ SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_allreduce 1', info )
      END IF
      !                    
      IF( root < 0 ) THEN
@@ -339,10 +339,10 @@ SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -363,7 +363,7 @@ SUBROUTINE env_reduce_base_real( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_reduce_base_real
+END SUBROUTINE reduce_base_real
 !
 #endif
 !
@@ -371,14 +371,14 @@ END SUBROUTINE env_reduce_base_real
 #if defined (__USE_INPLACE_MPI)
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
+SUBROUTINE reduce_base_integer( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param, ONLY : DP
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -399,15 +399,15 @@ SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   IF( root >= 0 ) THEN
      CALL MPI_REDUCE( MPI_IN_PLACE, ps, dim, MPI_INTEGER, MPI_SUM, root, comm, info )
-     IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_reduce 1', info )
+     IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_reduce 1', info )
   ELSE
      CALL MPI_ALLREDUCE( MPI_IN_PLACE, ps, dim, MPI_INTEGER, MPI_SUM, comm, info )
-     IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_allreduce 1', info )
+     IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_allreduce 1', info )
   END IF
   !
 #if defined __TRACE
@@ -418,20 +418,20 @@ SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_reduce_base_integer
+END SUBROUTINE reduce_base_integer
 !
 #else
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
+SUBROUTINE reduce_base_integer( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param, ONLY : DP
-  USE env_data_buffer, ONLY : buff => mp_buff_i
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE data_buffer, ONLY : buff => mp_buff_i
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -451,17 +451,17 @@ SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
 #endif
   !
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1  ! go to the end of the subroutine
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -470,10 +470,10 @@ SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -490,10 +490,10 @@ SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -514,22 +514,22 @@ SUBROUTINE env_reduce_base_integer( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_reduce_base_integer
+END SUBROUTINE reduce_base_integer
 !
 #endif
 !
 ! ... "reduce"-like subroutines
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_reduce_base_real_to( dim, ps, psout, comm, root )
+SUBROUTINE reduce_base_real_to( dim, ps, psout, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed variable ps(dim) over the processors,
   ! ... and store the results in variable psout.
   ! ... This version uses a fixed-length buffer of appropriate (?) length
   !
-  USE env_util_param, ONLY : DP
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -550,10 +550,10 @@ SUBROUTINE env_reduce_base_real_to( dim, ps, psout, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_real_to', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_real_to', 'error in mpi_comm_rank', info )
   !
   IF ( dim > 0 .AND. nproc <= 1 ) THEN
      psout = ps
@@ -563,7 +563,7 @@ SUBROUTINE env_reduce_base_real_to( dim, ps, psout, comm, root )
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -572,10 +572,10 @@ SUBROUTINE env_reduce_base_real_to( dim, ps, psout, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), psout(1+(n-1)*maxb), maxb, MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real_to', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), psout(1+(n-1)*maxb), maxb, MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real_to', 'error in mpi_allreduce 1', info )
      END IF
      !                    
   END DO
@@ -586,10 +586,10 @@ SUBROUTINE env_reduce_base_real_to( dim, ps, psout, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), psout(1+nbuf*maxb), (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real_to', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), psout(1+nbuf*maxb), (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_real_to', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_real_to', 'error in mpi_allreduce 2', info )
      END IF
      !
   END IF
@@ -604,20 +604,20 @@ SUBROUTINE env_reduce_base_real_to( dim, ps, psout, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_reduce_base_real_to
+END SUBROUTINE reduce_base_real_to
 !
 !
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_reduce_base_integer_to( dim, ps, psout, comm, root )
+SUBROUTINE reduce_base_integer_to( dim, ps, psout, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... sums a distributed integer variable ps(dim) over the processors, and
   ! ... saves the result on the output variable psout.
   ! ... This version uses a fixed-length buffer of appropriate (?) length
   !
-  USE env_util_param, ONLY : DP
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -638,10 +638,10 @@ SUBROUTINE env_reduce_base_integer_to( dim, ps, psout, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_integer_to', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'reduce_base_integer_to', 'error in mpi_comm_rank', info )
   !
   IF ( dim > 0 .AND. nproc <= 1 ) THEN
      psout = ps
@@ -651,7 +651,7 @@ SUBROUTINE env_reduce_base_integer_to( dim, ps, psout, comm, root )
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -660,10 +660,10 @@ SUBROUTINE env_reduce_base_integer_to( dim, ps, psout, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), psout( 1+(n-1)*maxb ), maxb, MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), psout( 1+(n-1)*maxb ), maxb, MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to', 'error in mpi_allreduce 1', info )
      END IF
      !                    
   END DO
@@ -674,10 +674,10 @@ SUBROUTINE env_reduce_base_integer_to( dim, ps, psout, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), psout(1+nbuf*maxb), (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), psout(1+nbuf*maxb), (dim-nbuf*maxb), MPI_INTEGER, MPI_SUM, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'reduce_base_integer_to', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'reduce_base_integer_to', 'error in mpi_allreduce 2', info )
      END IF
      !
   END IF
@@ -692,22 +692,22 @@ SUBROUTINE env_reduce_base_integer_to( dim, ps, psout, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_reduce_base_integer_to
+END SUBROUTINE reduce_base_integer_to
 !
 !
 !  Parallel MIN and MAX
 !
 
 !----------------------------------------------------------------------------
-SUBROUTINE env_parallel_min_integer( dim, ps, comm, root )
+SUBROUTINE parallel_min_integer( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the minimum of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param, ONLY : DP
-  USE env_data_buffer, ONLY : buff => mp_buff_i
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE data_buffer, ONLY : buff => mp_buff_i
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -727,17 +727,17 @@ SUBROUTINE env_parallel_min_integer( dim, ps, comm, root )
 #endif
   !
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_min_integer', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'parallel_min_integer', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_min_integer', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'parallel_min_integer', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -746,10 +746,10 @@ SUBROUTINE env_parallel_min_integer( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_integer', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_integer', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -766,10 +766,10 @@ SUBROUTINE env_parallel_min_integer( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_integer', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_integer', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_integer', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -790,19 +790,19 @@ SUBROUTINE env_parallel_min_integer( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_parallel_min_integer
+END SUBROUTINE parallel_min_integer
 
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_parallel_max_integer( dim, ps, comm, root )
+SUBROUTINE parallel_max_integer( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the maximum of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param,  ONLY : DP
-  USE env_data_buffer, ONLY : buff => mp_buff_i
-  USE env_parallel_include  
+  USE util_param,  ONLY : DP
+  USE data_buffer, ONLY : buff => mp_buff_i
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -821,17 +821,17 @@ SUBROUTINE env_parallel_max_integer( dim, ps, comm, root )
   write(*,*) 'parallel_max_integer IN'
 #endif
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_max_integer', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'parallel_max_integer', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_max_integer', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'parallel_max_integer', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -840,10 +840,10 @@ SUBROUTINE env_parallel_max_integer( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MAX, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_integer', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_INTEGER, MPI_MAX, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_integer', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -860,10 +860,10 @@ SUBROUTINE env_parallel_max_integer( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MAX, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_integer', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_INTEGER, MPI_MAX, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_integer', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_integer', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -883,19 +883,19 @@ SUBROUTINE env_parallel_max_integer( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_parallel_max_integer
+END SUBROUTINE parallel_max_integer
 
 
 !----------------------------------------------------------------------------
-SUBROUTINE env_parallel_min_real( dim, ps, comm, root )
+SUBROUTINE parallel_min_real( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the minimum value of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param, ONLY : DP
-  USE env_data_buffer, ONLY : buff => mp_buff_r
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE data_buffer, ONLY : buff => mp_buff_r
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -914,17 +914,17 @@ SUBROUTINE env_parallel_min_real( dim, ps, comm, root )
   write(*,*) 'parallel_min_real IN'
 #endif
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_min_real', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'parallel_min_real', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_min_real', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'parallel_min_real', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -933,10 +933,10 @@ SUBROUTINE env_parallel_min_real( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_real', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_real', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_real', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_real', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -953,10 +953,10 @@ SUBROUTINE env_parallel_min_real( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_MIN, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_real', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_real', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_MIN, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_min_real', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_min_real', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -976,19 +976,19 @@ SUBROUTINE env_parallel_min_real( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_parallel_min_real
+END SUBROUTINE parallel_min_real
 
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_parallel_max_real( dim, ps, comm, root )
+SUBROUTINE parallel_max_real( dim, ps, comm, root )
   !----------------------------------------------------------------------------
   !
   ! ... compute the maximum value of a distributed variable ps(dim) over the processors.
   ! ... This version uses a fixed-length buffer of appropriate (?) dim
   !
-  USE env_util_param, ONLY : DP
-  USE env_data_buffer, ONLY : buff => mp_buff_r
-  USE env_parallel_include  
+  USE util_param, ONLY : DP
+  USE data_buffer, ONLY : buff => mp_buff_r
+  USE parallel_include  
   !
   IMPLICIT NONE
   !
@@ -1008,17 +1008,17 @@ SUBROUTINE env_parallel_max_real( dim, ps, comm, root )
 #endif
 
   CALL mpi_comm_size( comm, nproc, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_max_real', 'error in mpi_comm_size', info )
+  IF( info /= 0 ) CALL errore( 'parallel_max_real', 'error in mpi_comm_size', info )
 
   CALL mpi_comm_rank( comm, myid, info )
-  IF( info /= 0 ) CALL env_errore( 'parallel_max_real', 'error in mpi_comm_rank', info )
+  IF( info /= 0 ) CALL errore( 'parallel_max_real', 'error in mpi_comm_rank', info )
   !
   IF ( dim <= 0 .OR. nproc <= 1 ) GO TO 1
   !
   ! ... synchronize processes
   !
 #if defined __USE_BARRIER
-  CALL env_mp_synchronize( comm )
+  CALL mp_synchronize( comm )
 #endif
   !
   nbuf = dim / maxb
@@ -1027,10 +1027,10 @@ SUBROUTINE env_parallel_max_real( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_MAX, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_real', 'error in mpi_reduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_real', 'error in mpi_reduce 1', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+(n-1)*maxb), buff, maxb, MPI_DOUBLE_PRECISION, MPI_MAX, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_real', 'error in mpi_allreduce 1', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_real', 'error in mpi_allreduce 1', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -1047,10 +1047,10 @@ SUBROUTINE env_parallel_max_real( dim, ps, comm, root )
      !
      IF( root >= 0 ) THEN
         CALL MPI_REDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_MAX, root, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_real', 'error in mpi_reduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_real', 'error in mpi_reduce 2', info )
      ELSE
         CALL MPI_ALLREDUCE( ps(1+nbuf*maxb), buff, (dim-nbuf*maxb), MPI_DOUBLE_PRECISION, MPI_MAX, comm, info )
-        IF( info /= 0 ) CALL env_errore( 'parallel_max_real', 'error in mpi_allreduce 2', info )
+        IF( info /= 0 ) CALL errore( 'parallel_max_real', 'error in mpi_allreduce 2', info )
      END IF
      !
      IF( root < 0 ) THEN
@@ -1071,4 +1071,4 @@ SUBROUTINE env_parallel_max_real( dim, ps, comm, root )
   !
   RETURN
   !
-END SUBROUTINE env_parallel_max_real
+END SUBROUTINE parallel_max_real

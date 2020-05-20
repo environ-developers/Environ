@@ -7,7 +7,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-SUBROUTINE env_errore( calling_routine, message, ierr )
+SUBROUTINE errore( calling_routine, message, ierr )
   !----------------------------------------------------------------------------
   !
   ! ... This is a simple routine which writes an error message to output: 
@@ -25,11 +25,11 @@ SUBROUTINE env_errore( calling_routine, message, ierr )
   ! ... error, unit 0 (the message will appear in the error files
   ! ... produced by loadleveler).
   !
-  USE env_util_param
+  USE util_param
 #if defined(__PTRACE) && defined(__INTEL_COMPILER)
   USE ifcore,    ONLY : tracebackqq
 #endif
-  USE env_mp,        ONLY : env_mp_abort, env_mp_rank
+  USE mp,        ONLY : mp_abort, mp_rank
   IMPLICIT NONE
   !
   CHARACTER(LEN=*), INTENT(IN) :: calling_routine, message
@@ -84,7 +84,7 @@ SUBROUTINE env_errore( calling_routine, message, ierr )
 !
 #if defined(__MPI)
   !
-  mpime = env_mp_rank(MPI_COMM_WORLD)
+  mpime = mp_rank(MPI_COMM_WORLD)
   !
   !  .. write the message to a file and close it before exiting
   !  .. this will prevent loss of information on systems that
@@ -106,7 +106,7 @@ SUBROUTINE env_errore( calling_routine, message, ierr )
   !
   ! ... try to exit in a smooth way
   !
-  CALL env_mp_abort(1,MPI_COMM_WORLD)
+  CALL mp_abort(1,MPI_COMM_WORLD)
   !
 #endif
   !
@@ -114,16 +114,16 @@ SUBROUTINE env_errore( calling_routine, message, ierr )
   !
   RETURN
   !
-END SUBROUTINE env_errore
+END SUBROUTINE errore
 !
 !----------------------------------------------------------------------
-SUBROUTINE env_infomsg( routine, message )
+SUBROUTINE infomsg( routine, message )
   !----------------------------------------------------------------------
   !
   ! ... This is a simple routine which writes an info message
   ! ... from a given routine to output.
   !
-  USE env_util_param
+  USE util_param
   !
   IMPLICIT NONE
   !
@@ -140,13 +140,13 @@ SUBROUTINE env_infomsg( routine, message )
   !
   RETURN
   !
-END SUBROUTINE env_infomsg
+END SUBROUTINE infomsg
 !
-module env_error_handler
+module error_handler
   implicit none
   private
 
-  public :: env_init_error, env_add_name, env_chop_name, env_error_mem, env_warning
+  public :: init_error, add_name, chop_name, error_mem, warning
 
   type chain
    character (len=35)   :: routine_name
@@ -157,7 +157,7 @@ module env_error_handler
 
 contains
 
-  subroutine env_init_error(routine_name)
+  subroutine init_error(routine_name)
     implicit none
     character (len=*), intent(in) :: routine_name
 
@@ -167,9 +167,9 @@ contains
     nullify(routine_chain%previous_link)
 
     return
-  end subroutine env_init_error
+  end subroutine init_error
 
-  subroutine env_add_name(routine_name)
+  subroutine add_name(routine_name)
     implicit none
     character (len=*), intent(in) :: routine_name
     type(chain), pointer          :: new_link
@@ -180,9 +180,9 @@ contains
     routine_chain          => new_link
 
     return
-  end subroutine env_add_name
+  end subroutine add_name
 
-  subroutine env_chop_name
+  subroutine chop_name
     implicit none
     type(chain), pointer :: chopped_chain
 
@@ -191,9 +191,9 @@ contains
     routine_chain => chopped_chain
 
     return
-  end subroutine env_chop_name
+  end subroutine chop_name
 
-  recursive subroutine env_trace_back(error_code)
+  recursive subroutine trace_back(error_code)
 
     implicit none
     integer :: error_code
@@ -211,11 +211,11 @@ contains
     end if
 
     routine_chain => routine_chain%previous_link
-    call env_trace_back(error_code)
+    call trace_back(error_code)
 
-  end subroutine env_trace_back
+  end subroutine trace_back
 
-  subroutine env_error_mem(message,error_code)
+  subroutine error_mem(message,error_code)
     character (len=*), intent(in) :: message
     integer, intent(in), optional :: error_code
     integer                       :: action_code
@@ -243,17 +243,17 @@ contains
        write(unit=*,fmt=*) &
             " +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++ +++"
        routine_chain => routine_chain%previous_link
-       call env_trace_back(action_code)
+       call trace_back(action_code)
        routine_chain => save_chain
     end if
 
     return
-  end subroutine env_error_mem
+  end subroutine error_mem
 
-  subroutine env_warning(message)
+  subroutine warning(message)
     character (len=*), intent(in) :: message
-    call env_error_mem(message,-1)
+    call error_mem(message,-1)
     return
-  end subroutine env_warning
+  end subroutine warning
 
-end module env_error_handler
+end module error_handler

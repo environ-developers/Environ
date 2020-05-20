@@ -10,12 +10,12 @@
 !  & S. de Gironcoli, SISSA
 
 program test
-  USE env_fft_types, ONLY: fft_type_descriptor, env_fft_type_deallocate
-  USE env_fft_interfaces
-  USE env_fft_parallel
-  USE env_fft_scalar
-  USE env_fft_support
-  USE env_fft_param
+  USE fft_types, ONLY: fft_type_descriptor, fft_type_deallocate
+  USE fft_interfaces
+  USE fft_parallel
+  USE fft_scalar
+  USE fft_support
+  USE fft_param
   IMPLICIT NONE
   TYPE(fft_type_descriptor) :: dfftp, dffts, dfft3d
   INTEGER :: nx = 128
@@ -167,7 +167,7 @@ program test
   !
   at = at / alat
   !
-  call env_recips( at(1,1), at(1,2), at(1,3), bg(1,1), bg(1,2), bg(1,3) )
+  call recips( at(1,1), at(1,2), at(1,3), bg(1,1), bg(1,2), bg(1,3) )
   !
   nx = 2 * int ( sqrt (gcutm) * sqrt (at(1, 1)**2 + at(2, 1)**2 + at(3, 1)**2) ) + 1
   ny = 2 * int ( sqrt (gcutm) * sqrt (at(1, 2)**2 + at(2, 2)**2 + at(3, 2)**2) ) + 1
@@ -255,7 +255,7 @@ program test
   CALL MPI_BARRIER( MPI_COMM_WORLD, ierr)
 #endif
 
-  call env_invfft ('Rho',aux,dffts)
+  call invfft ('Rho',aux,dffts)
 
   if( mype == 0 ) write (*,*) 'function in Real space (i,j,k)'
   do k =1, 5
@@ -268,7 +268,7 @@ program test
      end do
   end do
 
-  call env_fwfft  ('Rho',aux,dffts)
+  call fwfft  ('Rho',aux,dffts)
 
   if( mype == 0 ) write (*,*) 'function in Reciprocal space '
   do k =1, 5
@@ -292,7 +292,7 @@ program test
   wall = MPI_WTIME() 
 #endif
 
-  call env_invfft ('Wave',aux,dffts)
+  call invfft ('Wave',aux,dffts)
 
   if( mype == 0 ) write (*,*) 'function in Real space (i,j,k)'
   do k =1, 5
@@ -305,7 +305,7 @@ program test
      end do
   end do
 
-  call env_fwfft  ('Wave',aux,dffts)
+  call fwfft  ('Wave',aux,dffts)
 
   if( mype == 0 ) write (*,*) 'function in Reciprocal space '
   do k =1, 5
@@ -335,7 +335,7 @@ program test
   f_aux = (0.d0,0.3d0); i=1;j=2;k=1;  aux( i+dffts%nr1x *(j-1) + dffts%nr1x*dffts%nr2x*(k-1) ) = f_aux 
   f_aux = (0.d0,0.7d0); i=1;j=1;k=2;  aux( i+dffts%nr1x *(j-1) + dffts%nr1x*dffts%nr2x*(k-1) ) = f_aux 
   
-  CALL env_cfft3ds( aux, dffts%nr1, dffts%nr2, dffts%nr3, &
+  CALL cfft3ds( aux, dffts%nr1, dffts%nr2, dffts%nr3, &
                    dffts%nr1x,dffts%nr2x,dffts%nr3x, 1, &
                    dffts%isind, dffts%iplw )
 
@@ -350,7 +350,7 @@ program test
      end do
   end do
 
-  CALL env_cfft3ds( aux, dffts%nr1, dffts%nr2, dffts%nr3, &
+  CALL cfft3ds( aux, dffts%nr1, dffts%nr2, dffts%nr3, &
                    dffts%nr1x,dffts%nr2x,dffts%nr3x, -1, &
                    dffts%isind, dffts%iplw )
 
@@ -370,9 +370,9 @@ program test
 
   DEALLOCATE( psis, aux )
 
-  CALL env_fft_type_deallocate( dffts )
-  CALL env_fft_type_deallocate( dfftp )
-  CALL env_fft_type_deallocate( dfft3d )
+  CALL fft_type_deallocate( dffts )
+  CALL fft_type_deallocate( dfftp )
+  CALL fft_type_deallocate( dfft3d )
 
   if( ncount > 0 ) then
      my_time = my_time / DBLE(ncount)
@@ -455,7 +455,7 @@ contains
 !
 !---------------------------------------------------------------------
 
-subroutine env_recips (a1, a2, a3, b1, b2, b3)
+subroutine recips (a1, a2, a3, b1, b2, b3)
   !---------------------------------------------------------------------
   !
   !   This routine generates the reciprocal lattice vectors b1,b2,b3
@@ -520,18 +520,18 @@ subroutine env_recips (a1, a2, a3, b1, b2, b3)
      k = l
   enddo
   return
-end subroutine env_recips
+end subroutine recips
 
 
 end program test
 
 
-subroutine env_start_clock( label )
+subroutine start_clock( label )
 implicit none
 character(len=*) :: label
 end subroutine
 
-subroutine env_stop_clock( label )
+subroutine stop_clock( label )
 implicit none
 character(len=*) :: label
 end subroutine

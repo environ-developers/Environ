@@ -7,25 +7,25 @@
 !
 !
 !=----------------------------------------------------------------------=
-MODULE env_fft_ggen
+MODULE fft_ggen
 !=----------------------------------------------------------------------=
 
   !  ... subroutines generating variables nl* needed to map G-vector
   !  ... components onto the FFT grid(s) in reciprocal space
   !
-   USE env_fft_param
+   USE fft_param
 
    PRIVATE
    SAVE
 
-   PUBLIC :: env_fft_set_nl
+   PUBLIC :: fft_set_nl
 
 !=----------------------------------------------------------------------=
 CONTAINS
 !=----------------------------------------------------------------------=
 !
 !-----------------------------------------------------------------------
-   SUBROUTINE env_fft_set_nl ( dfft, at, g, mill  )
+   SUBROUTINE fft_set_nl ( dfft, at, g, mill  )
 !----------------------------------------------------------------------
    !
    ! Input:  FFT descriptor dfft, lattice vectors at, list of G-vectors g
@@ -34,7 +34,7 @@ CONTAINS
    !         optionally, Miller indices: if bg = reciprocal lattice vectors,
    ! G(:,i) = mill(1,i)*bg(:,1) + mill(2,i)*bg(:,2) + mill(3,i)*bg(:,3)
    !  
-   USE env_fft_types,  ONLY : fft_type_descriptor
+   USE fft_types,  ONLY : fft_type_descriptor
    !
    IMPLICIT NONE
    !
@@ -65,7 +65,7 @@ CONTAINS
       IF (n3<0) n3 = n3 + dfft%nr3
 
       IF (n1>=dfft%nr1 .or. n2>=dfft%nr2 .or. n3>=dfft%nr3) &
-         CALL env_fftx_error__('ggen','Mesh too small?',ng)
+         CALL fftx_error__('ggen','Mesh too small?',ng)
 
       IF ( dfft%lpara) THEN
          dfft%nl (ng) = 1 + n3 + ( dfft%isind ( 1 + n1 + n2*dfft%nr1x) - 1) * dfft%nr3x
@@ -90,8 +90,8 @@ CONTAINS
    ENDDO
    !
 
-   END SUBROUTINE env_fft_set_nl 
+   END SUBROUTINE fft_set_nl 
    !
 !=----------------------------------------------------------------------=
-   END MODULE env_fft_ggen
+   END MODULE fft_ggen
 !=----------------------------------------------------------------------=

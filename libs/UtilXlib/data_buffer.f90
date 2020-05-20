@@ -6,8 +6,8 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-MODULE env_data_buffer
-    USE env_util_param,  ONLY : DP
+MODULE data_buffer
+    USE util_param,  ONLY : DP
 #ifdef __CUDA
     USE cudafor
 #endif
@@ -25,4 +25,4 @@ MODULE env_data_buffer
     PUBLIC :: mp_buff_r_d, mp_buff_i_d
 #endif
 
-END MODULE env_data_buffer
+END MODULE data_buffer

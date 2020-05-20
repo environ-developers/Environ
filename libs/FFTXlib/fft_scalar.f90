@@ -18,28 +18,28 @@
 !--------------------------------------------------------------------------!
 
 !=----------------------------------------------------------------------=!
-   MODULE env_fft_scalar
+   MODULE fft_scalar
 !=----------------------------------------------------------------------=!
 
-     USE env_fft_param
+     USE fft_param
 #if defined(__FFTW3)
-     USE env_fft_scalar_fftw3
+     USE fft_scalar_fftw3
 #elif defined(__DFTI)
-     USE env_fft_scalar_dfti
+     USE fft_scalar_dfti
 #elif defined(__LINUX_ESSL)
-     USE env_fft_scalar_essl
+     USE fft_scalar_essl
 #elif defined(__SX6)
-     USE env_fft_scalar_sx6
+     USE fft_scalar_sx6
 #elif defined(__ARM_LIB)
-     USE env_fft_scalar_arm
+     USE fft_scalar_arm
 #else
-     USE env_fft_scalar_fftw
+     USE fft_scalar_fftw
 #endif
        
      IMPLICIT NONE
      SAVE
 
      PRIVATE
-     PUBLIC :: env_cft_1z, env_cft_2xy, env_cfft3d, env_cfft3ds
+     PUBLIC :: cft_1z, cft_2xy, cfft3d, cfft3ds
 
-   END MODULE env_fft_scalar
+   END MODULE fft_scalar

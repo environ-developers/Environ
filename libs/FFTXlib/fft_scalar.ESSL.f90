@@ -8,17 +8,17 @@
 !
 
 !=----------------------------------------------------------------------=!
-   MODULE env_fft_scalar_essl
+   MODULE fft_scalar_essl
 !=----------------------------------------------------------------------=!
 
-       USE env_fft_param
+       USE fft_param
        
        IMPLICIT NONE
        SAVE
 #if defined(__LINUX_ESSL)
 
         PRIVATE
-        PUBLIC :: env_cft_1z, env_cft_2xy, env_cfft3d, env_cfft3ds
+        PUBLIC :: cft_1z, cft_2xy, cfft3d, cfft3ds
 
 ! ...   Local Parameter
 
@@ -49,7 +49,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE env_cft_1z(c, nsl, nz, ldz, isign, cout)
+   SUBROUTINE cft_1z(c, nsl, nz, ldz, isign, cout)
 
 !     driver routine for nsl 1d complex fft's of length nz
 !     ldz >= nz is the distance between sequences to be transformed
@@ -93,7 +93,7 @@
 
 
      IF( nsl < 0 ) THEN
-       CALL env_fftx_error__(" fft_scalar: cft_1z ", " nsl out of range ", nsl)
+       CALL fftx_error__(" fft_scalar: cft_1z ", " nsl out of range ", nsl)
      END IF
 
      !
@@ -138,7 +138,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL env_start_clock( 'cft_1z' )
+     CALL start_clock( 'cft_1z' )
 #endif
 
 
@@ -158,12 +158,12 @@
      END IF
 
 #if defined(__FFT_CLOCKS)
-     CALL env_stop_clock( 'cft_1z' )
+     CALL stop_clock( 'cft_1z' )
 #endif
 
      RETURN
 
-   END SUBROUTINE env_cft_1z
+   END SUBROUTINE cft_1z
 
 !
 !
@@ -179,7 +179,7 @@
 !
 !
 
-   SUBROUTINE env_cft_2xy(r, nzl, nx, ny, ldx, ldy, isign, pl2ix)
+   SUBROUTINE cft_2xy(r, nzl, nx, ny, ldx, ldy, isign, pl2ix)
 
 !     driver routine for nzl 2d complex fft's of lengths nx and ny
 !     input : r(ldx*ldy)  complex, transform is in-place
@@ -219,7 +219,7 @@
      dofft( 1 : nx ) = .TRUE.
      IF( PRESENT( pl2ix ) ) THEN
        IF( SIZE( pl2ix ) < nx ) &
-         CALL env_fftx_error__( ' cft_2xy ', ' wrong dimension for arg no. 8 ', 1 )
+         CALL fftx_error__( ' cft_2xy ', ' wrong dimension for arg no. 8 ', 1 )
        DO i = 1, nx
          IF( pl2ix(i) < 1 ) dofft( i ) = .FALSE.
        END DO
@@ -287,7 +287,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL env_start_clock( 'cft_2xy' )
+     CALL start_clock( 'cft_2xy' )
 #endif
 
 
@@ -347,12 +347,12 @@
 #endif
 
 #if defined(__FFT_CLOCKS)
-     CALL env_stop_clock( 'cft_2xy' )
+     CALL stop_clock( 'cft_2xy' )
 #endif
 
      RETURN
 
-   END SUBROUTINE env_cft_2xy
+   END SUBROUTINE cft_2xy
 
 
 !
@@ -367,7 +367,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE env_cfft3d( f, nx, ny, nz, ldx, ldy, ldz, howmany, isign )
+   SUBROUTINE cfft3d( f, nx, ny, nz, ldx, ldy, ldz, howmany, isign )
 
   !     driver routine for 3d complex fft of lengths nx, ny, nz
   !     input  :  f(ldx*ldy*ldz)  complex, transform is in-place
@@ -390,13 +390,13 @@
      INTEGER, SAVE :: dims(3,ndims) = -1
 
      IF ( nx < 1 ) &
-         call env_fftx_error__('cfft3d',' nx is less than 1 ', 1)
+         call fftx_error__('cfft3d',' nx is less than 1 ', 1)
      IF ( ny < 1 ) &
-         call env_fftx_error__('cfft3d',' ny is less than 1 ', 1)
+         call fftx_error__('cfft3d',' ny is less than 1 ', 1)
      IF ( nz < 1 ) &
-         call env_fftx_error__('cfft3d',' nz is less than 1 ', 1)
+         call fftx_error__('cfft3d',' nz is less than 1 ', 1)
      IF ( howmany /= 1 ) &
-         call env_fftx_error__('cfft3d',' howmany different from 1, not yetimplemented for ESSL ', 1)
+         call fftx_error__('cfft3d',' howmany different from 1, not yetimplemented for ESSL ', 1)
      !
      !   Here initialize table only if necessary
      !
@@ -443,7 +443,7 @@
           nx,ny,nz, idir, tscale, work(1), lwork)
 
      RETURN
-   END SUBROUTINE env_cfft3d
+   END SUBROUTINE cfft3d
 
 !
 !=----------------------------------------------------------------------=!
@@ -457,7 +457,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-SUBROUTINE env_cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
+SUBROUTINE cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
      do_fft_z, do_fft_y)
   !
   !     driver routine for 3d complex "reduced" fft - see cfft3d
@@ -499,10 +499,10 @@ SUBROUTINE env_cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
 
 
   IF( ny /= ldy ) &
-    CALL env_fftx_error__(' cfft3ds ', ' wrong dimensions: ny /= ldy ', 1 )
+    CALL fftx_error__(' cfft3ds ', ' wrong dimensions: ny /= ldy ', 1 )
 
      IF ( howmany /= 1 ) &
-         call env_fftx_error__('cfft3ds',' howmany different from 1, not yetimplemented for ESSL ', 1)
+         call fftx_error__('cfft3ds',' howmany different from 1, not yetimplemented for ESSL ', 1)
 
      ip = -1
      DO i = 1, ndims
@@ -638,9 +638,9 @@ SUBROUTINE env_cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, &
 
      END IF
      RETURN
-   END SUBROUTINE env_cfft3ds
+   END SUBROUTINE cfft3ds
 #endif
 !=----------------------------------------------------------------------=!
- END MODULE env_fft_scalar_essl
+ END MODULE fft_scalar_essl
 !=----------------------------------------------------------------------=!
 

@@ -7,20 +7,19 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 #if defined(__DFTI)
-!#include "mkl_dfti.f90"
+#include "mkl_dfti.f90"
 !=----------------------------------------------------------------------=!
-   MODULE env_fft_scalar_dfti
+   MODULE fft_scalar_dfti
 !=----------------------------------------------------------------------=!
 
        USE MKL_DFTI ! -- this can be found in the MKL include directory
-       USE MKL_DFT_TYPE
-       USE env_fft_param
+       USE fft_param
 
        IMPLICIT NONE
         SAVE
 
         PRIVATE
-        PUBLIC :: env_cft_1z, env_cft_2xy, env_cfft3d, env_cfft3ds
+        PUBLIC :: cft_1z, cft_2xy, cfft3d, cfft3ds
 
         TYPE dfti_descriptor_array
            TYPE(DFTI_DESCRIPTOR), POINTER :: desc
@@ -42,7 +41,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-   SUBROUTINE env_cft_1z(c, nsl, nz, ldz, isign, cout)
+   SUBROUTINE cft_1z(c, nsl, nz, ldz, isign, cout)
 
 !     driver routine for nsl 1d complex fft's of length nz
 !     ldz >= nz is the distance between sequences to be transformed
@@ -82,7 +81,7 @@
      !
      IF ( nsl <= 0 ) THEN
 
-       IF ( nsl < 0 ) CALL env_fftx_error__(" fft_scalar: cft_1z ", " nsl out of range ", nsl)
+       IF ( nsl < 0 ) CALL fftx_error__(" fft_scalar: cft_1z ", " nsl out of range ", nsl)
 
        ! Starting from MKL 2019 it is no longer possible to define "empty" plans,
        ! i.e. plans with 0 FFTs. Just return immediately in this case.
@@ -92,14 +91,14 @@
      !
      !   Here initialize table only if necessary
      !
-     CALL env_lookup()
+     CALL lookup()
 
      IF( .NOT. found ) THEN
 
        !   no table exist for these parameters
        !   initialize a new one
 
-       CALL env_init_dfti()
+       CALL init_dfti()
 
      END IF
 
@@ -108,28 +107,28 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL env_start_clock( 'cft_1z' )
+     CALL start_clock( 'cft_1z' )
 #endif
 
      IF (isign < 0) THEN
         dfti_status = DftiComputeForward(hand(ip)%desc, c, cout )
         IF(dfti_status /= 0) &
-           CALL env_fftx_error__(' cft_1z ',' stopped in DftiComputeForward ', dfti_status )
+           CALL fftx_error__(' cft_1z ',' stopped in DftiComputeForward ', dfti_status )
      ELSE IF (isign > 0) THEN
         dfti_status = DftiComputeBackward(hand(ip)%desc, c, cout )
         IF(dfti_status /= 0) &
-           CALL env_fftx_error__(' cft_1z ',' stopped in DftiComputeBackward ', dfti_status )
+           CALL fftx_error__(' cft_1z ',' stopped in DftiComputeBackward ', dfti_status )
      END IF
 
 #if defined(__FFT_CLOCKS)
-     CALL env_stop_clock( 'cft_1z' )
+     CALL stop_clock( 'cft_1z' )
 #endif
 
      RETURN
 
    CONTAINS !=------------------------------------------------=!
 
-     SUBROUTINE env_lookup()
+     SUBROUTINE lookup()
      IF( dfti_first ) THEN
         DO ip = 1, ndims
            hand(ip)%desc => NULL()
@@ -144,9 +143,9 @@
         found = found .AND. ( nsl == zdims(2,ip) ) .AND. ( ldz == zdims(3,ip) )
         IF (found) EXIT
      END DO
-     END SUBROUTINE env_lookup
+     END SUBROUTINE lookup
 
-     SUBROUTINE env_init_dfti()
+     SUBROUTINE init_dfti()
 
        if( ASSOCIATED( hand( icurrent )%desc ) ) THEN
           dfti_status = DftiFreeDescriptor( hand( icurrent )%desc )
@@ -158,45 +157,45 @@
 
        dfti_status = DftiCreateDescriptor(hand( icurrent )%desc, DFTI_DOUBLE, DFTI_COMPLEX, 1,nz)
        IF(dfti_status /= 0)  &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DftiCreateDescriptor ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DftiCreateDescriptor ', dfti_status )
 
        dfti_status = DftiSetValue(hand( icurrent )%desc, DFTI_NUMBER_OF_TRANSFORMS,nsl)
        IF(dfti_status /= 0) &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DFTI_NUMBER_OF_TRANSFORMS ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DFTI_NUMBER_OF_TRANSFORMS ', dfti_status )
 
        dfti_status = DftiSetValue(hand( icurrent )%desc,DFTI_INPUT_DISTANCE, ldz )
        IF(dfti_status /= 0) &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DFTI_INPUT_DISTANCE ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DFTI_INPUT_DISTANCE ', dfti_status )
 
        dfti_status = DftiSetValue(hand( icurrent )%desc, DFTI_PLACEMENT, DFTI_NOT_INPLACE)
        IF(dfti_status /= 0) &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DFTI_PLACEMENT ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DFTI_PLACEMENT ', dfti_status )
 
        dfti_status = DftiSetValue(hand( icurrent )%desc,DFTI_OUTPUT_DISTANCE, ldz )
        IF(dfti_status /= 0) &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DFTI_OUTPUT_DISTANCE ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DFTI_OUTPUT_DISTANCE ', dfti_status )
 
        tscale = 1.0_DP/nz
        dfti_status = DftiSetValue( hand( icurrent )%desc, DFTI_FORWARD_SCALE, tscale);
        IF(dfti_status /= 0) &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DFTI_FORWARD_SCALE ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DFTI_FORWARD_SCALE ', dfti_status )
 
        dfti_status = DftiSetValue( hand( icurrent )%desc, DFTI_BACKWARD_SCALE, DBLE(1) );
        IF(dfti_status /= 0) &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DFTI_BACKWARD_SCALE ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DFTI_BACKWARD_SCALE ', dfti_status )
 
        dfti_status = DftiCommitDescriptor(hand( icurrent )%desc)
        IF(dfti_status /= 0) &
-         CALL env_fftx_error__(' cft_1z ',' stopped in DftiCommitDescriptor ', dfti_status )
+         CALL fftx_error__(' cft_1z ',' stopped in DftiCommitDescriptor ', dfti_status )
 
        zdims(1,icurrent) = nz; zdims(2,icurrent) = nsl; zdims(3,icurrent) = ldz;
        ip = icurrent
        icurrent = MOD( icurrent, ndims ) + 1
 
-     END SUBROUTINE env_init_dfti
+     END SUBROUTINE init_dfti
 
 
-   END SUBROUTINE env_cft_1z
+   END SUBROUTINE cft_1z
 
 !
 !
@@ -212,7 +211,7 @@
 !
 !
 
-   SUBROUTINE env_cft_2xy(r, nzl, nx, ny, ldx, ldy, isign, pl2ix)
+   SUBROUTINE cft_2xy(r, nzl, nx, ny, ldx, ldy, isign, pl2ix)
 
 !     driver routine for nzl 2d complex fft's of lengths nx and ny
 !     input : r(ldx*ldy)  complex, transform is in-place
@@ -251,7 +250,7 @@
      dofft( 1 : nx ) = .TRUE.
      IF( PRESENT( pl2ix ) ) THEN
        IF( SIZE( pl2ix ) < nx ) &
-         CALL env_fftx_error__( ' cft_2xy ', ' wrong dimension for arg no. 8 ', 1 )
+         CALL fftx_error__( ' cft_2xy ', ' wrong dimension for arg no. 8 ', 1 )
        DO i = 1, nx
          IF( pl2ix(i) < 1 ) dofft( i ) = .FALSE.
        END DO
@@ -261,14 +260,14 @@
      !   Here initialize table only if necessary
      !
 
-     CALL env_lookup()
+     CALL lookup()
 
      IF( .NOT. found ) THEN
 
        !   no table exist for these parameters
        !   initialize a new one
 
-       CALL env_init_dfti()
+       CALL init_dfti()
 
      END IF
 
@@ -277,7 +276,7 @@
      !
 
 #if defined(__FFT_CLOCKS)
-     CALL env_start_clock( 'cft_2xy' )
+     CALL start_clock( 'cft_2xy' )
 #endif
 
      IF( isign < 0 ) THEN
@@ -300,17 +299,17 @@
 
 
 #if defined(__FFT_CLOCKS)
-     CALL env_stop_clock( 'cft_2xy' )
+     CALL stop_clock( 'cft_2xy' )
 #endif
 
      RETURN
 
    CONTAINS !=------------------------------------------------=!
 
-     SUBROUTINE env_check_dims()
-     END SUBROUTINE env_check_dims
+     SUBROUTINE check_dims()
+     END SUBROUTINE check_dims
 
-     SUBROUTINE env_lookup()
+     SUBROUTINE lookup()
      IF( dfti_first ) THEN
         DO ip = 1, ndims
            hand(ip)%desc => NULL()
@@ -324,9 +323,9 @@
        found = found .AND. ( ldx == dims(2,ip) ) .AND.  ( nzl == dims(4,ip) )
        IF (found) EXIT
      END DO
-     END SUBROUTINE env_lookup
+     END SUBROUTINE lookup
 
-     SUBROUTINE env_init_dfti()
+     SUBROUTINE init_dfti()
 
        if( ASSOCIATED( hand( icurrent )%desc ) ) THEN
           dfti_status = DftiFreeDescriptor( hand( icurrent )%desc )
@@ -377,9 +376,9 @@
        dims(3,icurrent) = nx; dims(4,icurrent) = nzl;
        ip = icurrent
        icurrent = MOD( icurrent, ndims ) + 1
-     END SUBROUTINE env_init_dfti
+     END SUBROUTINE init_dfti
 
-   END SUBROUTINE env_cft_2xy
+   END SUBROUTINE cft_2xy
 
 
 !
@@ -393,7 +392,7 @@
 !
 !=----------------------------------------------------------------------=!
 !
-   SUBROUTINE env_cfft3d( f, nx, ny, nz, ldx, ldy, ldz, howmany, isign )
+   SUBROUTINE cfft3d( f, nx, ny, nz, ldx, ldy, ldz, howmany, isign )
 
   !     driver routine for 3d complex fft of lengths nx, ny, nz
   !     input  :  f(ldx*ldy*ldz)  complex, transform is in-place
@@ -423,20 +422,20 @@
      INTEGER :: dfti_status = 0
      !
 
-     CALL env_check_dims()
+     CALL check_dims()
 
      !
      !   Here initialize table only if necessary
      !
 
-     CALL env_lookup()
+     CALL lookup()
 
      IF( ip == -1 ) THEN
 
        !   no table exist for these parameters
        !   initialize a new one
 
-       CALL env_init_dfti()
+       CALL init_dfti()
 
      END IF
 
@@ -466,18 +465,18 @@
 
    CONTAINS !=------------------------------------------------=!
 
-     SUBROUTINE env_check_dims()
+     SUBROUTINE check_dims()
      IF ( nx < 1 ) &
-         call env_fftx_error__('cfft3d',' nx is less than 1 ', 1)
+         call fftx_error__('cfft3d',' nx is less than 1 ', 1)
      IF ( ny < 1 ) &
-         call env_fftx_error__('cfft3d',' ny is less than 1 ', 1)
+         call fftx_error__('cfft3d',' ny is less than 1 ', 1)
      IF ( nz < 1 ) &
-         call env_fftx_error__('cfft3d',' nz is less than 1 ', 1)
+         call fftx_error__('cfft3d',' nz is less than 1 ', 1)
      IF ( howmany < 1 ) &
-         call env_fftx_error__('cfft3d',' howmany is less than 1 ', 1)
-     END SUBROUTINE env_check_dims
+         call fftx_error__('cfft3d',' howmany is less than 1 ', 1)
+     END SUBROUTINE check_dims
 
-     SUBROUTINE env_lookup()
+     SUBROUTINE lookup()
      IF( dfti_first ) THEN
         DO ip = 1, ndims
            hand(ip)%desc => NULL()
@@ -496,9 +495,9 @@
          EXIT
        END IF
      END DO
-     END SUBROUTINE env_lookup
+     END SUBROUTINE lookup
 
-     SUBROUTINE env_init_dfti()
+     SUBROUTINE init_dfti()
       if( ASSOCIATED( hand(icurrent)%desc ) ) THEN
           dfti_status = DftiFreeDescriptor( hand(icurrent)%desc )
           IF( dfti_status /= 0) THEN
@@ -549,9 +548,9 @@
        dims(1,icurrent) = nx; dims(2,icurrent) = ny; dims(3,icurrent) = nz; dims(4,icurrent) = howmany
        ip = icurrent
        icurrent = MOD( icurrent, ndims ) + 1
-     END SUBROUTINE env_init_dfti
+     END SUBROUTINE init_dfti
 
-   END SUBROUTINE env_cfft3d
+   END SUBROUTINE cfft3d
 
 !
 !=----------------------------------------------------------------------=!
@@ -565,7 +564,7 @@
 !=----------------------------------------------------------------------=!
 !
 
-SUBROUTINE env_cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, do_fft_z, do_fft_y)
+SUBROUTINE cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, do_fft_z, do_fft_y)
   !
   implicit none
 
@@ -574,12 +573,12 @@ SUBROUTINE env_cfft3ds (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign, do_fft_z, 
   complex(DP) :: f ( ldx * ldy * ldz )
   integer :: do_fft_y(:), do_fft_z(:)
   !
-  CALL env_cfft3d (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign)
+  CALL cfft3d (f, nx, ny, nz, ldx, ldy, ldz, howmany, isign)
 
-END SUBROUTINE env_cfft3ds
+END SUBROUTINE cfft3ds
 #else
-   MODULE env_fft_scalar_dfti
+   MODULE fft_scalar_dfti
 #endif
 !=----------------------------------------------------------------------=!
-END MODULE env_fft_scalar_dfti
+END MODULE fft_scalar_dfti
 !=----------------------------------------------------------------------=!

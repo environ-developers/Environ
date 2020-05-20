@@ -7,74 +7,74 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !=---------------------------------------------------------------------------=!
-MODULE env_fft_interfaces
+MODULE fft_interfaces
 
   IMPLICIT NONE
   PRIVATE
 
 
-  PUBLIC :: env_fwfft, env_invfft, env_fft_interpolate
+  PUBLIC :: fwfft, invfft, fft_interpolate
 
   
-  INTERFACE env_invfft
+  INTERFACE invfft
      !! invfft is the interface to both the standard fft **invfft_x**,
      !! and to the "box-grid" version **invfft_b**, used only in CP 
      !! (the latter has an additional argument)
      
-     SUBROUTINE env_invfft_y( fft_kind, f, dfft, howmany )
-       USE env_fft_types,  ONLY: fft_type_descriptor
-       USE env_fft_param,  ONLY :DP
+     SUBROUTINE invfft_y( fft_kind, f, dfft, howmany )
+       USE fft_types,  ONLY: fft_type_descriptor
+       USE fft_param,  ONLY :DP
        IMPLICIT NONE
        CHARACTER(LEN=*),  INTENT(IN) :: fft_kind
        TYPE(fft_type_descriptor), INTENT(IN) :: dfft
        INTEGER, OPTIONAL, INTENT(IN) :: howmany
        COMPLEX(DP) :: f(:)
-     END SUBROUTINE env_invfft_y
+     END SUBROUTINE invfft_y
      !
-     SUBROUTINE env_invfft_b( f, dfft, ia )
-       USE env_fft_smallbox_type,  ONLY: fft_box_descriptor
-       USE env_fft_param,  ONLY :DP
+     SUBROUTINE invfft_b( f, dfft, ia )
+       USE fft_smallbox_type,  ONLY: fft_box_descriptor
+       USE fft_param,  ONLY :DP
        IMPLICIT NONE
        INTEGER, INTENT(IN) :: ia
        TYPE(fft_box_descriptor), INTENT(IN) :: dfft
        COMPLEX(DP) :: f(:)
-     END SUBROUTINE env_invfft_b
+     END SUBROUTINE invfft_b
   END INTERFACE
 
-  INTERFACE env_fwfft
-     SUBROUTINE env_fwfft_y( fft_kind, f, dfft, howmany )
-       USE env_fft_types,  ONLY: fft_type_descriptor
-       USE env_fft_param,  ONLY :DP
+  INTERFACE fwfft
+     SUBROUTINE fwfft_y( fft_kind, f, dfft, howmany )
+       USE fft_types,  ONLY: fft_type_descriptor
+       USE fft_param,  ONLY :DP
        IMPLICIT NONE
        CHARACTER(LEN=*), INTENT(IN) :: fft_kind
        TYPE(fft_type_descriptor), INTENT(IN) :: dfft
        INTEGER, OPTIONAL, INTENT(IN) :: howmany
        COMPLEX(DP) :: f(:)
-     END SUBROUTINE env_fwfft_y
+     END SUBROUTINE fwfft_y
   END INTERFACE
 
-  INTERFACE env_fft_interpolate
+  INTERFACE fft_interpolate
      !! fft_interpolate  is the interface to utility that fourier interpolate
      !! real/complex arrays between two grids 
      
-     SUBROUTINE env_fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
-       USE env_fft_param,  ONLY :DP
-       USE env_fft_types,  ONLY: fft_type_descriptor
+     SUBROUTINE fft_interpolate_real( dfft_in, v_in, dfft_out, v_out )
+       USE fft_param,  ONLY :DP
+       USE fft_types,  ONLY: fft_type_descriptor
        IMPLICIT NONE
        TYPE(fft_type_descriptor), INTENT(IN) :: dfft_in, dfft_out
        REAL(DP), INTENT(IN)  :: v_in(:)
        REAL(DP), INTENT(OUT) :: v_out(:)
-     END SUBROUTINE env_fft_interpolate_real
+     END SUBROUTINE fft_interpolate_real
      !
-     SUBROUTINE env_fft_interpolate_complex( dfft_in, v_in, dfft_out, v_out )
-       USE env_fft_param,  ONLY :DP
-       USE env_fft_types,  ONLY: fft_type_descriptor
+     SUBROUTINE fft_interpolate_complex( dfft_in, v_in, dfft_out, v_out )
+       USE fft_param,  ONLY :DP
+       USE fft_types,  ONLY: fft_type_descriptor
        IMPLICIT NONE
        TYPE(fft_type_descriptor), INTENT(IN) :: dfft_in, dfft_out
        COMPLEX(DP), INTENT(IN)  :: v_in(:)
        COMPLEX(DP), INTENT(OUT) :: v_out(:)
-     END SUBROUTINE env_fft_interpolate_complex
+     END SUBROUTINE fft_interpolate_complex
   END INTERFACE
 
-END MODULE env_fft_interfaces
+END MODULE fft_interfaces
 !=---------------------------------------------------------------------------=!

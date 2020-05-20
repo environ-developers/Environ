@@ -6,12 +6,12 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-MODULE env_util_param
+MODULE util_param
 
-  USE env_parallel_include
+  USE parallel_include
   
   INTEGER, PARAMETER :: DP = selected_real_kind(14,200)
   INTEGER, PARAMETER :: stdout = 6    ! unit connected to standard output
   CHARACTER(LEN=5 ), PARAMETER :: crash_file  = 'CRASH'
 
-END MODULE env_util_param
+END MODULE util_param

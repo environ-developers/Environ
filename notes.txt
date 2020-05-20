@@ -9,6 +9,7 @@ TO DO
 * UtilXLib and FFTXlib should only be compiled if Environ is not inside QE, otherwise Environ should use the QE libraries.
 * cleanup backward compatibility
 
+BOTH SIMPLE_TASKS HAVE BEEN COMPLETED.
 SIMPLE_TASK1: remove feval from environ_input.f90, so that we don't need modules_wrappers.f90. Merge your changes into this branch
 SIMPLE_TASK2: clean up/fix modules_parser.f90 move env_errore --> errore() stdout --> program_unit
 env_mp --> mp

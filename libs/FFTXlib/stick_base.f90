@@ -1,16 +1,16 @@
 !=----------------------------------------------------------------------=
-MODULE env_stick_base
+MODULE stick_base
 !=----------------------------------------------------------------------=
 
-   USE env_fft_param
+   USE fft_param
    IMPLICIT NONE
    PRIVATE
    SAVE
 
-   PUBLIC :: env_sticks_map_set
-   PUBLIC :: env_sticks_map_index, env_sticks_sort_new, env_sticks_dist_new
-   PUBLIC :: sticks_map, env_sticks_map_allocate
-   PUBLIC :: env_sticks_map_deallocate, env_get_sticks
+   PUBLIC :: sticks_map_set
+   PUBLIC :: sticks_map_index, sticks_sort_new, sticks_dist_new
+   PUBLIC :: sticks_map, sticks_map_allocate
+   PUBLIC :: sticks_map_deallocate, get_sticks
 
    TYPE sticks_map
       LOGICAL :: lgamma=.false. ! if .true. the map has gamma symmetry
@@ -38,7 +38,7 @@ MODULE env_stick_base
 !=----------------------------------------------------------------------=
 CONTAINS
 !=----------------------------------------------------------------------=
-   SUBROUTINE env_sticks_map_deallocate( smap )
+   SUBROUTINE sticks_map_deallocate( smap )
       IMPLICIT NONE
       TYPE( sticks_map ) :: smap
       !write (6,*) ' inside sticks_map_deallocate'; FLUSH(6)
@@ -51,9 +51,9 @@ CONTAINS
       smap%ub = 0
       smap%lb = 0
       smap%nstx = 0
-   END SUBROUTINE env_sticks_map_deallocate
+   END SUBROUTINE sticks_map_deallocate
 
-   SUBROUTINE env_sticks_map_allocate( smap, lgamma, lpara, nyfft, iproc, iproc2, nr1, nr2, nr3, bg, comm )
+   SUBROUTINE sticks_map_allocate( smap, lgamma, lpara, nyfft, iproc, iproc2, nr1, nr2, nr3, bg, comm )
    ! assign 
       IMPLICIT NONE
       TYPE( sticks_map ) :: smap
@@ -100,16 +100,16 @@ CONTAINS
          smap%iproc2= iproc2
 
          IF( ALLOCATED( smap%indmap ) ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' indmap already allocated ', 1 )
+            CALL fftx_error__(' sticks_map_allocate ',' indmap already allocated ', 1 )
          END IF
          IF( ALLOCATED( smap%stown ) ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' stown already allocated ', 1 )
+            CALL fftx_error__(' sticks_map_allocate ',' stown already allocated ', 1 )
          END IF
          IF( ALLOCATED( smap%idx ) ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' idx already allocated ', 1 )
+            CALL fftx_error__(' sticks_map_allocate ',' idx already allocated ', 1 )
          END IF
          IF( ALLOCATED( smap%ist ) ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' ist already allocated ', 1 )
+            CALL fftx_error__(' sticks_map_allocate ',' ist already allocated ', 1 )
          END IF
          ALLOCATE( smap%indmap ( lb(1):ub(1), lb(2):ub(2) ) )
          ALLOCATE( smap%stown ( lb(1):ub(1), lb(2):ub(2) ) )
@@ -123,10 +123,10 @@ CONTAINS
          !  change the size of the map, but keep the data already there
          !write (*,*) ' !  change the size of the map, but keep the data already there '
          IF( smap%lgamma .neqv.  lgamma ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' changing gamma symmetry not allowed ', 1 )
+            CALL fftx_error__(' sticks_map_allocate ',' changing gamma symmetry not allowed ', 1 )
          END IF
          IF( smap%comm /= comm ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' changing communicator not allowed ', 1 )
+            CALL fftx_error__(' sticks_map_allocate ',' changing communicator not allowed ', 1 )
          END IF
          ALLOCATE( indmap ( lb(1):ub(1), lb(2):ub(2) ) )
          ALLOCATE( stown ( lb(1):ub(1), lb(2):ub(2) ) )
@@ -167,16 +167,16 @@ CONTAINS
          !write(*,*) 'map is the same ... should we update ub,lb ?'
          !write(*,*) smap%ub,smap%lb
          IF( smap%lgamma .neqv. lgamma ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' changing gamma symmetry not allowed ', 2 )
+            CALL fftx_error__(' sticks_map_allocate ',' changing gamma symmetry not allowed ', 2 )
          END IF
          IF( smap%comm /= comm ) THEN
-            CALL env_fftx_error__(' sticks_map_allocate ',' changing communicator not allowed ', 1 )
+            CALL fftx_error__(' sticks_map_allocate ',' changing communicator not allowed ', 1 )
          END IF
       END IF
       RETURN
-   END SUBROUTINE env_sticks_map_allocate
+   END SUBROUTINE sticks_map_allocate
  
-   SUBROUTINE env_sticks_map_set( lgamma, ub, lb, bg, gcut, st, comm )
+   SUBROUTINE sticks_map_set( lgamma, ub, lb, bg, gcut, st, comm )
 
       ! .. Compute the basic maps of sticks
       ! .. st(i,j) will contain the number of G vectors of the stick whose indices are (i,j).
@@ -259,11 +259,11 @@ CONTAINS
 
 
       RETURN
-   END SUBROUTINE env_sticks_map_set
+   END SUBROUTINE sticks_map_set
 
 !=----------------------------------------------------------------------=
 
-   SUBROUTINE env_sticks_map_index( ub, lb, st, in1, in2, ngc, index_map )
+   SUBROUTINE sticks_map_index( ub, lb, st, in1, in2, ngc, index_map )
 
       IMPLICIT NONE
 
@@ -301,7 +301,7 @@ CONTAINS
             END IF
             ind = index_map( i1, i2 )
             IF( nct > min_size ) &
-              CALL env_fftx_error__(' sticks_map_index ',' too many sticks ', nct )
+              CALL fftx_error__(' sticks_map_index ',' too many sticks ', nct )
             in1(ind) = i1
             in2(ind) = i2
             ngc(ind) = st( i1 , i2)
@@ -310,11 +310,11 @@ CONTAINS
       ENDDO
 
       RETURN
-   END SUBROUTINE env_sticks_map_index
+   END SUBROUTINE sticks_map_index
 
 !=----------------------------------------------------------------------=
 
-   SUBROUTINE env_sticks_sort_new( parallel, ng, nct, idx )
+   SUBROUTINE sticks_sort_new( parallel, ng, nct, idx )
 
 ! ...     This subroutine sorts the sticks indexes, according to
 ! ...     the length and type of the sticks, wave functions sticks
@@ -357,7 +357,7 @@ CONTAINS
          ic = 0
          DO mc = 2, nct
             IF( idx( mc ) /= 0 ) THEN
-               CALL env_fftx_error__(' sticks_sort ',' non contiguous indexes 1 ', nct )
+               CALL fftx_error__(' sticks_sort ',' non contiguous indexes 1 ', nct )
             END IF
          END DO
       ELSE
@@ -368,7 +368,7 @@ CONTAINS
          END DO
          DO mc = ic+1, nct
             IF( idx( mc ) /= 0 ) THEN
-               CALL env_fftx_error__(' sticks_sort ',' non contiguous indexes 2 ', nct )
+               CALL fftx_error__(' sticks_sort ',' non contiguous indexes 2 ', nct )
             END IF
          END DO
       END IF
@@ -385,7 +385,7 @@ CONTAINS
                itmp( nc ) = mc
             END IF
          ENDDO
-         CALL env_hpsort( nc, aux, itmp)
+         CALL hpsort( nc, aux, itmp)
          DO mc = 1, nc
             idx( ic + mc ) = itmp( mc )
          END DO
@@ -403,11 +403,11 @@ CONTAINS
       DEALLOCATE( iaux )
 
       RETURN
-   END SUBROUTINE env_sticks_sort_new
+   END SUBROUTINE sticks_sort_new
 
 !=----------------------------------------------------------------------=
 
-   SUBROUTINE env_sticks_dist_new( lgamma, mype, nproc, nyfft, iproc, iproc2, ub, lb, idx, in1, in2, ngc, nct, ncp, ngp, stown, ng )
+   SUBROUTINE sticks_dist_new( lgamma, mype, nproc, nyfft, iproc, iproc2, ub, lb, idx, in1, in2, ngc, nct, ncp, ngp, stown, ng )
 
       IMPLICIT NONE
 
@@ -543,11 +543,11 @@ CONTAINS
       DEALLOCATE ( yc, yg, ygr ) 
 
       RETURN
-   END SUBROUTINE env_sticks_dist_new
+   END SUBROUTINE sticks_dist_new
 
 !---------------------------------------------------------------------
 
-   SUBROUTINE env_get_sticks( smap, gcut, nstp, sstp, st, nst, ng )
+   SUBROUTINE get_sticks( smap, gcut, nstp, sstp, st, nst, ng )
 
       IMPLICIT NONE
 
@@ -568,19 +568,19 @@ CONTAINS
       !write (6,*) smap%lb, smap%ub
 
       IF( .NOT. ALLOCATED( smap%stown ) ) THEN
-         CALL env_fftx_error__(' get_sticks ',' sticks map, not allocated ', 1 )
+         CALL fftx_error__(' get_sticks ',' sticks map, not allocated ', 1 )
       END IF
 
       st = 0
-      CALL env_sticks_map_set( smap%lgamma, smap%ub, smap%lb, smap%bg, gcut, st, smap%comm )
+      CALL sticks_map_set( smap%lgamma, smap%ub, smap%lb, smap%bg, gcut, st, smap%comm )
 
       ALLOCATE( ngc ( SIZE( smap%idx ) ) )
       ngc = 0
-      CALL env_sticks_map_index( smap%ub, smap%lb, st, smap%ist(:,1), smap%ist(:,2), ngc, smap%indmap )
+      CALL sticks_map_index( smap%ub, smap%lb, st, smap%ist(:,1), smap%ist(:,2), ngc, smap%indmap )
       nst = count( st > 0 )
-      CALL env_sticks_sort_new( smap%nproc>1, ngc, SIZE(smap%idx), smap%idx )
+      CALL sticks_sort_new( smap%nproc>1, ngc, SIZE(smap%idx), smap%idx )
 
-      CALL env_sticks_dist_new( smap%lgamma, smap%mype, smap%nproc, smap%nyfft, smap%iproc, smap%iproc2, &
+      CALL sticks_dist_new( smap%lgamma, smap%mype, smap%nproc, smap%nyfft, smap%iproc, smap%iproc2, &
                             smap%ub, smap%lb, smap%idx, &
                             smap%ist(:,1), smap%ist(:,2), ngc, SIZE(smap%idx), nstp, sstp, smap%stown, ng )
 
@@ -598,10 +598,10 @@ CONTAINS
       END DO
       DEALLOCATE( ngc )
       RETURN
-   END SUBROUTINE env_get_sticks
+   END SUBROUTINE get_sticks
 
 !---------------------------------------------------------------------
-   SUBROUTINE env_hpsort (n, ra, ind)
+   SUBROUTINE hpsort (n, ra, ind)
       !---------------------------------------------------------------------
       ! sort an array ra(1:n) into ascending order using heapsort algorithm.
       ! n is input, ra is replaced on output by its sorted rearrangement.
@@ -708,8 +708,8 @@ CONTAINS
       ind (i) = iind
       GOTO 10
       !
-   END SUBROUTINE env_hpsort
+   END SUBROUTINE hpsort
 
 !=----------------------------------------------------------------------=
-END MODULE env_stick_base
+END MODULE stick_base
 !=----------------------------------------------------------------------=

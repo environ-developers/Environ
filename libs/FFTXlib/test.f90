@@ -9,13 +9,13 @@
 ! by P. Bonfa', F. Affinito and C. Cavazzoni, Cineca
 !  & S. de Gironcoli, SISSA
 
-module env_timers
+module timers
   save
   LOGICAL :: ignore_time = .true.  ! This is used to avoid collection of initialization times
   REAL*8  :: times(20) = 0.d0      ! Array hosting various timers
 end module
 
-program env_test
+program test
   !! This mini-app provides a tool for testing and benchmarking the FFT drivers
   !! contained in the FFTXlib.
   !!
@@ -66,13 +66,13 @@ program env_test
   !! calls as been implemented. This version requires the precompilation flags
   !! -D__NON_BLOCKING_SCATTER
   !!
-  USE env_fft_types
-  USE env_stick_base
-  USE env_fft_parallel
-  USE env_fft_support
-  USE env_fft_helper_subroutines
-  USE env_fft_interfaces, ONLY:env_fwfft, env_invfft
-  USE env_timers
+  USE fft_types
+  USE stick_base
+  USE fft_parallel
+  USE fft_support
+  USE fft_helper_subroutines
+  USE fft_interfaces, ONLY:fwfft, invfft
+  USE timers
   IMPLICIT NONE
   !
   TYPE(fft_type_descriptor) :: dfftp, dffts, dfft3d
@@ -283,7 +283,7 @@ program env_test
   !
   tpiba = 2.0d0*pi/alat
   ! 
-  call env_recips(at(1, 1), at(1, 2), at(1, 3), bg(1, 1), bg(1, 2), bg(1, 3))
+  call recips(at(1, 1), at(1, 2), at(1, 3), bg(1, 1), bg(1, 2), bg(1, 3))
   !
   !
   IF (gamma_only) kmax = 0.d0
@@ -344,11 +344,11 @@ program env_test
   use_tg = dffts%has_task_groups
   !
   dffts%rho_clock_label='ffts' ; dffts%wave_clock_label='fftw'
-  CALL env_fft_type_init(dffts, smap, "wave", gamma_only, .true., comm, at, bg, gkcut, gcutms/gkcut, nyfft=ntgs)
+  CALL fft_type_init(dffts, smap, "wave", gamma_only, .true., comm, at, bg, gkcut, gcutms/gkcut, nyfft=ntgs)
   dfftp%rho_clock_label='fft' 
-  CALL env_fft_type_init(dfftp, smap, "rho", gamma_only, .true., comm, at, bg, gcutm, 4.d0, nyfft=ntgs)
+  CALL fft_type_init(dfftp, smap, "rho", gamma_only, .true., comm, at, bg, gcutm, 4.d0, nyfft=ntgs)
   !
-  CALL env_fft_base_info(mype == 0, dffts, dfftp)
+  CALL fft_base_info(mype == 0, dffts, dfftp)
   if (mype == 0) then
     write (*, *) 'dffts:  nr1 = ', dffts%nr1, ' nr2 = ', dffts%nr2, ' nr3 = ', dffts%nr3
     write (*, *) '        nr1x= ', dffts%nr1x, ' nr2x= ', dffts%nr2x, ' nr3x= ', dffts%nr3x
@@ -386,13 +386,13 @@ program env_test
   !
   ! smallmem = .flase.
   IF( .false. ) THEN
-     CALL env_ggen( dfftp, gamma_only, at, bg, gcutm, ngm_g, ngm, &
+     CALL ggen( dfftp, gamma_only, at, bg, gcutm, ngm_g, ngm, &
           g, gg, mill, ig_l2g, gstart, .TRUE. )
   ELSE
-     CALL env_ggen( dfftp, gamma_only, at, bg, gcutm, ngm_g, ngm, &
+     CALL ggen( dfftp, gamma_only, at, bg, gcutm, ngm_g, ngm, &
        g, gg, mill, ig_l2g, gstart, .FALSE.  )
   END IF
-  CALL env_ggens( dffts, gamma_only, at, g, gg, mill, gcutms, ngms )
+  CALL ggens( dffts, gamma_only, at, g, gg, mill, gcutms, ngms )
   !
   ! --------  RESET TIMERS
   !
@@ -408,18 +408,18 @@ program env_test
   !
   IF (use_tg) THEN
     ALLOCATE (tg_psic(dffts%nnr_tg))
-    CALL env_invfft('tgWave', tg_psic, dffts)
+    CALL invfft('tgWave', tg_psic, dffts)
     DEALLOCATE (tg_psic)
   ELSE
-    CALL env_invfft('Wave', psic, dffts)
+    CALL invfft('Wave', psic, dffts)
   END IF
   !
   IF (use_tg) THEN
     ALLOCATE (tg_psic(dffts%nnr_tg))
-    CALL env_fwfft('tgWave', tg_psic, dffts)
+    CALL fwfft('tgWave', tg_psic, dffts)
     DEALLOCATE (tg_psic)
   ELSE
-    CALL env_fwfft('Wave', psic, dffts)
+    CALL fwfft('Wave', psic, dffts)
   END IF
   ! Now for real,
   !
@@ -441,7 +441,7 @@ program env_test
     ALLOCATE (tg_v(dffts%nnr_tg))
     ALLOCATE (tg_psic(dffts%nnr_tg))
     !
-    CALL env_tg_gather(dffts, v, tg_v)
+    CALL tg_gather(dffts, v, tg_v)
     !      incr is already set to 2 for gamma_only
     incr = incr*fftx_ntgrp(dffts)
     !
@@ -460,13 +460,13 @@ program env_test
     !
     IF (use_tg) THEN
       !
-      call env_prepare_psi_tg(ib, nbnd, ngms, psi, tg_psic, dffts, gamma_only)
+      call prepare_psi_tg(ib, nbnd, ngms, psi, tg_psic, dffts, gamma_only)
       time(2) = MPI_WTIME()
       !
-      CALL env_invfft('tgWave', tg_psic, dffts); 
+      CALL invfft('tgWave', tg_psic, dffts); 
       time(3) = MPI_WTIME()
       !
-      CALL env_tg_get_group_nr3(dffts, right_nr3)
+      CALL tg_get_group_nr3(dffts, right_nr3)
       !
       DO j = 1, dffts%nr1x*dffts%nr2x*right_nr3
         tg_psic(j) = tg_psic(j)*tg_v(j)
@@ -474,27 +474,27 @@ program env_test
       !
       time(4) = MPI_WTIME()
       !
-      CALL env_fwfft('tgWave', tg_psic, dffts); 
+      CALL fwfft('tgWave', tg_psic, dffts); 
       time(5) = MPI_WTIME()
       !
-      CALL env_accumulate_hpsi_tg(ib, nbnd, ngms, hpsi, tg_psic, dffts, gamma_only)
+      CALL accumulate_hpsi_tg(ib, nbnd, ngms, hpsi, tg_psic, dffts, gamma_only)
       time(6) = MPI_WTIME()
     ELSE
       !
-      call env_prepare_psi(ib, nbnd, ngms, psi, psic, dffts, gamma_only)
+      call prepare_psi(ib, nbnd, ngms, psi, psic, dffts, gamma_only)
       time(2) = MPI_WTIME()
       !
-      CALL env_invfft('Wave', psic, dffts); time(3) = MPI_WTIME()
+      CALL invfft('Wave', psic, dffts); time(3) = MPI_WTIME()
       !
       DO j = 1, dffts%nnr
         psic(j) = psic(j)*v(j)
       ENDDO
       time(4) = MPI_WTIME()
       !
-      CALL env_fwfft('Wave', psic, dffts); 
+      CALL fwfft('Wave', psic, dffts); 
       time(5) = MPI_WTIME()
       !
-      CALL env_accumulate_hpsi(ib, nbnd, ngms, hpsi, psic, dffts, gamma_only)
+      CALL accumulate_hpsi(ib, nbnd, ngms, hpsi, psic, dffts, gamma_only)
       time(6) = MPI_WTIME()
       !
     ENDIF
@@ -572,12 +572,12 @@ program env_test
 
   end if
   ! now print FFT clocks
-  call env_print_clock(mype, npes, ncount)
+  call print_clock(mype, npes, ncount)
 
-  CALL env_fft_type_deallocate(dffts)
-  CALL env_fft_type_deallocate(dfftp)
-  CALL env_fft_type_deallocate(dfft3d)
-  CALL env_sticks_map_deallocate( smap )
+  CALL fft_type_deallocate(dffts)
+  CALL fft_type_deallocate(dfftp)
+  CALL fft_type_deallocate(dfft3d)
+  CALL sticks_map_deallocate( smap )
 
 #if defined(__MPI)
   CALL mpi_finalize(ierr)
@@ -598,7 +598,7 @@ contains
 !
 !---------------------------------------------------------------------
 
-subroutine env_recips (a1, a2, a3, b1, b2, b3)
+subroutine recips (a1, a2, a3, b1, b2, b3)
   !---------------------------------------------------------------------
   !
   !   This routine generates the reciprocal lattice vectors b1,b2,b3
@@ -663,10 +663,10 @@ subroutine env_recips (a1, a2, a3, b1, b2, b3)
      k = l
   enddo
   return
-end subroutine env_recips
+end subroutine recips
 
 
-  SUBROUTINE env_ggen ( dfftp, gamma_only, at, bg,  gcutm, ngm_g, ngm, &
+  SUBROUTINE ggen ( dfftp, gamma_only, at, bg,  gcutm, ngm_g, ngm, &
        g, gg, mill, ig_l2g, gstart, no_global_sort )
     !----------------------------------------------------------------------
     !
@@ -675,9 +675,9 @@ end subroutine env_recips
     !     computes the indices nl which give the correspondence
     !     between the fft mesh points and the array of g vectors.
     !
-    USE env_fft_types, ONLY: env_fft_stick_index, fft_type_descriptor
-    USE env_fft_ggen, ONLY : env_env_fft_set_nl
-    USE env_fft_param
+    USE fft_types, ONLY: fft_stick_index, fft_type_descriptor
+    USE fft_ggen, ONLY : fft_set_nl
+    USE fft_param
     !USE mp, ONLY: mp_rank, mp_size, mp_sum
     !USE constants, ONLY : eps8
     !
@@ -834,13 +834,13 @@ end subroutine env_recips
        ENDDO jloop
     ENDDO iloop
     IF (ngm  /= ngm_max) &
-         CALL env_fftx_error__ ('ggen', 'g-vectors missing !', abs(ngm - ngm_max))
+         CALL fftx_error__ ('ggen', 'g-vectors missing !', abs(ngm - ngm_max))
     !
     igsrt(1) = 0
     IF( .NOT. global_sort ) THEN
-       CALL env_hpsort_eps( ngm, g2sort_g, igsrt, eps8 )
+       CALL hpsort_eps( ngm, g2sort_g, igsrt, eps8 )
     ELSE
-       CALL env_hpsort_eps( ngm_g, g2sort_g, igsrt, eps8 )
+       CALL hpsort_eps( ngm_g, g2sort_g, igsrt, eps8 )
     END IF
     DEALLOCATE( g2sort_g, tt )
     
@@ -895,7 +895,7 @@ end subroutine env_recips
     DEALLOCATE( igsrt, g2l )
 
     IF (ngm /= ngm_save) &
-         CALL env_fftx_error__ ('ggen', 'g-vectors (ngm) missing !', abs(ngm - ngm_save))
+         CALL fftx_error__ ('ggen', 'g-vectors (ngm) missing !', abs(ngm - ngm_save))
     !
     !     determine first nonzero g vector
     !
@@ -907,12 +907,12 @@ end subroutine env_recips
     !
     !     Now set nl and nls with the correct fft correspondence
     !
-    CALL env_fft_set_nl( dfftp, at, g, mill )
+    CALL fft_set_nl( dfftp, at, g, mill )
     !
-  END SUBROUTINE env_ggen
+  END SUBROUTINE ggen
   !
   !-----------------------------------------------------------------------
-  SUBROUTINE env_ggens( dffts, gamma_only, at, g, gg, mill, gcutms, ngms, &
+  SUBROUTINE ggens( dffts, gamma_only, at, g, gg, mill, gcutms, ngms, &
        gs, ggs )
     !-----------------------------------------------------------------------
     !
@@ -921,9 +921,9 @@ end subroutine env_recips
     !
     !--------------------------------------------------------------------
     !
-    USE env_fft_types, ONLY: env_fft_stick_index, fft_type_descriptor
-    USE env_fft_ggen, ONLY : env_fft_set_nl
-    USE env_fft_param
+    USE fft_types, ONLY: fft_stick_index, fft_type_descriptor
+    USE fft_ggen, ONLY : fft_set_nl
+    USE fft_param
     !
     IMPLICIT NONE
     !
@@ -946,7 +946,7 @@ end subroutine env_recips
     !
     ngm  = SIZE(gg)
     ngms = dffts%ngm
-    IF ( ngms > ngm  ) CALL env_fftx_error__ ('ggens','wrong  number of G-vectors',1)
+    IF ( ngms > ngm  ) CALL fftx_error__ ('ggens','wrong  number of G-vectors',1)
     !
     IF ( PRESENT(gs) ) ALLOCATE ( gs(3,ngms) )
     IF ( PRESENT(ggs)) ALLOCATE ( ggs(ngms) )
@@ -957,14 +957,14 @@ end subroutine env_recips
        IF ( PRESENT(ggs)) ggs(i) = gg(i)
        ng = i
     END DO
-    IF ( ng /= ngms ) CALL env_fftx_error__ ('ggens','mismatch in number of G-vectors',2)
+    IF ( ng /= ngms ) CALL fftx_error__ ('ggens','mismatch in number of G-vectors',2)
     !
-    CALL env_fft_set_nl ( dffts, at, g )
+    CALL fft_set_nl ( dffts, at, g )
     !
-  END SUBROUTINE env_ggens
+  END SUBROUTINE ggens
   !
-  SUBROUTINE env_fft_base_info( ionode, dffts, dfftp )
-     USE env_fft_types, ONLY: fft_type_descriptor
+  SUBROUTINE fft_base_info( ionode, dffts, dfftp )
+     USE fft_types, ONLY: fft_type_descriptor
      implicit none
      LOGICAL, INTENT(IN) :: ionode
      TYPE(fft_type_descriptor), INTENT(IN) :: dfftp, dffts
@@ -997,11 +997,11 @@ end subroutine env_recips
      IF(ionode) WRITE( *,*)
      
      RETURN
-  END SUBROUTINE env_fft_base_info
-end program env_test
+  END SUBROUTINE fft_base_info
+end program test
 
-subroutine env_start_clock(label)
-  use env_timers
+subroutine start_clock(label)
+  use timers
   use mpi, ONLY:MPI_WTIME
   implicit none
   character(len=*) :: label
@@ -1050,8 +1050,8 @@ subroutine env_start_clock(label)
   end select
 end subroutine
 
-subroutine env_stop_clock(label)
-  use env_timers
+subroutine stop_clock(label)
+  use timers
   use mpi, ONLY:MPI_WTIME
   implicit none
   character(len=*) :: label
@@ -1100,8 +1100,8 @@ subroutine env_stop_clock(label)
   end select
 end subroutine
 !
-subroutine env_print_clock(mype, npes, ncount)
-  use env_timers
+subroutine print_clock(mype, npes, ncount)
+  use timers
   use mpi
   implicit none
   integer, intent(in) :: mype, npes, ncount
@@ -1178,7 +1178,7 @@ end subroutine
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !---------------------------------------------------------------------
-subroutine env_hpsort_eps(n, ra, ind, eps)
+subroutine hpsort_eps(n, ra, ind, eps)
   !---------------------------------------------------------------------
   ! sort an array ra(1:n) into ascending order using heapsort algorithm,
   ! and considering two elements being equal if their values differ
@@ -1198,7 +1198,7 @@ subroutine env_hpsort_eps(n, ra, ind, eps)
   !
   ! adapted from Numerical Recipes pg. 329 (new edition)
   !
-  USE env_fft_param
+  USE fft_param
   implicit none  
   !-input/output variables
   integer, intent(in) :: n  
@@ -1294,12 +1294,12 @@ subroutine env_hpsort_eps(n, ra, ind, eps)
 
   end do sorting
   !
-end subroutine env_hpsort_eps
+end subroutine hpsort_eps
 
-subroutine env_prepare_psi_tg(ibnd, nbnd, ngms, psi, tg_psi, dffts, gamma_only)
-  USE env_fft_param
-  USE env_fft_types
-  USE env_fft_helper_subroutines
+subroutine prepare_psi_tg(ibnd, nbnd, ngms, psi, tg_psi, dffts, gamma_only)
+  USE fft_param
+  USE fft_types
+  USE fft_helper_subroutines
   implicit none
   integer, intent(in) :: ibnd, nbnd, ngms
   TYPE(fft_type_descriptor), intent(in) :: dffts
@@ -1311,7 +1311,7 @@ subroutine env_prepare_psi_tg(ibnd, nbnd, ngms, psi, tg_psi, dffts, gamma_only)
    tg_psi(:) = ( 0.D0, 0.D0 )
    ioff   = 0
    !
-   CALL env_tg_get_nnr( dffts, right_nnr )
+   CALL tg_get_nnr( dffts, right_nnr )
    ntgrp = fftx_ntgrp(dffts)
    !
    IF (gamma_only) THEN
@@ -1350,12 +1350,12 @@ subroutine env_prepare_psi_tg(ibnd, nbnd, ngms, psi, tg_psi, dffts, gamma_only)
          ioff = ioff + right_nnr
       ENDDO
    END IF
-end subroutine env_prepare_psi_tg
+end subroutine prepare_psi_tg
 
-subroutine env_prepare_psi( ibnd, nbnd, ngms, psi, psic, dffts, gamma_only)
-   USE env_fft_param
-   USE env_fft_types
-   USE env_fft_helper_subroutines
+subroutine prepare_psi( ibnd, nbnd, ngms, psi, psic, dffts, gamma_only)
+   USE fft_param
+   USE fft_types
+   USE fft_helper_subroutines
    implicit none
    integer, intent(in) :: ibnd, nbnd, ngms
    TYPE(fft_type_descriptor), intent(in) :: dffts
@@ -1383,13 +1383,13 @@ subroutine env_prepare_psi( ibnd, nbnd, ngms, psi, psic, dffts, gamma_only)
          psic (dffts%nl (j)) = psi(j, ibnd)
       END DO
    END IF
-end subroutine env_prepare_psi
+end subroutine prepare_psi
 
 
-subroutine env_accumulate_hpsi( ibnd, nbnd, ngms, hpsi, psic, dffts, gamma_only)
-   USE env_fft_types
-   USE env_fft_param
-   USE env_fft_helper_subroutines
+subroutine accumulate_hpsi( ibnd, nbnd, ngms, hpsi, psic, dffts, gamma_only)
+   USE fft_types
+   USE fft_param
+   USE fft_helper_subroutines
    implicit none
    integer, intent(in) :: ibnd, nbnd, ngms
    TYPE(fft_type_descriptor) :: dffts
@@ -1424,11 +1424,11 @@ subroutine env_accumulate_hpsi( ibnd, nbnd, ngms, hpsi, psic, dffts, gamma_only)
        ENDDO
     END IF
     !
-end subroutine env_accumulate_hpsi
-subroutine env_accumulate_hpsi_tg( ibnd, nbnd, ngms, hpsi, tg_psic, dffts, gamma_only)
-   USE env_fft_types
-   USE env_fft_param
-   USE env_fft_helper_subroutines
+end subroutine accumulate_hpsi
+subroutine accumulate_hpsi_tg( ibnd, nbnd, ngms, hpsi, tg_psic, dffts, gamma_only)
+   USE fft_types
+   USE fft_param
+   USE fft_helper_subroutines
    implicit none
    integer, intent(in) :: ibnd, nbnd, ngms
    TYPE(fft_type_descriptor) :: dffts
@@ -1442,7 +1442,7 @@ subroutine env_accumulate_hpsi_tg( ibnd, nbnd, ngms, hpsi, tg_psic, dffts, gamma
    !
    ioff   = 0
    !
-   CALL env_tg_get_recip_inc( dffts, right_inc )
+   CALL tg_get_recip_inc( dffts, right_inc )
    !
    IF (gamma_only) THEN
       DO idx = 1, 2*fftx_ntgrp(dffts), 2
@@ -1486,4 +1486,4 @@ subroutine env_accumulate_hpsi_tg( ibnd, nbnd, ngms, hpsi, tg_psic, dffts, gamma
       ENDDO
    END IF 
    !
-end subroutine env_accumulate_hpsi_tg
+end subroutine accumulate_hpsi_tg

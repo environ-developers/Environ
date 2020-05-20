@@ -1,6 +1,6 @@
 # Makefile for FFTXlib
 
-include ../../make.inc
+include ../make.inc
 
 FFTX = \
 scatter_mod.o  \
@@ -26,13 +26,12 @@ fft_stick.o  \
 fft_types.o \
 tg_gather.o \
 fft_helper_subroutines.o \
-fft_param.o \
-mkl_dfti.o
+fft_param.o
 
 
-all : libenvfft.a
+all : libqefft.a
 
-libenvfft.a: 	$(FFTX)
+libqefft.a: 	$(FFTX)
 	$(AR) $(ARFLAGS) $@ $?       
 	$(RANLIB) $@    
 

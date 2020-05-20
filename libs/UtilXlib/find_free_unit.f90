@@ -6,24 +6,24 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
   !--------------------------------------------------------------------------
-  FUNCTION env_find_free_unit()
+  FUNCTION find_free_unit()
     !--------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    INTEGER :: env_find_free_unit
+    INTEGER :: find_free_unit
     INTEGER :: iunit
     LOGICAL :: opnd
     !
     !
-    env_find_free_unit = -1
+    find_free_unit = -1
     unit_loop: DO iunit = 99, 1, -1
        !
        INQUIRE( UNIT = iunit, OPENED = opnd )
        !
        IF ( .NOT. opnd ) THEN
           !
-         env_find_free_unit = iunit
+          find_free_unit = iunit
           !
           RETURN
           !
@@ -31,9 +31,9 @@
        !
     END DO unit_loop
     !
-    CALL env_infomsg( 'find_free_unit()', 'free unit not found ?!?')
+    CALL infomsg( 'find_free_unit()', 'free unit not found ?!?')
     !
     RETURN
     !
-  END FUNCTION env_find_free_unit
+  END FUNCTION find_free_unit
   !

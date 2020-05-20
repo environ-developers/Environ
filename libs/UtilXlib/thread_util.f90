@@ -10,9 +10,9 @@
 ! threaded_barrier_memXXX contains a do region without parallel
 ! threaded_nowait_memXXX contains a do region without parallel and a nowait at the end do
 !
-SUBROUTINE env_threaded_memcpy(array, array_in, length)
+SUBROUTINE threaded_memcpy(array, array_in, length)
   !
-  USE env_util_param,   ONLY : DP
+  USE util_param,   ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -30,11 +30,11 @@ SUBROUTINE env_threaded_memcpy(array, array_in, length)
   ENDDO
   !$omp end parallel do
   !
-END SUBROUTINE env_threaded_memcpy
+END SUBROUTINE threaded_memcpy
 
-SUBROUTINE env_threaded_barrier_memcpy(array, array_in, length)
+SUBROUTINE threaded_barrier_memcpy(array, array_in, length)
   !
-  USE env_util_param,   ONLY : DP
+  USE util_param,   ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -52,11 +52,11 @@ SUBROUTINE env_threaded_barrier_memcpy(array, array_in, length)
   ENDDO
   !$omp end do
   !
-END SUBROUTINE env_threaded_barrier_memcpy
+END SUBROUTINE threaded_barrier_memcpy
 
-SUBROUTINE env_threaded_nowait_memcpy(array, array_in, length)
+SUBROUTINE threaded_nowait_memcpy(array, array_in, length)
   !
-  USE env_util_param,   ONLY : DP
+  USE util_param,   ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -74,11 +74,11 @@ SUBROUTINE env_threaded_nowait_memcpy(array, array_in, length)
   ENDDO
   !$omp end do nowait
   !
-END SUBROUTINE env_threaded_nowait_memcpy
+END SUBROUTINE threaded_nowait_memcpy
 
-SUBROUTINE env_threaded_memset(array, val, length)
+SUBROUTINE threaded_memset(array, val, length)
   !
-  USE env_util_param,   ONLY : DP
+  USE util_param,   ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -96,11 +96,11 @@ SUBROUTINE env_threaded_memset(array, val, length)
   ENDDO
   !$omp end parallel do
   !
-END SUBROUTINE env_threaded_memset
+END SUBROUTINE threaded_memset
 
-SUBROUTINE env_threaded_barrier_memset(array, val, length)
+SUBROUTINE threaded_barrier_memset(array, val, length)
   !
-  USE env_util_param,   ONLY : DP
+  USE util_param,   ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -118,11 +118,11 @@ SUBROUTINE env_threaded_barrier_memset(array, val, length)
   ENDDO
   !$omp end do
   !
-END SUBROUTINE env_threaded_barrier_memset
+END SUBROUTINE threaded_barrier_memset
 
-SUBROUTINE env_threaded_nowait_memset(array, val, length)
+SUBROUTINE threaded_nowait_memset(array, val, length)
   !
-  USE env_util_param,   ONLY : DP
+  USE util_param,   ONLY : DP
   !
   IMPLICIT NONE
   !
@@ -140,4 +140,4 @@ SUBROUTINE env_threaded_nowait_memset(array, val, length)
   ENDDO
   !$omp end do nowait
   !
-END SUBROUTINE env_threaded_nowait_memset
+END SUBROUTINE threaded_nowait_memset

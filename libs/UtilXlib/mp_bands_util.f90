@@ -6,11 +6,11 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------
-MODULE env_mp_bands_util
+MODULE mp_bands_util
   !----------------------------------------------------------------------------
   !
-  USE env_mp, ONLY : env_mp_barrier, env_mp_bcast, env_mp_size, env_mp_rank, env_mp_comm_split
-  USE env_parallel_include
+  USE mp, ONLY : mp_barrier, mp_bcast, mp_size, mp_rank, mp_comm_split
+  USE parallel_include
   !
   IMPLICIT NONE 
   SAVE
@@ -43,4 +43,4 @@ MODULE env_mp_bands_util
   INTEGER :: gstart =  2  ! appropriate value for serial execution
 #endif
 
-END MODULE env_mp_bands_util
+END MODULE mp_bands_util

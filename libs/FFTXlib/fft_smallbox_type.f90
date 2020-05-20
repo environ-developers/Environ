@@ -7,9 +7,9 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 
-MODULE env_fft_smallbox_type
+MODULE fft_smallbox_type
 
-  USE env_fft_types, ONLY: fft_type_descriptor
+  USE fft_types, ONLY: fft_type_descriptor
 
   IMPLICIT NONE
 
@@ -47,7 +47,7 @@ CONTAINS
 
 !=----------------------------------------------------------------------------=!
 
-  SUBROUTINE env_fft_box_allocate( desc, mype, root, nproc, comm, nat )
+  SUBROUTINE fft_box_allocate( desc, mype, root, nproc, comm, nat )
     TYPE (fft_box_descriptor) :: desc
     INTEGER, INTENT(in) :: nat, nproc, mype, root, comm  ! mype starting from 0
     ALLOCATE( desc%irb( 3, nat ) )
@@ -62,9 +62,9 @@ CONTAINS
     desc%nproc = nproc
     desc%comm = comm
     desc%root = root
-  END SUBROUTINE env_fft_box_allocate
+  END SUBROUTINE fft_box_allocate
 
-  SUBROUTINE env_fft_box_deallocate( desc )
+  SUBROUTINE fft_box_deallocate( desc )
     TYPE (fft_box_descriptor) :: desc
     IF( ALLOCATED( desc%irb ) ) DEALLOCATE( desc%irb )
     IF( ALLOCATED( desc%imin2 ) ) DEALLOCATE( desc%imin2 )
@@ -73,12 +73,12 @@ CONTAINS
     IF( ALLOCATED( desc%imax3 ) ) DEALLOCATE( desc%imax3 )
     IF( ALLOCATED( desc%np2 ) ) DEALLOCATE( desc%np2 )
     IF( ALLOCATED( desc%np3 ) ) DEALLOCATE( desc%np3 )
-  END SUBROUTINE env_fft_box_deallocate
+  END SUBROUTINE fft_box_deallocate
 
 !=----------------------------------------------------------------------------=!
 !=----------------------------------------------------------------------------=!
 
-  SUBROUTINE env_fft_box_set( desc, nat, irb, dfftp )
+  SUBROUTINE fft_box_set( desc, nat, irb, dfftp )
 
     IMPLICIT NONE
 
@@ -94,12 +94,12 @@ CONTAINS
 
     IF( nat > size( desc%irb, 2 ) ) THEN
        WRITE( stdout, fmt="( ///,'NAT, SIZE = ',2I10)" ) nat, size( desc%irb, 2 )
-       CALL env_fftx_error__(" fft_box_set ", " inconsistent dimensions ", 1 )
+       CALL fftx_error__(" fft_box_set ", " inconsistent dimensions ", 1 )
     ENDIF
 
     if ( (desc%nr1.eq.0)  .OR. (desc%nr2.eq.0)  .OR. (desc%nr3.eq.0) .OR. &
          (desc%nr1x.eq.0) .OR. (desc%nr2x.eq.0) .OR. (desc%nr3x.eq.0) ) &
-         call env_fftx_error__(" fft_box_set ", "descriptor dimensions must be already initialized", 1)
+         call fftx_error__(" fft_box_set ", "descriptor dimensions must be already initialized", 1)
     nr1b  = desc%nr1  ; nr2b  = desc%nr2  ; nr3b  = desc%nr3
     nr1bx = desc%nr1x ; nr2bx = desc%nr2x ; nr3bx = desc%nr3x
 
@@ -114,7 +114,7 @@ CONTAINS
        DO ir3 = 1, nr3b
           ibig3 = 1 + mod( irb3 + ir3 - 2, dfftp%nr3 )
           IF( ibig3 < 1 .or. ibig3 > dfftp%nr3 )   &
-        &        CALL env_fftx_error__(' fft_box_set ',' ibig3 wrong ', ibig3 )
+        &        CALL fftx_error__(' fft_box_set ',' ibig3 wrong ', ibig3 )
           ibig3 = ibig3 - dfftp%my_i0r3p
           IF ( ibig3 > 0 .and. ibig3 <= dfftp%my_nr3p ) THEN
                imin3 = min( imin3, ir3 )
@@ -133,7 +133,7 @@ CONTAINS
        DO ir2 = 1, nr2b
           ibig2 = 1 + mod( irb2 + ir2 - 2, dfftp%nr2 )
           IF( ibig2 < 1 .or. ibig2 > dfftp%nr2 )   &
-        &        CALL env_fftx_error__(' fft_box_set ',' ibig2 wrong ', ibig2 )
+        &        CALL fftx_error__(' fft_box_set ',' ibig2 wrong ', ibig2 )
           ibig2 = ibig2 - dfftp%my_i0r2p
           IF ( ibig2 > 0 .and. ibig2 <= dfftp%my_nr2p ) THEN
                imin2 = min( imin2, ir2 )
@@ -149,6 +149,6 @@ CONTAINS
 
     desc%nnr  = desc%nr1x * desc%nr2x * desc%nr3x
 
-  END SUBROUTINE env_fft_box_set
+  END SUBROUTINE fft_box_set
 
-END MODULE env_fft_smallbox_type
+END MODULE fft_smallbox_type

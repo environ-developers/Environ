@@ -1,6 +1,6 @@
 # Makefile for DAVID
 
-include ../../make.inc
+include ../make.inc
 
 # location of needed modules and included files (if any)
 MODFLAGS=$(MOD_FLAG).
@@ -21,10 +21,10 @@ parallel_include.o \
 util_param.o \
 thread_util.o
 
-all : libenvutil.a
+all : libutil.a
 
 
-libenvutil.a:  $(UTIL)
+libutil.a:  $(UTIL)
 	$(AR) $(ARFLAGS) $@ $?       
 	$(RANLIB) $@    
 

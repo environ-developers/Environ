@@ -8,37 +8,37 @@
 ! Utility functions to perform memcpy and memset on the device with CUDA Fortran
 ! cuf_memXXX contains a CUF KERNEL to perform the selected operation
 !
-MODULE env_cuda_util
+MODULE cuda_util
   !
-  USE env_util_param,   ONLY : DP
+  USE util_param,   ONLY : DP
   !
   IMPLICIT NONE
   !
-  PUBLIC :: env_cuf_memcpy, env_cuf_memset
+  PUBLIC :: cuf_memcpy, cuf_memset
   !
-  INTERFACE env_cuf_memcpy
+  INTERFACE cuf_memcpy
     MODULE PROCEDURE &
-      env_cuf_memcpy_r1d, &
-      env_cuf_memcpy_r2d, &
-      env_cuf_memcpy_r3d, &
-      env_cuf_memcpy_c1d, &
-      env_cuf_memcpy_c2d, &
-      env_cuf_memcpy_c3d
+      cuf_memcpy_r1d, &
+      cuf_memcpy_r2d, &
+      cuf_memcpy_r3d, &
+      cuf_memcpy_c1d, &
+      cuf_memcpy_c2d, &
+      cuf_memcpy_c3d
   END INTERFACE
   !
-  INTERFACE env_cuf_memset
+  INTERFACE cuf_memset
     MODULE PROCEDURE &
-      env_cuf_memset_r1d, &
-      env_cuf_memset_r2d, &
-      env_cuf_memset_r3d, &
-      env_cuf_memset_c1d, &
-      env_cuf_memset_c2d, &
-      env_cuf_memset_c3d
+      cuf_memset_r1d, &
+      cuf_memset_r2d, &
+      cuf_memset_r3d, &
+      cuf_memset_c1d, &
+      cuf_memset_c2d, &
+      cuf_memset_c3d
   END INTERFACE
   !
   CONTAINS
   !
-  SUBROUTINE env_cuf_memcpy_r1d(array_out, array_in, range1 )
+  SUBROUTINE cuf_memcpy_r1d(array_out, array_in, range1 )
     !
     IMPLICIT NONE
     !
@@ -60,9 +60,9 @@ MODULE env_cuda_util
        array_out(i1 ) = array_in(i1 )
     ENDDO
     !
-  END SUBROUTINE env_cuf_memcpy_r1d
+  END SUBROUTINE cuf_memcpy_r1d
   !
-  SUBROUTINE env_cuf_memcpy_r2d(array_out, array_in, range1, range2 )
+  SUBROUTINE cuf_memcpy_r2d(array_out, array_in, range1, range2 )
     !
     IMPLICIT NONE
     !
@@ -89,9 +89,9 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memcpy_r2d
+  END SUBROUTINE cuf_memcpy_r2d
   !
-  SUBROUTINE env_cuf_memcpy_r3d(array_out, array_in, range1, range2, range3 )
+  SUBROUTINE cuf_memcpy_r3d(array_out, array_in, range1, range2, range3 )
     !
     IMPLICIT NONE
     !
@@ -123,9 +123,9 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memcpy_r3d
+  END SUBROUTINE cuf_memcpy_r3d
   !
-  SUBROUTINE env_cuf_memcpy_c1d(array_out, array_in, range1 )
+  SUBROUTINE cuf_memcpy_c1d(array_out, array_in, range1 )
     !
     IMPLICIT NONE
     !
@@ -147,9 +147,9 @@ MODULE env_cuda_util
        array_out(i1 ) = array_in(i1 )
     ENDDO
     !
-  END SUBROUTINE env_cuf_memcpy_c1d
+  END SUBROUTINE cuf_memcpy_c1d
   !
-  SUBROUTINE env_cuf_memcpy_c2d(array_out, array_in, range1, range2 )
+  SUBROUTINE cuf_memcpy_c2d(array_out, array_in, range1, range2 )
     !
     IMPLICIT NONE
     !
@@ -176,9 +176,9 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memcpy_c2d
+  END SUBROUTINE cuf_memcpy_c2d
   !
-  SUBROUTINE env_cuf_memcpy_c3d(array_out, array_in, range1, range2, range3 )
+  SUBROUTINE cuf_memcpy_c3d(array_out, array_in, range1, range2, range3 )
     !
     IMPLICIT NONE
     !
@@ -210,10 +210,10 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memcpy_c3d
+  END SUBROUTINE cuf_memcpy_c3d
   !
   !
-  SUBROUTINE env_cuf_memset_r1d(array_out, val, range1 )
+  SUBROUTINE cuf_memset_r1d(array_out, val, range1 )
     !
     IMPLICIT NONE
     !
@@ -235,9 +235,9 @@ MODULE env_cuda_util
        array_out(i1 ) = val
     ENDDO
     !
-  END SUBROUTINE env_cuf_memset_r1d
+  END SUBROUTINE cuf_memset_r1d
   !
-  SUBROUTINE env_cuf_memset_r2d(array_out, val, range1, range2 )
+  SUBROUTINE cuf_memset_r2d(array_out, val, range1, range2 )
     !
     IMPLICIT NONE
     !
@@ -264,9 +264,9 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memset_r2d
+  END SUBROUTINE cuf_memset_r2d
   !
-  SUBROUTINE env_cuf_memset_r3d(array_out, val, range1, range2, range3 )
+  SUBROUTINE cuf_memset_r3d(array_out, val, range1, range2, range3 )
     !
     IMPLICIT NONE
     !
@@ -298,9 +298,9 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memset_r3d
+  END SUBROUTINE cuf_memset_r3d
   !
-  SUBROUTINE env_cuf_memset_c1d(array_out, val, range1 )
+  SUBROUTINE cuf_memset_c1d(array_out, val, range1 )
     !
     IMPLICIT NONE
     !
@@ -322,9 +322,9 @@ MODULE env_cuda_util
        array_out(i1 ) = val
     ENDDO
     !
-  END SUBROUTINE env_cuf_memset_c1d
+  END SUBROUTINE cuf_memset_c1d
   !
-  SUBROUTINE env_cuf_memset_c2d(array_out, val, range1, range2 )
+  SUBROUTINE cuf_memset_c2d(array_out, val, range1, range2 )
     !
     IMPLICIT NONE
     !
@@ -351,9 +351,9 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memset_c2d
+  END SUBROUTINE cuf_memset_c2d
   !
-  SUBROUTINE env_cuf_memset_c3d(array_out, val, range1, range2, range3 )
+  SUBROUTINE cuf_memset_c3d(array_out, val, range1, range2, range3 )
     !
     IMPLICIT NONE
     !
@@ -385,9 +385,9 @@ MODULE env_cuda_util
     ENDDO
     ENDDO
     !
-  END SUBROUTINE env_cuf_memset_c3d
+  END SUBROUTINE cuf_memset_c3d
   !
-END MODULE env_cuda_util
+END MODULE cuda_util
 !
 !
 ! === TEMPLATE USED TO GENERATE THIS FILE ===
