@@ -160,9 +160,9 @@ CONTAINS
     ! ... Aliases and sanity checks
     !
     IF ( .NOT. ASSOCIATED( potential%cell, charges%cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of potential and charges',1)
+         & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
     IF ( .NOT. ASSOCIATED( potential%cell, oned_analytic%cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of potential and solver',1)
+         & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
     cell => potential % cell
     nnr => cell % nnr
     alat => cell % alat
@@ -177,7 +177,7 @@ CONTAINS
     ! ... Get parameters of electrolyte to compute analytic correction
     !
     IF ( electrolyte % ntyp .NE. 2 ) &
-         & CALL env_errore(sub_name,'Unexpected number of counterionic species, different from two',1)
+         & CALL errore(sub_name,'Unexpected number of counterionic species, different from two',1)
     cion => electrolyte % ioncctype(1) % cbulk
     zion = ABS(electrolyte % ioncctype(1) % z)
     permittivity => electrolyte%permittivity
@@ -189,7 +189,7 @@ CONTAINS
     invkbt = 1.D0 / kbt
     !
     IF ( env_periodicity .NE. 2 ) &
-         & CALL env_errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
+         & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
     !
     CALL init_environ_density( cell, local )
     v => local % of_r
@@ -252,8 +252,8 @@ CONTAINS
       ENDIF
       !
     ENDDO
-    CALL env_mp_sum(icount,cell%comm)
-    CALL env_mp_sum(vbound,cell%comm)
+    CALL mp_sum(icount,cell%comm)
+    CALL mp_sum(vbound,cell%comm)
     vbound = vbound / DBLE(icount)
     !
     v = v - vbound + vstern
@@ -314,7 +314,7 @@ CONTAINS
     !
     CALL destroy_environ_density(local)
     !
-    CALL env_stop_clock ('calc_vgcs')
+    CALL stop_clock ('calc_vgcs')
     !
     RETURN
     !
@@ -357,14 +357,14 @@ CONTAINS
     REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvgcs'
     !
-    CALL env_start_clock ('calc_gvst')
+    CALL start_clock ('calc_gvst')
     !
     ! ... Aliases and sanity checks
     !
     IF ( .NOT. ASSOCIATED( gradv%cell, charges%cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of potential and charges',1)
+         & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
     IF ( .NOT. ASSOCIATED ( gradv%cell, oned_analytic%cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of potential and solver',1)
+         & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
     cell => gradv % cell
     nnr => cell % nnr
     alat => cell % alat
@@ -379,7 +379,7 @@ CONTAINS
     ! ... Get parameters of electrolyte to compute analytic correction
     !
     IF ( electrolyte % ntyp .NE. 2 ) &
-         & CALL env_errore(sub_name,'Unexpected number of counterionic species, different from two',1)
+         & CALL errore(sub_name,'Unexpected number of counterionic species, different from two',1)
     cion => electrolyte % ioncctype(1) % cbulk
     zion = ABS( electrolyte % ioncctype(1) % z )
     permittivity => electrolyte%permittivity
@@ -391,7 +391,7 @@ CONTAINS
     invkbt = 1.D0 / kbt
     !
     IF ( env_periodicity .NE. 2 ) &
-         & CALL env_errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
+         & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
     !
     CALL init_environ_gradient( cell, glocal )
     gvstern => glocal % of_r
@@ -495,7 +495,7 @@ CONTAINS
     !
     CALL destroy_environ_gradient(glocal)
     !
-    CALL env_stop_clock ('calc_gvst')
+    CALL stop_clock ('calc_gvst')
     !
     RETURN
 !---------------------------------------------------------------------------

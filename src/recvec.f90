@@ -74,7 +74,7 @@
        !
        ! Set local and global dimensions, allocate arrays
        !
-       USE env_mp, ONLY: env_mp_max, env_mp_sum
+       USE mp, ONLY: mp_max, mp_sum
        IMPLICIT NONE
        INTEGER, INTENT(IN) :: ngm_
        INTEGER, INTENT(IN) :: comm  ! communicator of the group on which g-vecs are distributed
@@ -84,12 +84,12 @@
        !  calculate maximum over all processors
        !
        ngmx = ngm
-       CALL env_mp_max( ngmx, comm )
+       CALL mp_max( ngmx, comm )
        !
        !  calculate sum over all processors
        !
        ngm_g = ngm
-       CALL env_mp_sum( ngm_g, comm )
+       CALL mp_sum( ngm_g, comm )
        !
        !  allocate arrays - only those that are always kept until the end
        !
@@ -182,7 +182,7 @@
               ENDIF
            ENDDO
 
-           IF (igl /= ngl) CALL env_errore ('gshells', 'igl <> ngl', ngl)
+           IF (igl /= ngl) CALL errore ('gshells', 'igl <> ngl', ngl)
 
         ENDIF
      END SUBROUTINE env_gshells
@@ -216,7 +216,7 @@
    CONTAINS
 
      SUBROUTINE env_gvecs_init( ngs_ , comm )
-       USE env_mp, ONLY: env_mp_max, env_mp_sum
+       USE mp, ONLY: mp_max, mp_sum
        IMPLICIT NONE
        INTEGER, INTENT(IN) :: ngs_
        INTEGER, INTENT(IN) :: comm  ! communicator of the group on which g-vecs are distributed
@@ -226,12 +226,12 @@
        !  calculate maximum over all processors
        !
        ngsx = ngms
-       CALL env_mp_max( ngsx, comm )
+       CALL mp_max( ngsx, comm )
        !
        !  calculate sum over all processors
        !
        ngms_g = ngms
-       CALL env_mp_sum( ngms_g, comm )
+       CALL mp_sum( ngms_g, comm )
        !
        !  allocate arrays 
        !

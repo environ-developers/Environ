@@ -104,11 +104,11 @@ CONTAINS
    !
    IF ( .NOT. ltddfpt .OR. .NOT. loptical ) RETURN
    !
-   CALL env_start_clock( 'calc_vsolvent_tddfpt' )
+   CALL start_clock( 'calc_vsolvent_tddfpt' )
    !
    ! ... Sanity checks and local allocation
    !
-   IF ( nnr .NE. cell % nnr ) CALL env_errore(sub_name,'Missmatch in passed and stored grid dimension',1)
+   IF ( nnr .NE. cell % nnr ) CALL errore(sub_name,'Missmatch in passed and stored grid dimension',1)
    !
    ! ... Create source response electronic density
    !
@@ -182,7 +182,7 @@ CONTAINS
    CALL destroy_environ_charges( .TRUE., response_charges )
    CALL destroy_environ_electrons( .TRUE., response_electrons )
    !
-   CALL env_stop_clock( 'calc_vsolvent_tddfpt' )
+   CALL stop_clock( 'calc_vsolvent_tddfpt' )
    !
    RETURN
    !

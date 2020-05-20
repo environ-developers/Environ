@@ -36,7 +36,7 @@
 MODULE modules_parser
   !----------------------------------------------------------------------------
   !
-  USE environ_output, ONLY : program_unit
+  USE environ_output,    ONLY : program_unit
   USE modules_constants, ONLY : DP
   !
   PRIVATE
@@ -122,7 +122,7 @@ MODULE modules_parser
   SUBROUTINE env_read_line( line, nfield, field, end_of_file, error )
     !--------------------------------------------------------------------------
     !
-    USE mp,        ONLY : mp_bcast
+    USE mp,             ONLY : mp_bcast
     USE environ_output, ONLY : comm !! WE MAY WANT TO ADD A SECOND COMM ON IMAGES
     USE environ_output, ONLY : ionode, ionode_id
     !
@@ -136,7 +136,7 @@ MODULE modules_parser
     !
     !
     IF( LEN( line ) < 256 ) THEN
-       CALL env_errore(' read_line ', ' input line too short ', MAX(LEN(line),1) )
+       CALL errore(' read_line ', ' input line too short ', MAX(LEN(line),1) )
     END IF
     !
     tend = .FALSE.
@@ -151,19 +151,19 @@ MODULE modules_parser
 20     CONTINUE
     END IF
     !
-    CALL env_mp_bcast( tend, ionode_id, intra_image_comm )
-    CALL env_mp_bcast( terr, ionode_id, intra_image_comm )
-    CALL env_mp_bcast( line, ionode_id, intra_image_comm )
+    CALL mp_bcast( tend, ionode_id, intra_image_comm )
+    CALL mp_bcast( terr, ionode_id, intra_image_comm )
+    CALL mp_bcast( line, ionode_id, intra_image_comm )
     !
     IF( PRESENT(end_of_file) ) THEN
        end_of_file = tend
     ELSE IF( tend ) THEN
-       CALL env_infomsg(' read_line ', ' end of file ' )
+       CALL infomsg(' read_line ', ' end of file ' )
     END IF
     IF( PRESENT(error) ) THEN
        error = terr
     ELSE IF( terr ) THEN
-       CALL env_infomsg(' read_line ', ' read error ' )
+       CALL infomsg(' read_line ', ' read error ' )
     END IF
     IF( PRESENT(field) .and. .not.(tend.or.terr) ) &
      &CALL env_field_compare( line, nfield, field )
@@ -185,7 +185,7 @@ MODULE modules_parser
     CALL env_field_count( nc, str )
     !
     IF( nc < nf ) &
-      CALL env_errore( ' field_compare ', &
+      CALL errore( ' field_compare ', &
                  & ' wrong number of fields: ' // TRIM( var ), 1 )
     !
     RETURN
@@ -203,14 +203,14 @@ MODULE modules_parser
 
     num = 0
     IF (len(line) .GT. 256 ) THEN
-       WRITE( stdout,*) 'riga ', line
-       WRITE( stdout,*) 'lunga ', len(line)
+       WRITE( program_unit,*) 'riga ', line
+       WRITE( program_unit,*) 'lunga ', len(line)
        num = -1
        RETURN
     END IF
 
-    WRITE( stdout,*) '1riga ', line
-    WRITE( stdout,*) '1lunga ', len(line)
+    WRITE( program_unit,*) '1riga ', line
+    WRITE( program_unit,*) '1lunga ', len(line)
     IF ( .NOT. present(car) ) THEN
        sep=char(32)             !char(32) is the blank character
     ELSE

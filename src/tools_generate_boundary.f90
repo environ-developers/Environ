@@ -316,7 +316,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL env_errore(fun_name,'Unknown boundary type',1)
+       CALL errore(fun_name,'Unknown boundary type',1)
        !
     END SELECT
     !
@@ -365,7 +365,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL env_errore(fun_name,'Unknown boundary type',1)
+       CALL errore(fun_name,'Unknown boundary type',1)
        !
     END SELECT
     !
@@ -402,7 +402,7 @@ CONTAINS
        !
     CASE( 0 )
        !
-       CALL env_errore(fun_name,'Option not yet implemented',1)
+       CALL errore(fun_name,'Option not yet implemented',1)
        !
     CASE( 1 )
        !
@@ -416,7 +416,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL env_errore(fun_name,'Unknown boundary type',1)
+       CALL errore(fun_name,'Unknown boundary type',1)
        !
     END SELECT
     !
@@ -453,7 +453,7 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_density'
     !
     IF ( .NOT. ASSOCIATED(density%cell,boundary%scaled%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent domains',1)
+         & CALL errore(sub_name,'Inconsistent domains',1)
     !
     ir_end => density % cell % ir_end
     nnr => density % cell % nnr
@@ -793,7 +793,7 @@ CONTAINS
     INTEGER :: j, ipol
     CHARACTER( LEN=80 ) :: sub_name = 'calc_partial_of_boundary_highmem'
     !
-    IF ( i .GT. n ) CALL env_errore(sub_name,'Index out of bound',1)
+    IF ( i .GT. n ) CALL errore(sub_name,'Index out of bound',1)
     !
     DO ipol = 1, 3
        partial % of_r( ipol, : ) = gradlocal(i) % of_r( ipol, : )
@@ -972,19 +972,19 @@ CONTAINS
     ELSE IF ( boundary % need_system ) THEN
        number => boundary % system % ions % number
     ELSE
-       CALL env_errore(sub_name,'Missing details of ions',1)
+       CALL errore(sub_name,'Missing details of ions',1)
     END IF
     !
     IF ( index .GT. number ) &
-         & CALL env_errore(sub_name,'Index greater than number of ions',1)
+         & CALL errore(sub_name,'Index greater than number of ions',1)
     IF ( index .LE. 0 ) &
-         & CALL env_errore(sub_name,'Index of ion is zero or lower',1)
+         & CALL errore(sub_name,'Index of ion is zero or lower',1)
     IF ( boundary % mode .EQ. 'ionic' .AND. .NOT. ALLOCATED( boundary % soft_spheres ) ) &
-         & CALL env_errore(sub_name,'Missing details of ionic boundary',1)
+         & CALL errore(sub_name,'Missing details of ionic boundary',1)
     IF ( boundary % mode .EQ. 'full' .AND. .NOT. ALLOCATED( boundary % ions % core_electrons ) ) &
-         & CALL env_errore(sub_name,'Missing details of core electrons',1)
+         & CALL errore(sub_name,'Missing details of core electrons',1)
     IF ( boundary % mode .EQ. 'full' .AND. .NOT. ASSOCIATED( boundary % dscaled % cell, cell ) ) &
-         & CALL env_errore(sub_name,'Mismatch or unassociated boundary derivative',1)
+         & CALL errore(sub_name,'Mismatch or unassociated boundary derivative',1)
     !
     IF ( boundary % mode .EQ. 'ionic' ) THEN
        !

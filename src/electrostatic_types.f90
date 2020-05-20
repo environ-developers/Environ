@@ -295,26 +295,26 @@ CONTAINS
     CASE ( 'cg', 'sd', 'gradient' )
        !
        IF ( .NOT. PRESENT( gradient ) ) &
-            & CALL env_errore( sub_name, 'Missing specified solver type', 1 )
+            & CALL errore( sub_name, 'Missing specified solver type', 1 )
        solver % use_gradient = .TRUE.
        solver % gradient => gradient
        !
     CASE ( 'iterative' )
        !
        IF ( .NOT. PRESENT( iterative ) ) &
-            & CALL env_errore( sub_name, 'Missing specified solver type', 1 )
+            & CALL errore( sub_name, 'Missing specified solver type', 1 )
        solver % use_iterative = .TRUE.
        solver % iterative => iterative
     CASE( 'newton' )
        !
        IF ( .NOT. PRESENT( newton ) ) &
-            & CALL env_errore( sub_name, 'Missing specified solver type', 1 )
+            & CALL errore( sub_name, 'Missing specified solver type', 1 )
        solver % use_newton = .TRUE.
        solver % newton => newton
        !
     CASE DEFAULT
        !
-       CALL env_errore( sub_name, 'Unexpected option for electrostatic solver type', 1 )
+       CALL errore( sub_name, 'Unexpected option for electrostatic solver type', 1 )
        !
     END SELECT
     !
@@ -325,7 +325,7 @@ CONTAINS
     IF ( solver % use_gradient ) number = number + 1
     IF ( solver % use_iterative ) number = number + 1
     IF ( solver % use_newton ) number = number + 1
-    IF ( number .NE. 1 ) CALL env_errore( sub_name, 'Too few or too many solvers are active', 1 )
+    IF ( number .NE. 1 ) CALL errore( sub_name, 'Too few or too many solvers are active', 1 )
     !
     RETURN
     !
@@ -390,7 +390,7 @@ CONTAINS
     !
     IF ( lflag ) THEN
        IF ( .NOT. ALLOCATED( fd%icfd ) ) &
-            & CALL env_errore( sub_name, 'Trying to deallocate a non-allocated object', 1 )
+            & CALL errore( sub_name, 'Trying to deallocate a non-allocated object', 1 )
        DEALLOCATE( fd % icfd )
     END IF
     !
@@ -471,12 +471,12 @@ CONTAINS
     CHARACTER( LEN = 80 ) :: sub_name = 'init_oned_analytic_core_first'
     !
     IF ( dim .EQ. 3 .OR. dim .LT. 0 ) &
-         & CALL env_errore(sub_name,'Wrong dimensions for analytic one dimensional core',1)
+         & CALL errore(sub_name,'Wrong dimensions for analytic one dimensional core',1)
     oned_analytic % d = dim
     oned_analytic % p = 3 - dim
     !
     IF ( ( dim .EQ. 1 .OR. dim .EQ. 2 ) .AND. ( axis .GT. 3 .OR. axis .LT. 1 ) ) &
-         & CALL env_errore(sub_name,'Wrong choice of axis for analytic one dimensional core',1)
+         & CALL errore(sub_name,'Wrong choice of axis for analytic one dimensional core',1)
     oned_analytic % axis = axis
     !
     oned_analytic % initialized = .FALSE.
@@ -551,7 +551,7 @@ CONTAINS
     IF ( oned_analytic % d .EQ. 0 ) THEN
        CALL generate_distance( oned_analytic % cell, oned_analytic % origin, oned_analytic % x )
     ELSE IF ( oned_analytic % d .EQ. 1 ) THEN
-       CALL env_errore( sub_name, 'Option not yet implemented', 1 )
+       CALL errore( sub_name, 'Option not yet implemented', 1 )
     ELSE IF ( oned_analytic % d .EQ. 2 ) THEN
        CALL generate_axis( oned_analytic % cell, oned_analytic % axis, oned_analytic % origin, oned_analytic % x(1,:) )
     ENDIF
@@ -574,10 +574,10 @@ CONTAINS
     !
     IF (oned_analytic % initialized ) THEN
       IF ( .NOT. ALLOCATED( oned_analytic % x ) ) &
-           & CALL env_errore(sub_name,'Trying to destroy a non-allocated component',1)
+           & CALL errore(sub_name,'Trying to destroy a non-allocated component',1)
       DEALLOCATE( oned_analytic % x )
       IF ( .NOT. ASSOCIATED( oned_analytic % cell ) ) &
-           & CALL env_errore(sub_name,'Trying to nullify a non-associated pointer',1)
+           & CALL errore(sub_name,'Trying to nullify a non-associated pointer',1)
       NULLIFY(oned_analytic%cell)
       oned_analytic % initialized = .FALSE.
     END IF
@@ -631,19 +631,19 @@ CONTAINS
        !
     CASE ( 'fft', 'qe_fft', 'default' )
        !
-       IF ( .NOT. PRESENT( qe_fft ) ) CALL env_errore(sub_name,'Missing specified core type',1)
+       IF ( .NOT. PRESENT( qe_fft ) ) CALL errore(sub_name,'Missing specified core type',1)
        core % use_qe_fft = .TRUE.
        core % qe_fft => qe_fft
        !
     CASE ( '1da', '1d-analytic', 'oned_analytic', 'gcs' )
        !
-       IF ( .NOT. PRESENT( oned_analytic ) ) CALL env_errore(sub_name,'Missing specified core type',1)
+       IF ( .NOT. PRESENT( oned_analytic ) ) CALL errore(sub_name,'Missing specified core type',1)
        core % use_oned_analytic = .TRUE.
        core % oned_analytic => oned_analytic
        !
     CASE DEFAULT
        !
-       CALL env_errore(sub_name,'Unexpected keyword for electrostatic core type',1)
+       CALL errore(sub_name,'Unexpected keyword for electrostatic core type',1)
        !
     END SELECT
     !
@@ -744,35 +744,35 @@ CONTAINS
     CASE ( 'generalized', 'gpe' )
        !
        IF ( solver % use_direct ) &
-            & CALL env_errore(sub_name,'Cannot use a direct solver for the Generalized Poisson eq.',1)
+            & CALL errore(sub_name,'Cannot use a direct solver for the Generalized Poisson eq.',1)
        !
     CASE ( 'linpb', 'linmodpb', 'linearized-pb' )
        !
        IF ( solver % use_direct .OR. solver % use_iterative ) &
-            & CALL env_errore(sub_name,'Only gradient-based solver for the linearized Poisson-Boltzmann eq.',1)
+            & CALL errore(sub_name,'Only gradient-based solver for the linearized Poisson-Boltzmann eq.',1)
        !
        IF ( core % need_correction ) THEN
           IF (.NOT. core % correction % type .EQ. '1da' ) &
-            & CALL env_errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
+            & CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
        ELSE 
-          CALL env_errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
+          CALL errore(sub_name,'linearized-PB problem requires parabolic pbc correction.',1)
        END IF 
        !
     CASE ( 'pb', 'modpb', 'poisson-boltzmann' )
        !
        IF ( solver % use_direct .OR. solver % use_gradient ) &
-          & CALL env_errore(sub_name,'No direct or gradient-based solver for the full Poisson-Boltzmann eq.',1)
+          & CALL errore(sub_name,'No direct or gradient-based solver for the full Poisson-Boltzmann eq.',1)
        !
        IF ( core % need_correction ) THEN
           IF (.NOT. core % correction % type .EQ. '1da' ) &
-            & CALL env_errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
+            & CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
        ELSE 
-          CALL env_errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
+          CALL errore(sub_name,'full-PB problem requires parabolic pbc correction.',1)
        END IF 
        !
     CASE DEFAULT
        !
-       CALL env_errore(sub_name,'Unexpected keyword for electrostatic problem',1)
+       CALL errore(sub_name,'Unexpected keyword for electrostatic problem',1)
        !
     END SELECT
     !

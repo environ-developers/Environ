@@ -163,9 +163,9 @@ CONTAINS
     INTEGER :: i
     !
     IF ( .NOT. ALLOCATED( f ) ) &
-         & CALL env_errore(sub_name,'Trying to destroy a non allocated object',1)
+         & CALL errore(sub_name,'Trying to destroy a non allocated object',1)
     IF ( SIZE(f) .NE. n ) &
-         & CALL env_errore(sub_name,'Inconsistent size of allocated object',1)
+         & CALL errore(sub_name,'Inconsistent size of allocated object',1)
     !
     DO i = 1, n
        IF ( ASSOCIATED( f(i)%pos ) ) NULLIFY( f(i)%pos )
@@ -361,11 +361,11 @@ CONTAINS
     axis   => functions%axis
     SELECT CASE ( type )
     CASE ( 1 ) ! Gaussian
-       CALL env_errore(sub_name,'Options not yet implemented',1)
+       CALL errore(sub_name,'Options not yet implemented',1)
     CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
        CALL generate_laplerfc(dim, axis, charge, width, spread, pos, laplacian)
     CASE ( 3 ) ! Exponential
-       CALL env_errore(sub_name,'Options not yet implemented',1)
+       CALL errore(sub_name,'Options not yet implemented',1)
     CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
        local_charge = erfcvolume(dim,axis,width,spread,cell) * charge
        CALL generate_laplerfc(dim, axis, local_charge, width, spread, pos, laplacian)
@@ -435,11 +435,11 @@ CONTAINS
     axis   => functions%axis
     SELECT CASE ( type )
     CASE ( 1 ) ! Gaussian
-       CALL env_errore(sub_name,'Options not yet implemented',1)
+       CALL errore(sub_name,'Options not yet implemented',1)
     CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
        CALL generate_hesserfc(dim, axis, charge, width, spread, pos, hessian)
     CASE ( 3 ) ! Exponential
-       CALL env_errore(sub_name,'Options not yet implemented',1)
+       CALL errore(sub_name,'Options not yet implemented',1)
     CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
        local_charge = erfcvolume(dim,axis,width,spread,cell) * charge
        CALL generate_hesserfc(dim, axis, local_charge, width, spread, pos, hessian)

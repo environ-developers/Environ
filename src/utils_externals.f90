@@ -71,7 +71,7 @@ CONTAINS
     !
     externals%update = .FALSE.
     externals%number = 0
-    IF ( ALLOCATED( externals%functions ) ) CALL env_errore(sub_name,'Trying to create an already allocated object',1)
+    IF ( ALLOCATED( externals%functions ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
     CALL create_environ_density( externals%density, label )
     externals%charge = 0.D0
     !

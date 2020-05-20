@@ -489,7 +489,7 @@ CONTAINS
                   & functions(ifunctions)%width,functions(ifunctions)%spread,&
                   & functions(ifunctions)%volume
           CASE DEFAULT
-             CALL env_errore(sub_name,'Unexpected function type',1)
+             CALL errore(sub_name,'Unexpected function type',1)
           END SELECT
           IF ( verbosity .GE. 3 .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1307 )&
                & functions(ifunctions)%pos
@@ -1389,15 +1389,15 @@ CONTAINS
     WRITE( actual_unit, '(5X,"Environ routines")' )
     ! dielectric subroutines
     IF ( lelectrostatic ) THEN
-       CALL env_print_clock ('calc_eelect')
-       CALL env_print_clock ('calc_velect')
-       CALL env_print_clock ('calc_vgcs')
-       CALL env_print_clock ('dielectric')
-       CALL env_print_clock ('electrolyte')
-       CALL env_print_clock ('calc_felect')
+       CALL print_clock ('calc_eelect')
+       CALL print_clock ('calc_velect')
+       CALL print_clock ('calc_vgcs')
+       CALL print_clock ('dielectric')
+       CALL print_clock ('electrolyte')
+       CALL print_clock ('calc_felect')
     END IF
     ! TDDFT
-    IF ( ltddfpt ) CALL env_print_clock ('calc_vsolvent_tddfpt')
+    IF ( ltddfpt ) CALL print_clock ('calc_vsolvent_tddfpt')
     !
     RETURN
     !
@@ -1408,14 +1408,14 @@ CONTAINS
   SUBROUTINE write_cube( f, ions, idx )
 !--------------------------------------------------------------------
     !
-    USE env_fft_base,       ONLY : dfftp
+    USE fft_base,       ONLY : dfftp
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1.X
 !      USE fft_base,       ONLY : grid_gather
 ! Compatible with QE-5.2.X
 !      USE fft_base,       ONLY : gather_grid
 ! Compatible with QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
-    USE env_scatter_mod,    ONLY : env_gather_grid
+    USE scatter_mod,    ONLY : gather_grid
 ! END BACKWARD COMPATIBILITY
     !
     IMPLICIT NONE
@@ -1476,8 +1476,8 @@ CONTAINS
 !Compatible with QE-5.1.X
 !      CALL grid_gather( f, flocal )
 !Compatible with QE-5.2.X QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
-    CALL env_gather_grid( dfftp, f%of_r, flocal )
-    CALL env_mp_sum( flocal, f%cell%comm )
+    CALL gather_grid( dfftp, f%of_r, flocal )
+    CALL mp_sum( flocal, f%cell%comm )
 #else
     flocal = f%of_r
 #endif

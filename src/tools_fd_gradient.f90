@@ -33,10 +33,10 @@ CONTAINS
   SUBROUTINE calc_fd_gradient( nfdpoint, icfd, ncfd, nnr, f, grad )
 !----------------------------------------------------------------------
     USE env_cell_base,     ONLY : at, bg, alat
-    USE env_fft_base,      ONLY : dfftp
-    USE env_scatter_mod,   ONLY : env_scatter_grid
-    USE env_mp,            ONLY : env_mp_sum
-    USE env_mp_bands,      ONLY : me_bgrp, intra_bgrp_comm
+    USE fft_base,          ONLY : dfftp
+    USE scatter_mod,       ONLY : scatter_grid
+    USE mp,                ONLY : mp_sum
+    USE mp_bands,          ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
@@ -124,8 +124,8 @@ CONTAINS
     ALLOCATE( gradaux(nnr,3) )
 #if defined (__MPI)
     DO ipol = 1, 3
-       CALL env_mp_sum( gradtmp(:,ipol), intra_bgrp_comm )
-       CALL env_scatter_grid ( dfftp, gradtmp(:,ipol), gradaux(:,ipol) )
+       CALL mp_sum( gradtmp(:,ipol), intra_bgrp_comm )
+       CALL scatter_grid ( dfftp, gradtmp(:,ipol), gradaux(:,ipol) )
     ENDDO
 #else
     gradaux(1:nnr,:) = gradtmp(1:nnr,:)

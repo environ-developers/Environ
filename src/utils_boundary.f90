@@ -182,7 +182,7 @@ CONTAINS
     ! Components required for boundary of functions
     !
     IF ( ALLOCATED( boundary%soft_spheres ) ) &
-         & CALL env_errore(sub_name,'Trying to create an already allocated object',1)
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
     !
     ! Components required for solvent-aware interface
     !
@@ -254,7 +254,7 @@ CONTAINS
     boundary%deltarho = rhomax - rhomin
     !
     IF ( const .EQ. 1.D0 .AND. boundary%need_electrons .AND. stype .EQ. 2 ) &
-     & CALL env_errore(sub_name,'stype=2 boundary requires dielectric constant > 1',1)
+     & CALL errore(sub_name,'stype=2 boundary requires dielectric constant > 1',1)
     boundary%const = const
     !
     boundary%alpha = alpha
@@ -474,7 +474,7 @@ CONTAINS
           ! ... Check if the ionic part has been updated
           !
           IF ( bound % update_status .EQ. 0 ) &
-               & CALL env_errore(sub_name,'Wrong update status, possibly missing ionic update',1)
+               & CALL errore(sub_name,'Wrong update status, possibly missing ionic update',1)
           !
           bound % density % of_r = bound % electrons % density % of_r + bound % ions % core % of_r
           !
@@ -543,7 +543,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL env_errore(sub_name,'Unrecognized boundary mode',1)
+       CALL errore(sub_name,'Unrecognized boundary mode',1)
        !
     END SELECT
     !
@@ -574,11 +574,11 @@ CONTAINS
           IF ( .NOT. boundary%need_electrons ) &
                & CALL destroy_environ_functions( boundary%ions%number, boundary%soft_spheres )
           IF (.NOT.ASSOCIATED(boundary%ions)) &
-               & CALL env_errore(sub_name,'Trying to destroy a non associated object',1)
+               & CALL errore(sub_name,'Trying to destroy a non associated object',1)
           NULLIFY(boundary%ions)
        ELSE
           IF (ASSOCIATED(boundary%ions))&
-               & CALL env_errore(sub_name,'Found an unexpected associated object',1)
+               & CALL errore(sub_name,'Found an unexpected associated object',1)
        ENDIF
        !
        IF ( boundary%need_electrons ) THEN

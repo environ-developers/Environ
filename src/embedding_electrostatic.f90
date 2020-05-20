@@ -73,7 +73,7 @@ CONTAINS
     !
     ! ... Calculates contribution to Hartree and local potentials
     !
-    CALL env_start_clock( 'calc_velect' )
+    CALL start_clock( 'calc_velect' )
     !
     potential % of_r = 0.D0
     !
@@ -91,20 +91,20 @@ CONTAINS
           !
        CASE DEFAULT
           !
-          CALL env_errore( sub_name, 'unexpected solver keyword', 1 )
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
           !
        END SELECT
        !
     CASE ( 'generalized' )
        !
        IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
-            CALL env_errore( sub_name, 'missing details of dielectric medium', 1 )
+            CALL errore( sub_name, 'missing details of dielectric medium', 1 )
        !
        SELECT CASE ( setup % solver % type )
           !
        CASE ( 'direct' )
           !
-          CALL env_errore( sub_name, 'option not yet implemented', 1 )
+          CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL generalized_direct()
           !
        CASE ( 'cg', 'sd', 'iterative', 'default' )
@@ -113,25 +113,25 @@ CONTAINS
           !
        CASE ( 'lbfgs' )
           !
-          CALL env_errore( sub_name, 'option not implemented', 1 )
+          CALL errore( sub_name, 'option not implemented', 1 )
 !          CALL generalized_lbfgs()
           !
        CASE  DEFAULT
           !
-          CALL env_errore( sub_name, 'unexpected solver keyword', 1 )
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
           !
        END SELECT
        !
     CASE ( 'linpb', 'linmodpb' )
        !
        IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
-            CALL env_errore( sub_name, 'missing details of electrolyte ions', 1 )
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
        !
        SELECT CASE ( setup % solver % type )
           !
        CASE ( 'direct' )
           !
-          CALL env_errore( sub_name, 'option not yet implemented', 1 )
+          CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL linpb_direct()
           !
        CASE ( 'cg', 'sd' )
@@ -140,25 +140,25 @@ CONTAINS
           !
        CASE ( 'lbfgs' )
           !
-          CALL env_errore( sub_name, 'option not yet implemented', 1 )
+          CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL linpb_lbfgs()
           !
        CASE DEFAULT
           !
-          CALL env_errore( sub_name, 'unexpected solver keyword', 1 )
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
           !
        END SELECT
        !
     CASE ( 'pb', 'modpb' )
        !
        IF ( .NOT. ASSOCIATED( charges % electrolyte ) ) &
-            CALL env_errore( sub_name, 'missing details of electrolyte ions', 1 )
+            CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
        !
        SELECT CASE ( setup % solver % type )
           !
        CASE ( 'direct' )
           !
-          CALL env_errore( sub_name, 'option not yet implemented', 1 )
+          CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL pb_direct()
           !
        CASE ( 'iterative' )
@@ -166,7 +166,7 @@ CONTAINS
           IF ( ASSOCIATED(setup % inner) ) THEN
              !
              IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
-                CALL env_errore( sub_name, 'missing details of dielectric medium', 1 )
+                CALL errore( sub_name, 'missing details of dielectric medium', 1 )
              !
              CALL pb_nested( setup % solver, setup % core, charges, potential, setup % inner )
              !
@@ -179,28 +179,28 @@ CONTAINS
        CASE ( 'newton' )
           !
           IF ( .NOT. ASSOCIATED(setup % inner) ) &
-              CALL env_errore( sub_name, 'missing details of inner electrostatic setup', 1 )
+              CALL errore( sub_name, 'missing details of inner electrostatic setup', 1 )
           !
           CALL pb_nested( setup % solver, setup % core, charges, potential, setup % inner )
           !
        CASE ( 'lbfgs' )
           !
-          CALL env_errore( sub_name, 'option not yet implemented', 1 )
+          CALL errore( sub_name, 'option not yet implemented', 1 )
 !          CALL pb_lbfgs()
           !
        CASE DEFAULT
           !
-          CALL env_errore( sub_name, 'unexpected solver keyword', 1 )
+          CALL errore( sub_name, 'unexpected solver keyword', 1 )
           !
        END SELECT
        !
     CASE DEFAULT
        !
-       CALL env_errore( sub_name, 'unexpected problem keyword', 1 )
+       CALL errore( sub_name, 'unexpected problem keyword', 1 )
        !
     END SELECT
     !
-    CALL env_stop_clock( 'calc_velect' )
+    CALL stop_clock( 'calc_velect' )
     !
     RETURN
     !
@@ -230,12 +230,12 @@ CONTAINS
     REAL( DP ) :: degauss, eself
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_eelectrostatic'
     !
-    CALL env_start_clock ('calc_eelect')
+    CALL start_clock ('calc_eelect')
     !
     ! Aliases and sanity checks
     !
     IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in charges and potential domains',1)
+         & CALL errore(sub_name,'Missmatch in charges and potential domains',1)
     !
     energy = 0.D0
     eself = 0.D0
@@ -250,11 +250,11 @@ CONTAINS
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL env_errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
-       CALL env_errore(sub_name,'Unexpected setup of electrostatic core',1)
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
        !
     ENDIF
     ! 
@@ -319,7 +319,7 @@ CONTAINS
     !
     energy = energy + eself + degauss
     !
-    CALL env_stop_clock ('calc_eelect')
+    CALL stop_clock ('calc_eelect')
     !
     RETURN
 !!!!!
@@ -412,7 +412,7 @@ CONTAINS
     !
     CHARACTER( LEN=80 ) :: sub_name = 'calc_felectrostatic'
     !
-    CALL env_start_clock ('calc_felect')
+    CALL start_clock ('calc_felect')
     !
     ! ... Sanity checks and aliases
     !
@@ -425,19 +425,19 @@ CONTAINS
     !
     IF ( charges % include_dielectric ) THEN
        IF ( .NOT. ASSOCIATED( charges % dielectric ) ) &
-            & CALL env_errore(sub_name,'Missing expected charge component',1)
+            & CALL errore(sub_name,'Missing expected charge component',1)
        aux % of_r = aux % of_r + charges % dielectric % density % of_r
     ENDIF
     !
     IF ( charges % include_electrolyte ) THEN
        IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
-            & CALL env_errore(sub_name,'Missing expected charge component',1)
+            & CALL errore(sub_name,'Missing expected charge component',1)
        aux % of_r = aux % of_r + charges % electrolyte % density % of_r
     END IF
     !
     IF ( charges % include_externals ) THEN
        IF ( .NOT. ASSOCIATED( charges % externals ) ) &
-            & CALL env_errore(sub_name,'Missing expected charge component',1)
+            & CALL errore(sub_name,'Missing expected charge component',1)
        aux % of_r = aux % of_r + charges % externals % density % of_r
     ENDIF
     !
@@ -485,7 +485,7 @@ CONTAINS
     !
     CALL destroy_environ_density( aux )
     !
-    CALL env_stop_clock ('calc_felect')
+    CALL stop_clock ('calc_felect')
     !
     RETURN
     !

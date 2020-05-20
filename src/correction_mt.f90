@@ -91,8 +91,8 @@ CONTAINS
                             rho, force )
 !----------------------------------------------------------------------------
   USE env_cell_base, ONLY : tpiba
-  USE env_mp_bands,  ONLY : intra_bgrp_comm
-  USE env_mp,        ONLY : env_mp_sum
+  USE mp_bands,      ONLY : intra_bgrp_comm
+  USE mp,            ONLY : mp_sum
   INTEGER, INTENT(IN) :: nat, ntyp, ityp(nat), ngm
   REAL(DP), INTENT(IN) :: omega, zv(ntyp), tau(3,nat), g(3,ngm)
   COMPLEX(DP), INTENT(IN) :: strf(ngm,ntyp), rho(ngm)
@@ -123,16 +123,16 @@ CONTAINS
   end do
   deallocate ( v )
   !
-  call env_mp_sum(  force, intra_bgrp_comm )
+  call mp_sum(  force, intra_bgrp_comm )
   !
   RETURN
   END SUBROUTINE env_wg_corr_force
 !----------------------------------------------------------------------------
   SUBROUTINE env_init_wg_corr
 !----------------------------------------------------------------------------
-  USE env_mp_bands,      ONLY : me_bgrp
-  USE env_fft_base,      ONLY : dfftp
-  USE env_fft_interfaces,ONLY : env_fwfft, env_invfft
+  USE mp_bands,          ONLY : me_bgrp
+  USE fft_base,          ONLY : dfftp
+  USE fft_interfaces,    ONLY : fwfft, invfft
   USE env_control_flags, ONLY : gamma_only_ => gamma_only
   USE env_gvect,         ONLY : ngm, gg, gstart_ => gstart, ecutrho
   USE env_cell_base,     ONLY : at, alat, tpiba2, omega
@@ -153,7 +153,7 @@ CONTAINS
   upperbound = 1._dp
   DO WHILE ( upperbound > 1.e-7_dp) 
      alpha = alpha - 0.1_dp  
-     if (alpha<=0._dp) call env_errore('init_wg_corr','optimal alpha not found',1)
+     if (alpha<=0._dp) call errore('init_wg_corr','optimal alpha not found',1)
      upperbound = e2 * sqrt (2.d0 * alpha / tpi) * &
                        qe_erfc ( sqrt ( ecutrho / 4.d0 / alpha) )
   END DO
@@ -193,7 +193,7 @@ CONTAINS
 
   END DO
 
-  CALL env_fwfft ('Rho', aux, dfftp)
+  CALL fwfft ('Rho', aux, dfftp)
 
   do ig =1, ngm
      wg_corr(ig) = omega * REAL(aux(dfftp%nl(ig))) - env_smooth_coulomb_g( tpiba2*gg(ig))

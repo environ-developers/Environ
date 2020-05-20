@@ -62,7 +62,7 @@ CONTAINS
     TYPE( environ_density ) :: local_screening
     CHARACTER( LEN=25 ) :: sub_name = 'linearized_pb_gradient'
     !
-    CALL env_start_clock( 'calc_vlinpb' )
+    CALL start_clock( 'calc_vlinpb' )
     !
     IF ( solver % use_gradient ) THEN
        !
@@ -102,7 +102,7 @@ CONTAINS
                 !
              CASE DEFAULT
                 !
-                CALL env_errore( sub_name, 'unexpected preconditioner keyword', 1 )
+                CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
                 !
              END SELECT
              !
@@ -115,7 +115,7 @@ CONTAINS
           !
        ELSE
           !
-          CALL env_errore(sub_name,'Option not yet implemented',1)
+          CALL errore(sub_name,'Option not yet implemented',1)
           !
        END IF
        !
@@ -123,11 +123,11 @@ CONTAINS
        !
     ELSE
        !
-       CALL env_errore( sub_name, 'unexpected solver keyword', 1 )
+       CALL errore( sub_name, 'unexpected solver keyword', 1 )
        !
     END IF
     !
-    CALL env_stop_clock( 'calc_vlinpb' )
+    CALL stop_clock( 'calc_vlinpb' )
     !
     RETURN
     !
@@ -151,7 +151,7 @@ CONTAINS
     TYPE( environ_density ) :: local_screening
     CHARACTER( LEN=25 ) :: sub_name = 'linearized_pb_gradient'
     !
-    CALL env_start_clock( 'calc_vlinpb' )
+    CALL start_clock( 'calc_vlinpb' )
     !
     IF ( solver % use_gradient ) THEN
        !
@@ -189,7 +189,7 @@ CONTAINS
                 !
              CASE DEFAULT
                 !
-                CALL env_errore( sub_name, 'unexpected preconditioner keyword', 1 )
+                CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
                 !
              END SELECT
              !
@@ -201,7 +201,7 @@ CONTAINS
           !
        ELSE
           !
-          CALL env_errore(sub_name,'Option not yet implemented',1)
+          CALL errore(sub_name,'Option not yet implemented',1)
           !
        END IF
        !
@@ -209,11 +209,11 @@ CONTAINS
        !
     ELSE
        !
-       CALL env_errore( sub_name, 'unexpected solver keyword', 1 )
+       CALL errore( sub_name, 'unexpected solver keyword', 1 )
        !
     END IF
     !
-    CALL env_stop_clock( 'calc_vlinpb' )
+    CALL stop_clock( 'calc_vlinpb' )
     !
     RETURN
     !
@@ -257,12 +257,12 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,screening%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
     IF ( PRESENT(dielectric) ) THEN
        IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
     END IF
     cell => charges%cell
     !
@@ -311,7 +311,7 @@ CONTAINS
        !
        rzold = scalar_product_environ_density( r, z )
        IF ( ABS(rzold) .LT. 1.D-30 ) &
-            & CALL env_errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
        !
        IF ( PRESENT(dielectric) ) THEN
           r%of_r = (factsqrt%of_r + scr%of_r) * ( x%of_r - z%of_r )
@@ -362,7 +362,7 @@ CONTAINS
        !
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
-            & CALL env_errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
        !
        ! ... Conjugate gradient or steepest descent input
        !

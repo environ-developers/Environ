@@ -63,7 +63,7 @@ CONTAINS
     !
     CHARACTER*20 :: sub_name = 'generalized_gradient'
     !
-    CALL env_start_clock( 'calc_vsolv' )
+    CALL start_clock( 'calc_vsolv' )
     !
     potential % of_r = 0.D0
     !
@@ -90,13 +90,13 @@ CONTAINS
              !
           CASE DEFAULT
              !
-             CALL env_errore( sub_name, 'unexpected preconditioner keyword', 1 )
+             CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
              !
           END SELECT
           !
        ELSE
           !
-          CALL env_errore(sub_name,'Option not yet implemented',1)
+          CALL errore(sub_name,'Option not yet implemented',1)
           !        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
           !
        END IF
@@ -110,18 +110,18 @@ CONTAINS
           !
        ELSE
           !
-          CALL env_errore(sub_name,'Option not yet implemented',1)
+          CALL errore(sub_name,'Option not yet implemented',1)
           !        CALL generalized_iterative_velect( charges, dielectric, potential )
           !
        ENDIF
        !
     ELSE
        !
-       CALL env_errore( sub_name, 'unexpected auxiliary keyword', 1 )
+       CALL errore( sub_name, 'unexpected auxiliary keyword', 1 )
        !
     END IF
     !
-    CALL env_stop_clock( 'calc_vsolv' )
+    CALL stop_clock( 'calc_vsolv' )
     !
     RETURN
     !
@@ -143,7 +143,7 @@ CONTAINS
     !
     CHARACTER*20 :: sub_name = 'generalized_gradient'
     !
-    CALL env_start_clock( 'calc_vsolv' )
+    CALL start_clock( 'calc_vsolv' )
     !
     potential % of_r = 0.D0
     !
@@ -167,13 +167,13 @@ CONTAINS
              !
           CASE DEFAULT
              !
-             CALL env_errore( sub_name, 'unexpected preconditioner keyword', 1 )
+             CALL errore( sub_name, 'unexpected preconditioner keyword', 1 )
              !
           END SELECT
           !
        ELSE
           !
-          CALL env_errore(sub_name,'Option not yet implemented',1)
+          CALL errore(sub_name,'Option not yet implemented',1)
           !        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
           !
        END IF
@@ -186,18 +186,18 @@ CONTAINS
           !
        ELSE
           !
-          CALL env_errore(sub_name,'Option not yet implemented',1)
+          CALL errore(sub_name,'Option not yet implemented',1)
           !        CALL generalized_iterative_velect( charges, dielectric, potential )
           !
        ENDIF
        !
     ELSE
        !
-       CALL env_errore( sub_name, 'unexpected auxiliary keyword', 1 )
+       CALL errore( sub_name, 'unexpected auxiliary keyword', 1 )
        !
     END IF
     !
-    CALL env_stop_clock( 'calc_vsolv' )
+    CALL stop_clock( 'calc_vsolv' )
     !
     RETURN
     !
@@ -306,9 +306,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
     cell => charges%cell
     !
     ! ... If auxiliary charge is not passed, initialize it
@@ -439,9 +439,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
     cell => charges%cell
     !
     ! ... Aliases
@@ -594,9 +594,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
     cell => charges%cell
     !
     ! ... Aliases
@@ -631,7 +631,7 @@ CONTAINS
        !
        rzold = scalar_product_environ_density( r, z )
        IF ( ABS(rzold) .LT. 1.D-30 ) &
-            & CALL env_errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
        !
        r%of_r = factsqrt%of_r * ( x%of_r - z%of_r )
        delta_en = euclidean_norm_environ_density( r )
@@ -672,7 +672,7 @@ CONTAINS
        !
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
-            & CALL env_errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
        !
        ! ... Conjugate gradient or steepest descent input
        !
@@ -785,9 +785,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL env_errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
     cell => charges%cell
     !
     ! ... Aliases
@@ -868,7 +868,7 @@ CONTAINS
        !
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
-            & CALL env_errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
        !
        ! ... Conjugate gradient or steepest descent input
        !

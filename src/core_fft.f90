@@ -176,7 +176,7 @@ CONTAINS
     !
     ALLOCATE( auxr( nnr ) )
     auxr(:) = CMPLX( fa%of_r(:), 0.D0, kind=DP )
-    CALL env_fwfft('Rho', auxr, dfftp)
+    CALL fwfft('Rho', auxr, dfftp)
     !
     ALLOCATE( auxg( nnr ) )
     auxg = 0.D0

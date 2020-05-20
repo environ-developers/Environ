@@ -123,7 +123,7 @@ CONTAINS
     dielectric%constant = 1.0_DP
     !
     IF ( ALLOCATED( dielectric%regions ) ) &
-         & CALL env_errore(sub_name,'Trying to create an already allocated object',1)
+         & CALL errore(sub_name,'Trying to create an already allocated object',1)
     !
     label = 'background'
     CALL create_environ_density( dielectric%background, label  )
@@ -275,7 +275,7 @@ CONTAINS
     !
     TYPE( environ_dielectric ), INTENT(INOUT) :: dielectric
     !
-    CALL env_start_clock( 'dielectric' )
+    CALL start_clock( 'dielectric' )
     !
     IF ( dielectric % epsilon % cell % update ) THEN
        !
@@ -313,7 +313,7 @@ CONTAINS
        !
     END IF
     !
-    CALL env_stop_clock( 'dielectric' )
+    CALL stop_clock( 'dielectric' )
     !
     RETURN
     !
@@ -421,23 +421,23 @@ CONTAINS
     scaled => dielectric % boundary % scaled % of_r
     !
     IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
-         & CALL env_errore(sub_name,'Missing required gradient of boundary',1)
+         & CALL errore(sub_name,'Missing required gradient of boundary',1)
     gradscaled => dielectric % boundary % gradient % of_r
     gradlogeps => dielectric % gradlog % of_r
     ALLOCATE( dlogeps( nnr ) )
     !
     IF ( dielectric % need_gradient ) THEN
        IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
-            & CALL env_errore(sub_name,'Missing required gradient of boundary',1)
+            & CALL errore(sub_name,'Missing required gradient of boundary',1)
        gradscaled => dielectric % boundary % gradient % of_r
        gradeps => dielectric % gradient % of_r
     ENDIF
     IF ( dielectric % need_factsqrt ) THEN
        IF ( .NOT. ALLOCATED( dielectric % boundary % gradient % of_r ) ) &
-            & CALL env_errore(sub_name,'Missing required gradient of boundary',1)
+            & CALL errore(sub_name,'Missing required gradient of boundary',1)
        gradscaledmod => dielectric % boundary % gradient % modulus % of_r
        IF ( .NOT. ALLOCATED( dielectric % boundary % laplacian % of_r ) ) &
-            & CALL env_errore(sub_name,'Missing required laplacian of boundary',1)
+            & CALL errore(sub_name,'Missing required laplacian of boundary',1)
        laplscaled => dielectric % boundary % laplacian % of_r
        factsqrteps => dielectric % factsqrt % of_r
        ALLOCATE( d2eps( nnr ) )
@@ -492,7 +492,7 @@ CONTAINS
        !
     CASE DEFAULT
        !
-       CALL env_errore(sub_name,'Unkown boundary type',1)
+       CALL errore(sub_name,'Unkown boundary type',1)
        !
     END SELECT
     !
@@ -569,9 +569,9 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'dielectric_of_potential'
     !
     IF ( .NOT. ASSOCIATED( potential % cell, charges % cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of potential and charges',1)
+         & CALL errore(sub_name,'Missmatch in domains of potential and charges',1)
     IF ( .NOT. ASSOCIATED( potential % cell, dielectric % density % cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of potential and dielectric',1)
+         & CALL errore(sub_name,'Missmatch in domains of potential and dielectric',1)
     cell => charges % cell
     !
     CALL init_environ_gradient( cell, gradient )
@@ -640,11 +640,11 @@ CONTAINS
           CALL destroy_environ_functions( dielectric%nregions, dielectric%regions )
        ELSE
           IF ( ALLOCATED(dielectric%regions) ) &
-               & CALL env_errore(sub_name,'Found unexpected allocated object',1)
+               & CALL errore(sub_name,'Found unexpected allocated object',1)
        END IF
        !
        IF (.NOT.ASSOCIATED(dielectric%boundary)) &
-            & CALL env_errore(sub_name,'Trying to destroy a non associated object',1)
+            & CALL errore(sub_name,'Trying to destroy a non associated object',1)
        NULLIFY( dielectric%boundary )
        !
     END IF

@@ -109,7 +109,7 @@ MODULE env_ws_base
 !---------------------------------------------------------------
       TYPE(ws_type), INTENT(IN) :: ws
 
-      IF (.NOT.ws%initialized) CALL env_errore &
+      IF (.NOT.ws%initialized) CALL errore &
                ('ws_test','trying to use an uninitialized ws_type variable',1)
 
       RETURN

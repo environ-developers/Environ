@@ -62,13 +62,13 @@ MODULE env_matrix_inversion
   ELSE
      CALL dgetrf (n, n, a, lda, ipiv, info)
   END IF
-  CALL env_errore ('invmat', 'error in DGETRF', abs (info) )
+  CALL errore ('invmat', 'error in DGETRF', abs (info) )
   IF ( PRESENT(a_inv) ) THEN
      CALL dgetri (n, a_inv, lda, ipiv, work, lwork, info)
   ELSE
      CALL dgetri (n, a, lda, ipiv, work, lwork, info)
   END IF 
-  CALL env_errore ('invmat', 'error in DGETRI', abs (info) )
+  CALL errore ('invmat', 'error in DGETRI', abs (info) )
   !
   lworkfact = INT (work(1)/n)
   DEALLOCATE ( work, ipiv )
@@ -116,13 +116,13 @@ MODULE env_matrix_inversion
   ELSE
      CALL zgetrf (n, n, a, lda, ipiv, info)
   END IF
-  CALL env_errore ('invmat', 'error in ZGETRF', abs (info) )
+  CALL errore ('invmat', 'error in ZGETRF', abs (info) )
   IF ( PRESENT(a_inv) ) THEN
      CALL zgetri (n, a_inv, lda, ipiv, work, lwork, info)
   ELSE
      CALL zgetri (n, a, lda, ipiv, work, lwork, info)
   END IF
-  CALL env_errore ('invmat', 'error in ZGETRI', abs (info) )
+  CALL errore ('invmat', 'error in ZGETRI', abs (info) )
   !
   lworkfact = INT (work(1)/n)
   DEALLOCATE ( work, ipiv )

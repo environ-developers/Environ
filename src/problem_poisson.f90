@@ -79,7 +79,7 @@ CONTAINS
     ! Aliases and sanity checks
     !
     IF ( .NOT. ASSOCIATED( charges % density % cell, potential % cell ) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of charges and potential',1)
+         & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
     cell => charges % density % cell
     !
     IF ( core % use_qe_fft ) THEN
@@ -97,16 +97,16 @@ CONTAINS
 !       DEALLOCATE( vaux )
 ! Compatible with QE-6.4 and QE-GIT
        potential % of_r = 0.D0
-       CALL env_v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
+       CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
 ! END BACKWARD COMPATIBILITY
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL env_errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
-       CALL env_errore(sub_name,'Unexpected setup of electrostatic core',1)
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
        !
     ENDIF
     !
@@ -121,12 +121,12 @@ CONTAINS
           !
        CASE ( 'gcs' )
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
-               & CALL env_errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
           CALL calc_vgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, potential )
           !
        CASE DEFAULT
           !
-          CALL env_errore(sub_name,'Unexpected option for pbc correction core',1)
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
           !
        END SELECT
        !
@@ -160,7 +160,7 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'poisson_direct_density', llab
     !
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL env_errore(sub_name,'Missmatch in domains of charges and potential',1)
+         & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
     cell => charges % cell
     !
     ! ... Using a local variable for the potential because the
@@ -184,16 +184,16 @@ CONTAINS
 !       DEALLOCATE( rhoaux )
 !       DEALLOCATE( vaux )
 ! Compatible with QE-6.4.X QE-GIT
-       CALL env_v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+       CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
 ! END BACKWARD COMPATIBILITY
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL env_errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
-       CALL env_errore(sub_name,'Unexpected setup of electrostatic core',1)
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
        !
     ENDIF
     !
@@ -210,12 +210,12 @@ CONTAINS
        CASE ( 'gcs' )
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
-               & CALL env_errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
           CALL calc_vgcs( core%correction%oned_analytic, electrolyte, charges, local )
           !
        CASE DEFAULT
           !
-          CALL env_errore(sub_name,'Unexpected option for pbc correction core',1)
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
           !
        END SELECT
        !
@@ -246,15 +246,15 @@ CONTAINS
     !
     IF ( core % use_qe_fft ) THEN
        !
-       CALL env_gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
+       CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL env_errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
-       CALL env_errore(sub_name,'Unexpected setup of electrostatic core',1)
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
        !
     ENDIF
     !
@@ -269,12 +269,12 @@ CONTAINS
        CASE ( 'gcs' )
           !
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
-               & CALL env_errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
           CALL calc_gradvgcs( core%correction%oned_analytic, charges%electrolyte, charges%density, gradient )
           !
        CASE DEFAULT
           !
-          CALL env_errore(sub_name,'Unexpected option for pbc correction core',1)
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
           !
        END SELECT
        !
@@ -300,15 +300,15 @@ CONTAINS
     !
     IF ( core % use_qe_fft ) THEN
        !
-       CALL env_gradv_h_of_rho_r( charges%of_r, gradient%of_r )
+       CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
-       CALL env_errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
+       CALL errore(sub_name,'Analytic 1D Poisson kernel is not available',1)
        !
     ELSE
        !
-       CALL env_errore(sub_name,'Unexpected setup of electrostatic core',1)
+       CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
        !
     ENDIF
     !
@@ -323,12 +323,12 @@ CONTAINS
        CASE ( 'gcs' )
           !
           IF ( .NOT. PRESENT( electrolyte ) ) &
-               & CALL env_errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
+               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
           CALL calc_gradvgcs( core%correction%oned_analytic, electrolyte, charges, gradient )
           !
        CASE DEFAULT
           !
-          CALL env_errore(sub_name,'Unexpected option for pbc correction core',1)
+          CALL errore(sub_name,'Unexpected option for pbc correction core',1)
           !
        END SELECT
        !

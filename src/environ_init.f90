@@ -496,7 +496,7 @@ CONTAINS
     IF ( .NOT. ASSOCIATED( vzero % cell ) ) RETURN
     !
     IF ( vzero % cell % nnr .NE. nnr ) &
-         & CALL env_errore(sub_name,'Inconsistent size in input potential',1)
+         & CALL errore(sub_name,'Inconsistent size in input potential',1)
     vzero % of_r = vltot
     !
     RETURN
