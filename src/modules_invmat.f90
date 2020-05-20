@@ -25,7 +25,7 @@ MODULE env_matrix_inversion
   ! if "da" is specified and if the matrix is dimensioned 3x3, 
   ! it also returns the determinant in "da"
   !
-  USE env_kinds, ONLY : DP
+  USE modules_constants, ONLY : DP
   IMPLICIT NONE
   INTEGER, INTENT(in) :: n
   REAL(DP), DIMENSION (n,n), INTENT(inout)  :: a
@@ -79,7 +79,7 @@ MODULE env_matrix_inversion
   !-----------------------------------------------------------------------
   ! as invmat_r, for a complex matrix
   !
-  USE env_kinds, ONLY : DP
+  USE modules_constants, ONLY : DP
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: n
   COMPLEX (DP), DIMENSION (n,n), INTENT(INOUT)  :: a
