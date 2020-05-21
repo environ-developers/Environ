@@ -1,6 +1,6 @@
 # Makefile for DAVID
 
-include ../make.inc
+include ../../../make.inc
 
 # location of needed modules and included files (if any)
 MODFLAGS=$(MOD_FLAG).

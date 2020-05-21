@@ -41,7 +41,7 @@ clean :
         ( cd src ; if test "$(MAKE)" = "" ; then make clean ; \
         else $(MAKE) clean ; fi ) ; fi ;\
 	( cd libs/FFTXlib ; $(MAKE) clean ) ; \
-	( cd ilbs/UtilXlib ; $(MAKE) clean )
+	( cd libs/UtilXlib ; $(MAKE) clean )
 
 doc_clean:
 	if test -d Doc ; then \
