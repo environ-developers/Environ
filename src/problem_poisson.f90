@@ -82,23 +82,24 @@ CONTAINS
          & CALL errore(sub_name,'Missmatch in domains of charges and potential',1)
     cell => charges % density % cell
     !
-    IF ( core % use_qe_fft ) THEN
+    IF ( core % use_fft ) THEN
        !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-!       ALLOCATE( rhoaux( cell % nnr, core % qe_fft % nspin ) )
+!       ALLOCATE( rhoaux( cell % nnr, core % fft % nspin ) )
 !       rhoaux( :, 1 ) = charges % density % of_r
-!       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
-!       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
+!       IF ( core % fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+!       ALLOCATE( vaux ( cell % nnr, core % fft % nspin ) )
 !       vaux = 0.D0
 !       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
 !       potential % of_r = vaux( :, 1 )
 !       DEALLOCATE( rhoaux )
 !       DEALLOCATE( vaux )
 ! Compatible with QE-6.4 and QE-GIT
-       potential % of_r = 0.D0
-       CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
+!       potential % of_r = 0.D0
+!       CALL v_h_of_rho_r( charges%density%of_r, edummy, cdummy, potential%of_r )
 ! END BACKWARD COMPATIBILITY
+       CALL poisson_fft( core % fft, charges%density, potential )
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
@@ -170,14 +171,14 @@ CONTAINS
     CALL create_environ_density( local, llab )
     CALL init_environ_density( cell, local )
     !
-    IF ( core % use_qe_fft ) THEN
+    IF ( core % use_fft ) THEN
        !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-!       ALLOCATE( rhoaux ( cell % nnr, core % qe_fft % nspin ) )
+!       ALLOCATE( rhoaux ( cell % nnr, core % fft % nspin ) )
 !       rhoaux( :, 1 ) = charges % of_r
-!       IF ( core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
-!       ALLOCATE( vaux ( cell % nnr, core % qe_fft % nspin ) )
+!       IF ( core % fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+!       ALLOCATE( vaux ( cell % nnr, core % fft % nspin ) )
 !       vaux = 0.D0
 !       CALL v_h_of_rho_r( rhoaux, edummy, cdummy, vaux )
 !       local % of_r = vaux( :, 1 )
@@ -244,7 +245,7 @@ CONTAINS
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_charges'
     !
-    IF ( core % use_qe_fft ) THEN
+    IF ( core % use_fft ) THEN
        !
        CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
        !
@@ -298,7 +299,7 @@ CONTAINS
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'poisson_gradient_direct_density'
     !
-    IF ( core % use_qe_fft ) THEN
+    IF ( core % use_fft ) THEN
        !
        CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
        !
@@ -355,7 +356,7 @@ CONTAINS
 !    !
 !    energy = 0.d0
 !    !
-!    IF ( core % use_qe_fft ) THEN
+!    IF ( core % use_fft ) THEN
 !       !
 !       energy = 0.5D0 * scalar_product_environ_density( charges%density, potential )
 !       print*, 'poisson', energy, charges%charge
@@ -380,9 +381,9 @@ CONTAINS
 !       !
 !       eself = charges % ions % selfenergy_correction * e2
 !       !
-!       IF ( core % use_qe_fft ) THEN
+!       IF ( core % use_fft ) THEN
 !          !
-!          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+!          IF ( core % fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
 !             !
 !             degauss = 0.D0
 !             !
@@ -423,7 +424,7 @@ CONTAINS
 !    !
 !    energy = 0.D0
 !    !
-!    IF ( core % use_qe_fft ) THEN
+!    IF ( core % use_fft ) THEN
 !       !
 !       energy = 0.5D0 * scalar_product_environ_density( charges, potential )
 !       !

@@ -1,5 +1,5 @@
 TO DO
-* fix calls to v_of_rho_r, gradv_of_rho_r, convolution_fft, external_gradient, external_laplacian, external_hessian
+* fix calls to v_h_of_rho_r, gradv_h_of_rho_r, convolution_fft, external_gradient, external_laplacian, external_hessian
 * profile core_fft routines
 
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90

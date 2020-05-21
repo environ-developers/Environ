@@ -483,7 +483,7 @@ CONTAINS
     !
     ! The following routines are in tools_generate_gvect and may need to be simplified
     !
-    ! CALL gvect_inint( ngm, comm )
+    ! CALL gvect_init( ngm, comm )
     ! CALL ggen( dfft, .TRUE. , cell%at, cell%bg,  gcutm, ngm_g, ngm, g, gg, mill, ig_l2g, gstart, .TRUE. )
     !
     RETURN
