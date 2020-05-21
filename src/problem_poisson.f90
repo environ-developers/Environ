@@ -185,8 +185,9 @@ CONTAINS
 !       DEALLOCATE( rhoaux )
 !       DEALLOCATE( vaux )
 ! Compatible with QE-6.4.X QE-GIT
-       CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
+       !CALL v_h_of_rho_r( charges%of_r, edummy, cdummy, local%of_r )
 ! END BACKWARD COMPATIBILITY
+       CALL poisson_fft( core % fft, charges, local )
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
@@ -247,7 +248,8 @@ CONTAINS
     !
     IF ( core % use_fft ) THEN
        !
-       CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
+       !CALL gradv_h_of_rho_r( charges%density%of_r, gradient%of_r )
+      CALL gradpoisson_fft( core % fft, charges%density, gradient)
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !
@@ -301,7 +303,8 @@ CONTAINS
     !
     IF ( core % use_fft ) THEN
        !
-       CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
+       !CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
+      CALL gradpoisson_fft( core % fft, charges, gradient)
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !

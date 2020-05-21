@@ -1,3 +1,6 @@
+core_fft.o : environ_types.o
+core_fft.o : electrostatic_types.o
+core_fft.o : fft_interfaces.o
 correction_periodic.o : electrostatic_types.o
 correction_periodic.o : environ_mod.o
 correction_periodic.o : environ_output.o
@@ -55,6 +58,8 @@ environ_mod.o : environ_types.o
 environ_output.o : electrostatic_mod.o
 environ_output.o : environ_mod.o
 environ_output.o : environ_types.o
+environ_types.o : modules_constants.o
+environ_types.o : ../../UtilXlib/mp.o
 problem_generalized.o : correction_periodic.o
 problem_generalized.o : electrostatic_types.o
 problem_generalized.o : environ_mod.o

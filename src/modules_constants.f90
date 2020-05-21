@@ -37,6 +37,8 @@ MODULE modules_constants
   REAL(DP), PARAMETER :: AMU_SI           = 1.660538782E-27_DP  ! Kg
   REAL(DP), PARAMETER :: BOHR_RADIUS_CM   = BOHR_RADIUS_SI * 100.0_DP
   REAL(DP), PARAMETER :: BOHR_RADIUS_ANGS = BOHR_RADIUS_CM * 1.0E8_DP
+  REAL(DP), PARAMETER :: ELECTRONVOLT_SI  = 1.602176487E-19_DP
+  REAL(DP), PARAMETER :: ELECTRONMASS_SI  = 9.10938215E-31_DP
   !
   ! ... Physical constants, atomic units:
   ! ... AU for "Hartree" atomic units (e = m = hbar = 1)
