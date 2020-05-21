@@ -63,9 +63,9 @@ MODULE electrostatic_base
   TYPE( fd_core ) ::                   &
        fd
   LOGICAL ::                           &
-       lqe_fft
-  TYPE( qe_fft_core ) ::               &
-       qe_fft
+       lfft
+  TYPE( fft_core ) ::               &
+       fft
   LOGICAL ::                           &
        loned_analytic
   TYPE( oned_analytic_core ) ::        &

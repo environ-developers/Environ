@@ -81,7 +81,7 @@ CONTAINS
     !
     lfd = .FALSE.
     loned_analytic = .FALSE.
-    lqe_fft = .FALSE.
+    lfft = .FALSE.
     !
     ! Setup nested scheme if required
     !
@@ -93,9 +93,9 @@ CONTAINS
     CALL create_electrostatic_core( reference_core )
     SELECT CASE ( prog )
     CASE ( 'PW', 'CP', 'TD' )
-       lqe_fft = .TRUE.
+       lfft = .TRUE.
        local_type = "fft"
-       CALL init_electrostatic_core( type = local_type, qe_fft = qe_fft, core = reference_core )
+       CALL init_electrostatic_core( type = local_type, fft = fft, core = reference_core )
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected name of host code',1)
     END SELECT
@@ -107,7 +107,7 @@ CONTAINS
     CASE ( 'fd' )
        lfd = .TRUE.
     CASE ( 'fft', 'analytic' )
-       lqe_fft = .TRUE.
+       lfft = .TRUE.
     END SELECT
     !
     ! Numerical core for periodic boundary correction
@@ -150,9 +150,9 @@ CONTAINS
     IF ( lnested ) CALL create_electrostatic_core( inner_core )
     SELECT CASE ( core_type )
     CASE ( 'fft' )
-       lqe_fft = .TRUE.
-       CALL init_electrostatic_core( type = core_type, qe_fft = qe_fft, core = outer_core )
-       IF ( lnested ) CALL init_electrostatic_core( type = core_type, qe_fft = qe_fft, core = inner_core )
+       lfft = .TRUE.
+       CALL init_electrostatic_core( type = core_type, fft = fft, core = outer_core )
+       IF ( lnested ) CALL init_electrostatic_core( type = core_type, fft = fft, core = inner_core )
     CASE( '1d-analytic', '1da' )
        loned_analytic = .TRUE.
        CALL init_electrostatic_core( type = core_type, oned_analytic = oned_analytic, core = outer_core )
@@ -168,9 +168,9 @@ CONTAINS
     IF ( lfd ) CALL init_fd_core( ifdtype, nfdpoint, fd )
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+!    IF ( fft ) CALL init_fft_core( fft, use_internal_pbc_corr, nspin )
 ! Compatible with QE-6.4.X QE-GIT
-    IF ( lqe_fft ) CALL init_qe_fft_core( qe_fft, use_internal_pbc_corr )
+    IF ( lfft ) CALL init_fft_core_first( fft, use_internal_pbc_corr )
 ! END BACKWARD COMPATIBILITY
     IF ( loned_analytic ) CALL init_oned_analytic_core_first( pbc_dim, pbc_axis, oned_analytic )
     !
@@ -304,14 +304,21 @@ CONTAINS
   END SUBROUTINE set_electrostatic_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE electrostatic_initbase( cell )
+  SUBROUTINE electrostatic_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg  )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( fft_dlay_descriptors ), INTENT(IN) :: dfft
+    INTEGER, INTENT(IN) :: ngm, gstart
+    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
+    REAL( DP ), DIMENSION(3,ngm) :: g
+    REAL( DP ), DIMENSION(ngm) :: gg
     !
     IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
+    !
+    IF ( lfft ) CALL init_fft_core_second( dfft, cell%omega, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, fft )
     !
     RETURN
     !

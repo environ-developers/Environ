@@ -323,7 +323,9 @@ CONTAINS
 ! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
                              & j0, k0, n2p, n3p, &
 !  END BACKWARD COMPATIBILITY
-                             & comm, me, root, e2 )
+                             & comm, me, root, &
+                             & dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, &
+                             & e2 )
 !--------------------------------------------------------------------
 !
 ! Subroutine to initialize fundamental quantities needed by the
@@ -377,6 +379,11 @@ CONTAINS
     REAL(DP), INTENT(IN) :: omega
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: bg
+    TYPE(fft_dlay_descritor), INTENT(IN) :: dfft
+    INTEGER, INTENT(IN) :: ngm, gstart
+    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
+    REAL( DP ), DIMENSION(3,ngm), INTENT(IN) :: g
+    REAL( DP ), DIMENSION(ngm), INTENT(IN) :: gg
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
     !
     CHARACTER( LEN = 80 ) :: label = ' '
@@ -417,7 +424,7 @@ CONTAINS
        CALL create_environ_density( vreference, label )
        CALL init_environ_density( cell, vreference )
        !
-       CALL electrostatic_initbase( cell )
+       CALL electrostatic_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg )
        !
     END IF
     !

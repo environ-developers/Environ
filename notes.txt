@@ -1,6 +1,5 @@
 TO DO
-* fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
-* fix calls to v_of_rho_r, gradv_of_rho_r, convolution_fft
+* fix calls to v_of_rho_r, gradv_of_rho_r, convolution_fft, external_gradient, external_laplacian, external_hessian
 * profile core_fft routines
 
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
@@ -8,11 +7,6 @@ TO DO
 * recvec needs to be moved into a derived data type
 * UtilXLib and FFTXlib should only be compiled if Environ is not inside QE, otherwise Environ should use the QE libraries.
 * cleanup backward compatibility
-
-BOTH SIMPLE_TASKS HAVE BEEN COMPLETED.
-SIMPLE_TASK1: remove feval from environ_input.f90, so that we don't need modules_wrappers.f90. Merge your changes into this branch
-SIMPLE_TASK2: clean up/fix modules_parser.f90 move env_errore --> errore() stdout --> program_unit
-env_mp --> mp
 
 * core_fft.f90
   add tests for compatibility between inputs
@@ -32,9 +26,13 @@ env_mp --> mp
   fix communicators for parallelization
 * ws_base.f90 (now tools_ws.f90) is only needed by Martyna-Tuckerman
   remove call to invmat.f90 to invert 3x3 matrix
+* include Modules/sort.f90
 
 DONE
+  fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
   move convolution_fft outside of tools_generate_functions.f90 and cleanup dependencies
+  remove feval from environ_input.f90, so that we don't need modules_wrappers.f90. Merge your changes into this branch
+  clean up/fix modules_parser.f90 move env_errore --> errore() stdout --> program_unit env_mp --> mp
 
 DOUBTS
   do we want to keep martyna-tuckerman?
@@ -52,4 +50,6 @@ NOTES:
        in order to ensure that fractional translations are commensurate with FFT grids. fractional translations are present
        is we have supercells and we want to keep symmetry. we may want to give up symmetry and keep fft_fact(:) = 1
        nyfft is related to the parallelization scheme, we may want ot keep nyfft=1 and don't push parallelization too much
-  to initialize gvect we only need the fft results (number of gvectors in each processor) and the parallelization
+  to allocate gvect we only need the fft results (number of gvectors in each processor) and the parallelization
+  to initialize gvect we need to call ggen, which is in recvec_subs.f90, and we need: dfftp, gamma_only, at, bg, gcutm, ngm_g, ngm
+  we may want to rewrite ggen to simplify it a bit and avoid computing this that are not used by environ (mill).

@@ -228,8 +228,9 @@ mv tmp.2 plugin_summary.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
-USE    cell_base,    ONLY : at, bg, alat, omega, ibrav\
+USE    cell_base,    ONLY : at, bg, alat, omega, ibrav, tpiba, tpiba2\
 USE    environ_init, ONLY : environ_initbase\
+USE    gvect,        ONLY : ngm, gstart, gcutm, g, gg\
 !Environ patch
 ' plugin_initbase.f90 > tmp.1
 
@@ -262,7 +263,8 @@ sed '/Environ CALLS BEGIN/ a\
 ! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT\
                              & j0, k0, dfftp%my_nr2p, dfftp%my_nr3p, &\
 ! END BACKWARD COMPATIBILITY\
-                             & intra_bgrp_comm, me_bgrp, root_bgrp )\
+                             & intra_bgrp_comm, me_bgrp, root_bgrp, &\
+			     & dfftp, tpiba, tpiba2, ngm, gcutm, gstart, g, gg )\
 !Environ patch
 ' tmp.2 > tmp.1
 

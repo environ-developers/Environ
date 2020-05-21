@@ -27,6 +27,8 @@ MODULE electrostatic_types
   !
   USE environ_types
   !
+  USE fft_types, ONLY : fft_type_descriptor
+  !
   TYPE gradient_solver
      !
      LOGICAL :: lconjugate
@@ -95,7 +97,7 @@ MODULE electrostatic_types
      !
   END TYPE fd_core
   !
-  TYPE qe_fft_core
+  TYPE fft_core
      !
      INTEGER :: index
 ! BACKWARD COMPATIBILITY
@@ -106,7 +108,9 @@ MODULE electrostatic_types
 ! END BACKWARD COMPATIBILITY
      LOGICAL :: use_internal_pbc_corr = .false.
      !
-     TYPE(fft_descriptor_type) :: dffte
+     TYPE(fft_descriptor_type), POINTER :: dfft
+     !
+     REAL(DP) :: omega, tpiba, tpiba2
      !
      INTEGER :: ngm  = 0  ! local  number of G vectors (on this processor)
                           ! with gamma tricks, only vectors in G>
@@ -125,7 +129,7 @@ MODULE electrostatic_types
      !
      REAL(DP), ALLOCATABLE, TARGET :: g(:,:)
      !
-  END TYPE qe_fft_core
+  END TYPE fft_core
   !
   TYPE oned_analytic_core
      !
@@ -142,8 +146,8 @@ MODULE electrostatic_types
      !
      CHARACTER( LEN = 80 ) :: type
      !
-     LOGICAL :: use_qe_fft
-     TYPE( qe_fft_core ), POINTER :: qe_fft => NULL()
+     LOGICAL :: use_fft
+     TYPE( fft_core ), POINTER :: fft => NULL()
      !
      LOGICAL :: use_oned_analytic
      TYPE( oned_analytic_core ), POINTER :: oned_analytic => NULL()
@@ -402,15 +406,15 @@ CONTAINS
 !--------------------------------------------------------------------
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-!  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr, nspin )
+!  SUBROUTINE init_fft_core( fft, use_internal_pbc_corr, nspin )
 ! Compatible with QE-6.4.X QE-GIT
-  SUBROUTINE init_qe_fft_core( qe_fft, use_internal_pbc_corr )
+  SUBROUTINE init_fft_core_first( fft, use_internal_pbc_corr )
 ! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    TYPE( qe_fft_core ), INTENT(INOUT) :: qe_fft
+    TYPE( fft_core ), INTENT(INOUT) :: fft
     LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
@@ -419,20 +423,20 @@ CONTAINS
 !
 ! END BACKWARD COMPATIBILITY
     !
-    qe_fft % index = 1
+    fft % index = 1
     !
     IF ( PRESENT ( use_internal_pbc_corr ) ) THEN
-       qe_fft % use_internal_pbc_corr = use_internal_pbc_corr
+       fft % use_internal_pbc_corr = use_internal_pbc_corr
     ELSE
-       qe_fft % use_internal_pbc_corr = .FALSE.
+       fft % use_internal_pbc_corr = .FALSE.
     END IF
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !    IF ( PRESENT( nspin ) ) THEN
-!       qe_fft % nspin = nspin
+!       fft % nspin = nspin
 !    ELSE
-!       qe_fft % nspin = 1
+!       fft % nspin = 1
 !    ENDIF
 ! Compatible with QE-6.4.X QE-GIT
 !
@@ -441,23 +445,71 @@ CONTAINS
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE init_qe_fft_core
+  END SUBROUTINE init_fft_core_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE destroy_qe_fft_core( lflag, qe_fft )
+  SUBROUTINE init_fft_core_second( dfft, omega, tpiba, tpiba2, ngm, &
+       & gcutm, gstart, g, gg, fft )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    LOGICAL, INTENT(IN) :: lflag
-    TYPE( qe_fft_core ), INTENT(INOUT) :: qe_fft
+    TYPE( fft_dlay_descriptor ), TARGET, INTENT(IN) :: dfft
+    REAL( DP ), INTENT(IN) :: omega, gcutm, tpiba, tpiba2
+    INTEGER, INTENT(IN) :: ngm, gstart
+    REAL( DP ), DIMENSION( ngm ), INTENT(IN) :: gg
+    REAL( DP ), DIMENSION( 3, ngm ), INTENT(IN) :: g
+    TYPE( fft_core ), INTENT(INOUT) :: fft
     !
-    qe_fft % index = 1
+    ! COPYING ALL THE COMPONENTS OF DFFT WOULD BE WORSE THAN BUILDING IT FROM SCRATCH
+    ! for the time being we use a pointer
+    !
+    fft % dfft => dfft
+    !
+    fft % omega = omega
+    fft % gcutm = gcutm
+    fft % tpiba = tpiba
+    fft % tpiba2 = tpiba2
+    fft % ngm = ngm
+    fft % gstart = gstart
+    ALLOCATE( fft % gg( ngm ) )
+    fft % gg = gg
+    ALLOCATE( fft % g( 3, ngm ) )
+    fft % g = g
+    !
+    ! In the future we will need to initialize things from scratch
+    !
+    ! CALL fft_type_init( dfft, smap, "environ", .TRUE., .TRUE., comm, cell%at, cell%bg, gcutm, 4.D0, fft_fact, nyfft )
+    !
+    ! The following routines are in tools_generate_gvect and may need to be simplified
+    !
+    ! CALL gvect_inint( ngm, comm )
+    ! CALL ggen( dfft, .TRUE. , cell%at, cell%bg,  gcutm, ngm_g, ngm, g, gg, mill, ig_l2g, gstart, .TRUE. )
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE destroy_qe_fft_core
+  END SUBROUTINE init_fft_core_second
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE destroy_fft_core( fft )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( fft_core ), INTENT(INOUT) :: fft
+    !
+    ! WE NEED TO COPY ALL THE COMPONENTS OF THE OBJECT
+    !
+    fft % dfft = dfft
+    !
+    DEALLOCATE( fft % gg )
+    DEALLOCATE( fft % g )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE destroy_fft_core
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE init_oned_analytic_core_first( dim, axis, oned_analytic )
@@ -596,8 +648,8 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(INOUT) :: core
     !
     core % type = 'default'
-    core % use_qe_fft = .FALSE.
-    NULLIFY( core % qe_fft )
+    core % use_fft = .FALSE.
+    NULLIFY( core % fft )
     core % use_oned_analytic = .FALSE.
     NULLIFY( core % oned_analytic )
     !
@@ -610,14 +662,14 @@ CONTAINS
   END SUBROUTINE create_electrostatic_core
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_electrostatic_core( type, core, qe_fft, oned_analytic )
+  SUBROUTINE init_electrostatic_core( type, core, fft, oned_analytic )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     CHARACTER( LEN = 80 ), INTENT(IN) :: type
     TYPE( electrostatic_core ), INTENT(INOUT) :: core
-    TYPE( qe_fft_core ), INTENT(IN), TARGET, OPTIONAL :: qe_fft
+    TYPE( fft_core ), INTENT(IN), TARGET, OPTIONAL :: fft
     TYPE( oned_analytic_core ), INTENT(IN), TARGET, OPTIONAL :: oned_analytic
     !
     INTEGER :: number
@@ -629,11 +681,11 @@ CONTAINS
     !
     SELECT CASE ( TRIM( ADJUSTL( type ) ) )
        !
-    CASE ( 'fft', 'qe_fft', 'default' )
+    CASE ( 'fft', 'default' )
        !
-       IF ( .NOT. PRESENT( qe_fft ) ) CALL errore(sub_name,'Missing specified core type',1)
-       core % use_qe_fft = .TRUE.
-       core % qe_fft => qe_fft
+       IF ( .NOT. PRESENT( fft ) ) CALL errore(sub_name,'Missing specified core type',1)
+       core % use_fft = .TRUE.
+       core % fft => fft
        !
     CASE ( '1da', '1d-analytic', 'oned_analytic', 'gcs' )
        !
@@ -650,7 +702,7 @@ CONTAINS
     ! double check number of active cores
     !
     number = 0
-    IF ( core % use_qe_fft ) number = number + 1
+    IF ( core % use_fft ) number = number + 1
     IF ( core % use_oned_analytic ) number = number + 1
     IF ( number .NE. 1 ) &
          & CALL errore(sub_name,'Too few or too many cores are active',1)
@@ -687,8 +739,8 @@ CONTAINS
     TYPE( electrostatic_core ), INTENT(INOUT) :: core
     !
     IF ( lflag ) THEN
-       core % use_qe_fft = .FALSE.
-       NULLIFY( core % qe_fft )
+       core % use_fft = .FALSE.
+       NULLIFY( core % fft )
        core % use_oned_analytic = .FALSE.
        NULLIFY( core % oned_analytic )
        core % need_correction = .FALSE.
