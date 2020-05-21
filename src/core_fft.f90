@@ -436,8 +436,8 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE(fft_core),INTENT(IN) :: fft
-    REAL(DP), INTENT(IN)  :: a(dfft%nnr)
-    REAL(DP), INTENT(OUT) :: lapla(dfft%nnr)
+    TYPE(environ_density), INTENT(IN) :: a
+    TYPE(environ_density), INTENT(OUT) :: lapla(dfft%nnr)
     !
     INTEGER                  :: ig
     COMPLEX(DP), ALLOCATABLE :: aux(:), laux(:)
@@ -457,7 +457,7 @@ CONTAINS
     ALLOCATE(  aux( dfft%nnr ) )
     ALLOCATE( laux( dfft%nnr ) )
     !
-    aux = CMPLX( a(:), 0.0_dp, kind=DP)
+    aux = CMPLX( a%of_r(:), 0.0_dp, kind=DP)
     !
     ! ... bring a(r) to G-space, a(G) ...
     !
@@ -482,7 +482,7 @@ CONTAINS
     !
     ! ... add the missing factor (2\pi/a)^2 in G
     !
-    lapla = tpiba2 * REAL( laux )
+    lapla%of_r = tpiba2 * REAL( laux )
     !
     DEALLOCATE( laux )
     DEALLOCATE( aux )
@@ -507,9 +507,9 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE(fft_core),INTENT(IN) :: fft
-    REAL(DP), INTENT(IN)  :: a(dfft%nnr)
-    REAL(DP), INTENT(OUT) :: ga( 3, dfft%nnr )
-    REAL(DP), INTENT(OUT) :: ha( 3, 3, dfft%nnr )
+    TYPE(environ_density), INTENT(IN)  :: a
+    TYPE(environ_gradient), INTENT(OUT) :: ga
+    TYPE(environ_hessian), INTENT(OUT) :: ha
     !
     INTEGER                  :: ipol, jpol
     COMPLEX(DP), ALLOCATABLE :: aux(:), gaux(:), haux(:)
@@ -530,7 +530,7 @@ CONTAINS
     ALLOCATE( gaux( dfft%nnr ) )
     ALLOCATE( haux( dfft%nnr ) )
     !
-    aux = CMPLX( a(:), 0.0_dp, kind=DP)
+    aux = CMPLX( a%of_r(:), 0.0_dp, kind=DP)
     !
     ! ... bring a(r) to G-space, a(G) ...
     !
@@ -558,7 +558,7 @@ CONTAINS
        !
        ! ...and add the factor 2\pi/a  missing in the definition of G
        !
-       ga(ipol,:) = tpiba * REAL( gaux(:) )
+       ga%of_r(ipol,:) = tpiba * REAL( gaux(:) )
        !
        ! ... compute the second derivatives
        !
@@ -583,9 +583,9 @@ CONTAINS
           !
           ! ...and add the factor 2\pi/a  missing in the definition of G
           !
-          ha(ipol, jpol, :) = tpiba * tpiba * REAL( haux(:) )
+          ha%of_r(ipol, jpol, :) = tpiba * tpiba * REAL( haux(:) )
           !
-          ha(jpol, ipol, :) = ha(ipol, jpol, :)
+          ha%of_r(jpol, ipol, :) = ha%of_r(ipol, jpol, :)
           !
        END DO
        !
