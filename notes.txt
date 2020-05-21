@@ -5,7 +5,6 @@ TO DO
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
 * fix input readin in parser, why is it using intra_image_comm?
 * recvec needs to be moved into a derived data type
-* UtilXLib and FFTXlib should only be compiled if Environ is not inside QE, otherwise Environ should use the QE libraries.
 * cleanup backward compatibility
 
 * core_fft.f90
@@ -33,6 +32,7 @@ DONE
   move convolution_fft outside of tools_generate_functions.f90 and cleanup dependencies
   remove feval from environ_input.f90, so that we don't need modules_wrappers.f90. Merge your changes into this branch
   clean up/fix modules_parser.f90 move env_errore --> errore() stdout --> program_unit env_mp --> mp
+  UtilXLib and FFTXlib should only be compiled if Environ is not inside QE, otherwise Environ should use the QE libraries.
 
 DOUBTS
   do we want to keep martyna-tuckerman?

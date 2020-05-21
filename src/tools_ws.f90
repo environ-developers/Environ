@@ -50,7 +50,7 @@ MODULE env_ws_base
   !
   !============================================================================
   !
-  USE env_kinds, ONLY: dp
+  USE modules_constants, ONLY: DP
   !
   IMPLICIT NONE
   !

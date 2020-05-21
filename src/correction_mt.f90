@@ -11,7 +11,7 @@ MODULE env_martyna_tuckerman
   ! ... The variables needed to the Martyna-Tuckerman method for isolated
   !     systems
   !
-  USE env_kinds, ONLY: dp
+  USE modules_constants, ONLY: DP
   USE env_constants, ONLY : e2, pi, tpi, fpi
   USE env_ws_base
   !

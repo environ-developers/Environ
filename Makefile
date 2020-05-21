@@ -25,7 +25,10 @@ doc:
 	if test -d Doc ; then \
         (cd Doc ; $(MAKE) || exit 1 ) ; fi
 
-libenviron: libfft libutil 
+libenviron:
+	if ! test -d ../PW ; then \
+		( make libfft ) ; \
+		( make libutil ) ; fi
 	if test -d src ; then \
         ( cd src ; if test "$(MAKE)" = "" ; then make $(MFLAGS) $@; \
         else $(MAKE) $(MFLAGS) ; fi ) ; fi ; \

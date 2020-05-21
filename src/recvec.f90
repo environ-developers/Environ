@@ -15,7 +15,7 @@
      ! ... G> and G<, containing G and -G (G=0 is in G>)
      ! ... This is referred to as the "dense" (or "hard", or "thick") grid
 
-     USE env_kinds, ONLY: DP
+     USE modules_constants, ONLY: DP
 
      IMPLICIT NONE
      SAVE
@@ -141,7 +141,7 @@
         ! calculate number of G shells: ngl, and the index ng = igtongl(ig)
         ! that gives the shell index ng for (local) G-vector of index ig
         !
-        USE env_kinds,              ONLY : DP
+        USE modules_constants,              ONLY : DP
         USE env_constants,          ONLY : eps8
         !
         IMPLICIT NONE
@@ -193,7 +193,7 @@
 !=----------------------------------------------------------------------------=!
    MODULE env_gvecs
 !=----------------------------------------------------------------------------=!
-     USE env_kinds, ONLY: DP
+     USE modules_constants, ONLY: DP
 
      IMPLICIT NONE
      SAVE
