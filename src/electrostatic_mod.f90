@@ -20,7 +20,7 @@
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
-!  
+!
 !----------------------------------------------------------------------------
 MODULE electrostatic_base
 !----------------------------------------------------------------------------
@@ -50,26 +50,6 @@ MODULE electrostatic_base
        outer_solver,                   &
        inner_solver,                   &
        reference_solver
-  !
-  ! Core used for numerical derivatives of dielectric
-  !
-  CHARACTER (LEN=80) ::                &
-       boundary_core
-  !
-  ! Internal setup of numerical cores
-  !
-  LOGICAL ::                           &
-       lfd
-  TYPE( fd_core ) ::                   &
-       fd
-  LOGICAL ::                           &
-       lfft
-  TYPE( fft_core ) ::               &
-       fft
-  LOGICAL ::                           &
-       loned_analytic
-  TYPE( oned_analytic_core ) ::        &
-       oned_analytic
   !
   ! Internal setup of numerical solvers
   !

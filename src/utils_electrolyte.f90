@@ -112,7 +112,7 @@ CONTAINS
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
        & tbeta, const, alpha, softness, distance, spread, solvent_radius, radial_scale, &
        & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
-       & temperature, cbulk, cionmax, radius, z, electrolyte_entropy, ion_adsorption, &
+       & core, temperature, cbulk, cionmax, radius, z, electrolyte_entropy, ion_adsorption, &
        & adsorption_energy, linearized, electrolyte )
 !--------------------------------------------------------------------
     !
@@ -128,6 +128,7 @@ CONTAINS
     TYPE( environ_electrons ), INTENT(IN) :: electrons
     TYPE( environ_ions ), INTENT(IN) :: ions
     TYPE( environ_system ), TARGET, INTENT(IN) :: system
+    TYPE( boundary_core ), TARGET, INTENT(IN) :: core
     TYPE( environ_electrolyte ), INTENT(INOUT) :: electrolyte
     !
     INTEGER :: ityp
@@ -138,7 +139,7 @@ CONTAINS
     CALL init_environ_boundary_first( .TRUE., .TRUE., .FALSE., mode, stype, &
          & rhomax, rhomin, tbeta, const, alpha, softness, distance, spread, &
          & solvent_radius, radial_scale, radial_spread, filling_threshold, &
-         & filling_spread, electrons, ions, system, electrolyte%boundary )
+         & filling_spread, electrons, ions, system, core, electrolyte%boundary )
     !
     ! ... Setup all electrolyte parameters (with checks)
     !

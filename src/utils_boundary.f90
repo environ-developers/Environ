@@ -117,6 +117,7 @@
 MODULE utils_boundary
 !----------------------------------------------------------------------------
   !
+  USE core_types
   USE environ_types
   USE environ_output
   USE utils_functions
@@ -125,12 +126,105 @@ MODULE utils_boundary
   !
   PRIVATE
   !
+  PUBLIC :: create_boundary_core, init_boundary_core, &
+       & destroy_boundary_core
   PUBLIC :: create_environ_boundary, init_environ_boundary_first, &
        & init_environ_boundary_second, copy_environ_boundary, &
        & set_soft_spheres, update_environ_boundary, &
        & destroy_environ_boundary
   !
 CONTAINS
+!--------------------------------------------------------------------
+  SUBROUTINE create_boundary_core( core )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( boundary_core ), INTENT(INOUT) :: core
+    !
+    core % type = 'default'
+    core % use_fft = .FALSE.
+    NULLIFY( core % fft )
+    core % use_fd = .FALSE.
+    NULLIFY( core % fd )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE create_boundary_core
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_boundary_core( type, core, fft, fd )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER( LEN = 80 ), INTENT(IN) :: type
+    TYPE( boundary_core ), INTENT(INOUT) :: core
+    TYPE( fft_core ), INTENT(IN), TARGET, OPTIONAL :: fft
+    TYPE( fd_core ), INTENT(IN), TARGET, OPTIONAL :: fd
+    !
+    INTEGER :: number
+    CHARACTER( LEN = 80 ) :: sub_name = 'init_boundary_core'
+    !
+    core % type = type
+    !
+    ! Assign the selected numerical core
+    !
+    SELECT CASE ( TRIM( ADJUSTL( type ) ) )
+       !
+    CASE ( 'analytic', 'fft', 'default' )
+       !
+       IF ( .NOT. PRESENT( fft ) ) CALL errore(sub_name,'Missing specified core type',1)
+       core % use_fft = .TRUE.
+       core % fft => fft
+       !
+    CASE ( 'fd', 'finite differences', 'finite_differences' )
+       !
+       IF ( .NOT. PRESENT( fd ) ) CALL errore(sub_name,'Missing specified core type',1)
+       core % use_fd = .TRUE.
+       core % fd => fd
+       !
+    CASE DEFAULT
+       !
+       CALL errore(sub_name,'Unexpected keyword for boundary core type',1)
+       !
+    END SELECT
+    !
+    ! double check number of active cores
+    !
+    number = 0
+    IF ( core % use_fft ) number = number + 1
+    IF ( core % use_fd ) number = number + 1
+    IF ( number .LT. 1 ) &
+         & CALL errore(sub_name,'Too few cores are active',1)
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE init_electrostatic_core
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE destroy_boundary_core( lflag, core )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE( boundary_core ), INTENT(INOUT) :: core
+    !
+    IF ( lflag ) THEN
+       core % use_fft = .FALSE.
+       NULLIFY( core % fft )
+       core % fd = .FALSE.
+       NULLIFY( core % fd )
+    END IF
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE destroy_boundary_core
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE create_environ_boundary(boundary, local_label)
 !--------------------------------------------------------------------
@@ -206,7 +300,7 @@ CONTAINS
        & need_hessian, mode, stype, rhomax, rhomin, tbeta, const, alpha, &
        & softness, system_distance, system_spread, solvent_radius, radial_scale, &
        & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
-       & boundary )
+       & core, boundary )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -225,6 +319,7 @@ CONTAINS
     TYPE( environ_electrons ), TARGET, INTENT(IN) :: electrons
     TYPE( environ_ions ), TARGET, INTENT(IN) :: ions
     TYPE( environ_system ), TARGET, INTENT(IN) :: system
+    TYPE( boundary_core ), TARGET, INTENT(IN) :: core
     TYPE( environ_boundary ), INTENT(INOUT) :: boundary
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_boundary_first'
     !
@@ -286,6 +381,8 @@ CONTAINS
     boundary%filling_threshold = filling_threshold
     boundary%filling_spread = filling_spread
     !
+    boundary%core => core
+    !
     boundary%initialized = .FALSE.
     !
     RETURN
@@ -342,6 +439,7 @@ CONTAINS
     bcopy % electrons => boriginal % electrons
     bcopy % ions      => boriginal % ions
     bcopy % system    => boriginal % system
+    bcopy % core      => boriginal % core
     !
     bcopy % mode              = boriginal % mode
     bcopy % update_status     = boriginal % update_status

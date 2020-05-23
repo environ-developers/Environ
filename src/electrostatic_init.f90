@@ -24,6 +24,7 @@ MODULE electrostatic_init
 !----------------------------------------------------------------------------
   !
   USE environ_types
+  USE core_base
   USE electrostatic_types
   USE electrostatic_base
   !
@@ -43,22 +44,19 @@ CONTAINS
        ( problem, tol, solver_type, auxiliary,              &
        step_type, step, maxstep, mix_type, ndiis, mix,      &
        preconditioner, screening_type, screening,           &
-       core_type, boundary_core_, ifdtype, nfdpoint,        &
-       use_internal_pbc_corr, pbc_correction, pbc_dim_,     &
+       core_type, pbc_correction,                           &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!       pbc_axis_, nspin, prog, inner_tol, inner_solver_type,&
+!       nspin, prog, inner_tol, inner_solver_type, &
 ! Compatbile with QE-6.4.X QE-GIT
-       pbc_axis_, prog, inner_tol, inner_solver_type, &
+       prog, inner_tol, inner_solver_type, &
 ! END BACKWARD COMPATIBILITY
        inner_maxstep, inner_mix )
 !--------------------------------------------------------------------
     IMPLICIT NONE
     !
     CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
-    LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-    INTEGER, INTENT(IN) :: maxstep, ndiis, ifdtype, nfdpoint,       &
-         pbc_dim_, pbc_axis_, inner_maxstep
+    INTEGER, INTENT(IN) :: maxstep, ndiis, inner_maxstep
     REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol,   &
          inner_mix
     !
@@ -100,17 +98,7 @@ CONTAINS
        CALL errore(sub_name,'Unexpected name of host code',1)
     END SELECT
     !
-    ! Numerical core for boundary derivatives NEED TO MOVE IT OUTSIDE ELECTROSTATIC
-    !
-    boundary_core = boundary_core_
-    SELECT CASE ( TRIM( ADJUSTL( boundary_core ) ) )
-    CASE ( 'fd' )
-       lfd = .TRUE.
-    CASE ( 'fft', 'analytic' )
-       lfft = .TRUE.
-    END SELECT
-    !
-    ! Numerical core for periodic boundary correction
+    ! Numerical core for periodic boundary or electrolyte corrections
     !
     need_pbc_correction = .FALSE.
     need_electrolyte = .FALSE.
@@ -118,26 +106,21 @@ CONTAINS
     !
     ! first check keywords specfied in input
     !
-    IF ( pbc_dim_ .GE. 0 ) THEN
-       !
-       pbc_dim = pbc_dim_
-       pbc_axis = pbc_axis_
-       SELECT CASE ( TRIM( ADJUSTL( pbc_correction ) ) )
-       CASE ( 'none' )
-       CASE ( 'parabolic' )
-          need_pbc_correction = .TRUE.
-          loned_analytic = .TRUE.
-          local_type = '1da'
-       CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
-          need_pbc_correction = .TRUE.
-          need_electrolyte = .TRUE.
-          loned_analytic = .TRUE.
-          local_type = 'gcs'
-       CASE DEFAULT
-          CALL errore(sub_name,'Option not yet implemented',1)
-       END SELECT
-       !
-    END IF
+    SELECT CASE ( TRIM( ADJUSTL( pbc_correction ) ) )
+    CASE ( 'none' )
+       need_pbc_correction = .FALSE.
+    CASE ( 'parabolic' )
+       need_pbc_correction = .TRUE.
+       loned_analytic = .TRUE.
+       local_type = '1da'
+    CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
+       need_pbc_correction = .TRUE.
+       need_electrolyte = .TRUE.
+       loned_analytic = .TRUE.
+       local_type = 'gcs'
+    CASE DEFAULT
+       need_pbc_correction = .FALSE.
+    END SELECT
     !
     IF ( need_pbc_correction ) THEN
        IF ( loned_analytic ) &
@@ -162,17 +145,6 @@ CONTAINS
     END SELECT
     IF ( need_pbc_correction ) CALL add_correction( correction = pbc_core, core = outer_core )
     IF ( lnested .AND. need_pbc_correction ) CALL add_correction( correction = pbc_core, core = inner_core )
-    !
-    ! Set up active numerical cores
-    !
-    IF ( lfd ) CALL init_fd_core( ifdtype, nfdpoint, fd )
-! BACKWARD COMPATIBILITY
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    IF ( fft ) CALL init_fft_core( fft, use_internal_pbc_corr, nspin )
-! Compatible with QE-6.4.X QE-GIT
-    IF ( lfft ) CALL init_fft_core_first( fft, use_internal_pbc_corr )
-! END BACKWARD COMPATIBILITY
-    IF ( loned_analytic ) CALL init_oned_analytic_core_first( pbc_dim, pbc_axis, oned_analytic )
     !
     ! Initial setup of solver flags
     !
@@ -304,58 +276,6 @@ CONTAINS
   END SUBROUTINE set_electrostatic_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE electrostatic_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg  )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( environ_cell ), INTENT(IN) :: cell
-    TYPE( fft_dlay_descriptors ), INTENT(IN) :: dfft
-    INTEGER, INTENT(IN) :: ngm, gstart
-    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
-    REAL( DP ), DIMENSION(3,ngm) :: g
-    REAL( DP ), DIMENSION(ngm) :: gg
-    !
-    IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
-    !
-    IF ( lfft ) CALL init_fft_core_second( dfft, cell%omega, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, fft )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE electrostatic_initbase
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE electrostatic_initcell( cell )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( environ_cell ), INTENT(IN) :: cell
-    !
-    IF ( loned_analytic ) CALL update_oned_analytic_core_cell( cell, oned_analytic )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE electrostatic_initcell
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE electrostatic_initions( system )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( environ_system ), INTENT(IN) :: system
-    !
-    IF ( loned_analytic ) CALL update_oned_analytic_core_origin( system%pos, oned_analytic )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE electrostatic_initions
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
   SUBROUTINE electrostatic_clean( lflag )
 !--------------------------------------------------------------------
     !
@@ -370,8 +290,6 @@ CONTAINS
     IF ( need_pbc_correction ) CALL destroy_electrostatic_core( lflag, pbc_core )
     CALL destroy_electrostatic_solver( lflag, outer_solver )
     CALL destroy_electrostatic_solver( lflag, reference_solver )
-    IF ( lfd ) CALL destroy_fd_core( lflag, fd )
-    IF ( loned_analytic ) CALL destroy_oned_analytic_core( lflag, oned_analytic )
     !
     RETURN
     !

@@ -28,6 +28,7 @@ MODULE environ_types
 !----------------------------------------------------------------------------
   !
   USE modules_constants
+  USE core_types
   USE mp,                ONLY : mp_sum
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
@@ -285,6 +286,18 @@ MODULE environ_types
      !
   END TYPE environ_system
   !
+  TYPE boundary_core
+     !
+     CHARACTER( LEN = 80 ) :: type
+     !
+     LOGICAL :: use_fft
+     TYPE( fft_core ), POINTER :: fft => NULL()
+     !
+     LOGICAL :: use_fd
+     TYPE( fd_core ), POINTER :: fd => NULL()
+     !
+  END TYPE boundary_core
+  !
   TYPE environ_boundary
      !
      !> Boundary label
@@ -326,6 +339,8 @@ MODULE environ_types
      TYPE( environ_density ) :: laplacian
      TYPE( environ_density ) :: dsurface
      TYPE( environ_hessian ) :: hessian
+     !
+     TYPE( boundary_core ) :: core
      !
      ! global properties of the boundary
      !
@@ -1484,6 +1499,7 @@ CONTAINS
     IF ( electrons%initialized ) THEN
        CALL destroy_environ_density( electrons%density )
        electrons%charge = 0.D0
+       electrons%initialized = .FALSE.
     END IF
     !
     RETURN

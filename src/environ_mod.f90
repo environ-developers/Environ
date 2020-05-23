@@ -109,6 +109,13 @@ MODULE environ_base
   !
   ! Details of the continuum interface
   !
+  LOGICAL ::                       &
+       lboundary
+  TYPE( boundary_core ), TARGET :: &
+       bound_core
+  !
+  ! Details of the continuum interface
+  !
   TYPE( environ_boundary ), TARGET :: &
        solvent
   !

@@ -61,6 +61,7 @@ CONTAINS
        & stype, rhomax, rhomin, tbeta,               &
        & env_static_permittivity_,                   &
        & env_optical_permittivity_, solvent_mode,    &
+       & boundary_core_,                             &
        & radius_mode, alpha, softness,               &
        & solvent_distance, solvent_spread,           &
        & solvent_radius, radial_scale,               &
@@ -95,6 +96,8 @@ CONTAINS
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
          & need_factsqrt, need_auxiliary, need_electrolyte
+    !
+    USE core_base
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
@@ -137,7 +140,7 @@ CONTAINS
          epsregion_width(:)
     CHARACTER( LEN = * ), INTENT(IN) :: prog, environ_type, &
          solvent_mode, radius_mode, electrolyte_mode,     &
-         electrolyte_entropy, ion_adsorption
+         electrolyte_entropy, ion_adsorption, boundary_core_
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
     CHARACTER( LEN = 80 ) :: label
@@ -213,10 +216,13 @@ CONTAINS
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
                      ( lelectrolyte .AND. electrolyte_mode .EQ. 'full' )
     lsmearedions   = lelectrostatic
+    lboundary      = lsolvent .OR. lelectrolyte
     !
     ! Create optional types
     !
     IF ( lexternals ) CALL create_environ_externals(externals)
+    !
+    IF ( lboundary ) CALL create_boundary_core(bound_core)
     !
     IF ( lsolvent ) THEN
        label = 'solvent'
@@ -249,7 +255,7 @@ CONTAINS
     !
     CALL init_environ_system( system_ntyp, system_dim, system_axis, ions, system )
     !
-    ! Collect free charges if computing electrostatics or confinement 
+    ! Collect free charges if computing electrostatics or confinement
     !
     IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_first( electrons=electrons, charges=charges )
     IF ( lelectrostatic ) CALL init_environ_charges_first( ions=ions, charges=charges )
@@ -262,13 +268,20 @@ CONTAINS
        CALL init_environ_charges_first( externals=externals, charges=charges )
     ENDIF
     !
+    ! Point cores needed for boundaries derivatives
+    !
+    IF ( lboundary ) THEN
+       CALL init_boundary_core( 'fft', bound_core, fft )
+       IF ( boundary_core_ .EQ. 'fd' ) CALL init_boundary_core( 'fd', bound_core, fd )
+    END IF
+    !
     ! Set the parameters of the solvent boundary
     !
     IF ( lsolvent ) THEN
        CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
             & solvent_distance, solvent_spread, solvent_radius, radial_scale, radial_spread, &
-            & filling_threshold, filling_spread, electrons, ions, system, solvent )
+            & filling_threshold, filling_spread, electrons, ions, system, bound_core, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
@@ -280,7 +293,7 @@ CONTAINS
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
-            & electrons, ions, system, temperature, cion, cionmax, rion, &
+            & electrons, ions, system, bound_core, temperature, cion, cionmax, rion, &
             & zion, electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
             & electrolyte_linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
@@ -869,6 +882,8 @@ CONTAINS
      !
      IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )
      IF ( lsolvent ) CALL destroy_environ_boundary( lflag, solvent )
+     !
+     IF ( lboundary ) CALL destroy_boundary_core( lflag, bound_core )
      !
      RETURN
      !

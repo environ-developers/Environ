@@ -584,13 +584,11 @@ CONTAINS
                                   step_type, step, maxstep, mix_type,    &
                                   ndiis, mix, preconditioner,            &
                                   screening_type, screening, core,       &
-                                  boundary_core, ifdtype, nfdpoint,      &
-                                  use_internal_pbc_corr, pbc_correction, &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!                                  pbc_dim, pbc_axis, nspin, prog,        &
+!                                 pbc_correction, nspin, prog,           &
 ! Compatible with QE-6.4.X QE-GIT
-                                  pbc_dim, pbc_axis, prog,        &
+                                  pbc_correction, prog,                  &
 ! END BACKWARD COMPATIBILITY
                                   inner_tol, inner_solver, inner_maxstep,&
                                   inner_mix )
@@ -612,6 +610,7 @@ CONTAINS
                              env_static_permittivity,                    &
                              env_optical_permittivity,                   &
                              solvent_mode,                               &
+                             boundary_core,                              &
                              radius_mode, alpha, softness,               &
                              solvent_distance, solvent_spread,           &
                              solvent_radius, radial_scale,               &
@@ -638,6 +637,10 @@ CONTAINS
                              epsregion_eps, epsregion_dim,               &
                              epsregion_axis, epsregion_pos,              &
                              epsregion_spread, epsregion_width )
+    !
+    ! ... Eventually set core base
+    !
+    CALL set_core_base ( ifdtype, nfdpoint, use_internal_pbc_corr, pbc_dim, pbc_axis )
     !
     RETURN
     !
