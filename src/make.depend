@@ -1,6 +1,7 @@
 core_fd.o : environ_types.o
 core_fd.o : core_types.o
 core_fft.o : environ_types.o
+core_fft.o : environ_mod.o
 core_fft.o : electrostatic_types.o
 core_init.o : core_types.o
 core_init.o : core_mod.o

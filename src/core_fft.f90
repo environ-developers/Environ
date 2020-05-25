@@ -1,6 +1,8 @@
 MODULE core_fft
   !
+  USE modules_constants, ONLY : DP
   USE environ_types
+  USE environ_base, ONLY : e2
   USE electrostatic_types
   USE fft_interfaces, ONLY : fwfft, invfft
   !
@@ -24,15 +26,17 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fin
     TYPE( environ_density ), INTENT(OUT) :: fout
     !
+    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
+    !
     ! ... local aliases
     !
-    REAL(DP), POINTER :: tpiba2, omega, gstart
+    REAL(DP), POINTER :: tpiba, omega, gstart
     REAL(DP), DIMENSION(:), POINTER :: gg
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     !
     ! ... add tests for compatilibity between input, output, and fft_core
     !
@@ -56,7 +60,7 @@ CONTAINS
 !       auxr(dfft%nl(ig)) = auxg(ig) / gg(ig)
 !    ENDDO
 !$omp end parallel do
-    auxr = auxr * e2 * fpi / tpiba2
+    auxr = auxr * e2 * fpi / tpiba / tpiba
     !
 !    IF ( fft%do_comp_mt ) THEN
 !       ALLOCATE( vaux( ngm ) )
@@ -66,7 +70,7 @@ CONTAINS
 !    END IF
     !
     IF ( dfft%lgamma ) THEN
-       auxr( dfft%nlm(:) ) = CMPLX( REAL(auxr(dfft%nl(:)), -AIMAG(auxr(dfft%nl(:)), kind=DP )
+       auxr( dfft%nlm(:) ) = CMPLX( REAL(auxr(dfft%nl(:))), -AIMAG(auxr(dfft%nl(:))), kind=DP )
     END IF
     !
     ! ... transform hartree potential to real space
@@ -92,21 +96,28 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fin
     TYPE( environ_gradient ), INTENT(OUT) :: gout
     !
+    INTEGER :: ipol, ig
+    REAL(DP) :: fac
+    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
+    !
     ! ... local aliases
     !
+    INTEGER, POINTER :: ngm, gstart
     REAL(DP), POINTER :: tpiba, omega
     REAL(DP), DIMENSION(:), POINTER :: gg
     REAL(DP), DIMENSION(:,:), POINTER :: g
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
     tpiba => fft % tpiba
     omega => fft % omega
+    ngm => fft % ngm
+    gstart => fft % gstart
     gg => fft % gg
     g => fft % g
     dfft => fft % dfft
@@ -130,7 +141,7 @@ CONTAINS
        DO ig = gstart, ngm
           !
           fac = g(ipol,ig) / gg(ig)
-          gaux(dfft%nl(ig)) = CMPLX(-AIMAG(rhoaux(dfft%nl(ig))),REAL(rhoaux(dfft%nl(ig))),kind=dp) * fac
+          gaux(dfft%nl(ig)) = CMPLX(-AIMAG(aux(dfft%nl(ig))),REAL(aux(dfft%nl(ig))),kind=dp) * fac
           !
        END DO
 !$omp end parallel do
@@ -186,7 +197,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fa, fb
     TYPE( environ_density ), INTENT(OUT) :: fc
     !
@@ -195,8 +206,7 @@ CONTAINS
     ! ... local aliases
     !
     REAL(DP), POINTER :: omega
-    REAL(DP), DIMENSION(:,:), POINTER :: g
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
@@ -245,7 +255,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fa
     TYPE( environ_gradient ), INTENT(IN) :: gb
     TYPE( environ_gradient ), INTENT(OUT) :: gc
@@ -255,8 +265,7 @@ CONTAINS
     ! ... local aliases
     !
     REAL(DP), POINTER :: omega
-    REAL(DP), DIMENSION(:,:), POINTER :: g
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     !
     INTEGER :: ipol
     !
@@ -307,7 +316,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fa
     TYPE( environ_hessian ), INTENT(IN) :: hb
     TYPE( environ_hessian ), INTENT(OUT) :: hc
@@ -317,8 +326,7 @@ CONTAINS
     ! ... local aliases
     !
     REAL(DP), POINTER :: omega
-    REAL(DP), DIMENSION(:,:), POINTER :: g
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     !
     INTEGER :: ipol, jpol
     !
@@ -377,7 +385,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN)  :: a
     TYPE( environ_gradient ), INTENT(OUT) :: ga
     !
@@ -387,7 +395,7 @@ CONTAINS
     ! ... local aliases
     !
     REAL(DP), POINTER :: tpiba
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     REAL(DP), DIMENSION(:,:), POINTER :: g
     !
     ! ... add tests for compatilibity between input, output, and fft
@@ -439,18 +447,18 @@ CONTAINS
   END SUBROUTINE gradient_fft
   !
 !----------------------------------------------------------------------------
-  SUBROUTINE graddot_fft( fft, a, da )
+  SUBROUTINE graddot_fft( fft, ga, da )
 !----------------------------------------------------------------------------
     !
     ! ... Calculates da = \sum_i \grad_i a_i in R-space
-    ! ... input : fft     FFT descriptor and G vectors
-    ! ...         a(3,:)   a real function on the real-space FFT grid
-    ! ... output: ga(:)    \sum_i \grad_i a_i, real, on the real-space FFT grid
+    ! ... input : fft      FFT descriptor and G vectors
+    ! ...         ga(3,:)  a real function on the real-space FFT grid
+    ! ... output: da(:)    \sum_i \grad_i a_i, real, on the real-space FFT grid
     !
     IMPLICIT NONE
     !
-    TYPE( fft_core ), INTENT(IN) :: fft
-    TYPE( environ_density ), INTENT(IN) :: a
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
+    TYPE( environ_gradient ), INTENT(IN) :: ga
     TYPE( environ_density ), INTENT(OUT) :: da
     !
     INTEGER                  :: n, ipol
@@ -460,7 +468,7 @@ CONTAINS
     ! ... local aliases
     !
     REAL(DP), POINTER :: tpiba
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     REAL(DP), DIMENSION(:,:), POINTER :: g
     !
     ! ... add tests for compatilibity between input, output, and fft
@@ -479,7 +487,7 @@ CONTAINS
        ! Gamma tricks: perform 2 FFT's in a single shot
        ! x and y
        ipol = 1
-       aux(:) = CMPLX( a%of_r(ipol,:), a%of_r(ipol+1,:), kind=DP)
+       aux(:) = CMPLX( ga%of_r(ipol,:), ga%of_r(ipol+1,:), kind=DP)
        !
        ! ... bring a(ipol,r) to G-space, a(G) ...
        !
@@ -499,7 +507,7 @@ CONTAINS
        ENDDO
        ! z
        ipol = 3
-       aux(:) = CMPLX( a%of_r(ipol,:), 0.0_dp, kind=DP)
+       aux(:) = CMPLX( ga%of_r(ipol,:), 0.0_dp, kind=DP)
        !
        ! ... bring a(ipol,r) to G-space, a(G) ...
        !
@@ -519,7 +527,7 @@ CONTAINS
        !
        DO ipol = 1, 3
           !
-          aux = CMPLX( a%of_r(ipol,:), 0.0_dp, kind=DP)
+          aux = CMPLX( ga%of_r(ipol,:), 0.0_dp, kind=DP)
           !
           ! ... bring a(ipol,r) to G-space, a(G) ...
           !
@@ -565,9 +573,9 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE(fft_core),INTENT(IN) :: fft
+    TYPE(fft_core), TARGET, INTENT(IN) :: fft
     TYPE(environ_density), INTENT(IN) :: a
-    TYPE(environ_density), INTENT(OUT) :: lapla(dfft%nnr)
+    TYPE(environ_density), INTENT(OUT) :: lapla
     !
     INTEGER                  :: ig
     COMPLEX(DP), ALLOCATABLE :: aux(:), laux(:)
@@ -576,7 +584,7 @@ CONTAINS
     !
     REAL(DP), POINTER :: tpiba2
     REAL(DP), DIMENSION(:), POINTER :: gg
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
@@ -636,7 +644,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE(fft_core),INTENT(IN) :: fft
+    TYPE(fft_core), TARGET, INTENT(IN) :: fft
     TYPE(environ_density), INTENT(IN)  :: a
     TYPE(environ_gradient), INTENT(OUT) :: ga
     TYPE(environ_hessian), INTENT(OUT) :: ha
@@ -648,7 +656,7 @@ CONTAINS
     !
     REAL(DP), POINTER :: tpiba
     REAL(DP), DIMENSION(:,:), POINTER :: g
-    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    TYPE(fft_type_descriptor), POINTER :: dfft
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
