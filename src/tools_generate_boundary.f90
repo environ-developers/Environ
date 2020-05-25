@@ -30,7 +30,6 @@ MODULE tools_generate_boundary
   !
   USE environ_types
   USE environ_output
-  USE electrostatic_base, ONLY : boundary_core, fd
   !
   PRIVATE
   !
@@ -449,6 +448,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: lapleps, dsurface
     REAL( DP ), DIMENSION(:,:), POINTER :: gradeps
     REAL( DP ), DIMENSION(:,:,:), POINTER :: hesseps
+    TYPE( environ_hessian ), POINTER :: hessian
     !
     TYPE( fft_core ), POINTER :: fft
     TYPE( fd_core ), POINTER :: fd
@@ -503,27 +503,27 @@ CONTAINS
     IF ( deriv .GE. 3 ) THEN
        dsurface => boundary%dsurface%of_r
        IF ( boundary % solvent_aware ) THEN
-          hesseps => boundary%hessian%of_r
+          hessian => boundary%hessian
        ELSE
-          ALLOCATE( hesseps( 3, 3, nnr ) )
-          hesseps = 0.D0
+          ALLOCATE(hessian)
+          CALL init_environ_hessian( density % cell, hessian )
        ENDIF
     END IF
     !
-    SELECT CASE ( boundary_core )
+    SELECT CASE ( boundary % core % type )
        !
     CASE ( 'fft' )
        !
        IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, boundary%scaled, boundary%gradient )
        IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, boundary%scaled, boundary%laplacian )
-       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, eps, gradeps, lapleps, hesseps, dsurface )
+       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, boundary%scaled, boundary%gradient, boundary%laplacian, hessian, boundary%dsurface )
        !
     CASE ( 'analytic', 'fd' )
        !
        IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, density , boundary%gradient )
        IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, density, boundary%laplacian )
        IF ( deriv .EQ. 3 ) THEN
-          CALL dsurface_fft( fft, rho, gradeps, lapleps, hesseps, dsurface )
+          CALL dsurface_fft( fft, density, boundary%gradient, boundary%laplacian, hessian, boundary%dsurface )
           IF ( boundary % solvent_aware ) THEN
              DO ipol = 1, 3
                 DO jpol = 1, 3
@@ -536,11 +536,11 @@ CONTAINS
        IF ( deriv .GT. 1 ) lapleps(:) = lapleps(:) * deps(:) + &
             & ( gradeps(1,:)**2 + gradeps(2,:)**2 + gradeps(3,:)**2 ) * d2eps(:)
        IF ( deriv .GE. 1 ) THEN
-          IF ( boundary_core .EQ. 'analytic' ) THEN
+          IF ( boundary % core % type .EQ. 'analytic' ) THEN
              DO ipol = 1, 3
                 gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
              ENDDO
-          ELSE IF ( boundary_core .EQ. 'fd' ) THEN
+          ELSE IF ( boundary % core % type .EQ. 'fd' ) THEN
              CALL gradient_fd( fd, boundary%scaled, boundary%gradient )
           ENDIF
        ENDIF
@@ -555,7 +555,7 @@ CONTAINS
     END IF
     !
     IF ( deriv .GE. 3 .AND. .NOT. boundary % solvent_aware ) &
-         & DEALLOCATE( hesseps )
+         & CALL destroy_environ_hessian( hessian )
     !
     RETURN
     !
@@ -578,7 +578,7 @@ CONTAINS
     TYPE( environ_hessian ), INTENT(OUT) :: hess
     TYPE( environ_density ), INTENT(OUT) :: dsurface
     !
-    CALL hessian_fft( x, grad, hess )
+    CALL hessian_fft( fft, x, grad, hess )
     lapl%of_r(:) = hess%of_r(1,1,:) + hess%of_r(2,2,:) + hess%of_r(3,3,:)
     CALL calc_dsurface( x%cell%nnr, x%cell%ir_end, grad%of_r, hess%of_r, dsurface%of_r )
     !
@@ -1067,6 +1067,7 @@ CONTAINS
     !
     INTEGER, POINTER :: nnr, ir_end, deriv
     TYPE( environ_cell ), POINTER :: cell
+    TYPE( fft_core ), POINTER :: fft
     !
     INTEGER :: i
     CHARACTER( LEN=80 ) :: sub_name = 'boundary_of_system'
@@ -1078,6 +1079,8 @@ CONTAINS
     cell => boundary % scaled % cell
     nnr => cell % nnr
     ir_end => cell % ir_end
+    !
+    fft => boundary % core % fft
     !
     ! Compute soft spheres and generate boundary
     !
@@ -1214,7 +1217,7 @@ CONTAINS
     fft => boundary % core % fft
     !
     CALL init_environ_density( cell, filled_fraction )
-    IF ( deriv .GE. 2 .AND. boundary_core .NE. 'fft' ) CALL init_environ_density( cell, d2filling )
+    IF ( deriv .GE. 2 .AND. boundary % core % type .NE. 'fft' ) CALL init_environ_density( cell, d2filling )
     !
     ! Step 0: save local interface function for later use
     !
@@ -1239,7 +1242,7 @@ CONTAINS
     DO ir = 1, ir_end
        boundary % filling % of_r( ir ) = 1.D0 - sfunct2( filled_fraction % of_r( ir ), thr, spr )
        boundary % dfilling % of_r( ir ) = - dsfunct2( filled_fraction % of_r( ir ), thr, spr )
-       IF ( deriv .GE. 2 .AND. boundary_core .NE. 'fft' ) &
+       IF ( deriv .GE. 2 .AND. boundary % core % type .NE. 'fft' ) &
             & d2filling % of_r( ir ) = - d2sfunct2( filled_fraction % of_r( ir ), thr, spr )
     ENDDO
     !

@@ -99,7 +99,7 @@ CONTAINS
    TYPE( environ_density ) :: dvelectrostatic
    !
    INTEGER :: ir
-   REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gvtot0, gdvtot
+   TYPE( environ_gradient ) :: gvtot0, gdvtot
    CHARACTER( LEN=80 ) :: sub_name = 'calc_vsolvent_tddfpt'
    !
    IF ( .NOT. ltddfpt .OR. .NOT. loptical ) RETURN

@@ -304,7 +304,7 @@ MODULE environ_types
      TYPE( environ_density ) :: dsurface
      TYPE( environ_hessian ) :: hessian
      !
-     TYPE( boundary_core ) :: core
+     TYPE( boundary_core ), POINTER :: core
      !
      ! global properties of the boundary
      !

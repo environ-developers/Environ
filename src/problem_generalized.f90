@@ -888,7 +888,7 @@ CONTAINS
        !
        ! ... Apply operator to conjugate direction
        ! NOTE: the following steps should be extended to account for different cores
-       CALL gradient_fft(fft,z,g)
+       CALL gradient_fft(core%fft,z,g)
        g%of_r = g%of_r / fpi / e2
        Ap%of_r(:) = beta * Ap%of_r(:) - r%of_r(:) + &
                   & gradeps%of_r(1,:)*g%of_r(1,:) + &

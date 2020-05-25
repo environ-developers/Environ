@@ -1,5 +1,6 @@
 TO DO
-* fix to convolution_fft, external_gradient, external_laplacian, external_hessian
+* fix e2 and unit conversion
+* write_cube in environ_output.f90 relies on fft for some strange reason. We may need to disentangle this.
 
 * profile core_fft routines
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
@@ -31,6 +32,7 @@ DONE
 * calc_fd_gradient.f90 cleanup dependencies from Modules, fix communicators for parallelization, moved into core_fd.f90
 * fix calls to v_h_of_rho_r, gradv_h_of_rho_r
 * created a set of new modules to deal with cores. Basic cores are now pointed to by either electrostatic_core or boundary_core objects.
+* fix to convolution_fft, external_gradient, external_laplacian, external_hessian
 
 DOUBTS
   do we want to keep martyna-tuckerman?

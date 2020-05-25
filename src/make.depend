@@ -47,6 +47,7 @@ embedding_surface.o : environ_mod.o
 embedding_volume.o : environ_types.o
 embedding_volume.o : environ_output.o
 embedding_volume.o : environ_mod.o
+environ_init.o : core_types.o
 environ_init.o : environ_types.o
 environ_init.o : environ_output.o
 environ_init.o : environ_mod.o
@@ -124,7 +125,6 @@ solvent_tddfpt.o : embedding_electrostatic.o
 solvent_tddfpt.o : utils_charges.o
 tools_generate_boundary.o : environ_types.o
 tools_generate_boundary.o : environ_output.o
-tools_generate_boundary.o : electrostatic_mod.o
 tools_generate_boundary.o : core_types.o
 tools_generate_boundary.o : core_fd.o
 tools_generate_boundary.o : core_fft.o

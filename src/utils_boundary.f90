@@ -208,7 +208,7 @@ CONTAINS
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE init_electrostatic_core
+  END SUBROUTINE init_boundary_core
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE destroy_boundary_core( lflag, core )
@@ -222,7 +222,7 @@ CONTAINS
     IF ( lflag ) THEN
        core % use_fft = .FALSE.
        NULLIFY( core % fft )
-       core % fd = .FALSE.
+       core % use_fd = .FALSE.
        NULLIFY( core % fd )
     END IF
     !

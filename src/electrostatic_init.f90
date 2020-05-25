@@ -69,7 +69,7 @@ CONTAINS
     !
     CHARACTER( LEN = * ), INTENT(IN) :: problem, solver_type,       &
          auxiliary, step_type, mix_type, preconditioner,            &
-         screening_type, core_type, boundary_core_,                 &
+         screening_type, core_type,                                 &
          pbc_correction, prog, inner_solver_type
     !
     INTEGER :: i

@@ -25,6 +25,7 @@
 MODULE environ_init
 !----------------------------------------------------------------------------
   !
+  USE core_types
   USE environ_types
   USE environ_output
   USE environ_base
@@ -278,7 +279,7 @@ CONTAINS
        CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
             & solvent_distance, solvent_spread, solvent_radius, radial_scale, radial_spread, &
-            & filling_threshold, filling_spread, electrons, ions, system, bound_core, solvent )
+            & filling_threshold, filling_spread, electrons, ions, system, derivatives, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
@@ -290,7 +291,7 @@ CONTAINS
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
-            & electrons, ions, system, bound_core, temperature, cion, cionmax, rion, &
+            & electrons, ions, system, derivatives, temperature, cion, cionmax, rion, &
             & zion, electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
             & electrolyte_linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
@@ -389,7 +390,7 @@ CONTAINS
     REAL(DP), INTENT(IN) :: omega
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: bg
-    TYPE(fft_dlay_descritor), INTENT(IN) :: dfft
+    TYPE(fft_type_descriptor), INTENT(IN) :: dfft
     INTEGER, INTENT(IN) :: ngm, gstart
     REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
     REAL( DP ), DIMENSION(3,ngm), INTENT(IN) :: g

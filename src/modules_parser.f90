@@ -151,9 +151,9 @@ MODULE modules_parser
 20     CONTINUE
     END IF
     !
-    CALL mp_bcast( tend, ionode_id, intra_image_comm )
-    CALL mp_bcast( terr, ionode_id, intra_image_comm )
-    CALL mp_bcast( line, ionode_id, intra_image_comm )
+    CALL mp_bcast( tend, ionode_id, comm )
+    CALL mp_bcast( terr, ionode_id, comm )
+    CALL mp_bcast( line, ionode_id, comm )
     !
     IF( PRESENT(end_of_file) ) THEN
        end_of_file = tend
