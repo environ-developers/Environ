@@ -41,17 +41,26 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fd_core ), INTENT(IN) :: fd
+    TYPE( fd_core ), TARGET, INTENT(IN) :: fd
     TYPE( environ_density ), INTENT(IN) :: f
     TYPE( environ_gradient ), INTENT(INOUT) :: grad
+    !
+    ! Local variables
     !
     INTEGER :: idx, idx0, j0, k0, i, ir, ir_end, ipol, in
     INTEGER :: ixc, iyc, izc, ixp, ixm, iyp, iym, izp, izm
     INTEGER, DIMENSION(:), ALLOCATABLE :: ix, iy, iz
     REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gradtmp, gradaux
     !
+    ! Aliases
+    !
+    INTEGER, POINTER :: nnr, nfdpoint
+    TYPE( environ_cell ), POINTER :: cell
+    TYPE( fft_type_descriptor ), POINTER :: dfft
+    !
     dfft => fd % dfft
-    nnr => cell%nnr
+    cell => fd % cell
+    nnr => fd % cell % nnr
     nfdpoint => fd % nfdpoint
     !
     ALLOCATE( ix(-nfdpoint:nfdpoint), iy(-nfdpoint:nfdpoint), iz(-nfdpoint:nfdpoint) )
@@ -61,8 +70,8 @@ CONTAINS
     !
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+!    idx0 = dfft%nr1x*dfft%nr2x*dfft%ipp(me_bgrp+1)
+!    ir_end = dfft%nr1x*dfft%nr2x*dfft%npl
 ! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
 #if defined (__MPI)
     j0 = dfft%my_i0r2p ; k0 = dfft%my_i0r3p
@@ -78,13 +87,13 @@ CONTAINS
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X
 !       i = idx0 + ir - 1
-!       iz(0) = i / (dfftp%nr1x*dfftp%nr2x)
-!       i     = i - (dfftp%nr1x*dfftp%nr2x)*iz(0)
-!       iy(0) = i / dfftp%nr1x
-!       ix(0) = i - dfftp%nr1x*iy(0)
+!       iz(0) = i / (dfft%nr1x*dfft%nr2x)
+!       i     = i - (dfft%nr1x*dfft%nr2x)*iz(0)
+!       iy(0) = i / dfft%nr1x
+!       ix(0) = i - dfft%nr1x*iy(0)
 ! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
        idx   = ir - 1
-       iz(0) = idx / (dfftp%nr1x*dfft%my_nr2p)
+       iz(0) = idx / (dfft%nr1x*dfft%my_nr2p)
        idx   = idx - (dfft%nr1x*dfft%my_nr2p)*iz(0)
        iz(0) = iz(0) + k0
        iy(0) = idx / dfft%nr1x
