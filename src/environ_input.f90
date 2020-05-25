@@ -518,6 +518,7 @@ CONTAINS
     !
     USE environ_init, ONLY : set_environ_base
     USE electrostatic_init, ONLY : set_electrostatic_base
+    USE core_init, ONLY : set_core_base
     !
     CHARACTER(len=*), INTENT(IN) :: prog
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
@@ -1680,26 +1681,26 @@ CONTAINS
         !
         ! ... read field 1 (total charge of the external density)
         !
-        CALL get_field(1, field_str, input_line)
+        CALL env_get_field(1, field_str, input_line)
         !extcharge_charge(ie) = feval_infix(ierr, field_str )
         read(field_str,*) extcharge_charge(ie)
         !
         ! ... read fields 2-4 (x-y-z position of external density)
         !
-        CALL get_field(2, field_str, input_line)
+        CALL env_get_field(2, field_str, input_line)
         !extcharge_pos(1,ie) = feval_infix(ierr, field_str )
         read(field_str,*) extcharge_pos(1,ie)
-        CALL get_field(3, field_str, input_line)
+        CALL env_get_field(3, field_str, input_line)
         !extcharge_pos(2,ie) = feval_infix(ierr, field_str )
         read(field_str,*) extcharge_pos(2,ie)
-        CALL get_field(4, field_str, input_line)
+        CALL env_get_field(4, field_str, input_line)
         !extcharge_pos(3,ie) = feval_infix(ierr, field_str )
         read(field_str,*) extcharge_pos(3,ie)
         !
         ! ... optionally read field 5 (spread of the density)
         !
         IF ( nfield >= 5 ) THEN
-           CALL get_field(5, field_str, input_line)
+           CALL env_get_field(5, field_str, input_line)
            !extcharge_spread(ie) = feval_infix(ierr, field_str )
            read(field_str,*) extcharge_spread(ie)
            IF ( extcharge_spread(ie) .LT. 0.D0 ) &
@@ -1858,12 +1859,12 @@ CONTAINS
         !
         ! ... read field 1-2 (static and optical permettivity inside dielectric region)
         !
-        CALL get_field(1, field_str, input_line)
+        CALL env_get_field(1, field_str, input_line)
         !epsregion_eps(1,ie) = feval_infix(ierr, field_str )
         READ(field_str, *) epsregion_eps(1,ie)
         IF ( epsregion_eps(1,ie) .LT. 1.D0 ) &
              CALL errore( ' card_dielectric_regions  ', ' static permittivity must be .gt. 1', ie )
-        CALL get_field(2, field_str, input_line)
+        CALL env_get_field(2, field_str, input_line)
         !epsregion_eps(2,ie) = feval_infix(ierr, field_str )
         READ(field_str, *) epsregion_eps(2,ie)
         IF ( epsregion_eps(2,ie) .LT. 1.D0 ) &
@@ -1871,19 +1872,19 @@ CONTAINS
         !
         ! ... read fields 3-5 (x-y-z position of dielectric region)
         !
-        CALL get_field(3, field_str, input_line)
+        CALL env_get_field(3, field_str, input_line)
         !epsregion_pos(1,ie) = feval_infix(ierr, field_str )
         READ(field_str, *) epsregion_pos(1,ie)
-        CALL get_field(4, field_str, input_line)
+        CALL env_get_field(4, field_str, input_line)
         !epsregion_pos(2,ie) = feval_infix(ierr, field_str )
         READ(field_str, *) epsregion_pos(2,ie)
-        CALL get_field(5, field_str, input_line)
+        CALL env_get_field(5, field_str, input_line)
         !epsregion_pos(3,ie) = feval_infix(ierr, field_str )
         READ(field_str, *) epsregion_pos(3,ie)
         !
         ! ... read field 6 (size/width of the dielectric region)
         !
-        CALL get_field(6, field_str, input_line)
+        CALL env_get_field(6, field_str, input_line)
         !epsregion_width(ie) = feval_infix(ierr, field_str )
         READ(field_str, *) epsregion_width(ie)
         IF ( epsregion_width(ie) .LT. 0.D0 ) &
@@ -1892,7 +1893,7 @@ CONTAINS
         ! ... optionally read field 7 (spread of interface of the dielectric region)
         !
         IF ( nfield >= 7 ) THEN
-           CALL get_field(7, field_str, input_line)
+           CALL env_get_field(7, field_str, input_line)
            !epsregion_spread(ie) = feval_infix(ierr, field_str )
            READ(field_str, *) epsregion_spread(ie)
            IF ( epsregion_spread(ie) .LT. 0.D0 ) &

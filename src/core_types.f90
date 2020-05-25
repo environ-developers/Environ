@@ -556,13 +556,13 @@ CONTAINS
   END SUBROUTINE set_fd_coefficients
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fd_core_second( dfft, cell, fd )
+  SUBROUTINE init_fd_core_second( cell, dfft, fd )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
     TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
+    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
     TYPE( fd_core ), INTENT(INOUT) :: fd
     !
     fd % dfft => dfft

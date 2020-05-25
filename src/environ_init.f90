@@ -363,7 +363,7 @@ CONTAINS
          lconfine, vconfine, econfine,            &
          eelectrolyte
     !
-    USE electrostatic_init, ONLY : electrostatic_initbase
+    USE core_init, ONLY : core_initbase
     !
     ! Local base initialization subroutines for the different
     ! environ contributions
@@ -597,7 +597,7 @@ CONTAINS
                                     set_soft_spheres
      USE utils_dielectric,   ONLY : update_environ_dielectric
      USE utils_electrolyte,  ONLY : update_environ_electrolyte
-     USE electrostatic_init, ONLY : electrostatic_initions
+     USE core_init,          ONLY : core_initions
      !
      IMPLICIT NONE
      !

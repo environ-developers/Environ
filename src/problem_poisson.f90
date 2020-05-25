@@ -34,6 +34,7 @@ MODULE problem_poisson
   USE electrostatic_types
   USE correction_periodic
   USE correction_gcs
+  USE core_fft, ONLY : poisson_fft, gradpoisson_fft
   USE environ_base, ONLY : e2, oldenviron
   USE environ_output
   !

@@ -1057,6 +1057,8 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE boundary_of_system( simple, boundary )
 !--------------------------------------------------------------------
+    !
+    USE core_fft, ONLY: gradient_fft, laplacian_fft
     USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions
     !
@@ -1233,7 +1235,7 @@ CONTAINS
     !
     ! Step 2: compute filled fraction, i.e. convolution of local boundary with probe
     !
-    CALL compute_convolution_fft( nnr, boundary%local%of_r, boundary%probe%of_r, filled_fraction%of_r )
+    CALL convolution_fft( fft, boundary%local, boundary%probe, filled_fraction )
     !
     ! Step 3: compute the filling function and its derivative
     !

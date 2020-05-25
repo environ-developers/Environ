@@ -75,6 +75,7 @@ CONTAINS
    USE environ_base, ONLY: cell, velectrostatic, lsoftsolvent, loptical, optical, ltddfpt
    USE electrostatic_base, ONLY : reference, outer
    USE embedding_electrostatic, ONLY : calc_velectrostatic
+   USE core_fft, ONLY : gradient_fft
    USE utils_charges
    !
    IMPLICIT NONE
@@ -159,7 +160,7 @@ CONTAINS
       !
       CALL init_environ_gradient( cell, gdvtot )
       !
-      CALL gradient_fft( outer % core % fft, dvelectrostatic % of_r, gdvtot )
+      CALL gradient_fft( outer % core % fft, dvelectrostatic, gdvtot )
       !
       ! ... Response dielectric potential
       !

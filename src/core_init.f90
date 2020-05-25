@@ -8,6 +8,8 @@ CONTAINS
   SUBROUTINE set_core_base( ifdtype, nfdpoint, use_internal_pbc_corr, dim, axis )
 !--------------------------------------------------------------------
     !
+    USE utils_oned_analytic, ONLY : init_oned_analytic_core_first
+    !
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
     INTEGER, INTENT(IN) :: ifdtype, nfdpoint, dim, axis
     !
@@ -30,6 +32,8 @@ CONTAINS
   SUBROUTINE core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg  )
 !--------------------------------------------------------------------
     !
+    USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
+    !
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
@@ -41,7 +45,7 @@ CONTAINS
     !
     IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
     !
-    IF ( lfd ) CALL init_fd_core_secdon( cell, dfft, fd )
+    IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
     !
     IF ( lfft ) CALL init_fft_core_second( dfft, cell%omega, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, fft )
     !
@@ -53,6 +57,8 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE core_initcell( cell )
 !--------------------------------------------------------------------
+    !
+    USE utils_oned_analytic, ONLY : update_oned_analytic_core_cell
     !
     IMPLICIT NONE
     !
@@ -71,6 +77,8 @@ CONTAINS
   SUBROUTINE core_initions( pos )
 !--------------------------------------------------------------------
     !
+    USE utils_oned_analytic, ONLY : update_oned_analytic_core_origin
+    !
     IMPLICIT NONE
     !
     REAL( DP ), DIMENSION(3), INTENT(IN) :: pos
@@ -85,6 +93,8 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE core_clean( lflag )
 !--------------------------------------------------------------------
+    !
+    USE utils_oned_analytic, ONLY : destroy_oned_analytic_core
     !
     IMPLICIT NONE
     !
