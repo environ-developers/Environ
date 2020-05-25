@@ -242,9 +242,9 @@ CONTAINS
 !       !
 !       eself = 0.D0
 !       !
-!       IF ( core % use_qe_fft ) THEN
+!       IF ( core % use_fft ) THEN
 !          !
-!          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+!          IF ( core % fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
 !             !
 !             degauss = 0.D0
 !             !
@@ -405,6 +405,8 @@ CONTAINS
   SUBROUTINE generalized_gradient_none( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
     !
+    USE core_fft, ONLY : gradient_fft, laplacian_fft
+    !
     IMPLICIT NONE
     !
     TYPE( gradient_solver ), TARGET, INTENT(IN) :: gradient
@@ -504,9 +506,9 @@ CONTAINS
        rzold = rznew
        !
        ! ... Apply operator to conjugate direction
-       !
-       CALL external_gradient(p%of_r,g%of_r)
-       CALL external_laplacian(p%of_r,l%of_r)
+       ! NOTE: the following steps should be extended to account for different cores
+       CALL gradient_fft(core%fft,p,g)
+       CALL laplacian_fft(core%fft,p,l)
        Ap%of_r(:) = eps%of_r(:)*l%of_r(:) + &
             & gradeps%of_r(1,:)*g%of_r(1,:) + &
             & gradeps%of_r(2,:)*g%of_r(2,:) + &
@@ -720,9 +722,9 @@ CONTAINS
     !
     shift = 0.D0
     !
-    IF ( core % use_qe_fft ) THEN
+    IF ( core % use_fft ) THEN
        !
-       IF ( .NOT. ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) ) THEN
+       IF ( .NOT. ( core % fft % use_internal_pbc_corr .OR. core % need_correction ) ) THEN
           !
           shift = - integrate_environ_density( x ) / cell % omega
           !
@@ -750,6 +752,8 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE generalized_gradient_left( gradient, core, charges, dielectric, potential, electrolyte )
 !--------------------------------------------------------------------
+    !
+    USE core_fft, ONLY : gradient_fft
     !
     IMPLICIT NONE
     !
@@ -883,8 +887,8 @@ CONTAINS
        p%of_r = z%of_r + beta * p%of_r
        !
        ! ... Apply operator to conjugate direction
-       !
-       CALL external_gradient(z%of_r,g%of_r)
+       ! NOTE: the following steps should be extended to account for different cores
+       CALL gradient_fft(fft,z,g)
        g%of_r = g%of_r / fpi / e2
        Ap%of_r(:) = beta * Ap%of_r(:) - r%of_r(:) + &
                   & gradeps%of_r(1,:)*g%of_r(1,:) + &

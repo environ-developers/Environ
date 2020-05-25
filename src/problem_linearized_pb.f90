@@ -415,9 +415,9 @@ CONTAINS
     !
     shift = 0.D0
     !
-    IF ( core % use_qe_fft ) THEN
+    IF ( core % use_fft ) THEN
        !
-       IF ( .NOT. ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) ) THEN
+       IF ( .NOT. ( core % fft % use_internal_pbc_corr .OR. core % need_correction ) ) THEN
           !
           shift = - integrate_environ_density( x ) / cell % omega
           !

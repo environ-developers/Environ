@@ -242,8 +242,8 @@ CONTAINS
     degauss = 0.D0
     !
     ! Electrons and nuclei
-    ! 
-    IF ( core % use_qe_fft ) THEN
+    !
+    IF ( core % use_fft ) THEN
        !
        energy = energy + 0.5D0 * scalar_product_environ_density( charges%density, potential )
        degauss = degauss + charges % charge
@@ -257,13 +257,13 @@ CONTAINS
        CALL errore(sub_name,'Unexpected setup of electrostatic core',1)
        !
     ENDIF
-    ! 
+    !
     !  Include environment contributions
     !
-    IF ( PRESENT(add_environment) .AND. add_environment ) THEN 
+    IF ( PRESENT(add_environment) .AND. add_environment ) THEN
        !
        ! External charges
-       ! 
+       !
        IF ( charges % include_externals ) THEN
           !
           energy = energy + 0.5D0 * scalar_product_environ_density( charges%externals%density, potential )
@@ -274,17 +274,17 @@ CONTAINS
        ! Polarization charge
        !
        IF ( charges % include_dielectric ) THEN
-          ! 
-          degauss = degauss + charges % dielectric % charge * 0.5D0 
+          !
+          degauss = degauss + charges % dielectric % charge * 0.5D0
           !
        END IF
        !
-       ! Electrolyte charge 
+       ! Electrolyte charge
        !
        IF ( charges % include_electrolyte ) THEN
           ! NOTE: electrolyte electrostatic interaction should be negative
           energy = energy - 0.5D0 * scalar_product_environ_density( charges%electrolyte%density, potential )
-          degauss = degauss + charges % electrolyte % charge 
+          degauss = degauss + charges % electrolyte % charge
           !
        END IF
        !
@@ -300,13 +300,13 @@ CONTAINS
        !
        eself = charges % ions % selfenergy_correction * e2
        !
-       IF ( core % use_qe_fft ) THEN
+       IF ( core % use_fft ) THEN
           !
-          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+          IF ( core % fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
              !
              degauss = 0.D0
              !
-          ELSE 
+          ELSE
              !
              degauss = - degauss * charges % ions % quadrupole_correction * e2 * tpi &
                   & / charges % density % cell % omega
@@ -441,14 +441,14 @@ CONTAINS
        aux % of_r = aux % of_r + charges % externals % density % of_r
     ENDIF
     !
-    IF ( setup % core % use_qe_fft ) THEN
+    IF ( setup % core % use_fft ) THEN
        !
        ftmp = 0.D0
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!       ALLOCATE( rhoaux( cell % nnr, setup % core % qe_fft % nspin ) )
+!       ALLOCATE( rhoaux( cell % nnr, setup % core % fft % nspin ) )
 !       rhoaux( :, 1 ) = aux % of_r
-!       IF ( setup % core % qe_fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
+!       IF ( setup % core % fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
 !       CALL external_force_lc(rhoaux,ftmp)
 ! Compatible with QE-6.4.X and QE-GIT
        CALL external_force_lc(aux%of_r,ftmp)
@@ -459,14 +459,14 @@ CONTAINS
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X
 !
 ! Compatible with QE-6.3.X
-!       IF ( setup % core % qe_fft % use_internal_pbc_corr ) THEN
+!       IF ( setup % core % fft % use_internal_pbc_corr ) THEN
 !          ftmp = 0.D0
 !          CALL external_wg_corr_force(rhoaux,ftmp)
 !          forces = forces + ftmp
 !       END IF
 !       DEALLOCATE( rhoaux )
 ! Compatible with QE-6.4.X and QE-GIT
-       IF ( setup % core % qe_fft % use_internal_pbc_corr ) THEN
+       IF ( setup % core % fft % use_internal_pbc_corr ) THEN
           ftmp = 0.D0
           CALL external_wg_corr_force(aux%of_r,ftmp)
           forces = forces + ftmp

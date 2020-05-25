@@ -112,7 +112,7 @@ MODULE environ_base
   LOGICAL ::                       &
        lboundary
   TYPE( boundary_core ), TARGET :: &
-       bound_core
+       derivatives
   !
   ! Details of the continuum interface
   !

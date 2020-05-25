@@ -181,8 +181,14 @@ CONTAINS
        !
     CASE ( 'fd', 'finite differences', 'finite_differences' )
        !
+       ! Note: finite differences core only works for gradient, other derivatives still
+       ! require fft core
+       !
        IF ( .NOT. PRESENT( fd ) ) CALL errore(sub_name,'Missing specified core type',1)
+       IF ( .NOT. PRESENT( fft ) ) CALL errore(sub_name,'Missing specified core type',1)
        core % use_fd = .TRUE.
+       core % use_fft = .TRUE.
+       core % fft => fft
        core % fd => fd
        !
     CASE DEFAULT

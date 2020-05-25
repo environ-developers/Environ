@@ -61,7 +61,7 @@ CONTAINS
        & stype, rhomax, rhomin, tbeta,               &
        & env_static_permittivity_,                   &
        & env_optical_permittivity_, solvent_mode,    &
-       & boundary_core_,                             &
+       & derivatives_,                               &
        & radius_mode, alpha, softness,               &
        & solvent_distance, solvent_spread,           &
        & solvent_radius, radial_scale,               &
@@ -140,7 +140,7 @@ CONTAINS
          epsregion_width(:)
     CHARACTER( LEN = * ), INTENT(IN) :: prog, environ_type, &
          solvent_mode, radius_mode, electrolyte_mode,     &
-         electrolyte_entropy, ion_adsorption, boundary_core_
+         electrolyte_entropy, ion_adsorption, derivatives_
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
     CHARACTER( LEN = 80 ) :: label
@@ -222,7 +222,7 @@ CONTAINS
     !
     IF ( lexternals ) CALL create_environ_externals(externals)
     !
-    IF ( lboundary ) CALL create_boundary_core(bound_core)
+    IF ( lboundary ) CALL create_boundary_core(derivatives)
     !
     IF ( lsolvent ) THEN
        label = 'solvent'
@@ -268,12 +268,9 @@ CONTAINS
        CALL init_environ_charges_first( externals=externals, charges=charges )
     ENDIF
     !
-    ! Point cores needed for boundaries derivatives
+    ! Setup cores needed for derivatives of boundaries
     !
-    IF ( lboundary ) THEN
-       CALL init_boundary_core( 'fft', bound_core, fft )
-       IF ( boundary_core_ .EQ. 'fd' ) CALL init_boundary_core( 'fd', bound_core, fd )
-    END IF
+    IF ( lboundary ) CALL init_boundary_core( derivatives_, derivatives, fft, fd )
     !
     ! Set the parameters of the solvent boundary
     !
@@ -416,6 +413,10 @@ CONTAINS
 ! END BACKWARD COMPATIBILITY
          & comm, me, root, cell )
     !
+    ! ... Initialization of numerical cores
+    !
+    CALL core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg )
+    !
     ! ... Create local storage for base potential, that needs to be modified
     !
     label = 'vzero'
@@ -436,8 +437,6 @@ CONTAINS
        label = 'vreference'
        CALL create_environ_density( vreference, label )
        CALL init_environ_density( cell, vreference )
-       !
-       CALL electrostatic_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg )
        !
     END IF
     !
@@ -545,7 +544,7 @@ CONTAINS
     USE utils_electrolyte,   ONLY : update_environ_electrolyte
     USE utils_externals,     ONLY : update_environ_externals
     !
-    USE electrostatic_init,  ONLY : electrostatic_initcell
+    USE core_init,           ONLY : core_initcell
     !
     IMPLICIT NONE
     !
@@ -565,9 +564,9 @@ CONTAINS
     IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
     IF ( lexternals ) CALL update_environ_externals( externals )
     !
-    ! ... Update electrostatic solvers
+    ! ... Update cores
     !
-    IF ( lelectrostatic ) CALL electrostatic_initcell( cell )
+    CALL core_initcell( cell )
     !
     cell%update = .FALSE.
     !
@@ -628,6 +627,10 @@ CONTAINS
      CALL update_environ_system( system )
      CALL print_environ_system( system )
      !
+     ! ... Update cores
+     !
+     CALL core_initions( system%pos )
+     !
      ! ... Update rigid environ properties, defined on ions
      !
      IF ( lrigidcavity ) THEN
@@ -662,7 +665,6 @@ CONTAINS
      END IF
      !
      IF ( lelectrostatic .OR. lconfine ) CALL update_environ_charges( charges )
-     IF ( lelectrostatic ) CALL electrostatic_initions( system )
      !
      system%update = .FALSE.
      ions%update = .FALSE.
@@ -883,7 +885,7 @@ CONTAINS
      IF ( loptical ) CALL destroy_environ_dielectric( lflag, optical )
      IF ( lsolvent ) CALL destroy_environ_boundary( lflag, solvent )
      !
-     IF ( lboundary ) CALL destroy_boundary_core( lflag, bound_core )
+     IF ( lboundary ) CALL destroy_boundary_core( lflag, derivatives )
      !
      RETURN
      !

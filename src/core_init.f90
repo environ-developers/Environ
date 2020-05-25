@@ -1,6 +1,5 @@
 MODULE core_init
   !
-  USE environ_types
   USE core_types
   USE core_base
   !
@@ -73,14 +72,14 @@ CONTAINS
   END SUBROUTINE core_initcell
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE core_initions( system )
+  SUBROUTINE core_initions( pos )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    TYPE( environ_system ), INTENT(IN) :: system
+    REAL( DP ), DIMENSION(3), INTENT(IN) :: pos
     !
-    IF ( loned_analytic ) CALL update_oned_analytic_core_origin( system%pos, oned_analytic )
+    IF ( loned_analytic ) CALL update_oned_analytic_core_origin( pos, oned_analytic )
     !
     RETURN
     !

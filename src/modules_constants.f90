@@ -77,8 +77,6 @@ MODULE modules_constants
   REAL(DP), PARAMETER :: eps24 = 1.0E-24_DP
   REAL(DP), PARAMETER :: eps32 = 1.0E-32_DP
   !
-  REAL(DP), PARAMETER :: e2 = 2.0_DP      ! the square of the electron charge
-  !
   REAL(DP), PARAMETER :: AVOGADRO = 6.02214129D+23
 
 END MODULE modules_constants

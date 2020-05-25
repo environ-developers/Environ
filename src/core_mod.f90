@@ -4,11 +4,6 @@ MODULE core_base
   !
   SAVE
   !
-  ! Core used for boundary derivatives
-  !
-  CHARACTER (LEN=80) ::                &
-       boundary_core
-  !
   ! Internal setup of numerical cores
   !
   LOGICAL ::                           &

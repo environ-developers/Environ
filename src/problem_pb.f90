@@ -253,9 +253,9 @@ CONTAINS
 !       !
 !       eself = 0.D0
 !       !
-!       IF ( core % use_qe_fft ) THEN
+!       IF ( core % use_fft ) THEN
 !          !
-!          IF ( core % qe_fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
+!          IF ( core % fft % use_internal_pbc_corr .OR. core % need_correction ) THEN
 !             !
 !             degauss = 0.D0
 !             !

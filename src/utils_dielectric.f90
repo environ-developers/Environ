@@ -94,6 +94,7 @@ MODULE utils_dielectric
   USE environ_types
   USE environ_output
   USE utils_functions
+  USE core_fft, ONLY : gradient_fft
   USE environ_base, ONLY : e2, add_jellium
   !
   IMPLICIT NONE
@@ -575,7 +576,7 @@ CONTAINS
     cell => charges % cell
     !
     CALL init_environ_gradient( cell, gradient )
-    CALL external_gradient( potential%of_r, gradient%of_r )
+    CALL gradient_fft( dielectric % boundary % core % fft, potential, gradient )
     CALL scalar_product_environ_gradient( dielectric%gradlog, gradient, dielectric % density )
     !
     jellium = 0.D0
@@ -608,7 +609,7 @@ CONTAINS
     cell => de_dboundary%cell
     !
     CALL init_environ_gradient( cell, gradient )
-    CALL external_gradient( velectrostatic%of_r, gradient%of_r )
+    CALL gradient_fft( dielectric%boundary%core%fft, velectrostatic, gradient )
     CALL update_gradient_modulus( gradient )
     !
     de_dboundary % of_r = de_dboundary % of_r - &

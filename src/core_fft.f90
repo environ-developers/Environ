@@ -8,6 +8,10 @@ MODULE core_fft
   !
   PUBLIC :: poisson_fft, gradpoisson_fft, convolution_fft, gradient_fft, graddot_fft, laplacian_fft, hessian_fft
   !
+  INTERFACE convolution_fft
+     MODULE PROCEDURE convolution_fft_density, convolution_fft_gradient, convolution_fft_hessian
+  END INTERFACE convolution_fft
+  !
 CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE poisson_fft( fft, fin, fout )
@@ -177,7 +181,7 @@ CONTAINS
   END SUBROUTINE gradpoisson_fft
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE convolution_fft( fft, fa, fb, fc )
+  SUBROUTINE convolution_fft_density( fft, fa, fb, fc )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -233,7 +237,133 @@ CONTAINS
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE convolution_fft
+  END SUBROUTINE convolution_fft_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE convolution_fft_gradient( fft, fa, gb, gc )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( environ_density ), INTENT(IN) :: fa
+    TYPE( environ_gradient ), INTENT(IN) :: gb
+    TYPE( environ_gradient ), INTENT(OUT) :: gc
+    !
+    COMPLEX( DP ), DIMENSION( : ), ALLOCATABLE :: auxr, auxg
+    !
+    ! ... local aliases
+    !
+    REAL(DP), POINTER :: omega
+    REAL(DP), DIMENSION(:,:), POINTER :: g
+    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    !
+    INTEGER :: ipol
+    !
+    ! ... add tests for compatilibity between input, output, and fft
+    !
+    dfft => fft % dfft
+    omega => fft % omega
+    !
+    ! Bring fa and fb to reciprocal space
+    !
+    ALLOCATE( auxr( dfft%nnr ) )
+    auxr(:) = CMPLX( fa%of_r(:), 0.D0, kind=DP )
+    CALL fwfft('Rho', auxr, dfft)
+    !
+    ALLOCATE( auxg( dfft%nnr ) )
+    !
+    DO ipol = 1, 3
+       !
+       auxg(:) = CMPLX( gb%of_r(ipol,:), 0.D0, kind=DP )
+       CALL fwfft('Rho', auxg, dfft)
+       !
+       ! Multiply fa(g)*fb(g)
+       !
+       auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
+       !
+       IF ( dfft%lgamma ) auxg(dfft%nlm(:)) = &
+         & CMPLX( REAL( auxg(dfft%nl(:)) ), -AIMAG( auxg(dfft%nl(:)) ) ,kind=DP)
+       !
+       ! Brings convolution back to real space
+       !
+       CALL invfft('Rho',auxg, dfft)
+       !
+       gc%of_r(ipol,:) = REAL( auxg(:) ) * omega
+       !
+    END DO
+    !
+    DEALLOCATE( auxr )
+    DEALLOCATE( auxg )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE convolution_fft_gradient
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE convolution_fft_hessian( fft, fa, hb, hc )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( environ_density ), INTENT(IN) :: fa
+    TYPE( environ_hessian ), INTENT(IN) :: hb
+    TYPE( environ_hessian ), INTENT(OUT) :: hc
+    !
+    COMPLEX( DP ), DIMENSION( : ), ALLOCATABLE :: auxr, auxg
+    !
+    ! ... local aliases
+    !
+    REAL(DP), POINTER :: omega
+    REAL(DP), DIMENSION(:,:), POINTER :: g
+    TYPE(fft_dlay_descriptor), POINTER :: dfft
+    !
+    INTEGER :: ipol, jpol
+    !
+    ! ... add tests for compatilibity between input, output, and fft
+    !
+    dfft => fft % dfft
+    omega => fft % omega
+    !
+    ! Bring fa and fb to reciprocal space
+    !
+    ALLOCATE( auxr( dfft%nnr ) )
+    auxr(:) = CMPLX( fa%of_r(:), 0.D0, kind=DP )
+    CALL fwfft('Rho', auxr, dfft)
+    !
+    ALLOCATE( auxg( dfft%nnr ) )
+    !
+    DO ipol = 1, 3
+       DO jpol = 1, 3
+          !
+          auxg(:) = CMPLX( hb%of_r(ipol,jpol,:), 0.D0, kind=DP )
+          CALL fwfft('Rho', auxg, dfft)
+          !
+          ! Multiply fa(g)*fb(g)
+          !
+          auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
+          !
+          IF ( dfft%lgamma ) auxg(dfft%nlm(:)) = &
+               & CMPLX( REAL( auxg(dfft%nl(:)) ), -AIMAG( auxg(dfft%nl(:)) ) ,kind=DP)
+          !
+          ! Brings convolution back to real space
+          !
+          CALL invfft('Rho',auxg, dfft)
+          !
+          hc%of_r(ipol,jpol,:) = REAL( auxg(:) ) * omega
+          !
+       END DO
+    END DO
+    !
+    DEALLOCATE( auxr )
+    DEALLOCATE( auxg )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE convolution_fft_hessian
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
   SUBROUTINE gradient_fft( fft, a, ga )

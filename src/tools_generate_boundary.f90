@@ -434,7 +434,9 @@ CONTAINS
   SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
     !
-    USE tools_fd_gradient, ONLY : calc_fd_gradient
+    USE core_types
+    USE core_fd,  ONLY : gradient_fd
+    USE core_fft, ONLY : gradient_fft, laplacian_fft, hessian_fft
     !
     IMPLICIT NONE
     !
@@ -447,6 +449,9 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: lapleps, dsurface
     REAL( DP ), DIMENSION(:,:), POINTER :: gradeps
     REAL( DP ), DIMENSION(:,:,:), POINTER :: hesseps
+    !
+    TYPE( fft_core ), POINTER :: fft
+    TYPE( fd_core ), POINTER :: fd
     !
     INTEGER :: ir, ipol, jpol
     !
@@ -463,6 +468,9 @@ CONTAINS
     eps => boundary % scaled % of_r
     deps => boundary % dscaled % of_r
     d2eps => boundary % d2scaled % of_r
+    !
+    fft => boundary % core % fft
+    fd => boundary % core % fd
     !
     IF ( stype .EQ. 1 .OR. stype .EQ. 2 ) THEN
        rhomax => boundary % rhomax
@@ -506,16 +514,16 @@ CONTAINS
        !
     CASE ( 'fft' )
        !
-       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( eps, gradeps )
-       IF ( deriv .EQ. 2 ) CALL external_laplacian( eps, lapleps )
-       IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, eps, gradeps, lapleps, hesseps, dsurface )
+       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, boundary%scaled, boundary%gradient )
+       IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, boundary%scaled, boundary%laplacian )
+       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, eps, gradeps, lapleps, hesseps, dsurface )
        !
     CASE ( 'analytic', 'fd' )
        !
-       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( rho , gradeps )
-       IF ( deriv .EQ. 2 ) CALL external_laplacian( rho, lapleps )
+       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, density , boundary%gradient )
+       IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, density, boundary%laplacian )
        IF ( deriv .EQ. 3 ) THEN
-          CALL external_dsurface( nnr, ir_end, rho, gradeps, lapleps, hesseps, dsurface )
+          CALL dsurface_fft( fft, rho, gradeps, lapleps, hesseps, dsurface )
           IF ( boundary % solvent_aware ) THEN
              DO ipol = 1, 3
                 DO jpol = 1, 3
@@ -533,7 +541,7 @@ CONTAINS
                 gradeps(ipol,:) = gradeps(ipol,:) * deps(:)
              ENDDO
           ELSE IF ( boundary_core .EQ. 'fd' ) THEN
-             CALL calc_fd_gradient( fd%nfdpoint, fd%icfd, fd%ncfd, nnr, eps, gradeps )
+             CALL gradient_fd( fd, boundary%scaled, boundary%gradient )
           ENDIF
        ENDIF
        !
@@ -555,26 +563,29 @@ CONTAINS
   END SUBROUTINE boundary_of_density
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE external_dsurface( n, iend, x, grad, lapl, hess, dsurface )
+  SUBROUTINE dsurface_fft( fft, x, grad, lapl, hess, dsurface )
 !--------------------------------------------------------------------
+    !
+    USE core_types
+    USE core_fft, ONLY : hessian_fft
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: n, iend
-    REAL( DP ), DIMENSION( n ), INTENT(IN) :: x
-    REAL( DP ), DIMENSION( 3, n ), INTENT(OUT) :: grad
-    REAL( DP ), DIMENSION( n ), INTENT(OUT) :: lapl
-    REAL( DP ), DIMENSION( 3, 3, n ), INTENT(OUT) :: hess
-    REAL( DP ), DIMENSION( n ), INTENT(OUT) :: dsurface
+    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( environ_density ), INTENT(IN) :: x
+    TYPE( environ_gradient ), INTENT(OUT) :: grad
+    TYPE( environ_density ), INTENT(OUT) :: lapl
+    TYPE( environ_hessian ), INTENT(OUT) :: hess
+    TYPE( environ_density ), INTENT(OUT) :: dsurface
     !
-    CALL external_hessian( x, grad, hess )
-    lapl(:) = hess(1,1,:) + hess(2,2,:) + hess(3,3,:)
-    CALL calc_dsurface( n, iend, grad, hess, dsurface )
+    CALL hessian_fft( x, grad, hess )
+    lapl%of_r(:) = hess%of_r(1,1,:) + hess%of_r(2,2,:) + hess%of_r(3,3,:)
+    CALL calc_dsurface( x%cell%nnr, x%cell%ir_end, grad%of_r, hess%of_r, dsurface%of_r )
     !
     RETURN
     !
 !--------------------------------------------------------------------
-  END SUBROUTINE external_dsurface
+  END SUBROUTINE dsurface_fft
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE calc_dsurface( n, iend, grad, hess, dsurface )
@@ -620,6 +631,8 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE boundary_of_functions( nsoft_spheres, soft_spheres, boundary )
 !--------------------------------------------------------------------
+    USE core_types
+    USE core_fft, ONLY : gradient_fft, laplacian_fft, hessian_fft
     USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
          & laplacian_of_functions, hessian_of_functions
     !
@@ -641,11 +654,14 @@ CONTAINS
     TYPE( environ_hessian ), DIMENSION(:), ALLOCATABLE :: hesslocal
     TYPE( environ_hessian ), POINTER :: hessian
     !
+    TYPE( fft_core ), POINTER :: fft
+    !
     ! Aliases and allocations
     !
     cell => boundary % scaled % cell
     nnr => cell % nnr
     ir_end => cell % ir_end
+    fft => boundary % core % fft
     !
     ALLOCATE( local( nsoft_spheres ) )
     !
@@ -683,15 +699,14 @@ CONTAINS
        !
     END IF
     !
-    SELECT CASE ( boundary_core )
+    SELECT CASE ( boundary % core % type )
        !
     CASE ( 'fft' )
        !
-       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( boundary%scaled%of_r, &
-            & boundary%gradient%of_r )
-       IF ( deriv .EQ. 2 ) CALL external_laplacian( boundary%scaled%of_r, boundary%laplacian%of_r )
-       IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, boundary%scaled%of_r, &
-            & boundary%gradient%of_r, boundary%laplacian%of_r, hessian%of_r, boundary%dsurface%of_r )
+       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, boundary%scaled, boundary%gradient )
+       IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, boundary%scaled, boundary%laplacian )
+       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, boundary%scaled, boundary%gradient, &
+            & boundary%laplacian, hessian, boundary%dsurface )
        !
     CASE ( 'analytic', 'highmem' )
        !
@@ -988,7 +1003,7 @@ CONTAINS
     !
     IF ( boundary % mode .EQ. 'ionic' ) THEN
        !
-       SELECT CASE ( boundary_core )
+       SELECT CASE ( boundary % core % type )
           !
        CASE( 'fft', 'fd', 'analytic', 'highmem' )
           !
@@ -1081,14 +1096,14 @@ CONTAINS
        ENDIF
     ENDIF
     !
-    SELECT CASE ( boundary_core )
+    SELECT CASE ( boundary % core % type )
        !
     CASE ( 'fft' )
        !
-       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( boundary%scaled%of_r, boundary%gradient%of_r )
-       IF ( deriv .EQ. 2 ) CALL external_laplacian( boundary%scaled%of_r, boundary%laplacian%of_r )
-       IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, boundary%scaled%of_r, boundary%gradient%of_r, &
-            & boundary%laplacian%of_r, hesslocal%of_r, boundary%dsurface%of_r )
+       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, boundary%scaled, boundary%gradient )
+       IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, boundary%scaled, boundary%laplacian )
+       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, boundary%scaled, boundary%gradient, &
+            & boundary%laplacian, hesslocal, boundary%dsurface )
        !
     CASE ( 'analytic' )
        !
@@ -1159,8 +1174,9 @@ CONTAINS
     ! ... Fill voids of the continuum interface that are too small
     ! ... to fit a solvent molecule
     !
-    USE utils_functions, ONLY: density_of_functions
-    USE tools_generate_functions, ONLY : compute_convolution_fft
+    USE core_types
+    USE core_fft, ONLY : gradient_fft, laplacian_fft, hessian_fft, convolution_fft
+    USE utils_functions, ONLY : density_of_functions
     !
     IMPLICIT NONE
     !
@@ -1171,6 +1187,7 @@ CONTAINS
     INTEGER, POINTER :: nnr, ir_end, deriv
     REAL( DP ), POINTER :: thr, spr
     TYPE( environ_cell ), POINTER :: cell
+    TYPE( fft_core ), POINTER :: fft
     !
     INTEGER :: ir, ipol, jpol
 !    REAL( DP ) :: probe_volume
@@ -1193,6 +1210,8 @@ CONTAINS
     !
     thr => boundary % filling_threshold
     spr => boundary % filling_spread
+    !
+    fft => boundary % core % fft
     !
     CALL init_environ_density( cell, filled_fraction )
     IF ( deriv .GE. 2 .AND. boundary_core .NE. 'fft' ) CALL init_environ_density( cell, d2filling )
@@ -1231,15 +1250,14 @@ CONTAINS
     !
     ! Step 5: compute boundary derivatives, if needed
     !
-    SELECT CASE ( boundary_core )
+    SELECT CASE ( boundary % core % type )
        !
     CASE ( 'fft' )
        !
-       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL external_gradient( boundary%scaled%of_r, &
-            & boundary%gradient%of_r )
-       IF ( deriv .EQ. 2 ) CALL external_laplacian( boundary%scaled%of_r, boundary%laplacian%of_r )
-       IF ( deriv .EQ. 3 ) CALL external_dsurface( nnr, ir_end, boundary%scaled%of_r, &
-            & boundary%gradient%of_r, boundary%laplacian%of_r, boundary%hessian%of_r, boundary%dsurface%of_r )
+       IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, boundary%scaled, boundary%gradient )
+       IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, boundary%scaled, boundary%laplacian )
+       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, boundary%scaled, boundary%gradient, &
+            & boundary%laplacian, boundary%hessian, boundary%dsurface )
        !
     CASE( 'analytic', 'highmem' )
        !
@@ -1343,7 +1361,8 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE solvent_aware_de_dboundary( boundary, de_dboundary )
 !--------------------------------------------------------------------
-    USE tools_generate_functions, ONLY : compute_convolution_fft
+    !
+    USE core_fft, ONLY : convolution_fft
     !
     IMPLICIT NONE
     !
@@ -1371,7 +1390,7 @@ CONTAINS
     !
     ! Step 2: compute convolution with the probe function
     !
-    CALL compute_convolution_fft( nnr, boundary%probe%of_r, local%of_r, local%of_r )
+    CALL convolution_fft( boundary%core%fft, boundary%probe, local, local )
     !
     ! Step 3: update the functional derivative of the energy wrt boundary
     !
@@ -1455,7 +1474,7 @@ CONTAINS
   SUBROUTINE compute_convolution_deriv( deriv, bound, grad, lapl, hess )
 !--------------------------------------------------------------------
     !
-    USE tools_generate_functions, ONLY : compute_convolution_fft
+    USE core_fft, ONLY : convolution_fft
     !
     IMPLICIT NONE
     !
@@ -1465,41 +1484,18 @@ CONTAINS
     TYPE( environ_density ), INTENT(INOUT) :: lapl
     TYPE( environ_hessian ), INTENT(INOUT) :: hess
     !
-    INTEGER, POINTER :: nnr
-    !
-    INTEGER :: ipol, jpol
-    !
-    nnr => bound % probe % cell % nnr
-    !
     IF ( deriv .LE. 0 ) RETURN
     !
     IF ( deriv .GE. 1 ) THEN
        !
-       DO ipol = 1, 3
-          CALL compute_convolution_fft( nnr, bound%probe%of_r, bound%gradient%of_r(ipol,:), &
-               & grad%of_r(ipol,:))
-       ENDDO
-       !
+       CALL convolution_fft( bound%core%fft, bound%probe, bound%gradient, grad )
        CALL update_gradient_modulus( grad )
        !
     ENDIF
     !
-    IF ( deriv .GE. 2 ) THEN
-       !
-       CALL compute_convolution_fft( nnr, bound%probe%of_r, bound%laplacian%of_r, lapl%of_r )
-       !
-    END IF
+    IF ( deriv .GE. 2 ) CALL convolution_fft( bound%core%fft, bound%probe, bound%laplacian, lapl )
     !
-    IF ( deriv .GE. 3 ) THEN
-       !
-       DO ipol = 1, 3
-          DO jpol = 1, 3
-             CALL compute_convolution_fft( nnr, bound%probe%of_r, bound%hessian%of_r(ipol,jpol,:), &
-                  & hess%of_r(ipol,jpol,:) )
-          ENDDO
-       ENDDO
-       !
-    ENDIF
+    IF ( deriv .GE. 3 ) CALL convolution_fft( bound%core%fft, bound%probe, bound%hessian, hess )
     !
     RETURN
     !

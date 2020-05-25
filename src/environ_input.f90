@@ -261,9 +261,9 @@ MODULE environ_input
 !
 ! Numerical core's parameters
 !
-        CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
-        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
-        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
+        CHARACTER( LEN = 80 ) :: derivatives = 'analytic'
+        CHARACTER( LEN = 80 ) :: derivatives_allowed(4)
+        DATA derivatives_allowed / 'fft', 'fd', 'analytic', 'highmem' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
         ! fft       = fast Fourier transforms
         ! fd        = finite differences in real space
@@ -373,7 +373,7 @@ MODULE environ_input
              electrolyte_spread, electrolyte_rhomax,         &
              electrolyte_rhomin, electrolyte_tbeta,          &
              electrolyte_alpha, electrolyte_softness,        &
-             boundary_core,                      &
+             derivatives,                        &
              ifdtype, nfdpoint
 !
 !=----------------------------------------------------------------------------=!
@@ -610,7 +610,7 @@ CONTAINS
                              env_static_permittivity,                    &
                              env_optical_permittivity,                   &
                              solvent_mode,                               &
-                             boundary_core,                              &
+                             derivatives,                                &
                              radius_mode, alpha, softness,               &
                              solvent_distance, solvent_spread,           &
                              solvent_radius, radial_scale,               &
@@ -836,7 +836,7 @@ CONTAINS
     electrolyte_alpha = 1.D0
     electrolyte_softness = 0.5D0
     !
-    boundary_core = 'analytic'
+    derivatives = 'analytic'
     ifdtype  = 1
     nfdpoint = 2
     !
@@ -980,7 +980,7 @@ CONTAINS
     CALL mp_bcast( electrolyte_alpha,                ionode_id, comm )
     CALL mp_bcast( electrolyte_softness,             ionode_id, comm )
     !
-    CALL mp_bcast( boundary_core,              ionode_id, comm )
+    CALL mp_bcast( derivatives,                ionode_id, comm )
     CALL mp_bcast( ifdtype,                    ionode_id, comm )
     CALL mp_bcast( nfdpoint,                   ionode_id, comm )
     !
@@ -1200,11 +1200,11 @@ CONTAINS
          CALL errore( sub_name,' electrolyte_softness out of range ', 1 )
     !
     allowed = .FALSE.
-    DO i = 1, SIZE( boundary_core_allowed )
-       IF( TRIM(boundary_core) == boundary_core_allowed(i) ) allowed = .TRUE.
+    DO i = 1, SIZE( derivatives_allowed )
+       IF( TRIM(derivatives) == derivatives_allowed(i) ) allowed = .TRUE.
     END DO
     IF( .NOT. allowed ) &
-         CALL errore( sub_name, ' boundary_core '''// &
+         CALL errore( sub_name, ' derivatives '''// &
          & TRIM(core)//''' not allowed ', 1 )
     !
     IF( ifdtype < 1 ) &
@@ -1358,9 +1358,9 @@ CONTAINS
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
-    IF ( solvent_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
-       IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'
-       boundary_core = 'analytic'
+    IF ( solvent_mode .EQ. 'ionic' .AND. derivatives .NE. 'analytic' ) THEN
+       IF ( ionode ) WRITE(program_unit,*)'Only analytic derivatives for ionic solvent_mode'
+       derivatives = 'analytic'
     ENDIF
     !
     RETURN

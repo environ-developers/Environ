@@ -151,25 +151,25 @@ CONTAINS
       !
       ! ... Calculate the gradient of the total static potential
       !
-      ALLOCATE( gvtot0( 3, nnr ) )
+      CALL init_environ_gradient( cell, gvtot0 )
       !
-      CALL external_gradient( velectrostatic % of_r, gvtot0 )
+      CALL gradient_fft( outer % core % fft, velectrostatic, gvtot0 )
       !
       ! ... Calculate the gradient of the total response potential
       !
-      ALLOCATE( gdvtot( 3, nnr ) )
+      CALL init_environ_gradient( cell, gdvtot )
       !
-      CALL external_gradient( dvelectrostatic % of_r, gdvtot )
+      CALL gradient_fft( outer % core % fft, dvelectrostatic % of_r, gdvtot )
       !
       ! ... Response dielectric potential
       !
       DO ir = 1, nnr
-         dv_epsilon(ir) = - SUM( gvtot0(:,ir) * gdvtot(:,ir) ) * &
+         dv_epsilon(ir) = - SUM( gvtot0%of_r(:,ir) * gdvtot%of_r(:,ir) ) * &
               & optical % depsilon % of_r(ir) * optical % boundary % dscaled % of_r(ir) / (fpi * e2)
       END DO
       !
-      DEALLOCATE( gdvtot )
-      DEALLOCATE( gvtot0 )
+      CALL destroy_environ_gradient( gdvtot )
+      CALL destroy_environ_gradient( gvtot0 )
       !
    ELSE
       !
