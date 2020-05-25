@@ -1,5 +1,6 @@
 core_fd.o : environ_types.o
 core_fd.o : core_types.o
+core_fft.o : modules_constants.o
 core_fft.o : environ_types.o
 core_fft.o : environ_mod.o
 core_fft.o : electrostatic_types.o
@@ -82,6 +83,7 @@ environ_mod.o : environ_types.o
 environ_output.o : environ_types.o
 environ_output.o : environ_mod.o
 environ_output.o : electrostatic_mod.o
+environ_output.o : core_mod.o
 environ_types.o : modules_constants.o
 environ_types.o : core_types.o
 modules_invmat.o : modules_constants.o

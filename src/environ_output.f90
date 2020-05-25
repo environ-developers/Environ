@@ -1267,8 +1267,9 @@ CONTAINS
                                    env_optical_permittivity,         &
                                    env_surface_tension,              &
                                    env_pressure, lelectrostatic,     &
-                                   ltddfpt
-    USE electrostatic_base, ONLY : outer, boundary_core, lfd, fd
+                                   ltddfpt, derivatives
+    USE core_base,          ONLY : lfd, fd
+    USE electrostatic_base, ONLY : outer
     !
     IMPLICIT NONE
     !
@@ -1316,7 +1317,7 @@ CONTAINS
              !
              WRITE( UNIT = program_unit, FMT = 9101 )outer%problem, outer%solver%type, outer%solver%auxiliary
              !
-             WRITE( UNIT = program_unit, FMT = 9102 )outer%core%type, boundary_core
+             WRITE( UNIT = program_unit, FMT = 9102 )outer%core%type, derivatives%type
              !
              IF ( lfd ) THEN
                 IF ( fd%ifdtype .EQ. 1 ) THEN
@@ -1408,7 +1409,7 @@ CONTAINS
   SUBROUTINE write_cube( f, ions, idx )
 !--------------------------------------------------------------------
     !
-    USE fft_base,       ONLY : dfftp
+    USE environ_base,       ONLY : derivatives
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1.X
 !      USE fft_base,       ONLY : grid_gather
@@ -1442,6 +1443,14 @@ CONTAINS
     !
     INTEGER, OPTIONAL :: idx
     CHARACTER( LEN=100 ) :: filemod
+    !
+    TYPE( fft_type_descriptor ), POINTER :: dfftp
+    !
+    CHARACTER( LEN=80 ) :: sub_name = 'write_cube'
+    !
+    IF ( .NOT. ASSOCIATED( derivatives % fft % dfft ) ) &
+         CALL errore(sub_name,'missing fft core',1)
+    dfftp => derivatives % fft % dfft
     !
     nr1x = f%cell%n1x
     nr2x = f%cell%n2x
