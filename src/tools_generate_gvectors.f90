@@ -24,6 +24,61 @@ MODULE tools_generate_gvectors
   PUBLIC :: ggen
 
 CONTAINS
+     SUBROUTINE env_gvect_init( ngm_ , comm )
+       !
+       ! Set local and global dimensions, allocate arrays
+       !
+       USE mp, ONLY: mp_max, mp_sum
+       IMPLICIT NONE
+       INTEGER, INTENT(IN) :: ngm_
+       INTEGER, INTENT(IN) :: comm  ! communicator of the group on which g-vecs are distributed
+       !
+       ngm = ngm_
+       !
+       !  calculate maximum over all processors
+       !
+       ngmx = ngm
+       CALL mp_max( ngmx, comm )
+       !
+       !  calculate sum over all processors
+       !
+       ngm_g = ngm
+       CALL mp_sum( ngm_g, comm )
+       !
+       !  allocate arrays - only those that are always kept until the end
+       !
+       ALLOCATE( gg(ngm) )
+       ALLOCATE( g(3, ngm) )
+       ALLOCATE( mill(3, ngm) )
+       ALLOCATE( ig_l2g(ngm) )
+       ALLOCATE( igtongl(ngm) )
+       !
+       RETURN 
+       !
+     END SUBROUTINE env_gvect_init
+
+     SUBROUTINE env_deallocate_gvect(vc)
+       IMPLICIT NONE
+       !
+       LOGICAL, OPTIONAL, INTENT(IN) :: vc
+       LOGICAL :: vc_
+       !
+       vc_ = .false.
+       IF (PRESENT(vc)) vc_ = vc
+       IF ( .NOT. vc_ ) THEN
+          IF ( ASSOCIATED( gl ) ) DEALLOCATE ( gl )
+       END IF
+       !
+       IF( ALLOCATED( gg ) ) DEALLOCATE( gg )
+       IF( ALLOCATED( g ) )  DEALLOCATE( g )
+       IF( ALLOCATED( mill_g ) ) DEALLOCATE( mill_g )
+       IF( ALLOCATED( mill ) ) DEALLOCATE( mill )
+       IF( ALLOCATED( igtongl ) ) DEALLOCATE( igtongl )
+       IF( ALLOCATED( ig_l2g ) ) DEALLOCATE( ig_l2g )
+       IF( ALLOCATED( eigts1 ) ) DEALLOCATE( eigts1 )
+       IF( ALLOCATED( eigts2 ) ) DEALLOCATE( eigts2 )
+       IF( ALLOCATED( eigts3 ) ) DEALLOCATE( eigts3 )
+     END SUBROUTINE env_deallocate_gvect
     !-----------------------------------------------------------------------
   SUBROUTINE ggen ( dfftp, gamma_only, at, bg,  gcutm, ngm_g, ngm, &
        g, gg, mill, ig_l2g, gstart, no_global_sort )
