@@ -5,15 +5,11 @@ MODULE core_init
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE set_core_base( boundary_core_, ifdtype, nfdpoint, use_internal_pbc_corr, dim, axis )
+  SUBROUTINE set_core_base( ifdtype, nfdpoint, use_internal_pbc_corr, dim, axis )
 !--------------------------------------------------------------------
     !
-    CHARACTER, LEN(80), INTENT(IN) :: boundary_core_
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
     INTEGER, INTENT(IN) :: ifdtype, nfdpoint, dim, axis
-    !
-    ! Numerical core for boundary derivatives
-    !
     !
     ! Set up active numerical cores
     !
@@ -37,7 +33,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
-    TYPE( fft_dlay_descriptors ), INTENT(IN) :: dfft
+    TYPE( fft_type_descriptor ), INTENT(IN) :: dfft
     INTEGER, INTENT(IN) :: ngm, gstart
     REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
     REAL( DP ), DIMENSION(3,ngm) :: g
