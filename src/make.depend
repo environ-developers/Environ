@@ -1,3 +1,7 @@
+core_types.o : modules_constants.o
+core_fd.o : core_types.o
+core_fd.o : environ_types.o
+core_fft.o : core_types.o
 core_fft.o : environ_types.o
 core_fft.o : electrostatic_types.o
 core_fft.o : fft_interfaces.o

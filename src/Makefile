@@ -23,12 +23,15 @@
 include ../../make.inc
 
 # location of needed modules
-MODFLAGS= $(MOD_FLAG)../../iotk/src $(MOD_FLAG)../UtilXlib \
-	$(MOD_FLAG)../FFTXlib $(MOD_FLAG)../Modules_Files \
-	$(MOD_FLAG)../PW_files $(MOD_FLAG).
+MODFLAGS= $(MOD_FLAG)../../../iotk/src $(MOD_FLAG)../../UtilXlib \
+	$(MOD_FLAG)../../FFTXlib $(MOD_FLAG).
 
 ENVIRONOBJS = \
+core_fd.o                  \
 core_fft.o                 \
+core_init.o                \
+core_mod.o                 \
+core_types.o               \
 correction_periodic.o      \
 correction_gcs.o	   \
 electrostatic_init.o       \
@@ -51,7 +54,6 @@ problem_linearized_pb.o    \
 problem_pb.o               \
 problem_poisson.o          \
 solvent_tddfpt.o           \
-tools_fd_gradient.o        \
 tools_generate_boundary.o  \
 tools_generate_functions.o \
 utils_boundary.o           \
@@ -60,7 +62,8 @@ utils_dielectric.o         \
 utils_electrolyte.o        \
 utils_externals.o          \
 utils_functions.o          \
-utils_ions.o
+utils_ions.o               \
+utils_oned_analytic.o
 
 all : libenviron.a
 
