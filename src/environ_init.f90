@@ -151,8 +151,8 @@ CONTAINS
          electrolyte_entropy, ion_adsorption
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
-    INTEGER :: stype
-    REAL(DP) :: rhomax, rhomin !, at_max, at_min, tot_len
+    INTEGER :: stype_
+    REAL(DP) :: rhomax_, rhomin_ !, at_max, at_min, tot_len
     CHARACTER( LEN = 80 ) :: label
     !
 ! BACKWARD COMPATIBILITY
@@ -193,9 +193,9 @@ CONTAINS
     env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
     env_confine = env_confine_
     env_electrolyte_ntyp = env_electrolyte_ntyp_
-    stype = stype_
-    rhomax = rhomax_
-    rhomin = rhomin_
+    !stype = stype_
+    !rhomax = rhomax_
+    !rhomin = rhomin_
 
     !
     ! Set basic logical flags

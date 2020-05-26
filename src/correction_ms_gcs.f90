@@ -101,8 +101,8 @@ CONTAINS
     !
 
 
-    alat => oned_analytic % alat
-    omega => oned_analytic % omega
+    !alat => oned_analytic % alat
+    !omega => oned_analytic % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size
@@ -402,8 +402,8 @@ END SUBROUTINE calc_vms_gcs
     cell => gradv % cell
     nnr => cell % nnr
     !
-    alat => oned_analytic % alat
-    omega => oned_analytic % omega
+    !alat => oned_analytic % alat
+    !omega => oned_analytic % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size

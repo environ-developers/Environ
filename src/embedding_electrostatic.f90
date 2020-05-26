@@ -222,7 +222,7 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( electrostatic_core ), TARGET, INTENT(IN) :: core
-    TYPE( electrostatic_setup ), INTENT(IN) :: setup
+    !TYPE( electrostatic_setup ), INTENT(IN) :: setup
     TYPE( environ_charges ), INTENT(INOUT) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
     LOGICAL, OPTIONAL, INTENT(IN) :: add_environment
