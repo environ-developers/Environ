@@ -50,6 +50,11 @@
 !
 !     LOGICAL :: include_electrolyte = .FALSE.
 !     TYPE( environ_electrolyte ), POINTER :: electrolyte => NULL()
+     !
+     ! Semiconductor charges
+     !
+!     LOGICAL :: include_semiconductor = .FALSE.
+!     TYPE( environ_semiconductor ), POINTER :: semiconductor => NULL()
 !
 !     ! Total smooth free charge
 !
@@ -108,6 +113,9 @@ CONTAINS
     charges%include_electrolyte = .FALSE.
     NULLIFY( charges%electrolyte )
     !
+    charges%include_semiconductor = .FALSE.
+    NULLIFY( charges%semiconductor )
+    !
     charges%number = 0
     charges%charge = 0.D0
     CALL create_environ_density( charges%density, label )
@@ -118,7 +126,8 @@ CONTAINS
   END SUBROUTINE create_environ_charges
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_charges_first( charges, electrons, ions, externals, dielectric, electrolyte )
+  SUBROUTINE init_environ_charges_first( charges, electrons, ions, externals, dielectric,&
+                                        & electrolyte, semiconductor )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -129,6 +138,7 @@ CONTAINS
     TYPE( environ_externals ), OPTIONAL, TARGET, INTENT(IN) :: externals
     TYPE( environ_dielectric ), OPTIONAL, TARGET, INTENT(IN) :: dielectric
     TYPE( environ_electrolyte ), OPTIONAL, TARGET, INTENT(IN) :: electrolyte
+    TYPE( environ_semiconductor ), OPTIONAL, TARGET, INTENT(IN) :: semiconductor
     !
     IF ( PRESENT(ions) ) THEN
        charges%include_ions = .TRUE.
@@ -153,6 +163,11 @@ CONTAINS
     IF ( PRESENT(electrolyte) ) THEN
        charges%include_electrolyte = .TRUE.
        charges%electrolyte => electrolyte
+    ENDIF
+    !
+    IF ( PRESENT(semiconductor) ) THEN
+       charges%include_semiconductor = .TRUE.
+       charges%semiconductor => semiconductor
     ENDIF
     !
     charges%initialized = .FALSE.
@@ -262,6 +277,8 @@ CONTAINS
        ! DIELECTRIC CHARGES ARE NOT FREE CHARGES, DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
        CALL dielectric_of_potential( tot_charge_density, potential, charges%dielectric )
     ENDIF
+    ! May need to insert an if statement for semiconductor here 
+    !
     !
     CALL destroy_environ_density( tot_charge_density )
     !

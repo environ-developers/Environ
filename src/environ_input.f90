@@ -182,6 +182,19 @@ MODULE environ_input
         ! temperature of the solution
         REAL(DP) :: ion_adsorption_energy = 0.D0
         ! adsorption energy of electrolyte (Ry)
+
+!
+! Semiconductor parameters
+!
+        REAL(DP) :: sc_permittivity = 1.D0
+        ! dielectric permittivity of the semiconductor
+        REAL(DP) :: sc_carrier_density = 0.D0
+        ! conncentration fo charge carriers within the semiconductor
+        ! In units of (cm^-3)
+        REAL(DP) :: sc_electrode_chg = 0.D0
+        ! the total charge on the electrode. In units of e
+        REAL(DP) :: sc_chg_thr = 1.D-4
+        ! The threshold for an outer loop of chg optimization in qe
 !
 ! External charges parameters, the remaining parameters are read from
 ! card EXTERNAL_CHARGES
@@ -208,7 +221,8 @@ MODULE environ_input
              env_electrolyte_ntyp, cion, cionmax, rion, zion,          &
              temperature, electrolyte_linearized, electrolyte_entropy, &
              ion_adsorption, ion_adsorption_energy,                    &
-             env_external_charges, env_dielectric_regions
+             sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
+             sc_chg_thr, env_external_charges, env_dielectric_regions
 !
 !=----------------------------------------------------------------------------=!
 !  BOUNDARY Namelist Input Parameters
@@ -375,6 +389,13 @@ MODULE environ_input
         REAL(DP) :: electrolyte_spread = 0.5D0
         ! spread of the interfaces for the electrolyte boundary
 !
+! Mott Schottky boundary (system parameters
+!
+        REAL(DP) :: sc_distance = 0.D0
+        ! distance from the system where the mott schottky boundary starts
+        REAL(DP) :: sc_spread = 0.5D0
+        ! spread of the interfaces for the mott schottky boundary
+
         NAMELIST /boundary/                      &
              solvent_mode,                       &
              radius_mode, alpha, softness,       &
@@ -392,7 +413,8 @@ MODULE environ_input
              electrolyte_rhomin, electrolyte_tbeta,          &
              electrolyte_alpha, electrolyte_softness,        &
              boundary_core,                      &
-             ifdtype, nfdpoint
+             ifdtype, nfdpoint,                  &
+             sc_distance, sc_spread
 !
 !=----------------------------------------------------------------------------=!
 !  ELECTROSTATIC Namelist Input Parameters
@@ -503,10 +525,13 @@ MODULE environ_input
         ! dimensionality of the simulation cell
         ! periodic boundary conditions on 3/2/1/0 sides of the cell
         CHARACTER( LEN = 80 ) :: pbc_correction = 'none'
-        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(3)
-        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs' /
+        CHARACTER( LEN = 80 ) :: pbc_correction_allowed(9)
+        DATA pbc_correction_allowed / 'none', 'parabolic', 'gcs',&
+            &'gouy-chapman', 'gouy-chapman-stern', 'ms','mott-schottky', &
+            & 'ms-gcs','mott-schottky-guoy-chapman-stern' /
         ! type of periodic boundary condition correction to be used
         ! parabolic = point-counter-charge type of correction
+        ! ms = mott-schottky calculation for semiconductor
         INTEGER :: pbc_axis = 3
         ! choice of the sides with periodic boundary conditions
         ! 1 = x, 2 = y, 3 = z, where
@@ -650,6 +675,8 @@ CONTAINS
                              electrolyte_alpha, electrolyte_softness,    &
                              ion_adsorption, ion_adsorption_energy,      &
                              temperature,                                &
+                             sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
+                             sc_distance, sc_spread, sc_chg_thr,         &
                              env_external_charges,                       &
                              extcharge_charge, extcharge_dim,            &
                              extcharge_axis, extcharge_pos,              &
@@ -725,6 +752,8 @@ CONTAINS
     !
     ! ... Set predefined envinron_types, also according to the boundary
     !
+    !WRITE(environ_unit,*)"electrolyte distance : ",electrolyte_distance
+    !WRITE(environ_unit,*)"sc_distance: ",sc_distance
     CALL set_environ_type()
     !
     ! ... Fix some &ELECTROSTATIC defaults depending on &ENVIRON and &BOUNDARY
@@ -801,6 +830,8 @@ CONTAINS
     !
     ion_adsorption = 'none'
     ion_adsorption_energy = 0.D0
+    sc_permittivity = 1.D0
+    sc_carrier_density = 0.D0
     !
     env_external_charges = 0
     env_dielectric_regions = 0
@@ -850,6 +881,9 @@ CONTAINS
     !
     electrolyte_distance = 0.D0
     electrolyte_spread = 0.5D0
+    !
+    sc_distance = 0.D0
+    sc_spread = 0.5D0
     !
     electrolyte_rhomax = 0.005D0
     electrolyte_rhomin = 0.0001D0
@@ -951,6 +985,9 @@ CONTAINS
     CALL mp_bcast( ion_adsorption,             ionode_id, comm )
     CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
     !
+    CALL mp_bcast( sc_permittivity,        ionode_id, comm )
+    CALL mp_bcast( sc_carrier_density,        ionode_id, comm )
+    !
     CALL mp_bcast( env_external_charges,       ionode_id, comm )
     CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
     !
@@ -999,6 +1036,9 @@ CONTAINS
     !
     CALL mp_bcast( electrolyte_distance,             ionode_id, comm )
     CALL mp_bcast( electrolyte_spread,               ionode_id, comm )
+    !
+    CALL mp_bcast( sc_distance,             ionode_id, comm )
+    CALL mp_bcast( sc_spread,               ionode_id, comm )
     !
     CALL mp_bcast( electrolyte_rhomax,               ionode_id, comm )
     CALL mp_bcast( electrolyte_rhomin,               ionode_id, comm )
@@ -1134,6 +1174,11 @@ CONTAINS
     IF( .NOT. TRIM(ion_adsorption) .EQ. 'none' ) &
          & CALL errore( sub_name,'ion_adsorption not implemented', 1 )
     !
+    IF ( sc_permittivity < 1.D0) &
+         CALL errore( sub_name, 'sc_permittivity out of range', 1)
+    IF ( sc_carrier_density < 0.D0 ) &
+         CALL errore( sub_name, 'sc_carrier_density cannot be negative', 1)
+
     IF ( env_external_charges < 0 ) &
          CALL errore( sub_name,' env_external_charges out of range ', 1 )
     !
@@ -1234,7 +1279,13 @@ CONTAINS
          CALL errore( sub_name,' electrolyte_alpha out of range ', 1 )
     IF( electrolyte_softness <= 0.0_DP ) &
          CALL errore( sub_name,' electrolyte_softness out of range ', 1 )
+    ! semiconductor checks
+    IF( sc_distance < 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_distance out of range ', 1 )
+    IF( sc_spread <= 0.0_DP ) &
+         CALL errore( sub_name,' electrolyte_spread out of range ', 1 )
     !
+
     allowed = .FALSE.
     DO i = 1, SIZE( boundary_core_allowed )
        IF( TRIM(boundary_core) == boundary_core_allowed(i) ) allowed = .TRUE.
@@ -1393,6 +1444,8 @@ CONTAINS
     IF ( env_confine .NE. 0.D0 ) lboundary = .TRUE.
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
+    IF ( sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0 ) &
+         &  lboundary = .TRUE.
     !
     IF (solvent_mode .EQ. 'ionic' .OR. solvent_mode .EQ. 'fa-ionic') THEN
        !
@@ -1523,7 +1576,9 @@ CONTAINS
          & lelectrostatic = .TRUE.
     IF ( env_external_charges .GT. 0 ) lelectrostatic = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lelectrostatic = .TRUE.
-    IF ( env_electrolyte_ntyp .GT. 0 ) lelectrostatic = .TRUE.
+    !IF ( env_electrolyte_ntyp .GT. 0 ) lelectrostatic = .TRUE.
+    IF ( sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0 .OR. env_electrolyte_ntyp .GT. 0 ) &
+         &  lelectrostatic = .TRUE.
     !
 !--------------------------------------------------------------------
   END SUBROUTINE fix_electrostatic

@@ -14,7 +14,7 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-!> Module to initilize environ-related variables 
+! Module to initilize environ-related variables
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -35,6 +35,8 @@ MODULE environ_init
   USE utils_electrolyte
   USE utils_externals
   USE utils_charges
+  USE utils_semiconductor
+
   !
   PRIVATE
   !
@@ -83,6 +85,8 @@ CONTAINS
        & electrolyte_alpha, electrolyte_softness,    &
        & ion_adsorption, ion_adsorption_energy,      &
        & temperature,                                &
+       & sc_permittivity, sc_carrier_density, sc_electrode_chg,       &
+       & sc_distance, sc_spread, sc_chg_thr,                     &
        & env_external_charges,                       &
        & extcharge_charge, extcharge_dim,            &
        & extcharge_axis, extcharge_pos,              &
@@ -96,7 +100,8 @@ CONTAINS
     ! ... to global variables kept in the environ_base module
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
-         & need_factsqrt, need_auxiliary, need_electrolyte
+         & need_factsqrt, need_auxiliary, need_electrolyte, &
+         & need_semiconductor
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
@@ -135,6 +140,8 @@ CONTAINS
          electrolyte_tbeta, electrolyte_alpha,            &
          electrolyte_softness, temperature,               &
          ion_adsorption_energy,                           &
+         sc_permittivity, sc_carrier_density, sc_electrode_chg,    &
+         sc_distance, sc_spread, sc_chg_thr,                          &
          extcharge_charge(:), extcharge_spread(:),        &
          extcharge_pos(:,:), epsregion_eps(:,:),          &
          epsregion_pos(:,:), epsregion_spread(:),         &
@@ -144,6 +151,8 @@ CONTAINS
          electrolyte_entropy, ion_adsorption
     CHARACTER( LEN = 3 ), DIMENSION(:), INTENT(IN) :: atom_label
     INTEGER :: i
+    INTEGER :: stype
+    REAL(DP) :: rhomax, rhomin !, at_max, at_min, tot_len
     CHARACTER( LEN = 80 ) :: label
     !
 ! BACKWARD COMPATIBILITY
@@ -184,6 +193,10 @@ CONTAINS
     env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
     env_confine = env_confine_
     env_electrolyte_ntyp = env_electrolyte_ntyp_
+    stype = stype_
+    rhomax = rhomax_
+    rhomin = rhomin_
+
     !
     ! Set basic logical flags
     !
@@ -200,11 +213,12 @@ CONTAINS
     lconfine       = env_confine .NE. 0.D0
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
+    lsemiconductor = need_semiconductor
     lperiodic      = need_pbc_correction
     !
     ! Derived flags
     !
-    ldielectric    = lstatic .OR. loptical
+    ldielectric    = lstatic .OR. loptical!.OR. lsemiconductor
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume .OR. lconfine
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
@@ -231,6 +245,8 @@ CONTAINS
     ENDIF
     !
     IF ( lelectrolyte ) CALL create_environ_electrolyte(electrolyte)
+    !
+    IF ( lsemiconductor ) CALL create_environ_semiconductor(semiconductor)
     !
     IF ( lstatic ) CALL create_environ_dielectric(static)
     !
@@ -281,6 +297,7 @@ CONTAINS
     !
     ! Set the parameters of the electrolyte and of its boundary
     !
+    WRITE(environ_unit, *) "electrolyte_distance: ",electrolyte_distance
     IF ( lelectrolyte ) THEN
        CALL init_environ_electrolyte_first( env_electrolyte_ntyp, &
             & electrolyte_mode, stype, electrolyte_rhomax, electrolyte_rhomin, &
@@ -294,6 +311,59 @@ CONTAINS
             & electrolyte_linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
     END IF
+    !
+    ! Set the parameters of the semiconductor
+    !
+    WRITE(environ_unit, *)"sc_distance: ",sc_distance
+    IF ( lsemiconductor ) THEN
+       CALL init_environ_semiconductor_first( temperature, sc_permittivity, &
+           & sc_carrier_density , sc_electrode_chg, sc_distance, sc_spread, &
+           & sc_chg_thr, system,semiconductor)
+       CALL init_environ_charges_first( semiconductor=semiconductor, charges = charges )
+
+
+       ! Adding a dielectric region with the permittivity of the semiconductor
+       ! to the side of the slab that wil be experiencing a mott schottky correction
+       ! Appears to be much more trouble than it's worth at the moment
+       ! (making new arrays of n+1 in fortran is unnecisarily painful). We'll come back to this
+       !
+       ! env_dielectric_regions = env_dielectric_regions + 1
+       ! epsregion_eps(env_dielectric_regions) = semiconductor%permittivity
+       ! epsregion_dim(env_dielectric_regions) = 2
+       ! epsregion_axis(env_dielectric_regions) = semiconductor%simple%axis
+       !
+       ! at_max = -0.4
+       ! at_min = 10000.D0
+       ! DO i = 1, nat
+       !    IF (system%ions%tau(i,semiconductor%simple%axis) > at_max ) &
+       !         & at_max = system%ions%tau(i,semiconductor%simple%axis)
+       !    IF (system%ions%tau(i,semiconductor%simple%axis) < at_min ) &
+       !         & at_min = system%ions%tau(i,semiconductor%simple%axis)
+       ! END DO
+       !
+       ! tot_len = cell%alat*cell%at(semiconductor%simple%axis,semiconductor%simple%axis)
+       ! epsregion_width(env_dielectric_regions) = ( tot_len- (at_max-at_min))/2.D0
+       !
+       ! IF ((at_max + epsregion_width(env_dielectric_regions)) >  tot_len) THEN
+       !     DO i= 1, 3
+       !         IF (i .EQ. semiconductor%simple%axis) THEN
+       !             epsregion_pos(i,env_dielectric_regions) = at_min -epsregion_width(env_dielectric_regions)
+       !         ELSE
+       !             epsregion_pos(i,env_dielectric_regions) = 0.D0
+       !         END IF
+       !     END DO
+       ! ELSE
+       !     DO i= 1, 3
+       !         IF (i .EQ. semiconductor%simple%axis) THEN
+       !             epsregion_pos(iat,env_dielectric_regions) = at_max +epsregion_width(env_dielectric_regions)
+       !         ELSE
+       !             epsregion_pos(iat,env_dielectric_regions) = 0.D0
+       !         END IF
+       !     END DO
+       ! END IF
+       !
+       ! epsregion_spread(env_dielectric_regions) = sc_spread
+    ENDIF
     !
     ! Set the parameters of the dielectric
     !
@@ -419,11 +489,14 @@ CONTAINS
     IF ( lelectrostatic ) THEN
        !
        label = 'velectrostatic'
+       WRITE( environ_unit, * )"velectrostatic started"
        CALL create_environ_density( velectrostatic, label )
        CALL init_environ_density( cell, velectrostatic )
        !
        label = 'vreference'
+
        CALL create_environ_density( vreference, label )
+       WRITE( environ_unit, * )"vreference created"
        CALL init_environ_density( cell, vreference )
        !
        CALL electrostatic_initbase( cell )
@@ -477,6 +550,8 @@ CONTAINS
     !
     IF ( lexternals ) CALL init_environ_externals_second( cell, externals )
     !
+    IF ( lsemiconductor ) CALL init_environ_semiconductor_second( cell, semiconductor)
+    !
     IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_second( cell, charges )
     !
     RETURN
@@ -527,12 +602,14 @@ CONTAINS
                                     loptical, optical,  &
                                     lexternals, externals,     &
                                     lelectrolyte, electrolyte, &
-                                    lelectrostatic
+                                    lelectrostatic, &
+                                    lsemiconductor, semiconductor
     ! ... Cell-related updates
     !
     USE utils_dielectric,    ONLY : update_environ_dielectric
     USE utils_electrolyte,   ONLY : update_environ_electrolyte
     USE utils_externals,     ONLY : update_environ_externals
+    USE utils_semiconductor, ONLY : update_environ_semiconductor
     !
     USE electrostatic_init,  ONLY : electrostatic_initcell
     !
@@ -553,6 +630,7 @@ CONTAINS
     IF ( loptical ) CALL update_environ_dielectric( optical )
     IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
     IF ( lexternals ) CALL update_environ_externals( externals )
+    IF ( lsemiconductor ) CALL update_environ_semiconductor( semiconductor )
     !
     ! ... Update electrostatic solvers
     !
@@ -793,6 +871,7 @@ CONTAINS
                               static, charges, lexternals, externals, &
                               lconfine, vconfine,                     &
                               lelectrolyte, electrolyte,              &
+                              lsemiconductor, semiconductor,          &
                               ions, electrons, system
      !
      ! Local clean up subroutines for the different contributions
@@ -820,6 +899,7 @@ CONTAINS
      IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
      IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
      IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
+     IF ( lsemiconductor ) CALL destroy_environ_semiconductor( lflag, semiconductor)
      !
      CALL destroy_environ_electrons( lflag, electrons )
      CALL destroy_environ_ions( lflag, ions )

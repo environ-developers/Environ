@@ -449,16 +449,9 @@ CONTAINS
     arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
-    dv = 2.D0 * fpi * tot_dipole(slab_axis) / area
-    !
-    ! ... Compute left/right conditions for GCS potential
-    !
-    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    arg = vstern * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    constl = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
-    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
-    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    constr = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
     ! ... Compute linearized quantities
     !
@@ -535,6 +528,7 @@ CONTAINS
     ENDIF
     !
     gradv % of_r = gradv % of_r + gvstern
+
     !
     CALL destroy_environ_gradient(glocal)
     !

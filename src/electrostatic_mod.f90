@@ -90,7 +90,8 @@ MODULE electrostatic_base
   !
   LOGICAL ::                           &
        need_pbc_correction,            &
-       need_electrolyte
+       need_electrolyte,               &
+       need_semiconductor
   INTEGER ::                           &
        pbc_dim,                        &
        pbc_axis

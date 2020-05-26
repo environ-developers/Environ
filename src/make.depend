@@ -33,6 +33,7 @@ environ_init.o : utils_charges.o
 environ_init.o : utils_dielectric.o
 environ_init.o : utils_electrolyte.o
 environ_init.o : utils_externals.o
+environ_init.o : utils_semiconductor.o
 environ_init.o : utils_ions.o
 environ_input.o : electrostatic_init.o
 environ_input.o : environ_init.o
@@ -103,6 +104,9 @@ utils_electrolyte.o : utils_boundary.o
 utils_externals.o : environ_output.o
 utils_externals.o : environ_types.o
 utils_externals.o : utils_functions.o
+utils_semiconductor.o : environ_output.o
+utils_semiconductor.o : environ_types.o
+utils_semiconductor.o : utils_functions.o
 utils_functions.o : environ_types.o
 utils_functions.o : tools_generate_functions.o
 utils_ions.o : environ_mod.o

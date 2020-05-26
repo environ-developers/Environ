@@ -225,7 +225,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -293,7 +293,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -567,7 +567,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -623,7 +623,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -861,7 +861,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -1384,7 +1384,11 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE environ_clock( passed_unit )
 !--------------------------------------------------------------------
-    USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume, ltddfpt
+    !
+    ! Write out the time informations of the Environ dependent
+    ! calculations. Called by print_clock_pw.f90
+    !
+    USE environ_base,   ONLY : lelectrostatic, lsurface, lvolume, ltddfpt, lsemiconductor
     !
     IMPLICIT NONE
     !
@@ -1408,6 +1412,7 @@ CONTAINS
        CALL print_clock ('electrolyte')
        CALL print_clock ('calc_felect')
     END IF
+    IF ( lsemiconductor ) CALL print_clock('calc_vms')
     ! TDDFT
     IF ( ltddfpt ) CALL print_clock ('calc_vsolvent_tddfpt')
     !

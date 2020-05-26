@@ -26,6 +26,7 @@ MODULE electrostatic_init
   USE environ_types
   USE electrostatic_types
   USE electrostatic_base
+  USE environ_output,    ONLY : environ_unit
   !
   PRIVATE
   !
@@ -90,6 +91,7 @@ CONTAINS
     !
     ! Set reference core according to calling program
     !
+    WRITE( environ_unit, * )"Calling electrostatic_initbase now"
     CALL create_electrostatic_core( reference_core )
     SELECT CASE ( prog )
     CASE ( 'PW', 'CP', 'TD', 'XS' )
@@ -114,6 +116,7 @@ CONTAINS
     !
     need_pbc_correction = .FALSE.
     need_electrolyte = .FALSE.
+    need_semiconductor = .FALSE.
     CALL create_electrostatic_core( pbc_core )
     !
     ! first check keywords specfied in input
@@ -133,6 +136,18 @@ CONTAINS
           need_electrolyte = .TRUE.
           loned_analytic = .TRUE.
           local_type = 'gcs'
+       CASE ( 'ms', 'mott-schottky' )
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms'
+       CASE ( 'ms-gcs','mott-schottky-gouy-chapman-stern')
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms-gcs'
+          WRITE( environ_unit, * )"ms-gcs selected"
        CASE DEFAULT
           CALL errore(sub_name,'Option not yet implemented',1)
        END SELECT

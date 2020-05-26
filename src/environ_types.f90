@@ -264,6 +264,11 @@ MODULE environ_types
      LOGICAL :: include_electrolyte = .FALSE.
      TYPE( environ_electrolyte ), POINTER :: electrolyte => NULL()
      !
+     ! Semiconductor charges
+     !
+     LOGICAL :: include_semiconductor = .FALSE.
+     TYPE( environ_semiconductor ), POINTER :: semiconductor => NULL()
+     !
      ! Total smooth free charge
      !
      INTEGER :: number = 0
@@ -483,6 +488,37 @@ MODULE environ_types
      REAL( DP ) :: charge = 0.0_DP
      !
   END TYPE environ_electrolyte
+
+  TYPE environ_semiconductor
+     !
+     ! Update status
+     !
+     LOGICAL :: update = .FALSE.
+     !
+     LOGICAL :: initialized = .FALSE.
+     !
+     !
+     REAL( DP ) :: temperature
+     REAL( DP ) :: permittivity
+     REAL( DP ) :: carrier_density
+     REAL( DP ) :: electrode_charge
+     REAL( DP ) :: charge_threshold
+
+     !
+     TYPE( environ_functions ) :: simple
+     !
+     TYPE( environ_density ) :: density
+     !
+     REAL( DP ) :: charge = 0.0_DP
+
+     REAL( DP ) :: flatband_fermi = 0.D0
+     REAL( DP ) :: bulk_sc_fermi = 0.D0
+     REAL( DP ) :: surf_area_per_sq_cm = 0.D0
+
+
+     !
+  END TYPE environ_semiconductor
+
   !
 CONTAINS
 !--------------------------------------------------------------------

@@ -116,6 +116,7 @@ CONTAINS
        !
        IF ( lexternals ) CALL update_environ_charges( charges, lexternals )
        !
+
        CALL calc_velectrostatic( outer, charges, velectrostatic )
        CALL print_environ_density( velectrostatic )
        !
