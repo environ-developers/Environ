@@ -1293,6 +1293,12 @@ CONTAINS
                 WRITE( UNIT = program_unit, FMT = 9002 ) 'SCCS'
                 WRITE( UNIT = program_unit, FMT = 9004 ) solvent%rhomax, solvent%rhomin
              ENDIF
+             IF ( solvent%solvent_aware ) WRITE( UNIT = program_unit, FMT = 9013 )
+             IF ( solvent%field_aware ) THEN
+                WRITE( UNIT = program_unit, FMT = 9014 )
+                WRITE( UNIT = program_unit, FMT = 9015 )solvent%field_factor,solvent%charge_asymmetry
+                WRITE( UNIT = program_unit, FMT = 9016 )solvent%field_min,solvent%field_max
+             ENDIF
           ENDIF
           !
           IF ( env_static_permittivity .GT. 1.D0 ) THEN
@@ -1354,6 +1360,12 @@ CONTAINS
 9011 FORMAT( '     external pressure in input (GPa)  = ',  F24.2,' ' &
             /'     external pressure in inter. units = ',  E24.4,' ' )
 9012 FORMAT( '     correction slab geom. along axis  = ',  I24,' ' )
+9013 FORMAT( '     interface is solvent aware            ' )
+9014 FORMAT( '     interface is field aware            ' )
+9015 FORMAT( '     field aware factor                = ', F24.2,' ' &
+            /'     asymmetry of field-awareness      = ', F24.2,' ' )
+9016 FORMAT( '     field limit for no correction     = ', F24.2,' ' &
+            /'     field limit for full correction   = ', F24.2,' ' )
 9100 FORMAT(/,5x,'Electrostatic Setup',/,5x,'-------------------')
 9101 FORMAT( '     electrostatic problem to solve    = ',  A24,' ' &
             /'     numerical solver adopted          = ',  A24,' ' &
@@ -1405,7 +1417,7 @@ CONTAINS
   END SUBROUTINE environ_clock
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE write_cube( f, ions, idx )
+  SUBROUTINE write_cube( f, ions, idx, label )
 !--------------------------------------------------------------------
     !
     USE fft_base,       ONLY : dfftp
@@ -1441,6 +1453,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:,:), POINTER :: tau
     !
     INTEGER, OPTIONAL :: idx
+    CHARACTER( LEN=100 ), OPTIONAL :: label
     CHARACTER( LEN=100 ) :: filemod
     !
     nr1x = f%cell%n1x
@@ -1456,8 +1469,12 @@ CONTAINS
     ELSE
        filemod = ""
     ENDIF
-
-    filename = TRIM(ADJUSTL(f%label))//TRIM(filemod)//".cube"
+    !
+    IF(PRESENT(label)) THEN
+       filename = TRIM(ADJUSTL(label))//TRIM(filemod)//".cube"
+    ELSE
+       filename = TRIM(ADJUSTL(f%label))//TRIM(filemod)//".cube"
+    ENDIF
     !
     alat => f%cell%alat
     at => f%cell%at

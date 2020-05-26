@@ -228,12 +228,13 @@ MODULE environ_input
 ! Rigid boundary (ionic) parameters
 !
         CHARACTER( LEN = 80 ) :: radius_mode = 'uff'
-        CHARACTER( LEN = 80 ) :: radius_mode_allowed(3)
-        DATA radius_mode_allowed / 'pauling', 'bondi', 'uff' /
+        CHARACTER( LEN = 80 ) :: radius_mode_allowed(4)
+        DATA radius_mode_allowed / 'pauling', 'bondi', 'uff', 'muff' /
         ! type of hardcoded solvation radii to be used when solvent_mode = 'ionic'
         ! pauling = R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
         ! bondi   = A. Bondi, J. Phys. Chem. 68, 441 (1964)
         ! uff     = A.K. Rapp/'{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
+        ! muff    = uff with local modifications (Nitrogen, see Fisicaro JCTC (2017)
         REAL(DP) :: solvationrad(nsx) = -3.D0
         ! solvationrad radius of the solvation shell for each species when the
         ! ionic dielectric function is adopted, in internal units (a.u.)
@@ -262,16 +263,28 @@ MODULE environ_input
         ! spread of the switching function used to decide whether the continuum
         ! void should be filled or not
 !
+! Field-aware boundary parameters
+!
+        REAL(DP) :: field_awareness = 0.D0
+        !
+        REAL(DP) :: charge_asymmetry = -1.D0
+        !
+        REAL(DP) :: field_max = 10.D0
+        !
+        REAL(DP) :: field_min = 1.D0
+        !
+!
 ! Numerical core's parameters
 !
         CHARACTER( LEN = 80 ) :: boundary_core = 'analytic'
-        CHARACTER( LEN = 80 ) :: boundary_core_allowed(4)
-        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem' /
+        CHARACTER( LEN = 80 ) :: boundary_core_allowed(5)
+        DATA boundary_core_allowed / 'fft', 'fd', 'analytic', 'highmem', 'lowmem' /
         ! choice of the core numerical methods to be exploited for the quantities derived from the dielectric
         ! fft       = fast Fourier transforms
         ! fd        = finite differences in real space
         ! analytic  = analytic derivatives for as much as possible (and FFTs for the rest)
         ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
+        ! lowmem    = more efficient analytic derivatives (testing)
 !
 ! Finite differences' parameters
 !
@@ -288,7 +301,7 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: solvent_mode = 'electronic'
         CHARACTER( LEN = 80 ) :: solvent_mode_allowed(8)
         DATA solvent_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
-                              & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
+                              & 'system', 'fa-electronic', 'fa-ionic', 'fa-full' /
         ! solvent_mode method for calculating the density that sets
         ! the dielectric constant
         ! electronic = dielectric depends self-consist. on electronic density
@@ -301,9 +314,9 @@ MODULE environ_input
         !         on atomic positions of width equal to corespread(ityp)
         ! system = simplified regular dielectric defined to be outside a distance
         !         solvent_distance from the specified system
-        ! elec-sys = similar to electronic, but on top of the system dielectric
-        ! ionic-sys = similar to ionic, but on top of the system dielectric
-        ! full-sys = similar to full, but on top of the system dielectric
+        ! fa-electrons = similar to electronic, but field-aware
+        ! fa-ionic = similar to ionic, but field-aware
+        ! fa-full = similar to full, but field-aware
 !
 ! Soft solvent boundary (electronic) parameters
 !
@@ -334,7 +347,7 @@ MODULE environ_input
         CHARACTER( LEN = 80 ) :: electrolyte_mode = 'electronic'
         CHARACTER( LEN = 80 ) :: electrolyte_mode_allowed(8)
         DATA electrolyte_mode_allowed / 'electronic', 'ionic', 'full', 'external', &
-                                & 'system', 'elec-sys', 'ionic-sys', 'full-sys' /
+                                & 'system', 'fa-electronic', 'fa-ionic', 'fa-full' /
         ! electrolyte_mode method for calculating the density that sets
         ! the onset of ionic countercharge ( see solvent_mode above )
 !
@@ -372,6 +385,8 @@ MODULE environ_input
              solvent_radius, radial_scale,       &
              radial_spread, filling_threshold,   &
              filling_spread,                     &
+             field_awareness, charge_asymmetry,  &
+             field_max, field_min,               &
              electrolyte_mode, electrolyte_distance,         &
              electrolyte_spread, electrolyte_rhomax,         &
              electrolyte_rhomin, electrolyte_tbeta,          &
@@ -620,6 +635,8 @@ CONTAINS
                              solvent_radius, radial_scale,               &
                              radial_spread, filling_threshold,           &
                              filling_spread,                             &
+                             field_awareness, charge_asymmetry,          &
+                             field_max, field_min,                       &
                              add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
@@ -824,6 +841,11 @@ CONTAINS
     filling_threshold  = 0.825D0
     filling_spread     = 0.02D0
     !
+    field_awareness    = 0.D0
+    charge_asymmetry   = -1.D0
+    field_max          = 10.D0
+    field_min          = 1.D0
+    !
     electrolyte_mode = 'electronic'
     !
     electrolyte_distance = 0.D0
@@ -918,13 +940,13 @@ CONTAINS
     CALL mp_bcast( env_confine,                ionode_id, comm )
     !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
-    CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
-    CALL mp_bcast( electrolyte_entropy,              ionode_id, comm )
+    CALL mp_bcast( electrolyte_linearized,     ionode_id, comm )
+    CALL mp_bcast( electrolyte_entropy,        ionode_id, comm )
     CALL mp_bcast( cion,                       ionode_id, comm )
     CALL mp_bcast( cionmax,                    ionode_id, comm )
     CALL mp_bcast( rion,                       ionode_id, comm )
     CALL mp_bcast( zion,                       ionode_id, comm )
-    CALL mp_bcast( temperature,        ionode_id, comm )
+    CALL mp_bcast( temperature,                ionode_id, comm )
     !
     CALL mp_bcast( ion_adsorption,             ionode_id, comm )
     CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
@@ -967,6 +989,11 @@ CONTAINS
     CALL mp_bcast( radial_spread,              ionode_id, comm )
     CALL mp_bcast( filling_threshold,          ionode_id, comm )
     CALL mp_bcast( filling_spread,             ionode_id, comm )
+    !
+    CALL mp_bcast( field_awareness,            ionode_id, comm )
+    CALL mp_bcast( charge_asymmetry,           ionode_id, comm )
+    CALL mp_bcast( field_max,                  ionode_id, comm )
+    CALL mp_bcast( field_min,                  ionode_id, comm )
     !
     CALL mp_bcast( electrolyte_mode,                 ionode_id, comm )
     !
@@ -1175,6 +1202,15 @@ CONTAINS
     IF ( filling_spread <= 0.0_DP ) &
          CALL errore( sub_name, 'filling_spread out of range ', 1 )
     !
+    IF ( field_awareness < 0.0_DP ) &
+         CALL errore( sub_name, 'field_awareness out of range ', 1 )
+    IF ( ABS(charge_asymmetry) > 1.0_DP ) &
+         CALL errore( sub_name, 'charge_asymmetry out of range ', 1 )
+    IF ( field_min < 0.0_DP ) &
+         CALL errore( sub_name, 'field_min out of range ', 1 )
+    IF ( field_max <= field_min ) &
+         CALL errore( sub_name, 'field_max out of range ', 1 )
+    !
     allowed = .FALSE.
     DO i = 1, SIZE( electrolyte_mode_allowed )
        IF( TRIM(electrolyte_mode) == electrolyte_mode_allowed(i) ) allowed = .TRUE.
@@ -1358,9 +1394,14 @@ CONTAINS
     IF ( env_electrolyte_ntyp .GT. 0 ) lboundary = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lboundary = .TRUE.
     !
-    IF ( solvent_mode .EQ. 'ionic' .AND. boundary_core .NE. 'analytic' ) THEN
-       IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'
-       boundary_core = 'analytic'
+    IF (solvent_mode .EQ. 'ionic' .OR. solvent_mode .EQ. 'fa-ionic') THEN
+       !
+       ! May want a switch statement here
+       !
+       IF ( boundary_core .EQ. 'fft' .OR. boundary_core .EQ. 'fd' ) THEN
+          IF ( ionode ) WRITE(program_unit,*)'Only analytic boundary_core for ionic solvent_mode'
+          boundary_core = 'analytic'
+       ENDIF
     ENDIF
     !
     RETURN
@@ -1407,7 +1448,9 @@ CONTAINS
     ! Depending on the boundary mode, set fitted parameters
     !
     IF ( TRIM(ADJUSTL(solvent_mode)) .EQ. 'electronic' .OR. &
-         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'full' ) THEN
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'full' .OR. &
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-electronic' .OR. &
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-full' ) THEN
        !
        ! Self-consistent continuum solvation (SCCS)
        !
@@ -1433,11 +1476,12 @@ CONTAINS
           rhomin = 0.0024
        END SELECT
        !
-    ELSE IF ( solvent_mode .EQ. 'ionic' ) THEN
+    ELSE IF ( TRIM(ADJUSTL(solvent_mode)) .EQ. 'ionic' .OR. &
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-ionic' ) THEN
        !
        ! Soft-sphere continuum solvation
        !
-       radius_mode = 'uff'
+       radius_mode = 'muff'
        softness = 0.5D0
        env_surface_tension = 50.D0 !! NOTE THAT WE ARE USING THE
        env_pressure = -0.35D0      !! SET FOR CLUSTERS, AS IN SCCS

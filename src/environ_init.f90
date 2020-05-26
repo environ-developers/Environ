@@ -66,6 +66,8 @@ CONTAINS
        & solvent_radius, radial_scale,               &
        & radial_spread, filling_threshold,           &
        & filling_spread,                             &
+       & field_awareness, charge_asymmetry,          &
+       & field_max, field_min,                       &
        & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
@@ -121,6 +123,8 @@ CONTAINS
          alpha, softness,                                 &
          solvent_radius, radial_scale, radial_spread,     &
          filling_threshold, filling_spread,               &
+         field_awareness, charge_asymmetry, field_max,    &
+         field_min,                                       &
          solvationrad(:), corespread(:), atomicspread(:), &
          solvent_distance, solvent_spread,                &
          env_surface_tension_, env_pressure_,             &
@@ -204,8 +208,10 @@ CONTAINS
     lsolvent       = ldielectric .OR. lsurface .OR. lvolume .OR. lconfine
     lelectrostatic = ldielectric .OR. lelectrolyte .OR. &
                      lexternals .OR. lperiodic
-    lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. solvent_mode .EQ. 'full' )
-    lsoftelectrolyte = lelectrolyte .AND. ( electrolyte_mode .EQ. 'electronic' .OR. electrolyte_mode .EQ. 'full' )
+    lsoftsolvent   = lsolvent .AND. ( solvent_mode .EQ. 'electronic' .OR. &
+        & solvent_mode .EQ. 'full' .OR. solvent_mode(1:2) .EQ. 'fa' )
+    lsoftelectrolyte = lelectrolyte .AND. ( electrolyte_mode .EQ. 'electronic' & 
+        & .OR. electrolyte_mode .EQ. 'full' .OR. electrolyte_mode(1:2) .EQ. 'fa' )
     lsoftcavity    = lsoftsolvent .OR. lsoftelectrolyte
     lrigidsolvent  = lsolvent .AND. solvent_mode .NE. 'electronic'
     lrigidelectrolyte = lelectrolyte .AND. electrolyte_mode .NE. 'electronic'
@@ -213,6 +219,7 @@ CONTAINS
     lcoredensity   = ( lsolvent .AND. solvent_mode .EQ. 'full' ) .OR. &
                      ( lelectrolyte .AND. electrolyte_mode .EQ. 'full' )
     lsmearedions   = lelectrostatic
+    lgradient      = ldielectric .OR. ( solvent_mode(1:2) .EQ. 'fa' )
     !
     ! Create optional types
     !
@@ -265,10 +272,11 @@ CONTAINS
     ! Set the parameters of the solvent boundary
     !
     IF ( lsolvent ) THEN
-       CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
+       CALL init_environ_boundary_first( lgradient, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
             & solvent_distance, solvent_spread, solvent_radius, radial_scale, radial_spread, &
-            & filling_threshold, filling_spread, electrons, ions, system, solvent )
+            & filling_threshold, filling_spread, field_awareness, charge_asymmetry, field_max, &
+            & field_min, electrons, ions, system, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
@@ -280,6 +288,7 @@ CONTAINS
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
+            & field_awareness, charge_asymmetry, field_max, field_min, &
             & electrons, ions, system, temperature, cion, cionmax, rion, &
             & zion, electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
             & electrolyte_linearized, electrolyte )

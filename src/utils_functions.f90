@@ -50,7 +50,7 @@ MODULE utils_functions
   !
   PUBLIC :: create_environ_functions, destroy_environ_functions, copy_environ_functions, &
        & density_of_functions, gradient_of_functions, laplacian_of_functions, &
-       & hessian_of_functions
+       & hessian_of_functions, derivative_of_functions
   !
   INTERFACE create_environ_functions
      MODULE PROCEDURE create_environ_functions_scalar, create_environ_functions_array
@@ -71,6 +71,10 @@ MODULE utils_functions
   INTERFACE hessian_of_functions
      MODULE PROCEDURE hessian_of_functions_scalar, hessian_of_functions_array
   END INTERFACE hessian_of_functions
+  !
+  INTERFACE derivative_of_functions
+     MODULE PROCEDURE derivative_of_functions_scalar, derivative_of_functions_array
+  END INTERFACE derivative_of_functions
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -476,6 +480,83 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE hessian_of_functions_array
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE derivative_of_functions_scalar( functions, derivative, zero )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_functions ), TARGET, INTENT(IN) :: functions
+    TYPE( environ_density ), TARGET, INTENT(INOUT) :: derivative
+    LOGICAL, INTENT(IN), OPTIONAL :: zero
+    !
+    INTEGER :: i
+    REAL( DP ) :: local_charge
+    CHARACTER( LEN=80 ) :: sub_name = 'density_of_functions'
+    !
+    INTEGER, POINTER :: type, dim, axis, nnr
+    REAL( DP ), POINTER :: alat, omega, at(:,:)
+    REAL( DP ), POINTER :: charge, spread, width
+    REAL( DP ), DIMENSION(:), POINTER :: pos
+    !
+    alat => derivative%cell%alat
+    omega => derivative%cell%omega
+    at => derivative%cell%at
+    !
+    IF ( PRESENT(zero) .AND. zero ) derivative%of_r = 0.D0
+    !
+    type   => functions%type
+    pos    => functions%pos
+    spread => functions%spread
+    charge => functions%volume
+    width  => functions%width
+    dim    => functions%dim
+    axis   => functions%axis
+    nnr    => derivative%cell%nnr
+    SELECT CASE ( type )
+    CASE ( 1 ) ! Gaussian
+       CALL errore(sub_name,'Options not yet implemented',1)
+    CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
+       CALL generate_deriverfc(nnr, dim, axis, charge, width, spread, pos, derivative%of_r)
+    CASE ( 3 ) ! Exponential
+       CALL errore(sub_name,'Options not yet implemented',1)
+    CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
+       local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
+       CALL generate_deriverfc(nnr, dim, axis, local_charge, width, spread, pos, derivative%of_r)
+    CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
+       local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
+       CALL generate_deriverfc(nnr, dim, axis, local_charge, width, spread, pos, derivative%of_r)
+    END SELECT
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE derivative_of_functions_scalar
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE derivative_of_functions_array( nfunctions, functions, derivative, zero )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: nfunctions
+    TYPE( environ_functions ), DIMENSION(nfunctions), TARGET, INTENT(IN) :: functions
+    TYPE( environ_density ), TARGET, INTENT(INOUT) :: derivative
+    LOGICAL, INTENT(IN), OPTIONAL :: zero
+    !
+    INTEGER :: i
+    !
+    IF ( PRESENT(zero) .AND. zero ) derivative%of_r = 0.D0
+    !
+    DO i = 1, nfunctions
+       CALL derivative_of_functions_scalar( functions(i), derivative, .FALSE. )
+    END DO
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE derivative_of_functions_array
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE utils_functions
