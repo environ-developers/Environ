@@ -859,7 +859,7 @@ CONTAINS
     INTEGER, INTENT(IN)       :: nnr, dim, axis
     REAL( DP ), INTENT(IN)    :: charge, width, spread
     REAL( DP ), INTENT(IN)    :: pos( 3 )
-    REAL( DP ), INTENT(INOUT) :: drho( nnr )
+    TYPE( environ_density ), TARGET, INTENT(INOUT) :: drho
     !
     ! ... Local variables
     !
@@ -871,6 +871,10 @@ CONTAINS
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: drholocal ( : )
     REAL( DP ), EXTERNAL      :: qe_erfc
+    !
+    ! ... Aliases
+    !
+    TYPE( environ_cell ), POINTER :: cell
     !
     IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
        WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
@@ -884,7 +888,7 @@ CONTAINS
     !
     IF (axis.LT.1.OR.axis.GT.3) &
          WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
-    chargeanalytic = erfcvolume(dim,axis,width,spread,alat,omega,at)
+    chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     !
     ! ... scaling factor, take into account rescaling of generated density
     !     to obtain the correct integrated total charge
@@ -979,7 +983,7 @@ CONTAINS
     !
     drholocal = drholocal * scale
     !
-    drho = drho + drholocal
+    drho%of_r = drho%of_r + drholocal
     DEALLOCATE( drholocal )
     !
     RETURN
@@ -988,7 +992,7 @@ CONTAINS
   END SUBROUTINE generate_deriverfc
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE generate_axis( nnr, icor, pos, axis )
+  SUBROUTINE generate_axis( cell, icor, pos, axis )
 !--------------------------------------------------------------------
     !
     TYPE( environ_cell ), INTENT(IN) :: cell

@@ -496,13 +496,11 @@ CONTAINS
     CHARACTER( LEN=80 ) :: sub_name = 'density_of_functions'
     !
     INTEGER, POINTER :: type, dim, axis, nnr
-    REAL( DP ), POINTER :: alat, omega, at(:,:)
     REAL( DP ), POINTER :: charge, spread, width
     REAL( DP ), DIMENSION(:), POINTER :: pos
+    TYPE( environ_cell ), POINTER :: cell
     !
-    alat => derivative%cell%alat
-    omega => derivative%cell%omega
-    at => derivative%cell%at
+    cell => derivative%cell
     !
     IF ( PRESENT(zero) .AND. zero ) derivative%of_r = 0.D0
     !
@@ -518,15 +516,15 @@ CONTAINS
     CASE ( 1 ) ! Gaussian
        CALL errore(sub_name,'Options not yet implemented',1)
     CASE ( 2 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
-       CALL generate_deriverfc(nnr, dim, axis, charge, width, spread, pos, derivative%of_r)
+       CALL generate_deriverfc(nnr, dim, axis, charge, width, spread, pos, derivative)
     CASE ( 3 ) ! Exponential
        CALL errore(sub_name,'Options not yet implemented',1)
     CASE ( 4 ) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF ! goes from charge to 0
-       local_charge = erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
-       CALL generate_deriverfc(nnr, dim, axis, local_charge, width, spread, pos, derivative%of_r)
+       local_charge = erfcvolume(dim,axis,width,spread,cell) * charge
+       CALL generate_deriverfc(nnr, dim, axis, local_charge, width, spread, pos, derivative)
     CASE ( 5 ) ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF ) ! goes from 0 to charge
-       local_charge = - erfcvolume(dim,axis,width,spread,alat,omega,at) * charge
-       CALL generate_deriverfc(nnr, dim, axis, local_charge, width, spread, pos, derivative%of_r)
+       local_charge = - erfcvolume(dim,axis,width,spread,cell) * charge
+       CALL generate_deriverfc(nnr, dim, axis, local_charge, width, spread, pos, derivative)
     END SELECT
     !
     RETURN
