@@ -28,7 +28,7 @@ CONTAINS
     !
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fin
-    TYPE( environ_density ), INTENT(OUT) :: fout
+    TYPE( environ_density ), INTENT(INOUT) :: fout
     !
     COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
     !
@@ -98,7 +98,7 @@ CONTAINS
     !
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fin
-    TYPE( environ_gradient ), INTENT(OUT) :: gout
+    TYPE( environ_gradient ), INTENT(INOUT) :: gout
     !
     INTEGER :: ipol, ig
     REAL(DP) :: fac
@@ -199,7 +199,7 @@ CONTAINS
     !
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fa, fb
-    TYPE( environ_density ), INTENT(OUT) :: fc
+    TYPE( environ_density ), INTENT(INOUT) :: fc
     !
     COMPLEX( DP ), DIMENSION( : ), ALLOCATABLE :: auxr, auxg
     !
@@ -258,7 +258,7 @@ CONTAINS
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fa
     TYPE( environ_gradient ), INTENT(IN) :: gb
-    TYPE( environ_gradient ), INTENT(OUT) :: gc
+    TYPE( environ_gradient ), INTENT(INOUT) :: gc
     !
     COMPLEX( DP ), DIMENSION( : ), ALLOCATABLE :: auxr, auxg
     !
@@ -319,7 +319,7 @@ CONTAINS
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: fa
     TYPE( environ_hessian ), INTENT(IN) :: hb
-    TYPE( environ_hessian ), INTENT(OUT) :: hc
+    TYPE( environ_hessian ), INTENT(INOUT) :: hc
     !
     COMPLEX( DP ), DIMENSION( : ), ALLOCATABLE :: auxr, auxg
     !
@@ -387,7 +387,7 @@ CONTAINS
     !
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN)  :: a
-    TYPE( environ_gradient ), INTENT(OUT) :: ga
+    TYPE( environ_gradient ), INTENT(INOUT) :: ga
     !
     INTEGER  :: ipol
     COMPLEX(DP), ALLOCATABLE :: aux(:), gaux(:)
@@ -459,7 +459,7 @@ CONTAINS
     !
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
     TYPE( environ_gradient ), INTENT(IN) :: ga
-    TYPE( environ_density ), INTENT(OUT) :: da
+    TYPE( environ_density ), INTENT(INOUT) :: da
     !
     INTEGER                  :: n, ipol
     COMPLEX(DP), ALLOCATABLE :: aux(:), gaux(:)
@@ -575,7 +575,7 @@ CONTAINS
     !
     TYPE(fft_core), TARGET, INTENT(IN) :: fft
     TYPE(environ_density), INTENT(IN) :: a
-    TYPE(environ_density), INTENT(OUT) :: lapla
+    TYPE(environ_density), INTENT(INOUT) :: lapla
     !
     INTEGER                  :: ig
     COMPLEX(DP), ALLOCATABLE :: aux(:), laux(:)
@@ -646,8 +646,8 @@ CONTAINS
     !
     TYPE(fft_core), TARGET, INTENT(IN) :: fft
     TYPE(environ_density), INTENT(IN)  :: a
-    TYPE(environ_gradient), INTENT(OUT) :: ga
-    TYPE(environ_hessian), INTENT(OUT) :: ha
+    TYPE(environ_gradient), INTENT(INOUT) :: ga
+    TYPE(environ_hessian), INTENT(INOUT) :: ha
     !
     INTEGER                  :: ipol, jpol
     COMPLEX(DP), ALLOCATABLE :: aux(:), gaux(:), haux(:)

@@ -10,7 +10,7 @@
    !
    stype = 1
    solvent_mode = 'full'
-   boundary_core = 'fd'
+   derivatives = 'fd'
    !
  /
  &ELECTROSTATIC

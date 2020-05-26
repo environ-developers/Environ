@@ -9,7 +9,7 @@
  &BOUNDARY
    !
    stype = 1
-   boundary_core = 'fd'
+   derivatives = 'fd'
    !
  /
  &ELECTROSTATIC

@@ -7,7 +7,7 @@
  /
  &BOUNDARY
    !
-   boundary_core = 'fft'   
+   derivatives = 'fft'   
    stype = 1
    !
  /

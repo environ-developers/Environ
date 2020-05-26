@@ -428,7 +428,7 @@ CONTAINS
 !
 !> Calculates the dielectric constant as a function of the charge
 !! density, and the derivative of the the dielectric constant
-!! with respect to the charge density. 
+!! with respect to the charge density.
 !--------------------------------------------------------------------
   SUBROUTINE boundary_of_density( density, boundary )
 !--------------------------------------------------------------------
@@ -573,10 +573,10 @@ CONTAINS
     !
     TYPE( fft_core ), INTENT(IN) :: fft
     TYPE( environ_density ), INTENT(IN) :: x
-    TYPE( environ_gradient ), INTENT(OUT) :: grad
-    TYPE( environ_density ), INTENT(OUT) :: lapl
-    TYPE( environ_hessian ), INTENT(OUT) :: hess
-    TYPE( environ_density ), INTENT(OUT) :: dsurface
+    TYPE( environ_gradient ), INTENT(INOUT) :: grad
+    TYPE( environ_density ), INTENT(INOUT) :: lapl
+    TYPE( environ_hessian ), INTENT(INOUT) :: hess
+    TYPE( environ_density ), INTENT(INOUT) :: dsurface
     !
     CALL hessian_fft( fft, x, grad, hess )
     lapl%of_r(:) = hess%of_r(1,1,:) + hess%of_r(2,2,:) + hess%of_r(3,3,:)

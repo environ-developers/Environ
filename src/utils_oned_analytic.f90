@@ -5,13 +5,31 @@ MODULE utils_oned_analytic
 CONTAINS
   !
 !--------------------------------------------------------------------
+  SUBROUTINE create_oned_analytic_core( oned_analytic )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( oned_analytic_core ), INTENT(INOUT) :: oned_analytic
+    !
+    CHARACTER( LEN = 80 ) :: sub_name = 'create_oned_analytic_core'
+    !
+    NULLIFY(oned_analytic%cell)
+    oned_analytic % initialized = .FALSE.
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE create_oned_analytic_core
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE init_oned_analytic_core_first( dim, axis, oned_analytic )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: dim, axis
-    TYPE( oned_analytic_core ), INTENT(OUT) :: oned_analytic
+    TYPE( oned_analytic_core ), INTENT(INOUT) :: oned_analytic
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'init_oned_analytic_core_first'
     !
