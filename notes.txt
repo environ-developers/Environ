@@ -1,7 +1,6 @@
 TO DO
+* fix electrostatic forces by adding force_lc to core_fft
 * fix e2 and unit conversion
-* write_cube in environ_output.f90 relies on fft for some strange reason. We may need to disentangle this.
-
 * profile core_fft routines
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
 * fix input readin in parser, why is it using intra_image_comm?
@@ -22,6 +21,9 @@ TO DO
 * ws_base.f90 (now tools_ws.f90) is only needed by Martyna-Tuckerman
   remove call to invmat.f90 to invert 3x3 matrix
 * include Modules/sort.f90
+* fix electrostatic forces: make external_force_lc internal
+
+* simplify/make more modular environ initialization for coupling with other programs
 
 DONE
 * fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
@@ -40,7 +42,6 @@ DOUBTS
 PLANS
   as first step let's comment out the martyna-tuckerman part
   pass values of derived data types, as a second step we'll need to initialize them inside environ.
-  we could start by compiling Environ with its internal UtilXlibs and FFTlibs, in case we need to change something
 
 NOTES:
   for ffts we need both the descriptor (dffte) and a stick_map (smape)

@@ -96,7 +96,7 @@ CONTAINS
           !
        ELSE
           !
-          CALL errore(sub_name,'Option not yet implemented',1)
+          CALL errore( sub_name, 'Option not yet implemented', 1 )
           !        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
           !
        END IF
@@ -173,7 +173,7 @@ CONTAINS
           !
        ELSE
           !
-          CALL errore(sub_name,'Option not yet implemented',1)
+          CALL errore( sub_name, 'Option not yet implemented', 1 )
           !        CALL generalized_gradient_rhoaux( charges, dielectric, potential )
           !
        END IF
@@ -186,7 +186,7 @@ CONTAINS
           !
        ELSE
           !
-          CALL errore(sub_name,'Option not yet implemented',1)
+          CALL errore( sub_name, 'Option not yet implemented', 1 )
           !        CALL generalized_iterative_velect( charges, dielectric, potential )
           !
        ENDIF
@@ -306,9 +306,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore( sub_name, 'Inconsistent cells of input fields', 1 )
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore( sub_name, 'Inconsistent cells for charges and potential', 1 )
     cell => charges%cell
     !
     ! ... If auxiliary charge is not passed, initialize it
@@ -441,9 +441,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore( sub_name, 'Inconsistent cells of input fields', 1 )
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore( sub_name, 'Inconsistent cells for charges and potential', 1 )
     cell => charges%cell
     !
     ! ... Aliases
@@ -493,7 +493,7 @@ CONTAINS
        !
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
-            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore( sub_name, 'Null step in gradient descent iteration', 1 )
        !
        ! ... Conjugate gradient or steepest descent input
        !
@@ -507,8 +507,8 @@ CONTAINS
        !
        ! ... Apply operator to conjugate direction
        ! NOTE: the following steps should be extended to account for different cores
-       CALL gradient_fft(core%fft,p,g)
-       CALL laplacian_fft(core%fft,p,l)
+       CALL gradient_fft( core%fft, p, g )
+       CALL laplacian_fft( core%fft, p, l )
        Ap%of_r(:) = eps%of_r(:)*l%of_r(:) + &
             & gradeps%of_r(1,:)*g%of_r(1,:) + &
             & gradeps%of_r(2,:)*g%of_r(2,:) + &
@@ -596,9 +596,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore( sub_name, 'Inconsistent cells of input fields', 1 )
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore( sub_name, 'Inconsistent cells for charges and potential', 1 )
     cell => charges%cell
     !
     ! ... Aliases
@@ -633,7 +633,7 @@ CONTAINS
        !
        rzold = scalar_product_environ_density( r, z )
        IF ( ABS(rzold) .LT. 1.D-30 ) &
-            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore( sub_name, 'Null step in gradient descent iteration', 1 )
        !
        r%of_r = factsqrt%of_r * ( x%of_r - z%of_r )
        delta_en = euclidean_norm_environ_density( r )
@@ -674,7 +674,7 @@ CONTAINS
        !
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
-            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore( sub_name, 'Null step in gradient descent iteration', 1 )
        !
        ! ... Conjugate gradient or steepest descent input
        !
@@ -789,9 +789,9 @@ CONTAINS
     ! ... Check that fields have the same defintion domain
     !
     IF ( .NOT. ASSOCIATED(charges%cell,dielectric%epsilon%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells of input fields',1)
+         & CALL errore( sub_name, 'Inconsistent cells of input fields', 1 )
     IF ( .NOT. ASSOCIATED(charges%cell,potential%cell) ) &
-         & CALL errore(sub_name,'Inconsistent cells for charges and potential',1)
+         & CALL errore( sub_name, 'Inconsistent cells for charges and potential', 1 )
     cell => charges%cell
     !
     ! ... Aliases
@@ -814,7 +814,7 @@ CONTAINS
     !
 !!!  IF ( x%update ) THEN
 !!!
-!!!     CALL external_gradient(x%of_r,g%of_r)
+!!!     CALL gradient_fft( core%fft, x, g )
 !!!     g%of_r = - g%of_r / fpi / e2
 !!!     r%of_r(:) = b%of_r -  &
 !!!                & gradeps%of_r(1,:)*g%of_r(1,:) + &
@@ -831,7 +831,7 @@ CONTAINS
 !!!          & CALL errore(sub_name,'Null step in gradient descent iteration',1)
 !!!
 !!!     r%of_r = x%of_r - z%of_r
-!!!     CALL external_gradient(r%of_r,g%of_r)
+!!!     CALL gradient_fft( core%fft, r, g )
 !!!     g%of_r = - g%of_r / fpi / e2
 !!!     r%of_r(:) = gradeps%of_r(1,:)*g%of_r(1,:) + &
 !!!               & gradeps%of_r(2,:)*g%of_r(2,:) + &
@@ -872,7 +872,7 @@ CONTAINS
        !
        rznew = scalar_product_environ_density( r, z )
        IF ( ABS(rznew) .LT. 1.D-30 ) &
-            & CALL errore(sub_name,'Null step in gradient descent iteration',1)
+            & CALL errore( sub_name, 'Null step in gradient descent iteration', 1 )
        !
        ! ... Conjugate gradient or steepest descent input
        !
@@ -888,7 +888,7 @@ CONTAINS
        !
        ! ... Apply operator to conjugate direction
        ! NOTE: the following steps should be extended to account for different cores
-       CALL gradient_fft(core%fft,z,g)
+       CALL gradient_fft( core%fft, z, g )
        g%of_r = g%of_r / fpi / e2
        Ap%of_r(:) = beta * Ap%of_r(:) - r%of_r(:) + &
                   & gradeps%of_r(1,:)*g%of_r(1,:) + &
