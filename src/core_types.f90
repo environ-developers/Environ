@@ -361,7 +361,7 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    TYPE( fd_core ), INTENT(OUT) :: fd
+    TYPE( fd_core ), INTENT(INOUT) :: fd
     !
     ! Create empty finite difference core
     !
@@ -380,7 +380,7 @@ CONTAINS
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: ifdtype, nfdpoint
-    TYPE( fd_core ), INTENT(OUT) :: fd
+    TYPE( fd_core ), INTENT(INOUT) :: fd
     !
     ! Set finite differences tools
     !

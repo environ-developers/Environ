@@ -271,7 +271,11 @@ CONTAINS
     !
     ! Setup cores needed for derivatives of boundaries
     !
-    IF ( lboundary ) CALL init_boundary_core( derivatives_, derivatives, fft, fd )
+    IF ( lboundary ) THEN
+       lfft = .TRUE.
+       IF ( derivatives_ .EQ. 'fd' ) lfd = .TRUE.
+       CALL init_boundary_core( derivatives_, derivatives, fft, fd )
+    ENDIF
     !
     ! Set the parameters of the solvent boundary
     !
