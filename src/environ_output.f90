@@ -1317,7 +1317,7 @@ CONTAINS
              !
              WRITE( UNIT = program_unit, FMT = 9101 )outer%problem, outer%solver%type, outer%solver%auxiliary
              !
-             WRITE( UNIT = program_unit, FMT = 9102 )outer%core%type, derivatives%type
+             WRITE( UNIT = program_unit, FMT = 9102 )outer%core%type
              !
              IF ( lfd ) THEN
                 IF ( fd%ifdtype .EQ. 1 ) THEN
@@ -1359,8 +1359,7 @@ CONTAINS
 9101 FORMAT( '     electrostatic problem to solve    = ',  A24,' ' &
             /'     numerical solver adopted          = ',  A24,' ' &
             /'     type of auxiliary density adopted = ',  A24,' ' )
-9102 FORMAT( '     type of core tool for poisson     = ',  A24,' ' &
-            /'     type of core tool for s(r) deriv  = ',  A24,' ' )
+9102 FORMAT( '     type of core tool for poisson     = ',  A24,' ' )
 9103 FORMAT( '     type of numerical differentiator  = ',  A24,' ' &
             /'     number of points in num. diff.    = ',  I24,' ' )
 !--------------------------------------------------------------------

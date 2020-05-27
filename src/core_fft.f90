@@ -30,18 +30,22 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: fin
     TYPE( environ_density ), INTENT(INOUT) :: fout
     !
+    INTEGER :: ig
     COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
     !
     ! ... local aliases
     !
-    REAL(DP), POINTER :: tpiba, omega, gstart
+    INTEGER, POINTER :: gstart, ngm
+    REAL(DP), POINTER :: tpiba2, omega
     REAL(DP), DIMENSION(:), POINTER :: gg
     TYPE(fft_type_descriptor), POINTER :: dfft
     !
     ! ... add tests for compatilibity between input, output, and fft_core
     !
-    tpiba => fft % tpiba
+    tpiba2 => fft % tpiba2
     omega => fft % omega
+    gstart => fft % gstart
+    ngm => fft % ngm
     gg => fft % gg
     dfft => fft % dfft
     !
@@ -54,13 +58,12 @@ CONTAINS
     auxg = auxr(dfft%nl(:))
     !
     auxr = CMPLX( 0.D0, 0.D0, kind=DP )
-    auxr(dfft%nl(:)) = auxg(:)/gg(:)
 !$omp parallel do
-!    DO ig = gstart, ngm
-!       auxr(dfft%nl(ig)) = auxg(ig) / gg(ig)
-!    ENDDO
+    DO ig = gstart, ngm
+       auxr(dfft%nl(ig)) = auxg(ig) / gg(ig)
+    ENDDO
 !$omp end parallel do
-    auxr = auxr * e2 * fpi / tpiba / tpiba
+    auxr = auxr * e2 * fpi / tpiba2
     !
 !    IF ( fft%do_comp_mt ) THEN
 !       ALLOCATE( vaux( ngm ) )
