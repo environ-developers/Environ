@@ -263,6 +263,7 @@ CONTAINS
     TYPE( environ_gradient ), INTENT(IN) :: gb
     TYPE( environ_gradient ), INTENT(INOUT) :: gc
     !
+    TYPE( environ_density ) :: local
     COMPLEX( DP ), DIMENSION( : ), ALLOCATABLE :: auxr, auxg
     !
     ! ... local aliases
@@ -274,39 +275,46 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    dfft => fft % dfft
-    omega => fft % omega
-    !
-    ! Bring fa and fb to reciprocal space
-    !
-    ALLOCATE( auxr( dfft%nnr ) )
-    auxr(:) = CMPLX( fa%of_r(:), 0.D0, kind=DP )
-    CALL fwfft('Rho', auxr, dfft)
-    !
-    ALLOCATE( auxg( dfft%nnr ) )
-    !
+    CALL init_environ_density( fa%cell, local )
     DO ipol = 1, 3
-       !
-       auxg(:) = CMPLX( gb%of_r(ipol,:), 0.D0, kind=DP )
-       CALL fwfft('Rho', auxg, dfft)
-       !
-       ! Multiply fa(g)*fb(g)
-       !
-       auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
-       !
-       IF ( dfft%lgamma ) auxg(dfft%nlm(:)) = &
-         & CMPLX( REAL( auxg(dfft%nl(:)) ), -AIMAG( auxg(dfft%nl(:)) ) ,kind=DP)
-       !
-       ! Brings convolution back to real space
-       !
-       CALL invfft('Rho',auxg, dfft)
-       !
-       gc%of_r(ipol,:) = REAL( auxg(:) ) * omega
-       !
-    END DO
-    !
-    DEALLOCATE( auxr )
-    DEALLOCATE( auxg )
+       local%of_r(:) = gb%of_r(ipol,:)
+       CALL convolution_fft( fft, fa, local, local)
+       gc%of_r(ipol,:) = local%of_r(:)
+    ENDDO
+    CALL destroy_environ_density( local )
+!    dfft => fft % dfft
+!    omega => fft % omega
+!    !
+!    ! Bring fa and fb to reciprocal space
+!    !
+!    ALLOCATE( auxr( dfft%nnr ) )
+!    auxr(:) = CMPLX( fa%of_r(:), 0.D0, kind=DP )
+!    CALL fwfft('Rho', auxr, dfft)
+!    !
+!    ALLOCATE( auxg( dfft%nnr ) )
+!    !
+!    DO ipol = 1, 3
+!       !
+!       auxg(:) = CMPLX( gb%of_r(ipol,:), 0.D0, kind=DP )
+!       CALL fwfft('Rho', auxg, dfft)
+!       !
+!       ! Multiply fa(g)*fb(g)
+!       !
+!       auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
+!       !
+!       IF ( dfft%lgamma ) auxg(dfft%nlm(:)) = &
+!         & CMPLX( REAL( auxg(dfft%nl(:)) ), -AIMAG( auxg(dfft%nl(:)) ) ,kind=DP)
+!       !
+!       ! Brings convolution back to real space
+!       !
+!       CALL invfft('Rho',auxg, dfft)
+!       !
+!       gc%of_r(ipol,:) = REAL( auxg(:) ) * omega
+!       !
+!    END DO
+!    !
+!    DEALLOCATE( auxr )
+!    DEALLOCATE( auxg )
     !
     RETURN
     !
@@ -330,46 +338,56 @@ CONTAINS
     !
     REAL(DP), POINTER :: omega
     TYPE(fft_type_descriptor), POINTER :: dfft
+    TYPE( environ_density ) :: local
     !
     INTEGER :: ipol, jpol
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    dfft => fft % dfft
-    omega => fft % omega
-    !
-    ! Bring fa and fb to reciprocal space
-    !
-    ALLOCATE( auxr( dfft%nnr ) )
-    auxr(:) = CMPLX( fa%of_r(:), 0.D0, kind=DP )
-    CALL fwfft('Rho', auxr, dfft)
-    !
-    ALLOCATE( auxg( dfft%nnr ) )
-    !
+    CALL init_environ_density( fa%cell, local )
     DO ipol = 1, 3
        DO jpol = 1, 3
-          !
-          auxg(:) = CMPLX( hb%of_r(ipol,jpol,:), 0.D0, kind=DP )
-          CALL fwfft('Rho', auxg, dfft)
-          !
-          ! Multiply fa(g)*fb(g)
-          !
-          auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
-          !
-          IF ( dfft%lgamma ) auxg(dfft%nlm(:)) = &
-               & CMPLX( REAL( auxg(dfft%nl(:)) ), -AIMAG( auxg(dfft%nl(:)) ) ,kind=DP)
-          !
-          ! Brings convolution back to real space
-          !
-          CALL invfft('Rho',auxg, dfft)
-          !
-          hc%of_r(ipol,jpol,:) = REAL( auxg(:) ) * omega
-          !
-       END DO
-    END DO
-    !
-    DEALLOCATE( auxr )
-    DEALLOCATE( auxg )
+          local%of_r(:) = hb%of_r(ipol,jpol,:)
+          CALL convolution_fft( fft, fa, local, local)
+          hc%of_r(ipol,jpol,:) = local%of_r(:)
+       ENDDO
+    ENDDO
+    CALL destroy_environ_density( local )
+!    dfft => fft % dfft
+!    omega => fft % omega
+!    !
+!    ! Bring fa and fb to reciprocal space
+!    !
+!    ALLOCATE( auxr( dfft%nnr ) )
+!    auxr(:) = CMPLX( fa%of_r(:), 0.D0, kind=DP )
+!    CALL fwfft('Rho', auxr, dfft)
+!    !
+!    ALLOCATE( auxg( dfft%nnr ) )
+!    !
+!    DO ipol = 1, 3
+!       DO jpol = 1, 3
+!          !
+!          auxg(:) = CMPLX( hb%of_r(ipol,jpol,:), 0.D0, kind=DP )
+!          CALL fwfft('Rho', auxg, dfft)
+!          !
+!          ! Multiply fa(g)*fb(g)
+!          !
+!          auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
+!          !
+!          IF ( dfft%lgamma ) auxg(dfft%nlm(:)) = &
+!               & CMPLX( REAL( auxg(dfft%nl(:)) ), -AIMAG( auxg(dfft%nl(:)) ) ,kind=DP)
+!          !
+!          ! Brings convolution back to real space
+!          !
+!          CALL invfft('Rho',auxg, dfft)
+!          !
+!          hc%of_r(ipol,jpol,:) = REAL( auxg(:) ) * omega
+!          !
+!       END DO
+!    END DO
+!    !
+!    DEALLOCATE( auxr )
+!    DEALLOCATE( auxg )
     !
     RETURN
     !

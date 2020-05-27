@@ -98,7 +98,7 @@ CONTAINS
 !  Function: sfunct1
 !
 !> Switching function 1 that goes from 1 to 0 when passing from
-!! xmin to xmax. 
+!! xmin to xmax.
 !!
 !! NOTE: fact should be equal to LOG(xmax/xmin) but is
 !! passed in input to save time
@@ -135,7 +135,7 @@ CONTAINS
 !  Function: dsfunct
 !
 !> Derivative of switching function 1
-!! 
+!!
 !! NOTE: fact should be equal to LOG(xmax/xmin) but is passed in
 !! input to save time.
 !--------------------------------------------------------------------
@@ -199,8 +199,8 @@ CONTAINS
 !--------------------------------------------------------------------
 !  Function: sfunct2
 !
-!> Switching function 2, erfc() that goes from 1 to 0 when passing 
-!! through xthr. 
+!> Switching function 2, erfc() that goes from 1 to 0 when passing
+!! through xthr.
 !--------------------------------------------------------------------
   FUNCTION sfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
@@ -447,7 +447,6 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: rho, eps, deps, d2eps
     REAL( DP ), DIMENSION(:), POINTER :: lapleps, dsurface
     REAL( DP ), DIMENSION(:,:), POINTER :: gradeps
-    REAL( DP ), DIMENSION(:,:,:), POINTER :: hesseps
     TYPE( environ_hessian ), POINTER :: hessian
     !
     TYPE( fft_core ), POINTER :: fft
@@ -527,7 +526,7 @@ CONTAINS
           IF ( boundary % solvent_aware ) THEN
              DO ipol = 1, 3
                 DO jpol = 1, 3
-                   hesseps(ipol,jpol,:) = hesseps(ipol,jpol,:) * deps(:) + &
+                   hessian%of_r(ipol,jpol,:) = hessian%of_r(ipol,jpol,:) * deps(:) + &
                         & gradeps(ipol,:) * gradeps(jpol,:) * d2eps(:)
                 END DO
              END DO

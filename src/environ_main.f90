@@ -79,9 +79,6 @@ CONTAINS
     INTEGER, INTENT(IN), OPTIONAL :: local_verbose
     !
     TYPE( environ_density ) :: de_dboundary
-    print *, "*************************************************"
-    print *, "running from Environ!!"
-    print *, "*************************************************"
     !
     ! ... If not updating the potentials, add old potentials and exit
     !
@@ -241,9 +238,6 @@ CONTAINS
     REAL( DP ), INTENT(OUT) :: deenviron, eelectrostatic, esurface, &
          evolume, econfine, eelectrolyte
     REAL( DP ) :: ereference
-    print *, "*************************************************"
-    print *, "running from Environ!!"
-    print *, "*************************************************"
     !
     ! ... Initializes the variables
     !
