@@ -199,6 +199,7 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     !
+    USE mp, ONLY : mp_sum
     !
     IMPLICIT NONE
     !
@@ -273,6 +274,8 @@ CONTAINS
     !
     ! ...add martyna-tuckerman correction, if needed
     !
+    !
+    CALL mp_sum( force, rho%cell%comm )
     !
     DEALLOCATE(aux)
     DEALLOCATE(vloc)
