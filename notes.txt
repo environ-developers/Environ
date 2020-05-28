@@ -6,7 +6,8 @@ TO DO
 * recvec needs to be moved into a derived data type
 * cleanup backward compatibility
 * simplify/make more modular environ initialization for coupling with other programs
-* fix cp... maybe
+* fix cp, neb, tddfpt, xspectra...
+* add tests for cp, neb, tddfpt, xspectra
 
 * core_fft.f90
   add tests for compatibility between inputs
