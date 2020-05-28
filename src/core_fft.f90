@@ -8,7 +8,7 @@ MODULE core_fft
   !
   PRIVATE
   !
-  PUBLIC :: poisson_fft, gradpoisson_fft, convolution_fft, gradient_fft, graddot_fft, laplacian_fft, hessian_fft
+  PUBLIC :: poisson_fft, gradpoisson_fft, force_fft, convolution_fft, gradient_fft, graddot_fft, laplacian_fft, hessian_fft
   !
   INTERFACE convolution_fft
      MODULE PROCEDURE convolution_fft_density, convolution_fft_gradient, convolution_fft_hessian
@@ -193,6 +193,94 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE gradpoisson_fft
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE force_fft( fft, rho, ions, nat, force )
+!--------------------------------------------------------------------
+    !
+    !
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: nat
+    TYPE( fft_core ), TARGET, INTENT(IN) :: fft
+    TYPE( environ_density ), INTENT(IN) :: rho
+    TYPE( environ_ions ), INTENT(IN) :: ions
+    REAL(DP), DIMENSION(3,nat), INTENT(OUT) :: force
+    !
+    INTEGER :: iat, ig, ityp
+    REAL(DP) :: fact, arg
+    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux
+    REAL(DP), DIMENSION(:,:), ALLOCATABLE :: vloc
+    !
+    ! ... local aliases
+    !
+    INTEGER, POINTER :: ngm, gstart
+    REAL(DP), POINTER :: tpiba, omega
+    REAL(DP), DIMENSION(:,:), POINTER :: g
+    TYPE(fft_type_descriptor), POINTER :: dfft
+    !
+    ! ... add tests for compatilibity between input, output, and fft
+    !
+    tpiba => fft % tpiba
+    omega => fft % omega
+    ngm => fft % ngm
+    gstart => fft % gstart
+    g => fft % g
+    dfft => fft % dfft
+    !
+    ALLOCATE( aux( dfft%nnr ) )
+    !
+    ! Bring vloc from R space to G space
+    !
+    ALLOCATE( vloc( fft%ngm, ions%ntyp ) )
+    DO ityp = 1, ions%ntyp
+       !
+       aux = CMPLX( ions%vloc(ityp)%of_r, 0.D0, KIND=dp )
+       CALL fwfft( 'Rho', aux, dfft )
+       vloc( :, ityp) = aux(dfft%nl(:))
+       !
+    ENDDO
+    !
+    ! ... Bring rho to G space
+    !
+    aux( : ) = CMPLX( rho%of_r( : ), 0.D0, KIND=dp )
+    !
+    CALL fwfft('Rho', aux, dfft)
+    !
+    ! aux contains now n(G)
+    !
+    IF (dfft%lgamma) THEN
+       fact = 2.d0
+    ELSE
+       fact = 1.d0
+    ENDIF
+    !
+    DO iat = 1, nat
+       !
+       force( :, iat ) = 0.D0
+       !
+       DO ig = gstart, ngm
+          arg = ( g(1,ig) * ions%tau(1,iat) + g(2,ig) * ions%tau(2,iat) + &
+               g(3,ig) * ions%tau(3,iat) ) * tpi
+          force( :, iat ) = force( :, iat ) + g( :, ig ) * vloc(ig,ions%ityp(iat)) * &
+               ( SIN(arg)*DBLE(aux(dfft%nl(ig))) + COS(arg)*AIMAG(aux(dfft%nl(ig))) )
+       ENDDO
+       !
+       force( :, iat ) = fact * force( :, iat ) * omega * tpiba
+       !
+    ENDDO
+    !
+    ! ...add martyna-tuckerman correction, if needed
+    !
+    !
+    DEALLOCATE(aux)
+    DEALLOCATE(vloc)
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE force_fft
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE convolution_fft_density( fft, fa, fb, fc )

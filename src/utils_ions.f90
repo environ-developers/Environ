@@ -109,6 +109,8 @@ CONTAINS
     label = 'core_electrons'
     CALL create_environ_density( ions%core, label )
     !
+    IF ( ALLOCATED( ions%vloc ) ) CALL errore(sub_name,'Trying to create an already allocated object',1)
+    !
     RETURN
     !
 !--------------------------------------------------------------------
@@ -163,6 +165,8 @@ CONTAINS
     !
     ALLOCATE( ions%iontype( ntyp ) )
     !
+    ALLOCATE( ions%vloc( ntyp ) )
+    !
     DO i = 1, ntyp
        !
        ! Given the label we could set some of the properties with defaults
@@ -185,6 +189,8 @@ CONTAINS
        IF ( lsmearedions .AND. ( ions%iontype(i)%atomicspread .EQ. 0.D0 ) ) &
             & CALL errore(sub_name,'Missing atomic spread for one of the atom types',1)
        !
+       CALL create_environ_density( ions%vloc(i) )
+       !
     END DO
     !
     ions%use_smeared_ions = lsmearedions
@@ -197,7 +203,7 @@ CONTAINS
   END SUBROUTINE init_environ_ions_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_ions_second( nat, ntyp, ityp, zv, cell, ions )
+  SUBROUTINE init_environ_ions_second( nat, ntyp, nnr, ityp, zv, cell, vloc, ions )
 !--------------------------------------------------------------------
     !
     ! Second step of initialization, passing the information on types,
@@ -205,9 +211,10 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: nat, ntyp
+    INTEGER, INTENT(IN) :: nat, ntyp, nnr
     INTEGER, DIMENSION(nat), INTENT(IN) :: ityp
     REAL(DP), DIMENSION(ntyp), INTENT(IN) :: zv
+    REAL(DP), DIMENSION(nnr, ntyp), INTENT(IN) :: vloc
     TYPE( environ_cell), INTENT(IN) :: cell
     TYPE( environ_ions ), INTENT(INOUT) :: ions
     !
@@ -226,6 +233,11 @@ CONTAINS
     DO i = 1, ions%ntyp
        !
        ions%iontype(i)%zv = -zv(i)
+       !
+       ! Store pseudopotential in R-space in ions%vloc%of_r
+       !
+       CALL init_environ_density( cell, ions%vloc(i) )
+       ions%vloc(i)%of_r = vloc(:,i)
        !
     ENDDO
     !
@@ -374,8 +386,24 @@ CONTAINS
     TYPE( environ_ions ), INTENT(INOUT) :: ions
     CHARACTER (LEN=80) :: sub_name = 'destroy_environ_ions'
     !
+    INTEGER :: i
+    !
     ! ityp, tau and iontype should have been allocated
     ! raise an error if they are not
+    !
+    IF ( ions%initialized ) THEN
+       !
+       IF ( ions%use_smeared_ions ) THEN
+          CALL destroy_environ_density( ions%density )
+          CALL destroy_environ_functions( ions%number, ions%smeared_ions )
+       ENDIF
+       ions%charge = 0.D0
+       DO i = 1, ions%ntyp
+          CALL destroy_environ_density( ions%vloc(i) )
+       ENDDO
+       ions%initialized = .FALSE.
+       !
+    END IF
     !
     IF ( lflag ) THEN
        !
@@ -392,18 +420,9 @@ CONTAINS
             & CALL errore(sub_name,'Trying to destroy a non associated object',1)
        DEALLOCATE( ions%tau )
        !
+       DEALLOCATE( ions%vloc )
+       !
     ENDIF
-    !
-    IF ( ions%initialized ) THEN
-       !
-       IF ( ions%use_smeared_ions ) THEN
-          CALL destroy_environ_density( ions%density )
-          CALL destroy_environ_functions( ions%number, ions%smeared_ions )
-       ENDIF
-       ions%charge = 0.D0
-       ions%initialized = .FALSE.
-       !
-    END IF
     !
     RETURN
     !

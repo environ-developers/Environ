@@ -1,11 +1,12 @@
 TO DO
-* fix electrostatic forces by adding force_lc to core_fft
 * fix e2 and unit conversion
 * profile core_fft routines
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
 * fix input readin in parser, why is it using intra_image_comm?
 * recvec needs to be moved into a derived data type
 * cleanup backward compatibility
+* simplify/make more modular environ initialization for coupling with other programs
+* fix cp... maybe
 
 * core_fft.f90
   add tests for compatibility between inputs
@@ -13,17 +14,12 @@ TO DO
   move away planar_average
 * environ_output.f90
   fix write_cube that depends on dfftp and parallelization
-
 * correction_mt.f90
   fix correction_mt (only initial calculation and calc_vmt is needed)
   fix calls to ws_base
   fix communicators for parallelization
 * ws_base.f90 (now tools_ws.f90) is only needed by Martyna-Tuckerman
   remove call to invmat.f90 to invert 3x3 matrix
-* include Modules/sort.f90
-* fix electrostatic forces: make external_force_lc internal
-
-* simplify/make more modular environ initialization for coupling with other programs
 
 DONE
 * fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
@@ -35,6 +31,8 @@ DONE
 * fix calls to v_h_of_rho_r, gradv_h_of_rho_r
 * created a set of new modules to deal with cores. Basic cores are now pointed to by either electrostatic_core or boundary_core objects.
 * fix to convolution_fft, external_gradient, external_laplacian, external_hessian
+* fix electrostatic forces by adding force_lc to core_fft
+* include Modules/sort.f90
 
 DOUBTS
   do we want to keep martyna-tuckerman?

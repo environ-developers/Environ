@@ -387,6 +387,7 @@ CONTAINS
   SUBROUTINE calc_felectrostatic( setup, natoms, charges, forces )
 !--------------------------------------------------------------------
     !
+    USE core_fft,            ONLY : force_fft
     USE correction_periodic, ONLY : calc_fperiodic
     !
     IMPLICIT NONE
@@ -451,8 +452,9 @@ CONTAINS
 !       IF ( setup % core % fft % nspin .EQ. 2 ) rhoaux( :, 2 ) = 0.D0
 !       CALL external_force_lc(rhoaux,ftmp)
 ! Compatible with QE-6.4.X and QE-GIT
-       CALL external_force_lc(aux%of_r,ftmp)
+!       CALL external_force_lc(aux%of_r,ftmp)
 ! END BACKWARD COMPATIBILITY
+       CALL force_fft( setup%core%fft, aux, charges%ions, natoms, ftmp )
        forces = forces + ftmp
        !
 ! BACKWARD COMPATIBILITY
@@ -466,11 +468,11 @@ CONTAINS
 !       END IF
 !       DEALLOCATE( rhoaux )
 ! Compatible with QE-6.4.X and QE-GIT
-       IF ( setup % core % fft % use_internal_pbc_corr ) THEN
-          ftmp = 0.D0
-          CALL external_wg_corr_force(aux%of_r,ftmp)
-          forces = forces + ftmp
-       END IF
+!       IF ( setup % core % fft % use_internal_pbc_corr ) THEN
+!          ftmp = 0.D0
+!          CALL external_wg_corr_force(aux%of_r,ftmp)
+!          forces = forces + ftmp
+!       END IF
 ! END BACKWARD COMPATIBILITY
        !
     END IF

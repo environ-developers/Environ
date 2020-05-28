@@ -158,6 +158,7 @@ MODULE environ_types
      LOGICAL :: use_core_electrons = .FALSE.
      TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: core_electrons
      TYPE( environ_density ) :: core
+     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: vloc
      !
      REAL( DP ) :: charge = 0.0_DP
      REAL( DP ) :: quadrupole_correction

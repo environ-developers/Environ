@@ -581,7 +581,7 @@ CONTAINS
    END SUBROUTINE environ_initcell
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-   SUBROUTINE environ_initions( nnr, nat, ntyp, ityp, zv, tau )
+   SUBROUTINE environ_initions( nnr, nat, ntyp, ityp, zv, tau, vloc )
 !--------------------------------------------------------------------
 !
 ! Initialize the ions-related quantities to be used in the Environ
@@ -609,6 +609,7 @@ CONTAINS
      INTEGER, INTENT( IN )     :: ityp( nat )
      REAL ( DP ), INTENT( IN ) :: zv( ntyp )
      REAL ( DP ), INTENT( IN ) :: tau( 3, nat )
+     REAL ( DP ), INTENT( IN ) :: vloc( nnr, ntyp )
      !
      INTEGER :: ia, dim, axis, icor, max_ntyp
      REAL ( DP ) :: charge, spread, dist, pos(3)
@@ -617,7 +618,7 @@ CONTAINS
      !
      ! ... Second step of initialization, need to be moved out of here
      !
-     CALL init_environ_ions_second( nat, ntyp, ityp, zv, cell, ions )
+     CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, cell, vloc, ions )
      IF ( lsolvent ) CALL set_soft_spheres( solvent )
      IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
      !
