@@ -678,16 +678,17 @@ CONTAINS
     !
     fft % dfft => dfft
     !
-    fft % omega = omega
-    fft % gcutm = gcutm
-    fft % tpiba = tpiba
-    fft % tpiba2 = tpiba2
-    fft % ngm = ngm
-    fft % gstart = gstart
+    fft % omega = omega ! Calculated
+    fft % gcutm = gcutm !Calculated
+    fft % tpiba = tpiba !Calculated
+    fft % tpiba2 = tpiba2 !Calculated
+    fft % ngm = ngm !Passed from PW
+    fft % gstart = gstart !Passed from PW
     ALLOCATE( fft % gg( ngm ) )
     fft % gg = gg
     ALLOCATE( fft % g( 3, ngm ) )
     fft % g = g
+    print *, 'Printing information'
     !
     ! In the future we will need to initialize things from scratch
     !
@@ -702,6 +703,61 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE init_fft_core_second
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_fft_core_second_new( cell, ecutrho, ngm, gstart, dfft, g, gg, fft )
+!--------------------------------------------------------------------
+    !
+    USE modules_constants, ONLY: pi
+    USE stick_base,        ONLY: sticks_map
+    USE fft_types,         ONLY: fft_type_init
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( fft_core ), INTENT(INOUT) :: fft
+    TYPE( fft_type_descriptor ), INTENT(IN) :: dfft
+    REAL( DP ), DIMENSION( ngm ), INTENT(IN) :: gg
+    REAL( DP ), DIMENSION( 3, ngm ), INTENT(IN) :: g
+    TYPE( sticks_map ) :: smap
+    INTEGER :: fft_fact(3)
+    INTEGER :: nyfft
+    INTEGER, INTENT(IN) :: ngm, gstart
+    REAL(DP) :: ecutrho
+    !
+    fft%tpiba = 2.D0 * pi / cell%alat
+    fft%tpiba2 = fft%tpiba**2.D0
+    fft%gcutm = ecutrho / fft%tpiba2
+    fft%ngm = ngm
+    fft%gstart = gstart
+    !
+    ! Should fft%omega just be cell%omega? Do we need both environ_cell and fft_core to have
+    ! omega?
+    CALL volume( cell%alat, cell%at(1,1), cell%at(1,2), cell%at(1,3), fft%omega )
+    !
+    ! recips calculates the reciprocal lattice vectors
+    !
+    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
+      & cell%bg(1,2), cell%bg(1,3))
+    ALLOCATE( fft % gg( ngm ) )
+    fft % gg = gg
+    ALLOCATE( fft % g( 3, ngm ) )
+    fft % g = g
+    print *, 'Printing information for new'
+    !
+    !
+    !CALL fft_type_init( fft%dfft, smap, "environ", .TRUE., .TRUE., cell%comm, cell%at, &
+    !  & cell%bg, fft%gcutm, 4.D0, fft_fact, nyfft )
+    !
+    ! The following routines are in tools_generate_gvect and may need to be simplified
+    !
+    !CALL env_gvect_init( ngm, cell%comm )
+    !CALL ggen( fft, .TRUE. , cell%at, cell%bg, fft%gcutm, fft%ngm, fft%g, fft%gg, &
+    !  & fft%gstart )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+END SUBROUTINE init_fft_core_second_new
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE update_fft_core_cell( omega, fft )
@@ -740,4 +796,103 @@ CONTAINS
   END SUBROUTINE destroy_fft_core
 !--------------------------------------------------------------------
   !
+!---------------------------------------------------------------------
+SUBROUTINE volume (alat, a1, a2, a3, omega)
+   !---------------------------------------------------------------------
+   !
+   !     Compute the volume of the unit cell defined by 3 vectors
+   !     a1, a2, a3, given in units of "alat" (alat may be 1):
+   !        omega = alat^3 * [ a1 . (a2 x a3) ]
+   !     ( . = scalar product, x = vector product )
+   !
+   USE modules_constants, ONLY: dp
+   IMPLICIT NONE
+   !
+   REAL(dp), INTENT(IN) :: alat, a1(3), a2(3), a3(3)
+   REAL(dp), INTENT(OUT) :: omega
+   !
+   omega = a1(1) * ( a2(2)*a3(3)-a2(3)*a3(2) ) - &
+           a1(2) * ( a2(1)*a3(3)-a2(3)*a3(1) ) + &
+           a1(3) * ( a2(1)*a3(2)-a2(2)*a3(1) )
+   !
+   IF ( omega < 0.0_dp) THEN
+      call infomsg('volume','axis vectors are left-handed')
+      omega = ABS (omega)
+   END IF
+   !
+   IF ( alat < 1.0_dp) call infomsg('volume','strange lattice parameter')
+   omega = omega * alat**3
+   !
+   RETURN
+   !
+ END SUBROUTINE volume
+ !---------------------------------------------------------------------
+ subroutine recips (a1, a2, a3, b1, b2, b3)
+   !---------------------------------------------------------------------
+   !
+   !   This routine generates the reciprocal lattice vectors b1,b2,b3
+   !   given the real space vectors a1,a2,a3. The b's are units of 2 pi/a.
+   !
+   !     first the input variables
+   !
+   use modules_constants, ONLY: DP
+   implicit none
+   real(DP) :: a1 (3), a2 (3), a3 (3), b1 (3), b2 (3), b3 (3)
+   ! input: first direct lattice vector
+   ! input: second direct lattice vector
+   ! input: third direct lattice vector
+   ! output: first reciprocal lattice vector
+   ! output: second reciprocal lattice vector
+   ! output: third reciprocal lattice vector
+   !
+   !   then the local variables
+   !
+   real(DP) :: den, s
+   ! the denominator
+   ! the sign of the permutations
+   integer :: iperm, i, j, k, l, ipol
+   ! counter on the permutations
+   !\
+   !  Auxiliary variables
+   !/
+   !
+   ! Counter on the polarizations
+   !
+   !    first we compute the denominator
+   !
+   den = 0
+   i = 1
+   j = 2
+   k = 3
+   s = 1.d0
+ 100 do iperm = 1, 3
+      den = den + s * a1 (i) * a2 (j) * a3 (k)
+      l = i
+      i = j
+      j = k
+      k = l
+   enddo
+   i = 2
+   j = 1
+   k = 3
+   s = - s
+   if (s.lt.0.d0) goto 100
+   !
+   !    here we compute the reciprocal vectors
+   !
+   i = 1
+   j = 2
+   k = 3
+   do ipol = 1, 3
+      b1 (ipol) = (a2 (j) * a3 (k) - a2 (k) * a3 (j) ) / den
+      b2 (ipol) = (a3 (j) * a1 (k) - a3 (k) * a1 (j) ) / den
+      b3 (ipol) = (a1 (j) * a2 (k) - a1 (k) * a2 (j) ) / den
+      l = i
+      i = j
+      j = k
+      k = l
+   enddo
+   return
+ end subroutine recips
+ 
 END MODULE core_types

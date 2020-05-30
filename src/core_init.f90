@@ -29,7 +29,7 @@ CONTAINS
   END SUBROUTINE set_core_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg  )
+  SUBROUTINE core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, ecutrho  )
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
@@ -39,7 +39,7 @@ CONTAINS
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( fft_type_descriptor ), INTENT(IN) :: dfft
     INTEGER, INTENT(IN) :: ngm, gstart
-    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
+    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2, ecutrho
     REAL( DP ), DIMENSION(3,ngm) :: g
     REAL( DP ), DIMENSION(ngm) :: gg
     !
@@ -48,6 +48,8 @@ CONTAINS
     IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
     !
     IF ( lfft ) CALL init_fft_core_second( dfft, cell%omega, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, fft )
+    !
+    !IF ( lfft ) CALL init_fft_core_second_new( cell, ecutrho, ngm, gstart, dfft, g, gg, fft )
     !
     RETURN
     !

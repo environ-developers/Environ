@@ -13,13 +13,62 @@ MODULE tools_generate_gvectors
   !  ... subroutines generating G-vectors and variables nl* needed to map
   !  ... G-vector components onto the FFT grid(s) in reciprocal space
   !
-  USE modules_contants, ONLY : DP, eps8
+  USE modules_constants, ONLY : DP, eps8
   USE fft_types, ONLY : fft_stick_index, fft_type_descriptor
   USE fft_ggen, ONLY : fft_set_nl
   USE mp, ONLY: mp_rank, mp_size, mp_sum
 
   PRIVATE
   SAVE
+
+  INTEGER :: ngm  = 0  ! local  number of G vectors (on this processor)
+                       ! with gamma tricks, only vectors in G>
+  INTEGER :: ngm_g= 0  ! global number of G vectors (summed on all procs)
+                       ! in serial execution, ngm_g = ngm
+  INTEGER :: ngl = 0   ! number of G-vector shells
+  INTEGER :: ngmx = 0  ! local number of G vectors, maximum across all procs
+
+  REAL(DP) :: ecutrho = 0.0_DP ! energy cut-off for charge density 
+  REAL(DP) :: gcutm = 0.0_DP   ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
+
+  INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
+                        ! Needed in parallel execution: gstart=2 for the
+                        ! proc that holds G=0, gstart=1 for all others
+
+  !     G^2 in increasing order (in units of tpiba2=(2pi/a)^2)
+  !
+  REAL(DP), ALLOCATABLE, TARGET :: gg(:) 
+
+  !     gl(i) = i-th shell of G^2 (in units of tpiba2)
+  !     igtongl(n) = shell index for n-th G-vector
+  !
+  REAL(DP), POINTER, PROTECTED            :: gl(:)
+  INTEGER, ALLOCATABLE, TARGET, PROTECTED :: igtongl(:)
+  !
+  !     G-vectors cartesian components ( in units tpiba =(2pi/a)  )
+  !
+  REAL(DP), ALLOCATABLE, TARGET :: g(:,:) 
+
+  !     mill = miller index of G vectors (local to each processor)
+  !            G(:) = mill(1)*bg(:,1)+mill(2)*bg(:,2)+mill(3)*bg(:,3) 
+  !            where bg are the reciprocal lattice basis vectors 
+  !
+  INTEGER, ALLOCATABLE, TARGET :: mill(:,:)
+  
+  !     ig_l2g  = converts a local G-vector index into the global index
+  !               ("l2g" means local to global): ig_l2g(i) = index of i-th
+  !               local G-vector in the global array of G-vectors
+  !
+  INTEGER, ALLOCATABLE, TARGET :: ig_l2g(:)
+  !
+  !     mill_g  = miller index of all G vectors
+  !
+  INTEGER, ALLOCATABLE, TARGET :: mill_g(:,:)
+  !
+  ! the phases e^{-iG*tau_s} used to calculate structure factors
+  !
+  COMPLEX(DP), ALLOCATABLE :: eigts1(:,:), eigts2(:,:), eigts3(:,:)
+  !
 
   PUBLIC :: ggen
 

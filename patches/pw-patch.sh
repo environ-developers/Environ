@@ -230,7 +230,7 @@ sed '/Environ MODULES BEGIN/ a\
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 USE    cell_base,    ONLY : at, bg, alat, omega, ibrav, tpiba, tpiba2\
 USE    environ_init, ONLY : environ_initbase\
-USE    gvect,        ONLY : ngm, gstart, gcutm, g, gg\
+USE    gvect,        ONLY : ngm, gstart, gcutm, g, gg, ecutrho\
 !Environ patch
 ' plugin_initbase.f90 > tmp.1
 
@@ -264,7 +264,7 @@ sed '/Environ CALLS BEGIN/ a\
                              & j0, k0, dfftp%my_nr2p, dfftp%my_nr3p, &\
 ! END BACKWARD COMPATIBILITY\
                              & intra_bgrp_comm, me_bgrp, root_bgrp, &\
-			     & dfftp, tpiba, tpiba2, ngm, gcutm, gstart, g, gg )\
+		& dfftp, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, ecutrho )\
 !Environ patch
 ' tmp.2 > tmp.1
 

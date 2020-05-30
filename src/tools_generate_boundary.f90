@@ -515,7 +515,8 @@ CONTAINS
        !
        IF ( deriv .EQ. 1 .OR. deriv .EQ. 2 ) CALL gradient_fft( fft, boundary%scaled, boundary%gradient )
        IF ( deriv .EQ. 2 ) CALL laplacian_fft( fft, boundary%scaled, boundary%laplacian )
-       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, boundary%scaled, boundary%gradient, boundary%laplacian, hessian, boundary%dsurface )
+       IF ( deriv .EQ. 3 ) CALL dsurface_fft( fft, boundary%scaled, boundary%gradient, boundary%laplacian, &
+                                              & hessian, boundary%dsurface )
        !
     CASE ( 'analytic', 'fd' )
        !

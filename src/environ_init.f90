@@ -340,7 +340,7 @@ CONTAINS
 !  END BACKWARD COMPATIBILITY
                              & comm, me, root, &
                              & dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, &
-                             & e2 )
+                             & ecutrho, e2 )
 !--------------------------------------------------------------------
 !
 ! Subroutine to initialize fundamental quantities needed by the
@@ -391,7 +391,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: me
     INTEGER, INTENT(IN) :: root
     REAL(DP), INTENT(IN) :: alat
-    REAL(DP), INTENT(IN) :: omega
+    REAL(DP), INTENT(IN) :: omega, ecutrho
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: bg
     TYPE(fft_type_descriptor), INTENT(IN) :: dfft
@@ -420,7 +420,7 @@ CONTAINS
     !
     ! ... Initialization of numerical cores
     !
-    CALL core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg )
+    CALL core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, ecutrho )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !
