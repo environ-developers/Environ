@@ -29,6 +29,7 @@ MODULE environ_types
   !
   USE modules_constants
   USE core_types
+  USE core_base
   USE mp,                ONLY : mp_sum
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
@@ -256,7 +257,7 @@ MODULE environ_types
      CHARACTER( LEN = 80 ) :: type
      !
      LOGICAL :: use_fft
-     TYPE( fft_core ), POINTER :: fft => NULL()
+     TYPE( fft_core ), POINTER :: fft! => NULL()
      !
      LOGICAL :: use_fd
      TYPE( fd_core ), POINTER :: fd => NULL()

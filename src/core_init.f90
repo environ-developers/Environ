@@ -29,7 +29,7 @@ CONTAINS
   END SUBROUTINE set_core_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, ecutrho  )
+  SUBROUTINE core_initbase( n1, n2, n3, cell, ngm, gstart, ecutrho, dual )
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
@@ -37,19 +37,19 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
-    TYPE( fft_type_descriptor ), INTENT(IN) :: dfft
-    INTEGER, INTENT(IN) :: ngm, gstart
-    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2, ecutrho
-    REAL( DP ), DIMENSION(3,ngm) :: g
-    REAL( DP ), DIMENSION(ngm) :: gg
+    INTEGER, INTENT(IN) :: ngm, gstart, n1, n2, n3
+    REAL( DP ), INTENT(IN) :: ecutrho, dual
     !
     IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
     !
+    !Need to create a subroutine that creates a dfft type and then passes it to fd and fft.
+    !Already added to core_base module. Need to readd POINTER description to fft_core type.
+    !
+    CALL init_dfft_core( n1, n2, n3, cell%nnr, cell, ecutrho, dual, dfft )
+    !
     IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
     !
-    IF ( lfft ) CALL init_fft_core_second( dfft, cell%omega, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, fft )
-    !
-    !IF ( lfft ) CALL init_fft_core_second_new( cell, ecutrho, ngm, gstart, dfft, g, gg, fft )
+    IF ( lfft ) CALL init_fft_core_second( cell, ecutrho, ngm, gstart, dfft, fft )
     !
     RETURN
     !

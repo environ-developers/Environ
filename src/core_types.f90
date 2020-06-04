@@ -660,67 +660,22 @@ CONTAINS
   END SUBROUTINE init_fft_core_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fft_core_second( dfft, omega, tpiba, tpiba2, ngm, &
-       & gcutm, gstart, g, gg, fft )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
-    REAL( DP ), INTENT(IN) :: omega, gcutm, tpiba, tpiba2
-    INTEGER, INTENT(IN) :: ngm, gstart
-    REAL( DP ), DIMENSION( ngm ), INTENT(IN) :: gg
-    REAL( DP ), DIMENSION( 3, ngm ), INTENT(IN) :: g
-    TYPE( fft_core ), INTENT(INOUT) :: fft
-    !
-    ! COPYING ALL THE COMPONENTS OF DFFT WOULD BE WORSE THAN BUILDING IT FROM SCRATCH
-    ! for the time being we use a pointer
-    !
-    fft % dfft => dfft
-    !
-    fft % omega = omega ! Calculated
-    fft % gcutm = gcutm !Calculated
-    fft % tpiba = tpiba !Calculated
-    fft % tpiba2 = tpiba2 !Calculated
-    fft % ngm = ngm !Passed from PW
-    fft % gstart = gstart !Passed from PW
-    ALLOCATE( fft % gg( ngm ) )
-    fft % gg = gg
-    ALLOCATE( fft % g( 3, ngm ) )
-    fft % g = g
-    print *, 'Printing information'
-    !
-    ! In the future we will need to initialize things from scratch
-    !
-    ! CALL fft_type_init( dfft, smap, "environ", .TRUE., .TRUE., comm, cell%at, cell%bg, gcutm, 4.D0, fft_fact, nyfft )
-    !
-    ! The following routines are in tools_generate_gvect and may need to be simplified
-    !
-    ! CALL gvect_init( ngm, comm )
-    ! CALL ggen( dfft, .TRUE. , cell%at, cell%bg,  gcutm, ngm_g, ngm, g, gg, mill, ig_l2g, gstart, .TRUE. )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE init_fft_core_second
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE init_fft_core_second_new( cell, ecutrho, ngm, gstart, dfft, g, gg, fft )
+  SUBROUTINE init_fft_core_second( cell, ecutrho, ngm, gstart, dfft, fft )
 !--------------------------------------------------------------------
     !
     USE modules_constants, ONLY: pi
     USE stick_base,        ONLY: sticks_map
     USE fft_types,         ONLY: fft_type_init
+    USE mp_bands,          ONLY: nyfft
+    USE tools_generate_gvectors
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( fft_core ), INTENT(INOUT) :: fft
-    TYPE( fft_type_descriptor ), INTENT(IN) :: dfft
-    REAL( DP ), DIMENSION( ngm ), INTENT(IN) :: gg
-    REAL( DP ), DIMENSION( 3, ngm ), INTENT(IN) :: g
+    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft !
     TYPE( sticks_map ) :: smap
     INTEGER :: fft_fact(3)
-    INTEGER :: nyfft
+    INTEGER :: i, ngm_g
     INTEGER, INTENT(IN) :: ngm, gstart
     REAL(DP) :: ecutrho
     !
@@ -729,6 +684,7 @@ CONTAINS
     fft%gcutm = ecutrho / fft%tpiba2
     fft%ngm = ngm
     fft%gstart = gstart
+    fft%dfft => dfft
     !
     ! Should fft%omega just be cell%omega? Do we need both environ_cell and fft_core to have
     ! omega?
@@ -738,27 +694,62 @@ CONTAINS
     !
     CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
       & cell%bg(1,2), cell%bg(1,3))
-    ALLOCATE( fft % gg( ngm ) )
-    fft % gg = gg
-    ALLOCATE( fft % g( 3, ngm ) )
-    fft % g = g
-    print *, 'Printing information for new'
-    !
-    !
-    !CALL fft_type_init( fft%dfft, smap, "environ", .TRUE., .TRUE., cell%comm, cell%at, &
-    !  & cell%bg, fft%gcutm, 4.D0, fft_fact, nyfft )
     !
     ! The following routines are in tools_generate_gvect and may need to be simplified
     !
-    !CALL env_gvect_init( ngm, cell%comm )
-    !CALL ggen( fft, .TRUE. , cell%at, cell%bg, fft%gcutm, fft%ngm, fft%g, fft%gg, &
-    !  & fft%gstart )
+    CALL env_gvect_init( fft%ngm, cell%comm )
+    ALLOCATE( fft%gg( fft%ngm ) )
+    ALLOCATE( fft%g( 3, fft%ngm ) )
+    CALL env_ggen( fft%dfft, cell%comm, .TRUE. , cell%at, cell%bg, fft%gcutm, ngm_g, fft%ngm, &
+     & fft%g, fft%gg, fft%gstart, .TRUE. )
+    !
     !
     RETURN
     !
 !--------------------------------------------------------------------
-END SUBROUTINE init_fft_core_second_new
+END SUBROUTINE init_fft_core_second
 !--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_dfft_core( n1, n2, n3, nnr, cell, ecutrho, dual, dfft )
+   !--------------------------------------------------------------------
+       !
+       USE modules_constants, ONLY: pi
+       USE stick_base,        ONLY: sticks_map
+       USE fft_types,         ONLY: fft_type_init
+       USE mp_bands,          ONLY: nyfft
+       USE tools_generate_gvectors
+       IMPLICIT NONE
+       !
+       TYPE( environ_cell ), INTENT(IN) :: cell
+       TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
+       TYPE( sticks_map ) :: smap
+       INTEGER, INTENT(IN) :: n1, n2, n3, nnr
+       REAL(DP), INTENT(IN) :: ecutrho, dual
+       REAL(DP) :: gcutm, tpiba, tpiba2
+       !
+       tpiba = 2.D0 * pi / cell%alat
+       tpiba2 = tpiba**2.D0
+       gcutm = ecutrho / tpiba2
+       !
+       ! recips calculates the reciprocal lattice vectors
+       !
+       CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
+         & cell%bg(1,2), cell%bg(1,3))
+       !
+       !
+       dfft%nr1 = n1
+       dfft%nr2 = n2
+       dfft%nr3 = n3
+       dfft%nnr = nnr
+       dfft%rho_clock_label='fft'
+       CALL fft_type_init( dfft, smap, "rho", .TRUE., .TRUE., cell%comm, cell%at, &
+         & cell%bg, gcutm, dual, nyfft=nyfft )
+       !
+       RETURN
+       !
+   !--------------------------------------------------------------------
+   END SUBROUTINE init_dfft_core
+   !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE update_fft_core_cell( omega, fft )
 !--------------------------------------------------------------------

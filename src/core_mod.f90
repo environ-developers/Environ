@@ -1,6 +1,7 @@
 MODULE core_base
   !
   USE core_types
+  USE fft_types
   !
   SAVE
   !
@@ -18,5 +19,7 @@ MODULE core_base
        loned_analytic
   TYPE( oned_analytic_core ) ::        &
        oned_analytic
+  TYPE( fft_type_descriptor ) ::      &
+       dfft
   !
 END MODULE core_base

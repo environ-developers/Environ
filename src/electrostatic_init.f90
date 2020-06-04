@@ -25,6 +25,7 @@ MODULE electrostatic_init
   !
   USE environ_types
   USE core_base
+  USE core_types
   USE electrostatic_types
   USE electrostatic_base
   !

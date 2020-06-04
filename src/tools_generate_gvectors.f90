@@ -14,9 +14,9 @@ MODULE tools_generate_gvectors
   !  ... G-vector components onto the FFT grid(s) in reciprocal space
   !
   USE modules_constants, ONLY : DP, eps8
-  USE fft_types, ONLY : fft_stick_index, fft_type_descriptor
-  USE fft_ggen, ONLY : fft_set_nl
-  USE mp, ONLY: mp_rank, mp_size, mp_sum
+  USE fft_types,         ONLY : fft_stick_index, fft_type_descriptor
+  USE fft_ggen,          ONLY : fft_set_nl
+  USE mp,                ONLY: mp_rank, mp_size, mp_sum
 
   PRIVATE
   SAVE
@@ -70,7 +70,7 @@ MODULE tools_generate_gvectors
   COMPLEX(DP), ALLOCATABLE :: eigts1(:,:), eigts2(:,:), eigts3(:,:)
   !
 
-  PUBLIC :: ggen
+  PUBLIC :: env_ggen, ig_l2g, mill, env_gvect_init
 
 CONTAINS
      SUBROUTINE env_gvect_init( ngm_ , comm )
@@ -129,8 +129,8 @@ CONTAINS
        IF( ALLOCATED( eigts3 ) ) DEALLOCATE( eigts3 )
      END SUBROUTINE env_deallocate_gvect
     !-----------------------------------------------------------------------
-  SUBROUTINE ggen ( dfftp, gamma_only, at, bg,  gcutm, ngm_g, ngm, &
-       g, gg, mill, ig_l2g, gstart, no_global_sort )
+  SUBROUTINE env_ggen ( dfftp, comm, gamma_only, at, bg,  gcutm, ngm_g, ngm, &
+       g, gg, gstart, no_global_sort )
     !----------------------------------------------------------------------
     !
     !     This routine generates all the reciprocal lattice vectors
@@ -143,10 +143,10 @@ CONTAINS
     TYPE(fft_type_descriptor),INTENT(INOUT) :: dfftp
     LOGICAL,  INTENT(IN) :: gamma_only
     REAL(DP), INTENT(IN) :: at(3,3), bg(3,3), gcutm
-    INTEGER, INTENT(IN) :: ngm_g
+    INTEGER, INTENT(IN) :: ngm_g, comm
     INTEGER, INTENT(INOUT) :: ngm
     REAL(DP), INTENT(OUT) :: g(:,:), gg(:)
-    INTEGER, INTENT(OUT) :: mill(:,:), ig_l2g(:), gstart
+    INTEGER, INTENT(OUT) :: gstart
     !  if no_global_sort is present (and it is true) G vectors are sorted only
     !  locally and not globally. In this case no global array needs to be
     !  allocated and sorted: saves memory and a lot of time for large systems.
@@ -291,6 +291,7 @@ CONTAINS
           ENDDO
        ENDDO jloop
     ENDDO iloop
+    !print *, ngm, ngm_max
     IF (ngm  /= ngm_max) &
          CALL errore ('ggen', 'g-vectors missing !', abs(ngm - ngm_max))
     !
@@ -307,12 +308,12 @@ CONTAINS
        ! compute adeguate offsets in order to avoid overlap between
        ! g vectors once they are gathered on a single (global) array
        !
-       mype = mp_rank( dfftp%comm )
-       npe  = mp_size( dfftp%comm )
+       mype = mp_rank( comm )
+       npe  = mp_size( comm )
        ALLOCATE( ngmpe( npe ) )
        ngmpe = 0
        ngmpe( mype + 1 ) = ngm
-       CALL mp_sum( ngmpe, dfftp%comm )
+       CALL mp_sum( ngmpe, comm )
        ngm_offset = 0
        DO ng = 1, mype
           ngm_offset = ngm_offset + ngmpe( ng )
@@ -364,6 +365,6 @@ CONTAINS
     !
     CALL fft_set_nl( dfftp, at, g, mill )
     !
-  END SUBROUTINE ggen
+  END SUBROUTINE env_ggen
   !
 END MODULE tools_generate_gvectors
