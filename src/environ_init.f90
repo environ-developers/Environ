@@ -339,7 +339,7 @@ CONTAINS
                              & j0, k0, n2p, n3p, &
 !  END BACKWARD COMPATIBILITY
                              & comm, me, root, &
-                             & tpiba, tpiba2, ngm, gcutm, gstart, g, gg, &
+                             & tpiba, tpiba2, gcutm, gstart, &
                              & ecutrho, dual, e2 )
 !--------------------------------------------------------------------
 !
@@ -368,7 +368,6 @@ CONTAINS
          eelectrolyte
     !
     USE core_init, ONLY : core_initbase
-    USE core_base, ONLY : fft
     !
     ! Local base initialization subroutines for the different
     ! environ contributions
@@ -395,12 +394,11 @@ CONTAINS
     REAL(DP), INTENT(IN) :: omega, ecutrho, dual
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: bg
-    INTEGER, INTENT(IN) :: ngm, gstart
+    INTEGER, INTENT(IN) :: gstart
     REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
-    REAL( DP ), DIMENSION(3,ngm), INTENT(IN) :: g
-    REAL( DP ), DIMENSION(ngm), INTENT(IN) :: gg
+    !REAL( DP ), DIMENSION(3,ngm), INTENT(IN) :: g
+    !REAL( DP ), DIMENSION(ngm), INTENT(IN) :: gg
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
-    !TYPE( fft_core ) :: fft
     !
     CHARACTER( LEN = 80 ) :: label = ' '
     !
@@ -421,7 +419,7 @@ CONTAINS
     !
     ! ... Initialization of numerical cores
     !
-    CALL core_initbase( n1, n2, n3, cell, ngm, gstart, ecutrho, dual )
+    CALL core_initbase( cell, gstart, ecutrho, dual )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !

@@ -291,7 +291,7 @@ CONTAINS
           ENDDO
        ENDDO jloop
     ENDDO iloop
-    !print *, ngm, ngm_max
+    !
     IF (ngm  /= ngm_max) &
          CALL errore ('ggen', 'g-vectors missing !', abs(ngm - ngm_max))
     !

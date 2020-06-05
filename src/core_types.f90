@@ -700,7 +700,7 @@ CONTAINS
     CALL env_gvect_init( fft%ngm, cell%comm )
     ALLOCATE( fft%gg( fft%ngm ) )
     ALLOCATE( fft%g( 3, fft%ngm ) )
-    CALL env_ggen( fft%dfft, cell%comm, .TRUE. , cell%at, cell%bg, fft%gcutm, ngm_g, fft%ngm, &
+    CALL env_ggen( fft%dfft, cell%comm, dfft%lgamma, cell%at, cell%bg, fft%gcutm, ngm_g, fft%ngm, &
      & fft%g, fft%gg, fft%gstart, .TRUE. )
     !
     !
@@ -710,7 +710,7 @@ CONTAINS
 END SUBROUTINE init_fft_core_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_dfft_core( n1, n2, n3, nnr, cell, ecutrho, dual, dfft )
+  SUBROUTINE init_dfft_core( cell, ecutrho, dual, dfft )
    !--------------------------------------------------------------------
        !
        USE modules_constants, ONLY: pi
@@ -723,7 +723,6 @@ END SUBROUTINE init_fft_core_second
        TYPE( environ_cell ), INTENT(IN) :: cell
        TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
        TYPE( sticks_map ) :: smap
-       INTEGER, INTENT(IN) :: n1, n2, n3, nnr
        REAL(DP), INTENT(IN) :: ecutrho, dual
        REAL(DP) :: gcutm, tpiba, tpiba2
        !
@@ -737,12 +736,9 @@ END SUBROUTINE init_fft_core_second
          & cell%bg(1,2), cell%bg(1,3))
        !
        !
-       dfft%nr1 = n1
-       dfft%nr2 = n2
-       dfft%nr3 = n3
-       dfft%nnr = nnr
        dfft%rho_clock_label='fft'
-       CALL fft_type_init( dfft, smap, "rho", .TRUE., .TRUE., cell%comm, cell%at, &
+       dfft%lgamma = .TRUE.
+       CALL fft_type_init( dfft, smap, "rho", dfft%lgamma, .TRUE., cell%comm, cell%at, &
          & cell%bg, gcutm, dual, nyfft=nyfft )
        !
        RETURN
