@@ -123,6 +123,18 @@ sed '/Environ patch/,/Environ patch/d' force_lc.f90 > tmp.1
 
 mv tmp.1 force_lc.f90
 
+# plugin_initialization
+
+sed '/Environ patch/,/Environ patch/d' plugin_initialization.f90 > tmp.1
+
+mv tmp.1 plugin_initialization.f90
+
+# plugin_ext_forces
+
+sed '/Environ patch/,/Environ patch/d' plugin_ext_forces.f90 > tmp.1
+
+mv tmp.1 plugin_ext_forces.f90
+
 echo "* DONE!"
 
 cd $QE_DIR
