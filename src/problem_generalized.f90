@@ -33,11 +33,12 @@
 MODULE problem_generalized
 !----------------------------------------------------------------------------
   !
+  USE modules_constants, ONLY : e2, fpi
   USE environ_types
   USE electrostatic_types
   USE environ_output
   USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct!, poisson_energy
-  USE environ_base, ONLY : e2, oldenviron, add_jellium, ltddfpt
+  USE environ_base, ONLY : oldenviron, add_jellium, ltddfpt
   !
   IMPLICIT NONE
   !

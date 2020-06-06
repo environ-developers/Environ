@@ -27,8 +27,9 @@
 MODULE environ_types
 !----------------------------------------------------------------------------
   !
-  USE modules_constants
-  USE core_types
+  USE modules_constants, ONLY : DP
+  USE cell_types,        ONLY : environ_cell
+  USE core_types,        ONLY : fft_core, fd_core
   USE mp,                ONLY : mp_sum
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X

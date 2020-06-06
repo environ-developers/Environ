@@ -23,6 +23,8 @@
 MODULE tools_generate_functions
 !----------------------------------------------------------------------------
   !
+  USE modules_constants, ONLY : sqrtpi, pi, tpi, fpi
+  USE cell_types, ONLY : ir2ijk, ir2r, minimum_image, displacement
   USE environ_types
   !
   IMPLICIT NONE
@@ -428,6 +430,8 @@ CONTAINS
   SUBROUTINE generate_erfc( dim, axis, charge, width, spread, pos, density )
 !--------------------------------------------------------------------
     !
+    USE modules_erf, ONLY : environ_erfc
+    !
     IMPLICIT NONE
     !
     ! ... Declares variables
@@ -445,7 +449,6 @@ CONTAINS
     REAL( DP )                :: r( 3 )
     REAL( DP ), ALLOCATABLE   :: local ( : )
     CHARACTER( LEN=80 )       :: sub_name = 'generate_erfc'
-    REAL( DP ), EXTERNAL      :: qe_erfc
     !
     ! ... Aliases
     !
@@ -485,7 +488,7 @@ CONTAINS
        dist = SQRT(r2) * cell%alat
        arg = ( dist  - width ) / spread
        !
-       local( ir ) = qe_erfc(arg)
+       local( ir ) = environ_erfc(arg)
        !
     END DO
     !
@@ -688,7 +691,6 @@ CONTAINS
     REAL( DP )                :: r( 3 )
     REAL( DP ), ALLOCATABLE   :: hesslocal ( :, :, : )
     CHARACTER( LEN=80 )       :: sub_name = 'generate_hesserfc'
-    REAL( DP ), EXTERNAL      :: qe_erfc
     !
     ! ... Aliases
     !
@@ -837,6 +839,10 @@ CONTAINS
   FUNCTION erfcvolume(dim,axis,width,spread,cell)
 !--------------------------------------------------------------------
     !
+    USE modules_erf, ONLY : environ_erf
+    !
+    IMPLICIT NONE
+    !
     REAL(DP) :: erfcvolume
     !
     INTEGER, INTENT(IN) :: dim, axis
@@ -845,7 +851,6 @@ CONTAINS
     !
     REAL(DP) :: f1 = 0.0_DP , f2 = 0.0_DP
     REAL(DP) :: t, invt
-    REAL( DP ), EXTERNAL      :: qe_erf
     !
     CHARACTER( LEN=80 ) :: fun_name = 'erfcvolume'
     !
@@ -854,7 +859,7 @@ CONTAINS
     !
     t = spread / width
     invt = width / spread
-    f1 = ( 1.D0 + qe_erf(invt) ) / 2.D0 ! f1 is close to one  for t-->0
+    f1 = ( 1.D0 + environ_erf(invt) ) / 2.D0 ! f1 is close to one  for t-->0
     f2 = exp(-(invt)**2) / 2.D0 / sqrtpi ! f2 is close to zero for t-->0
     SELECT CASE ( dim )
     CASE ( 0 )

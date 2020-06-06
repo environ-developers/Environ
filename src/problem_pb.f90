@@ -30,13 +30,14 @@
 MODULE problem_pb
 !----------------------------------------------------------------------------
   !
+  USE modules_constants, ONLY : e2, k_boltzmann_ry, pi, tpi, fpi
   USE environ_types
   USE electrostatic_types
   USE environ_output
   USE problem_linearized_pb, ONLY : linearized_pb_gradient!, linearized_pb_gradient_sqrt
   USE problem_generalized, ONLY : generalized_gradient
   USE problem_poisson, ONLY : poisson_direct!, poisson_energy
-  USE environ_base, ONLY : e2, oldenviron, ltddfpt
+  USE environ_base, ONLY : oldenviron, ltddfpt
   !
   IMPLICIT NONE
   !

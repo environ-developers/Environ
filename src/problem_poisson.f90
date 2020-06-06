@@ -35,7 +35,8 @@ MODULE problem_poisson
   USE correction_periodic
   USE correction_gcs
   USE core_fft, ONLY : poisson_fft, gradpoisson_fft
-  USE environ_base, ONLY : e2, oldenviron
+  USE modules_constants, ONLY : e2
+  USE environ_base, ONLY : oldenviron
   USE environ_output
   !
   IMPLICIT NONE

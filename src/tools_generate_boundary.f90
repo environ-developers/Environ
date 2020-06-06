@@ -28,6 +28,7 @@
 MODULE tools_generate_boundary
 !----------------------------------------------------------------------------
   !
+  USE modules_constants, ONLY : sqrtpi, pi, tpi, fpi
   USE environ_types
   USE environ_output
   !
@@ -204,6 +205,9 @@ CONTAINS
 !--------------------------------------------------------------------
   FUNCTION sfunct2( x, xthr, spread )
 !--------------------------------------------------------------------
+    !
+    USE modules_erf, ONLY : environ_erfc
+    !
     IMPLICIT NONE
     !
     REAL( DP )             :: sfunct2
@@ -212,10 +216,9 @@ CONTAINS
     ! ... Local variables
     !
     REAL( DP )             :: arg
-    REAL( DP ), EXTERNAL   :: qe_erfc
     !
     arg = ( x - xthr ) / spread
-    sfunct2 = 0.5D0 * qe_erfc(arg)
+    sfunct2 = 0.5D0 * environ_erfc(arg)
     !
     RETURN
     !
@@ -238,7 +241,7 @@ CONTAINS
     REAL( DP )             :: arg
     !
     arg = ( x - xthr ) / spread
-    IF ( abs(arg) .GT. 6.D0 ) THEN ! 6.D0 is the threshold of qe_erfc(x)
+    IF ( abs(arg) .GT. 6.D0 ) THEN ! 6.D0 is the threshold of environ_erfc(x)
        dsfunct2 = 0.D0
     ELSE
        dsfunct2 = - EXP( -arg**2 ) / sqrtpi / spread

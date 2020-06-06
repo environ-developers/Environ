@@ -26,6 +26,8 @@
 MODULE environ_output
 !----------------------------------------------------------------------------
   !
+  USE modules_constants, ONLY : amu_si, bohr_radius_si, rydberg_si
+  USE core_types
   USE environ_types
   !
   SAVE

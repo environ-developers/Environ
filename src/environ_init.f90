@@ -25,6 +25,7 @@
 MODULE environ_init
 !----------------------------------------------------------------------------
   !
+  USE modules_constants, ONLY : bohr_radius_si, rydberg_si
   USE core_types
   USE environ_types
   USE environ_output
@@ -352,8 +353,8 @@ CONTAINS
     ! In environ_base all the control flags plus the variables
     ! that need to be initialized
     !
+    USE modules_constants, ONLY : e2_ => e2
     USE environ_base, ONLY :                      &
-         e2_ => e2,                               &
          cell, electrons, charges,                &
          vzero, deenviron,                        &
          lelectrostatic, eelectrostatic,          &
@@ -367,6 +368,7 @@ CONTAINS
          lconfine, vconfine, econfine,            &
          eelectrolyte
     !
+    USE cell_types, ONLY : init_environ_cell
     USE core_init, ONLY : core_initbase
     !
     ! Local base initialization subroutines for the different
@@ -545,6 +547,7 @@ CONTAINS
                                     lelectrostatic
     ! ... Cell-related updates
     !
+    USE cell_types,          ONLY : update_environ_cell
     USE utils_dielectric,    ONLY : update_environ_dielectric
     USE utils_electrolyte,   ONLY : update_environ_electrolyte
     USE utils_externals,     ONLY : update_environ_externals

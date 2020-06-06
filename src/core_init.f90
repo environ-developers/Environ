@@ -9,6 +9,8 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_first
+    USE utils_fft, ONLY : init_fft_core_first
+    USE utils_fd, ONLY : init_fd_core_first
     !
     LOGICAL, INTENT(IN) :: use_internal_pbc_corr
     INTEGER, INTENT(IN) :: ifdtype, nfdpoint, dim, axis
@@ -33,6 +35,8 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
+    USE utils_fd, ONLY : init_fd_core_second
+    USE utils_fft, ONLY : init_fft_core_second
     !
     IMPLICIT NONE
     !
@@ -47,7 +51,7 @@ CONTAINS
     !
     IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
     !
-    IF ( lfft ) CALL init_fft_core_second( dfft, cell%omega, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, fft )
+    IF ( lfft ) CALL init_fft_core_second( dfft, cell, ngm, gcutm, gstart, g, gg, fft )
     !
     RETURN
     !
@@ -59,6 +63,7 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : update_oned_analytic_core_cell
+    USE utils_fft, ONLY : update_fft_core_cell
     !
     IMPLICIT NONE
     !
@@ -66,7 +71,7 @@ CONTAINS
     !
     IF ( loned_analytic ) CALL update_oned_analytic_core_cell( cell, oned_analytic )
     !
-    IF ( lfft ) CALL update_fft_core_cell( cell%omega, fft ) ! THIS SHOULD NOT BE USED AND NEEDS TO BE FIXED
+    IF ( lfft ) CALL update_fft_core_cell( cell, fft ) ! THIS SHOULD NOT BE USED AND NEEDS TO BE FIXED
     !
     RETURN
     !
@@ -95,6 +100,8 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : destroy_oned_analytic_core
+    USE utils_fd, ONLY : destroy_fd_core
+    USE utils_fft, ONLY : destroy_fft_core
     !
     IMPLICIT NONE
     !

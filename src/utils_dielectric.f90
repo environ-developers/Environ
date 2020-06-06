@@ -95,7 +95,8 @@ MODULE utils_dielectric
   USE environ_output
   USE utils_functions
   USE core_fft, ONLY : gradient_fft
-  USE environ_base, ONLY : e2, add_jellium
+  USE modules_constants, ONLY : e2, fpi
+  USE environ_base, ONLY : add_jellium
   !
   IMPLICIT NONE
   !

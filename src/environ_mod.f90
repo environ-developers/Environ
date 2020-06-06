@@ -47,8 +47,6 @@ MODULE environ_base
        environ_thr
   INTEGER ::                        &
        environ_nskip
-  REAL (KIND=DP) ::                 &
-       e2
   !
   ! Control flags
   !

@@ -70,7 +70,7 @@ MODULE utils_electrolyte
   USE environ_output
   !
   USE utils_boundary
-  USE environ_base, ONLY : e2
+  USE modules_constants, ONLY : e2, bohr_radius_si, amu_si, k_boltzmann_ry, pi, tpi, fpi
   !
   IMPLICIT NONE
   !

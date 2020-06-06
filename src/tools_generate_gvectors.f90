@@ -13,7 +13,7 @@ MODULE tools_generate_gvectors
   !  ... subroutines generating G-vectors and variables nl* needed to map
   !  ... G-vector components onto the FFT grid(s) in reciprocal space
   !
-  USE modules_contants, ONLY : DP, eps8
+  USE modules_constants, ONLY : DP, eps8
   USE fft_types, ONLY : fft_stick_index, fft_type_descriptor
   USE fft_ggen, ONLY : fft_set_nl
   USE mp, ONLY: mp_rank, mp_size, mp_sum

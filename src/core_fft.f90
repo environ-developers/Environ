@@ -1,10 +1,9 @@
 MODULE core_fft
   !
-  USE modules_constants, ONLY : DP
-  USE environ_types
-  USE environ_base, ONLY : e2
-  USE electrostatic_types
+  USE modules_constants, ONLY : DP, e2, tpi, fpi
   USE fft_interfaces, ONLY : fwfft, invfft
+  USE core_types
+  USE environ_types
   !
   PRIVATE
   !
@@ -22,7 +21,7 @@ CONTAINS
     ! Solves the Poisson equation \nabla \fout(r) = - 4 \pi \fin(r)
     ! Input and output functions are defined in real space
     !
-!    USE correction_mt, ONLY : calc_vmt
+    USE correction_mt, ONLY : calc_vmt
     !
     IMPLICIT NONE
     !
@@ -31,7 +30,7 @@ CONTAINS
     TYPE( environ_density ), INTENT(INOUT) :: fout
     !
     INTEGER :: ig
-    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
+    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
     !
     ! ... local aliases
     !
@@ -42,8 +41,8 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft_core
     !
-    tpiba2 => fft % tpiba2
-    omega => fft % omega
+    tpiba2 => fft % cell % tpiba2
+    omega => fft % cell % omega
     gstart => fft % gstart
     ngm => fft % ngm
     gg => fft % gg
@@ -54,23 +53,27 @@ CONTAINS
     ALLOCATE( auxr( dfft%nnr ) )
     auxr = CMPLX( fin%of_r, 0.D0, kind=DP )
     CALL fwfft( 'Rho', auxr, dfft )
-    ALLOCATE( auxg( dfft%ngm ) )
+    ALLOCATE( auxg( ngm ) )
     auxg = auxr(dfft%nl(:))
     !
     auxr = CMPLX( 0.D0, 0.D0, kind=DP )
+    !
 !$omp parallel do
     DO ig = gstart, ngm
+       !
        auxr(dfft%nl(ig)) = auxg(ig) / gg(ig)
+       !
     ENDDO
 !$omp end parallel do
+    !
     auxr = auxr * e2 * fpi / tpiba2
     !
-!    IF ( fft%do_comp_mt ) THEN
-!       ALLOCATE( vaux( ngm ) )
-!       CALL calc_vmt(omega, ngm, auxg, vaux, eh_corr)
-!       auxr(dfft%nl(1:ngm)) = auxr(dfft%np(1:ngm)) + vaux(1:ngm)
-!       DEALLOCATE( vaux )
-!    END IF
+    IF ( fft%use_internal_pbc_corr ) THEN
+       ALLOCATE( vaux( ngm ) )
+       CALL calc_vmt( fft, auxg, vaux )
+       auxr(dfft%nl(1:ngm)) = auxr(dfft%nl(1:ngm)) + vaux(1:ngm)
+       DEALLOCATE( vaux )
+    END IF
     !
     IF ( dfft%lgamma ) THEN
        auxr( dfft%nlm(:) ) = CMPLX( REAL(auxr(dfft%nl(:))), -AIMAG(auxr(dfft%nl(:))), kind=DP )
@@ -97,6 +100,8 @@ CONTAINS
     ! where gout is the gradient of the potential
     ! Input and output functions are defined in real space
     !
+    USE correction_mt, ONLY : calc_gradvmt
+    !
     IMPLICIT NONE
     !
     TYPE( fft_core ), TARGET, INTENT(IN) :: fft
@@ -105,7 +110,7 @@ CONTAINS
     !
     INTEGER :: ipol, ig
     REAL(DP) :: fac
-    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
+    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
     !
     ! ... local aliases
     !
@@ -117,8 +122,8 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    tpiba => fft % tpiba
-    omega => fft % omega
+    tpiba => fft % cell % tpiba
+    omega => fft % cell % omega
     ngm => fft % ngm
     gstart => fft % gstart
     gg => fft % gg
@@ -127,24 +132,22 @@ CONTAINS
     !
     ! ... Bring rho to G space
     !
-    ALLOCATE( aux( dfft%nnr ) )
-    aux( : ) = CMPLX( fin%of_r( : ), 0.D0, KIND=dp )
+    ALLOCATE( auxr( dfft%nnr ) )
+    auxr( : ) = CMPLX( fin%of_r( : ), 0.D0, KIND=dp )
+    CALL fwfft('Rho', auxr, dfft)
+    ALLOCATE( auxg( ngm ) )
+    auxg = auxr(dfft%nl(:))
     !
-    CALL fwfft('Rho', aux, dfft)
-    !
-    ! ... Compute total potential in G space
-    !
-    ALLOCATE( gaux( dfft%nnr ) )
+    ! ... Compute gradient of potential in G space one direction at a time
     !
     DO ipol = 1, 3
        !
-       gaux(:) = (0.0_dp,0.0_dp)
+       auxr(:) = CMPLX(0.0_dp,0.0_dp)
        !
 !$omp parallel do private(fac)
        DO ig = gstart, ngm
           !
-          fac = g(ipol,ig) / gg(ig)
-          gaux(dfft%nl(ig)) = CMPLX(-AIMAG(aux(dfft%nl(ig))),REAL(aux(dfft%nl(ig))),kind=dp) * fac
+          auxr(dfft%nl(ig)) = CMPLX(-AIMAG(auxg(ig)),REAL(auxg(ig),kind=dp)) * g(ipol,ig) / gg(ig)
           !
        END DO
 !$omp end parallel do
@@ -153,41 +156,34 @@ CONTAINS
        !  V = e2 * fpi divided by the 2\pi/a factor missing in G
        !
        fac = e2 * fpi / tpiba
-       gaux = gaux * fac
+       auxr = auxr * fac
        !
        ! ...add martyna-tuckerman correction, if needed
        !
-!       IF ( fft%do_comp_mt ) THEN
-!          ALLOCATE( vaux( ngm ), rgtot(ngm) )
-!          rgtot(1:ngm) = rhoaux(dfft%nl(1:ngm))
-!          CALL calc_vmt(omega, ngm, rgtot, vaux, eh_corr)
-!$omp parallel do private(fac)
-!          DO ig = gstart, ngm
-!             fac = g(ipol,ig) * tpiba
-!             gaux(dfft%nl(ig)) = gaux(dfft%nl(ig)) + CMPLX(-AIMAG(vaux(ig)),REAL(vaux(ig)),kind=dp)*fac
-!          END DO
-!$omp end parallel do
-!          DEALLOCATE( rgtot, vaux )
-!       END IF
+       IF ( fft%use_internal_pbc_corr ) THEN
+          ALLOCATE( vaux( ngm ) )
+          CALL calc_gradvmt( ipol, fft, auxg, vaux)
+          auxr(dfft%nl(:)) = auxr(dfft%nl(:)) + vaux(:)
+          DEALLOCATE( vaux )
+       END IF
        !
        ! Assuming GAMMA ONLY
        !
        IF ( dfft%lgamma ) THEN
-          gaux(dfft%nlm(:)) = &
-               CMPLX( REAL( gaux(dfft%nl(:)) ), -AIMAG( gaux(dfft%nl(:)) ) ,kind=DP)
+          auxr(dfft%nlm(:)) = &
+               CMPLX( REAL( auxr(dfft%nl(:)) ), -AIMAG( auxr(dfft%nl(:)) ) ,kind=DP)
        END IF
        !
        ! ... bring back to R-space, (\grad_ipol a)(r) ...
        !
-       CALL invfft ('Rho', gaux, dfft)
+       CALL invfft('Rho', auxr, dfft)
        !
-       gout%of_r(ipol,:) = REAL( gaux(:) )
+       gout%of_r(ipol,:) = REAL( auxr(:) )
        !
     ENDDO
     !
-    DEALLOCATE(gaux)
-    !
-    DEALLOCATE(aux)
+    DEALLOCATE(auxr)
+    DEALLOCATE(auxg)
     !
     RETURN
     !
@@ -200,6 +196,7 @@ CONTAINS
     !
     !
     USE mp, ONLY : mp_sum
+    USE correction_mt, ONLY : calc_fmt
     !
     IMPLICIT NONE
     !
@@ -211,8 +208,9 @@ CONTAINS
     !
     INTEGER :: iat, ig, ityp
     REAL(DP) :: fact, arg
-    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux
+    COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
     REAL(DP), DIMENSION(:,:), ALLOCATABLE :: vloc
+    REAL(DP), DIMENSION(:,:), ALLOCATABLE :: ftmp
     !
     ! ... local aliases
     !
@@ -223,31 +221,33 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    tpiba => fft % tpiba
-    omega => fft % omega
+    tpiba => fft % cell % tpiba
+    omega => fft % cell % omega
     ngm => fft % ngm
     gstart => fft % gstart
     g => fft % g
     dfft => fft % dfft
     !
-    ALLOCATE( aux( dfft%nnr ) )
+    ALLOCATE( auxr( dfft%nnr ) )
     !
     ! Bring vloc from R space to G space
     !
-    ALLOCATE( vloc( fft%ngm, ions%ntyp ) )
+    ALLOCATE( vloc( ngm, ions%ntyp ) )
     DO ityp = 1, ions%ntyp
        !
-       aux = CMPLX( ions%vloc(ityp)%of_r, 0.D0, KIND=dp )
-       CALL fwfft( 'Rho', aux, dfft )
-       vloc( :, ityp) = aux(dfft%nl(:))
+       auxr = CMPLX( ions%vloc(ityp)%of_r, 0.D0, KIND=dp )
+       CALL fwfft( 'Rho', auxr, dfft )
+       vloc( :, ityp) = auxr(dfft%nl(:))
        !
     ENDDO
     !
     ! ... Bring rho to G space
     !
-    aux( : ) = CMPLX( rho%of_r( : ), 0.D0, KIND=dp )
-    !
-    CALL fwfft('Rho', aux, dfft)
+    auxr( : ) = CMPLX( rho%of_r( : ), 0.D0, KIND=dp )
+    CALL fwfft('Rho', auxr, dfft)
+    ALLOCATE( auxg( ngm ) )
+    auxg = auxr(dfft%nl(:))
+    DEALLOCATE( auxr )
     !
     ! aux contains now n(G)
     !
@@ -262,22 +262,35 @@ CONTAINS
        force( :, iat ) = 0.D0
        !
        DO ig = gstart, ngm
-          arg = ( g(1,ig) * ions%tau(1,iat) + g(2,ig) * ions%tau(2,iat) + &
-               g(3,ig) * ions%tau(3,iat) ) * tpi
+          arg = tpi * SUM ( g(:,ig) * ions%tau(:,iat) )
           force( :, iat ) = force( :, iat ) + g( :, ig ) * vloc(ig,ions%ityp(iat)) * &
-               ( SIN(arg)*DBLE(aux(dfft%nl(ig))) + COS(arg)*AIMAG(aux(dfft%nl(ig))) )
+               ( SIN(arg)*DBLE(auxg(ig)) + COS(arg)*AIMAG(auxg(ig)) )
        ENDDO
        !
        force( :, iat ) = fact * force( :, iat ) * omega * tpiba
        !
     ENDDO
+    WRITE(*,*)'forces lc'
+    DO iat = 1, nat
+       WRITE(*,'(i8,3f10.4)')iat,force(:,iat)
+    ENDDO
     !
     ! ...add martyna-tuckerman correction, if needed
     !
+    IF ( fft % use_internal_pbc_corr ) THEN
+       ALLOCATE( ftmp( 3, nat ) )
+       CALL calc_fmt( fft, auxg, ions, ftmp )
+       force = force + fact * ftmp
+       WRITE(*,*)'forces mt',fact
+       DO iat = 1, nat
+          WRITE(*,'(i8,3f10.4)')iat,fact*ftmp(:,iat)
+       ENDDO
+       DEALLOCATE( ftmp )
+    ENDIF
     !
     CALL mp_sum( force, rho%cell%comm )
     !
-    DEALLOCATE(aux)
+    DEALLOCATE(auxg)
     DEALLOCATE(vloc)
     !
     RETURN
@@ -305,7 +318,7 @@ CONTAINS
     ! ... add tests for compatilibity between input, output, and fft
     !
     dfft => fft % dfft
-    omega => fft % omega
+    omega => fft % cell % omega
     !
     ! Bring fa and fb to reciprocal space
     !
@@ -374,7 +387,7 @@ CONTAINS
     ENDDO
     CALL destroy_environ_density( local )
 !    dfft => fft % dfft
-!    omega => fft % omega
+!    omega => fft % cell % omega
 !    !
 !    ! Bring fa and fb to reciprocal space
 !    !
@@ -445,7 +458,7 @@ CONTAINS
     ENDDO
     CALL destroy_environ_density( local )
 !    dfft => fft % dfft
-!    omega => fft % omega
+!    omega => fft % cell % omega
 !    !
 !    ! Bring fa and fb to reciprocal space
 !    !
@@ -512,7 +525,7 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    tpiba => fft % tpiba
+    tpiba => fft % cell % tpiba
     dfft => fft % dfft
     g => fft % g
     !
@@ -585,7 +598,7 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    tpiba => fft % tpiba
+    tpiba => fft % cell % tpiba
     dfft => fft % dfft
     g => fft % g
     !
@@ -700,7 +713,7 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    tpiba2 => fft % tpiba2
+    tpiba2 => fft % cell % tpiba2
     gg => fft % gg
     dfft => fft % dfft
     !
@@ -772,7 +785,7 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    tpiba => fft % tpiba
+    tpiba => fft % cell % tpiba
     g => fft % g
     dfft => fft % dfft
     !

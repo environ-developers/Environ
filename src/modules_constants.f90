@@ -78,5 +78,9 @@ MODULE modules_constants
   REAL(DP), PARAMETER :: eps32 = 1.0E-32_DP
   !
   REAL(DP), PARAMETER :: AVOGADRO = 6.02214129D+23
+  !
+  ! ... Rydberg vs Hartree units (e2 = 2 in Ry)
+  !
+  REAL(DP) :: e2
 
 END MODULE modules_constants

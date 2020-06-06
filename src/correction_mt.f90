@@ -5,254 +5,220 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
-#undef TESTING
-MODULE env_martyna_tuckerman
+MODULE correction_mt
   !
   ! ... The variables needed to the Martyna-Tuckerman method for isolated
   !     systems
   !
-  USE modules_constants, ONLY: DP
-  USE env_constants, ONLY : e2, pi, tpi, fpi
-  USE env_ws_base
+  USE modules_constants, ONLY: DP, pi, tpi, fpi, e2
+  USE cell_types, ONLY : ir2r, minimum_image
+  USE core_types
   !
   IMPLICIT NONE
   !
-  TYPE (ws_type) :: ws
-  REAL (DP) :: alpha, beta
-  REAL (DP), ALLOCATABLE :: wg_corr(:)
-  LOGICAL :: wg_corr_is_updated = .FALSE.
-  LOGICAL :: do_comp_mt = .FALSE.
-  LOGICAL :: gamma_only = .FALSE.
-  integer :: gstart = 1
-    !
   SAVE
-
+  !
   PRIVATE
-
-  PUBLIC :: env_tag_wg_corr_as_obsolete, do_comp_mt, &
-            env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force
-
-  !PUBLIC :: env_tag_wg_corr_as_obsolete, do_comp_mt, &
-  !env_wg_corr_ewald, env_wg_corr_loc, env_wg_corr_h, env_wg_corr_force, &
-  !env_init_wg_corr
-
+  !
+  PUBLIC :: update_mt_correction, calc_vmt, calc_gradvmt, calc_fmt
+  !
 CONTAINS
 !----------------------------------------------------------------------------
-  SUBROUTINE env_tag_wg_corr_as_obsolete
+  SUBROUTINE update_mt_correction( fft )
 !----------------------------------------------------------------------------
-     wg_corr_is_updated = .FALSE.
-  END SUBROUTINE env_tag_wg_corr_as_obsolete
+    !
+    USE modules_erf,       ONLY : environ_erfc
+    USE fft_interfaces,    ONLY : fwfft
+    !
+    TYPE( fft_core ), TARGET, INTENT(INOUT) :: fft
+    !
+    LOGICAL :: physical
+    INTEGER :: ir, ig
+    REAL(DP) :: r(3), rws, upperbound, ecutrho
+    COMPLEX (DP), ALLOCATABLE :: aux(:)
+    !
+    REAL( DP ), POINTER :: alpha, beta, omega, tpiba2
+    REAL( DP ), DIMENSION(:), POINTER :: mt_corr
+    TYPE( fft_type_descriptor ), POINTER :: dfft
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    alpha => fft % alpha
+    beta => fft % beta
+    mt_corr => fft % mt_corr
+    !
+    cell => fft % cell
+    dfft => fft % dfft
+    omega => fft % cell % omega
+    tpiba2 => fft % cell % tpiba2
+    !
+    ecutrho = fft % gcutm * tpiba2
+    !
+    ! choose alpha in order to have convergence in the sum over G
+    ! upperbound is a safe upper bound for the error in the sum over G
+    !
+    alpha = 2.9d0
+    upperbound = 1._dp
+    DO WHILE ( upperbound > 1.e-7_dp)
+       alpha = alpha - 0.1_dp
+       IF (alpha<=0._dp) CALL errore('init_mt_correction','optimal alpha not found',1)
+       upperbound = e2 * SQRT(2.d0 * alpha / tpi) * &
+            environ_erfc( SQRT( ecutrho / 4.d0 / alpha) )
+    END DO
+    beta = 0.5_dp/alpha ! 1._dp/alpha
+    !
+    ALLOCATE (aux(dfft%nnr))
+    aux = (0._dp,0._dp)
+    !
+    DO ir = 1, cell%ir_end
+       !
+       ! ... three dimensional indexes
+       !
+       CALL ir2r( cell, ir, r, physical )
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( .NOT. physical ) CYCLE
+       !
+       ! ... minimum image convention
+       !
+       CALL minimum_image( cell, r, rws )
+       !
+       aux(ir) = smooth_coulomb_r( alpha, SQRT(rws)*cell%alat )
+       !
+    END DO
+    !
+    CALL fwfft ('Rho', aux, dfft)
+    !
+!$omp parallel do
+    DO ig = 1, fft%ngm
+       mt_corr(ig) = cell%omega * REAL(aux(dfft%nl(ig))) - &
+            smooth_coulomb_g( alpha, beta, cell%tpiba2*fft%gg(ig))
+    ENDDO
+!$omp end parallel do
+    mt_corr(:) =  mt_corr(:) * exp(-cell%tpiba2*fft%gg(:)*beta/4._dp)**2
+    !
+    DEALLOCATE (aux)
+    !
+    RETURN
+    !
 !----------------------------------------------------------------------------
-  SUBROUTINE env_wg_corr_h( omega, ngm, rho, v, eh_corr )
+  END SUBROUTINE update_mt_correction
 !----------------------------------------------------------------------------
-  INTEGER, INTENT(IN) :: ngm
-  REAL(DP), INTENT(IN) :: omega
-  COMPLEX(DP), INTENT(IN)  :: rho(ngm)
-  COMPLEX(DP), INTENT(OUT) :: v(ngm)
-  REAL(DP), INTENT(OUT) :: eh_corr
-
-  INTEGER :: ig
-
-  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
-!
-  v(:) = (0._dp,0._dp)
-
-  eh_corr =  0._dp
-  DO ig = 1,ngm
-     v(ig) = e2 * wg_corr(ig) * rho(ig) 
-     eh_corr = eh_corr + ABS(rho(ig))**2 * wg_corr(ig)
-  END DO
-  iF (gamma_only) v(gstart:ngm) = 0.5_dp * v(gstart:ngm)
-
-  eh_corr = 0.5_dp * e2 * eh_corr * omega
-
-  RETURN
-  END SUBROUTINE env_wg_corr_h
 !----------------------------------------------------------------------------
-  SUBROUTINE env_wg_corr_loc( omega, ntyp, ngm, zv, strf, v )
+  SUBROUTINE calc_vmt( fft, rho, v )
 !----------------------------------------------------------------------------
-  INTEGER, INTENT(IN) :: ntyp, ngm
-  REAL(DP), INTENT(IN) :: omega, zv(ntyp)
-  COMPLEX(DP), INTENT(IN) :: strf(ngm,ntyp)
-  COMPLEX(DP), INTENT(OUT) :: v(ngm)
-  INTEGER :: ig
-
-  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
-!
-  do ig=1,ngm
-     v(ig) = - e2 * wg_corr(ig) * SUM(zv(1:ntyp)*strf(ig,1:ntyp)) / omega
-  end do
-  iF (gamma_only) v(gstart:ngm) = 0.5_dp * v(gstart:ngm)
-
-  RETURN
-  END SUBROUTINE env_wg_corr_loc
+    !
+    TYPE( fft_core ), INTENT(IN) :: fft
+    COMPLEX(DP), INTENT(IN)  :: rho(fft%ngm)
+    COMPLEX(DP), INTENT(OUT) :: v(fft%ngm)
+    !
+    INTEGER :: ig
+    !
+    v(:) = (0._dp,0._dp)
+    !
+!$omp parallel do
+    DO ig = 1, fft%ngm
+       v(ig) = fft%mt_corr(ig) * rho(ig)
+    END DO
+!$omp end parallel do
+    !
+    v = e2 * v
+    !
+    RETURN
+    !
 !----------------------------------------------------------------------------
-  SUBROUTINE env_wg_corr_force( lnuclei, omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, &
-                            rho, force )
+  END SUBROUTINE calc_vmt
 !----------------------------------------------------------------------------
-  USE env_cell_base, ONLY : tpiba
-  USE mp_bands,      ONLY : intra_bgrp_comm
-  USE mp,            ONLY : mp_sum
-  INTEGER, INTENT(IN) :: nat, ntyp, ityp(nat), ngm
-  REAL(DP), INTENT(IN) :: omega, zv(ntyp), tau(3,nat), g(3,ngm)
-  COMPLEX(DP), INTENT(IN) :: strf(ngm,ntyp), rho(ngm)
-  LOGICAL, INTENT(IN) :: lnuclei
-  ! this variable is used in wg_corr_force to select if
-  ! corr should be done on rho and nuclei or only on rho
-  REAL(DP), INTENT(OUT) :: force(3,nat)
-  INTEGER :: ig, na
-  REAL (DP) :: arg
-  COMPLEX(DP), ALLOCATABLE :: v(:)
-  COMPLEX(DP) :: rho_tot
-  !
-  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
-  !
-  allocate ( v(ngm) )
-  do ig=1,ngm
-     rho_tot = rho(ig)
-     if(lnuclei) rho_tot = rho_tot - SUM(zv(1:ntyp)*strf(ig,1:ntyp)) / omega
-     v(ig) = e2 * wg_corr(ig) * rho_tot
-  end do
-  force(:,:) = 0._dp
-  do na=1,nat
-     do ig=1,ngm
-        arg = tpi * SUM ( g(:,ig)*tau(:, na) ) 
-        force(:,na) = force(:,na) + g(:,ig) * CMPLX(SIN(arg),-COS(ARG), KIND=dp) * v(ig)
-     end do
-     force(:,na) = - force(:,na) * zv(ityp(na))  * tpiba
-  end do
-  deallocate ( v )
-  !
-  call mp_sum(  force, intra_bgrp_comm )
-  !
-  RETURN
-  END SUBROUTINE env_wg_corr_force
 !----------------------------------------------------------------------------
-  SUBROUTINE env_init_wg_corr
+  SUBROUTINE calc_gradvmt( ipol, fft, rho, v )
 !----------------------------------------------------------------------------
-  USE mp_bands,          ONLY : me_bgrp
-  USE fft_base,          ONLY : dfftp
-  USE fft_interfaces,    ONLY : fwfft, invfft
-  USE env_control_flags, ONLY : gamma_only_ => gamma_only
-  USE env_gvect,         ONLY : ngm, gg, gstart_ => gstart, ecutrho
-  USE env_cell_base,     ONLY : at, alat, tpiba2, omega
-  USE env_ws_base
-
-  INTEGER :: idx, ir, i,j,k, j0, k0, ig, nt
-  REAL(DP) :: r(3), rws, upperbound, rws2
-  COMPLEX (DP), ALLOCATABLE :: aux(:)
-  REAL(DP), EXTERNAL :: qe_erfc
-
-  IF ( ALLOCATED(wg_corr) ) DEALLOCATE(wg_corr)
-  ALLOCATE(wg_corr(ngm))
-  !
-  ! choose alpha in order to have convergence in the sum over G
-  ! upperbound is a safe upper bound for the error in the sum over G
-  !
-  alpha = 2.9d0
-  upperbound = 1._dp
-  DO WHILE ( upperbound > 1.e-7_dp) 
-     alpha = alpha - 0.1_dp  
-     if (alpha<=0._dp) call errore('init_wg_corr','optimal alpha not found',1)
-     upperbound = e2 * sqrt (2.d0 * alpha / tpi) * &
-                       qe_erfc ( sqrt ( ecutrho / 4.d0 / alpha) )
-  END DO
-  beta = 0.5_dp/alpha ! 1._dp/alpha
-  ! write (*,*) " alpha, beta MT = ", alpha, beta
-  !
-  call env_ws_init(at,ws)
-  !
-  gstart = gstart_
-  gamma_only = gamma_only_
-  !
-  ALLOCATE (aux(dfftp%nnr))
-  aux = (0._dp,0._dp)
-  j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-  DO ir = 1, dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p
-     !
-     ! ... three dimensional indexes
-     !
-     idx = ir -1
-     k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-     idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-     k   = k + k0
-     j   = idx / dfftp%nr1x
-     idx = idx - dfftp%nr1x * j
-     j   = j + j0
-     i   = idx
-
-     ! ... do not include points outside the physical range
-
-     IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
-
-     r(:) = ( at(:,1)/dfftp%nr1*i + at(:,2)/dfftp%nr2*j + at(:,3)/dfftp%nr3*k )
-
-     rws = env_ws_dist(r,ws)
-
-     aux(ir) = env_smooth_coulomb_r( rws*alat )
-
-  END DO
-
-  CALL fwfft ('Rho', aux, dfftp)
-
-  do ig =1, ngm
-     wg_corr(ig) = omega * REAL(aux(dfftp%nl(ig))) - env_smooth_coulomb_g( tpiba2*gg(ig))
-  end do
-  wg_corr(:) =  wg_corr(:) * exp(-tpiba2*gg(:)*beta/4._dp)**2
-  !
-  if (gamma_only) wg_corr(gstart:ngm) = 2.d0 * wg_corr(gstart:ngm)
-!
-  wg_corr_is_updated = .true.
-
-  DEALLOCATE (aux)
-
-  RETURN
-
-  END SUBROUTINE env_init_wg_corr 
+    !
+    INTEGER, INTENT(IN) :: ipol
+    TYPE( fft_core ), INTENT(IN) :: fft
+    COMPLEX(DP), INTENT(IN)  :: rho(fft%ngm)
+    COMPLEX(DP), INTENT(OUT) :: v(fft%ngm)
+    !
+    INTEGER :: ig
+    REAL( DP ) :: fac
+    !
+    v(:) = (0._dp,0._dp)
+    !
+!$omp parallel do private(fac)
+    DO ig = fft%gstart, fft%ngm
+       fac = fft%g(ipol,ig) * fft%cell%tpiba
+       v(ig) = fft%mt_corr(ig) * CMPLX(-AIMAG(rho(ig)),REAL(rho(ig)),kind=dp)*fac
+    END DO
+!$omp end parallel do
+    !
+    v = e2 * v
+    !
+    RETURN
+    !
 !----------------------------------------------------------------------------
-  REAL(DP) FUNCTION env_wg_corr_ewald ( omega, ntyp, ngm, zv, strf )
+  END SUBROUTINE calc_gradvmt
 !----------------------------------------------------------------------------
-  INTEGER, INTENT(IN) :: ntyp, ngm
-  REAL(DP), INTENT(IN) :: omega, zv(ntyp)
-  COMPLEX(DP), INTENT(IN) :: strf(ngm,ntyp)
-  INTEGER :: ig
-  COMPLEX(DP)  :: rhoion
-
-  IF (.NOT.wg_corr_is_updated) CALL env_init_wg_corr
-!
-  env_wg_corr_ewald = 0._dp
-  DO ig=1,ngm
-     rhoion = SUM (zv(1:ntyp)* strf(ig,1:ntyp) ) / omega
-     env_wg_corr_ewald = env_wg_corr_ewald + ABS(rhoion)**2 * wg_corr(ig) 
-  END DO
-  env_wg_corr_ewald = 0.5_dp * e2 * env_wg_corr_ewald * omega
-!  write(*,*) "ewald correction   = ", wg_corr_ewald
-
-  END FUNCTION env_wg_corr_ewald
 !----------------------------------------------------------------------------
-  REAL(DP) FUNCTION env_smooth_coulomb_r(r)
+  SUBROUTINE calc_fmt( fft, rho, ions, force )
 !----------------------------------------------------------------------------
-  REAL(DP), INTENT(IN) :: r
-  REAL(DP), EXTERNAL :: qe_erf
-!  smooth_coulomb_r = sqrt(2._dp*alpha/tpi)**3 * exp(-alpha*r*r) ! to be modified
-  IF (r>1.e-6_dp) THEN
-    env_smooth_coulomb_r = qe_erf(sqrt(alpha)*r)/r
-  ELSE
-    env_smooth_coulomb_r = 2._dp/sqrt(pi) * sqrt(alpha)
-  END IF
-
-  END FUNCTION env_smooth_coulomb_r
+    !
+    USE environ_types
+    !
+    TYPE( fft_core ), INTENT(IN) :: fft
+    TYPE( environ_ions ), INTENT(IN) :: ions
+    COMPLEX(DP), INTENT(IN) :: rho(fft%ngm)
+    REAL(DP), INTENT(OUT) :: force(3,ions%number)
+    !
+    INTEGER :: iat, ig
+    REAL (DP) :: arg
+    !
+    force = 0._dp
+    DO iat = 1, ions%number
+       DO ig = 1, fft % ngm
+          arg = tpi * SUM ( fft%g(:,ig)*ions%tau(:,iat) )
+          force( :, iat ) = force( :, iat ) + fft%g( :, ig ) * &
+               ( SIN(arg)*REAL(rho(ig)) + COS(arg)*AIMAG(rho(ig))) * &
+               fft%mt_corr(ig)
+       END DO
+       force( :, iat ) = force( :, iat ) * ions%iontype(ions%ityp(iat))%zv * fft%cell%tpiba
+    END DO
+    !
+    force = e2 * force
+    !
+    RETURN
+    !
 !----------------------------------------------------------------------------
-  REAL(DP) FUNCTION env_smooth_coulomb_g(q2)
+  END SUBROUTINE calc_fmt
 !----------------------------------------------------------------------------
-  REAL(DP), INTENT(IN) :: q2
-!  smooth_coulomb_g = exp(-q2/4._dp/alpha) ! to be modified
-  IF (q2>1.e-6_dp) THEN
-    env_smooth_coulomb_g = fpi * exp(-q2/4._dp/alpha)/q2 ! to be modified
-  ELSE 
-    env_smooth_coulomb_g = - 1._dp * fpi * (1._dp/4._dp/alpha + 2._dp*beta/4._dp)
-  END IF
-  END FUNCTION env_smooth_coulomb_g
 !----------------------------------------------------------------------------
-
-END MODULE env_martyna_tuckerman
+  REAL(DP) FUNCTION smooth_coulomb_r(alpha,r)
+ !----------------------------------------------------------------------------
+    !
+    USE modules_erf, ONLY : environ_erf
+    !
+    REAL(DP), INTENT(IN) :: alpha, r
+    !
+    IF (r>1.e-6_dp) THEN
+       smooth_coulomb_r = environ_erf(SQRT(alpha)*r)/r
+    ELSE
+       smooth_coulomb_r = 2._dp/SQRT(pi) * SQRT(alpha)
+    END IF
+    !
+!----------------------------------------------------------------------------
+  END FUNCTION smooth_coulomb_r
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+  REAL(DP) FUNCTION smooth_coulomb_g(alpha,beta,q2)
+!----------------------------------------------------------------------------
+    !
+    REAL(DP), INTENT(IN) :: alpha, beta, q2
+    !
+    IF (q2>1.e-6_dp) THEN
+       smooth_coulomb_g = fpi * EXP(-q2/4._dp/alpha)/q2
+    ELSE
+       smooth_coulomb_g = - 1._dp * fpi * (1._dp/4._dp/alpha + 2._dp*beta/4._dp)
+    END IF
+    !
+!----------------------------------------------------------------------------
+  END FUNCTION smooth_coulomb_g
+!----------------------------------------------------------------------------
+END MODULE correction_mt

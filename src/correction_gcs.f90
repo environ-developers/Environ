@@ -23,10 +23,10 @@ MODULE correction_gcs
   !
   ! ...
   !
+  USE modules_constants, ONLY : e2, k_boltzmann_ry, pi, tpi, fpi
   USE environ_types
-  USE electrostatic_types
+  USE core_types
   USE environ_output
-  USE environ_base,      ONLY : e2
   !
   IMPLICIT NONE
   !

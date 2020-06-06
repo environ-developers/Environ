@@ -29,7 +29,7 @@ MODULE embedding_volume
   !
   USE environ_types
   USE environ_output
-  USE environ_base,  ONLY : e2
+  USE modules_constants,  ONLY : e2
   !
   IMPLICIT NONE
   !

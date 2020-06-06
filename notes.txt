@@ -8,6 +8,11 @@ TO DO
 * simplify/make more modular environ initialization for coupling with other programs
 * fix cp, neb, tddfpt, xspectra...
 * add tests for cp, neb, tddfpt, xspectra
+* remove dependences on environ_base, electrostatic_base, and core_base
+* collect unit conversion factors into a module
+* add compute_dipole
+* add possibility to do environ martyna-tuckerman correction for pbc pw calculation
+* add a test on multiple pbc corrections at the same time
 
 * core_fft.f90
   add tests for compatibility between inputs
@@ -15,12 +20,6 @@ TO DO
   move away planar_average
 * environ_output.f90
   fix write_cube that depends on dfftp and parallelization
-* correction_mt.f90
-  fix correction_mt (only initial calculation and calc_vmt is needed)
-  fix calls to ws_base
-  fix communicators for parallelization
-* ws_base.f90 (now tools_ws.f90) is only needed by Martyna-Tuckerman
-  remove call to invmat.f90 to invert 3x3 matrix
 
 DONE
 * fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
@@ -34,9 +33,13 @@ DONE
 * fix to convolution_fft, external_gradient, external_laplacian, external_hessian
 * fix electrostatic forces by adding force_lc to core_fft
 * include Modules/sort.f90
+* ws_base.f90 (now tools_ws.f90) was only needed by Martyna-Tuckerman, but some Environ subroutines were doing the same job
+  removed tools_generate_ws.f90 and also modules_invmat.f90.
+* correction_mt.f90
+  fix correction_mt (only initial calculation and calc_vmt is needed)
+  fix communicators for parallelization
 
 DOUBTS
-  do we want to keep martyna-tuckerman?
 
 PLANS
   as first step let's comment out the martyna-tuckerman part

@@ -1,3 +1,7 @@
+[pw_mt/]
+program = PW
+inputs_args = ('neutral.in', 'dielectric-default.in'), ('charged.in', 'dielectric-default.in'), ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in')
+
 [pw_solvent-aware/]
 program = PW
 inputs_args = ('pw.in', 'local-sccs.in'), ('pw.in', 'sa-sccs.in'), ('pw.in', 'local-ss.in'), ('pw.in', 'sa-ss.in')

@@ -72,7 +72,8 @@ MODULE utils_charges
   !
   USE environ_types
   USE environ_output
-  USE environ_base, ONLY : e2, add_jellium
+  USE modules_constants, ONLY : e2
+  USE environ_base, ONLY : add_jellium
   !
   SAVE
   !

@@ -71,7 +71,8 @@
 MODULE utils_ions
 !----------------------------------------------------------------------------
   !
-  USE environ_base,  ONLY : e2, potential_shift
+  USE modules_constants, ONLY : e2, pi, tpi, fpi, bohr_radius_angs
+  USE environ_base,  ONLY : potential_shift
   USE environ_output
   USE environ_types
   USE utils_functions

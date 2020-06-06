@@ -34,7 +34,7 @@ MODULE embedding_surface
   !
   USE environ_types
   USE environ_output
-  USE environ_base,  ONLY : e2
+  USE modules_constants,  ONLY : e2
   !
   IMPLICIT NONE
   !
@@ -43,7 +43,7 @@ MODULE embedding_surface
   PUBLIC :: calc_desurface_dboundary, calc_esurface
   !
 CONTAINS
-!  
+!
 !  Subroutine: calc_desurface_dboundary
 !
 !> Calculates the cavitation contribution to the potential
