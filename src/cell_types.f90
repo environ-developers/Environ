@@ -42,11 +42,11 @@ MODULE cell_types
   PRIVATE
   !
   PUBLIC :: environ_cell, init_environ_cell, update_environ_cell, ir2ijk, ir2r, &
-       displacement, minimum_image
+       displacement, minimum_image, volume, recips
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, bg, &
+  SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, at, &
        & nnr, ir_end, n1x, n2x, n3x, &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.0.X QE-6.1.X
@@ -68,7 +68,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: j0, k0, n2p, n3p
 ! END BACKWARD COMPATIBILITY
     INTEGER, INTENT(IN) :: nnr, ir_end, comm, me, root
-    REAL( DP ), INTENT(IN) :: alat, omega, at(3,3), bg(3,3)
+    REAL( DP ), INTENT(IN) :: alat, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
     !
     INTEGER :: ic, ix, iy, iz
@@ -84,11 +84,21 @@ CONTAINS
     cell % n3 = n3
     cell % ibrav = ibrav
     cell % alat = alat
-    cell % omega = omega
     cell % at = at
-    cell % bg = bg
+    !
+    ! Calculate cell volume
+    !
+    CALL volume( cell%alat, cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%omega )
+    !
+    ! Calculate units of reciprocal space
+    !
     cell % tpiba = tpi/alat
     cell % tpiba2 = cell % tpiba**2
+    !
+    ! Calculate the reciprocal lattice vectors
+    !
+    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
+      & cell%bg(1,2), cell%bg(1,3))
     !
     cell % in1 = 1.D0 / DBLE(n1)
     cell % in2 = 1.D0 / DBLE(n2)
@@ -333,5 +343,108 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE minimum_image
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE volume( alat, a1, a2, a3, omega )
+!--------------------------------------------------------------------
+    !
+    !     Compute the volume of the unit cell defined by 3 vectors
+    !     a1, a2, a3, given in units of "alat" (alat may be 1):
+    !        omega = alat^3 * [ a1 . (a2 x a3) ]
+    !     ( . = scalar product, x = vector product )
+    !
+    IMPLICIT NONE
+    !
+    REAL(dp), INTENT(IN) :: alat, a1(3), a2(3), a3(3)
+    REAL(dp), INTENT(OUT) :: omega
+    !
+    omega = a1(1) * ( a2(2)*a3(3)-a2(3)*a3(2) ) - &
+            a1(2) * ( a2(1)*a3(3)-a2(3)*a3(1) ) + &
+            a1(3) * ( a2(1)*a3(2)-a2(2)*a3(1) )
+    !
+    IF ( omega < 0.0_dp) THEN
+       call infomsg('volume','axis vectors are left-handed')
+       omega = ABS (omega)
+    END IF
+    !
+    IF ( alat < 1.0_dp) call infomsg('volume','strange lattice parameter')
+    omega = omega * alat**3
+    !
+    RETURN
+    !
+!---------------------------------------------------------------------
+  END SUBROUTINE volume
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+  SUBROUTINE recips( a1, a2, a3, b1, b2, b3 )
+!---------------------------------------------------------------------
+    !
+    !   This routine generates the reciprocal lattice vectors b1,b2,b3
+    !   given the real space vectors a1,a2,a3. The b's are units of 2 pi/a.
+    !
+    !     first the input variables
+    !
+    IMPLICIT NONE
+    REAL( DP ) :: a1 (3), a2 (3), a3 (3), b1 (3), b2 (3), b3 (3)
+    ! input: first direct lattice vector
+    ! input: second direct lattice vector
+    ! input: third direct lattice vector
+    ! output: first reciprocal lattice vector
+    ! output: second reciprocal lattice vector
+    ! output: third reciprocal lattice vector
+    !
+    !   then the local variables
+    !
+    REAL( DP ) :: den, s
+    ! the denominator
+    ! the sign of the permutations
+    INTEGER :: iperm, i, j, k, l
+    ! counter on the permutations
+    !\
+    !  Auxiliary variables
+    !/
+    !
+    INTEGER :: ipol
+    ! Counter on the polarizations
+    !
+    !    first we compute the denominator
+    !
+    den = 0
+    i = 1
+    j = 2
+    k = 3
+    s = 1.d0
+100 DO iperm = 1, 3
+       den = den + s * a1 (i) * a2 (j) * a3 (k)
+       l = i
+       i = j
+       j = k
+       k = l
+    ENDDO
+    i = 2
+    j = 1
+    k = 3
+    s = - s
+    IF (s.LT.0.D0) GOTO 100
+    !
+    !    here we compute the reciprocal vectors
+    !
+    i = 1
+    j = 2
+    k = 3
+    DO ipol = 1, 3
+       b1 (ipol) = (a2 (j) * a3 (k) - a2 (k) * a3 (j) ) / den
+       b2 (ipol) = (a3 (j) * a1 (k) - a3 (k) * a1 (j) ) / den
+       b3 (ipol) = (a1 (j) * a2 (k) - a1 (k) * a2 (j) ) / den
+       l = i
+       i = j
+       j = k
+       k = l
+    ENDDO
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE recips
 !--------------------------------------------------------------------
 END MODULE cell_types

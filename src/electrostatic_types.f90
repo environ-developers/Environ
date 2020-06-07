@@ -28,6 +28,7 @@ MODULE electrostatic_types
   USE environ_types
   !
   USE core_types
+  USE core_base
   !
   TYPE gradient_solver
      !

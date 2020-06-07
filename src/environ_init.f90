@@ -331,7 +331,7 @@ CONTAINS
   END SUBROUTINE set_environ_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE environ_initbase( n1, n2, n3, ibrav, alat, omega, at, bg, &
+  SUBROUTINE environ_initbase( n1, n2, n3, ibrav, alat, at, &
                              & nnr, ir_end, n1x, n2x, n3x, &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.0.X QE-6.1.X
@@ -340,8 +340,7 @@ CONTAINS
                              & j0, k0, n2p, n3p, &
 !  END BACKWARD COMPATIBILITY
                              & comm, me, root, &
-                             & dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg, &
-                             & e2 )
+                             & gcutm, gstart, ecutrho, dual, e2 )
 !--------------------------------------------------------------------
 !
 ! Subroutine to initialize fundamental quantities needed by the
@@ -393,14 +392,12 @@ CONTAINS
     INTEGER, INTENT(IN) :: me
     INTEGER, INTENT(IN) :: root
     REAL(DP), INTENT(IN) :: alat
-    REAL(DP), INTENT(IN) :: omega
+    REAL(DP), INTENT(IN) :: ecutrho, dual
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
-    REAL(DP), DIMENSION(3,3), INTENT(IN) :: bg
-    TYPE(fft_type_descriptor), INTENT(IN) :: dfft
-    INTEGER, INTENT(IN) :: ngm, gstart
-    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
-    REAL( DP ), DIMENSION(3,ngm), INTENT(IN) :: g
-    REAL( DP ), DIMENSION(ngm), INTENT(IN) :: gg
+    INTEGER, INTENT(IN) :: gstart
+    REAL( DP ), INTENT(IN) :: gcutm
+    !REAL( DP ), DIMENSION(3,ngm), INTENT(IN) :: g
+    !REAL( DP ), DIMENSION(ngm), INTENT(IN) :: gg
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
     !
     CHARACTER( LEN = 80 ) :: label = ' '
@@ -410,7 +407,7 @@ CONTAINS
     e2_ = 2.D0
     IF ( PRESENT(e2) ) e2_ = e2
     !
-    CALL init_environ_cell( n1, n2, n3, ibrav, alat, omega, at, bg, &
+    CALL init_environ_cell( n1, n2, n3, ibrav, alat, at, &
          & nnr, ir_end, n1x, n2x, n3x, &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.0.X QE-6.1.X
@@ -422,7 +419,7 @@ CONTAINS
     !
     ! ... Initialization of numerical cores
     !
-    CALL core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg )
+    CALL core_initbase( cell, gstart, ecutrho, dual )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !

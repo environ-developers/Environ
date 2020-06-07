@@ -257,7 +257,7 @@ MODULE environ_types
      CHARACTER( LEN = 80 ) :: type
      !
      LOGICAL :: use_fft
-     TYPE( fft_core ), POINTER :: fft => NULL()
+     TYPE( fft_core ), POINTER :: fft! => NULL()
      !
      LOGICAL :: use_fd
      TYPE( fd_core ), POINTER :: fd => NULL()

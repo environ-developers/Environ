@@ -1,11 +1,12 @@
 MODULE utils_fft
   !
+  USE modules_constants, ONLY : DP, tpi
   USE core_types
   !
   PRIVATE
   !
   PUBLIC :: create_fft_core, init_fft_core_first, init_fft_core_second, &
-       update_fft_core_cell, destroy_fft_core
+       update_fft_core_cell, destroy_fft_core, init_dfft_core
   !
 CONTAINS
   !--------------------------------------------------------------------
@@ -71,51 +72,73 @@ CONTAINS
   END SUBROUTINE init_fft_core_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fft_core_second( dfft, cell, ngm, &
-       & gcutm, gstart, g, gg, fft )
+  SUBROUTINE init_fft_core_second( cell, ecutrho, ngm, gstart, dfft, fft )
 !--------------------------------------------------------------------
     !
-    USE correction_mt, ONLY : update_mt_correction
-    !
+    USE stick_base,        ONLY : sticks_map
+    USE fft_types,         ONLY : fft_type_init
+    USE mp_bands,          ONLY : nyfft
+    USE tools_generate_gvectors, ONLY : env_gvect_init, env_ggen
     IMPLICIT NONE
     !
-    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
-    TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
-    INTEGER, INTENT(IN) :: ngm, gstart
-    REAL( DP ), INTENT(IN) :: gcutm
-    REAL( DP ), DIMENSION( ngm ), INTENT(IN) :: gg
-    REAL( DP ), DIMENSION( 3, ngm ), INTENT(IN) :: g
+    TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( fft_core ), INTENT(INOUT) :: fft
+    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft !
+    TYPE( sticks_map ) :: smap
+    INTEGER :: fft_fact(3)
+    INTEGER :: i, ngm_g
+    INTEGER, INTENT(IN) :: ngm, gstart
+    REAL(DP) :: ecutrho
     !
-    ! COPYING ALL THE COMPONENTS OF DFFT WOULD BE WORSE THAN BUILDING IT FROM SCRATCH
-    ! for the time being we use a pointer
-    !
-    fft % dfft => dfft
-    !
-    fft % cell => cell
-    fft % gcutm = gcutm
-    fft % ngm = ngm
-    fft % gstart = gstart
-    ALLOCATE( fft % gg( ngm ) )
-    fft % gg = gg
-    ALLOCATE( fft % g( 3, ngm ) )
-    fft % g = g
+    fft%gcutm = ecutrho / cell%tpiba2
+    fft%ngm = ngm
+    fft%gstart = gstart
+    fft%dfft => dfft
     !
     IF ( fft % use_internal_pbc_corr ) ALLOCATE( fft % mt_corr( ngm ) )
     !
-    ! In the future we will need to initialize things from scratch
-    !
-    ! CALL fft_type_init( dfft, smap, "environ", .TRUE., .TRUE., comm, cell%at, cell%bg, gcutm, 4.D0, fft_fact, nyfft )
-    !
     ! The following routines are in tools_generate_gvect and may need to be simplified
     !
-    ! CALL gvect_init( ngm, comm )
-    ! CALL ggen( dfft, .TRUE. , cell%at, cell%bg,  gcutm, ngm_g, ngm, g, gg, mill, ig_l2g, gstart, .TRUE. )
+    CALL env_gvect_init( fft%ngm, cell%comm )
+    ALLOCATE( fft%gg( fft%ngm ) )
+    ALLOCATE( fft%g( 3, fft%ngm ) )
+    CALL env_ggen( fft%dfft, cell%comm, dfft%lgamma, cell%at, cell%bg, fft%gcutm, ngm_g, fft%ngm, &
+     & fft%g, fft%gg, fft%gstart, .TRUE. )
+    !
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE init_fft_core_second
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_dfft_core( cell, ecutrho, dual, dfft )
+!--------------------------------------------------------------------
+    !
+    USE modules_constants, ONLY: pi
+    USE stick_base,        ONLY: sticks_map
+    USE fft_types,         ONLY: fft_type_init
+    USE mp_bands,          ONLY: nyfft
+    USE tools_generate_gvectors, ONLY : env_gvect_init, env_ggen
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
+    TYPE( sticks_map ) :: smap
+    REAL(DP), INTENT(IN) :: ecutrho, dual
+    REAL(DP) :: gcutm
+    !
+    gcutm = ecutrho / cell%tpiba2
+    !
+    dfft%rho_clock_label='fft'
+    dfft%lgamma = .TRUE.
+    CALL fft_type_init( dfft, smap, "rho", dfft%lgamma, .TRUE., cell%comm, cell%at, &
+         & cell%bg, gcutm, dual, nyfft=nyfft )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE init_dfft_core
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE update_fft_core_cell( cell, fft )

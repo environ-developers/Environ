@@ -1,6 +1,5 @@
 MODULE core_init
   !
-  USE core_types
   USE core_base
   !
 CONTAINS
@@ -31,27 +30,26 @@ CONTAINS
   END SUBROUTINE set_core_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE core_initbase( cell, dfft, tpiba, tpiba2, ngm, gcutm, gstart, g, gg  )
+  SUBROUTINE core_initbase( cell, gstart, ecutrho, dual )
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
     USE utils_fd, ONLY : init_fd_core_second
-    USE utils_fft, ONLY : init_fft_core_second
+    USE utils_fft, ONLY : init_fft_core_second, init_dfft_core
     !
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
-    TYPE( fft_type_descriptor ), INTENT(IN) :: dfft
-    INTEGER, INTENT(IN) :: ngm, gstart
-    REAL( DP ), INTENT(IN) :: gcutm, tpiba, tpiba2
-    REAL( DP ), DIMENSION(3,ngm) :: g
-    REAL( DP ), DIMENSION(ngm) :: gg
+    INTEGER, INTENT(IN) :: gstart
+    REAL( DP ), INTENT(IN) :: ecutrho, dual
     !
     IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
     !
+    IF ( lfd .OR. lfft ) CALL init_dfft_core( cell, ecutrho, dual, dfft )
+    !
     IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
     !
-    IF ( lfft ) CALL init_fft_core_second( dfft, cell, ngm, gcutm, gstart, g, gg, fft )
+    IF ( lfft ) CALL init_fft_core_second( cell, ecutrho, dfft%ngm, gstart, dfft, fft )
     !
     RETURN
     !
