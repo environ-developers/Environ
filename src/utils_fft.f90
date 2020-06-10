@@ -75,13 +75,14 @@ CONTAINS
   SUBROUTINE init_fft_core_second( cell, gcutm, ngm, gstart, dfft, fft )
 !--------------------------------------------------------------------
     !
-    USE stick_base,        ONLY : sticks_map
-    USE fft_types,         ONLY : fft_type_init
-    USE mp_bands,          ONLY : nyfft
+    USE stick_base,              ONLY : sticks_map
+    USE fft_types,               ONLY : fft_type_init
+    USE mp_bands,                ONLY : nyfft
     USE tools_generate_gvectors, ONLY : env_gvect_init, env_ggen
+    USE correction_mt,           ONLY : update_mt_correction
     IMPLICIT NONE
     !
-    TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
     TYPE( fft_core ), INTENT(INOUT) :: fft
     TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft !
     TYPE( sticks_map ) :: smap
@@ -89,6 +90,8 @@ CONTAINS
     INTEGER :: i, ngm_g
     INTEGER, INTENT(IN) :: ngm, gstart
     REAL(DP) :: gcutm
+    !
+    fft%cell => cell
     !
     fft%gcutm = gcutm
     fft%ngm = ngm
@@ -103,6 +106,7 @@ CONTAINS
     CALL env_ggen( fft%dfft, cell%comm, dfft%lgamma, cell%at, cell%bg, fft%gcutm, &
      & ngm_g, fft%ngm, fft%g, fft%gg, fft%gstart, .TRUE. )
     !
+    IF ( fft % use_internal_pbc_corr) CALL update_mt_correction( fft )
     !
     RETURN
     !

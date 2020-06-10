@@ -355,14 +355,14 @@ mv tmp.1 plugin_init_ions.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE cell_base,            ONLY : at, omega\
+USE cell_base,            ONLY : at\
 USE environ_init,         ONLY : environ_initcell\
 !Environ patch
 ' plugin_init_cell.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-  IF ( use_environ ) call environ_initcell( omega, at )\
+  IF ( use_environ ) call environ_initcell( at )\
 !Environ patch
 ' tmp.1 > tmp.2
 
