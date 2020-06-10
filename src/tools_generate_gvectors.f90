@@ -20,71 +20,27 @@ MODULE tools_generate_gvectors
   !
   PRIVATE
   SAVE
-  !
-  INTEGER :: ngm  = 0  ! local  number of G vectors (on this processor)
-                       ! with gamma tricks, only vectors in G>
   INTEGER :: ngm_g= 0  ! global number of G vectors (summed on all procs)
                        ! in serial execution, ngm_g = ngm
-  INTEGER :: ngl = 0   ! number of G-vector shells
   INTEGER :: ngmx = 0  ! local number of G vectors, maximum across all procs
   !
-  REAL(DP) :: ecutrho = 0.0_DP ! energy cut-off for charge density
-  REAL(DP) :: gcutm = 0.0_DP   ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
-  !
-  INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
-                        ! Needed in parallel execution: gstart=2 for the
-                        ! proc that holds G=0, gstart=1 for all others
-  !
-  !     G^2 in increasing order (in units of tpiba2=(2pi/a)^2)
-  !
-  REAL(DP), ALLOCATABLE, TARGET :: gg(:)
-  !
-  !     gl(i) = i-th shell of G^2 (in units of tpiba2)
-  !     igtongl(n) = shell index for n-th G-vector
-  !
-  REAL(DP), POINTER, PROTECTED            :: gl(:)
-  INTEGER, ALLOCATABLE, TARGET, PROTECTED :: igtongl(:)
-  !
-  !     G-vectors cartesian components ( in units tpiba =(2pi/a)  )
-  !
-  REAL(DP), ALLOCATABLE, TARGET :: g(:,:)
-  !
-  !     mill = miller index of G vectors (local to each processor)
-  !            G(:) = mill(1)*bg(:,1)+mill(2)*bg(:,2)+mill(3)*bg(:,3)
-  !            where bg are the reciprocal lattice basis vectors
-  !
-  INTEGER, ALLOCATABLE, TARGET :: mill(:,:)
-  !
-  !     ig_l2g  = converts a local G-vector index into the global index
-  !               ("l2g" means local to global): ig_l2g(i) = index of i-th
-  !               local G-vector in the global array of G-vectors
-  !
-  INTEGER, ALLOCATABLE, TARGET :: ig_l2g(:)
-  !
-  !     mill_g  = miller index of all G vectors
-  !
-  INTEGER, ALLOCATABLE, TARGET :: mill_g(:,:)
-  !
-  ! the phases e^{-iG*tau_s} used to calculate structure factors
-  !
-  COMPLEX(DP), ALLOCATABLE :: eigts1(:,:), eigts2(:,:), eigts3(:,:)
-  !
-  !
-  PUBLIC :: env_ggen, ig_l2g, mill, env_gvect_init
+  PUBLIC :: env_ggen, mill, env_gvect_init
   !
 CONTAINS
 !---------------------------------------------------------------------
-  SUBROUTINE env_gvect_init( ngm_ , comm )
+  SUBROUTINE env_gvect_init( fft , comm )
 !---------------------------------------------------------------------
     !
     ! Set local and global dimensions, allocate arrays
     !
+    USE core_types
     IMPLICIT NONE
+    TYPE( fft_core ), INTENT(INOUT) :: fft
     !
-    INTEGER, INTENT(IN) :: ngm_
+    INTEGER :: ngm
     INTEGER, INTENT(IN) :: comm  ! communicator of the group on which g-vecs are distributed
     !
-    ngm = ngm_
+    ngm = fft%ngm
     !
     !  calculate maximum over all processors
     !
@@ -98,11 +54,8 @@ CONTAINS
     !
     !  allocate arrays - only those that are always kept until the end
     !
-    ALLOCATE( gg(ngm) )
-    ALLOCATE( g(3, ngm) )
-    ALLOCATE( mill(3, ngm) )
-    ALLOCATE( ig_l2g(ngm) )
-    ALLOCATE( igtongl(ngm) )
+    ALLOCATE( fft%gg(ngm) )
+    ALLOCATE( fft%g(3, ngm) )
     !
     RETURN
     !
@@ -110,29 +63,15 @@ CONTAINS
   END SUBROUTINE env_gvect_init
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
-  SUBROUTINE env_deallocate_gvect(vc)
+  SUBROUTINE env_deallocate_gvect(fft)
 !---------------------------------------------------------------------
     !
+    USE core_types
     IMPLICIT NONE
+    TYPE( fft_core ), INTENT(INOUT) :: fft
     !
-    LOGICAL, OPTIONAL, INTENT(IN) :: vc
-    LOGICAL :: vc_
-    !
-    vc_ = .false.
-    IF (PRESENT(vc)) vc_ = vc
-    IF ( .NOT. vc_ ) THEN
-       IF ( ASSOCIATED( gl ) ) DEALLOCATE ( gl )
-    END IF
-    !
-    IF( ALLOCATED( gg ) ) DEALLOCATE( gg )
-    IF( ALLOCATED( g ) )  DEALLOCATE( g )
-    IF( ALLOCATED( mill_g ) ) DEALLOCATE( mill_g )
-    IF( ALLOCATED( mill ) ) DEALLOCATE( mill )
-    IF( ALLOCATED( igtongl ) ) DEALLOCATE( igtongl )
-    IF( ALLOCATED( ig_l2g ) ) DEALLOCATE( ig_l2g )
-    IF( ALLOCATED( eigts1 ) ) DEALLOCATE( eigts1 )
-    IF( ALLOCATED( eigts2 ) ) DEALLOCATE( eigts2 )
-    IF( ALLOCATED( eigts3 ) ) DEALLOCATE( eigts3 )
+    IF( ALLOCATED( fft%gg ) ) DEALLOCATE( fft%gg )
+    IF( ALLOCATED( fft%g ) )  DEALLOCATE( fft%g )
     !
     RETURN
     !
@@ -348,12 +287,6 @@ CONTAINS
           !  Here map local and global g index !!! N.B: :
           !  the global G vectors arrangement depends on the number of processors
           !
-          IF( .NOT. global_sort ) THEN
-             ig_l2g( ngm ) = ng + ngm_offset
-          ELSE
-             ig_l2g( ngm ) = ng
-          END IF
-          !
           g(1:3, ngm) = i * bg (:, 1) + j * bg (:, 2) + k * bg (:, 3)
           gg(ngm) = sum(g(1:3, ngm)**2)
        ENDIF
@@ -374,7 +307,7 @@ CONTAINS
     !
     !     Now set nl and nls with the correct fft correspondence
     !
-    CALL fft_set_nl( dfftp, at, g, mill )
+    CALL fft_set_nl( dfftp, at, g )
     !
 !---------------------------------------------------------------------
   END SUBROUTINE env_ggen

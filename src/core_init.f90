@@ -30,7 +30,7 @@ CONTAINS
   END SUBROUTINE set_core_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE core_initbase( cell, gstart, ecutrho, dual )
+  SUBROUTINE core_initbase( cell, gstart, gcutm )
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
@@ -41,15 +41,15 @@ CONTAINS
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
     INTEGER, INTENT(IN) :: gstart
-    REAL( DP ), INTENT(IN) :: ecutrho, dual
+    REAL( DP ), INTENT(IN) :: gcutm
     !
     IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
     !
-    IF ( lfd .OR. lfft ) CALL init_dfft_core( cell, ecutrho, dual, dfft )
+    IF ( lfd .OR. lfft ) CALL init_dfft_core( cell, gcutm, dfft )
     !
     IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
     !
-    IF ( lfft ) CALL init_fft_core_second( cell, ecutrho, dfft%ngm, gstart, dfft, fft )
+    IF ( lfft ) CALL init_fft_core_second( cell, gcutm, dfft%ngm, gstart, dfft, fft )
     !
     RETURN
     !

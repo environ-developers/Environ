@@ -340,7 +340,7 @@ CONTAINS
                              & j0, k0, n2p, n3p, &
 !  END BACKWARD COMPATIBILITY
                              & comm, me, root, &
-                             & gcutm, gstart, ecutrho, dual, e2 )
+                             & gcutm, gstart, e2 )
 !--------------------------------------------------------------------
 !
 ! Subroutine to initialize fundamental quantities needed by the
@@ -392,7 +392,6 @@ CONTAINS
     INTEGER, INTENT(IN) :: me
     INTEGER, INTENT(IN) :: root
     REAL(DP), INTENT(IN) :: alat
-    REAL(DP), INTENT(IN) :: ecutrho, dual
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
     INTEGER, INTENT(IN) :: gstart
     REAL( DP ), INTENT(IN) :: gcutm
@@ -419,7 +418,7 @@ CONTAINS
     !
     ! ... Initialization of numerical cores
     !
-    CALL core_initbase( cell, gstart, ecutrho, dual )
+    CALL core_initbase( cell, gstart, gcutm )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !

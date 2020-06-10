@@ -265,7 +265,7 @@ sed '/Environ CALLS BEGIN/ a\
                              & j0, k0, dfftp%my_nr2p, dfftp%my_nr3p, &\
 ! END BACKWARD COMPATIBILITY\
                              & intra_bgrp_comm, me_bgrp, root_bgrp, &\
-	& gcutm, gstart, ecutrho, dual )\
+                             & gcutm, gstart )\
 !Environ patch
 ' tmp.2 > tmp.1
 

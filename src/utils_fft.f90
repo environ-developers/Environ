@@ -72,7 +72,7 @@ CONTAINS
   END SUBROUTINE init_fft_core_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fft_core_second( cell, ecutrho, ngm, gstart, dfft, fft )
+  SUBROUTINE init_fft_core_second( cell, gcutm, ngm, gstart, dfft, fft )
 !--------------------------------------------------------------------
     !
     USE stick_base,        ONLY : sticks_map
@@ -88,9 +88,9 @@ CONTAINS
     INTEGER :: fft_fact(3)
     INTEGER :: i, ngm_g
     INTEGER, INTENT(IN) :: ngm, gstart
-    REAL(DP) :: ecutrho
+    REAL(DP) :: gcutm
     !
-    fft%gcutm = ecutrho / cell%tpiba2
+    fft%gcutm = gcutm
     fft%ngm = ngm
     fft%gstart = gstart
     fft%dfft => dfft
@@ -99,11 +99,9 @@ CONTAINS
     !
     ! The following routines are in tools_generate_gvect and may need to be simplified
     !
-    CALL env_gvect_init( fft%ngm, cell%comm )
-    ALLOCATE( fft%gg( fft%ngm ) )
-    ALLOCATE( fft%g( 3, fft%ngm ) )
-    CALL env_ggen( fft%dfft, cell%comm, dfft%lgamma, cell%at, cell%bg, fft%gcutm, ngm_g, fft%ngm, &
-     & fft%g, fft%gg, fft%gstart, .TRUE. )
+    CALL env_gvect_init( fft, cell%comm )
+    CALL env_ggen( fft%dfft, cell%comm, dfft%lgamma, cell%at, cell%bg, fft%gcutm, &
+     & ngm_g, fft%ngm, fft%g, fft%gg, fft%gstart, .TRUE. )
     !
     !
     RETURN
@@ -112,7 +110,7 @@ CONTAINS
   END SUBROUTINE init_fft_core_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_dfft_core( cell, ecutrho, dual, dfft )
+  SUBROUTINE init_dfft_core( cell, gcutm, dfft )
 !--------------------------------------------------------------------
     !
     USE modules_constants, ONLY: pi
@@ -125,15 +123,12 @@ CONTAINS
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
     TYPE( sticks_map ) :: smap
-    REAL(DP), INTENT(IN) :: ecutrho, dual
-    REAL(DP) :: gcutm
-    !
-    gcutm = ecutrho / cell%tpiba2
+    REAL(DP), INTENT(IN) :: gcutm
     !
     dfft%rho_clock_label='fft'
     dfft%lgamma = .TRUE.
     CALL fft_type_init( dfft, smap, "rho", dfft%lgamma, .TRUE., cell%comm, cell%at, &
-         & cell%bg, gcutm, dual, nyfft=nyfft )
+         & cell%bg, gcutm, 4.D0, nyfft=nyfft )
     !
     RETURN
     !
