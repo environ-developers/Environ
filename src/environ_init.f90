@@ -14,7 +14,7 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-!> Module to initilize environ-related variables 
+!> Module to initilize environ-related variables
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -528,7 +528,7 @@ CONTAINS
   END SUBROUTINE environ_initpotential
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE environ_initcell( omega, at )
+  SUBROUTINE environ_initcell( at )
 !--------------------------------------------------------------------
 !
 ! Initialize the cell-related quantities to be used in the Environ
@@ -553,14 +553,13 @@ CONTAINS
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT( IN ) :: omega
     REAL( DP ), INTENT( IN ) :: at(3,3)
     !
     cell%update = .TRUE.
     !
     ! ... Update cell parameters
     !
-    CALL update_environ_cell( omega, at, cell )
+    CALL update_environ_cell( at, cell )
     !
     ! ... Update fixed quantities defined inside the cell
     !

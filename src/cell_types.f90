@@ -157,17 +157,20 @@ CONTAINS
   END SUBROUTINE init_environ_cell
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE update_environ_cell( omega, at, cell )
+  SUBROUTINE update_environ_cell( at, cell )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    REAL( DP ), INTENT(IN) :: omega, at(3,3)
+    REAL( DP ), INTENT(IN) :: at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
     CHARACTER( LEN=80 ) :: sub_name = 'update_environ_cell'
     !
-    cell % omega = omega
     cell % at = at
+    !
+    ! Calculate cell volume
+    !
+    CALL volume( cell%alat, cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%omega )
     !
     cell % domega = cell % omega / cell % ntot
     !
