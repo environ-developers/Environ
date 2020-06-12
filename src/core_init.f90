@@ -35,7 +35,7 @@ CONTAINS
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
     USE utils_fd, ONLY : init_fd_core_second
-    USE utils_fft, ONLY : init_fft_core_second, init_dfft_core
+    USE utils_fft, ONLY : init_fft_core_second
     !
     IMPLICIT NONE
     !
@@ -44,8 +44,6 @@ CONTAINS
     REAL( DP ), INTENT(IN) :: gcutm
     !
     IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
-    !
-    IF ( lfd .OR. lfft ) CALL init_dfft_core( cell, gcutm, dfft )
     !
     IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
     !

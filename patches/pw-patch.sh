@@ -230,8 +230,7 @@ sed '/Environ MODULES BEGIN/ a\
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 USE    cell_base,    ONLY : at, alat, ibrav\
 USE    environ_init, ONLY : environ_initbase\
-USE    gvect,        ONLY : ngm, gstart, gcutm, g, gg, ecutrho\
-USE    gvecs,        ONLY : dual\
+USE    gvect,        ONLY : gstart, gcutm\
 !Environ patch
 ' plugin_initbase.f90 > tmp.1
 
@@ -256,14 +255,7 @@ sed '/Environ CALLS BEGIN/ a\
     ir_end = dfftp%nnr\
 #endif\
 ! END BACKWARD COMPATIBILITY\
-  IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, at, &\
-                             & dfftp%nnr, ir_end, dfftp%nr1x, dfftp%nr2x, dfftp%nr3x, &\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X\
-!                             & idx0, &\
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT\
-                             & j0, k0, dfftp%my_nr2p, dfftp%my_nr3p, &\
-! END BACKWARD COMPATIBILITY\
+  IF ( use_environ ) CALL environ_initbase( ibrav, alat, at, &\
                              & intra_bgrp_comm, me_bgrp, root_bgrp, &\
                              & gcutm, gstart )\
 !Environ patch

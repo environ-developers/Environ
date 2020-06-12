@@ -22,9 +22,8 @@ MODULE tools_generate_gvectors
   SAVE
   INTEGER :: ngm_g= 0  ! global number of G vectors (summed on all procs)
                        ! in serial execution, ngm_g = ngm
-  INTEGER :: ngmx = 0  ! local number of G vectors, maximum across all procs
   !
-  PUBLIC :: env_ggen, mill, env_gvect_init
+  PUBLIC :: env_ggen, env_gvect_init
   !
 CONTAINS
 !---------------------------------------------------------------------
@@ -41,11 +40,6 @@ CONTAINS
     INTEGER, INTENT(IN) :: comm  ! communicator of the group on which g-vecs are distributed
     !
     ngm = fft%ngm
-    !
-    !  calculate maximum over all processors
-    !
-    ngmx = ngm
-    CALL mp_max( ngmx, comm )
     !
     !  calculate sum over all processors
     !
@@ -79,7 +73,7 @@ CONTAINS
   END SUBROUTINE env_deallocate_gvect
 !---------------------------------------------------------------------
 !-----------------------------------------------------------------------
-  SUBROUTINE env_ggen ( dfftp, comm, gamma_only, at, bg,  gcutm, ngm_g, ngm, &
+  SUBROUTINE env_ggen ( dfftp, comm, at, bg,  gcutm, ngm_g, ngm, &
        g, gg, gstart, no_global_sort )
 !----------------------------------------------------------------------
     !
@@ -91,7 +85,6 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE(fft_type_descriptor),INTENT(INOUT) :: dfftp
-    LOGICAL,  INTENT(IN) :: gamma_only
     REAL(DP), INTENT(IN) :: at(3,3), bg(3,3), gcutm
     INTEGER, INTENT(IN) :: ngm_g, comm
     INTEGER, INTENT(INOUT) :: ngm
@@ -168,17 +161,13 @@ CONTAINS
     !
     ! gamma-only: exclude space with x < 0
     !
-    IF ( gamma_only ) THEN
-       istart = 0
-    ELSE
-       istart = -ni
-    ENDIF
+    istart = 0
     !
     iloop: DO i = istart, ni
        !
        ! gamma-only: exclude plane with x = 0, y < 0
        !
-       IF ( gamma_only .and. i == 0 ) THEN
+       IF ( i == 0 ) THEN
           jstart = 0
        ELSE
           jstart = -nj
@@ -201,7 +190,7 @@ CONTAINS
           !
           ! gamma-only: exclude line with x = 0, y = 0, z < 0
           !
-          IF ( gamma_only .and. i == 0 .and. j == 0 ) THEN
+          IF ( i == 0 .and. j == 0 ) THEN
              kstart = 0
           ELSE
              kstart = -nk

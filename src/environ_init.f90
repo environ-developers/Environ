@@ -331,14 +331,7 @@ CONTAINS
   END SUBROUTINE set_environ_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE environ_initbase( n1, n2, n3, ibrav, alat, at, &
-                             & nnr, ir_end, n1x, n2x, n3x, &
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!                            & idx0, &
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-                             & j0, k0, n2p, n3p, &
-!  END BACKWARD COMPATIBILITY
+  SUBROUTINE environ_initbase( ibrav, alat, at, &
                              & comm, me, root, &
                              & gcutm, gstart, e2 )
 !--------------------------------------------------------------------
@@ -369,24 +362,13 @@ CONTAINS
     !
     USE cell_types, ONLY : init_environ_cell
     USE core_init, ONLY : core_initbase
+    USE utils_fft, ONLY : init_dfft_core
+    USE core_base
     !
     ! Local base initialization subroutines for the different
     ! environ contributions
     !
     IMPLICIT NONE
-    !
-    ! ... Input variable
-    !
-    INTEGER, INTENT(IN) :: nnr
-    INTEGER, INTENT(IN) :: ir_end
-    INTEGER, INTENT(IN) :: n1, n2, n3
-    INTEGER, INTENT(IN) :: n1x, n2x, n3x
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!    INTEGER, INTENT(IN) :: idx0
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-    INTEGER, INTENT(IN) :: j0, k0, n2p, n3p
-! END BACKWARD COMPATIBILITY
     INTEGER, INTENT(IN) :: ibrav
     INTEGER, INTENT(IN) :: comm
     INTEGER, INTENT(IN) :: me
@@ -395,8 +377,6 @@ CONTAINS
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
     INTEGER, INTENT(IN) :: gstart
     REAL( DP ), INTENT(IN) :: gcutm
-    !REAL( DP ), DIMENSION(3,ngm), INTENT(IN) :: g
-    !REAL( DP ), DIMENSION(ngm), INTENT(IN) :: gg
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
     !
     CHARACTER( LEN = 80 ) :: label = ' '
@@ -406,15 +386,11 @@ CONTAINS
     e2_ = 2.D0
     IF ( PRESENT(e2) ) e2_ = e2
     !
-    CALL init_environ_cell( n1, n2, n3, ibrav, alat, at, &
-         & nnr, ir_end, n1x, n2x, n3x, &
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!         & idx0, &
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-         & j0, k0, n2p, n3p, &
-! END BACKWARD COMPATIBILITY
-         & comm, me, root, cell )
+    !Create the dfft type here and pass arguments to init_envrion_cell
+    CALL init_dfft_core( cell, gcutm, comm, at )
+    !
+    CALL init_environ_cell( ibrav, alat, at, &
+         & me, root, cell, dfft )
     !
     ! ... Initialization of numerical cores
     !

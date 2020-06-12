@@ -46,28 +46,16 @@ MODULE cell_types
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( n1, n2, n3, ibrav, alat, at, &
-       & nnr, ir_end, n1x, n2x, n3x, &
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!         & idx0, &
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-       & j0, k0, n2p, n3p, &
-! END BACKWARD COMPATIBILITY
-       & comm, me, root, cell )
+  SUBROUTINE init_environ_cell( ibrav, alat, at, &
+       & me, root, cell, dfft )
 !--------------------------------------------------------------------
     !
+    USE fft_types, ONLY: fft_type_descriptor
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: n1, n2, n3, ibrav
-    INTEGER, INTENT(IN) :: n1x, n2x, n3x
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!    INTEGER, INTENT(IN) :: idx0
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-    INTEGER, INTENT(IN) :: j0, k0, n2p, n3p
-! END BACKWARD COMPATIBILITY
-    INTEGER, INTENT(IN) :: nnr, ir_end, comm, me, root
+    INTEGER, INTENT(IN) :: ibrav
+    INTEGER, INTENT(IN) :: me, root
+    TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
     REAL( DP ), INTENT(IN) :: alat, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
     !
@@ -76,15 +64,14 @@ CONTAINS
     !
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
     !
-    IF ( n1 .EQ. 0 .OR. n2 .EQ. 0 .OR. n3 .EQ. 0 ) &
+    IF ( dfft % nr1 .EQ. 0 .OR. dfft % nr2 .EQ. 0 .OR. dfft % nr3 .EQ. 0 ) &
          & CALL errore(sub_name,'Wrong grid dimension',1)
     !
-    cell % n1 = n1
-    cell % n2 = n2
-    cell % n3 = n3
+    cell % n1 = dfft % nr1
+    cell % n2 = dfft % nr2
+    cell % n3 = dfft % nr3
     cell % ibrav = ibrav
     cell % alat = alat
-    cell % at = at
     !
     ! Calculate cell volume
     !
@@ -95,30 +82,31 @@ CONTAINS
     cell % tpiba = tpi/alat
     cell % tpiba2 = cell % tpiba**2
     !
-    ! Calculate the reciprocal lattice vectors
-    !
-    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
-      & cell%bg(1,2), cell%bg(1,3))
-    !
-    cell % in1 = 1.D0 / DBLE(n1)
-    cell % in2 = 1.D0 / DBLE(n2)
-    cell % in3 = 1.D0 / DBLE(n3)
-    cell % n1x = n1x
-    cell % n2x = n2x
-    cell % n3x = n3x
+    cell % in1 = 1.D0 / DBLE(dfft % nr1)
+    cell % in2 = 1.D0 / DBLE(dfft % nr2)
+    cell % in3 = 1.D0 / DBLE(dfft % nr3)
+    cell % n1x = dfft % nr1x
+    cell % n2x = dfft % nr2x
+    cell % n3x = dfft % nr3x
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.0.X QE-6.1.X
 !    cell % idx0 = idx0
 ! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-    cell % j0 = j0
-    cell % k0 = k0
-    cell % n2p = n2p
-    cell % n3p = n3p
+    !j0 and k0 are calculated below.
+    !cell % j0 = j0
+    !cell % k0 = k0
+    cell % n2p = dfft % my_nr2p
+    cell % n3p = dfft % my_nr3p
 ! END BACKWARD COMPATIBILITY
     !
-    cell % nnr = nnr
-    cell % ir_end = ir_end
-    cell % comm = comm
+#if defined (__MPI)
+    cell % j0 = dfft%my_i0r2p ; cell % k0 = dfft%my_i0r3p
+    cell % ir_end = MIN(dfft%nnr,dfft%nr1x*dfft%my_nr2p*dfft%my_nr3p)
+#else
+    cell % j0 = 0; k0 = 0;
+    cell % ir_end = dfft%nnr
+#endif
+    cell % nnr = dfft % nnr
     cell % me   = me
     cell % root = root
     !

@@ -103,7 +103,7 @@ CONTAINS
     ! The following routines are in tools_generate_gvect and may need to be simplified
     !
     CALL env_gvect_init( fft, cell%comm )
-    CALL env_ggen( fft%dfft, cell%comm, dfft%lgamma, cell%at, cell%bg, fft%gcutm, &
+    CALL env_ggen( fft%dfft, cell%comm, cell%at, cell%bg, fft%gcutm, &
      & ngm_g, fft%ngm, fft%g, fft%gg, fft%gstart, .TRUE. )
     !
     IF ( fft % use_internal_pbc_corr) CALL update_mt_correction( fft )
@@ -114,20 +114,30 @@ CONTAINS
   END SUBROUTINE init_fft_core_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_dfft_core( cell, gcutm, dfft )
+  SUBROUTINE init_dfft_core( cell, gcutm, comm, at )
 !--------------------------------------------------------------------
     !
     USE modules_constants, ONLY: pi
     USE stick_base,        ONLY: sticks_map
     USE fft_types,         ONLY: fft_type_init
     USE mp_bands,          ONLY: nyfft
-    USE tools_generate_gvectors, ONLY : env_gvect_init, env_ggen
+    USE core_base,         ONLY: dfft
     IMPLICIT NONE
     !
-    TYPE( environ_cell ), INTENT(IN) :: cell
-    TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
+    TYPE( environ_cell ), INTENT(INOUT) :: cell
     TYPE( sticks_map ) :: smap
-    REAL(DP), INTENT(IN) :: gcutm
+    INTEGER, INTENT(IN) :: comm
+    REAL(DP), INTENT(IN) :: gcutm, at(3,3)
+    !
+    ! Needed some values from environ_cell type for fft_type_init
+    !
+    cell % comm = comm
+    cell % at = at
+    !
+    ! Calculate the reciprocal lattice vectors
+    !
+    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
+      & cell%bg(1,2), cell%bg(1,3))
     !
     dfft%rho_clock_label='fft'
     dfft%lgamma = .TRUE.

@@ -11,7 +11,7 @@
 ! ... adapted to accept any kind of density by Oliviero Andreussi
 !
 !--------------------------------------------------------------------
-SUBROUTINE compute_dipole( nnr, rho, r0, dipole, quadrupole )
+SUBROUTINE env_compute_dipole( nnr, rho, r0, dipole, quadrupole )
 !--------------------------------------------------------------------
   USE kinds,            ONLY : DP
   USE cell_base,        ONLY : at, bg, alat, omega
@@ -114,5 +114,5 @@ SUBROUTINE compute_dipole( nnr, rho, r0, dipole, quadrupole )
   RETURN
   !
 !----------------------------------------------------------------------------
-  END SUBROUTINE compute_dipole
+  END SUBROUTINE env_compute_dipole
 !----------------------------------------------------------------------------
