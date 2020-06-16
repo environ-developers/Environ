@@ -1,4 +1,4 @@
-TO DO
+TO DO (OLIVIERO)
 * fix e2 and unit conversion
 * collect unit conversion factors into a module
 * cleanup backward compatibility
@@ -7,19 +7,32 @@ TO DO
 * recvec needs to be moved into a derived data type
 * simplify/make more modular environ initialization for coupling with other programs
 * remove dependences on environ_base, electrostatic_base, and core_base
-* add compute_dipole
 * add possibility to do environ martyna-tuckerman correction for pbc pw calculation
 * add a test on multiple pbc corrections at the same time
-* add tests for cp, neb, tddfpt, xspectra
-* fix cp, neb, tddfpt, xspectra...
-* profile core_fft routines
+* core_fft.f90: add tests for compatibility between inputs
+* tools_generate_functions.f90: move away planar_average
+* environ_output.f90: fix write_cube that depends on dfftp and parallelization
+* move env_compute_dipole
+* add the vector of integers as input keyword
 
-* core_fft.f90
-  add tests for compatibility between inputs
-* tools_generate_functions.f90
-  move away planar_average
-* environ_output.f90
-  fix write_cube that depends on dfftp and parallelization
+TO DO (GABRIEL)
+* remove gstart from environ_initbase
+* remove ibrav
+* add and/or double check that the tests for compatilibty between quantities are present
+* create two cells, one with the same input as before, one with at multiplied by a vector of integers
+* create two dfft objects, corresponding to the two cells
+* create two fft cores, corresponding to the two cells
+* be sure that the environ quantities are initialized with the large cell
+* vreference should probably work on the small cell (we may fix this afterward)
+* create two subroutines that map a quantity in the small cell to the large cell and vice versa
+* take care of mapping when passing quantities from pw to environ (environ_init_ions, environ_init_electrons, in environ_init.f90)
+* NOTE: vzero that is stored in environ_init_potential (environ_init.f90) and must be kept only on the small cell.
+* take care of mapping when passing quantities from environ to pw (calc_venviron in environ_main.f90)
+
+NON-PRESSING TASKS
+* profile core_fft routines
+* fix cp, neb, tddfpt, xspectra...
+* add tests for cp, neb, tddfpt, xspectra
 
 DONE
 * fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
