@@ -7,7 +7,6 @@ MODULE cell_types
      ! Global properties of the simulation cell
      !
      LOGICAL :: update = .FALSE.
-     INTEGER :: ibrav
      REAL( DP ) :: alat
      REAL( DP ) :: omega
      REAL( DP ) :: domega
@@ -46,14 +45,13 @@ MODULE cell_types
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( ibrav, alat, at, &
+  SUBROUTINE init_environ_cell( alat, at, &
        & me, root, cell, dfft )
 !--------------------------------------------------------------------
     !
     USE fft_types, ONLY: fft_type_descriptor
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: ibrav
     INTEGER, INTENT(IN) :: me, root
     TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
     REAL( DP ), INTENT(IN) :: alat, at(3,3)
@@ -70,7 +68,6 @@ CONTAINS
     cell % n1 = dfft % nr1
     cell % n2 = dfft % nr2
     cell % n3 = dfft % nr3
-    cell % ibrav = ibrav
     cell % alat = alat
     !
     ! Calculate cell volume

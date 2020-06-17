@@ -228,9 +228,9 @@ mv tmp.2 plugin_summary.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
-USE    cell_base,    ONLY : at, alat, ibrav\
+USE    cell_base,    ONLY : at, alat\
 USE    environ_init, ONLY : environ_initbase\
-USE    gvect,        ONLY : gstart, gcutm\
+USE    gvect,        ONLY : gcutm\
 !Environ patch
 ' plugin_initbase.f90 > tmp.1
 
@@ -255,9 +255,9 @@ sed '/Environ CALLS BEGIN/ a\
     ir_end = dfftp%nnr\
 #endif\
 ! END BACKWARD COMPATIBILITY\
-  IF ( use_environ ) CALL environ_initbase( ibrav, alat, at, &\
+  IF ( use_environ ) CALL environ_initbase( alat, at, &\
                              & intra_bgrp_comm, me_bgrp, root_bgrp, &\
-                             & gcutm, gstart )\
+                             & gcutm )\
 !Environ patch
 ' tmp.2 > tmp.1
 

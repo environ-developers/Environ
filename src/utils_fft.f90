@@ -72,7 +72,7 @@ CONTAINS
   END SUBROUTINE init_fft_core_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fft_core_second( cell, gcutm, ngm, gstart, dfft, fft )
+  SUBROUTINE init_fft_core_second( cell, gcutm, ngm, dfft, fft )
 !--------------------------------------------------------------------
     !
     USE stick_base,              ONLY : sticks_map
@@ -88,14 +88,13 @@ CONTAINS
     TYPE( sticks_map ) :: smap
     INTEGER :: fft_fact(3)
     INTEGER :: i, ngm_g
-    INTEGER, INTENT(IN) :: ngm, gstart
+    INTEGER, INTENT(IN) :: ngm
     REAL(DP) :: gcutm
     !
     fft%cell => cell
     !
     fft%gcutm = gcutm
     fft%ngm = ngm
-    fft%gstart = gstart
     fft%dfft => dfft
     !
     IF ( fft % use_internal_pbc_corr ) ALLOCATE( fft % mt_corr( ngm ) )

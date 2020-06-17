@@ -167,7 +167,7 @@ CONTAINS
     !
     IF ( verbosity .GE. 1 ) THEN
        IF ( verbosity .GE. verbose .AND. ionode ) WRITE( UNIT = environ_unit, FMT = 1000 )
-       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1001 )cell%ibrav,cell%alat,cell%omega
+       IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1001 )cell%alat,cell%omega
        IF ( verbosity .GE. 3 ) THEN
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
@@ -181,8 +181,7 @@ CONTAINS
     RETURN
     !
 1000 FORMAT(/,4('%'),' CELL ',70('%'))
-1001 FORMAT(1x,'bravais lattice index      = ',I3,' '&
-          /,1x,'lattice spacing            = ',F12.6,' '&
+1001 FORMAT(1x,'lattice spacing            = ',F12.6,' '&
           /,1x,'cell volume                = ',F12.6,' ')
 1002 FORMAT(1x,'simulation cell axes       = ',3(F12.6),' '&
           /,1x,'                             ',3(F12.6),' '&

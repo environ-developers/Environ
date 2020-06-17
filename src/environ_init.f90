@@ -331,9 +331,9 @@ CONTAINS
   END SUBROUTINE set_environ_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE environ_initbase( ibrav, alat, at, &
+  SUBROUTINE environ_initbase( alat, at, &
                              & comm, me, root, &
-                             & gcutm, gstart, e2 )
+                             & gcutm, e2 )
 !--------------------------------------------------------------------
 !
 ! Subroutine to initialize fundamental quantities needed by the
@@ -369,13 +369,11 @@ CONTAINS
     ! environ contributions
     !
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: ibrav
     INTEGER, INTENT(IN) :: comm
     INTEGER, INTENT(IN) :: me
     INTEGER, INTENT(IN) :: root
     REAL(DP), INTENT(IN) :: alat
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
-    INTEGER, INTENT(IN) :: gstart
     REAL( DP ), INTENT(IN) :: gcutm
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
     !
@@ -389,12 +387,12 @@ CONTAINS
     !Create the dfft type here and pass arguments to init_envrion_cell
     CALL init_dfft_core( cell, gcutm, comm, at )
     !
-    CALL init_environ_cell( ibrav, alat, at, &
+    CALL init_environ_cell( alat, at, &
          & me, root, cell, dfft )
     !
     ! ... Initialization of numerical cores
     !
-    CALL core_initbase( cell, gstart, gcutm )
+    CALL core_initbase( cell, gcutm )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !
