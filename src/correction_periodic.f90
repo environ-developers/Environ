@@ -54,14 +54,14 @@ CONTAINS
 !---------------------------------------------------------------------------
   SUBROUTINE calc_vperiodic( oned_analytic, charges, potential )
 !---------------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(INOUT) :: potential
     !
-    INTEGER, POINTER :: nnr
-    REAL( DP ), DIMENSION(:), POINTER :: rhotot, vperiodic
+    REAL( DP ), DIMENSION(:), POINTER :: vperiodic
     TYPE( environ_cell ), POINTER :: cell
     !
     INTEGER, POINTER :: env_periodicity
@@ -72,8 +72,7 @@ CONTAINS
     !
     INTEGER :: icor
     REAL(DP) :: fact, const
-    REAL(DP) :: dipole(0:3), quadrupole(3)
-    REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+    REAL(DP) :: charge, dipole(3), quadrupole(3)
     TYPE( environ_density ), TARGET :: local
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vperiodic'
     !
@@ -87,11 +86,8 @@ CONTAINS
          & CALL errore(sub_name,'Missmatch in domains of potential and solver',1)
     !
     cell => potential % cell
-    nnr => cell % nnr
     alat => cell % alat
     omega => cell % omega
-    !
-    rhotot => charges % of_r
     !
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
@@ -102,18 +98,9 @@ CONTAINS
     CALL init_environ_density( cell, local )
     vperiodic => local % of_r
     !
-    ! ... Compute multipoles of the system wrt the chosen origin
+    ! ... Compute multipoles of the system with respect to the chosen origin
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
-    !
-    tot_charge = dipole(0)
-    tot_dipole = dipole(1:3)
-    tot_quadrupole = quadrupole
+    CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
     ! ... Compute quadratic PBC correction
     !
@@ -123,11 +110,11 @@ CONTAINS
        !
     CASE ( 0 )
        !
-       const = madelung(1) * tot_charge / alat * e2 - fact * SUM(tot_quadrupole(:)) / 3.D0
+       const = madelung(1) * charge / alat * e2 - fact * SUM(quadrupole(:)) / 3.D0
        vperiodic = 0.D0
        DO icor = 1, 3
-          vperiodic(:) = vperiodic(:) - tot_charge * axis(icor,:)**2 + &
-               & 2.D0 * tot_dipole(icor) * axis(icor,:)
+          vperiodic(:) = vperiodic(:) - charge * axis(icor,:)**2 + &
+               & 2.D0 * dipole(icor) * axis(icor,:)
        ENDDO
        vperiodic = fact / 3.D0 * vperiodic + const
        !
@@ -137,8 +124,8 @@ CONTAINS
        !
     CASE ( 2 )
        !
-       const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
-       vperiodic(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
+       const = - pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
+       vperiodic(:) = - charge * axis(1,:)**2 + 2.D0 * dipole(slab_axis) * axis(1,:)
        vperiodic = fact * vperiodic + const
        !
     CASE ( 3 )
@@ -179,8 +166,6 @@ CONTAINS
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
     TYPE( environ_gradient ), INTENT(INOUT) :: gvtot
     !
-    INTEGER,  POINTER  :: nnr
-    REAL(DP), DIMENSION(:), POINTER  :: rhotot
     REAL(DP), DIMENSION(:,:), POINTER :: gvperiodic
     TYPE( environ_cell ), POINTER :: cell
     !
@@ -192,8 +177,7 @@ CONTAINS
     !
     INTEGER :: icor
     REAL(DP) :: fact
-    REAL(DP) :: dipole(0:3), quadrupole(3)
-    REAL(DP) :: tot_charge, tot_dipole(3)
+    REAL(DP) :: charge, dipole(3), quadrupole(3)
     TYPE( environ_gradient ), TARGET :: glocal
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvperiodic'
@@ -206,10 +190,7 @@ CONTAINS
          & CALL errore(sub_name,'Missmatch in domains of gradient and solver',1)
     !
     cell => gvtot % cell
-    nnr => cell % nnr
     omega => cell % omega
-    !
-    rhotot => charges % of_r
     !
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
@@ -219,17 +200,9 @@ CONTAINS
     CALL init_environ_gradient( cell, glocal )
     gvperiodic => glocal % of_r
     !
-    ! ... Compute dipole of the system with respect to the center of charge
+    ! ... Compute multipoles of the system with respect to the chosen origin
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
-    !
-    tot_charge = dipole(0)
-    tot_dipole = dipole(1:3)
+    CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
     ! ... Compute gradient of periodic images correction
     !
@@ -240,7 +213,7 @@ CONTAINS
     CASE ( 0 )
        !
        DO icor = 1,3
-          gvperiodic(icor,:) = ( tot_dipole(icor) - tot_charge * axis(icor,:) ) / 3.D0
+          gvperiodic(icor,:) = ( dipole(icor) - charge * axis(icor,:) ) / 3.D0
        ENDDO
        !
     CASE ( 1 )
@@ -249,7 +222,7 @@ CONTAINS
        !
     CASE ( 2 )
        !
-       gvperiodic(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
+       gvperiodic(slab_axis,:) = dipole(slab_axis) - charge * axis(1,:)
        !
     CASE( 3 )
        !
@@ -290,9 +263,7 @@ CONTAINS
     TYPE( environ_density ), INTENT(IN) :: auxiliary
     REAL(DP), INTENT(OUT) :: f( 3, natoms )
     !
-    INTEGER, POINTER :: nnr
     INTEGER, DIMENSION(:), POINTER :: ityp
-    REAL( DP ), DIMENSION(:), POINTER :: rhotot
     REAL( DP ), DIMENSION(:,:), POINTER :: tau
     !
     INTEGER, POINTER :: env_periodicity
@@ -302,9 +273,9 @@ CONTAINS
     !
     INTEGER  :: i
     REAL(DP) :: fact, pos(3)
-    REAL(DP) :: dipole(0:3), quadrupole(3)
-    REAL(DP) :: tot_charge, tot_dipole(3)
+    REAL(DP) :: charge, dipole(3), quadrupole(3)
     REAL(DP) :: ftmp( 3, natoms )
+    TYPE( environ_density ) :: local
     !
     CHARACTER ( LEN = 80 ) :: sub_name = 'calc_fperiodic'
     !
@@ -317,7 +288,6 @@ CONTAINS
     IF ( natoms .NE. charges % ions % number ) &
          & CALL errore(sub_name,'Missmatch in numbers of atoms passed in input and stored',1)
     !
-    nnr => charges % density % cell % nnr
     alat => charges % density % cell % alat
     omega => charges % density % cell % omega
     tau => charges % ions % tau
@@ -327,21 +297,12 @@ CONTAINS
     slab_axis => oned_analytic % axis
     origin => oned_analytic % origin
     !
-    ALLOCATE( rhotot( nnr ) )
-    rhotot = charges % density % of_r + auxiliary % of_r
+    CALL init_environ_density( charges%density%cell, local )
+    local % of_r = charges % density % of_r + auxiliary % of_r
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
-    DEALLOCATE( rhotot )
-    !
-    tot_charge = dipole(0)
-    tot_dipole = dipole(1:3)
+    CALL multipoles_environ_density( local, origin, charge, dipole, quadrupole )
     !
     ! ... Interatomic forces, quadrupole is not needed, thus the same
     !     expression holds for point-like and gaussian nuclei
@@ -357,7 +318,7 @@ CONTAINS
           !
        CASE ( 0 )
           !
-          ftmp( :, i ) = ( tot_charge * pos( : ) - tot_dipole( : ) ) / 3.D0
+          ftmp( :, i ) = ( charge * pos( : ) - dipole( : ) ) / 3.D0
           !
        CASE ( 1 )
           !
@@ -365,7 +326,7 @@ CONTAINS
           !
        CASE ( 2 )
           !
-          ftmp( slab_axis, i ) = tot_charge * pos( slab_axis ) - tot_dipole( slab_axis )
+          ftmp( slab_axis, i ) = charge * pos( slab_axis ) - dipole( slab_axis )
           !
        CASE ( 3 )
           !

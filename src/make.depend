@@ -5,7 +5,6 @@ core_fft.o : modules_constants.o
 core_fft.o : core_types.o
 core_fft.o : environ_types.o
 core_fft.o : correction_mt.o
-core_init.o : core_types.o
 core_init.o : core_mod.o
 core_init.o : utils_oned_analytic.o
 core_init.o : utils_fft.o
@@ -33,6 +32,7 @@ electrostatic_init.o : electrostatic_mod.o
 electrostatic_mod.o : electrostatic_types.o
 electrostatic_types.o : environ_types.o
 electrostatic_types.o : core_types.o
+electrostatic_types.o : core_mod.o
 embedding_confine.o : environ_types.o
 embedding_confine.o : environ_output.o
 embedding_confine.o : modules_constants.o
@@ -68,6 +68,7 @@ environ_init.o : electrostatic_mod.o
 environ_init.o : core_mod.o
 environ_init.o : cell_types.o
 environ_init.o : core_init.o
+environ_init.o : utils_fft.o
 environ_init.o : electrostatic_init.o
 environ_input.o : modules_constants.o
 environ_input.o : modules_parser.o
@@ -154,6 +155,7 @@ tools_generate_functions.o : environ_types.o
 tools_generate_functions.o : modules_erf.o
 tools_generate_gvectors.o : modules_constants.o
 tools_generate_gvectors.o : fft_ggen.o
+tools_generate_gvectors.o : core_types.o
 utils_boundary.o : core_types.o
 utils_boundary.o : environ_types.o
 utils_boundary.o : environ_output.o
@@ -182,8 +184,12 @@ utils_externals.o : environ_types.o
 utils_externals.o : environ_output.o
 utils_externals.o : utils_functions.o
 utils_fd.o : core_types.o
+utils_fft.o : modules_constants.o
 utils_fft.o : core_types.o
+utils_fft.o : stick_base.o
+utils_fft.o : tools_generate_gvectors.o
 utils_fft.o : correction_mt.o
+utils_fft.o : core_mod.o
 utils_functions.o : environ_types.o
 utils_functions.o : tools_generate_functions.o
 utils_ions.o : modules_constants.o
