@@ -151,8 +151,7 @@ CONTAINS
     REAL( DP ) :: f1, f2
     REAL( DP ) :: area, vtmp
     REAL( DP ) :: lin_k, lin_e, lin_c
-    REAL(DP) :: dipole(0:3), quadrupole(3)
-    REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+    REAL( DP ) :: charge, dipole(3), quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_vgcs'
     !
     CALL start_clock ('calc_vgcs')
@@ -194,29 +193,21 @@ CONTAINS
     CALL init_environ_density( cell, local )
     v => local % of_r
     !
-    ! ... Compute multipoles of the system wrt the chosen origin
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
-    !
-    tot_charge = dipole(0)
-    tot_dipole = dipole(1:3)
-    tot_quadrupole = quadrupole
     area = omega / axis_length
+    !
+    ! ... Compute multipoles of the system with respect to the chosen origin
+    !
+    CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
     ! ... First apply parabolic correction
     fact = e2 * tpi / omega
-    const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
-    v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
+    const = - pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
+    v(:) = - charge * axis(1,:)**2 + 2.D0 * dipole(slab_axis) * axis(1,:)
     v = fact * v + const
     !
     ! ... Compute the physical properties of the interface
     !
-    ez = - tpi * e2 * tot_charge / area !/ permittivity !! the input charge density includes explicit and
+    ez = - tpi * e2 * charge / area !/ permittivity !! the input charge density includes explicit and
                                                         !! polarization charges, so tot_charge already accounts
                                                         !! for the dielectric screening. permittivity needs not
                                                         !! to be included
@@ -353,8 +344,7 @@ CONTAINS
     REAL( DP ) :: lin_k, lin_e, lin_c
     REAL( DP ) :: f1, f2
     REAL( DP ) :: area, dvtmp_dx
-    REAL(DP) :: dipole(0:3), quadrupole(3)
-    REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+    REAL( DP ) :: charge, dipole(3), quadrupole(3)
     CHARACTER( LEN = 80 ) :: sub_name = 'calc_gradvgcs'
     !
     CALL start_clock ('calc_gvst')
@@ -396,28 +386,21 @@ CONTAINS
     CALL init_environ_gradient( cell, glocal )
     gvstern => glocal % of_r
     !
-    ! ... Compute multipoles of the system wrt the chosen origin
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
-    !
-    tot_charge = dipole(0)
-    tot_dipole = dipole(1:3)
     area = omega / axis_length
+    !
+    ! ... Compute multipoles of the system with respect to the chosen origin
+    !
+    CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
     ! ... First compute the gradient of parabolic correction
     !
     fact = e2 * fpi / omega
-    gvstern(slab_axis,:) = tot_dipole(slab_axis) - tot_charge * axis(1,:)
+    gvstern(slab_axis,:) = dipole(slab_axis) - charge * axis(1,:)
     gvstern = gvstern * fact
     !
     ! ... Compute the physical properties of the interface
     !
-    ez = - tpi * e2 * tot_charge / area !/ permittivity !! the input charge density includes explicit and
+    ez = - tpi * e2 * charge / area !/ permittivity !! the input charge density includes explicit and
                                                         !! polarization charges, so tot_charge already accounts
                                                         !! for the dielectric screening. permittivity needs not
                                                         !! to be included

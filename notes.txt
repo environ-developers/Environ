@@ -12,8 +12,8 @@ TO DO (OLIVIERO)
 * core_fft.f90: add tests for compatibility between inputs
 * tools_generate_functions.f90: move away planar_average
 * environ_output.f90: fix write_cube that depends on dfftp and parallelization
-* move env_compute_dipole
 * add the vector of integers as input keyword
+* add a test on cubic cell for pbc=parabolic and dim=0
 
 TO DO (GABRIEL)
 * add and/or double check that the tests for compatilibty between quantities are present
@@ -33,6 +33,7 @@ NON-PRESSING TASKS
 * add tests for cp, neb, tddfpt, xspectra
 
 DONE
+* env_compute_dipole moved to multipoles_environ_density inside environ_types.f90
 * remove gstart from environ_initbase
 * remove ibrav
 * fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only

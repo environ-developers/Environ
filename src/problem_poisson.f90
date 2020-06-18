@@ -306,7 +306,7 @@ CONTAINS
     IF ( core % use_fft ) THEN
        !
        !CALL gradv_h_of_rho_r( charges%of_r, gradient%of_r )
-      CALL gradpoisson_fft( core % fft, charges, gradient)
+       CALL gradpoisson_fft( core % fft, charges, gradient)
        !
     ELSE IF ( core % use_oned_analytic ) THEN
        !

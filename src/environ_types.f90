@@ -28,7 +28,7 @@ MODULE environ_types
 !----------------------------------------------------------------------------
   !
   USE modules_constants, ONLY : DP
-  USE cell_types,        ONLY : environ_cell
+  USE cell_types,        ONLY : environ_cell, displacement, ir2r, minimum_image
   USE core_types,        ONLY : fft_core, fd_core
   USE mp,                ONLY : mp_sum
 ! BACKWARD COMPATIBILITY
@@ -646,6 +646,82 @@ CONTAINS
   END FUNCTION quadratic_mean_environ_density_old
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE multipoles_environ_density( density, origin, monopole, dipole, quadrupole )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    ! Input variables
+    !
+    TYPE( environ_density ), TARGET, INTENT(IN) :: density
+    REAL(DP), DIMENSION(3), INTENT(IN) :: origin
+    REAL(DP), INTENT(OUT) :: monopole
+    REAL(DP), DIMENSION(3), INTENT(OUT) :: dipole, quadrupole
+    !
+    ! Aliases
+    !
+    TYPE( environ_cell ), POINTER :: cell
+    !
+    ! Local variables
+    !
+    LOGICAL :: physical
+    INTEGER :: ir
+    REAL(DP) :: r(3), rhoir, r2
+    INTEGER  :: dim, axis
+    !
+    ! Initialization
+    !
+    cell => density % cell
+    !
+    monopole = 0.D0
+    dipole = 0.D0
+    quadrupole = 0.D0
+    !
+    dim = 0
+    axis = 3
+    !
+    DO ir = 1, cell%ir_end
+       !
+       ! ... position in real space grid
+       !
+       CALL ir2r( cell, ir, r, physical )
+       !
+       ! ... do not include points outside the physical range
+       !
+       IF ( .NOT. physical ) CYCLE
+       !
+       ! ... displacement from origin
+       !
+       CALL displacement( dim, axis, r, origin, r )
+       !
+       ! ... minimum image convention
+       !
+       CALL minimum_image( cell, r, r2 )
+       !
+       rhoir = density%of_r( ir )
+       !
+       ! ... multipoles
+       !
+       monopole = monopole + rhoir
+       dipole = dipole + rhoir*r
+       quadrupole = quadrupole + rhoir*r**2
+       !
+    END DO
+    !
+    CALL mp_sum( monopole, cell%comm )
+    CALL mp_sum( dipole, cell%comm )
+    CALL mp_sum( quadrupole, cell%comm )
+    !
+    monopole = monopole * cell%domega
+    dipole = dipole * cell%domega * cell%alat
+    quadrupole = quadrupole * cell%domega * cell%alat**2
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE multipoles_environ_density
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE update_environ_density(density)
 !--------------------------------------------------------------------
     !
@@ -653,19 +729,8 @@ CONTAINS
     !
     TYPE( environ_density ), INTENT(INOUT) :: density
     !
-    REAL( DP ), DIMENSION(0:3) :: dipole
-    REAL( DP ), DIMENSION(3) :: quadrupole
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
-    CALL compute_dipole( density%cell%nnr, density%of_r, density%cell%origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
-    !
-    density % charge = dipole(0)
-    density % dipole = dipole(1:3)
-    density % quadrupole = quadrupole
+    CALL multipoles_environ_density( density, density%cell%origin, &
+         density%charge, density%dipole, density%quadrupole )
     !
     RETURN
     !
