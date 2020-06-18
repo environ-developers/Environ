@@ -93,7 +93,7 @@ CONTAINS
     CASE ( 'PW', 'CP', 'TD' )
        lfft = .TRUE.
        local_type = "fft"
-       CALL init_electrostatic_core( type = local_type, fft = fft, core = reference_core )
+       CALL init_electrostatic_core( type = local_type, fft = sys_fft, core = reference_core )
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected name of host code',1)
     END SELECT
@@ -134,8 +134,8 @@ CONTAINS
     SELECT CASE ( core_type )
     CASE ( 'fft' )
        lfft = .TRUE.
-       CALL init_electrostatic_core( type = core_type, fft = fft, core = outer_core )
-       IF ( lnested ) CALL init_electrostatic_core( type = core_type, fft = fft, core = inner_core )
+       CALL init_electrostatic_core( type = core_type, fft = sys_fft, core = outer_core )
+       IF ( lnested ) CALL init_electrostatic_core( type = core_type, fft = sys_fft, core = inner_core )
     CASE( '1d-analytic', '1da' )
        loned_analytic = .TRUE.
        CALL init_electrostatic_core( type = core_type, oned_analytic = oned_analytic, core = outer_core )

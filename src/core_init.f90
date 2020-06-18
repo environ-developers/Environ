@@ -21,7 +21,7 @@ CONTAINS
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !    IF ( fft ) CALL init_fft_core( fft, use_internal_pbc_corr, nspin )
 ! Compatible with QE-6.4.X QE-GIT
-    IF ( lfft ) CALL init_fft_core_first( fft, use_internal_pbc_corr )
+    IF ( lfft ) CALL init_fft_core_first( sys_fft, use_internal_pbc_corr )
 ! END BACKWARD COMPATIBILITY
     IF ( loned_analytic ) CALL init_oned_analytic_core_first( dim, axis, oned_analytic )
     !
@@ -30,21 +30,28 @@ CONTAINS
   END SUBROUTINE set_core_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE core_initbase( cell, gcutm )
+  SUBROUTINE core_initbase( cell, gcutm, fft, dfft, calc )
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
-    USE utils_fd, ONLY : init_fd_core_second
-    USE utils_fft, ONLY : init_fft_core_second
+    USE utils_fd,            ONLY : init_fd_core_second
+    USE utils_fft,           ONLY : init_fft_core_second
+    USE fft_types,           ONLY: fft_type_descriptor
+    USE core_types,          ONLY: fft_core
     !
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(IN) :: cell
+    TYPE( fft_core ), INTENT(INOUT) :: fft
+    TYPE ( fft_type_descriptor ), INTENT(INOUT) :: dfft
     REAL( DP ), INTENT(IN) :: gcutm
+    LOGICAL :: calc
     !
-    IF ( loned_analytic ) CALL init_oned_analytic_core_second( cell, oned_analytic )
+    ! calc is used so oned_analytic isn't calculated twice
     !
-    IF ( lfd ) CALL init_fd_core_second( cell, dfft, fd )
+    IF ( loned_analytic .AND. calc ) CALL init_oned_analytic_core_second( cell, oned_analytic )
+    !
+    IF ( lfd .AND. calc ) CALL init_fd_core_second( cell, dfft, fd )
     !
     IF ( lfft ) CALL init_fft_core_second( cell, gcutm, dfft%ngm, dfft, fft )
     !
@@ -66,7 +73,7 @@ CONTAINS
     !
     IF ( loned_analytic ) CALL update_oned_analytic_core_cell( cell, oned_analytic )
     !
-    IF ( lfft ) CALL update_fft_core_cell( cell, fft ) ! THIS SHOULD NOT BE USED AND NEEDS TO BE FIXED
+    IF ( lfft ) CALL update_fft_core_cell( cell, sys_fft ) ! THIS SHOULD NOT BE USED AND NEEDS TO BE FIXED
     !
     RETURN
     !
@@ -102,7 +109,7 @@ CONTAINS
     !
     LOGICAL, INTENT(IN) :: lflag
     !
-    IF ( lfft ) CALL destroy_fft_core( lflag, fft )
+    IF ( lfft ) CALL destroy_fft_core( lflag, sys_fft )
     !
     IF ( lfd ) CALL destroy_fd_core( lflag, fd )
     !

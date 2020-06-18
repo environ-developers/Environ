@@ -72,7 +72,7 @@ CONTAINS
  SUBROUTINE calc_vsolvent_tddfpt(nnr, rho_0, drho_elec, dv_pol, dv_epsilon)
 ! END BACKWARD COMPATIBILITY
 !--------------------------------------------------------------------
-   USE environ_base, ONLY: cell, velectrostatic, lsoftsolvent, loptical, optical, ltddfpt
+   USE environ_base, ONLY: sys_cell, velectrostatic, lsoftsolvent, loptical, optical, ltddfpt
    USE electrostatic_base, ONLY : reference, outer
    USE embedding_electrostatic, ONLY : calc_velectrostatic
    USE core_fft, ONLY : gradient_fft
@@ -109,7 +109,7 @@ CONTAINS
    !
    ! ... Sanity checks and local allocation
    !
-   IF ( nnr .NE. cell % nnr ) CALL errore(sub_name,'Missmatch in passed and stored grid dimension',1)
+   IF ( nnr .NE. sys_cell % nnr ) CALL errore(sub_name,'Missmatch in passed and stored grid dimension',1)
    !
    ! ... Create source response electronic density
    !
@@ -121,7 +121,7 @@ CONTAINS
 !   CALL update_environ_electrons( 1, nnr, drho_elec, response_electrons, 0.D0 )
 ! Compatible with QE-6.4.X QE-GIT
    CALL init_environ_electrons_first( 0, response_electrons )
-   CALL init_environ_electrons_second( cell, response_electrons )
+   CALL init_environ_electrons_second( sys_cell, response_electrons )
    CALL update_environ_electrons( nnr, drho_elec, response_electrons, 0.D0 )
 ! END BACKWARD COMPATIBILITY
    !
@@ -129,18 +129,18 @@ CONTAINS
    !
    CALL create_environ_charges( response_charges )
    CALL init_environ_charges_first( electrons=response_electrons, dielectric=optical, charges=response_charges )
-   CALL init_environ_charges_second( cell, response_charges )
+   CALL init_environ_charges_second( sys_cell, response_charges )
    CALL update_environ_charges( response_charges )
    !
    ! ... Compute reference potential of response density
    !
-   CALL init_environ_density( cell, dvreference )
+   CALL init_environ_density( sys_cell, dvreference )
    !
    CALL calc_velectrostatic( reference, response_charges, dvreference )
    !
    ! ... Compute full electrostatic potential of response density
    !
-   CALL init_environ_density( cell, dvelectrostatic )
+   CALL init_environ_density( sys_cell, dvelectrostatic )
    !
    CALL calc_velectrostatic( outer, response_charges, dvelectrostatic )
    !
@@ -152,13 +152,13 @@ CONTAINS
       !
       ! ... Calculate the gradient of the total static potential
       !
-      CALL init_environ_gradient( cell, gvtot0 )
+      CALL init_environ_gradient( sys_cell, gvtot0 )
       !
       CALL gradient_fft( outer % core % fft, velectrostatic, gvtot0 )
       !
       ! ... Calculate the gradient of the total response potential
       !
-      CALL init_environ_gradient( cell, gdvtot )
+      CALL init_environ_gradient( sys_cell, gdvtot )
       !
       CALL gradient_fft( outer % core % fft, dvelectrostatic, gdvtot )
       !

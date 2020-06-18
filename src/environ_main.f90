@@ -53,7 +53,7 @@ CONTAINS
                               lconfine, env_confine, vconfine,      &
                               charges, lstatic, static,             &
                               lelectrolyte, electrolyte,            &
-                              cell, lsoftsolvent, lsoftelectrolyte
+                              sys_cell, lsoftsolvent, lsoftelectrolyte
     USE electrostatic_base, ONLY : reference, outer
     !
     ! ... Each contribution to the potential is computed in its module
@@ -141,7 +141,7 @@ CONTAINS
     IF ( lsoftcavity ) THEN
        !
        vsoftcavity % of_r = 0.D0
-       CALL init_environ_density( cell, de_dboundary )
+       CALL init_environ_density( sys_cell, de_dboundary )
        !
        IF ( lsoftsolvent ) THEN
           !
@@ -320,7 +320,7 @@ CONTAINS
                              lsurface, env_surface_tension,     &
                              lvolume, env_pressure,             &
                              lconfine, env_confine,             &
-                             lsolvent, solvent, cell
+                             lsolvent, solvent, sys_cell
     !
     USE electrostatic_base, ONLY : outer
     !
@@ -351,9 +351,9 @@ CONTAINS
     !
     IF ( lrigidcavity ) THEN
        !
-       CALL init_environ_density( cell, de_dboundary )
+       CALL init_environ_density( sys_cell, de_dboundary )
        !
-       CALL init_environ_gradient( cell, partial )
+       CALL init_environ_gradient( sys_cell, partial )
        !
        IF ( lrigidsolvent ) THEN
           !

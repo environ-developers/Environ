@@ -73,10 +73,15 @@ MODULE environ_base
   LOGICAL ::                          &
        lsmearedions
   !
-  ! Internal cell parameters
+  ! Internal sys_cell parameters
   !
   TYPE( environ_cell ), TARGET ::     &
-       cell
+       sys_cell
+  !
+  ! Internal environment_cell parameters
+  !
+  TYPE( environ_cell ), TARGET ::     &
+       environment_cell
   !
   ! Internal parameters of ions
   !

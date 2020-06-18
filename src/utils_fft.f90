@@ -6,7 +6,7 @@ MODULE utils_fft
   PRIVATE
   !
   PUBLIC :: create_fft_core, init_fft_core_first, init_fft_core_second, &
-       update_fft_core_cell, destroy_fft_core, init_dfft_core
+       update_fft_core_cell, destroy_fft_core, init_dfft_core, init_dfft_core_second
   !
 CONTAINS
   !--------------------------------------------------------------------
@@ -75,7 +75,6 @@ CONTAINS
   SUBROUTINE init_fft_core_second( cell, gcutm, ngm, dfft, fft )
 !--------------------------------------------------------------------
     !
-    USE stick_base,              ONLY : sticks_map
     USE fft_types,               ONLY : fft_type_init
     USE mp_bands,                ONLY : nyfft
     USE tools_generate_gvectors, ONLY : env_gvect_init, env_ggen
@@ -84,8 +83,7 @@ CONTAINS
     !
     TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
     TYPE( fft_core ), INTENT(INOUT) :: fft
-    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft !
-    TYPE( sticks_map ) :: smap
+    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
     INTEGER :: fft_fact(3)
     INTEGER :: i, ngm_g
     INTEGER, INTENT(IN) :: ngm
@@ -120,7 +118,7 @@ CONTAINS
     USE stick_base,        ONLY: sticks_map
     USE fft_types,         ONLY: fft_type_init
     USE mp_bands,          ONLY: nyfft
-    USE core_base,         ONLY: dfft
+    USE core_base,         ONLY: sys_dfft
     IMPLICIT NONE
     !
     TYPE( environ_cell ), INTENT(INOUT) :: cell
@@ -138,15 +136,62 @@ CONTAINS
     CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
       & cell%bg(1,2), cell%bg(1,3))
     !
-    dfft%rho_clock_label='fft'
-    dfft%lgamma = .TRUE.
-    CALL fft_type_init( dfft, smap, "rho", dfft%lgamma, .TRUE., cell%comm, cell%at, &
+    sys_dfft%rho_clock_label='fft'
+    sys_dfft%lgamma = .TRUE.
+    CALL fft_type_init( sys_dfft, smap, "rho", sys_dfft%lgamma, .TRUE., cell%comm, cell%at, &
          & cell%bg, gcutm, 4.D0, nyfft=nyfft )
     !
     RETURN
     !
 !--------------------------------------------------------------------
   END SUBROUTINE init_dfft_core
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_dfft_core_second( cell, gcutm, comm, at, m )
+!--------------------------------------------------------------------
+    !
+    USE modules_constants, ONLY: pi
+    USE stick_base,        ONLY: sticks_map
+    USE fft_types,         ONLY: fft_type_init
+    USE mp_bands,          ONLY: nyfft
+    USE core_base,         ONLY: environment_dfft!, sys_dfft
+    !USE environ_base,      ONLY: sys_cell
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), INTENT(INOUT) :: cell
+    TYPE( sticks_map ) :: smap
+    INTEGER, INTENT(IN) :: comm
+    INTEGER, INTENT(IN) :: m(3)
+    REAL(DP), INTENT(IN) :: gcutm, at(3,3)
+    INTEGER :: i
+    !
+    ! Needed some values from environ_cell type for fft_type_init
+    !
+    ! If m values equals 1 then need to point to sys_dfft and sys_cell
+    !IF ( m(1)*m(2)*m(3) == 1) THEN
+    !  environment_dfft => sys_dfft
+    !  cell => sys_cell
+    !  RETURN
+    !ENDIF
+    cell % comm = comm
+    DO i=1,3
+      cell % at(:,i) = at(:,i)*m(i)
+    END DO
+    !
+    ! Calculate the reciprocal lattice vectors
+    !
+    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
+      & cell%bg(1,2), cell%bg(1,3))
+    !
+    environment_dfft%rho_clock_label='fft'
+    environment_dfft%lgamma = .TRUE.
+    CALL fft_type_init( environment_dfft, smap, "rho", environment_dfft%lgamma, .TRUE., &
+         & cell%comm, cell%at, cell%bg, gcutm, 4.D0, nyfft=nyfft )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE init_dfft_core_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE update_fft_core_cell( cell, fft )

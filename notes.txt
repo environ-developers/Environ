@@ -16,10 +16,6 @@ TO DO (OLIVIERO)
 * add the vector of integers as input keyword
 
 TO DO (GABRIEL)
-* add and/or double check that the tests for compatilibty between quantities are present
-* create two cells, one with the same input as before, one with at multiplied by a vector of integers
-* create two dfft objects, corresponding to the two cells
-* create two fft cores, corresponding to the two cells
 * be sure that the environ quantities are initialized with the large cell
 * vreference should probably work on the small cell (we may fix this afterward)
 * create two subroutines that map a quantity in the small cell to the large cell and vice versa
@@ -33,6 +29,10 @@ NON-PRESSING TASKS
 * add tests for cp, neb, tddfpt, xspectra
 
 DONE
+* create two cells, one with the same input as before, one with at multiplied by a vector of integers
+* create two dfft objects, corresponding to the two cells
+* create two fft cores, corresponding to the two cells
+* add and/or double check that the tests for compatilibty between quantities are present
 * remove gstart from environ_initbase
 * remove ibrav
 * fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
