@@ -15,8 +15,9 @@ MODULE correction_ms_gcs
   !
   USE environ_types
   USE electrostatic_types
-  USE environ_output,    ONLY : environ_unit
-  USE environ_base,      ONLY : e2, semiconductor
+  USE environ_output,         ONLY: environ_unit
+  USE modules_constants,      ONLY: e2, fpi, k_boltzmann_ry, tpi, pi
+  USE environ_base,           ONLY: semiconductor
   !
   IMPLICIT NONE
   !

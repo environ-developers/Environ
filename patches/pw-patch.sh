@@ -512,7 +512,7 @@ END IF \
 &"  doi: 10.1103/PhysRevMaterials.3.015404   "//,& \
 &"  In any publications resulting from this work.") \
  \
-1002 FORMAT(5x,//"*******************************************"//, \
+1002 FORMAT(5x,//"*******************************************"//,& \
 &"     Running initial calculation for flatband."//& \
 &   "     Using charge of: ",F14.8,//& \
 &"*******************************************") \

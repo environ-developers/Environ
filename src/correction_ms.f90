@@ -15,8 +15,8 @@ MODULE correction_ms
   !
   USE environ_types
   USE electrostatic_types
-  USE environ_output,    ONLY : environ_unit
-  USE environ_base,      ONLY : e2
+  USE environ_output,         ONLY : environ_unit
+  USE modules_constants,      ONLY : e2, fpi, k_boltzmann_ry, pi, tpi
   !
   IMPLICIT NONE
   !
