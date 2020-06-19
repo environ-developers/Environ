@@ -229,6 +229,11 @@ MODULE environ_types
      LOGICAL :: include_electrolyte = .FALSE.
      TYPE( environ_electrolyte ), POINTER :: electrolyte => NULL()
      !
+     ! Semiconductor charges
+     !
+     LOGICAL :: include_semiconductor = .FALSE.
+     TYPE( environ_semiconductor ), POINTER :: semiconductor => NULL()
+     !
      ! Total smooth free charge
      !
      INTEGER :: number = 0
@@ -334,7 +339,7 @@ MODULE environ_types
      !
      TYPE( environ_functions ) :: simple
      !
-     ! Copmonents needed for solvent-aware boundary
+     ! Components needed for solvent-aware boundary
      !
      LOGICAL :: solvent_aware
      TYPE( environ_functions ) :: solvent_probe
@@ -344,6 +349,17 @@ MODULE environ_types
      TYPE( environ_density ) :: probe
      TYPE( environ_density ) :: filling
      TYPE( environ_density ) :: dfilling
+     !
+     ! Components needed for field-aware boundary
+     !
+     LOGICAL :: field_aware
+     REAL( DP ) :: field_factor, charge_asymmetry, field_max, field_min
+     !
+     TYPE( environ_density ) :: normal_field
+     REAL( DP ), DIMENSION(:), ALLOCATABLE :: ion_field
+     TYPE( environ_functions ), DIMENSION(:), ALLOCATABLE :: local_spheres
+     TYPE( environ_density ), DIMENSION(:), ALLOCATABLE :: dion_field_drho
+     REAL( DP ), DIMENSION(:,:,:), ALLOCATABLE :: partial_of_ion_field
      !
   END TYPE environ_boundary
   !
@@ -451,6 +467,37 @@ MODULE environ_types
      REAL( DP ) :: charge = 0.0_DP
      !
   END TYPE environ_electrolyte
+
+  TYPE environ_semiconductor
+     !
+     ! Update status
+     !
+     LOGICAL :: update = .FALSE.
+     !
+     LOGICAL :: initialized = .FALSE.
+     !
+     !
+     REAL( DP ) :: temperature
+     REAL( DP ) :: permittivity
+     REAL( DP ) :: carrier_density
+     REAL( DP ) :: electrode_charge
+     REAL( DP ) :: charge_threshold
+
+     !
+     TYPE( environ_functions ) :: simple
+     !
+     TYPE( environ_density ) :: density
+     !
+     REAL( DP ) :: charge = 0.0_DP
+
+     REAL( DP ) :: flatband_fermi = 0.D0
+     REAL( DP ) :: bulk_sc_fermi = 0.D0
+     REAL( DP ) :: surf_area_per_sq_cm = 0.D0
+
+
+     !
+  END TYPE environ_semiconductor
+
   !
 CONTAINS
 !--------------------------------------------------------------------
@@ -893,6 +940,36 @@ CONTAINS
   END SUBROUTINE scalar_product_environ_gradient
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE scalar_product_environ_hessian( hess, gradin, gradout )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_hessian ), INTENT(IN) :: hess
+    TYPE( environ_gradient ), INTENT(IN) :: gradin
+    TYPE( environ_gradient ), INTENT(INOUT) :: gradout
+    !
+    INTEGER :: ir, ipol
+    CHARACTER( LEN=80 ) :: sub_name = 'scalar_product_environ_hessian'
+    !
+    gradout%of_r = 0.D0
+    IF ( .NOT. ASSOCIATED(gradin%cell,hess%cell) ) &
+         & CALL errore(sub_name,'Missmatch in domain of input hessian/gradients',1)
+    IF ( .NOT. ASSOCIATED(gradin%cell,gradout%cell) ) &
+         & CALL errore(sub_name,'Missmatch in domain of input and output',1)
+    !
+    DO ir = 1, hess%cell%ir_end
+       DO ipol = 1, 3
+          gradout%of_r(ipol,ir) = SUM(hess%of_r(:,ipol,ir)*gradin%of_r(:,ir))
+       ENDDO
+    END DO
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE scalar_product_environ_hessian
+  !--------------------------------------------------------------------
+  !--------------------------------------------------------------------
   FUNCTION scalar_product_environ_gradient_density( gradient, density ) RESULT(res)
 !--------------------------------------------------------------------
     !
@@ -1335,6 +1412,37 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_environ_system
+!--------------------------------------------------------------------
+!>
+!! Function to extract the idx in a density object
+!! for given x, y, z indices
+!! TODO this probably doesn't work with MPI, need to test
+!! (I can only test serially right now)
+!--------------------------------------------------------------------
+  FUNCTION get_idx_environ_cell( cell, i, j, k ) RESULT ( idx )
+!--------------------------------------------------------------------
+    !
+    INTEGER, INTENT(IN) :: i, j, k
+    TYPE( environ_cell ), INTENT(IN) :: cell
+    !
+    INTEGER :: nx, ny, nz, idx
+    CHARACTER( LEN=80 ) :: fun_name = 'get_idx_environ_density'
+    !
+    nx = cell % n1
+    ny = cell % n2
+    nz = cell % n3
+    !
+    IF ( i > nx ) CALL errore( fun_name, 'i larger than cell size', 1)
+    IF ( j > ny ) CALL errore( fun_name, 'j larger than cell size', 1)
+    IF ( k > nz ) CALL errore( fun_name, 'k larger than cell size', 1)
+    !
+    idx = 1
+    idx = idx + k * (nx * ny)
+    idx = idx + j * nx
+    idx = idx + i
+    ! 
+!--------------------------------------------------------------------
+  END FUNCTION get_idx_environ_cell
 !--------------------------------------------------------------------
 !----------------------------------------------------------------------------
 END MODULE environ_types

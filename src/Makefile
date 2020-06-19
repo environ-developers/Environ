@@ -61,6 +61,7 @@ utils_charges.o            \
 utils_dielectric.o         \
 utils_electrolyte.o        \
 utils_externals.o          \
+utils_semiconductor.o      \
 utils_functions.o          \
 utils_ions.o               \
 utils_oned_analytic.o

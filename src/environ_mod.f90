@@ -72,6 +72,8 @@ MODULE environ_base
        lcoredensity
   LOGICAL ::                          &
        lsmearedions
+  LOGICAL ::                          &
+       lgradient
   !
   ! Internal cell parameters
   !
@@ -141,6 +143,14 @@ MODULE environ_base
   TYPE( environ_electrolyte ) ::    &
        electrolyte
   !
+  ! Semiconductor parameters
+  !
+  LOGICAL ::                        &
+       lsemiconductor
+  TYPE( environ_semiconductor ) ::  &
+       semiconductor
+
+  !
   ! Cavitation energy parameters
   !
   LOGICAL ::                        &
@@ -173,6 +183,8 @@ MODULE environ_base
        add_jellium
   INTEGER ::                        &
        nrep
+  INTEGER ::                        &
+       niter ! stores the iteration of environ for debugging purposes
   !
   ! Computed physical variables
   !

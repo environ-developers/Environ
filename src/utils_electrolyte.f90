@@ -111,7 +111,8 @@ CONTAINS
 !--------------------------------------------------------------------
   SUBROUTINE init_environ_electrolyte_first( ntyp, mode, stype, rhomax, rhomin, &
        & tbeta, const, alpha, softness, distance, spread, solvent_radius, radial_scale, &
-       & radial_spread, filling_threshold, filling_spread, electrons, ions, system, &
+       & radial_spread, filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
+       & field_max, field_min, electrons, ions, system, &
        & core, temperature, cbulk, cionmax, radius, z, electrolyte_entropy, ion_adsorption, &
        & adsorption_energy, linearized, electrolyte )
 !--------------------------------------------------------------------
@@ -123,6 +124,7 @@ CONTAINS
     CHARACTER( LEN=80 ), INTENT(IN) :: mode, electrolyte_entropy, ion_adsorption
     REAL( DP ), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, alpha, softness, temperature
     REAL( DP ), INTENT(IN) :: solvent_radius, radial_scale, radial_spread, filling_threshold, filling_spread
+    REAL( DP ), INTENT(IN) :: field_awareness, charge_asymmetry, field_max, field_min
     REAL( DP ), INTENT(IN) :: cionmax, radius, adsorption_energy
     REAL( DP ), DIMENSION(ntyp), INTENT(IN) :: cbulk, z
     TYPE( environ_electrons ), INTENT(IN) :: electrons
@@ -139,7 +141,8 @@ CONTAINS
     CALL init_environ_boundary_first( .TRUE., .TRUE., .FALSE., mode, stype, &
          & rhomax, rhomin, tbeta, const, alpha, softness, distance, spread, &
          & solvent_radius, radial_scale, radial_spread, filling_threshold, &
-         & filling_spread, electrons, ions, system, core, electrolyte%boundary )
+         & filling_spread, field_awareness, charge_asymmetry, field_max, field_min, &
+         & electrons, ions, system, core, electrolyte%boundary )
     !
     ! ... Setup all electrolyte parameters (with checks)
     !
