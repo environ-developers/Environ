@@ -750,7 +750,7 @@ CONTAINS
     REAL( DP ), DIMENSION(0:3) :: dipole
     REAL( DP ), DIMENSION(3) :: quadrupole
     !
-    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
+    CALL compute_dipole( density%cell%nnr, density%of_r, density%cell%origin, dipole, quadrupole )
     !
     density % charge = dipole(0)
     density % dipole = dipole(1:3)

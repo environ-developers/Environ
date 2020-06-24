@@ -144,7 +144,7 @@ CONTAINS
    !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     tot_charge = dipole(0)
 
@@ -436,7 +436,7 @@ END SUBROUTINE calc_vms_gcs
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
