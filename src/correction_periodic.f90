@@ -95,6 +95,9 @@ CONTAINS
     origin => oned_analytic % origin
     axis => oned_analytic % x
     !
+    IF ( env_periodicity .EQ. 0 .AND. .NOT. cell%cubic ) &
+         & CALL errore(sub_name,'Parabolic correction in 0D is only for cubic cells',1)
+    !
     CALL init_environ_density( cell, local )
     vperiodic => local % of_r
     !

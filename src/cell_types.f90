@@ -7,6 +7,7 @@ MODULE cell_types
      ! Global properties of the simulation cell
      !
      LOGICAL :: update = .FALSE.
+     LOGICAL :: cubic = .FALSE.
      REAL( DP ) :: alat
      REAL( DP ) :: omega
      REAL( DP ) :: domega
@@ -73,6 +74,10 @@ CONTAINS
     ! Calculate cell volume
     !
     CALL volume( cell%alat, cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%omega )
+    !
+    ! Check if the cell is cubic
+    !
+    cell % cubic = iscubic( cell%at )
     !
     ! Calculate units of reciprocal space
     !
@@ -361,7 +366,42 @@ CONTAINS
     RETURN
     !
 !---------------------------------------------------------------------
-  END SUBROUTINE volume
+  END SUBROUTINE
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+  FUNCTION iscubic( at )
+!---------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    REAL(DP), PARAMETER :: tol = 1.D-8
+    REAL(DP) :: at(3,3)
+    LOGICAL :: iscubic
+    !
+    INTEGER :: ipol, jpol
+    REAL(DP) :: tmp
+    !
+    iscubic = .FALSE.
+    !
+    ! If at(3,3) is a cubic cell, at(1,1)=at(2,2)=at(3,3)
+    ! and the other elements are equal to 0.D0
+    !
+    tmp = 0.D0
+    DO ipol = 1, 3
+       DO jpol = 1, 3
+          IF ( ipol .EQ. jpol ) THEN
+             tmp = tmp + ABS( at(ipol,ipol) - at(1,1) )
+          ELSE
+             tmp = tmp + ABS( at(ipol,jpol) )
+          ENDIF
+       ENDDO
+    ENDDO
+    !
+    iscubic = tmp .LT. tol
+    !
+    RETURN
+    !
+!---------------------------------------------------------------------
+  END FUNCTION iscubic
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
   SUBROUTINE recips( a1, a2, a3, b1, b2, b3 )
