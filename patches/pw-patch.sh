@@ -410,8 +410,8 @@ mv tmp.2 plugin_scf_potential.f90
 
 # plugin initialization
 
-sed '! /***Environ MODULES BEGIN***/ a\
-!Environ patch\
+sed '/Environ MODULES BEGIN/ a\
+!Environ patch \
 USE klist,            ONLY : tot_charge\
 USE force_mod,        ONLY : lforce\
 USE control_flags,    ONLY : lbfgs\
@@ -420,8 +420,8 @@ USE control_flags,    ONLY : nstep\
 !Environ patch
 ' plugin_initialization.f90 > tmp.1
 
-sed '! ***Environ CALLS BEGIN***\
-!Environ patch\
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
 !\
 \
 ! *****************************************************************************\
@@ -454,7 +454,7 @@ END IF \
 &"  doi: 10.1103/PhysRevMaterials.3.015404   "//,& \
 &"  In any publications resulting from this work.") \
  \
-1002 FORMAT(5x,//"*******************************************"//, \
+1002 FORMAT(5x,//"*******************************************"//, & \
 &"     Running initial calculation for flatband."//& \
 &   "     Using charge of: ",F14.8,//& \
 &"*******************************************") \
@@ -464,10 +464,10 @@ END IF \
 
 mv tmp.2 plugin_initialization.f90
 
-#plugin ext_forces (where I'm hiding all the semiconductor shit)
+#plugin_ext_forces (where I'm hiding all the semiconductor shit)
 
 
-sed '! ***Environ MODULES BEGIN*** \
+sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 !------------------------------------------------ \
 ! \
@@ -500,7 +500,7 @@ USE qexsd_module,     ONLY:   qexsd_set_status \
 !Environ patch
 ' plugin_ext_forces.f90 > tmp.1
 
-sed '! ***Environ VARIABLES BEGIN*** \
+sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
 \
 SAVE \
@@ -525,8 +525,8 @@ LOGICAL                   :: converge \
 ! !Environ patch
 ' tmp.1 > tmp.2
 
-sed '  ! ! ***Environ CALLS BEGIN*** \
-! !Environ patch \
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
  \
 !************************************************* \
 ! \
@@ -590,7 +590,7 @@ cur_fermi = ef!*rytoev \
 !CALL save_current_pot(dfftp%nnr,cur_fermi,cur_dchg,ss_chg,v_cut,chg_step) \
 cur_dchg = semiconductor%bulk_sc_fermi - cur_fermi \
 bulk_potential = (semiconductor%bulk_sc_fermi - semiconductor%flatband_fermi)*rytoev \
-ss_chg = tot_chg \
+ss_chg = tot_charge \
 !IF (ionode) THEN \
 ! making sure constraints are updated \
 IF (semiconductor%electrode_charge > 0) THEN \
