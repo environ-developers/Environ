@@ -96,6 +96,7 @@ CONTAINS
     !
     !alat => oned_analytic % alat
     !omega => oned_analytic % omega
+    omega => cell % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size
@@ -122,12 +123,12 @@ CONTAINS
     IF ( env_periodicity .NE. 2 ) &
          & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
     !
-    CALL init_environ_density( cell, local )
+    !CALL init_environ_density( cell, local )
     v => local % of_r
    !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     tot_charge = dipole(0)
 
@@ -274,6 +275,7 @@ CONTAINS
     !
     !alat => oned_analytic % alat
     !omega => oned_analytic % omega
+    omega => cell % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size
@@ -299,7 +301,7 @@ CONTAINS
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-    CALL compute_dipole( nnr, 1, charges%of_r, origin, dipole, quadrupole )
+    CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)

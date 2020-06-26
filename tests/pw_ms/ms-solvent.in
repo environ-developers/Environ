@@ -25,7 +25,7 @@
     problem = 'generalized'
     solver = 'iterative'
     auxiliary = 'full'
-    inner_solver = 'direct'
+    !inner_solver = 'direct'
     pbc_correction = 'ms'
     pbc_dim = 2                 
     pbc_axis = 3   

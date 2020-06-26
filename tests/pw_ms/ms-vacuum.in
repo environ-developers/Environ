@@ -1,5 +1,5 @@
  &ENVIRON
-    verbose = 3,
+    verbose = 1,
     environ_thr = 0.1,
     system_axis = 3,
     system_dim = 2,
@@ -23,7 +23,7 @@
  &ELECTROSTATIC
     problem = 'poisson'
     solver = 'direct'
-    inner_solver = 'direct'
+    !inner_solver = 'direct'
     pbc_correction = 'ms'
     pbc_dim = 2                 
     pbc_axis = 3   
