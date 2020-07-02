@@ -37,7 +37,6 @@ MODULE problem_pb
   USE problem_linearized_pb, ONLY : linearized_pb_gradient!, linearized_pb_gradient_sqrt
   USE problem_generalized, ONLY : generalized_gradient
   USE problem_poisson, ONLY : poisson_direct!, poisson_energy
-  USE environ_base, ONLY : oldenviron
   !
   IMPLICIT NONE
   !
@@ -421,7 +420,6 @@ CONTAINS
        ! ... If residual is small enough exit
        !
        delta_en = euclidean_norm_environ_density( residual )
-       IF ( oldenviron ) delta_en = quadratic_mean_environ_density_old( residual )
        delta_qm = quadratic_mean_environ_density( residual )
        totaux = integrate_environ_density( rhoaux )
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux
@@ -647,7 +645,6 @@ CONTAINS
        ! ... If residual is small enough exit
        !
        delta_en = euclidean_norm_environ_density( residual )
-       IF ( oldenviron ) delta_en = quadratic_mean_environ_density_old( residual )
        delta_qm = quadratic_mean_environ_density( residual )
        totaux = integrate_environ_density( rhoaux )
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tol

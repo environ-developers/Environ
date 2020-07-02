@@ -38,7 +38,6 @@ MODULE problem_generalized
   USE electrostatic_types
   USE environ_output
   USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct!, poisson_energy
-  USE environ_base, ONLY : oldenviron
   !
   IMPLICIT NONE
   !
@@ -360,7 +359,6 @@ CONTAINS
        ! ... If residual is small enough exit
        !
        delta_en = euclidean_norm_environ_density( residual )
-       IF ( oldenviron ) delta_en = quadratic_mean_environ_density_old( residual )
        delta_qm = quadratic_mean_environ_density( residual )
        totiter = integrate_environ_density( rhoiter )
        IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9004)delta_qm,delta_en,tolrhoaux

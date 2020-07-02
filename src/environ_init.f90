@@ -59,7 +59,7 @@ CONTAINS
 ! END BACKWARD COMPATIBILITY
        & nat, ntyp, atom_label, atomicspread,        &
        & corespread, solvationrad,                   &
-       & oldenviron_, environ_restart_, environ_thr_,&
+       & environ_restart_, environ_thr_,             &
        & environ_nskip_, environ_type,               &
        & system_ntyp, system_dim, system_axis,       &
        & env_nrep,                                   &
@@ -105,8 +105,7 @@ CONTAINS
     !
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
-    LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, &
-         electrolyte_linearized
+    LOGICAL, INTENT(IN) :: environ_restart_, electrolyte_linearized
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !    INTEGER, INTENT(IN) :: nspin
@@ -174,7 +173,6 @@ CONTAINS
     !
     ! General flags
     !
-    oldenviron      = oldenviron_
     environ_restart = environ_restart_
     environ_thr     = environ_thr_
     environ_nskip   = environ_nskip_

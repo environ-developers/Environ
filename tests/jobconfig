@@ -24,11 +24,11 @@ inputs_args = ('neutral.in', 'water-neutral-sccs-default.in'), ('neutral.in', 'w
 
 [pw_periodic/]
 program = PW
-inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-dielectric-default.in'), ('neutral.in', 'periodic-dielectric-oldenviron.in'), ('charged.in', 'periodic-dielectric-oldenviron.in')
+inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-dielectric-default.in')
 
 [pw_slab/]
 program = PW
-inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('neutral.in', 'periodic-dielectric-oldenviron.in'), ('charged.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-dielectric-oldenviron.in')
+inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-dielectric-default.in')
 
 [pw_dielectric/]
 program = PW

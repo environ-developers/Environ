@@ -17,7 +17,7 @@
 !> This module contains the main drivers and routines to compute the
 !! electrostatic potential that is the solution of a Poisson equation:
 !!
-!! \f[ 
+!! \f[
 !!      \nabla ^2 \phi = -4 \pi \rho
 !! \f]
 !!
@@ -36,7 +36,6 @@ MODULE problem_poisson
   USE correction_gcs
   USE core_fft, ONLY : poisson_fft, gradpoisson_fft
   USE modules_constants, ONLY : e2
-  USE environ_base, ONLY : oldenviron
   USE environ_output
   !
   IMPLICIT NONE
