@@ -12,16 +12,14 @@ TO DO (OLIVIERO)
 * core_fft.f90: add tests for compatibility between inputs
 * tools_generate_functions.f90: move away planar_average
 * environ_output.f90: fix write_cube that depends on dfftp and parallelization
-* add the vector of integers as input keyword
-* add a test on cubic cell for pbc=parabolic and dim=0
+* remove oldenviron and addjellium
+
+LARGE_VS_SMALL CELL
+*** Fix felectrostatics force_fft (vloc is in system cell, environment_charges are in environment_cell)
+*** Fix felectrostatics calc_fperiodic (oned_analytic is in system_cell, environment_charges are in environment_cell)
 
 TO DO (GABRIEL)
-* be sure that the environ quantities are initialized with the large cell
-* vreference should probably work on the small cell (we may fix this afterward)
 * create two subroutines that map a quantity in the small cell to the large cell and vice versa
-* take care of mapping when passing quantities from pw to environ (environ_init_ions, environ_init_electrons, in environ_init.f90)
-* NOTE: vzero that is stored in environ_init_potential (environ_init.f90) and must be kept only on the small cell.
-* take care of mapping when passing quantities from environ to pw (calc_venviron in environ_main.f90)
 
 NON-PRESSING TASKS
 * profile core_fft routines
@@ -29,6 +27,13 @@ NON-PRESSING TASKS
 * add tests for cp, neb, tddfpt, xspectra
 
 DONE
+* NOTE: vzero that is stored in environ_init_potential (environ_init.f90) and must be kept only on the small cell.
+* take care of mapping when passing quantities from environ to pw (calc_venviron in environ_main.f90)
+* take care of mapping when passing quantities from pw to environ (environ_init_ions, environ_init_electrons, in environ_init.f90)
+* be sure that the environ quantities are initialized with the large cell
+* vreference should probably work on the small cell (we may fix this afterward)
+* add the vector of integers as input keyword
+* add a test on cubic cell for pbc=parabolic and dim=0
 * create two cells, one with the same input as before, one with at multiplied by a vector of integers
 * create two dfft objects, corresponding to the two cells
 * create two fft cores, corresponding to the two cells
@@ -54,10 +59,12 @@ DONE
   fix communicators for parallelization
 
 DOUBTS
+  Do we need precompilation if _MPI?
+  Do we need to keep the stick_map?
 
-PLANS
-  as first step let's comment out the martyna-tuckerman part
-  pass values of derived data types, as a second step we'll need to initialize them inside environ.
+POSSIBLE STRATEGIES
+  We could store the mapping in every object that needs to be converted (electrons, ions, potentials)
+  We could create a basic charge type that can be specialized into electrons, ions and externals
 
 NOTES:
   for ffts we need both the descriptor (dffte) and a stick_map (smape)

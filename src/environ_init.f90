@@ -26,6 +26,7 @@ MODULE environ_init
 !----------------------------------------------------------------------------
   !
   USE modules_constants, ONLY : bohr_radius_si, rydberg_si
+  USE cell_types
   USE core_types
   USE environ_types
   USE environ_output
@@ -37,6 +38,7 @@ MODULE environ_init
   USE utils_electrolyte
   USE utils_externals
   USE utils_charges
+  USE utils_fft
   !
   PRIVATE
   !
@@ -60,6 +62,7 @@ CONTAINS
        & oldenviron_, environ_restart_, environ_thr_,&
        & environ_nskip_, environ_type,               &
        & system_ntyp, system_dim, system_axis,       &
+       & env_nrep,                                   &
        & stype, rhomax, rhomin, tbeta,               &
        & env_static_permittivity_,                   &
        & env_optical_permittivity_, solvent_mode,    &
@@ -114,6 +117,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nelec, nat, ntyp,       &
          environ_nskip_,                                  &
          system_ntyp, system_dim, system_axis,            &
+         env_nrep(3),                                     &
          stype, env_electrolyte_ntyp_,                    &
          env_external_charges,                            &
          extcharge_dim(:), extcharge_axis(:),             &
@@ -202,6 +206,7 @@ CONTAINS
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
     lperiodic      = need_pbc_correction
+    ldoublecell    = SUM(env_nrep) .GT. 3
     !
     ! Derived flags
     !
@@ -237,7 +242,10 @@ CONTAINS
     !
     IF ( loptical ) CALL create_environ_dielectric(optical)
     !
-    IF ( lelectrostatic .OR. lconfine ) CALL create_environ_charges(charges)
+    IF ( lelectrostatic .OR. lconfine ) THEN
+       CALL create_environ_charges(system_charges)
+       CALL create_environ_charges(environment_charges)
+    ENDIF
     !
     ! Allocate and set basic properties of ions
     !
@@ -259,23 +267,29 @@ CONTAINS
     !
     ! Collect free charges if computing electrostatics or confinement
     !
-    IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_first( electrons=electrons, charges=charges )
-    IF ( lelectrostatic ) CALL init_environ_charges_first( ions=ions, charges=charges )
+    IF ( lelectrostatic .OR. lconfine ) THEN
+       CALL init_environ_charges_first( electrons=electrons, charges=system_charges )
+       CALL init_environ_charges_first( electrons=electrons, charges=environment_charges )
+    ENDIF
+    IF ( lelectrostatic ) THEN
+       CALL init_environ_charges_first( ions=ions, charges=system_charges )
+       CALL init_environ_charges_first( ions=ions, charges=environment_charges )
+    ENDIF
     !
     ! Allocate and set basic properties of external charges
     !
     IF ( lexternals ) THEN
        CALL init_environ_externals_first( env_external_charges, extcharge_dim, &
             & extcharge_axis, extcharge_pos, extcharge_spread, extcharge_charge, externals )
-       CALL init_environ_charges_first( externals=externals, charges=charges )
+       CALL init_environ_charges_first( externals=externals, charges=environment_charges )
     ENDIF
     !
     ! Setup cores needed for derivatives of boundaries
     !
     IF ( lboundary ) THEN
-       lfft = .TRUE.
+       lfft_environment = .TRUE.
        IF ( derivatives_ .EQ. 'fd' ) lfd = .TRUE.
-       CALL init_boundary_core( derivatives_, derivatives, sys_fft, fd )
+       CALL init_boundary_core( derivatives_, derivatives, environment_fft, fd )
     ENDIF
     !
     ! Set the parameters of the solvent boundary
@@ -299,7 +313,7 @@ CONTAINS
             & electrons, ions, system, derivatives, temperature, cion, cionmax, rion, &
             & zion, electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
             & electrolyte_linearized, electrolyte )
-       CALL init_environ_charges_first( electrolyte=electrolyte, charges=charges )
+       CALL init_environ_charges_first( electrolyte=electrolyte, charges=environment_charges )
     END IF
     !
     ! Set the parameters of the dielectric
@@ -310,7 +324,7 @@ CONTAINS
        IF ( env_dielectric_regions .GT. 0 ) CALL set_dielectric_regions( &
          & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
          & epsregion_width, epsregion_spread, epsregion_eps(1,:), static )
-       CALL init_environ_charges_first( dielectric=static, charges=charges )
+       CALL init_environ_charges_first( dielectric=static, charges=environment_charges )
     END IF
     !
     IF ( loptical ) THEN
@@ -320,6 +334,17 @@ CONTAINS
          & env_dielectric_regions, epsregion_dim, epsregion_axis, epsregion_pos, &
          & epsregion_width, epsregion_spread, epsregion_eps(2,:), optical )
     END IF
+    !
+    ! Set the parameters for double cell mapping
+    !
+    IF ( ldoublecell ) THEN
+       !
+       ALLOCATE( environment_cell )
+       ALLOCATE( environment_dfft )
+       !
+    END IF
+    !
+    CALL init_environ_mapping_first( env_nrep, mapping )
     !
     ! Obsolote keywords to be moved or removed
     !
@@ -347,10 +372,12 @@ CONTAINS
     !
     USE modules_constants, ONLY : e2_ => e2
     USE environ_base, ONLY :                      &
-         sys_cell, electrons, charges,            &
+         system_cell, electrons,                  &
+         system_charges, environment_charges,     &
          vzero, deenviron,                        &
          lelectrostatic, eelectrostatic,          &
          velectrostatic, vreference,              &
+         dvelectrostatic,                         &
          lsoftcavity, vsoftcavity,                &
          lelectrolyte, electrolyte,               &
          lsolvent, solvent, lstatic, static,      &
@@ -358,66 +385,90 @@ CONTAINS
          lexternals, externals,                   &
          lsurface, esurface, lvolume, evolume,    &
          lconfine, vconfine, econfine,            &
-         eelectrolyte, environment_cell
+         eelectrolyte, environment_cell,          &
+         ldoublecell, mapping, system_dfft,       &
+         environment_dfft
     !
     USE cell_types, ONLY : init_environ_cell
-    USE core_init, ONLY : core_initbase
-    USE utils_fft, ONLY : init_dfft_core, init_dfft_core_second
-    USE core_base
+    USE core_init,  ONLY : core_initbase
+    USE utils_fft,  ONLY : init_dfft
     !
     ! Local base initialization subroutines for the different
     ! environ contributions
     !
     IMPLICIT NONE
+    !
     INTEGER, INTENT(IN) :: comm
     INTEGER, INTENT(IN) :: me
     INTEGER, INTENT(IN) :: root
     REAL(DP), INTENT(IN) :: alat
     REAL(DP), DIMENSION(3,3), INTENT(IN) :: at
     INTEGER, DIMENSION(3) :: m
-    REAL( DP ), INTENT(IN) :: gcutm
+    REAL(DP), INTENT(IN) :: gcutm
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
     !
+    INTEGER :: ipol
+    REAL(DP), DIMENSION(3,3) :: environment_at
     CHARACTER( LEN = 80 ) :: label = ' '
     !
     ! ... Common initialization for simulations with Environ
     !
     e2_ = 2.D0
     IF ( PRESENT(e2) ) e2_ = e2
-    ! Creating a dummy m vector
-    ! Will be passed from PW later and can remove the next three lines
-    m(1) = 2
-    m(2) = 3
-    m(3) = 4
     !
-    !Create the dfft type here, for sys_cell, and pass arguments to init_envrion_cell
+    ! ... Create fft descriptor for system cell
     !
-    CALL init_dfft_core( sys_cell, gcutm, comm, at )
+    CALL init_dfft( gcutm, comm, at, system_dfft )
     !
-    CALL init_environ_cell( alat, at, &
-         & me, root, sys_cell, sys_dfft )
+    ! ... Create system cell
     !
-    ! ... Initialization of numerical cores for sys_cell
+    CALL init_environ_cell( alat, at, comm, me, root, &
+         & system_dfft%nr1, system_dfft%nr2, system_dfft%nr3, &
+         & system_dfft%nr1x, system_dfft%nr2x, system_dfft%nr3x, &
+         & system_dfft%my_nr2p, system_dfft%my_nr3p, &
+         & system_dfft%my_i0r2p, system_dfft%my_i0r3p, system_dfft%nnr, &
+         & system_cell )
     !
-    CALL core_initbase( sys_cell, gcutm, sys_fft, sys_dfft, .TRUE. )
+    ! ... Double cell and mapping
     !
-    !Create the dfft type here, for environment_cell, and pass arguments to init_environ_cell
+    IF ( ldoublecell ) THEN
+       !
+       DO ipol = 1, 3
+          environment_at( :, ipol ) = at( :, ipol ) * mapping % nrep( ipol )
+       END DO
+       !
+       ! ... Create fft descriptor for environment cell
+       !
+       CALL init_dfft( gcutm, comm, environment_at, environment_dfft )
+       !
+       ! ... Create environment cell
+       !
+       CALL init_environ_cell( alat, environment_at, comm, me, root, &
+            & environment_dfft%nr1, environment_dfft%nr2, environment_dfft%nr3, &
+            & environment_dfft%nr1x, environment_dfft%nr2x, environment_dfft%nr3x, &
+            & environment_dfft%my_nr2p, environment_dfft%my_nr3p, &
+            & environment_dfft%my_i0r2p, environment_dfft%my_i0r3p, environment_dfft%nnr, &
+            & environment_cell )
+       !
+    ELSE
+       !
+       environment_dfft => system_dfft
+       environment_cell => system_cell
+       !
+    ENDIF
     !
-    CALL init_dfft_core_second( environment_cell, gcutm, comm, at, m )
+    CALL init_environ_mapping_second( system_cell, environment_cell, mapping )
     !
-    CALL init_environ_cell( alat, environment_cell%at, &
-         & me, root, environment_cell, environment_dfft )
+    ! ... Initialize numerical cores
     !
-    ! ... Initialization of numerical cores for environment_cell
-    !
-    CALL core_initbase( environment_cell, gcutm, environment_fft, environment_dfft, .FALSE. )
-    !
+    CALL core_initbase( gcutm, environment_dfft, environment_cell, &
+         & system_dfft, system_cell )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !
     label = 'vzero'
     CALL create_environ_density( vzero, label )
-    CALL init_environ_density( sys_cell, vzero )
+    CALL init_environ_density( system_cell, vzero )
     !
     deenviron = 0.0_DP
     !
@@ -428,11 +479,15 @@ CONTAINS
        !
        label = 'velectrostatic'
        CALL create_environ_density( velectrostatic, label )
-       CALL init_environ_density( sys_cell, velectrostatic )
+       CALL init_environ_density( environment_cell, velectrostatic )
        !
        label = 'vreference'
        CALL create_environ_density( vreference, label )
-       CALL init_environ_density( sys_cell, vreference )
+       CALL init_environ_density( system_cell, vreference )
+       !
+       label = 'dvelectrostatic'
+       CALL create_environ_density( dvelectrostatic, label )
+       CALL init_environ_density( system_cell, dvelectrostatic )
        !
     END IF
     !
@@ -442,7 +497,7 @@ CONTAINS
        !
        label = 'vsoftcavity'
        CALL create_environ_density( vsoftcavity, label )
-       CALL init_environ_density( sys_cell, vsoftcavity )
+       CALL init_environ_density( system_cell, vsoftcavity )
        !
     END IF
     !
@@ -461,7 +516,7 @@ CONTAINS
        !
        label = 'vconfine'
        CALL create_environ_density( vconfine, label )
-       CALL init_environ_density( sys_cell, vconfine )
+       CALL init_environ_density( system_cell, vconfine )
        !
     END IF
     !
@@ -471,19 +526,22 @@ CONTAINS
     !
     ! ... Second step of initialization of some environ derived type
     !
-    CALL init_environ_electrons_second( sys_cell, electrons )
+    CALL init_environ_electrons_second( system_cell, electrons )
     !
-    IF ( lsolvent ) CALL init_environ_boundary_second( sys_cell, solvent )
+    IF ( lsolvent ) CALL init_environ_boundary_second( environment_cell, solvent )
     !
-    IF ( lstatic ) CALL init_environ_dielectric_second( sys_cell, static )
+    IF ( lstatic ) CALL init_environ_dielectric_second( environment_cell, static )
     !
-    IF ( loptical ) CALL init_environ_dielectric_second( sys_cell, optical )
+    IF ( loptical ) CALL init_environ_dielectric_second( environment_cell, optical )
     !
-    IF ( lelectrolyte ) CALL init_environ_electrolyte_second( sys_cell, electrolyte )
+    IF ( lelectrolyte ) CALL init_environ_electrolyte_second( environment_cell, electrolyte )
     !
-    IF ( lexternals ) CALL init_environ_externals_second( sys_cell, externals )
+    IF ( lexternals ) CALL init_environ_externals_second( environment_cell, externals )
     !
-    IF ( lelectrostatic .OR. lconfine ) CALL init_environ_charges_second( sys_cell, charges )
+    IF ( lelectrostatic .OR. lconfine ) THEN
+       CALL init_environ_charges_second( system_cell, system_charges )
+       CALL init_environ_charges_second( environment_cell, environment_charges )
+    ENDIF
     !
     RETURN
     !
@@ -529,11 +587,13 @@ CONTAINS
 !
     ! ... Declares modules
     !
-    USE environ_base,        ONLY : sys_cell, lstatic, static, &
+    USE environ_base,        ONLY : lstatic, static, &
                                     loptical, optical,  &
                                     lexternals, externals,     &
                                     lelectrolyte, electrolyte, &
-                                    lelectrostatic
+                                    lelectrostatic, &
+                                    system_cell, environment_cell, &
+                                    ldoublecell, mapping
     ! ... Cell-related updates
     !
     USE cell_types,          ONLY : update_environ_cell
@@ -547,11 +607,32 @@ CONTAINS
     !
     REAL( DP ), INTENT( IN ) :: at(3,3)
     !
-    sys_cell%update = .TRUE.
+    INTEGER :: ipol
+    REAL( DP ) :: environment_at(3,3)
     !
-    ! ... Update cell parameters
+    system_cell%update = .TRUE.
     !
-    CALL update_environ_cell( at, sys_cell )
+    ! ... Update system cell parameters
+    !
+    CALL update_environ_cell( at, system_cell )
+    !
+    IF ( ldoublecell ) THEN
+       !
+       environment_cell%update = .TRUE.
+       !
+       DO ipol = 1, 3
+          environment_at( :, ipol ) = at( :, ipol ) * mapping % nrep( ipol )
+       END DO
+       !
+       ! ... Update environment cell parameters
+       !
+       CALL update_environ_cell( environment_at, environment_cell )
+       !
+    ENDIF
+    !
+    ! ... Update cores
+    !
+    CALL core_initcell( system_cell, environment_cell )
     !
     ! ... Update fixed quantities defined inside the cell
     !
@@ -560,11 +641,8 @@ CONTAINS
     IF ( lelectrolyte ) CALL update_environ_electrolyte( electrolyte )
     IF ( lexternals ) CALL update_environ_externals( externals )
     !
-    ! ... Update cores
-    !
-    CALL core_initcell( sys_cell )
-    !
-    sys_cell%update = .FALSE.
+    system_cell%update = .FALSE.
+    IF ( ldoublecell ) environment_cell%update = .FALSE.
     !
     RETURN
     !
@@ -581,13 +659,14 @@ CONTAINS
 ! be the most efficient choice, but it is a safe choice.
 !
      ! ... Declares modules
-     USE environ_base,       ONLY : sys_cell, ions, electrons, system,  &
+     USE environ_base,       ONLY : system_cell, ions, electrons, system,  &
                                     lsolvent, solvent,              &
                                     lstatic, static,                &
                                     loptical, optical,              &
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity,                   &
-                                    lelectrostatic, charges
+                                    lelectrostatic, system_charges, &
+                                    environment_charges
      USE utils_boundary,     ONLY : update_environ_boundary,        &
                                     set_soft_spheres
      USE utils_dielectric,   ONLY : update_environ_dielectric
@@ -609,7 +688,7 @@ CONTAINS
      !
      ! ... Second step of initialization, need to be moved out of here
      !
-     CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, sys_cell, vloc, ions )
+     CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, system_cell, vloc, ions )
      IF ( lsolvent ) CALL set_soft_spheres( solvent )
      IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
      !
@@ -661,7 +740,10 @@ CONTAINS
         !
      END IF
      !
-     IF ( lelectrostatic .OR. lconfine ) CALL update_environ_charges( charges )
+     IF ( lelectrostatic .OR. lconfine ) THEN
+        CALL update_environ_charges( system_charges )
+        CALL update_environ_charges( environment_charges )
+     END IF
      !
      system%update = .FALSE.
      ions%update = .FALSE.
@@ -691,7 +773,8 @@ CONTAINS
                                    lelectrolyte, electrolyte,    &
                                    lsoftcavity, lsoftsolvent,    &
                                    lsoftelectrolyte,             &
-                                   lelectrostatic, charges
+                                   lelectrostatic, mapping,      &
+                                   system_charges, environment_charges
      USE utils_boundary,    ONLY : update_environ_boundary
      USE utils_dielectric,  ONLY : update_environ_dielectric
      !
@@ -719,7 +802,10 @@ CONTAINS
 ! END BACKWARD COMPATIBILITY
      CALL print_environ_electrons( electrons )
      !
-     IF ( lelectrostatic .OR. lconfine ) CALL update_environ_charges( charges )
+     IF ( lelectrostatic .OR. lconfine ) THEN
+        CALL update_environ_charges( system_charges )
+        CALL update_environ_charges( environment_charges, mapping )
+     END IF
      !
      ! ... Update soft environ properties, defined on electrons
      !
@@ -800,10 +886,11 @@ CONTAINS
      !
      USE environ_base, ONLY : vzero, lelectrostatic, vreference,      &
                               lsoftcavity, vsoftcavity, lstatic,      &
-                              static, charges, lexternals, externals, &
+                              static, lexternals, externals,          &
                               lconfine, vconfine,                     &
                               lelectrolyte, electrolyte,              &
-                              ions, electrons, system
+                              ions, electrons, system,                &
+                              system_charges, environment_charges
      !
      ! Local clean up subroutines for the different contributions
      !
@@ -819,6 +906,8 @@ CONTAINS
      !
      IF ( lelectrostatic .AND. ASSOCIATED( vreference%cell ) ) &
           & CALL destroy_environ_density( vreference )
+     IF ( lelectrostatic .AND. ASSOCIATED( dvelectrostatic%cell ) ) &
+          & CALL destroy_environ_density( dvelectrostatic )
      IF ( lsoftcavity .AND. ASSOCIATED( vsoftcavity%cell ) ) &
           & CALL destroy_environ_density( vsoftcavity )
      IF ( lconfine .AND. ASSOCIATED( vconfine%cell ) ) &
@@ -826,7 +915,10 @@ CONTAINS
      !
      ! ... destroy derived types which were allocated in input
      !
-     IF ( lelectrostatic .OR. lconfine ) CALL destroy_environ_charges( lflag, charges )
+     IF ( lelectrostatic .OR. lconfine ) THEN
+        CALL destroy_environ_charges( lflag, system_charges )
+        CALL destroy_environ_charges( lflag, environment_charges )
+     END IF
      IF ( lexternals ) CALL destroy_environ_externals( lflag, externals )
      IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
      IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
@@ -855,7 +947,7 @@ CONTAINS
      !
      USE environ_base, ONLY : lelectrostatic, velectrostatic,      &
           loptical, optical, lsolvent, solvent
-     !
+     USE core_init, ONLY : core_clean
      USE electrostatic_init, ONLY : electrostatic_clean
      !
      IMPLICIT NONE
@@ -883,6 +975,17 @@ CONTAINS
      IF ( lsolvent ) CALL destroy_environ_boundary( lflag, solvent )
      !
      IF ( lboundary ) CALL destroy_boundary_core( lflag, derivatives )
+     !
+     CALL core_clean( lflag )
+     !
+     IF ( ldoublecell ) THEN
+        !
+        CALL destroy_environ_mapping( lflag, mapping )
+        CALL destroy_dfft( lflag, environment_dfft )
+        !
+     END IF
+     !
+     CALL destroy_dfft( lflag, system_dfft )
      !
      RETURN
      !

@@ -73,41 +73,57 @@ MODULE environ_base
   LOGICAL ::                          &
        lsmearedions
   !
-  ! Internal sys_cell parameters
+  ! Mapping between environment and system cell
   !
-  TYPE( environ_cell ), TARGET ::     &
-       sys_cell
+  LOGICAL ::                 &
+       ldoublecell
+  TYPE( environ_mapping ) :: &
+       mapping
   !
-  ! Internal environment_cell parameters
+  ! Internal system cell parameters
   !
-  TYPE( environ_cell ), TARGET ::     &
+  TYPE( environ_cell ), TARGET ::        &
+       system_cell
+  TYPE( fft_type_descriptor ), TARGET :: &
+       system_dfft
+  !
+  ! Internal environment cell parameters
+  !
+  TYPE( environ_cell ), POINTER ::        &
        environment_cell
+  TYPE( fft_type_descriptor ), POINTER :: &
+       environment_dfft
   !
   ! Internal parameters of ions
   !
-  TYPE( environ_ions ), TARGET ::  &
+  TYPE( environ_ions ), TARGET :: &
        ions
   !
   ! Internal parameters of electrons
   !
-  TYPE( environ_electrons ), TARGET ::  &
+  TYPE( environ_electrons ), TARGET :: &
        electrons
   !
   ! Internal parameters of external charges
   !
-  LOGICAL ::                            &
+  LOGICAL ::                           &
        lexternals
-  TYPE( environ_externals ), TARGET ::  &
+  TYPE( environ_externals ), TARGET :: &
        externals
   !
-  ! Internal paramters of total charges
+  ! Internal paramters of system charges
   !
   TYPE( environ_charges ), TARGET :: &
-       charges
+       system_charges
+  !
+  ! Internal paramters of environment charges
+  !
+  TYPE( environ_charges ), TARGET :: &
+       environment_charges
   !
   ! Details of the selected system
   !
-  TYPE( environ_system ), TARGET ::   &
+  TYPE( environ_system ), TARGET :: &
        system
   !
   ! Details of the continuum interface
@@ -193,6 +209,7 @@ MODULE environ_base
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
+       dvelectrostatic,             &
        vconfine,                    &
        vsoftcavity
 !----------------------------------------------------------------------------

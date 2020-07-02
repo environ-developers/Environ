@@ -115,6 +115,11 @@ MODULE environ_input
         INTEGER :: system_axis = 3
         ! main axis of 1D or 2D systems (1 = x, 2 = y, 3 = z)
 !
+! Environment cell specifications
+!
+        INTEGER :: env_nrep(3) = 1
+        ! number of replicas of the system cell along the three axis
+!
 ! Generic keyword to specify modification of electrostatic embedding (e.g. PBC correction)
 !
         LOGICAL :: env_electrostatic = .false.
@@ -197,6 +202,7 @@ MODULE environ_input
              oldenviron, environ_restart, verbose, environ_thr,        &
              environ_nskip, environ_type,                              &
              system_ntyp, system_dim, system_axis,                     &
+             env_nrep,                                                 &
              env_electrostatic, atomicspread, add_jellium,             &
              env_static_permittivity, env_optical_permittivity,        &
              env_surface_tension,                                      &
@@ -607,6 +613,7 @@ CONTAINS
                              oldenviron, environ_restart, environ_thr,   &
                              environ_nskip, environ_type,                &
                              system_ntyp, system_dim, system_axis,       &
+                             env_nrep,                                   &
                              stype, rhomax, rhomin, tbeta,               &
                              env_static_permittivity,                    &
                              env_optical_permittivity,                   &
@@ -761,6 +768,8 @@ CONTAINS
     system_dim = 0
     system_axis = 3
     !
+    env_nrep = 1
+    !
     env_electrostatic = .false.
     atomicspread(:) = -0.5D0
     add_jellium = .false.
@@ -905,6 +914,8 @@ CONTAINS
     CALL mp_bcast( system_dim,                 ionode_id, comm )
     CALL mp_bcast( system_axis,                ionode_id, comm )
     !
+    CALL mp_bcast( env_nrep,                   ionode_id, comm )
+    !
     CALL mp_bcast( env_electrostatic,          ionode_id, comm )
     CALL mp_bcast( atomicspread,               ionode_id, comm )
     CALL mp_bcast( add_jellium,                ionode_id, comm )
@@ -919,13 +930,13 @@ CONTAINS
     CALL mp_bcast( env_confine,                ionode_id, comm )
     !
     CALL mp_bcast( env_electrolyte_ntyp,       ionode_id, comm )
-    CALL mp_bcast( electrolyte_linearized,           ionode_id, comm )
-    CALL mp_bcast( electrolyte_entropy,              ionode_id, comm )
+    CALL mp_bcast( electrolyte_linearized,     ionode_id, comm )
+    CALL mp_bcast( electrolyte_entropy,        ionode_id, comm )
     CALL mp_bcast( cion,                       ionode_id, comm )
     CALL mp_bcast( cionmax,                    ionode_id, comm )
     CALL mp_bcast( rion,                       ionode_id, comm )
     CALL mp_bcast( zion,                       ionode_id, comm )
-    CALL mp_bcast( temperature,        ionode_id, comm )
+    CALL mp_bcast( temperature,                ionode_id, comm )
     !
     CALL mp_bcast( ion_adsorption,             ionode_id, comm )
     CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
@@ -969,17 +980,17 @@ CONTAINS
     CALL mp_bcast( filling_threshold,          ionode_id, comm )
     CALL mp_bcast( filling_spread,             ionode_id, comm )
     !
-    CALL mp_bcast( electrolyte_mode,                 ionode_id, comm )
+    CALL mp_bcast( electrolyte_mode,           ionode_id, comm )
     !
-    CALL mp_bcast( electrolyte_distance,             ionode_id, comm )
-    CALL mp_bcast( electrolyte_spread,               ionode_id, comm )
+    CALL mp_bcast( electrolyte_distance,       ionode_id, comm )
+    CALL mp_bcast( electrolyte_spread,         ionode_id, comm )
     !
-    CALL mp_bcast( electrolyte_rhomax,               ionode_id, comm )
-    CALL mp_bcast( electrolyte_rhomin,               ionode_id, comm )
-    CALL mp_bcast( electrolyte_tbeta,                ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomax,         ionode_id, comm )
+    CALL mp_bcast( electrolyte_rhomin,         ionode_id, comm )
+    CALL mp_bcast( electrolyte_tbeta,          ionode_id, comm )
     !
-    CALL mp_bcast( electrolyte_alpha,                ionode_id, comm )
-    CALL mp_bcast( electrolyte_softness,             ionode_id, comm )
+    CALL mp_bcast( electrolyte_alpha,          ionode_id, comm )
+    CALL mp_bcast( electrolyte_softness,       ionode_id, comm )
     !
     CALL mp_bcast( derivatives,                ionode_id, comm )
     CALL mp_bcast( ifdtype,                    ionode_id, comm )
@@ -1067,6 +1078,9 @@ CONTAINS
          CALL errore( sub_name,' system_dim out of range ', 1 )
     IF( system_axis < 1 .OR. system_axis > 3 ) &
          CALL errore( sub_name,' system_axis out of range ', 1 )
+    !
+    IF ( env_nrep(1) < 1 .OR. env_nrep(2) < 1 .OR. env_nrep(3) < 1 ) &
+         CALL errore( sub_name,' env_nrep cannot be smaller than 1', 1 )
     !
     IF( env_static_permittivity < 1.0_DP ) &
          CALL errore( sub_name,' env_static_permittivity out of range ', 1 )

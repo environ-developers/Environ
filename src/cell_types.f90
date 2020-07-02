@@ -22,15 +22,10 @@ MODULE cell_types
      INTEGER :: ntot, n1, n2, n3
      REAL( DP ) :: in1, in2, in3
      INTEGER :: n1x, n2x, n3x
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!     INTEGER :: idx0
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-     INTEGER :: j0, k0 , n2p, n3p
-! END BACKWARD COMPATIBILITY
      !
      ! Properties of the processor-specific partition
      !
+     INTEGER :: j0, k0 , n2p, n3p
      INTEGER :: nnr    ! size of processor-specific allocated fields
      INTEGER :: ir_end ! actual physical size of processor-specific allocated field
      INTEGER :: comm   ! parallel communicator
@@ -39,37 +34,120 @@ MODULE cell_types
      !
   END TYPE environ_cell
   !
+  TYPE environ_mapping
+     !
+     INTEGER, DIMENSION(3) :: nrep ! number of replicas of smaller cell in larger cell
+     !
+     TYPE( environ_cell ), POINTER :: small ! small cell
+     !
+     TYPE( environ_cell ), POINTER :: large ! large cell
+     !
+  END TYPE environ_mapping
+  !
   PRIVATE
   !
   PUBLIC :: environ_cell, init_environ_cell, update_environ_cell, ir2ijk, ir2r, &
-       displacement, minimum_image, volume, recips
+       displacement, minimum_image, volume, recips, &
+       environ_mapping, init_environ_mapping_first, init_environ_mapping_second, &
+       destroy_environ_mapping
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( alat, at, &
-       & me, root, cell, dfft )
+  SUBROUTINE init_environ_cell( alat, at, comm, me, root, n1, n2, n3, &
+       & n1x, n2x, n3x, n2p, n3p, j0, k0, nnr, cell )
 !--------------------------------------------------------------------
     !
-    USE fft_types, ONLY: fft_type_descriptor
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: me, root
-    TYPE( fft_type_descriptor ), INTENT(INOUT) :: dfft
+    INTEGER, INTENT(IN) :: comm, me, root
+    INTEGER, INTENT(IN) :: n1, n2, n3, n1x, n2x, n3x
+    INTEGER, INTENT(IN) :: n2p, n3p, j0, k0, nnr
     REAL( DP ), INTENT(IN) :: alat, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
+    !
+    CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
+    !
+    IF ( n1 .EQ. 0 .OR. n2 .EQ. 0 .OR. n3 .EQ. 0 ) &
+         & CALL errore(sub_name,'Wrong grid dimension',1)
+    !
+    IF ( alat .LT. 1.D-8 ) &
+         & CALL errore(sub_name,'Wrong alat',1)
+    !
+    ! Store cell units
+    !
+    cell % alat = alat
+    !
+    ! Calculate units of reciprocal space
+    !
+    cell % tpiba = tpi/alat
+    cell % tpiba2 = cell % tpiba**2
+    !
+    ! Real space grid, global dimensions
+    !
+    cell % n1 = n1
+    cell % n2 = n2
+    cell % n3 = n3
+    !
+    cell % in1 = 1.D0 / DBLE(n1)
+    cell % in2 = 1.D0 / DBLE(n2)
+    cell % in3 = 1.D0 / DBLE(n3)
+    !
+    cell % n1x = n1x
+    cell % n2x = n2x
+    cell % n3x = n3x
+    !
+    ! Real space grid, local dimensions (processor-specific)
+    !
+    cell % n2p = n2p
+    cell % n3p = n3p
+    !
+#if defined (__MPI)
+    cell % j0 = j0 ; cell % k0 = k0
+    cell % ir_end = MIN(nnr,n1x*n2p*n3p)
+#else
+    cell % j0 = 0; k0 = 0;
+    cell % ir_end = nnr
+#endif
+    !
+    cell % nnr = nnr
+    !
+    ! Cell parallelization
+    !
+    cell % comm = comm
+    cell % me   = me
+    cell % root = root
+    !
+    ! Total number of physical points
+    !
+    cell % ntot = cell % n1 * cell % n2 * cell % n3
+    !
+    ! Set basic cell properties
+    !
+    CALL update_environ_cell( at, cell )
+    !
+    ! Cell origin
+    !
+    cell % origin = 0.D0
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE init_environ_cell
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE update_environ_cell( at, cell )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL( DP ), INTENT(IN) :: at(3,3)
+    TYPE( environ_cell ), INTENT(INOUT) :: cell
+    CHARACTER( LEN=80 ) :: sub_name = 'update_environ_cell'
     !
     INTEGER :: ic, ix, iy, iz
     REAL( DP ) :: dx, dy, dz
     !
-    CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
-    !
-    IF ( dfft % nr1 .EQ. 0 .OR. dfft % nr2 .EQ. 0 .OR. dfft % nr3 .EQ. 0 ) &
-         & CALL errore(sub_name,'Wrong grid dimension',1)
-    !
-    cell % n1 = dfft % nr1
-    cell % n2 = dfft % nr2
-    cell % n3 = dfft % nr3
-    cell % alat = alat
+    cell % at = at
     !
     ! Calculate cell volume
     !
@@ -79,43 +157,16 @@ CONTAINS
     !
     cell % cubic = iscubic( cell%at )
     !
-    ! Calculate units of reciprocal space
+    ! Calculate reciprocal cell
     !
-    cell % tpiba = tpi/alat
-    cell % tpiba2 = cell % tpiba**2
+    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), &
+         & cell%bg(1,1), cell%bg(1,2), cell%bg(1,3) )
     !
-    cell % in1 = 1.D0 / DBLE(dfft % nr1)
-    cell % in2 = 1.D0 / DBLE(dfft % nr2)
-    cell % in3 = 1.D0 / DBLE(dfft % nr3)
-    cell % n1x = dfft % nr1x
-    cell % n2x = dfft % nr2x
-    cell % n3x = dfft % nr3x
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!    cell % idx0 = idx0
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
-    !j0 and k0 are calculated below.
-    !cell % j0 = j0
-    !cell % k0 = k0
-    cell % n2p = dfft % my_nr2p
-    cell % n3p = dfft % my_nr3p
-! END BACKWARD COMPATIBILITY
+    ! Set volume element
     !
-#if defined (__MPI)
-    cell % j0 = dfft%my_i0r2p ; cell % k0 = dfft%my_i0r3p
-    cell % ir_end = MIN(dfft%nnr,dfft%nr1x*dfft%my_nr2p*dfft%my_nr3p)
-#else
-    cell % j0 = 0; k0 = 0;
-    cell % ir_end = dfft%nnr
-#endif
-    cell % nnr = dfft % nnr
-    cell % me   = me
-    cell % root = root
-    !
-    cell % ntot = cell % n1 * cell % n2 * cell % n3
     cell % domega = cell % omega / cell % ntot
     !
-    cell % origin = 0.D0
+    ! Calcualte corners for minimum image convetion
     !
     ic = 0
     DO ix = 0,1
@@ -140,29 +191,6 @@ CONTAINS
        ENDDO
        !
     ENDDO
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE init_environ_cell
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE update_environ_cell( at, cell )
-!--------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    REAL( DP ), INTENT(IN) :: at(3,3)
-    TYPE( environ_cell ), INTENT(INOUT) :: cell
-    CHARACTER( LEN=80 ) :: sub_name = 'update_environ_cell'
-    !
-    cell % at = at
-    !
-    ! Calculate cell volume
-    !
-    CALL volume( cell%alat, cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%omega )
-    !
-    cell % domega = cell % omega / cell % ntot
     !
     RETURN
     !
@@ -474,5 +502,70 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE recips
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE create_environ_mapping( mapping )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_mapping ), INTENT(INOUT) :: mapping
+    !
+    mapping % nrep = 1
+    mapping % large => null()
+    mapping % small => null()
+    !
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE create_environ_mapping
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_environ_mapping_first( nrep, mapping )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, DIMENSION(3), INTENT(IN) :: nrep
+    TYPE( environ_mapping ), INTENT(INOUT) :: mapping
+    !
+    mapping % nrep = nrep
+    !
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE init_environ_mapping_first
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_environ_mapping_second( small, large, mapping )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_cell ), TARGET, INTENT(IN) :: small, large
+    TYPE( environ_mapping ), INTENT(INOUT) :: mapping
+    !
+    ! Check that small%at and large%at are compatible with mapping%nrep
+    !
+    mapping % small => small
+    mapping % large => large
+    !
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE init_environ_mapping_second
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE destroy_environ_mapping( lflag, mapping )
+!--------------------------------------------------------------------
+    IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE( environ_mapping ), INTENT(INOUT) :: mapping
+    !
+    mapping % nrep = 1
+    NULLIFY( mapping%small )
+    NULLIFY( mapping%large )
+    !
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE destroy_environ_mapping
 !--------------------------------------------------------------------
 END MODULE cell_types

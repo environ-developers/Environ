@@ -46,14 +46,17 @@ CONTAINS
 !--------------------------------------------------------------------
     USE environ_base,  ONLY : vzero, solvent,                       &
                               lelectrostatic, velectrostatic,       &
-                              vreference, lexternals,               &
+                              vreference, dvelectrostatic,          &
                               lsoftcavity, vsoftcavity,             &
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
                               lconfine, env_confine, vconfine,      &
-                              charges, lstatic, static,             &
+                              lstatic, static,                      &
                               lelectrolyte, electrolyte,            &
-                              sys_cell, lsoftsolvent, lsoftelectrolyte
+                              lsoftsolvent, lsoftelectrolyte,       &
+                              system_cell, environment_cell,        &
+                              system_charges, environment_charges,  &
+                              mapping
     USE electrostatic_base, ONLY : reference, outer
     !
     ! ... Each contribution to the potential is computed in its module
@@ -68,6 +71,7 @@ CONTAINS
     USE utils_charges,           ONLY : update_environ_charges, &
                                       & charges_of_potential
     USE tools_generate_boundary, ONLY : solvent_aware_de_dboundary
+    USE utils_mapping,           ONLY : map_large_to_small, map_small_to_large
     !
     IMPLICIT NONE
     !
@@ -86,15 +90,15 @@ CONTAINS
     !
     IF ( .NOT. update ) THEN
        !
-       IF ( lelectrostatic ) vtot = vtot + velectrostatic % of_r - vreference % of_r
+       IF ( lelectrostatic ) vtot = vtot + dvelectrostatic % of_r
        IF ( lconfine ) vtot = vtot + vconfine % of_r
        IF ( lsoftcavity ) vtot = vtot + vsoftcavity % of_r
        !
        IF ( PRESENT( local_verbose ) ) THEN
           !
           IF ( lelectrostatic ) CALL print_environ_density( vreference, local_verbose )
-          IF ( lelectrostatic ) CALL print_environ_density( velectrostatic, local_verbose )
-          IF ( lelectrostatic ) CALL print_environ_charges( charges, local_verbose, local_depth=0 )
+          IF ( lelectrostatic ) CALL print_environ_density( dvelectrostatic, local_verbose )
+          IF ( lelectrostatic ) CALL print_environ_charges( system_charges, local_verbose, local_depth=0 )
           IF ( lconfine ) CALL print_environ_density( vconfine, local_verbose )
           IF ( lsoftcavity ) CALL print_environ_density( vsoftcavity, local_verbose )
           !
@@ -110,20 +114,19 @@ CONTAINS
        !
        ! ... Electrostatics is also computed inside the calling program, need to remove the reference
        !
-       CALL calc_velectrostatic( reference, charges, vreference )
+       CALL calc_velectrostatic( reference, system_charges, vreference )
        CALL print_environ_density( vreference )
        !
-       IF ( lexternals ) CALL update_environ_charges( charges, lexternals )
-       !
-       CALL calc_velectrostatic( outer, charges, velectrostatic )
+       CALL calc_velectrostatic( outer, environment_charges, velectrostatic )
        CALL print_environ_density( velectrostatic )
        !
-       vtot = vtot + velectrostatic % of_r - vreference % of_r
+       CALL map_large_to_small( mapping, velectrostatic, dvelectrostatic )
+       dvelectrostatic % of_r = dvelectrostatic % of_r - vreference % of_r
        !
-       CALL charges_of_potential( velectrostatic, charges )
+       vtot = vtot + dvelectrostatic % of_r
        !
-       IF ( lexternals ) CALL update_environ_charges( charges )
-       CALL print_environ_charges( charges )
+       CALL charges_of_potential( velectrostatic, environment_charges )
+       CALL print_environ_charges( environment_charges )
        !
     END IF
     !
@@ -136,12 +139,12 @@ CONTAINS
        !
     END IF
     !
-    ! ... Compute the total potential depending on the boundary
+    ! ... Compute the total potential depending on the boundary !!!! NEEDS TO BE FIXED
     !
     IF ( lsoftcavity ) THEN
        !
        vsoftcavity % of_r = 0.D0
-       CALL init_environ_density( sys_cell, de_dboundary )
+       CALL init_environ_density( system_cell, de_dboundary )
        !
        IF ( lsoftsolvent ) THEN
           !
@@ -157,7 +160,7 @@ CONTAINS
           !
           ! ... If confinement potential different from zero, calculates confine contribution
           !
-          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, charges%electrons%density, de_dboundary )
+          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, system_charges%electrons%density, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !
@@ -213,13 +216,14 @@ CONTAINS
 !--------------------------------------------------------------------
     USE environ_base,  ONLY : electrons, solvent,                   &
                               lelectrostatic, velectrostatic,       &
-                              vreference, lexternals,               &
+                              vreference, dvelectrostatic,          &
                               lsoftcavity, vsoftcavity,             &
                               lsurface, env_surface_tension,        &
                               lvolume, env_pressure,                &
                               lconfine, vconfine, env_confine,      &
-                              charges, lstatic, static,             &
-                              lelectrolyte, electrolyte
+                              lstatic, static,                      &
+                              lelectrolyte, electrolyte,            &
+                              system_charges, environment_charges
     USE electrostatic_base, ONLY : reference, outer
     !
     ! ... Each contribution to the energy is computed in its module
@@ -254,27 +258,20 @@ CONTAINS
     !
     IF ( lelectrostatic ) THEN
        !
-       deenviron = deenviron + &
-            & scalar_product_environ_density(electrons%density,vreference)
-       !
-       CALL calc_eelectrostatic( reference%core, charges, vreference, ereference )
-       !
        deenviron = deenviron - &
-            & scalar_product_environ_density(electrons%density,velectrostatic)
+            & scalar_product_environ_density( electrons%density, dvelectrostatic )
        !
-!       IF ( lexternals ) CALL update_environ_charges( charges, add_externals=lexternals )
-!       !
-       CALL calc_eelectrostatic( outer%core, charges, velectrostatic, eelectrostatic, &
+       CALL calc_eelectrostatic( reference%core, system_charges, vreference, ereference )
+       !
+       CALL calc_eelectrostatic( outer%core, environment_charges, velectrostatic, eelectrostatic, &
                                  add_environment=.true. )
        !
        eelectrostatic = eelectrostatic - ereference
        !
-!       IF ( lexternals ) CALL update_environ_charges( charges )
-!       !
     END IF
     !
     IF ( lsoftcavity ) deenviron = deenviron - &
-         & scalar_product_environ_density(electrons%density,vsoftcavity)
+         & scalar_product_environ_density( electrons%density, vsoftcavity )
     !
     !  if surface tension different from zero compute cavitation energy
     !
@@ -289,7 +286,7 @@ CONTAINS
     IF ( lconfine ) THEN
        !
        deenviron = deenviron - &
-            & scalar_product_environ_density(electrons%density,vconfine)
+            & scalar_product_environ_density( electrons%density, vconfine )
        !
        econfine = scalar_product_environ_density( electrons%density, vconfine )
        !
@@ -313,14 +310,16 @@ CONTAINS
   SUBROUTINE calc_fenviron( nat, force_environ )
 !--------------------------------------------------------------------
     USE environ_base, ONLY : lelectrostatic, velectrostatic,    &
-                             charges, lstatic, static,          &
+                             lstatic, static,                   &
                              lelectrolyte, electrolyte,         &
                              lrigidcavity, lrigidsolvent,       &
                              lrigidelectrolyte,                 &
                              lsurface, env_surface_tension,     &
                              lvolume, env_pressure,             &
                              lconfine, env_confine,             &
-                             lsolvent, solvent, sys_cell
+                             lsolvent, solvent, system_cell,    &
+                             environment_cell, system_charges,  &
+                             environment_charges
     !
     USE electrostatic_base, ONLY : outer
     !
@@ -345,17 +344,17 @@ CONTAINS
     !
     force_environ = 0.D0
     !
-    IF ( lelectrostatic ) CALL calc_felectrostatic( outer, nat, charges, force_environ )
+    IF ( lelectrostatic ) CALL calc_felectrostatic( outer, nat, environment_charges, force_environ )
     !
     ! ... Compute the total forces depending on the boundary
     !
     IF ( lrigidcavity ) THEN
        !
-       CALL init_environ_density( sys_cell, de_dboundary )
+       CALL init_environ_density( system_cell, de_dboundary )
        !
-       CALL init_environ_gradient( sys_cell, partial )
+       CALL init_environ_gradient( system_cell, partial )
        !
-       IF ( lrigidsolvent ) THEN
+       IF ( lrigidsolvent ) THEN !!! NEEDS TO BE FIXED
           !
           de_dboundary % of_r = 0.D0
           !
@@ -369,7 +368,7 @@ CONTAINS
           !
           ! ... If confinement potential different from zero, calculates confine contribution
           !
-          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, charges%electrons%density, de_dboundary )
+          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, system_charges%electrons%density, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !

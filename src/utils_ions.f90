@@ -216,7 +216,7 @@ CONTAINS
     INTEGER, DIMENSION(nat), INTENT(IN) :: ityp
     REAL(DP), DIMENSION(ntyp), INTENT(IN) :: zv
     REAL(DP), DIMENSION(nnr, ntyp), INTENT(IN) :: vloc
-    TYPE( environ_cell), INTENT(IN) :: cell
+    TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( environ_ions ), INTENT(INOUT) :: ions
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'init_environ_ions_second'
@@ -237,7 +237,7 @@ CONTAINS
        !
        ! Store pseudopotential in R-space in ions%vloc%of_r
        !
-       CALL init_environ_density( cell, ions%vloc(i) )
+       CALL init_environ_density( cell, ions%vloc(i) ) ! INPUT/REFERENCE POTENTIALS IN SYSTEM CELL
        ions%vloc(i)%of_r = vloc(:,i)
        !
     ENDDO

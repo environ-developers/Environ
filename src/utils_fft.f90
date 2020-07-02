@@ -1,12 +1,12 @@
 MODULE utils_fft
   !
-  USE modules_constants, ONLY : DP, tpi
+  USE modules_constants, ONLY : DP, pi, tpi
   USE core_types
   !
   PRIVATE
   !
   PUBLIC :: create_fft_core, init_fft_core_first, init_fft_core_second, &
-       update_fft_core_cell, destroy_fft_core, init_dfft_core, init_dfft_core_second
+       update_fft_core_cell, destroy_fft_core, init_dfft, destroy_dfft
   !
 CONTAINS
   !--------------------------------------------------------------------
@@ -72,30 +72,29 @@ CONTAINS
   END SUBROUTINE init_fft_core_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fft_core_second( cell, gcutm, ngm, dfft, fft )
+  SUBROUTINE init_fft_core_second( gcutm, cell, dfft, fft )
 !--------------------------------------------------------------------
     !
     USE fft_types,               ONLY : fft_type_init
-    USE mp_bands,                ONLY : nyfft
     USE tools_generate_gvectors, ONLY : env_gvect_init, env_ggen
     USE correction_mt,           ONLY : update_mt_correction
+    !
     IMPLICIT NONE
     !
+    REAL(DP), INTENT(IN) :: gcutm
     TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
-    TYPE( fft_core ), INTENT(INOUT) :: fft
     TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
-    INTEGER :: fft_fact(3)
-    INTEGER :: i, ngm_g
-    INTEGER, INTENT(IN) :: ngm
-    REAL(DP) :: gcutm
+    TYPE( fft_core ), INTENT(INOUT) :: fft
     !
-    fft%cell => cell
+    INTEGER :: ngm_g
     !
     fft%gcutm = gcutm
-    fft%ngm = ngm
+    fft%cell => cell
     fft%dfft => dfft
     !
-    IF ( fft % use_internal_pbc_corr ) ALLOCATE( fft % mt_corr( ngm ) )
+    fft%ngm = dfft % ngm
+    !
+    IF ( fft % use_internal_pbc_corr ) ALLOCATE( fft % mt_corr( fft%ngm ) )
     !
     ! The following routines are in tools_generate_gvect and may need to be simplified
     !
@@ -109,89 +108,6 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE init_fft_core_second
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE init_dfft_core( cell, gcutm, comm, at )
-!--------------------------------------------------------------------
-    !
-    USE modules_constants, ONLY: pi
-    USE stick_base,        ONLY: sticks_map
-    USE fft_types,         ONLY: fft_type_init
-    USE mp_bands,          ONLY: nyfft
-    USE core_base,         ONLY: sys_dfft
-    IMPLICIT NONE
-    !
-    TYPE( environ_cell ), INTENT(INOUT) :: cell
-    TYPE( sticks_map ) :: smap
-    INTEGER, INTENT(IN) :: comm
-    REAL(DP), INTENT(IN) :: gcutm, at(3,3)
-    !
-    ! Needed some values from environ_cell type for fft_type_init
-    !
-    cell % comm = comm
-    cell % at = at
-    !
-    ! Calculate the reciprocal lattice vectors
-    !
-    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
-      & cell%bg(1,2), cell%bg(1,3))
-    !
-    sys_dfft%rho_clock_label='fft'
-    sys_dfft%lgamma = .TRUE.
-    CALL fft_type_init( sys_dfft, smap, "rho", sys_dfft%lgamma, .TRUE., cell%comm, cell%at, &
-         & cell%bg, gcutm, 4.D0, nyfft=nyfft )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE init_dfft_core
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE init_dfft_core_second( cell, gcutm, comm, at, m )
-!--------------------------------------------------------------------
-    !
-    USE modules_constants, ONLY: pi
-    USE stick_base,        ONLY: sticks_map
-    USE fft_types,         ONLY: fft_type_init
-    USE mp_bands,          ONLY: nyfft
-    USE core_base,         ONLY: environment_dfft!, sys_dfft
-    !USE environ_base,      ONLY: sys_cell
-    IMPLICIT NONE
-    !
-    TYPE( environ_cell ), INTENT(INOUT) :: cell
-    TYPE( sticks_map ) :: smap
-    INTEGER, INTENT(IN) :: comm
-    INTEGER, INTENT(IN) :: m(3)
-    REAL(DP), INTENT(IN) :: gcutm, at(3,3)
-    INTEGER :: i
-    !
-    ! Needed some values from environ_cell type for fft_type_init
-    !
-    ! If m values equals 1 then need to point to sys_dfft and sys_cell
-    !IF ( m(1)*m(2)*m(3) == 1) THEN
-    !  environment_dfft => sys_dfft
-    !  cell => sys_cell
-    !  RETURN
-    !ENDIF
-    cell % comm = comm
-    DO i=1,3
-      cell % at(:,i) = at(:,i)*m(i)
-    END DO
-    !
-    ! Calculate the reciprocal lattice vectors
-    !
-    CALL recips( cell%at(1,1), cell%at(1,2), cell%at(1,3), cell%bg(1,1), &
-      & cell%bg(1,2), cell%bg(1,3))
-    !
-    environment_dfft%rho_clock_label='fft'
-    environment_dfft%lgamma = .TRUE.
-    CALL fft_type_init( environment_dfft, smap, "rho", environment_dfft%lgamma, .TRUE., &
-         & cell%comm, cell%at, cell%bg, gcutm, 4.D0, nyfft=nyfft )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE init_dfft_core_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE update_fft_core_cell( cell, fft )
@@ -233,5 +149,58 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_fft_core
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_dfft( gcutm, comm, at, dfft )
+!--------------------------------------------------------------------
+    !
+    USE stick_base,        ONLY: sticks_map, sticks_map_deallocate
+    USE fft_types,         ONLY: fft_type_init
+    USE cell_types,        ONLY: recips
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: comm
+    REAL(DP), INTENT(IN) :: gcutm, at(3,3)
+    TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
+    !
+    ! Local Variables
+    !
+    TYPE( sticks_map ) :: smap
+    REAL(DP), DIMENSION(3,3) :: bg
+    !
+    ! Calculate the reciprocal lattice vectors
+    !
+    CALL recips( at(1,1), at(1,2), at(1,3), bg(1,1), &
+      & bg(1,2), bg(1,3))
+    !
+    CALL fft_type_init( dfft, smap, "rho", .TRUE., .TRUE., comm, at, &
+         & bg, gcutm, nyfft=1 )
+    dfft%rho_clock_label='fft'
+    !
+    CALL sticks_map_deallocate( smap )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE init_dfft
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE destroy_dfft( lflag, dfft )
+!--------------------------------------------------------------------
+    !
+    USE fft_types,         ONLY: fft_type_deallocate
+    !
+    IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
+    !
+    CALL fft_type_deallocate( dfft )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE destroy_dfft
 !--------------------------------------------------------------------
 END MODULE utils_fft

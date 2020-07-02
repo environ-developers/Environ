@@ -242,7 +242,7 @@ CONTAINS
     eself = 0.D0
     degauss = 0.D0
     !
-    ! Electrons and nuclei
+    ! Electrons and nuclei and external charges
     !
     IF ( core % use_fft ) THEN
        !
@@ -262,15 +262,6 @@ CONTAINS
     !  Include environment contributions
     !
     IF ( PRESENT(add_environment) .AND. add_environment ) THEN
-       !
-       ! External charges
-       !
-       IF ( charges % include_externals ) THEN
-          !
-          energy = energy + 0.5D0 * scalar_product_environ_density( charges%externals%density, potential )
-          degauss = degauss + charges % externals % charge
-          !
-       END IF
        !
        ! Polarization charge
        !

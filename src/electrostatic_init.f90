@@ -79,7 +79,8 @@ CONTAINS
     !
     lfd = .FALSE.
     loned_analytic = .FALSE.
-    lfft = .FALSE.
+    lfft_system = .FALSE.
+    lfft_environment = .FALSE.
     !
     ! Setup nested scheme if required
     !
@@ -91,9 +92,9 @@ CONTAINS
     CALL create_electrostatic_core( reference_core )
     SELECT CASE ( prog )
     CASE ( 'PW', 'CP', 'TD' )
-       lfft = .TRUE.
+       lfft_system = .TRUE.
        local_type = "fft"
-       CALL init_electrostatic_core( type = local_type, fft = sys_fft, core = reference_core )
+       CALL init_electrostatic_core( type = local_type, fft = system_fft, core = reference_core )
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected name of host code',1)
     END SELECT
@@ -133,9 +134,9 @@ CONTAINS
     IF ( lnested ) CALL create_electrostatic_core( inner_core )
     SELECT CASE ( core_type )
     CASE ( 'fft' )
-       lfft = .TRUE.
-       CALL init_electrostatic_core( type = core_type, fft = sys_fft, core = outer_core )
-       IF ( lnested ) CALL init_electrostatic_core( type = core_type, fft = sys_fft, core = inner_core )
+       lfft_environment = .TRUE.
+       CALL init_electrostatic_core( type = core_type, fft = environment_fft, core = outer_core )
+       IF ( lnested ) CALL init_electrostatic_core( type = core_type, fft = environment_fft, core = inner_core )
     CASE( '1d-analytic', '1da' )
        loned_analytic = .TRUE.
        CALL init_electrostatic_core( type = core_type, oned_analytic = oned_analytic, core = outer_core )

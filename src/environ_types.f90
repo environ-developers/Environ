@@ -27,8 +27,9 @@
 MODULE environ_types
 !----------------------------------------------------------------------------
   !
+  USE cell_types
+  USE core_types
   USE modules_constants, ONLY : DP
-  USE cell_types,        ONLY : environ_cell, displacement, ir2r, minimum_image
   USE core_types,        ONLY : fft_core, fd_core
   USE mp,                ONLY : mp_sum
 ! BACKWARD COMPATIBILITY
