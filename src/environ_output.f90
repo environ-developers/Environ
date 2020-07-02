@@ -35,6 +35,8 @@ MODULE environ_output
   LOGICAL :: ionode = .TRUE.
   INTEGER :: ionode_id
   !
+  LOGICAL :: lstdout ! wheter environ can print on standard output
+  !
   INTEGER :: comm ! WE MAY NEED A SECOND COMMUNICATOR FOR IMAGE PARALLELIZATION
   !
   INTEGER :: program_unit
@@ -50,7 +52,7 @@ MODULE environ_output
   PRIVATE
   !
   PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, &
-       & verbose, prog, set_environ_output, environ_print_energies, &
+       & verbose, prog, lstdout, set_environ_output, environ_print_energies, &
        & environ_print_potential_shift, environ_print_potential_warning, &
        & environ_summary, environ_clock, write_cube, &
        & print_environ_density, print_environ_gradient, &
@@ -114,6 +116,16 @@ CONTAINS
     environ_unit = find_free_unit()
     !
     prog = prog_(1:2)
+    !
+    SELECT CASE ( prog )
+    CASE ( 'PW', 'pw' )
+       lstdout = .TRUE.
+    CASE ( 'CP', 'cp' )
+       lstdout = .TRUE.
+    CASE DEFAULT
+       lstdout = .FALSE.
+    END SELECT
+    lstdout = lstdout .AND. ionode
     !
     RETURN
     !
@@ -226,7 +238,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -294,7 +306,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -568,7 +580,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -624,7 +636,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -862,7 +874,7 @@ CONTAINS
        passed_verbosity = verbosity - verbose - local_depth
        passed_depth = local_depth
     ELSE
-       passed_verbosity = verbosity - verbose 
+       passed_verbosity = verbosity - verbose
        passed_depth = depth
     END IF
     !
@@ -1245,7 +1257,7 @@ CONTAINS
     !
     USE electrostatic_base, ONLY : need_pbc_correction
 
-    IF (need_pbc_correction) WRITE( program_unit, 9401 ) 
+    IF (need_pbc_correction) WRITE( program_unit, 9401 )
 
 9401 FORMAT(/,&
      5(' '),'WARNING: you are using the parabolic pbc correction;',/,&

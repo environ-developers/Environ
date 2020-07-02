@@ -188,13 +188,6 @@ MODULE environ_base
   LOGICAL ::                        &
        lperiodic
   !
-  ! Temporary parameters
-  !
-  LOGICAL ::                        &
-       add_jellium
-  INTEGER ::                        &
-       nrep
-  !
   ! Computed physical variables
   !
   REAL (KIND=DP) ::                 &

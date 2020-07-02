@@ -96,7 +96,6 @@ MODULE utils_dielectric
   USE utils_functions
   USE core_fft, ONLY : gradient_fft
   USE modules_constants, ONLY : e2, fpi
-  USE environ_base, ONLY : add_jellium
   !
   IMPLICIT NONE
   !
@@ -581,7 +580,7 @@ CONTAINS
     CALL scalar_product_environ_gradient( dielectric%gradlog, gradient, dielectric % density )
     !
     jellium = 0.D0
-    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
+!    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
     dielectric % density % of_r = dielectric % density % of_r / fpi / e2 + ( charges % of_r - jellium ) * &
          & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
     !

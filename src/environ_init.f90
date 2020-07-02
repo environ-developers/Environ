@@ -72,7 +72,6 @@ CONTAINS
        & solvent_radius, radial_scale,               &
        & radial_spread, filling_threshold,           &
        & filling_spread,                             &
-       & add_jellium_,                               &
        & env_surface_tension_,                       &
        & env_pressure_,                              &
        & env_confine_,                               &
@@ -107,7 +106,7 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER(LEN=20)   :: sub_name = ' set_environ_base '
     LOGICAL, INTENT(IN) :: oldenviron_, environ_restart_, &
-         add_jellium_, electrolyte_linearized
+         electrolyte_linearized
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !    INTEGER, INTENT(IN) :: nspin
@@ -345,10 +344,6 @@ CONTAINS
     END IF
     !
     CALL init_environ_mapping_first( env_nrep, mapping )
-    !
-    ! Obsolote keywords to be moved or removed
-    !
-    add_jellium = add_jellium_
     !
     RETURN
     !

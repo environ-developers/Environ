@@ -12,7 +12,8 @@ TO DO (OLIVIERO)
 * core_fft.f90: add tests for compatibility between inputs
 * tools_generate_functions.f90: move away planar_average
 * environ_output.f90: fix write_cube that depends on dfftp and parallelization
-* remove oldenviron and addjellium
+* remove oldenviron
+* move potential_shift somewhere else
 
 LARGE_VS_SMALL CELL
 *** Fix felectrostatics force_fft (vloc is in system cell, environment_charges are in environment_cell)
@@ -27,6 +28,7 @@ NON-PRESSING TASKS
 * add tests for cp, neb, tddfpt, xspectra
 
 DONE
+* remove addjellium
 * NOTE: vzero that is stored in environ_init_potential (environ_init.f90) and must be kept only on the small cell.
 * take care of mapping when passing quantities from environ to pw (calc_venviron in environ_main.f90)
 * take care of mapping when passing quantities from pw to environ (environ_init_ions, environ_init_electrons, in environ_init.f90)

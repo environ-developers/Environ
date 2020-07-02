@@ -35,7 +35,6 @@ MODULE embedding_electrostatic
   USE environ_types
   USE environ_output
   USE modules_constants, ONLY : e2, pi, tpi, fpi
-  USE environ_base, ONLY : add_jellium
   !
   SAVE
   !

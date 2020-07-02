@@ -35,7 +35,6 @@ MODULE problem_linearized_pb
   USE electrostatic_types
   USE environ_output
   USE problem_poisson, ONLY : poisson_direct!, poisson_energy
-  USE environ_base, ONLY : add_jellium, ltddfpt
   !
   IMPLICIT NONE
   !
@@ -280,7 +279,7 @@ CONTAINS
     END IF
     !
     jellium = 0.D0
-    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
+!    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
     !
     ! ... Create and initialize local variables
     !
@@ -428,7 +427,7 @@ CONTAINS
     !
     x % of_r = x % of_r + shift
     !
-    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (lstdout.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_density( r )

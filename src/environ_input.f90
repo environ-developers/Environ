@@ -126,9 +126,6 @@ MODULE environ_input
         ! generic keyword that flags the need to read the electrostatic namelist
         REAL(DP) :: atomicspread(nsx) = -0.5D0
         ! gaussian spreads of the atomic density of charge, in internal units (a.u.)
-        LOGICAL :: add_jellium = .false.
-        ! depending on periodic boundary corrections, one may need to explicitly
-        ! polarize the compensatinig jellium background
 !
 ! Dielectric solvent parameters
 !
@@ -203,7 +200,7 @@ MODULE environ_input
              environ_nskip, environ_type,                              &
              system_ntyp, system_dim, system_axis,                     &
              env_nrep,                                                 &
-             env_electrostatic, atomicspread, add_jellium,             &
+             env_electrostatic, atomicspread,                          &
              env_static_permittivity, env_optical_permittivity,        &
              env_surface_tension,                                      &
              env_pressure,                                             &
@@ -624,7 +621,6 @@ CONTAINS
                              solvent_radius, radial_scale,               &
                              radial_spread, filling_threshold,           &
                              filling_spread,                             &
-                             add_jellium,                                &
                              env_surface_tension,                        &
                              env_pressure,                               &
                              env_confine,                                &
@@ -772,7 +768,6 @@ CONTAINS
     !
     env_electrostatic = .false.
     atomicspread(:) = -0.5D0
-    add_jellium = .false.
     !
     env_static_permittivity = 1.D0
     env_optical_permittivity = 1.D0
@@ -918,7 +913,6 @@ CONTAINS
     !
     CALL mp_bcast( env_electrostatic,          ionode_id, comm )
     CALL mp_bcast( atomicspread,               ionode_id, comm )
-    CALL mp_bcast( add_jellium,                ionode_id, comm )
     !
     CALL mp_bcast( env_static_permittivity,    ionode_id, comm )
     CALL mp_bcast( env_optical_permittivity,   ionode_id, comm )

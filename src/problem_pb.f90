@@ -37,7 +37,7 @@ MODULE problem_pb
   USE problem_linearized_pb, ONLY : linearized_pb_gradient!, linearized_pb_gradient_sqrt
   USE problem_generalized, ONLY : generalized_gradient
   USE problem_poisson, ONLY : poisson_direct!, poisson_energy
-  USE environ_base, ONLY : oldenviron, ltddfpt
+  USE environ_base, ONLY : oldenviron
   !
   IMPLICIT NONE
   !
@@ -66,23 +66,23 @@ CONTAINS
     !
     CALL start_clock( 'calc_vpb' )
     !
-    SELECT CASE( solver % type ) 
+    SELECT CASE( solver % type )
     !
     CASE( 'iterative' )
        !
        IF ( solver % use_iterative ) THEN
-          ! 
+          !
           IF ( solver % auxiliary .EQ. 'ioncc' ) THEN
              !
              IF ( ASSOCIATED( charges % dielectric ) ) THEN
                 !
-                IF (.NOT. PRESENT(inner_setup) ) & 
+                IF (.NOT. PRESENT(inner_setup) ) &
                    & CALL errore( sub_name, 'missing setup for inner generalized problem',1)
                 !
-                CALL pb_iterative( solver%iterative, core, potential, charges%density, charges%electrolyte, & 
+                CALL pb_iterative( solver%iterative, core, potential, charges%density, charges%electrolyte, &
                        charges%dielectric, inner_setup%solver, inner_setup%core )
                 !
-             ELSE 
+             ELSE
                 !
                 CALL pb_iterative( solver%iterative, core, potential, charges%density, charges%electrolyte )
                 !
@@ -105,10 +105,10 @@ CONTAINS
           CALL pb_newton( solver%newton, core, inner_setup%solver, inner_setup%core, &
                           potential, charges%density, charges%electrolyte, charges%dielectric )
           !
-       ELSE 
+       ELSE
           !
           CALL pb_newton( solver%newton, core, inner_setup%solver, inner_setup%core, &
-                          potential, charges%density, charges%electrolyte ) 
+                          potential, charges%density, charges%electrolyte )
           !
        END IF
        !
@@ -147,22 +147,22 @@ CONTAINS
     !
     CALL start_clock( 'calc_vpb' )
     !
-    SELECT CASE( solver % type ) 
+    SELECT CASE( solver % type )
     !
     CASE( 'iterative' )
        !
        IF ( solver % use_iterative ) THEN
-          ! 
+          !
           IF ( solver % auxiliary .EQ. 'ioncc' ) THEN
              !
              IF ( PRESENT(dielectric) ) THEN
                 !
                 IF (.NOT. PRESENT(inner_setup) ) CALL errore( sub_name, 'missing inner setup',1)
                 !
-                CALL pb_iterative( solver%iterative, core, potential, charges, electrolyte, & 
+                CALL pb_iterative( solver%iterative, core, potential, charges, electrolyte, &
                        dielectric, inner_setup%solver, inner_setup%core )
                 !
-             ELSE 
+             ELSE
                 !
                 CALL pb_iterative( solver%iterative, core, potential, charges, electrolyte )
                 !
@@ -185,10 +185,10 @@ CONTAINS
           CALL pb_newton( solver%newton, core, inner_setup%solver, inner_setup%core, &
                           potential, charges, electrolyte, dielectric )
           !
-       ELSE 
+       ELSE
           !
           CALL pb_newton( solver%newton, core, inner_setup%solver, inner_setup%core, &
-                          potential, charges, electrolyte ) 
+                          potential, charges, electrolyte )
           !
        END IF
        !
@@ -283,8 +283,8 @@ CONTAINS
 !  END SUBROUTINE pb_energy
 !!--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE pb_iterative( iterative, core, potential, charges, & 
-                   electrolyte, dielectric, inner_solver, inner_core ) 
+  SUBROUTINE pb_iterative( iterative, core, potential, charges, &
+                   electrolyte, dielectric, inner_solver, inner_core )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -351,7 +351,7 @@ CONTAINS
     x % of_r = 0.D0
     rhoaux % of_r = 0.D0
     !
-    ! ... Start iterative algorithm 
+    ! ... Start iterative algorithm
     !
     DO iter = 1, maxiter
        !
@@ -362,9 +362,9 @@ CONTAINS
        !
        IF ( PRESENT(dielectric) ) THEN
           !
-          CALL generalized_gradient( inner_solver, inner_core, rhotot, dielectric, x ) 
+          CALL generalized_gradient( inner_solver, inner_core, rhotot, dielectric, x )
           !
-       ELSE 
+       ELSE
           !
           CALL poisson_direct( core, rhotot, x )
           !
@@ -375,13 +375,13 @@ CONTAINS
        residual%of_r = 0.D0
        denominator%of_r = 1.D0
        !
-       DO ityp = 1, electrolyte % ntyp 
+       DO ityp = 1, electrolyte % ntyp
           !
-          cbulk => electrolyte%ioncctype(ityp)%cbulk 
+          cbulk => electrolyte%ioncctype(ityp)%cbulk
           z => electrolyte%ioncctype(ityp)%z
           cfactor % of_r = 1.D0
           !
-          DO ir = 1, ir_end 
+          DO ir = 1, ir_end
              arg = -z * x%of_r(ir) / kT
 !             IF ( electrolyte%ion_adsorption .NE. 'none' ) &
 !                & arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
@@ -438,7 +438,7 @@ CONTAINS
        ENDIF
     ENDDO
     !
-    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (lstdout.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     electrolyte accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     ! ... Destroy local variables
@@ -455,13 +455,13 @@ CONTAINS
   END SUBROUTINE pb_iterative
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE pb_newton( newton, core, inner_solver, inner_core, & 
+  SUBROUTINE pb_newton( newton, core, inner_solver, inner_core, &
                         potential, charges, electrolyte, dielectric)
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    TYPE( newton_solver ), TARGET, INTENT(IN) :: newton 
+    TYPE( newton_solver ), TARGET, INTENT(IN) :: newton
     TYPE( electrostatic_solver ), INTENT(IN) :: inner_solver
     TYPE( electrostatic_core ), INTENT(IN) :: core, inner_core
     TYPE( environ_density ), TARGET, INTENT(IN) :: charges
@@ -525,7 +525,7 @@ CONTAINS
     screening % of_r = electrolyte%k2/e2/fpi * gam%of_r
     residual % of_r = 0.D0
     !
-    ! ... Start Newton's algorithm 
+    ! ... Start Newton's algorithm
     !
     DO iter = 1, maxiter
        !
@@ -538,10 +538,10 @@ CONTAINS
        IF (PRESENT( dielectric )) THEN
           CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, dielectric, screening )
        ELSE
-          CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, screening=screening ) 
+          CALL linearized_pb_gradient( inner_solver, inner_core, rhotot, electrolyte, x, screening=screening )
        END IF
        !
-       residual % of_r = x%of_r - residual % of_r  
+       residual % of_r = x%of_r - residual % of_r
        !
        rhoaux % of_r = 0.D0
        screening % of_r = 0.D0
@@ -664,7 +664,7 @@ CONTAINS
        ENDIF
     ENDDO
     !
-    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (lstdout.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     electrolyte accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     ! ... Destroy local variables
@@ -675,7 +675,7 @@ CONTAINS
     CALL destroy_environ_density(rhoaux)
     CALL destroy_environ_density(rhotot)
     CALL destroy_environ_density(residual)
-    CALL destroy_environ_density(screening) 
+    CALL destroy_environ_density(screening)
     !
     RETURN
     !

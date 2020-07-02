@@ -38,7 +38,7 @@ MODULE problem_generalized
   USE electrostatic_types
   USE environ_output
   USE problem_poisson, ONLY : poisson_direct, poisson_gradient_direct!, poisson_energy
-  USE environ_base, ONLY : oldenviron, add_jellium, ltddfpt
+  USE environ_base, ONLY : oldenviron
   !
   IMPLICIT NONE
   !
@@ -328,7 +328,7 @@ CONTAINS
     total = integrate_environ_density( charges )
     totpol = total * ( 1.D0 - dielectric % constant ) / dielectric % constant
     jellium = 0.D0
-    IF ( add_jellium ) jellium =  total / cell % omega
+!    IF ( add_jellium ) jellium =  total / cell % omega
     rhozero % of_r = ( charges % of_r - jellium ) * ( 1.D0 - eps % of_r ) / eps % of_r
     totzero = integrate_environ_density( rhozero )
     totiter = integrate_environ_density( rhoiter )
@@ -378,7 +378,7 @@ CONTAINS
        !
     ENDDO
     !
-    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (lstdout.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     ! ... Compute total electrostatic potential
@@ -544,7 +544,7 @@ CONTAINS
        !
     ENDDO
     !
-    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (lstdout.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_density( l )
@@ -611,7 +611,7 @@ CONTAINS
     CALL init_environ_density( cell, invsqrt )
     invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
     jellium = 0.D0
-    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
+!    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
     !
     ! ... Create and initialize local variables
     !
@@ -735,7 +735,7 @@ CONTAINS
     !
     x % of_r = x % of_r + shift
     !
-    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (lstdout.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_density( r )
@@ -922,7 +922,7 @@ CONTAINS
        !
     ENDDO
     !
-    IF (.not.ltddfpt.AND.verbose.GE.1.AND.ionode) WRITE(program_unit, 9007) delta_en, iter
+    IF (lstdout.AND.verbose.GE.1) WRITE(program_unit, 9007) delta_en, iter
 9007 FORMAT('     polarization accuracy =',1PE8.1,', # of iterations = ',i3)
     !
     CALL destroy_environ_gradient( g )
