@@ -167,8 +167,13 @@ CONTAINS
     ! Starting with the GCS props
 
     zion = ABS(zion)
+    IF (ABS(tot_charge) < 1.D-6) THEN
+      ez_gcs = 0.D0
+    ELSE
+      ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
+    END IF
+
     ez = - tpi * e2 * tot_charge / area ! / permittivity
-    ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
     arg = ez_gcs/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
@@ -234,7 +239,11 @@ CONTAINS
 
     ! Now moving on to the ms props
     WRITE( environ_unit, *)"charge: ",tot_charge
-    ez_ms= tpi * e2 * (-electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
+    IF (ABS(tot_charge) < 1.D-6) THEN
+      ez_ms = 0.D0
+    ELSE
+      ez_ms= tpi * e2 * (-electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
+    END IF
     WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
     fact = 1.D0/tpi / e2 /2.D0 /carrier_density !*permittivity
     WRITE(  environ_unit, *)"MS Prefactor: ",fact
@@ -251,8 +260,11 @@ CONTAINS
     v_cut= 0.D0
     icount = 0
     DO i = 1, nnr
+
        !
-       IF ( ABS(axis(1,i)) .EQ. xstern_gcs ) THEN
+       !WRITE (environ_unit, *)"axis : ",ABS(axis(1,i) - xstern_ms)
+
+       IF (( axis(1,i) .LT. 0.D0 ) .AND. ( (ABS(axis(1,i)) - xstern_ms) .LE. 0.1D0 )) THEN
           !
           icount = icount + 1
           v_cut = v_cut + potential % of_r(i) + v(i)
@@ -262,9 +274,11 @@ CONTAINS
     ENDDO
 
     CALL mp_sum(icount,cell%comm)
-    CALL mp_sum(vbound,cell%comm)
-    vbound = vbound / DBLE(icount)
-    WRITE (environ_unit, *)"vbound: ",vbound
+    CALL mp_sum(v_cut,cell%comm)
+    WRITE (environ_unit, *)"v_cut: ",v_cut
+    WRITE (environ_unit, *)"icount: ",icount
+    v_cut = v_cut / DBLE(icount)
+    WRITE (environ_unit, *)"v_cut: ",v_cut
 
     semiconductor_in%bulk_sc_fermi = v_cut+ vms+ semiconductor_in%flatband_fermi
     semiconductor%bulk_sc_fermi = v_cut+ vms+ semiconductor%flatband_fermi
