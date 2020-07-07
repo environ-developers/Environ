@@ -4,9 +4,30 @@ MODULE utils_mapping
   USE environ_types
 
   PRIVATE
-  PUBLIC :: map_small_to_large, map_large_to_small
+  PUBLIC :: map_small_to_large, map_small_to_large_real, map_large_to_small
 
 CONTAINS
+!--------------------------------------------------------------------
+  SUBROUTINE map_small_to_large_real( mapping, nsmall, nlarge, fsmall, flarge )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_mapping ), INTENT(IN) :: mapping
+    INTEGER :: nsmall, nlarge
+    REAL( DP ), DIMENSION(nsmall), INTENT(IN) :: fsmall
+    REAL( DP ), DIMENSION(nlarge), INTENT(INOUT) :: flarge
+    !
+    ! Add checks on correspondence between mapping cells
+    ! and input/output cells
+    !
+    flarge = fsmall
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE map_small_to_large_real
+!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE map_small_to_large( mapping, fsmall, flarge )
 !--------------------------------------------------------------------

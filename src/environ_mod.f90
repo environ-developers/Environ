@@ -95,12 +95,14 @@ MODULE environ_base
   ! Internal parameters of ions
   !
   TYPE( environ_ions ), TARGET :: &
-       ions
+       system_ions,               &
+       environment_ions
   !
   ! Internal parameters of electrons
   !
   TYPE( environ_electrons ), TARGET :: &
-       electrons
+       system_electrons,               &
+       environment_electrons
   !
   ! Internal parameters of external charges
   !
@@ -122,7 +124,8 @@ MODULE environ_base
   ! Details of the selected system
   !
   TYPE( environ_system ), TARGET :: &
-       system
+       system_system,               &
+       environment_system
   !
   ! Details of the continuum interface
   !

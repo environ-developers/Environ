@@ -214,7 +214,7 @@ CONTAINS
   SUBROUTINE calc_eenviron( deenviron, eelectrostatic, esurface, &
        & evolume, econfine, eelectrolyte )
 !--------------------------------------------------------------------
-    USE environ_base,  ONLY : electrons, solvent,                   &
+    USE environ_base,  ONLY : system_electrons, solvent,            &
                               lelectrostatic, velectrostatic,       &
                               vreference, dvelectrostatic,          &
                               lsoftcavity, vsoftcavity,             &
@@ -259,7 +259,7 @@ CONTAINS
     IF ( lelectrostatic ) THEN
        !
        deenviron = deenviron - &
-            & scalar_product_environ_density( electrons%density, dvelectrostatic )
+            & scalar_product_environ_density( system_electrons%density, dvelectrostatic )
        !
        CALL calc_eelectrostatic( reference%core, system_charges, vreference, ereference )
        !
@@ -271,7 +271,7 @@ CONTAINS
     END IF
     !
     IF ( lsoftcavity ) deenviron = deenviron - &
-         & scalar_product_environ_density( electrons%density, vsoftcavity )
+         & scalar_product_environ_density( system_electrons%density, vsoftcavity )
     !
     !  if surface tension different from zero compute cavitation energy
     !
@@ -286,9 +286,9 @@ CONTAINS
     IF ( lconfine ) THEN
        !
        deenviron = deenviron - &
-            & scalar_product_environ_density( electrons%density, vconfine )
+            & scalar_product_environ_density( system_electrons%density, vconfine )
        !
-       econfine = scalar_product_environ_density( electrons%density, vconfine )
+       econfine = scalar_product_environ_density( system_electrons%density, vconfine )
        !
     END IF
     !
@@ -350,9 +350,9 @@ CONTAINS
     !
     IF ( lrigidcavity ) THEN
        !
-       CALL init_environ_density( system_cell, de_dboundary )
+       CALL init_environ_density( environment_cell, de_dboundary )
        !
-       CALL init_environ_gradient( system_cell, partial )
+       CALL init_environ_gradient( environment_cell, partial )
        !
        IF ( lrigidsolvent ) THEN !!! NEEDS TO BE FIXED
           !
@@ -368,7 +368,7 @@ CONTAINS
           !
           ! ... If confinement potential different from zero, calculates confine contribution
           !
-          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, system_charges%electrons%density, de_dboundary )
+          IF ( lconfine ) CALL calc_deconfine_dboundary( env_confine, environment_charges%electrons%density, de_dboundary )
           !
           ! ... If dielectric embedding, calcultes dielectric contribution
           !

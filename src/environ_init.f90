@@ -165,11 +165,17 @@ CONTAINS
     !
     ! CALL create_environ_cell(cell) THIS IS NOT NEEDED AS THERE ARE NO POINTERS OR ALLOCATABLES
     !
-    CALL create_environ_electrons(electrons)
+    CALL create_environ_electrons(system_electrons)
     !
-    CALL create_environ_ions(ions)
+    CALL create_environ_ions(system_ions)
     !
-    CALL create_environ_system(system)
+    CALL create_environ_system(system_system)
+    !
+    CALL create_environ_electrons(environment_electrons)
+    !
+    CALL create_environ_ions(environment_ions)
+    !
+    CALL create_environ_system(environment_system)
     !
     ! General flags
     !
@@ -247,7 +253,9 @@ CONTAINS
     ! Allocate and set basic properties of ions
     !
     CALL init_environ_ions_first( nat, ntyp, lsoftcavity, lcoredensity, lsmearedions, &
-         & radius_mode, atom_label, atomicspread, corespread, solvationrad, ions )
+         & radius_mode, atom_label, atomicspread, corespread, solvationrad, system_ions )
+    CALL init_environ_ions_first( nat, ntyp, lsoftcavity, lcoredensity, lsmearedions, &
+         & radius_mode, atom_label, atomicspread, corespread, solvationrad, environment_ions )
     !
     ! Set basic properties of electrons
     !
@@ -255,22 +263,24 @@ CONTAINS
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !    CALL init_environ_electrons_first( nelec, nspin, electrons )
 ! Compatible with QE-6.4.X QE-GIT
-    CALL init_environ_electrons_first( nelec, electrons )
+    CALL init_environ_electrons_first( nelec, system_electrons )
+    CALL init_environ_electrons_first( nelec, environment_electrons )
 ! END BACKWARD COMPATIBILITY
     !
     ! Set basic properties of the selected system
     !
-    CALL init_environ_system( system_ntyp, system_dim, system_axis, ions, system )
+    CALL init_environ_system( system_ntyp, system_dim, system_axis, system_ions, system_system )
+    CALL init_environ_system( system_ntyp, system_dim, system_axis, environment_ions, environment_system )
     !
     ! Collect free charges if computing electrostatics or confinement
     !
     IF ( lelectrostatic .OR. lconfine ) THEN
-       CALL init_environ_charges_first( electrons=electrons, charges=system_charges )
-       CALL init_environ_charges_first( electrons=electrons, charges=environment_charges )
+       CALL init_environ_charges_first( electrons=system_electrons, charges=system_charges )
+       CALL init_environ_charges_first( electrons=environment_electrons, charges=environment_charges )
     ENDIF
     IF ( lelectrostatic ) THEN
-       CALL init_environ_charges_first( ions=ions, charges=system_charges )
-       CALL init_environ_charges_first( ions=ions, charges=environment_charges )
+       CALL init_environ_charges_first( ions=system_ions, charges=system_charges )
+       CALL init_environ_charges_first( ions=environment_ions, charges=environment_charges )
     ENDIF
     !
     ! Allocate and set basic properties of external charges
@@ -295,7 +305,7 @@ CONTAINS
        CALL init_environ_boundary_first( ldielectric, need_factsqrt, lsurface, solvent_mode, &
             & stype, rhomax, rhomin, tbeta, env_static_permittivity, alpha, softness, &
             & solvent_distance, solvent_spread, solvent_radius, radial_scale, radial_spread, &
-            & filling_threshold, filling_spread, electrons, ions, system, derivatives, solvent )
+            & filling_threshold, filling_spread, environment_electrons, environment_ions, environment_system, derivatives, solvent )
     ENDIF
     !
     ! Set the parameters of the electrolyte and of its boundary
@@ -307,7 +317,7 @@ CONTAINS
             & electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
             & electrolyte_spread, solvent_radius, &
             & radial_scale, radial_spread, filling_threshold, filling_spread, &
-            & electrons, ions, system, derivatives, temperature, cion, cionmax, rion, &
+            & environment_electrons, environment_ions, environment_system, derivatives, temperature, cion, cionmax, rion, &
             & zion, electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
             & electrolyte_linearized, electrolyte )
        CALL init_environ_charges_first( electrolyte=electrolyte, charges=environment_charges )
@@ -365,8 +375,9 @@ CONTAINS
     !
     USE modules_constants, ONLY : e2_ => e2
     USE environ_base, ONLY :                      &
-         system_cell, electrons,                  &
-         system_charges, environment_charges,     &
+         system_cell, system_electrons,           &
+         system_charges, environment_electrons,   &
+         environment_charges,                     &
          vzero, deenviron,                        &
          lelectrostatic, eelectrostatic,          &
          velectrostatic, vreference,              &
@@ -519,7 +530,8 @@ CONTAINS
     !
     ! ... Second step of initialization of some environ derived type
     !
-    CALL init_environ_electrons_second( system_cell, electrons )
+    CALL init_environ_electrons_second( system_cell, system_electrons )
+    CALL init_environ_electrons_second( environment_cell, environment_electrons )
     !
     IF ( lsolvent ) CALL init_environ_boundary_second( environment_cell, solvent )
     !
@@ -652,19 +664,24 @@ CONTAINS
 ! be the most efficient choice, but it is a safe choice.
 !
      ! ... Declares modules
-     USE environ_base,       ONLY : system_cell, ions, electrons, system,  &
+     USE environ_base,       ONLY : system_cell, system_ions,       &
+                                    system_electrons, system_system,&
+                                    environment_ions,               &
+                                    environment_electrons,          &
+                                    environment_system,             &
                                     lsolvent, solvent,              &
                                     lstatic, static,                &
                                     loptical, optical,              &
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity,                   &
                                     lelectrostatic, system_charges, &
-                                    environment_charges
+                                    environment_charges, ldoublecell, environment_cell
      USE utils_boundary,     ONLY : update_environ_boundary,        &
                                     set_soft_spheres
      USE utils_dielectric,   ONLY : update_environ_dielectric
      USE utils_electrolyte,  ONLY : update_environ_electrolyte
      USE core_init,          ONLY : core_initions
+     USE utils_mapping,      ONLY : map_small_to_large_real
      !
      IMPLICIT NONE
      !
@@ -674,31 +691,49 @@ CONTAINS
      REAL ( DP ), INTENT( IN ) :: tau( 3, nat )
      REAL ( DP ), INTENT( IN ) :: vloc( nnr, ntyp )
      !
-     INTEGER :: ia, dim, axis, icor, max_ntyp
+     INTEGER :: ia, it, dim, axis, icor, max_ntyp
      REAL ( DP ) :: charge, spread, dist, pos(3)
+     REAL ( DP ), DIMENSION( :, : ), ALLOCATABLE :: aux
      !
-     ions%update = .TRUE.
+     system_ions%update = .TRUE.
+     environment_ions%update = .TRUE.
      !
      ! ... Second step of initialization, need to be moved out of here
      !
-     CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, system_cell, vloc, ions )
+     CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, system_cell, system_ions, vloc )
+     IF ( ldoublecell ) THEN
+        ALLOCATE( aux( environment_cell%nnr, ntyp ) )
+        DO it = 1, ntyp
+           CALL map_small_to_large_real( mapping, nnr, environment_cell%nnr, vloc(:, it), aux(:,it) )
+        END DO
+        CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, environment_cell, environment_ions, aux )
+        DEALLOCATE( aux )
+     ELSE
+        CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, environment_cell, environment_ions, vloc )
+     END IF
+     !
      IF ( lsolvent ) CALL set_soft_spheres( solvent )
      IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
      !
      ! ... Update ions parameters
      !
-     CALL update_environ_ions( nat, tau, ions )
-     CALL print_environ_ions( ions )
+     CALL update_environ_ions( nat, tau, system_ions )
+     CALL print_environ_ions( system_ions )
+     CALL update_environ_ions( nat, tau, environment_ions )
+     CALL print_environ_ions( environment_ions )
      !
      ! ... Update system parameters
      !
-     system%update = .TRUE.
-     CALL update_environ_system( system )
-     CALL print_environ_system( system )
+     system_system%update = .TRUE.
+     CALL update_environ_system( system_system )
+     CALL print_environ_system( system_system )
+     environment_system%update = .TRUE.
+     CALL update_environ_system( environment_system )
+     CALL print_environ_system( environment_system )
      !
      ! ... Update cores
      !
-     CALL core_initions( system%pos )
+     CALL core_initions( environment_system%pos )
      !
      ! ... Update rigid environ properties, defined on ions
      !
@@ -738,8 +773,10 @@ CONTAINS
         CALL update_environ_charges( environment_charges )
      END IF
      !
-     system%update = .FALSE.
-     ions%update = .FALSE.
+     system_system%update = .FALSE.
+     system_ions%update = .FALSE.
+     environment_system%update = .FALSE.
+     environment_ions%update = .FALSE.
      !
      RETURN
      !
@@ -760,7 +797,9 @@ CONTAINS
 ! is performed at every step of electronic optimization.
 !
      ! ... Declares modules
-     USE environ_base,      ONLY : electrons, lsolvent, solvent, &
+     USE environ_base,      ONLY : system_electrons,             &
+                                   environment_electrons,        &
+                                   lsolvent, solvent,            &
                                    lstatic, static,              &
                                    loptical, optical,            &
                                    lelectrolyte, electrolyte,    &
@@ -770,6 +809,7 @@ CONTAINS
                                    system_charges, environment_charges
      USE utils_boundary,    ONLY : update_environ_boundary
      USE utils_dielectric,  ONLY : update_environ_dielectric
+     USE utils_mapping,     ONLY : map_small_to_large_real
      !
      IMPLICIT NONE
      !
@@ -783,7 +823,10 @@ CONTAINS
 ! END BACKWARD COMPATIBILITY
      REAL( DP ), INTENT( IN ), OPTIONAL  :: nelec
      !
-     electrons%update = .TRUE.
+     REAL( DP ), DIMENSION(:), ALLOCATABLE :: aux
+     !
+     system_electrons%update = .TRUE.
+     environment_electrons%update = .TRUE.
      !
      ! ... Update electrons parameters
      !
@@ -791,13 +834,23 @@ CONTAINS
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
 ! Compatible with QE-6.4.X QE-GIT
-     CALL update_environ_electrons( nnr, rho, electrons, nelec )
+     CALL update_environ_electrons( nnr, rho, system_electrons, nelec )
+     !
+     IF ( ldoublecell ) THEN
+        ALLOCATE( aux( environment_cell % nnr ) )
+        CALL map_small_to_large_real( mapping, nnr, environment_cell % nnr, rho, aux )
+        CALL update_environ_electrons( environment_cell%nnr, aux, environment_electrons, nelec )
+        DEALLOCATE( aux )
+     ELSE
+        CALL update_environ_electrons( nnr, rho, environment_electrons, nelec )
+     ENDIF
 ! END BACKWARD COMPATIBILITY
-     CALL print_environ_electrons( electrons )
+     CALL print_environ_electrons( system_electrons )
+     CALL print_environ_electrons( environment_electrons )
      !
      IF ( lelectrostatic .OR. lconfine ) THEN
         CALL update_environ_charges( system_charges )
-        CALL update_environ_charges( environment_charges, mapping )
+        CALL update_environ_charges( environment_charges )
      END IF
      !
      ! ... Update soft environ properties, defined on electrons
@@ -833,7 +886,8 @@ CONTAINS
         !
      END IF
      !
-     electrons%update = .FALSE.
+     system_electrons%update = .FALSE.
+     environment_electrons%update = .FALSE.
      !
      RETURN
      !
@@ -882,7 +936,8 @@ CONTAINS
                               static, lexternals, externals,          &
                               lconfine, vconfine,                     &
                               lelectrolyte, electrolyte,              &
-                              ions, electrons, system,                &
+                              system_ions, system_electrons, system_system, &
+                              environment_ions, environment_electrons, environment_system, &
                               system_charges, environment_charges
      !
      ! Local clean up subroutines for the different contributions
@@ -916,9 +971,13 @@ CONTAINS
      IF ( lstatic ) CALL destroy_environ_dielectric( lflag, static )
      IF ( lelectrolyte ) CALL destroy_environ_electrolyte( lflag, electrolyte )
      !
-     CALL destroy_environ_electrons( lflag, electrons )
-     CALL destroy_environ_ions( lflag, ions )
-     CALL destroy_environ_system( lflag, system )
+     CALL destroy_environ_electrons( lflag, system_electrons )
+     CALL destroy_environ_ions( lflag, system_ions )
+     CALL destroy_environ_system( lflag, system_system )
+     !
+     CALL destroy_environ_electrons( lflag, environment_electrons )
+     CALL destroy_environ_ions( lflag, environment_ions )
+     CALL destroy_environ_system( lflag, environment_system )
      !
      RETURN
      !

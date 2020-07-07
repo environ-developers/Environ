@@ -180,7 +180,7 @@ CONTAINS
   END SUBROUTINE init_environ_charges_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE update_environ_charges( charges, mapping )
+  SUBROUTINE update_environ_charges( charges )
 !--------------------------------------------------------------------
     !
     USE utils_mapping, ONLY : map_large_to_small, map_small_to_large
@@ -188,29 +188,20 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( environ_charges ), INTENT( INOUT ) :: charges
-    TYPE( environ_mapping ), INTENT(IN), OPTIONAL :: mapping
     !
     REAL( DP ) :: local_charge
     CHARACTER( LEN = 80 ) :: sub_name = 'update_environ_charges'
-    TYPE( environ_density ) :: aux
     !
     charges % number = 0
     charges % charge = 0.D0
     charges % density % of_r = 0.D0
-    !
-    IF ( PRESENT( mapping ) ) CALL init_environ_density( charges % density % cell, aux )
     !
     IF ( charges % include_electrons ) THEN
        IF ( .NOT. ASSOCIATED( charges % electrons ) ) &
             & CALL errore(sub_name,'Missing expected charge component',1)
        charges % number = charges % number + charges % electrons % number
        charges % charge = charges % charge + charges % electrons % charge
-       IF ( ASSOCIATED( charges % electrons % density % cell, charges % density % cell ) ) THEN
-          charges % density % of_r = charges % density % of_r + charges % electrons % density % of_r
-       ELSE
-          CALL map_small_to_large( mapping, charges % electrons % density, aux )
-          charges % density % of_r = charges % density % of_r + aux % of_r
-       END IF
+       charges % density % of_r = charges % density % of_r + charges % electrons % density % of_r
     ENDIF
     !
     IF ( charges % include_ions ) THEN
@@ -218,12 +209,7 @@ CONTAINS
             & CALL errore(sub_name,'Missing expected charge component',1)
        charges % number = charges % number + charges % ions % number
        charges % charge = charges % charge + charges % ions % charge
-       IF ( ASSOCIATED( charges % ions % density % cell, charges % density % cell ) ) THEN
-          charges % density % of_r = charges % density % of_r + charges % ions % density % of_r
-       ELSE
-          CALL map_small_to_large( mapping, charges % ions % density, aux )
-          charges % density % of_r = charges % density % of_r + aux % of_r
-       END IF
+       charges % density % of_r = charges % density % of_r + charges % ions % density % of_r
     ENDIF
     !
     IF ( charges % include_externals ) THEN
@@ -231,15 +217,8 @@ CONTAINS
             & CALL errore(sub_name,'Missing expected charge component',1)
        charges % number = charges % number + charges % externals % number
        charges % charge = charges % charge + charges % externals % charge
-       IF ( ASSOCIATED( charges % externals % density % cell, charges % density % cell ) ) THEN
-          charges % density % of_r = charges % density % of_r + charges % externals % density % of_r
-       ELSE
-          CALL map_small_to_large( mapping, charges % externals % density, aux )
-          charges % density % of_r = charges % density % of_r + aux % of_r
-       END IF
+       charges % density % of_r = charges % density % of_r + charges % externals % density % of_r
     ENDIF
-    !
-    IF ( PRESENT( mapping ) ) CALL destroy_environ_density( aux )
     !
     CALL update_environ_density( charges%density )
     local_charge = charges%density%charge

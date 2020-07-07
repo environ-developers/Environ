@@ -13,6 +13,7 @@ TO DO (OLIVIERO)
 * tools_generate_functions.f90: move away planar_average
 * environ_output.f90: fix write_cube that depends on dfftp and parallelization
 * move potential_shift somewhere else
+* move solvent_tddfpt into environ_main
 
 LARGE_VS_SMALL CELL
 *** Fix felectrostatics force_fft (vloc is in system cell, environment_charges are in environment_cell)
@@ -79,3 +80,19 @@ NOTES:
   to allocate gvect we only need the fft results (number of gvectors in each processor) and the parallelization
   to initialize gvect we need to call ggen, which is in recvec_subs.f90, and we need: dfftp, gamma_only, at, bg, gcutm, ngm_g, ngm
   we may want to rewrite ggen to simplify it a bit and avoid computing this that are not used by environ (mill).
+
+### Environ_base quantities defined in the system_cell
+system_cell, system_dfft, system_fft, system_charges,
+ions, electrons, system,
+vzero, vreference, dvelectrostatic, vsoftcavity, vconfine
+
+### Environ_base quantities defined in the environment_cell and require mapping
+environment_charges -->(electrons, ions) -->(externals, dielectric, electrolyte)
+solvent -->(electrons, ions, system) -->(derivatives)
+electrolyte --> (electrons, ions, system) -->(derivatives)
+
+### Environ_base quantities defined in the environment_cell not requiring mapping
+environment_cell, external_charges, environment_dfft, environment_fft, derivatives, static, optical, velectrostatic,
+
+system_charges and vreference are only needed because environ computes the correction to the potential.
+maybe we could pass vreference from qe instead, and have all quantities only defined in the environment cell.

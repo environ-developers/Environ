@@ -204,7 +204,7 @@ CONTAINS
   END SUBROUTINE init_environ_ions_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_ions_second( nat, ntyp, nnr, ityp, zv, cell, vloc, ions )
+  SUBROUTINE init_environ_ions_second( nat, ntyp, nnr, ityp, zv, cell, ions, vloc )
 !--------------------------------------------------------------------
     !
     ! Second step of initialization, passing the information on types,
@@ -215,7 +215,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: nat, ntyp, nnr
     INTEGER, DIMENSION(nat), INTENT(IN) :: ityp
     REAL(DP), DIMENSION(ntyp), INTENT(IN) :: zv
-    REAL(DP), DIMENSION(nnr, ntyp), INTENT(IN) :: vloc
+    REAL(DP), DIMENSION(nnr, ntyp), OPTIONAL, INTENT(IN) :: vloc
     TYPE( environ_cell ), INTENT(IN) :: cell
     TYPE( environ_ions ), INTENT(INOUT) :: ions
     !
@@ -237,8 +237,10 @@ CONTAINS
        !
        ! Store pseudopotential in R-space in ions%vloc%of_r
        !
-       CALL init_environ_density( cell, ions%vloc(i) ) ! INPUT/REFERENCE POTENTIALS IN SYSTEM CELL
-       ions%vloc(i)%of_r = vloc(:,i)
+       IF ( PRESENT( vloc ) ) THEN
+          CALL init_environ_density( cell, ions%vloc(i) ) ! INPUT/REFERENCE POTENTIALS IN SYSTEM CELL
+          ions%vloc(i)%of_r = vloc(:,i)
+       END IF
        !
     ENDDO
     !

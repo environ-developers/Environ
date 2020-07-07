@@ -212,7 +212,7 @@ CONTAINS
   SUBROUTINE print_environ_density( density, local_verbose, local_depth, local_ions )
 !--------------------------------------------------------------------
     !
-    USE environ_base, ONLY : ions
+    USE environ_base, ONLY : system_ions
     !
     IMPLICIT NONE
     !
@@ -253,9 +253,9 @@ CONTAINS
           IF ( PRESENT(local_ions) ) THEN
              IF ( ionode ) WRITE(environ_unit,*)'present local ions'
              CALL write_cube( density, local_ions )
-          ELSE IF ( ions%initialized ) THEN
+          ELSE IF ( system_ions%initialized ) THEN
              IF ( ionode ) WRITE(environ_unit,*)'using stored ions'
-             CALL write_cube( density, ions )
+             CALL write_cube( density, system_ions )
           ELSE
              IF ( ionode ) WRITE(environ_unit,*)'no ions'
              CALL write_cube( density )
@@ -277,7 +277,7 @@ CONTAINS
   SUBROUTINE print_environ_gradient( gradient, local_verbose, local_depth, local_ions )
 !--------------------------------------------------------------------
     !
-    USE environ_base, ONLY : ions
+    USE environ_base, ONLY : system_ions
     !
     IMPLICIT NONE
     !
@@ -320,8 +320,8 @@ CONTAINS
           CALL print_environ_cell( gradient%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
              CALL write_cube( gradient%modulus, local_ions )
-          ELSE IF ( ASSOCIATED(ions%tau) ) THEN
-             CALL write_cube( gradient%modulus, ions )
+          ELSE IF ( ASSOCIATED(system_ions%tau) ) THEN
+             CALL write_cube( gradient%modulus, system_ions )
           ELSE
              CALL write_cube( gradient%modulus )
           END IF
@@ -356,7 +356,7 @@ CONTAINS
   SUBROUTINE print_environ_hessian( hessian, local_verbose, local_depth, local_ions )
 !--------------------------------------------------------------------
     !
-    USE environ_base, ONLY : ions
+    USE environ_base, ONLY : system_ions
     !
     IMPLICIT NONE
     !
@@ -399,8 +399,8 @@ CONTAINS
           CALL print_environ_cell( hessian%cell, passed_verbosity, passed_depth )
           IF ( PRESENT(local_ions) ) THEN
              CALL write_cube( hessian%laplacian, local_ions )
-          ELSE IF ( ASSOCIATED(ions%tau) ) THEN
-             CALL write_cube( hessian%laplacian, ions )
+          ELSE IF ( ASSOCIATED(system_ions%tau) ) THEN
+             CALL write_cube( hessian%laplacian, system_ions )
           ELSE
              CALL write_cube( hessian%laplacian )
           END IF
