@@ -409,13 +409,15 @@ sed '/Environ CALLS BEGIN/ a\
 mv tmp.2 plugin_scf_potential.f90
 
 # plugin initialization
+# Note, when I tried this from a fresh compilation, it didn't actually patch in
+# may need a different spot to place this and plugin_ext_forces
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE klist,            ONLY : tot_charge\
 USE force_mod,        ONLY : lforce\
 USE control_flags,    ONLY : lbfgs\
-USE environ_base,  ONLY : lsemiconductor\
+USE environ_base,  ONLY : louterloop\
 USE control_flags,    ONLY : nstep\
 !Environ patch
 ' plugin_initialization.f90 > tmp.1
@@ -434,7 +436,7 @@ sed '/Environ CALLS BEGIN/ a\
  \
 IF (use_environ) THEN \
  \
-IF (lsemiconductor) THEN \
+IF (louterloop) THEN \
 CALL start_clock( "semiconductor" ) \
 lforce = .TRUE. \
 lbfgs = .FALSE. \
@@ -479,7 +481,7 @@ sed '/Environ MODULES BEGIN/ a\
 !------------------------------------------------ \
  \
 \
-USE environ_base,  ONLY : lsemiconductor, semiconductor, cell \
+USE environ_base,  ONLY : louterloop, semiconductor, cell \
 USE environ_output,  ONLY : environ_unit \
  \
 USE mp,             ONLY: mp_bcast, mp_barrier, mp_sum \
@@ -547,7 +549,7 @@ END DO \
  \
  \
  \
-IF (use_environ .AND. lsemiconductor) THEN \
+IF (use_environ .AND. louterloop) THEN \
 CALL start_clock( "semiconductor" ) \
  \
 chg_step = istep-1 \
@@ -749,7 +751,7 @@ mv tmp.1 plugin_check.f90
 # USE environ_mp,  ONLY : environ_makov_payne \
 # !Environ patch
 # ' makov_payne.f90 > tmp.1
-# 
+#
 # sed '/Environ CALLS BEGIN/ a\
 # !Environ patch \
 #      IF(use_environ) THEN \
@@ -757,7 +759,7 @@ mv tmp.1 plugin_check.f90
 #      ENDIF \
 # !Environ patch
 # ' tmp.1 > tmp.2
-# 
+#
 # mv tmp.2 makov_payne.f90
 
 # force_lc

@@ -140,6 +140,8 @@ MODULE environ_base
   !
   LOGICAL ::                        &
        lsemiconductor
+  LOGICAL ::                        &
+       louterloop
   TYPE( environ_semiconductor ) ::  &
        semiconductor
 

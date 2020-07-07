@@ -104,6 +104,7 @@ CONTAINS
     need_pbc_correction = .FALSE.
     need_electrolyte = .FALSE.
     need_semiconductor = .FALSE.
+    need_outer_loop = .FALSE.
     CALL create_electrostatic_core( pbc_core )
     !
     ! first check keywords specfied in input
@@ -131,6 +132,7 @@ CONTAINS
        CASE ( 'ms-gcs','mott-schottky-gouy-chapman-stern')
           need_pbc_correction = .TRUE.
           need_semiconductor = .TRUE.
+          need_outer_loop = .TRUE.
           need_electrolyte = .TRUE.
           loned_analytic = .TRUE.
           local_type = 'ms-gcs'
