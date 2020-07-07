@@ -552,7 +552,7 @@ END DO \
 IF (use_environ .AND. louterloop) THEN \
 CALL start_clock( "semiconductor" ) \
  \
-chg_step = istep-1 \
+chg_step = istep \
 !! Initializing the constraints of possible DFT charges \
 ! Should probably be initialized at chg_step =1 but that seemed to be \
 ! creating some trouble possibly \
