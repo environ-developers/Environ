@@ -167,13 +167,14 @@ CONTAINS
     ! Starting with the GCS props
 
     zion = ABS(zion)
+
+
+    ez = - tpi * e2 * tot_charge / area ! / permittivity
     IF (ABS(tot_charge) < 1.D-6) THEN
-      ez_gcs = 0.D0
+      ez_gcs = ez
     ELSE
       ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     END IF
-
-    ez = - tpi * e2 * tot_charge / area ! / permittivity
     WRITE (environ_unit, *)"ez: ",ez
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
     arg = ez_gcs/fact
@@ -236,7 +237,8 @@ CONTAINS
           !
           ! ... Remove source potential (linear) and add analytic one
           !
-          WRITE( environ_unit, *)"v_gcs corr: ",vtmp
+
+          ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
           v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
           !
           WRITE( environ_unit, *)"v_i: ",v(i)
@@ -251,7 +253,7 @@ CONTAINS
     ! Now moving on to the ms props
     WRITE( environ_unit, *)"charge: ",tot_charge
     IF (ABS(tot_charge) < 1.D-6) THEN
-      ez_ms = 0.D0
+      ez_ms = ez
     ELSE
       ez_ms= tpi * e2 * (-electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
     END IF
