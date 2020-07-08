@@ -174,6 +174,7 @@ CONTAINS
     END IF
 
     ez = - tpi * e2 * tot_charge / area ! / permittivity
+    WRITE (environ_unit, *)"ez: ",ez
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
     arg = ez_gcs/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
@@ -210,6 +211,7 @@ CONTAINS
     ! ... Compute the analytic potential and charge
     ! ... adding in gcs effect first, only on the positive side of xstern
     !
+    WRITE (environ_unit, *)"vstern: ",vstern
     v = v - vbound + vstern
     DO i = 1, nnr
        !
@@ -224,11 +226,20 @@ CONTAINS
              acoth = 0.D0
           END IF
           vtmp =  f2 * acoth
+
+
+          ! Having to add extra handling for electrode charge
+
+          IF ( ISNAN(vtmp) ) THEN
+            vtmp = 0.D0
+          END IF
           !
           ! ... Remove source potential (linear) and add analytic one
           !
+          WRITE( environ_unit, *)"v_gcs corr: ",vtmp
           v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
           !
+          WRITE( environ_unit, *)"v_i: ",v(i)
        ENDIF
        !
     ENDDO
