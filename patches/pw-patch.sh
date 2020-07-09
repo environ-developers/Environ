@@ -596,20 +596,14 @@ ss_chg = tot_charge \
 !IF (ionode) THEN \
 ! making sure constraints are updated \
 IF (semiconductor%electrode_charge > 0) THEN \
-IF (v_cut >= 0.0 ) THEN \
-dft_chg_max = tot_charge \
-converge = .FALSE. \
-ELSE IF (ss_chg < 0.0) THEN \
+IF (ss_chg < 0.0) THEN \
 dft_chg_min = tot_charge \
 converge = .FALSE. \
 ELSE \
 prev_chg2 = tot_charge \
 END IF \
 ELSE \
-IF (v_cut <= 0.0 ) THEN \
-dft_chg_min = tot_charge \
-converge = .FALSE. \
-ELSE IF (ss_chg > 0.0) THEN \
+IF (ss_chg > 0.0) THEN \
 dft_chg_max = tot_charge \
 converge = .FALSE. \
 ELSE \
