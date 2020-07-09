@@ -241,7 +241,7 @@ CONTAINS
           ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
           v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
           !
-          WRITE( environ_unit, *)"v_i: ",v(i)
+          ! WRITE( environ_unit, *)"v_i: ",v(i)
        ENDIF
        !
     ENDDO
@@ -253,15 +253,19 @@ CONTAINS
     ! Now moving on to the ms props
     WRITE( environ_unit, *)"charge: ",tot_charge
     IF (ABS(tot_charge) < 1.D-6) THEN
-      ez_ms = ez
+      ez_ms = 0.D0
     ELSE
       ez_ms= tpi * e2 * (-electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
     END IF
     WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
-    fact = 1.D0/tpi / e2 /2.D0 /carrier_density !*permittivity
+    fact = 1.D0/tpi / e2 /4.D0 /carrier_density !*permittivity
     WRITE(  environ_unit, *)"MS Prefactor: ",fact
     arg = fact* (ez_ms**2.D0)
-    vms =  arg ! +kbt
+    IF (ez_ms < 0) THEN
+       vms =  -arg ! +kbt
+    ELSE
+       vms =  arg ! +kbt
+    END IF
     !Finds the total length of the depletion region
     depletion_length = ABS(2.D0 *fact*ez_ms)
     WRITE ( environ_unit, * )"depletion length: ",depletion_length
@@ -292,6 +296,7 @@ CONTAINS
     WRITE (environ_unit, *)"icount: ",icount
     v_cut = v_cut / DBLE(icount)
     WRITE (environ_unit, *)"v_cut: ",v_cut
+    WRITE ( environ_unit, * )"flatband_fermi: ",semiconductor_in%flatband_fermi
 
     semiconductor_in%bulk_sc_fermi = v_cut+ vms+ semiconductor_in%flatband_fermi
     semiconductor%bulk_sc_fermi = v_cut+ vms+ semiconductor%flatband_fermi
@@ -317,7 +322,7 @@ CONTAINS
           END IF
           ! WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
           ! WRITE (environ_unit, *) "Distance: ", distance
-          ! WRITE (environ_unit, *) "ms correction: ", vtmp
+          !WRITE (environ_unit, *) "ms correction: ", vtmp
           !
           ! ... Remove source potential (linear) and add analytic one
           !
