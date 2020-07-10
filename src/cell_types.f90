@@ -42,6 +42,8 @@ MODULE cell_types
      !
      TYPE( environ_cell ), POINTER :: large ! large cell
      !
+     INTEGER, DIMENSION(:), ALLOCATABLE :: map
+     !
   END TYPE environ_mapping
   !
   PRIVATE
@@ -548,9 +550,72 @@ CONTAINS
     mapping % small => small
     mapping % large => large
     !
+    ALLOCATE( mapping % map( mapping % small % nnr ) )
+    !
+    CALL update_environ_mapping( mapping )
+    !
     RETURN
 !--------------------------------------------------------------------
   END SUBROUTINE init_environ_mapping_second
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE update_environ_mapping( mapping )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    TYPE( environ_mapping ), INTENT(INOUT) :: mapping
+    !
+    LOGICAL :: physical
+    INTEGER :: ir, ipol
+    INTEGER, DIMENSION(3) :: small_n, large_n, center, origin, shift, ijk
+    !
+    ! ... Compute mapping
+    !
+    small_n(1) = mapping % small % n1
+    small_n(2) = mapping % small % n2
+    small_n(3) = mapping % small % n3
+    !
+    large_n(1) = mapping % large % n1
+    large_n(2) = mapping % large % n2
+    large_n(3) = mapping % large % n3
+    !
+    ! ... Indexes of center of small cell
+    !
+    center = NINT( small_n / 2 )
+    !
+    ! ... Indexes of origin of small cell
+    !
+    origin = MATMUL( mapping%small%bg, mapping%small%origin )
+    origin(:) = NINT( origin(:) * small_n(:) )
+    !
+    shift = center - origin
+    !
+    mapping%map = 0
+    !
+    DO ir = 1, mapping%small%ir_end
+       !
+       CALL ir2ijk( mapping%small, ir, ijk(1), ijk(2), ijk(3), physical )
+       !
+       IF ( .NOT. physical ) CYCLE
+       !
+       ! ... Shift to center small cell
+       !
+       ijk = ijk + shift
+       ijk = ijk - FLOOR(ijk/n)*n
+       !
+       ! ... Map small cell to large cell
+       !
+       ijk = ijk + small_n * mapping%nrep
+       !
+       mapping%map(ir) = 1 + ijk(1) + ijk(2) * large_n(1) + &
+            & ijk(3) * large_n(1) * large_n(2)
+       !
+    END DO
+    !
+    RETURN
+!--------------------------------------------------------------------
+  END SUBROUTINE update_environ_mapping
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE destroy_environ_mapping( lflag, mapping )
@@ -563,6 +628,8 @@ CONTAINS
     mapping % nrep = 1
     NULLIFY( mapping%small )
     NULLIFY( mapping%large )
+    !
+    DEALLOCATE( mapping%map )
     !
     RETURN
 !--------------------------------------------------------------------

@@ -115,8 +115,10 @@ MODULE environ_input
 !
 ! Environment cell specifications
 !
-        INTEGER :: env_nrep(3) = 1
-        ! number of replicas of the system cell along the three axis
+        INTEGER :: env_nrep(3) = 0
+        ! number of additional replicas of the system cell on each side along the three axis
+        ! nrep = 1 means there is one more cell on the left and on the right of the cell
+        ! the environment cell is (2*nrep+1) times the system cell along the three axis
 !
 ! Generic keyword to specify modification of electrostatic embedding (e.g. PBC correction)
 !
@@ -761,7 +763,7 @@ CONTAINS
     system_dim = 0
     system_axis = 3
     !
-    env_nrep = 1
+    env_nrep = 0
     !
     env_electrostatic = .false.
     atomicspread(:) = -0.5D0
@@ -1067,8 +1069,8 @@ CONTAINS
     IF( system_axis < 1 .OR. system_axis > 3 ) &
          CALL errore( sub_name,' system_axis out of range ', 1 )
     !
-    IF ( env_nrep(1) < 1 .OR. env_nrep(2) < 1 .OR. env_nrep(3) < 1 ) &
-         CALL errore( sub_name,' env_nrep cannot be smaller than 1', 1 )
+    IF ( env_nrep(1) < 0 .OR. env_nrep(2) < 0 .OR. env_nrep(3) < 0 ) &
+         CALL errore( sub_name,' env_nrep cannot be smaller than 0', 1 )
     !
     IF( env_static_permittivity < 1.0_DP ) &
          CALL errore( sub_name,' env_static_permittivity out of range ', 1 )

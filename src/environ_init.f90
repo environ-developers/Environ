@@ -209,7 +209,7 @@ CONTAINS
     lexternals     = env_external_charges .GT. 0
     lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
     lperiodic      = need_pbc_correction
-    ldoublecell    = SUM(env_nrep) .GT. 3
+    ldoublecell    = SUM(env_nrep) .GT. 0
     !
     ! Derived flags
     !
@@ -438,7 +438,7 @@ CONTAINS
     IF ( ldoublecell ) THEN
        !
        DO ipol = 1, 3
-          environment_at( :, ipol ) = at( :, ipol ) * mapping % nrep( ipol )
+          environment_at( :, ipol ) = at( :, ipol ) * ( 2 * mapping % nrep( ipol ) + 1 )
        END DO
        !
        ! ... Create fft descriptor for environment cell
