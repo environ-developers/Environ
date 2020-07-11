@@ -2,7 +2,6 @@ MODULE core_types
   !
   USE modules_constants, ONLY : DP
   USE cell_types, ONLY : environ_cell
-  USE fft_types, ONLY : fft_type_descriptor
   !
   TYPE fd_core
      !
@@ -10,8 +9,6 @@ MODULE core_types
      INTEGER :: nfdpoint
      INTEGER, ALLOCATABLE :: icfd(:)
      INTEGER :: ncfd
-     !
-     TYPE(fft_type_descriptor), POINTER :: dfft
      !
      TYPE(environ_cell), POINTER :: cell
      !
@@ -27,8 +24,6 @@ MODULE core_types
 !
 ! END BACKWARD COMPATIBILITY
      LOGICAL :: use_internal_pbc_corr = .FALSE.
-     !
-     TYPE(fft_type_descriptor), POINTER :: dfft
      !
      TYPE(environ_cell), POINTER :: cell
      !

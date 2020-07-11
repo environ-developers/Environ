@@ -14,6 +14,7 @@ TO DO (OLIVIERO)
 * environ_output.f90: fix write_cube that depends on dfftp and parallelization
 * move potential_shift somewhere else
 * move solvent_tddfpt into environ_main
+* remove dependence on mp_sum and comm as much as possible
 
 LARGE_VS_SMALL CELL
 *** Fix felectrostatics force_fft (vloc is in system cell, environment_charges are in environment_cell)

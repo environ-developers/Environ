@@ -26,6 +26,7 @@ MODULE core_fd
   !
   USE environ_types
   USE core_types
+  USE cell_types
   !
   PRIVATE
   !
@@ -47,18 +48,18 @@ CONTAINS
     !
     ! Local variables
     !
-    INTEGER :: idx, idx0, j0, k0, i, ir, ir_end, ipol, in
-    INTEGER :: ixc, iyc, izc, ixp, ixm, iyp, iym, izp, izm
+    INTEGER :: i, ir, ipol, in
     INTEGER, DIMENSION(:), ALLOCATABLE :: ix, iy, iz
     REAL( DP ), DIMENSION( :, : ), ALLOCATABLE :: gradtmp, gradaux
     !
     ! Aliases
     !
+    LOGICAL :: physical
     INTEGER, POINTER :: nnr, nfdpoint
     TYPE( environ_cell ), POINTER :: cell
     TYPE( fft_type_descriptor ), POINTER :: dfft
     !
-    dfft => fd % dfft
+    dfft => fd % cell % dfft
     cell => fd % cell
     nnr => fd % cell % nnr
     nfdpoint => fd % nfdpoint
@@ -68,43 +69,13 @@ CONTAINS
     ALLOCATE( gradtmp( dfft%nr1x*dfft%nr2x*dfft%nr3x, 3 ) )
     gradtmp = 0.D0
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfft%nr1x*dfft%nr2x*dfft%ipp(me_bgrp+1)
-!    ir_end = dfft%nr1x*dfft%nr2x*dfft%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfft%my_i0r2p ; k0 = dfft%my_i0r3p
-    ir_end = MIN(nnr,dfft%nr1x*dfft%my_nr2p*dfft%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
+    DO ir = 1, cell%ir_end
        !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       i = idx0 + ir - 1
-!       iz(0) = i / (dfft%nr1x*dfft%nr2x)
-!       i     = i - (dfft%nr1x*dfft%nr2x)*iz(0)
-!       iy(0) = i / dfft%nr1x
-!       ix(0) = i - dfft%nr1x*iy(0)
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx   = ir - 1
-       iz(0) = idx / (dfft%nr1x*dfft%my_nr2p)
-       idx   = idx - (dfft%nr1x*dfft%my_nr2p)*iz(0)
-       iz(0) = iz(0) + k0
-       iy(0) = idx / dfft%nr1x
-       idx   = idx - dfft%nr1x*iy(0)
-       iy(0) = iy(0) + j0
-       ix(0) = idx
-! END BACKWARD COMPATIBILITY
+       CALL ir2ijk( cell, ir, ix(0), iy(0), iz(0), physical )
        !
        ! ... do not include points outside the physical range
        !
-       IF ( ix(0) >= dfft%nr1 .OR. iy(0) >= dfft%nr2 .OR. iz(0) >= dfft%nr3 ) CYCLE
+       IF ( .NOT. physical ) CYCLE
        !
        DO in = 1, fd%nfdpoint
           ix(in) = ix(in-1) + 1
@@ -137,7 +108,7 @@ CONTAINS
     ALLOCATE( gradaux(nnr,3) )
 #if defined (__MPI)
     DO ipol = 1, 3
-       CALL mp_sum( gradtmp(:,ipol), cell%comm )
+       CALL mp_sum( gradtmp(:,ipol), cell%dfft%comm )
        CALL scatter_grid ( dfft, gradtmp(:,ipol), gradaux(:,ipol) )
     ENDDO
 #else

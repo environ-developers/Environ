@@ -347,7 +347,6 @@ CONTAINS
     IF ( ldoublecell ) THEN
        !
        ALLOCATE( environment_cell )
-       ALLOCATE( environment_dfft )
        !
     END IF
     !
@@ -390,12 +389,10 @@ CONTAINS
          lsurface, esurface, lvolume, evolume,    &
          lconfine, vconfine, econfine,            &
          eelectrolyte, environment_cell,          &
-         ldoublecell, mapping, system_dfft,       &
-         environment_dfft
+         ldoublecell, mapping
     !
     USE cell_types, ONLY : init_environ_cell
     USE core_init,  ONLY : core_initbase
-    USE utils_fft,  ONLY : init_dfft
     !
     ! Local base initialization subroutines for the different
     ! environ contributions
@@ -420,18 +417,9 @@ CONTAINS
     e2_ = 2.D0
     IF ( PRESENT(e2) ) e2_ = e2
     !
-    ! ... Create fft descriptor for system cell
-    !
-    CALL init_dfft( gcutm, comm, at, system_dfft )
-    !
     ! ... Create system cell
     !
-    CALL init_environ_cell( alat, at, comm, me, root, &
-         & system_dfft%nr1, system_dfft%nr2, system_dfft%nr3, &
-         & system_dfft%nr1x, system_dfft%nr2x, system_dfft%nr3x, &
-         & system_dfft%my_nr2p, system_dfft%my_nr3p, &
-         & system_dfft%my_i0r2p, system_dfft%my_i0r3p, system_dfft%nnr, &
-         & system_cell )
+    CALL init_environ_cell( gcutm, comm, alat, at, system_cell )
     !
     ! ... Double cell and mapping
     !
@@ -441,22 +429,12 @@ CONTAINS
           environment_at( :, ipol ) = at( :, ipol ) * ( 2 * mapping % nrep( ipol ) + 1 )
        END DO
        !
-       ! ... Create fft descriptor for environment cell
-       !
-       CALL init_dfft( gcutm, comm, environment_at, environment_dfft )
-       !
        ! ... Create environment cell
        !
-       CALL init_environ_cell( alat, environment_at, comm, me, root, &
-            & environment_dfft%nr1, environment_dfft%nr2, environment_dfft%nr3, &
-            & environment_dfft%nr1x, environment_dfft%nr2x, environment_dfft%nr3x, &
-            & environment_dfft%my_nr2p, environment_dfft%my_nr3p, &
-            & environment_dfft%my_i0r2p, environment_dfft%my_i0r3p, environment_dfft%nnr, &
-            & environment_cell )
+       CALL init_environ_cell( gcutm, comm, alat, environment_at, environment_cell )
        !
     ELSE
        !
-       environment_dfft => system_dfft
        environment_cell => system_cell
        !
     ENDIF
@@ -465,8 +443,7 @@ CONTAINS
     !
     ! ... Initialize numerical cores
     !
-    CALL core_initbase( gcutm, environment_dfft, environment_cell, &
-         & system_dfft, system_cell )
+    CALL core_initbase( gcutm, environment_cell, system_cell )
     !
     ! ... Create local storage for base potential, that needs to be modified
     !
@@ -681,7 +658,7 @@ CONTAINS
      USE utils_dielectric,   ONLY : update_environ_dielectric
      USE utils_electrolyte,  ONLY : update_environ_electrolyte
      USE core_init,          ONLY : core_initions
-     USE utils_mapping,      ONLY : map_small_to_large_real
+     USE utils_mapping,      ONLY : map_small_to_large
      !
      IMPLICIT NONE
      !
@@ -704,7 +681,7 @@ CONTAINS
      IF ( ldoublecell ) THEN
         ALLOCATE( aux( environment_cell%nnr, ntyp ) )
         DO it = 1, ntyp
-           CALL map_small_to_large_real( mapping, nnr, environment_cell%nnr, vloc(:, it), aux(:,it) )
+           CALL map_small_to_large( mapping, nnr, environment_cell%nnr, vloc(:, it), aux(:,it) )
         END DO
         CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, environment_cell, environment_ions, aux )
         DEALLOCATE( aux )
@@ -809,7 +786,7 @@ CONTAINS
                                    system_charges, environment_charges
      USE utils_boundary,    ONLY : update_environ_boundary
      USE utils_dielectric,  ONLY : update_environ_dielectric
-     USE utils_mapping,     ONLY : map_small_to_large_real
+     USE utils_mapping,     ONLY : map_small_to_large
      !
      IMPLICIT NONE
      !
@@ -837,8 +814,8 @@ CONTAINS
      CALL update_environ_electrons( nnr, rho, system_electrons, nelec )
      !
      IF ( ldoublecell ) THEN
-        ALLOCATE( aux( environment_cell % nnr ) )
-        CALL map_small_to_large_real( mapping, nnr, environment_cell % nnr, rho, aux )
+        ALLOCATE( aux( environment_cell%nnr ) )
+        CALL map_small_to_large( mapping, nnr, environment_cell%nnr, rho, aux )
         CALL update_environ_electrons( environment_cell%nnr, aux, environment_electrons, nelec )
         DEALLOCATE( aux )
      ELSE
@@ -1033,11 +1010,11 @@ CONTAINS
      IF ( ldoublecell ) THEN
         !
         CALL destroy_environ_mapping( lflag, mapping )
-        CALL destroy_dfft( lflag, environment_dfft )
+        CALL destroy_environ_cell( lflag, environment_cell )
         !
      END IF
      !
-     CALL destroy_dfft( lflag, system_dfft )
+     CALL destroy_environ_cell( lflag, system_cell )
      !
      RETURN
      !

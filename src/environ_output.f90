@@ -182,11 +182,8 @@ CONTAINS
        IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1001 )cell%alat,cell%omega
        IF ( verbosity .GE. 3 ) THEN
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1002 )cell%at
-          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1003 )cell%n1,cell%n2,cell%n3
+          IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1003 )cell%dfft%nr1,cell%dfft%nr2,cell%dfft%nr3
           IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1004 )cell%ntot,cell%nnr,cell%domega
-          IF ( verbosity .GE. 4 ) THEN
-             IF ( ionode ) WRITE( UNIT = environ_unit, FMT = 1005 )cell%me,cell%root,cell%comm
-          END IF
        END IF
     END IF
     !
@@ -202,9 +199,6 @@ CONTAINS
 1004 FORMAT(1x,'total size of grid         = ',I10,' '&
           /,1x,'size of r-space per proc.  = ',I10,' '&
           /,1x,'finite element volume      = ',F12.6,' ')
-1005 FORMAT(1x,'current processor index    = ',I10,' '&
-          /,1x,'index of root processor    = ',I10,' '&
-          /,1x,'communicator index         = ',I10,' ')
 !--------------------------------------------------------------------
   END SUBROUTINE print_environ_cell
 !--------------------------------------------------------------------
@@ -1421,7 +1415,6 @@ CONTAINS
   SUBROUTINE write_cube( f, ions, idx )
 !--------------------------------------------------------------------
     !
-    USE environ_base,       ONLY : derivatives
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.1.X
 !      USE fft_base,       ONLY : grid_gather
@@ -1456,21 +1449,19 @@ CONTAINS
     INTEGER, OPTIONAL :: idx
     CHARACTER( LEN=100 ) :: filemod
     !
-    TYPE( fft_type_descriptor ), POINTER :: dfftp
+    TYPE( fft_type_descriptor ), POINTER :: dfft
     !
     CHARACTER( LEN=80 ) :: sub_name = 'write_cube'
     !
-    IF ( .NOT. ASSOCIATED( derivatives % fft % dfft ) ) &
-         CALL errore(sub_name,'missing fft core',1)
-    dfftp => derivatives % fft % dfft
+    dfft => f%cell%dfft
     !
-    nr1x = f%cell%n1x
-    nr2x = f%cell%n2x
-    nr3x = f%cell%n3x
+    nr1x = dfft%nr1x
+    nr2x = dfft%nr2x
+    nr3x = dfft%nr3x
     !
-    nr1 = f%cell%n1
-    nr2 = f%cell%n2
-    nr3 = f%cell%n3
+    nr1 = dfft%nr1
+    nr2 = dfft%nr2
+    nr3 = dfft%nr3
     !
     IF(PRESENT(idx)) THEN
        WRITE(filemod, '(i4.4)') idx
@@ -1497,8 +1488,8 @@ CONTAINS
 !Compatible with QE-5.1.X
 !      CALL grid_gather( f, flocal )
 !Compatible with QE-5.2.X QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
-    CALL gather_grid( dfftp, f%of_r, flocal )
-    CALL mp_sum( flocal, f%cell%comm )
+    CALL gather_grid( dfft, f%of_r, flocal )
+    CALL mp_sum( flocal, dfft%comm )
 #else
     flocal = f%of_r
 #endif

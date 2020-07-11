@@ -99,7 +99,7 @@ CONTAINS
     END DO
     !
     IF ( .NOT. reverse ) THEN
-       CALL mp_sum( f1d(:), cell%comm )
+       CALL mp_sum( f1d(:), cell%dfft%comm )
        f1d = f1d / DBLE(narea)
     END IF
     !
@@ -495,7 +495,7 @@ CONTAINS
     ! ... check integral of function is consistent with analytic one
     !
     chargelocal = SUM(local)*cell%omega/DBLE(cell%ntot)*0.5D0
-    CALL mp_sum(chargelocal,cell%comm)
+    CALL mp_sum(chargelocal,cell%dfft%comm)
     IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
          CALL infomsg(sub_name,'WARNING: wrong integral of erfc function')
     !

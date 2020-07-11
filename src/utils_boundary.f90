@@ -786,9 +786,9 @@ CONTAINS
     test_function % pos(1) = 11.79D0 / cell % alat
     test_function % pos(2) = 12.05D0 / cell % alat
     !
-    DO i = 1, cell % n3
+    DO i = 1, cell % dfft % nr3
        !
-       test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % n3 )
+       test_function % pos(3) = DBLE(i-1) * cell % at(3,3) / DBLE( cell % dfft % nr3 )
        CALL density_of_functions( test_function, delta, .TRUE. )
        CALL gradient_of_functions( test_function, graddelta, .TRUE. )
        !

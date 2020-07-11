@@ -243,8 +243,8 @@ CONTAINS
       ENDIF
       !
     ENDDO
-    CALL mp_sum(icount,cell%comm)
-    CALL mp_sum(vbound,cell%comm)
+    CALL mp_sum(icount,cell%dfft%comm)
+    CALL mp_sum(vbound,cell%dfft%comm)
     vbound = vbound / DBLE(icount)
     !
     v = v - vbound + vstern

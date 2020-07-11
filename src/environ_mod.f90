@@ -80,17 +80,13 @@ MODULE environ_base
   !
   ! Internal system cell parameters
   !
-  TYPE( environ_cell ), TARGET ::        &
+  TYPE( environ_cell ), TARGET :: &
        system_cell
-  TYPE( fft_type_descriptor ), TARGET :: &
-       system_dfft
   !
   ! Internal environment cell parameters
   !
-  TYPE( environ_cell ), POINTER ::        &
+  TYPE( environ_cell ), POINTER :: &
        environment_cell
-  TYPE( fft_type_descriptor ), POINTER :: &
-       environment_dfft
   !
   ! Internal parameters of ions
   !

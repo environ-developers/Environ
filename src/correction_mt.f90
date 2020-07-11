@@ -11,7 +11,7 @@ MODULE correction_mt
   !     systems
   !
   USE modules_constants, ONLY: DP, pi, tpi, fpi, e2
-  USE cell_types, ONLY : ir2r, minimum_image
+  USE cell_types
   USE core_types
   !
   IMPLICIT NONE
@@ -47,7 +47,7 @@ CONTAINS
     mt_corr => fft % mt_corr
     !
     cell => fft % cell
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     omega => fft % cell % omega
     tpiba2 => fft % cell % tpiba2
     !

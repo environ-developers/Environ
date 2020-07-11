@@ -46,7 +46,7 @@ CONTAINS
     gstart => fft % gstart
     ngm => fft % ngm
     gg => fft % gg
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     !
     ! Bring fin%of_r from R-space --> G-space
     !
@@ -128,7 +128,7 @@ CONTAINS
     gstart => fft % gstart
     gg => fft % gg
     g => fft % g
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     !
     ! ... Bring rho to G space
     !
@@ -226,7 +226,7 @@ CONTAINS
     ngm => fft % ngm
     gstart => fft % gstart
     g => fft % g
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     !
     ALLOCATE( auxr( dfft%nnr ) )
     !
@@ -288,7 +288,7 @@ CONTAINS
        DEALLOCATE( ftmp )
     ENDIF
     !
-    CALL mp_sum( force, rho%cell%comm )
+    CALL mp_sum( force, rho%cell%dfft%comm )
     !
     DEALLOCATE(auxg)
     DEALLOCATE(vloc)
@@ -317,7 +317,7 @@ CONTAINS
     !
     ! ... add tests for compatilibity between input, output, and fft
     !
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     omega => fft % cell % omega
     !
     ! Bring fa and fb to reciprocal space
@@ -386,7 +386,7 @@ CONTAINS
        gc%of_r(ipol,:) = local%of_r(:)
     ENDDO
     CALL destroy_environ_density( local )
-!    dfft => fft % dfft
+!    dfft => fft % cell % dfft
 !    omega => fft % cell % omega
 !    !
 !    ! Bring fa and fb to reciprocal space
@@ -457,7 +457,7 @@ CONTAINS
        ENDDO
     ENDDO
     CALL destroy_environ_density( local )
-!    dfft => fft % dfft
+!    dfft => fft % cell % dfft
 !    omega => fft % cell % omega
 !    !
 !    ! Bring fa and fb to reciprocal space
@@ -526,7 +526,7 @@ CONTAINS
     ! ... add tests for compatilibity between input, output, and fft
     !
     tpiba => fft % cell % tpiba
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     g => fft % g
     !
     ALLOCATE(  aux( dfft%nnr ) )
@@ -599,7 +599,7 @@ CONTAINS
     ! ... add tests for compatilibity between input, output, and fft
     !
     tpiba => fft % cell % tpiba
-    dfft => fft % dfft
+    dfft => fft % cell %  dfft
     g => fft % g
     !
     ALLOCATE( aux(dfft%nnr) )
@@ -715,7 +715,7 @@ CONTAINS
     !
     tpiba2 => fft % cell % tpiba2
     gg => fft % gg
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     !
     ALLOCATE(  aux( dfft%nnr ) )
     ALLOCATE( laux( dfft%nnr ) )
@@ -787,7 +787,7 @@ CONTAINS
     !
     tpiba => fft % cell % tpiba
     g => fft % g
-    dfft => fft % dfft
+    dfft => fft % cell % dfft
     !
     ALLOCATE(  aux( dfft%nnr ) )
     ALLOCATE( gaux( dfft%nnr ) )

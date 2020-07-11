@@ -6,7 +6,7 @@ MODULE utils_fft
   PRIVATE
   !
   PUBLIC :: create_fft_core, init_fft_core_first, init_fft_core_second, &
-       update_fft_core_cell, destroy_fft_core, init_dfft, destroy_dfft
+       update_fft_core_cell, destroy_fft_core
   !
 CONTAINS
   !--------------------------------------------------------------------
@@ -19,7 +19,6 @@ CONTAINS
     !
     ! Create empty fft core
     !
-    NULLIFY(fft%dfft)
     NULLIFY(fft%cell)
     !
     RETURN
@@ -72,7 +71,7 @@ CONTAINS
   END SUBROUTINE init_fft_core_first
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fft_core_second( gcutm, cell, dfft, fft )
+  SUBROUTINE init_fft_core_second( gcutm, cell, fft )
 !--------------------------------------------------------------------
     !
     USE fft_types,               ONLY : fft_type_init
@@ -83,23 +82,21 @@ CONTAINS
     !
     REAL(DP), INTENT(IN) :: gcutm
     TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
-    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
     TYPE( fft_core ), INTENT(INOUT) :: fft
     !
     INTEGER :: ngm_g
     !
     fft%gcutm = gcutm
     fft%cell => cell
-    fft%dfft => dfft
     !
-    fft%ngm = dfft % ngm
+    fft%ngm = cell % dfft % ngm
     !
     IF ( fft % use_internal_pbc_corr ) ALLOCATE( fft % mt_corr( fft%ngm ) )
     !
     ! The following routines are in tools_generate_gvect and may need to be simplified
     !
-    CALL env_gvect_init( fft, cell%comm )
-    CALL env_ggen( fft%dfft, cell%comm, cell%at, cell%bg, fft%gcutm, &
+    CALL env_gvect_init( fft, cell%dfft%comm )
+    CALL env_ggen( fft%cell%dfft, cell%dfft%comm, cell%at, cell%bg, fft%gcutm, &
      & ngm_g, fft%ngm, fft%g, fft%gg, fft%gstart, .TRUE. )
     !
     IF ( fft % use_internal_pbc_corr) CALL update_mt_correction( fft )
@@ -139,7 +136,6 @@ CONTAINS
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'destroy_fft_core'
     !
-    NULLIFY( fft%dfft )
     NULLIFY( fft%cell )
     DEALLOCATE( fft % gg )
     DEALLOCATE( fft % g )
@@ -149,58 +145,5 @@ CONTAINS
     !
 !--------------------------------------------------------------------
   END SUBROUTINE destroy_fft_core
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE init_dfft( gcutm, comm, at, dfft )
-!--------------------------------------------------------------------
-    !
-    USE stick_base,        ONLY: sticks_map, sticks_map_deallocate
-    USE fft_types,         ONLY: fft_type_init
-    USE cell_types,        ONLY: recips
-    !
-    IMPLICIT NONE
-    !
-    INTEGER, INTENT(IN) :: comm
-    REAL(DP), INTENT(IN) :: gcutm, at(3,3)
-    TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
-    !
-    ! Local Variables
-    !
-    TYPE( sticks_map ) :: smap
-    REAL(DP), DIMENSION(3,3) :: bg
-    !
-    ! Calculate the reciprocal lattice vectors
-    !
-    CALL recips( at(1,1), at(1,2), at(1,3), bg(1,1), &
-      & bg(1,2), bg(1,3))
-    !
-    CALL fft_type_init( dfft, smap, "rho", .TRUE., .TRUE., comm, at, &
-         & bg, gcutm, nyfft=1 )
-    dfft%rho_clock_label='fft'
-    !
-    CALL sticks_map_deallocate( smap )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE init_dfft
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE destroy_dfft( lflag, dfft )
-!--------------------------------------------------------------------
-    !
-    USE fft_types,         ONLY: fft_type_deallocate
-    !
-    IMPLICIT NONE
-    !
-    LOGICAL, INTENT(IN) :: lflag
-    TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
-    !
-    CALL fft_type_deallocate( dfft )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE destroy_dfft
 !--------------------------------------------------------------------
 END MODULE utils_fft

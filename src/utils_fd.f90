@@ -18,7 +18,6 @@ CONTAINS
     !
     ! Create empty finite difference core
     !
-    NULLIFY( fd%dfft )
     NULLIFY( fd%cell )
     !
     RETURN
@@ -209,16 +208,14 @@ CONTAINS
   END SUBROUTINE set_fd_coefficients
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_fd_core_second( cell, dfft, fd )
+  SUBROUTINE init_fd_core_second( cell, fd )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( environ_cell ), TARGET, INTENT(IN) :: cell
-    TYPE( fft_type_descriptor ), TARGET, INTENT(IN) :: dfft
     TYPE( fd_core ), INTENT(INOUT) :: fd
     !
-    fd % dfft => dfft
     fd % cell => cell
     !
     RETURN
@@ -237,7 +234,6 @@ CONTAINS
     !
     CHARACTER( LEN = 80 ) :: sub_name = 'destroy_fd_core'
     !
-    NULLIFY( fd%dfft )
     NULLIFY( fd%cell )
     !
     IF ( lflag ) THEN

@@ -29,29 +29,27 @@ CONTAINS
   END SUBROUTINE set_core_base
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE core_initbase( gcutm, environment_dfft, environment_cell, system_dfft,  system_cell )
+  SUBROUTINE core_initbase( gcutm, environment_cell, system_cell )
 !--------------------------------------------------------------------
     !
     USE utils_oned_analytic, ONLY : init_oned_analytic_core_second
     USE utils_fd,            ONLY : init_fd_core_second
     USE utils_fft,           ONLY : init_fft_core_second
-    USE fft_types,           ONLY : fft_type_descriptor
     !
     IMPLICIT NONE
     !
     REAL( DP ), INTENT(IN) :: gcutm
     TYPE( environ_cell ), INTENT(IN) :: system_cell, environment_cell
-    TYPE ( fft_type_descriptor ), INTENT(IN) :: system_dfft, environment_dfft
     !
     ! calc is used so oned_analytic isn't calculated twice
     !
     IF ( loned_analytic ) CALL init_oned_analytic_core_second( environment_cell, oned_analytic )
     !
-    IF ( lfd ) CALL init_fd_core_second( environment_cell, environment_dfft, fd )
+    IF ( lfd ) CALL init_fd_core_second( environment_cell, fd )
     !
-    IF ( lfft_environment ) CALL init_fft_core_second( gcutm, environment_cell, environment_dfft, environment_fft )
+    IF ( lfft_environment ) CALL init_fft_core_second( gcutm, environment_cell, environment_fft )
     !
-    IF ( lfft_system ) CALL init_fft_core_second( gcutm, system_cell, system_dfft, system_fft )
+    IF ( lfft_system ) CALL init_fft_core_second( gcutm, system_cell, system_fft )
     !
     RETURN
     !

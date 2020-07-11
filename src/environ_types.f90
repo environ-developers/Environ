@@ -30,7 +30,6 @@ MODULE environ_types
   USE cell_types
   USE core_types
   USE modules_constants, ONLY : DP
-  USE core_types,        ONLY : fft_core, fd_core
   USE mp,                ONLY : mp_sum
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
@@ -552,7 +551,7 @@ CONTAINS
     REAL( DP ) :: integral
     !
     integral = SUM(density%of_r(1:density%cell%ir_end))
-    CALL mp_sum( integral, density%cell%comm )
+    CALL mp_sum( integral, density%cell%dfft%comm )
     integral = integral * density%cell%domega
     !
     RETURN
@@ -576,7 +575,7 @@ CONTAINS
          & CALL errore(fun_name,'operation on fields with inconsistent domains',1)
     ir_end => density1 % cell % ir_end
     scalar_product = DOT_PRODUCT(density1%of_r(1:ir_end),density2%of_r(1:ir_end))
-    CALL mp_sum( scalar_product, density1%cell%comm )
+    CALL mp_sum( scalar_product, density1%cell%dfft%comm )
     scalar_product = scalar_product * density1%cell%domega
     !
     RETURN
@@ -597,7 +596,7 @@ CONTAINS
     !
     ir_end => density % cell % ir_end
     euclidean_norm = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
-    CALL mp_sum( euclidean_norm, density%cell%comm )
+    CALL mp_sum( euclidean_norm, density%cell%dfft%comm )
     !
     RETURN
     !
@@ -617,7 +616,7 @@ CONTAINS
     !
     ir_end => density % cell % ir_end
     quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
-    CALL mp_sum( quadratic_mean, density%cell%comm )
+    CALL mp_sum( quadratic_mean, density%cell%dfft%comm )
     quadratic_mean = SQRT( quadratic_mean / density % cell % ntot )
     !
     RETURN
@@ -638,7 +637,7 @@ CONTAINS
     !
     ir_end => density % cell % ir_end
     quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end),density%of_r(1:ir_end))
-    CALL mp_sum( quadratic_mean, density%cell%comm )
+    CALL mp_sum( quadratic_mean, density%cell%dfft%comm )
     quadratic_mean = SQRT( quadratic_mean ) / density % cell % ntot
     !
     RETURN
@@ -709,9 +708,9 @@ CONTAINS
        !
     END DO
     !
-    CALL mp_sum( monopole, cell%comm )
-    CALL mp_sum( dipole, cell%comm )
-    CALL mp_sum( quadrupole, cell%comm )
+    CALL mp_sum( monopole, cell%dfft%comm )
+    CALL mp_sum( dipole, cell%dfft%comm )
+    CALL mp_sum( quadrupole, cell%dfft%comm )
     !
     monopole = monopole * cell%domega
     dipole = dipole * cell%domega * cell%alat
@@ -982,7 +981,7 @@ CONTAINS
     !
     DO ipol = 1, 3
        scalar_product = DOT_PRODUCT( gradient%of_r(ipol,1:ir_end),density%of_r(1:ir_end) )
-       CALL mp_sum( scalar_product, density % cell % comm )
+       CALL mp_sum( scalar_product, density % cell % dfft % comm )
        res(ipol) = scalar_product * density % cell % domega
     END DO
     !

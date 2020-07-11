@@ -1,6 +1,8 @@
 MODULE cell_types
   !
   USE modules_constants, ONLY : DP, tpi
+  USE stick_base,        ONLY : sticks_map, sticks_map_deallocate
+  USE fft_types,         ONLY : fft_type_descriptor, fft_type_init, fft_type_deallocate
   !
   TYPE environ_cell
      !
@@ -8,29 +10,26 @@ MODULE cell_types
      !
      LOGICAL :: update = .FALSE.
      LOGICAL :: cubic = .FALSE.
-     REAL( DP ) :: alat
      REAL( DP ) :: omega
      REAL( DP ) :: domega
-     REAL( DP ) :: tpiba, tpiba2
      REAL( DP ) :: origin( 3 )
      REAL( DP ), DIMENSION( 3, 3 ) :: at
      REAL( DP ), DIMENSION( 3, 3 ) :: bg
      REAL( DP ), DIMENSION( 3, 8 ) :: corners
      !
+     ! Units needed to scale real and reciprocal space cells
+     !
+     REAL( DP ) :: alat
+     REAL( DP ) :: tpiba, tpiba2
+     !
      ! Properties of the grid
      !
-     INTEGER :: ntot, n1, n2, n3
-     REAL( DP ) :: in1, in2, in3
-     INTEGER :: n1x, n2x, n3x
-     !
-     ! Properties of the processor-specific partition
-     !
-     INTEGER :: j0, k0 , n2p, n3p
-     INTEGER :: nnr    ! size of processor-specific allocated fields
-     INTEGER :: ir_end ! actual physical size of processor-specific allocated field
-     INTEGER :: comm   ! parallel communicator
-     INTEGER :: me     ! index of processor
-     INTEGER :: root   ! index of root
+     TYPE( fft_type_descriptor ) :: dfft
+     INTEGER :: ntot             ! total number of grid points
+     INTEGER :: nnr              ! number of grid points allocated in every processor
+     INTEGER :: ir_end           ! actual number grid points accessed by each processor
+     INTEGER :: j0, k0           ! starting indexes of processor-specific boxes of grid points
+     REAL( DP ) :: in1, in2, in3 ! inverse number of grid points
      !
   END TYPE environ_cell
   !
@@ -48,29 +47,70 @@ MODULE cell_types
   !
   PRIVATE
   !
-  PUBLIC :: environ_cell, init_environ_cell, update_environ_cell, ir2ijk, ir2r, &
-       displacement, minimum_image, volume, recips, &
+  PUBLIC :: fft_type_descriptor, environ_cell, create_environ_cell, init_environ_cell, &
+       update_environ_cell, destroy_environ_cell, &
+       ir2ijk, ir2r, displacement, minimum_image, volume, recips, &
        environ_mapping, init_environ_mapping_first, init_environ_mapping_second, &
-       destroy_environ_mapping
+       update_environ_mapping, destroy_environ_mapping
   !
 CONTAINS
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( alat, at, comm, me, root, n1, n2, n3, &
-       & n1x, n2x, n3x, n2p, n3p, j0, k0, nnr, cell )
+  SUBROUTINE init_dfft( gcutm, comm, at, dfft )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: comm, me, root
-    INTEGER, INTENT(IN) :: n1, n2, n3, n1x, n2x, n3x
-    INTEGER, INTENT(IN) :: n2p, n3p, j0, k0, nnr
+    INTEGER, INTENT(IN) :: comm
+    REAL(DP), INTENT(IN) :: gcutm, at(3,3)
+    TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
+    !
+    TYPE( sticks_map ) :: smap
+    REAL(DP), DIMENSION(3,3) :: bg
+    !
+    ! Calculate the reciprocal lattice vectors
+    !
+    CALL recips( at(1,1), at(1,2), at(1,3), bg(1,1), &
+      & bg(1,2), bg(1,3))
+    !
+    CALL fft_type_init( dfft, smap, "rho", .TRUE., .TRUE., comm, at, &
+         & bg, gcutm, nyfft=1 )
+    dfft%rho_clock_label='fft'
+    !
+    CALL sticks_map_deallocate( smap )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE init_dfft
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE destroy_dfft( lflag, dfft )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
+    !
+    CALL fft_type_deallocate( dfft )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE destroy_dfft
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+  SUBROUTINE init_environ_cell( gcutm, comm, alat, at, cell )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    REAL( DP ), INTENT(IN) :: gcutm
+    INTEGER, INTENT(IN) :: comm
     REAL( DP ), INTENT(IN) :: alat, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
     !
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
-    !
-    IF ( n1 .EQ. 0 .OR. n2 .EQ. 0 .OR. n3 .EQ. 0 ) &
-         & CALL errore(sub_name,'Wrong grid dimension',1)
     !
     IF ( alat .LT. 1.D-8 ) &
          & CALL errore(sub_name,'Wrong alat',1)
@@ -84,44 +124,30 @@ CONTAINS
     cell % tpiba = tpi/alat
     cell % tpiba2 = cell % tpiba**2
     !
-    ! Real space grid, global dimensions
+    ! ... Create fft descriptor for system cell
     !
-    cell % n1 = n1
-    cell % n2 = n2
-    cell % n3 = n3
+    CALL init_dfft( gcutm, comm, at, cell%dfft )
     !
-    cell % in1 = 1.D0 / DBLE(n1)
-    cell % in2 = 1.D0 / DBLE(n2)
-    cell % in3 = 1.D0 / DBLE(n3)
-    !
-    cell % n1x = n1x
-    cell % n2x = n2x
-    cell % n3x = n3x
+    cell % in1 = 1.D0 / DBLE(cell%dfft%nr1)
+    cell % in2 = 1.D0 / DBLE(cell%dfft%nr2)
+    cell % in3 = 1.D0 / DBLE(cell%dfft%nr3)
     !
     ! Real space grid, local dimensions (processor-specific)
     !
-    cell % n2p = n2p
-    cell % n3p = n3p
-    !
+    cell % nnr = cell % dfft % nnr
 #if defined (__MPI)
-    cell % j0 = j0 ; cell % k0 = k0
-    cell % ir_end = MIN(nnr,n1x*n2p*n3p)
+    cell % j0 = cell % dfft % my_i0r2p
+    cell % k0 = cell % dfft % my_i0r3p
+    cell % ir_end = MIN(cell%nnr,cell%dfft%nr1x*cell%dfft%my_nr2p*cell%dfft%my_nr3p)
 #else
-    cell % j0 = 0; k0 = 0;
-    cell % ir_end = nnr
+    cell % j0 = 0
+    cell % k0 = 0
+    cell % ir_end = cell % nnr
 #endif
-    !
-    cell % nnr = nnr
-    !
-    ! Cell parallelization
-    !
-    cell % comm = comm
-    cell % me   = me
-    cell % root = root
     !
     ! Total number of physical points
     !
-    cell % ntot = cell % n1 * cell % n2 * cell % n3
+    cell % ntot = cell % dfft % nr1 * cell % dfft% nr2 * cell % dfft % nr3
     !
     ! Set basic cell properties
     !
@@ -200,6 +226,22 @@ CONTAINS
   END SUBROUTINE update_environ_cell
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
+  SUBROUTINE destroy_environ_cell( lflag, cell )
+!--------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN) :: lflag
+    TYPE( environ_cell ), INTENT(INOUT) :: cell
+    !
+    CALL destroy_dfft( lflag, cell%dfft )
+    !
+    RETURN
+    !
+!--------------------------------------------------------------------
+  END SUBROUTINE destroy_environ_cell
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
   SUBROUTINE ir2ijk( cell, ir, i, j, k, physical )
 !--------------------------------------------------------------------
     !
@@ -212,26 +254,16 @@ CONTAINS
     !
     INTEGER :: idx
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X
-!     idx = cell%idx0 + ir - 1
-!     k   = idx / (cell%n1x*cell%n2x)
-!     idx = idx - (cell%n1x*cell%n2x)*k
-!     j   = idx / cell%n1x
-!     idx = idx - cell%n1x*j
-!     i   = idx
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT
     idx = ir - 1
-    k   = idx / (cell%n1x*cell%n2p)
-    idx = idx - (cell%n1x*cell%n2p)*k
+    k   = idx / (cell%dfft%nr1x*cell%dfft%my_nr2p)
+    idx = idx - (cell%dfft%nr1x*cell%dfft%my_nr2p)*k
     k   = k + cell%k0
-    j   = idx / cell%n1x
-    idx = idx - cell%n1x * j
+    j   = idx / cell%dfft%nr1x
+    idx = idx - cell%dfft%nr1x * j
     j   = j + cell%j0
     i   = idx
-! END BACKWARD COMPATIBILITY
     !
-    physical = i < cell%n1 .AND. j < cell%n2 .AND. k < cell%n3
+    physical = i < cell%dfft%nr1 .AND. j < cell%dfft%nr2 .AND. k < cell%dfft%nr3
     !
     RETURN
     !
@@ -569,25 +601,26 @@ CONTAINS
     LOGICAL :: physical
     INTEGER :: ir, ipol
     INTEGER, DIMENSION(3) :: small_n, large_n, center, origin, shift, ijk
+    REAL(DP), DIMENSION(3) :: tmp
     !
     ! ... Compute mapping
     !
-    small_n(1) = mapping % small % n1
-    small_n(2) = mapping % small % n2
-    small_n(3) = mapping % small % n3
+    small_n(1) = mapping % small % dfft % nr1
+    small_n(2) = mapping % small % dfft % nr2
+    small_n(3) = mapping % small % dfft % nr3
     !
-    large_n(1) = mapping % large % n1
-    large_n(2) = mapping % large % n2
-    large_n(3) = mapping % large % n3
+    large_n(1) = mapping % large % dfft % nr1
+    large_n(2) = mapping % large % dfft % nr2
+    large_n(3) = mapping % large % dfft % nr3
     !
     ! ... Indexes of center of small cell
     !
-    center = NINT( small_n / 2 )
+    center = NINT( small_n / 2.D0 )
     !
     ! ... Indexes of origin of small cell
     !
-    origin = MATMUL( mapping%small%bg, mapping%small%origin )
-    origin(:) = NINT( origin(:) * small_n(:) )
+    tmp = MATMUL( mapping%small%bg, mapping%small%origin )
+    origin = NINT( tmp * small_n )
     !
     shift = center - origin
     !
@@ -602,7 +635,7 @@ CONTAINS
        ! ... Shift to center small cell
        !
        ijk = ijk + shift
-       ijk = ijk - FLOOR(ijk/n)*n
+       ijk = ijk - FLOOR(DBLE(ijk/small_n))*small_n
        !
        ! ... Map small cell to large cell
        !
