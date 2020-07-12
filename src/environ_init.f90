@@ -426,7 +426,7 @@ CONTAINS
     IF ( ldoublecell ) THEN
        !
        DO ipol = 1, 3
-          environment_at( :, ipol ) = at( :, ipol ) * ( 2 * mapping % nrep( ipol ) + 1 )
+          environment_at( :, ipol ) = at( :, ipol ) * ( 2.D0 * mapping % nrep( ipol ) + 1.D0 )
        END DO
        !
        ! ... Create environment cell
@@ -603,7 +603,7 @@ CONTAINS
        environment_cell%update = .TRUE.
        !
        DO ipol = 1, 3
-          environment_at( :, ipol ) = at( :, ipol ) * mapping % nrep( ipol )
+          environment_at( :, ipol ) = at( :, ipol ) * ( 2.D0 * mapping % nrep( ipol ) + 1.D0 )
        END DO
        !
        ! ... Update environment cell parameters
@@ -678,6 +678,17 @@ CONTAINS
      ! ... Second step of initialization, need to be moved out of here
      !
      CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, system_cell, system_ions, vloc )
+     !
+     ! ... Update system parameters
+     !
+     system_system%update = .TRUE.
+     CALL update_environ_system( system_system )
+     CALL print_environ_system( system_system )
+     !
+     ! ... Update mapping with correct shift of system cell
+     !
+     CALL update_environ_mapping( mapping, system_system % pos )
+     !
      IF ( ldoublecell ) THEN
         ALLOCATE( aux( environment_cell%nnr, ntyp ) )
         DO it = 1, ntyp
@@ -699,11 +710,6 @@ CONTAINS
      CALL update_environ_ions( nat, tau, environment_ions )
      CALL print_environ_ions( environment_ions )
      !
-     ! ... Update system parameters
-     !
-     system_system%update = .TRUE.
-     CALL update_environ_system( system_system )
-     CALL print_environ_system( system_system )
      environment_system%update = .TRUE.
      CALL update_environ_system( environment_system )
      CALL print_environ_system( environment_system )
@@ -817,7 +823,6 @@ CONTAINS
         ALLOCATE( aux( environment_cell%nnr ) )
         CALL map_small_to_large( mapping, nnr, environment_cell%nnr, rho, aux )
         CALL update_environ_electrons( environment_cell%nnr, aux, environment_electrons, nelec )
-        DEALLOCATE( aux )
      ELSE
         CALL update_environ_electrons( nnr, rho, environment_electrons, nelec )
      ENDIF

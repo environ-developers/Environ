@@ -295,6 +295,8 @@ CONTAINS
                DBLE( k ) * cell%in3 * cell%at(ip,3)
     END DO
     !
+    r = r + cell % origin
+    !
     RETURN
     !
 !--------------------------------------------------------------------
@@ -584,19 +586,18 @@ CONTAINS
     !
     ALLOCATE( mapping % map( mapping % small % nnr ) )
     !
-    CALL update_environ_mapping( mapping )
-    !
     RETURN
 !--------------------------------------------------------------------
   END SUBROUTINE init_environ_mapping_second
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE update_environ_mapping( mapping )
+  SUBROUTINE update_environ_mapping( mapping, pos )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     TYPE( environ_mapping ), INTENT(INOUT) :: mapping
+    REAL(DP), DIMENSION(3), INTENT(IN), OPTIONAL :: pos
     !
     LOGICAL :: physical
     INTEGER :: ir, ipol
@@ -619,10 +620,18 @@ CONTAINS
     !
     ! ... Indexes of origin of small cell
     !
-    tmp = MATMUL( mapping%small%bg, mapping%small%origin )
-    origin = NINT( tmp * small_n )
+    IF ( PRESENT( pos ) ) THEN
+       tmp = MATMUL( mapping%small%bg, pos )
+       origin = NINT( tmp * small_n )
+    ELSE
+       origin = 0
+    ENDIF
     !
     shift = center - origin
+    !
+    ! ... Shift origin of large cell
+    !
+    mapping % large % origin =  - MATMUL(mapping % large % at,(shift/large_n+0.5))
     !
     mapping%map = 0
     !
