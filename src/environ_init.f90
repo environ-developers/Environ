@@ -684,7 +684,7 @@ CONTAINS
      CALL update_environ_system( system_system )
      CALL print_environ_system( system_system )
      !
-     ! ... Update mapping with correct shift of system cell
+     ! ... Update mapping with correct shift of environment cell
      !
      CALL update_environ_mapping( mapping, system_system % pos )
      !

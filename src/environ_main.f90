@@ -200,12 +200,14 @@ CONTAINS
        CALL map_large_to_small( mapping, vsoftcavity, aux )
        dvtot % of_r = dvtot % of_r + aux % of_r
        !
-       vtot = vtot + dvtot % of_r
-       !
-       CALL destroy_environ_density( aux )
        CALL destroy_environ_density( de_dboundary )
        !
     END IF
+    !
+    CALL destroy_environ_density( aux )
+    CALL print_environ_density( dvtot, local_verbose )
+    !
+    vtot = vtot + dvtot % of_r
     !
     RETURN
 !--------------------------------------------------------------------

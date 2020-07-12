@@ -584,7 +584,8 @@ CONTAINS
     mapping % small => small
     mapping % large => large
     !
-    ALLOCATE( mapping % map( mapping % small % nnr ) )
+    IF ( .NOT. ASSOCIATED( mapping%small, mapping%large ) ) &
+         ALLOCATE( mapping % map( mapping % small % nnr ) )
     !
     RETURN
 !--------------------------------------------------------------------
@@ -603,6 +604,8 @@ CONTAINS
     INTEGER :: ir, ipol
     INTEGER, DIMENSION(3) :: small_n, large_n, center, origin, shift, ijk
     REAL(DP), DIMENSION(3) :: tmp
+    !
+    IF ( ASSOCIATED( mapping%small, mapping%large ) ) RETURN
     !
     ! ... Compute mapping
     !
@@ -671,7 +674,7 @@ CONTAINS
     NULLIFY( mapping%small )
     NULLIFY( mapping%large )
     !
-    DEALLOCATE( mapping%map )
+    IF ( ALLOCATED( mapping%map ) ) DEALLOCATE( mapping%map )
     !
     RETURN
 !--------------------------------------------------------------------
