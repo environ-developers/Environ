@@ -260,7 +260,7 @@ CONTAINS
     !
     ! ... Calculates the energy corrections
     !
-    deenviron = scalar_product_environ_density( system_electrons%density, dvtot )
+    deenviron = - scalar_product_environ_density( system_electrons%density, dvtot )
     !
     ! if electrostatic is on compute electrostatic energy
     !
