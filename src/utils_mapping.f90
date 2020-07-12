@@ -157,12 +157,14 @@ CONTAINS
        !    the small cell
        !
        ALLOCATE(auxlarge(mapping%large%ntot))
+       auxlarge = 0.D0
 #if defined (__MPI)
-       CALL mp_sum( auxlarge, mapping%large%dfft%comm )
        CALL gather_grid( mapping%large%dfft, flarge, auxlarge )
+       CALL mp_sum( auxlarge, mapping%large%dfft%comm )
 #else
        auxlarge = flarge
 #endif
+       fsmall = 0.D0
        DO ir = 1, mapping%small%ir_end
           IF ( mapping%map(ir) .GT. 0 ) & ! This test may be redundant
                fsmall(ir) = auxlarge(mapping%map(ir))
@@ -209,12 +211,14 @@ CONTAINS
        !    the small cell
        !
        ALLOCATE(auxlarge(mapping%large%ntot))
+       auxlarge = 0.D0
 #if defined (__MPI)
-       CALL mp_sum( auxlarge, mapping%large%dfft%comm )
        CALL gather_grid( mapping%large%dfft, flarge%of_r, auxlarge )
+       CALL mp_sum( auxlarge, mapping%large%dfft%comm )
 #else
        auxlarge = flarge%of_r
 #endif
+       fsmall%of_r = 0.D0
        DO ir = 1, mapping%small%ir_end
           IF ( mapping%map(ir) .GT. 0 ) & ! This test may be redundant
                fsmall%of_r(ir) = auxlarge(mapping%map(ir))

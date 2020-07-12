@@ -212,7 +212,7 @@ CONTAINS
 !> Calculates the electrostatic embedding contribution to the
 !! energy
 !--------------------------------------------------------------------
-  SUBROUTINE calc_eelectrostatic( core, charges, potential, energy, add_environment )
+  SUBROUTINE calc_eelectrostatic( core, charges, potential, energy )
 !--------------------------------------------------------------------
 !    !
 !    USE problem_poisson,       ONLY : poisson_energy
@@ -224,7 +224,6 @@ CONTAINS
     TYPE( electrostatic_core ), TARGET, INTENT(IN) :: core
     TYPE( environ_charges ), INTENT(IN) :: charges
     TYPE( environ_density ), INTENT(IN) :: potential
-    LOGICAL, OPTIONAL, INTENT(IN) :: add_environment
     REAL( DP ), INTENT(OUT) :: energy
     !
     REAL( DP ) :: degauss, eself
@@ -260,24 +259,21 @@ CONTAINS
     !
     !  Include environment contributions
     !
-    IF ( PRESENT(add_environment) .AND. add_environment ) THEN
+    !
+    ! Polarization charge
+    !
+    IF ( charges % include_dielectric ) THEN
        !
-       ! Polarization charge
+       degauss = degauss + charges % dielectric % charge * 0.5D0
        !
-       IF ( charges % include_dielectric ) THEN
-          !
-          degauss = degauss + charges % dielectric % charge * 0.5D0
-          !
-       END IF
-       !
-       ! Electrolyte charge
-       !
-       IF ( charges % include_electrolyte ) THEN
-          ! NOTE: electrolyte electrostatic interaction should be negative
-          energy = energy - 0.5D0 * scalar_product_environ_density( charges%electrolyte%density, potential )
-          degauss = degauss + charges % electrolyte % charge
-          !
-       END IF
+    END IF
+    !
+    ! Electrolyte charge
+    !
+    IF ( charges % include_electrolyte ) THEN
+       ! NOTE: electrolyte electrostatic interaction should be negative
+       energy = energy - 0.5D0 * scalar_product_environ_density( charges%electrolyte%density, potential )
+       degauss = degauss + charges % electrolyte % charge
        !
     END IF
     !

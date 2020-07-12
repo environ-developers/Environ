@@ -199,7 +199,7 @@ MODULE environ_base
        vzero,                       &
        velectrostatic,              &
        vreference,                  &
-       dvelectrostatic,             &
+       dvtot,                       &
        vconfine,                    &
        vsoftcavity
 !----------------------------------------------------------------------------

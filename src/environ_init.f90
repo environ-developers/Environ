@@ -379,8 +379,7 @@ CONTAINS
          environment_charges,                     &
          vzero, deenviron,                        &
          lelectrostatic, eelectrostatic,          &
-         velectrostatic, vreference,              &
-         dvelectrostatic,                         &
+         velectrostatic, vreference, dvtot,       &
          lsoftcavity, vsoftcavity,                &
          lelectrolyte, electrolyte,               &
          lsolvent, solvent, lstatic, static,      &
@@ -453,6 +452,10 @@ CONTAINS
     !
     deenviron = 0.0_DP
     !
+    label = 'dvtot'
+    CALL create_environ_density( dvtot, label )
+    CALL init_environ_density( system_cell, dvtot )
+    !
     ! ... Electrostatic contribution
     !
     eelectrostatic  = 0.0_DP
@@ -466,10 +469,6 @@ CONTAINS
        CALL create_environ_density( vreference, label )
        CALL init_environ_density( system_cell, vreference )
        !
-       label = 'dvelectrostatic'
-       CALL create_environ_density( dvelectrostatic, label )
-       CALL init_environ_density( system_cell, dvelectrostatic )
-       !
     END IF
     !
     ! ... Contribution to the potential due to boundary
@@ -478,7 +477,7 @@ CONTAINS
        !
        label = 'vsoftcavity'
        CALL create_environ_density( vsoftcavity, label )
-       CALL init_environ_density( system_cell, vsoftcavity )
+       CALL init_environ_density( environment_cell, vsoftcavity )
        !
     END IF
     !
@@ -497,7 +496,7 @@ CONTAINS
        !
        label = 'vconfine'
        CALL create_environ_density( vconfine, label )
-       CALL init_environ_density( system_cell, vconfine )
+       CALL init_environ_density( environment_cell, vconfine )
        !
     END IF
     !
@@ -931,13 +930,12 @@ CONTAINS
      ! ... Deallocate environment variables
      !
      IF ( ASSOCIATED( vzero%cell ) ) CALL destroy_environ_density( vzero )
+     IF ( ASSOCIATED( dvtot%cell ) ) CALL destroy_environ_density( dvtot )
      !
      ! ... environ_base variables
      !
      IF ( lelectrostatic .AND. ASSOCIATED( vreference%cell ) ) &
           & CALL destroy_environ_density( vreference )
-     IF ( lelectrostatic .AND. ASSOCIATED( dvelectrostatic%cell ) ) &
-          & CALL destroy_environ_density( dvelectrostatic )
      IF ( lsoftcavity .AND. ASSOCIATED( vsoftcavity%cell ) ) &
           & CALL destroy_environ_density( vsoftcavity )
      IF ( lconfine .AND. ASSOCIATED( vconfine%cell ) ) &
