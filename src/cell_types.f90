@@ -100,7 +100,7 @@ CONTAINS
   END SUBROUTINE destroy_dfft
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE init_environ_cell( gcutm, comm, alat, at, cell )
+  SUBROUTINE init_environ_cell( gcutm, comm, alat, at, cell, nr )
 !--------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -109,6 +109,7 @@ CONTAINS
     INTEGER, INTENT(IN) :: comm
     REAL( DP ), INTENT(IN) :: alat, at(3,3)
     TYPE( environ_cell ), INTENT(INOUT) :: cell
+    INTEGER, DIMENSION(3), INTENT(IN), OPTIONAL :: nr
     !
     CHARACTER( LEN=80 ) :: sub_name = 'init_environ_cell'
     !
@@ -126,6 +127,11 @@ CONTAINS
     !
     ! ... Create fft descriptor for system cell
     !
+    IF ( PRESENT( nr ) ) THEN
+       cell % dfft % nr1 = nr(1)
+       cell % dfft % nr2 = nr(2)
+       cell % dfft % nr3 = nr(3)
+    ENDIF
     CALL init_dfft( gcutm, comm, at, cell%dfft )
     !
     cell % in1 = 1.D0 / DBLE(cell%dfft%nr1)

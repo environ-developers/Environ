@@ -408,6 +408,7 @@ CONTAINS
     REAL(DP), OPTIONAL, INTENT(IN) :: e2
     !
     INTEGER :: ipol
+    INTEGER, DIMENSION(3) :: environment_nr
     REAL(DP), DIMENSION(3,3) :: environment_at
     CHARACTER( LEN = 80 ) :: label = ' '
     !
@@ -427,10 +428,13 @@ CONTAINS
        DO ipol = 1, 3
           environment_at( :, ipol ) = at( :, ipol ) * ( 2.D0 * mapping % nrep( ipol ) + 1.D0 )
        END DO
+       environment_nr(1) = system_cell%dfft%nr1 * ( 2 * mapping%nrep(1) + 1 )
+       environment_nr(2) = system_cell%dfft%nr2 * ( 2 * mapping%nrep(2) + 1 )
+       environment_nr(3) = system_cell%dfft%nr3 * ( 2 * mapping%nrep(3) + 1 )
        !
        ! ... Create environment cell
        !
-       CALL init_environ_cell( gcutm, comm, alat, environment_at, environment_cell )
+       CALL init_environ_cell( gcutm, comm, alat, environment_at, environment_cell, environment_nr )
        !
     ELSE
        !
@@ -817,6 +821,8 @@ CONTAINS
 !     CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
 ! Compatible with QE-6.4.X QE-GIT
      CALL update_environ_electrons( nnr, rho, system_electrons, nelec )
+     system_electrons%density%label='small_electrons'
+!     CALL write_cube(system_electrons%density)
      !
      IF ( ldoublecell ) THEN
         ALLOCATE( aux( environment_cell%nnr ) )
@@ -825,6 +831,9 @@ CONTAINS
      ELSE
         CALL update_environ_electrons( nnr, rho, environment_electrons, nelec )
      ENDIF
+     environment_electrons%density%label='large_electrons'
+!     CALL write_cube(environment_electrons%density)
+!     STOP
 ! END BACKWARD COMPATIBILITY
      CALL print_environ_electrons( system_electrons )
      CALL print_environ_electrons( environment_electrons )
