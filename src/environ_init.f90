@@ -678,11 +678,16 @@ CONTAINS
      system_ions%update = .TRUE.
      environment_ions%update = .TRUE.
      !
-     ! ... Second step of initialization, need to be moved out of here
+     ! ... Second step of initialization for system ions
      !
      CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, system_cell, system_ions, vloc )
      !
-     ! ... Update system parameters
+     ! ... Update system ions parameters
+     !
+     CALL update_environ_ions( nat, tau, system_ions )
+     CALL print_environ_ions( system_ions )
+     !
+     ! ... Update system system parameters
      !
      system_system%update = .TRUE.
      CALL update_environ_system( system_system )
@@ -691,6 +696,8 @@ CONTAINS
      ! ... Update mapping with correct shift of environment cell
      !
      CALL update_environ_mapping( mapping, system_system % pos )
+     !
+     ! ... Second step of initialization for environment ions
      !
      IF ( ldoublecell ) THEN
         ALLOCATE( aux( environment_cell%nnr, ntyp ) )
@@ -703,19 +710,21 @@ CONTAINS
         CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, environment_cell, environment_ions, vloc )
      END IF
      !
-     IF ( lsolvent ) CALL set_soft_spheres( solvent )
-     IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
+     ! ... Update environment ions parameters
      !
-     ! ... Update ions parameters
-     !
-     CALL update_environ_ions( nat, tau, system_ions )
-     CALL print_environ_ions( system_ions )
      CALL update_environ_ions( nat, tau, environment_ions )
      CALL print_environ_ions( environment_ions )
+     !
+     ! ... Update environment system parameters
      !
      environment_system%update = .TRUE.
      CALL update_environ_system( environment_system )
      CALL print_environ_system( environment_system )
+     !
+     ! ... Set soft-sphere parameters
+     !
+     IF ( lsolvent ) CALL set_soft_spheres( solvent )
+     IF ( lelectrolyte ) CALL set_soft_spheres( electrolyte%boundary )
      !
      ! ... Update cores
      !

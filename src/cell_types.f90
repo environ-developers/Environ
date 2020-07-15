@@ -640,7 +640,7 @@ CONTAINS
     !
     ! ... Shift origin of large cell
     !
-    mapping % large % origin =  - MATMUL(mapping % large % at,(shift/large_n+0.5))
+    mapping % large % origin =  - MATMUL(mapping % large % at,(0.5-origin/DBLE(large_n)))
     !
     mapping%map = 0
     !
@@ -653,7 +653,7 @@ CONTAINS
        ! ... Shift to center small cell
        !
        ijk = ijk + shift
-       ijk = ijk - FLOOR(DBLE(ijk/small_n))*small_n
+       ijk = ijk - FLOOR(DBLE(ijk)/small_n)*small_n
        !
        ! ... Map small cell to large cell
        !
