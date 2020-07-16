@@ -572,6 +572,7 @@ END IF \
 IF (chg_step == 0) THEN \
 tot_charge = 0.7*semiconductor%electrode_charge \
 semiconductor%flatband_fermi = ef!*rytoev \
+semiconductor%slab_charge = tot_charge\
 conv_ions = .FALSE. \
 ! CALL qexsd_set_status(255) \
 ! CALL punch( "config" ) \
@@ -663,6 +664,7 @@ WRITE( STDOUT, 1002)& \
 !CALL add_qexsd_step(istep) \
 istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
+semiconductor%slab_charge = tot_charge\
 CALL mp_bcast(nelec, ionode_id,intra_image_comm) \
 CALL update_pot() \
 CALL hinit1() \

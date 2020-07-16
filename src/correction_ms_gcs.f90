@@ -170,12 +170,13 @@ CONTAINS
 
 
     ez = - tpi * e2 * tot_charge / area ! / permittivity
-    IF (ABS(tot_charge) < 1.D-6) THEN
+    IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
       ez_gcs = ez
     ELSE
       ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     END IF
     WRITE (environ_unit, *)"ez: ",ez
+    WRITE (environ_unit, *)"ez_gcs: ",ez
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
     arg = ez_gcs/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
@@ -252,11 +253,12 @@ CONTAINS
 
     ! Now moving on to the ms props
     WRITE( environ_unit, *)"charge: ",tot_charge
-    IF (ABS(tot_charge) < 1.D-6) THEN
+    IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
       ez_ms = 0.D0
     ELSE
-      ez_ms= tpi * e2 * (-electrode_charge-tot_charge) / area ! / permittivity !in units of Ry/bohr
+      ez_ms= tpi * e2 * (-electrode_charge-semiconductor_in%slab_charge) / area ! / permittivity !in units of Ry/bohr
     END IF
+    WRITE( environ_unit, * )"bulk sc charge: ",(-electrode_charge-semiconductor_in%slab_charge)
     WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
     fact = 1.D0/tpi / e2 /4.D0 /carrier_density !*permittivity
     WRITE(  environ_unit, *)"MS Prefactor: ",fact
@@ -281,10 +283,11 @@ CONTAINS
        !
        !WRITE (environ_unit, *)"axis : ",ABS(axis(1,i) - xstern_ms)
 
-       IF (( axis(1,i) .LT. 0.D0 ) .AND. ( (ABS(axis(1,i)) - xstern_ms) .LE. 0.1D0 )) THEN
+       IF (( axis(1,i) .LT. 0.D0 ) .AND. ( (ABS(axis(1,i)) - xstern_ms) .LE. 0.05D0 )) THEN
           !
           icount = icount + 1
-          v_cut = v_cut + potential % of_r(i) + v(i)
+          !v_cut = v_cut + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i))-xstern_ms)
+          v_cut = v_cut + v(i)
           !
        ENDIF
        !
@@ -470,7 +473,7 @@ END SUBROUTINE calc_vms_gcs
     !
     CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
-    tot_charge = dipole(0)
+    !tot_charge = dipole(0)\
     tot_dipole = dipole(1:3)
     area = omega / axis_length
     !

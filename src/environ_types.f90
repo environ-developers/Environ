@@ -467,6 +467,7 @@ MODULE environ_types
      REAL( DP ) :: carrier_density
      REAL( DP ) :: electrode_charge
      REAL( DP ) :: charge_threshold
+     REAL( DP ) :: slab_charge = 0.D0
 
      !
      TYPE( environ_functions ) :: simple
