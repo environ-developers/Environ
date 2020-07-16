@@ -655,11 +655,14 @@ CONTAINS
                                     lelectrolyte, electrolyte,      &
                                     lrigidcavity,                   &
                                     lelectrostatic, system_charges, &
-                                    environment_charges, ldoublecell, environment_cell
+                                    environment_charges,            &
+                                    ldoublecell, environment_cell,  &
+                                    lexternals, externals
      USE utils_boundary,     ONLY : update_environ_boundary,        &
                                     set_soft_spheres
      USE utils_dielectric,   ONLY : update_environ_dielectric
      USE utils_electrolyte,  ONLY : update_environ_electrolyte
+     USE utils_externals,    ONLY : update_environ_externals
      USE core_init,          ONLY : core_initions
      USE utils_mapping,      ONLY : map_small_to_large
      !
@@ -762,6 +765,11 @@ CONTAINS
         END IF
         !
      END IF
+     !
+     ! ... External charges rely on the environment cell, which is defined
+     !     with respect to the system origin
+     !
+     IF ( lexternals ) CALL update_environ_externals( externals )
      !
      IF ( lelectrostatic .OR. lconfine ) THEN
         CALL update_environ_charges( system_charges )
