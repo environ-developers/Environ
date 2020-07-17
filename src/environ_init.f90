@@ -707,10 +707,10 @@ CONTAINS
         DO it = 1, ntyp
            CALL map_small_to_large( mapping, nnr, environment_cell%nnr, vloc(:, it), aux(:,it) )
         END DO
-        CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, environment_cell, environment_ions, aux )
+        CALL init_environ_ions_second( nat, ntyp, environment_cell%nnr, ityp, zv, environment_cell, environment_ions, aux )
         DEALLOCATE( aux )
      ELSE
-        CALL init_environ_ions_second( nat, ntyp, nnr, ityp, zv, environment_cell, environment_ions, vloc )
+        CALL init_environ_ions_second( nat, ntyp, environment_cell%nnr, ityp, zv, environment_cell, environment_ions, vloc )
      END IF
      !
      ! ... Update environment ions parameters
