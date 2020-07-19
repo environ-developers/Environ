@@ -1,0 +1,1438 @@
+
+     Program PWSCF v.6.5 starts on 18Jul2020 at 18: 3:32 
+
+     This program is part of the open-source Quantum ESPRESSO suite
+     for quantum simulation of materials; please cite
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
+          URL http://www.quantum-espresso.org", 
+     in publications or presentations arising from this work. More details at
+     http://www.quantum-espresso.org/quote
+
+     Parallel version (MPI), running on     1 processors
+
+     MPI processes distributed on     1 nodes
+     Reading input from pw.in
+
+     Current dimensions of program PWSCF are:
+     Max number of different atomic species (ntypx) = 10
+     Max number of k-points (npk) =  40000
+     Max angular momentum in pseudopotentials (lmaxx) =  3
+
+
+*******************************************
+
+     Running initial calculation for flatband.
+
+     Using charge of:     0.00000000
+
+*******************************************
+
+     Subspace diagonalization in iterative solution of the eigenvalue problem:
+     a serial algorithm will be used
+
+     Message from routine setup:
+     using ibrav=0 with symmetry is DISCOURAGED, use correct ibrav instead
+
+     G-vector sticks info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Sum         341     341     89                56001    56001    7059
+
+
+
+     bravais-lattice index     =            0
+     lattice parameter (alat)  =       5.5435  a.u.
+     unit-cell volume          =    2000.1211 (a.u.)^3
+     number of atoms/cell      =            2
+     number of atomic types    =            1
+     number of electrons       =        38.00
+     number of Kohn-Sham states=           23
+     kinetic-energy cutoff     =      35.0000  Ry
+     charge density cutoff     =     140.0000  Ry
+     convergence threshold     =      5.0E-06
+     mixing beta               =       0.7000
+     number of iterations used =            8  plain     mixing
+     Exchange-correlation= PBE
+                           (   1   4   3   4   0   0   0)
+
+
+     Environ Module
+     ==============
+
+     Plese cite
+         O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)         
+     in publications or presentations arising from this work.
+
+     compensation onset threshold      =               0.1000E+00 
+     static permittivity               =                    78.30 
+     epsilon calculation mode          =               electronic 
+
+     Electrostatic Setup
+     -------------------
+     electrostatic problem to solve    = generalized              
+     numerical solver adopted          = iterative                
+     type of auxiliary density adopted = full                     
+     type of core tool for poisson     = fft                      
+     type of core tool for s(r) deriv  = analytic                 
+
+
+
+     celldm(1)=   5.543526  celldm(2)=   0.000000  celldm(3)=   0.000000
+     celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
+
+     crystal axes: (cart. coord. in units of alat)
+               a(1) = (   1.000000   0.000000   0.000000 )  
+               a(2) = (   0.000000   1.000000   0.000000 )  
+               a(3) = (   0.000000   0.000000  11.740809 )  
+
+     reciprocal axes: (cart. coord. in units 2 pi/alat)
+               b(1) = (  1.000000  0.000000  0.000000 )  
+               b(2) = (  0.000000  1.000000  0.000000 )  
+               b(3) = (  0.000000  0.000000  0.085173 )  
+
+
+     PseudoPot. # 1 for Ag read from file:
+     /Users/qcampbe/espresso/pseudo/Ag_ONCV_PBE-1.0.upf
+     MD5 check sum: 94f47bd0669c641108e45594df92fabc
+     Pseudo is Norm-conserving, Zval = 19.0
+     Generated using ONCVPSP code by D. R. Hamann
+     Using radial grid of 1398 points,  6 beta functions with: 
+                l(1) =   0
+                l(2) =   0
+                l(3) =   1
+                l(4) =   1
+                l(5) =   2
+                l(6) =   2
+
+     atomic species   valence    mass     pseudopotential
+        Ag            19.00    28.85000     Ag( 1.00)
+
+      8 Sym. Ops. (no inversion) found
+
+
+
+   Cartesian axes
+
+     site n.     atom                  positions (alat units)
+         1           Ag  tau(   1) = (   0.5000000   0.5000000   3.4088881  )
+         2           Ag  tau(   2) = (   0.0000000   0.0000000   4.1021437  )
+
+     number of k points=     1  Marzari-Vanderbilt smearing, width (Ry)=  0.0200
+                       cart. coord. in units 2pi/alat
+        k(    1) = (   0.0000000   0.0000000   0.0000000), wk =   2.0000000
+
+     Dense  grid:    56001 G-vectors     FFT dimensions: (  24,  24, 250)
+
+     Estimated max dynamical RAM per process >      60.34 MB
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+
+     Initial potential from superposition of free atoms
+
+     starting charge   37.99942, renormalised to   38.00000
+
+     negative rho (up, down):  8.316E-04 0.000E+00
+     Starting wfcs are   20 randomized atomic wfcs +    3 random wfcs
+
+     total cpu time spent up to now is        1.8 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-02,  avg # of iterations =  8.0
+
+     negative rho (up, down):  1.920E-04 0.000E+00
+
+     total cpu time spent up to now is        2.6 secs
+
+     total energy              =    -574.70492255 Ry
+     Harris-Foulkes estimate   =    -575.02290570 Ry
+     estimated scf accuracy    <       0.42939409 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000678 Ry
+     correction to one-el term =       0.00000000 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.13E-03,  avg # of iterations =  5.0
+
+     negative rho (up, down):  1.077E-04 0.000E+00
+
+     total cpu time spent up to now is        3.5 secs
+
+     total energy              =    -574.32587771 Ry
+     Harris-Foulkes estimate   =    -575.30568867 Ry
+     estimated scf accuracy    <       3.52477464 Ry
+     electrostatic embedding   =      -0.00000000 Ry
+     electrolyte free energy   =       0.00000678 Ry
+     correction to one-el term =       0.00000000 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.13E-03,  avg # of iterations =  3.0
+
+     negative rho (up, down):  1.570E-05 0.000E+00
+
+     total cpu time spent up to now is        4.3 secs
+
+     total energy              =    -574.88163844 Ry
+     Harris-Foulkes estimate   =    -574.91537520 Ry
+     estimated scf accuracy    <       0.14977418 Ry
+     electrostatic embedding   =      -0.00000000 Ry
+     electrolyte free energy   =       0.00000678 Ry
+     correction to one-el term =       0.00000000 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.94E-04,  avg # of iterations =  1.0
+
+     negative rho (up, down):  1.260E-07 0.000E+00
+
+     add environment contribution to local potential
+     polarization accuracy = 5.7E-12, # of iterations =  19
+
+     total cpu time spent up to now is        6.5 secs
+
+     total energy              =    -574.87312002 Ry
+     Harris-Foulkes estimate   =    -574.88668078 Ry
+     estimated scf accuracy    <       0.06016808 Ry
+     electrostatic embedding   =       0.00000000 Ry
+     electrolyte free energy   =       0.00000678 Ry
+     correction to one-el term =       0.00000000 Ry
+
+     iteration #  5     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.58E-04,  avg # of iterations =  6.0
+
+     negative rho (up, down):  4.980E-08 0.000E+00
+
+     add environment contribution to local potential
+     polarization accuracy = 8.1E-12, # of iterations =  22
+
+     total cpu time spent up to now is        8.7 secs
+
+     total energy              =    -574.87313048 Ry
+     Harris-Foulkes estimate   =    -579.24800121 Ry
+     estimated scf accuracy    <       0.04905244 Ry
+     electrostatic embedding   =      -0.00142762 Ry
+     electrolyte free energy   =       0.00000498 Ry
+     correction to one-el term =       4.37257605 Ry
+
+     iteration #  6     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.29E-04,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.0E-12, # of iterations =  26
+
+     total cpu time spent up to now is       11.0 secs
+
+     total energy              =    -574.86569545 Ry
+     Harris-Foulkes estimate   =    -579.23595896 Ry
+     estimated scf accuracy    <       0.02985261 Ry
+     electrostatic embedding   =      -0.00140995 Ry
+     electrolyte free energy   =      -0.00002341 Ry
+     correction to one-el term =       4.36231299 Ry
+
+     iteration #  7     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  7.86E-05,  avg # of iterations =  6.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.5E-12, # of iterations =  16
+
+     total cpu time spent up to now is       13.1 secs
+
+     total energy              =    -574.86880705 Ry
+     Harris-Foulkes estimate   =    -579.34565623 Ry
+     estimated scf accuracy    <       0.00112968 Ry
+     electrostatic embedding   =      -0.00120425 Ry
+     electrolyte free energy   =       0.00000379 Ry
+     correction to one-el term =       4.47784793 Ry
+
+     iteration #  8     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.97E-06,  avg # of iterations =  7.0
+
+     add environment contribution to local potential
+     polarization accuracy = 5.9E-12, # of iterations =  22
+
+     total cpu time spent up to now is       15.3 secs
+
+     total energy              =    -574.86883334 Ry
+     Harris-Foulkes estimate   =    -579.40599212 Ry
+     estimated scf accuracy    <       0.00025249 Ry
+     electrostatic embedding   =      -0.00117727 Ry
+     electrolyte free energy   =       0.00000369 Ry
+     correction to one-el term =       4.53827654 Ry
+
+     iteration #  9     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  6.64E-07,  avg # of iterations =  5.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.6E-12, # of iterations =  21
+
+     total cpu time spent up to now is       17.5 secs
+
+     total energy              =    -574.86884687 Ry
+     Harris-Foulkes estimate   =    -579.42580208 Ry
+     estimated scf accuracy    <       0.00003075 Ry
+     electrostatic embedding   =      -0.00116881 Ry
+     electrolyte free energy   =       0.00000206 Ry
+     correction to one-el term =       4.55811314 Ry
+
+     iteration # 10     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  8.09E-08,  avg # of iterations =  2.0
+
+     total cpu time spent up to now is       18.3 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+   -93.3484 -93.3382 -56.7886 -56.7181 -56.6479 -56.6479 -56.6176 -56.6176
+    -7.5293  -7.0443  -6.9001  -6.1349  -5.4497  -5.4276  -5.4276  -4.6553
+    -4.4674  -4.4674  -4.2744  -3.8941  -1.2727   0.1875   0.2460
+
+     the Fermi energy is    -4.1388 ev
+
+!    total energy              =    -574.86884809 Ry
+     Harris-Foulkes estimate   =    -579.43418460 Ry
+     estimated scf accuracy    <       0.00000249 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -5344.53936551 Ry
+     hartree contribution      =    2664.39544699 Ry
+     xc contribution           =     -54.25344826 Ry
+     ewald contribution        =    2154.95128472 Ry
+     smearing contrib. (-TS)   =       0.01189902 Ry
+     electrostatic embedding   =      -0.00116582 Ry
+     electrolyte free energy   =       0.00000330 Ry
+     correction to one-el term =       4.56649747 Ry
+
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4060 ev
+
+     convergence has been achieved in  10 iterations
+
+
+***************************************************
+
+     Flatband potential calculated as    -4.13883510
+
+     Now using initial charge of:      0.00350000
+
+***************************************************
+     charge density from previous step
+     extrapolated charge   38.00000, renormalised to   37.99650
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+
+     add environment contribution to local potential
+     polarization accuracy = 7.4E-12, # of iterations =  20
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.02269762
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.02269762
+
+     Total force =     0.032099     Total SCF correction =     0.005510
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     total cpu time spent up to now is       21.2 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-06,  avg # of iterations =  7.0
+
+     Threshold (ethr) on eigenvalues was too large:
+     Diagonalizing with lowered threshold
+
+     Davidson diagonalization with overlap
+     ethr =  3.35E-08,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.3E-12, # of iterations =  24
+
+     total cpu time spent up to now is       23.6 secs
+
+     total energy              =    -574.87199751 Ry
+     Harris-Foulkes estimate   =    -578.91567343 Ry
+     estimated scf accuracy    <       0.00001282 Ry
+     electrostatic embedding   =      -0.00064149 Ry
+     electrolyte free energy   =      -0.00433531 Ry
+     correction to one-el term =       4.53291913 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.37E-08,  avg # of iterations =  6.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.9E-12, # of iterations =  17
+
+     total cpu time spent up to now is       25.8 secs
+
+     total energy              =    -574.86881204 Ry
+     Harris-Foulkes estimate   =    -579.39597641 Ry
+     estimated scf accuracy    <       0.00028687 Ry
+     electrostatic embedding   =      -0.00064396 Ry
+     electrolyte free energy   =      -0.00112996 Ry
+     correction to one-el term =       4.52892039 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.37E-08,  avg # of iterations =  2.0
+
+     add environment contribution to local potential
+     polarization accuracy = 5.4E-12, # of iterations =  10
+
+     total cpu time spent up to now is       27.8 secs
+
+     total energy              =    -574.86932463 Ry
+     Harris-Foulkes estimate   =    -579.39497216 Ry
+     estimated scf accuracy    <       0.00014340 Ry
+     electrostatic embedding   =      -0.00064565 Ry
+     electrolyte free energy   =      -0.00164668 Ry
+     correction to one-el term =       4.52793107 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.37E-08,  avg # of iterations =  2.0
+
+     add environment contribution to local potential
+     polarization accuracy = 8.6E-12, # of iterations =  22
+
+     total cpu time spent up to now is       30.0 secs
+
+     total energy              =    -574.86891049 Ry
+     Harris-Foulkes estimate   =    -579.39483661 Ry
+     estimated scf accuracy    <       0.00030392 Ry
+     electrostatic embedding   =      -0.00064639 Ry
+     electrolyte free energy   =      -0.00124243 Ry
+     correction to one-el term =       4.52779553 Ry
+
+     iteration #  5     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.37E-08,  avg # of iterations =  2.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.4E-12, # of iterations =  12
+
+     total cpu time spent up to now is       32.0 secs
+
+     total energy              =    -574.87089487 Ry
+     Harris-Foulkes estimate   =    -579.39669787 Ry
+     estimated scf accuracy    <       0.00004588 Ry
+     electrostatic embedding   =      -0.00064766 Ry
+     electrolyte free energy   =      -0.00322523 Ry
+     correction to one-el term =       4.52967058 Ry
+
+     iteration #  6     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.37E-08,  avg # of iterations =  2.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.1E-12, # of iterations =  11
+
+     total cpu time spent up to now is       34.0 secs
+
+     total energy              =    -574.87069546 Ry
+     Harris-Foulkes estimate   =    -579.39672044 Ry
+     estimated scf accuracy    <       0.00001082 Ry
+     electrostatic embedding   =      -0.00064927 Ry
+     electrolyte free energy   =      -0.00302759 Ry
+     correction to one-el term =       4.52969876 Ry
+
+     iteration #  7     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.85E-08,  avg # of iterations =  2.0
+
+     total cpu time spent up to now is       34.8 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+   -93.4479 -93.4377 -56.8889 -56.8184 -56.7456 -56.7456 -56.7153 -56.7153
+    -7.6278  -7.1435  -6.9979  -6.2327  -5.5484  -5.5266  -5.5266  -4.7522
+    -4.5665  -4.5665  -4.3713  -3.9886  -1.3612   0.0885   0.1515
+
+     the Fermi energy is    -4.2364 ev
+
+!    total energy              =    -574.87067211 Ry
+     Harris-Foulkes estimate   =    -579.39702674 Ry
+     estimated scf accuracy    <       0.00000174 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -5344.12619653 Ry
+     hartree contribution      =    2664.01727677 Ry
+     xc contribution           =     -54.25139850 Ry
+     ewald contribution        =    2154.95128472 Ry
+     smearing contrib. (-TS)   =       0.01200825 Ry
+     electrostatic embedding   =      -0.00065128 Ry
+     electrolyte free energy   =      -0.00300373 Ry
+     correction to one-el term =       4.53000819 Ry
+
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4060 ev
+
+     convergence has been achieved in   7 iterations
+
+
+***************************************************
+
+     Finished Charge convergence step :   1
+
+     DFT Fermi level calculated as    -4.23639679
+
+     Charge trapped in surface states:     0.00350000 e
+
+     Charge Accuracy <     0.00455000
+
+     Difference between bulk and DFT fermi:    -1.19366748
+
+     Now using DFT charge of:      0.00805000
+
+***************************************************
+     charge density from previous step
+     extrapolated charge   37.99650, renormalised to   37.99195
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+
+     add environment contribution to local potential
+     polarization accuracy = 8.5E-12, # of iterations =  15
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.02278968
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.02278968
+
+     Total force =     0.032229     Total SCF correction =     0.012134
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     total cpu time spent up to now is       37.5 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-06,  avg # of iterations =  7.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.5E-12, # of iterations =  21
+
+     total cpu time spent up to now is       39.8 secs
+
+     total energy              =    -575.73426237 Ry
+     Harris-Foulkes estimate   =    -578.36960327 Ry
+     estimated scf accuracy    <       0.00011653 Ry
+     electrostatic embedding   =      -0.00000853 Ry
+     electrolyte free energy   =      -0.86816774 Ry
+     correction to one-el term =       4.13299718 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.07E-07,  avg # of iterations =  6.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.8E-12, # of iterations =  22
+
+     total cpu time spent up to now is       42.1 secs
+
+     total energy              =    -574.95832761 Ry
+     Harris-Foulkes estimate   =    -578.98197564 Ry
+     estimated scf accuracy    <       0.01234170 Ry
+     electrostatic embedding   =      -0.00003638 Ry
+     electrolyte free energy   =      -0.09275512 Ry
+     correction to one-el term =       4.11553289 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.07E-07,  avg # of iterations =  7.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.3E-12, # of iterations =  17
+
+     total cpu time spent up to now is       44.2 secs
+
+     total energy              =    -577.45382249 Ry
+     Harris-Foulkes estimate   =    -578.98192098 Ry
+     estimated scf accuracy    <       0.00401341 Ry
+     electrostatic embedding   =      -0.00003390 Ry
+     electrolyte free energy   =      -2.58782456 Ry
+     correction to one-el term =       4.11570949 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.07E-07,  avg # of iterations =  4.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.4E-12, # of iterations =  11
+
+     total cpu time spent up to now is       46.3 secs
+
+     total energy              =    -575.67969096 Ry
+     Harris-Foulkes estimate   =    -578.99188090 Ry
+     estimated scf accuracy    <       0.00022825 Ry
+     electrostatic embedding   =      -0.00001991 Ry
+     electrolyte free energy   =      -0.81355079 Ry
+     correction to one-el term =       4.12574202 Ry
+
+     iteration #  5     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.07E-07,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 8.6E-12, # of iterations =  11
+
+     total cpu time spent up to now is       48.3 secs
+
+     total energy              =    -575.67883413 Ry
+     Harris-Foulkes estimate   =    -578.99150837 Ry
+     estimated scf accuracy    <       0.00010406 Ry
+     electrostatic embedding   =      -0.00002235 Ry
+     electrolyte free energy   =      -0.81269670 Ry
+     correction to one-el term =       4.12538756 Ry
+
+     iteration #  6     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.74E-07,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.7E-12, # of iterations =  12
+
+     total cpu time spent up to now is       50.3 secs
+
+     total energy              =    -575.65729949 Ry
+     Harris-Foulkes estimate   =    -578.99198331 Ry
+     estimated scf accuracy    <       0.00006285 Ry
+     electrostatic embedding   =      -0.00002373 Ry
+     electrolyte free energy   =      -0.79117365 Ry
+     correction to one-el term =       4.12586887 Ry
+
+     iteration #  7     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.65E-07,  avg # of iterations =  2.0
+
+     total cpu time spent up to now is       51.2 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+   -93.4596 -93.4493 -56.9009 -56.8305 -56.7571 -56.7571 -56.7269 -56.7269
+    -7.6387  -7.1557  -7.0098  -6.2446  -5.5592  -5.5384  -5.5384  -4.7639
+    -4.5784  -4.5784  -4.3830  -3.9897  -1.3550   0.0502   0.1296
+
+     the Fermi energy is    -4.2474 ev
+
+!    total energy              =    -575.68407925 Ry
+     Harris-Foulkes estimate   =    -578.99205260 Ry
+     estimated scf accuracy    <       0.00000118 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -5343.41027662 Ry
+     hartree contribution      =    2663.71003452 Ry
+     xc contribution           =     -54.25533263 Ry
+     ewald contribution        =    2154.95128472 Ry
+     smearing contrib. (-TS)   =       0.01223844 Ry
+     electrostatic embedding   =      -0.00002685 Ry
+     electrolyte free energy   =      -0.81794970 Ry
+     correction to one-el term =       4.12594888 Ry
+
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4060 ev
+
+     convergence has been achieved in   7 iterations
+
+
+***************************************************
+
+     Finished Charge convergence step :   2
+
+     DFT Fermi level calculated as    -4.24739952
+
+     Charge trapped in surface states:     0.00805000 e
+
+     Charge Accuracy <     0.00609100
+
+     Difference between bulk and DFT fermi:    -4.71813449
+
+     Now using DFT charge of:      0.00195900
+
+***************************************************
+     charge density from previous step
+     extrapolated charge   37.99195, renormalised to   37.99804
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+
+     add environment contribution to local potential
+     polarization accuracy = 6.2E-12, # of iterations =  17
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.02326002
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.02326002
+
+     Total force =     0.032895     Total SCF correction =     0.009748
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     total cpu time spent up to now is       54.1 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-06,  avg # of iterations =  6.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.6E-12, # of iterations =  22
+
+     total cpu time spent up to now is       56.4 secs
+
+     total energy              =    -575.25511191 Ry
+     Harris-Foulkes estimate   =    -580.37090249 Ry
+     estimated scf accuracy    <       0.00010492 Ry
+     electrostatic embedding   =      -0.00089535 Ry
+     electrolyte free energy   =      -0.38695854 Ry
+     correction to one-el term =       4.66079940 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.76E-07,  avg # of iterations =  9.0
+
+     add environment contribution to local potential
+     polarization accuracy = 8.3E-12, # of iterations =  21
+
+     total cpu time spent up to now is       58.7 secs
+
+     total energy              =    -585.83308701 Ry
+     Harris-Foulkes estimate   =    -579.54417965 Ry
+     estimated scf accuracy    <       0.02013426 Ry
+     electrostatic embedding   =      -0.00087004 Ry
+     electrolyte free energy   =     -10.96538406 Ry
+     correction to one-el term =       4.67627444 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.76E-07,  avg # of iterations =  6.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.8E-12, # of iterations =  19
+
+     total cpu time spent up to now is       60.9 secs
+
+     total energy              =    -575.33509628 Ry
+     Harris-Foulkes estimate   =    -579.54513722 Ry
+     estimated scf accuracy    <       0.00006366 Ry
+     electrostatic embedding   =      -0.00087091 Ry
+     electrolyte free energy   =      -0.46691479 Ry
+     correction to one-el term =       4.67781429 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.68E-07,  avg # of iterations =  2.0
+
+     add environment contribution to local potential
+     polarization accuracy = 5.1E-12, # of iterations =   9
+
+     total cpu time spent up to now is       62.9 secs
+
+     total energy              =    -575.25103611 Ry
+     Harris-Foulkes estimate   =    -579.53687537 Ry
+     estimated scf accuracy    <       0.00008937 Ry
+     electrostatic embedding   =      -0.00087715 Ry
+     electrolyte free energy   =      -0.38283974 Ry
+     correction to one-el term =       4.66955330 Ry
+
+     iteration #  5     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.68E-07,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.1E-12, # of iterations =  18
+
+     total cpu time spent up to now is       65.1 secs
+
+     total energy              =    -575.25300380 Ry
+     Harris-Foulkes estimate   =    -579.53687050 Ry
+     estimated scf accuracy    <       0.00006465 Ry
+     electrostatic embedding   =      -0.00087659 Ry
+     electrolyte free energy   =      -0.38480103 Ry
+     correction to one-el term =       4.66955030 Ry
+
+     iteration #  6     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.68E-07,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.5E-12, # of iterations =  13
+
+     total cpu time spent up to now is       67.1 secs
+
+     total energy              =    -575.36243075 Ry
+     Harris-Foulkes estimate   =    -579.53609641 Ry
+     estimated scf accuracy    <       0.00014266 Ry
+     electrostatic embedding   =      -0.00087767 Ry
+     electrolyte free energy   =      -0.49425018 Ry
+     correction to one-el term =       4.66876981 Ry
+
+     iteration #  7     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.68E-07,  avg # of iterations =  2.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.0E-12, # of iterations =   8
+
+     total cpu time spent up to now is       69.1 secs
+
+     total energy              =    -575.33741648 Ry
+     Harris-Foulkes estimate   =    -579.53583970 Ry
+     estimated scf accuracy    <       0.00000512 Ry
+     electrostatic embedding   =      -0.00087383 Ry
+     electrolyte free energy   =      -0.46922571 Ry
+     correction to one-el term =       4.66852264 Ry
+
+     iteration #  8     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.35E-08,  avg # of iterations =  1.0
+
+     total cpu time spent up to now is       69.9 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+   -93.4420 -93.4318 -56.8827 -56.8123 -56.7395 -56.7395 -56.7092 -56.7092
+    -7.6219  -7.1371  -6.9915  -6.2263  -5.5425  -5.5203  -5.5203  -4.7459
+    -4.5602  -4.5602  -4.3649  -3.9852  -1.3587   0.0535   0.1291
+
+     the Fermi energy is    -4.2303 ev
+
+!    total energy              =    -575.33448122 Ry
+     Harris-Foulkes estimate   =    -579.53528222 Ry
+     estimated scf accuracy    <       0.00000378 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -5344.38547719 Ry
+     hartree contribution      =    2664.13747797 Ry
+     xc contribution           =     -54.25051007 Ry
+     ewald contribution        =    2154.95128472 Ry
+     smearing contrib. (-TS)   =       0.01194540 Ry
+     electrostatic embedding   =      -0.00087362 Ry
+     electrolyte free energy   =      -0.46629338 Ry
+     correction to one-el term =       4.66796496 Ry
+
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4060 ev
+
+     convergence has been achieved in   8 iterations
+
+
+***************************************************
+
+     Finished Charge convergence step :   3
+
+     DFT Fermi level calculated as    -4.23026185
+
+     Charge trapped in surface states:     0.00195900 e
+
+     Charge Accuracy <     0.00101311
+
+     Difference between bulk and DFT fermi:     0.94132965
+
+     Now using DFT charge of:      0.00297211
+
+***************************************************
+     charge density from previous step
+     extrapolated charge   37.99804, renormalised to   37.99703
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+
+     add environment contribution to local potential
+     polarization accuracy = 5.0E-12, # of iterations =  14
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.02242100
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.02242100
+
+     Total force =     0.031708     Total SCF correction =     0.015124
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     total cpu time spent up to now is       72.7 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-06,  avg # of iterations =  4.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.4E-12, # of iterations =  22
+
+     total cpu time spent up to now is       75.0 secs
+
+     total energy              =    -574.88136699 Ry
+     Harris-Foulkes estimate   =    -579.30934349 Ry
+     estimated scf accuracy    <       0.00021078 Ry
+     electrostatic embedding   =      -0.00071754 Ry
+     electrolyte free energy   =      -0.01365505 Ry
+     correction to one-el term =       4.58237114 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  5.55E-07,  avg # of iterations =  7.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.4E-12, # of iterations =  23
+
+     total cpu time spent up to now is       77.3 secs
+
+     total energy              =    -575.94515530 Ry
+     Harris-Foulkes estimate   =    -579.43071260 Ry
+     estimated scf accuracy    <       0.05330106 Ry
+     electrostatic embedding   =      -0.00074430 Ry
+     electrolyte free energy   =      -1.07911841 Ry
+     correction to one-el term =       4.56204973 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  5.55E-07,  avg # of iterations =  7.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.0E-12, # of iterations =  18
+
+     total cpu time spent up to now is       79.6 secs
+
+     total energy              =    -574.87074324 Ry
+     Harris-Foulkes estimate   =    -579.43680780 Ry
+     estimated scf accuracy    <       0.00811939 Ry
+     electrostatic embedding   =      -0.00073757 Ry
+     electrolyte free energy   =      -0.00318458 Ry
+     correction to one-el term =       4.56943176 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  5.55E-07,  avg # of iterations =  4.0
+
+     add environment contribution to local potential
+     polarization accuracy = 8.4E-12, # of iterations =  13
+
+     total cpu time spent up to now is       81.7 secs
+
+     total energy              =    -574.88268553 Ry
+     Harris-Foulkes estimate   =    -579.44442114 Ry
+     estimated scf accuracy    <       0.00005021 Ry
+     electrostatic embedding   =      -0.00072316 Ry
+     electrolyte free energy   =      -0.01483559 Ry
+     correction to one-el term =       4.57729025 Ry
+
+     iteration #  5     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.32E-07,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.2E-12, # of iterations =   8
+
+     total cpu time spent up to now is       83.7 secs
+
+     total energy              =    -574.88378532 Ry
+     Harris-Foulkes estimate   =    -579.44441988 Ry
+     estimated scf accuracy    <       0.00002175 Ry
+     electrostatic embedding   =      -0.00072436 Ry
+     electrolyte free energy   =      -0.01593575 Ry
+     correction to one-el term =       4.57729352 Ry
+
+     iteration #  6     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  5.73E-08,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.3E-12, # of iterations =  10
+
+     total cpu time spent up to now is       85.7 secs
+
+     total energy              =    -574.88341205 Ry
+     Harris-Foulkes estimate   =    -579.44443205 Ry
+     estimated scf accuracy    <       0.00001287 Ry
+     electrostatic embedding   =      -0.00072480 Ry
+     electrolyte free energy   =      -0.01556400 Ry
+     correction to one-el term =       4.57730716 Ry
+
+     iteration #  7     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.39E-08,  avg # of iterations =  1.0
+
+     total cpu time spent up to now is       86.5 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+   -93.4553 -93.4450 -56.8956 -56.8251 -56.7530 -56.7530 -56.7227 -56.7227
+    -7.6335  -7.1496  -7.0046  -6.2394  -5.5544  -5.5330  -5.5330  -4.7593
+    -4.5729  -4.5729  -4.3783  -3.9922  -1.3645   0.0788   0.1417
+
+     the Fermi energy is    -4.2427 ev
+
+!    total energy              =    -574.88348021 Ry
+     Harris-Foulkes estimate   =    -579.44446413 Ry
+     estimated scf accuracy    <       0.00000225 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -5344.34770153 Ry
+     hartree contribution      =    2664.19639785 Ry
+     xc contribution           =     -54.25651957 Ry
+     ewald contribution        =    2154.95128472 Ry
+     smearing contrib. (-TS)   =       0.01207627 Ry
+     electrostatic embedding   =      -0.00072564 Ry
+     electrolyte free energy   =      -0.01563362 Ry
+     correction to one-el term =       4.57734130 Ry
+
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4060 ev
+
+     convergence has been achieved in   7 iterations
+
+
+***************************************************
+
+     Finished Charge convergence step :   4
+
+     DFT Fermi level calculated as    -4.24274755
+
+     Charge trapped in surface states:     0.00297211 e
+
+     Charge Accuracy <     0.00040162
+
+     Difference between bulk and DFT fermi:    -0.61825513
+
+     Now using DFT charge of:      0.00257049
+
+***************************************************
+     charge density from previous step
+     extrapolated charge   37.99703, renormalised to   37.99743
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+
+     add environment contribution to local potential
+     polarization accuracy = 9.4E-12, # of iterations =  14
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.02281410
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.02281410
+
+     Total force =     0.032264     Total SCF correction =     0.011900
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     total cpu time spent up to now is       89.3 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-06,  avg # of iterations =  3.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.9E-12, # of iterations =  21
+
+     total cpu time spent up to now is       91.7 secs
+
+     total energy              =    -574.93523323 Ry
+     Harris-Foulkes estimate   =    -579.53322170 Ry
+     estimated scf accuracy    <       0.00012549 Ry
+     electrostatic embedding   =      -0.00078949 Ry
+     electrolyte free energy   =      -0.06733282 Ry
+     correction to one-el term =       4.61044562 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.30E-07,  avg # of iterations =  5.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.4E-12, # of iterations =  22
+
+     total cpu time spent up to now is       94.0 secs
+
+     total energy              =    -574.87095382 Ry
+     Harris-Foulkes estimate   =    -579.49403336 Ry
+     estimated scf accuracy    <       0.01590185 Ry
+     electrostatic embedding   =      -0.00076620 Ry
+     electrolyte free energy   =      -0.00359212 Ry
+     correction to one-el term =       4.62618709 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.30E-07,  avg # of iterations =  8.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.7E-12, # of iterations =  17
+
+     total cpu time spent up to now is       96.2 secs
+
+     total energy              =    -575.07723767 Ry
+     Harris-Foulkes estimate   =    -579.48839238 Ry
+     estimated scf accuracy    <       0.00426407 Ry
+     electrostatic embedding   =      -0.00077136 Ry
+     electrolyte free energy   =      -0.20941304 Ry
+     correction to one-el term =       4.62098343 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.30E-07,  avg # of iterations =  4.0
+
+     total cpu time spent up to now is       97.1 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+   -93.4486 -93.4384 -56.8886 -56.8181 -56.7468 -56.7468 -56.7166 -56.7166
+    -7.6282  -7.1436  -6.9989  -6.2338  -5.5484  -5.5268  -5.5268  -4.7536
+    -4.5667  -4.5667  -4.3727  -3.9891  -1.3618   0.0696   0.1358
+
+     the Fermi energy is    -4.2373 ev
+
+!    total energy              =    -574.92793205 Ry
+     Harris-Foulkes estimate   =    -579.48038500 Ry
+     estimated scf accuracy    <       0.00000205 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -5344.34763116 Ry
+     hartree contribution      =    2664.15752925 Ry
+     xc contribution           =     -54.25356330 Ry
+     ewald contribution        =    2154.95128472 Ry
+     smearing contrib. (-TS)   =       0.01199727 Ry
+     electrostatic embedding   =      -0.00078394 Ry
+     electrolyte free energy   =      -0.05994971 Ry
+     correction to one-el term =       4.61318483 Ry
+
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4060 ev
+
+     convergence has been achieved in   4 iterations
+
+
+***************************************************
+
+     Finished Charge convergence step :   5
+
+     DFT Fermi level calculated as    -4.23729227
+
+     Charge trapped in surface states:     0.00257049 e
+
+     Charge Accuracy <     0.00005599
+
+     Difference between bulk and DFT fermi:    -0.07564797
+
+     Now using DFT charge of:      0.00251450
+
+***************************************************
+     charge density from previous step
+     extrapolated charge   37.99743, renormalised to   37.99749
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+ WARNING: significant discrepancy between the numerical and the expected erfc charge
+
+     add environment contribution to local potential
+     polarization accuracy = 5.3E-12, # of iterations =   8
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.02238303
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.02238303
+
+     Total force =     0.031654     Total SCF correction =     0.009980
+     SCF correction compared to forces is large: reduce conv_thr to get better values
+
+     total cpu time spent up to now is       99.8 secs
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-06,  avg # of iterations =  3.0
+
+     add environment contribution to local potential
+     polarization accuracy = 8.6E-12, # of iterations =  27
+
+     total cpu time spent up to now is      102.2 secs
+
+     total energy              =    -575.01691882 Ry
+     Harris-Foulkes estimate   =    -579.49374342 Ry
+     estimated scf accuracy    <       0.00189750 Ry
+     electrostatic embedding   =      -0.00079217 Ry
+     electrolyte free energy   =      -0.15052383 Ry
+     correction to one-el term =       4.61873456 Ry
+
+     iteration #  2     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  4.99E-06,  avg # of iterations =  9.0
+
+     total cpu time spent up to now is      103.1 secs
+
+     total energy              =    -574.84800369 Ry
+     Harris-Foulkes estimate   =    -579.52270653 Ry
+     estimated scf accuracy    <       0.84506249 Ry
+     electrostatic embedding   =      -0.00072099 Ry
+     electrolyte free energy   =      -0.00000106 Ry
+     correction to one-el term =       4.62961323 Ry
+
+     iteration #  3     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  4.99E-06,  avg # of iterations =  9.0
+
+     add environment contribution to local potential
+     polarization accuracy = 5.9E-12, # of iterations =  29
+
+     total cpu time spent up to now is      105.6 secs
+
+     total energy              =    -574.86773832 Ry
+     Harris-Foulkes estimate   =    -579.49892752 Ry
+     estimated scf accuracy    <       0.03692132 Ry
+     electrostatic embedding   =      -0.00080173 Ry
+     electrolyte free energy   =      -0.00000106 Ry
+     correction to one-el term =       4.62971117 Ry
+
+     iteration #  4     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  4.99E-06,  avg # of iterations = 10.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.2E-12, # of iterations =  24
+
+     total cpu time spent up to now is      108.0 secs
+
+     total energy              =    -575.15348930 Ry
+     Harris-Foulkes estimate   =    -579.48256501 Ry
+     estimated scf accuracy    <       0.00014592 Ry
+     electrostatic embedding   =      -0.00079029 Ry
+     electrolyte free energy   =      -0.28548868 Ry
+     correction to one-el term =       4.61532940 Ry
+
+     iteration #  5     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  3.84E-07,  avg # of iterations =  4.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.7E-12, # of iterations =  13
+
+     total cpu time spent up to now is      110.0 secs
+
+     total energy              =    -574.95655441 Ry
+     Harris-Foulkes estimate   =    -579.48420822 Ry
+     estimated scf accuracy    <       0.00008665 Ry
+     electrostatic embedding   =      -0.00079045 Ry
+     electrolyte free energy   =      -0.08854791 Ry
+     correction to one-el term =       4.61698793 Ry
+
+     iteration #  6     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.28E-07,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.6E-12, # of iterations =  17
+
+     total cpu time spent up to now is      112.2 secs
+
+     total energy              =    -574.95916990 Ry
+     Harris-Foulkes estimate   =    -579.48456849 Ry
+     estimated scf accuracy    <       0.00004654 Ry
+     electrostatic embedding   =      -0.00079123 Ry
+     electrolyte free energy   =      -0.09116465 Ry
+     correction to one-el term =       4.61735250 Ry
+
+     iteration #  7     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.22E-07,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 9.3E-12, # of iterations =  17
+
+     total cpu time spent up to now is      114.3 secs
+
+     total energy              =    -574.95136791 Ry
+     Harris-Foulkes estimate   =    -579.48467602 Ry
+     estimated scf accuracy    <       0.00003073 Ry
+     electrostatic embedding   =      -0.00079153 Ry
+     electrolyte free energy   =      -0.08336381 Ry
+     correction to one-el term =       4.61746203 Ry
+
+     iteration #  8     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  8.09E-08,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 8.1E-12, # of iterations =  16
+
+     total cpu time spent up to now is      116.4 secs
+
+     total energy              =    -574.94802678 Ry
+     Harris-Foulkes estimate   =    -579.48486545 Ry
+     estimated scf accuracy    <       0.00001613 Ry
+     electrostatic embedding   =      -0.00079168 Ry
+     electrolyte free energy   =      -0.08002312 Ry
+     correction to one-el term =       4.61765285 Ry
+
+     iteration #  9     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  4.25E-08,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 7.6E-12, # of iterations =   2
+
+     total cpu time spent up to now is      118.2 secs
+
+     total energy              =    -574.94619823 Ry
+     Harris-Foulkes estimate   =    -579.48505692 Ry
+     estimated scf accuracy    <       0.00000922 Ry
+     electrostatic embedding   =      -0.00079176 Ry
+     electrolyte free energy   =      -0.07819452 Ry
+     correction to one-el term =       4.61784496 Ry
+
+     iteration # 10     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.43E-08,  avg # of iterations =  1.0
+
+     add environment contribution to local potential
+     polarization accuracy = 6.3E-12, # of iterations =  21
+
+     total cpu time spent up to now is      120.5 secs
+
+     total energy              =    -574.94609908 Ry
+     Harris-Foulkes estimate   =    -579.48511813 Ry
+     estimated scf accuracy    <       0.00000900 Ry
+     electrostatic embedding   =      -0.00079176 Ry
+     electrolyte free energy   =      -0.07809680 Ry
+     correction to one-el term =       4.61790619 Ry
+
+     iteration # 11     ecut=    35.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  2.37E-08,  avg # of iterations =  1.0
+
+     total cpu time spent up to now is      121.3 secs
+
+     End of self-consistent calculation
+
+          k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
+
+   -93.4495 -93.4392 -56.8902 -56.8197 -56.7470 -56.7470 -56.7168 -56.7168
+    -7.6285  -7.1442  -6.9989  -6.2337  -5.5493  -5.5276  -5.5276  -4.7534
+    -4.5675  -4.5675  -4.3724  -3.9892  -1.3620   0.0685   0.1350
+
+     the Fermi energy is    -4.2373 ev
+
+!    total energy              =    -574.93940230 Ry
+     Harris-Foulkes estimate   =    -579.48563714 Ry
+     estimated scf accuracy    <          1.3E-09 Ry
+
+     The total energy is the sum of the following terms:
+
+     one-electron contribution =   -5344.36832487 Ry
+     hartree contribution      =    2664.17334253 Ry
+     xc contribution           =     -54.25396175 Ry
+     ewald contribution        =    2154.95128472 Ry
+     smearing contrib. (-TS)   =       0.01202224 Ry
+     electrostatic embedding   =      -0.00079204 Ry
+     electrolyte free energy   =      -0.07139946 Ry
+     correction to one-el term =       4.61842633 Ry
+
+     the Fermi energy shift due to the parabolic pbc-correction is    -0.4060 ev
+
+     convergence has been achieved in  11 iterations
+
+
+***************************************************
+
+     Finished charge convergence step :   6
+
+     Convergence of charge with accuracy <     0.00000570 e
+
+     Charge trapped in surface states:     0.00251450
+
+     Difference between bulk and DFT fermi:     0.00856743
+
+     Final Potential:    -0.08989088 V
+
+     Output written to q-v.dat       
+
+***************************************************
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.02269402
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.02269402
+
+     Total force =     0.032094     Total SCF correction =     0.000291
+
+     Writing output data file ./pwscf.save/
+
+     init_run     :      1.62s CPU      1.70s WALL (       1 calls)
+     electrons    :    101.47s CPU    102.82s WALL (       7 calls)
+     update_pot   :      0.28s CPU      0.30s WALL (       6 calls)
+     forces       :     16.34s CPU     16.81s WALL (       7 calls)
+
+     Called by init_run:
+     wfcinit      :      0.09s CPU      0.10s WALL (       1 calls)
+     potinit      :      0.66s CPU      0.69s WALL (       1 calls)
+     hinit0       :      0.85s CPU      0.88s WALL (       1 calls)
+
+     Called by electrons:
+     c_bands      :     11.98s CPU     10.44s WALL (      55 calls)
+     sum_band     :      2.20s CPU      2.23s WALL (      55 calls)
+     v_of_rho     :      2.44s CPU      2.68s WALL (      61 calls)
+     mix_rho      :      0.42s CPU      0.58s WALL (      55 calls)
+
+     Called by c_bands:
+     init_us_2    :      0.17s CPU      0.18s WALL (     111 calls)
+     cegterg      :     11.46s CPU      9.91s WALL (      55 calls)
+
+     Called by sum_band:
+
+     Called by *egterg:
+     h_psi        :      9.04s CPU      8.51s WALL (     266 calls)
+     g_psi        :      0.04s CPU      0.04s WALL (     210 calls)
+     cdiaghg      :      0.21s CPU      0.23s WALL (     258 calls)
+
+     Called by h_psi:
+     h_psi:calbec :      0.53s CPU      0.29s WALL (     266 calls)
+     vloc_psi     :      7.90s CPU      7.92s WALL (     266 calls)
+     add_vuspsi   :      0.54s CPU      0.16s WALL (     266 calls)
+
+     General routines
+     calbec       :      0.64s CPU      0.34s WALL (     294 calls)
+     fft          :     10.10s CPU     10.13s WALL (    4793 calls)
+     ffts         :      0.13s CPU      0.14s WALL (      55 calls)
+     fftw         :      8.41s CPU      8.43s WALL (    7489 calls)
+
+     Parallel routines
+
+     Environ routines
+     calc_eelect  :      0.02s CPU      0.02s WALL (     108 calls)
+     calc_velect  :     16.87s CPU     16.92s WALL (      98 calls)
+     dielectric   :      0.12s CPU      0.12s WALL (      75 calls)
+     electrolyte  :      0.00s CPU      0.00s WALL (      14 calls)
+     calc_felect  :      0.08s CPU      0.08s WALL (       7 calls)
+
+     PWSCF        :   1m59.52s CPU   2m 1.43s WALL
+
+
+   This run was terminated on:  18: 5:33  18Jul2020            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=
