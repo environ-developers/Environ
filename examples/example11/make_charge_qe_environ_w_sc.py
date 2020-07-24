@@ -118,9 +118,9 @@ def make_environ_in(q,epsilon):
 /
 &BOUNDARY
     sc_spread = 0.01,
-    sc_distance = 15.2
+    sc_distance = 20.2
     electrolyte_spread = 0.01,
-    electrolyte_distance = 15.2,
+    electrolyte_distance = 20.2,
     electrolyte_mode = 'system',
 /
 &ELECTROSTATIC

@@ -176,8 +176,8 @@ CONTAINS
       ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     END IF
     WRITE (environ_unit, *)"ez: ",ez
-    WRITE (environ_unit, *)"ez_gcs: ",ez
-    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 ) !/ permittivity )
+    WRITE (environ_unit, *)"ez_gcs: ",ez_gcs
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity_gcs )
     arg = ez_gcs/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
@@ -241,6 +241,7 @@ CONTAINS
 
           ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
           v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+          !v(i) =  vtmp - potential % of_r(i)
           !
           ! WRITE( environ_unit, *)"v_i: ",v(i)
        ENDIF
@@ -286,8 +287,8 @@ CONTAINS
        IF (( axis(1,i) .LT. 0.D0 ) .AND. ( (ABS(axis(1,i)) - xstern_ms) .LE. 0.05D0 )) THEN
           !
           icount = icount + 1
-          !v_cut = v_cut + potential % of_r(i) + v(i) - ez * (ABS(axis(1,i))-xstern_ms)
-          v_cut = v_cut + v(i)
+          !v_cut = v_cut + potential % of_r(i)  - ez * (ABS(axis(1,i))-xstern_ms)
+          v_cut = v_cut + potential % of_r(i)
           !
        ENDIF
        !
@@ -308,29 +309,65 @@ CONTAINS
     DO i = 1, nnr
 
        IF ( -axis(1,i) .GE. xstern_ms ) THEN
-          distance = ABS(axis(1,i)) - xstern_ms
-          !Only applies parabolic equation if still within the depletion width
-          !
-          IF ( distance <= depletion_length) THEN
-             !
-             ! ... Mott Schottky analytic solution on the outside
-             !
-             IF (ez_ms < 0) THEN
-                vtmp = -(distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
-             ELSE
-                vtmp = (distance)**2.D0 / fact/4.D0 - ez_ms*(distance)
-             END IF
+          ! TRYING OUT SOMETHING NEW where you get gcs on "semiconductor side" for flatband pot
+          IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+              !
+              ! ... Gouy-Chapmann-Stern analytic solution on the outside
+              !
+              arg = const * EXP( ABS(axis(1,i)) * f1 )
+              IF ( ABS(arg) .GT. 1.D0 ) THEN
+                 acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+              ELSE
+                 acoth = 0.D0
+              END IF
+              vtmp =  f2 * acoth
+
+
+              ! Having to add extra handling for electrode charge
+
+              IF ( ISNAN(vtmp) ) THEN
+                vtmp = 0.D0
+              END IF
+              !
+              ! ... Remove source potential (linear) and add analytic one
+              !
+
+              ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
+              v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+              !v(i) =  vtmp - potential % of_r(i)
+              !
+              ! WRITE( environ_unit, *)"v_i: ",v(i)
+
+
           ELSE
-             vtmp = 0.D0
+              distance = ABS(axis(1,i)) - xstern_ms
+              !Only applies parabolic equation if still within the depletion width
+              !
+              IF ( distance <= depletion_length) THEN
+                 !
+                 ! ... Mott Schottky analytic solution on the outside
+                 !
+                 IF (ez_ms < 0.D0) THEN
+                    vtmp = -(distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
+                 ELSE IF (ez_ms > 0.D0) THEN
+                    vtmp = (distance)**2.D0 / fact/4.D0 - ez_ms*(distance)
+                 ELSE
+                    vtmp = 0.D0
+                 END IF
+              ELSE
+                 vtmp = 0.D0
+              END IF
+              ! WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
+              ! WRITE (environ_unit, *) "Distance: ", distance
+              WRITE (environ_unit, *) "ms correction: ", vtmp
+              !
+              ! ... Remove source potential (linear) and add analytic one
+              !
+              v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
+              !v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
+              !v(i) =  v(i) + vtmp - potential % of_r(i)
           END IF
-          ! WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
-          ! WRITE (environ_unit, *) "Distance: ", distance
-          !WRITE (environ_unit, *) "ms correction: ", vtmp
-          !
-          ! ... Remove source potential (linear) and add analytic one
-          !
-          v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
-          !WRITE( environ_unit, *)"This is the vi: ",ez*distance
+          WRITE( environ_unit, *)"This is the vi: ",v(i)
           !
        ENDIF
        !
@@ -367,6 +404,9 @@ CONTAINS
     v_edge = v_edge / DBLE(icount)
     v = v - v_edge
     !
+
+
+
     potential % of_r = potential % of_r + v
 
     semiconductor = semiconductor_in
@@ -495,8 +535,8 @@ END SUBROUTINE calc_vms_gcs
     ELSE
       ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     END IF
-    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity )
-    arg = ez/fact
+    fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity_gcs )
+    arg = ez_gcs/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
     arg = vstern * 0.25D0 * invkbt * zion
@@ -581,28 +621,81 @@ END SUBROUTINE calc_vms_gcs
 
     DO i = 1, nnr
 
-       IF ( -axis(1,i) .GE. xstern_ms ) THEN
+      IF ( -axis(1,i) .GE. xstern_ms ) THEN
           distance = ABS(axis(1,i)) - xstern_ms
-          !Only applies parabolic equation if still within the depletion width
-          !
-          IF ( distance <= depletion_length) THEN
-             !
-             ! ... Mott Schottky analytic solution on the outside
-             !
-             vtmp = 2.D0*(distance) / fact/4.D0 + ez_ms
+
+          IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+              IF ( electrolyte % linearized ) THEN
+                 !
+                 ! ... Compute some constants needed for the calculation
+                 !
+                 f1 = -1.D0 * lin_k / lin_e
+
+                 !
+                 ! ... Linearized Gouy-Chapmann-Stern analytic solution on the outside
+                 !
+                 arg = f1 * ABS(axis(1,i))
+                 dvtmp_dx = lin_c * f1 * EXP( arg )
+                 !
+                 ! ... Remove source potential and add analytic one
+                 !
+                 gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                             & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+              ELSE
+                 ! ... Compute some constants needed for the calculation
+                 !
+                 ! these constants don't need to be redone every point of the for loop,
+                 ! what i should really do is move the if statements to the "gcs loop"
+                 fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 / permittivity_gcs )
+                 f1 = - fact * zion * invkbt * 0.5D0
+                 f2 = 4.D0 * kbt / zion
+                 !
+                 !
+                 ! ... Gouy-Chapmann-Stern analytic solution on the outside
+                 !
+                 arg = const * EXP( ABS(axis(1,i)) * f1 )
+                 dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
+                 !
+                 ! ... Remove source potential (linear) and add analytic one
+                 !
+                 gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                             & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+
+                 !WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
+                 !
+              END IF
+              !
           ELSE
-             vtmp = 0.D0
+
+              IF ( distance <= depletion_length) THEN
+                 !
+                 ! ... Mott Schottky analytic solution on the outside
+                 !
+                 ! IF (ez_ms < 0) THEN
+                 !    vtmp = -(distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
+                 ! ELSE
+                 !    vtmp = (distance)**2.D0 / fact/4.D0 - ez_ms*(distance)
+                 ! END IF
+                 IF (ez_ms .LE. 0.D0) THEN
+                   vtmp = -2.D0*(distance) / fact/4.D0 + ez_ms
+                 ELSE
+                   vtmp = 2.D0*(distance) / fact/4.D0 - ez_ms
+                 END IF
+
+              ELSE
+                 vtmp = 0.D0
+              END IF
+              !WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
+              !WRITE (environ_unit, *) "Distance: ", distance
+              !
+              ! ... Remove source potential (linear) and add analytic one
+              !
+              gvstern(slab_axis,i) =  -gradv % of_r(slab_axis,i) + (vtmp - ez) * ABS(axis(1,i))/axis(1,i)!-vms ! vtmp - potential % of_r(i)
+              !WRITE( environ_unit, *)"This is the vi: ",ez*distance
           END IF
-          !WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
-          !WRITE (environ_unit, *) "Distance: ", distance
           !
-          ! ... Remove source potential (linear) and add analytic one
-          !
-          gvstern(slab_axis,i) =  gvstern(slab_axis,i) + vtmp -ez!-vms ! vtmp - potential % of_r(i)
-          !WRITE( environ_unit, *)"This is the vi: ",ez*distance
-          !
-       ENDIF
-       !
+      END IF
+      !
     ENDDO
 
 
