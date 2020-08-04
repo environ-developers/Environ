@@ -79,6 +79,10 @@ CONTAINS
        !
        IF ( .NOT. physical ) CYCLE
        !
+       ! ... the function should be centered on the origin
+       !
+       r = r - cell%origin
+       !
        ! ... minimum image convention
        !
        CALL minimum_image( cell, r, rws )
