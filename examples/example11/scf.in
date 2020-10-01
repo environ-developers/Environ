@@ -1,0 +1,64 @@
+&CONTROL
+  calculation='scf',
+  prefix='Si-O',
+  pseudo_dir='/storage/home/qjc5019/Pseudopotentials/Pseudos/GBRV_USPP_Library/GBRV_USPP_PBE_UPF_format',
+  verbosity='high',
+  restart_mode='from_scratch',
+  wf_collect = .TRUE.,
+  nstep=200
+  outdir= './tmp',
+/
+
+&SYSTEM
+  ibrav=0,
+  celldm(1)=7.2565749368d0,
+  nat=17,
+  ntyp=3,
+  ecutwfc=50.0d0,
+  ecutrho=200.0d0,
+  occupations='smearing',
+  smearing='mv',
+  degauss=0.03000d0,
+  assume_isolated = 'slabz'
+  tot_charge = 0.0,
+/
+&ELECTRONS
+  diagonalization='david',
+  conv_thr=1d-10,
+  mixing_mode='local-TF',
+  mixing_beta=0.500d0,
+  electron_maxstep = 250
+/
+
+ATOMIC_SPECIES
+  Si 28.085500d0 si_pbe_v1.uspp.F.UPF
+  O  15.999000d0 o_pbe_v1.2.uspp.F.UPF  
+  H 1.007940d0 h_pbe_v1.uspp.F.UPF
+
+ATOMIC_POSITIONS {alat}
+Si       0.000000000   0.000000000   1.802078557    0   0   0
+Si       0.500000000   1.060660172   1.802078557    0   0   0
+Si       0.000000000   0.353553391   2.302078557    0   0   0
+Si       0.500000000   0.707106781   2.302078557    0   0   0
+Si       0.000000000   0.000000000   2.802078557    0   0   0
+Si       0.500000000   1.060660172   2.802078557    0   0   0
+Si       0.000000000   0.353553391   3.302078557    0   0   0
+Si       0.500000000   0.707106781   3.302078557    0   0   0
+Si       0.000000000   0.000000000   3.802078557    0   0   0
+Si       0.500000000   1.060660172   3.802078557    0   0   0
+Si      -0.141906310   0.285473223   4.333463455
+O        0.055636516   0.683049784   4.352925312
+Si       0.485241093   0.767996883   4.340161089
+Si       0.018742799   0.005934991   4.872453550
+Si       0.520455480   1.086289283   4.855734843
+O       -0.007780491   1.710729418   5.196824683
+H        0.211847623   1.812653940   5.277027230
+
+
+K_POINTS {automatic}
+ 5 5 1 1 1 1
+
+CELL_PARAMETERS {alat}
+  1.000000000000d0  0.000000000000d0  0.000000000000d0
+  0.000000000000d0  1.414213562374d0  0.000000000000d0
+  0.000000000000d0  0.000000000000d0  6.624988536903d0

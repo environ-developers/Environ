@@ -114,7 +114,7 @@ CONTAINS
     semiconductor_in%carrier_density = sc_carrier_density
 
     !   convert carrier density to units of (bohr)^-3
-    semiconductor_in%carrier_density = semiconductor_in%carrier_density *1.25D-25
+    semiconductor_in%carrier_density = semiconductor_in%carrier_density *1.48D-25
 
 
     ! Possibly should have an if statement to check if electrode charge is

@@ -105,36 +105,44 @@ CONTAINS
     need_pbc_correction = .FALSE.
     need_electrolyte = .FALSE.
     need_semiconductor = .FALSE.
+    need_outer_loop = .FALSE.
     CALL create_electrostatic_core( pbc_core )
     !
     ! first check keywords specfied in input
     !
-    SELECT CASE ( TRIM( ADJUSTL( pbc_correction ) ) )
-    CASE ( 'none' )
-    CASE ( 'parabolic' )
-       need_pbc_correction = .TRUE.
-       loned_analytic = .TRUE.
-       local_type = '1da'
-    CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
-       need_pbc_correction = .TRUE.
-       need_electrolyte = .TRUE.
-       loned_analytic = .TRUE.
-       local_type = 'gcs'
-    CASE ( 'ms', 'mott-schottky' )
-       need_pbc_correction = .TRUE.
-       need_semiconductor = .TRUE.
-       loned_analytic = .TRUE.
-       local_type = 'ms'
-    CASE ( 'ms-gcs','mott-schottky-gouy-chapman-stern')
-       need_pbc_correction = .TRUE.
-       need_semiconductor = .TRUE.
-       need_electrolyte = .TRUE.
-       loned_analytic = .TRUE.
-       local_type = 'ms-gcs'
-       WRITE( environ_unit, * )"ms-gcs selected"
-    CASE DEFAULT
-       CALL errore(sub_name,'Option not yet implemented',1)
-    END SELECT
+    IF ( pbc_dim_ .GE. 0 ) THEN
+       !
+       pbc_dim = pbc_dim_
+       pbc_axis = pbc_axis_
+       SELECT CASE ( TRIM( ADJUSTL( pbc_correction ) ) )
+       CASE ( 'none' )
+       CASE ( 'parabolic' )
+          need_pbc_correction = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = '1da'
+       CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
+          need_pbc_correction = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'gcs'
+       CASE ( 'ms', 'mott-schottky' )
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms'
+       CASE ( 'ms-gcs','mott-schottky-gouy-chapman-stern')
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          need_outer_loop = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms-gcs'
+          WRITE( environ_unit, * )"ms-gcs selected"
+       CASE DEFAULT
+          CALL errore(sub_name,'Option not yet implemented',1)
+       END SELECT
+       !
+    END IF
     !
     IF ( need_pbc_correction ) THEN
        IF ( loned_analytic ) &

@@ -46,11 +46,85 @@ MODULE correction_periodic
   PUBLIC :: calc_vperiodic, calc_fperiodic, calc_gradvperiodic
   !
 CONTAINS
-!
-!  Subroutine: calc_vperiodic
-!
-!> Computes potential to correct for pbc along the direction orthogonal
-!! to the slab.
+!---------------------------------------------------------------------------
+  SUBROUTINE calc_v0periodic( oned_analytic, charges, v0 )
+!---------------------------------------------------------------------------
+    !
+    ! ... Compute potential to correct for pbc along the direction
+    !     orthogonal to the slab
+    !
+    IMPLICIT NONE
+    !
+    TYPE( oned_analytic_core ), TARGET, INTENT(IN) :: oned_analytic
+    TYPE( environ_density ), TARGET, INTENT(IN) :: charges
+    REAL( DP ), INTENT(INOUT) :: v0
+    !
+    INTEGER, POINTER :: nnr
+    REAL( DP ), DIMENSION(:), POINTER :: rhotot
+    !
+    INTEGER, POINTER :: env_periodicity
+    INTEGER, POINTER :: slab_axis
+    REAL( DP ), POINTER :: alat, omega, axis_length
+    REAL( DP ), DIMENSION(:), POINTER :: origin
+    !
+    INTEGER :: icor
+    REAL(DP) :: fact, const
+    REAL(DP) :: dipole(0:3), quadrupole(3)
+    REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+    CHARACTER( LEN = 80 ) :: sub_name = 'calc_v0periodic'
+    !
+    nnr => charges % cell % nnr
+    rhotot => charges % of_r
+    !
+    alat => oned_analytic % alat
+    omega => oned_analytic % omega
+    env_periodicity => oned_analytic % d
+    slab_axis => oned_analytic % axis
+    axis_length => oned_analytic % size
+    origin => oned_analytic % origin
+    !
+    ! ... Compute multipoles of the system wrt the chosen origin
+    !
+    CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
+    !
+    tot_charge = dipole(0)
+    tot_dipole = dipole(1:3)
+    tot_quadrupole = quadrupole
+    !
+    ! ... Compute constant shift for PBC correction
+    !
+    fact = e2 * tpi / omega
+    !
+    SELECT CASE ( env_periodicity )
+       !
+    CASE ( 0 )
+       !
+       const = madelung(1) * tot_charge / alat * e2 - fact * SUM(tot_quadrupole(:)) / 3.D0
+       !
+    CASE ( 1 )
+       !
+       CALL errore(sub_name,'Option not yet implemented',1)
+       !
+    CASE ( 2 )
+       !
+       const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
+       !
+    CASE ( 3 )
+       !
+       const = 0.D0
+       !
+    CASE DEFAULT
+       !
+       CALL errore(sub_name,'Unexpected option in dimensionality of PBC correction',1)
+       !
+    END SELECT
+    !
+    v0 = const
+    !
+    RETURN
+!---------------------------------------------------------------------------
+  END SUBROUTINE calc_v0periodic
+!---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
   SUBROUTINE calc_vperiodic( oned_analytic, charges, potential )
 !---------------------------------------------------------------------------
@@ -104,12 +178,7 @@ CONTAINS
     !
     ! ... Compute multipoles of the system wrt the chosen origin
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
     CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -221,12 +290,7 @@ CONTAINS
     !
     ! ... Compute dipole of the system with respect to the center of charge
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
     CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
     !
     tot_charge = dipole(0)
     tot_dipole = dipole(1:3)
@@ -332,12 +396,7 @@ CONTAINS
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( nnr, 1, rhotot, origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
     CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
     DEALLOCATE( rhotot )
     !
     tot_charge = dipole(0)

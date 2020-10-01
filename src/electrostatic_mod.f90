@@ -71,7 +71,8 @@ MODULE electrostatic_base
   LOGICAL ::                           &
        need_pbc_correction,            &
        need_electrolyte,               &
-       need_semiconductor
+       need_semiconductor,             &
+       need_outer_loop
   INTEGER ::                           &
        pbc_dim,                        &
        pbc_axis

@@ -482,6 +482,7 @@ MODULE environ_types
      REAL( DP ) :: carrier_density
      REAL( DP ) :: electrode_charge
      REAL( DP ) :: charge_threshold
+     REAL( DP ) :: slab_charge = 0.D0
 
      !
      TYPE( environ_functions ) :: simple
@@ -703,12 +704,7 @@ CONTAINS
     REAL( DP ), DIMENSION(0:3) :: dipole
     REAL( DP ), DIMENSION(3) :: quadrupole
     !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-!    CALL compute_dipole( density%cell%nnr, 1, density%of_r, density%cell%origin, dipole, quadrupole )
-! Compatible with QE-6.4.X, and QE-GIT
     CALL compute_dipole( density%cell%nnr, density%of_r, density%cell%origin, dipole, quadrupole )
-! END BACKWARD COMPATIBILITY
     !
     density % charge = dipole(0)
     density % dipole = dipole(1:3)

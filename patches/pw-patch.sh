@@ -467,19 +467,21 @@ sed '/Environ CALLS BEGIN/ a\
 mv tmp.1 plugin_scf_potential.f90
 
 # plugin initialization
+# Note, when I tried this from a fresh compilation, it didn't actually patch in
+# may need a different spot to place this and plugin_ext_forces
 
-sed '/USE plugin_flags/ a\
-!Environ patch\
+sed '/Environ MODULES BEGIN/ a\
+!Environ patch \
 USE klist,            ONLY : tot_charge\
 USE force_mod,        ONLY : lforce\
 USE control_flags,    ONLY : lbfgs\
-USE environ_base,  ONLY : lsemiconductor\
+USE environ_base,  ONLY : louterloop\
 USE control_flags,    ONLY : nstep\
 !Environ patch
 ' plugin_initialization.f90 > tmp.1
 
-sed '/IMPLICIT NONE/ a\
-!Environ patch\
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
 !\
 \
 ! *****************************************************************************\
@@ -492,7 +494,7 @@ sed '/IMPLICIT NONE/ a\
  \
 IF (use_environ) THEN \
  \
-IF (lsemiconductor) THEN \
+IF (louterloop) THEN \
 CALL start_clock( "semiconductor" ) \
 lforce = .TRUE. \
 lbfgs = .FALSE. \
@@ -512,7 +514,7 @@ END IF \
 &"  doi: 10.1103/PhysRevMaterials.3.015404   "//,& \
 &"  In any publications resulting from this work.") \
  \
-1002 FORMAT(5x,//"*******************************************"//,& \
+1002 FORMAT(5x,//"*******************************************"//, & \
 &"     Running initial calculation for flatband."//& \
 &   "     Using charge of: ",F14.8,//& \
 &"*******************************************") \
@@ -522,10 +524,10 @@ END IF \
 
 mv tmp.2 plugin_initialization.f90
 
-#plugin ext_forces (where I'm hiding all the semiconductor shit)
+#plugin_ext_forces (where I'm hiding all the semiconductor shit)
 
 
-sed '/USE plugin_flags/ a\
+sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 !------------------------------------------------ \
 ! \
@@ -537,7 +539,7 @@ sed '/USE plugin_flags/ a\
 !------------------------------------------------ \
  \
 \
-USE environ_base,  ONLY : lsemiconductor, semiconductor, cell \
+USE environ_base,  ONLY : louterloop, semiconductor, cell \
 USE environ_output,  ONLY : environ_unit \
  \
 USE mp,             ONLY: mp_bcast, mp_barrier, mp_sum \
@@ -558,7 +560,7 @@ USE qexsd_module,     ONLY:   qexsd_set_status \
 !Environ patch
 ' plugin_ext_forces.f90 > tmp.1
 
-sed '/IMPLICIT NONE/ a\
+sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
 \
 SAVE \
@@ -583,8 +585,8 @@ LOGICAL                   :: converge \
 ! !Environ patch
 ' tmp.1 > tmp.2
 
-sed '/! !Environ patch/ a\
-! !Environ patch \
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch \
  \
 !************************************************* \
 ! \
@@ -605,10 +607,10 @@ END DO \
  \
  \
  \
-IF (use_environ .AND. lsemiconductor) THEN \
+IF (use_environ .AND. louterloop) THEN \
 CALL start_clock( "semiconductor" ) \
  \
-chg_step = istep-1 \
+chg_step = istep \
 !! Initializing the constraints of possible DFT charges \
 ! Should probably be initialized at chg_step =1 but that seemed to be \
 ! creating some trouble possibly \
@@ -628,6 +630,7 @@ END IF \
 IF (chg_step == 0) THEN \
 tot_charge = 0.7*semiconductor%electrode_charge \
 semiconductor%flatband_fermi = ef!*rytoev \
+semiconductor%slab_charge = tot_charge\
 conv_ions = .FALSE. \
 ! CALL qexsd_set_status(255) \
 ! CALL punch( "config" ) \
@@ -652,20 +655,14 @@ ss_chg = tot_charge \
 !IF (ionode) THEN \
 ! making sure constraints are updated \
 IF (semiconductor%electrode_charge > 0) THEN \
-IF (v_cut >= 0.0 ) THEN \
-dft_chg_max = tot_charge \
-converge = .FALSE. \
-ELSE IF (ss_chg < 0.0) THEN \
+IF (ss_chg < 0.0) THEN \
 dft_chg_min = tot_charge \
 converge = .FALSE. \
 ELSE \
 prev_chg2 = tot_charge \
 END IF \
 ELSE \
-IF (v_cut <= 0.0 ) THEN \
-dft_chg_min = tot_charge \
-converge = .FALSE. \
-ELSE IF (ss_chg > 0.0) THEN \
+IF (ss_chg > 0.0) THEN \
 dft_chg_max = tot_charge \
 converge = .FALSE. \
 ELSE \
@@ -725,6 +722,7 @@ WRITE( STDOUT, 1002)& \
 !CALL add_qexsd_step(istep) \
 istep =  istep + 1 \
 nelec = ionic_charge - tot_charge \
+semiconductor%slab_charge = tot_charge\
 CALL mp_bcast(nelec, ionode_id,intra_image_comm) \
 CALL update_pot() \
 CALL hinit1() \
@@ -807,7 +805,7 @@ mv tmp.1 plugin_check.f90
 # USE environ_mp,  ONLY : environ_makov_payne \
 # !Environ patch
 # ' makov_payne.f90 > tmp.1
-# 
+#
 # sed '/Environ CALLS BEGIN/ a\
 # !Environ patch \
 #      IF(use_environ) THEN \
@@ -815,7 +813,7 @@ mv tmp.1 plugin_check.f90
 #      ENDIF \
 # !Environ patch
 # ' tmp.1 > tmp.2
-# 
+#
 # mv tmp.2 makov_payne.f90
 
 # force_lc

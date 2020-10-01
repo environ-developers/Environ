@@ -104,7 +104,7 @@ CONTAINS
     !
     USE electrostatic_base, ONLY : need_pbc_correction, need_gradient, &
          & need_factsqrt, need_auxiliary, need_electrolyte, &
-         & need_semiconductor
+         & need_semiconductor, need_outer_loop
     !
     USE core_base
     !
@@ -220,6 +220,7 @@ CONTAINS
     lelectrolyte   = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
     lsemiconductor = need_semiconductor
     lperiodic      = need_pbc_correction
+    louterloop     = need_outer_loop
     !
     ! Derived flags
     !
