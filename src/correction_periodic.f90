@@ -76,8 +76,8 @@ CONTAINS
     nnr => charges % cell % nnr
     rhotot => charges % of_r
     !
-    alat => oned_analytic % alat
-    omega => oned_analytic % omega
+    alat => oned_analytic % cell % alat
+    omega => oned_analytic % cell % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size

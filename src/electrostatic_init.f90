@@ -45,7 +45,7 @@ CONTAINS
        ( problem, tol, solver_type, auxiliary,              &
        step_type, step, maxstep, mix_type, ndiis, mix,      &
        preconditioner, screening_type, screening,           &
-       core_type, pbc_correction,                           &
+       core_type, pbc_correction, pbc_dim_, pbc_axis_,      &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !       nspin, prog, inner_tol, inner_solver_type, &
@@ -57,7 +57,7 @@ CONTAINS
     IMPLICIT NONE
     !
     CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
-    INTEGER, INTENT(IN) :: maxstep, ndiis, inner_maxstep
+    INTEGER, INTENT(IN) :: maxstep, ndiis, inner_maxstep, pbc_dim_, pbc_axis_
     REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol,   &
          inner_mix
     !

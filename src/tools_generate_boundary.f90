@@ -1896,7 +1896,8 @@ CONTAINS
           ! DEBUG try changing indices.. was j
           CALL density_of_functions( ions%smeared_ions(j), aux, .TRUE. ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
           !
-          CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
+          !CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
+          CALL gradv_h_of_rho_r( aux%of_r, hesslocal%of_r ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
           !
           CALL scalar_product_environ_hessian( hesslocal, gradlocal(i), gradaux )
           !
@@ -2017,7 +2018,8 @@ CONTAINS
           gradaux % of_r(ipol,:) = gradaux % of_r(ipol,:) * prod % of_r(:)
        ENDDO
        !
-       CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
+       !CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
+       CALL gradv_h_of_rho_r( gradaux%of_r, dion_field_drho(i)%of_r )
        !
     END DO
     !
@@ -2340,7 +2342,8 @@ CONTAINS
     DO ipol = 1, 3
        gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * gaussian % of_r( : )
     ENDDO
-    CALL field_of_gradrho( gradaux % of_r, dfield_drho % of_r )
+    !CALL field_of_gradrho( gradaux % of_r, dfield_drho % of_r )
+    CALL gradv_h_of_rho_r( gradaux % of_r, dfield_drho % of_r )
     !
     ! use gaussian container to store auxiliary density to be added to
     ! dfield_drho
@@ -2476,7 +2479,8 @@ CONTAINS
           gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * de_dboundary % of_r( : )
        ENDDO
        !
-       CALL field_of_gradrho( gradaux % of_r, de_drho % of_r )
+       !CALL field_of_gradrho( gradaux % of_r, de_drho % of_r )
+       CALL gradv_h_of_rho_r( gradaux % of_r, de_drho % of_r )
        !
        ! add remaining terms, using daux to update new term temporarily
        !! COMMENTED TO ISOLATE ANOTHER TERM
@@ -2643,7 +2647,8 @@ CONTAINS
        !
        CALL density_of_functions( boundary % ions % smeared_ions(index), aux, .TRUE. )
        !
-       CALL hessv_h_of_rho_r( aux % of_r, hesslocal % of_r )
+       !CALL hessv_h_of_rho_r( aux % of_r, hesslocal % of_r )
+       CALL gradv_h_of_rho_r( aux % of_r, hesslocal % of_r )
        !
        CALL external_gradient( boundary % electrons % density % of_r, gradlocal % of_r )
        !

@@ -3,7 +3,6 @@
     environ_thr = 0.1,
     system_axis = 3,
     system_dim = 2,
-    !env_static_permittivity = 2.0
     env_static_permittivity = 78.3,
     env_electrolyte_ntyp = 2,
     temperature = 300,

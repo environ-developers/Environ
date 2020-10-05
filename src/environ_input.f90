@@ -633,10 +633,10 @@ CONTAINS
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !                                 pbc_correction, nspin, prog,           &
 ! Compatible with QE-6.4.X QE-GIT
-                                  pbc_correction, prog,                  &
+                                  pbc_correction, pbc_dim, pbc_axis,   &
 ! END BACKWARD COMPATIBILITY
-                                  inner_tol, inner_solver, inner_maxstep,&
-                                  inner_mix )
+                                  prog, inner_tol, inner_solver,         &
+                                  inner_maxstep, inner_mix )
     !
     ! ... Then set environ base
     !
@@ -1634,7 +1634,7 @@ CONTAINS
        IF (solver == 'none' ) solver = 'direct'
     ENDIF
     !
-    IF (.NOT. (problem == 'pb' .OR. problem == 'modpb') &
+    IF (.NOT. (problem == 'pb' .OR. problem == 'modpb' .OR. problem == 'generalized') &
         .AND. (inner_solver .NE. 'none')) &
         CALL errore( sub_name, 'Only pb or modpb problems allow inner solver', 1)
     !
