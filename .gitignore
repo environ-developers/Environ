@@ -44,3 +44,4 @@ tests/*/*.out
 # Documentation files
 input_xx.xsl
 test.sh
+.DS_Store

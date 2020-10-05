@@ -87,6 +87,7 @@ clean:
 	@for x in `find pw_* -name "test*"`; do rm -rf $$x; done
 	@for x in `find pw_* -name "CRASH"`; do rm -rf $$x; done
 	@for x in `find pw_* -name "environ.*"`; do rm -rf $$x; done
+	@for x in `find pw_ms-gcs -name "*.cube"`; do rm -rf $$x; done
 
 # Calling 'purge' means remove all reference outputs... be careful!
 purge: clean
