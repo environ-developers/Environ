@@ -494,11 +494,8 @@ MODULE environ_types
      REAL( DP ) :: flatband_fermi = 0.D0
      REAL( DP ) :: bulk_sc_fermi = 0.D0
      REAL( DP ) :: surf_area_per_sq_cm = 0.D0
-
-
      !
   END TYPE environ_semiconductor
-
   !
 CONTAINS
 !--------------------------------------------------------------------

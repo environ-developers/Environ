@@ -116,6 +116,7 @@ CONTAINS
        pbc_axis = pbc_axis_
        SELECT CASE ( TRIM( ADJUSTL( pbc_correction ) ) )
        CASE ( 'none' )
+          need_pbc_correction = .FALSE.
        CASE ( 'parabolic' )
           need_pbc_correction = .TRUE.
           loned_analytic = .TRUE.

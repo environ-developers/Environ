@@ -990,8 +990,8 @@ CONTAINS
     CALL mp_bcast( ion_adsorption,             ionode_id, comm )
     CALL mp_bcast( ion_adsorption_energy,      ionode_id, comm )
     !
-    CALL mp_bcast( sc_permittivity,        ionode_id, comm )
-    CALL mp_bcast( sc_carrier_density,        ionode_id, comm )
+    CALL mp_bcast( sc_permittivity,            ionode_id, comm )
+    CALL mp_bcast( sc_carrier_density,         ionode_id, comm )
     !
     CALL mp_bcast( env_external_charges,       ionode_id, comm )
     CALL mp_bcast( env_dielectric_regions,     ionode_id, comm )
@@ -1585,8 +1585,8 @@ CONTAINS
          & lelectrostatic = .TRUE.
     IF ( env_external_charges .GT. 0 ) lelectrostatic = .TRUE.
     IF ( env_dielectric_regions .GT. 0 ) lelectrostatic = .TRUE.
-    !IF ( env_electrolyte_ntyp .GT. 0 ) lelectrostatic = .TRUE.
-    IF ( sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0 .OR. env_electrolyte_ntyp .GT. 0 ) &
+    IF ( env_electrolyte_ntyp .GT. 0 ) lelectrostatic = .TRUE.
+    IF ( sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0 ) &
          &  lelectrostatic = .TRUE.
     !
 !--------------------------------------------------------------------

@@ -31,7 +31,6 @@ MODULE tools_generate_boundary
   USE environ_types
   USE environ_output
   USE electrostatic_base, ONLY : boundary_core, fd
-  USE io_global, ONLY : stdout
   !
   PRIVATE
   !

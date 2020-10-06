@@ -104,6 +104,7 @@ CONTAINS
 
     !alat => oned_analytic % alat
     !omega => oned_analytic % omega
+    omega => cell % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size
@@ -480,6 +481,7 @@ END SUBROUTINE calc_vms_gcs
     !
     !alat => oned_analytic % alat
     !omega => oned_analytic % omega
+    omega => cell % omega
     env_periodicity => oned_analytic % d
     slab_axis => oned_analytic % axis
     axis_length => oned_analytic % size

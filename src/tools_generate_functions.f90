@@ -756,13 +756,10 @@ CONTAINS
   SUBROUTINE generate_deriverfc( nnr, dim, axis, charge, width, spread, pos, drho )
 !--------------------------------------------------------------------
     !
-    USE kinds,            ONLY : DP
-    USE constants,        ONLY : sqrtpi
-    USE io_global,        ONLY : stdout
-    USE cell_base,        ONLY : at, bg, alat, omega
-    USE fft_base,         ONLY : dfftp
-    USE mp,               ONLY : mp_sum
-    USE mp_bands,         ONLY : me_bgrp, intra_bgrp_comm
+    USE modules_constants,      ONLY : DP, sqrtpi
+    USE fft_base,               ONLY : dfftp
+    USE mp,                     ONLY : mp_sum
+    USE mp_bands,               ONLY : me_bgrp, intra_bgrp_comm
     !
     IMPLICIT NONE
     !
@@ -785,13 +782,18 @@ CONTAINS
     REAL( DP )                :: r( 3 ), s( 3 )
     REAL( DP ), ALLOCATABLE   :: drholocal ( : )
     REAL( DP ), EXTERNAL      :: qe_erfc
+    REAL( DP )                :: alat, at( 3, 3 ), bg( 3, 3 ), omega
     !
     ! ... Aliases
     !
-    TYPE( environ_cell ), POINTER :: cell
+    TYPE( environ_cell ) :: cell
+    alat = drho % cell % alat
+    at = drho % cell % at
+    bg = drho % cell % bg
+    omega = drho % cell % omega
     !
     IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(stdout,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+       WRITE(6,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
        STOP
     ENDIF
     inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
@@ -801,7 +803,7 @@ CONTAINS
     ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
     !
     IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(stdout,*)'WARNING: wrong axis in generate_gaussian'
+         WRITE(6,*)'WARNING: wrong axis in generate_gaussian'
     chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
     !
     ! ... scaling factor, take into account rescaling of generated density
@@ -893,7 +895,7 @@ CONTAINS
     CALL mp_sum( chargelocal, intra_bgrp_comm )
     chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
     IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
-         WRITE(stdout,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
+         WRITE(6,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
     !
     drholocal = drholocal * scale
     !

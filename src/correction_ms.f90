@@ -65,7 +65,7 @@ CONTAINS
     !
     INTEGER, POINTER :: env_periodicity
     INTEGER, POINTER :: slab_axis
-    REAL( DP ), POINTER :: alat, omega, axis_length
+    REAL( DP ), POINTER :: omega, axis_length
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
@@ -94,7 +94,6 @@ CONTAINS
     cell => potential % cell
     nnr => cell % nnr
     !
-    !alat => oned_analytic % alat
     !omega => oned_analytic % omega
     omega => cell % omega
     env_periodicity => oned_analytic % d
@@ -123,7 +122,7 @@ CONTAINS
     IF ( env_periodicity .NE. 2 ) &
          & CALL errore(sub_name,'Option not yet implemented: 1D Poisson-Boltzmann solver only for 2D systems',1)
     !
-    !CALL init_environ_density( cell, local )
+    CALL init_environ_density( cell, local )
     v => local % of_r
    !
     ! ... Compute multipoles of the system wrt the chosen origin
@@ -140,6 +139,7 @@ CONTAINS
     !
     fact = e2 * tpi / omega
     const = - pi / 3.D0 * tot_charge / axis_length * e2 - fact * tot_quadrupole(slab_axis)
+    !print *, 'next line is Erroneous'
     v(:) = - tot_charge * axis(1,:)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1,:)
     v(:) = fact * v(:) + const
     !dv = - fact * 4.D0 * tot_dipole(slab_axis) * xstern
@@ -244,7 +244,7 @@ CONTAINS
     !
     INTEGER, POINTER :: env_periodicity
     INTEGER, POINTER :: slab_axis
-    REAL( DP ), POINTER :: alat, omega, axis_length
+    REAL( DP ), POINTER :: omega, axis_length
     REAL( DP ), DIMENSION(:), POINTER :: origin
     REAL( DP ), DIMENSION(:,:), POINTER :: axis
     !
@@ -273,7 +273,6 @@ CONTAINS
     cell => gradv % cell
     nnr => cell % nnr
     !
-    !alat => oned_analytic % alat
     !omega => oned_analytic % omega
     omega => cell % omega
     env_periodicity => oned_analytic % d

@@ -1230,8 +1230,9 @@ CONTAINS
     ! potential shift
     !
     USE environ_base, ONLY : lsmearedions, potential_shift
+    USE modules_constants, ONLY : RYTOEV
 
-    IF (lsmearedions) WRITE( program_unit, 9400 ) potential_shift * rytoev
+    IF (lsmearedions) WRITE( program_unit, 9400 ) potential_shift * RYTOEV
 
 9400 FORMAT(/,5(' '),&
           'the potential shift due to the Gaussian-smeared nuclei is ',&
