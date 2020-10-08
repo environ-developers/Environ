@@ -55,10 +55,17 @@ if [ ! -d $TD_SRC ]; then
    exit
 fi
 
+export XS_SRC="${QE_DIR}/XSpectra/src"
+if [ ! -d $XS_SRC ]; then
+   echo "Cannot find XSpectra/src directory"
+   echo "Searching in $XS_SRC"
+   exit
+fi
+
 if [ "$#" -eq 0 ];
 then
  echo "USAGE :"
- echo "$0  (-patch or -revert) {all|pw|cp|td}"
+ echo "$0  (-patch or -revert) {all|pw|cp|td|xs}"
  echo " -patch  : apply Environ patch "
  echo " -revert : revert code to original "
  echo " a second argument may be used to specify the code to patch"
@@ -68,7 +75,7 @@ fi
 case "$1" in
     (-patch)
 	if [ "$#" -eq 1 ]; then
- 	   for i in pw cp td ; do
+ 	   for i in pw cp td xs ; do
 	       PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 	       if test -e "$PATCH_SCRIPT" ; then
 		   echo "-- Applying patches to $i"
@@ -78,7 +85,7 @@ case "$1" in
 	else
 	    case "$2" in
 	    (all)
- 		for i in pw cp td ; do
+ 		for i in pw cp td xs ; do
 		    PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 		    if test -e "$PATCH_SCRIPT" ; then
 			echo "-- Applying patches to $i"
@@ -108,12 +115,21 @@ case "$1" in
 			bash "$PATCH_SCRIPT"
 		    fi
 		done
+		;;
+	    (xs)
+		for i in pw xs ; do
+		    PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
+		    if test -e "$PATCH_SCRIPT" ; then
+			echo "-- Applying patches to $i"
+			bash "$PATCH_SCRIPT"
+		    fi
+		done
 	    esac
 	fi
 	;;
     (-revert)
 	if [ "$#" -eq 1 ]; then
- 	   for i in pw cp td ; do
+ 	   for i in pw cp td xs ; do
 	       PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 	       if test -e "$PATCH_SCRIPT" ; then
 		   echo "-- Reverting patches to $i"
@@ -123,7 +139,7 @@ case "$1" in
 	else
 	    case "$2" in
 	    (all)
- 		for i in pw cp td ; do
+ 		for i in pw cp td xs ; do
 		    REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 		    if test -e "$REVERT_SCRIPT" ; then
 			echo "-- Reverting patches to $i"
@@ -147,6 +163,15 @@ case "$1" in
 		;;
 	    (td)
  		for i in pw td ; do
+		    REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
+		    if test -e "$REVERT_SCRIPT" ; then
+			echo "-- Reverting patches to ${i}"
+			bash "$REVERT_SCRIPT"
+		    fi
+		done
+		;;
+	    (xs)
+		for i in pw xs ; do
 		    REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 		    if test -e "$REVERT_SCRIPT" ; then
 			echo "-- Reverting patches to ${i}"

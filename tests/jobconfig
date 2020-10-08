@@ -50,6 +50,14 @@ inputs_args = ('pw.in', 'electrolyte-lmpb-sccs-stern_full.in'), ('pw.in', 'elect
 program = PW
 inputs_args = ('pw.in', 'gcs-solvent.in'), ('pw.in', 'gcs-vacuum.in')
 
+[pw_ms/]
+program = PW
+inputs_args = ('pw.in', 'ms-solvent.in'), ('pw.in', 'ms-vacuum.in')
+
+[pw_ms-gcs/]
+program = PW
+inputs_args = ('pw.in', 'ms-gcs.in')
+
 [pw_confine/]
 program = PW
 inputs_args = ('pw.in', 'confine-sccs.in'), ('pw.in', 'confine-ss.in'), ('pw.in', 'confine-system.in')

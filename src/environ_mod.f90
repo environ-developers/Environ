@@ -70,6 +70,8 @@ MODULE environ_base
        lcoredensity
   LOGICAL ::                          &
        lsmearedions
+  LOGICAL ::                          &
+       lgradient
   !
   ! Mapping between environment and system cell
   !
@@ -159,6 +161,16 @@ MODULE environ_base
   TYPE( environ_electrolyte ) ::    &
        electrolyte
   !
+  ! Semiconductor parameters
+  !
+  LOGICAL ::                        &
+       lsemiconductor
+  LOGICAL ::                        &
+       louterloop
+  TYPE( environ_semiconductor ) ::  &
+       semiconductor
+
+  !
   ! Cavitation energy parameters
   !
   LOGICAL ::                        &
@@ -184,6 +196,13 @@ MODULE environ_base
   !
   LOGICAL ::                        &
        lperiodic
+  !
+  ! Temporary parameters
+  !
+  INTEGER ::                        &
+       nrep
+  INTEGER ::                        &
+       niter ! stores the iteration of environ for debugging purposes
   !
   ! Computed physical variables
   !

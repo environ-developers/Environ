@@ -70,11 +70,12 @@ environ_init.o : cell_types.o
 environ_init.o : core_init.o
 environ_init.o : utils_fft.o
 environ_init.o : electrostatic_init.o
+environ_init.o : utils_semiconductor.o
 environ_input.o : modules_constants.o
 environ_input.o : modules_parser.o
-environ_input.o : environ_output.o
-environ_input.o : environ_init.o
 environ_input.o : electrostatic_init.o
+environ_input.o : environ_init.o
+environ_input.o : environ_output.o
 environ_input.o : core_init.o
 environ_main.o : environ_types.o
 environ_main.o : electrostatic_types.o
@@ -190,6 +191,9 @@ utils_fft.o : stick_base.o
 utils_fft.o : tools_generate_gvectors.o
 utils_fft.o : correction_mt.o
 utils_fft.o : core_mod.o
+utils_semiconductor.o : environ_output.o
+utils_semiconductor.o : environ_types.o
+utils_semiconductor.o : utils_functions.o
 utils_functions.o : environ_types.o
 utils_functions.o : tools_generate_functions.o
 utils_ions.o : modules_constants.o

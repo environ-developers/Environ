@@ -61,7 +61,7 @@ CONTAINS
     !
     !> Function that calculates the Gouy-Chapman correction and adds it to the
     !! potential.
-    !! 
+    !!
     !! Procedure is as follows:
     !! -# execute parabolic correction
     !! -# shift to fit open boundary conditions
@@ -80,12 +80,12 @@ CONTAINS
     !! \f[
     !!    \frac{dv}{dz} = -E_z = f\sinh( v(x) z_d / 2k_BT )
     !! \f]
-    !! where \f$z_d\f$ is the electrolyte charge and 
+    !! where \f$z_d\f$ is the electrolyte charge and
     !! \f[
     !!    f = \sqrt{\frac{ 32\pi c_d k_BT}{\epsilon_0}}
     !! \f]
     !!
-    !! By combining the equations for the electric field, one can derive the 
+    !! By combining the equations for the electric field, one can derive the
     !! analytic charge from the knowledge of the potential at the boundary,
     !! \f[
     !!    Q_{ext} = \frac{f\epsilon_0 A}{2\pi}\sinh\left(\frac{v_s z_d}
@@ -93,14 +93,14 @@ CONTAINS
     !! \f]
     !! where \f$v_s\f$ is vstern
     !!
-    !! or one can compute the value of the potential at the interface corresponding 
+    !! or one can compute the value of the potential at the interface corresponding
     !! to a certain explicit charge density,
     !! \f[
     !!    v_a = \frac{2 k_BT}{z_d} \sinh^{-1}(E_z / f)
     !! \f]
     !! where \f$v_a\f$ is the analytic value of vstern.
     !!
-    !! Eventually, by integrating the equation for potential, the analytic form 
+    !! Eventually, by integrating the equation for potential, the analytic form
     !! of the potential is found
     !! \f[
     !!    v(x) = \frac{4k_BT}{z_d}\coth(c \exp( -x f z_d / 2k_BT  ) )
@@ -108,9 +108,9 @@ CONTAINS
     !! where c is determined by the condition that v(xstern) = vstern
     !!
     !! For the linearized case, the analytic solution is calculated as follows:
-    !! 
+    !!
     !! The electric field can be calculated as in the non-linear case
-    !! 
+    !!
     !! The equation for the potential is
     !! \f[
     !!    v(x) = c \exp(-k\left|x\right|/\sqrt{\epsilon_0})
@@ -145,7 +145,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:), POINTER :: v
     !
     INTEGER :: i, icount
-    REAL( DP ) :: ez, fact, vstern, const
+    REAL( DP ) :: ez, fact, vstern, const, constl, constr
     REAL( DP ) :: dv, vbound, zion
     REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: f1, f2
@@ -196,6 +196,7 @@ CONTAINS
     area = omega / axis_length
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
+    !CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
@@ -215,9 +216,16 @@ CONTAINS
     arg = ez/fact
     asinh = LOG(arg + SQRT( arg**2 + 1 ))
     vstern = 2.D0 * kbt / zion * asinh
-    arg = vstern * 0.25D0 * invkbt * zion
+    dv = 2.D0 * fpi * dipole(slab_axis) / area
+    !
+    ! ... Compute left/right conditions for GCS potential
+    !
+    arg = ( vstern - dv * 0.5D0 ) * 0.25D0 * invkbt * zion
     coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
-    const = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    constl = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
+    arg = ( vstern + dv * 0.5D0 ) * 0.25D0 * invkbt * zion
+    coth = ( EXP( 2.D0 * arg ) + 1.D0 ) / ( EXP( 2.D0 * arg ) - 1.D0 )
+    constr = coth * EXP( zion * fact * invkbt * 0.5D0 * xstern )
     !
     ! ... Compute linearized quantities
     !
@@ -279,11 +287,13 @@ CONTAINS
        !
        DO i = 1, nnr
           !
-          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          ! ... Gouy-Chapmann-Stern analytic solution on the outside
+          !
+          IF ( axis(1,i) .LE. -xstern ) THEN
              !
-             ! ... Gouy-Chapmann-Stern analytic solution on the outside
+             ! ... left solution
              !
-             arg = const * EXP( ABS(axis(1,i)) * f1 )
+             arg = constl * EXP( ABS(axis(1,i)) * f1 )
              IF ( ABS(arg) .GT. 1.D0 ) THEN
                 acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
              ELSE
@@ -293,7 +303,22 @@ CONTAINS
              !
              ! ... Remove source potential and add analytic one
              !
-!             v(i) =  v(i) + vtmp - vstern - ez * ABS(axis(1,i)) + ez * xstern
+             v(i) = vtmp - potential % of_r(i)
+             !
+          ELSE IF ( axis(1,i) .GE. xstern ) THEN
+             !
+             ! ... right solution
+             !
+             arg = constr * EXP( ABS(axis(1,i)) * f1 )
+             IF ( ABS(arg) .GT. 1.D0 ) THEN
+                acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+             ELSE
+                acoth = 0.D0
+             ENDIF
+             vtmp =  f2 * acoth
+             !
+             ! ... Remove source potential and add analytic one
+             !
              v(i) = vtmp - potential % of_r(i)
              !
           ENDIF
@@ -339,7 +364,7 @@ CONTAINS
     REAL( DP ), DIMENSION(:,:), POINTER :: gvstern
     !
     INTEGER :: i
-    REAL( DP ) :: ez, fact, vstern, const
+    REAL( DP ) :: ez, fact, vstern, const, constl, constr
     REAL( DP ) :: arg, asinh, coth, acoth
     REAL( DP ) :: lin_k, lin_e, lin_c
     REAL( DP ) :: f1, f2
@@ -389,6 +414,7 @@ CONTAINS
     area = omega / axis_length
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
+    !CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
@@ -456,11 +482,23 @@ CONTAINS
        !
        DO i = 1, nnr
           !
-          IF ( ABS(axis(1,i)) .GE. xstern ) THEN
+          IF ( axis(1,i) .LE. -xstern ) THEN
              !
              ! ... Gouy-Chapmann-Stern analytic solution on the outside
              !
-             arg = const * EXP( ABS(axis(1,i)) * f1 )
+             arg = constl * EXP( ABS(axis(1,i)) * f1 )
+             dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
+             !
+             ! ... Remove source potential (linear) and add analytic one
+             !
+             gvstern(slab_axis,i) = -gradv % of_r(slab_axis,i) + &
+                         & ( dvtmp_dx - ez ) * ABS(axis(1,i))/axis(1,i)
+             !
+          ELSE IF ( axis(1,i) .GE. xstern ) THEN
+             !
+             ! ... Gouy-Chapmann-Stern analytic solution on the outside
+             !
+             arg = constr * EXP( ABS(axis(1,i)) * f1 )
              dvtmp_dx = f1 * f2 * arg / ( 1.D0 - arg ** 2 )
              !
              ! ... Remove source potential (linear) and add analytic one
@@ -475,6 +513,7 @@ CONTAINS
     ENDIF
     !
     gradv % of_r = gradv % of_r + gvstern
+
     !
     CALL destroy_environ_gradient(glocal)
     !

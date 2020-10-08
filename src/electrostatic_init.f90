@@ -27,6 +27,7 @@ MODULE electrostatic_init
   USE core_base
   USE electrostatic_types
   USE electrostatic_base
+  USE environ_output,    ONLY : environ_unit
   !
   PRIVATE
   !
@@ -44,7 +45,7 @@ CONTAINS
        ( problem, tol, solver_type, auxiliary,              &
        step_type, step, maxstep, mix_type, ndiis, mix,      &
        preconditioner, screening_type, screening,           &
-       core_type, pbc_correction,                           &
+       core_type, pbc_correction, pbc_dim_, pbc_axis_,      &
 ! BACKWARD COMPATIBILITY
 ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
 !       nspin, prog, inner_tol, inner_solver_type, &
@@ -56,7 +57,7 @@ CONTAINS
     IMPLICIT NONE
     !
     CHARACTER(LEN=20)   :: sub_name = ' set_electrostatic_base '
-    INTEGER, INTENT(IN) :: maxstep, ndiis, inner_maxstep
+    INTEGER, INTENT(IN) :: maxstep, ndiis, inner_maxstep, pbc_dim_, pbc_axis_
     REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol,   &
          inner_mix
     !
@@ -89,9 +90,10 @@ CONTAINS
     !
     ! Set reference core according to calling program
     !
+    WRITE( environ_unit, * )"Calling electrostatic_initbase now"
     CALL create_electrostatic_core( reference_core )
     SELECT CASE ( prog )
-    CASE ( 'PW', 'CP', 'TD' )
+    CASE ( 'PW', 'CP', 'TD', 'XS' )
        lfft_system = .TRUE.
        local_type = "fft"
        CALL init_electrostatic_core( type = local_type, fft = system_fft, core = reference_core )
@@ -103,25 +105,46 @@ CONTAINS
     !
     need_pbc_correction = .FALSE.
     need_electrolyte = .FALSE.
+    need_semiconductor = .FALSE.
+    need_outer_loop = .FALSE.
     CALL create_electrostatic_core( pbc_core )
     !
     ! first check keywords specfied in input
     !
-    SELECT CASE ( TRIM( ADJUSTL( pbc_correction ) ) )
-    CASE ( 'none' )
-       need_pbc_correction = .FALSE.
-    CASE ( 'parabolic' )
-       need_pbc_correction = .TRUE.
-       loned_analytic = .TRUE.
-       local_type = '1da'
-    CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
-       need_pbc_correction = .TRUE.
-       need_electrolyte = .TRUE.
-       loned_analytic = .TRUE.
-       local_type = 'gcs'
-    CASE DEFAULT
-       need_pbc_correction = .FALSE.
-    END SELECT
+    IF ( pbc_dim_ .GE. 0 ) THEN
+       !
+       pbc_dim = pbc_dim_
+       pbc_axis = pbc_axis_
+       SELECT CASE ( TRIM( ADJUSTL( pbc_correction ) ) )
+       CASE ( 'none' )
+          need_pbc_correction = .FALSE.
+       CASE ( 'parabolic' )
+          need_pbc_correction = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = '1da'
+       CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
+          need_pbc_correction = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'gcs'
+       CASE ( 'ms', 'mott-schottky' )
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms'
+       CASE ( 'ms-gcs','mott-schottky-gouy-chapman-stern')
+          need_pbc_correction = .TRUE.
+          need_semiconductor = .TRUE.
+          need_outer_loop = .TRUE.
+          need_electrolyte = .TRUE.
+          loned_analytic = .TRUE.
+          local_type = 'ms-gcs'
+          WRITE( environ_unit, * )"ms-gcs selected"
+       CASE DEFAULT
+          CALL errore(sub_name,'Option not yet implemented',1)
+       END SELECT
+       !
+    END IF
     !
     IF ( need_pbc_correction ) THEN
        IF ( loned_analytic ) &
@@ -158,7 +181,7 @@ CONTAINS
     !
     CALL create_electrostatic_solver( reference_solver )
     SELECT CASE ( prog )
-    CASE ( 'PW', 'CP', 'TD' )
+    CASE ( 'PW', 'CP', 'TD', 'XS' )
        local_type = "direct"
        CALL init_electrostatic_solver( type = local_type, solver = reference_solver )
     CASE DEFAULT
@@ -241,7 +264,7 @@ CONTAINS
     !
     CALL create_electrostatic_setup( reference )
     SELECT CASE ( prog )
-    CASE ( 'PW', 'CP', 'TD' )
+    CASE ( 'PW', 'CP', 'TD', 'XS' )
        local_problem = "poisson"
     CASE DEFAULT
        CALL errore(sub_name,'Unexpected name of host code',1)

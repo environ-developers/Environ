@@ -46,11 +46,6 @@ MODULE correction_periodic
   PUBLIC :: calc_vperiodic, calc_fperiodic, calc_gradvperiodic
   !
 CONTAINS
-!
-!  Subroutine: calc_vperiodic
-!
-!> Computes potential to correct for pbc along the direction orthogonal
-!! to the slab.
 !---------------------------------------------------------------------------
   SUBROUTINE calc_vperiodic( oned_analytic, charges, potential )
 !---------------------------------------------------------------------------
@@ -102,6 +97,9 @@ CONTAINS
     vperiodic => local % of_r
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
+    ! ... Compute multipoles of the system wrt the chosen origin
+    !
+    !CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
@@ -204,6 +202,9 @@ CONTAINS
     gvperiodic => glocal % of_r
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
+    ! ... Compute dipole of the system with respect to the center of charge
+    !
+    !CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
