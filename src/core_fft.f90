@@ -7,7 +7,8 @@ MODULE core_fft
   !
   PRIVATE
   !
-  PUBLIC :: poisson_fft, gradpoisson_fft, force_fft, convolution_fft, gradient_fft, graddot_fft, laplacian_fft, hessian_fft
+  PUBLIC :: poisson_fft, gradpoisson_fft, force_fft, convolution_fft, gradient_fft, graddot_fft, laplacian_fft, hessian_fft, &
+            & field_of_gradrho, hessv_h_of_rho_r
   !
   INTERFACE convolution_fft
      MODULE PROCEDURE convolution_fft_density, convolution_fft_gradient, convolution_fft_hessian
@@ -862,4 +863,246 @@ CONTAINS
     !
   END SUBROUTINE hessian_fft
 !--------------------------------------------------------------------
+SUBROUTINE hessv_h_of_rho_r( rho, hessv, fft )
+   !-----------------------------------------------------------------
+   !
+   ! ... Gradient of Hartree potential in R space from a total 
+   !     (spinless) density in R space n(r)
+   ! wg_corr_h => calc_vmt
+   USE correction_mt, ONLY : calc_vmt
+   !
+   IMPLICIT NONE
+   !
+   ! ... Declares variables
+   !
+   TYPE( fft_core ), INTENT(IN), TARGET :: fft
+   REAL( DP ), INTENT(IN)     :: rho( fft % dfft % nnr )
+   REAL( DP ), INTENT(OUT)    :: hessv( 3, 3, fft % dfft % nnr )
+   !
+   ! ... cell variables
+   !
+   REAL( DP ), POINTER :: omega, tpiba2
+   !
+   ! ... fft variables
+   !
+   INTEGER, POINTER    :: ngm, gstart
+   LOGICAL, POINTER    :: do_comp_mt
+   REAL( DP ), POINTER :: g(:,:), gg(:)
+   !
+   ! ... Local variables
+   !
+   COMPLEX( DP ), ALLOCATABLE :: rhoaux( : )
+   COMPLEX( DP ), ALLOCATABLE :: gaux( : )
+   COMPLEX( DP ), ALLOCATABLE :: rgtot(:), vaux(:)
+   REAL( DP )                 :: fac, eh_corr
+   INTEGER                    :: ig, ipol, jpol
+   LOGICAL                    :: gamma_only
+   !
+   ! ... Setting pointer variables
+   !
+   omega => fft % cell % omega
+   tpiba2 => fft % cell % tpiba2
+   ngm => fft % ngm
+   gstart => fft % gstart
+   gg => fft % gg
+   g => fft % g
+   do_comp_mt => fft % use_internal_pbc_corr
+   gamma_only = .TRUE.
+   !
+   ! ... Bring rho to G space
+   !
+   ALLOCATE( rhoaux( fft % dfft % nnr ) )
+   rhoaux( : ) = CMPLX( rho( : ), 0.D0, KIND=dp )
+   !
+   CALL fwfft('Rho', rhoaux, fft%dfft)
+   !
+   ! ... Compute total potential in G space
+   !
+   ALLOCATE( gaux( fft % dfft % nnr ) )
+   !
+   DO ipol = 1, 3
+      !
+      DO jpol = 1, 3
+         !
+         gaux(:) = (0.0_dp,0.0_dp)
+         !
+         DO ig = gstart, ngm
+            !
+            fac = g(ipol,ig) * g(jpol,ig) / gg(ig)
+            gaux(fft%dfft%nl(ig)) = CMPLX(REAL(rhoaux(fft%dfft%nl(ig))),AIMAG(rhoaux(fft%dfft%nl(ig))),kind=dp) * fac 
+            !
+         END DO
+         !
+         ! ...and add the factor e2*fpi coming from the missing prefactor of 
+         !  V = e2 * fpi
+         !
+         fac = e2 * fpi
+         gaux = gaux * fac 
+         !
+         ! ...add martyna-tuckerman correction, if needed
+         ! 
+         if (do_comp_mt) then
+            ALLOCATE( vaux( ngm ), rgtot(ngm) )
+            rgtot(1:ngm) = rhoaux(fft%dfft%nl(1:ngm))
+            !CALL wg_corr_h (omega, ngm, rgtot, vaux, eh_corr)
+            CALL calc_vmt( fft, rgtot, vaux )
+            DO ig = gstart, ngm
+               fac = g(ipol,ig) * g(jpol,ig) * tpiba2
+               gaux(fft%dfft%nl(ig)) = gaux(fft%dfft%nl(ig)) + CMPLX(REAL(vaux(ig)),AIMAG(vaux(ig)),kind=dp)*fac 
+            END DO
+            DEALLOCATE( rgtot, vaux )
+         end if
+         !
+         IF ( gamma_only ) THEN
+            !
+            gaux(fft%dfft%nlm(:)) = &
+                 CMPLX( REAL( gaux(fft%dfft%nl(:)) ), -AIMAG( gaux(fft%dfft%nl(:)) ) ,kind=DP)
+            !
+         END IF
+         !
+         ! ... bring back to R-space
+         !
+         CALL invfft ('Rho', gaux, fft%dfft)
+         !
+         hessv(ipol,jpol,:) = REAL( gaux(:) )
+         !
+      ENDDO
+      !
+   ENDDO
+   !
+   DEALLOCATE(gaux)
+   !
+   DEALLOCATE(rhoaux)
+   !
+   RETURN
+   !
+ END SUBROUTINE hessv_h_of_rho_r
+ !----------------------------------------------------------------------------
+ SUBROUTINE field_of_gradrho( gradrho, e, fft )
+   !----------------------------------------------------------------------------
+   !
+   ! ... Gradient of Hartree potential in R space from a total
+   !     (spinless) density in R space n(r)
+   !
+   USE correction_mt, ONLY : calc_vmt
+   !
+   IMPLICIT NONE
+   !
+   ! ... Declares variables
+   !
+   TYPE( fft_core ), INTENT(IN), TARGET :: fft
+   REAL( DP ), INTENT(IN)           :: gradrho( 3, fft % dfft % nnr )
+   REAL( DP ), INTENT(OUT)          :: e( fft % dfft % nnr )
+   !
+   ! ... cell variables
+   !
+   REAL( DP ), POINTER :: omega, tpiba
+   !
+   ! ... fft variables
+   !
+   INTEGER, POINTER    :: ngm, gstart
+   LOGICAL, POINTER    :: do_comp_mt
+   REAL( DP ), POINTER :: g(:,:), gg(:)
+   !
+   ! ... Local variables
+   !
+   COMPLEX( DP ), ALLOCATABLE :: aux( : )
+   COMPLEX( DP ), ALLOCATABLE :: eaux( : )
+   COMPLEX( DP ), ALLOCATABLE :: gaux( : )
+   COMPLEX( DP ), ALLOCATABLE :: rgtot(:), vaux(:)
+   REAL( DP )                 :: fac, eh_corr
+   INTEGER                    :: ig, ipol
+   LOGICAL                    :: gamma_only
+   !
+   ! ... Setting pointer variables
+   !
+   omega => fft % cell % omega
+   tpiba => fft % cell % tpiba
+   ngm => fft % ngm
+   gstart => fft % gstart
+   gg => fft % gg
+   g => fft % g
+   do_comp_mt => fft % use_internal_pbc_corr
+   gamma_only = .TRUE.
+   !
+   ! ... Bring gradrho to G space
+   !
+   ALLOCATE( eaux( fft % dfft % nnr ) )
+   eaux( : ) = CMPLX( 0.D0, 0.D0, KIND=dp )
+   !
+   ALLOCATE( aux( fft % dfft % nnr ) )
+   aux( : ) = CMPLX( 0.D0, 0.D0, KIND=dp )
+   !
+   ALLOCATE( gaux( fft % dfft % nnr ) )
+   !
+   IF ( do_comp_mt ) ALLOCATE( vaux( ngm ), rgtot( ngm ) )
+   !
+   DO ipol = 1, 3
+      !
+      gaux( : ) = CMPLX( gradrho( ipol, : ), 0.D0, KIND=dp )
+      !
+      CALL fwfft('Rho', gaux, fft % dfft)
+      !
+      ! ... Compute total potential in G space
+      !
+      DO ig = gstart, ngm
+         !
+         fac = g(ipol,ig) / gg(ig)
+         aux(fft%dfft%nl(ig)) = CMPLX(-AIMAG(gaux(fft%dfft%nl(ig))),REAL(gaux(fft%dfft%nl(ig))),kind=dp) * fac
+         !
+      END DO
+      !
+      ! ...and add the factor e2*fpi/2\pi/a coming from the missing prefactor of
+      !  V = e2 * fpi divided by the 2\pi/a factor missing in G
+      !
+      fac = e2 * fpi / tpiba
+      aux = aux * fac
+      !
+      ! ...add martyna-tuckerman correction, if needed
+      !
+      IF ( do_comp_mt ) THEN
+         !
+         rgtot(1:ngm) = gaux(fft%dfft%nl(1:ngm))
+         !
+         !CALL wg_corr_h (omega, ngm, rgtot, vaux, eh_corr)
+         CALL calc_vmt( fft, rgtot, vaux )
+         !
+         DO ig = gstart, ngm
+            !
+            fac = g(ipol,ig) * tpiba
+            aux(fft%dfft%nl(ig)) = aux(fft%dfft%nl(ig)) + CMPLX(-AIMAG(vaux(ig)),REAL(vaux(ig)),kind=dp)*fac
+            !
+         END DO
+         !
+      END IF
+      !
+      eaux = eaux + aux
+      !
+   END DO
+   !
+   IF ( do_comp_mt ) DEALLOCATE( rgtot, vaux )
+   !
+   DEALLOCATE(gaux)
+   !
+   DEALLOCATE(aux)
+   !
+   IF ( gamma_only ) THEN
+      !
+      eaux(fft%dfft%nlm(:)) = &
+           CMPLX( REAL( eaux(fft%dfft%nl(:)) ), -AIMAG( eaux(fft%dfft%nl(:)) ) ,kind=DP)
+      !
+   END IF
+   !
+   ! ... bring back to R-space, (\grad_ipol a)(r) ...
+   !
+   CALL invfft ('Rho', eaux, fft%dfft)
+   !
+   e(:) = REAL( eaux(:) )
+   !
+   DEALLOCATE(eaux)
+   !
+   RETURN
+   !
+ END SUBROUTINE field_of_gradrho
+ 
 END MODULE core_fft

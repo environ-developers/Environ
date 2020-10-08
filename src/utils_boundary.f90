@@ -756,7 +756,7 @@ CONTAINS
        !
        IF ( bound % ions % update ) THEN
           !
-          CALL compute_dion_field_drho( bound%ions%number, bound%local_spheres, bound%dion_field_drho )
+          CALL compute_dion_field_drho( bound%ions%number, bound%local_spheres, bound%dion_field_drho, bound%core%fft )
           !
           bound % update_status = 1 ! waiting to finish update
           !
@@ -1162,7 +1162,7 @@ CONTAINS
        ! Test derivative wrt atomic positions with finite differences
        !
        CALL compute_ion_field_partial( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, &
-            & bound%ion_field, bound%partial_of_ion_field )
+            & bound%ion_field, bound%partial_of_ion_field, bound%core%fft )
        !
        ALLOCATE( analytic_partial_of_ion_field( 3, bound%ions%number, bound%ions%number ) )
        analytic_partial_of_ion_field = bound % partial_of_ion_field
@@ -1335,7 +1335,7 @@ CONTAINS
        ! Compute functional derivative wrt electronic density
        !
        IF ( bound % mode .EQ. 'fa-ionic' ) THEN
-          CALL compute_dion_field_drho( bound%ions%number, bound%local_spheres, bound%dion_field_drho )
+          CALL compute_dion_field_drho( bound%ions%number, bound%local_spheres, bound%dion_field_drho, bound%core%fft )
        ENDIF
        !
        CALL init_environ_density( cell, vanalytic )
@@ -1425,7 +1425,7 @@ CONTAINS
        IF ( bound % mode .EQ. 'fa-ionic' ) THEN
           IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'outside compute_ion_field_partial'
           CALL compute_ion_field_partial( bound%ions%number, bound%local_spheres, bound%ions, bound%electrons, bound%ion_field, &
-            & bound%partial_of_ion_field )
+            & bound%partial_of_ion_field, bound%core%fft )
        ENDIF
        !
        ! dx expected units: BOHR

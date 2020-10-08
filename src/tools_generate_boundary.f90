@@ -1798,10 +1798,12 @@ CONTAINS
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE compute_ion_field_partial( nsoft_spheres, soft_spheres, &
-       & ions, electrons, ion_field, partial_of_ion_field )
+       & ions, electrons, ion_field, partial_of_ion_field, fft )
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions, gradient_of_functions, laplacian_of_functions, hessian_of_functions
+    USE core_fft, ONLY : hessv_h_of_rho_r
+    USE core_types
     !
     IMPLICIT NONE
     !
@@ -1809,6 +1811,7 @@ CONTAINS
     TYPE( environ_functions), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
     TYPE( environ_ions ), INTENT(IN) :: ions
     TYPE( environ_electrons ), INTENT(IN) :: electrons
+    TYPE( fft_core ), INTENT(IN) :: fft
     REAL( DP ), DIMENSION(nsoft_spheres), INTENT(OUT) :: ion_field
     REAL( DP ), DIMENSION(3,nsoft_spheres,nsoft_spheres), INTENT(OUT) :: partial_of_ion_field
     !
@@ -1895,8 +1898,7 @@ CONTAINS
           ! DEBUG try changing indices.. was j
           CALL density_of_functions( ions%smeared_ions(j), aux, .TRUE. ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
           !
-          !CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
-          CALL gradv_h_of_rho_r( aux%of_r, hesslocal%of_r ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
+          CALL hessv_h_of_rho_r( aux%of_r, hesslocal%of_r, fft ) ! THIS STEP SHOULD BE MOVED OUT OF THIS LOOP
           !
           CALL scalar_product_environ_hessian( hesslocal, gradlocal(i), gradaux )
           !
@@ -1956,15 +1958,18 @@ CONTAINS
   END SUBROUTINE compute_ion_field_partial
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
-  SUBROUTINE compute_dion_field_drho( nsoft_spheres, soft_spheres, dion_field_drho )
+  SUBROUTINE compute_dion_field_drho( nsoft_spheres, soft_spheres, dion_field_drho, fft )
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions, gradient_of_functions
+    USE core_fft, ONLY : field_of_gradrho
+    USE core_types
     !
     IMPLICIT NONE
     !
     INTEGER, INTENT(IN) :: nsoft_spheres
     TYPE( environ_functions), DIMENSION(nsoft_spheres), INTENT(IN) :: soft_spheres
+    TYPE( fft_core ), INTENT(IN) :: fft
     TYPE( environ_density ), DIMENSION(nsoft_spheres), INTENT(INOUT) :: dion_field_drho
     !
     TYPE( environ_cell ), POINTER :: cell
@@ -2017,8 +2022,7 @@ CONTAINS
           gradaux % of_r(ipol,:) = gradaux % of_r(ipol,:) * prod % of_r(:)
        ENDDO
        !
-       !CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r )
-       CALL gradv_h_of_rho_r( gradaux%of_r, dion_field_drho(i)%of_r )
+       CALL field_of_gradrho( gradaux%of_r, dion_field_drho(i)%of_r, fft )
        !
     END DO
     !
@@ -2318,6 +2322,8 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions
+    USE core_fft, ONLY : field_of_gradrho
+    USE core_types
     !
     IMPLICIT NONE
     !
@@ -2326,11 +2332,13 @@ CONTAINS
     TYPE( environ_density ), INTENT(OUT) :: dfield_drho
     !
     TYPE( environ_cell ), POINTER :: cell
+    TYPE( fft_core ), POINTER :: fft
     TYPE( environ_gradient ) :: gradaux
     TYPE( environ_density ) :: gaussian
     INTEGER :: ipol
     !
     cell => boundary % electrons % density % cell
+    fft => boundary % core % fft
     !
     CALL init_environ_density( cell, dfield_drho )
     CALL init_environ_density( cell, gaussian )
@@ -2341,8 +2349,7 @@ CONTAINS
     DO ipol = 1, 3
        gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * gaussian % of_r( : )
     ENDDO
-    !CALL field_of_gradrho( gradaux % of_r, dfield_drho % of_r )
-    CALL gradv_h_of_rho_r( gradaux % of_r, dfield_drho % of_r )
+    CALL field_of_gradrho( gradaux % of_r, dfield_drho % of_r, fft )
     !
     ! use gaussian container to store auxiliary density to be added to
     ! dfield_drho
@@ -2362,6 +2369,8 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions, derivative_of_functions
+    USE core_fft, ONLY : field_of_gradrho
+    USE core_types
     !
     IMPLICIT NONE
     !
@@ -2370,6 +2379,7 @@ CONTAINS
     TYPE( environ_density ), INTENT(INOUT) :: de_drho
     !
     TYPE( environ_cell ), POINTER :: cell
+    TYPE( fft_core ), POINTER :: fft
     INTEGER, POINTER :: nsoft_spheres, nnr
     !
     INTEGER :: i, j, ipol
@@ -2384,6 +2394,7 @@ CONTAINS
     TYPE( environ_gradient ) :: gradaux !  Aliases and allocations 
     !
     cell => de_drho % cell
+    fft => boundary % core % fft
     nnr => cell % nnr
     !
     IF ( boundary % mode .EQ. 'fa-ionic' ) THEN
@@ -2478,8 +2489,7 @@ CONTAINS
           gradaux % of_r( ipol, : ) = gradaux % of_r( ipol, : ) * de_dboundary % of_r( : )
        ENDDO
        !
-       !CALL field_of_gradrho( gradaux % of_r, de_drho % of_r )
-       CALL gradv_h_of_rho_r( gradaux % of_r, de_drho % of_r )
+       CALL field_of_gradrho( gradaux % of_r, de_drho % of_r, fft )
        !
        ! add remaining terms, using daux to update new term temporarily
        !! COMMENTED TO ISOLATE ANOTHER TERM
@@ -2517,6 +2527,8 @@ CONTAINS
 !--------------------------------------------------------------------
     !
     USE utils_functions, ONLY : density_of_functions, derivative_of_functions
+    USE core_fft, ONLY : hessv_h_of_rho_r
+    USE core_types
     !
     IMPLICIT NONE
     !
@@ -2525,6 +2537,7 @@ CONTAINS
     TYPE( environ_gradient ), INTENT(INOUT) :: partial
     !
     TYPE( environ_cell ), POINTER :: cell
+    TYPE( fft_core ), POINTER :: fft
     INTEGER, POINTER :: nsoft_spheres, nnr
     !
     INTEGER :: i, j, ipol
@@ -2544,6 +2557,7 @@ CONTAINS
     ! Aliases and allocations
     !
     cell => boundary % scaled % cell
+    fft => boundary % core % fft
     nnr => cell % nnr
     !
     IF ( ionode ) WRITE( program_unit, '(1X,a)' ) 'in function field_aware_dboundary_dions'
@@ -2646,8 +2660,7 @@ CONTAINS
        !
        CALL density_of_functions( boundary % ions % smeared_ions(index), aux, .TRUE. )
        !
-       !CALL hessv_h_of_rho_r( aux % of_r, hesslocal % of_r )
-       CALL gradv_h_of_rho_r( aux % of_r, hesslocal % of_r )
+       CALL hessv_h_of_rho_r( aux % of_r, hesslocal % of_r, fft )
        !
        CALL external_gradient( boundary % electrons % density % of_r, gradlocal % of_r )
        !
