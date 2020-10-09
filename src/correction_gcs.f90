@@ -196,7 +196,6 @@ CONTAINS
     area = omega / axis_length
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
-    !CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
@@ -414,7 +413,6 @@ CONTAINS
     area = omega / axis_length
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
-    !CALL compute_dipole( nnr, charges%of_r, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
@@ -513,7 +511,6 @@ CONTAINS
     ENDIF
     !
     gradv % of_r = gradv % of_r + gvstern
-
     !
     CALL destroy_environ_gradient(glocal)
     !

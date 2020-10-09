@@ -16,7 +16,7 @@
  /
  &ELECTRONS
     mixing_beta = 0.3
-    conv_thr = 5e-09,
+    conv_thr = 1e-06,
  /
  &IONS
  /
