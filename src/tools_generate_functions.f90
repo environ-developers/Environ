@@ -752,161 +752,161 @@ CONTAINS
 !--------------------------------------------------------------------
   END SUBROUTINE generate_hesserfc
 !--------------------------------------------------------------------
-!--------------------------------------------------------------------
-  SUBROUTINE generate_deriverfc( nnr, dim, axis, charge, width, spread, pos, drho )
-!--------------------------------------------------------------------
-    !
-    USE modules_constants,      ONLY : DP, sqrtpi
-    USE fft_base,               ONLY : dfftp
-    USE mp,                     ONLY : mp_sum
-    USE mp_bands,               ONLY : me_bgrp, intra_bgrp_comm
-    !
-    IMPLICIT NONE
-    !
-    REAL( DP ), PARAMETER :: tol = 1.D-10
-    !
-    ! ... Declares variables
-    !
-    INTEGER, INTENT(IN)       :: nnr, dim, axis
-    REAL( DP ), INTENT(IN)    :: charge, width, spread
-    REAL( DP ), INTENT(IN)    :: pos( 3 )
-    TYPE( environ_density ), TARGET, INTENT(INOUT) :: drho
-    !
-    ! ... Local variables
-    !
-    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
-    INTEGER                   :: idx, idx0, ntot
-    !
-    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
-    REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
-    REAL( DP )                :: r( 3 ), s( 3 )
-    REAL( DP ), ALLOCATABLE   :: drholocal ( : )
-    REAL( DP ), EXTERNAL      :: qe_erfc
-    REAL( DP )                :: alat, at( 3, 3 ), bg( 3, 3 ), omega
-    !
-    ! ... Aliases
-    !
-    TYPE( environ_cell ) :: cell
-    alat = drho % cell % alat
-    at = drho % cell % at
-    bg = drho % cell % bg
-    omega = drho % cell % omega
-    !
-    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
-       WRITE(6,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
-       STOP
-    ENDIF
-    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
-    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
-    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
-    !
-    ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
-    !
-    IF (axis.LT.1.OR.axis.GT.3) &
-         WRITE(6,*)'WARNING: wrong axis in generate_gaussian'
-    chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
-    !
-    ! ... scaling factor, take into account rescaling of generated density
-    !     to obtain the correct integrated total charge
-    !
-    scale = charge / chargeanalytic / sqrtpi / spread
-    !
-    ALLOCATE( drholocal( nnr ) )
-    drholocal = 0.D0
-    chargelocal = 0.D0
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
-!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-#if defined (__MPI)
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
-    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
-#else
-    j0 = 0 ; k0 = 0
-    ir_end = nnr
-#endif
-! END BACKWARD COMPATIBILITY
-    !
-    DO ir = 1, ir_end
-       !
-       ! ... three dimensional indexes
-       !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-5.X QE-6.1.X
-!       idx = idx0 + ir - 1
-!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
-!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!!--------------------------------------------------------------------
+!  SUBROUTINE generate_deriverfc( nnr, dim, axis, charge, width, spread, pos, drho )
+!!--------------------------------------------------------------------
+!    !
+!    USE modules_constants,      ONLY : DP, sqrtpi
+!    USE fft_base,               ONLY : dfftp
+!    USE mp,                     ONLY : mp_sum
+!    USE mp_bands,               ONLY : me_bgrp, intra_bgrp_comm
+!    !
+!    IMPLICIT NONE
+!    !
+!    REAL( DP ), PARAMETER :: tol = 1.D-10
+!    !
+!    ! ... Declares variables
+!    !
+!    INTEGER, INTENT(IN)       :: nnr, dim, axis
+!    REAL( DP ), INTENT(IN)    :: charge, width, spread
+!    REAL( DP ), INTENT(IN)    :: pos( 3 )
+!    TYPE( environ_density ), TARGET, INTENT(INOUT) :: drho
+!    !
+!    ! ... Local variables
+!    !
+!    INTEGER                   :: i, j, j0, k, k0, ir, ir_end, ip
+!    INTEGER                   :: idx, idx0, ntot
+!    !
+!    REAL( DP )                :: inv_nr1, inv_nr2, inv_nr3
+!    REAL( DP )                :: scale, dist, arg, chargeanalytic, chargelocal
+!    REAL( DP )                :: r( 3 ), s( 3 )
+!    REAL( DP ), ALLOCATABLE   :: drholocal ( : )
+!    REAL( DP ), EXTERNAL      :: qe_erfc
+!    REAL( DP )                :: alat, at( 3, 3 ), bg( 3, 3 ), omega
+!    !
+!    ! ... Aliases
+!    !
+!    TYPE( environ_cell ) :: cell
+!    alat = drho % cell % alat
+!    at = drho % cell % at
+!    bg = drho % cell % bg
+!    omega = drho % cell % omega
+!    !
+!    IF ( dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0 ) THEN
+!       WRITE(6,*)'ERROR: wrong grid dimension',dfftp%nr1,dfftp%nr2,dfftp%nr3
+!       STOP
+!    ENDIF
+!    inv_nr1 = 1.D0 / DBLE( dfftp%nr1 )
+!    inv_nr2 = 1.D0 / DBLE( dfftp%nr2 )
+!    inv_nr3 = 1.D0 / DBLE( dfftp%nr3 )
+!    !
+!    ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
+!    !
+!    IF (axis.LT.1.OR.axis.GT.3) &
+!         WRITE(6,*)'WARNING: wrong axis in generate_gaussian'
+!    chargeanalytic = erfcvolume(dim,axis,width,spread,cell)
+!    !
+!    ! ... scaling factor, take into account rescaling of generated density
+!    !     to obtain the correct integrated total charge
+!    !
+!    scale = charge / chargeanalytic / sqrtpi / spread
+!    !
+!    ALLOCATE( drholocal( nnr ) )
+!    drholocal = 0.D0
+!    chargelocal = 0.D0
+!    !
+!! BACKWARD COMPATIBILITY
+!! Compatible with QE-5.X QE-6.1.X
+!!    idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)
+!!    ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl
+!! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+!#if defined (__MPI)
+!    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p
+!    ir_end = MIN(nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)
+!#else
+!    j0 = 0 ; k0 = 0
+!    ir_end = nnr
+!#endif
+!! END BACKWARD COMPATIBILITY
+!    !
+!    DO ir = 1, ir_end
+!       !
+!       ! ... three dimensional indexes
+!       !
+!! BACKWARD COMPATIBILITY
+!! Compatible with QE-5.X QE-6.1.X
+!!       idx = idx0 + ir - 1
+!!       k   = idx / (dfftp%nr1x*dfftp%nr2x)
+!!       idx = idx - (dfftp%nr1x*dfftp%nr2x)*k
+!!       j   = idx / dfftp%nr1x
+!!       idx = idx - dfftp%nr1x*j
+!!       i   = idx
+!! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
+!       idx = ir - 1
+!       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
+!       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
+!       k   = k + k0
 !       j   = idx / dfftp%nr1x
-!       idx = idx - dfftp%nr1x*j
+!       idx = idx - dfftp%nr1x * j
+!       j   = j + j0
 !       i   = idx
-! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-       idx = ir - 1
-       k   = idx / (dfftp%nr1x*dfftp%my_nr2p)
-       idx = idx - (dfftp%nr1x*dfftp%my_nr2p)*k
-       k   = k + k0
-       j   = idx / dfftp%nr1x
-       idx = idx - dfftp%nr1x * j
-       j   = j + j0
-       i   = idx
-! END BACKWARD COMPATIBILITY
-       !
-       ! ... do not include points outside the physical range
-       !
-       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
-       !
-       DO ip = 1, 3
-          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
-               DBLE( j )*inv_nr2*at(ip,2) + &
-               DBLE( k )*inv_nr3*at(ip,3)
-       END DO
-       !
-       r(:) = r(:) - pos(:)
-       !
-       !  ... possibly 2D or 1D erfc
-       !
-       IF ( dim .EQ. 1) THEN
-          r(axis) = 0.D0
-       ELSE IF ( dim .EQ. 2 ) THEN
-          DO i = 1, 3
-             IF ( i .NE. axis ) r(i) = 0.D0
-          ENDDO
-       END IF
-       !
-       ! ... minimum image convention
-       !
-       s(:) = MATMUL( r(:), bg(:,:) )
-       s(:) = s(:) - ANINT(s(:))
-       r(:) = MATMUL( at(:,:), s(:) )
-       r = r * alat
-       !
-       dist = SQRT(SUM( r * r ))
-       arg = ( dist - width ) / spread
-       !
-       IF ( dist .GT. tol ) drholocal( ir ) = - EXP( - arg**2 )
-       chargelocal = chargelocal + qe_erfc(arg)
-       !
-    END DO
-    !
-    ! ... double check that the integral of the generated charge corresponds to
-    !     what is expected
-    !
-    CALL mp_sum( chargelocal, intra_bgrp_comm )
-    chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
-    IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
-         WRITE(6,*)'WARNING: significant discrepancy between the numerical and the expected erfc charge'
-    !
-    drholocal = drholocal * scale
-    !
-    drho%of_r = drho%of_r + drholocal
-    DEALLOCATE( drholocal )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE generate_deriverfc
-!--------------------------------------------------------------------
+!! END BACKWARD COMPATIBILITY
+!       !
+!       ! ... do not include points outside the physical range
+!       !
+!       IF ( i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3 ) CYCLE
+!       !
+!       DO ip = 1, 3
+!          r(ip) = DBLE( i )*inv_nr1*at(ip,1) + &
+!               DBLE( j )*inv_nr2*at(ip,2) + &
+!               DBLE( k )*inv_nr3*at(ip,3)
+!       END DO
+!       !
+!       r(:) = r(:) - pos(:)
+!       !
+!       !  ... possibly 2D or 1D erfc
+!       !
+!       IF ( dim .EQ. 1) THEN
+!          r(axis) = 0.D0
+!       ELSE IF ( dim .EQ. 2 ) THEN
+!          DO i = 1, 3
+!             IF ( i .NE. axis ) r(i) = 0.D0
+!          ENDDO
+!       END IF
+!       !
+!       ! ... minimum image convention
+!       !
+!       s(:) = MATMUL( r(:), bg(:,:) )
+!       s(:) = s(:) - ANINT(s(:))
+!       r(:) = MATMUL( at(:,:), s(:) )
+!       r = r * alat
+!       !
+!       dist = SQRT(SUM( r * r ))
+!       arg = ( dist - width ) / spread
+!       !
+!       IF ( dist .GT. tol ) drholocal( ir ) = - EXP( - arg**2 )
+!       chargelocal = chargelocal + qe_erfc(arg)
+!       !
+!    END DO
+!    !
+!    ! ... double check that the integral of the generated charge corresponds to
+!    !     what is expected
+!    !
+!    CALL mp_sum( chargelocal, intra_bgrp_comm )
+!    chargelocal = chargelocal*omega/DBLE(ntot)*0.5D0
+!    IF ( ABS(chargelocal-chargeanalytic)/chargeanalytic .GT. 1.D-4 ) &
+!         WRITE(6,*)'WARNING: significant discrepancy between the numerical and the !expected erfc charge'
+!    !
+!    drholocal = drholocal * scale
+!    !
+!    drho%of_r = drho%of_r + drholocal
+!    DEALLOCATE( drholocal )
+!    !
+!    RETURN
+!    !
+!!--------------------------------------------------------------------
+!  END SUBROUTINE generate_deriverfc
+!!--------------------------------------------------------------------
 !--------------------------------------------------------------------
   SUBROUTINE generate_axis( cell, icor, pos, axis )
 !--------------------------------------------------------------------

@@ -1460,7 +1460,7 @@ CONTAINS
        IF ( ionode ) WRITE(program_unit,*)'Only analytic derivatives for ionic solvent_mode'
        derivatives = 'analytic'
     ENDIF
-    IF (solvent_mode .EQ. 'ionic' .OR. solvent_mode .EQ. 'fa-ionic') THEN
+    IF (solvent_mode .EQ. 'ionic' ) THEN !.OR. solvent_mode .EQ. 'fa-ionic') THEN
        !
        ! May want a switch statement here
        !
@@ -1514,9 +1514,9 @@ CONTAINS
     ! Depending on the boundary mode, set fitted parameters
     !
     IF ( TRIM(ADJUSTL(solvent_mode)) .EQ. 'electronic' .OR. &
-         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'full' .OR. &
-         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-electronic' .OR. &
-         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-full' ) THEN
+         & TRIM(ADJUSTL(solvent_mode)) .EQ. 'full' ) THEN ! .OR. &
+         !& TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-electronic' .OR. &
+         !& TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-full' ) THEN
        !
        ! Self-consistent continuum solvation (SCCS)
        !

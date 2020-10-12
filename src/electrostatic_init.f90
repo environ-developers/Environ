@@ -111,6 +111,8 @@ CONTAINS
     !
     ! first check keywords specfied in input
     !
+    !pbc_dim_ is always greater than or equal to 0??
+    !if statement may be redundant. will remove and test code.
     IF ( pbc_dim_ .GE. 0 ) THEN
        !
        pbc_dim = pbc_dim_

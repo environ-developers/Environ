@@ -238,7 +238,7 @@ CONTAINS
     TYPE( environ_gradient ), POINTER :: gradeps
     !
     INTEGER :: iter
-    REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, jellium, shift
+    REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
     TYPE( environ_density ) :: r, z, p, Ap, invsqrt!, ionccfact
     !
     CHARACTER( LEN=80 ) :: sub_name = 'linearized_pb_gradient_sqrt'
@@ -278,9 +278,6 @@ CONTAINS
        invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
     END IF
     !
-    jellium = 0.D0
-!    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
-    !
     ! ... Create and initialize local variables
     !
     CALL init_environ_density( cell, r )
@@ -293,9 +290,9 @@ CONTAINS
     IF ( x%update ) THEN
        !
        IF ( PRESENT(dielectric) ) THEN
-          r%of_r = ( b%of_r - jellium ) - (factsqrt%of_r + scr%of_r ) * x%of_r
+          r%of_r = b%of_r - (factsqrt%of_r + scr%of_r ) * x%of_r
        ELSE
-          r%of_r = ( b%of_r - jellium ) - scr%of_r * x%of_r
+          r%of_r = b%of_r - scr%of_r * x%of_r
        END IF
        !
        ! ... Preconditioning step
@@ -337,7 +334,7 @@ CONTAINS
        !
        x%update = .TRUE.
        x%of_r = 0.D0
-       r%of_r = b%of_r - jellium
+       r%of_r = b%of_r
        rzold = 0.D0
        !
     ENDIF

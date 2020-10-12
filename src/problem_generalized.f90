@@ -294,7 +294,7 @@ CONTAINS
     TYPE( environ_gradient ), POINTER :: gradlogeps
     !
     INTEGER :: iter
-    REAL( DP ) :: total, totpol, totzero, totiter, delta_qm, delta_en, jellium
+    REAL( DP ) :: total, totpol, totzero, totiter, delta_qm, delta_en
     TYPE( environ_density ) :: rhozero
     TYPE( environ_density ) :: residual
     TYPE( environ_gradient ) :: gradpoisson
@@ -335,13 +335,11 @@ CONTAINS
     !
     total = integrate_environ_density( charges )
     totpol = total * ( 1.D0 - dielectric % constant ) / dielectric % constant
-    jellium = 0.D0
-!    IF ( add_jellium ) jellium =  total / cell % omega
-    rhozero % of_r = ( charges % of_r - jellium ) * ( 1.D0 - eps % of_r ) / eps % of_r
+    rhozero % of_r = charges % of_r * ( 1.D0 - eps % of_r ) / eps % of_r
     totzero = integrate_environ_density( rhozero )
     totiter = integrate_environ_density( rhoiter )
-    IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9001) totiter, jellium
-9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6, ' jellium = ',F13.6)
+    IF ( verbose .GE. 1 .AND. ionode ) WRITE(environ_unit,9001) totiter
+9001 FORMAT(' Starting from polarization: rhoiter = ',F13.6)
 
     !
     ! ... Create local variables
@@ -357,7 +355,7 @@ CONTAINS
 9002   FORMAT(' Iteration # ',i10)
        !
 
-       rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
+       rhotot % of_r = charges % of_r + rhozero % of_r + rhoiter % of_r
        !
        WRITE(environ_unit,*)"calling poisson_gradient_direct"
 
@@ -396,7 +394,7 @@ CONTAINS
     !
     ! ... Compute total electrostatic potential
     !
-    rhotot % of_r = ( charges % of_r - jellium ) + rhozero % of_r + rhoiter % of_r
+    rhotot % of_r = charges % of_r + rhozero % of_r + rhoiter % of_r
     !
     CALL poisson_direct( core, rhotot, potential, electrolyte, semiconductor )
     !
@@ -595,7 +593,7 @@ CONTAINS
     TYPE( environ_gradient ), POINTER :: gradeps
     !
     INTEGER :: iter
-    REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, jellium, shift
+    REAL( DP ) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
     TYPE( environ_density ) :: r, z, p, Ap, invsqrt
     !
     CHARACTER( LEN=80 ) :: sub_name = 'generalized_gradient_sqrt'
@@ -627,8 +625,6 @@ CONTAINS
     x => potential
     CALL init_environ_density( cell, invsqrt )
     invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
-    jellium = 0.D0
-!    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
     !
     ! ... Create and initialize local variables
     !
@@ -641,7 +637,7 @@ CONTAINS
     !
     IF ( x%update ) THEN
        !
-       r%of_r = ( b%of_r - jellium ) - factsqrt%of_r * x%of_r
+       r%of_r = b%of_r - factsqrt%of_r * x%of_r
        !
        ! ... Preconditioning step
        !
@@ -672,7 +668,7 @@ CONTAINS
        !
        x%update = .TRUE.
        x%of_r = 0.D0
-       r%of_r = b%of_r - jellium
+       r%of_r = b%of_r
        rzold = 0.D0
        !
     ENDIF

@@ -565,7 +565,6 @@ CONTAINS
     !
     TYPE( environ_cell ), POINTER :: cell
     !
-    REAL( DP ) :: jellium
     TYPE( environ_gradient ) :: gradient
     CHARACTER( LEN=80 ) :: sub_name = 'dielectric_of_potential'
     !
@@ -579,9 +578,7 @@ CONTAINS
     CALL gradient_fft( dielectric % boundary % core % fft, potential, gradient )
     CALL scalar_product_environ_gradient( dielectric%gradlog, gradient, dielectric % density )
     !
-    jellium = 0.D0
-!    IF ( add_jellium ) jellium = integrate_environ_density( charges ) / cell % omega
-    dielectric % density % of_r = dielectric % density % of_r / fpi / e2 + ( charges % of_r - jellium ) * &
+    dielectric % density % of_r = dielectric % density % of_r / fpi / e2 + charges % of_r * &
          & ( 1.D0 - dielectric % epsilon % of_r ) / dielectric % epsilon % of_r
     !
     CALL destroy_environ_gradient( gradient )

@@ -773,7 +773,6 @@ CONTAINS
     IMPLICIT NONE
     !
     TYPE( environ_density ), INTENT(INOUT) :: density
-    !CALL compute_dipole( density%cell%nnr, density%of_r, density%cell%origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( density, density%cell%origin, &
          density%charge, density%dipole, density%quadrupole )
@@ -1482,6 +1481,7 @@ CONTAINS
 !! for given x, y, z indices
 !! TODO this probably doesn't work with MPI, need to test
 !! (I can only test serially right now)
+  !!! This subroutine doesn't seem to be used currently.
 !--------------------------------------------------------------------
   FUNCTION get_idx_environ_cell( cell, i, j, k ) RESULT ( idx )
 !--------------------------------------------------------------------

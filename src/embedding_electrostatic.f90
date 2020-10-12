@@ -384,7 +384,7 @@ CONTAINS
     !
     TYPE( electrostatic_setup ), INTENT(IN) :: setup
     INTEGER, INTENT(IN) :: natoms
-    TYPE( environ_charges ), INTENT(INOUT) :: charges
+    TYPE( environ_charges ), INTENT(IN) :: charges
     REAL(DP), INTENT(INOUT) :: forces( 3, natoms )
     !
     ! ... Local variables

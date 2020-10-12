@@ -97,9 +97,6 @@ CONTAINS
     vperiodic => local % of_r
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
-    ! ... Compute multipoles of the system wrt the chosen origin
-    !
-    !CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !
@@ -202,9 +199,6 @@ CONTAINS
     gvperiodic => glocal % of_r
     !
     ! ... Compute multipoles of the system with respect to the chosen origin
-    ! ... Compute dipole of the system with respect to the center of charge
-    !
-    !CALL compute_dipole( nnr, rhotot, origin, dipole, quadrupole )
     !
     CALL multipoles_environ_density( charges, origin, charge, dipole, quadrupole )
     !

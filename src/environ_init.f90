@@ -203,7 +203,6 @@ CONTAINS
     env_pressure = env_pressure_*1.D9/rydberg_si*bohr_radius_si**3
     env_confine = env_confine_
     env_electrolyte_ntyp = env_electrolyte_ntyp_
-
     !
     ! Set basic logical flags
     !

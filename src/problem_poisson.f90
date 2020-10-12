@@ -122,8 +122,6 @@ CONTAINS
           !
           CALL calc_vperiodic( core%correction%oned_analytic, charges%density, potential )
           !
-       !CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
-          !
        CASE ( 'gcs', 'gouy-chapman', 'gouy-chapman-stern' )
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
@@ -138,9 +136,7 @@ CONTAINS
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction',1)
           IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-
-          CALL calc_vms_gcs(core%correction%oned_analytic, charges%electrolyte, charges%semiconductor, &
-                            & charges%density, potential)
+          CALL calc_vms_gcs(core%correction%oned_analytic, charges%electrolyte, charges%semiconductor, charges%density, potential)
        CASE DEFAULT
           !
           CALL errore(sub_name,'Unexpected option for pbc correction core',1)
@@ -389,7 +385,6 @@ CONTAINS
               & CALL errore(sub_name,'Missing semiconductor for electrochemical boundary correction', 1)
          IF ( .NOT. PRESENT( electrolyte ) ) &
               & CALL errore(sub_name,'Missing electrolyte for electrochemical boundary correction',1)
-
          CALL calc_gradvms_gcs( core%correction%oned_analytic, electrolyte, semiconductor, charges, gradient )
 
        CASE DEFAULT
