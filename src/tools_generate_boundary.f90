@@ -769,6 +769,7 @@ CONTAINS
        IF ( deriv .EQ. 3 ) DEALLOCATE( hesslocal )
        !
     CASE ( 'lowmem' )
+       CALL errore( sub_name, 'Option not yet implimented' , 1 )
        !
        ! Consider moving into same branch as highmem and switching for function calls
        !
