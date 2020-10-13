@@ -1547,7 +1547,7 @@ CONTAINS
        !
        ! Soft-sphere continuum solvation
        !
-       radius_mode = 'muff'
+       radius_mode = 'uff'
        softness = 0.5D0
        env_surface_tension = 50.D0 !! NOTE THAT WE ARE USING THE
        env_pressure = -0.35D0      !! SET FOR CLUSTERS, AS IN SCCS
