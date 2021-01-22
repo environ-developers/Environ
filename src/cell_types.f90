@@ -73,7 +73,7 @@ CONTAINS
       & bg(1,2), bg(1,3))
     !
     CALL fft_type_init( dfft, smap, "rho", .TRUE., .TRUE., comm, at, &
-         & bg, gcutm, nyfft=1 )
+         & bg, gcutm, nyfft=1, nmany=1 )
     dfft%rho_clock_label='fft'
     !
     CALL sticks_map_deallocate( smap )

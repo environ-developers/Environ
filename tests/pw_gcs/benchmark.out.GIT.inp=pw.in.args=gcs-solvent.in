@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.5 starts on  9Oct2020 at 13:34: 1 
+     Program PWSCF v.6.7MaX starts on 22Jan2021 at 11:15:14 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -13,8 +13,6 @@
 
      MPI processes distributed on     1 nodes
      Reading input from pw.in
-Warning: card  &IONS ignored
-Warning: card  / ignored
 
      Current dimensions of program PWSCF are:
      Max number of different atomic species (ntypx) = 10
@@ -43,7 +41,7 @@ Warning: card  / ignored
      number of Kohn-Sham states=           15
      kinetic-energy cutoff     =      35.0000  Ry
      charge density cutoff     =     350.0000  Ry
-     convergence threshold     =      1.0E-06
+     scf convergence threshold =      1.0E-06
      mixing beta               =       0.3000
      number of iterations used =            8  plain     mixing
      Exchange-correlation= PBE
@@ -88,7 +86,7 @@ Warning: card  / ignored
      /Users/gabrielmedrano/Desktop/q-e/Environ/tests/../..//pseudo/Ag.pbe-n-rrkjus_psl.1.0.0.UPF
      MD5 check sum: d841cbfac2b0861aec33b46768a516bf
      Pseudo is Ultrasoft + core correction, Zval = 11.0
-     Generated using "atomic" code by A. Dal Corso v.6.2.2
+     Generated using &quot;atomic&quot; code by A. Dal Corso  v.6.2.2
      Using radial grid of 1237 points,  6 beta functions with: 
                 l(1) =   0
                 l(2) =   0
@@ -120,7 +118,7 @@ Warning: card  / ignored
 
      Smooth grid:    56001 G-vectors     FFT dimensions: (  24,  24, 250)
 
-     Estimated max dynamical RAM per process >     776.84 MB
+     Estimated max dynamical RAM per process >     777.01 MB
      Message from routine generate_erfc                                                                   :
      WARNING: wrong integral of erfc function
 
@@ -131,392 +129,322 @@ Warning: card  / ignored
      negative rho (up, down):  1.367E-04 0.000E+00
      Starting wfcs are   18 randomized atomic wfcs
 
-     total cpu time spent up to now is        2.6 secs
+     total cpu time spent up to now is        2.5 secs
 
      Self-consistent Calculation
 
      iteration #  1     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  1.00E-02,  avg # of iterations =  8.0
+     ethr =  1.00E-02,  avg # of iterations = 11.0
 
-     negative rho (up, down):  9.377E-05 0.000E+00
+     negative rho (up, down):  8.684E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 6.2E-12, # of iterations =  22
+     polarization accuracy = 8.2E-12, # of iterations =  22
 
-     total cpu time spent up to now is        7.0 secs
+     total cpu time spent up to now is        7.3 secs
 
-     total energy              =    -168.81920146 Ry
-     Harris-Foulkes estimate   =    -168.92013544 Ry
-     estimated scf accuracy    <       0.24833721 Ry
+     total energy              =    -168.81983119 Ry
+     estimated scf accuracy    <       0.24699838 Ry
      electrostatic embedding   =       0.00000000 Ry
      electrolyte free energy   =       0.00000678 Ry
      correction to one-el term =      -0.00000000 Ry
 
      iteration #  2     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  1.13E-03,  avg # of iterations =  2.0
+     ethr =  1.12E-03,  avg # of iterations =  2.0
 
-     negative rho (up, down):  7.588E-05 0.000E+00
+     negative rho (up, down):  6.797E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 8.4E-12, # of iterations =  21
+     polarization accuracy = 8.3E-12, # of iterations =  21
 
-     total cpu time spent up to now is       11.3 secs
+     total cpu time spent up to now is       12.0 secs
 
-     total energy              =    -168.84395795 Ry
-     Harris-Foulkes estimate   =    -171.01385502 Ry
-     estimated scf accuracy    <       0.02862648 Ry
-     electrostatic embedding   =      -0.00073877 Ry
-     electrolyte free energy   =       0.00000418 Ry
-     correction to one-el term =       2.16379303 Ry
+     total energy              =    -168.84373882 Ry
+     estimated scf accuracy    <       0.02890435 Ry
+     electrostatic embedding   =      -0.00074048 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       2.16428308 Ry
 
      iteration #  3     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  1.30E-04,  avg # of iterations = 10.0
+     ethr =  1.31E-04,  avg # of iterations =  9.0
 
-     negative rho (up, down):  6.957E-05 0.000E+00
+     negative rho (up, down):  7.127E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 8.4E-12, # of iterations =  23
+     polarization accuracy = 9.4E-12, # of iterations =  20
 
-     total cpu time spent up to now is       15.8 secs
+     total cpu time spent up to now is       17.3 secs
 
-     total energy              =    -168.83195780 Ry
-     Harris-Foulkes estimate   =    -170.91058064 Ry
-     estimated scf accuracy    <       0.03414744 Ry
-     electrostatic embedding   =      -0.00092447 Ry
-     electrolyte free energy   =       0.00000398 Ry
-     correction to one-el term =       2.06391737 Ry
+     total energy              =    -168.82801502 Ry
+     estimated scf accuracy    <       0.04500748 Ry
+     electrostatic embedding   =      -0.00093310 Ry
+     electrolyte free energy   =       0.00000421 Ry
+     correction to one-el term =       2.05786622 Ry
 
      iteration #  4     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  1.30E-04,  avg # of iterations =  3.0
+     ethr =  1.31E-04,  avg # of iterations =  2.0
 
-     negative rho (up, down):  5.386E-05 0.000E+00
+     negative rho (up, down):  8.381E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 6.4E-12, # of iterations =  28
+     polarization accuracy = 6.5E-12, # of iterations =  24
 
-     total cpu time spent up to now is       20.7 secs
+     total cpu time spent up to now is       22.3 secs
 
-     total energy              =    -168.85011091 Ry
-     Harris-Foulkes estimate   =    -171.02117639 Ry
-     estimated scf accuracy    <       0.05017352 Ry
-     electrostatic embedding   =      -0.00078675 Ry
-     electrolyte free energy   =      -0.00003922 Ry
-     correction to one-el term =       2.16385602 Ry
+     total energy              =    -168.84706205 Ry
+     estimated scf accuracy    <       0.04919477 Ry
+     electrostatic embedding   =      -0.00086606 Ry
+     electrolyte free energy   =       0.00000395 Ry
+     correction to one-el term =       2.17158260 Ry
 
      iteration #  5     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  1.30E-04,  avg # of iterations =  2.0
+     ethr =  1.31E-04,  avg # of iterations =  2.0
 
-     negative rho (up, down):  6.016E-05 0.000E+00
+     negative rho (up, down):  5.456E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 9.7E-12, # of iterations =  27
+     polarization accuracy = 5.6E-12, # of iterations =  25
 
-     total cpu time spent up to now is       25.3 secs
+     total cpu time spent up to now is       27.4 secs
 
-     total energy              =    -168.84692716 Ry
-     Harris-Foulkes estimate   =    -170.92505165 Ry
-     estimated scf accuracy    <       0.03269171 Ry
-     electrostatic embedding   =      -0.00046273 Ry
-     electrolyte free energy   =      -0.00019298 Ry
-     correction to one-el term =       2.07378690 Ry
+     total energy              =    -168.84857128 Ry
+     estimated scf accuracy    <       0.01723751 Ry
+     electrostatic embedding   =      -0.00107913 Ry
+     electrolyte free energy   =       0.00000106 Ry
+     correction to one-el term =       2.02316293 Ry
 
      iteration #  6     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  1.30E-04,  avg # of iterations =  1.0
+     ethr =  7.84E-05,  avg # of iterations =  1.0
 
-     negative rho (up, down):  4.948E-05 0.000E+00
+     negative rho (up, down):  4.623E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 8.2E-12, # of iterations =  25
+     polarization accuracy = 9.5E-12, # of iterations =  24
 
-     total cpu time spent up to now is       29.7 secs
+     total cpu time spent up to now is       32.4 secs
 
-     total energy              =    -168.84694652 Ry
-     Harris-Foulkes estimate   =    -170.86953663 Ry
-     estimated scf accuracy    <       0.01481611 Ry
-     electrostatic embedding   =      -0.00109225 Ry
-     electrolyte free energy   =       0.00000403 Ry
-     correction to one-el term =       2.02249706 Ry
+     total energy              =    -168.84812078 Ry
+     estimated scf accuracy    <       0.01685898 Ry
+     electrostatic embedding   =      -0.00107920 Ry
+     electrolyte free energy   =      -0.00000011 Ry
+     correction to one-el term =       2.02432899 Ry
 
      iteration #  7     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  6.73E-05,  avg # of iterations =  1.0
+     ethr =  7.66E-05,  avg # of iterations =  1.0
 
      negative rho (up, down):  5.453E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 8.7E-12, # of iterations =  22
+     polarization accuracy = 5.1E-12, # of iterations =  19
 
-     total cpu time spent up to now is       33.8 secs
+     total cpu time spent up to now is       36.8 secs
 
-     total energy              =    -168.84442677 Ry
-     Harris-Foulkes estimate   =    -170.86489142 Ry
-     estimated scf accuracy    <       0.01185563 Ry
-     electrostatic embedding   =      -0.00109602 Ry
-     electrolyte free energy   =       0.00000417 Ry
-     correction to one-el term =       2.01893076 Ry
+     total energy              =    -168.84449125 Ry
+     estimated scf accuracy    <       0.01520217 Ry
+     electrostatic embedding   =      -0.00108875 Ry
+     electrolyte free energy   =       0.00000419 Ry
+     correction to one-el term =       2.02256380 Ry
 
      iteration #  8     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  5.39E-05,  avg # of iterations =  2.0
+     ethr =  6.91E-05,  avg # of iterations =  1.0
 
-     negative rho (up, down):  4.750E-05 0.000E+00
+     negative rho (up, down):  5.035E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 8.4E-12, # of iterations =  20
+     polarization accuracy = 6.2E-12, # of iterations =  20
 
-     total cpu time spent up to now is       37.9 secs
+     total cpu time spent up to now is       41.4 secs
 
-     total energy              =    -168.84529451 Ry
-     Harris-Foulkes estimate   =    -170.82852417 Ry
-     estimated scf accuracy    <       0.00017057 Ry
-     electrostatic embedding   =      -0.00118214 Ry
-     electrolyte free energy   =       0.00000417 Ry
-     correction to one-el term =       1.98440074 Ry
+     total energy              =    -168.84510797 Ry
+     estimated scf accuracy    <       0.00066948 Ry
+     electrostatic embedding   =      -0.00118834 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       1.97883095 Ry
 
      iteration #  9     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  7.75E-07,  avg # of iterations =  4.0
+     ethr =  3.04E-06,  avg # of iterations =  6.0
 
-     negative rho (up, down):  4.656E-05 0.000E+00
+     negative rho (up, down):  4.578E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 7.9E-12, # of iterations =  21
+     polarization accuracy = 4.2E-12, # of iterations =  16
 
-     total cpu time spent up to now is       42.0 secs
+     total cpu time spent up to now is       45.6 secs
 
-     total energy              =    -168.84533397 Ry
-     Harris-Foulkes estimate   =    -170.82425145 Ry
-     estimated scf accuracy    <       0.00038191 Ry
-     electrostatic embedding   =      -0.00117892 Ry
-     electrolyte free energy   =       0.00000400 Ry
-     correction to one-el term =       1.98008979 Ry
+     total energy              =    -168.84516059 Ry
+     estimated scf accuracy    <       0.00646673 Ry
+     electrostatic embedding   =      -0.00119930 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       1.97081315 Ry
 
      iteration # 10     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  7.75E-07,  avg # of iterations =  1.0
+     ethr =  3.04E-06,  avg # of iterations =  1.0
 
-     negative rho (up, down):  4.362E-05 0.000E+00
-
-     add environment contribution to local potential
-     polarization accuracy = 3.7E-12, # of iterations =  17
-
-     total cpu time spent up to now is       45.8 secs
-
-     total energy              =    -168.84511774 Ry
-     Harris-Foulkes estimate   =    -170.81305333 Ry
-     estimated scf accuracy    <       0.00112323 Ry
-     electrostatic embedding   =      -0.00119818 Ry
-     electrolyte free energy   =       0.00000422 Ry
-     correction to one-el term =       1.96889031 Ry
-
-     iteration # 11     ecut=    35.00 Ry     beta= 0.30
-     Davidson diagonalization with overlap
-     ethr =  7.75E-07,  avg # of iterations =  2.0
-
-     negative rho (up, down):  4.185E-05 0.000E+00
+     negative rho (up, down):  4.298E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 5.4E-12, # of iterations =  19
+     polarization accuracy = 9.5E-12, # of iterations =  17
 
      total cpu time spent up to now is       49.8 secs
 
-     total energy              =    -168.84537381 Ry
-     Harris-Foulkes estimate   =    -170.80894750 Ry
-     estimated scf accuracy    <       0.00122848 Ry
-     electrostatic embedding   =      -0.00118626 Ry
+     total energy              =    -168.84520075 Ry
+     estimated scf accuracy    <       0.00041392 Ry
+     electrostatic embedding   =      -0.00119592 Ry
      electrolyte free energy   =       0.00000422 Ry
-     correction to one-el term =       1.96474560 Ry
+     correction to one-el term =       1.96639324 Ry
+
+     iteration # 11     ecut=    35.00 Ry     beta= 0.30
+     Davidson diagonalization with overlap
+     ethr =  1.88E-06,  avg # of iterations =  2.0
+
+     negative rho (up, down):  4.112E-05 0.000E+00
+
+     add environment contribution to local potential
+     polarization accuracy = 4.8E-12, # of iterations =  14
+
+     total cpu time spent up to now is       53.8 secs
+
+     total energy              =    -168.84530013 Ry
+     estimated scf accuracy    <       0.00143688 Ry
+     electrostatic embedding   =      -0.00118370 Ry
+     electrolyte free energy   =       0.00000422 Ry
+     correction to one-el term =       1.96489746 Ry
 
      iteration # 12     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  7.75E-07,  avg # of iterations =  1.0
+     ethr =  1.88E-06,  avg # of iterations =  1.0
 
-     negative rho (up, down):  4.072E-05 0.000E+00
+     negative rho (up, down):  4.017E-05 0.000E+00
 
      add environment contribution to local potential
-     polarization accuracy = 7.7E-12, # of iterations =  15
+     polarization accuracy = 9.5E-12, # of iterations =  13
 
-     total cpu time spent up to now is       53.2 secs
+     total cpu time spent up to now is       57.6 secs
 
-     total energy              =    -168.84523229 Ry
-     Harris-Foulkes estimate   =    -170.80845443 Ry
-     estimated scf accuracy    <       0.00108908 Ry
-     electrostatic embedding   =      -0.00118549 Ry
+     total energy              =    -168.84528556 Ry
+     estimated scf accuracy    <       0.00034624 Ry
+     electrostatic embedding   =      -0.00118755 Ry
      electrolyte free energy   =       0.00000422 Ry
-     correction to one-el term =       1.96426133 Ry
+     correction to one-el term =       1.96415332 Ry
 
      iteration # 13     ecut=    35.00 Ry     beta= 0.30
      Davidson diagonalization with overlap
-     ethr =  7.75E-07,  avg # of iterations =  2.0
+     ethr =  1.57E-06,  avg # of iterations =  1.0
 
-     negative rho (up, down):  3.984E-05 0.000E+00
-
-     add environment contribution to local potential
-     polarization accuracy = 8.8E-12, # of iterations =  15
-
-     total cpu time spent up to now is       56.6 secs
-
-     total energy              =    -168.84530703 Ry
-     Harris-Foulkes estimate   =    -170.80852252 Ry
-     estimated scf accuracy    <       0.00001835 Ry
-     electrostatic embedding   =      -0.00119084 Ry
-     electrolyte free energy   =       0.00000422 Ry
-     correction to one-el term =       1.96440274 Ry
-
-     iteration # 14     ecut=    35.00 Ry     beta= 0.30
-     Davidson diagonalization with overlap
-     ethr =  8.34E-08,  avg # of iterations =  1.0
-
-     negative rho (up, down):  3.942E-05 0.000E+00
-
-     add environment contribution to local potential
-     polarization accuracy = 6.7E-12, # of iterations =  12
-
-     total cpu time spent up to now is       59.8 secs
-
-     total energy              =    -168.84530496 Ry
-     Harris-Foulkes estimate   =    -170.80845015 Ry
-     estimated scf accuracy    <       0.00003690 Ry
-     electrostatic embedding   =      -0.00119102 Ry
-     electrolyte free energy   =       0.00000422 Ry
-     correction to one-el term =       1.96432955 Ry
-
-     iteration # 15     ecut=    35.00 Ry     beta= 0.30
-     Davidson diagonalization with overlap
-     ethr =  8.34E-08,  avg # of iterations =  1.0
-
-     negative rho (up, down):  3.922E-05 0.000E+00
-
-     add environment contribution to local potential
-     polarization accuracy = 5.4E-12, # of iterations =  11
-
-     total cpu time spent up to now is       62.9 secs
-
-     total energy              =    -168.84530513 Ry
-     Harris-Foulkes estimate   =    -170.80829453 Ry
-     estimated scf accuracy    <       0.00000543 Ry
-     electrostatic embedding   =      -0.00119022 Ry
-     electrolyte free energy   =       0.00000422 Ry
-     correction to one-el term =       1.96417471 Ry
-
-     iteration # 16     ecut=    35.00 Ry     beta= 0.30
-     Davidson diagonalization with overlap
-     ethr =  2.47E-08,  avg # of iterations =  1.0
-
-     negative rho (up, down):  3.889E-05 0.000E+00
+     negative rho (up, down):  3.883E-05 0.000E+00
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.2351 ev
 
-     total cpu time spent up to now is       64.6 secs
+     total cpu time spent up to now is       59.6 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 (  7059 PWs)   bands (ev):
 
-    -7.7813  -7.2603  -7.0255  -6.2612  -5.7085  -5.7085  -5.6816  -4.7688
-    -4.7303  -4.7303  -4.3741  -4.1628  -1.5262   0.0243   0.0969
+    -7.7802  -7.2585  -7.0237  -6.2593  -5.7064  -5.7064  -5.6795  -4.7669
+    -4.7282  -4.7282  -4.3722  -4.1618  -1.5254   0.0223   0.0946
 
-     the Fermi energy is    -4.2682 ev
+     the Fermi energy is    -4.2665 ev
 
-!    total energy              =    -168.84530535 Ry
-     Harris-Foulkes estimate   =    -170.80823483 Ry
-     estimated scf accuracy    <       0.00000027 Ry
+!    total energy              =    -168.84530507 Ry
+     estimated scf accuracy    <       0.00000057 Ry
+     smearing contrib. (-TS)   =      -0.00074302 Ry
+     internal energy E=F+TS    =    -168.84456205 Ry
 
-     The total energy is the sum of the following terms:
-
-     one-electron contribution =   -1722.71646465 Ry
-     hartree contribution      =     874.31975984 Ry
-     xc contribution           =     -44.70750723 Ry
+     The total energy is F=E-TS. E is the sum of the following terms:
+     one-electron contribution =   -1722.68495401 Ry
+     hartree contribution      =     874.28577032 Ry
+     xc contribution           =     -44.70479332 Ry
      ewald contribution        =     722.29669101 Ry
-     smearing contrib. (-TS)   =      -0.00071357 Ry
-     electrostatic embedding   =      -0.00118963 Ry
+     electrostatic embedding   =      -0.00119021 Ry
      electrolyte free energy   =       0.00000422 Ry
-     correction to one-el term =       1.96411466 Ry
+     correction to one-el term =       1.96390993 Ry
 
      WARNING: you are using the parabolic pbc correction;
               the potential shift above must be added to 
               band and Fermi energies.
 
-     convergence has been achieved in  16 iterations
+     convergence has been achieved in  13 iterations
 
-     negative rho (up, down):  3.889E-05 0.000E+00
+     negative rho (up, down):  3.883E-05 0.000E+00
  forces lc
        1    0.0000    0.0000   -0.0074
        2    0.0000    0.0000    0.0074
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  1   force =     0.00000000    0.00000000    0.01576844
-     atom    2 type  1   force =     0.00000000    0.00000000   -0.01576844
+     atom    1 type  1   force =     0.00000000    0.00000000    0.01603474
+     atom    2 type  1   force =     0.00000000    0.00000000   -0.01603474
 
-     Total force =     0.022300     Total SCF correction =     0.001894
+     Total force =     0.022677     Total SCF correction =     0.002400
+     SCF correction compared to forces is large: reduce conv_thr to get better values
 
      Writing output data file /Users/gabrielmedrano/Desktop/q-e/Environ/tests/../..//tempdir/pwscf.save/
 
-     init_run     :      1.88s CPU      2.09s WALL (       1 calls)
-     electrons    :     68.30s CPU     62.01s WALL (       1 calls)
-     forces       :      1.10s CPU      1.20s WALL (       1 calls)
+     init_run     :      2.09s CPU      2.36s WALL (       1 calls)
+     electrons    :     60.65s CPU     57.17s WALL (       1 calls)
+     forces       :      1.27s CPU      1.40s WALL (       1 calls)
 
      Called by init_run:
      wfcinit      :      0.07s CPU      0.07s WALL (       1 calls)
-     potinit      :      0.45s CPU      0.48s WALL (       1 calls)
-     hinit0       :      0.80s CPU      0.82s WALL (       1 calls)
+     potinit      :      0.51s CPU      0.54s WALL (       1 calls)
+     hinit0       :      0.89s CPU      0.91s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      2.02s CPU      1.76s WALL (      16 calls)
-     sum_band     :     21.86s CPU     11.61s WALL (      16 calls)
-     v_of_rho     :      2.65s CPU      3.00s WALL (      17 calls)
-     newd         :      7.01s CPU      9.40s WALL (      17 calls)
-     mix_rho      :      0.42s CPU      0.52s WALL (      16 calls)
+     c_bands      :      2.06s CPU      1.72s WALL (      13 calls)
+     sum_band     :     19.00s CPU     11.57s WALL (      13 calls)
+     v_of_rho     :      2.59s CPU      2.98s WALL (      14 calls)
+     newd         :      6.42s CPU      8.88s WALL (      14 calls)
+     mix_rho      :      0.39s CPU      0.50s WALL (      13 calls)
 
      Called by c_bands:
-     init_us_2    :      0.06s CPU      0.06s WALL (      33 calls)
-     cegterg      :      1.82s CPU      1.56s WALL (      16 calls)
-
-     Called by sum_band:
-     sum_band:bec :      0.00s CPU      0.00s WALL (      16 calls)
-     addusdens    :     21.09s CPU     10.86s WALL (      16 calls)
+     init_us_2    :      0.05s CPU      0.06s WALL (      27 calls)
+     cegterg      :      1.89s CPU      1.52s WALL (      13 calls)
 
      Called by *egterg:
-     h_psi        :      1.45s CPU      1.33s WALL (      59 calls)
-     s_psi        :      0.11s CPU      0.02s WALL (      59 calls)
-     g_psi        :      0.01s CPU      0.01s WALL (      42 calls)
-     cdiaghg      :      0.02s CPU      0.02s WALL (      58 calls)
+     cdiaghg      :      0.01s CPU      0.01s WALL (      53 calls)
+     h_psi        :      1.46s CPU      1.34s WALL (      54 calls)
+     s_psi        :      0.12s CPU      0.02s WALL (      54 calls)
+     g_psi        :      0.01s CPU      0.01s WALL (      40 calls)
 
      Called by h_psi:
-     h_psi:calbec :      0.10s CPU      0.05s WALL (      59 calls)
-     vloc_psi     :      1.22s CPU      1.23s WALL (      59 calls)
-     add_vuspsi   :      0.12s CPU      0.04s WALL (      59 calls)
+     h_psi:calbec :      0.10s CPU      0.06s WALL (      54 calls)
+     vloc_psi     :      1.22s CPU      1.23s WALL (      54 calls)
+     add_vuspsi   :      0.13s CPU      0.04s WALL (      54 calls)
 
      General routines
-     calbec       :      0.15s CPU      0.08s WALL (      79 calls)
-     fft          :     15.49s CPU     16.46s WALL (    1673 calls)
-     ffts         :      0.07s CPU      0.07s WALL (      33 calls)
-     fftw         :      1.29s CPU      1.30s WALL (    1362 calls)
-     interpolate  :      0.19s CPU      0.20s WALL (      17 calls)
+     calbec       :      0.16s CPU      0.08s WALL (      71 calls)
+     fft          :     14.46s CPU     15.39s WALL (    1334 calls)
+     ffts         :      0.06s CPU      0.06s WALL (      27 calls)
+     fftw         :      1.25s CPU      1.26s WALL (    1139 calls)
+     interpolate  :      0.20s CPU      0.21s WALL (      14 calls)
 
      Parallel routines
-     fft_scatt_xy :      1.38s CPU      1.38s WALL (    1442 calls)
-     fft_scatt_yz :      1.54s CPU      1.54s WALL (    1442 calls)
+     fft_scatt_xy :      1.35s CPU      1.36s WALL (    1142 calls)
+     fft_scatt_yz :      1.50s CPU      1.51s WALL (    1142 calls)
 
      Environ routines
-     calc_eelect  :      0.03s CPU      0.03s WALL (      32 calls)
-     calc_velect  :     30.00s CPU     31.24s WALL (      30 calls)
-     calc_vgcs    :      0.60s CPU      0.60s WALL (      15 calls)
-     dielectric   :      0.15s CPU      0.15s WALL (      19 calls)
+     calc_eelect  :      0.03s CPU      0.03s WALL (      26 calls)
+     calc_velect  :     26.27s CPU     27.50s WALL (      24 calls)
+     calc_vgcs    :      0.50s CPU      0.50s WALL (      12 calls)
+     dielectric   :      0.15s CPU      0.15s WALL (      16 calls)
      electrolyte  :      0.00s CPU      0.00s WALL (       2 calls)
-     calc_felect  :      0.06s CPU      0.06s WALL (       1 calls)
+     calc_felect  :      0.06s CPU      0.07s WALL (       1 calls)
 
-     PWSCF        :   1m11.77s CPU   1m 5.82s WALL
+     PWSCF        :   1m 4.12s CPU   1m 1.09s WALL
 
 
-   This run was terminated on:  13:35: 7   9Oct2020            
+   This run was terminated on:  11:16:15  22Jan2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -660,8 +588,8 @@ Warning: card  / ignored
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =    406.3384779 
- surface of the QM region   =     62.4784211 
+ volume of the QM region    =    406.3415875 
+ surface of the QM region   =     62.4713151 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -673,1604 +601,125 @@ Warning: card  / ignored
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.6400928418E-11
+ integral of density        =     0.3054476677E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.000000 jellium =      0.000000
+ Starting from polarization: rhoiter =      0.000000
  Iteration #          1
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.774965E-03 delta_en =   0.311336E+00 tol =   0.100000E-10
+ delta_qm =   0.775010E-03 delta_en =   0.311372E+00 tol =   0.100000E-10
  Iteration #          2
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.679691E-03 delta_en =   0.239491E+00 tol =   0.100000E-10
+ delta_qm =   0.679593E-03 delta_en =   0.239421E+00 tol =   0.100000E-10
  Iteration #          3
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.167384E-03 delta_en =   0.145242E-01 tol =   0.100000E-10
+ delta_qm =   0.167353E-03 delta_en =   0.145189E-01 tol =   0.100000E-10
  Iteration #          4
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.120112E-03 delta_en =   0.747892E-02 tol =   0.100000E-10
+ delta_qm =   0.120080E-03 delta_en =   0.747495E-02 tol =   0.100000E-10
  Iteration #          5
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.487428E-04 delta_en =   0.123165E-02 tol =   0.100000E-10
+ delta_qm =   0.487271E-04 delta_en =   0.123085E-02 tol =   0.100000E-10
  Iteration #          6
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.208760E-04 delta_en =   0.225923E-03 tol =   0.100000E-10
+ delta_qm =   0.208688E-04 delta_en =   0.225767E-03 tol =   0.100000E-10
  Iteration #          7
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.126169E-04 delta_en =   0.825221E-04 tol =   0.100000E-10
+ delta_qm =   0.126112E-04 delta_en =   0.824477E-04 tol =   0.100000E-10
  Iteration #          8
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.648813E-05 delta_en =   0.218225E-04 tol =   0.100000E-10
+ delta_qm =   0.648431E-05 delta_en =   0.217968E-04 tol =   0.100000E-10
  Iteration #          9
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.296271E-05 delta_en =   0.455035E-05 tol =   0.100000E-10
+ delta_qm =   0.296052E-05 delta_en =   0.454360E-05 tol =   0.100000E-10
  Iteration #         10
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.154155E-05 delta_en =   0.123191E-05 tol =   0.100000E-10
+ delta_qm =   0.154104E-05 delta_en =   0.123110E-05 tol =   0.100000E-10
  Iteration #         11
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.934280E-06 delta_en =   0.452501E-06 tol =   0.100000E-10
+ delta_qm =   0.933418E-06 delta_en =   0.451666E-06 tol =   0.100000E-10
  Iteration #         12
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.553558E-06 delta_en =   0.158852E-06 tol =   0.100000E-10
+ delta_qm =   0.553335E-06 delta_en =   0.158724E-06 tol =   0.100000E-10
  Iteration #         13
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.307881E-06 delta_en =   0.491396E-07 tol =   0.100000E-10
+ delta_qm =   0.307605E-06 delta_en =   0.490514E-07 tol =   0.100000E-10
  Iteration #         14
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.171955E-06 delta_en =   0.153284E-07 tol =   0.100000E-10
+ delta_qm =   0.171825E-06 delta_en =   0.153052E-07 tol =   0.100000E-10
  Iteration #         15
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.104137E-06 delta_en =   0.562181E-08 tol =   0.100000E-10
+ delta_qm =   0.104568E-06 delta_en =   0.566844E-08 tol =   0.100000E-10
  Iteration #         16
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.674573E-07 delta_en =   0.235897E-08 tol =   0.100000E-10
+ delta_qm =   0.670347E-07 delta_en =   0.232951E-08 tol =   0.100000E-10
  Iteration #         17
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.422360E-07 delta_en =   0.924764E-09 tol =   0.100000E-10
+ delta_qm =   0.419657E-07 delta_en =   0.912965E-09 tol =   0.100000E-10
  Iteration #         18
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.246572E-07 delta_en =   0.315174E-09 tol =   0.100000E-10
+ delta_qm =   0.248722E-07 delta_en =   0.320696E-09 tol =   0.100000E-10
  Iteration #         19
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.148020E-07 delta_en =   0.113582E-09 tol =   0.100000E-10
+ delta_qm =   0.145856E-07 delta_en =   0.110284E-09 tol =   0.100000E-10
  Iteration #         20
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.909549E-08 delta_en =   0.428861E-10 tol =   0.100000E-10
+ delta_qm =   0.929196E-08 delta_en =   0.447589E-10 tol =   0.100000E-10
  Iteration #         21
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.603883E-08 delta_en =   0.189047E-10 tol =   0.100000E-10
+ delta_qm =   0.618941E-08 delta_en =   0.198593E-10 tol =   0.100000E-10
  Iteration #         22
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.346193E-08 delta_en =   0.621299E-11 tol =   0.100000E-10
+ delta_qm =   0.396519E-08 delta_en =   0.815068E-11 tol =   0.100000E-10
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     -231.6130639    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =     0.7566675148    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -230.8563964    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    398.4146817 
- surface of the QM region   =     62.5625725 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =      0.0000039
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.2672436277E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.080670 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.887603E-04 delta_en =   0.408416E-02 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.668762E-04 delta_en =   0.231851E-02 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.352996E-04 delta_en =   0.645958E-03 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.196834E-04 delta_en =   0.200847E-03 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.101328E-04 delta_en =   0.532262E-04 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.626685E-05 delta_en =   0.203594E-04 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.352489E-05 delta_en =   0.644105E-05 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.197103E-05 delta_en =   0.201396E-05 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.121944E-05 delta_en =   0.770885E-06 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.761449E-06 delta_en =   0.300571E-06 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.449116E-06 delta_en =   0.104564E-06 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.262133E-06 delta_en =   0.356212E-07 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.161996E-06 delta_en =   0.136043E-07 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.104368E-06 delta_en =   0.564678E-08 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.653256E-07 delta_en =   0.221224E-08 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.390636E-07 delta_en =   0.791059E-09 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.230285E-07 delta_en =   0.274913E-09 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.145738E-07 delta_en =   0.110106E-09 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.921588E-08 delta_en =   0.440289E-10 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.594265E-08 delta_en =   0.183074E-10 tol =   0.100000E-10
- Iteration #         21
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.401384E-08 delta_en =   0.835190E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -218.0698556    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =     0.9684937507    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -217.1013618    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    411.5705728 
- surface of the QM region   =     62.2552210 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000041
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.5951620043E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.079637 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.844123E-04 delta_en =   0.369383E-02 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.439857E-04 delta_en =   0.100297E-02 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.289654E-04 delta_en =   0.434935E-03 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.145899E-04 delta_en =   0.110350E-03 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.853562E-05 delta_en =   0.377690E-04 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.506594E-05 delta_en =   0.133041E-04 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.273980E-05 delta_en =   0.389136E-05 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.156345E-05 delta_en =   0.126716E-05 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.963134E-06 delta_en =   0.480882E-06 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.582348E-06 delta_en =   0.175805E-06 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.338061E-06 delta_en =   0.592456E-07 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.200088E-06 delta_en =   0.207543E-07 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.127186E-06 delta_en =   0.838580E-08 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.843090E-07 delta_en =   0.368479E-08 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.557149E-07 delta_en =   0.160919E-08 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.369377E-07 delta_en =   0.707303E-09 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.252788E-07 delta_en =   0.331266E-09 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.185020E-07 delta_en =   0.177461E-09 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.132607E-07 delta_en =   0.911587E-10 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.983225E-08 delta_en =   0.501153E-10 tol =   0.100000E-10
- Iteration #         21
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.738506E-08 delta_en =   0.282731E-10 tol =   0.100000E-10
- Iteration #         22
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.546330E-08 delta_en =   0.154730E-10 tol =   0.100000E-10
- Iteration #         23
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.402177E-08 delta_en =   0.838494E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -236.5527263    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =     0.9023476121    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -235.6503786    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    408.4880738 
- surface of the QM region   =     62.2405201 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =      0.0001188
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =    -0.2295524009E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.085247 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.515451E-04 delta_en =   0.137734E-02 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.437934E-04 delta_en =   0.994221E-03 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.207945E-04 delta_en =   0.224162E-03 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.118099E-04 delta_en =   0.723037E-04 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.559423E-05 delta_en =   0.162235E-04 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.339612E-05 delta_en =   0.597903E-05 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.191737E-05 delta_en =   0.190580E-05 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.107313E-05 delta_en =   0.596989E-06 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.705131E-06 delta_en =   0.257754E-06 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.512010E-06 delta_en =   0.135901E-06 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.385972E-06 delta_en =   0.772285E-07 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.301838E-06 delta_en =   0.472294E-07 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.241531E-06 delta_en =   0.302419E-07 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.193984E-06 delta_en =   0.195073E-07 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.154499E-06 delta_en =   0.123742E-07 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.121872E-06 delta_en =   0.769967E-08 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.951703E-07 delta_en =   0.469535E-08 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.737827E-07 delta_en =   0.282211E-08 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.566513E-07 delta_en =   0.166374E-08 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.429463E-07 delta_en =   0.956128E-09 tol =   0.100000E-10
- Iteration #         21
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.322687E-07 delta_en =   0.539793E-09 tol =   0.100000E-10
- Iteration #         22
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.240363E-07 delta_en =   0.299502E-09 tol =   0.100000E-10
- Iteration #         23
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.177305E-07 delta_en =   0.162970E-09 tol =   0.100000E-10
- Iteration #         24
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.131295E-07 delta_en =   0.893641E-10 tol =   0.100000E-10
- Iteration #         25
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.962902E-08 delta_en =   0.480650E-10 tol =   0.100000E-10
- Iteration #         26
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.696240E-08 delta_en =   0.251294E-10 tol =   0.100000E-10
- Iteration #         27
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.499979E-08 delta_en =   0.129589E-10 tol =   0.100000E-10
- Iteration #         28
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.350380E-08 delta_en =   0.636421E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -227.6435385    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.049391421    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -226.5941471    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    405.6533606 
- surface of the QM region   =     62.2572671 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0004349
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.4978222064E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.086008 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.378370E-04 delta_en =   0.742161E-03 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.299070E-04 delta_en =   0.463673E-03 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.150432E-04 delta_en =   0.117314E-03 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.839551E-05 delta_en =   0.365392E-04 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.409155E-05 delta_en =   0.867842E-05 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.248110E-05 delta_en =   0.319119E-05 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.139822E-05 delta_en =   0.101348E-05 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.798495E-06 delta_en =   0.330529E-06 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.534570E-06 delta_en =   0.148141E-06 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.391836E-06 delta_en =   0.795927E-07 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.299014E-06 delta_en =   0.463499E-07 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.236687E-06 delta_en =   0.290411E-07 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.191056E-06 delta_en =   0.189228E-07 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.154300E-06 delta_en =   0.123423E-07 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.123677E-06 delta_en =   0.792941E-08 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.979256E-07 delta_en =   0.497115E-08 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.769540E-07 delta_en =   0.306992E-08 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.598252E-07 delta_en =   0.185538E-08 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.460955E-07 delta_en =   0.110149E-08 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.351454E-07 delta_en =   0.640328E-09 tol =   0.100000E-10
- Iteration #         21
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.265446E-07 delta_en =   0.365273E-09 tol =   0.100000E-10
- Iteration #         22
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.199834E-07 delta_en =   0.207016E-09 tol =   0.100000E-10
- Iteration #         23
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.149363E-07 delta_en =   0.115651E-09 tol =   0.100000E-10
- Iteration #         24
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.108381E-07 delta_en =   0.608939E-10 tol =   0.100000E-10
- Iteration #         25
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.781575E-08 delta_en =   0.316670E-10 tol =   0.100000E-10
- Iteration #         26
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.561819E-08 delta_en =   0.163628E-10 tol =   0.100000E-10
- Iteration #         27
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.432767E-08 delta_en =   0.970896E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -221.6187041    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.127851872    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -220.4908522    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    404.3795711 
- surface of the QM region   =     62.2905005 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =      0.0000036
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.6116213932E-12
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.086053 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.841409E-05 delta_en =   0.367011E-04 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.629149E-05 delta_en =   0.205197E-04 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.375285E-05 delta_en =   0.730108E-05 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.197045E-05 delta_en =   0.201279E-05 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.975428E-06 delta_en =   0.493237E-06 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.591567E-06 delta_en =   0.181415E-06 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.340588E-06 delta_en =   0.601346E-07 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.219110E-06 delta_en =   0.248880E-07 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.171386E-06 delta_en =   0.152270E-07 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.143616E-06 delta_en =   0.106923E-07 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.121805E-06 delta_en =   0.769120E-08 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.103147E-06 delta_en =   0.551543E-08 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.864592E-07 delta_en =   0.387514E-08 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.714373E-07 delta_en =   0.264555E-08 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.582409E-07 delta_en =   0.175841E-08 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.467110E-07 delta_en =   0.113110E-08 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.370082E-07 delta_en =   0.710006E-09 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.290173E-07 delta_en =   0.436496E-09 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.225499E-07 delta_en =   0.263604E-09 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.172891E-07 delta_en =   0.154956E-09 tol =   0.100000E-10
- Iteration #         21
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.131346E-07 delta_en =   0.894332E-10 tol =   0.100000E-10
- Iteration #         22
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.987476E-08 delta_en =   0.505497E-10 tol =   0.100000E-10
- Iteration #         23
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.722718E-08 delta_en =   0.270771E-10 tol =   0.100000E-10
- Iteration #         24
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.533989E-08 delta_en =   0.147819E-10 tol =   0.100000E-10
- Iteration #         25
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.396722E-08 delta_en =   0.815903E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -220.6605045    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.132029322    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -219.5284751    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    400.7366895 
- surface of the QM region   =     62.3565025 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000029
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =    -0.1305852295E-10
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.085728 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.361790E-04 delta_en =   0.678546E-03 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.253823E-04 delta_en =   0.333986E-03 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.140140E-04 delta_en =   0.101809E-03 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.762195E-05 delta_en =   0.301160E-04 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.389097E-05 delta_en =   0.784838E-05 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.234848E-05 delta_en =   0.285917E-05 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.129137E-05 delta_en =   0.864501E-06 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.703166E-06 delta_en =   0.256319E-06 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.421936E-06 delta_en =   0.922908E-07 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.257023E-06 delta_en =   0.342459E-07 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.151627E-06 delta_en =   0.119184E-07 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.916546E-07 delta_en =   0.435485E-08 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.599582E-07 delta_en =   0.186364E-08 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.415985E-07 delta_en =   0.897057E-09 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.294580E-07 delta_en =   0.449854E-09 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.210235E-07 delta_en =   0.229126E-09 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.158395E-07 delta_en =   0.130061E-09 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.118664E-07 delta_en =   0.729972E-10 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.908872E-08 delta_en =   0.428223E-10 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.706727E-08 delta_en =   0.258921E-10 tol =   0.100000E-10
- Iteration #         21
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.533181E-08 delta_en =   0.147372E-10 tol =   0.100000E-10
- Iteration #         22
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.409361E-08 delta_en =   0.868718E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -215.2731070    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.229750383    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -214.0433566    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    401.2344159 
- surface of the QM region   =     62.3497760 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000012
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.1647720090E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.084977 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.491204E-05 delta_en =   0.125080E-04 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.358589E-05 delta_en =   0.666590E-05 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.119752E-05 delta_en =   0.743408E-06 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.829366E-06 delta_en =   0.356580E-06 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.469191E-06 delta_en =   0.114121E-06 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.265257E-06 delta_en =   0.364752E-07 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.167152E-06 delta_en =   0.144840E-07 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.112819E-06 delta_en =   0.659825E-08 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.806068E-07 delta_en =   0.336828E-08 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.589993E-07 delta_en =   0.180451E-08 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.446835E-07 delta_en =   0.103505E-08 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.348787E-07 delta_en =   0.630647E-09 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.272282E-07 delta_en =   0.384330E-09 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.211216E-07 delta_en =   0.231269E-09 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.165311E-07 delta_en =   0.141666E-09 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.126216E-07 delta_en =   0.825841E-10 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.971453E-08 delta_en =   0.489225E-10 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.727957E-08 delta_en =   0.274711E-10 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.534173E-08 delta_en =   0.147921E-10 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.403607E-08 delta_en =   0.844468E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -215.5132814    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.224584144    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -214.2886973    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    401.5500256 
- surface of the QM region   =     62.3370141 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000038
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.8954284674E-12
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.085457 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.520200E-05 delta_en =   0.140283E-04 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.496561E-05 delta_en =   0.127823E-04 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.157449E-05 delta_en =   0.128512E-05 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.103691E-05 delta_en =   0.557375E-06 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.427274E-06 delta_en =   0.946408E-07 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.232590E-06 delta_en =   0.280445E-07 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.139955E-06 delta_en =   0.101541E-07 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.830103E-07 delta_en =   0.357215E-08 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.592426E-07 delta_en =   0.181942E-08 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.483727E-07 delta_en =   0.121302E-08 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.403602E-07 delta_en =   0.844445E-09 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.336140E-07 delta_en =   0.585739E-09 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.277074E-07 delta_en =   0.397976E-09 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.226412E-07 delta_en =   0.265744E-09 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.181764E-07 delta_en =   0.171269E-09 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.143292E-07 delta_en =   0.106441E-09 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.112621E-07 delta_en =   0.657509E-10 tol =   0.100000E-10
- Iteration #         18
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.880554E-08 delta_en =   0.401955E-10 tol =   0.100000E-10
- Iteration #         19
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.671330E-08 delta_en =   0.233635E-10 tol =   0.100000E-10
- Iteration #         20
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.514221E-08 delta_en =   0.137077E-10 tol =   0.100000E-10
- Iteration #         21
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.390439E-08 delta_en =   0.790264E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -214.9114473    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =      0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.243873830    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -213.6675735    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    403.6541933 
- surface of the QM region   =     62.2910396 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000007
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =    -0.4461850092E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.085922 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.142172E-04 delta_en =   0.104783E-03 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.685960E-05 delta_en =   0.243929E-04 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.405497E-05 delta_en =   0.852395E-05 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.209967E-05 delta_en =   0.228544E-05 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.130218E-05 delta_en =   0.879038E-06 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.764082E-06 delta_en =   0.302653E-06 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.424886E-06 delta_en =   0.935858E-07 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.253002E-06 delta_en =   0.331827E-07 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.157625E-06 delta_en =   0.128800E-07 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.950037E-07 delta_en =   0.467892E-08 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.542981E-07 delta_en =   0.152839E-08 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.321762E-07 delta_en =   0.536703E-09 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.199164E-07 delta_en =   0.205629E-09 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.125096E-07 delta_en =   0.811243E-10 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.774752E-08 delta_en =   0.311165E-10 tol =   0.100000E-10
- Iteration #         16
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.455762E-08 delta_en =   0.107681E-10 tol =   0.100000E-10
- Iteration #         17
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.265401E-08 delta_en =   0.365149E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -216.3582208    
+ integral of density        =     -231.6773439    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         24
@@ -2278,11 +727,11 @@ Warning: card  / ignored
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vsoftcavity                                                                     
- integral of density        =      1.226064101    
+ integral of density        =     0.7587765224    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     -215.1321567    
+ integral of density        =     -230.9185674    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         22
@@ -2300,8 +749,8 @@ Warning: card  / ignored
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =    403.6763490 
- surface of the QM region   =     62.2918326 
+ volume of the QM region    =    398.1450227 
+ surface of the QM region   =     62.5636380 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -2309,126 +758,136 @@ Warning: card  / ignored
  dielectric flags
  need gradient              =  F 
  need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000010
+ total dielectric charge    =      0.0000015
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.3498567341E-11
+ integral of density        =     0.3364153899E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.087092 jellium =      0.000000
+ Starting from polarization: rhoiter =      0.080635
  Iteration #          1
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.708510E-06 delta_en =   0.260230E-06 tol =   0.100000E-10
+ delta_qm =   0.911053E-04 delta_en =   0.430281E-02 tol =   0.100000E-10
  Iteration #          2
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.425838E-06 delta_en =   0.940054E-07 tol =   0.100000E-10
+ delta_qm =   0.693378E-04 delta_en =   0.249232E-02 tol =   0.100000E-10
  Iteration #          3
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.195349E-06 delta_en =   0.197828E-07 tol =   0.100000E-10
+ delta_qm =   0.363670E-04 delta_en =   0.685613E-03 tol =   0.100000E-10
  Iteration #          4
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.122606E-06 delta_en =   0.779274E-08 tol =   0.100000E-10
+ delta_qm =   0.203115E-04 delta_en =   0.213869E-03 tol =   0.100000E-10
  Iteration #          5
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.722647E-07 delta_en =   0.270718E-08 tol =   0.100000E-10
+ delta_qm =   0.104039E-04 delta_en =   0.561117E-04 tol =   0.100000E-10
  Iteration #          6
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.484073E-07 delta_en =   0.121475E-08 tol =   0.100000E-10
+ delta_qm =   0.643110E-05 delta_en =   0.214405E-04 tol =   0.100000E-10
  Iteration #          7
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.381120E-07 delta_en =   0.752991E-09 tol =   0.100000E-10
+ delta_qm =   0.361827E-05 delta_en =   0.678684E-05 tol =   0.100000E-10
  Iteration #          8
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.327208E-07 delta_en =   0.555026E-09 tol =   0.100000E-10
+ delta_qm =   0.201924E-05 delta_en =   0.211368E-05 tol =   0.100000E-10
  Iteration #          9
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.285503E-07 delta_en =   0.422559E-09 tol =   0.100000E-10
+ delta_qm =   0.124833E-05 delta_en =   0.807834E-06 tol =   0.100000E-10
  Iteration #         10
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.247492E-07 delta_en =   0.317531E-09 tol =   0.100000E-10
+ delta_qm =   0.778870E-06 delta_en =   0.314482E-06 tol =   0.100000E-10
  Iteration #         11
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.209539E-07 delta_en =   0.227611E-09 tol =   0.100000E-10
+ delta_qm =   0.459628E-06 delta_en =   0.109516E-06 tol =   0.100000E-10
  Iteration #         12
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.175461E-07 delta_en =   0.159598E-09 tol =   0.100000E-10
+ delta_qm =   0.267790E-06 delta_en =   0.371752E-07 tol =   0.100000E-10
  Iteration #         13
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.144731E-07 delta_en =   0.108590E-09 tol =   0.100000E-10
+ delta_qm =   0.165686E-06 delta_en =   0.142311E-07 tol =   0.100000E-10
  Iteration #         14
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.117731E-07 delta_en =   0.718534E-10 tol =   0.100000E-10
+ delta_qm =   0.106531E-06 delta_en =   0.588327E-08 tol =   0.100000E-10
  Iteration #         15
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.954931E-08 delta_en =   0.472725E-10 tol =   0.100000E-10
+ delta_qm =   0.663827E-07 delta_en =   0.228442E-08 tol =   0.100000E-10
  Iteration #         16
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.745531E-08 delta_en =   0.288135E-10 tol =   0.100000E-10
+ delta_qm =   0.396075E-07 delta_en =   0.813241E-09 tol =   0.100000E-10
  Iteration #         17
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.594020E-08 delta_en =   0.182923E-10 tol =   0.100000E-10
+ delta_qm =   0.236831E-07 delta_en =   0.290765E-09 tol =   0.100000E-10
  Iteration #         18
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.441382E-08 delta_en =   0.100994E-10 tol =   0.100000E-10
+ delta_qm =   0.147118E-07 delta_en =   0.112201E-09 tol =   0.100000E-10
  Iteration #         19
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.323385E-08 delta_en =   0.542132E-11 tol =   0.100000E-10
+ delta_qm =   0.918125E-08 delta_en =   0.436987E-10 tol =   0.100000E-10
+ Iteration #         20
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.575838E-08 delta_en =   0.171896E-10 tol =   0.100000E-10
+ Iteration #         21
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.399245E-08 delta_en =   0.826313E-11 tol =   0.100000E-10
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     -216.3126665    
+ integral of density        =     -217.6388343    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         24
- total charge               =     -0.0000000
+ total charge               =      0.0000000
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vsoftcavity                                                                     
- integral of density        =      1.225433382    
+ integral of density        =     0.9766167113    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     -215.0872331    
+ integral of density        =     -216.6622176    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         22
@@ -2446,260 +905,8 @@ Warning: card  / ignored
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =    402.7137100 
- surface of the QM region   =     62.3155064 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =      0.0000003
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.1139982905E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.087124 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.631931E-05 delta_en =   0.207016E-04 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.317525E-05 delta_en =   0.522663E-05 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.205834E-05 delta_en =   0.219633E-05 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.103978E-05 delta_en =   0.560466E-06 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.607824E-06 delta_en =   0.191523E-06 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.362046E-06 delta_en =   0.679506E-07 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.197421E-06 delta_en =   0.202047E-07 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.113155E-06 delta_en =   0.663765E-08 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.699309E-07 delta_en =   0.253515E-08 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.424332E-07 delta_en =   0.933420E-09 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.242672E-07 delta_en =   0.305283E-09 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.143107E-07 delta_en =   0.106167E-09 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.907030E-08 delta_en =   0.426490E-10 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.576150E-08 delta_en =   0.172082E-10 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.386177E-08 delta_en =   0.773103E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -215.5166073    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =     -0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.233605088    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -214.2830022    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    402.6835505 
- surface of the QM region   =     62.3163636 
-
-%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- dielectric build on homogeneous background
- environment bulk permitt.  =     80.0000000 
- dielectric flags
- need gradient              =  F 
- need factor depend. sqrt   =  F 
- total dielectric charge    =      0.0000001
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vreference                                                                      
- integral of density        =     0.1830693952E-11
-
-%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.086662 jellium =      0.000000
- Iteration #          1
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.268586E-06 delta_en =   0.373965E-07 tol =   0.100000E-10
- Iteration #          2
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.165966E-06 delta_en =   0.142791E-07 tol =   0.100000E-10
- Iteration #          3
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.981247E-07 delta_en =   0.499139E-08 tol =   0.100000E-10
- Iteration #          4
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.532395E-07 delta_en =   0.146937E-08 tol =   0.100000E-10
- Iteration #          5
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.293612E-07 delta_en =   0.446902E-09 tol =   0.100000E-10
- Iteration #          6
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.200390E-07 delta_en =   0.208169E-09 tol =   0.100000E-10
- Iteration #          7
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.151613E-07 delta_en =   0.119162E-09 tol =   0.100000E-10
- Iteration #          8
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.131012E-07 delta_en =   0.889785E-10 tol =   0.100000E-10
- Iteration #          9
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.115451E-07 delta_en =   0.690976E-10 tol =   0.100000E-10
- Iteration #         10
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.102838E-07 delta_en =   0.548244E-10 tol =   0.100000E-10
- Iteration #         11
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.887806E-08 delta_en =   0.408603E-10 tol =   0.100000E-10
- Iteration #         12
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.754481E-08 delta_en =   0.295095E-10 tol =   0.100000E-10
- Iteration #         13
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.632090E-08 delta_en =   0.207120E-10 tol =   0.100000E-10
- Iteration #         14
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.514795E-08 delta_en =   0.137383E-10 tol =   0.100000E-10
- Iteration #         15
- calling poisson_gradient_direct
- finished poisson_gradient_direct
- finished scalar product environ gradient
- delta_qm =   0.412634E-08 delta_en =   0.882663E-11 tol =   0.100000E-10
- Charges are converged, EXIT
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = velectrostatic                                                                  
- integral of density        =     -215.4866369    
-
-%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- total number of charges    =         24
- total charge               =     -0.0000000
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = vsoftcavity                                                                     
- integral of density        =      1.233867058    
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -214.2527698    
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- number of electrons        =         22
- total electronic charge    =     22.0000000
-
-%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- boundary label             = solvent              
- boundary mode              = electronic           
- boundary is built as a function of a smooth density
- function type              =  2 
- using the modified SCCS function with parameters 
- rhomax                     =      0.0050000 
- rhomin                     =      0.0001000 
- volume of the QM region    =    402.7961086 
- surface of the QM region   =     62.3138244 
+ volume of the QM region    =    412.4458371 
+ surface of the QM region   =     62.2460078 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -2711,75 +918,115 @@ Warning: card  / ignored
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.2975658170E-12
+ integral of density        =     0.5415261186E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.086653 jellium =      0.000000
+ Starting from polarization: rhoiter =      0.079652
  Iteration #          1
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.793475E-06 delta_en =   0.326386E-06 tol =   0.100000E-10
+ delta_qm =   0.932849E-04 delta_en =   0.451116E-02 tol =   0.100000E-10
  Iteration #          2
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.380653E-06 delta_en =   0.751144E-07 tol =   0.100000E-10
+ delta_qm =   0.495944E-04 delta_en =   0.127506E-02 tol =   0.100000E-10
  Iteration #          3
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.227789E-06 delta_en =   0.268985E-07 tol =   0.100000E-10
+ delta_qm =   0.326620E-04 delta_en =   0.553033E-03 tol =   0.100000E-10
  Iteration #          4
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.119846E-06 delta_en =   0.744584E-08 tol =   0.100000E-10
+ delta_qm =   0.165014E-04 delta_en =   0.141158E-03 tol =   0.100000E-10
  Iteration #          5
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.742851E-07 delta_en =   0.286068E-08 tol =   0.100000E-10
+ delta_qm =   0.955364E-05 delta_en =   0.473154E-04 tol =   0.100000E-10
  Iteration #          6
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.437771E-07 delta_en =   0.993478E-09 tol =   0.100000E-10
+ delta_qm =   0.567780E-05 delta_en =   0.167119E-04 tol =   0.100000E-10
  Iteration #          7
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.250472E-07 delta_en =   0.325225E-09 tol =   0.100000E-10
+ delta_qm =   0.306401E-05 delta_en =   0.486682E-05 tol =   0.100000E-10
  Iteration #          8
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.154345E-07 delta_en =   0.123495E-09 tol =   0.100000E-10
+ delta_qm =   0.173446E-05 delta_en =   0.155953E-05 tol =   0.100000E-10
  Iteration #          9
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.101184E-07 delta_en =   0.530751E-10 tol =   0.100000E-10
+ delta_qm =   0.106164E-05 delta_en =   0.584274E-06 tol =   0.100000E-10
  Iteration #         10
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.686283E-08 delta_en =   0.244158E-10 tol =   0.100000E-10
+ delta_qm =   0.636808E-06 delta_en =   0.210224E-06 tol =   0.100000E-10
  Iteration #         11
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.484334E-08 delta_en =   0.121606E-10 tol =   0.100000E-10
+ delta_qm =   0.364246E-06 delta_en =   0.687787E-07 tol =   0.100000E-10
  Iteration #         12
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.359725E-08 delta_en =   0.670821E-11 tol =   0.100000E-10
+ delta_qm =   0.209605E-06 delta_en =   0.227755E-07 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.128178E-06 delta_en =   0.851709E-08 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.805522E-07 delta_en =   0.336372E-08 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.489847E-07 delta_en =   0.124390E-08 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.286344E-07 delta_en =   0.425050E-09 tol =   0.100000E-10
+ Iteration #         17
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.168983E-07 delta_en =   0.148031E-09 tol =   0.100000E-10
+ Iteration #         18
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.102848E-07 delta_en =   0.548345E-10 tol =   0.100000E-10
+ Iteration #         19
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.663262E-08 delta_en =   0.228053E-10 tol =   0.100000E-10
+ Iteration #         20
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.426054E-08 delta_en =   0.941009E-11 tol =   0.100000E-10
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     -215.5609614    
+ integral of density        =     -238.0591994    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         24
@@ -2787,11 +1034,11 @@ Warning: card  / ignored
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vsoftcavity                                                                     
- integral of density        =      1.232792094    
+ integral of density        =     0.8759482607    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     -214.3281693    
+ integral of density        =     -237.1832511    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         22
@@ -2809,8 +1056,8 @@ Warning: card  / ignored
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =    402.8757543 
- surface of the QM region   =     62.3118711 
+ volume of the QM region    =    406.4774713 
+ surface of the QM region   =     62.2476813 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -2818,74 +1065,139 @@ Warning: card  / ignored
  dielectric flags
  need gradient              =  F 
  need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000007
+ total dielectric charge    =      0.0000049
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.3204172030E-11
+ integral of density        =     0.2006025466E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- Starting from polarization: rhoiter =      0.086714 jellium =      0.000000
+ Starting from polarization: rhoiter =      0.085481
  Iteration #          1
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.568913E-06 delta_en =   0.167786E-06 tol =   0.100000E-10
+ delta_qm =   0.899619E-04 delta_en =   0.419549E-02 tol =   0.100000E-10
  Iteration #          2
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.273757E-06 delta_en =   0.388504E-07 tol =   0.100000E-10
+ delta_qm =   0.758689E-04 delta_en =   0.298396E-02 tol =   0.100000E-10
  Iteration #          3
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.165301E-06 delta_en =   0.141650E-07 tol =   0.100000E-10
+ delta_qm =   0.363539E-04 delta_en =   0.685119E-03 tol =   0.100000E-10
  Iteration #          4
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.872240E-07 delta_en =   0.394400E-08 tol =   0.100000E-10
+ delta_qm =   0.206124E-04 delta_en =   0.220254E-03 tol =   0.100000E-10
  Iteration #          5
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.535224E-07 delta_en =   0.148504E-08 tol =   0.100000E-10
+ delta_qm =   0.973995E-05 delta_en =   0.491788E-04 tol =   0.100000E-10
  Iteration #          6
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.315117E-07 delta_en =   0.514766E-09 tol =   0.100000E-10
+ delta_qm =   0.586983E-05 delta_en =   0.178614E-04 tol =   0.100000E-10
  Iteration #          7
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.177719E-07 delta_en =   0.163732E-09 tol =   0.100000E-10
+ delta_qm =   0.324463E-05 delta_en =   0.545752E-05 tol =   0.100000E-10
  Iteration #          8
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.109742E-07 delta_en =   0.624321E-10 tol =   0.100000E-10
+ delta_qm =   0.169086E-05 delta_en =   0.148212E-05 tol =   0.100000E-10
  Iteration #          9
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.694317E-08 delta_en =   0.249908E-10 tol =   0.100000E-10
+ delta_qm =   0.976825E-06 delta_en =   0.494651E-06 tol =   0.100000E-10
  Iteration #         10
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.449067E-08 delta_en =   0.104541E-10 tol =   0.100000E-10
+ delta_qm =   0.595276E-06 delta_en =   0.183697E-06 tol =   0.100000E-10
  Iteration #         11
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.321368E-08 delta_en =   0.535390E-11 tol =   0.100000E-10
+ delta_qm =   0.349608E-06 delta_en =   0.633619E-07 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.202566E-06 delta_en =   0.212715E-07 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.125383E-06 delta_en =   0.814976E-08 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.839765E-07 delta_en =   0.365578E-08 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.578724E-07 delta_en =   0.173623E-08 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.398857E-07 delta_en =   0.824705E-09 tol =   0.100000E-10
+ Iteration #         17
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.282725E-07 delta_en =   0.414374E-09 tol =   0.100000E-10
+ Iteration #         18
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.206706E-07 delta_en =   0.221498E-09 tol =   0.100000E-10
+ Iteration #         19
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.155192E-07 delta_en =   0.124854E-09 tol =   0.100000E-10
+ Iteration #         20
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.116684E-07 delta_en =   0.705809E-10 tol =   0.100000E-10
+ Iteration #         21
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.862870E-08 delta_en =   0.385972E-10 tol =   0.100000E-10
+ Iteration #         22
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.647478E-08 delta_en =   0.217328E-10 tol =   0.100000E-10
+ Iteration #         23
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.471388E-08 delta_en =   0.115192E-10 tol =   0.100000E-10
+ Iteration #         24
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.354878E-08 delta_en =   0.652866E-11 tol =   0.100000E-10
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     -215.6200118    
+ integral of density        =     -222.5923116    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         24
@@ -2893,11 +1205,11 @@ Warning: card  / ignored
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vsoftcavity                                                                     
- integral of density        =      1.231984435    
+ integral of density        =      1.117588569    
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     -214.3880274    
+ integral of density        =     -221.4747230    
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         22
@@ -2915,8 +1227,8 @@ Warning: card  / ignored
  using the modified SCCS function with parameters 
  rhomax                     =      0.0050000 
  rhomin                     =      0.0001000 
- volume of the QM region    =    402.8757543 
- surface of the QM region   =     62.3118711 
+ volume of the QM region    =    406.3698262 
+ surface of the QM region   =     62.2440484 
 
 %%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  dielectric build on homogeneous background
@@ -2924,19 +1236,144 @@ Warning: card  / ignored
  dielectric flags
  need gradient              =  F 
  need factor depend. sqrt   =  F 
- total dielectric charge    =     -0.0000011
-
-%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- density label              = dvtot                                                                           
- integral of density        =     -214.3880274    
+ total dielectric charge    =     -0.0000187
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.3204172030E-11
+ integral of density        =    -0.6929833509E-12
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.086360
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.341814E-05 delta_en =   0.605683E-05 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.235236E-05 delta_en =   0.286862E-05 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.115618E-05 delta_en =   0.692977E-06 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.687304E-06 delta_en =   0.244885E-06 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.379211E-06 delta_en =   0.745464E-07 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.261490E-06 delta_en =   0.354466E-07 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.207040E-06 delta_en =   0.222215E-07 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.179150E-06 delta_en =   0.166379E-07 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.158294E-06 delta_en =   0.129896E-07 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.137840E-06 delta_en =   0.984953E-08 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.117478E-06 delta_en =   0.715446E-08 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.984710E-07 delta_en =   0.502669E-08 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.810928E-07 delta_en =   0.340902E-08 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.658763E-07 delta_en =   0.224969E-08 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.528269E-07 delta_en =   0.144669E-08 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.417632E-07 delta_en =   0.904175E-09 tol =   0.100000E-10
+ Iteration #         17
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.326886E-07 delta_en =   0.553934E-09 tol =   0.100000E-10
+ Iteration #         18
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.254338E-07 delta_en =   0.335341E-09 tol =   0.100000E-10
+ Iteration #         19
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.195777E-07 delta_en =   0.198697E-09 tol =   0.100000E-10
+ Iteration #         20
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.149116E-07 delta_en =   0.115270E-09 tol =   0.100000E-10
+ Iteration #         21
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.111127E-07 delta_en =   0.640184E-10 tol =   0.100000E-10
+ Iteration #         22
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.843108E-08 delta_en =   0.368495E-10 tol =   0.100000E-10
+ Iteration #         23
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.643644E-08 delta_en =   0.214762E-10 tol =   0.100000E-10
+ Iteration #         24
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.466124E-08 delta_en =   0.112634E-10 tol =   0.100000E-10
+ Iteration #         25
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.328884E-08 delta_en =   0.560725E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     -215.6200118    
+ integral of density        =     -222.6482983    
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         24
@@ -2944,4 +1381,1027 @@ Warning: card  / ignored
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vsoftcavity                                                                     
- integral of density        =      1.231984435    
+ integral of density        =      1.120149942    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -221.5281483    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    405.9376758 
+ surface of the QM region   =     62.2527438 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =      0.0000166
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.6183562705E-11
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.086418
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.422974E-05 delta_en =   0.927455E-05 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.341493E-05 delta_en =   0.604545E-05 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.183533E-05 delta_en =   0.174619E-05 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.101158E-05 delta_en =   0.530478E-06 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.500627E-06 delta_en =   0.129925E-06 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.316548E-06 delta_en =   0.519449E-07 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.209037E-06 delta_en =   0.226522E-07 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.159067E-06 delta_en =   0.131168E-07 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.135657E-06 delta_en =   0.954008E-08 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.117240E-06 delta_en =   0.712556E-08 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.100187E-06 delta_en =   0.520339E-08 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.842958E-07 delta_en =   0.368364E-08 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.699699E-07 delta_en =   0.253798E-08 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.572098E-07 delta_en =   0.169671E-08 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.459191E-07 delta_en =   0.109308E-08 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.366512E-07 delta_en =   0.696370E-09 tol =   0.100000E-10
+ Iteration #         17
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.287397E-07 delta_en =   0.428182E-09 tol =   0.100000E-10
+ Iteration #         18
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.224181E-07 delta_en =   0.260533E-09 tol =   0.100000E-10
+ Iteration #         19
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.171783E-07 delta_en =   0.152977E-09 tol =   0.100000E-10
+ Iteration #         20
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.131258E-07 delta_en =   0.893132E-10 tol =   0.100000E-10
+ Iteration #         21
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.995509E-08 delta_en =   0.513754E-10 tol =   0.100000E-10
+ Iteration #         22
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.739677E-08 delta_en =   0.283628E-10 tol =   0.100000E-10
+ Iteration #         23
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.564879E-08 delta_en =   0.165416E-10 tol =   0.100000E-10
+ Iteration #         24
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.427997E-08 delta_en =   0.949611E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -222.3094728    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.120377319    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -221.1890955    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    401.7260576 
+ surface of the QM region   =     62.3244833 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =     -0.0000013
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.4611563971E-11
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.086378
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.422980E-04 delta_en =   0.927479E-03 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.301889E-04 delta_en =   0.472455E-03 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.165210E-04 delta_en =   0.141494E-03 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.899661E-05 delta_en =   0.419588E-04 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.455141E-05 delta_en =   0.107388E-04 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.274612E-05 delta_en =   0.390934E-05 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.150569E-05 delta_en =   0.117526E-05 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.811459E-06 delta_en =   0.341349E-06 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.481860E-06 delta_en =   0.120367E-06 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.290616E-06 delta_en =   0.437827E-07 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.167336E-06 delta_en =   0.145159E-07 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.953401E-07 delta_en =   0.471212E-08 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.575480E-07 delta_en =   0.171683E-08 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.361770E-07 delta_en =   0.678471E-09 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.227437E-07 delta_en =   0.268155E-09 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.129369E-07 delta_en =   0.867617E-10 tol =   0.100000E-10
+ Iteration #         17
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.770930E-08 delta_en =   0.308102E-10 tol =   0.100000E-10
+ Iteration #         18
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.450216E-08 delta_en =   0.105077E-10 tol =   0.100000E-10
+ Iteration #         19
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.315016E-08 delta_en =   0.514434E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -215.7129092    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.234132759    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -214.4787765    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    400.6693815 
+ surface of the QM region   =     62.3660370 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =     -0.0000010
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.1292188941E-10
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.085560
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.887189E-05 delta_en =   0.408035E-04 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.737040E-05 delta_en =   0.281610E-04 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.395078E-05 delta_en =   0.809154E-05 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.215401E-05 delta_en =   0.240526E-05 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.101978E-05 delta_en =   0.539109E-06 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.598438E-06 delta_en =   0.185653E-06 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.319428E-06 delta_en =   0.528947E-07 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.162290E-06 delta_en =   0.136536E-07 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.924087E-07 delta_en =   0.442681E-08 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.573078E-07 delta_en =   0.170252E-08 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.363769E-07 delta_en =   0.685987E-09 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.249555E-07 delta_en =   0.322846E-09 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.186264E-07 delta_en =   0.179856E-09 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.143800E-07 delta_en =   0.107198E-09 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.114652E-07 delta_en =   0.681443E-10 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.892802E-08 delta_en =   0.413215E-10 tol =   0.100000E-10
+ Iteration #         17
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.717690E-08 delta_en =   0.267017E-10 tol =   0.100000E-10
+ Iteration #         18
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.574766E-08 delta_en =   0.171256E-10 tol =   0.100000E-10
+ Iteration #         19
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.446604E-08 delta_en =   0.103398E-10 tol =   0.100000E-10
+ Iteration #         20
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.346335E-08 delta_en =   0.621811E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -214.4251546    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.246798155    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -213.1783564    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    402.0478847 
+ surface of the QM region   =     62.3296603 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =      0.0000004
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.5311104920E-11
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.085461
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.861250E-05 delta_en =   0.384524E-04 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.422870E-05 delta_en =   0.926996E-05 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.232385E-05 delta_en =   0.279952E-05 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.120602E-05 delta_en =   0.754007E-06 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.761416E-06 delta_en =   0.300545E-06 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.441322E-06 delta_en =   0.100966E-06 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.246114E-06 delta_en =   0.314006E-07 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.148860E-06 delta_en =   0.114873E-07 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.929632E-07 delta_en =   0.448009E-08 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.563430E-07 delta_en =   0.164568E-08 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.324985E-07 delta_en =   0.547511E-09 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.192080E-07 delta_en =   0.191263E-09 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.119092E-07 delta_en =   0.735247E-10 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.775414E-08 delta_en =   0.311697E-10 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.459047E-08 delta_en =   0.109240E-10 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.284882E-08 delta_en =   0.420722E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -215.2244264    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =      0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.239956575    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -213.9844698    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    403.6860025 
+ surface of the QM region   =     62.2932965 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.6110770105E-12
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.086249
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.111694E-04 delta_en =   0.646728E-04 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.538532E-05 delta_en =   0.150345E-04 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.326388E-05 delta_en =   0.552248E-05 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.169464E-05 delta_en =   0.148875E-05 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.104336E-05 delta_en =   0.564331E-06 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.616991E-06 delta_en =   0.197343E-06 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.343786E-06 delta_en =   0.612691E-07 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.203981E-06 delta_en =   0.215697E-07 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.127754E-06 delta_en =   0.846088E-08 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.772243E-07 delta_en =   0.309153E-08 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.455410E-07 delta_en =   0.107515E-08 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.274939E-07 delta_en =   0.391865E-09 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.176329E-07 delta_en =   0.161180E-09 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.122170E-07 delta_en =   0.773739E-10 tol =   0.100000E-10
+ Iteration #         15
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.780185E-08 delta_en =   0.315544E-10 tol =   0.100000E-10
+ Iteration #         16
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.586118E-08 delta_en =   0.178088E-10 tol =   0.100000E-10
+ Iteration #         17
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.427397E-08 delta_en =   0.946952E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -216.4128471    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.223217440    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -215.1896297    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    403.2021070 
+ surface of the QM region   =     62.3050808 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =      0.0000005
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =    -0.2834698910E-11
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.087113
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.330369E-05 delta_en =   0.565802E-05 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.175434E-05 delta_en =   0.159548E-05 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.113288E-05 delta_en =   0.665325E-06 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.577482E-06 delta_en =   0.172879E-06 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.327593E-06 delta_en =   0.556331E-07 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.196135E-06 delta_en =   0.199423E-07 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.106829E-06 delta_en =   0.591626E-08 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.600950E-07 delta_en =   0.187215E-08 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.370754E-07 delta_en =   0.712584E-09 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.221959E-07 delta_en =   0.255394E-09 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.126143E-07 delta_en =   0.824875E-10 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.715548E-08 delta_en =   0.265425E-10 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.456226E-08 delta_en =   0.107901E-10 tol =   0.100000E-10
+ Iteration #         14
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.304396E-08 delta_en =   0.480332E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -215.9548623    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.228527495    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -214.7263349    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    402.8017904 
+ surface of the QM region   =     62.3154191 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =     -0.0000001
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.1448843778E-10
+
+%%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ Starting from polarization: rhoiter =      0.086904
+ Iteration #          1
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.265756E-05 delta_en =   0.366126E-05 tol =   0.100000E-10
+ Iteration #          2
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.138062E-05 delta_en =   0.988133E-06 tol =   0.100000E-10
+ Iteration #          3
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.897858E-06 delta_en =   0.417908E-06 tol =   0.100000E-10
+ Iteration #          4
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.454413E-06 delta_en =   0.107045E-06 tol =   0.100000E-10
+ Iteration #          5
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.260455E-06 delta_en =   0.351667E-07 tol =   0.100000E-10
+ Iteration #          6
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.155485E-06 delta_en =   0.125325E-07 tol =   0.100000E-10
+ Iteration #          7
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.847682E-07 delta_en =   0.372504E-08 tol =   0.100000E-10
+ Iteration #          8
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.480023E-07 delta_en =   0.119451E-08 tol =   0.100000E-10
+ Iteration #          9
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.294370E-07 delta_en =   0.449213E-09 tol =   0.100000E-10
+ Iteration #         10
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.178579E-07 delta_en =   0.165321E-09 tol =   0.100000E-10
+ Iteration #         11
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.105078E-07 delta_en =   0.572382E-10 tol =   0.100000E-10
+ Iteration #         12
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.653197E-08 delta_en =   0.221184E-10 tol =   0.100000E-10
+ Iteration #         13
+ calling poisson_gradient_direct
+ finished poisson_gradient_direct
+ finished scalar product environ gradient
+ delta_qm =   0.428197E-08 delta_en =   0.950502E-11 tol =   0.100000E-10
+ Charges are converged, EXIT
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -215.5971967    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.232389779    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -214.3648069    
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ number of electrons        =         22
+ total electronic charge    =     22.0000000
+
+%%%% BOUNDARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ boundary label             = solvent              
+ boundary mode              = electronic           
+ boundary is built as a function of a smooth density
+ function type              =  2 
+ using the modified SCCS function with parameters 
+ rhomax                     =      0.0050000 
+ rhomin                     =      0.0001000 
+ volume of the QM region    =    402.8017904 
+ surface of the QM region   =     62.3154191 
+
+%%%% DIELECTRIC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ dielectric build on homogeneous background
+ environment bulk permitt.  =     80.0000000 
+ dielectric flags
+ need gradient              =  F 
+ need factor depend. sqrt   =  F 
+ total dielectric charge    =     -0.0000009
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = dvtot                                                                           
+ integral of density        =     -214.3648069    
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vreference                                                                      
+ integral of density        =     0.1448843778E-10
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = velectrostatic                                                                  
+ integral of density        =     -215.5971967    
+
+%%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ total number of charges    =         24
+ total charge               =     -0.0000000
+
+%%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ density label              = vsoftcavity                                                                     
+ integral of density        =      1.232389779    
