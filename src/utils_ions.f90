@@ -238,7 +238,8 @@ CONTAINS
        ! Store pseudopotential in R-space in ions%vloc%of_r
        !
        IF ( PRESENT( vloc ) ) THEN
-          CALL init_environ_density( cell, ions%vloc(i) ) ! INPUT/REFERENCE POTENTIALS IN SYSTEM CELL
+        IF ( .NOT. ASSOCIATED( ions%vloc(i)%cell ) ) &
+          & CALL init_environ_density( cell, ions%vloc(i) ) ! INPUT/REFERENCE POTENTIALS IN SYSTEM CELL
           ions%vloc(i)%of_r = vloc(:,i)
        END IF
        !

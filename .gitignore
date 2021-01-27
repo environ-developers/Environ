@@ -45,3 +45,5 @@ tests/*/*.out
 input_xx.xsl
 test.sh
 .DS_Store
+*.99
+CRASH
