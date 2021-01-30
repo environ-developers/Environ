@@ -51,3 +51,30 @@ doc_clean:
         (cd Doc ; $(MAKE) clean ) ; fi
 
 distclean: clean doc_clean
+
+patch :
+	@ (cd ../ && ./install/addsonpatch.sh Environ Environ/src Modules -patch)
+	@ ./patches/environpatch.sh -patch
+	@ (cd ../ && ./install/makedeps.sh)
+
+revert :
+	@ (cd ../ && ./install/addsonpatch.sh Environ Environ/src Modules -revert)
+	@ ./patches/environpatch.sh -revert
+	@ (cd ../ && ./install/makedeps.sh)
+
+compile-qe :
+	@ echo -n "\nUse # cores (default = 1) -> "
+	@ read cores; echo; : $${cores:=1}; (cd ../ && ./configure; $(MAKE) -j$$cores pw)
+
+decompile-qe :
+	@ (cd ../ && $(MAKE) veryclean)
+
+install :
+	@ echo "\nThis will patch QE's Environ plugins and recompile executables."
+	@ echo -n "Do you wish to proceed (y|n)? "
+	@ read c; echo; if [ "$$c" = "y" ]; then $(MAKE) patch; $(MAKE) compile-qe; fi
+
+uninstall : 
+	@ echo "\nThis will uninstall the current QE+Environ compilation."
+	@ echo -n "Do you wish to proceed (y|n)? "
+	@ read c; echo; if [ "$$c" = "y" ]; then $(MAKE) revert; $(MAKE) decompile-qe; fi
