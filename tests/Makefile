@@ -83,6 +83,10 @@ compare : compare-pw
 compare-pw : prolog
 	${TESTCODE_DIR}/bin/testcode.py --category=pw_all  --verbose compare 2>&1 | tee out.PW.`date +%Y%m%d_%H%M%S`
 
+time-diff :
+	@if test -d $(testdir); then \
+		./time_diff.sh ${testdir}; fi
+
 clean:
 	@for x in `find pw_* -name "test*"`; do rm -rf $$x; done
 	@for x in `find pw_* -name "CRASH"`; do rm -rf $$x; done
