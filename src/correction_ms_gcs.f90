@@ -49,7 +49,7 @@ CONTAINS
     ! (5) depletion_length = 2.D0 *fact*ez
     !
     !  After the depletion length, the potential will remain flat
-    !  For more details and derivation see the appendix in Ch11 of Schmickler
+    !  For more details and derivation see the appendix in Ch. 11 of Schmickler
     !  Interfacial Electrochemistry book
     !
     IMPLICIT NONE
