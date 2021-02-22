@@ -52,7 +52,7 @@ inputs_args = ('pw.in', 'ms-solvent.in'), ('pw.in', 'ms-vacuum.in')
 
 [pw_ms-gcs/]
 program = PW
-inputs_args = ('pw.in', 'environ_input.in')
+inputs_args = ('pw.in', 'ms-gcs.in')
 
 [pw_*/]
 program = PW
