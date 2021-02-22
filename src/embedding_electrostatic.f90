@@ -234,7 +234,7 @@ CONTAINS
           IF ( setup % core % correction % type .EQ. 'gcs'  .OR. setup % core % correction % type .EQ. 'ms-gcs' ) THEN
              IF ( .NOT. ASSOCIATED( charges%electrolyte ) ) &
                   CALL errore( sub_name, 'missing details of electrolyte ions', 1 )
-             CALL pb_energy( setup % core, charges, potential, energy )]
+             CALL pb_energy( setup % core, charges, potential, energy )
           ELSE
              CALL poisson_energy( setup % core, charges, potential, energy )
           ENDIF
