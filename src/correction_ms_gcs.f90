@@ -302,8 +302,8 @@ CONTAINS
     WRITE (environ_unit, *)"v_cut: ",v_cut
     WRITE ( environ_unit, * )"flatband_fermi: ",semiconductor_in%flatband_fermi
 
-    semiconductor_in%bulk_sc_fermi = v_cut+ vms+ semiconductor_in%flatband_fermi
-    semiconductor%bulk_sc_fermi = v_cut+ vms+ semiconductor%flatband_fermi
+    semiconductor_in%bulk_sc_fermi =  vms+ semiconductor_in%flatband_fermi ! +v_cut
+    semiconductor%bulk_sc_fermi = vms+ semiconductor%flatband_fermi ! +v_cut
     WRITE ( environ_unit, * )"bulk semiconductor fermi level: ",semiconductor_in%bulk_sc_fermi
 
     DO i = 1, nnr
