@@ -367,7 +367,7 @@ CONTAINS
               !v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
               !v(i) =  v(i) + vtmp - potential % of_r(i)
           END IF
-          WRITE( environ_unit, *)"This is the vi: ",v(i)
+          !WRITE( environ_unit, *)"This is the vi: ",v(i)
           !
        ENDIF
        !
