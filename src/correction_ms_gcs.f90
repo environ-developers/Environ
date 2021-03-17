@@ -175,6 +175,7 @@ CONTAINS
     ELSE
       ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     END IF
+    WRITE (environ_unit, *)"tot charge: ",tot_charge
     WRITE (environ_unit, *)"ez: ",ez
     WRITE (environ_unit, *)"ez_gcs: ",ez_gcs
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity_gcs )
@@ -265,9 +266,9 @@ CONTAINS
     WRITE(  environ_unit, *)"MS Prefactor: ",fact
     arg = fact* (ez_ms**2.D0)
     IF (ez_ms < 0) THEN
-       vms =  -arg ! +kbt
-    ELSE
        vms =  arg ! +kbt
+    ELSE
+       vms =  -arg ! +kbt
     END IF
     !Finds the total length of the depletion region
     depletion_length = ABS(2.D0 *fact*ez_ms)
@@ -359,7 +360,7 @@ CONTAINS
               END IF
               ! WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
               ! WRITE (environ_unit, *) "Distance: ", distance
-              WRITE (environ_unit, *) "ms correction: ", vtmp
+              ! WRITE (environ_unit, *) "ms correction: ", vtmp
               !
               ! ... Remove source potential (linear) and add analytic one
               !
@@ -374,7 +375,7 @@ CONTAINS
     ENDDO
 
 
-    ! Adjust the potential to always be 0 on left side
+    ! Adjust the potential to always be 0 on right side
     ! First determine max axis point
     max_axis = 0.0
     DO i = 1, nnr
