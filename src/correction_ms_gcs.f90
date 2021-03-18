@@ -258,7 +258,7 @@ CONTAINS
     IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
       ez_ms = 0.D0
     ELSE
-      ez_ms= tpi * e2 * (electrode_charge-semiconductor_in%slab_charge) / area ! / permittivity !in units of Ry/bohr
+      ez_ms= -tpi * e2 * (electrode_charge-semiconductor_in%slab_charge) / area ! / permittivity !in units of Ry/bohr
     END IF
     WRITE( environ_unit, * )"bulk sc charge: ",(electrode_charge-semiconductor_in%slab_charge)
     WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
@@ -266,9 +266,9 @@ CONTAINS
     WRITE(  environ_unit, *)"MS Prefactor: ",fact
     arg = fact* (ez_ms**2.D0)
     IF (ez_ms < 0) THEN
-       vms =  arg ! +kbt
-    ELSE
        vms =  -arg ! +kbt
+    ELSE
+       vms =  arg ! +kbt
     END IF
     !Finds the total length of the depletion region
     depletion_length = ABS(2.D0 *fact*ez_ms)
