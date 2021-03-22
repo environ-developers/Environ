@@ -79,7 +79,7 @@ CONTAINS
     !
     INTEGER :: i, icount
     REAL( DP ) :: ez, ez_ms,ez_gcs, fact, vms, vstern
-    REAL( DP ) :: arg, const, depletion_length
+    REAL( DP ) :: arg, const, depletion_length, compress_fact
     REAL( DP ) :: dv, vbound, v_cut, v_edge
     REAL( DP ) :: asinh, coth, acoth
     REAL( DP ) :: f1, f2, max_axis
@@ -307,37 +307,56 @@ CONTAINS
     semiconductor%bulk_sc_fermi = vms+ semiconductor%flatband_fermi ! +v_cut
     WRITE ( environ_unit, * )"bulk semiconductor fermi level: ",semiconductor_in%bulk_sc_fermi
 
+
+    ! Adjust the potential to always be 0 on right side
+    ! First determine max axis point
+    max_axis = 0.0
+    DO i = 1, nnr
+       !
+       IF ( axis(1,i) > max_axis) THEN
+          !
+          max_axis = axis(1,i)
+          !
+       ENDIF
+       !
+    ENDDO
+
+    compress_fact = (depletion_length/(max_axis-xstern_ms))**2
+
     DO i = 1, nnr
 
        IF ( -axis(1,i) .GE. xstern_ms ) THEN
           ! TRYING OUT SOMETHING NEW where you get gcs on "semiconductor side" for flatband pot
-          IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
-              !
-              ! ... Gouy-Chapmann-Stern analytic solution on the outside
-              !
-              arg = const * EXP( ABS(axis(1,i)) * f1 )
-              IF ( ABS(arg) .GT. 1.D0 ) THEN
-                 acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-              ELSE
-                 acoth = 0.D0
-              END IF
-              vtmp =  f2 * acoth
+          IF (semiconductor_in%slab_charge .EQ. 0.D0 ) THEN
+
+              IF (-axis(1,i) .GE. xstern_ms) THEN
+                  !
+                  ! ... Gouy-Chapmann-Stern analytic solution on the outside
+                  !
+                  arg = const * EXP( ABS(axis(1,i)) * f1 )
+                  IF ( ABS(arg) .GT. 1.D0 ) THEN
+                     acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+                  ELSE
+                     acoth = 0.D0
+                  END IF
+                  vtmp =  f2 * acoth
 
 
-              ! Having to add extra handling for electrode charge
+                  ! Having to add extra handling for electrode charge
 
-              IF ( ISNAN(vtmp) ) THEN
-                vtmp = 0.D0
-              END IF
-              !
-              ! ... Remove source potential (linear) and add analytic one
-              !
+                  IF ( ISNAN(vtmp) ) THEN
+                    vtmp = 0.D0
+                  END IF
+                  !
+                  ! ... Remove source potential (linear) and add analytic one
+                  !
 
-              ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
-              v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
-              !v(i) =  vtmp - potential % of_r(i)
-              !
-              ! WRITE( environ_unit, *)"v_i: ",v(i)
+                  ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
+                  v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+                  !v(i) =  vtmp - potential % of_r(i)
+                  !
+                  ! WRITE( environ_unit, *)"v_i: ",v(i)
+              ENDIF
 
 
           ELSE
@@ -349,9 +368,11 @@ CONTAINS
                  ! ... Mott Schottky analytic solution on the outside
                  !
                  IF (ez_ms < 0.D0) THEN
-                    vtmp = -(distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
+                    vtmp = (distance-depletion_length)**2.D0 / fact/4.D0 + ez_ms*(distance) + vms
+                    !vtmp = 0.25*compress_fact*(distance-max_axis)**2.D0 / fact/4.D0  + vms + ez_ms*(distance)
                  ELSE IF (ez_ms > 0.D0) THEN
-                    vtmp = (distance)**2.D0 / fact/4.D0 - ez_ms*(distance)
+                    vtmp = -(distance-depletion_length)**2.D0 / fact/4.D0 - ez_ms*(distance) + vms
+                    !vtmp = -0.25*compress_fact*(distance-max_axis)**2.D0 / fact/4.D0  + vms - ez_ms*(distance)
                  ELSE
                     vtmp = 0.D0
                  END IF
@@ -375,18 +396,7 @@ CONTAINS
     ENDDO
 
 
-    ! Adjust the potential to always be 0 on right side
-    ! First determine max axis point
-    max_axis = 0.0
-    DO i = 1, nnr
-       !
-       IF ( axis(1,i) > max_axis) THEN
-          !
-          max_axis = axis(1,i)
-          !
-       ENDIF
-       !
-    ENDDO
+
 
 
 
