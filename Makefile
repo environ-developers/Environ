@@ -85,7 +85,7 @@ decompile-qe-pw :
 	@ echo -n "Would you like to proceed (y|n)? -> "
 	@ read c; echo; \
 	if [ "$$c" = "y" ]; then \
-		(cd ../ && $(MAKE) veryclean); \
+		(cd ../ && $(MAKE) clean); \
 	fi
 
 install :
