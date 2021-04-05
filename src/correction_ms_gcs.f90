@@ -50,7 +50,7 @@ CONTAINS
     ! (5) depletion_length = 2.D0 *fact*ez
     !
     !  After the depletion length, the potential will remain flat
-    !  For more details and derivation see the appendix in Ch11 of Schmickler
+    !  For more details and derivation see the appendix in Ch. 11 of Schmickler
     !  Interfacial Electrochemistry book
     !
     IMPLICIT NONE
@@ -80,7 +80,7 @@ CONTAINS
     !
     INTEGER :: i, icount
     REAL( DP ) :: ez, ez_ms,ez_gcs, fact, vms, vstern
-    REAL( DP ) :: arg, const, depletion_length
+    REAL( DP ) :: arg, const, depletion_length, compress_fact
     REAL( DP ) :: dv, vbound, v_cut, v_edge
     REAL( DP ) :: asinh, coth, acoth
     REAL( DP ) :: f1, f2, max_axis
@@ -177,6 +177,7 @@ CONTAINS
     ELSE
       ez_gcs =  tpi * e2 * electrode_charge / area ! / permittivity
     END IF
+    WRITE (environ_unit, *)"tot charge: ",tot_charge
     WRITE (environ_unit, *)"ez: ",ez
     WRITE (environ_unit, *)"ez_gcs: ",ez_gcs
     fact = - e2 * SQRT( 8.D0 * fpi * cion * kbt / e2 )!/ permittivity_gcs )
@@ -259,7 +260,7 @@ CONTAINS
     IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
       ez_ms = 0.D0
     ELSE
-      ez_ms= tpi * e2 * (electrode_charge-semiconductor_in%slab_charge) / area ! / permittivity !in units of Ry/bohr
+      ez_ms= -tpi * e2 * (electrode_charge-semiconductor_in%slab_charge) / area ! / permittivity !in units of Ry/bohr
     END IF
     WRITE( environ_unit, * )"bulk sc charge: ",(electrode_charge-semiconductor_in%slab_charge)
     WRITE( environ_unit, * )"Mott Schottky electric field: ",ez_ms
@@ -304,79 +305,12 @@ CONTAINS
     WRITE (environ_unit, *)"v_cut: ",v_cut
     WRITE ( environ_unit, * )"flatband_fermi: ",semiconductor_in%flatband_fermi
 
-    semiconductor_in%bulk_sc_fermi = v_cut+ vms+ semiconductor_in%flatband_fermi
-    semiconductor%bulk_sc_fermi = v_cut+ vms+ semiconductor%flatband_fermi
+    semiconductor_in%bulk_sc_fermi =  vms+ semiconductor_in%flatband_fermi ! +v_cut
+    semiconductor%bulk_sc_fermi = vms+ semiconductor%flatband_fermi ! +v_cut
     WRITE ( environ_unit, * )"bulk semiconductor fermi level: ",semiconductor_in%bulk_sc_fermi
 
-    DO i = 1, nnr
 
-       IF ( -axis(1,i) .GE. xstern_ms ) THEN
-          ! TRYING OUT SOMETHING NEW where you get gcs on "semiconductor side" for flatband pot
-          IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
-              !
-              ! ... Gouy-Chapmann-Stern analytic solution on the outside
-              !
-              arg = const * EXP( ABS(axis(1,i)) * f1 )
-              IF ( ABS(arg) .GT. 1.D0 ) THEN
-                 acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
-              ELSE
-                 acoth = 0.D0
-              END IF
-              vtmp =  f2 * acoth
-
-
-              ! Having to add extra handling for electrode charge
-
-              IF ( ISNAN(vtmp) ) THEN
-                vtmp = 0.D0
-              END IF
-              !
-              ! ... Remove source potential (linear) and add analytic one
-              !
-
-              ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
-              v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
-              !v(i) =  vtmp - potential % of_r(i)
-              !
-              ! WRITE( environ_unit, *)"v_i: ",v(i)
-
-
-          ELSE
-              distance = ABS(axis(1,i)) - xstern_ms
-              !Only applies parabolic equation if still within the depletion width
-              !
-              IF ( distance <= depletion_length) THEN
-                 !
-                 ! ... Mott Schottky analytic solution on the outside
-                 !
-                 IF (ez_ms < 0.D0) THEN
-                    vtmp = -(distance)**2.D0 / fact/4.D0 + ez_ms*(distance)
-                 ELSE IF (ez_ms > 0.D0) THEN
-                    vtmp = (distance)**2.D0 / fact/4.D0 - ez_ms*(distance)
-                 ELSE
-                    vtmp = 0.D0
-                 END IF
-              ELSE
-                 vtmp = 0.D0
-              END IF
-              ! WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
-              ! WRITE (environ_unit, *) "Distance: ", distance
-              WRITE (environ_unit, *) "ms correction: ", vtmp
-              !
-              ! ... Remove source potential (linear) and add analytic one
-              !
-              v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
-              !v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
-              !v(i) =  v(i) + vtmp - potential % of_r(i)
-          END IF
-          WRITE( environ_unit, *)"This is the vi: ",v(i)
-          !
-       ENDIF
-       !
-    ENDDO
-
-
-    ! Adjust the potential to always be 0 on left side
+    ! Adjust the potential to always be 0 on right side
     ! First determine max axis point
     max_axis = 0.0
     DO i = 1, nnr
@@ -388,6 +322,83 @@ CONTAINS
        ENDIF
        !
     ENDDO
+
+    compress_fact = (depletion_length/(max_axis-xstern_ms))**2
+
+    DO i = 1, nnr
+
+       IF ( -axis(1,i) .GE. xstern_ms ) THEN
+          ! TRYING OUT SOMETHING NEW where you get gcs on "semiconductor side" for flatband pot
+          IF (semiconductor_in%slab_charge .EQ. 0.D0 ) THEN
+
+              IF (-axis(1,i) .GE. xstern_ms) THEN
+                  !
+                  ! ... Gouy-Chapmann-Stern analytic solution on the outside
+                  !
+                  arg = const * EXP( ABS(axis(1,i)) * f1 )
+                  IF ( ABS(arg) .GT. 1.D0 ) THEN
+                     acoth = 0.5D0 * LOG( (arg + 1.D0) / (arg - 1.D0) )
+                  ELSE
+                     acoth = 0.D0
+                  END IF
+                  vtmp =  f2 * acoth
+
+
+                  ! Having to add extra handling for electrode charge
+
+                  IF ( ISNAN(vtmp) ) THEN
+                    vtmp = 0.D0
+                  END IF
+                  !
+                  ! ... Remove source potential (linear) and add analytic one
+                  !
+
+                  ! WRITE( environ_unit, *)"v_gcs corr: ",vtmp
+                  v(i) =  v(i) + vtmp - vstern - ez * (ABS(axis(1,i))-xstern_gcs) !+ ez_gcs * xstern_gcs ! vtmp - potential % of_r(i)
+                  !v(i) =  vtmp - potential % of_r(i)
+                  !
+                  ! WRITE( environ_unit, *)"v_i: ",v(i)
+              ENDIF
+
+
+          ELSE
+              distance = ABS(axis(1,i)) - xstern_ms
+              !Only applies parabolic equation if still within the depletion width
+              !
+              IF ( distance <= depletion_length) THEN
+                 !
+                 ! ... Mott Schottky analytic solution on the outside
+                 !
+                 IF (ez_ms < 0.D0) THEN
+                    vtmp = (distance-depletion_length)**2.D0 / fact/4.D0 + ez_ms*(distance) + vms
+                    !vtmp = 0.25*compress_fact*(distance-max_axis)**2.D0 / fact/4.D0  + vms + ez_ms*(distance)
+                 ELSE IF (ez_ms > 0.D0) THEN
+                    vtmp = -(distance-depletion_length)**2.D0 / fact/4.D0 - ez_ms*(distance) + vms
+                    !vtmp = -0.25*compress_fact*(distance-max_axis)**2.D0 / fact/4.D0  + vms - ez_ms*(distance)
+                 ELSE
+                    vtmp = 0.D0
+                 END IF
+              ELSE
+                 vtmp = 0.D0
+              END IF
+              ! WRITE (environ_unit, *)"This is the axis value: ",axis(1,i)
+              ! WRITE (environ_unit, *) "Distance: ", distance
+              ! WRITE (environ_unit, *) "ms correction: ", vtmp
+              !
+              ! ... Remove source potential (linear) and add analytic one
+              !
+              v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
+              !v(i) =  v(i) + vtmp  -ez*distance!-vms ! vtmp - potential % of_r(i)
+              !v(i) =  v(i) + vtmp - potential % of_r(i)
+          END IF
+          !WRITE( environ_unit, *)"This is the vi: ",v(i)
+          !
+       ENDIF
+       !
+    ENDDO
+
+
+
 
 
 
