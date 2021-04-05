@@ -53,28 +53,56 @@ doc_clean:
 distclean: clean doc_clean
 
 patch :
+	@ echo "\nApplying patches...\n" 
 	@ (cd ../ && ./install/addsonpatch.sh Environ Environ/src Modules -patch)
 	@ ./patches/environpatch.sh -patch
+	@ echo "\nUpdating dependencies...\n" 
 	@ (cd ../ && ./install/makedeps.sh)
 
 revert :
+	@ echo "\nReverting patches...\n" 
 	@ (cd ../ && ./install/addsonpatch.sh Environ Environ/src Modules -revert)
 	@ ./patches/environpatch.sh -revert
+	@ echo "\nUpdating dependencies...\n" 
 	@ (cd ../ && ./install/makedeps.sh)
 
-compile-qe :
-	@ echo -n "\nUse # cores (default = 1) -> "
-	@ read cores; echo; : $${cores:=1}; (cd ../ && ./configure; $(MAKE) -j$$cores pw)
+compile-qe-pw :
+	@ (\
+		cd ../ && \
+		if [ ! -x make.inc ]; then \
+			echo "\nMissing make.inc in QE folder. You must first configure the QE installation.\n"; \
+			exit; \
+		fi; \
+		echo "\nPreparing to compile QE-PW...\n"; \
+		echo -n "Use # cores (default = 1) -> "; \
+		read cores; \
+		echo "\nCompiling QE-PW...\n"; \
+		$(MAKE) -j$${cores:=1} pw \
+		)
 
-decompile-qe :
-	@ (cd ../ && $(MAKE) veryclean)
+decompile-qe-pw :
+	@ echo "\nPreparing to decompile QE-PW...\n"
+	@ echo -n "Would you like to proceed (y|n)? -> "
+	@ read c; echo; \
+	if [ "$$c" = "y" ]; then \
+		(cd ../ && $(MAKE) veryclean); \
+	fi
 
 install :
-	@ echo "\nThis will patch QE's Environ plugins and recompile executables."
+	@ echo "\nThis will compile QE, apply Environ plugins, then recompile executables.\n"
 	@ echo -n "Do you wish to proceed (y|n)? "
-	@ read c; echo; if [ "$$c" = "y" ]; then $(MAKE) patch; $(MAKE) compile-qe; fi
+	@ read c; \
+	if [ "$$c" = "y" ]; then \
+		$(MAKE) compile-qe-pw; \
+		$(MAKE) patch; \
+		$(MAKE) compile-qe-pw; \
+	fi
 
 uninstall : 
-	@ echo "\nThis will uninstall the current QE+Environ compilation."
+	@ echo "\nThis will uninstall the current QE+Environ compilation.\n"
 	@ echo -n "Do you wish to proceed (y|n)? "
-	@ read c; echo; if [ "$$c" = "y" ]; then $(MAKE) revert; $(MAKE) decompile-qe; fi
+	@ read c; echo; \
+	if [ "$$c" = "y" ]; then \
+		$(MAKE) revert; \
+		$(MAKE) decompile-qe-pw; \
+	fi
