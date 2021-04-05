@@ -14,78 +14,84 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-!> Module to compute an confinement functionas, defined on a smooth
-!> continuum interface function
-!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
-!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!>
+!! Module to compute an confinement functionas, defined on a smooth
+!! continuum interface function
+!!
+!----------------------------------------------------------------------------------------
 MODULE embedding_confine
-!----------------------------------------------------------------------------
-  !
-  USE environ_types
-  USE environ_output
-  USE modules_constants,  ONLY : e2
-  !
-  IMPLICIT NONE
-  !
-  PRIVATE
-  !
-  PUBLIC :: calc_deconfine_dboundary, calc_vconfine
-  !
+    !------------------------------------------------------------------------------------
+    !
+    USE environ_types
+    USE environ_output
+    USE modules_constants, ONLY: e2
+    !
+    IMPLICIT NONE
+    !
+    PRIVATE
+    !
+    PUBLIC :: calc_deconfine_dboundary, calc_vconfine
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
-!  Subroutine: calc_vconfine
-!
-!> Calculates the confine contribution to the potential
-!--------------------------------------------------------------------
-  SUBROUTINE calc_vconfine( confine, boundary, vconfine )
-!--------------------------------------------------------------------
-    IMPLICIT NONE
+    !------------------------------------------------------------------------------------
+    !> 
+    !! Calculates the confine contribution to the potential
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_vconfine(confine, boundary, vconfine)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: confine
+        TYPE(environ_boundary), INTENT(IN) :: boundary
+        !
+        TYPE(environ_density), INTENT(INOUT) :: vconfine
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_vconfine'
+        !
+        !--------------------------------------------------------------------------------
+        ! The confine potetial is defined as confine * ( 1 - s(r) )
+        !
+        vconfine%of_r = 0.D0
+        vconfine%of_r = confine * (1.D0 - boundary%scaled%of_r)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_vconfine
+    !------------------------------------------------------------------------------------
+    !>
+    !! Calculates the confine contribution to the interface potential
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_deconfine_dboundary(confine, rhoelec, de_dboundary)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: confine
+        TYPE(environ_density), INTENT(IN) :: rhoelec
+        !
+        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_deconfine_dboundary'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        de_dboundary%of_r = de_dboundary%of_r - confine * rhoelec%of_r
+        ! the functional derivative of the confine term is - confine * rho^elec(r)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_deconfine_dboundary
+    !------------------------------------------------------------------------------------
     !
-    ! ... Declares variables
-    !
-    REAL( DP ), INTENT(IN) :: confine
-    TYPE( environ_boundary ), INTENT(IN) :: boundary
-    TYPE( environ_density ), INTENT(INOUT) :: vconfine
-    !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_vconfine'
-    !
-    ! ... The confine potetial is defined as confine * ( 1 - s(r) )
-    !
-    vconfine%of_r = 0.D0
-    vconfine%of_r = confine * ( 1.D0 - boundary % scaled % of_r )
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE calc_vconfine
-!--------------------------------------------------------------------
-!  Subroutine: calc_deconfine_dboundary
-!
-!> Calculates the confine contribution to the interface potential
-!--------------------------------------------------------------------
-  SUBROUTINE calc_deconfine_dboundary( confine, rhoelec, de_dboundary )
-!--------------------------------------------------------------------
-    IMPLICIT NONE
-    !
-    ! ... Declares variables
-    !
-    REAL( DP ), INTENT(IN) :: confine
-    TYPE( environ_density ), INTENT(IN) :: rhoelec
-    TYPE( environ_density ), INTENT(INOUT) :: de_dboundary
-    !
-    CHARACTER( LEN=80 ) :: sub_name = 'calc_deconfine_dboundary'
-    !
-    ! ... The functional derivative of the confine term is
-    !     - confine * rho^elec(r)
-    !
-    de_dboundary%of_r = de_dboundary%of_r - confine * rhoelec % of_r
-    !
-    RETURN
-    !
-!--------------------------------------------------------------------
-  END SUBROUTINE calc_deconfine_dboundary
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
 END MODULE embedding_confine
-!--------------------------------------------------------------------
+!----------------------------------------------------------------------------------------

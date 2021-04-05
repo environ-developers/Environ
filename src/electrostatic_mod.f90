@@ -14,74 +14,54 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-!> Module used to store global electrostatic-related variables and parameters.
-!! Contains all the main variables needed for the electrostatic solvers.
-!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
-!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!>
+!! Module used to store global electrostatic-related variables and parameters.
+!! Contains all the main variables needed for the electrostatic solvers.
+!!
+!----------------------------------------------------------------------------------------
 MODULE electrostatic_base
-!----------------------------------------------------------------------------
-  !
-  USE electrostatic_types
-  !
-  SAVE
-  !
-  ! Electrostatic setup(s)
-  !
-  TYPE( electrostatic_setup ) ::       &
-       inner,                          &
-       outer,                          &
-       reference
-  !
-  ! Electrostatic core(s)
-  !
-  TYPE( electrostatic_core ) ::        &
-       outer_core,                     &
-       inner_core,                     &
-       reference_core,                 &
-       pbc_core
-  !
-  ! Electrostatic solver(s)
-  !
-  TYPE( electrostatic_solver ) ::      &
-       outer_solver,                   &
-       inner_solver,                   &
-       reference_solver
-  !
-  ! Internal setup of numerical solvers
-  !
-  LOGICAL ::                           &
-       lgradient, lconjugate
-  TYPE( gradient_solver ) ::           &
-       gradient, inner_gradient
-  LOGICAL ::                           &
-       literative
-  TYPE( iterative_solver ) ::          &
-       iterative, inner_iterative
-  LOGICAL ::                           &
-       lnested, lnewton
-  TYPE( newton_solver ) ::             &
-       newton
-  !
-  ! General setup of periodic boundary conditions
-  !
-  LOGICAL ::                           &
-       need_pbc_correction,            &
-       need_electrolyte,               &
-       need_semiconductor,             &
-       need_outer_loop
-  INTEGER ::                           &
-       pbc_dim,                        &
-       pbc_axis
-  !
-  ! Logical flags that need to be used outside
-  !
-  LOGICAL ::                       &
-       need_gradient,              &
-       need_factsqrt,              &
-       need_auxiliary
-  !
+    !------------------------------------------------------------------------------------
+    !
+    USE electrostatic_types
+    !
+    SAVE
+    !
+    TYPE(electrostatic_setup) :: inner, outer, reference ! Electrostatic setup(s)
+    !
+    TYPE(electrostatic_core) :: outer_core, inner_core, reference_core, pbc_core
+    ! Electrostatic core(s)
+    !
+    TYPE(electrostatic_solver) :: outer_solver, inner_solver, reference_solver
+    ! Electrostatic solver(s)
+    !
+    !------------------------------------------------------------------------------------
+    ! Internal setup of numerical solvers
+    !
+    LOGICAL :: lgradient, lconjugate
+    TYPE(gradient_solver) :: gradient, inner_gradient
+    LOGICAL :: literative
+    TYPE(iterative_solver) :: iterative, inner_iterative
+    LOGICAL :: lnested, lnewton
+    TYPE(newton_solver) :: newton
+    !
+    !------------------------------------------------------------------------------------
+    ! General setup of periodic boundary conditions
+    !
+    LOGICAL :: need_pbc_correction, need_electrolyte, need_semiconductor, &
+               need_outer_loop
+    !
+    INTEGER :: pbc_dim, pbc_axis
+    !
+    !------------------------------------------------------------------------------------
+    !
+    LOGICAL :: need_gradient, need_factsqrt, need_auxiliary
+    ! Logical flags that need to be used outside
+    !
+    !------------------------------------------------------------------------------------
 END MODULE electrostatic_base
+!----------------------------------------------------------------------------------------
