@@ -84,8 +84,7 @@ CONTAINS
         REAL(DP) :: ez, fact, vms
         REAL(DP) :: arg, const, depletion_length
         REAL(DP) :: area, vtmp, vbound, distance
-        REAL(DP) :: dipole(0:3), quadrupole(3)
-        REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+        REAL(DP) :: charge, dipole(3), quadrupole(3)
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_vms'
         !
@@ -116,12 +115,6 @@ CONTAINS
         carrier_density => semiconductor%carrier_density
         xstern => semiconductor%simple%width
         !
-        WRITE (environ_unit, *) "carrier density: ", carrier_density
-        !
-        WRITE (environ_unit, *) "xstern: ", xstern
-        WRITE (environ_unit, *) "carrier density: ", carrier_density
-        FLUSH (environ_unit)
-        !
         !--------------------------------------------------------------------------------
         ! Set Boltzmann factors
         !
@@ -137,36 +130,27 @@ CONTAINS
         !
         v => local%of_r
         !
-        !--------------------------------------------------------------------------------
-        ! Compute multipoles of the system wrt the chosen origin
-        !
-        CALL compute_dipole(nnr, charges%of_r, origin, dipole, quadrupole)
-        !
-        tot_charge = dipole(0)
-        !
-        tot_dipole = dipole(1:3)
-        tot_quadrupole = quadrupole
         area = omega / axis_length
+        !
+        CALL multipoles_environ_density(charges, origin, charge, dipole, quadrupole)
+        ! compute multipoles of the system w.r.t the chosen origin
         !
         !--------------------------------------------------------------------------------
         ! First apply parabolic correction
         !
         fact = e2 * tpi / omega
         !
-        const = -pi / 3.D0 * tot_charge / axis_length * e2 - &
-                fact * tot_quadrupole(slab_axis)
+        const = -pi / 3.D0 * charge / axis_length * e2 - &
+                fact * quadrupole(slab_axis)
         !
-        v(:) = -tot_charge * axis(1, :)**2 + 2.D0 * tot_dipole(slab_axis) * axis(1, :)
+        v(:) = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
         v(:) = fact * v(:) + const
         !
         !--------------------------------------------------------------------------------
         ! Compute the physical properties of the interface
         !
-        WRITE (environ_unit, *) "charge: ", tot_charge
-        ez = -tpi * e2 * tot_charge / area
-        WRITE (environ_unit, *) "electric field: ", ez
+        ez = -tpi * e2 * charge / area
         fact = 1.D0 / tpi / e2 / 2.D0 / carrier_density
-        WRITE (environ_unit, *) "Prefactor: ", fact
         arg = fact * (ez**2.D0)
         vms = arg ! +kbt ! #TODO figure this out
         !
@@ -197,7 +181,6 @@ CONTAINS
         CALL mp_sum(vbound, cell%dfft%comm)
         !
         vbound = vbound / DBLE(icount)
-        WRITE (environ_unit, *) "vbound: ", vbound
         !
         !--------------------------------------------------------------------------------
         ! Compute the analytic potential and charge
@@ -271,8 +254,7 @@ CONTAINS
         REAL(DP) :: ez, fact, vms
         REAL(DP) :: arg
         REAL(DP) :: area, dvtmp_dx
-        REAL(DP) :: dipole(0:3), quadrupole(3)
-        REAL(DP) :: tot_charge, tot_dipole(3), tot_quadrupole(3)
+        REAL(DP) :: charge, dipole(3), quadrupole(3)
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_gradvms'
         !
@@ -318,19 +300,14 @@ CONTAINS
         !
         gvms => glocal%of_r
         !
-        !--------------------------------------------------------------------------------
-        ! Compute multipoles of the system wrt the chosen origin
-        !
-        CALL compute_dipole(nnr, charges%of_r, origin, dipole, quadrupole)
-        !
-        tot_charge = dipole(0)
-        tot_dipole = dipole(1:3)
+        CALL multipoles_environ_density(charges, origin, charge, dipole, quadrupole)
+        ! compute multipoles of the system w.r.t the chosen origin
         !
         !--------------------------------------------------------------------------------
         ! First compute the gradient of parabolic correction
         !
         fact = e2 * fpi / omega
-        gvms(slab_axis, :) = tot_dipole(slab_axis) - tot_charge * axis(1, :)
+        gvms(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
         gvms = gvms * fact
         !
         gradv%of_r = gradv%of_r + gvms
