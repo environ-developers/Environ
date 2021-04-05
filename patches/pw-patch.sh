@@ -576,7 +576,7 @@ INTEGER                   ::   chg_step, na \
 REAL(DP)                  ::   surf_area \
 REAL(DP)                  :: chg_per_area \
 REAL(DP)                  :: ss_chg_per_area \
-REAL(DP)                  :: ss_potential, total_potential \
+REAL(DP)                  :: ss_potential \
 REAL(DP)                  :: dft_chg_max, dft_chg_min \
 REAL(DP)                  :: change_vec \
 REAL(DP)                  :: v_cut, bulk_potential \
@@ -617,10 +617,10 @@ chg_step = istep \
 IF (chg_step == 1) THEN \
 ! this is an option that feels like it should be useful to edit in the future \
 IF (semiconductor%electrode_charge > 0.0) THEN \
-dft_chg_max = 2.0*semiconductor%electrode_charge \
+dft_chg_max = 4.0*semiconductor%electrode_charge \
 dft_chg_min = 0.0 \
 ELSE \
-dft_chg_min = 2.0*semiconductor%electrode_charge \
+dft_chg_min = 4.0*semiconductor%electrode_charge \
 dft_chg_max = 0.0 \
 END IF \
  \
@@ -736,7 +736,7 @@ END IF \
 WRITE(STDOUT, 1003)chg_step,prev_step_size,ss_chg,cur_dchg,& \
 &bulk_potential \
 OPEN(21,file = "q-v.dat", status = "unknown") \
-WRITE(37, *)"Potential (V-V_fb)  Surface State Potential (V-V_cut)",& \
+WRITE(21, *)"Potential (V-V_fb)  ",& \
 &"  Electrode Charge (e)",& \
 &"  Surface States Charge (e)    ",& \
 &"Electrode Charge per surface area (e/cm^2)     ",& \
@@ -747,7 +747,7 @@ ss_chg_per_area = ss_chg/surf_area \
 ss_potential = -bulk_potential \
 CALL mp_bcast(ss_potential, ionode_id, intra_image_comm) \
 !print *, bulk_potential,ss_potential \
-WRITE(37, 1004)total_potential, ss_potential,& \
+WRITE(21, 1004) ss_potential,& \
 &semiconductor%electrode_charge, ss_chg,& \
 &chg_per_area,ss_chg_per_area \
 CLOSE(21) \
