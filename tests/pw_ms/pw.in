@@ -23,7 +23,7 @@
     ion_dynamics = 'bfgs',
  /
 ATOMIC_SPECIES
- Ag 107.868000 Ag_ONCV_PBE-1.0.upf
+ Ag 107.868000 Ag.pbe-n-rrkjus_psl.1.0.0.UPF
 ATOMIC_POSITIONS {bohr}
  Ag 2.771763  2.771763  18.897260 
  Ag 0.000000  0.000000  22.740340 
