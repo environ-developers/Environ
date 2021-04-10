@@ -15,6 +15,7 @@ MODULE tools_generate_gvectors
     !
     USE modules_constants, ONLY: DP, eps8
     USE fft_types, ONLY: fft_stick_index, fft_type_descriptor
+    USE modules_sort, ONLY: hpsort_eps
     USE fft_ggen, ONLY: fft_set_nl
     USE mp, ONLY: mp_rank, mp_max, mp_size, mp_sum
     !
