@@ -855,8 +855,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ! cell => bound%scaled%cell #TODO
-        cell => bound%density%cell
+        cell => bound%scaled%cell
         !
         update_anything = .FALSE.
         IF (bound%need_ions) update_anything = bound%ions%update
