@@ -1,0 +1,213 @@
+# Copyright (C) 2001-2020 Quantum ESPRESSO group
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License. See the file `License' in the root directory
+# of the present distribution.
+#
+# Makefile for plugins
+
+sinclude ../make.inc
+include plugins_list
+include install_utils
+
+###########################################################
+# D3Q
+###########################################################
+
+d3q:  uncompress-d3q
+	if test -d ../D3Q; then \
+	cd ../D3Q; $(MAKE) || exit 1; \
+	fi
+	touch make-d3q
+
+uncompress-d3q:
+	$(call download_and_unpack,$(D3Q),$(D3Q_URL),D3Q,d3q)
+	touch uncompress-d3q
+
+d3q_clean:
+	if test -d ../D3Q; then (cd ../D3Q; $(MAKE) clean); fi
+	rm -f ../bin/d3q.x
+	rm -f ../bin/d3_*.x
+	rm -f ../bin/diffd3.x
+	rm -f ../bin/xml2giorgia.x
+
+d3q_veryclean: d3q_clean
+	# delete unpacked directory and its links, keep the archive
+	test -e ../D3Q/protect || \
+	(cd ..; \
+		i=D3Q; \
+		while j=$$(readlink $$i);do rm -rf $$i; i=$$j;done;\
+		rm -rf $$i\
+	);
+
+d3q_distclean: d3q_veryclean
+	# also delete the tgz archive
+	rm -f ../archive/$(D3Q); \
+	rm -f make-d3q uncompress-d3q
+
+##########################################################
+# GIPAW
+###########################################################
+
+gipaw:  uncompress-gipaw configure-gipaw
+	if test -d ../GIPAW; then \
+	cd ../GIPAW; $(MAKE) all || exit 1; cd ../bin; ln -fs ../GIPAW/src/gipaw.x . ; fi
+	touch make-gipaw
+
+uncompress-gipaw:
+	$(call download_and_unpack,$(GIPAW),$(GIPAW_URL),GIPAW,qe-gipaw)	
+	touch uncompress-gipaw
+
+configure-gipaw: 
+	cd ../GIPAW ; \
+	./configure --with-qe-source=${TOPDIR}
+	touch ./configure-gipaw
+
+gipaw_clean:
+	if test -d ../GIPAW; then (cd ../GIPAW; $(MAKE) clean); fi
+	rm -f ../bin/gipaw.x
+	rm -rf ./make-gipaw 
+
+gipaw_veryclean: gipaw_clean
+	if test -d ../GIPAW; then (cd ../GIPAW; \
+	rm -f config.log config.status ); fi
+	rm -rf ./configure-gipaw
+
+gipaw_distclean:
+	#if test -d ../GIPAW; then (rm -R -f ../GIPAW ); fi
+	#if test -d ../$(GIPAW); then (rm -R -f ../$(GIPAW) ); fi
+	rm -f ../archive/$(GIPAW).tar.gz
+
+###########################################################
+# wannier90
+###########################################################
+
+w90: uncompress-w90 configure-w90
+	if test -d ../W90; then \
+	cd ../W90; $(MAKE) || exit 1; cd ../bin; ln -fs ../W90/wannier90.x . ; fi
+	-(cd ../bin; ln -fs ../W90/wannier90.x .)
+	touch make-w90
+
+uncompress-w90:
+	$(call download_and_unpack,$(W90),$(W90_URL),W90,wannier90)
+	touch uncompress-w90
+
+configure-w90: 
+	cd ../W90 ; \
+	if (test -e ../install/make_wannier90.inc) || (test -d ../W90); then \
+	(cp ../install/make_wannier90.inc ../W90/make.inc); fi 
+	touch ./configure-w90
+
+w90_clean:
+	if test -d ../W90; then (cd ../W90; \
+	$(MAKE) veryclean); fi
+	rm -f ../bin/wannier90.x
+	rm -rf ./make-w90 ./configure-w90
+
+w90_veryclean: w90_clean
+	if test -d ../W90; then (rm -R -f ../W90); fi
+	if test -d ../$(W90); then (rm -R -f ../$(W90)); fi
+	rm -f ../bin/wannier90.x
+	rm -rf ./uncompress-w90
+
+w90_distclean:
+	rm -f ../archive/$(W90).tar.gz
+
+###########################################################
+# WANT
+###########################################################
+
+want: uncompress-want configure-want
+	if test -d ../WANT; then \
+	cd ../WANT; $(MAKE) all || exit 1; fi
+	touch ./make-want
+
+uncompress-want: 
+	$(call download_and_unpack,$(WANT),$(WANT_URL),WANT,want)
+	touch uncompress-want
+
+configure-want:
+	cd ../WANT ; \
+	./configure \
+	CC="$(CC)" \
+	F90="$(F90)" \
+	MPIF90="$(MPIF90)" \
+	LD="$(LD)" \
+	LDFLAGS="$(LDFLAGS)" \
+	AR="$(AR)" \
+	ARFLAGS="$(ARFLAGS)" \
+	RANLIB="$(RANLIB)" \
+	LAPACK_LIBS="$(LAPACK_LIBS)" \
+	BLAS_LIBS="$(BLAS_LIBS)" \
+	FFT_LIBS="$(FFT_LIBS)" 
+	touch ./configure-want
+
+want_clean:
+	if test -d ../WANT; then (cd ../WANT; \
+	$(MAKE) clean); fi
+	- rm -rf ./make-want ./configure-want
+
+want_veryclean: want_clean
+	if test -d ../WANT; then (rm -R -f ../WANT); fi
+	if test -d ../$(WANT); then (rm -R -f ../$(WANT)); fi
+	if test -e ../archive/$(WANT).tar.gz ; then (rm -f ../archive/$(WANT).tar.gz); fi
+	- rm -rf ./uncompress-want ./configure.h
+
+want_distclean: 
+	rm -f ../archive/$(WANT).tar.gz
+
+###########################################################
+# YAMBO
+###########################################################
+
+yambo: uncompress-yambo configure-yambo
+	if test -d ../YAMBO; then \
+	cd ../YAMBO; $(MAKE) yambo interfaces ypp || exit 1; fi
+	touch ./make-yambo
+
+uncompress-yambo: 
+	$(call download_and_unpack,$(YAMBO),$(YAMBO_URL),YAMBO,yambo)
+	touch uncompress-yambo
+
+configure-yambo: 
+	@(if test -z "$(F90)" ; then \
+	echo "*** F90 is not defined; please define F90 or edit make.inc" ; exit 1 ; fi)
+	cd ../YAMBO ; \
+	./configure \
+	 --with-blas-libs="$(BLAS_LIBS)" \
+	 --with-lapack-libs="$(LAPACK_LIBS) $(BLAS_LIBS)" \
+	 --with-fft-libs="$(FFT_LIBS)" \
+	 --with-scalapack-libs="$(SCALAPACK_LIBS)" \
+	 --with-blacs-libs="$(SCALAPACK_LIBS)" \
+	 PFC="$(MPIF90)" \
+	 FC="$(F90)"
+	touch ./configure-yambo
+
+yambo_clean:
+	if test -d ../YAMBO; then (cd ../YAMBO; \
+	$(MAKE) clean); fi
+	- rm -rf ./make-yambo ./configure-yambo
+
+yambo_veryclean: yambo_clean
+	if test -d ../YAMBO; then (rm -R -f ../YAMBO); fi
+	if test -d ../$(YAMBO); then (rm -R -f ../$(YAMBO)); fi
+	- rm -rf ./uncompress-yambo
+
+yambo_distclean: 
+	if test -e ../archive/$(YAMBO).tar.gz ; then \
+		rm -f ../archive/$(YAMBO).tar.gz; fi
+
+###########################################################
+# cleaning
+###########################################################
+
+clean: w90_clean want_clean yambo_clean gipaw_clean d3q_clean
+
+veryclean: w90_veryclean want_veryclean yambo_veryclean \
+	gipaw_veryclean d3q_veryclean
+
+distclean: w90_distclean want_distclean yambo_distclean \
+	gipaw_distclean d3q_distclean
+

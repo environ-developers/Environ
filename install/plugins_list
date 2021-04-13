@@ -1,0 +1,37 @@
+# Copyright (C) 2001-2016 Quantum ESPRESSO group
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License. See the file `License' in the root directory
+# of the present distribution.
+
+########################################
+# definition of plugins version and URL
+########################################
+#
+URL=http://files.qe-forge.org/index.php?file=
+RELEASE_VERSION := $(shell awk -F\' '/version_number/{print $$2}' ../include/qe_version.h )
+#
+#
+# Package maintainer: Andrea Ferretti
+WANT=want-want-2.6.1
+WANT_URL=https://github.com/QEF/want/archive/want-2.6.1.tar.gz
+
+#
+# Package maintainer: Andrea Ferretti
+YAMBO=yambo-4.5.2
+YAMBO_URL=https://github.com/yambo-code/yambo/archive/4.5.2.tar.gz
+
+#
+# Package maintainer: 
+W90=wannier90-3.1.0
+W90_URL=https://codeload.github.com/wannier-developers/wannier90/tar.gz/v3.1.0
+#
+# Package maintainer: Davide Ceresoli
+GIPAW=qe-gipaw-$(RELEASE_VERSION)
+GIPAW_URL=https://github.com/dceresoli/qe-gipaw/archive/$(RELEASE_VERSION).tar.gz
+#
+# Package maintainer: Lorenzo Paulatto
+D3Q=d3q-latest
+D3Q_URL=https://d3q.sourceforge.io/d3q-qe$(RELEASE_VERSION)-latest.php?outname=d3q-qe$(RELEASE_VERSION)-latest.tgz
