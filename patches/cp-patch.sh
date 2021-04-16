@@ -103,7 +103,7 @@ mv tmp.2 plugin_clean.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_info, ONLY : environ_clock \
+USE    environ_output, ONLY : environ_clock \
 !Environ patch
 ' plugin_clock.f90 > tmp.1
 
@@ -350,7 +350,7 @@ mv tmp.1 plugin_int_forces.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_info, ONLY : environ_print_energies \
+USE    environ_output, ONLY : environ_print_energies \
 !Environ patch
 ' plugin_print_energies.f90 > tmp.1
 
@@ -366,7 +366,7 @@ mv tmp.2 plugin_print_energies.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_info, ONLY : environ_summary \
+USE    environ_output, ONLY : environ_summary \
 !Environ patch
 ' plugin_print_info.f90 > tmp.1
 
