@@ -91,7 +91,6 @@ CONTAINS
          electrolyte_rhomax, electrolyte_rhomin, &
          electrolyte_tbeta, &
          electrolyte_alpha, electrolyte_softness, &
-         ion_adsorption, ion_adsorption_energy, &
          temperature, &
          sc_permittivity, sc_carrier_density, sc_electrode_chg, &
          sc_distance, sc_spread, sc_chg_thr, &
@@ -149,7 +148,6 @@ CONTAINS
                                 electrolyte_rhomax, electrolyte_rhomin, &
                                 electrolyte_tbeta, electrolyte_alpha, &
                                 electrolyte_softness, temperature, &
-                                ion_adsorption_energy, &
                                 sc_permittivity, sc_carrier_density, sc_electrode_chg, &
                                 sc_distance, sc_spread, sc_chg_thr, &
                                 extcharge_charge(:), extcharge_spread(:), &
@@ -160,7 +158,7 @@ CONTAINS
         CHARACTER(LEN=*), INTENT(IN) :: prog, environ_type, &
                                         solvent_mode, radius_mode, &
                                         electrolyte_mode, electrolyte_entropy, &
-                                        ion_adsorption, derivatives_
+                                        derivatives_
         !
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
         !
@@ -435,8 +433,7 @@ CONTAINS
                                                 environment_ions, environment_system, &
                                                 derivatives, temperature, cion, &
                                                 cionmax, rion, zion, &
-                                                electrolyte_entropy, ion_adsorption, &
-                                                ion_adsorption_energy, &
+                                                electrolyte_entropy, &
                                                 electrolyte_linearized, electrolyte)
             !
             CALL init_environ_charges_first(electrolyte=electrolyte, &

@@ -21,7 +21,6 @@
 !         LOGICAL :: update = .FALSE.
 !         LOGICAL :: initialized = .FALSE.
 !         CHARACTER(LEN=80) :: electrolyte_entropy
-!         CHARACTER(LEN=80) :: ion_adsorption
 !         LOGICAL :: linearized = .FALSE.
 !         INTEGER :: ntyp
 !         TYPE(environ_ioncctype), ALLOCATABLE :: ioncctype(:)
@@ -133,16 +132,15 @@ CONTAINS
                                               charge_asymmetry, field_max, field_min, &
                                               electrons, ions, system, core, &
                                               temperature, cbulk, cionmax, radius, z, &
-                                              electrolyte_entropy, ion_adsorption, &
-                                              adsorption_energy, linearized, &
-                                              electrolyte)
+                                              electrolyte_entropy, adsorption_energy, &
+                                              linearized, electrolyte)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: linearized
         INTEGER, INTENT(IN) :: ntyp, stype
-        CHARACTER(LEN=80), INTENT(IN) :: mode, electrolyte_entropy, ion_adsorption
+        CHARACTER(LEN=80), INTENT(IN) :: mode, electrolyte_entropy
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, distance, spread, &
                                 alpha, softness, temperature, solvent_radius, &
@@ -182,24 +180,9 @@ CONTAINS
         electrolyte%linearized = linearized
         electrolyte%ntyp = ntyp
         electrolyte%electrolyte_entropy = TRIM(electrolyte_entropy)
-        ! electrolyte%ion_adsorption = TRIM(ion_adsorption) #TODO
         electrolyte%temperature = temperature
         electrolyte%cionmax = 0.D0
         electrolyte%permittivity = const
-        !
-        ! IF (electrolyte%ion_adsorption .NE. 'none') THEN #TODO
-        !     !
-        !     ! Setup exponential function
-        !     !
-        !     electrolyte%adsorption_energy = adsorption_energy
-        !     electrolyte%function_%type_ = 3
-        !     electrolyte%function_%pos => system%pos
-        !     electrolyte%function_%dim = system%dim
-        !     electrolyte%function_%axis = system%axis
-        !     electrolyte%function_%width = distance
-        !     electrolyte%function_%spread = spread
-        !     !
-        ! END IF
         !
         IF (ALLOCATED(electrolyte%ioncctype)) &
             CALL errore(sub_name, 'Trying to allocate an already allocated object', 1)
@@ -231,11 +214,6 @@ CONTAINS
             label = 'cfactor_electrolyte_'//TRIM(ityps)
             !
             CALL create_environ_density(electrolyte%ioncctype(ityp)%cfactor, label)
-            !
-            ! IF (electrolyte%ion_adsorption .NE. 'none') THEN #TODO
-            !     label = 'potential_'//TRIM(ityps)
-            !     CALL create_environ_density(electrolyte%ioncctype(ityp)%potential, label)
-            ! END IF
             !
         END DO
         !
@@ -303,9 +281,6 @@ CONTAINS
                 sum_cz2 + &
                 electrolyte%ioncctype(ityp)%cbulk * electrolyte%ioncctype(ityp)%z**2
             !
-            ! IF (electrolyte%ion_adsorption .NE. 'none') & #TODO
-            !     CALL init_environ_density(cell, electrolyte%ioncctype(ityp)%potential)
-            !
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -358,61 +333,6 @@ CONTAINS
                 CALL electrolyte_of_boundary(electrolyte)
                 !
                 electrolyte%update = .FALSE.
-                !
-                ! SELECT CASE (electrolyte%ion_adsorption) #TODO
-                ! CASE ('anion')
-                !     !
-                !     DO ityp = 1, electrolyte%ntyp
-                !         !
-                !         IF (electrolyte%ioncctype(ityp)%z .GT. 0.D0) THEN
-                !             !
-                !             CALL density_of_functions( &
-                !                 electrolyte%function_, &
-                !                 electrolyte%ioncctype(ityp)%potential, .TRUE.)
-                !             !
-                !             electrolyte%ioncctype(ityp)%potential%of_r(:) = &
-                !                 electrolyte%adsorption_energy * &
-                !                 (electrolyte%ioncctype(ityp)%potential%of_r(:)**2 - &
-                !                  electrolyte%ioncctype(ityp)%potential%of_r(:) * 2.D0)
-                !             !
-                !         ELSE
-                !             electrolyte%ioncctype(ityp)%potential%of_r(:) = 0.D0
-                !         END IF
-                !         !
-                !     END DO
-                !     !
-                ! CASE ('cation')
-                !     !
-                !     DO ityp = 1, electrolyte%ntyp
-                !         !
-                !         IF (electrolyte%ioncctype(ityp)%z .LT. 0.D0) THEN
-                !             !
-                !             CALL density_of_functions( &
-                !                 electrolyte%function_, &
-                !                 electrolyte%ioncctype(ityp)%potential, .TRUE.)
-                !             !
-                !             electrolyte%ioncctype(ityp)%potential%of_r(:) = &
-                !                 electrolyte%adsorption_energy * &
-                !                 (electrolyte%ioncctype(ityp)%potential%of_r(:)**2 - &
-                !                  electrolyte%ioncctype(ityp)%potential%of_r(:) * 2.D0)
-                !             !
-                !         ELSE
-                !             electrolyte%ioncctype(ityp)%potential%of_r(:) = 0.D0
-                !         END IF
-                !         !
-                !     END DO
-                !     !
-                ! CASE ('repulsion')
-                !     !
-                !     DO ityp = 1, electrolyte%ntyp
-                !         !
-                !         CALL density_of_functions( &
-                !             electrolyte%function_, &
-                !             electrolyte%ioncctype(ityp)%potential, .TRUE.)
-                !         !
-                !     END DO
-                !     !
-                ! END SELECT
                 !
             END IF
             !
@@ -517,9 +437,6 @@ CONTAINS
                     ! in regions close to the nuclei (exponent is too large).
                     !
                     arg = -z * pot(ir) / kT
-                    !
-                    ! IF (electrolyte%ion_adsorption .NE. 'none') & ! #TODO
-                    !     arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
                     !
                     IF (arg > exp_arg_limit) THEN
                         cfactor(ir) = EXP(exp_arg_limit)
@@ -879,9 +796,6 @@ CONTAINS
                 CALL destroy_environ_density(electrolyte%ioncctype(ityp)%c)
                 !
                 CALL destroy_environ_density(electrolyte%ioncctype(ityp)%cfactor)
-                !
-                ! IF (electrolyte%ion_adsorption .NE. 'none') & ! #TODO
-                !     CALL destroy_environ_density(electrolyte%ioncctype(ityp)%potential)
                 !
             END DO
             !

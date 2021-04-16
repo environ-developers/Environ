@@ -189,19 +189,11 @@ MODULE environ_input
     !
     ! full = all terms ( Dabo et al. arXiv 0901.0096 )
     !
-    CHARACTER(LEN=80) :: ion_adsorption = 'none'
-    CHARACTER(LEN=80) :: ion_adsorption_allowed(4)
-    !
-    DATA ion_adsorption_allowed/'none', 'anion', 'cation', 'repulsion'/
-    ! include asymmetric adsorption of electrolyte
-    ! ( Baskin and Prendergast J. Electrochem. Soc. 164, E3438 )
-    !
     REAL(DP) :: cion(nsx) = 1.D0 ! molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: cionmax = 1.D3 ! maximum molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: rion = 0.D0 ! mean atomic radius of ionic countercharge (a.u.)
     REAL(DP) :: zion(nsx) = 1.D0 ! valence of ionic countercharge
     REAL(DP) :: temperature = 300.D0 ! temperature of the solution
-    REAL(DP) :: ion_adsorption_energy = 0.D0 ! adsorption energy of electrolyte (Ry)
     !
     !------------------------------------------------------------------------------------
     ! Semiconductor parameters
@@ -237,9 +229,8 @@ MODULE environ_input
         atomicspread, env_static_permittivity, env_optical_permittivity, &
         env_surface_tension, env_pressure, env_confine, env_electrolyte_ntyp, &
         cion, cionmax, rion, zion, temperature, electrolyte_linearized, &
-        electrolyte_entropy, ion_adsorption, ion_adsorption_energy, &
-        sc_permittivity, sc_carrier_density, sc_electrode_chg, sc_chg_thr, &
-        env_external_charges, env_dielectric_regions
+        electrolyte_entropy, sc_permittivity, sc_carrier_density, sc_electrode_chg, &
+        sc_chg_thr, env_external_charges, env_dielectric_regions
     !
     !=---------------------------------------------------------------------------------=!
 !       BOUNDARY Namelist Input Parameters
@@ -804,7 +795,6 @@ CONTAINS
                               zion, electrolyte_rhomax, &
                               electrolyte_rhomin, electrolyte_tbeta, &
                               electrolyte_alpha, electrolyte_softness, &
-                              ion_adsorption, ion_adsorption_energy, &
                               temperature, &
                               sc_permittivity, sc_carrier_density, sc_electrode_chg, &
                               sc_distance, sc_spread, sc_chg_thr, &
@@ -962,8 +952,6 @@ CONTAINS
         zion(:) = 0.D0
         temperature = 300.0D0
         !
-        ion_adsorption = 'none'
-        ion_adsorption_energy = 0.D0
         sc_permittivity = 1.D0
         sc_carrier_density = 0.D0
         !
@@ -1133,10 +1121,6 @@ CONTAINS
         CALL mp_bcast(zion, ionode_id, comm)
         !
         CALL mp_bcast(temperature, ionode_id, comm)
-        !
-        CALL mp_bcast(ion_adsorption, ionode_id, comm)
-        !
-        CALL mp_bcast(ion_adsorption_energy, ionode_id, comm)
         !
         CALL mp_bcast(sc_permittivity, ionode_id, comm)
         !
@@ -1375,20 +1359,6 @@ CONTAINS
             CALL errore(sub_name, 'either cionmax or rion can be set ', 1)
         !
         allowed = .FALSE.
-        !
-        DO i = 1, SIZE(ion_adsorption_allowed)
-            IF (TRIM(ion_adsorption) == ion_adsorption_allowed(i)) allowed = .TRUE.
-        END DO
-        !
-        IF (.NOT. allowed) &
-            CALL errore(sub_name, ' ion_adsorption '''// &
-                        TRIM(ion_adsorption)//''' not allowed ', 1)
-        !
-        IF (ion_adsorption_energy .LT. 0D0) &
-            CALL errore(sub_name, 'ion_adsorption_energy must be positive', 1)
-        !
-        IF (.NOT. TRIM(ion_adsorption) .EQ. 'none') &
-            CALL errore(sub_name, 'ion_adsorption not implemented', 1)
         !
         IF (sc_permittivity < 1.D0) &
             CALL errore(sub_name, 'sc_permittivity out of range', 1)

@@ -481,7 +481,6 @@ MODULE environ_types
         LOGICAL :: update = .FALSE.
         LOGICAL :: initialized = .FALSE.
         CHARACTER(LEN=80) :: electrolyte_entropy
-        CHARACTER(LEN=80) :: ion_adsorption
         LOGICAL :: linearized = .FALSE.
         INTEGER :: ntyp
         TYPE(environ_ioncctype), ALLOCATABLE :: ioncctype(:)
