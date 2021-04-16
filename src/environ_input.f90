@@ -297,7 +297,7 @@ MODULE environ_input
     !
     REAL(DP) :: filling_threshold = 0.825D0
     ! threshold to decide whether to fill a continuum void or not, to be
-    ! compared with the filled fraction: if filled fraction .GT. threshold
+    ! compared with the filled fraction: if filled fraction > threshold
     ! THEN fill gridpoint
     !
     REAL(DP) :: filling_spread = 0.02D0
@@ -745,7 +745,7 @@ CONTAINS
         !
         verbose_ = verbose
         !
-        IF (verbose_ .GE. 1) &
+        IF (verbose_ >= 1) &
             OPEN (unit=environ_unit, file='environ.debug', status='unknown')
         !
         !=-----------------------------------------------------------------------------=!
@@ -1343,7 +1343,7 @@ CONTAINS
         IF (env_surface_tension < 0.0_DP) &
             CALL errore(sub_name, ' env_surface_tension out of range ', 1)
         !
-        IF (env_electrolyte_ntyp < 0 .OR. env_electrolyte_ntyp .EQ. 1) &
+        IF (env_electrolyte_ntyp < 0 .OR. env_electrolyte_ntyp == 1) &
             CALL errore(sub_name, ' env_electrolyte_ntyp out of range ', 1)
         !
         allowed = .FALSE.
@@ -1363,15 +1363,15 @@ CONTAINS
         !
         DO i = 1, env_electrolyte_ntyp
             !
-            IF (cion(i) .LT. 0.D0) &
+            IF (cion(i) < 0.D0) &
                 CALL errore(sub_name, ' cion cannot be negative ', 1)
             !
         END DO
         !
-        IF (cionmax .LT. 0.D0 .OR. rion .LT. 0.D0) &
+        IF (cionmax < 0.D0 .OR. rion < 0.D0) &
             CALL errore(sub_name, 'cionmax and rion cannot be negative ', 1)
         !
-        IF (cionmax .GT. 0.D0 .AND. rion .GT. 0.D0) &
+        IF (cionmax > 0.D0 .AND. rion > 0.D0) &
             CALL errore(sub_name, 'either cionmax or rion can be set ', 1)
         !
         allowed = .FALSE.
@@ -1667,8 +1667,8 @@ CONTAINS
             CALL errore(sub_name, ' pbc_correction '''// &
                         TRIM(pbc_correction)//''' not allowed ', 1)
         !
-        IF (TRIM(pbc_correction) .EQ. 'gcs' .AND. &
-            TRIM(electrolyte_mode) .NE. 'system') &
+        IF (TRIM(pbc_correction) == 'gcs' .AND. &
+            TRIM(electrolyte_mode) /= 'system') &
             CALL errore(sub_name, 'Only system boundary for gcs correction', 1)
         !
         allowed = .FALSE.
@@ -1710,29 +1710,28 @@ CONTAINS
         !
         lboundary = .FALSE.
         !
-        IF (environ_type .NE. 'input' .AND. environ_type .NE. 'vacuum') &
+        IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') &
             lboundary = .TRUE.
         !
-        IF (env_static_permittivity .GT. 1.D0 .OR. &
-            env_optical_permittivity .GT. 1.D0) &
+        IF (env_static_permittivity > 1.D0 .OR. &
+            env_optical_permittivity > 1.D0) &
             lboundary = .TRUE.
         !
-        IF (env_surface_tension .GT. 0.D0) lboundary = .TRUE.
+        IF (env_surface_tension > 0.D0) lboundary = .TRUE.
         !
-        IF (env_pressure .NE. 0.D0) lboundary = .TRUE.
+        IF (env_pressure /= 0.D0) lboundary = .TRUE.
         !
-        IF (env_confine .NE. 0.D0) lboundary = .TRUE.
+        IF (env_confine /= 0.D0) lboundary = .TRUE.
         !
-        IF (env_electrolyte_ntyp .GT. 0) lboundary = .TRUE.
+        IF (env_electrolyte_ntyp > 0) lboundary = .TRUE.
         !
-        IF (env_dielectric_regions .GT. 0) lboundary = .TRUE.
+        IF (env_dielectric_regions > 0) lboundary = .TRUE.
         !
-        IF (sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0) &
+        IF (sc_permittivity > 1.D0 .OR. sc_carrier_density > 0) &
             lboundary = .TRUE.
         !
-        ! Accepted both if statements. May only need one. #TODO ?
-        !
-        IF (solvent_mode .EQ. 'ionic' .AND. derivatives .NE. 'analytic') THEN
+        IF ((solvent_mode == 'ionic' .OR. solvent_mode == 'fa-ionic') .AND. &
+            derivatives /= 'analytic') THEN
             !
             IF (ionode) &
                 WRITE (program_unit, *) &
@@ -1774,13 +1773,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (TRIM(ADJUSTL(environ_type)) .EQ. 'input') RETURN
+        IF (TRIM(ADJUSTL(environ_type)) == 'input') RETURN
         ! skip set up if read environ keywords from input
         !
         !--------------------------------------------------------------------------------
         ! Vacuum case is straightforward, all flags are off
         !
-        IF (TRIM(ADJUSTL(environ_type)) .EQ. 'vacuum') THEN
+        IF (TRIM(ADJUSTL(environ_type)) == 'vacuum') THEN
             env_static_permittivity = 1.D0
             env_optical_permittivity = 1.D0
             env_surface_tension = 0.D0
@@ -1808,10 +1807,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Depending on the boundary mode, set fitted parameters
         !
-        IF (TRIM(ADJUSTL(solvent_mode)) .EQ. 'electronic' .OR. &
-            TRIM(ADJUSTL(solvent_mode)) .EQ. 'full') THEN ! .OR. &
-            ! TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-electronic' .OR. & ! #TODO field-aware
-            !     TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-full') THEN
+        IF (TRIM(ADJUSTL(solvent_mode)) == 'electronic' .OR. &
+            TRIM(ADJUSTL(solvent_mode)) == 'full') THEN ! .OR. &
+            ! TRIM(ADJUSTL(solvent_mode)) == 'fa-electronic' .OR. & ! #TODO field-aware
+            !     TRIM(ADJUSTL(solvent_mode)) == 'fa-full') THEN
             !
             !----------------------------------------------------------------------------
             ! Self-consistent continuum solvation (SCCS)
@@ -1846,8 +1845,8 @@ CONTAINS
                 rhomin = 0.0024
             END SELECT
             !
-        ELSE IF (TRIM(ADJUSTL(solvent_mode)) .EQ. 'ionic' .OR. &
-                 TRIM(ADJUSTL(solvent_mode)) .EQ. 'fa-ionic') THEN
+        ELSE IF (TRIM(ADJUSTL(solvent_mode)) == 'ionic' .OR. &
+                 TRIM(ADJUSTL(solvent_mode)) == 'fa-ionic') THEN
             !
             !----------------------------------------------------------------------------
             ! Soft-sphere continuum solvation
@@ -1890,16 +1889,16 @@ CONTAINS
         !
         lelectrostatic = env_electrostatic
         !
-        IF (env_static_permittivity .GT. 1.D0 .OR. env_optical_permittivity .GT. 1.D0) &
+        IF (env_static_permittivity > 1.D0 .OR. env_optical_permittivity > 1.D0) &
             lelectrostatic = .TRUE.
         !
-        IF (env_external_charges .GT. 0) lelectrostatic = .TRUE.
+        IF (env_external_charges > 0) lelectrostatic = .TRUE.
         !
-        IF (env_dielectric_regions .GT. 0) lelectrostatic = .TRUE.
+        IF (env_dielectric_regions > 0) lelectrostatic = .TRUE.
         !
-        IF (env_electrolyte_ntyp .GT. 0) lelectrostatic = .TRUE.
+        IF (env_electrolyte_ntyp > 0) lelectrostatic = .TRUE.
         !
-        IF (sc_permittivity .GT. 1.D0 .OR. sc_carrier_density .GT. 0) &
+        IF (sc_permittivity > 1.D0 .OR. sc_carrier_density > 0) &
             lelectrostatic = .TRUE.
         !
         !--------------------------------------------------------------------------------
@@ -1918,9 +1917,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (env_electrolyte_ntyp .GT. 0) THEN
+        IF (env_electrolyte_ntyp > 0) THEN
             !
-            IF (.NOT. TRIM(pbc_correction) == 'gcs') THEN
+            IF (TRIM(pbc_correction) /= 'gcs') THEN
                 !
                 IF (electrolyte_linearized) THEN
                     !
@@ -1928,7 +1927,7 @@ CONTAINS
                     !
                     IF (solver == 'none') solver = 'cg'
                     !
-                    IF (cionmax .GT. 0.D0 .OR. rion .GT. 0.D0) problem = 'linmodpb'
+                    IF (cionmax > 0.D0 .OR. rion > 0.D0) problem = 'linmodpb'
                     !
                 ELSE
                     !
@@ -1938,7 +1937,7 @@ CONTAINS
                     !
                     IF (inner_solver == 'none') inner_solver = 'cg'
                     !
-                    IF (cionmax .GT. 0.D0 .OR. rion .GT. 0.D0) problem = 'modpb'
+                    IF (cionmax > 0.D0 .OR. rion > 0.D0) problem = 'modpb'
                     !
                 END IF
                 !
@@ -1950,13 +1949,13 @@ CONTAINS
             !
             IF (problem == 'none') problem = 'generalized'
             !
-            IF (.NOT. TRIM(pbc_correction) == 'gcs') THEN
+            IF (TRIM(pbc_correction) /= 'gcs') THEN
                 IF (solver == 'none') solver = 'cg'
             ELSE
                 IF (solver == 'none') solver = 'iterative'
                 IF (solver == 'iterative' .AND. auxiliary == 'none') auxiliary = 'full'
                 !
-                IF (solver .NE. 'iterative') &
+                IF (solver /= 'iterative') &
                     CALL errore(sub_name, &
                                 'GCS correction requires iterative solver', 1)
                 !
@@ -1969,7 +1968,7 @@ CONTAINS
         IF (.NOT. (problem == 'pb' .OR. &
                    problem == 'modpb' .OR. &
                    problem == 'generalized') &
-            .AND. (inner_solver .NE. 'none')) &
+            .AND. (inner_solver /= 'none')) &
             CALL errore(sub_name, 'Only pb or modpb problems allow inner solver', 1)
         !
         RETURN
@@ -2050,11 +2049,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Final check
         !
-        IF (env_external_charges .GT. 0 .AND. .NOT. taextchg) &
+        IF (env_external_charges > 0 .AND. .NOT. taextchg) &
             CALL errore(' environ_read_cards  ', &
                         ' missing card external_charges', 0)
         !
-        IF (env_dielectric_regions .GT. 0 .AND. .NOT. taepsreg) &
+        IF (env_dielectric_regions > 0 .AND. .NOT. taepsreg) &
             CALL errore(' environ_read_cards  ', &
                         ' missing card dielectric_regions', 0)
         !
@@ -2183,7 +2182,7 @@ CONTAINS
                 !
                 READ (field_str, *) extcharge_spread(ie)
                 !
-                IF (extcharge_spread(ie) .LT. 0.D0) &
+                IF (extcharge_spread(ie) < 0.D0) &
                     CALL errore(' card_external_charges  ', &
                                 ' spread must be positive', ie)
                 !
@@ -2198,11 +2197,11 @@ CONTAINS
                 !
                 READ (field_str, *) extcharge_dim(ie)
                 !
-                IF (extcharge_dim(ie) .LT. 0 .OR. extcharge_dim(ie) .GT. 2) &
+                IF (extcharge_dim(ie) < 0 .OR. extcharge_dim(ie) > 2) &
                     CALL errore(' card_external_charges  ', &
                                 ' wrong excharge dimension ', ie)
                 !
-                IF (extcharge_dim(ie) .GT. 0) THEN
+                IF (extcharge_dim(ie) > 0) THEN
                     !
                     IF (nfield == 6) &
                         CALL errore('environ_cards', &
@@ -2213,7 +2212,7 @@ CONTAINS
                     !
                     READ (field_str, *) extcharge_axis(ie)
                     !
-                    IF (extcharge_axis(ie) .LT. 0 .OR. extcharge_axis(ie) .GT. 3) &
+                    IF (extcharge_axis(ie) < 0 .OR. extcharge_axis(ie) > 3) &
                         CALL errore(' card_external_charges  ', &
                                     ' wrong excharge axis ', ie)
                     !
@@ -2375,7 +2374,7 @@ CONTAINS
             !
             READ (field_str, *) epsregion_eps(1, ie)
             !
-            IF (epsregion_eps(1, ie) .LT. 1.D0) &
+            IF (epsregion_eps(1, ie) < 1.D0) &
                 CALL errore(' card_dielectric_regions  ', &
                             ' static permittivity must be .gt. 1', ie)
             !
@@ -2383,7 +2382,7 @@ CONTAINS
             !
             READ (field_str, *) epsregion_eps(2, ie)
             !
-            IF (epsregion_eps(2, ie) .LT. 1.D0) &
+            IF (epsregion_eps(2, ie) < 1.D0) &
                 CALL errore(' card_dielectric_regions  ', &
                             ' optical permittivity must be .gt. 1', ie)
             !
@@ -2409,7 +2408,7 @@ CONTAINS
             !
             READ (field_str, *) epsregion_width(ie)
             !
-            IF (epsregion_width(ie) .LT. 0.D0) &
+            IF (epsregion_width(ie) < 0.D0) &
                 CALL errore(' card_dielectric_regions  ', &
                             ' width must be positive', ie)
             !
@@ -2422,7 +2421,7 @@ CONTAINS
                 !
                 READ (field_str, *) epsregion_spread(ie)
                 !
-                IF (epsregion_spread(ie) .LT. 0.D0) &
+                IF (epsregion_spread(ie) < 0.D0) &
                     CALL errore(' card_dielectric_regions ', &
                                 ' spread must be positive', ie)
                 !
@@ -2437,11 +2436,11 @@ CONTAINS
                 !
                 READ (field_str, *) epsregion_dim(ie)
                 !
-                IF (epsregion_dim(ie) .LT. 0 .OR. epsregion_dim(ie) .GT. 2) &
+                IF (epsregion_dim(ie) < 0 .OR. epsregion_dim(ie) > 2) &
                     CALL errore(' card_dielectric_regions ', &
                                 ' wrong epsregion dimension ', ie)
                 !
-                IF (epsregion_dim(ie) .GT. 0) THEN
+                IF (epsregion_dim(ie) > 0) THEN
                     !
                     IF (nfield == 8) &
                         CALL errore('environ_cards', &
@@ -2452,7 +2451,7 @@ CONTAINS
                     !
                     READ (field_str, *) epsregion_axis(ie)
                     !
-                    IF (epsregion_axis(ie) .LT. 1 .OR. epsregion_axis(ie) .GT. 3) &
+                    IF (epsregion_axis(ie) < 1 .OR. epsregion_axis(ie) > 3) &
                         CALL errore(' card_dielectric_regions ', &
                                     ' wrong epsregion axis ', ie)
                     !

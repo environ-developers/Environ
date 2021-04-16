@@ -59,7 +59,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Initialize index array
         !
-        IF (ind(1) .EQ. 0) THEN
+        IF (ind(1) == 0) THEN
             !
             DO i = 1, n
                 ind(i) = i
@@ -69,14 +69,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (n .LT. 2) RETURN ! nothing to order
+        IF (n < 2) RETURN ! nothing to order
         !
         l = n / 2 + 1
         ir = n
         !
         sorting: DO
             !
-            IF (l .GT. 1) THEN ! hiring phase
+            IF (l > 1) THEN ! hiring phase
                 !
                 l = l - 1
                 rra = ra(l)
@@ -94,7 +94,7 @@ CONTAINS
                 !
                 ir = ir - 1 ! decrease the size of the corporation
                 !
-                IF (ir .EQ. 1) THEN ! done with the last promotion
+                IF (ir == 1) THEN ! done with the last promotion
                     !
                     ra(1) = rra
                     ind(1) = iind
@@ -112,26 +112,26 @@ CONTAINS
             i = l
             j = l + l
             !
-            DO WHILE (j .LE. ir)
+            DO WHILE (j <= ir)
                 !
-                IF (j .LT. ir) THEN
+                IF (j < ir) THEN
                     !
-                    IF (ABS(ra(j) - ra(j + 1)) .GE. eps) THEN
+                    IF (ABS(ra(j) - ra(j + 1)) >= eps) THEN
                         !
-                        IF (ra(j) .LT. ra(j + 1)) j = j + 1
+                        IF (ra(j) < ra(j + 1)) j = j + 1
                         ! compare to better underling
                         !
                     ELSE ! this means ra(j) == ra(j+1) within tolerance
                         !
-                        IF (ind(j) .LT. ind(j + 1)) j = j + 1
+                        IF (ind(j) < ind(j + 1)) j = j + 1
                         !
                     END IF
                     !
                 END IF
                 !
-                IF (ABS(rra - ra(j)) .GE. eps) THEN ! demote rra
+                IF (ABS(rra - ra(j)) >= eps) THEN ! demote rra
                     !
-                    IF (rra .LT. ra(j)) THEN
+                    IF (rra < ra(j)) THEN
                         ra(i) = ra(j)
                         ind(i) = ind(j)
                         i = j
@@ -142,7 +142,7 @@ CONTAINS
                     !
                 ELSE ! this means rra == ra(j) within tolerance
                     !
-                    IF (iind .LT. ind(j)) THEN ! demote rra
+                    IF (iind < ind(j)) THEN ! demote rra
                         ra(i) = ra(j)
                         ind(i) = ind(j)
                         i = j
@@ -200,7 +200,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! initialize index array
         !
-        IF (ind(1) .EQ. 0) THEN
+        IF (ind(1) == 0) THEN
             DO i = 1, n
                 ind(i) = i
             END DO
@@ -208,7 +208,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (n .LT. 2) RETURN ! nothing to order
+        IF (n < 2) RETURN ! nothing to order
         !
         !--------------------------------------------------------------------------------
         ! initialize indices for hiring and retirement-promotion phase
@@ -219,7 +219,7 @@ CONTAINS
         !
         ! still in hiring phase
         !
-        IF (l .GT. 1) THEN
+        IF (l > 1) THEN
             l = l - 1
             rra = ra(l)
             iind = ind(l)
@@ -244,7 +244,7 @@ CONTAINS
             !
             ! done with the last promotion
             !
-            IF (ir .EQ. 1) THEN
+            IF (ir == 1) THEN
                 !
                 ! the least competent worker at all
                 !
@@ -266,32 +266,32 @@ CONTAINS
         !
         j = l + l
         !
-        DO WHILE (j .LE. ir)
+        DO WHILE (j <= ir)
             !
-            IF (j .LT. ir) THEN
+            IF (j < ir) THEN
                 !
                 ! compare to better underling
                 !
-                IF (ra(j) .LT. ra(j + 1)) THEN
+                IF (ra(j) < ra(j + 1)) THEN
                     j = j + 1
-                ELSE IF (ra(j) .EQ. ra(j + 1)) THEN
-                    IF (ind(j) .LT. ind(j + 1)) j = j + 1
+                ELSE IF (ra(j) == ra(j + 1)) THEN
+                    IF (ind(j) < ind(j + 1)) j = j + 1
                 END IF
                 !
             END IF
             !
             ! demote rra
             !
-            IF (rra .LT. ra(j)) THEN
+            IF (rra < ra(j)) THEN
                 ra(i) = ra(j)
                 ind(i) = ind(j)
                 i = j
                 j = j + j
-            ELSE IF (rra .EQ. ra(j)) THEN
+            ELSE IF (rra == ra(j)) THEN
                 !
                 ! demote rra
                 !
-                IF (iind .LT. ind(j)) THEN
+                IF (iind < ind(j)) THEN
                     ra(i) = ra(j)
                     ind(i) = ind(j)
                     i = j
@@ -356,7 +356,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! initialize index array
         !
-        IF (ind(1) .EQ. 0) THEN
+        IF (ind(1) == 0) THEN
             DO i = 1, n
                 ind(i) = i
             END DO
@@ -364,7 +364,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (n .LT. 2) RETURN ! nothing to order
+        IF (n < 2) RETURN ! nothing to order
         !
         !--------------------------------------------------------------------------------
         ! initialize indices for hiring and retirement-promotion phase
@@ -375,7 +375,7 @@ CONTAINS
         !
         ! still in hiring phase
         !
-        IF (l .GT. 1) THEN
+        IF (l > 1) THEN
             l = l - 1
             iia = ia(l)
             iind = ind(l)
@@ -398,7 +398,7 @@ CONTAINS
             !
             ! done with the last promotion
             !
-            IF (ir .EQ. 1) THEN
+            IF (ir == 1) THEN
                 ! the least competent worker at all !
                 ia(1) = iia
                 !
@@ -418,32 +418,32 @@ CONTAINS
         !
         j = l + l
         !
-        DO WHILE (j .LE. ir)
+        DO WHILE (j <= ir)
             !
-            IF (j .LT. ir) THEN
+            IF (j < ir) THEN
                 !
                 ! compare to better underling
                 !
-                IF (ia(j) .LT. ia(j + 1)) THEN
+                IF (ia(j) < ia(j + 1)) THEN
                     j = j + 1
-                ELSE IF (ia(j) .EQ. ia(j + 1)) THEN
-                    IF (ind(j) .LT. ind(j + 1)) j = j + 1
+                ELSE IF (ia(j) == ia(j + 1)) THEN
+                    IF (ind(j) < ind(j + 1)) j = j + 1
                 END IF
                 !
             END IF
             !
             ! demote iia
             !
-            IF (iia .LT. ia(j)) THEN
+            IF (iia < ia(j)) THEN
                 ia(i) = ia(j)
                 ind(i) = ind(j)
                 i = j
                 j = j + j
-            ELSE IF (iia .EQ. ia(j)) THEN
+            ELSE IF (iia == ia(j)) THEN
                 !
                 ! demote iia
                 !
-                IF (iind .LT. ind(j)) THEN
+                IF (iind < ind(j)) THEN
                     ia(i) = ia(j)
                     ind(i) = ind(j)
                     i = j

@@ -85,9 +85,9 @@ CONTAINS
             !
             idx = idx + 1 + shift
             !
-            IF (idx .GT. naxis) THEN
+            IF (idx > naxis) THEN
                 idx = idx - naxis
-            ELSE IF (idx .LE. 0) THEN
+            ELSE IF (idx <= 0) THEN
                 idx = idx + naxis
             END IF
             !
@@ -139,12 +139,12 @@ CONTAINS
         !
         cell => density%cell
         !
-        IF (ABS(charge) .LT. tol) RETURN
+        IF (ABS(charge) < tol) RETURN
         !
-        IF (ABS(spread) .LT. tol) &
+        IF (ABS(spread) < tol) &
             CALL errore(sub_name, 'Wrong spread for Gaussian function', 1)
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong axis in generate_gaussian', 1)
         !
         SELECT CASE (dim)
@@ -180,7 +180,7 @@ CONTAINS
             !
             r2 = r2 / spr2
             !
-            IF (r2 .LE. exp_tol) local(ir) = EXP(-r2)
+            IF (r2 <= exp_tol) local(ir) = EXP(-r2)
             !
         END DO
         !
@@ -220,12 +220,12 @@ CONTAINS
         !
         cell => gradient%cell ! sanity checks and initial setup
         !
-        IF (ABS(charge) .LT. tol) RETURN
+        IF (ABS(charge) < tol) RETURN
         !
-        IF (ABS(spread) .LT. tol) &
+        IF (ABS(spread) < tol) &
             CALL errore(sub_name, 'Wrong spread for Gaussian function', 1)
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong value of axis', 1)
         !
         SELECT CASE (dim)
@@ -263,7 +263,7 @@ CONTAINS
             !
             r2 = r2 / spr2
             !
-            IF (r2 .LE. exp_tol) gradlocal(:, ir) = EXP(-r2) * r(:)
+            IF (r2 <= exp_tol) gradlocal(:, ir) = EXP(-r2) * r(:)
             !
         END DO
         !
@@ -303,7 +303,7 @@ CONTAINS
         !
         cell => density%cell
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong value of axis', 1)
         !
         ALLOCATE (local(cell%nnr))
@@ -325,7 +325,7 @@ CONTAINS
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
             !
-            IF (ABS(arg) .LE. exp_tol) local(ir) = EXP(-arg)
+            IF (ABS(arg) <= exp_tol) local(ir) = EXP(-arg)
             !
         END DO
         !
@@ -365,7 +365,7 @@ CONTAINS
         !
         cell => gradient%cell
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong value of axis', 1)
         !
         ALLOCATE (gradlocal(3, cell%nnr))
@@ -387,7 +387,7 @@ CONTAINS
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
             !
-            IF (r2 .GT. tol .AND. ABS(arg) .LE. exp_tol) &
+            IF (r2 > tol .AND. ABS(arg) <= exp_tol) &
                 gradlocal(:, ir) = r(:) / SQRT(r2) / spread * EXP(-arg)
             !
         END DO
@@ -430,7 +430,7 @@ CONTAINS
         !
         cell => density%cell
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
@@ -467,7 +467,7 @@ CONTAINS
         !
         CALL mp_sum(chargelocal, cell%dfft%comm)
         !
-        IF (ABS(chargelocal - chargeanalytic) / chargeanalytic .GT. 1.D-4) &
+        IF (ABS(chargelocal - chargeanalytic) / chargeanalytic > 1.D-4) &
             CALL infomsg(sub_name, 'WARNING: wrong integral of erfc function')
         !
         !--------------------------------------------------------------------------------
@@ -510,7 +510,7 @@ CONTAINS
         !
         cell => gradient%cell
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
@@ -539,7 +539,7 @@ CONTAINS
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
             !
-            IF (dist .GT. tol) gradlocal(:, ir) = EXP(-arg**2) * r(:) / dist
+            IF (dist > tol) gradlocal(:, ir) = EXP(-arg**2) * r(:) / dist
             !
         END DO
         !
@@ -579,7 +579,7 @@ CONTAINS
         !
         cell => laplacian%cell
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
@@ -610,12 +610,12 @@ CONTAINS
             SELECT CASE (dim)
             CASE (0)
                 !
-                IF (dist .GT. tol) &
+                IF (dist > tol) &
                     lapllocal(ir) = -EXP(-arg**2) * (1.D0 / dist - arg / spread) * 2.D0
                 !
             CASE (1)
                 !
-                IF (dist .GT. tol) &
+                IF (dist > tol) &
                     lapllocal(ir) = -EXP(-arg**2) * (1.D0 / dist - 2.D0 * arg / spread)
                 !
             CASE (2)
@@ -660,7 +660,7 @@ CONTAINS
         !
         cell => hessian%cell
         !
-        IF (axis .LT. 1 .OR. axis .GT. 3) &
+        IF (axis < 1 .OR. axis > 3) &
             CALL errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
@@ -686,14 +686,14 @@ CONTAINS
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
             !
-            IF (dist .GT. tol) THEN
+            IF (dist > tol) THEN
                 !
                 DO ip = 1, 3
                     !
                     DO jp = 1, 3
                         tmp = -r(ip) * r(jp) * (1.D0 / dist + 2.D0 * arg / spread)
                         !
-                        IF (ip .EQ. jp) tmp = tmp + dist
+                        IF (ip == jp) tmp = tmp + dist
                         !
                         hesslocal(ip, jp, ir) = -EXP(-arg**2) * tmp / dist**2
                     END DO
@@ -749,7 +749,7 @@ CONTAINS
     !     bg = drho%cell%bg
     !     omega = drho%cell%omega
     !     !
-    !     IF (dfftp%nr1 .EQ. 0 .OR. dfftp%nr2 .EQ. 0 .OR. dfftp%nr3 .EQ. 0) THEN
+    !     IF (dfftp%nr1 == 0 .OR. dfftp%nr2 == 0 .OR. dfftp%nr3 == 0) THEN
     !         WRITE (6, *) 'ERROR: wrong grid dimension', dfftp%nr1, dfftp%nr2, dfftp%nr3
     !         !
     !         STOP
@@ -762,7 +762,7 @@ CONTAINS
     !     !
     !     ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
     !     !
-    !     IF (axis .LT. 1 .OR. axis .GT. 3) &
+    !     IF (axis < 1 .OR. axis > 3) &
     !         WRITE (6, *) 'WARNING: wrong axis in generate_gaussian'
     !     !
     !     chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
@@ -835,12 +835,12 @@ CONTAINS
     !         !----------------------------------------------------------------------------
     !         ! possibly 2D or 1D erfc
     !         !
-    !         IF (dim .EQ. 1) THEN
+    !         IF (dim == 1) THEN
     !             r(axis) = 0.D0
-    !         ELSE IF (dim .EQ. 2) THEN
+    !         ELSE IF (dim == 2) THEN
     !             !
     !             DO i = 1, 3
-    !                 IF (i .NE. axis) r(i) = 0.D0
+    !                 IF (i /= axis) r(i) = 0.D0
     !             END DO
     !             !
     !         END IF
@@ -856,7 +856,7 @@ CONTAINS
     !         dist = SQRT(SUM(r * r))
     !         arg = (dist - width) / spread
     !         !
-    !         IF (dist .GT. tol) drholocal(ir) = -EXP(-arg**2)
+    !         IF (dist > tol) drholocal(ir) = -EXP(-arg**2)
     !         chargelocal = chargelocal + qe_erfc(arg)
     !         !
     !     END DO
@@ -868,7 +868,7 @@ CONTAINS
     !     CALL mp_sum(chargelocal, intra_bgrp_comm)
     !     chargelocal = chargelocal * omega / DBLE(ntot) * 0.5D0
     !     !
-    !     IF (ABS(chargelocal - chargeanalytic) / chargeanalytic .GT. 1.D-4) &
+    !     IF (ABS(chargelocal - chargeanalytic) / chargeanalytic > 1.D-4) &
     !         WRITE (6, *) &
     !         'WARNING: significant discrepancy between &
     !         &the numerical and the !expected erfc charge'
@@ -983,7 +983,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (spread .LT. tol .OR. width .LT. tol) &
+        IF (spread < tol .OR. width < tol) &
             CALL errore(fun_name, 'Wrong parameters of erfc function', 1)
         !
         t = spread / width

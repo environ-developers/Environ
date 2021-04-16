@@ -342,7 +342,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! determine first nonzero g vector
         !
-        IF (gg(1) .LE. eps8) THEN
+        IF (gg(1) <= eps8) THEN
             gstart = 2
         ELSE
             gstart = 1

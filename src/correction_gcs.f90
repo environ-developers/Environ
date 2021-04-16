@@ -160,7 +160,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Get parameters of electrolyte to compute analytic correction
         !
-        IF (electrolyte%ntyp .NE. 2) &
+        IF (electrolyte%ntyp /= 2) &
             CALL errore(sub_name, &
                         'Unexpected number of counterionic species, &
                         &different from two', 1)
@@ -176,7 +176,7 @@ CONTAINS
         kbt = electrolyte%temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
-        IF (env_periodicity .NE. 2) &
+        IF (env_periodicity /= 2) &
             CALL errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
@@ -244,7 +244,7 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (ABS(axis(1, i)) .GE. xstern) THEN
+            IF (ABS(axis(1, i)) >= xstern) THEN
                 !
                 icount = icount + 1
                 !
@@ -276,7 +276,7 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (ABS(axis(1, i)) .GE. xstern) THEN
+                IF (ABS(axis(1, i)) >= xstern) THEN
                     !
                     vtmp = lin_c * EXP(-1.D0 * lin_k * ABS(axis(1, i)) / lin_e)
                     ! Linearized Gouy-Chapmann-Stern analytic solution on the outside
@@ -295,14 +295,14 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Gouy-Chapmann-Stern analytic solution on the outside
                 !
-                IF (axis(1, i) .LE. -xstern) THEN
+                IF (axis(1, i) <= -xstern) THEN
                     !
                     !--------------------------------------------------------------------
                     ! left solution
                     !
                     arg = constl * EXP(ABS(axis(1, i)) * f1)
                     !
-                    IF (ABS(arg) .GT. 1.D0) THEN
+                    IF (ABS(arg) > 1.D0) THEN
                         acoth = 0.5D0 * LOG((arg + 1.D0) / (arg - 1.D0))
                     ELSE
                         acoth = 0.D0
@@ -313,14 +313,14 @@ CONTAINS
                     v(i) = vtmp - potential%of_r(i)
                     ! Remove source potential and add analytic one
                     !
-                ELSE IF (axis(1, i) .GE. xstern) THEN
+                ELSE IF (axis(1, i) >= xstern) THEN
                     !
                     !--------------------------------------------------------------------
                     ! right solution
                     !
                     arg = constr * EXP(ABS(axis(1, i)) * f1)
                     !
-                    IF (ABS(arg) .GT. 1.D0) THEN
+                    IF (ABS(arg) > 1.D0) THEN
                         acoth = 0.5D0 * LOG((arg + 1.D0) / (arg - 1.D0))
                     ELSE
                         acoth = 0.D0
@@ -410,7 +410,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Get parameters of electrolyte to compute analytic correction
         !
-        IF (electrolyte%ntyp .NE. 2) &
+        IF (electrolyte%ntyp /= 2) &
             CALL errore(sub_name, &
                         'Unexpected number of counterionic species, &
                         &different from two', 1)
@@ -426,7 +426,7 @@ CONTAINS
         kbt = electrolyte%temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
-        IF (env_periodicity .NE. 2) &
+        IF (env_periodicity /= 2) &
             CALL errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
@@ -487,7 +487,7 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (ABS(axis(1, i)) .GE. xstern) THEN
+                IF (ABS(axis(1, i)) >= xstern) THEN
                     !
                     !--------------------------------------------------------------------
                     ! Linearized Gouy-Chapmann-Stern analytic solution on the outside
@@ -514,7 +514,7 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (axis(1, i) .LE. -xstern) THEN
+                IF (axis(1, i) <= -xstern) THEN
                     !
                     !--------------------------------------------------------------------
                     ! Gouy-Chapmann-Stern analytic solution on the outside
@@ -527,7 +527,7 @@ CONTAINS
                         -gradv%of_r(slab_axis, i) + &
                         (dvtmp_dx - ez) * ABS(axis(1, i)) / axis(1, i)
                     !
-                ELSE IF (axis(1, i) .GE. xstern) THEN
+                ELSE IF (axis(1, i) >= xstern) THEN
                     !
                     !--------------------------------------------------------------------
                     ! Gouy-Chapmann-Stern analytic solution on the outside

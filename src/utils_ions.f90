@@ -205,23 +205,23 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Check if values were provided in input and overwrite them
             !
-            IF (atomicspread(i) .GT. 0) ions%iontype(i)%atomicspread = atomicspread(i)
+            IF (atomicspread(i) > 0) ions%iontype(i)%atomicspread = atomicspread(i)
             !
-            IF (corespread(i) .GT. 0) ions%iontype(i)%corespread = corespread(i)
+            IF (corespread(i) > 0) ions%iontype(i)%corespread = corespread(i)
             !
-            IF (solvationrad(i) .GT. 0) ions%iontype(i)%solvationrad = solvationrad(i)
+            IF (solvationrad(i) > 0) ions%iontype(i)%solvationrad = solvationrad(i)
             !
             !----------------------------------------------------------------------------
             ! If need cavity defined exclusively on ions, check radius is not zero
             !
-            IF (.NOT. lsoftcavity .AND. (ions%iontype(i)%solvationrad .EQ. 0.D0)) &
+            IF (.NOT. lsoftcavity .AND. (ions%iontype(i)%solvationrad == 0.D0)) &
                 CALL errore(sub_name, &
                             'Missing solvation radius for one of the atom types', 1)
             !
             !----------------------------------------------------------------------------
             ! If need smeared ions, check spread is not zero
             !
-            IF (lsmearedions .AND. (ions%iontype(i)%atomicspread .EQ. 0.D0)) &
+            IF (lsmearedions .AND. (ions%iontype(i)%atomicspread == 0.D0)) &
                 CALL errore(sub_name, &
                             'Missing atomic spread for one of the atom types', 1)
             !
@@ -262,10 +262,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Check on dimensions, can skip if merged with first step
         !
-        IF (ions%number .NE. nat) &
+        IF (ions%number /= nat) &
             CALL errore(sub_name, 'Mismatch in number of atoms', 1)
         !
-        IF (ions%ntyp .NE. ntyp) &
+        IF (ions%ntyp /= ntyp) &
             CALL errore(sub_name, 'Mismatch in number of atom types', 1)
         !
         ions%alat = cell%alat ! needed because the ionic positions are scaled by alat
@@ -387,7 +387,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ions%number .NE. nat) &
+        IF (ions%number /= nat) &
             CALL errore(sub_name, 'Mismatch in number of atoms', 1)
         !
         ions%tau = tau ! Update positions
@@ -404,7 +404,7 @@ CONTAINS
             !
         END DO
         !
-        IF (ABS(ions%charge) .LT. 1.D-8) &
+        IF (ABS(ions%charge) < 1.D-8) &
             CALL errore(sub_name, 'Ionic charge equal to zero', 1)
         !
         ions%center = ions%center / ions%charge
@@ -597,7 +597,7 @@ CONTAINS
         iontype%zv = 0.D0 ! this cannot be initialized here at this time
         iontype%atmnum = get_atmnum(label)
         !
-        IF (iontype%atmnum .EQ. 0) &
+        IF (iontype%atmnum == 0) &
             CALL errore(sub_name, &
                         'Can not assign the atom type associated with input label', 1)
         !
@@ -650,29 +650,27 @@ CONTAINS
         !
         CALL lowcase(tmplab) ! #TODO simplify
         !
-        ! #TODO level 1 mod: switch case | level 2 mod: different data type
-        !
-        IF (tmplab(1:1) .EQ. 'a') THEN
+        IF (tmplab(1:1) == 'a') THEN
             !
-            IF (tmplab(2:2) .EQ. 'c') THEN
+            IF (tmplab(2:2) == 'c') THEN
                 num = 89
                 weigth = 227.03
-            ELSE IF (tmplab(2:2) .EQ. 'l') THEN
+            ELSE IF (tmplab(2:2) == 'l') THEN
                 num = 13
                 weigth = 26.981538
-            ELSE IF (tmplab(2:2) .EQ. 'r') THEN
+            ELSE IF (tmplab(2:2) == 'r') THEN
                 num = 18
                 weigth = 39.948
-            ELSE IF (tmplab(2:2) .EQ. 'g') THEN
+            ELSE IF (tmplab(2:2) == 'g') THEN
                 num = 47
                 weigth = 107.8682
-            ELSE IF (tmplab(2:2) .EQ. 's') THEN
+            ELSE IF (tmplab(2:2) == 's') THEN
                 num = 33
                 weigth = 74.9216
-            ELSE IF (tmplab(2:2) .EQ. 'u') THEN
+            ELSE IF (tmplab(2:2) == 'u') THEN
                 num = 79
                 weigth = 196.96655
-            ELSE IF (tmplab(2:2) .EQ. 't') THEN
+            ELSE IF (tmplab(2:2) == 't') THEN
                 num = 85
                 weigth = 210
             ELSE
@@ -680,18 +678,18 @@ CONTAINS
                 weigth = 26.981538
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'b') THEN
+        ELSE IF (tmplab(1:1) == 'b') THEN
             !
-            IF (tmplab(2:2) .EQ. 'e') THEN
+            IF (tmplab(2:2) == 'e') THEN
                 num = 4
                 weigth = 9.012182
-            ELSE IF (tmplab(2:2) .EQ. 'r') THEN
+            ELSE IF (tmplab(2:2) == 'r') THEN
                 num = 35
                 weigth = 79.904
-            ELSE IF (tmplab(2:2) .EQ. 'a') THEN
+            ELSE IF (tmplab(2:2) == 'a') THEN
                 num = 56
                 weigth = 137.327
-            ELSE IF (tmplab(2:2) .EQ. 'i') THEN
+            ELSE IF (tmplab(2:2) == 'i') THEN
                 num = 83
                 weigth = 208.98038
             ELSE
@@ -699,30 +697,30 @@ CONTAINS
                 weigth = 10.811
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'c') THEN
+        ELSE IF (tmplab(1:1) == 'c') THEN
             !
-            IF (tmplab(2:2) .EQ. 'a') THEN
+            IF (tmplab(2:2) == 'a') THEN
                 num = 20
                 weigth = 40.078
-            ELSE IF (tmplab(2:2) .EQ. 'r') THEN
+            ELSE IF (tmplab(2:2) == 'r') THEN
                 num = 24
                 weigth = 51.9961
-            ELSE IF (tmplab(2:2) .EQ. 'o') THEN
+            ELSE IF (tmplab(2:2) == 'o') THEN
                 num = 27
                 weigth = 58.9332
-            ELSE IF (tmplab(2:2) .EQ. 'l') THEN
+            ELSE IF (tmplab(2:2) == 'l') THEN
                 num = 17
                 weigth = 35.453
-            ELSE IF (tmplab(2:2) .EQ. 's') THEN
+            ELSE IF (tmplab(2:2) == 's') THEN
                 num = 55
                 weigth = 132.90545
-            ELSE IF (tmplab(2:2) .EQ. 'd') THEN
+            ELSE IF (tmplab(2:2) == 'd') THEN
                 num = 48
                 weigth = 112.411
-            ELSE IF (tmplab(2:2) .EQ. 'u') THEN
+            ELSE IF (tmplab(2:2) == 'u') THEN
                 num = 29
                 weigth = 63.546
-            ELSE IF (tmplab(2:2) .EQ. 'e') THEN
+            ELSE IF (tmplab(2:2) == 'e') THEN
                 num = 58
                 weigth = 140.116
             ELSE
@@ -730,12 +728,12 @@ CONTAINS
                 weigth = 12.0107
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'f') THEN
+        ELSE IF (tmplab(1:1) == 'f') THEN
             !
-            IF (tmplab(2:2) .EQ. 'e') THEN
+            IF (tmplab(2:2) == 'e') THEN
                 num = 26
                 weigth = 55.845
-            ELSE IF (tmplab(2:2) .EQ. 'r') THEN
+            ELSE IF (tmplab(2:2) == 'r') THEN
                 num = 87
                 weigth = 223
             ELSE
@@ -743,12 +741,12 @@ CONTAINS
                 weigth = 18.9984032
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'g') THEN
+        ELSE IF (tmplab(1:1) == 'g') THEN
             !
-            IF (tmplab(2:2) .EQ. 'a') THEN
+            IF (tmplab(2:2) == 'a') THEN
                 num = 31
                 weigth = 69.723
-            ELSE IF (tmplab(2:2) .EQ. 'e') THEN
+            ELSE IF (tmplab(2:2) == 'e') THEN
                 num = 32
                 weigth = 72.64
             ELSE
@@ -756,15 +754,15 @@ CONTAINS
                 weigth = 69.723
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'h') THEN
+        ELSE IF (tmplab(1:1) == 'h') THEN
             !
-            IF (tmplab(2:2) .EQ. 'e') THEN
+            IF (tmplab(2:2) == 'e') THEN
                 num = 2
                 weigth = 4.002602
-            ELSE IF (tmplab(2:2) .EQ. 'g') THEN
+            ELSE IF (tmplab(2:2) == 'g') THEN
                 num = 80
                 weigth = 200.59
-            ELSE IF (tmplab(2:2) .EQ. 'f') THEN
+            ELSE IF (tmplab(2:2) == 'f') THEN
                 num = 72
                 weigth = 178.49
             ELSE
@@ -772,12 +770,12 @@ CONTAINS
                 weigth = 1.00794
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'i') THEN
+        ELSE IF (tmplab(1:1) == 'i') THEN
             !
-            IF (tmplab(2:2) .EQ. 'n') THEN
+            IF (tmplab(2:2) == 'n') THEN
                 num = 49
                 weigth = 114.818
-            ELSE IF (tmplab(2:2) .EQ. 'r') THEN
+            ELSE IF (tmplab(2:2) == 'r') THEN
                 num = 77
                 weigth = 192.217
             ELSE
@@ -785,9 +783,9 @@ CONTAINS
                 weigth = 126.90447
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'k') THEN
+        ELSE IF (tmplab(1:1) == 'k') THEN
             !
-            IF (tmplab(2:2) .EQ. 'r') THEN
+            IF (tmplab(2:2) == 'r') THEN
                 num = 36
                 weigth = 83.798
             ELSE
@@ -795,12 +793,12 @@ CONTAINS
                 weigth = 39.0983
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'l') THEN
+        ELSE IF (tmplab(1:1) == 'l') THEN
             !
-            IF (tmplab(2:2) .EQ. 'i') THEN
+            IF (tmplab(2:2) == 'i') THEN
                 num = 3
                 weigth = 6.941
-            ELSE IF (tmplab(2:2) .EQ. 'a') THEN
+            ELSE IF (tmplab(2:2) == 'a') THEN
                 num = 57
                 weigth = 138.9055
             ELSE
@@ -808,15 +806,15 @@ CONTAINS
                 weigth = 6.941
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'm') THEN
+        ELSE IF (tmplab(1:1) == 'm') THEN
             !
-            IF (tmplab(2:2) .EQ. 'g') THEN
+            IF (tmplab(2:2) == 'g') THEN
                 num = 12
                 weigth = 24.3050
-            ELSE IF (tmplab(2:2) .EQ. 'n') THEN
+            ELSE IF (tmplab(2:2) == 'n') THEN
                 num = 25
                 weigth = 54.938049
-            ELSE IF (tmplab(2:2) .EQ. 'o') THEN
+            ELSE IF (tmplab(2:2) == 'o') THEN
                 num = 42
                 weigth = 95.94
             ELSE
@@ -824,21 +822,21 @@ CONTAINS
                 weigth = 54.938049
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'n') THEN
+        ELSE IF (tmplab(1:1) == 'n') THEN
             !
-            IF (tmplab(2:2) .EQ. 'a') THEN
+            IF (tmplab(2:2) == 'a') THEN
                 num = 11
                 weigth = 22.98977
-            ELSE IF (tmplab(2:2) .EQ. 'i') THEN
+            ELSE IF (tmplab(2:2) == 'i') THEN
                 num = 28
                 weigth = 58.6934
-            ELSE IF (tmplab(2:2) .EQ. 'b') THEN
+            ELSE IF (tmplab(2:2) == 'b') THEN
                 num = 41
                 weigth = 92.90638
-            ELSE IF (tmplab(2:2) .EQ. 'e') THEN
+            ELSE IF (tmplab(2:2) == 'e') THEN
                 num = 10
                 weigth = 20.1797
-            ELSE IF (tmplab(2:2) .EQ. 'd') THEN
+            ELSE IF (tmplab(2:2) == 'd') THEN
                 num = 60
                 weigth = 144.24
             ELSE
@@ -846,9 +844,9 @@ CONTAINS
                 weigth = 14.0067
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'o') THEN
+        ELSE IF (tmplab(1:1) == 'o') THEN
             !
-            IF (tmplab(2:2) .EQ. 's') THEN
+            IF (tmplab(2:2) == 's') THEN
                 num = 76
                 weigth = 190.23
             ELSE
@@ -856,21 +854,21 @@ CONTAINS
                 weigth = 15.9994
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'p') THEN
+        ELSE IF (tmplab(1:1) == 'p') THEN
             !
-            IF (tmplab(2:2) .EQ. 'a') THEN
+            IF (tmplab(2:2) == 'a') THEN
                 num = 91
                 weigth = 231.04
-            ELSE IF (tmplab(2:2) .EQ. 'd') THEN
+            ELSE IF (tmplab(2:2) == 'd') THEN
                 num = 46
                 weigth = 106.42
-            ELSE IF (tmplab(2:2) .EQ. 't') THEN
+            ELSE IF (tmplab(2:2) == 't') THEN
                 num = 78
                 weigth = 195.078
-            ELSE IF (tmplab(2:2) .EQ. 'b') THEN
+            ELSE IF (tmplab(2:2) == 'b') THEN
                 num = 82
                 weigth = 207.2
-            ELSE IF (tmplab(2:2) .EQ. 'o') THEN
+            ELSE IF (tmplab(2:2) == 'o') THEN
                 num = 84
                 weigth = 209
             ELSE
@@ -878,21 +876,21 @@ CONTAINS
                 weigth = 30.973761
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'r') THEN
+        ELSE IF (tmplab(1:1) == 'r') THEN
             !
-            IF (tmplab(2:2) .EQ. 'b') THEN
+            IF (tmplab(2:2) == 'b') THEN
                 num = 37
                 weigth = 85.4678
-            ELSE IF (tmplab(2:2) .EQ. 'u') THEN
+            ELSE IF (tmplab(2:2) == 'u') THEN
                 num = 44
                 weigth = 101.07
-            ELSE IF (tmplab(2:2) .EQ. 'h') THEN
+            ELSE IF (tmplab(2:2) == 'h') THEN
                 num = 45
                 weigth = 102.90550
-            ELSE IF (tmplab(2:2) .EQ. 'e') THEN
+            ELSE IF (tmplab(2:2) == 'e') THEN
                 num = 75
                 weigth = 186.207
-            ELSE IF (tmplab(2:2) .EQ. 'n') THEN
+            ELSE IF (tmplab(2:2) == 'n') THEN
                 num = 86
                 weigth = 222
             ELSE
@@ -900,24 +898,24 @@ CONTAINS
                 weigth = 85.4678
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 's') THEN
+        ELSE IF (tmplab(1:1) == 's') THEN
             !
-            IF (tmplab(2:2) .EQ. 'i') THEN
+            IF (tmplab(2:2) == 'i') THEN
                 num = 14
                 weigth = 28.0855
-            ELSE IF (tmplab(2:2) .EQ. 'e') THEN
+            ELSE IF (tmplab(2:2) == 'e') THEN
                 num = 34
                 weigth = 78.96
-            ELSE IF (tmplab(2:2) .EQ. 'c') THEN
+            ELSE IF (tmplab(2:2) == 'c') THEN
                 num = 21
                 weigth = 44.955910
-            ELSE IF (tmplab(2:2) .EQ. 'r') THEN
+            ELSE IF (tmplab(2:2) == 'r') THEN
                 num = 38
                 weigth = 87.62
-            ELSE IF (tmplab(2:2) .EQ. 'n') THEN
+            ELSE IF (tmplab(2:2) == 'n') THEN
                 num = 50
                 weigth = 118.710
-            ELSE IF (tmplab(2:2) .EQ. 'b') THEN
+            ELSE IF (tmplab(2:2) == 'b') THEN
                 num = 51
                 weigth = 121.760
             ELSE
@@ -925,24 +923,24 @@ CONTAINS
                 weigth = 32.065
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 't') THEN
+        ELSE IF (tmplab(1:1) == 't') THEN
             !
-            IF (tmplab(2:2) .EQ. 'a') THEN
+            IF (tmplab(2:2) == 'a') THEN
                 num = 73
                 weigth = 180.9479
-            ELSE IF (tmplab(2:2) .EQ. 'l') THEN
+            ELSE IF (tmplab(2:2) == 'l') THEN
                 num = 81
                 weigth = 204.3833
-            ELSE IF (tmplab(2:2) .EQ. 'c') THEN
+            ELSE IF (tmplab(2:2) == 'c') THEN
                 num = 43
                 weigth = 98
-            ELSE IF (tmplab(2:2) .EQ. 'h') THEN
+            ELSE IF (tmplab(2:2) == 'h') THEN
                 num = 90
                 weigth = 232.04
-            ELSE IF (tmplab(2:2) .EQ. 'i') THEN
+            ELSE IF (tmplab(2:2) == 'i') THEN
                 num = 22
                 weigth = 47.867
-            ELSE IF (tmplab(2:2) .EQ. 'e') THEN
+            ELSE IF (tmplab(2:2) == 'e') THEN
                 num = 52
                 weigth = 127.60
             ELSE
@@ -950,27 +948,27 @@ CONTAINS
                 weigth = 47.867
             END IF
             !
-        ELSE IF (tmplab(1:1) .EQ. 'u') THEN
+        ELSE IF (tmplab(1:1) == 'u') THEN
             num = 92
             weigth = 238.02891
-        ELSE IF (tmplab(1:1) .EQ. 'v') THEN
+        ELSE IF (tmplab(1:1) == 'v') THEN
             num = 23
             weigth = 50.9415
-        ELSE IF (tmplab(1:1) .EQ. 'w') THEN
+        ELSE IF (tmplab(1:1) == 'w') THEN
             num = 74
             weigth = 183.84
-        ELSE IF (tmplab(1:1) .EQ. 'x') THEN
+        ELSE IF (tmplab(1:1) == 'x') THEN
             num = 54
             weigth = 131.293
-        ELSE IF (tmplab(1:1) .EQ. 'y') THEN
+        ELSE IF (tmplab(1:1) == 'y') THEN
             num = 39
             weigth = 88.90585
-        ELSE IF (tmplab(1:1) .EQ. 'z') THEN
+        ELSE IF (tmplab(1:1) == 'z') THEN
             !
-            IF (tmplab(2:2) .EQ. 'n') THEN
+            IF (tmplab(2:2) == 'n') THEN
                 num = 30
                 weigth = 65.409
-            ELSE IF (tmplab(2:2) .EQ. 'r') THEN
+            ELSE IF (tmplab(2:2) == 'r') THEN
                 num = 40
                 weigth = 91.224
             ELSE
@@ -1009,57 +1007,57 @@ CONTAINS
         DO i = 1, MIN(255, length)
             letter = string(i:i)
             !
-            IF (letter .EQ. 'A') THEN
+            IF (letter == 'A') THEN
                 letter = 'a'
-            ELSE IF (letter .EQ. 'B') THEN
+            ELSE IF (letter == 'B') THEN
                 letter = 'b'
-            ELSE IF (letter .EQ. 'C') THEN
+            ELSE IF (letter == 'C') THEN
                 letter = 'c'
-            ELSE IF (letter .EQ. 'D') THEN
+            ELSE IF (letter == 'D') THEN
                 letter = 'd'
-            ELSE IF (letter .EQ. 'E') THEN
+            ELSE IF (letter == 'E') THEN
                 letter = 'e'
-            ELSE IF (letter .EQ. 'F') THEN
+            ELSE IF (letter == 'F') THEN
                 letter = 'f'
-            ELSE IF (letter .EQ. 'G') THEN
+            ELSE IF (letter == 'G') THEN
                 letter = 'g'
-            ELSE IF (letter .EQ. 'H') THEN
+            ELSE IF (letter == 'H') THEN
                 letter = 'h'
-            ELSE IF (letter .EQ. 'I') THEN
+            ELSE IF (letter == 'I') THEN
                 letter = 'i'
-            ELSE IF (letter .EQ. 'J') THEN
+            ELSE IF (letter == 'J') THEN
                 letter = 'j'
-            ELSE IF (letter .EQ. 'K') THEN
+            ELSE IF (letter == 'K') THEN
                 letter = 'k'
-            ELSE IF (letter .EQ. 'L') THEN
+            ELSE IF (letter == 'L') THEN
                 letter = 'l'
-            ELSE IF (letter .EQ. 'M') THEN
+            ELSE IF (letter == 'M') THEN
                 letter = 'm'
-            ELSE IF (letter .EQ. 'N') THEN
+            ELSE IF (letter == 'N') THEN
                 letter = 'n'
-            ELSE IF (letter .EQ. 'O') THEN
+            ELSE IF (letter == 'O') THEN
                 letter = 'o'
-            ELSE IF (letter .EQ. 'P') THEN
+            ELSE IF (letter == 'P') THEN
                 letter = 'p'
-            ELSE IF (letter .EQ. 'Q') THEN
+            ELSE IF (letter == 'Q') THEN
                 letter = 'q'
-            ELSE IF (letter .EQ. 'R') THEN
+            ELSE IF (letter == 'R') THEN
                 letter = 'r'
-            ELSE IF (letter .EQ. 'S') THEN
+            ELSE IF (letter == 'S') THEN
                 letter = 's'
-            ELSE IF (letter .EQ. 'T') THEN
+            ELSE IF (letter == 'T') THEN
                 letter = 't'
-            ELSE IF (letter .EQ. 'U') THEN
+            ELSE IF (letter == 'U') THEN
                 letter = 'u'
-            ELSE IF (letter .EQ. 'V') THEN
+            ELSE IF (letter == 'V') THEN
                 letter = 'v'
-            ELSE IF (letter .EQ. 'W') THEN
+            ELSE IF (letter == 'W') THEN
                 letter = 'w'
-            ELSE IF (letter .EQ. 'X') THEN
+            ELSE IF (letter == 'X') THEN
                 letter = 'x'
-            ELSE IF (letter .EQ. 'Y') THEN
+            ELSE IF (letter == 'Y') THEN
                 letter = 'y'
-            ELSE IF (letter .EQ. 'Z') THEN
+            ELSE IF (letter == 'Z') THEN
                 letter = 'z'
             END IF
             !

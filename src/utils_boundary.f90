@@ -233,7 +233,7 @@ CONTAINS
         !
         IF (core%use_fd) number = number + 1
         !
-        IF (number .LT. 1) CALL errore(sub_name, 'Too few cores are active', 1)
+        IF (number < 1) CALL errore(sub_name, 'Too few cores are active', 1)
         !
         RETURN
         !
@@ -434,21 +434,21 @@ CONTAINS
         !
         boundary%mode = mode
         !
-        boundary%need_electrons = (mode .EQ. 'electronic') .OR. &
-                                  (mode .EQ. 'full') .OR. &
-                                  (mode .EQ. 'fa-ionic') .OR. &
-                                  (mode .EQ. 'fa-electronic')
+        boundary%need_electrons = (mode == 'electronic') .OR. &
+                                  (mode == 'full') .OR. &
+                                  (mode == 'fa-ionic') .OR. &
+                                  (mode == 'fa-electronic')
         !
         IF (boundary%need_electrons) boundary%electrons => electrons
         !
-        boundary%need_ions = (mode .EQ. 'ionic') .OR. &
-                             (mode .EQ. 'full') .OR. &
-                             (mode .EQ. 'fa-ionic') .OR. &
-                             (mode .EQ. 'fa-electronic')
+        boundary%need_ions = (mode == 'ionic') .OR. &
+                             (mode == 'full') .OR. &
+                             (mode == 'fa-ionic') .OR. &
+                             (mode == 'fa-electronic')
         !
         IF (boundary%need_ions) boundary%ions => ions
         !
-        boundary%need_system = (mode .EQ. 'system')
+        boundary%need_system = (mode == 'system')
         !
         IF (boundary%need_system) boundary%system => system
         !
@@ -460,7 +460,7 @@ CONTAINS
         boundary%tbeta = tbeta
         boundary%deltarho = rhomax - rhomin
         !
-        IF (const .EQ. 1.D0 .AND. boundary%need_electrons .AND. stype .EQ. 2) &
+        IF (const == 1.D0 .AND. boundary%need_electrons .AND. stype == 2) &
             CALL errore(sub_name, 'stype=2 boundary requires dielectric constant > 1', 1)
         !
         boundary%const = const
@@ -468,7 +468,7 @@ CONTAINS
         boundary%alpha = alpha
         boundary%softness = softness
         !
-        IF (boundary%mode .EQ. 'ionic' .OR. boundary%mode .EQ. 'fa-ionic') &
+        IF (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic') &
             ALLOCATE (boundary%soft_spheres(boundary%ions%number))
         !
         boundary%simple%type_ = 4
@@ -479,7 +479,7 @@ CONTAINS
         boundary%simple%width = system_distance
         boundary%simple%spread = system_spread
         !
-        boundary%solvent_aware = solvent_radius .GT. 0.D0
+        boundary%solvent_aware = solvent_radius > 0.D0
         !
         IF (boundary%solvent_aware) THEN
             boundary%solvent_probe%type_ = 2
@@ -496,13 +496,13 @@ CONTAINS
         boundary%filling_spread = filling_spread
         !
         boundary%core => core
-        boundary%field_aware = field_factor .GT. 0.D0
+        boundary%field_aware = field_factor > 0.D0
         boundary%field_factor = field_factor
         boundary%charge_asymmetry = charge_asymmetry
         boundary%field_max = field_max
         boundary%field_min = field_min
         !
-        IF (boundary%field_aware .AND. boundary%mode .EQ. 'fa-ionic') THEN
+        IF (boundary%field_aware .AND. boundary%mode == 'fa-ionic') THEN
             ALLOCATE (boundary%ion_field(boundary%ions%number))
             ALLOCATE (boundary%dion_field_drho(boundary%ions%number))
             !
@@ -539,8 +539,8 @@ CONTAINS
         !
         CALL init_environ_density(cell, boundary%scaled)
         !
-        IF (boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full' .OR. &
-            boundary%mode .EQ. 'fa-electronic' .OR. boundary%mode .EQ. 'fa-full') THEN
+        IF (boundary%mode == 'electronic' .OR. boundary%mode == 'full' .OR. &
+            boundary%mode == 'fa-electronic' .OR. boundary%mode == 'fa-full') THEN
             !
             CALL init_environ_density(cell, boundary%density)
             !
@@ -550,11 +550,11 @@ CONTAINS
             !
         END IF
         !
-        IF (boundary%deriv .GE. 1) CALL init_environ_gradient(cell, boundary%gradient)
+        IF (boundary%deriv >= 1) CALL init_environ_gradient(cell, boundary%gradient)
         !
-        IF (boundary%deriv .GE. 2) CALL init_environ_density(cell, boundary%laplacian)
+        IF (boundary%deriv >= 2) CALL init_environ_density(cell, boundary%laplacian)
         !
-        IF (boundary%deriv .GE. 3) CALL init_environ_density(cell, boundary%dsurface)
+        IF (boundary%deriv >= 3) CALL init_environ_density(cell, boundary%dsurface)
         !
         IF (boundary%solvent_aware) THEN
             !
@@ -566,7 +566,7 @@ CONTAINS
             !
             CALL init_environ_density(cell, boundary%dfilling)
             !
-            IF (boundary%deriv .GE. 3) CALL init_environ_hessian(cell, boundary%hessian)
+            IF (boundary%deriv >= 3) CALL init_environ_hessian(cell, boundary%hessian)
             !
         END IF
         !
@@ -574,13 +574,13 @@ CONTAINS
             !
             CALL errore('field-aware3', 'Option not yet implimented ', 1)
             !
-            IF (boundary%mode .EQ. 'fa-electronic' .OR. &
+            IF (boundary%mode == 'fa-electronic' .OR. &
                 !
-                boundary%mode .EQ. 'fa-full') THEN
+                boundary%mode == 'fa-full') THEN
                 !
                 CALL init_environ_density(cell, boundary%normal_field)
                 !
-            ELSE IF (boundary%mode .EQ. 'fa-ionic') THEN
+            ELSE IF (boundary%mode == 'fa-ionic') THEN
                 !
                 DO i = 1, boundary%ions%number
                     CALL init_environ_density(cell, boundary%dion_field_drho(i))
@@ -780,7 +780,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. (boundary%mode .EQ. 'ionic' .OR. boundary%mode .EQ. 'fa-ionic')) RETURN
+        IF (.NOT. (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic')) RETURN
         !
         ! #TODO field-aware
         !
@@ -788,9 +788,9 @@ CONTAINS
         ! lscale2 = .FALSE.
         !
         ! IF (PRESENT(scale)) THEN
-        !     lscale1 = scale .AND. (boundary%mode .EQ. 'fa-ionic')
+        !     lscale1 = scale .AND. (boundary%mode == 'fa-ionic')
         ! ELSE
-        !     lscale2 = (boundary%mode .EQ. 'fa-ionic')
+        !     lscale2 = (boundary%mode == 'fa-ionic')
         ! END IF
 
         ! f = 1.D0
@@ -812,7 +812,7 @@ CONTAINS
             !
             ! IF (lscale2) boundary%local_spheres(i) = boundary%soft_spheres(i)
 
-            ! IF (lscale1 .AND. verbose .GE. 1) &
+            ! IF (lscale1 .AND. verbose >= 1) &
             !     WRITE (environ_unit, 6100) &
             !     i, boundary%ions%iontype(boundary%ions%ityp(i))%label, &
             !     boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad, &
@@ -868,7 +868,7 @@ CONTAINS
         !
         IF (.NOT. update_anything) THEN
             !
-            IF (bound%update_status .EQ. 2) bound%update_status = 0
+            IF (bound%update_status == 2) bound%update_status = 0
             ! nothing is under update, change update_status and exit
             !
             RETURN
@@ -895,7 +895,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Check if the ionic part has been updated
                 !
-                IF (bound%update_status .EQ. 0) &
+                IF (bound%update_status == 0) &
                     CALL errore(sub_name, &
                                 'Wrong update status, possibly missing ionic update', 1)
                 !
@@ -917,11 +917,11 @@ CONTAINS
                 !
                 bound%update_status = 2 ! boundary has changes and is ready
                 !
-                ! CALL test_energy_derivatives(1, bound) #TODO
+                ! CALL test_energy_derivatives(1, bound) ! DEBUGGING
                 !
             ELSE
                 !
-                IF (bound%update_status .EQ. 2) bound%update_status = 0
+                IF (bound%update_status == 2) bound%update_status = 0
                 ! boundary has not changed
                 !
                 RETURN
@@ -944,7 +944,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! boundary has not changed
                 !
-                IF (bound%update_status .EQ. 2) bound%update_status = 0
+                IF (bound%update_status == 2) bound%update_status = 0
                 !
                 RETURN
                 !
@@ -971,7 +971,7 @@ CONTAINS
             !         !
             !         ! CALL test_energy_derivatives(2, bound)
             !         !
-            !         ! IF (niter .EQ. 1) CALL test_energy_derivatives(2, bound)
+            !         ! IF (niter == 1) CALL test_energy_derivatives(2, bound)
             !         !
             !         ! CALL test_normal_field_derivatives(bound)
             !         !
@@ -1010,9 +1010,9 @@ CONTAINS
             !         !
             !         IF (ionode) WRITE (environ_unit, '(a,i14.7)') ' niter = ', niter
             !         !
-            !         IF (niter .EQ. 32) CALL test_energy_derivatives(2, bound)
+            !         IF (niter == 32) CALL test_energy_derivatives(2, bound)
             !         !
-            !         IF (niter .EQ. 32) CALL test_ion_field_derivatives(2, bound)
+            !         IF (niter == 32) CALL test_ion_field_derivatives(2, bound)
             !         !
             !         bound%update_status = 2 ! boundary has changes and is ready
             !         !
@@ -1040,7 +1040,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Boundary has not changed
                 !
-                IF (bound%update_status .EQ. 2) bound%update_status = 0
+                IF (bound%update_status == 2) bound%update_status = 0
                 !
                 RETURN
                 !
@@ -1053,7 +1053,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Solvent-aware interface
         !
-        IF (bound%update_status .EQ. 2 .AND. bound%solvent_aware) &
+        IF (bound%update_status == 2 .AND. bound%solvent_aware) &
             CALL solvent_aware_boundary(bound)
         !
         RETURN
@@ -1084,7 +1084,7 @@ CONTAINS
             !
             CALL destroy_environ_density(boundary%scaled)
             !
-            IF (boundary%mode .EQ. 'electronic' .OR. boundary%mode .EQ. 'full') THEN
+            IF (boundary%mode == 'electronic' .OR. boundary%mode == 'full') THEN
                 !
                 CALL destroy_environ_density(boundary%density)
                 !
@@ -1094,11 +1094,11 @@ CONTAINS
                 !
             END IF
             !
-            IF (boundary%deriv .GE. 1) CALL destroy_environ_gradient(boundary%gradient)
+            IF (boundary%deriv >= 1) CALL destroy_environ_gradient(boundary%gradient)
             !
-            IF (boundary%deriv .GE. 2) CALL destroy_environ_density(boundary%laplacian)
+            IF (boundary%deriv >= 2) CALL destroy_environ_density(boundary%laplacian)
             !
-            IF (boundary%deriv .GE. 3) CALL destroy_environ_density(boundary%dsurface)
+            IF (boundary%deriv >= 3) CALL destroy_environ_density(boundary%dsurface)
             !
             IF (boundary%solvent_aware) THEN
                 !
@@ -1110,19 +1110,19 @@ CONTAINS
                 !
                 CALL destroy_environ_density(boundary%dfilling)
                 !
-                IF (boundary%deriv .GE. 3) &
+                IF (boundary%deriv >= 3) &
                     CALL destroy_environ_hessian(boundary%hessian)
                 !
             END IF
             !
             ! IF (boundary%field_aware) THEN ! #TODO field-aware
             !     !
-            !     IF (boundary%mode .EQ. 'fa-electronic' .OR. &
-            !         boundary%mode .EQ. 'fa-full') THEN
+            !     IF (boundary%mode == 'fa-electronic' .OR. &
+            !         boundary%mode == 'fa-full') THEN
             !         !
             !         CALL destroy_environ_density(boundary%normal_field)
             !         !
-            !     ELSE IF (boundary%mode .EQ. 'fa-ionic') THEN
+            !     ELSE IF (boundary%mode == 'fa-ionic') THEN
             !         !
             !         DO i = 1, boundary%ions%number
             !             CALL destroy_environ_density(boundary%dion_field_drho(i))
@@ -1142,12 +1142,12 @@ CONTAINS
             ! These components were allocated first, destroy only if lflag = .TRUE.
             !
             IF (boundary%need_ions) THEN
-                IF (boundary%mode .EQ. 'ionic' .OR. boundary%mode .EQ. 'fa-ionic') THEN
+                IF (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic') THEN
                     !
                     CALL destroy_environ_functions(boundary%ions%number, &
                                                    boundary%soft_spheres)
                     !
-                    IF (boundary%field_aware .AND. boundary%mode .EQ. 'fa-ionic') THEN
+                    IF (boundary%field_aware .AND. boundary%mode == 'fa-ionic') THEN
                         !
                         CALL errore('field-aware5', 'Option not yet implimented ', 1)
                         !
@@ -1272,7 +1272,7 @@ CONTAINS
             localbound%scaled%of_r = localbound%scaled%of_r + epsilon * delta%of_r
             localbound%volume = integrate_environ_density(localbound%scaled)
             !
-            IF (localbound%deriv .GE. 1) THEN
+            IF (localbound%deriv >= 1) THEN
                 !
                 localbound%gradient%of_r = localbound%gradient%of_r + &
                                            epsilon * graddelta%of_r
@@ -1299,7 +1299,7 @@ CONTAINS
             localbound%scaled%of_r = localbound%scaled%of_r - epsilon * delta%of_r
             localbound%volume = integrate_environ_density(localbound%scaled)
             !
-            IF (localbound%deriv .GE. 1) THEN
+            IF (localbound%deriv >= 1) THEN
                 !
                 localbound%gradient%of_r = localbound%gradient%of_r - &
                                            epsilon * graddelta%of_r
@@ -1414,7 +1414,7 @@ CONTAINS
     !     WRITE (environ_unit, '(a,f14.7)') 'actual total flux = ', &
     !         integrate_environ_density!(rho)
     !     !
-    !     IF (ideriv .EQ. 1) THEN
+    !     IF (ideriv == 1) THEN
     !         !
     !         !----------------------------------------------------------------------------
     !         ! Test functional derivative wrt electronic density of each flux
@@ -1500,7 +1500,7 @@ CONTAINS
     !         DEALLOCATE (analytic_dion_field_drho)
     !         DEALLOCATE (fd_dion_field_drho)
     !         !
-    !     ELSE IF (ideriv .EQ. 2) THEN
+    !     ELSE IF (ideriv == 2) THEN
     !         !
     !         !----------------------------------------------------------------------------
     !         ! Test derivative wrt atomic positions with finite differences
@@ -1701,12 +1701,12 @@ CONTAINS
     !     localsurface_tension = 0.0
     !     ! CALL calc_desurface_dboundary(localsurface_tension, bound, de_dboundary)
     !     !
-    !     IF (ideriv .EQ. 1) THEN
+    !     IF (ideriv == 1) THEN
     !         !
     !         !----------------------------------------------------------------------------
     !         ! Compute functional derivative wrt electronic density
     !         !
-    !         ! IF (bound%mode .EQ. 'fa-ionic') THEN
+    !         ! IF (bound%mode == 'fa-ionic') THEN
     !         !     CALL compute_dion_field_drho(bound%ions%number, bound%local_spheres, &
     !         !                                  bound%dion_field_drho, bound%core%fft)
     !         ! END IF
@@ -1751,10 +1751,10 @@ CONTAINS
     !             IF (ionode) &
     !                 WRITE (program_unit, '(a,f14.7)') ' z = ', test_function%pos(3)
     !             !
-    !             ! IF (test_function%pos(3) .LE. 0.365) CYCLE
+    !             ! IF (test_function%pos(3) <= 0.365) CYCLE
     !             !
-    !             ! IF (test_function%pos(3) * cell%alat .LE. 4.5 .OR. &
-    !             !     test_function%pos(3) * cell%alat .GE. 7.0) CYCLE
+    !             ! IF (test_function%pos(3) * cell%alat <= 4.5 .OR. &
+    !             !     test_function%pos(3) * cell%alat >= 7.0) CYCLE
     !             !
     !             CALL density_of_functions(test_function, delta, .TRUE.)
     !             !
@@ -1805,7 +1805,7 @@ CONTAINS
     !         !
     !         CALL destroy_environ_density(vanalytic)
     !         !
-    !     ELSE IF (ideriv .EQ. 2) THEN
+    !     ELSE IF (ideriv == 2) THEN
     !         PRINT *, 'ideriv = 2'
     !         !
     !         !----------------------------------------------------------------------------
@@ -1813,7 +1813,7 @@ CONTAINS
     !         !
     !         ! CALCULATE ion field partials in advance
     !         !
-    !         ! IF (bound%mode .EQ. 'fa-ionic') THEN
+    !         ! IF (bound%mode == 'fa-ionic') THEN
     !         !     !
     !         !     IF (ionode) &
     !         !         WRITE (program_unit, '(1X,a)') 'outside compute_ion_field_partial'
@@ -1844,7 +1844,7 @@ CONTAINS
     !             CALL update_environ_ions(bound%ions%number, bound%ions%tau, bound%ions)
     !             CALL update_test_boundary(bound, bound%electrons)
     !             !
-    !             IF (bound%mode .EQ. 'fa-ionic') THEN
+    !             IF (bound%mode == 'fa-ionic') THEN
     !                 CALL calc_dboundary_dions(i, bound, partial)
     !                 !
     !                 ssforce = -scalar_product_environ_gradient_density(partial, &
@@ -1890,7 +1890,7 @@ CONTAINS
     !                 de_fd = de_fd * (-0.5D0) / dx / cell%alat
     !                 ! force is negative of the energy derivative
     !                 !
-    !                 IF (bound%mode .EQ. 'fa-ionic') THEN
+    !                 IF (bound%mode == 'fa-ionic') THEN
     !                     !
     !                     IF (ionode) &
     !                         WRITE (environ_unit, '(a,i3,a,i3,4f20.10)') ' i = ', i, &

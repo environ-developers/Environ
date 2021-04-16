@@ -154,7 +154,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (alat .LT. 1.D-8) CALL errore(sub_name, 'Wrong alat', 1)
+        IF (alat < 1.D-8) CALL errore(sub_name, 'Wrong alat', 1)
         !
         cell%alat = alat
         !
@@ -391,7 +391,7 @@ CONTAINS
         CASE (2)
             !
             DO i = 1, 3
-                IF (i .NE. axis) dr(i) = 0.D0
+                IF (i /= axis) dr(i) = 0.D0
             END DO
             !
         END SELECT
@@ -551,7 +551,7 @@ CONTAINS
             !
             DO jpol = 1, 3
                 !
-                IF (ipol .EQ. jpol) THEN
+                IF (ipol == jpol) THEN
                     tmp = tmp + ABS(at(ipol, ipol) - at(1, 1))
                 ELSE
                     tmp = tmp + ABS(at(ipol, jpol))
@@ -561,7 +561,7 @@ CONTAINS
             !
         END DO
         !
-        iscubic = tmp .LT. tol
+        iscubic = tmp < tol
         !
         RETURN
         !
@@ -612,7 +612,7 @@ CONTAINS
         k = 3
         s = -s
         !
-        IF (s .LT. 0.D0) GOTO 100
+        IF (s < 0.D0) GOTO 100
         !
         !--------------------------------------------------------------------------------
         ! Compute the reciprocal vectors

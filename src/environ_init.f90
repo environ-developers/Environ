@@ -224,26 +224,26 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set basic logical flags
         !
-        lstatic = env_static_permittivity .GT. 1.D0
-        loptical = env_optical_permittivity .GT. 1.D0
+        lstatic = env_static_permittivity > 1.D0
+        loptical = env_optical_permittivity > 1.D0
         !
-        IF (env_dielectric_regions .GT. 0) THEN
+        IF (env_dielectric_regions > 0) THEN
             !
             DO i = 1, env_dielectric_regions
-                lstatic = lstatic .OR. (epsregion_eps(1, i) .GT. 1.D0)
-                loptical = loptical .OR. (epsregion_eps(2, i) .GT. 1.D0)
+                lstatic = lstatic .OR. (epsregion_eps(1, i) > 1.D0)
+                loptical = loptical .OR. (epsregion_eps(2, i) > 1.D0)
             END DO
             !
         END IF
         !
-        lsurface = env_surface_tension .GT. 0.D0
-        lvolume = env_pressure .NE. 0.D0
-        lconfine = env_confine .NE. 0.D0
-        lexternals = env_external_charges .GT. 0
-        lelectrolyte = env_electrolyte_ntyp .GT. 0 .OR. need_electrolyte
+        lsurface = env_surface_tension > 0.D0
+        lvolume = env_pressure /= 0.D0
+        lconfine = env_confine /= 0.D0
+        lexternals = env_external_charges > 0
+        lelectrolyte = env_electrolyte_ntyp > 0 .OR. need_electrolyte
         lsemiconductor = need_semiconductor
         lperiodic = need_pbc_correction
-        ldoublecell = SUM(env_nrep) .GT. 0
+        ldoublecell = SUM(env_nrep) > 0
         louterloop = need_outer_loop
         !
         !--------------------------------------------------------------------------------
@@ -253,26 +253,26 @@ CONTAINS
         lsolvent = ldielectric .OR. lsurface .OR. lvolume .OR. lconfine
         lelectrostatic = ldielectric .OR. lelectrolyte .OR. lexternals .OR. lperiodic
         !
-        lsoftsolvent = lsolvent .AND. (solvent_mode .EQ. 'electronic' .OR. &
-                                       solvent_mode .EQ. 'full' .OR. &
-                                       solvent_mode(1:2) .EQ. 'fa')
+        lsoftsolvent = lsolvent .AND. (solvent_mode == 'electronic' .OR. &
+                                       solvent_mode == 'full' .OR. &
+                                       solvent_mode(1:2) == 'fa')
         !
         lsoftelectrolyte = lelectrolyte .AND. &
-                           (electrolyte_mode .EQ. 'electronic' .OR. &
-                            electrolyte_mode .EQ. 'full' .OR. &
-                            electrolyte_mode(1:2) .EQ. 'fa') ! field-aware
+                           (electrolyte_mode == 'electronic' .OR. &
+                            electrolyte_mode == 'full' .OR. &
+                            electrolyte_mode(1:2) == 'fa') ! field-aware
         !
         lsoftcavity = lsoftsolvent .OR. lsoftelectrolyte
-        lrigidsolvent = lsolvent .AND. solvent_mode .NE. 'electronic'
-        lrigidelectrolyte = lelectrolyte .AND. electrolyte_mode .NE. 'electronic'
+        lrigidsolvent = lsolvent .AND. solvent_mode /= 'electronic'
+        lrigidelectrolyte = lelectrolyte .AND. electrolyte_mode /= 'electronic'
         lrigidcavity = lrigidsolvent .OR. lrigidelectrolyte
         !
-        lcoredensity = (lsolvent .AND. solvent_mode .EQ. 'full') .OR. &
-                       (lelectrolyte .AND. electrolyte_mode .EQ. 'full')
+        lcoredensity = (lsolvent .AND. solvent_mode == 'full') .OR. &
+                       (lelectrolyte .AND. electrolyte_mode == 'full')
         !
         lsmearedions = lelectrostatic
         lboundary = lsolvent .OR. lelectrolyte
-        lgradient = ldielectric .OR. (solvent_mode(1:2) .EQ. 'fa') ! field-aware
+        lgradient = ldielectric .OR. (solvent_mode(1:2) == 'fa') ! field-aware
         !
         !--------------------------------------------------------------------------------
         ! Create optional types
@@ -382,7 +382,7 @@ CONTAINS
         IF (lboundary) THEN
             lfft_environment = .TRUE.
             !
-            IF (derivatives_ .EQ. 'fd') lfd = .TRUE.
+            IF (derivatives_ == 'fd') lfd = .TRUE.
             !
             CALL init_boundary_core(derivatives_, derivatives, environment_fft, fd)
             !
@@ -470,7 +470,7 @@ CONTAINS
                                                need_gradient, need_factsqrt, &
                                                need_auxiliary, static)
             !
-            IF (env_dielectric_regions .GT. 0) &
+            IF (env_dielectric_regions > 0) &
                 CALL set_dielectric_regions(env_dielectric_regions, epsregion_dim, &
                                             epsregion_axis, epsregion_pos, &
                                             epsregion_width, epsregion_spread, &
@@ -487,7 +487,7 @@ CONTAINS
                                                need_gradient, need_factsqrt, &
                                                need_auxiliary, optical)
             !
-            IF (env_dielectric_regions .GT. 0) &
+            IF (env_dielectric_regions > 0) &
                 CALL set_dielectric_regions(env_dielectric_regions, epsregion_dim, &
                                             epsregion_axis, epsregion_pos, &
                                             epsregion_width, epsregion_spread, &
@@ -731,7 +731,7 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(vzero%cell)) RETURN
         !
-        IF (vzero%cell%nnr .NE. nnr) &
+        IF (vzero%cell%nnr /= nnr) &
             CALL errore(sub_name, 'Inconsistent size in input potential', 1)
         !
         vzero%of_r = vltot
@@ -955,7 +955,7 @@ CONTAINS
                 !
                 CALL update_environ_boundary(solvent)
                 !
-                IF (solvent%update_status .EQ. 2) CALL print_environ_boundary(solvent)
+                IF (solvent%update_status == 2) CALL print_environ_boundary(solvent)
                 !
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
@@ -982,7 +982,7 @@ CONTAINS
                 !
                 CALL update_environ_boundary(electrolyte%boundary)
                 !
-                IF (electrolyte%boundary%update_status .EQ. 2) &
+                IF (electrolyte%boundary%update_status == 2) &
                     CALL print_environ_boundary(electrolyte%boundary)
                 !
                 CALL update_environ_electrolyte(electrolyte)
@@ -1124,7 +1124,7 @@ CONTAINS
                 !
                 CALL update_environ_boundary(solvent)
                 !
-                IF (solvent%update_status .EQ. 2) CALL print_environ_boundary(solvent)
+                IF (solvent%update_status == 2) CALL print_environ_boundary(solvent)
                 !
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
@@ -1151,7 +1151,7 @@ CONTAINS
                 !
                 CALL update_environ_boundary(electrolyte%boundary)
                 !
-                IF (electrolyte%boundary%update_status .EQ. 2) &
+                IF (electrolyte%boundary%update_status == 2) &
                     CALL print_environ_boundary(electrolyte%boundary)
                 !
                 CALL update_environ_electrolyte(electrolyte)

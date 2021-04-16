@@ -335,7 +335,7 @@ CONTAINS
         !
         IF (solver%use_newton) number = number + 1
         !
-        IF (number .NE. 1) &
+        IF (number /= 1) &
             CALL errore(sub_name, 'Too few or too many solvers are active', 1)
         !
         RETURN
@@ -452,7 +452,7 @@ CONTAINS
         !
         IF (core%use_oned_analytic) number = number + 1
         !
-        IF (number .NE. 1) &
+        IF (number /= 1) &
             CALL errore(sub_name, 'Too few or too many cores are active', 1)
         !
         RETURN
@@ -573,7 +573,7 @@ CONTAINS
             !
             IF (core%need_correction) THEN
                 !
-                IF (.NOT. core%correction%type_ .EQ. '1da') &
+                IF (core%correction%type_ /= '1da') &
                     CALL errore(sub_name, &
                                 'linearized-PB problem requires &
                                 &parabolic pbc correction.', 1)
@@ -595,7 +595,7 @@ CONTAINS
             !
             IF (core%need_correction) THEN
                 !
-                IF (.NOT. core%correction%type_ .EQ. '1da') &
+                IF (core%correction%type_ /= '1da') &
                     CALL errore(sub_name, &
                                 'full-PB problem requires &
                                 &parabolic pbc correction.', 1)
@@ -696,7 +696,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (setup%solver%auxiliary .NE. 'none') need_auxiliary = .TRUE.
+            IF (setup%solver%auxiliary /= 'none') need_auxiliary = .TRUE.
             !
         END SELECT
         !

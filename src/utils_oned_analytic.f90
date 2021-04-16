@@ -47,14 +47,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (dim .EQ. 3 .OR. dim .LT. 0) &
+        IF (dim == 3 .OR. dim < 0) &
             CALL errore(sub_name, &
                         'Wrong dimensions for analytic one dimensional core', 1)
         !
         oned_analytic%d = dim
         oned_analytic%p = 3 - dim
         !
-        IF ((dim .EQ. 1 .OR. dim .EQ. 2) .AND. (axis .GT. 3 .OR. axis .LT. 1)) &
+        IF ((dim == 1 .OR. dim == 2) .AND. (axis > 3 .OR. axis < 1)) &
             CALL errore(sub_name, &
                         'Wrong choice of axis for analytic one dimensional core', 1)
         !
@@ -113,14 +113,14 @@ CONTAINS
         !
         oned_analytic%cell => cell
         !
-        IF (oned_analytic%d .EQ. 0) THEN
+        IF (oned_analytic%d == 0) THEN
             oned_analytic%size = cell%omega
-        ELSE IF (oned_analytic%d .EQ. 1) THEN
+        ELSE IF (oned_analytic%d == 1) THEN
             !
             oned_analytic%size = &
                 cell%omega / cell%at(oned_analytic%axis, oned_analytic%axis) / cell%alat
             !
-        ELSE IF (oned_analytic%d .EQ. 2) THEN
+        ELSE IF (oned_analytic%d == 2) THEN
             !
             oned_analytic%size = &
                 cell%at(oned_analytic%axis, oned_analytic%axis) * cell%alat
@@ -151,14 +151,14 @@ CONTAINS
         !
         oned_analytic%origin = origin
         !
-        IF (oned_analytic%d .EQ. 0) THEN
+        IF (oned_analytic%d == 0) THEN
             !
             CALL generate_distance(oned_analytic%cell, oned_analytic%origin, &
                                    oned_analytic%x)
             !
-        ELSE IF (oned_analytic%d .EQ. 1) THEN
+        ELSE IF (oned_analytic%d == 1) THEN
             CALL errore(sub_name, 'Option not yet implemented', 1)
-        ELSE IF (oned_analytic%d .EQ. 2) THEN
+        ELSE IF (oned_analytic%d == 2) THEN
             !
             CALL generate_axis(oned_analytic%cell, oned_analytic%axis, &
                                oned_analytic%origin, oned_analytic%x(1, :))

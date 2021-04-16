@@ -120,7 +120,7 @@ CONTAINS
         !
         CALL start_clock('calc_vsolvent_tddfpt')
         !
-        IF (nnr .NE. system_cell%nnr) &
+        IF (nnr /= system_cell%nnr) &
             CALL errore(sub_name, 'Missmatch in passed and stored grid dimension', 1)
         !
         !--------------------------------------------------------------------------------

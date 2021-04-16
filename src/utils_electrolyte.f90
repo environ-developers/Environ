@@ -239,7 +239,7 @@ CONTAINS
             !
         END DO
         !
-        IF (neutral .GT. 1.D-8) &
+        IF (neutral > 1.D-8) &
             CALL errore(sub_name, 'Bulk electrolyte is not neutral', 1)
         !
         !--------------------------------------------------------------------------------
@@ -247,7 +247,7 @@ CONTAINS
         !
         electrolyte%cionmax = cionmax * bohr_radius_si**3 / amu_si
         !
-        IF (cionmax .EQ. 0.D0 .AND. radius .GT. 0.D0) &
+        IF (cionmax == 0.D0 .AND. radius > 0.D0) &
             electrolyte%cionmax = 0.64D0 * 3.D0 / fpi / radius**3
         !
         !--------------------------------------------------------------------------------
@@ -255,7 +255,7 @@ CONTAINS
         !
         sumcbulk = SUM(electrolyte%ioncctype(:)%cbulk)
         !
-        IF (electrolyte%cionmax .GT. 0.D0 .AND. electrolyte%cionmax .LE. sumcbulk) &
+        IF (electrolyte%cionmax > 0.D0 .AND. electrolyte%cionmax <= sumcbulk) &
             CALL errore(sub_name, 'cionmax should be larger than the sum of cbulks', 1)
         !
         electrolyte%energy_second_order = 0.D0
@@ -346,14 +346,14 @@ CONTAINS
         ! Check if the boundary is under update (status = 1) or
         ! has been fully updated (status = 2)
         !
-        IF (electrolyte%boundary%update_status .GT. 0) electrolyte%update = .TRUE.
+        IF (electrolyte%boundary%update_status > 0) electrolyte%update = .TRUE.
         !
         IF (electrolyte%update) THEN
             !
             !----------------------------------------------------------------------------
             ! Update the electrolyte in space if the boundary is ready
             !
-            IF (electrolyte%boundary%update_status .EQ. 2) THEN
+            IF (electrolyte%boundary%update_status == 2) THEN
                 !
                 CALL electrolyte_of_boundary(electrolyte)
                 !
@@ -497,7 +497,7 @@ CONTAINS
                 !
                 cfactor = 1.D0 - z * pot / kT
                 !
-                IF (electrolyte%cionmax .GT. 0.D0) THEN
+                IF (electrolyte%cionmax > 0.D0) THEN
                     factor = cbulk / electrolyte%cionmax
                     !
                     IF (electrolyte%electrolyte_entropy == 'ions') &
@@ -521,9 +521,9 @@ CONTAINS
                     ! IF (electrolyte%ion_adsorption .NE. 'none') & ! #TODO
                     !     arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
                     !
-                    IF (arg .GT. exp_arg_limit) THEN
+                    IF (arg > exp_arg_limit) THEN
                         cfactor(ir) = EXP(exp_arg_limit)
-                    ELSE IF (arg .LT. -exp_arg_limit) THEN
+                    ELSE IF (arg < -exp_arg_limit) THEN
                         cfactor(ir) = EXP(-exp_arg_limit)
                     ELSE
                         cfactor(ir) = EXP(arg)
@@ -531,7 +531,7 @@ CONTAINS
                     !
                 END DO
                 !
-                IF (electrolyte%cionmax .NE. 0.D0) THEN
+                IF (electrolyte%cionmax /= 0.D0) THEN
                     !
                     !--------------------------------------------------------------------
                     ! Full modified PB
@@ -589,7 +589,7 @@ CONTAINS
                 0.5D0 * scalar_product_environ_density(electrolyte%density, potential)
             !
             IF (electrolyte%electrolyte_entropy == 'ions' .AND. &
-                electrolyte%cionmax .GT. 0.D0) THEN
+                electrolyte%cionmax > 0.D0) THEN
                 !
                 sumcbulk = SUM(electrolyte%ioncctype(:)%cbulk)
                 !
@@ -644,7 +644,7 @@ CONTAINS
         !
         IF (electrolyte%linearized) THEN
             !
-            IF (electrolyte%cionmax .EQ. 0.D0) THEN
+            IF (electrolyte%cionmax == 0.D0) THEN
                 !
                 !------------------------------------------------------------------------
                 ! Linearized PB
@@ -690,7 +690,7 @@ CONTAINS
                 !
             END DO
             !
-            IF (electrolyte%cionmax .EQ. 0.D0) THEN
+            IF (electrolyte%cionmax == 0.D0) THEN
                 !
                 !------------------------------------------------------------------------
                 ! Full PB
@@ -761,7 +761,7 @@ CONTAINS
         !
         IF (electrolyte%linearized) THEN
             !
-            IF (electrolyte%cionmax .EQ. 0.D0) THEN
+            IF (electrolyte%cionmax == 0.D0) THEN
                 !
                 !------------------------------------------------------------------------
                 ! Linearized PB
@@ -810,7 +810,7 @@ CONTAINS
                 !
             END DO
             !
-            IF (electrolyte%cionmax .EQ. 0.D0) THEN
+            IF (electrolyte%cionmax == 0.D0) THEN
                 !
                 !------------------------------------------------------------------------
                 ! Full PB

@@ -46,16 +46,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
-        IF (nsmall .NE. mapping%small%nnr) &
+        IF (nsmall /= mapping%small%nnr) &
             CALL errore(sub_name, 'Wrong dimension of small cell', 1)
         !
-        IF (nlarge .NE. mapping%large%nnr) &
+        IF (nlarge /= mapping%large%nnr) &
             CALL errore(sub_name, 'Wrong dimension of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
         !
-        IF (nsmall .EQ. nlarge) THEN
+        IF (nsmall == nlarge) THEN
             flarge = fsmall
         ELSE
             !
@@ -67,7 +67,7 @@ CONTAINS
             !
             DO ir = 1, mapping%small%ir_end
                 !
-                IF (mapping%map(ir) .GT. 0) & ! #TODO This test may be redundant
+                IF (mapping%map(ir) > 0) &
                     auxlarge(mapping%map(ir)) = fsmall(ir)
                 !
             END DO
@@ -130,7 +130,7 @@ CONTAINS
             !
             DO ir = 1, mapping%small%ir_end
                 !
-                IF (mapping%map(ir) .GT. 0) & ! This test may be redundant
+                IF (mapping%map(ir) > 0) & ! This test may be redundant
                     auxlarge(mapping%map(ir)) = fsmall%of_r(ir)
                 !
             END DO
@@ -173,16 +173,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
-        IF (nsmall .NE. mapping%small%nnr) &
+        IF (nsmall /= mapping%small%nnr) &
             CALL errore(sub_name, 'Wrong dimension of small cell', 1)
         !
-        IF (nlarge .NE. mapping%large%nnr) &
+        IF (nlarge /= mapping%large%nnr) &
             CALL errore(sub_name, 'Wrong dimension of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
         !
-        IF (nsmall .EQ. nlarge) THEN
+        IF (nsmall == nlarge) THEN
             fsmall = flarge
         ELSE
             !
@@ -203,7 +203,7 @@ CONTAINS
             !
             DO ir = 1, mapping%small%ir_end
                 !
-                IF (mapping%map(ir) .GT. 0) & ! #TODO This test may be redundant
+                IF (mapping%map(ir) > 0) & ! #TODO This test may be redundant
                     fsmall(ir) = auxlarge(mapping%map(ir))
                 !
             END DO
@@ -268,7 +268,7 @@ CONTAINS
             !
             DO ir = 1, mapping%small%ir_end
                 !
-                IF (mapping%map(ir) .GT. 0) & ! This test may be redundant
+                IF (mapping%map(ir) > 0) & ! This test may be redundant
                     fsmall%of_r(ir) = auxlarge(mapping%map(ir))
                 !
             END DO

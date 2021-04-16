@@ -78,7 +78,7 @@ CONTAINS
         !
         IF (solver%use_gradient) THEN
             !
-            IF (solver%auxiliary .EQ. 'none') THEN
+            IF (solver%auxiliary == 'none') THEN
                 !
                 SELECT CASE (solver%gradient%preconditioner)
                 CASE ('none')
@@ -116,7 +116,7 @@ CONTAINS
             !
         ELSE IF (solver%use_iterative) THEN
             !
-            IF (solver%auxiliary .EQ. 'full') THEN
+            IF (solver%auxiliary == 'full') THEN
                 !
                 CALL generalized_iterative(solver%iterative, core, charges%density, &
                                            charges%dielectric, potential, &
@@ -169,7 +169,7 @@ CONTAINS
         !
         IF (solver%use_gradient) THEN
             !
-            IF (solver%auxiliary .EQ. 'none') THEN
+            IF (solver%auxiliary == 'none') THEN
                 !
                 SELECT CASE (solver%gradient%preconditioner)
                 CASE ('none')
@@ -201,7 +201,7 @@ CONTAINS
             !
         ELSE IF (solver%use_iterative) THEN
             !
-            IF (solver%auxiliary .EQ. 'full') THEN
+            IF (solver%auxiliary == 'full') THEN
                 !
                 CALL generalized_iterative(solver%iterative, core, charges, &
                                            dielectric, potential, electrolyte, &
@@ -267,7 +267,7 @@ CONTAINS
         mix => iterative%mix
         tolrhoaux => iterative%tol
         !
-        IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9000)
+        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9000)
         !
 9000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'))
         !
@@ -302,7 +302,7 @@ CONTAINS
         totzero = integrate_environ_density(rhozero)
         totiter = integrate_environ_density(rhoiter)
         !
-        IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9001) totiter
+        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9001) totiter
         !
 9001    FORMAT(' Starting from polarization: rhoiter = ', F13.6)
         !
@@ -318,7 +318,7 @@ CONTAINS
         !
         DO iter = 1, maxiter
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9002) iter
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9002) iter
             !
 9002        FORMAT(' Iteration # ', i10)
             !
@@ -346,25 +346,25 @@ CONTAINS
             delta_qm = quadratic_mean_environ_density(residual)
             totiter = integrate_environ_density(rhoiter)
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tolrhoaux
             !
 9004        FORMAT(' delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
-            IF (verbose .GE. 3 .AND. ionode) &
+            IF (verbose >= 3 .AND. ionode) &
                 WRITE (environ_unit, 9003) totiter, totzero, totpol, total
             !
 9003        FORMAT(' Total iterative polarization charge = ', 4F13.6)
             !
-            IF (delta_en .LT. tolrhoaux .AND. iter .GT. 0) THEN
+            IF (delta_en < tolrhoaux .AND. iter > 0) THEN
                 !
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9005)
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9005)
                 !
 9005            FORMAT(' Charges are converged, EXIT')
                 !
                 EXIT
                 !
-            ELSE IF (iter .EQ. maxiter) THEN
+            ELSE IF (iter == maxiter) THEN
                 !
                 IF (ionode) WRITE (program_unit, 9006)
                 !
@@ -373,7 +373,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose .GE. 1) WRITE (program_unit, 9007) delta_en, iter
+        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
 9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
@@ -444,7 +444,7 @@ CONTAINS
         maxstep => gradient%maxstep
         tolvelect => gradient%tol
         !
-        IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9000)
+        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9000)
         !
 9000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'))
         !
@@ -495,7 +495,7 @@ CONTAINS
         !
         DO iter = 1, maxstep
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9002) iter
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9002) iter
             !
 9002        FORMAT(' Iteration # ', i10)
             !
@@ -506,13 +506,13 @@ CONTAINS
             !
             rznew = scalar_product_environ_density(r, z)
             !
-            IF (ABS(rznew) .LT. 1.D-30) &
+            IF (ABS(rznew) < 1.D-30) &
                 CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
             !
-            IF (lconjugate .AND. ABS(rzold) .GT. 1.D-30) THEN
+            IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
                 beta = rznew / rzold
             ELSE
                 beta = 0.D0
@@ -545,10 +545,10 @@ CONTAINS
             x%of_r = x%of_r + alpha * p%of_r
             r%of_r = r%of_r - alpha * Ap%of_r
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, *) 'alpha = ', alpha, ' beta = ', beta
             !
-            IF (verbose .GE. 3 .AND. ionode) &
+            IF (verbose >= 3 .AND. ionode) &
                 WRITE (environ_unit, *) &
                 'rznew = ', rznew, ' rzold = ', rzold, ' pAp = ', pAp
             !
@@ -558,20 +558,20 @@ CONTAINS
             delta_qm = quadratic_mean_environ_density(r)
             delta_en = euclidean_norm_environ_density(r)
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tolvelect
             !
 9004        FORMAT(' delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
-            IF (delta_en .LT. tolvelect .AND. iter .GT. 0) THEN
+            IF (delta_en < tolvelect .AND. iter > 0) THEN
                 !
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9005)
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9005)
                 !
 9005            FORMAT(' Charges are converged, EXIT')
                 !
                 EXIT
                 !
-            ELSE IF (iter .EQ. maxstep) THEN
+            ELSE IF (iter == maxstep) THEN
                 !
                 IF (ionode) WRITE (program_unit, 9006)
                 !
@@ -580,7 +580,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose .GE. 1) WRITE (program_unit, 9007) delta_en, iter
+        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
 9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
@@ -639,7 +639,7 @@ CONTAINS
         maxstep => gradient%maxstep
         tolvelect => gradient%tol
         !
-        IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9000)
+        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9000)
         !
 9000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'))
         !
@@ -688,22 +688,22 @@ CONTAINS
             !
             rzold = scalar_product_environ_density(r, z)
             !
-            IF (ABS(rzold) .LT. 1.D-30) &
+            IF (ABS(rzold) < 1.D-30) &
                 CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             r%of_r = factsqrt%of_r * (x%of_r - z%of_r)
             delta_en = euclidean_norm_environ_density(r)
             delta_qm = quadratic_mean_environ_density(r)
             !
-            IF (delta_en .LT. 1.D-02) THEN
+            IF (delta_en < 1.D-02) THEN
                 !
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9008) delta_en
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9008) delta_en
                 !
 9008            FORMAT(' Sqrt-preconditioned input guess with residual norm = ', E14.6)
                 x%of_r = z%of_r
             ELSE
                 !
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9001) delta_en
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9001) delta_en
                 !
 9001            FORMAT(' Warning: bad guess with residual norm = ', E14.6, &
                        ', reset to no guess')
@@ -727,7 +727,7 @@ CONTAINS
         !
         DO iter = 1, maxstep
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9002) iter
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9002) iter
             !
 9002        FORMAT(' Iteration # ', i10)
             !
@@ -742,19 +742,19 @@ CONTAINS
             !
             rznew = scalar_product_environ_density(r, z)
             !
-            IF (ABS(rznew) .LT. 1.D-30) &
+            IF (ABS(rznew) < 1.D-30) &
                 CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
             !
-            IF (lconjugate .AND. ABS(rzold) .GT. 1.D-30) THEN
+            IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
                 beta = rznew / rzold
             ELSE
                 beta = 0.D0
             END IF
             !
-            IF (verbose .GE. 3 .AND. ionode) &
+            IF (verbose >= 3 .AND. ionode) &
                 WRITE (environ_unit, *) 'rznew = ', rznew, ' rzold = ', &
                 rzold, ' beta = ', beta
             !
@@ -772,7 +772,7 @@ CONTAINS
             pAp = scalar_product_environ_density(p, Ap)
             alpha = rzold / pAp
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, *) ' pAp = ', pAp, ' rzold = ', &
                 rzold, ' alpha = ', alpha
             !
@@ -785,18 +785,18 @@ CONTAINS
             delta_qm = quadratic_mean_environ_density(r)
             delta_en = euclidean_norm_environ_density(r)
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tolvelect
             !
 9004        FORMAT(' delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
-            IF (delta_en .LT. tolvelect .AND. iter .GT. 0) THEN
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9005)
+            IF (delta_en < tolvelect .AND. iter > 0) THEN
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9005)
 9005            FORMAT(' Charges are converged, EXIT')
                 !
                 EXIT
                 !
-            ELSE IF (iter .EQ. maxstep) THEN
+            ELSE IF (iter == maxstep) THEN
                 IF (ionode) WRITE (program_unit, 9006)
 9006            FORMAT(' Warning: Polarization charge not converged')
             END IF
@@ -818,7 +818,7 @@ CONTAINS
         !
         x%of_r = x%of_r + shift
         !
-        IF (lstdout .AND. verbose .GE. 1) WRITE (program_unit, 9007) delta_en, iter
+        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
 9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
@@ -878,7 +878,7 @@ CONTAINS
         maxstep => gradient%maxstep
         tolvelect => gradient%tol
         !
-        IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9000)
+        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9000)
         !
 9000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'))
         !
@@ -926,7 +926,7 @@ CONTAINS
 !             CALL poisson_direct(core, z, z)
 
 !             rzold = scalar_product_environ_density(r, z)
-!             IF (ABS(rzold) .LT. 1.D-30) &
+!             IF (ABS(rzold) < 1.D-30) &
 !                  & CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
 
 !             r%of_r = x%of_r - z%of_r
@@ -936,12 +936,12 @@ CONTAINS
 !                       & gradeps%of_r(2, :) * g%of_r(2, :) + &
 !                       & gradeps%of_r(3, :) * g%of_r(3, :)
 !             delta_qm = quadratic_mean_environ_density(r)
-!             IF (delta_qm .LT. 1.D-02) THEN
-!                 IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9008) delta_qm
+!             IF (delta_qm < 1.D-02) THEN
+!                 IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9008) delta_qm
 ! 9008            FORMAT(' Sqrt-preconditioned input guess with residual norm = ', E14.6)
 !                 x%of_r = z%of_r
 !             ELSE
-!                 IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9001) delta_qm
+!                 IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9001) delta_qm
 ! 9001            FORMAT(' Warning: bad guess with residual norm = ', E14.6, ', reset to no guess')
 !                 x%update = .FALSE.
 !             END IF
@@ -962,7 +962,7 @@ CONTAINS
         !
         DO iter = 1, maxstep
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9002) iter
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9002) iter
             !
 9002        FORMAT(' Iteration # ', i10)
             !
@@ -975,19 +975,19 @@ CONTAINS
             !
             rznew = scalar_product_environ_density(r, z)
             !
-            IF (ABS(rznew) .LT. 1.D-30) &
+            IF (ABS(rznew) < 1.D-30) &
                 CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
             !
-            IF (lconjugate .AND. ABS(rzold) .GT. 1.D-30) THEN
+            IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
                 beta = rznew / rzold
             ELSE
                 beta = 0.D0
             END IF
             !
-            IF (verbose .GE. 3 .AND. ionode) &
+            IF (verbose >= 3 .AND. ionode) &
                 WRITE (environ_unit, *) 'rznew = ', rznew, ' rzold = ', &
                 rzold, ' beta = ', beta
             !
@@ -1014,7 +1014,7 @@ CONTAINS
             pAp = scalar_product_environ_density(p, Ap)
             alpha = rzold / pAp
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, *) ' pAp = ', pAp, ' rzold = ', &
                 rzold, ' alpha = ', alpha
             !
@@ -1027,19 +1027,19 @@ CONTAINS
             delta_qm = quadratic_mean_environ_density(r)
             delta_en = euclidean_norm_environ_density(r)
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tolvelect
             !
 9004        FORMAT(' delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
-            IF (delta_en .LT. tolvelect .AND. iter .GT. 0) THEN
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9005)
+            IF (delta_en < tolvelect .AND. iter > 0) THEN
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9005)
                 !
 9005            FORMAT(' Charges are converged, EXIT')
                 !
                 EXIT
                 !
-            ELSE IF (iter .EQ. maxstep) THEN
+            ELSE IF (iter == maxstep) THEN
                 !
                 IF (ionode) WRITE (program_unit, 9006)
                 !
@@ -1048,7 +1048,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose .GE. 1) WRITE (program_unit, 9007) delta_en, iter
+        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
 9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !

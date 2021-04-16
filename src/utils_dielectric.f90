@@ -247,7 +247,7 @@ CONTAINS
         !
         dielectric%nregions = nregions
         !
-        IF (dielectric%nregions .GT. 0) THEN
+        IF (dielectric%nregions > 0) THEN
             ALLOCATE (dielectric%regions(nregions))
             !
             DO i = 1, dielectric%nregions
@@ -285,7 +285,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (dielectric%nregions .GT. 0) THEN
+        IF (dielectric%nregions > 0) THEN
             !
             DO i = 1, dielectric%nregions
                 dielectric%regions(i)%pos = dielectric%regions(i)%pos / cell%alat
@@ -297,7 +297,7 @@ CONTAINS
         !
         dielectric%background%of_r(:) = dielectric%constant
         !
-        IF (dielectric%nregions .GT. 0) THEN
+        IF (dielectric%nregions > 0) THEN
             !
             CALL init_environ_gradient(cell, dielectric%gradbackground)
             !
@@ -349,7 +349,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Cells has changed, may need to update the background
             !
-            IF (dielectric%nregions .GT. 0) THEN
+            IF (dielectric%nregions > 0) THEN
                 !
                 CALL update_dielectric_background(dielectric)
                 ! recompute background dielectric and its derivative
@@ -365,7 +365,7 @@ CONTAINS
         ! Check if the boundary is under update (status = 1) or has been
         ! fully updated (status = 2)
         !
-        IF (dielectric%boundary%update_status .GT. 0) dielectric%update = .TRUE.
+        IF (dielectric%boundary%update_status > 0) dielectric%update = .TRUE.
         !
         IF (dielectric%update) THEN
             !
@@ -373,7 +373,7 @@ CONTAINS
             ! Update the dielectric in space and its derivatives if
             ! the boundary is ready
             !
-            IF (dielectric%boundary%update_status .EQ. 2) THEN
+            IF (dielectric%boundary%update_status == 2) THEN
                 !
                 CALL dielectric_of_boundary(dielectric)
                 !
@@ -409,7 +409,7 @@ CONTAINS
         !
         dielectric%background%of_r = dielectric%constant
         !
-        IF (dielectric%nregions .LE. 0) RETURN
+        IF (dielectric%nregions <= 0) RETURN
         !
         dielectric%gradbackground%of_r = 0.D0
         !
@@ -474,7 +474,7 @@ CONTAINS
         !
         IF (dielectric%need_factsqrt) CALL destroy_environ_density(lapllocal)
         !
-        IF (verbose .GE. 3) CALL print_environ_density(dielectric%background)
+        IF (verbose >= 3) CALL print_environ_density(dielectric%background)
         !
         RETURN
         !
@@ -550,7 +550,7 @@ CONTAINS
             ALLOCATE (d2eps(nnr))
         END IF
         !
-        IF (dielectric%nregions .GT. 0) THEN
+        IF (dielectric%nregions > 0) THEN
             gradback => dielectric%gradbackground%of_r
             ALLOCATE (deps_dback(nnr))
             ALLOCATE (dlogeps_dback(nnr))
@@ -576,7 +576,7 @@ CONTAINS
             !
             IF (dielectric%need_factsqrt) d2eps = 0.D0
             !
-            IF (dielectric%nregions .GT. 0) THEN
+            IF (dielectric%nregions > 0) THEN
                 deps_dback = 1.D0 - scaled
                 dlogeps_dback = deps_dback / eps
                 !
@@ -594,7 +594,7 @@ CONTAINS
             !
             IF (dielectric%need_factsqrt) d2eps = eps * LOG(const)**2
             !
-            IF (dielectric%nregions .GT. 0) THEN
+            IF (dielectric%nregions > 0) THEN
                 deps_dback = eps * (1.D0 - scaled) / const
                 dlogeps_dback = (1.D0 - scaled) / const
                 !
@@ -618,7 +618,7 @@ CONTAINS
         DO ipol = 1, 3
             gradlogeps(ipol, :) = dlogeps(:) * gradscaled(ipol, :)
             !
-            IF (dielectric%nregions .GT. 0) &
+            IF (dielectric%nregions > 0) &
                 gradlogeps(ipol, :) = gradlogeps(ipol, :) + &
                                       dlogeps_dback(:) * gradback(ipol, :)
             !
@@ -633,7 +633,7 @@ CONTAINS
             DO ipol = 1, 3
                 gradeps(ipol, :) = deps(:) * gradscaled(ipol, :)
                 !
-                IF (dielectric%nregions .GT. 0) &
+                IF (dielectric%nregions > 0) &
                     gradeps(ipol, :) = gradeps(ipol, :) + &
                                        deps_dback(:) * gradback(ipol, :)
                 !
@@ -645,7 +645,7 @@ CONTAINS
         !
         IF (dielectric%need_factsqrt) THEN
             !
-            IF (dielectric%nregions .LE. 0) THEN
+            IF (dielectric%nregions <= 0) THEN
                 !
                 factsqrteps = (d2eps - 0.5D0 * deps**2 / eps) * gradscaledmod**2 + &
                               deps * laplscaled
@@ -682,7 +682,7 @@ CONTAINS
             DEALLOCATE (d2eps)
         END IF
         !
-        IF (dielectric%nregions .GT. 0) THEN
+        IF (dielectric%nregions > 0) THEN
             DEALLOCATE (deps_dback)
             DEALLOCATE (dlogeps_dback)
             !
@@ -801,7 +801,7 @@ CONTAINS
         !
         IF (lflag) THEN
             !
-            IF (dielectric%nregions .GT. 0) THEN
+            IF (dielectric%nregions > 0) THEN
                 CALL destroy_environ_functions(dielectric%nregions, dielectric%regions)
             ELSE
                 !
@@ -820,7 +820,7 @@ CONTAINS
             !
             CALL destroy_environ_density(dielectric%background)
             !
-            IF (dielectric%nregions .GT. 0) THEN
+            IF (dielectric%nregions > 0) THEN
                 !
                 CALL destroy_environ_gradient(dielectric%gradbackground)
                 !

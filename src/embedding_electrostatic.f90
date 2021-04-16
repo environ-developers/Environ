@@ -367,7 +367,7 @@ CONTAINS
             ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
             ! ALLOCATE (rhoaux(cell%nnr, setup%core%fft%nspin))
             ! rhoaux(:, 1) = aux%of_r
-            ! IF (setup%core%fft%nspin .EQ. 2) rhoaux(:, 2) = 0.D0
+            ! IF (setup%core%fft%nspin == 2) rhoaux(:, 2) = 0.D0
             ! CALL external_force_lc(rhoaux, ftmp)
             ! Compatible with QE-6.4.X and QE-GIT
             ! CALL external_force_lc(aux%of_r, ftmp)

@@ -83,27 +83,27 @@ CONTAINS
             DO in = 1, fd%nfdpoint
                 ix(in) = ix(in - 1) + 1
                 !
-                IF (ix(in) .GT. dfft%nr1x - 1) ix(in) = 0
+                IF (ix(in) > dfft%nr1x - 1) ix(in) = 0
                 !
                 ix(-in) = ix(-in + 1) - 1
                 !
-                IF (ix(-in) .LT. 0) ix(-in) = dfft%nr1x - 1
+                IF (ix(-in) < 0) ix(-in) = dfft%nr1x - 1
                 !
                 iy(in) = iy(in - 1) + 1
                 !
-                IF (iy(in) .GT. dfft%nr2x - 1) iy(in) = 0
+                IF (iy(in) > dfft%nr2x - 1) iy(in) = 0
                 !
                 iy(-in) = iy(-in + 1) - 1
                 !
-                IF (iy(-in) .LT. 0) iy(-in) = dfft%nr2x - 1
+                IF (iy(-in) < 0) iy(-in) = dfft%nr2x - 1
                 !
                 iz(in) = iz(in - 1) + 1
                 !
-                IF (iz(in) .GT. dfft%nr3x - 1) iz(in) = 0
+                IF (iz(in) > dfft%nr3x - 1) iz(in) = 0
                 !
                 iz(-in) = iz(-in + 1) - 1
                 !
-                IF (iz(-in) .LT. 0) iz(-in) = dfft%nr3x - 1
+                IF (iz(-in) < 0) iz(-in) = dfft%nr3x - 1
                 !
             END DO
             !

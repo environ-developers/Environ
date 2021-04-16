@@ -99,7 +99,7 @@ CONTAINS
             ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
             ! ALLOCATE (rhoaux(cell%nnr, core%fft%nspin))
             ! rhoaux(:, 1) = charges%density%of_r
-            ! IF (core%fft%nspin .EQ. 2) rhoaux(:, 2) = 0.D0
+            ! IF (core%fft%nspin == 2) rhoaux(:, 2) = 0.D0
             ! ALLOCATE (vaux(cell%nnr, core%fft%nspin))
             ! vaux = 0.D0
             ! CALL v_h_of_rho_r(rhoaux, edummy, cdummy, vaux)
@@ -221,7 +221,7 @@ CONTAINS
             ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
             ! ALLOCATE (rhoaux(cell%nnr, core%fft%nspin))
             ! rhoaux(:, 1) = charges%of_r
-            ! IF (core%fft%nspin .EQ. 2) rhoaux(:, 2) = 0.D0
+            ! IF (core%fft%nspin == 2) rhoaux(:, 2) = 0.D0
             ! ALLOCATE (vaux(cell%nnr, core%fft%nspin))
             ! vaux = 0.D0
             ! CALL v_h_of_rho_r(rhoaux, edummy, cdummy, vaux)

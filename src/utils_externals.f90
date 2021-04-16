@@ -150,7 +150,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (externals%number .GT. 0) THEN
+        IF (externals%number > 0) THEN
             !
             DO i = 1, externals%number
                 externals%functions(i)%pos = externals%functions(i)%pos / cell%alat

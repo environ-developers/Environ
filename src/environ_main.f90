@@ -445,7 +445,7 @@ CONTAINS
                     CALL solvent_aware_de_dboundary(solvent, de_dboundary)
                 !
                 ! if field-aware, compute partial derivatives of field fluxes w.r.t ionic positions ! #TODO field-aware
-                ! IF (solvent%mode .EQ. 'fa-ionic') &
+                ! IF (solvent%mode == 'fa-ionic') &
                 !     CALL compute_ion_field_partial(solvent%ions%number, &
                 !                                    solvent%soft_spheres, &
                 !                                    solvent%ions, solvent%electrons, &
@@ -483,7 +483,7 @@ CONTAINS
                     CALL solvent_aware_de_dboundary(electrolyte%boundary, de_dboundary)
                 !
                 ! if field-aware, compute partial derivatives of field fluxes w.r.t ionic positions ! #TODO field-aware
-                ! IF (electrolyte%boundary%mode .EQ. 'fa-ionic') &
+                ! IF (electrolyte%boundary%mode == 'fa-ionic') &
                 !     CALL compute_ion_field_partial(electrolyte%boundary%ions%number, &
                 !                                    electrolyte%boundary%soft_spheres, &
                 !                                    electrolyte%boundary%ions, &

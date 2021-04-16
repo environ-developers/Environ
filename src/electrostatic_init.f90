@@ -91,7 +91,7 @@ CONTAINS
         !
         lnested = .FALSE.
         !
-        IF (.NOT. inner_solver_type .EQ. 'none') lnested = .TRUE.
+        IF (inner_solver_type /= 'none') lnested = .TRUE.
         !
         !--------------------------------------------------------------------------------
         ! Set reference core according to calling program
@@ -128,7 +128,7 @@ CONTAINS
         ! #TODO pbc_dim_ is always greater than or equal to 0??
         ! if statement may be redundant. will remove and test code.
         !
-        IF (pbc_dim_ .GE. 0) THEN
+        IF (pbc_dim_ >= 0) THEN
             pbc_dim = pbc_dim_
             pbc_axis = pbc_axis_
             !
@@ -252,7 +252,7 @@ CONTAINS
         CASE ('cg', 'sd')
             lgradient = .TRUE.
             !
-            IF (TRIM(ADJUSTL(solver_type)) .EQ. "cg") lconjugate = .TRUE.
+            IF (TRIM(ADJUSTL(solver_type)) == "cg") lconjugate = .TRUE.
             !
             CALL init_electrostatic_solver(type_=solver_type, auxiliary=auxiliary, &
                                            gradient=gradient, solver=outer_solver)
@@ -302,14 +302,14 @@ CONTAINS
             SELECT CASE (solver_type)
             CASE ('iterative')
                 !
-                IF (auxiliary .EQ. 'ioncc') THEN
+                IF (auxiliary == 'ioncc') THEN
                     inner_problem = 'generalized'
                     !
                     SELECT CASE (inner_solver_type)
                     CASE ('cg', 'sd')
                         lgradient = .TRUE.
                         !
-                        IF (TRIM(ADJUSTL(inner_solver_type)) .EQ. "cg") &
+                        IF (TRIM(ADJUSTL(inner_solver_type)) == "cg") &
                             lconjugate = .TRUE.
                         !
                         CALL init_electrostatic_solver(type_=inner_solver_type, &

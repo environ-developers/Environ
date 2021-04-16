@@ -1559,12 +1559,12 @@ CONTAINS
         !
         ! BACKWARD COMPATIBILITY
         ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! IF (nspin .NE. electrons%nspin) &
+        ! IF (nspin /= electrons%nspin) &
         !     CALL errore(sub_name, 'Missmatch in spin size', 1)
         ! Compatible with QE-6.4.X QE-GIT
         ! END BACKWARD COMPATIBILITY
         !
-        IF (nnr .NE. electrons%density%cell%nnr) &
+        IF (nnr /= electrons%density%cell%nnr) &
             CALL errore(sub_name, 'Missmatch in grid size', 1)
         !
         !--------------------------------------------------------------------------------
@@ -1573,7 +1573,7 @@ CONTAINS
         ! BACKWARD COMPATIBILITY
         ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
         ! electrons%density%of_r(:) = rho(:, 1)
-        ! IF (electrons%nspin .EQ. 2) &
+        ! IF (electrons%nspin == 2) &
         !     electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:, 2)
         ! Compatible with QE-6.4.X and QE-GIT
         electrons%density%of_r = rho
@@ -1588,7 +1588,7 @@ CONTAINS
         !
         IF (PRESENT(nelec)) THEN
             !
-            IF (ABS(electrons%charge - nelec) .GT. tol) &
+            IF (ABS(electrons%charge - nelec) > tol) &
                 CALL errore(sub_name, 'Missmatch in integrated electronic charge', 1)
             !
         END IF
@@ -1707,21 +1707,21 @@ CONTAINS
         !
         max_ntyp = system%ntyp
         !
-        IF (system%ntyp .EQ. 0) max_ntyp = system%ions%ntyp
+        IF (system%ntyp == 0) max_ntyp = system%ions%ntyp
         !
         charge = 0.D0
         !
         DO i = 1, system%ions%number
             ityp => system%ions%ityp(i)
             !
-            IF (ityp .GT. max_ntyp) CYCLE
+            IF (ityp > max_ntyp) CYCLE
             !
             zv => system%ions%iontype(ityp)%zv
             charge = charge + zv
             system%pos(:) = system%pos(:) + system%ions%tau(:, i) * zv
         END DO
         !
-        IF (ABS(charge) .LT. 1.D-8) &
+        IF (ABS(charge) < 1.D-8) &
             CALL errore(sub_name, 'System charge is zero', 1)
         !
         system%pos(:) = system%pos(:) / charge
@@ -1731,14 +1731,14 @@ CONTAINS
         DO i = 1, system%ions%number
             ityp => system%ions%ityp(i)
             !
-            IF (ityp .GT. max_ntyp) CYCLE
+            IF (ityp > max_ntyp) CYCLE
             !
             dist = 0.D0
             !
             DO icor = 1, 3
                 !
-                IF ((system%dim .EQ. 1 .AND. icor .EQ. system%axis) .OR. &
-                    (system%dim .EQ. 2 .AND. icor .NE. system%axis)) CYCLE
+                IF ((system%dim == 1 .AND. icor == system%axis) .OR. &
+                    (system%dim == 2 .AND. icor /= system%axis)) CYCLE
                 !
                 dist = dist + (system%ions%tau(icor, i) - system%pos(icor))**2
             END DO

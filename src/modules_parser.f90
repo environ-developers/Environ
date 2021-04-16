@@ -224,7 +224,7 @@ CONTAINS
         !
         num = 0
         !
-        IF (LEN(line) .GT. 256) THEN
+        IF (LEN(line) > 256) THEN
             WRITE (program_unit, *) 'riga ', line
             WRITE (program_unit, *) 'lunga ', LEN(line)
             num = -1
@@ -246,7 +246,7 @@ CONTAINS
             !
             IF (line(j:j) == '!' .OR. line(j:j) == CHAR(0)) RETURN
             !
-            IF ((line(j:j) .EQ. sep) .AND. (line(j - 1:j - 1) .NE. sep)) num = num + 1
+            IF ((line(j:j) == sep) .AND. (line(j - 1:j - 1) /= sep)) num = num + 1
             !
         END DO
         !

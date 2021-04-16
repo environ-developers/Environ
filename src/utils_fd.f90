@@ -91,19 +91,19 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! (2N+1)-point Central Differences
             !
-            IF (nfdpoint .EQ. 1) THEN
+            IF (nfdpoint == 1) THEN
                 ncfd = 2
                 icfd(1) = 1
-            ELSE IF (nfdpoint .EQ. 2) THEN
+            ELSE IF (nfdpoint == 2) THEN
                 ncfd = 12
                 icfd(2) = -1
                 icfd(1) = 8
-            ELSE IF (nfdpoint .EQ. 3) THEN
+            ELSE IF (nfdpoint == 3) THEN
                 ncfd = 60
                 icfd(3) = 1
                 icfd(2) = -9
                 icfd(1) = 45
-            ELSE IF (nfdpoint .EQ. 4) THEN
+            ELSE IF (nfdpoint == 4) THEN
                 ncfd = 840
                 icfd(4) = -3
                 icfd(3) = 32
@@ -125,7 +125,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Low-Noise Lanczos Differentiators ( M = 2 )
             !
-            IF (nfdpoint .GE. 2) THEN
+            IF (nfdpoint >= 2) THEN
                 ncfd = (nfdpoint) * (nfdpoint + 1) * (2 * nfdpoint + 1) / 3
                 !
                 DO in = 1, nfdpoint
@@ -148,18 +148,18 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Super Lanczos Low-Noise Differentiators ( M = 4 )
             !
-            IF (nfdpoint .EQ. 3) THEN
+            IF (nfdpoint == 3) THEN
                 ncfd = 252
                 icfd(3) = -22
                 icfd(2) = 67
                 icfd(1) = 58
-            ELSE IF (nfdpoint .EQ. 4) THEN
+            ELSE IF (nfdpoint == 4) THEN
                 ncfd = 1188
                 icfd(4) = -86
                 icfd(3) = 142
                 icfd(2) = 193
                 icfd(1) = 126
-            ELSE IF (nfdpoint .EQ. 5) THEN
+            ELSE IF (nfdpoint == 5) THEN
                 ncfd = 5148
                 icfd(5) = -300
                 icfd(4) = 294
@@ -182,22 +182,22 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Smooth Noise-Robust Differentiators  ( n = 2 )
             !
-            IF (nfdpoint .EQ. 2) THEN
+            IF (nfdpoint == 2) THEN
                 ncfd = 8
                 icfd(2) = 1
                 icfd(1) = 2
-            ELSE IF (nfdpoint .EQ. 3) THEN
+            ELSE IF (nfdpoint == 3) THEN
                 ncfd = 32
                 icfd(3) = 1
                 icfd(2) = 4
                 icfd(1) = 5
-            ELSE IF (nfdpoint .EQ. 4) THEN
+            ELSE IF (nfdpoint == 4) THEN
                 ncfd = 128
                 icfd(4) = 1
                 icfd(3) = 6
                 icfd(2) = 14
                 icfd(1) = 14
-            ELSE IF (nfdpoint .EQ. 5) THEN
+            ELSE IF (nfdpoint == 5) THEN
                 ncfd = 512
                 icfd(5) = 1
                 icfd(4) = 8
@@ -220,18 +220,18 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Smooth Noise-Robust Differentiators  ( n = 4 )
             !
-            IF (nfdpoint .EQ. 3) THEN
+            IF (nfdpoint == 3) THEN
                 ncfd = 96
                 icfd(3) = -5
                 icfd(2) = 12
                 icfd(1) = 39
-            ELSE IF (nfdpoint .EQ. 4) THEN
+            ELSE IF (nfdpoint == 4) THEN
                 ncfd = 96
                 icfd(4) = -2
                 icfd(3) = -1
                 icfd(2) = 16
                 icfd(1) = 27
-            ELSE IF (nfdpoint .EQ. 5) THEN
+            ELSE IF (nfdpoint == 5) THEN
                 ncfd = 1536
                 icfd(5) = -11
                 icfd(4) = -32

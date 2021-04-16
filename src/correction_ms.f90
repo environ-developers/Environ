@@ -95,7 +95,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
             CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
         !
-        IF (potential%cell%nnr .NE. oned_analytic%n) &
+        IF (potential%cell%nnr /= oned_analytic%n) &
             CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
         !
         cell => potential%cell
@@ -121,7 +121,7 @@ CONTAINS
         kbt = semiconductor%temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
-        IF (env_periodicity .NE. 2) &
+        IF (env_periodicity /= 2) &
             CALL errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
@@ -166,7 +166,7 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (ABS(axis(1, i)) .GE. xstern) THEN
+            IF (ABS(axis(1, i)) >= xstern) THEN
                 icount = icount + 1
                 !
                 vbound = vbound + potential%of_r(i) + v(i) - &
@@ -189,7 +189,7 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (ABS(axis(1, i)) .GE. xstern) THEN
+            IF (ABS(axis(1, i)) >= xstern) THEN
                 distance = ABS(axis(1, i)) - xstern
                 !
                 !------------------------------------------------------------------------
@@ -265,7 +265,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &
             CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
         !
-        IF (gradv%cell%nnr .NE. oned_analytic%n) &
+        IF (gradv%cell%nnr /= oned_analytic%n) &
             CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
         !
         cell => gradv%cell
@@ -291,7 +291,7 @@ CONTAINS
         kbt = semiconductor%temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
-        IF (env_periodicity .NE. 2) &
+        IF (env_periodicity /= 2) &
             CALL errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)

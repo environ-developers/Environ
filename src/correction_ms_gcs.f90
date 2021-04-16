@@ -100,7 +100,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
             CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
         !
-        IF (potential%cell%nnr .NE. oned_analytic%n) &
+        IF (potential%cell%nnr /= oned_analytic%n) &
             CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
         !
         cell => potential%cell
@@ -116,7 +116,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Get parameters of semiconductor to compute analytic correction
         !
-        IF (electrolyte%ntyp .NE. 2) &
+        IF (electrolyte%ntyp /= 2) &
             CALL errore(sub_name, &
                         'Unexpected number of counterionic species, &
                         &different from two', 1)
@@ -142,7 +142,7 @@ CONTAINS
         kbt = semiconductor_in%temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
-        IF (env_periodicity .NE. 2) &
+        IF (env_periodicity /= 2) &
             CALL errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
@@ -184,7 +184,7 @@ CONTAINS
         !
         ez = -tpi * e2 * tot_charge / area ! / permittivity
         !
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor_in%slab_charge == 0.D0) THEN
             ez_gcs = ez
         ELSE
             ez_gcs = tpi * e2 * electrode_charge / area ! / permittivity
@@ -209,7 +209,7 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (ABS(axis(1, i)) .GE. xstern_gcs) THEN
+            IF (ABS(axis(1, i)) >= xstern_gcs) THEN
                 !
                 icount = icount + 1
                 !
@@ -240,14 +240,14 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (axis(1, i) .GE. xstern_gcs) THEN
+            IF (axis(1, i) >= xstern_gcs) THEN
                 !
                 !------------------------------------------------------------------------
                 ! Gouy-Chapmann-Stern analytic solution on the outside
                 !
                 arg = const * EXP(ABS(axis(1, i)) * f1)
                 !
-                IF (ABS(arg) .GT. 1.D0) THEN
+                IF (ABS(arg) > 1.D0) THEN
                     acoth = 0.5D0 * LOG((arg + 1.D0) / (arg - 1.D0))
                 ELSE
                     acoth = 0.D0
@@ -278,7 +278,7 @@ CONTAINS
         !
         WRITE (environ_unit, *) "charge: ", tot_charge
         !
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor_in%slab_charge == 0.D0) THEN
             ez_ms = 0.D0
         ELSE
             !
@@ -317,8 +317,8 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF ((axis(1, i) .LT. 0.D0) .AND. &
-                ((ABS(axis(1, i)) - xstern_ms) .LE. 0.05D0)) THEN
+            IF ((axis(1, i) < 0.D0) .AND. &
+                ((ABS(axis(1, i)) - xstern_ms) <= 0.05D0)) THEN
                 !
                 icount = icount + 1
                 v_cut = v_cut + potential%of_r(i)
@@ -346,16 +346,16 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (-axis(1, i) .GE. xstern_ms) THEN
+            IF (-axis(1, i) >= xstern_ms) THEN
                 !
-                IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+                IF (semiconductor_in%slab_charge == 0.D0) THEN
                     !
                     !--------------------------------------------------------------------
                     ! Gouy-Chapmann-Stern analytic solution on the outside
                     !
                     arg = const * EXP(ABS(axis(1, i)) * f1)
                     !
-                    IF (ABS(arg) .GT. 1.D0) THEN
+                    IF (ABS(arg) > 1.D0) THEN
                         acoth = 0.5D0 * LOG((arg + 1.D0) / (arg - 1.D0))
                     ELSE
                         acoth = 0.D0
@@ -432,7 +432,7 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (axis(1, i) .EQ. max_axis) THEN
+            IF (axis(1, i) == max_axis) THEN
                 icount = icount + 1
                 v_edge = v_edge + potential%of_r(i) + v(i)
             END IF
@@ -503,7 +503,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &
             CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
         !
-        IF (gradv%cell%nnr .NE. oned_analytic%n) &
+        IF (gradv%cell%nnr /= oned_analytic%n) &
             CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
         !
         cell => gradv%cell
@@ -535,7 +535,7 @@ CONTAINS
         kbt = semiconductor_in%temperature * k_boltzmann_ry
         invkbt = 1.D0 / kbt
         !
-        IF (env_periodicity .NE. 2) &
+        IF (env_periodicity /= 2) &
             CALL errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
@@ -564,7 +564,7 @@ CONTAINS
         !
         ez = -tpi * e2 * tot_charge / area
         !
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor_in%slab_charge == 0.D0) THEN
             ez_gcs = ez
         ELSE
             ez_gcs = tpi * e2 * electrode_charge / area
@@ -603,7 +603,7 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (axis(1, i) .GE. xstern_gcs) THEN
+                IF (axis(1, i) >= xstern_gcs) THEN
                     !
                     !--------------------------------------------------------------------
                     ! Linearized Gouy-Chapmann-Stern analytic solution on the outside
@@ -632,7 +632,7 @@ CONTAINS
             !
             DO i = 1, nnr
                 !
-                IF (axis(1, i) .GE. xstern_gcs) THEN
+                IF (axis(1, i) >= xstern_gcs) THEN
                     !
                     !--------------------------------------------------------------------
                     ! Gouy-Chapmann-Stern analytic solution on the outside
@@ -656,7 +656,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Now applying the mott schottky side
         !
-        IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+        IF (semiconductor_in%slab_charge == 0.D0) THEN
             ez_ms = 0.D0
         ELSE
             ez_ms = tpi * e2 * (electrode_charge - semiconductor_in%slab_charge) / area
@@ -673,10 +673,10 @@ CONTAINS
         !
         DO i = 1, nnr
             !
-            IF (-axis(1, i) .GE. xstern_ms) THEN
+            IF (-axis(1, i) >= xstern_ms) THEN
                 distance = ABS(axis(1, i)) - xstern_ms
                 !
-                IF (semiconductor_in%slab_charge .EQ. 0.D0) THEN
+                IF (semiconductor_in%slab_charge == 0.D0) THEN
                     !
                     IF (electrolyte%linearized) THEN
                         !
@@ -730,7 +730,7 @@ CONTAINS
                         !----------------------------------------------------------------
                         ! Mott Schottky analytic solution on the outside
                         !
-                        IF (ez_ms .LE. 0.D0) THEN
+                        IF (ez_ms <= 0.D0) THEN
                             vtmp = -2.D0 * (distance) / fact / 4.D0 + ez_ms
                         ELSE
                             vtmp = 2.D0 * (distance) / fact / 4.D0 - ez_ms

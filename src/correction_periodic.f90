@@ -98,7 +98,7 @@ CONTAINS
         origin => oned_analytic%origin
         axis => oned_analytic%x
         !
-        IF (env_periodicity .EQ. 0 .AND. .NOT. cell%cubic) &
+        IF (env_periodicity == 0 .AND. .NOT. cell%cubic) &
             CALL errore(sub_name, &
                         'Parabolic correction in 0D is only for cubic cells', 1)
         !
@@ -292,7 +292,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%density%cell, oned_analytic%cell)) &
             CALL errore(sub_name, 'Missmatch in domains of charges and solver', 1)
         !
-        IF (natoms .NE. charges%ions%number) &
+        IF (natoms /= charges%ions%number) &
             CALL errore(sub_name, &
                         'Missmatch in numbers of atoms passed in input and stored', 1)
         !

@@ -79,7 +79,7 @@ CONTAINS
             !
             IF (solver%use_iterative) THEN
                 !
-                IF (solver%auxiliary .EQ. 'ioncc') THEN
+                IF (solver%auxiliary == 'ioncc') THEN
                     !
                     IF (ASSOCIATED(charges%dielectric)) THEN
                         !
@@ -167,7 +167,7 @@ CONTAINS
             !
             IF (solver%use_iterative) THEN
                 !
-                IF (solver%auxiliary .EQ. 'ioncc') THEN
+                IF (solver%auxiliary == 'ioncc') THEN
                     !
                     IF (PRESENT(dielectric)) THEN
                         !
@@ -336,7 +336,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9000)
+        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9000)
         !
 9000    FORMAT(/, 4('%'), ' OUTER LOOP ON POTENTIAL ', 50('%'))
         !
@@ -385,7 +385,7 @@ CONTAINS
         !
         DO iter = 1, maxiter
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9002) iter
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9002) iter
             !
 9002        FORMAT(' Outer loop iteration # ', i10)
             !
@@ -418,9 +418,9 @@ CONTAINS
                     ! IF (electrolyte%ion_adsorption .NE. 'none') & #TODO
                     !     arg = arg - electrolyte%ioncctype(ityp)%potential%of_r(ir) / kT
                     !
-                    IF (arg .GT. exp_arg_limit) THEN
+                    IF (arg > exp_arg_limit) THEN
                         cfactor%of_r(ir) = EXP(exp_arg_limit)
-                    ELSE IF (arg .LT. -exp_arg_limit) THEN
+                    ELSE IF (arg < -exp_arg_limit) THEN
                         cfactor%of_r(ir) = EXP(-exp_arg_limit)
                     ELSE
                         cfactor%of_r(ir) = EXP(arg)
@@ -430,7 +430,7 @@ CONTAINS
                 !
                 residual%of_r = residual%of_r + z * cbulk * cfactor%of_r
                 !
-                IF (cionmax .GT. 0.D0) THEN
+                IF (cionmax > 0.D0) THEN
                     factor = cbulk / cionmax
                     !
                     SELECT CASE (electrolyte%electrolyte_entropy)
@@ -468,23 +468,23 @@ CONTAINS
             delta_qm = quadratic_mean_environ_density(residual)
             totaux = integrate_environ_density(rhoaux)
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tolrhoaux
             !
 9004        FORMAT('outer delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9003) totaux
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9003) totaux
             !
 9003        FORMAT(' Total iterative electrolyte charge = ', F13.6)
             !
-            IF (delta_en .LT. tolrhoaux .AND. iter .GT. 0) THEN
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9005)
+            IF (delta_en < tolrhoaux .AND. iter > 0) THEN
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9005)
                 !
 9005            FORMAT(' Outer loop is converged, EXIT')
                 !
                 EXIT
                 !
-            ELSE IF (iter .EQ. maxiter) THEN
+            ELSE IF (iter == maxiter) THEN
                 !
                 IF (ionode) WRITE (program_unit, 9006)
                 !
@@ -493,7 +493,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose .GE. 1) WRITE (program_unit, 9007) delta_en, iter
+        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
 9007    FORMAT('     electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
@@ -549,7 +549,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9000)
+        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9000)
         !
 9000    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'))
         !
@@ -597,7 +597,7 @@ CONTAINS
         !
         DO iter = 1, maxiter
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9002) iter
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9002) iter
             !
 9002        FORMAT(' Newton step # ', i10)
             !
@@ -638,9 +638,9 @@ CONTAINS
                     ! IF (electrolyte%ion_adsorption .NE. 'none') & #TODO
                     !     arg = arg - electrolyte%ioncctype(itypi)%potential%of_r(ir) / kT
                     !
-                    IF (arg .GT. exp_arg_limit) THEN
+                    IF (arg > exp_arg_limit) THEN
                         cfactor%of_r(ir) = EXP(exp_arg_limit)
-                    ELSE IF (arg .LT. -exp_arg_limit) THEN
+                    ELSE IF (arg < -exp_arg_limit) THEN
                         cfactor%of_r(ir) = EXP(-exp_arg_limit)
                     ELSE
                         cfactor%of_r(ir) = EXP(arg)
@@ -652,7 +652,7 @@ CONTAINS
                 !
                 numerator%of_r = 1.D0
                 !
-                IF (cionmax .GT. 0.D0) THEN
+                IF (cionmax > 0.D0) THEN
                     !
                     SELECT CASE (electrolyte%electrolyte_entropy)
                     CASE ('full')
@@ -665,7 +665,7 @@ CONTAINS
                             zj => electrolyte%ioncctype(itypj)%z
                             cbulkj => electrolyte%ioncctype(itypj)%cbulk
                             !
-                            IF (itypj .EQ. itypi) THEN
+                            IF (itypj == itypi) THEN
                                 numerator%of_r = numerator%of_r - cbulkj / cionmax
                             ELSE
                                 !
@@ -690,7 +690,7 @@ CONTAINS
                             zj => electrolyte%ioncctype(itypj)%z
                             cbulkj => electrolyte%ioncctype(itypj)%cbulk
                             !
-                            IF (itypj .EQ. itypi) THEN
+                            IF (itypj == itypi) THEN
                                 numerator%of_r = numerator%of_r - cbulkj / cionmax
                             ELSE
                                 !
@@ -728,23 +728,23 @@ CONTAINS
             delta_qm = quadratic_mean_environ_density(residual)
             totaux = integrate_environ_density(rhoaux)
             !
-            IF (verbose .GE. 1 .AND. ionode) &
+            IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tol
             !
 9004        FORMAT('outer delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
-            IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9003) totaux
+            IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9003) totaux
             !
 9003        FORMAT(' Total iterative electrolyte charge = ', F13.6)
             !
-            IF (delta_en .LT. tol .AND. iter .GT. 0) THEN
-                IF (verbose .GE. 1 .AND. ionode) WRITE (environ_unit, 9005)
+            IF (delta_en < tol .AND. iter > 0) THEN
+                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9005)
                 !
 9005            FORMAT(' Newton steps are converged, EXIT')
                 !
                 EXIT
                 !
-            ELSE IF (iter .EQ. maxiter) THEN
+            ELSE IF (iter == maxiter) THEN
                 !
                 IF (ionode) WRITE (program_unit, 9006)
                 !
@@ -753,7 +753,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose .GE. 1) WRITE (program_unit, 9007) delta_en, iter
+        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
 9007    FORMAT('     electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !

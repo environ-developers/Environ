@@ -126,9 +126,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (x .LE. xmin) THEN
+        IF (x <= xmin) THEN
             sfunct1 = 1.D0
-        ELSE IF (x .LT. xmax) THEN
+        ELSE IF (x < xmax) THEN
             arg = tpi * LOG(xmax / ABS(x)) / fact
             sfunct1 = (arg - SIN(arg)) / tpi
         ELSE
@@ -159,9 +159,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (x .LE. xmin) THEN
+        IF (x <= xmin) THEN
             dsfunct1 = 0.D0
-        ELSE IF (x .LT. xmax) THEN
+        ELSE IF (x < xmax) THEN
             arg = tpi * LOG(xmax / ABS(x)) / fact
             dsfunct1 = (COS(arg) - 1.D0) / ABS(x) / fact ! #TODO in fact should not use ABS(x)
         ELSE
@@ -192,9 +192,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (x .LE. xmin) THEN
+        IF (x <= xmin) THEN
             d2sfunct1 = 0.D0
-        ELSE IF (x .LT. xmax) THEN
+        ELSE IF (x < xmax) THEN
             arg = tpi * LOG(xmax / ABS(x)) / fact
             d2sfunct1 = (tpi * SIN(arg) + fact * (1.D0 - COS(arg))) / (x * fact)**2
         ELSE
@@ -250,7 +250,7 @@ CONTAINS
         !
         arg = (x - xthr) / spread
         !
-        IF (ABS(arg) .GT. 6.D0) THEN ! 6.D0 is the threshold of environ_erfc(x)
+        IF (ABS(arg) > 6.D0) THEN ! 6.D0 is the threshold of environ_erfc(x)
             dsfunct2 = 0.D0
         ELSE
             dsfunct2 = -EXP(-arg**2) / sqrtpi / spread
@@ -277,7 +277,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         arg = (x - xthr) / spread
-        IF (ABS(arg) .GT. 6.D0) THEN
+        IF (ABS(arg) > 6.D0) THEN
             d2sfunct2 = 0.D0
         ELSE
             d2sfunct2 = EXP(-arg**2) / sqrtpi / spread**2 * 2.D0 * arg
@@ -498,12 +498,12 @@ CONTAINS
         fft => boundary%core%fft
         fd => boundary%core%fd
         !
-        IF (stype .EQ. 1 .OR. stype .EQ. 2) THEN
+        IF (stype == 1 .OR. stype == 2) THEN
             rhomax => boundary%rhomax
             rhomin => boundary%rhomin
             tbeta => boundary%fact
             const => boundary%const
-        ELSE IF (stype .EQ. 0) THEN
+        ELSE IF (stype == 0) THEN
             rhomax => boundary%rhozero
             rhomin => boundary%deltarho
             tbeta => boundary%tbeta
@@ -521,11 +521,11 @@ CONTAINS
         !
         deriv => boundary%deriv
         !
-        IF (deriv .GE. 1) gradeps => boundary%gradient%of_r
+        IF (deriv >= 1) gradeps => boundary%gradient%of_r
         !
-        IF (deriv .GE. 2) lapleps => boundary%laplacian%of_r
+        IF (deriv >= 2) lapleps => boundary%laplacian%of_r
         !
-        IF (deriv .GE. 3) THEN
+        IF (deriv >= 3) THEN
             dsurface => boundary%dsurface%of_r
             !
             IF (boundary%solvent_aware) THEN
@@ -542,24 +542,24 @@ CONTAINS
         SELECT CASE (boundary%core%type_)
         CASE ('fft')
             !
-            IF (deriv .EQ. 1 .OR. deriv .EQ. 2) &
+            IF (deriv == 1 .OR. deriv == 2) &
                 CALL gradient_fft(fft, boundary%scaled, boundary%gradient)
             !
-            IF (deriv .EQ. 2) &
+            IF (deriv == 2) &
                 CALL laplacian_fft(fft, boundary%scaled, boundary%laplacian)
             !
-            IF (deriv .EQ. 3) &
+            IF (deriv == 3) &
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
                                   boundary%laplacian, hessian, boundary%dsurface)
             !
         CASE ('analytic', 'fd')
             !
-            IF (deriv .EQ. 1 .OR. deriv .EQ. 2) &
+            IF (deriv == 1 .OR. deriv == 2) &
                 CALL gradient_fft(fft, density, boundary%gradient)
             !
-            IF (deriv .EQ. 2) CALL laplacian_fft(fft, density, boundary%laplacian)
+            IF (deriv == 2) CALL laplacian_fft(fft, density, boundary%laplacian)
             !
-            IF (deriv .EQ. 3) THEN
+            IF (deriv == 3) THEN
                 !
                 CALL dsurface_fft(fft, density, boundary%gradient, &
                                   boundary%laplacian, hessian, boundary%dsurface)
@@ -582,20 +582,20 @@ CONTAINS
                 !
             END IF
             !
-            IF (deriv .GT. 1) &
+            IF (deriv > 1) &
                 lapleps(:) = lapleps(:) * deps(:) + &
                              (gradeps(1, :)**2 + gradeps(2, :)**2 + &
                               gradeps(3, :)**2) * d2eps(:)
             !
-            IF (deriv .GE. 1) THEN
+            IF (deriv >= 1) THEN
                 !
-                IF (boundary%core%type_ .EQ. 'analytic') THEN
+                IF (boundary%core%type_ == 'analytic') THEN
                     !
                     DO ipol = 1, 3
                         gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
                     END DO
                     !
-                ELSE IF (boundary%core%type_ .EQ. 'fd') THEN
+                ELSE IF (boundary%core%type_ == 'fd') THEN
                     CALL gradient_fd(fd, boundary%scaled, boundary%gradient)
                 END IF
                 !
@@ -608,14 +608,14 @@ CONTAINS
         !
         boundary%volume = integrate_environ_density(boundary%scaled)
         !
-        IF (deriv .GE. 1) THEN
+        IF (deriv >= 1) THEN
             !
             CALL update_gradient_modulus(boundary%gradient)
             !
             boundary%surface = integrate_environ_density(boundary%gradient%modulus)
         END IF
         !
-        IF (deriv .GE. 3 .AND. .NOT. boundary%solvent_aware) &
+        IF (deriv >= 3 .AND. .NOT. boundary%solvent_aware) &
             CALL destroy_environ_hessian(hessian)
         !
         RETURN
@@ -682,13 +682,13 @@ CONTAINS
             dsurface(i) = 0.D0
             gmod = SUM(grad(:, i)**2)
             !
-            IF (gmod .LT. toldsurface) CYCLE
+            IF (gmod < toldsurface) CYCLE
             !
             DO ipol = 1, 3
                 !
                 DO jpol = 1, 3
                     !
-                    IF (ipol .EQ. jpol) CYCLE
+                    IF (ipol == jpol) CYCLE
                     !
                     dsurface(i) = dsurface(i) + &
                                   grad(ipol, i) * grad(jpol, i) * hess(ipol, jpol, i) - &
@@ -782,7 +782,7 @@ CONTAINS
         !
         deriv => boundary%deriv
         !
-        IF (deriv .EQ. 3) THEN
+        IF (deriv == 3) THEN
             !
             IF (boundary%solvent_aware) THEN
                 hessian => boundary%hessian
@@ -799,56 +799,56 @@ CONTAINS
         SELECT CASE (boundary%core%type_)
         CASE ('fft')
             !
-            IF (deriv .EQ. 1 .OR. deriv .EQ. 2) &
+            IF (deriv == 1 .OR. deriv == 2) &
                 CALL gradient_fft(fft, boundary%scaled, boundary%gradient)
             !
-            IF (deriv .EQ. 2) &
+            IF (deriv == 2) &
                 CALL laplacian_fft(fft, boundary%scaled, boundary%laplacian)
             !
-            IF (deriv .EQ. 3) &
+            IF (deriv == 3) &
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
                                   boundary%laplacian, hessian, boundary%dsurface)
             !
         CASE ('analytic', 'highmem')
             !
-            IF (deriv .GE. 1) ALLOCATE (gradlocal(nsoft_spheres))
+            IF (deriv >= 1) ALLOCATE (gradlocal(nsoft_spheres))
             !
-            IF (deriv .EQ. 2) ALLOCATE (lapllocal(nsoft_spheres))
+            IF (deriv == 2) ALLOCATE (lapllocal(nsoft_spheres))
             !
-            IF (deriv .EQ. 3) ALLOCATE (hesslocal(nsoft_spheres))
+            IF (deriv == 3) ALLOCATE (hesslocal(nsoft_spheres))
             !
             !----------------------------------------------------------------------------
             ! Compute and temporarily store soft spheres derivatives
             !
             DO i = 1, nsoft_spheres
                 !
-                IF (deriv .GE. 1) CALL init_environ_gradient(cell, gradlocal(i))
+                IF (deriv >= 1) CALL init_environ_gradient(cell, gradlocal(i))
                 !
-                IF (deriv .EQ. 2) CALL init_environ_density(cell, lapllocal(i))
+                IF (deriv == 2) CALL init_environ_density(cell, lapllocal(i))
                 !
-                IF (deriv .EQ. 3) CALL init_environ_hessian(cell, hesslocal(i))
+                IF (deriv == 3) CALL init_environ_hessian(cell, hesslocal(i))
                 !
-                IF (deriv .GE. 1) &
+                IF (deriv >= 1) &
                     CALL gradient_of_functions(soft_spheres(i), gradlocal(i), .FALSE.)
                 !
-                IF (deriv .EQ. 2) &
+                IF (deriv == 2) &
                     CALL laplacian_of_functions(soft_spheres(i), lapllocal(i), .FALSE.)
                 !
-                IF (deriv .EQ. 3) &
+                IF (deriv == 3) &
                     CALL hessian_of_functions(soft_spheres(i), hesslocal(i), .FALSE.)
                 !
             END DO
             !
-            IF (deriv .EQ. 1 .OR. deriv .EQ. 2) &
+            IF (deriv == 1 .OR. deriv == 2) &
                 CALL calc_gradient_of_boundary_highmem(nsoft_spheres, local, &
                                                        gradlocal, boundary%gradient)
             !
-            IF (deriv .EQ. 2) &
+            IF (deriv == 2) &
                 CALL calc_laplacian_of_boundary_highmem(nsoft_spheres, local, &
                                                         gradlocal, lapllocal, &
                                                         boundary%laplacian)
             !
-            IF (deriv .EQ. 3) &
+            IF (deriv == 3) &
                 CALL calc_dsurface_of_boundary_highmem(nsoft_spheres, local, &
                                                        gradlocal, hesslocal, &
                                                        boundary%gradient, &
@@ -857,19 +857,19 @@ CONTAINS
             !
             DO i = 1, nsoft_spheres
                 !
-                IF (deriv .GE. 1) CALL destroy_environ_gradient(gradlocal(i))
+                IF (deriv >= 1) CALL destroy_environ_gradient(gradlocal(i))
                 !
-                IF (deriv .EQ. 2) CALL destroy_environ_density(lapllocal(i))
+                IF (deriv == 2) CALL destroy_environ_density(lapllocal(i))
                 !
-                IF (deriv .EQ. 3) CALL destroy_environ_hessian(hesslocal(i))
+                IF (deriv == 3) CALL destroy_environ_hessian(hesslocal(i))
                 !
             END DO
             !
-            IF (deriv .GE. 1) DEALLOCATE (gradlocal)
+            IF (deriv >= 1) DEALLOCATE (gradlocal)
             !
-            IF (deriv .EQ. 2) DEALLOCATE (lapllocal)
+            IF (deriv == 2) DEALLOCATE (lapllocal)
             !
-            IF (deriv .EQ. 3) DEALLOCATE (hesslocal)
+            IF (deriv == 3) DEALLOCATE (hesslocal)
             !
         CASE ('lowmem')
             !
@@ -877,47 +877,47 @@ CONTAINS
             !
             ! #TODO consider moving into same branch as highmem and switching for function calls
             !
-            IF (deriv .GE. 1) ALLOCATE (gradlocal(nsoft_spheres))
+            IF (deriv >= 1) ALLOCATE (gradlocal(nsoft_spheres))
             !
-            IF (deriv .EQ. 2) ALLOCATE (lapllocal(nsoft_spheres))
+            IF (deriv == 2) ALLOCATE (lapllocal(nsoft_spheres))
             !
-            IF (deriv .EQ. 3) ALLOCATE (hesslocal(nsoft_spheres))
+            IF (deriv == 3) ALLOCATE (hesslocal(nsoft_spheres))
             !
             !----------------------------------------------------------------------------
             ! Compute and temporarily store soft spheres derivatives
             !
             DO i = 1, nsoft_spheres
                 !
-                IF (deriv .GE. 1) CALL init_environ_gradient(cell, gradlocal(i))
+                IF (deriv >= 1) CALL init_environ_gradient(cell, gradlocal(i))
                 !
-                IF (deriv .EQ. 2) CALL init_environ_density(cell, lapllocal(i))
+                IF (deriv == 2) CALL init_environ_density(cell, lapllocal(i))
                 !
-                IF (deriv .EQ. 3) CALL init_environ_hessian(cell, hesslocal(i))
+                IF (deriv == 3) CALL init_environ_hessian(cell, hesslocal(i))
                 !
-                IF (deriv .GE. 1) &
+                IF (deriv >= 1) &
                     CALL gradient_of_functions(soft_spheres(i), gradlocal(i), .FALSE.)
                 !
-                IF (deriv .EQ. 2) &
+                IF (deriv == 2) &
                     CALL laplacian_of_functions(soft_spheres(i), lapllocal(i), .FALSE.)
                 !
-                IF (deriv .EQ. 3) &
+                IF (deriv == 3) &
                     CALL hessian_of_functions(soft_spheres(i), hesslocal(i), .FALSE.)
                 !
             END DO
             !
-            IF (deriv .GE. 1) &
+            IF (deriv >= 1) &
                 CALL calc_gradient_of_boundary_lowmem(nsoft_spheres, local, &
                                                       gradlocal, boundary%scaled, &
                                                       boundary%gradient)
             !
-            IF (deriv .EQ. 2) &
+            IF (deriv == 2) &
                 CALL calc_laplacian_of_boundary_lowmem(nsoft_spheres, local, &
                                                        gradlocal, lapllocal, &
                                                        boundary%scaled, &
                                                        boundary%gradient, &
                                                        boundary%laplacian)
             !
-            IF (deriv .EQ. 3) &
+            IF (deriv == 3) &
                 CALL calc_dsurface_of_boundary_lowmem(nsoft_spheres, local, &
                                                       gradlocal, hesslocal, &
                                                       boundary%gradient, &
@@ -927,19 +927,19 @@ CONTAINS
             !
             DO i = 1, nsoft_spheres
                 !
-                IF (deriv .GE. 1) CALL destroy_environ_gradient(gradlocal(i))
+                IF (deriv >= 1) CALL destroy_environ_gradient(gradlocal(i))
                 !
-                IF (deriv .EQ. 2) CALL destroy_environ_density(lapllocal(i))
+                IF (deriv == 2) CALL destroy_environ_density(lapllocal(i))
                 !
-                IF (deriv .EQ. 3) CALL destroy_environ_hessian(hesslocal(i))
+                IF (deriv == 3) CALL destroy_environ_hessian(hesslocal(i))
                 !
             END DO
             !
-            IF (deriv .GE. 1) DEALLOCATE (gradlocal)
+            IF (deriv >= 1) DEALLOCATE (gradlocal)
             !
-            IF (deriv .EQ. 2) DEALLOCATE (lapllocal)
+            IF (deriv == 2) DEALLOCATE (lapllocal)
             !
-            IF (deriv .EQ. 3) DEALLOCATE (hesslocal)
+            IF (deriv == 3) DEALLOCATE (hesslocal)
             !
         END SELECT
         !
@@ -949,16 +949,16 @@ CONTAINS
         boundary%scaled%of_r = 1.D0 - boundary%scaled%of_r
         boundary%volume = integrate_environ_density(boundary%scaled)
         !
-        IF (deriv .GE. 1) THEN
+        IF (deriv >= 1) THEN
             boundary%gradient%of_r = -boundary%gradient%of_r
             !
             CALL update_gradient_modulus(boundary%gradient)
             !
             boundary%surface = integrate_environ_density(boundary%gradient%modulus)
             !
-            IF (deriv .GE. 2) boundary%laplacian%of_r = -boundary%laplacian%of_r
+            IF (deriv >= 2) boundary%laplacian%of_r = -boundary%laplacian%of_r
             !
-            IF (deriv .EQ. 3) THEN
+            IF (deriv == 3) THEN
                 boundary%dsurface%of_r = -boundary%dsurface%of_r
                 !
                 IF (boundary%solvent_aware) THEN
@@ -1005,14 +1005,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (i .GT. n) CALL errore(sub_name, 'Index out of bound', 1)
+        IF (i > n) CALL errore(sub_name, 'Index out of bound', 1)
         !
         DO ipol = 1, 3
             partial%of_r(ipol, :) = gradlocal(i)%of_r(ipol, :)
             !
             DO j = 1, n
                 !
-                IF (j .EQ. i) CYCLE
+                IF (j == i) CYCLE
                 !
                 partial%of_r(ipol, :) = partial%of_r(ipol, :) * local(j)%of_r(:)
             END DO
@@ -1096,7 +1096,7 @@ CONTAINS
             !
             DO j = 1, n
                 !
-                IF (j .EQ. i) THEN
+                IF (j == i) THEN
                     tmp%of_r = lapllocal(i)%of_r
                 ELSE
                     !
@@ -1107,7 +1107,7 @@ CONTAINS
                 !
                 DO k = 1, n
                     !
-                    IF (k .EQ. j .OR. k .EQ. i) CYCLE
+                    IF (k == j .OR. k == i) CYCLE
                     !
                     tmp%of_r = tmp%of_r * local(k)%of_r
                 END DO
@@ -1169,7 +1169,7 @@ CONTAINS
                     !
                     DO jpol = 1, 3
                         !
-                        IF (j .EQ. i) THEN
+                        IF (j == i) THEN
                             dens%of_r(:) = hesslocal(i)%of_r(ipol, jpol, :)
                         ELSE
                             !
@@ -1180,7 +1180,7 @@ CONTAINS
                         !
                         DO k = 1, n
                             !
-                            IF (k .EQ. j .OR. k .EQ. i) CYCLE
+                            IF (k == j .OR. k == i) CYCLE
                             !
                             dens%of_r = dens%of_r * local(k)%of_r
                         END DO
@@ -1246,7 +1246,7 @@ CONTAINS
             !
             DO j = 1, cell%nnr
                 !
-                IF (ABS(local(i)%of_r(j)) .LE. tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= tol) CYCLE
                 !
                 DO ipol = 1, 3
                     gradient%of_r(ipol, j) = gradient%of_r(ipol, j) + &
@@ -1294,7 +1294,7 @@ CONTAINS
             !
             DO j = 1, cell%nnr
                 !
-                IF (ABS(local(i)%of_r(j)) .LE. tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= tol) CYCLE
                 !
                 laplacian%of_r(j) = laplacian%of_r(j) + &
                                     (lapllocal(i)%of_r(j) / &
@@ -1354,7 +1354,7 @@ CONTAINS
             !
             DO j = 1, cell%nnr
                 !
-                IF (ABS(local(i)%of_r(j)) .LE. tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= tol) CYCLE
                 !
                 DO ipol = 1, 3
                     !
@@ -1422,7 +1422,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (boundary%mode .EQ. 'electronic') RETURN
+        IF (boundary%mode == 'electronic') RETURN
         ! exit if boundary is only defined on electronic density
         !
         cell => partial%cell
@@ -1435,25 +1435,25 @@ CONTAINS
             CALL errore(sub_name, 'Missing details of ions', 1)
         END IF
         !
-        IF (index .GT. number) &
+        IF (index > number) &
             CALL errore(sub_name, 'Index greater than number of ions', 1)
         !
-        IF (index .LE. 0) &
+        IF (index <= 0) &
             CALL errore(sub_name, 'Index of ion is zero or lower', 1)
         !
-        IF (boundary%mode .EQ. 'ionic' .AND. &
+        IF (boundary%mode == 'ionic' .AND. &
             .NOT. ALLOCATED(boundary%soft_spheres)) &
             CALL errore(sub_name, 'Missing details of ionic boundary', 1)
         !
-        IF (boundary%mode .EQ. 'full' .AND. &
+        IF (boundary%mode == 'full' .AND. &
             .NOT. ALLOCATED(boundary%ions%core_electrons)) &
             CALL errore(sub_name, 'Missing details of core electrons', 1)
         !
-        IF (boundary%mode .EQ. 'full' .AND. &
+        IF (boundary%mode == 'full' .AND. &
             .NOT. ASSOCIATED(boundary%dscaled%cell, cell)) &
             CALL errore(sub_name, 'Mismatch or unassociated boundary derivative', 1)
         !
-        IF (boundary%mode .EQ. 'ionic' .OR. boundary%mode .EQ. 'fa-ionic') THEN
+        IF (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic') THEN
             !
             SELECT CASE (boundary%core%type_)
             CASE ('fft', 'fd', 'analytic', 'highmem', 'lowmem')
@@ -1465,7 +1465,7 @@ CONTAINS
                 !
                 DO i = 1, number
                     !
-                    IF (i .EQ. index) CYCLE
+                    IF (i == index) CYCLE
                     !
                     CALL density_of_functions(boundary%soft_spheres(i), local, .TRUE.)
                     !
@@ -1479,7 +1479,7 @@ CONTAINS
                 !
             END SELECT
             !
-        ELSE IF (boundary%mode .EQ. 'full') THEN
+        ELSE IF (boundary%mode == 'full') THEN
             !
             CALL gradient_of_functions(boundary%ions%core_electrons(index), partial, &
                                        .TRUE.)
@@ -1495,13 +1495,13 @@ CONTAINS
             !
             spurious_force = integrate_environ_density(partial%modulus)
             !
-            IF (spurious_force .GT. tolspuriousforce .AND. ionode) &
+            IF (spurious_force > tolspuriousforce .AND. ionode) &
                 WRITE (program_unit, 4001) index, spurious_force
             !
 4001        FORMAT(1X, 'WARNING: Unphysical forces due to core electrons are non-negligible ' &
                    /, 1X, 'atom type ', I3, ' is subject to a spurious force of ', F12.6, ' ')
             !
-        ELSE IF (boundary%mode .EQ. 'system') THEN
+        ELSE IF (boundary%mode == 'system') THEN
             !
             ! PROBABLY THERE IS A UNIFORM CONTRIBUTION TO THE FORCES
             ! WHICH SHOULD ONLY AFFECT THE COM OF THE SYSTEM, POSSIBLY NEED TO ADD
@@ -1568,7 +1568,7 @@ CONTAINS
         !
         deriv => boundary%deriv
         !
-        IF (deriv .GE. 3) THEN
+        IF (deriv >= 3) THEN
             !
             IF (boundary%solvent_aware) THEN
                 hesslocal => boundary%hessian
@@ -1584,25 +1584,25 @@ CONTAINS
         SELECT CASE (boundary%core%type_)
         CASE ('fft')
             !
-            IF (deriv .EQ. 1 .OR. deriv .EQ. 2) &
+            IF (deriv == 1 .OR. deriv == 2) &
                 CALL gradient_fft(fft, boundary%scaled, boundary%gradient)
             !
-            IF (deriv .EQ. 2) &
+            IF (deriv == 2) &
                 CALL laplacian_fft(fft, boundary%scaled, boundary%laplacian)
             !
-            IF (deriv .EQ. 3) &
+            IF (deriv == 3) &
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
                                   boundary%laplacian, hesslocal, boundary%dsurface)
             !
         CASE ('analytic')
             !
-            IF (deriv .GE. 1) &
+            IF (deriv >= 1) &
                 CALL gradient_of_functions(simple, boundary%gradient, .TRUE.)
             !
-            IF (deriv .GE. 2) &
+            IF (deriv >= 2) &
                 CALL laplacian_of_functions(simple, boundary%laplacian, .TRUE.)
             !
-            IF (deriv .GE. 3) THEN
+            IF (deriv >= 3) THEN
                 !
                 CALL hessian_of_functions(simple, hesslocal, .TRUE.)
                 !
@@ -1613,7 +1613,7 @@ CONTAINS
             !
         END SELECT
         !
-        IF (deriv .GE. 3) THEN
+        IF (deriv >= 3) THEN
             !
             IF (.NOT. boundary%solvent_aware) THEN
                 !
@@ -1626,7 +1626,7 @@ CONTAINS
         !
         boundary%volume = integrate_environ_density(boundary%scaled)
         !
-        IF (deriv .GE. 1) THEN
+        IF (deriv >= 1) THEN
             !
             CALL update_gradient_modulus(boundary%gradient)
             !
@@ -1654,11 +1654,11 @@ CONTAINS
         !
         boundary%volume = integrate_environ_density(boundary%scaled)
         !
-        IF (boundary%deriv .GE. 1) boundary%gradient%of_r = -boundary%gradient%of_r
+        IF (boundary%deriv >= 1) boundary%gradient%of_r = -boundary%gradient%of_r
         !
-        IF (boundary%deriv .GE. 2) boundary%laplacian%of_r = -boundary%laplacian%of_r
+        IF (boundary%deriv >= 2) boundary%laplacian%of_r = -boundary%laplacian%of_r
         !
-        IF (boundary%deriv .GE. 3) THEN
+        IF (boundary%deriv >= 3) THEN
             boundary%dsurface%of_r = -boundary%dsurface%of_r
             !
             IF (boundary%solvent_aware) boundary%hessian%of_r = -boundary%hessian%of_r
@@ -1717,7 +1717,7 @@ CONTAINS
         !
         CALL init_environ_density(cell, filled_fraction)
         !
-        IF (deriv .GE. 2 .AND. boundary%core%type_ .NE. 'fft') &
+        IF (deriv >= 2 .AND. boundary%core%type_ /= 'fft') &
             CALL init_environ_density(cell, d2filling)
         !
         !--------------------------------------------------------------------------------
@@ -1752,7 +1752,7 @@ CONTAINS
             !
             boundary%dfilling%of_r(ir) = -dsfunct2(filled_fraction%of_r(ir), thr, spr)
             !
-            IF (deriv .GE. 2 .AND. boundary%core%type_ .NE. 'fft') &
+            IF (deriv >= 2 .AND. boundary%core%type_ /= 'fft') &
                 d2filling%of_r(ir) = -d2sfunct2(filled_fraction%of_r(ir), thr, spr)
             !
         END DO
@@ -1769,13 +1769,13 @@ CONTAINS
         SELECT CASE (boundary%core%type_)
         CASE ('fft')
             !
-            IF (deriv .EQ. 1 .OR. deriv .EQ. 2) &
+            IF (deriv == 1 .OR. deriv == 2) &
                 CALL gradient_fft(fft, boundary%scaled, boundary%gradient)
             !
-            IF (deriv .EQ. 2) &
+            IF (deriv == 2) &
                 CALL laplacian_fft(fft, boundary%scaled, boundary%laplacian)
 
-            IF (deriv .EQ. 3) &
+            IF (deriv == 3) &
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
                                   boundary%laplacian, boundary%hessian, &
                                   boundary%dsurface)
@@ -1785,11 +1785,11 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Allocate local fields for derivatives of convolution
             !
-            IF (deriv .GE. 1) CALL init_environ_gradient(cell, gradlocal)
+            IF (deriv >= 1) CALL init_environ_gradient(cell, gradlocal)
             !
-            IF (deriv .GE. 2) CALL init_environ_density(cell, lapllocal)
+            IF (deriv >= 2) CALL init_environ_density(cell, lapllocal)
             !
-            IF (deriv .GE. 3) CALL init_environ_hessian(cell, hesslocal)
+            IF (deriv >= 3) CALL init_environ_hessian(cell, hesslocal)
             !
             !----------------------------------------------------------------------------
             ! Compute derivative of convolution with probe
@@ -1799,14 +1799,14 @@ CONTAINS
             !                                    boundary%local, gradlocal, lapllocal, &
             !                                    hesslocal, probe_volume)
             !
-            IF (deriv .GE. 1) &
+            IF (deriv > 1) &
                 CALL compute_convolution_deriv(deriv, boundary, gradlocal, lapllocal, &
                                                hesslocal)
             !
             !----------------------------------------------------------------------------
             ! Update derivatives of interface function in reverse order
             !
-            IF (deriv .GE. 3) THEN
+            IF (deriv >= 3) THEN
                 !
                 DO ipol = 1, 3
                     !
@@ -1832,7 +1832,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (deriv .GE. 2) THEN
+            IF (deriv >= 2) THEN
                 !
                 CALL init_environ_density(cell, local)
                 !
@@ -1854,7 +1854,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (deriv .GE. 1) THEN
+            IF (deriv >= 1) THEN
                 !
                 DO ipol = 1, 3
                     !
@@ -1874,7 +1874,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! if needed, now can recompute dsurface
             !
-            IF (deriv .GE. 3) THEN
+            IF (deriv >= 3) THEN
                 !
                 CALL calc_dsurface(nnr, ir_end, boundary%gradient%of_r, &
                                    boundary%hessian%of_r, boundary%dsurface%of_r)
@@ -1888,7 +1888,7 @@ CONTAINS
         !
         boundary%volume = integrate_environ_density(boundary%scaled)
         !
-        IF (deriv .GE. 1) THEN
+        IF (deriv >= 1) THEN
             !
             CALL update_gradient_modulus(boundary%gradient)
             !
@@ -2046,9 +2046,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (deriv .LE. 0) RETURN
+        IF (deriv <= 0) RETURN
         !
-        IF (deriv .GE. 1) THEN
+        IF (deriv >= 1) THEN
             !
             CALL convolution_fft(bound%core%fft, bound%probe, bound%gradient, grad)
             !
@@ -2056,10 +2056,10 @@ CONTAINS
             !
         END IF
         !
-        IF (deriv .GE. 2) &
+        IF (deriv >= 2) &
             CALL convolution_fft(bound%core%fft, bound%probe, bound%laplacian, lapl)
         !
-        IF (deriv .GE. 3) &
+        IF (deriv >= 3) &
             CALL convolution_fft(bound%core%fft, bound%probe, bound%hessian, hess)
         !
         RETURN
@@ -2131,7 +2131,7 @@ CONTAINS
     !         prod%of_r = 1.D0
     !         !
     !         DO j = 1, nsoft_spheres
-    !             IF (j .EQ. i) CYCLE
+    !             IF (j == i) CYCLE
     !             prod%of_r = prod%of_r * local(j)%of_r
     !         END DO
     !         !
@@ -2248,7 +2248,7 @@ CONTAINS
     !         !
     !         prod%of_r = 1.D0
     !         DO j = 1, nsoft_spheres
-    !             IF (j .EQ. i) CYCLE
+    !             IF (j == i) CYCLE
     !             prod%of_r = prod%of_r * local(j)%of_r
     !         END DO
     !         !
@@ -2283,7 +2283,7 @@ CONTAINS
     !                 partial_of_ion_field(:, i, j) - &
     !                 scalar_product_environ_gradient_density(gradaux, prod)
     !             !
-    !             IF (j .EQ. i) THEN
+    !             IF (j == i) THEN
     !                 !
     !                 !--------------------------------------------------------------------
     !                 ! Hessian of soft-sphere times the field
@@ -2306,7 +2306,7 @@ CONTAINS
     !                 ! here aux !is the normal field
     !                 !
     !                 DO k = 1, nsoft_spheres
-    !                     IF (k .EQ. j .OR. k .EQ. i) CYCLE
+    !                     IF (k == j .OR. k == i) CYCLE
     !                     aux%of_r = aux%of_r * local(k)%of_r
     !                 END DO
     !                 !
@@ -2370,7 +2370,7 @@ CONTAINS
     !     TYPE(environ_density) :: prod
     !     TYPE(environ_gradient) :: gradaux
     !     !
-    !     IF (nsoft_spheres .LT. 1) CALL errore(sub_name, 'Missing soft-spheres', 1)
+    !     IF (nsoft_spheres < 1) CALL errore(sub_name, 'Missing soft-spheres', 1)
     !     cell => dion_field_drho(1)%cell
     !     !
     !     ALLOCATE (local(nsoft_spheres))
@@ -2397,7 +2397,7 @@ CONTAINS
     !         prod%of_r = 1.D0
     !         !
     !         DO j = 1, nsoft_spheres
-    !             IF (j .EQ. i) CYCLE
+    !             IF (j == i) CYCLE
     !             prod%of_r = prod%of_r * local(j)%of_r
     !         END DO
     !         !
@@ -2503,9 +2503,9 @@ CONTAINS
     !     !
     !     fact = (charge_asymmetry - SIGN(1.D0, ion_field))**2 * field_factor
     !     !
-    !     IF (field .LE. field_min) THEN
+    !     IF (field <= field_min) THEN
     !         scaling_of_field = 0.D0
-    !     ELSE IF (field .LE. field_max) THEN
+    !     ELSE IF (field <= field_max) THEN
     !         arg = tpi * (field - field_min) / (field_max - field_min)
     !         scaling_of_field = (arg - SIN(arg)) / tpi
     !     ELSE
@@ -2538,7 +2538,7 @@ CONTAINS
     !     !
     !     fact = (charge_asymmetry - SIGN(1.D0, ion_field))**2 * field_factor
     !     !
-    !     IF (field .LE. field_min .OR. field .GT. field_max) THEN
+    !     IF (field <= field_min .OR. field > field_max) THEN
     !         dscaling_of_field = 0.D0
     !     ELSE
     !         arg = tpi * (field - field_min) / (field_max - field_min)
@@ -2590,9 +2590,9 @@ CONTAINS
     !         field = normal_field%of_r(i)
     !         fact = (charge_asymmetry - SIGN(1.D0, field))**2 * field_factor
     !         !
-    !         IF (ABS(field) .LE. field_min) THEN
+    !         IF (ABS(field) <= field_min) THEN
     !             arg = 0.D0
-    !         ELSE IF (ABS(field) .LE. field_max) THEN
+    !         ELSE IF (ABS(field) <= field_max) THEN
     !             arg = tpi * (ABS(field) - (field_min)) / ((field_max) - (field_min))
     !             arg = (arg - SIN(arg)) / tpi
     !         ELSE
@@ -2645,9 +2645,9 @@ CONTAINS
     !         field = normal_field%of_r(i)
     !         fact = (charge_asymmetry - SIGN(1.D0, field))**2 * field_factor
     !         !
-    !         IF (ABS(field) .LE. field_min) THEN
+    !         IF (ABS(field) <= field_min) THEN
     !             arg = 0.D0
-    !         ELSE IF (ABS(field) .LE. field_max) THEN
+    !         ELSE IF (ABS(field) <= field_max) THEN
     !             arg = tpi * (ABS(field) - (field_min)) / ((field_max) - (field_min))
     !             arg = (1.D0 - COS(arg)) / ((field_max) - (field_min))
     !             arg = arg * SIGN(1.D0, field)
@@ -2801,10 +2801,10 @@ CONTAINS
     !     fft => boundary%core%fft
     !     nnr => cell%nnr
     !     !
-    !     IF (boundary%mode .EQ. 'fa-ionic') THEN
+    !     IF (boundary%mode == 'fa-ionic') THEN
     !         nsoft_spheres => boundary%ions%number
     !         !
-    !         IF (nsoft_spheres .LE. 0) &
+    !         IF (nsoft_spheres <= 0) &
     !              CALL errore(sub_name, 'Inconsistent number of soft-spheres', 1)
     !         !
     !         ALLOCATE (local(nsoft_spheres))
@@ -2823,7 +2823,7 @@ CONTAINS
     !             CALL derivative_of_functions(boundary%soft_spheres(i), aux, .TRUE.)
     !             !
     !             DO j = 1, nsoft_spheres
-    !                 IF (j .EQ. i) CYCLE
+    !                 IF (j == i) CYCLE
     !                 aux%of_r = aux%of_r * local(j)%of_r
     !             END DO
     !             !
@@ -2846,7 +2846,7 @@ CONTAINS
     !         END DO
     !         !
     !         DEALLOCATE (local)
-    !     ELSE IF (boundary%mode .EQ. 'fa-electronic') THEN
+    !     ELSE IF (boundary%mode == 'fa-electronic') THEN
     !         !
     !         ! Try loading in components that need to be reused, use aux for the field aware function, which
     !         ! is the same as the ionic function (scaling_of_field), only taken as an exponent. daux is the
@@ -2969,10 +2969,10 @@ CONTAINS
     !     IF (ionode) &
     !         WRITE (program_unit, '(1X,a)') 'in function field_aware_dboundary_dions'
     !     !
-    !     IF (boundary%mode .EQ. 'fa-ionic') THEN
+    !     IF (boundary%mode == 'fa-ionic') THEN
     !         nsoft_spheres => boundary%ions%number
     !         !
-    !         IF (nsoft_spheres .LE. 0) &
+    !         IF (nsoft_spheres <= 0) &
     !             CALL errore(sub_name, 'Inconsistent number of soft-spheres', 1)
     !         !
     !         ALLOCATE (local(nsoft_spheres))
@@ -2993,11 +2993,11 @@ CONTAINS
     !         !
     !         DO i = 1, nsoft_spheres
     !             CALL derivative_of_functions(boundary%soft_spheres(i), aux, .TRUE.)
-    !             ! IF (i .EQ. 1) CALL write_cube(aux, label=strdh1)
-    !             ! IF (i .EQ. 2) CALL write_cube(aux, label=strdh2)
+    !             ! IF (i == 1) CALL write_cube(aux, label=strdh1)
+    !             ! IF (i == 2) CALL write_cube(aux, label=strdh2)
     !             !
     !             DO j = 1, nsoft_spheres
-    !                 IF (j .EQ. i) CYCLE
+    !                 IF (j == i) CYCLE
     !                 aux%of_r = aux%of_r * local(j)%of_r
     !             END DO
     !             !
@@ -3037,7 +3037,7 @@ CONTAINS
     !         END DO
     !         !
     !         DEALLOCATE (local)
-    !     ELSE IF (boundary%mode .EQ. 'fa-electronic') THEN
+    !     ELSE IF (boundary%mode == 'fa-electronic') THEN
     !         !
     !         ! Some of these terms may be able to be calculated outside of this function, which is repeated per
     !         ! atom. These terms do not depend on atom, but do take up space so are currently calculated on the

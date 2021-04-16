@@ -196,7 +196,7 @@ CONTAINS
         IF (.NOT. ALLOCATED(f)) &
             CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
         !
-        IF (SIZE(f) .NE. n) &
+        IF (SIZE(f) /= n) &
             CALL errore(sub_name, 'Inconsistent size of allocated object', 1)
         !
         DO i = 1, n

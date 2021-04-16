@@ -177,7 +177,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -185,7 +185,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -195,13 +195,13 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1000)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1000)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1001) cell%alat, cell%omega
             !
-            IF (verbosity .GE. 3) THEN
+            IF (verbosity >= 3) THEN
                 !
                 IF (ionode) WRITE (UNIT=environ_unit, FMT=1002) cell%at
                 !
@@ -257,7 +257,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -265,7 +265,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -275,9 +275,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1100)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1100)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1101) ADJUSTL(density%label)
             !
@@ -287,7 +287,7 @@ CONTAINS
             !
             ! #TODO ADD MAXVAL AND MINVAL
             !
-            IF (verbosity .GE. 3) THEN
+            IF (verbosity >= 3) THEN
                 !
                 CALL print_environ_cell(density%cell, passed_verbosity, passed_depth)
                 !
@@ -349,7 +349,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -357,7 +357,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -367,9 +367,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1200)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1200)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1201) ADJUSTL(gradient%label)
             !
@@ -379,7 +379,7 @@ CONTAINS
             !
             ! #TODO ADD MAXVAL AND MINVAL
             !
-            IF (verbosity .GE. 3) THEN
+            IF (verbosity >= 3) THEN
                 !
                 CALL print_environ_cell(gradient%cell, passed_verbosity, passed_depth)
                 !
@@ -393,7 +393,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (verbosity .GE. 4) THEN
+            IF (verbosity >= 4) THEN
                 cell => gradient%cell
                 !
                 CALL init_environ_density(cell, dens)
@@ -453,7 +453,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -461,7 +461,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -471,9 +471,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1250)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1250)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1251) ADJUSTL(hessian%label)
             !
@@ -483,7 +483,7 @@ CONTAINS
             !
             ! #TODO ADD MAXVAL AND MINVAL
             !
-            IF (verbosity .GE. 3) THEN
+            IF (verbosity >= 3) THEN
                 !
                 CALL print_environ_cell(hessian%cell, passed_verbosity, passed_depth)
                 !
@@ -497,7 +497,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (verbosity .GE. 4) THEN
+            IF (verbosity >= 4) THEN
                 cell => hessian%cell
                 !
                 CALL init_environ_density(cell, dens)
@@ -569,7 +569,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -577,7 +577,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -587,9 +587,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1300)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1300)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1301) nfunctions
             !
@@ -637,7 +637,7 @@ CONTAINS
                     CALL errore(sub_name, 'Unexpected function type', 1)
                 END SELECT
                 !
-                IF (verbosity .GE. 3 .AND. ionode) &
+                IF (verbosity >= 3 .AND. ionode) &
                     WRITE (UNIT=environ_unit, FMT=1307) functions(ifunctions)%pos
                 !
             END DO
@@ -712,7 +712,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -720,7 +720,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -730,9 +730,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1400)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1400)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1401) ntyp
             !
@@ -742,7 +742,7 @@ CONTAINS
                     WRITE (UNIT=environ_unit, FMT=1402) ityp, iontype(ityp)%index, &
                     iontype(ityp)%label, iontype(ityp)%atmnum, iontype(ityp)%zv
                 !
-                IF (verbosity .GE. 3 .AND. ionode) &
+                IF (verbosity >= 3 .AND. ionode) &
                     WRITE (UNIT=environ_unit, FMT=1403) &
                     iontype(ityp)%atomicspread, iontype(ityp)%corespread, &
                     iontype(ityp)%solvationrad
@@ -787,7 +787,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -795,7 +795,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -805,9 +805,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1500)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1500)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1501) ions%number
             !
@@ -831,7 +831,7 @@ CONTAINS
                 !
             END DO
             !
-            IF (verbosity .GE. 3) THEN
+            IF (verbosity >= 3) THEN
                 !
                 CALL print_environ_iontype(ions%ntyp, ions%iontype, passed_verbosity, &
                                            passed_depth)
@@ -841,7 +841,7 @@ CONTAINS
                     CALL print_environ_density(ions%density, passed_verbosity, &
                                                passed_depth)
                     !
-                    IF (verbosity .GE. 4) &
+                    IF (verbosity >= 4) &
                         CALL print_environ_functions(ions%number, ions%smeared_ions, &
                                                      passed_verbosity, passed_depth)
                     !
@@ -849,11 +849,11 @@ CONTAINS
                 !
                 IF (ions%use_core_electrons) THEN
                     !
-                    IF (verbosity .GE. 4) &
+                    IF (verbosity >= 4) &
                         CALL print_environ_density(ions%core, passed_verbosity, &
                                                    passed_depth)
                     !
-                    IF (verbosity .GE. 5) &
+                    IF (verbosity >= 5) &
                         CALL print_environ_functions(ions%number, ions%core_electrons, &
                                                      passed_verbosity, passed_depth)
                     !
@@ -897,7 +897,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -905,7 +905,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -915,15 +915,15 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1600)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1600)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1601) electrons%number
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1602) electrons%charge
             !
-            IF (verbosity .GE. 3) &
+            IF (verbosity >= 3) &
                 CALL print_environ_density(electrons%density, passed_verbosity, &
                                            passed_depth)
         END IF
@@ -957,7 +957,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -965,7 +965,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -975,15 +975,15 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1700)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1700)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1701) externals%number
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1702) externals%charge
             !
-            IF (verbosity .GE. 3) THEN
+            IF (verbosity >= 3) THEN
                 !
                 CALL print_environ_functions(externals%number, externals%functions, &
                                              passed_verbosity, passed_depth)
@@ -1024,7 +1024,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -1032,7 +1032,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -1042,15 +1042,15 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1800)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1800)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1801) charges%number
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1802) charges%charge
             !
-            IF (verbosity .GE. 3) THEN
+            IF (verbosity >= 3) THEN
                 !
                 CALL print_environ_density(charges%density, passed_verbosity, &
                                            passed_depth)
@@ -1108,7 +1108,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -1116,7 +1116,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -1126,11 +1126,11 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1900)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=1900)
             !
-            IF (system%ntyp .EQ. 0) THEN
+            IF (system%ntyp == 0) THEN
                 IF (ionode) WRITE (UNIT=environ_unit, FMT=1901)
             ELSE
                 IF (ionode) WRITE (UNIT=environ_unit, FMT=1902) system%ntyp
@@ -1140,7 +1140,7 @@ CONTAINS
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=1904) system%pos, system%width
             !
-            IF (verbosity .GE. 3) &
+            IF (verbosity >= 3) &
                 CALL print_environ_ions(system%ions, passed_verbosity, passed_depth)
             !
         END IF
@@ -1180,7 +1180,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -1188,7 +1188,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -1198,9 +1198,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=2000)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=2000)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=2001) boundary%label
             !
@@ -1223,7 +1223,7 @@ CONTAINS
                         WRITE (UNIT=environ_unit, FMT=2005) &
                         boundary%rhomax, boundary%rhomin
                     !
-                    IF (verbosity .GE. 3 .AND. ionode) &
+                    IF (verbosity >= 3 .AND. ionode) &
                         WRITE (UNIT=environ_unit, FMT=2006) boundary%fact
                     !
                 CASE (2)
@@ -1234,7 +1234,7 @@ CONTAINS
                     !
                 END SELECT
                 !
-                IF (verbosity .GE. 4) THEN
+                IF (verbosity >= 4) THEN
                     !
                     CALL print_environ_density(boundary%density, passed_verbosity, &
                                                passed_depth)
@@ -1243,22 +1243,22 @@ CONTAINS
                         !
                         IF (ionode) WRITE (UNIT=environ_unit, FMT=2008)
                         !
-                        IF (verbosity .GE. 4) &
+                        IF (verbosity >= 4) &
                             CALL print_environ_density(boundary%ions%core)
                         !
                     END IF
                     !
-                    IF (verbosity .GE. 4) &
+                    IF (verbosity >= 4) &
                         CALL print_environ_electrons(boundary%electrons, &
                                                      passed_verbosity, passed_depth)
                     !
                 END IF
                 !
-                IF (verbosity .GE. 5) &
+                IF (verbosity >= 5) &
                     CALL print_environ_density(boundary%dscaled, passed_verbosity, &
                                                passed_depth)
                 !
-                IF (verbosity .GE. 5) &
+                IF (verbosity >= 5) &
                     CALL print_environ_density(boundary%d2scaled, passed_verbosity, &
                                                passed_depth)
                 !
@@ -1268,7 +1268,7 @@ CONTAINS
                     WRITE (UNIT=environ_unit, FMT=2009) &
                     boundary%alpha, boundary%softness
                 !
-                IF (verbosity .GE. 3) &
+                IF (verbosity >= 3) &
                     CALL print_environ_functions(boundary%ions%number, &
                                                  boundary%soft_spheres, &
                                                  passed_verbosity, passed_depth)
@@ -1285,10 +1285,10 @@ CONTAINS
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=2011) boundary%volume
             !
-            IF (boundary%deriv .GE. 1 .AND. ionode) &
+            IF (boundary%deriv >= 1 .AND. ionode) &
                 WRITE (UNIT=environ_unit, FMT=2012) boundary%surface
             !
-            IF (verbosity .GE. 4) &
+            IF (verbosity >= 4) &
                 CALL print_environ_density(boundary%scaled, passed_verbosity, &
                                            passed_depth)
             !
@@ -1299,31 +1299,31 @@ CONTAINS
                     boundary%filling_threshold, boundary%filling_spread, &
                     boundary%solvent_probe%width, boundary%solvent_probe%spread
                 !
-                IF (verbosity .GE. 4) &
+                IF (verbosity >= 4) &
                     CALL print_environ_density(boundary%local, passed_verbosity, &
                                                passed_depth)
                 !
-                IF (verbosity .GE. 4) &
+                IF (verbosity >= 4) &
                     CALL print_environ_density(boundary%filling, passed_verbosity, &
                                                passed_depth)
                 !
-                IF (verbosity .GE. 5) &
+                IF (verbosity >= 5) &
                     CALL print_environ_density(boundary%dfilling, passed_verbosity, &
                                                passed_depth)
                 !
-                IF (verbosity .GE. 5) &
+                IF (verbosity >= 5) &
                     CALL print_environ_density(boundary%probe, passed_verbosity, &
                                                passed_depth)
                 !
             END IF
             !
-            IF (verbosity .GE. 5 .AND. boundary%deriv .GE. 1) &
+            IF (verbosity >= 5 .AND. boundary%deriv >= 1) &
                 CALL print_environ_gradient(boundary%gradient, passed_verbosity, &
                                             passed_depth)
-            IF (verbosity .GE. 5 .AND. boundary%deriv .GE. 2) &
+            IF (verbosity >= 5 .AND. boundary%deriv >= 2) &
                 CALL print_environ_density(boundary%laplacian, passed_verbosity, &
                                            passed_depth)
-            IF (verbosity .GE. 5 .AND. boundary%deriv .EQ. 3) &
+            IF (verbosity >= 5 .AND. boundary%deriv == 3) &
                 CALL print_environ_density(boundary%dsurface, passed_verbosity, &
                                            passed_depth)
         END IF
@@ -1396,7 +1396,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -1404,7 +1404,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -1414,11 +1414,11 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=2100)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=2100)
             !
-            IF (dielectric%nregions .EQ. 0) THEN
+            IF (dielectric%nregions == 0) THEN
                 IF (ionode) WRITE (UNIT=environ_unit, FMT=2101) dielectric%constant
             ELSE
                 !
@@ -1429,21 +1429,21 @@ CONTAINS
                 CALL print_environ_functions(dielectric%nregions, dielectric%regions, &
                                              passed_verbosity, passed_depth)
                 !
-                IF (verbosity .GE. 4) &
+                IF (verbosity >= 4) &
                     CALL print_environ_density(dielectric%background, &
                                                passed_verbosity, passed_depth)
                 !
             END IF
             !
-            IF (verbosity .GE. 3) &
+            IF (verbosity >= 3) &
                 CALL print_environ_density(dielectric%density, passed_verbosity, &
                                            passed_depth)
             !
-            IF (verbosity .GE. 3) &
+            IF (verbosity >= 3) &
                 CALL print_environ_density(dielectric%epsilon, passed_verbosity, &
                                            passed_depth)
             !
-            IF (verbosity .GE. 5) &
+            IF (verbosity >= 5) &
                 CALL print_environ_density(dielectric%depsilon, passed_verbosity, &
                                            passed_depth)
             !
@@ -1453,7 +1453,7 @@ CONTAINS
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=2104) dielectric%charge
             !
-            IF (verbosity .GE. 5) THEN
+            IF (verbosity >= 5) THEN
                 !
                 CALL print_environ_gradient(dielectric%gradlog, passed_verbosity, &
                                             passed_depth)
@@ -1510,7 +1510,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose .EQ. 0) RETURN ! environ output file has not been opened
+        IF (verbose == 0) RETURN ! environ output file has not been opened
         !
         IF (PRESENT(local_verbose)) THEN
             verbosity = verbose + local_verbose
@@ -1518,7 +1518,7 @@ CONTAINS
             verbosity = verbose
         END IF
         !
-        IF (verbosity .EQ. 0) RETURN ! nothing to output
+        IF (verbosity == 0) RETURN ! nothing to output
         !
         IF (PRESENT(local_depth)) THEN
             passed_verbosity = verbosity - verbose - local_depth
@@ -1528,9 +1528,9 @@ CONTAINS
             passed_depth = depth
         END IF
         !
-        IF (verbosity .GE. 1) THEN
+        IF (verbosity >= 1) THEN
             !
-            IF (verbosity .GE. verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=3100)
+            IF (verbosity >= verbose .AND. ionode) WRITE (UNIT=environ_unit, FMT=3100)
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=3101) electrolyte%ntyp
             !
@@ -1538,7 +1538,7 @@ CONTAINS
             !
             IF (ionode) WRITE (UNIT=environ_unit, FMT=3103) 1.D0 / SQRT(electrolyte%k2)
             !
-            IF (electrolyte%cionmax .GT. 0.D0) THEN
+            IF (electrolyte%cionmax > 0.D0) THEN
                 IF (ionode) WRITE (UNIT=environ_unit, FMT=3104) electrolyte%cionmax
             END IF
             !
@@ -1559,25 +1559,25 @@ CONTAINS
                 IF (ionode) &
                     WRITE (UNIT=environ_unit, FMT=3108) electrolyte%ioncctype(ityp)%z
                 !
-                IF (verbosity .GE. 5) &
+                IF (verbosity >= 5) &
                     CALL print_environ_density(electrolyte%ioncctype(ityp)%c, &
                                                passed_verbosity, passed_depth)
                 !
-                IF (verbosity .GE. 5) &
+                IF (verbosity >= 5) &
                     CALL print_environ_density(electrolyte%ioncctype(ityp)%cfactor, &
                                                passed_verbosity, passed_depth)
                 !
             END DO
             !
-            IF (verbosity .GE. 3) &
+            IF (verbosity >= 3) &
                 CALL print_environ_density(electrolyte%density, passed_verbosity, &
                                            passed_depth)
             !
-            IF (verbosity .GE. 3) &
+            IF (verbosity >= 3) &
                 CALL print_environ_density(electrolyte%gamma, passed_verbosity, &
                                            passed_depth)
             !
-            IF (verbosity .GE. 5) &
+            IF (verbosity >= 5) &
                 CALL print_environ_density(electrolyte%dgamma, passed_verbosity, &
                                            passed_depth)
             !
@@ -1633,7 +1633,7 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (prog .EQ. 'PW') THEN
+            IF (prog == 'PW') THEN
                 !
                 IF (lelectrostatic) WRITE (program_unit, 9201) eelectrostatic
                 !
@@ -1646,7 +1646,7 @@ CONTAINS
                 IF (lconfine) WRITE (program_unit, 9206) econfine
                 !
                 WRITE (program_unit, 9204) deenviron
-            ELSE IF (prog .EQ. 'CP') THEN
+            ELSE IF (prog == 'CP') THEN
                 !
                 IF (lelectrostatic) WRITE (program_unit, 9301) eelectrostatic
                 !
@@ -1746,7 +1746,7 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (prog .EQ. 'PW') THEN
+            IF (prog == 'PW') THEN
                 WRITE (program_unit, *)
                 WRITE (UNIT=program_unit, FMT=9000)
                 WRITE (UNIT=program_unit, FMT=8000) bibliography(1)
@@ -1758,13 +1758,13 @@ CONTAINS
                 !
                 IF (lsolvent) THEN
                     !
-                    IF (solvent%type_ .EQ. 0) THEN
+                    IF (solvent%type_ == 0) THEN
                         WRITE (UNIT=program_unit, FMT=9002) 'Fatteber-Gygi'
                         !
                         WRITE (UNIT=program_unit, FMT=9003) &
                             solvent%rhozero, solvent%tbeta
                         !
-                    ELSE IF (solvent%type_ .EQ. 1) THEN
+                    ELSE IF (solvent%type_ == 1) THEN
                         WRITE (UNIT=program_unit, FMT=9002) 'SCCS'
                         !
                         WRITE (UNIT=program_unit, FMT=9004) &
@@ -1787,7 +1787,7 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (env_static_permittivity .GT. 1.D0) THEN
+                IF (env_static_permittivity > 1.D0) THEN
                     WRITE (UNIT=program_unit, FMT=9005) env_static_permittivity
                     !
                     IF (ltddfpt) &
@@ -1796,12 +1796,12 @@ CONTAINS
                     WRITE (UNIT=program_unit, FMT=9007) TRIM(solvent%mode)
                 END IF
                 !
-                IF (env_surface_tension .GT. 0.D0) &
+                IF (env_surface_tension > 0.D0) &
                     WRITE (UNIT=program_unit, FMT=9010) &
                     env_surface_tension / 1.D-3 / bohr_radius_si**2 * rydberg_si, &
                     env_surface_tension
                 !
-                IF (env_pressure .NE. 0.D0) &
+                IF (env_pressure /= 0.D0) &
                     WRITE (UNIT=program_unit, FMT=9011) &
                     env_pressure * rydberg_si / bohr_radius_si**3 * 1.D-9, &
                     env_pressure
@@ -1820,17 +1820,17 @@ CONTAINS
                     !
                     IF (lfd) THEN
                         !
-                        IF (fd%ifdtype .EQ. 1) THEN
+                        IF (fd%ifdtype == 1) THEN
                             !
                             WRITE (UNIT=program_unit, FMT=9103) &
                                 'central diff.', fd%nfdpoint
                             !
-                        ELSE IF (fd%ifdtype .EQ. 2 .OR. fd%ifdtype .EQ. 3) THEN
+                        ELSE IF (fd%ifdtype == 2 .OR. fd%ifdtype == 3) THEN
                             !
                             WRITE (UNIT=program_unit, FMT=9103) &
                                 'lanczos diff.', fd%nfdpoint
                             !
-                        ELSE IF (fd%ifdtype .EQ. 4 .OR. fd%ifdtype .EQ. 5) THEN
+                        ELSE IF (fd%ifdtype == 4 .OR. fd%ifdtype == 5) THEN
                             !
                             WRITE (UNIT=program_unit, FMT=9103) &
                                 'noise-robust diff.', fd%nfdpoint
@@ -2087,9 +2087,9 @@ CONTAINS
                         ir = ir1 + (ir2 - 1) * nr1 + (ir3 - 1) * nr1 * nr2
                         tmp = DBLE(flocal(ir))
                         !
-                        IF (ABS(tmp) .LT. 1.D-99) tmp = 0.D0
+                        IF (ABS(tmp) < 1.D-99) tmp = 0.D0
                         !
-                        IF (MOD(count, 6) .EQ. 0) THEN
+                        IF (MOD(count, 6) == 0) THEN
                             WRITE (300, '(e12.6,1x)') tmp
                         ELSE
                             WRITE (300, '(e12.6,1x)', advance='no') tmp

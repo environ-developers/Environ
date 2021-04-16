@@ -159,12 +159,23 @@ code...
 
 - leave !> line and last line blank
 
+# operators
+
+## conditional operators
+
+- use `> >= == \= <= <` instead of `.LT. .LE. .EQ. .NE. .GE. .GT.`
+- use `.EQV. .NEQV.` when comparing logical values, e.g. `(1 < 2) .EQV. (3 \= 4)`
+
 ## operator spacing
 
 - +-_/ single space on both ends ----> ```1 _ 2 + 2 / 4 - 3```
   - no space around `-` if used as a negative sign ----> `-7`
 - no space around powers ----> `3**2`
-- single space on both ends of all conditionals ----> `a .EQ. b .AND. c .LT. d`
+- single space on both ends of all conditionals ----> `a == b .AND. c < d`
+
+## short-circuit
+
+- DO NOT assume that FORTRAN will apply short-circuit logic
 
 ## arguments/parameters
 
