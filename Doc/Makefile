@@ -4,10 +4,10 @@ doc:  all
 all:  defs
 
 clean:
-	- rm -f input_xx.xsl
-	- rm -f INPUT_*.html INPUT_*.xml
-	- rm -f INPUT_Environ.txt
-	- rm -f ../../Doc/INPUT_Environ.*
+	@ rm -f input_xx.xsl
+	@ rm -f INPUT_*.html INPUT_*.xml
+	@ rm -f INPUT_Environ.txt
+	@ rm -f ../../Doc/INPUT_Environ.*
 
 
 defs: link_input_xx INPUT_Environ.html INPUT_Environ.txt link_on_main_doc

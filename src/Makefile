@@ -33,7 +33,7 @@ libenviron.a: $(ENVIRONOBJS)
 	$(RANLIB) $@
 
 clean :
-	- /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90
+	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90
 
 include make.depend
 

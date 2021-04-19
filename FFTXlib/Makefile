@@ -62,6 +62,6 @@ test : fft_test.o libqefft.a
 TEST : test # compatibility
 
 clean :
-	- /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L 
+	@ /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L 
 
 include make.depend

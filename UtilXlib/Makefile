@@ -31,6 +31,6 @@ libutil.a:  $(UTIL)
 	$(RANLIB) $@    
 
 clean :
-	- /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L *.x
+	@ /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L *.x
 
 include make.depend

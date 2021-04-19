@@ -17,92 +17,165 @@
 # Author: Oliviero Andreussi (Department of Physics, University of North Thexas)
 #
 
+ifndef VERBOSE
+.SILENT:
+endif
+
 default: all
 
 all: doc libenviron
 
 doc:
-	if test -d Doc ; then \
-        (cd Doc ; $(MAKE) || exit 1 ) ; fi
+	if test -d Doc ; then (cd Doc; $(MAKE) || exit 1 ); fi
 
-libenviron:
-	if ! test -d ../PW ; then \
-		( make libfft ) ; \
-		( make libutil ) ; fi
-	if test -d src ; then \
-        ( cd src ; if test "$(MAKE)" = "" ; then make $(MFLAGS) $@; \
-        else $(MAKE) $(MFLAGS) ; fi ) ; fi ; \
+################################################################################
+# COMPILATION ROUTINES
+################################################################################
 
-libfft : 
-	( cd libs/FFTXlib ; $(MAKE) TLDEPS= all || exit 1 )
+compile-environ: check-environ-makeinc libsdir
+	@ $(MAKE) libfft
+	@ $(MAKE) libutil
+	@ $(MAKE) libenv
 
-libutil : 
-	( cd libs/UtilXlib ; $(MAKE) TLDEPS= all || exit 1 )
+decompile-environ: 
+	@ echo "\nCleaning up Environ...\n"; $(MAKE) clean
 
-clean :
-	if test -d src ; then \
-        ( cd src ; if test "$(MAKE)" = "" ; then make clean ; \
-        else $(MAKE) clean ; fi ) ; fi ;\
-	( cd libs/FFTXlib ; $(MAKE) clean ) ; \
-	( cd libs/UtilXlib ; $(MAKE) clean )
+compile-qe-pw: check-qe-makeinc
+	@ echo "\nCompiling QE...\n"
+	@ (cd ../ && $(MAKE) pw)
 
-doc_clean:
-	if test -d Doc ; then \
-        (cd Doc ; $(MAKE) clean ) ; fi
+decompile-qe-pw:
+	@ echo "\nCleaning up QE...\n"
+	@ (cd ../ && $(MAKE) clean)
 
-distclean: clean doc_clean
+libfft:
+	@ echo "\nCompiling FFTXlib...\n"
+	@ ( \
+		cd FFTXlib ; $(MAKE) TLDEPS= all || exit 1; \
+		mv *.a ../libs \
+	 )
 
-patch :
-	@ echo "\nApplying patches...\n" 
-	@ (cd ../ && ./install/addsonpatch.sh Environ Environ/src Modules -patch)
+libutil: 
+	@ echo "\nCompiling UtilXlib...\n"
+	@ ( \
+		cd UtilXlib ; $(MAKE) TLDEPS= all || exit 1; \
+		mv *.a ../libs \
+	)
+
+libenv:
+	@ echo "\nCompiling Environ/src...\n"
+	@ if test -d src ; then \
+          (cd src && \
+		  if test "$(MAKE)" = ""; then \
+		  	  $(MAKE) $(MFLAGS) $@; \
+          else \
+			  $(MAKE) $(MFLAGS); \
+		  fi; \
+		  mv *.a ../libs \
+		  ); \
+	  fi
+
+libsdir:
+	@ test -d libs || mkdir libs
+
+check-environ-makeinc: # TODO can the error be silent?
+	@ if [ ! -e make.inc ]; then \
+		  echo "\nMissing make.inc. Please configure installation.\n"; \
+		  exit 1; \
+	  fi
+	
+check-qe-makeinc: # TODO can the error be silent?
+	@ if [ ! -e ../make.inc ]; then \
+		  echo "\nMissing QE/make.inc. Please configure the QE installation.\n"; \
+		  exit 1; \
+	  fi
+
+################################################################################
+# INSTALL ROUTINES FOR QE+ENVIRON
+################################################################################
+
+patch-qe: check-qe-makeinc
+	@ echo "\nApplying QE patches...\n"
 	@ ./patches/environpatch.sh -patch
-	@ echo "\nUpdating dependencies...\n" 
-	@ (cd ../ && ./install/makedeps.sh)
+	@ $(MAKE) update-QE-dependencies
 
-revert :
-	@ echo "\nReverting patches...\n" 
-	@ (cd ../ && ./install/addsonpatch.sh Environ Environ/src Modules -revert)
+revert-qe-patches: check-qe-makeinc
+	@ echo "\nReverting QE patches...\n"
 	@ ./patches/environpatch.sh -revert
-	@ echo "\nUpdating dependencies...\n" 
+	@ $(MAKE) update-QE-dependencies
+
+update-QE-dependencies:
+	@ echo "\nUpdating QE dependencies...\n"
 	@ (cd ../ && ./install/makedeps.sh)
 
-compile-qe-pw :
-	@ (\
-		cd ../ && \
-		if [ ! -x make.inc ]; then \
-			echo "\nMissing make.inc in QE folder. You must first configure the QE installation.\n"; \
-			exit; \
-		fi; \
-		echo "\nPreparing to compile QE-PW...\n"; \
-		echo -n "Use # cores (default = 1) -> "; \
-		read cores; \
-		echo "\nCompiling QE-PW...\n"; \
-		$(MAKE) -j$${cores:=1} pw \
-		)
-
-decompile-qe-pw :
-	@ echo "\nPreparing to decompile QE-PW...\n"
-	@ echo -n "Would you like to proceed (y|n)? -> "
-	@ read c; echo; \
+install-QE+Environ: check-environ-makeinc check-qe-makeinc
+	@ echo "\nThis will compile Environ, patch QE, then compile QE.\n"
+	@ echo -n "Do you wish to proceed (y|n)? "; read c; \
 	if [ "$$c" = "y" ]; then \
-		(cd ../ && $(MAKE) clean); \
+		echo -n "\nUse # cores (default = 1) -> "; read cores; \
+		$(MAKE) -j$${cores:=1} compile-environ; \
+		$(MAKE) -j$${cores:=1} patch-qe; \
+		$(MAKE) -j$${cores:=1} compile-qe-pw; \
+		echo "\nDone!\n"; \
+	else \
+		echo; \
 	fi
 
-install :
-	@ echo "\nThis will compile QE, apply Environ plugins, then recompile executables.\n"
-	@ echo -n "Do you wish to proceed (y|n)? "
-	@ read c; \
+uninstall-QE+Environ: 
+	@ echo "\nThis will decompile Environ, revert QE patches, and decompile QE.\n"
+	@ echo -n "Do you wish to proceed (y|n)? "; read c; \
 	if [ "$$c" = "y" ]; then \
-		$(MAKE) compile-qe-pw; \
-		$(MAKE) patch; \
-		$(MAKE) compile-qe-pw; \
-	fi
-
-uninstall : 
-	@ echo "\nThis will uninstall the current QE+Environ compilation.\n"
-	@ echo -n "Do you wish to proceed (y|n)? "
-	@ read c; echo; \
-	if [ "$$c" = "y" ]; then \
-		$(MAKE) revert; \
+		$(MAKE) decompile-environ; \
+		$(MAKE) revert-qe-patches; \
 		$(MAKE) decompile-qe-pw; \
+		echo "\nDone!\n"; \
+	else \
+		echo; \
 	fi
+
+################################################################################
+# CLEANING
+################################################################################
+
+clean:
+	@ touch make.inc
+	@ $(MAKE) clean-src
+	@ $(MAKE) clean-libs
+	@ $(MAKE) clean-fft
+	@ $(MAKE) clean-util
+
+clean-src:
+	@ echo -n "src..........."
+	@ (cd src && $(MAKE) clean)
+	@ echo -n "done!\n"
+
+clean-fft:
+	@ echo -n "FFTXlib......."
+	@ (cd FFTXlib && $(MAKE) clean)
+	@ echo -n "done!\n"
+
+clean-util:
+	@ echo -n "UtilXlib......"
+	@ (cd UtilXlib && $(MAKE) clean)
+	@ echo -n "done!\n"
+
+clean-libs:
+	@ echo -n "libs.........."
+	@ if test -d libs; then rm -fr libs; fi
+	@ echo -n "done!\n"
+
+clean-doc:
+	@ echo -n "Docs.........."
+	@ (cd Doc && $(MAKE) clean)
+	@ echo -n "done!\n"
+
+# remove files produced by "configure" as well
+veryclean: clean
+	@ echo -n "Config........"
+	@ (cd install && \
+	   rm -rf config.log configure.msg config.status)
+	@ rm make.inc
+	@ echo -n "done!\n"
+
+distclean: clean 
+	@ $(MAKE) clean-doc
