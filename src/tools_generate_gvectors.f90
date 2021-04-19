@@ -21,11 +21,6 @@ MODULE tools_generate_gvectors
     !
     PRIVATE
     !
-    SAVE
-    !
-    INTEGER :: ngm_g = 0 ! global number of G vectors (summed on all procs)
-    ! in serial execution, ngm_g = ngm
-    !
     PUBLIC :: env_ggen, env_gvect_init
     !
     !------------------------------------------------------------------------------------
@@ -35,7 +30,7 @@ CONTAINS
     !! Set local and global dimensions, allocate arrays
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_gvect_init(fft, comm)
+    SUBROUTINE env_gvect_init(fft, ngm_g, comm)
         !--------------------------------------------------------------------------------
         !
         USE core_types
@@ -43,6 +38,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(fft_core), INTENT(INOUT) :: fft
+        INTEGER, INTENT(INOUT) :: ngm_g
         !
         INTEGER :: ngm
         !

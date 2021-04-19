@@ -100,7 +100,8 @@ CONTAINS
         !
         TYPE(fft_core), INTENT(INOUT) :: fft
         !
-        INTEGER :: ngm_g
+        INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
+        ! in serial execution, ngm_g = ngm
         !
         !--------------------------------------------------------------------------------
         !
@@ -115,7 +116,7 @@ CONTAINS
         ! The following routines are in tools_generate_gvect
         ! and may need to be simplified #TODO
         !
-        CALL env_gvect_init(fft, cell%dfft%comm)
+        CALL env_gvect_init(fft, ngm_g, cell%dfft%comm)
         !
         CALL env_ggen(fft%cell%dfft, cell%dfft%comm, cell%at, cell%bg, fft%gcutm, &
                       ngm_g, fft%ngm, fft%g, fft%gg, fft%gstart, .TRUE.)
