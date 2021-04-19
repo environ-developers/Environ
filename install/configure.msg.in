@@ -1,5 +1,5 @@
 --------------------------------------------------------------------
-ESPRESSO can take advantage of several optimized numerical libraries
+ENVIRON can take advantage of several optimized numerical libraries
 (essl, fftw, mkl...).  This configure script attempts to find them,
 but may fail if they have been installed in non-standard locations.
 If a required library is not found, the local copy will be compiled.

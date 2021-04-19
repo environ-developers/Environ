@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Copyright (C) 2001-2016 Quantum ESPRESSO group
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -12,7 +12,7 @@
 # This script is a simple wrapper calling the autoconf configuration
 # script (configure) in install/
 # Dependencies may be also directly generated
-# 
+#
 # Courtesy of A. Ferretti and G. Bussi
 # Modified by F. Spiga and P. Giannozzi
 #
@@ -39,41 +39,41 @@ MANUAL=" Usage
 #
 
 # run from directory where this script is
-auxdir=`echo $0 | sed 's/\(.*\)\/.*/\1/'` # extract pathname
-if [ "$auxdir" != "configure" ] ; then cd $auxdir ; fi
+auxdir=$(echo "$0" | sed 's/\(.*\)\/.*/\1/') # extract pathname
+if [ "$auxdir" != "configure" ]; then cd "$auxdir" || exit; fi
 
 #
-# detect the simplest cases 
+# detect the simplest cases
 #
-case $1 in 
-  ("-h" | "--help" )      echo "$MANUAL"     ; ./install/configure --help ; exit 0 ;;
+case $1 in
+"-h" | "--help")
+  echo "$MANUAL"
+  ./install/configure --help
+  exit 0
+  ;;
 esac
 
-
-# run the autoconf configure with the
-# given cong_flags 
+# run the autoconf configure with the given cong_flags
 #
-test -e ./install/make.inc       && rm ./install/make.inc
-test -e ./install/configure.msg  && rm ./install/configure.msg
-#test -e ./install/Makefile  && rm ./install/Makefile
+test -e ./install/make.inc && rm ./install/make.inc
+test -e ./install/configure.msg && rm ./install/configure.msg
 
-# SAFEGUARD: if you run configure without clean everything first there 
+# SAFEGUARD: if you run configure without clean everything first there
 #            are chances that something goes wrong. Forcing veryclean then.
 
-if [[  ($1 =~ "--save") ]] ; then
-  shift;
-elif [[ (-e make.inc) && (-e Makefile) ]] ; then
+if [[ ($1 =~ "--save") ]]; then
+  shift
+elif [[ (-e make.inc) && (-e Makefile) ]]; then
   make -f Makefile veryclean
 fi
 
 ./install/configure "$@"
 
-# copy make.inc in the home dir
-# and final clean up
+# copy make.inc in the home dir and final clean up
 #
 test -e ./install/make.inc && mv ./install/make.inc .
-test -e config.log        && mv config.log    ./install/
-test -e config.status     && mv config.status ./install/
-test -e configure.msg     && mv configure.msg ./install/
+test -e config.log && mv config.log ./install/
+test -e config.status && mv config.status ./install/
+test -e configure.msg && mv configure.msg ./install/
 
 exit 0

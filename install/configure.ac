@@ -6,7 +6,7 @@
 # of the License. See the file `License' in the root directory
 # of the present distribution.
 
-AC_INIT(ESPRESSO, 6.6, , espresso)
+AC_INIT(ENVIRON, 2.0, , environ)
 
 AC_PREREQ(2.64)
 AC_CONFIG_MACRO_DIR([m4/])
@@ -26,9 +26,6 @@ X_AC_QE_ARCH()
 # Add all needed -D options to try_dflags
 try_dflags=""
 
-# Add needed include directories
-try_iflags="-I\$(TOPDIR)/include -I\$(TOPDIR)/FoX/finclude "
-
 # Checking archiver...
 X_AC_QE_AR()
 
@@ -38,7 +35,7 @@ X_AC_QE_OPENMP()
 # Checking MPIF90...
 X_AC_QE_MPIF90()
 
-# Check environ...
+# Check environ... # TODO change this?
 X_AC_QE_ENVIRON()
 
 # Checking CC...
@@ -121,13 +118,12 @@ AC_SUBST(ld_libs)
 AC_SUBST(topdir)
 AC_SUBST(extlib_flags)
 
-AC_CONFIG_HEADERS([include/qe_cdefs.h:include/qe_cdefs.h.in])
+AC_CONFIG_HEADERS([include/environ_cdefs.h:include/environ_cdefs.h.in])
 AC_CONFIG_FILES([include/configure.h:include/configure.h.in])
 
 #AC_CONFIG_FILES(Makefile.cpu)
 AC_CONFIG_FILES(make.inc)
 AC_CONFIG_FILES(configure.msg)
-AC_CONFIG_FILES(install/make_wannier90.inc)
 
 
 AC_OUTPUT
