@@ -20,16 +20,23 @@
 !
 !----------------------------------------------------------------------------------------
 !>
-!! Module containing the definition of electrostatic derived data types
-!! of the basic routines to handle them
+!! This module contains the main control and parameter variables from QE Modules,
+!! the definitions of Environ derived data types and the routines to handle the
+!! basic derived data types (cell, density, gradient, hessian, electrons, system)
 !!
 !----------------------------------------------------------------------------------------
-MODULE electrostatic_types
+MODULE representation_types
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP
     !
-    USE core_types, ONLY: fft_core, oned_analytic_core
+    USE cell_types, ONLY: environ_cell
+    !
+    ! BACKWARD COMPATIBILITY
+    ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
+    ! USE control_flags, ONLY: tddfpt
+    ! Compatible with QE-6.3.X and QE-GIT \
+    ! END BACKWARD COMPATIBILITY
     !
     !------------------------------------------------------------------------------------
     !
@@ -39,125 +46,91 @@ MODULE electrostatic_types
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE gradient_solver
+    TYPE environ_density
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lconjugate
-        CHARACTER(LEN=80) :: step_type
-        REAL(DP) :: step
-        INTEGER :: maxstep
-        CHARACTER(LEN=80) :: preconditioner
-        CHARACTER(LEN=80) :: screening_type
-        REAL(DP) :: screening
-        REAL(DP) :: tol
+        LOGICAL :: update = .FALSE. ! optionally have an associated logical status
+        !
+        CHARACTER(LEN=80) :: label = ' '
+        ! optionally have an associated label, used for printout and debugs
+        !
+        TYPE(environ_cell), POINTER :: cell => NULL()
+        ! each quantity in real-space is associated with its definition domain
+        !
+        REAL(DP), ALLOCATABLE :: of_r(:)
+        ! the quantity in real-space, local to each processor
         !
         !--------------------------------------------------------------------------------
-    END TYPE gradient_solver
+        ! Multipole moments of the quantity
+        !
+        REAL(DP) :: charge
+        REAL(DP) :: dipole(3)
+        REAL(DP) :: quadrupole(3)
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE environ_density
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE iterative_solver
+    TYPE environ_gradient
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: mix_type
-        REAL(DP) :: mix
-        INTEGER :: maxiter
-        INTEGER :: ndiis
-        REAL(DP) :: tol
+        LOGICAL :: update = .FALSE. ! optionally have an associated logical status
+        !
+        CHARACTER(LEN=80) :: label = ' '
+        ! optionally have an associated label, used for printout and debugs
+        !
+        TYPE(environ_cell), POINTER :: cell => NULL()
+        ! each quantity in real-space is associated with its definition domain
+        !
+        REAL(DP), ALLOCATABLE :: of_r(:, :)
+        ! the quantity in real-space, local to each processor
+        !
+        TYPE(environ_density) :: modulus
         !
         !--------------------------------------------------------------------------------
-    END TYPE iterative_solver
+    END TYPE environ_gradient
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE newton_solver
+    TYPE environ_hessian
         !--------------------------------------------------------------------------------
         !
-        INTEGER :: maxiter
-        REAL(DP) :: tol
+        LOGICAL :: update = .FALSE. ! optionally have an associated logical status
+        !
+        CHARACTER(LEN=80) :: label = ' '
+        ! optionally have an associated label, used for printout and debugs
+        !
+        TYPE(environ_cell), POINTER :: cell => NULL()
+        ! each quantity in real-space is associated with its definition domain
+        !
+        REAL(DP), ALLOCATABLE :: of_r(:, :, :)
+        ! the quantity in real-space, local to each processor
+        !
+        TYPE(environ_density) :: laplacian
         !
         !--------------------------------------------------------------------------------
-    END TYPE newton_solver
+    END TYPE environ_hessian
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE electrostatic_solver
+    TYPE environ_functions
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: type_
-        CHARACTER(LEN=80) :: auxiliary
-        LOGICAL :: use_direct
-        LOGICAL :: use_gradient
-        !
-        TYPE(gradient_solver), POINTER :: gradient => NULL()
-        !
-        LOGICAL :: use_iterative
-        TYPE(iterative_solver), POINTER :: iterative => NULL()
-        !
-        LOGICAL :: use_newton
-        TYPE(newton_solver), POINTER :: newton => NULL()
-        !
-        ! #TODO future work
-        !
-        ! LOGICAL :: use_lbfgs
-        ! TYPE( lbfgs_solver ) :: lbfgs
+        INTEGER :: type_
+        INTEGER :: axis, dim
+        REAL(DP) :: width, spread, volume
+        REAL(DP), POINTER :: pos(:)
+        ! environ_functions are not designed to be mobile, thus position
+        ! can be included in the definition of the type
         !
         !--------------------------------------------------------------------------------
-    END TYPE electrostatic_solver
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    TYPE electrostatic_core
-        !--------------------------------------------------------------------------------
-        !
-        CHARACTER(LEN=80) :: type_
-        !
-        LOGICAL :: use_fft
-        TYPE(fft_core), POINTER :: fft => NULL()
-        !
-        LOGICAL :: use_oned_analytic
-        TYPE(oned_analytic_core), POINTER :: oned_analytic => NULL()
-        !
-        ! #TODO future work
-        !
-        ! LOGICAL :: use_oned_numeric
-        ! TYPE(oned_numeric_core), POINTER :: oned_numeric => NULL()
-        !
-        ! LOGICAL :: use_multigrid
-        ! TYPE(multigrid_core), POINTER :: multigrid => NULL()
-        !
-        ! LOGICAL :: use_bigdft
-        ! TYPE(bigdft_core), POINTER :: bigdft => NULL()
-        !
-        LOGICAL :: need_correction
-        TYPE(electrostatic_core), POINTER :: correction => NULL()
-        !
-        !--------------------------------------------------------------------------------
-    END TYPE electrostatic_core
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    TYPE electrostatic_setup
-        !--------------------------------------------------------------------------------
-        !
-        CHARACTER(LEN=80) :: problem
-        !
-        TYPE(electrostatic_solver), POINTER :: solver => NULL()
-        !
-        TYPE(electrostatic_core), POINTER :: core => NULL()
-        !
-        LOGICAL :: nested_problem
-        TYPE(electrostatic_setup), POINTER :: inner => NULL()
-        !
-        !--------------------------------------------------------------------------------
-    END TYPE electrostatic_setup
+    END TYPE environ_functions
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE electrostatic_types
+END MODULE representation_types
 !----------------------------------------------------------------------------------------

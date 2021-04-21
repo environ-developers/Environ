@@ -47,17 +47,18 @@
 MODULE utils_externals
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE environ_output
-    USE utils_functions
+    USE modules_constants, ONLY: DP
     !
-    IMPLICIT NONE
+    USE physical_types, ONLY: environ_externals
+    USE cell_types, ONLY: environ_cell
     !
-    PRIVATE
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
     !
-    PUBLIC :: create_environ_externals, init_environ_externals_first, &
-              init_environ_externals_second, update_environ_externals, &
-              destroy_environ_externals
+    USE utils_functions, ONLY: destroy_environ_functions
+    !
+    USE tools_functions, ONLY: density_of_functions
+    USE tools_math, ONLY: integrate_environ_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS

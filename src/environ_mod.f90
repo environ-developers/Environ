@@ -29,7 +29,16 @@
 MODULE environ_base
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
+    USE modules_constants, ONLY: DP
+    !
+    USE cell_types
+    USE physical_types
+    USE core_types, ONLY: boundary_core
+    USE representation_types, ONLY: environ_density
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     SAVE
     !

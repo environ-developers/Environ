@@ -29,6 +29,10 @@ MODULE electrostatic_base
     !
     USE electrostatic_types
     !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
     SAVE
     !
     TYPE(electrostatic_setup) :: inner, outer, reference ! Electrostatic setup(s)

@@ -30,17 +30,25 @@
 MODULE solvent_tddfpt
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE environ_output
-    USE modules_constants, ONLY: e2, fpi
+    USE modules_constants, ONLY: DP, e2, fpi
     !
-    IMPLICIT NONE
+    USE physical_types, ONLY: environ_charges, environ_electrons
+    USE representation_types, ONLY: environ_density, environ_gradient
     !
-    SAVE
+    USE environ_base, ONLY: system_cell, velectrostatic, lsoftsolvent, loptical, &
+                            optical, ltddfpt
     !
-    PRIVATE
+    USE electrostatic_base, ONLY: reference, outer
     !
-    PUBLIC :: solvent_clean_tddfpt, calc_vsolvent_tddfpt
+    USE utils_electrons
+    USE utils_charges
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
+    !
+    USE core_fft, ONLY: gradient_fft
+    !
+    USE environ_init, ONLY: environ_clean_tddfpt
+    USE embedding_electrostatic, ONLY: calc_velectrostatic
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -48,11 +56,11 @@ CONTAINS
     !>
     !! Local clean up
     !!
+    !! #TODO unused
+    !!
     !------------------------------------------------------------------------------------
     SUBROUTINE solvent_clean_tddfpt()
         !--------------------------------------------------------------------------------
-        !
-        USE environ_init, ONLY: environ_clean_tddfpt
         !
         IMPLICIT NONE
         !
@@ -79,14 +87,6 @@ CONTAINS
     SUBROUTINE calc_vsolvent_tddfpt(nnr, rho_0, drho_elec, dv_pol, dv_epsilon)
         ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: system_cell, velectrostatic, lsoftsolvent, &
-                                loptical, optical, ltddfpt
-        !
-        USE electrostatic_base, ONLY: reference, outer
-        USE embedding_electrostatic, ONLY: calc_velectrostatic
-        USE core_fft, ONLY: gradient_fft
-        USE utils_charges
         !
         IMPLICIT NONE
         !

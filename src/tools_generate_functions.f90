@@ -25,9 +25,18 @@
 MODULE tools_generate_functions
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: sqrtpi, pi, tpi, fpi
-    USE cell_types, ONLY: ir2ijk, ir2r, minimum_image, displacement
-    USE environ_types
+    USE modules_constants, ONLY: DP, sqrtpi, pi, fpi
+    !
+    USE cell_types, ONLY: environ_cell
+    USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
+    !
+    USE tools_cell, ONLY: ir2ijk, ir2r, displacement, minimum_image
+    !
+    USE modules_erf, ONLY: environ_erfc, environ_erf
+    !
+    USE mp, ONLY: mp_sum
+    !
+    !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
@@ -35,15 +44,18 @@ MODULE tools_generate_functions
     REAL(DP), PARAMETER :: exp_tol = 4.D1
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: tol, exp_tol
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE planar_average(cell, nnr, naxis, axis, shift, reverse, f, f1d)
         !--------------------------------------------------------------------------------
-        !
-        USE mp, ONLY: mp_sum
         !
         IMPLICIT NONE
         !
@@ -405,8 +417,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE generate_erfc(dim, axis, charge, width, spread, pos, density)
         !--------------------------------------------------------------------------------
-        !
-        USE modules_erf, ONLY: environ_erfc
         !
         IMPLICIT NONE
         !
@@ -889,6 +899,8 @@ CONTAINS
     SUBROUTINE generate_axis(cell, icor, pos, axis)
         !--------------------------------------------------------------------------------
         !
+        IMPLICIT NONE
+        !
         TYPE(environ_cell), INTENT(IN) :: cell
         INTEGER, INTENT(IN) :: icor
         REAL(DP), INTENT(IN) :: pos(3)
@@ -928,6 +940,8 @@ CONTAINS
     SUBROUTINE generate_distance(cell, pos, distance)
         !--------------------------------------------------------------------------------
         !
+        IMPLICIT NONE
+        !
         TYPE(environ_cell), INTENT(IN) :: cell
         REAL(DP), INTENT(IN) :: pos(3)
         !
@@ -965,8 +979,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     FUNCTION erfcvolume(dim, axis, width, spread, cell)
         !--------------------------------------------------------------------------------
-        !
-        USE modules_erf, ONLY: environ_erf
         !
         IMPLICIT NONE
         !

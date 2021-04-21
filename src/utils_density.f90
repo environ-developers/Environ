@@ -2,17 +2,13 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE utils_fft
+MODULE utils_density
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
-    !
-    USE core_types, ONLY: fft_core
     USE cell_types, ONLY: environ_cell
+    USE representation_types, ONLY: environ_density
     !
-    USE tools_generate_gvectors, ONLY: env_gvect_init, env_ggen
-    !
-    USE correction_mt, ONLY: update_mt_correction
+    USE tools_math, ONLY: multipoles_environ_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -20,161 +16,171 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_fft_core(fft)
+    SUBROUTINE create_environ_density(density, local_label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(fft_core), INTENT(INOUT) :: fft
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: local_label
+        !
+        TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_density'
+        !
+        CHARACTER(LEN=80) :: label = 'density'
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (fft%cell) ! create empty fft core
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_fft_core
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-    ! SUBROUTINE init_fft_core( fft, use_internal_pbc_corr, nspin )
-    ! Compatible with QE-6.4.X QE-GIT
-    SUBROUTINE init_fft_core_first(fft, use_internal_pbc_corr)
-        ! END BACKWARD COMPATIBILITY
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT(IN), OPTIONAL :: nspin
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
-        !
-        TYPE(fft_core), INTENT(INOUT) :: fft
-        !
-        !--------------------------------------------------------------------------------
-        !
-        fft%index = 1
-        !
-        IF (PRESENT(use_internal_pbc_corr)) THEN
-            fft%use_internal_pbc_corr = use_internal_pbc_corr
+        IF (PRESENT(local_label)) THEN
+            density%label = local_label
         ELSE
-            fft%use_internal_pbc_corr = .FALSE.
+            density%label = label
         END IF
         !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! IF (PRESENT(nspin)) THEN
-        !     fft%nspin = nspin
-        ! ELSE
-        !     fft%nspin = 1
-        ! END IF
-        ! Compatible with QE-6.4.X QE-GIT
+        NULLIFY (density%cell)
         !
-        ! END BACKWARD COMPATIBILITY
+        IF (ALLOCATED(density%of_r)) &
+            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_fft_core_first
+    END SUBROUTINE create_environ_density
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_fft_core_second(gcutm, cell, fft)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: gcutm
-        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        !
-        TYPE(fft_core), INTENT(INOUT) :: fft
-        !
-        INTEGER :: ngm_g
-        !
-        !--------------------------------------------------------------------------------
-        !
-        fft%gcutm = gcutm
-        fft%cell => cell
-        !
-        fft%ngm = cell%dfft%ngm
-        !
-        IF (fft%use_internal_pbc_corr) ALLOCATE (fft%mt_corr(fft%ngm))
-        !
-        !--------------------------------------------------------------------------------
-        ! The following routines are in tools_generate_gvect
-        ! and may need to be simplified #TODO
-        !
-        CALL env_gvect_init(fft, cell%dfft%comm)
-        !
-        CALL env_ggen(fft%cell%dfft, cell%dfft%comm, cell%at, cell%bg, fft%gcutm, &
-                      ngm_g, fft%ngm, fft%g, fft%gg, fft%gstart, .TRUE.)
-        !
-        IF (fft%use_internal_pbc_corr) CALL update_mt_correction(fft)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_fft_core_second
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE update_fft_core_cell(cell, fft)
+    SUBROUTINE init_environ_density(cell, density)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         !
-        TYPE(fft_core), INTENT(INOUT) :: fft
+        TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
-        fft%cell => cell
+        density%update = .FALSE.
         !
-        IF (fft%use_internal_pbc_corr) CALL update_mt_correction(fft)
+        IF (ASSOCIATED(density%cell)) &
+            CALL errore(sub_name, 'Trying to associate an associated object', 1)
+        !
+        density%cell => cell
+        !
+        IF (ALLOCATED(density%of_r)) &
+            CALL errore(sub_name, 'Trying to allocate an allocated object', 1)
+        !
+        ALLOCATE (density%of_r(density%cell%nnr))
+        density%of_r = 0.D0
+        !
+        density%charge = 0.D0
+        density%dipole = 0.D0
+        density%quadrupole = 0.D0
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE update_fft_core_cell
+    END SUBROUTINE init_environ_density
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_fft_core(lflag, fft)
+    SUBROUTINE copy_environ_density(doriginal, dcopy)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: lflag
+        TYPE(environ_density), INTENT(IN) :: doriginal
         !
-        TYPE(fft_core), INTENT(INOUT) :: fft
+        TYPE(environ_density), INTENT(OUT) :: dcopy
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_fft_core'
+        CHARACTER(LEN=80) :: sub_name = 'copy_environ_density'
+        !
+        INTEGER :: n
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (fft%cell)
-        DEALLOCATE (fft%gg)
-        DEALLOCATE (fft%g)
+        IF (.NOT. ASSOCIATED(doriginal%cell)) &
+            CALL errore(sub_name, 'Trying to copy a non associated object', 1)
         !
-        IF (fft%use_internal_pbc_corr) DEALLOCATE (fft%mt_corr)
+        dcopy%cell => doriginal%cell
+        !
+        dcopy%update = doriginal%update
+        dcopy%label = doriginal%label
+        dcopy%charge = doriginal%charge
+        dcopy%dipole = doriginal%dipole
+        dcopy%quadrupole = doriginal%quadrupole
+        !
+        IF (ALLOCATED(doriginal%of_r)) THEN
+            n = SIZE(doriginal%of_r)
+            !
+            IF (ALLOCATED(dcopy%of_r)) DEALLOCATE (dcopy%of_r)
+            !
+            ALLOCATE (dcopy%of_r(n))
+            dcopy%of_r = doriginal%of_r
+        END IF
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_fft_core
+    END SUBROUTINE copy_environ_density
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_environ_density(density)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL multipoles_environ_density(density, density%cell%origin, &
+                                        density%charge, density%dipole, &
+                                        density%quadrupole)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_environ_density
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_environ_density(density)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_density'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        density%update = .FALSE.
+        !
+        IF (.NOT. ASSOCIATED(density%cell)) &
+            CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+        !
+        NULLIFY (density%cell)
+        !
+        IF (.NOT. ALLOCATED(density%of_r)) &
+            CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+        !
+        DEALLOCATE (density%of_r)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_environ_density
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE utils_fft
+END MODULE utils_density
 !----------------------------------------------------------------------------------------

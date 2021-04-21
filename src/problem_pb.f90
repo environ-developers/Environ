@@ -32,23 +32,36 @@
 MODULE problem_pb
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, k_boltzmann_ry, pi, tpi, fpi
-    USE environ_types
-    USE electrostatic_types
-    USE environ_output
-    USE problem_linearized_pb, ONLY: linearized_pb_gradient
+    USE modules_constants, ONLY: DP, e2, k_boltzmann_ry, pi, fpi
+    !
+    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_core, &
+                                   electrostatic_setup, iterative_solver, newton_solver
+    !
+    USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_dielectric
+    USE representation_types, ONLY: environ_density
+    USE cell_types, ONLY: environ_cell
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    !
+    USE tools_math, ONLY: euclidean_norm_environ_density, &
+                          quadratic_mean_environ_density, &
+                          integrate_environ_density
+    !
     USE problem_generalized, ONLY: generalized_gradient
-    USE problem_poisson, ONLY: poisson_direct!, poisson_energy #TODO
+    USE problem_poisson, ONLY: poisson_direct
+    USE problem_linearized_pb, ONLY: linearized_pb_gradient
     !
-    IMPLICIT NONE
+    USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
     !
-    PRIVATE
-    !
-    PUBLIC :: pb_nested!, pb_energy #TODO
+    !------------------------------------------------------------------------------------
     !
     INTERFACE pb_nested
         MODULE PROCEDURE pb_nested_charges, pb_nested_density
     END INTERFACE pb_nested
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: pb_nested_charges, pb_nested_density, pb_iterative, pb_newton
     !
     !------------------------------------------------------------------------------------
 CONTAINS

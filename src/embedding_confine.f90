@@ -25,20 +25,15 @@
 MODULE embedding_confine
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE environ_output
-    USE modules_constants, ONLY: e2
+    USE modules_constants, ONLY: DP
     !
-    IMPLICIT NONE
-    !
-    PRIVATE
-    !
-    PUBLIC :: calc_deconfine_dboundary, calc_vconfine
+    USE physical_types, ONLY: environ_boundary
+    USE representation_types, ONLY: environ_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
-    !> 
+    !>
     !! Calculates the confine contribution to the potential
     !!
     !------------------------------------------------------------------------------------

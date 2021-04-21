@@ -24,16 +24,19 @@
 MODULE correction_gcs
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, k_boltzmann_ry, pi, tpi, fpi
-    USE environ_types
-    USE core_types
-    USE environ_output
+    USE modules_constants, ONLY: DP, e2, k_boltzmann_ry, pi, tpi, fpi
     !
-    IMPLICIT NONE
+    USE core_types, ONLY: oned_analytic_core
+    USE physical_types, ONLY: environ_electrolyte
+    USE representation_types, ONLY: environ_density, environ_gradient
+    USE cell_types, ONLY: environ_cell
     !
-    PRIVATE
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
     !
-    PUBLIC :: calc_vgcs, calc_gradvgcs
+    USE tools_math, ONLY: multipoles_environ_density
+    !
+    USE mp, ONLY: mp_sum
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -387,7 +390,7 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'calc_gradvgcs'
         !
         !--------------------------------------------------------------------------------
-        !        
+        !
         CALL start_clock('calc_gvst')
         !
         IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &

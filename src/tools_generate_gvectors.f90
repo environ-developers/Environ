@@ -14,18 +14,21 @@ MODULE tools_generate_gvectors
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP, eps8
-    USE fft_types, ONLY: fft_stick_index, fft_type_descriptor
+    !
+    USE core_types, ONLY: fft_core
+    USE fft_types, ONLY: fft_type_descriptor, fft_stick_index
+    !
+    USE modules_sort, ONLY: hpsort_eps
     USE fft_ggen, ONLY: fft_set_nl
-    USE mp, ONLY: mp_rank, mp_max, mp_size, mp_sum
     !
-    PRIVATE
+    USE mp, ONLY: mp_sum, mp_rank, mp_size
     !
-    SAVE
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     INTEGER :: ngm_g = 0 ! global number of G vectors (summed on all procs)
     ! in serial execution, ngm_g = ngm
-    !
-    PUBLIC :: env_ggen, env_gvect_init
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -36,8 +39,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE env_gvect_init(fft, comm)
         !--------------------------------------------------------------------------------
-        !
-        USE core_types
         !
         IMPLICIT NONE
         !
@@ -68,12 +69,11 @@ CONTAINS
     END SUBROUTINE env_gvect_init
     !------------------------------------------------------------------------------------
     !>
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE env_deallocate_gvect(fft)
         !--------------------------------------------------------------------------------
-        !
-        USE core_types
         !
         IMPLICIT NONE
         !

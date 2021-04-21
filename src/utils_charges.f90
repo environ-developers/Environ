@@ -77,17 +77,18 @@
 MODULE utils_charges
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE environ_output ! #TODO is this necessary?
-    USE modules_constants, ONLY: e2
+    USE modules_constants, ONLY: DP
     !
-    SAVE
+    USE physical_types, ONLY: environ_charges, environ_electrons, environ_ions, &
+                              environ_externals, environ_dielectric, &
+                              environ_electrolyte, environ_semiconductor
+
     !
-    PRIVATE
+    USE representation_types, ONLY: environ_density
+    USE cell_types, ONLY: environ_cell
     !
-    PUBLIC :: create_environ_charges, init_environ_charges_first, &
-              init_environ_charges_second, update_environ_charges, &
-              charges_of_potential, destroy_environ_charges
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             update_environ_density, destroy_environ_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -220,8 +221,6 @@ CONTAINS
     SUBROUTINE update_environ_charges(charges)
         !--------------------------------------------------------------------------------
         !
-        USE utils_mapping, ONLY: map_large_to_small, map_small_to_large
-        !
         IMPLICIT NONE
         !
         TYPE(environ_charges), INTENT(INOUT) :: charges
@@ -283,68 +282,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_charges
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE charges_of_potential(potential, charges)
-        !--------------------------------------------------------------------------------
-        !
-        USE utils_dielectric, ONLY: dielectric_of_potential
-        USE utils_electrolyte, ONLY: electrolyte_of_potential
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_density), INTENT(IN) :: potential
-        !
-        TYPE(environ_charges), INTENT(INOUT) :: charges
-        !
-        TYPE(environ_density) :: tot_charge_density
-        !
-        CHARACTER(LEN=80) :: sub_name = 'charges_of_potential'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL init_environ_density(potential%cell, tot_charge_density)
-        !
-        tot_charge_density%of_r = charges%density%of_r
-        !
-        IF (charges%include_electrolyte) THEN
-            !
-            IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL errore(sub_name, 'Missing expected charge component', 1)
-            !
-            ! ELECTROLYTE CHARGES ARE NOT FREE CHARGES
-            ! DO NOT ADD THEIR DENSITY TO TOTAL CHARGE #TODO: is this necessary here?
-            !
-            CALL electrolyte_of_potential(potential, charges%electrolyte)
-            !
-            tot_charge_density%of_r = tot_charge_density%of_r + &
-                                      charges%electrolyte%density%of_r
-            !
-        END IF
-        !
-        IF (charges%include_dielectric) THEN
-            !
-            IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL errore(sub_name, 'Missing expected charge component', 1)
-            !
-            ! DIELECTRIC CHARGES ARE NOT FREE CHARGES
-            ! DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
-            !
-            CALL dielectric_of_potential(tot_charge_density, potential, &
-                                         charges%dielectric)
-            !
-        END IF
-        !
-        ! May need to insert an if statement for semiconductor here #TODO Quinn
-        !
-        CALL destroy_environ_density(tot_charge_density)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE charges_of_potential
     !------------------------------------------------------------------------------------
     !>
     !!

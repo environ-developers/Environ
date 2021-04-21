@@ -27,26 +27,38 @@
 MODULE environ_init
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY : bohr_radius_si, rydberg_si
-    USE cell_types
-    USE core_types
-    USE environ_types
-    USE environ_output
+    USE modules_constants, ONLY: DP, e2, bohr_radius_si, rydberg_si
+    !
     USE environ_base
+    USE core_base, ONLY: lfd, fd, lfft_environment, environment_fft
     !
+    USE electrostatic_base, ONLY: need_pbc_correction, need_gradient, &
+                                  need_factsqrt, need_auxiliary, need_electrolyte, &
+                                  need_semiconductor, need_outer_loop
+    !
+    USE utils_electrons
     USE utils_ions
-    USE utils_boundary
-    USE utils_dielectric
-    USE utils_electrolyte
+    USE utils_system
     USE utils_externals
-    USE utils_charges
+    USE utils_boundary
     USE utils_semiconductor
+    USE utils_electrolyte
+    USE utils_dielectric
+    USE utils_mapping
+    USE utils_cell
+    USE utils_charges
     !
-    PRIVATE
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
     !
-    PUBLIC :: set_environ_base, environ_initbase, environ_initcell, &
-              environ_initions, environ_initelectrons, environ_initpotential, &
-              environ_clean, environ_clean_pw, environ_clean_tddfpt
+    USE tools_mapping, ONLY: map_small_to_large
+    !
+    USE core_init, ONLY: core_initbase, core_initcell, core_initions, core_clean
+    USE electrostatic_init, ONLY: electrostatic_clean
+    !
+    USE environ_output, ONLY: environ_unit, print_environ_ions, print_environ_system, &
+                              print_environ_boundary, print_environ_dielectric, &
+                              print_environ_electrolyte, print_environ_electrons
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -104,12 +116,6 @@ CONTAINS
          epsregion_axis, epsregion_pos, &
          epsregion_spread, epsregion_width)
         !--------------------------------------------------------------------------------
-        !
-        USE electrostatic_base, ONLY: need_pbc_correction, need_gradient, &
-                                      need_factsqrt, need_auxiliary, need_electrolyte, &
-                                      need_semiconductor, need_outer_loop
-        !
-        USE core_base
         !
         IMPLICIT NONE
         !
@@ -516,26 +522,7 @@ CONTAINS
     SUBROUTINE environ_initbase(alat, at, comm, me, root, gcutm, e2)
         !--------------------------------------------------------------------------------
         !
-        USE modules_constants, ONLY: e2_ => e2
-        !
-        USE environ_base, ONLY: system_cell, system_electrons, &
-                                system_charges, environment_electrons, &
-                                environment_charges, &
-                                vzero, deenviron, &
-                                lelectrostatic, eelectrostatic, &
-                                velectrostatic, vreference, dvtot, &
-                                lsoftcavity, vsoftcavity, &
-                                lelectrolyte, electrolyte, &
-                                lsolvent, solvent, lstatic, static, &
-                                loptical, optical, &
-                                lexternals, externals, &
-                                lsurface, esurface, lvolume, evolume, &
-                                lconfine, vconfine, econfine, &
-                                eelectrolyte, environment_cell, &
-                                ldoublecell, mapping
-        !
-        USE cell_types, ONLY: init_environ_cell
-        USE core_init, ONLY: core_initbase
+        USE modules_constants, ONLY: e2_ => e2 ! #TODO clean this up
         !
         IMPLICIT NONE
         !
@@ -716,8 +703,6 @@ CONTAINS
     SUBROUTINE environ_initpotential(nnr, vltot)
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: vzero
-        !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
@@ -749,23 +734,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_initcell(at)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: lstatic, static, &
-                                loptical, optical, &
-                                lexternals, externals, &
-                                lelectrolyte, electrolyte, &
-                                lelectrostatic, &
-                                system_cell, environment_cell, &
-                                ldoublecell, mapping, &
-                                lsemiconductor, semiconductor
-        !
-        USE cell_types, ONLY: update_environ_cell
-        USE utils_dielectric, ONLY: update_environ_dielectric
-        USE utils_electrolyte, ONLY: update_environ_electrolyte
-        USE utils_externals, ONLY: update_environ_externals
-        USE utils_semiconductor, ONLY: update_environ_semiconductor
-        !
-        USE core_init, ONLY: core_initcell
         !
         IMPLICIT NONE
         !
@@ -828,28 +796,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_initions(nnr, nat, ntyp, ityp, zv, tau, vloc)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: system_cell, system_ions, &
-                                system_electrons, system_system, &
-                                environment_ions, &
-                                environment_electrons, &
-                                environment_system, &
-                                lsolvent, solvent, &
-                                lstatic, static, &
-                                loptical, optical, &
-                                lelectrolyte, electrolyte, &
-                                lrigidcavity, &
-                                lelectrostatic, system_charges, &
-                                environment_charges, &
-                                ldoublecell, environment_cell, &
-                                lexternals, externals
-        !
-        USE utils_boundary, ONLY: update_environ_boundary, set_soft_spheres
-        USE utils_dielectric, ONLY: update_environ_dielectric
-        USE utils_electrolyte, ONLY: update_environ_electrolyte
-        USE utils_externals, ONLY: update_environ_externals
-        USE core_init, ONLY: core_initions
-        USE utils_mapping, ONLY: map_small_to_large
         !
         IMPLICIT NONE
         !
@@ -1034,21 +980,6 @@ CONTAINS
         ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: system_electrons, &
-                                environment_electrons, &
-                                lsolvent, solvent, &
-                                lstatic, static, &
-                                loptical, optical, &
-                                lelectrolyte, electrolyte, &
-                                lsoftcavity, lsoftsolvent, &
-                                lsoftelectrolyte, &
-                                lelectrostatic, mapping, &
-                                system_charges, environment_charges
-        !
-        USE utils_boundary, ONLY: update_environ_boundary
-        USE utils_dielectric, ONLY: update_environ_dielectric
-        USE utils_mapping, ONLY: map_small_to_large
-        !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
@@ -1204,16 +1135,6 @@ CONTAINS
     SUBROUTINE environ_clean_pw(lflag)
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: vzero, lelectrostatic, vreference, &
-                                lsoftcavity, vsoftcavity, lstatic, &
-                                static, lexternals, externals, &
-                                lconfine, vconfine, &
-                                lelectrolyte, electrolyte, &
-                                system_ions, system_electrons, system_system, &
-                                environment_ions, environment_electrons, &
-                                environment_system, system_charges, &
-                                environment_charges, lsemiconductor, semiconductor
-        !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: lflag
@@ -1281,12 +1202,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_clean_tddfpt(lflag)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: lelectrostatic, velectrostatic, &
-                                loptical, optical, lsolvent, solvent
-        !
-        USE core_init, ONLY: core_clean
-        USE electrostatic_init, ONLY: electrostatic_clean
         !
         IMPLICIT NONE
         !

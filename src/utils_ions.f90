@@ -77,16 +77,24 @@
 MODULE utils_ions
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, pi, tpi, fpi, bohr_radius_angs
-    USE environ_types
+    USE modules_constants, ONLY: DP, e2, pi, tpi, bohr_radius_angs
+    !
+    USE physical_types, ONLY: environ_ions, environ_iontype
+    USE representation_types, ONLY: environ_functions
+    USE cell_types, ONLY: environ_cell
+    !
     USE environ_base, ONLY: potential_shift
-    USE environ_output
-    USE utils_functions
     !
-    PRIVATE
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
     !
-    PUBLIC :: create_environ_ions, init_environ_ions_first, init_environ_ions_second, &
-              update_environ_ions, destroy_environ_ions
+    USE utils_functions, ONLY: destroy_environ_functions
+    !
+    USE tools_functions, ONLY: density_of_functions
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: set_iontype_defaults, get_atmnum, lowcase
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -996,6 +1004,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE lowcase(string)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CHARACTER*(*), INTENT(INOUT) :: string
         !

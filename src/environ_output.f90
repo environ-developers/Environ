@@ -28,9 +28,42 @@
 MODULE environ_output
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: amu_si, bohr_radius_si, rydberg_si
-    USE core_types
-    USE environ_types
+    USE modules_constants, ONLY: DP, amu_si, bohr_radius_si, rydberg_si, RYTOEV
+    !
+    USE cell_types, ONLY: environ_cell
+    USE fft_types, ONLY: fft_type_descriptor
+    USE representation_types
+    USE physical_types
+    !
+    USE environ_base, ONLY: lelectrostatic, eelectrostatic, lsurface, esurface, &
+                            lvolume, evolume, lelectrolyte, eelectrolyte, lconfine, &
+                            econfine, deenviron, lsmearedions, potential_shift, &
+                            environ_thr, lsolvent, solvent, env_static_permittivity, &
+                            env_optical_permittivity, env_surface_tension, &
+                            env_pressure, lelectrostatic, ltddfpt, derivatives, &
+                            lsemiconductor, system_ions
+    !
+    USE electrostatic_base, ONLY: need_pbc_correction, outer
+    USE core_base, ONLY: lfd, fd
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    !
+    USE tools_math, ONLY: integrate_environ_density
+    !
+    ! BACKWARD COMPATIBILITY
+    ! Compatible with QE-5.1.X
+    ! USE fft_base, ONLY : grid_gather
+    ! Compatible with QE-5.2.X
+    ! USE fft_base, ONLY : gather_grid
+    ! Compatible with QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
+    USE scatter_mod, ONLY: gather_grid
+    ! END BACKWARD COMPATIBILITY
+    !
+    USE mp, ONLY: mp_sum
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     SAVE
     !
@@ -51,17 +84,9 @@ MODULE environ_output
     INTEGER, PARAMETER :: nbibliography = 6
     CHARACTER(LEN=80) :: bibliography(nbibliography)
     !
-    PRIVATE
+    !------------------------------------------------------------------------------------
     !
-    PUBLIC :: ionode, ionode_id, comm, program_unit, environ_unit, verbose, prog, &
-              lstdout, set_environ_output, environ_print_energies, &
-              environ_print_potential_shift, environ_print_potential_warning, &
-              environ_summary, environ_clock, write_cube, print_environ_density, &
-              print_environ_gradient, print_environ_hessian, print_environ_functions, &
-              print_environ_iontype, print_environ_ions, print_environ_electrons, &
-              print_environ_externals, print_environ_system, print_environ_boundary, &
-              print_environ_dielectric, print_environ_electrolyte, &
-              print_environ_charges, update_output_program_unit
+    PRIVATE :: depth, nbibliography, bibliography, set_bibliography, print_environ_cell
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -72,8 +97,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE set_bibliography()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
         !
         bibliography(1) = "O. Andreussi, I. Dabo and N. Marzari, J.&
                           & Chem. Phys. 136, 064102 (2012)"
@@ -243,8 +266,6 @@ CONTAINS
     SUBROUTINE print_environ_density(density, local_verbose, local_depth, local_ions)
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: system_ions
-        !
         IMPLICIT NONE
         !
         TYPE(environ_density), INTENT(IN) :: density
@@ -331,8 +352,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_gradient(gradient, local_verbose, local_depth, local_ions)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: system_ions
         !
         IMPLICIT NONE
         !
@@ -435,8 +454,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_hessian(hessian, local_verbose, local_depth, local_ions)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: system_ions
         !
         IMPLICIT NONE
         !
@@ -1620,12 +1637,7 @@ CONTAINS
     SUBROUTINE environ_print_energies()
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: lelectrostatic, eelectrostatic, &
-                                lsurface, esurface, &
-                                lvolume, evolume, &
-                                lelectrolyte, eelectrolyte, &
-                                lconfine, econfine, &
-                                deenviron
+        IMPLICIT NONE
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_print_energies'
         !
@@ -1690,11 +1702,6 @@ CONTAINS
     SUBROUTINE environ_print_potential_shift()
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: lsmearedions, potential_shift
-        USE modules_constants, ONLY: RYTOEV
-        !
-        !--------------------------------------------------------------------------------
-        !
         IF (lsmearedions) WRITE (program_unit, 9400) potential_shift * RYTOEV
         !
 9400    FORMAT(/, 5(' '), &
@@ -1708,10 +1715,6 @@ CONTAINS
     !>
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_print_potential_warning()
-        !--------------------------------------------------------------------------------
-        !
-        USE electrostatic_base, ONLY: need_pbc_correction
-        !
         !--------------------------------------------------------------------------------
         !
         IF (need_pbc_correction) WRITE (program_unit, 9401)
@@ -1730,18 +1733,6 @@ CONTAINS
     !! Called by summary.f90
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_summary()
-        !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: environ_thr, lsolvent, solvent, &
-                                env_static_permittivity, env_optical_permittivity, &
-                                env_surface_tension, env_pressure, lelectrostatic, &
-                                ltddfpt, derivatives
-        !
-        USE core_base, ONLY: lfd, fd
-        USE electrostatic_base, ONLY: outer
-        !
-        IMPLICIT NONE
-        !
         !--------------------------------------------------------------------------------
         !
         IF (ionode) THEN
@@ -1903,9 +1894,6 @@ CONTAINS
     SUBROUTINE environ_clock(passed_unit)
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: lelectrostatic, lsurface, lvolume, ltddfpt, &
-                                lsemiconductor
-        !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN), OPTIONAL :: passed_unit
@@ -1959,15 +1947,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE write_cube(f, ions, idx, label)
         !--------------------------------------------------------------------------------
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-5.1.X
-        ! USE fft_base, ONLY : grid_gather
-        ! Compatible with QE-5.2.X
-        ! USE fft_base, ONLY : gather_grid
-        ! Compatible with QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
-        USE scatter_mod, ONLY: gather_grid
-        ! END BACKWARD COMPATIBILITY
         !
         IMPLICIT NONE
         !

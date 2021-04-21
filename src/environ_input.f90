@@ -29,11 +29,18 @@ MODULE environ_input
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP, bohr_radius_angs, nsx
-    USE modules_parser, ONLY: env_field_count, env_read_line, env_get_field, parse_unit
-    USE mp, ONLY: mp_bcast
     !
+    USE environ_init, ONLY: set_environ_base
+    USE electrostatic_init, ONLY: set_electrostatic_base
+    USE core_init, ONLY: set_core_base
+    !
+    USE modules_parser, ONLY: env_field_count, env_read_line, env_get_field, parse_unit
     USE environ_output, ONLY: ionode, ionode_id, comm, program_unit, &
                               verbose_ => verbose, environ_unit
+    !
+    USE mp, ONLY: mp_bcast
+    !
+    !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
@@ -686,9 +693,7 @@ CONTAINS
         ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
-        USE environ_init, ONLY: set_environ_base
-        USE electrostatic_init, ONLY: set_electrostatic_base
-        USE core_init, ONLY: set_core_base
+        IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: prog
         LOGICAL, INTENT(IN) :: use_internal_pbc_corr
@@ -2243,8 +2248,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE card_external_charges
     !------------------------------------------------------------------------------------
-    !
     !>
+    !!
     !------------------------------------------------------------------------------------
     SUBROUTINE allocate_input_extcharge(env_external_charges)
         !--------------------------------------------------------------------------------
