@@ -69,7 +69,6 @@ MODULE environ_main
     USE embedding_confine, ONLY: calc_vconfine, calc_deconfine_dboundary
     USE embedding_surface, ONLY: calc_desurface_dboundary, calc_esurface
     USE embedding_volume, ONLY: calc_devolume_dboundary, calc_evolume
-    USE solvent_tddfpt, ONLY: calc_vsolvent_tddfpt
     !
     USE environ_output, ONLY: print_environ_density, print_environ_charges
     !
