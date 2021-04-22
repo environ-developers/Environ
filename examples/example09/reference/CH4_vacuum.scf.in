@@ -2,8 +2,8 @@
    !
    calculation = 'scf'
    restart_mode = 'from_scratch'
-   pseudo_dir = '/home/fnattino/Programs/qe-6.1/pseudo/'
-   outdir = '/home/fnattino/Programs/qe-6.1/tempdir/'
+   pseudo_dir = '/Users/oliviero/PWSCF/espresso-git/pseudo/'
+   outdir = '/Users/oliviero/PWSCF/espresso-git/tempdir/'
    prefix = 'CH4_vacuum'
    verbosity = 'high'
    !
@@ -27,7 +27,7 @@
    electron_maxstep = 100
    !
  /
-ATOMIC_SPECIES  
+ATOMIC_SPECIES
  H   1  H.pz-vbc.UPF
  C  12  C.pz-vbc.UPF
 ATOMIC_POSITIONS {Angstrom}
