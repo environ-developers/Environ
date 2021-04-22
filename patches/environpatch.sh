@@ -74,29 +74,64 @@ if [ "$#" -eq 0 ]; then
 	exit
 fi
 
+PATCHED=0
+REVERTED=0
+
+function check_src_patched() {
+	if test -e "Environ_PATCH"; then
+		echo "  - src already patched!"
+		PATCHED=1
+	fi
+}
+
+function patch_makefile() {
+	if test "$(grep '# Environ patch' Makefile)"; then
+		echo "  - Makefile already patched!"
+		return
+	else
+		printf "  - Patching Makefile..."
+		mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
+		mod2='QEMODS+=../../Environ/libs/libenviron.a'
+		sed -i "/^TLDEPS/i # Environ patch\n$mod1\n$mod2\n" Makefile
+		printf " done!\n"
+	fi
+}
+
+function patch_message() {
+	printf "  - Patching src........"
+}
+
+function check_src_reverted() {
+	if test ! -e Environ_PATCH; then
+		echo "  - src has not been patched!"
+		REVERTED=1
+	fi
+}
+
+function revert_makefile() {
+	if test "$(grep '# Environ patch' Makefile)"; then
+		printf "  - Reverting Makefile..."
+		sed -i "/# Environ patch/,/^\s*$/d" Makefile
+		printf " done!\n"
+	else
+		echo "  - Makefile has not been patched!"
+		return
+	fi
+}
+
+function revert_message() {
+	printf "  - Reverting src........"
+}
+
 case "$1" in
 -patch)
-	if [ "$#" -eq 1 ]; then
-		for i in pw cp td xs; do
-			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
-			if test -e "$PATCH_SCRIPT"; then
-				echo "-- Applying patches to $i"
-				bash "$PATCH_SCRIPT"
-			fi
-		done
 
-		# patches to individual Makefiles
-		for dir in PW CPV TDDFPT XSpectra; do
-			if test -e ../$dir/src; then
-				mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
-				mod2='QEMODS+=../../Environ/libs/libenviron.a'
-				sed -i "/^TLDEPS/i  \
-				# Environ patch\n$mod1\n$mod2\n" \
-				../$dir/src/Makefile
-			fi
-		done
-
-		# patch to QE/install/makedeps.sh
+	# patch to QE/install/makedeps.sh
+	file="../install/makedeps.sh"
+	if test "$(grep '# Environ patch' $file)"; then
+		printf "\n* install/makedeps.sh already patched!\n\n"
+	else
+		printf "\n* Patching install/makedeps.sh..."
 		sed -i '/cd $TOPDIR\/..\/$DIR/a \
 		\
 		# Environ patch\
@@ -105,38 +140,40 @@ case "$1" in
 			DEPENDS="$DEPENDS $LEVEL2/Environ/src"\
 			;;\
 		esac' ../install/makedeps.sh
+		printf " done!\n\n"
+	fi
 
+
+	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
+		for i in pw cp td xs; do
+			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
+			if test -e "$PATCH_SCRIPT"; then
+				echo "* Applying patches to $i"
+				source "$PATCH_SCRIPT"
+			fi
+		done
 	else
 		case "$2" in
-		all)
-			for i in pw cp td xs; do
-				PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
-				if test -e "$PATCH_SCRIPT"; then
-					echo "-- Applying patches to $i"
-					bash "$PATCH_SCRIPT"
-				fi
-			done
-			;;
 		pw)
 			PATCH_SCRIPT="${ENVIRON_PATCH}/pw-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
-				echo "-- Applying patches to pw"
-				bash "$PATCH_SCRIPT"
+				echo "* Applying patches to pw"
+				source "$PATCH_SCRIPT"
 			fi
 			;;
 		cp)
 			PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
-				echo "-- Applying patches to cp"
-				bash "$PATCH_SCRIPT"
+				echo "* Applying patches to cp"
+				source "$PATCH_SCRIPT"
 			fi
 			;;
 		td)
 			for i in pw td; do
 				PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 				if test -e "$PATCH_SCRIPT"; then
-					echo "-- Applying patches to $i"
-					bash "$PATCH_SCRIPT"
+					echo "* Applying patches to $i"
+					source "$PATCH_SCRIPT"
 				fi
 			done
 			;;
@@ -144,65 +181,56 @@ case "$1" in
 			for i in pw xs; do
 				PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 				if test -e "$PATCH_SCRIPT"; then
-					echo "-- Applying patches to $i"
-					bash "$PATCH_SCRIPT"
+					echo "* Applying patches to $i"
+					source "$PATCH_SCRIPT"
 				fi
 			done
 			;;
 		esac
-	fi
+	fi	
 	;;
 -revert)
-	if [ "$#" -eq 1 ]; then
-		for i in pw cp td xs; do
-			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
-			if test -e "$PATCH_SCRIPT"; then
-				echo "-- Reverting patches to $i"
-				bash "$PATCH_SCRIPT"
-			fi
-		done
 
-		# revert individual Makefile patch
-		for dir in PW CPV TDDFPT XSpectra; do
-			if test -e ../$dir/src; then
-				sed -i "/# Environ patch/,/^\s*$/d" ../$dir/src/Makefile
-			fi
-		done
-
-		# revert patch to QE/install/makedeps.sh
+	# revert patch to QE/install/makedeps.sh
+	file="../install/makedeps.sh"
+	if test "$(grep '# Environ patch' $file)"; then
+		printf "\n* Reverting install/makedeps.sh..."
 		sed -i '/# Environ patch/,/^\s*$/d' ../install/makedeps.sh
+		printf " done!\n\n"
+	else
+		printf "\n* install/makedeps.sh has not been patched!\n\n"
+	fi
 
+	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
+		for i in pw cp td xs; do
+			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
+			if test -e "$REVERT_SCRIPT"; then
+				echo "* Reverting patches to $i"
+				source "$REVERT_SCRIPT"
+			fi
+		done
 	else
 		case "$2" in
-		all)
-			for i in pw cp td xs; do
-				REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
-				if test -e "$REVERT_SCRIPT"; then
-					echo "-- Reverting patches to $i"
-					bash "$REVERT_SCRIPT" >/dev/null
-				fi
-			done
-			;;
 		pw)
 			REVERT_SCRIPT="${ENVIRON_PATCH}/pw-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
-				echo "-- Reverting patches to pw"
-				bash "$REVERT_SCRIPT"
+				echo "* Reverting patches to pw"
+				source "$REVERT_SCRIPT"
 			fi
 			;;
 		cp)
 			REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
-				echo "-- Reverting patches to cp"
-				bash "$REVERT_SCRIPT"
+				echo "* Reverting patches to cp"
+				source "$REVERT_SCRIPT"
 			fi
 			;;
 		td)
 			for i in pw td; do
 				REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 				if test -e "$REVERT_SCRIPT"; then
-					echo "-- Reverting patches to ${i}"
-					bash "$REVERT_SCRIPT"
+					echo "* Reverting patches to ${i}"
+					source "$REVERT_SCRIPT"
 				fi
 			done
 			;;
@@ -210,8 +238,8 @@ case "$1" in
 			for i in pw xs; do
 				REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 				if test -e "$REVERT_SCRIPT"; then
-					echo "-- Reverting patches to ${i}"
-					bash "$REVERT_SCRIPT"
+					echo "* Reverting patches to ${i}"
+					source "$REVERT_SCRIPT"
 				fi
 			done
 			;;

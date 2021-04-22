@@ -21,6 +21,8 @@ ifndef VERBOSE
 .SILENT:
 endif
 
+ENVIRON_VERSION=1.1
+
 default: all
 
 all: doc libenviron
@@ -38,55 +40,49 @@ compile-environ: check-environ-makeinc libsdir
 	@ $(MAKE) libenv
 
 decompile-environ: 
-	@ echo "\nCleaning up Environ...\n"; $(MAKE) clean
+	@ printf "\nCleaning up Environ...\n\n"; $(MAKE) clean
 
 compile-qe-pw: check-qe-makeinc
-	@ echo "\nCompiling QE...\n"
+	@ printf "\nCompiling QE...\n\n"
 	@ (cd ../ && $(MAKE) pw)
 
 decompile-qe-pw:
-	@ echo "\nCleaning up QE...\n"
+	@ printf "\nCleaning up QE...\n\n"
 	@ (cd ../ && $(MAKE) clean)
 
 libfft:
-	@ echo "\nCompiling FFTXlib...\n"
+	@ printf "\nCompiling FFTXlib...\n\n"
 	@ ( \
-		cd FFTXlib ; $(MAKE) TLDEPS= all || exit 1; \
+		cd FFTXlib ; $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
 	 )
 
 libutil: 
-	@ echo "\nCompiling UtilXlib...\n"
+	@ printf "\nCompiling UtilXlib...\n\n"
 	@ ( \
-		cd UtilXlib ; $(MAKE) TLDEPS= all || exit 1; \
+		cd UtilXlib ; $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
 	)
 
 libenv:
-	@ echo "\nCompiling Environ/src...\n"
-	@ if test -d src ; then \
-          (cd src && \
-		  if test "$(MAKE)" = ""; then \
-		  	  $(MAKE) $(MFLAGS) $@; \
-          else \
-			  $(MAKE) $(MFLAGS); \
-		  fi; \
-		  mv *.a ../libs \
-		  ); \
-	  fi
+	@ printf "\nCompiling Environ/src...\n\n"
+	@ ( \
+		cd src && $(MAKE) TLDEPS=all || exit 1; \
+	   	mv *.a ../libs \
+	)
 
 libsdir:
 	@ test -d libs || mkdir libs
 
 check-environ-makeinc: # TODO can the error be silent?
 	@ if [ ! -e make.inc ]; then \
-		  echo "\nMissing make.inc. Please configure installation.\n"; \
+		  printf "\nMissing make.inc. Please configure installation.\n\n"; \
 		  exit 1; \
 	  fi
 	
 check-qe-makeinc: # TODO can the error be silent?
 	@ if [ ! -e ../make.inc ]; then \
-		  echo "\nMissing QE/make.inc. Please configure the QE installation.\n"; \
+		  printf "\nMissing QE/make.inc. Please configure the QE installation.\n\n"; \
 		  exit 1; \
 	  fi
 
@@ -95,40 +91,40 @@ check-qe-makeinc: # TODO can the error be silent?
 ################################################################################
 
 patch-qe: check-qe-makeinc
-	@ echo "\nApplying QE patches...\n"
+	@ printf "\nApplying QE patches using Environ version ${ENVIRON_VERSION}...\n"
 	@ ./patches/environpatch.sh -patch
 	@ $(MAKE) update-QE-dependencies
 
 revert-qe-patches: check-qe-makeinc
-	@ echo "\nReverting QE patches...\n"
+	@ printf "\nReverting QE patches using Environ version ${ENVIRON_VERSION}...\n"
 	@ ./patches/environpatch.sh -revert
 	@ $(MAKE) update-QE-dependencies
 
 update-QE-dependencies:
-	@ echo "\nUpdating QE dependencies...\n"
+	@ printf "\nUpdating QE dependencies...\n\n"
 	@ (cd ../ && ./install/makedeps.sh)
 
 install-QE+Environ: check-environ-makeinc check-qe-makeinc
-	@ echo "\nThis will compile Environ, patch QE, then compile QE.\n"
-	@ echo -n "Do you wish to proceed (y|n)? "; read c; \
+	@ printf "\nThis will compile Environ, patch QE, then compile QE.\n"
+	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
 	if [ "$$c" = "y" ]; then \
-		echo -n "\nUse # cores (default = 1) -> "; read cores; \
+		printf "\nUse # cores (default = 1) -> "; read cores; \
 		$(MAKE) -j$${cores:=1} compile-environ; \
 		$(MAKE) -j$${cores:=1} patch-qe; \
 		$(MAKE) -j$${cores:=1} compile-qe-pw; \
-		echo "\nDone!\n"; \
+		printf "\nDone!\n\n"; \
 	else \
 		echo; \
 	fi
 
 uninstall-QE+Environ: 
-	@ echo "\nThis will decompile Environ, revert QE patches, and decompile QE.\n"
-	@ echo -n "Do you wish to proceed (y|n)? "; read c; \
+	@ printf "\nThis will decompile Environ, revert QE patches, and decompile QE.\n"
+	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
 	if [ "$$c" = "y" ]; then \
 		$(MAKE) decompile-environ; \
 		$(MAKE) revert-qe-patches; \
 		$(MAKE) decompile-qe-pw; \
-		echo "\nDone!\n"; \
+		printf "\nDone!\n\n"; \
 	else \
 		echo; \
 	fi
@@ -137,45 +133,44 @@ uninstall-QE+Environ:
 # CLEANING
 ################################################################################
 
-clean:
-	@ touch make.inc
+clean: check-environ-makeinc
 	@ $(MAKE) clean-src
 	@ $(MAKE) clean-libs
 	@ $(MAKE) clean-fft
 	@ $(MAKE) clean-util
 
 clean-src:
-	@ echo -n "src..........."
+	@ printf "src..........."
 	@ (cd src && $(MAKE) clean)
-	@ echo -n "done!\n"
+	@ printf " done!\n"
 
 clean-fft:
-	@ echo -n "FFTXlib......."
+	@ printf "FFTXlib......."
 	@ (cd FFTXlib && $(MAKE) clean)
-	@ echo -n "done!\n"
+	@ printf " done!\n"
 
 clean-util:
-	@ echo -n "UtilXlib......"
+	@ printf "UtilXlib......"
 	@ (cd UtilXlib && $(MAKE) clean)
-	@ echo -n "done!\n"
+	@ printf " done!\n"
 
 clean-libs:
-	@ echo -n "libs.........."
+	@ printf "libs.........."
 	@ if test -d libs; then rm -fr libs; fi
-	@ echo -n "done!\n"
+	@ printf " done!\n"
 
 clean-doc:
-	@ echo -n "Docs.........."
+	@ printf "Docs.........."
 	@ (cd Doc && $(MAKE) clean)
-	@ echo -n "done!\n"
+	@ printf " done!\n"
 
 # remove files produced by "configure" as well
 veryclean: clean
-	@ echo -n "Config........"
+	@ printf "Config........"
 	@ (cd install && \
 	   rm -rf config.log configure.msg config.status)
 	@ rm make.inc
-	@ echo -n "done!\n"
+	@ printf " done!\n"
 
 distclean: clean 
 	@ $(MAKE) clean-doc
