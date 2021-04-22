@@ -42,7 +42,7 @@ MODULE utils_ions
     !
     IMPLICIT NONE
     !
-    INTEGER :: elements(92)
+    CHARACTER :: elements(92)
     !
     REAL(DP), DIMENSION(92) :: pauling_radii, bondi_radii, UFF_diameters, &
                                MUFF_diameters, weights

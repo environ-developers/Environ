@@ -98,7 +98,7 @@ CONTAINS
                                               charge_asymmetry, field_max, field_min, &
                                               electrons, ions, system, core, &
                                               temperature, cbulk, cionmax, radius, z, &
-                                              electrolyte_entropy, adsorption_energy, &
+                                              electrolyte_entropy, &
                                               linearized, electrolyte)
         !--------------------------------------------------------------------------------
         !
@@ -112,7 +112,7 @@ CONTAINS
                                 alpha, softness, temperature, solvent_radius, &
                                 radial_scale, radial_spread, filling_threshold, &
                                 filling_spread, field_awareness, charge_asymmetry, &
-                                field_max, field_min, cionmax, radius, adsorption_energy
+                                field_max, field_min, cionmax, radius
         !
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: cbulk, z
         !
