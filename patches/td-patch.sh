@@ -226,6 +226,7 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
   sed '/Environ MODULES BEGIN/ a\
       !Environ patch\
       USE scf,              ONLY : rho\
+      USE environ_init,     ONLY : environ_initresponse\
       USE environ_main,     ONLY : calc_dvenviron\
       !Environ patch
       ' plugin_tddfpt_potential.f90 > tmp.1
