@@ -14,51 +14,6 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-!----------------------------------------------------------------------------------------
-!  TYPE environ_ions
-!----------------------------------------------------------------------------------------
-!         !
-! LOGICAL :: initialized = .FALSE.
-! LOGICAL :: update = .FALSE.
-! INTEGER :: number = 0
-! REAL(DP) :: center(3)
-! REAL(DP) :: alat
-! !
-! !--------------------------------------------------------------------------------
-! ! Specifications of point-like ions
-! !
-! INTEGER :: ntyp = 0
-! INTEGER, ALLOCATABLE :: ityp(:)
-! REAL(DP), POINTER :: tau(:, :)
-! TYPE(environ_iontype), ALLOCATABLE :: iontype(:)
-! !
-! !--------------------------------------------------------------------------------
-! ! Parameters of the fictitious gaussian ionic density
-! ! needed by electrostatic calculations
-! !
-! LOGICAL :: use_smeared_ions = .FALSE.
-! TYPE(environ_functions), ALLOCATABLE :: smeared_ions(:)
-! TYPE(environ_density) :: density
-! !
-! !--------------------------------------------------------------------------------
-! ! Parameters of the density of core electrons
-! !
-! LOGICAL :: use_core_electrons = .FALSE.
-! TYPE(environ_functions), ALLOCATABLE :: core_electrons(:)
-! TYPE(environ_density) :: core
-! TYPE(environ_density), ALLOCATABLE :: vloc(:)
-! !
-! REAL(DP) :: charge = 0.0_DP
-! REAL(DP) :: quadrupole_correction
-! REAL(DP) :: selfenergy_correction
-! REAL(DP) :: dipole(3)
-! REAL(DP) :: quadrupole_pc(3)
-! REAL(DP) :: quadrupole_gauss(3)
-!         !
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_ions
-!----------------------------------------------------------------------------------------
-!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
@@ -225,7 +180,7 @@ CONTAINS
     !>
     !! First step of ions initialization, cannot initialize everything
     !! because some information is missing when this routine is called
-    !! NEED TO REVISE THE POSITION OF THE CALL INSIDE QE TO MERGE FIRST AND SECOND #TODO
+    !! NEED TO REVISE THE POSITION OF THE CALL INSIDE QE TO MERGE FIRST AND SECOND
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_ions_first(nat, ntyp, lsoftcavity, lcoredensity, &
@@ -394,10 +349,11 @@ CONTAINS
                 ALLOCATE (ions%smeared_ions(ions%number))
                 !
                 DO i = 1, ions%number
-                    ions%smeared_ions(i) = environ_functions( &
-                                           1, 1, 0, 0.0_DP, &
+                    ions%smeared_ions(i) = &
+                        environ_functions(1, 1, 0, 0.0_DP, &
                                            ions%iontype(ions%ityp(i))%atomicspread, &
-                                           ions%iontype(ions%ityp(i))%zv, ions%tau(:, i))
+                                          ions%iontype(ions%ityp(i))%zv, &
+                                          ions%tau(:, i))
                 END DO
                 !
             END IF
@@ -444,7 +400,7 @@ CONTAINS
     END SUBROUTINE init_environ_ions_second
     !------------------------------------------------------------------------------------
     !>
-    !! Update ionic positions and compute derived quantities #TODO decompose?
+    !! Update ionic positions and compute derived quantities
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE update_environ_ions(nat, tau, ions)
@@ -624,7 +580,6 @@ CONTAINS
         !
         iontype%index = index
         iontype%label = label
-        iontype%zv = 0.D0 ! this cannot be initialized here at this time
         iontype%atmnum = get_atmnum(label)
         !
         IF (iontype%atmnum == 0) &

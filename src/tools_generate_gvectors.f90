@@ -9,6 +9,7 @@
 !
 !> subroutines generating G-vectors and variables nl* needed to map
 !! G-vector components onto the FFT grid(s) in reciprocal space
+!!
 !----------------------------------------------------------------------------------------
 MODULE tools_generate_gvectors
     !------------------------------------------------------------------------------------
@@ -100,19 +101,17 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        !
         REAL(DP), INTENT(IN) :: at(3, 3), bg(3, 3), gcutm
         INTEGER, INTENT(IN) :: ngm_g, comm
+        LOGICAL, OPTIONAL, INTENT(IN) :: no_global_sort
+        ! if no_global_sort is present (and it is true) G vectors are sorted only
+        ! locally and not globally. In this case no global array needs to be
+        ! allocated and sorted: saves memory and a lot of time for large systems
         !
         TYPE(fft_type_descriptor), INTENT(INOUT) :: dfftp
         INTEGER, INTENT(INOUT) :: ngm
         REAL(DP), INTENT(OUT) :: g(:, :), gg(:)
         INTEGER, INTENT(OUT) :: gstart
-        !
-        LOGICAL, OPTIONAL, INTENT(IN) :: no_global_sort
-        ! if no_global_sort is present (and it is true) G vectors are sorted only
-        ! locally and not globally. In this case no global array needs to be
-        ! allocated and sorted: saves memory and a lot of time for large systems.
         !
         REAL(DP) :: tx(3), ty(3), t(3)
         REAL(DP), ALLOCATABLE :: tt(:)

@@ -38,13 +38,13 @@ MODULE problem_pb
     USE environ_output
     USE problem_linearized_pb, ONLY: linearized_pb_gradient
     USE problem_generalized, ONLY: generalized_gradient
-    USE problem_poisson, ONLY: poisson_direct!, poisson_energy #TODO
+    USE problem_poisson, ONLY: poisson_direct
     !
     IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: pb_nested!, pb_energy #TODO
+    PUBLIC :: pb_nested
     !
     INTERFACE pb_nested
         MODULE PROCEDURE pb_nested_charges, pb_nested_density
@@ -221,85 +221,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_density
-    !------------------------------------------------------------------------------------
-    !>
-    !! #TODO
-    !!
-    !------------------------------------------------------------------------------------
-    ! SUBROUTINE pb_energy(core, charges, potential, energy)
-    !     !--------------------------------------------------------------------------------
-    !     !
-    !     IMPLICIT NONE
-    !     !
-    !     TYPE(electrostatic_core), INTENT(IN) :: core
-    !     TYPE(environ_charges), INTENT(IN) :: charges
-    !     TYPE(environ_density), INTENT(IN) :: potential
-    !     REAL(DP), INTENT(OUT) :: energy
-    !     !
-    !     REAL(DP) :: degauss, eself, eions, aux
-    !     CHARACTER(LEN=25) :: sub_name = 'pb_energy'
-    !     !
-    !     CALL start_clock('calc_epb')
-    !     !
-    !     IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
-    !         CALL errore(sub_name, 'Missmatch in charges and potential domains', 1)
-    !     !
-    !     energy = 0.D0
-    !     eions = 0.D0
-    !     !
-    !     !--------------------------------------------------------------------------------
-    !     ! Electrostatic interaction of solute
-    !     !
-    !     CALL poisson_energy(core, charges, potential, energy)
-    !     !
-    !     !--------------------------------------------------------------------------------
-    !     ! Electrostatic interaction of electrolyte
-    !     !
-    !     eions = -0.5D0 * scalar_product_environ_density(charges%electrolyte%density, &
-    !                                                     potential)
-    !     !
-    !     !--------------------------------------------------------------------------------
-    !     ! Adding correction for point-like nuclei: only affects simulations of charged
-    !     ! systems, it does not affect forces, but shift the energy depending on the
-    !     ! fictitious Gaussian spread of the nuclei
-    !     !
-    !     eself = 0.D0
-    !     degauss = 0.D0
-    !     !
-    !     IF (charges%include_ions .AND. charges%ions%use_smeared_ions) THEN
-    !         !
-    !         !----------------------------------------------------------------------------
-    !         ! Compute spurious self-polarization energy
-    !         !
-    !         eself = 0.D0
-    !         !
-    !         IF (core%use_fft) THEN
-    !             !
-    !             IF (core%fft%use_internal_pbc_corr .OR. core%need_correction) THEN
-    !                 degauss = 0.D0
-    !             ELSE
-    !                 aux = charges%electrolyte%charge
-    !                 !
-    !                 IF (ASSOCIATED(charges%dielectric)) &
-    !                     aux = aux + charges%dielectric%charge
-    !                 !
-    !                 degauss = -charges%ions%quadrupole_correction * aux * e2 * pi &
-    !                      & / charges%density%cell%omega
-    !                 !
-    !             END IF
-    !             !
-    !         END IF
-    !         !
-    !     END IF
-    !     !
-    !     energy = energy + eions + eself + degauss
-    !     !
-    !     CALL stop_clock('calc_epb')
-    !     !
-    !     RETURN
-    !     !
-    !     !--------------------------------------------------------------------------------
-    ! END SUBROUTINE pb_energy
     !------------------------------------------------------------------------------------
     !>
     !!

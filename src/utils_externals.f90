@@ -15,20 +15,6 @@
 !    online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
-!  TYPE environ_externals
-!----------------------------------------------------------------------------------------
-!         !
-!         LOGICAL :: update = .FALSE.
-!         LOGICAL :: initialized = .FALSE.
-!         INTEGER :: number = 0
-!         !
-!         TYPE( environ_functions ), ALLOCATABLE :: functions(:)
-!         TYPE( environ_density ) :: density
-!         REAL( DP ) :: charge = 0.0_DP
-!         !
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_externals
-!----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)

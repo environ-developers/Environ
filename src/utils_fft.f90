@@ -113,8 +113,8 @@ CONTAINS
         IF (fft%use_internal_pbc_corr) ALLOCATE (fft%mt_corr(fft%ngm))
         !
         !--------------------------------------------------------------------------------
-        ! The following routines are in tools_generate_gvect
-        ! and may need to be simplified #TODO
+        ! #TODO The following routines are in tools_generate_gvectors
+        ! and may need to be simplified
         !
         CALL env_gvect_init(fft, ngm_g, cell%dfft%comm)
         !

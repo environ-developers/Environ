@@ -38,7 +38,7 @@ MODULE tools_generate_boundary
     !
     PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
               invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
-              solvent_aware_de_dboundary, test_de_dboundary, & ! #TODO: test_de_dboundary is in utils_boundary
+              solvent_aware_de_dboundary, 
               compute_ion_field, compute_ion_field_partial, &
               compute_normal_field, compute_dion_field_drho, &
               scaling_of_field, dscaling_of_field, &
@@ -664,7 +664,6 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        !
         INTEGER, INTENT(IN) :: n, iend
         REAL(DP), INTENT(IN) :: grad(3, n)
         REAL(DP), INTENT(IN) :: hess(3, 3, n)
@@ -1223,7 +1222,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
-        TYPE(environ_density), INTENT(IN) :: scaled ! soft sphere interface function #TODO: rename
+        TYPE(environ_density), INTENT(IN) :: scaled ! soft sphere interface function
         TYPE(environ_density), INTENT(IN) :: local(n)
         TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
         !
@@ -1274,7 +1273,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
-        TYPE(environ_density), INTENT(IN) :: scaled ! soft sphere interface function #TODO: rename
+        TYPE(environ_density), INTENT(IN) :: scaled ! soft sphere interface function
         TYPE(environ_density), INTENT(IN) :: local(n)
         TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
         TYPE(environ_density), INTENT(IN) :: lapllocal(n)
@@ -1332,7 +1331,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
-        TYPE(environ_density), INTENT(IN) :: scaled ! #TODO: rename
+        TYPE(environ_density), INTENT(IN) :: scaled
         TYPE(environ_density), INTENT(IN) :: local(n)
         TYPE(environ_gradient), INTENT(IN) :: gradlocal(n)
         TYPE(environ_hessian), INTENT(IN) :: hesslocal(n)
@@ -1505,7 +1504,7 @@ CONTAINS
             !
             ! PROBABLY THERE IS A UNIFORM CONTRIBUTION TO THE FORCES
             ! WHICH SHOULD ONLY AFFECT THE COM OF THE SYSTEM, POSSIBLY NEED TO ADD
-            ! A CHECK ON ATOMS THAT BELONG TO THE SYSTEM #TODO ???
+            ! A CHECK ON ATOMS THAT BELONG TO THE SYSTEM
             !
             partial%of_r = 0.D0
             !
@@ -1692,7 +1691,6 @@ CONTAINS
         TYPE(fft_core), POINTER :: fft
         !
         INTEGER :: ir, ipol, jpol
-        ! REAL(DP) :: probe_volume #TODO
         TYPE(environ_density) :: filled_fraction
         TYPE(environ_density) :: d2filling
         !
@@ -1730,8 +1728,6 @@ CONTAINS
         !
         CALL density_of_functions(boundary%solvent_probe, boundary%probe, .TRUE.)
         !
-        ! probe_volume = integrate_environ_density(boundary%probe) #TODO
-        ! boundary%probe%of_r = boundary%probe%of_r / probe_volume
         boundary%probe%of_r = boundary%probe%of_r / &
                               integrate_environ_density(boundary%probe)
         !
@@ -1793,11 +1789,6 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             ! Compute derivative of convolution with probe
-            !
-            ! IF (deriv .GE. 1) & #TODO
-            !     CALL compute_convolution_deriv(deriv, boundary%solvent_probe, &
-            !                                    boundary%local, gradlocal, lapllocal, &
-            !                                    hesslocal, probe_volume)
             !
             IF (deriv > 1) &
                 CALL compute_convolution_deriv(deriv, boundary, gradlocal, lapllocal, &
@@ -1956,76 +1947,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE solvent_aware_de_dboundary
-    !------------------------------------------------------------------------------------
-    !>
-    !! #TODO
-    !!
-    !------------------------------------------------------------------------------------
-    ! SUBROUTINE compute_convolution_deriv(deriv, probe, f, grad, lapl, hess, probe_vol)
-    !     !--------------------------------------------------------------------------------
-    !     !
-    !     USE utils_functions, ONLY: gradient_of_functions, laplacian_of_functions, &
-    !                                hessian_of_functions
-    !     !
-    !     USE tools_generate_functions, ONLY: compute_convolution_fft
-    !     !
-    !     IMPLICIT NONE
-    !     !
-    !     INTEGER, INTENT(IN) :: deriv
-    !     REAL(DP), INTENT(IN) :: probe_vol
-    !     TYPE(environ_functions), INTENT(IN) :: probe
-    !     TYPE(environ_density), INTENT(IN) :: f
-    !     TYPE(environ_gradient), INTENT(INOUT) :: grad
-    !     TYPE(environ_density), INTENT(INOUT) :: lapl
-    !     TYPE(environ_hessian), INTENT(INOUT) :: hess
-    !     !
-    !     INTEGER, POINTER :: nnr
-    !     !
-    !     INTEGER :: ipol, jpol
-    !     !
-    !     nnr => f%cell%nnr
-    !     !
-    !     IF (deriv .LE. 0) RETURN
-    !     !
-    !     IF (deriv .GE. 1) THEN
-    !         CALL gradient_of_functions(probe, grad, .FALSE.)
-    !         grad%of_r(:, :) = grad%of_r(:, :) / probe_vol
-    !         !
-    !         DO ipol = 1, 3
-    !             CALL compute_convolution_fft(nnr, f%of_r, grad%of_r(ipol, :), &
-    !                                          grad%of_r(ipol, :))
-    !         END DO
-    !         !
-    !         CALL update_gradient_modulus(grad)
-    !     END IF
-    !     !
-    !     IF (deriv .GE. 2) THEN
-    !         CALL laplacian_of_functions(probe, lapl, .FALSE.)
-    !         lapl%of_r = lapl%of_r / probe_vol
-    !         CALL compute_convolution_fft(nnr, f%of_r, lapl%of_r, lapl%of_r)
-    !     END IF
-    !     !
-    !     IF (deriv .GE. 3) THEN
-    !         CALL hessian_of_functions(probe, hess, .FALSE.)
-    !         hess%of_r(:, :, :) = hess%of_r(:, :, :) / probe_vol
-    !         DO ipol = 1, 3
-    !             !
-    !             DO jpol = 1, 3
-    !                 !
-    !                 CALL compute_convolution_fft(nnr, f%of_r, &
-    !                                              hess%of_r(ipol, jpol, :), &
-    !                                              hess%of_r(ipol, jpol, :))
-    !                 !
-    !             END DO
-    !             !
-    !         END DO
-    !         !
-    !     END IF
-    !     !
-    !     RETURN
-    !     !
-    !     !--------------------------------------------------------------------------------
-    ! END SUBROUTINE compute_convolution_deriv
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -2268,7 +2189,7 @@ CONTAINS
     !         DO j = 1, nsoft_spheres
     !             !
     !             !------------------------------------------------------------------------
-    !             ! Compute hessian of poisson potential of individual nuclei #TODO
+    !             ! Compute hessian of poisson potential of individual nuclei
     !             !
     !             ! DEBUG try changing indices.. was j
     !             CALL density_of_functions(ions%smeared_ions(j), aux, .TRUE.)

@@ -15,40 +15,6 @@
 !    online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
-!  TYPE environ_electrolyte
-!----------------------------------------------------------------------------------------
-!         !
-!         LOGICAL :: update = .FALSE.
-!         LOGICAL :: initialized = .FALSE.
-!         CHARACTER(LEN=80) :: electrolyte_entropy
-!         LOGICAL :: linearized = .FALSE.
-!         INTEGER :: ntyp
-!         TYPE(environ_ioncctype), ALLOCATABLE :: ioncctype(:)
-!         !
-!         REAL(DP) :: temperature
-!         REAL(DP) :: k2
-!         REAL(DP) :: cionmax
-!         REAL(DP) :: permittivity
-!         REAL(DP) :: adsorption_energy
-!         !
-!         TYPE(environ_boundary) :: boundary
-!         TYPE(environ_density) :: density
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! The electrolyte switch function and related quantities
-!         !
-!         TYPE(environ_density) :: gamma
-!         TYPE(environ_density) :: dgamma
-!         !
-!         TYPE(environ_functions) :: function_
-!         !
-!         TYPE(environ_density) :: de_dboundary_second_order
-!         REAL(DP) :: energy_second_order
-!         REAL(DP) :: charge = 0.0_DP
-!         !
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_electrolyte
-!----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)

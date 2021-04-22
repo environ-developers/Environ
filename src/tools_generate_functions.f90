@@ -713,7 +713,7 @@ CONTAINS
     END SUBROUTINE generate_hesserfc
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO
+    !! #TODO field-aware
     !!
     !------------------------------------------------------------------------------------
     ! SUBROUTINE generate_deriverfc(nnr, dim, axis, charge, width, spread, pos, drho)

@@ -32,7 +32,6 @@
 !! FUNCTION version_compare: Compare two version strings; the result can be
 !!                           "newer", "equal", "older", ""
 !!
-!! #TODO: several unused subroutines/functions
 !!
 !----------------------------------------------------------------------------------------
 MODULE modules_parser
@@ -209,7 +208,7 @@ CONTAINS
     END SUBROUTINE env_field_compare
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO: unused
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE env_con_cam(num, line, car)
@@ -265,7 +264,7 @@ CONTAINS
     !! ierr = 0     no problem
     !! ierr > 0     fatal error
     !!
-    !! #TODO: unused
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE env_version_parse(str, major, minor, patch, ierr)
@@ -335,7 +334,7 @@ CONTAINS
     !! "older":   str1 is older than str2
     !! " ":       str1 or str2 has a wrong format
     !!
-    !! #TODO: unused
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION env_version_compare(str1, str2)

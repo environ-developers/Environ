@@ -46,7 +46,7 @@ MODULE problem_poisson
     !
     PRIVATE
     !
-    PUBLIC :: poisson_direct, poisson_gradient_direct!, poisson_energy
+    PUBLIC :: poisson_direct, poisson_gradient_direct
     !
     INTERFACE poisson_direct
         MODULE PROCEDURE poisson_direct_charges, poisson_direct_density
@@ -55,10 +55,6 @@ MODULE problem_poisson
     INTERFACE poisson_gradient_direct
         MODULE PROCEDURE poisson_gradient_direct_charges, poisson_gradient_direct_density
     END INTERFACE poisson_gradient_direct
-    !
-    ! INTERFACE poisson_energy #TODO
-    !     MODULE PROCEDURE poisson_energy_charges, poisson_energy_density
-    ! END INTERFACE poisson_energy
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -116,6 +112,9 @@ CONTAINS
         ELSE
             CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! PBC corrections, if needed
         !
         IF (core%need_correction) THEN
             !
@@ -291,7 +290,7 @@ CONTAINS
             !
         END IF
         !
-        potential%of_r = local%of_r ! Only update the potential at the end
+        potential%of_r = local%of_r ! only update the potential at the end
         !
         CALL destroy_environ_density(local)
         !
@@ -319,8 +318,6 @@ CONTAINS
         !
         IF (core%use_fft) THEN
             !
-            ! CALL gradv_h_of_rho_r(charges%density%of_r, gradient%of_r) #TODO
-            !
             CALL gradpoisson_fft(core%fft, charges%density, gradient)
             !
         ELSE IF (core%use_oned_analytic) THEN
@@ -328,6 +325,9 @@ CONTAINS
         ELSE
             CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! PBC corrections, if needed
         !
         IF (core%need_correction) THEN
             !
@@ -406,8 +406,6 @@ CONTAINS
         !
         IF (core%use_fft) THEN
             !
-            ! CALL gradv_h_of_rho_r(charges%of_r, gradient%of_r) #TODO
-            !
             CALL gradpoisson_fft(core%fft, charges, gradient)
             !
         ELSE IF (core%use_oned_analytic) THEN
@@ -415,6 +413,9 @@ CONTAINS
         ELSE
             CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! PBC corrections, if needed
         !
         IF (core%need_correction) THEN
             !
@@ -469,118 +470,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_gradient_direct_density
-    !------------------------------------------------------------------------------------
-    !>
-    !! #TODO
-    !!
-    !------------------------------------------------------------------------------------
-    ! SUBROUTINE poisson_energy_charges(core, charges, potential, energy)
-    !     !--------------------------------------------------------------------------------
-    !     !
-    !     IMPLICIT NONE
-    !     !
-    !     TYPE(electrostatic_core), INTENT(IN) :: core
-    !     TYPE(environ_charges), INTENT(IN) :: charges
-    !     TYPE(environ_density), INTENT(IN) :: potential
-    !     REAL(DP), INTENT(OUT) :: energy
-    !     !
-    !     REAL(DP) :: degauss, eself
-    !     CHARACTER(LEN=80) :: sub_name = 'poisson_energy_charges'
-    !     !
-    !     energy = 0.D0
-    !     !
-    !     IF (core%use_fft) THEN
-    !         energy = 0.5D0 * scalar_product_environ_density(charges%density, potential)
-    !         PRINT *, 'poisson', energy, charges%charge
-    !     ELSE IF (core%use_oned_analytic) THEN
-    !         CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
-    !     ELSE
-    !         CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
-    !     END IF
-    !     !
-    !     !--------------------------------------------------------------------------------
-    !     ! Remove self-interaction and correct energy of Gaussian ions
-    !     !
-    !     eself = 0.D0
-    !     degauss = 0.D0
-    !     !
-    !     PRINT *, "tot charge ", charges%charge
-    !     IF (charges%include_ions .AND. charges%ions%use_smeared_ions) THEN
-    !         eself = charges%ions%selfenergy_correction * e2
-    !         IF (core%use_fft) THEN
-    !             !
-    !             IF (core%fft%use_internal_pbc_corr .OR. core%need_correction) THEN
-    !                 degauss = 0.D0
-    !             ELSE
-    !                 !
-    !                 degauss = -charges%ions%quadrupole_correction * &
-    !                           charges%charge * e2 * tpi / &
-    !                           charges%density%cell%omega
-    !                 !
-    !             END IF
-    !             !
-    !         END IF
-    !         !
-    !         degauss = degauss
-    !         ! we are missing the difference in interaction of
-    !         ! electrons with gaussian vs. pc nuclei #TODO
-    !         !
-    !     END IF
-    !     !
-    !     PRINT *, 'eself', eself, 'degauss', degauss
-    !     energy = energy + eself + degauss
-    !     !
-    !     RETURN
-    !     !
-    !     !--------------------------------------------------------------------------------
-    ! END SUBROUTINE poisson_energy_charges
-    !------------------------------------------------------------------------------------
-    !>
-    !! #TODO
-    !!
-    !------------------------------------------------------------------------------------
-    ! SUBROUTINE poisson_energy_density(core, charges, potential, energy)
-    !     !--------------------------------------------------------------------------------
-    !     !
-    !     IMPLICIT NONE
-    !     !
-    !     TYPE(electrostatic_core), INTENT(IN) :: core
-    !     TYPE(environ_density), INTENT(IN) :: charges
-    !     TYPE(environ_density), INTENT(IN) :: potential
-    !     REAL(DP), INTENT(OUT) :: energy
-    !     !
-    !     REAL(DP) :: degauss, eself
-    !     CHARACTER(LEN=80) :: sub_name = 'poisson_energy_density'
-    !     !
-    !     energy = 0.D0
-    !     !
-    !     IF (core%use_fft) THEN
-    !         energy = 0.5D0 * scalar_product_environ_density(charges, potential)
-    !     ELSE IF (core%use_oned_analytic) THEN
-    !         !
-    !         CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
-    !         !
-    !     ELSE
-    !         !
-    !         CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
-    !         !
-    !     END IF
-    !     !
-    !     !--------------------------------------------------------------------------------
-    !     ! Remove self-interaction and correct energy of Gaussian ions
-    !     ! WARNING: THESE CORRECTIONS ARE ONLY POSSIBLE WHEN INFORMATIONS
-    !     ! ABOUT THE POINT-LIKE NUCLEI ARE PASSED
-    !     !
-    !     eself = 0.D0
-    !     !
-    !     degauss = 0.D0
-    !     !
-    !     energy = energy + eself + degauss
-    !     !
-    !     RETURN
-    !     !
-    !     !--------------------------------------------------------------------------------
-    ! END SUBROUTINE poisson_energy_density
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

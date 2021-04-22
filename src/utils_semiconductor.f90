@@ -14,32 +14,6 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
-!----------------------------------------------------------------------------------------
-!   TYPE environ_semiconductor
-!----------------------------------------------------------------------------------------
-!         !
-!         LOGICAL :: update = .FALSE.
-!         LOGICAL :: initialized = .FALSE.
-!         !
-!         REAL(DP) :: temperature
-!         REAL(DP) :: permittivity
-!         REAL(DP) :: carrier_density
-!         REAL(DP) :: electrode_charge
-!         REAL(DP) :: charge_threshold
-!         REAL(DP) :: slab_charge = 0.D0
-!         !
-!         TYPE(environ_functions) :: simple
-!         TYPE(environ_density) :: density
-!         !
-!         REAL(DP) :: charge = 0.0_DP
-!         REAL(DP) :: flatband_fermi = 0.D0
-!         REAL(DP) :: bulk_sc_fermi = 0.D0
-!         REAL(DP) :: surf_area_per_sq_cm = 0.D0
-!         !
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_semiconductor
-!----------------------------------------------------------------------------------------
-!
 ! Authors: Quinn Campbell (Department of Materials Science and Engineering, Penn State)
 !
 !----------------------------------------------------------------------------------------
@@ -192,7 +166,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: lflag ! #TODO remove lflag dependency?
+        LOGICAL, INTENT(IN) :: lflag
         !
         TYPE(environ_semiconductor), INTENT(INOUT) :: semiconductor_in
         !

@@ -190,7 +190,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL multipoles_environ_density(charges, origin, charge, dipole, quadrupole)
-        ! Compute multipoles of the system with respect to the chosen origin
+        ! compute multipoles of the system with respect to the chosen origin
         !
         !--------------------------------------------------------------------------------
         ! First apply parabolic correction
@@ -440,7 +440,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL multipoles_environ_density(charges, origin, charge, dipole, quadrupole)
-        ! Compute multipoles of the system with respect to the chosen origin
+        ! compute multipoles of the system with respect to the chosen origin
         !
         !--------------------------------------------------------------------------------
         ! First compute the gradient of parabolic correction

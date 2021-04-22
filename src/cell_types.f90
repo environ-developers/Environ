@@ -415,7 +415,7 @@ CONTAINS
         REAL(DP), INTENT(OUT) :: r2
         !
         INTEGER :: ic
-        REAL(DP) :: s(3) ! #TODO add comment
+        REAL(DP) :: s(3)
         REAL(DP) :: rmin(3)
         REAL(DP) :: r2min
         !

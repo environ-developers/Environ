@@ -7,7 +7,6 @@
 !
 !----------------------------------------------------------------------------------------
 !>
-!! #TODO: some unused routines
 !!
 !----------------------------------------------------------------------------------------
 MODULE modules_sort
@@ -180,7 +179,7 @@ CONTAINS
     !!
     !! adapted from Numerical Recipes pg. 329 (new edition)
     !!
-    !! #TODO: unused
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE hpsort(n, ra, ind)
@@ -338,7 +337,7 @@ CONTAINS
     !!
     !! adapted from Numerical Recipes pg. 329 (new edition)
     !!
-    !! #TODO: unused
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE ihpsort(n, ia, ind)

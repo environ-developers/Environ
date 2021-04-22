@@ -80,7 +80,7 @@ CONTAINS
             !
             IF (solver%auxiliary == 'none') THEN
                 !
-                SELECT CASE (solver%gradient%preconditioner)
+                SELECT CASE (solver%gradient%preconditioner) ! #TODO none and left need work
                 CASE ('none')
                     !
                     CALL generalized_gradient_none(solver%gradient, core, &
@@ -324,16 +324,10 @@ CONTAINS
             !
             rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
             !
-            WRITE (environ_unit, *) "calling poisson_gradient_direct"
-            !
             CALL poisson_gradient_direct(core, rhotot, gradpoisson, electrolyte, &
                                          semiconductor)
             !
-            WRITE (environ_unit, *) "finished poisson_gradient_direct"
-            !
             CALL scalar_product_environ_gradient(gradlogeps, gradpoisson, residual)
-            !
-            WRITE (environ_unit, *) "finished scalar product environ gradient"
             !
             residual%of_r = residual%of_r / fpi / e2 - rhoiter%of_r
             !
@@ -909,7 +903,7 @@ CONTAINS
         CALL init_environ_gradient(cell, g)
         !
         !--------------------------------------------------------------------------------
-        ! Starting guess from new input and previous solution(s) #TODO: what is this?
+        ! Starting guess from new input and previous solution(s)
         !
 !         IF (x%update) THEN
 

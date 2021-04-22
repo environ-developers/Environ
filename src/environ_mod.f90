@@ -21,8 +21,8 @@
 !
 !----------------------------------------------------------------------------------------
 !>
-!! This module contains all the main variables needed for the environ module. This 
-!! include the control and debug variables, all physical and numerical parameters, 
+!! This module contains all the main variables needed for the environ module. This
+!! include the control and debug variables, all physical and numerical parameters,
 !! and the contributions to the energy and to the potential.
 !!
 !----------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ MODULE environ_base
     SAVE
     !
     LOGICAL :: environ_restart, update_venviron
-    REAL(KIND=DP) :: environ_thr
+    REAL(DP) :: environ_thr
     INTEGER :: environ_nskip
     !
     !------------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ MODULE environ_base
     ! Dielectric parameters (solvent)
     !
     LOGICAL :: lstatic, loptical, ldielectric
-    REAL(KIND=DP) :: env_static_permittivity, env_optical_permittivity
+    REAL(DP) :: env_static_permittivity, env_optical_permittivity
     TYPE(environ_dielectric) :: static, optical
     !
     !------------------------------------------------------------------------------------
@@ -92,19 +92,19 @@ MODULE environ_base
     ! Cavitation energy parameters
     !
     LOGICAL :: lsurface
-    REAL(KIND=DP) :: env_surface_tension
+    REAL(DP) :: env_surface_tension
     !
     !------------------------------------------------------------------------------------
     ! PV term parameters
     !
     LOGICAL :: lvolume
-    REAL(KIND=DP) :: env_pressure
+    REAL(DP) :: env_pressure
     !
     !------------------------------------------------------------------------------------
     ! Confinement potential parameters
     !
     LOGICAL :: lconfine
-    REAL(KIND=DP) :: env_confine
+    REAL(DP) :: env_confine
     !
     !------------------------------------------------------------------------------------
     ! Periodicity correction parameters
@@ -120,8 +120,8 @@ MODULE environ_base
     !------------------------------------------------------------------------------------
     ! Computed physical variables
     !
-    REAL(KIND=DP) :: deenviron, eelectrostatic, esurface, evolume, eelectrolyte, &
-                     econfine, potential_shift
+    REAL(DP) :: deenviron, eelectrostatic, esurface, evolume, eelectrolyte, &
+                econfine, potential_shift
     !
     TYPE(environ_density) :: vzero, velectrostatic, vreference, dvtot, vconfine, &
                              vsoftcavity

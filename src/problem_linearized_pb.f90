@@ -83,6 +83,7 @@ CONTAINS
                 local_screening%of_r = screening%of_r ! External screening
             ELSE
                 !
+                !------------------------------------------------------------------------
                 ! Screening as in linearized pb problem
                 !
                 IF (charges%electrolyte%electrolyte_entropy == 'ions' &
@@ -179,6 +180,7 @@ CONTAINS
                 local_screening%of_r = screening%of_r ! External screening
             ELSE
                 !
+                !------------------------------------------------------------------------
                 ! Screening as in linearized pb problem
                 !
                 IF (electrolyte%electrolyte_entropy == 'ions' .AND. &

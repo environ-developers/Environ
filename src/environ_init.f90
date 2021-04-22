@@ -391,8 +391,6 @@ CONTAINS
         !
         IF (lsolvent) THEN
             !
-            ! #TODO May need to change enironment to system in the electrons, ions, and system below.
-            !
             CALL init_environ_boundary_first(lgradient, need_factsqrt, lsurface, &
                                              solvent_mode, stype, rhomax, rhomin, &
                                              tbeta, env_static_permittivity, alpha, &
@@ -410,11 +408,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set the parameters of the electrolyte and of its boundary
         !
-        WRITE (environ_unit, *) "electrolyte_distance: ", electrolyte_distance
-        !
         IF (lelectrolyte) THEN
-            !
-            ! #TODO May need to change enironment to system in the electrons, ions, and system below.
             !
             CALL init_environ_electrolyte_first(env_electrolyte_ntyp, &
                                                 electrolyte_mode, stype, &
@@ -443,8 +437,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Set the parameters of the semiconductor
-        !
-        WRITE (environ_unit, *) "sc_distance: ", sc_distance
         !
         IF (lsemiconductor) THEN
             !
@@ -542,7 +534,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: gcutm
         REAL(DP), OPTIONAL, INTENT(IN) :: e2
         !
-        INTEGER :: m(3) ! #TODO: add comment
+        INTEGER :: m(3)
         !
         INTEGER :: ipol
         INTEGER :: environment_nr(3)
@@ -619,7 +611,6 @@ CONTAINS
         !
         IF (lelectrostatic) THEN
             label = 'velectrostatic'
-            WRITE (environ_unit, *) "velectrostatic started"
             !
             CALL create_environ_density(velectrostatic, label)
             !
@@ -628,8 +619,6 @@ CONTAINS
             label = 'vreference'
             !
             CALL create_environ_density(vreference, label)
-            !
-            WRITE (environ_unit, *) "vreference created"
             !
             CALL init_environ_density(system_cell, vreference)
             !
@@ -1076,9 +1065,9 @@ CONTAINS
         ! Compatible with QE-6.4.X QE-GIT
         CALL update_environ_electrons(nnr, rho, system_electrons, nelec)
         !
-        system_electrons%density%label = 'small_electrons' ! #TODO DEBUGGING
+        system_electrons%density%label = 'small_electrons'
         !
-        ! CALL write_cube(system_electrons%density) #TODO DEBUGGING
+        ! CALL write_cube(system_electrons%density) ! DEBUGGING
         !
         IF (ldoublecell) THEN
             ALLOCATE (aux(environment_cell%nnr))
@@ -1092,11 +1081,11 @@ CONTAINS
             CALL update_environ_electrons(nnr, rho, environment_electrons, nelec)
         END IF
         !
-        environment_electrons%density%label = 'large_electrons' ! #TODO DEBUGGING
+        environment_electrons%density%label = 'large_electrons'
         !
-        ! CALL write_cube(environment_electrons%density) ! #TODO DEBUGGING
+        ! CALL write_cube(environment_electrons%density) ! DEBUGGING
         !
-        ! STOP ! #TODO DEBUGGING
+        ! STOP ! DEBUGGING
         !
         ! END BACKWARD COMPATIBILITY
         !

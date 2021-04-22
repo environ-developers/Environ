@@ -96,8 +96,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set reference core according to calling program
         !
-        WRITE (environ_unit, *) "Calling electrostatic_initbase now" ! #TODO ?????????
-        !
         CALL create_electrostatic_core(reference_core)
         !
         SELECT CASE (prog)
@@ -124,9 +122,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! First check keywords specfied in input
-        !
-        ! #TODO pbc_dim_ is always greater than or equal to 0??
-        ! if statement may be redundant. will remove and test code.
         !
         IF (pbc_dim_ >= 0) THEN
             pbc_dim = pbc_dim_
@@ -156,12 +151,13 @@ CONTAINS
                 need_electrolyte = .TRUE.
                 loned_analytic = .TRUE.
                 local_type = 'ms-gcs'
-                WRITE (environ_unit, *) "ms-gcs selected"
             CASE DEFAULT
                 CALL errore(sub_name, 'Option not yet implemented', 1)
             END SELECT
             !
-            ! #TODO add else statement to warn dumb users
+        ELSE
+            !
+            ! #TODO add comment about not using pbc correction (use infomsg)
             !
         END IF
         !

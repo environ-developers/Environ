@@ -15,19 +15,6 @@
 !    online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
-!  TYPE environ_functions
-!----------------------------------------------------------------------------------------
-!
-!     INTEGER :: type_
-!     INTEGER :: axis, dim
-!     REAL(DP) :: width, spread, volume
-!     REAL(DP), POINTER :: pos(:)
-!     ! environ_functions are not designed to be mobile, thus position
-!     ! can be included in the definition of the type
-!
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_functions
-!----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
@@ -260,8 +247,6 @@ CONTAINS
             !
             CALL generate_exponential(dim, axis, width, spread, pos, density)
             !
-            ! CALL generate_exponential(nnr, spread, pos, density%of_r) #TODO
-            !
         CASE (4)
             !
             !----------------------------------------------------------------------------
@@ -370,8 +355,6 @@ CONTAINS
             ! Exponential
             !
             CALL generate_gradexponential(dim, axis, width, spread, pos, gradient)
-            !
-            ! CALL generate_gradexponential(nnr, spread, pos, gradient%of_r) #TODO
             !
         CASE (4)
             !

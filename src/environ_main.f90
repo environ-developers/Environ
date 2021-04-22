@@ -195,7 +195,7 @@ CONTAINS
                                                   environment_charges%electrons%density, &
                                                   de_dboundary)
                 !
-                ! if dielectric embedding, calcultes dielectric contribution
+                ! if dielectric embedding, calculate dielectric contribution
                 IF (lstatic) &
                     CALL calc_dedielectric_dboundary(static, velectrostatic, &
                                                      de_dboundary)

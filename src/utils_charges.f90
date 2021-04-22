@@ -15,49 +15,6 @@
 !    online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
-!  TYPE environ_charges
-!----------------------------------------------------------------------------------------
-!
-!     ! Ionic charges
-!
-!     LOGICAL :: include_ions = .FALSE.
-!     TYPE( environ_ions ), POINTER :: ions => NULL()
-!
-!     ! Electrons
-!
-!     LOGICAL :: include_electrons = .FALSE.
-!     TYPE( environ_electrons ), POINTER :: electrons => NULL()
-!
-!     ! External charges
-!
-!     LOGICAL :: include_externals = .FALSE.
-!     TYPE( environ_externals ), POINTER :: externals => NULL()
-!
-!     ! Dielectric charges
-!
-!     LOGICAL :: include_dielectric = .FALSE.
-!     TYPE( environ_dielectric ), POINTER :: dielectric => NULL()
-!
-!     ! Electrolyte charges
-!
-!     LOGICAL :: include_electrolyte = .FALSE.
-!     TYPE( environ_electrolyte ), POINTER :: electrolyte => NULL()
-!
-!     ! Semiconductor charges
-!
-!     LOGICAL :: include_semiconductor = .FALSE.
-!     TYPE( environ_semiconductor ), POINTER :: semiconductor => NULL()
-!
-!     ! Total smooth free charge
-!
-!     INTEGER :: number = 0
-!     REAL( DP ) :: charge = 0.0_DP
-!     TYPE( environ_density ) :: density
-!     LOGICAL :: initialized = .FALSE.
-!
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_charges
-!----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -78,7 +35,6 @@ MODULE utils_charges
     !------------------------------------------------------------------------------------
     !
     USE environ_types
-    USE environ_output ! #TODO is this necessary?
     USE modules_constants, ONLY: e2
     !
     SAVE
@@ -314,10 +270,11 @@ CONTAINS
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
                 CALL errore(sub_name, 'Missing expected charge component', 1)
             !
-            ! ELECTROLYTE CHARGES ARE NOT FREE CHARGES
-            ! DO NOT ADD THEIR DENSITY TO TOTAL CHARGE #TODO: is this necessary here?
-            !
             CALL electrolyte_of_potential(potential, charges%electrolyte)
+            !
+            !----------------------------------------------------------------------------
+            ! The electrolyte charges are required in the total charge for the
+            ! calculation of the dielectric polarization
             !
             tot_charge_density%of_r = tot_charge_density%of_r + &
                                       charges%electrolyte%density%of_r
@@ -329,15 +286,10 @@ CONTAINS
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
                 CALL errore(sub_name, 'Missing expected charge component', 1)
             !
-            ! DIELECTRIC CHARGES ARE NOT FREE CHARGES
-            ! DO NOT ADD THEIR DENSITY TO TOTAL CHARGE
-            !
             CALL dielectric_of_potential(tot_charge_density, potential, &
                                          charges%dielectric)
             !
         END IF
-        !
-        ! May need to insert an if statement for semiconductor here #TODO Quinn
         !
         CALL destroy_environ_density(tot_charge_density)
         !

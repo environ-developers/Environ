@@ -94,7 +94,7 @@ MODULE environ_input
     !
     DATA environ_type_allowed/'vacuum', 'water', 'water-cation', 'water-anion', 'input'/
     !
-    !   sets all the environment parameters at once to a specific set
+    ! sets all the environment parameters at once to a specific set
     !
     ! vacuum = all the flags are off (perm=1.d0, surf=0.0, pres=0.0)
     !
@@ -182,8 +182,7 @@ MODULE environ_input
     !
     DATA electrolyte_entropy_allowed/'ions', 'full'/
     !
-    !   sets the electrolyte entropy terms that are affected by
-    !   the Stern-layer correction
+    ! sets the electrolyte entropy terms that are affected by the Stern-layer correction
     !
     ! ions = only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 )
     !
@@ -251,7 +250,7 @@ MODULE environ_input
     !
     DATA radius_mode_allowed/'pauling', 'bondi', 'uff', 'muff'/
     !
-    !   type of hardcoded solvation radii to be used when solvent_mode = 'ionic'
+    ! type of hardcoded solvation radii to be used when solvent_mode = 'ionic'
     !
     ! pauling = R.C. Weast, ed., Handbook of chemistry and physics
     !           (CRC Press, Cleveland, 1981)
@@ -307,17 +306,11 @@ MODULE environ_input
     ! Numerical core's parameters
     !
     CHARACTER(LEN=80) :: derivatives = 'analytic'
-    CHARACTER(LEN=80) :: derivatives_allowed(4)
+    CHARACTER(LEN=80) :: derivatives_allowed(5)
     !
-    DATA derivatives_allowed/'fft', 'fd', 'analytic', 'highmem'/
+    DATA derivatives_allowed/'fft', 'fd', 'analytic', 'highmem', 'lowmem'/
     !
-    CHARACTER(LEN=80) :: boundary_core = 'analytic'
-    CHARACTER(LEN=80) :: boundary_core_allowed(5)
-    !
-    DATA boundary_core_allowed/'fft', 'fd', 'analytic', 'highmem', 'lowmem'/
-    !
-    !   core numerical methods to be exploited for quantities
-    !   derived from the dielectric
+    ! core numerical methods to be exploited for quantities derived from the dielectric
     !
     ! fft       = fast Fourier transforms
     !
@@ -328,7 +321,7 @@ MODULE environ_input
     ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical
     !             functions and derivatives
     !
-    ! lowmem    = more efficient analytic derivatives (testing) #TODO possibly already working. discuss with Oliviero
+    ! lowmem    = more efficient analytic derivatives
     !
     !------------------------------------------------------------------------------------
     ! Finite difference parameters
@@ -352,8 +345,7 @@ MODULE environ_input
     DATA solvent_mode_allowed/'electronic', 'ionic', 'full', 'external', 'system', &
         'fa-electronic', 'fa-ionic', 'fa-full'/
     !
-    !   solvent_mode method for calculating the density that
-    !   sets the dielectric constant
+    ! solvent_mode method for calculating the density that sets the dielectric constant
     !
     ! electronic = dielectric depends self-consist. on electronic density
     !
@@ -460,8 +452,7 @@ MODULE environ_input
         field_awareness, charge_asymmetry, field_max, field_min, electrolyte_mode, &
         electrolyte_distance, electrolyte_spread, electrolyte_rhomax, &
         electrolyte_rhomin, electrolyte_tbeta, electrolyte_alpha, &
-        electrolyte_softness, derivatives, ifdtype, nfdpoint, boundary_core, &
-        sc_distance, sc_spread
+        electrolyte_softness, derivatives, ifdtype, nfdpoint, sc_distance, sc_spread
     !
     !=---------------------------------------------------------------------------------=!
 !       ELECTROSTATIC Namelist Input Parameters
@@ -472,7 +463,7 @@ MODULE environ_input
     !
     DATA problem_allowed/'poisson', 'generalized', 'pb', 'modpb', 'linpb', 'linmodpb'/
     !
-    !   type of electrostatic problem
+    ! type of electrostatic problem
     !
     ! poisson     = standard poisson equation, with or without
     !               boundary conditions (default)
@@ -502,7 +493,7 @@ MODULE environ_input
     !
     DATA solver_allowed/'cg', 'sd', 'iterative', 'lbfgs', 'newton', 'nested', 'direct'/
     !
-    !   type of numerical solver
+    ! type of numerical solver
     !
     ! direct    = for simple problems with analytic or direct solution
     !
@@ -523,8 +514,7 @@ MODULE environ_input
     !
     DATA auxiliary_allowed/'none', 'full', 'pol', 'ioncc'/
     !
-    !   solve with respect to the potential or with respect to
-    !   an auxiliary charge density
+    ! solve with respect to the potential or with respect to an auxiliary charge density
     !
     ! none  = solve for the potential (default)
     !
@@ -541,7 +531,7 @@ MODULE environ_input
     !
     DATA step_type_allowed/'optimal', 'input', 'random'/
     !
-    !   how to choose the step size in gradient descent algorithms or iterative mixing
+    ! how to choose the step size in gradient descent algorithms or iterative mixing
     !
     ! optimal = step size that minimize the cost function on the descent direction
     !
@@ -586,7 +576,7 @@ MODULE environ_input
     !
     DATA preconditioner_allowed/'none', 'sqrt', 'left'/
     !
-    !   type of preconditioner
+    ! type of preconditioner
     !
     ! none      = no preconditioner
     !
@@ -599,7 +589,7 @@ MODULE environ_input
     !
     DATA screening_type_allowed/'none', 'input', 'linear', 'optimal'/
     !
-    !   use the screened coulomb Green's function instead of the vacuum one
+    ! use the screened coulomb Green's function instead of the vacuum one
     !
     ! none      = unscreened coulomb
     !
@@ -621,8 +611,7 @@ MODULE environ_input
     !
     DATA core_allowed/'fft'/
     !
-    !   choice of the core numerical methods to be exploited for
-    !   the different operations
+    ! choice of the core numerical methods to be exploited for the different operations
     !
     ! fft = fast Fourier transforms (default)
     !
@@ -641,7 +630,7 @@ MODULE environ_input
         'gouy-chapman-stern', 'ms', 'mott-schottky', 'ms-gcs', &
         'mott-schottky-guoy-chapman-stern'/
     !
-    !   type of periodic boundary condition correction to be used
+    ! type of periodic boundary condition correction to be used
     !
     ! parabolic = point-counter-charge type of correction
     !
@@ -856,10 +845,10 @@ CONTAINS
         !
         CALL environ_checkin() ! check &ENVIRON variables
         !
+        CALL fix_boundary(lboundary) ! update &BOUNDARY defaults
+        !
         !--------------------------------------------------------------------------------
         ! &BOUNDARY namelist (only if needed)
-        !
-        CALL fix_boundary(lboundary) ! fix some &BOUNDARY defaults depending on &ENVIRON
         !
         ios = 0
         !
@@ -880,11 +869,10 @@ CONTAINS
         !
         CALL set_environ_type() ! set predefined environ_types according to the boundary
         !
+        CALL fix_electrostatic(lelectrostatic) ! update &ELECTROSTATIC defaults
+        !
         !--------------------------------------------------------------------------------
         ! &ELECTROSTATIC namelist (only if needed)
-        !
-        CALL fix_electrostatic(lelectrostatic)
-        ! fix some &ELECTROSTATIC defaults depending on &ENVIRON and &BOUNDARY
         !
         ios = 0
         !
@@ -901,7 +889,7 @@ CONTAINS
         !
         CALL electrostatic_bcast() ! broadcast &ELECTROSTATIC variables
         !
-        CALL set_electrostatic_problem() ! set electrostatic problem #TODO: should this happen before checking?
+        CALL set_electrostatic_problem() ! set electrostatic problem
         !
         CALL electrostatic_checkin() ! check &ELECTROSTATIC variables
         !
@@ -1710,21 +1698,6 @@ CONTAINS
             derivatives = 'analytic'
         END IF
         !
-        IF (solvent_mode .EQ. 'ionic') THEN !.OR. solvent_mode .EQ. 'fa-ionic') THEN ! #TODO field-aware
-            !
-            ! May want a switch statement here #TODO ?
-            !
-            IF (boundary_core .EQ. 'fft' .OR. boundary_core .EQ. 'fd') THEN
-                !
-                IF (ionode) &
-                    WRITE (program_unit, *) &
-                    'Only analytic boundary_core for ionic solvent_mode'
-                !
-                boundary_core = 'analytic'
-            END IF
-            !
-        END IF
-        !
         RETURN
         !
         !--------------------------------------------------------------------------------
@@ -2116,8 +2089,6 @@ CONTAINS
             !
             IF (tend) &
                 CALL errore('environ_cards', 'end of file reading external charges', ie)
-            !
-            ! #TODO how about 'missing external charges'?
             !
             CALL env_field_count(nfield, input_line)
             !

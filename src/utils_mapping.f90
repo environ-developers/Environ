@@ -203,7 +203,7 @@ CONTAINS
             !
             DO ir = 1, mapping%small%ir_end
                 !
-                IF (mapping%map(ir) > 0) & ! #TODO This test may be redundant
+                IF (mapping%map(ir) > 0) &
                     fsmall(ir) = auxlarge(mapping%map(ir))
                 !
             END DO

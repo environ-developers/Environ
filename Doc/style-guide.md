@@ -1,10 +1,10 @@
 # Style Guide
 
-## keywords
+# keywords
 
 - uppercase all Fortran built-in keywords
 
-## indentation
+# indentation
 
 - 4 spaces
 - if/do blocks
@@ -39,7 +39,7 @@ IF (condition) &
     code
 ```
 
-## ! spacing (before and after a line)
+# ! spacing (before and after a line)
 
 - return/exit/stop
 - implicit none
@@ -89,9 +89,9 @@ end block
 !
 ```
 
-## comments
+# comments
 
-### attached to single-line code
+## attached to single-line code
 
 - <= col 90 (including comment):
   - on the same line, separated by a single blank space from code
@@ -112,7 +112,7 @@ code...... &
     ......
 ```
 
-### !---------- sectioning
+## !---------- sectioning
 
 - up to, but not including col 90
 - use dashed line to separate variable declaration from subroutine/function body
@@ -135,7 +135,7 @@ code...
 - section-closing dashed line not required if final block
   - for IF, DO, SELECT blocks, final means before END statement
 
-## docstrings
+# docstrings
 
 - docstrings should be added to the following blocks:
   - module
@@ -177,11 +177,11 @@ code...
 
 - DO NOT assume that FORTRAN will apply short-circuit logic
 
-## arguments/parameters
+# arguments/parameters
 
 - keep intent(OUT) and intent(INOUT) variables at the end of the list
 
-## variable definition
+# variable definition
 
 - define same-type variables in a single (or continued) line using a single TYPE descriptor
   - exceptions:
@@ -197,7 +197,7 @@ TYPE2 :: name8 ! comment
 TYPE3 :: name9, name10
 ```
 
-### dimensions
+## dimensions
 
 - `TYPE :: name(dim)`
   - when defining a single variable
@@ -206,7 +206,7 @@ TYPE3 :: name9, name10
 - `TYPE, DIMENSION(dim) :: name1, name2`
   - when defining multiple variables of the same TYPE and dimensions, or
 
-## continuation-line &
+# continuation-line &
 
 - ! spacing on both ends of wrapped block
 - use 4-space tabs to align
@@ -234,3 +234,7 @@ some_string = "blah blah blah &
 sum_ = 1 + var1 + &
        & + var2 * var3
 ```
+
+# debugging
+
+- if writing to environ_unit, make sure to set verbose > 0 in environ.in

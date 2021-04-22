@@ -15,101 +15,6 @@
 !    online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
-!  TYPE environ_boundary
-!----------------------------------------------------------------------------------------
-!         !
-!         CHARACTER(LEN=80) :: label ! Boundary label
-!         CHARACTER(LEN=80) :: mode ! Choice of the interface
-!         INTEGER :: update_status = 0
-!         LOGICAL :: initialized = .FALSE.
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Parameters for the electrons-dependent interface
-!         !
-!         LOGICAL :: need_electrons
-!         TYPE(environ_electrons), POINTER :: electrons
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Parameters for the ions-dependent interface
-!         !
-!         LOGICAL :: need_ions
-!         TYPE(environ_ions), POINTER :: ions
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Parameters for the system-dependent interface
-!         !
-!         LOGICAL :: need_system
-!         TYPE(environ_system), POINTER :: system
-!         !
-!         !--------------------------------------------------------------------------------
-!         !
-!         TYPE(environ_density) :: scaled ! scaled switching function of interface
-!         ! varying from 1 (QM region) to 0 (environment region)
-!         !
-!         INTEGER :: deriv = 0
-!         TYPE(environ_gradient) :: gradient
-!         TYPE(environ_density) :: laplacian
-!         TYPE(environ_density) :: dsurface
-!         TYPE(environ_hessian) :: hessian
-!         !
-!         TYPE(boundary_core), POINTER :: core
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Global properties of the boundary
-!         !
-!         REAL(DP) :: volume
-!         REAL(DP) :: surface
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Components needed for boundary of density
-!         !
-!         INTEGER :: type_
-!         REAL(DP) :: rhomax, rhomin, fact
-!         REAL(DP) :: rhozero, deltarho, tbeta
-!         REAL(DP) :: const
-!         TYPE(environ_density) :: density
-!         !
-!         TYPE(environ_density) :: dscaled
-!         TYPE(environ_density) :: d2scaled
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Components needed for boundary of functions
-!         !
-!         REAL(DP) :: alpha ! solvent-dependent scaling factor
-!         REAL(DP) :: softness ! sharpness of the interface
-!         TYPE(environ_functions), ALLOCATABLE :: soft_spheres(:)
-!         !
-!         !--------------------------------------------------------------------------------
-!         !
-!         TYPE(environ_functions) :: simple ! Components needed for boundary of system
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Components needed for solvent-aware boundary
-!         !
-!         LOGICAL :: solvent_aware
-!         TYPE(environ_functions) :: solvent_probe
-!         REAL(DP) :: filling_threshold, filling_spread
-!         !
-!         TYPE(environ_density) :: local
-!         TYPE(environ_density) :: probe
-!         TYPE(environ_density) :: filling
-!         TYPE(environ_density) :: dfilling
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Components needed for field-aware boundary
-!         !
-!         LOGICAL :: field_aware
-!         REAL(DP) :: field_factor, charge_asymmetry, field_max, field_min
-!         !
-!         TYPE(environ_density) :: normal_field
-!         REAL(DP), ALLOCATABLE :: ion_field(:)
-!         TYPE(environ_functions), ALLOCATABLE :: local_spheres(:)
-!         TYPE(environ_density), ALLOCATABLE :: dion_field_drho(:)
-!         REAL(DP), ALLOCATABLE :: partial_of_ion_field(:, :, :)
-!         !
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_boundary
-!----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
@@ -829,7 +734,6 @@ CONTAINS
     END SUBROUTINE set_soft_spheres
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO: field-aware
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE update_environ_boundary(bound)
@@ -950,7 +854,7 @@ CONTAINS
                 !
             END IF
             !
-            ! CASE ('fa-electronic') ! #TODO: field-aware
+            ! CASE ('fa-electronic') ! #TODO field-aware
             !     !
             !     IF (bound%ions%update) THEN
             !         bound%update_status = 1 ! waiting to finish update
@@ -1062,7 +966,6 @@ CONTAINS
     END SUBROUTINE update_environ_boundary
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO: field-aware
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE destroy_environ_boundary(lflag, boundary)
@@ -1191,9 +1094,8 @@ CONTAINS
     END SUBROUTINE destroy_environ_boundary
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO DEBUGGING
-    !!
     !! Test functional derivative of energy w.r.t local boundary
+    !!
     !------------------------------------------------------------------------------------
     SUBROUTINE test_de_dboundary(boundary)
         !--------------------------------------------------------------------------------
@@ -1361,7 +1263,7 @@ CONTAINS
     !     !
     !     IMPLICIT NONE
     !     !
-    !     INTEGER, INTENT(IN) :: ideriv ! .EQ. 1/2 for electronic/ionic
+    !     INTEGER, INTENT(IN) :: ideriv ! 1/2 for electronic/ionic
     !     TYPE(environ_boundary), INTENT(INOUT) :: bound
     !     !
     !     TYPE(environ_cell), POINTER :: cell
@@ -1581,7 +1483,6 @@ CONTAINS
     ! END SUBROUTINE test_ion_field_derivatives
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO DEBUGGING
     !!
     !------------------------------------------------------------------------------------
     ! SUBROUTINE update_test_boundary(bound, electrons)
@@ -1632,7 +1533,6 @@ CONTAINS
     ! END SUBROUTINE update_test_boundary
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO DEBUGGING
     !!
     !------------------------------------------------------------------------------------
     ! SUBROUTINE print_ionic(ions)
@@ -1649,7 +1549,6 @@ CONTAINS
     ! END SUBROUTINE print_ionic
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO DEBUGGING
     !!
     !------------------------------------------------------------------------------------
     ! SUBROUTINE test_energy_derivatives(ideriv, bound)
@@ -1923,7 +1822,6 @@ CONTAINS
     ! END SUBROUTINE test_energy_derivatives
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO DEBUGGING
     !!
     !------------------------------------------------------------------------------------
     ! SUBROUTINE extract_boundary_data(bound)

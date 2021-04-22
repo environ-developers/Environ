@@ -56,7 +56,6 @@ CONTAINS
         TYPE(environ_cell), INTENT(IN) :: system_cell, environment_cell
         !
         !--------------------------------------------------------------------------------
-        ! calc is used so oned_analytic isn't calculated twice #TODO What?
         !
         IF (loned_analytic) &
             CALL init_oned_analytic_core_second(environment_cell, oned_analytic)

@@ -10,7 +10,6 @@ MODULE core_types
     !
     !------------------------------------------------------------------------------------
     !>
-    !! # TODO: add descriptive comments to variables
     !!
     !------------------------------------------------------------------------------------
     TYPE fd_core
@@ -75,9 +74,9 @@ MODULE core_types
         !--------------------------------------------------------------------------------
         !
         LOGICAL :: initialized = .FALSE.
-        INTEGER :: n, d, p, axis ! #TODO: add comments
+        INTEGER :: n, d, p, axis
         REAL(DP) :: size, origin(3)
-        REAL(DP), ALLOCATABLE :: x(:, :) ! #TODO: add comment
+        REAL(DP), ALLOCATABLE :: x(:, :)
         !
         TYPE(environ_cell), POINTER :: cell
         !

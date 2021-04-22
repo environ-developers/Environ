@@ -1,6 +1,5 @@
 !----------------------------------------------------------------------------------------
 !>
-!! #TODO lots of repeating code in this module. REDESIGN!!!
 !!
 !----------------------------------------------------------------------------------------
 MODULE core_fft
@@ -242,8 +241,8 @@ CONTAINS
         INTEGER :: iat, ig, ityp
         REAL(DP) :: fact, arg
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
-        REAL(DP), ALLOCATABLE :: vloc(:, :) ! #TODO add comment
-        REAL(DP), ALLOCATABLE :: ftmp(:, :) ! #TODO add comment
+        REAL(DP), ALLOCATABLE :: vloc(:, :)
+        REAL(DP), ALLOCATABLE :: ftmp(:, :)
         !
         INTEGER, POINTER :: ngm, gstart
         REAL(DP), POINTER :: tpiba, omega
@@ -310,7 +309,8 @@ CONTAINS
             force(:, iat) = fact * force(:, iat) * omega * tpiba
         END DO
         !
-        ! #TODO DEBUGGING forces
+        !--------------------------------------------------------------------------------
+        ! DEBUGGING
         !
         ! WRITE (*, *) 'forces lc' !
         ! !
@@ -328,7 +328,8 @@ CONTAINS
             !
             force = force + fact * ftmp
             !
-            ! #TODO DEBUGGING forces
+            !----------------------------------------------------------------------------
+            ! DEBUGGING
             !
             ! WRITE (*, *) 'forces mt', fact
             ! !
@@ -713,7 +714,7 @@ CONTAINS
             END DO
             !
             !----------------------------------------------------------------------------
-            ! z #TODO what is this about?
+            ! z
             !
             ipol = 3
             aux(:) = CMPLX(ga%of_r(ipol, :), 0.0_DP, kind=DP)

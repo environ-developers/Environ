@@ -31,13 +31,11 @@ MODULE electrostatic_base
     !
     SAVE
     !
-    TYPE(electrostatic_setup) :: inner, outer, reference ! Electrostatic setup(s)
+    TYPE(electrostatic_setup) :: inner, outer, reference
     !
     TYPE(electrostatic_core) :: outer_core, inner_core, reference_core, pbc_core
-    ! Electrostatic core(s)
     !
     TYPE(electrostatic_solver) :: outer_solver, inner_solver, reference_solver
-    ! Electrostatic solver(s)
     !
     !------------------------------------------------------------------------------------
     ! Internal setup of numerical solvers
@@ -60,7 +58,7 @@ MODULE electrostatic_base
     !------------------------------------------------------------------------------------
     !
     LOGICAL :: need_gradient, need_factsqrt, need_auxiliary
-    ! Logical flags that need to be used outside
+    ! logical flags that need to be used outside
     !
     !------------------------------------------------------------------------------------
 END MODULE electrostatic_base

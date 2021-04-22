@@ -60,7 +60,6 @@ CONTAINS
     END SUBROUTINE init_fd_core_first
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO: unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE set_fd_coefficients(fd)
@@ -111,7 +110,8 @@ CONTAINS
                 icfd(1) = 672
             ELSE
                 !
-                ! #TODO: DEBUGGING
+                !------------------------------------------------------------------------
+                ! DEBUGGING
                 !
                 WRITE (*, *) 'ERROR: wrong number of points', nfdpoint, &
                     ' for finite difference type ', ifdtype
@@ -134,7 +134,8 @@ CONTAINS
                 !
             ELSE
                 !
-                ! #TODO: DEBUGGING
+                !------------------------------------------------------------------------
+                ! DEBUGGING
                 !
                 WRITE (*, *) 'ERROR: wrong number of points', nfdpoint, &
                     ' for finite difference type ', ifdtype
@@ -168,7 +169,8 @@ CONTAINS
                 icfd(1) = 296
             ELSE
                 !
-                ! #TODO: DEBUGGING
+                !------------------------------------------------------------------------
+                ! DEBUGGING
                 !
                 WRITE (*, *) 'ERROR: wrong number of points', nfdpoint, &
                     ' for finite difference type ', ifdtype
@@ -206,7 +208,8 @@ CONTAINS
                 icfd(1) = 42
             ELSE
                 !
-                ! #TODO: DEBUGGING
+                !------------------------------------------------------------------------
+                ! DEBUGGING
                 !
                 WRITE (*, *) 'ERROR: wrong number of points', nfdpoint, &
                     ' for finite difference type ', ifdtype
@@ -240,7 +243,8 @@ CONTAINS
                 icfd(1) = 322
             ELSE
                 !
-                ! #TODO: DEBUGGING
+                !------------------------------------------------------------------------
+                ! DEBUGGING
                 !
                 WRITE (*, *) 'ERROR: wrong number of points', nfdpoint, &
                     ' for finite difference type ', ifdtype
@@ -251,7 +255,8 @@ CONTAINS
             !
         CASE DEFAULT
             !
-            ! #TODO: DEBUGGING
+            !----------------------------------------------------------------------------
+                ! DEBUGGING
             !
             WRITE (*, *) 'ERROR: finite difference type unknown, ifdtype=', ifdtype
             !

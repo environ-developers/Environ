@@ -49,7 +49,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !! Calculates the electrostatic embedding contribution to the Kohn-Sham potential
-    !! Calculates contribution to Hartree and local potentials #TODO: redundant comment?
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_velectrostatic(setup, charges, potential)

@@ -289,7 +289,7 @@ MODULE environ_types
         CHARACTER(LEN=80) :: type_
         !
         LOGICAL :: use_fft
-        TYPE(fft_core), POINTER :: fft => NULL() ! #TODO if testing freaks out, comment out nullification
+        TYPE(fft_core), POINTER :: fft => NULL()
         !
         LOGICAL :: use_fd
         TYPE(fd_core), POINTER :: fd => NULL()
@@ -298,14 +298,13 @@ MODULE environ_types
     END TYPE boundary_core
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO: update utils_boundary.f90 when settled on variable name
     !!
     !------------------------------------------------------------------------------------
     TYPE environ_boundary
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: label ! Boundary label
-        CHARACTER(LEN=80) :: mode ! Choice of the interface
+        CHARACTER(LEN=80) :: label ! boundary label
+        CHARACTER(LEN=80) :: mode ! choice of the interface
         INTEGER :: update_status = 0
         LOGICAL :: initialized = .FALSE.
         !
@@ -355,7 +354,7 @@ MODULE environ_types
         REAL(DP) :: const
         TYPE(environ_density) :: density
         !
-        TYPE(environ_density) :: dscaled ! #TODO dinterface
+        TYPE(environ_density) :: dscaled
         TYPE(environ_density) :: d2scaled
         !
         !--------------------------------------------------------------------------------
@@ -886,7 +885,7 @@ CONTAINS
     END SUBROUTINE update_environ_density
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO: unused function
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION dipole_of_origin(density, origin) RESULT(dipole)
@@ -908,7 +907,7 @@ CONTAINS
     END FUNCTION dipole_of_origin
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO: unused function
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     FUNCTION quadrupole_of_origin(density, origin) RESULT(quadrupole)
@@ -1605,7 +1604,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: lflag ! #TODO: unused variable
+        LOGICAL, INTENT(IN) :: lflag
         !
         TYPE(environ_electrons), INTENT(INOUT) :: electrons
         !

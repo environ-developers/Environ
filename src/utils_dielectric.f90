@@ -15,62 +15,6 @@
 !    online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
-!  TYPE environ_dielectric
-!----------------------------------------------------------------------------------------
-!         !
-!         LOGICAL :: update = .FALSE.
-!         LOGICAL :: initialized = .FALSE.
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Basic properties of the dielectric space from input
-!         !
-!         INTEGER :: nregions
-!         TYPE(environ_functions), ALLOCATABLE :: regions(:)
-!         !
-!         REAL(DP) :: constant
-!         TYPE(environ_density) :: background
-!         TYPE(environ_gradient) :: gradbackground
-!         TYPE(environ_density) :: laplbackground
-!         !
-!         !--------------------------------------------------------------------------------
-!         !
-!         TYPE(environ_boundary), POINTER :: boundary
-!         ! Boundary is the pointer to the object controlling the interface
-!         ! between the QM and the continuum region
-!         !
-!         !--------------------------------------------------------------------------------
-!         !
-!         ! The dielectric function over space is built from the boundary of the
-!         ! continuum environment and the basic dielectric properties of space
-!         !
-!         TYPE(environ_density) :: epsilon
-!         !
-!         TYPE(environ_density) :: depsilon
-!         ! This is needed in the extra term of kohn-sham/forces
-!         !
-!         ! Quantities related to the dielectric permittivity and
-!         ! thay may be needed by the different solvers
-!         !
-!         LOGICAL :: need_gradient = .FALSE.
-!         TYPE(environ_gradient) :: gradient
-!         !
-!         LOGICAL :: need_factsqrt = .FALSE.
-!         TYPE(environ_density) :: factsqrt
-!         !
-!         LOGICAL :: need_gradlog = .FALSE.
-!         TYPE(environ_gradient) :: gradlog
-!         !
-!         !--------------------------------------------------------------------------------
-!         ! Dielectric polarization charges and individual components
-!         !
-!         TYPE(environ_density) :: density
-!         LOGICAL :: need_auxiliary = .FALSE.
-!         TYPE(environ_density) :: iterative
-!         REAL(DP) :: charge = 0.0_DP
-!         !
-!----------------------------------------------------------------------------------------
-!  END TYPE environ_dielectric
-!----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
