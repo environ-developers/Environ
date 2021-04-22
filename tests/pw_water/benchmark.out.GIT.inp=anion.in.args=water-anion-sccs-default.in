@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.7MaX starts on 22Jan2021 at 12:57:21 
+     Program PWSCF v.6.7+ starts on 22Apr2021 at 11:30:42 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -143,7 +143,7 @@
      negative rho (up, down):  8.422E-04 0.000E+00
      Starting wfcs are    7 randomized atomic wfcs
 
-     total cpu time spent up to now is        3.5 secs
+     total cpu time spent up to now is        3.8 secs
 
      Self-consistent Calculation
 
@@ -156,7 +156,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.3E-06, # of iterations =  19
 
-     total cpu time spent up to now is        8.8 secs
+     total cpu time spent up to now is        9.7 secs
 
      total energy              =     -14.76001747 Ry
      estimated scf accuracy    <       0.70384899 Ry
@@ -173,7 +173,7 @@
      add environment contribution to local potential
      polarization accuracy = 9.6E-06, # of iterations =  18
 
-     total cpu time spent up to now is       14.1 secs
+     total cpu time spent up to now is       15.8 secs
 
      total energy              =     -15.01918409 Ry
      estimated scf accuracy    <       0.11460847 Ry
@@ -190,7 +190,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.0E-06, # of iterations =  19
 
-     total cpu time spent up to now is       19.5 secs
+     total cpu time spent up to now is       21.4 secs
 
      total energy              =     -15.04808005 Ry
      estimated scf accuracy    <       0.00685890 Ry
@@ -206,7 +206,7 @@
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.0187 ev
 
-     total cpu time spent up to now is       21.4 secs
+     total cpu time spent up to now is       23.5 secs
 
      End of self-consistent calculation
 
@@ -247,58 +247,58 @@
 
      Writing output data file /Users/gabrielmedrano/Desktop/q-e/Environ/tests/../..//tempdir/pwscf.save/
 
-     init_run     :      3.16s CPU      3.49s WALL (       1 calls)
-     electrons    :     17.48s CPU     17.95s WALL (       1 calls)
-     forces       :      0.66s CPU      0.74s WALL (       1 calls)
+     init_run     :      3.40s CPU      3.80s WALL (       1 calls)
+     electrons    :     18.54s CPU     19.67s WALL (       1 calls)
+     forces       :      0.72s CPU      0.80s WALL (       1 calls)
 
      Called by init_run:
      wfcinit      :      0.04s CPU      0.05s WALL (       1 calls)
-     potinit      :      1.39s CPU      1.52s WALL (       1 calls)
-     hinit0       :      1.26s CPU      1.33s WALL (       1 calls)
+     potinit      :      1.54s CPU      1.70s WALL (       1 calls)
+     hinit0       :      1.29s CPU      1.37s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.24s CPU      0.25s WALL (       4 calls)
-     sum_band     :      2.11s CPU      1.32s WALL (       4 calls)
-     v_of_rho     :      2.68s CPU      3.08s WALL (       5 calls)
-     newd         :      0.92s CPU      1.15s WALL (       5 calls)
-     mix_rho      :      0.24s CPU      0.28s WALL (       4 calls)
+     c_bands      :      0.24s CPU      0.26s WALL (       4 calls)
+     sum_band     :      2.07s CPU      1.33s WALL (       4 calls)
+     v_of_rho     :      2.84s CPU      3.30s WALL (       5 calls)
+     newd         :      1.00s CPU      1.31s WALL (       5 calls)
+     mix_rho      :      0.25s CPU      0.29s WALL (       4 calls)
 
      Called by c_bands:
      init_us_2    :      0.02s CPU      0.02s WALL (       9 calls)
-     regterg      :      0.22s CPU      0.23s WALL (       4 calls)
+     regterg      :      0.23s CPU      0.24s WALL (       4 calls)
 
      Called by *egterg:
      rdiaghg      :      0.00s CPU      0.00s WALL (      12 calls)
-     h_psi        :      0.23s CPU      0.24s WALL (      13 calls)
-     s_psi        :      0.01s CPU      0.00s WALL (      13 calls)
+     h_psi        :      0.23s CPU      0.25s WALL (      13 calls)
+     s_psi        :      0.01s CPU      0.01s WALL (      13 calls)
      g_psi        :      0.00s CPU      0.00s WALL (       8 calls)
 
      Called by h_psi:
      h_psi:calbec :      0.00s CPU      0.00s WALL (      13 calls)
      vloc_psi     :      0.21s CPU      0.21s WALL (      13 calls)
-     add_vuspsi   :      0.02s CPU      0.02s WALL (      13 calls)
+     add_vuspsi   :      0.02s CPU      0.03s WALL (      13 calls)
 
      General routines
      calbec       :      0.01s CPU      0.01s WALL (      21 calls)
-     fft          :      9.18s CPU      9.58s WALL (     236 calls)
+     fft          :      9.87s CPU     10.35s WALL (     236 calls)
      ffts         :      0.04s CPU      0.04s WALL (       9 calls)
      fftw         :      0.19s CPU      0.19s WALL (      62 calls)
-     interpolate  :      0.22s CPU      0.25s WALL (       5 calls)
+     interpolate  :      0.23s CPU      0.26s WALL (       5 calls)
 
      Parallel routines
-     fft_scatt_xy :      0.79s CPU      0.79s WALL (     179 calls)
-     fft_scatt_yz :      1.05s CPU      1.05s WALL (     179 calls)
+     fft_scatt_xy :      0.84s CPU      0.84s WALL (     179 calls)
+     fft_scatt_yz :      1.14s CPU      1.16s WALL (     179 calls)
 
      Environ routines
      calc_eelect  :      0.02s CPU      0.02s WALL (       8 calls)
-     calc_velect  :      7.66s CPU      8.07s WALL (       6 calls)
-     dielectric   :      0.23s CPU      0.27s WALL (       6 calls)
-     calc_felect  :      0.18s CPU      0.19s WALL (       1 calls)
+     calc_velect  :      8.29s CPU      8.84s WALL (       6 calls)
+     dielectric   :      0.25s CPU      0.31s WALL (       6 calls)
+     calc_felect  :      0.20s CPU      0.24s WALL (       1 calls)
 
-     PWSCF        :     21.34s CPU     22.28s WALL
+     PWSCF        :     22.71s CPU     24.39s WALL
 
 
-   This run was terminated on:  12:57:43  22Jan2021            
+   This run was terminated on:  11:31: 6  22Apr2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.

@@ -1,50 +1,50 @@
 [pw_mt/]
 program = PW
-inputs_args = ('neutral.in', 'dielectric-default.in'), ('charged.in', 'dielectric-default.in'), ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in')
+inputs_args = ('neutral.in', 'dielectric-default.in'), ('charged.in', 'dielectric-default.in'), ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in'), ('neutral-dblcell.in', 'dielectric-default-dblcell.in'), ('charged-dblcell.in', 'dielectric-default-dblcell.in'), ('isolated-dblcell.in', 'externals_0d_vacuum_default-dblcell.in')
 
 [pw_solvent-aware/]
 program = PW
-inputs_args = ('pw.in', 'local-sccs.in'), ('pw.in', 'sa-sccs.in'), ('pw.in', 'local-ss.in'), ('pw.in', 'sa-ss.in')
+inputs_args = ('pw.in', 'local-sccs.in'), ('pw.in', 'sa-sccs.in'), ('pw.in', 'local-ss.in'), ('pw.in', 'sa-ss.in'), ('pw-dblcell.in', 'local-sccs-dblcell.in'), ('pw-dblcell.in', 'sa-sccs-dblcell.in'), ('pw-dblcell.in', 'local-ss-dblcell.in'), ('pw-dblcell.in', 'sa-ss-dblcell.in')
 
 [pw_regions/]
 program = PW
-inputs_args = ('pw.in', 'insphere-default.in'), ('pw.in', 'outslab-default.in')
+inputs_args = ('pw.in', 'insphere-default.in'), ('pw.in', 'outslab-default.in'), ('pw-dblcell.in', 'insphere-default-dblcell.in'), ('pw-dblcell.in', 'outslab-default-dblcell.in')
 
 [pw_spin/]
 program = PW
-inputs_args = ('radical.in', 'vacuum-pcc.in'), ('radical.in', 'dielectric-pcc.in')
+inputs_args = ('radical.in', 'vacuum-pcc.in'), ('radical.in', 'dielectric-pcc.in'), ('radical-dblcell.in', 'vacuum-pcc-dblcell.in'), ('radical-dblcell.in', 'dielectric-pcc-dblcell.in')
 
 [pw_externals/]
 program = PW
-inputs_args = ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_2d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in'), ('isolated.in', 'externals_2d_dielectric_default.in'), ('slab.in', 'externals_0d_vacuum_default.in'), ('slab.in', 'externals_2d_vacuum_default.in'), ('slab.in', 'externals_0d_dielectric_default.in'), ('slab.in', 'externals_2d_dielectric_default.in')
+inputs_args = ('isolated.in', 'externals_0d_vacuum_default.in'), ('isolated.in', 'externals_2d_vacuum_default.in'), ('isolated.in', 'externals_0d_dielectric_default.in'), ('isolated.in', 'externals_2d_dielectric_default.in'), ('slab.in', 'externals_0d_vacuum_default.in'), ('slab.in', 'externals_2d_vacuum_default.in'), ('slab.in', 'externals_0d_dielectric_default.in'), ('slab.in', 'externals_2d_dielectric_default.in'), ('isolated-dblcell.in', 'externals_0d_vacuum_default-dblcell.in'), ('isolated-dblcell.in', 'externals_2d_vacuum_default-dblcell.in'), ('isolated-dblcell.in', 'externals_2d_dielectric_default-dblcell.in'), ('slab-dblcell.in', 'externals_0d_vacuum_default-dblcell.in'), ('slab-dblcell.in', 'externals_2d_vacuum_default-dblcell.in')
 
 [pw_water/]
 program = PW
-inputs_args = ('neutral.in', 'water-neutral-sccs-default.in'), ('neutral.in', 'water-neutral-ss-default.in'), ('cation.in', 'water-cation-sccs-default.in'), ('cation.in', 'water-cation-ss-default.in'), ('anion.in', 'water-anion-sccs-default.in'), ('anion.in', 'water-anion-ss-default.in')
+inputs_args = ('neutral.in', 'water-neutral-sccs-default.in'), ('neutral.in', 'water-neutral-ss-default.in'), ('cation.in', 'water-cation-sccs-default.in'), ('cation.in', 'water-cation-ss-default.in'), ('anion.in', 'water-anion-sccs-default.in'), ('anion.in', 'water-anion-ss-default.in'), ('neutral-dblcell.in', 'water-neutral-sccs-default-dblcell.in'), ('neutral-dblcell.in', 'water-neutral-ss-default-dblcell.in'), ('cation-dblcell.in', 'water-cation-sccs-default-dblcell.in'), ('cation-dblcell.in', 'water-cation-ss-default-dblcell.in'), ('anion-dblcell.in', 'water-anion-sccs-default-dblcell.in'), ('anion-dblcell.in', 'water-anion-ss-default-dblcell.in')
 
 [pw_periodic/]
 program = PW
-inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-dielectric-default.in')
+inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-dielectric-default.in'), ('neutral-dblcell.in', 'periodic-vacuum-default-dblcell.in'), ('charged-dblcell.in', 'periodic-vacuum-default-dblcell.in'), ('neutral-dblcell.in', 'periodic-dielectric-default-dblcell.in'), ('charged-dblcell.in', 'periodic-dielectric-default-dblcell.in')
 
 [pw_slab/]
 program = PW
-inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-dielectric-default.in')
+inputs_args = ('neutral.in', 'periodic-vacuum-default.in'), ('neutral.in', 'periodic-dielectric-default.in'), ('charged.in', 'periodic-vacuum-default.in'), ('charged.in', 'periodic-dielectric-default.in'), ('neutral-dblcell.in', 'periodic-vacuum-default-dblcell.in'), ('neutral-dblcell.in', 'periodic-dielectric-default-dblcell.in'), ('charged-dblcell.in', 'periodic-vacuum-default-dblcell.in')
 
 [pw_dielectric/]
 program = PW
-inputs_args = ('neutral.in', 'dielectric-sccs-default.in'), ('neutral.in', 'dielectric-sccs-iter-aux.in'), ('neutral.in', 'dielectric-sccs-psd.in'), ('neutral.in', 'dielectric-sccs-stype1.in'), ('neutral.in', 'dielectric-ss-default.in'), ('neutral.in', 'dielectric-ss-iter-aux.in'), ('charged.in', 'dielectric-sccs-default.in'), ('charged.in', 'dielectric-sccs-iter-aux.in'), ('charged.in', 'dielectric-sccs-psd.in'), ('charged.in', 'dielectric-sccs-stype1.in'), ('charged.in', 'dielectric-ss-default.in'), ('charged.in', 'dielectric-ss-iter-aux.in'), ('neutral.in', 'dielectric-sys-default.in'), ('neutral.in', 'dielectric-sys-iter-aux.in'), ('charged.in', 'dielectric-sys-default.in'), ('charged.in', 'dielectric-sys-iter-aux.in')
+inputs_args = ('neutral.in', 'dielectric-sccs-default.in'), ('neutral.in', 'dielectric-sccs-iter-aux.in'), ('neutral.in', 'dielectric-sccs-psd.in'), ('neutral.in', 'dielectric-sccs-stype1.in'), ('neutral.in', 'dielectric-ss-default.in'), ('neutral.in', 'dielectric-ss-iter-aux.in'), ('charged.in', 'dielectric-sccs-default.in'), ('charged.in', 'dielectric-sccs-iter-aux.in'), ('charged.in', 'dielectric-sccs-psd.in'), ('charged.in', 'dielectric-sccs-stype1.in'), ('charged.in', 'dielectric-ss-default.in'), ('charged.in', 'dielectric-ss-iter-aux.in'), ('neutral.in', 'dielectric-sys-default.in'), ('neutral.in', 'dielectric-sys-iter-aux.in'), ('charged.in', 'dielectric-sys-default.in'), ('charged.in', 'dielectric-sys-iter-aux.in'), ('neutral-dblcell.in', 'dielectric-sccs-default-dblcell.in'), ('neutral-dblcell.in', 'dielectric-sccs-iter-aux-dblcell.in'), ('neutral-dblcell.in', 'dielectric-sccs-stype1-dblcell.in'), ('neutral-dblcell.in', 'dielectric-ss-default-dblcell.in'), ('neutral-dblcell.in', 'dielectric-ss-iter-aux-dblcell.in'), ('charged-dblcell.in', 'dielectric-sccs-default-dblcell.in'), ('charged-dblcell.in', 'dielectric-sccs-iter-aux-dblcell.in'), ('charged-dblcell.in', 'dielectric-sccs-psd-dblcell.in'), ('charged-dblcell.in', 'dielectric-sccs-stype1-dblcell.in'), ('charged-dblcell.in', 'dielectric-ss-default-dblcell.in'), ('charged-dblcell.in', 'dielectric-ss-iter-aux-dblcell.in'), ('neutral-dblcell.in', 'dielectric-sys-default-dblcell.in'), ('neutral-dblcell.in', 'dielectric-sys-iter-aux-dblcell.in'), ('charged-dblcell.in', 'dielectric-sys-default-dblcell.in'), ('charged-dblcell.in', 'dielectric-sys-iter-aux-dblcell.in')
 
 [pw_surface/]
 program = PW
-inputs_args = ('pw.in', 'surface-sccs-default.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), ('pw.in', 'surface-sys-default.in'), ('pw.in', 'surface-sys-fft.in')
+inputs_args = ('pw.in', 'surface-sccs-stype1.in'), ('pw.in', 'surface-sccs-fft.in'), ('pw.in', 'surface-ss-default.in'), ('pw.in', 'surface-ss-fft.in'), ('pw.in', 'surface-sys-default.in'), ('pw.in', 'surface-sys-fft.in'), ('pw-dblcell.in', 'surface-sccs-stype1-dblcell.in'), ('pw-dblcell.in', 'surface-sccs-fft-dblcell.in'), ('pw-dblcell.in', 'surface-ss-default-dblcell.in'), ('pw-dblcell.in', 'surface-ss-fft-dblcell.in'), ('pw-dblcell.in', 'surface-sys-default-dblcell.in'), ('pw-dblcell.in', 'surface-sys-fft-dblcell.in')
 
 [pw_volume/]
 program = PW
-inputs_args = ('pw.in', 'volume-sccs-default.in'), ('pw.in', 'volume-ss-default.in'), ('pw.in', 'volume-sys-default.in')
+inputs_args = ('pw.in', 'volume-sccs-stype1.in'), ('pw.in', 'volume-ss-default.in'), ('pw.in', 'volume-sys-default.in'), ('pw-dblcell.in', 'volume-sccs-stype1-dblcell.in'), ('pw-dblcell.in', 'volume-ss-default-dblcell.in'), ('pw-dblcell.in', 'volume-sys-default-dblcell.in')
 
 [pw_electrolyte/]
 program = PW
-inputs_args = ('pw.in', 'electrolyte-lmpb-sccs-stern_full.in'), ('pw.in', 'electrolyte-lmpb-sccs-stern_ions.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_full.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_ions.in'), ('pw.in', 'electrolyte-lpb-sccs.in'), ('pw.in', 'electrolyte-lpb-ss.in')
+inputs_args = ('pw.in', 'electrolyte-lmpb-sccs-stern_full.in'), ('pw.in', 'electrolyte-lmpb-sccs-stern_ions.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_full.in'), ('pw.in', 'electrolyte-lmpb-ss-stern_ions.in'), ('pw.in', 'electrolyte-lpb-sccs.in'), ('pw.in', 'electrolyte-lpb-ss.in'), ('pw-dblcell.in', 'electrolyte-lmpb-sccs-stern_full-dblcell.in'), ('pw-dblcell.in', 'electrolyte-lmpb-sccs-stern_ions-dblcell.in'), ('pw-dblcell.in', 'electrolyte-lmpb-ss-stern_full-dblcell.in'), ('pw-dblcell.in', 'electrolyte-lmpb-ss-stern_ions-dblcell.in'), ('pw-dblcell.in', 'electrolyte-lpb-sccs-dblcell.in'), ('pw-dblcell.in', 'electrolyte-lpb-ss-dblcell.in')
 
 [pw_gcs/]
 program = PW
@@ -56,7 +56,7 @@ inputs_args = ('pw.in', 'ms-solvent.in'), ('pw.in', 'ms-vacuum.in')
 
 [pw_confine/]
 program = PW
-inputs_args = ('pw.in', 'confine-sccs.in'), ('pw.in', 'confine-ss.in'), ('pw.in', 'confine-system.in')
+inputs_args = ('pw.in', 'confine-sccs.in'), ('pw.in', 'confine-ss.in'), ('pw.in', 'confine-system.in'), ('pw-dblcell.in', 'confine-sccs-dblcell.in'), ('pw-dblcell.in', 'confine-ss-dblcell.in'), ('pw-dblcell.in', 'confine-system-dblcell.in')
 
 [pw_*/]
 program = PW

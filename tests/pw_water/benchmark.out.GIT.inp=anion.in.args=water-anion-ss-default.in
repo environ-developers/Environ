@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.7MaX starts on 22Jan2021 at 12:57:43 
+     Program PWSCF v.6.7+ starts on 22Apr2021 at 11:31: 7 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -145,7 +145,7 @@
      negative rho (up, down):  8.422E-04 0.000E+00
      Starting wfcs are    7 randomized atomic wfcs
 
-     total cpu time spent up to now is        8.7 secs
+     total cpu time spent up to now is        9.4 secs
 
      Self-consistent Calculation
 
@@ -158,7 +158,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.1E-06, # of iterations =  11
 
-     total cpu time spent up to now is       12.2 secs
+     total cpu time spent up to now is       13.1 secs
 
      total energy              =     -14.75865252 Ry
      estimated scf accuracy    <       0.70384899 Ry
@@ -176,7 +176,7 @@
      add environment contribution to local potential
      polarization accuracy = 8.0E-06, # of iterations =  11
 
-     total cpu time spent up to now is       15.9 secs
+     total cpu time spent up to now is       16.9 secs
 
      total energy              =     -15.01225919 Ry
      estimated scf accuracy    <       0.13702649 Ry
@@ -194,7 +194,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.6E-06, # of iterations =  11
 
-     total cpu time spent up to now is       19.4 secs
+     total cpu time spent up to now is       21.1 secs
 
      total energy              =     -15.04489661 Ry
      estimated scf accuracy    <       0.00993598 Ry
@@ -212,7 +212,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.1E-06, # of iterations =  11
 
-     total cpu time spent up to now is       22.9 secs
+     total cpu time spent up to now is       24.8 secs
 
      total energy              =     -15.05012643 Ry
      estimated scf accuracy    <       0.00107740 Ry
@@ -229,7 +229,7 @@
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.0187 ev
 
-     total cpu time spent up to now is       24.4 secs
+     total cpu time spent up to now is       26.3 secs
 
      End of self-consistent calculation
 
@@ -271,58 +271,58 @@
 
      Writing output data file /Users/gabrielmedrano/Desktop/q-e/Environ/tests/../..//tempdir/pwscf.save/
 
-     init_run     :      8.12s CPU      8.72s WALL (       1 calls)
-     electrons    :     15.42s CPU     15.73s WALL (       1 calls)
-     forces       :      3.08s CPU      3.21s WALL (       1 calls)
+     init_run     :      8.65s CPU      9.39s WALL (       1 calls)
+     electrons    :     16.27s CPU     16.89s WALL (       1 calls)
+     forces       :      3.10s CPU      3.22s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.04s CPU      0.05s WALL (       1 calls)
-     potinit      :      0.89s CPU      0.96s WALL (       1 calls)
-     hinit0       :      6.73s CPU      7.13s WALL (       1 calls)
+     wfcinit      :      0.05s CPU      0.05s WALL (       1 calls)
+     potinit      :      0.97s CPU      1.05s WALL (       1 calls)
+     hinit0       :      7.16s CPU      7.67s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      0.31s CPU      0.32s WALL (       5 calls)
-     sum_band     :      2.61s CPU      1.69s WALL (       5 calls)
-     v_of_rho     :      3.14s CPU      3.63s WALL (       6 calls)
-     newd         :      1.11s CPU      1.42s WALL (       6 calls)
-     mix_rho      :      0.32s CPU      0.37s WALL (       5 calls)
+     c_bands      :      0.34s CPU      0.34s WALL (       5 calls)
+     sum_band     :      2.52s CPU      1.79s WALL (       5 calls)
+     v_of_rho     :      3.40s CPU      3.94s WALL (       6 calls)
+     newd         :      1.13s CPU      1.45s WALL (       6 calls)
+     mix_rho      :      0.35s CPU      0.40s WALL (       5 calls)
 
      Called by c_bands:
      init_us_2    :      0.02s CPU      0.02s WALL (      11 calls)
-     regterg      :      0.29s CPU      0.30s WALL (       5 calls)
+     regterg      :      0.32s CPU      0.32s WALL (       5 calls)
 
      Called by *egterg:
      rdiaghg      :      0.00s CPU      0.00s WALL (      16 calls)
-     h_psi        :      0.29s CPU      0.30s WALL (      17 calls)
-     s_psi        :      0.01s CPU      0.00s WALL (      17 calls)
+     h_psi        :      0.31s CPU      0.33s WALL (      17 calls)
+     s_psi        :      0.01s CPU      0.01s WALL (      17 calls)
      g_psi        :      0.00s CPU      0.00s WALL (      11 calls)
 
      Called by h_psi:
      h_psi:calbec :      0.00s CPU      0.00s WALL (      17 calls)
-     vloc_psi     :      0.26s CPU      0.26s WALL (      17 calls)
-     add_vuspsi   :      0.02s CPU      0.03s WALL (      17 calls)
+     vloc_psi     :      0.28s CPU      0.28s WALL (      17 calls)
+     add_vuspsi   :      0.03s CPU      0.04s WALL (      17 calls)
 
      General routines
      calbec       :      0.01s CPU      0.01s WALL (      26 calls)
-     fft          :      7.23s CPU      7.52s WALL (     193 calls)
-     ffts         :      0.05s CPU      0.05s WALL (      11 calls)
-     fftw         :      0.24s CPU      0.24s WALL (      78 calls)
+     fft          :      7.69s CPU      8.01s WALL (     193 calls)
+     ffts         :      0.05s CPU      0.06s WALL (      11 calls)
+     fftw         :      0.25s CPU      0.25s WALL (      78 calls)
      interpolate  :      0.27s CPU      0.30s WALL (       6 calls)
 
      Parallel routines
-     fft_scatt_xy :      0.55s CPU      0.55s WALL (     125 calls)
-     fft_scatt_yz :      0.72s CPU      0.72s WALL (     125 calls)
+     fft_scatt_xy :      0.58s CPU      0.59s WALL (     125 calls)
+     fft_scatt_yz :      0.77s CPU      0.77s WALL (     125 calls)
 
      Environ routines
      calc_eelect  :      0.02s CPU      0.02s WALL (      10 calls)
-     calc_velect  :      6.33s CPU      6.68s WALL (       8 calls)
-     dielectric   :      0.10s CPU      0.11s WALL (       2 calls)
-     calc_felect  :      0.18s CPU      0.19s WALL (       1 calls)
+     calc_velect  :      6.88s CPU      7.30s WALL (       8 calls)
+     dielectric   :      0.11s CPU      0.12s WALL (       2 calls)
+     calc_felect  :      0.17s CPU      0.18s WALL (       1 calls)
 
-     PWSCF        :     26.66s CPU     27.78s WALL
+     PWSCF        :     28.06s CPU     29.60s WALL
 
 
-   This run was terminated on:  12:58:11  22Jan2021            
+   This run was terminated on:  11:31:36  22Apr2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.

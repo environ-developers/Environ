@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.7MaX starts on 22Jan2021 at 10: 5:21 
+     Program PWSCF v.6.7+ starts on 20Apr2021 at 12:39:44 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -177,7 +177,7 @@
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfcs are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is        5.3 secs
+     total cpu time spent up to now is        5.7 secs
 
      Self-consistent Calculation
 
@@ -190,7 +190,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.1E-06, # of iterations =  22
 
-     total cpu time spent up to now is       13.6 secs
+     total cpu time spent up to now is       14.6 secs
 
      total energy              =     -80.29562589 Ry
      estimated scf accuracy    <       3.64924908 Ry
@@ -206,7 +206,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.4E-06, # of iterations =  16
 
-     total cpu time spent up to now is       20.6 secs
+     total cpu time spent up to now is       22.0 secs
 
      total energy              =     -81.11660167 Ry
      estimated scf accuracy    <       1.32137644 Ry
@@ -222,7 +222,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.4E-06, # of iterations =  15
 
-     total cpu time spent up to now is       27.1 secs
+     total cpu time spent up to now is       29.2 secs
 
      total energy              =     -81.39163446 Ry
      estimated scf accuracy    <       0.16252847 Ry
@@ -238,7 +238,7 @@
      add environment contribution to local potential
      polarization accuracy = 8.7E-06, # of iterations =  12
 
-     total cpu time spent up to now is       33.0 secs
+     total cpu time spent up to now is       35.5 secs
 
      total energy              =     -81.43608030 Ry
      estimated scf accuracy    <       0.01566441 Ry
@@ -254,7 +254,7 @@
      add environment contribution to local potential
      polarization accuracy = 6.5E-06, # of iterations =   8
 
-     total cpu time spent up to now is       37.8 secs
+     total cpu time spent up to now is       40.6 secs
 
      total energy              =     -81.43976324 Ry
      estimated scf accuracy    <       0.00134094 Ry
@@ -270,7 +270,7 @@
      add environment contribution to local potential
      polarization accuracy = 6.0E-06, # of iterations =   5
 
-     total cpu time spent up to now is       41.9 secs
+     total cpu time spent up to now is       44.9 secs
 
      total energy              =     -81.44009777 Ry
      estimated scf accuracy    <       0.00017710 Ry
@@ -286,7 +286,7 @@
      add environment contribution to local potential
      polarization accuracy = 6.0E-06, # of iterations =   3
 
-     total cpu time spent up to now is       45.5 secs
+     total cpu time spent up to now is       48.7 secs
 
      total energy              =     -81.44015338 Ry
      estimated scf accuracy    <       0.00001051 Ry
@@ -302,7 +302,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.0E-06, # of iterations =   1
 
-     total cpu time spent up to now is       48.7 secs
+     total cpu time spent up to now is       52.2 secs
 
      total energy              =     -81.44015343 Ry
      estimated scf accuracy    <       0.00000652 Ry
@@ -317,7 +317,7 @@
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.0668 ev
 
-     total cpu time spent up to now is       51.0 secs
+     total cpu time spent up to now is       54.6 secs
 
      End of self-consistent calculation
 
@@ -369,58 +369,58 @@
 
      Writing output data file /Users/gabrielmedrano/Desktop/q-e/Environ/tests/../..//tempdir/pwscf.save/
 
-     init_run     :      4.82s CPU      5.22s WALL (       1 calls)
-     electrons    :     47.74s CPU     45.70s WALL (       1 calls)
-     forces       :      1.68s CPU      1.86s WALL (       1 calls)
+     init_run     :      5.12s CPU      5.62s WALL (       1 calls)
+     electrons    :     49.85s CPU     48.89s WALL (       1 calls)
+     forces       :      1.83s CPU      2.04s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.12s CPU      0.11s WALL (       1 calls)
-     potinit      :      0.99s CPU      1.08s WALL (       1 calls)
-     hinit0       :      3.06s CPU      3.17s WALL (       1 calls)
+     wfcinit      :      0.12s CPU      0.12s WALL (       1 calls)
+     potinit      :      1.07s CPU      1.15s WALL (       1 calls)
+     hinit0       :      3.25s CPU      3.39s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      1.94s CPU      1.61s WALL (       9 calls)
-     sum_band     :     12.03s CPU      6.71s WALL (       9 calls)
-     v_of_rho     :      5.37s CPU      6.26s WALL (      10 calls)
-     newd         :      3.73s CPU      5.24s WALL (      10 calls)
-     mix_rho      :      0.67s CPU      0.76s WALL (       9 calls)
+     c_bands      :      2.00s CPU      1.66s WALL (       9 calls)
+     sum_band     :     11.51s CPU      7.01s WALL (       9 calls)
+     v_of_rho     :      5.67s CPU      6.61s WALL (      10 calls)
+     newd         :      3.87s CPU      5.45s WALL (      10 calls)
+     mix_rho      :      0.69s CPU      0.78s WALL (       9 calls)
 
      Called by c_bands:
      init_us_2    :      0.07s CPU      0.07s WALL (      19 calls)
-     regterg      :      1.84s CPU      1.51s WALL (       9 calls)
+     regterg      :      1.90s CPU      1.57s WALL (       9 calls)
 
      Called by *egterg:
      rdiaghg      :      0.01s CPU      0.01s WALL (      41 calls)
-     h_psi        :      1.62s CPU      1.47s WALL (      42 calls)
-     s_psi        :      0.11s CPU      0.02s WALL (      42 calls)
+     h_psi        :      1.67s CPU      1.53s WALL (      42 calls)
+     s_psi        :      0.12s CPU      0.02s WALL (      42 calls)
      g_psi        :      0.01s CPU      0.01s WALL (      32 calls)
 
      Called by h_psi:
      h_psi:calbec :      0.05s CPU      0.04s WALL (      42 calls)
-     vloc_psi     :      1.34s CPU      1.34s WALL (      42 calls)
-     add_vuspsi   :      0.23s CPU      0.08s WALL (      42 calls)
+     vloc_psi     :      1.39s CPU      1.40s WALL (      42 calls)
+     add_vuspsi   :      0.22s CPU      0.08s WALL (      42 calls)
 
      General routines
-     calbec       :      0.06s CPU      0.06s WALL (      55 calls)
-     fft          :     20.07s CPU     20.98s WALL (     515 calls)
-     ffts         :      0.09s CPU      0.09s WALL (      19 calls)
-     fftw         :      1.22s CPU      1.23s WALL (     406 calls)
-     interpolate  :      0.44s CPU      0.49s WALL (      10 calls)
+     calbec       :      0.07s CPU      0.06s WALL (      55 calls)
+     fft          :     21.56s CPU     22.59s WALL (     515 calls)
+     ffts         :      0.10s CPU      0.10s WALL (      19 calls)
+     fftw         :      1.26s CPU      1.27s WALL (     406 calls)
+     interpolate  :      0.46s CPU      0.52s WALL (      10 calls)
 
      Parallel routines
-     fft_scatt_xy :      1.86s CPU      1.86s WALL (     401 calls)
-     fft_scatt_yz :      2.43s CPU      2.44s WALL (     401 calls)
+     fft_scatt_xy :      2.03s CPU      2.04s WALL (     401 calls)
+     fft_scatt_yz :      2.67s CPU      2.68s WALL (     401 calls)
 
      Environ routines
      calc_eelect  :      0.04s CPU      0.04s WALL (      18 calls)
-     calc_velect  :     20.66s CPU     21.73s WALL (      16 calls)
-     dielectric   :      0.07s CPU      0.08s WALL (       2 calls)
-     calc_felect  :      0.31s CPU      0.33s WALL (       1 calls)
+     calc_velect  :     22.51s CPU     23.73s WALL (      16 calls)
+     dielectric   :      0.08s CPU      0.09s WALL (       2 calls)
+     calc_felect  :      0.35s CPU      0.37s WALL (       1 calls)
 
-     PWSCF        :     54.33s CPU     52.97s WALL
+     PWSCF        :     56.90s CPU     56.75s WALL
 
 
-   This run was terminated on:  10: 6:14  22Jan2021            
+   This run was terminated on:  12:40:41  20Apr2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
