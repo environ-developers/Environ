@@ -698,7 +698,19 @@ CONTAINS
         !
         IF (lstatic) CALL init_environ_dielectric_second(environment_cell, static)
         !
-        IF (loptical) CALL init_environ_dielectric_second(environment_cell, optical)
+        IF (loptical) THEN
+           !
+           CALL init_environ_electrons_second(system_cell, system_response_electrons)
+           !
+           CALL init_environ_charges_second(system_cell, system_response_charges)
+           !
+           CALL init_environ_electrons_second(environment_cell, environment_response_electrons)
+           !
+           CALL init_environ_charges_second(environment_cell, environment_response_charges)
+           !
+           CALL init_environ_dielectric_second(environment_cell, optical)
+           !
+        END IF
         !
         IF (lelectrolyte) &
             CALL init_environ_electrolyte_second(environment_cell, electrolyte)
@@ -1151,18 +1163,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update response charges in system cell
         !
-        CALL init_environ_electrons_second(system_cell, system_response_electrons)
-        !
-        CALL update_environ_electrons(nnr, drho, system_electrons, 0.D0)
-        !
-        CALL init_environ_charges_second(system_cell, system_response_charges)
+        CALL update_environ_electrons(nnr, drho, system_response_electrons, 0.D0)
         !
         CALL update_environ_charges(system_response_charges)
         !
         !--------------------------------------------------------------------------------
         ! Update response charges in environment cell
-        !
-        CALL init_environ_electrons_second(environment_cell, environment_response_electrons)
         !
         IF (ldoublecell) THEN
             !
@@ -1174,10 +1180,8 @@ CONTAINS
                  environment_response_electrons, 0.D0)
             !
         ELSE
-            CALL update_environ_electrons(nnr, drho, environment_electrons, 0.D0)
+            CALL update_environ_electrons(nnr, drho, environment_response_electrons, 0.D0)
         END IF
-        !
-        CALL init_environ_charges_second(environment_cell, environment_response_charges)
         !
         CALL update_environ_charges(environment_response_charges)
         !
