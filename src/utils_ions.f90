@@ -42,7 +42,7 @@ MODULE utils_ions
     !
     IMPLICIT NONE
     !
-    CHARACTER :: elements(92)
+    CHARACTER(LEN=2) :: elements(92)
     !
     REAL(DP), DIMENSION(92) :: pauling_radii, bondi_radii, UFF_diameters, &
                                MUFF_diameters, weights
@@ -633,8 +633,6 @@ CONTAINS
         !
         get_atmnum = 0
         !
-        print *, lower
-        !
         DO i = 1, SIZE(elements)
             IF (lower == elements(i)) THEN
                 get_atmnum = i
@@ -654,9 +652,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(len=256), INTENT(IN) :: string
+        CHARACTER(len=3), INTENT(IN) :: string
         !
-        CHARACTER(len=256), INTENT(OUT) :: lower_str
+        CHARACTER(len=3), INTENT(OUT) :: lower_str
         !
         CHARACTER(len=1) :: c
         INTEGER :: i, ci
