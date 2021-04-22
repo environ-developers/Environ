@@ -304,27 +304,27 @@ CONTAINS
         ! Set response properties for TD calculations
         !
         IF (loptical) THEN
-           !
-           CALL create_environ_dielectric(optical)
-           !
-           CALL create_environ_electrons(system_response_electrons)
-           !
-           CALL init_environ_electrons_first(0, system_response_electrons)
-           !
-           CALL create_environ_charges(system_response_charges)
-           !
-           CALL init_environ_charges_first(electrons=system_response_electrons, &
-                charges=system_response_charges)
-           !
-           CALL create_environ_electrons(environment_response_electrons)
-           !
-           CALL init_environ_electrons_first(0, environment_response_electrons)
-           !
-           CALL create_environ_charges(environment_response_charges)
-           !
-           CALL init_environ_charges_first(electrons=environment_response_electrons, &
-                dielectric=optical, charges=environment_response_charges)
-           !
+            !
+            CALL create_environ_dielectric(optical)
+            !
+            CALL create_environ_electrons(system_response_electrons)
+            !
+            CALL init_environ_electrons_first(0, system_response_electrons)
+            !
+            CALL create_environ_charges(system_response_charges)
+            !
+            CALL init_environ_charges_first(electrons=system_response_electrons, &
+                                            charges=system_response_charges)
+            !
+            CALL create_environ_electrons(environment_response_electrons)
+            !
+            CALL init_environ_electrons_first(0, environment_response_electrons)
+            !
+            CALL create_environ_charges(environment_response_charges)
+            !
+            CALL init_environ_charges_first(electrons=environment_response_electrons, &
+                                            dielectric=optical, charges=environment_response_charges)
+            !
         END IF
         !
         IF (lelectrostatic .OR. lconfine) THEN
@@ -699,17 +699,17 @@ CONTAINS
         IF (lstatic) CALL init_environ_dielectric_second(environment_cell, static)
         !
         IF (loptical) THEN
-           !
-           CALL init_environ_electrons_second(system_cell, system_response_electrons)
-           !
-           CALL init_environ_charges_second(system_cell, system_response_charges)
-           !
-           CALL init_environ_electrons_second(environment_cell, environment_response_electrons)
-           !
-           CALL init_environ_charges_second(environment_cell, environment_response_charges)
-           !
-           CALL init_environ_dielectric_second(environment_cell, optical)
-           !
+            !
+            CALL init_environ_electrons_second(system_cell, system_response_electrons)
+            !
+            CALL init_environ_charges_second(system_cell, system_response_charges)
+            !
+            CALL init_environ_electrons_second(environment_cell, environment_response_electrons)
+            !
+            CALL init_environ_charges_second(environment_cell, environment_response_charges)
+            !
+            CALL init_environ_dielectric_second(environment_cell, optical)
+            !
         END IF
         !
         IF (lelectrolyte) &
@@ -1150,7 +1150,6 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
-        !
         REAL(DP), INTENT(IN) :: drho(nnr)
         !
         REAL(DP), ALLOCATABLE :: aux(:)
@@ -1177,7 +1176,7 @@ CONTAINS
             CALL map_small_to_large(mapping, nnr, environment_cell%nnr, drho, aux)
             !
             CALL update_environ_electrons(environment_cell%nnr, aux, &
-                 environment_response_electrons, 0.D0)
+                                          environment_response_electrons, 0.D0)
             !
         ELSE
             CALL update_environ_electrons(nnr, drho, environment_response_electrons, 0.D0)
@@ -1286,9 +1285,9 @@ CONTAINS
     END SUBROUTINE environ_clean_pw
     !------------------------------------------------------------------------------------
     !>
-    !! Clean up all the Environ related allocated variables, and call
-    !! clean up subroutines of specific Environ modules. These are quantities
-    !! that may be needed by TDDFPT, thus may need to be cleaned later
+    !! Clean up all the Environ-related allocated variables and call clean up 
+    !! subroutines of specific Environ modules. These are quantities that may 
+    !! be needed by TDDFPT, thus may need to be cleaned later
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_clean_tddfpt(lflag)
@@ -1325,17 +1324,17 @@ CONTAINS
         ! Destroy derived types which were allocated in input
         !
         IF (loptical) THEN
-           !
-           CALL destroy_environ_charges( lflag, environment_response_charges )
-           !
-           CALL destroy_environ_electrons( lflag, environment_response_electrons )
-           !
-           CALL destroy_environ_charges( lflag, system_response_charges )
-           !
-           CALL destroy_environ_electrons( lflag, system_response_electrons )
-           !
-           CALL destroy_environ_dielectric(lflag, optical)
-           !
+            !
+            CALL destroy_environ_charges(lflag, environment_response_charges)
+            !
+            CALL destroy_environ_electrons(lflag, environment_response_electrons)
+            !
+            CALL destroy_environ_charges(lflag, system_response_charges)
+            !
+            CALL destroy_environ_electrons(lflag, system_response_electrons)
+            !
+            CALL destroy_environ_dielectric(lflag, optical)
+            !
         END IF
         !
         IF (lsolvent) CALL destroy_environ_boundary(lflag, solvent)

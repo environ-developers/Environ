@@ -491,19 +491,22 @@ CONTAINS
     !! Calculates the Environ contribution to the response potential in TD calculations
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dvenviron(nnr, dvtot)
+    SUBROUTINE calc_dvenviron(nnr, dv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
-        REAL(DP), INTENT(OUT) :: dvtot(nnr)
+        !
+        REAL(DP), INTENT(INOUT) :: dv(nnr)
         !
         TYPE(environ_density) :: aux
         TYPE(environ_density) :: dvreference
         TYPE(environ_density) :: dvelectrostatic
         TYPE(environ_density) :: dvsoftcavity
         TYPE(environ_density) :: dv_dboundary
+        !
+        !--------------------------------------------------------------------------------
         !
         CALL init_environ_density(system_cell, aux)
         !
@@ -526,7 +529,7 @@ CONTAINS
             !
             CALL map_large_to_small(mapping, dvelectrostatic, aux)
             !
-            dvtot(:) = dvtot(:) + aux%of_r(:) - dvreference%of_r(:)
+            dv(:) = dv(:) + aux%of_r(:) - dvreference%of_r(:)
             !
             CALL destroy_environ_density(dvreference)
             !
@@ -546,8 +549,8 @@ CONTAINS
                 !
                 ! if dielectric embedding, calcultes dielectric contribution
                 IF (loptical) &
-                     CALL calc_dvdielectric_dboundary(optical, velectrostatic, &
-                     dvelectrostatic, dv_dboundary)
+                    CALL calc_dvdielectric_dboundary(optical, velectrostatic, &
+                                                     dvelectrostatic, dv_dboundary)
                 !
                 dvsoftcavity%of_r = dv_dboundary%of_r * solvent%dscaled%of_r
                 !
@@ -555,7 +558,7 @@ CONTAINS
             !
             CALL map_large_to_small(mapping, dvsoftcavity, aux)
             !
-            dvtot(:) = dvtot(:) + aux%of_r(:)
+            dv(:) = dv(:) + aux%of_r(:)
             !
             CALL destroy_environ_density(dv_dboundary)
             !
