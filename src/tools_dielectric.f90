@@ -42,6 +42,8 @@ MODULE tools_dielectric
     USE representation_types, ONLY: environ_density, environ_gradient
     USE cell_types, ONLY: environ_cell
     !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    !
     USE utils_gradient, ONLY: init_environ_gradient, update_gradient_modulus, &
                               destroy_environ_gradient
     !
@@ -135,6 +137,55 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dedielectric_dboundary
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_dvdielectric_dboundary(dielectric, velectrostatic, dvelectrostatic,&
+         dv_dboundary)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_dielectric), INTENT(IN) :: dielectric
+        TYPE(environ_density), INTENT(IN) :: velectrostatic
+        TYPE(environ_density), INTENT(IN) :: dvelectrostatic
+        !
+        TYPE(environ_density), INTENT(INOUT) :: dv_dboundary
+        !
+        TYPE(environ_cell), POINTER :: cell
+        TYPE(environ_density) :: aux
+        TYPE(environ_gradient) :: gradient, dgradient
+        !
+        !--------------------------------------------------------------------------------
+        !
+        cell => dv_dboundary%cell
+        !
+        CALL init_environ_gradient(cell, gradient)
+        !
+        CALL gradient_fft(dielectric%boundary%core%fft, velectrostatic, gradient)
+        !
+        CALL init_environ_gradient(cell, dgradient)
+        !
+        CALL gradient_fft(dielectric%boundary%core%fft, dvelectrostatic, dgradient)
+        !
+        CALL init_environ_density(cell, aux)
+        !
+        CALL scalar_product_environ_gradient( gradient, dgradient, aux )
+        !
+        CALL destroy_environ_gradient(gradient)
+        !
+        CALL destroy_environ_gradient(dgradient)
+        !
+        dv_dboundary%of_r = dv_dboundary%of_r - aux%of_r * dielectric%depsilon%of_r / &
+                            ( fpi * e2 )
+        !
+        CALL destroy_environ_density(aux)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+      END SUBROUTINE calc_dvdielectric_dboundary
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

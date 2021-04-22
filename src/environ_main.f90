@@ -42,7 +42,8 @@ MODULE environ_main
                             system_cell, environment_cell, system_charges, &
                             environment_charges, mapping, system_electrons, &
                             environment_electrons, niter, lrigidcavity, lrigidsolvent, &
-                            lrigidelectrolyte, loptical
+                            lrigidelectrolyte, loptical, optical, &
+                            system_response_charges, environment_response_charges
     !
     USE electrostatic_base, ONLY: reference, outer
     !
@@ -52,7 +53,7 @@ MODULE environ_main
     USE utils_electrons
     !
     USE tools_charges, ONLY: charges_of_potential
-    USE tools_dielectric, ONLY: calc_dedielectric_dboundary
+    USE tools_dielectric, ONLY: calc_dedielectric_dboundary, calc_dvdielectric_dboundary
     USE tools_electrolyte, ONLY: calc_deelectrolyte_dboundary, calc_eelectrolyte
     !
     USE tools_math, ONLY: scalar_product_environ_density, &
@@ -488,23 +489,24 @@ CONTAINS
     END SUBROUTINE calc_fenviron
     !------------------------------------------------------------------------------------
     !>
-    !! Calculates the Environ contribution to the local potential. All
-    !! the Environ modules need to be called here. The potentials are
-    !! all computed on the dense real-space grid and added to vtot.
+    !! Calculates the Environ contribution to the response potential in TD calculations
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dvenviron(nnr, rho, drho, dvtot)
+    SUBROUTINE calc_dvenviron(nnr, dvtot)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
-        REAL(DP), INTENT(IN) :: rho(nnr) ! ground-state charge-density
-        REAL(DP), INTENT(IN) :: drho(nnr) ! response charge-density
-        !
         REAL(DP), INTENT(OUT) :: dvtot(nnr)
         !
-        REAL(DP), DIMENSION(:), ALLOCATABLE :: dvpol, dvepsilon
+        TYPE(environ_density) :: aux
+        TYPE(environ_density) :: dvreference
+        TYPE(environ_density) :: dvelectrostatic
+        TYPE(environ_density) :: dvsoftcavity
+        TYPE(environ_density) :: dv_dboundary
+        !
+        CALL init_environ_density(system_cell, aux)
         !
         !--------------------------------------------------------------------------------
         ! If any form of electrostatic embedding is present, calculate its contribution
@@ -513,29 +515,58 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             ! Electrostatics is also computed inside the calling program,
-            ! need to remove the reference #TODO to-be-decided
+            ! need to remove the reference
             !
-            IF (loptical) THEN
-                ALLOCATE (dvpol(nnr))
-                dvpol = 0.D0
-                !
-                ALLOCATE (dvepsilon(nnr))
-                dvepsilon = 0.D0
-                !
-                ! BACKWARD COMPATIBILITY
-                ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-                ! CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
-                ! Compatible with QE-6.4.X QE-GIT
-                CALL calc_vsolvent_tddfpt(nnr, rho, drho, dvpol, dvepsilon)
-                ! END BACKWARD COMPATIBILITY
-                !
-                dvtot = dvtot + dvpol + dvepsilon
-                !
-                DEALLOCATE (dvpol)
-                DEALLOCATE (dvepsilon)
-            END IF
+            CALL init_environ_density(system_cell, dvreference)
+            !
+            CALL calc_velectrostatic(reference, system_response_charges, dvreference)
+            !
+            CALL init_environ_density(environment_cell, dvelectrostatic)
+            !
+            CALL calc_velectrostatic(outer, environment_response_charges, dvelectrostatic)
+            !
+            CALL map_large_to_small(mapping, dvelectrostatic, aux)
+            !
+            dvtot(:) = dvtot(:) + aux%of_r(:) - dvreference%of_r(:)
+            !
+            CALL destroy_environ_density(dvreference)
             !
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Compute the response potential depending on the boundary
+        !
+        IF (lsoftcavity) THEN
+            !
+            CALL init_environ_density(environment_cell, dvsoftcavity)
+            !
+            CALL init_environ_density(environment_cell, dv_dboundary)
+            !
+            IF (lsoftsolvent) THEN
+                dv_dboundary%of_r = 0.D0
+                !
+                ! if dielectric embedding, calcultes dielectric contribution
+                IF (loptical) &
+                     CALL calc_dvdielectric_dboundary(optical, velectrostatic, &
+                     dvelectrostatic, dv_dboundary)
+                !
+                dvsoftcavity%of_r = dv_dboundary%of_r * solvent%dscaled%of_r
+                !
+            END IF
+            !
+            CALL map_large_to_small(mapping, dvsoftcavity, aux)
+            !
+            dvtot(:) = dvtot(:) + aux%of_r(:)
+            !
+            CALL destroy_environ_density(dv_dboundary)
+            !
+            CALL destroy_environ_density(dvsoftcavity)
+            !
+        END IF
+        !
+        IF (lelectrostatic) CALL destroy_environ_density(dvelectrostatic)
+        !
+        CALL destroy_environ_density(aux)
         !
         RETURN
         !

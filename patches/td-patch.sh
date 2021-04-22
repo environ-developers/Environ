@@ -237,7 +237,9 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
       IF (.not.davidson) WRITE( stdout, 8200 )\
 8200  FORMAT(5x,"Calculate Environ contribution to response potential")\
       !\
-      CALL calc_dvenviron( dfftp%nnr, rho%of_r(:,1), drho(:,1), dv(:,1) )\
+      CALL environ_initresponse( dfftp%nnr, drho(:,1) )\
+      !\
+      CALL calc_dvenviron( dfftp%nnr, dv(:,1) )\
       !\
       END IF\
       !Environ patch

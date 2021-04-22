@@ -21,8 +21,8 @@
 !
 !----------------------------------------------------------------------------------------
 !>
-!! This module contains all the main variables needed for the environ module. This 
-!! include the control and debug variables, all physical and numerical parameters, 
+!! This module contains all the main variables needed for the environ module. This
+!! includes the control and debug variables, all physical and numerical parameters,
 !! and the contributions to the energy and to the potential.
 !!
 !----------------------------------------------------------------------------------------
@@ -69,6 +69,14 @@ MODULE environ_base
     TYPE(environ_externals), TARGET :: externals ! external charges
     TYPE(environ_charges), TARGET :: system_charges, environment_charges
     TYPE(environ_system), TARGET :: system_system, environment_system
+    !
+    !------------------------------------------------------------------------------------
+    ! Response properties
+    !
+    TYPE(environ_electrons), TARGET :: system_response_electrons, &
+                                       environment_response_electrons
+    TYPE(environ_charges), TARGET :: system_response_charges, &
+                                     environment_response_charges
     !
     !------------------------------------------------------------------------------------
     ! Details of the continuum interface
