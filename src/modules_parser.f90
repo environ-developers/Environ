@@ -45,8 +45,6 @@ MODULE modules_parser
     PUBLIC :: parse_unit, env_field_count, env_read_line, env_get_field
     PUBLIC :: env_version_parse, env_version_compare
     !
-    INTEGER :: parse_unit = 5 ! normally 5, but can be set otherwise
-    !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
@@ -120,7 +118,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_read_line(line, nfield, field, end_of_file, error)
+    SUBROUTINE env_read_line(unit, line, nfield, field, end_of_file, error)
         !--------------------------------------------------------------------------------
         !
         USE mp, ONLY: mp_bcast
@@ -129,6 +127,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
+        INTEGER, INTENT(IN) :: unit
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: field
         INTEGER, OPTIONAL, INTENT(IN) :: nfield
         !
@@ -146,9 +145,9 @@ CONTAINS
         terr = .FALSE.
         !
         IF (ionode) THEN
-30          READ (parse_unit, fmt='(A256)', ERR=15, END=10) line
+30          READ (unit, fmt='(A256)', ERR=15, END=10) line
             !
-            IF (line == ' ' .OR. line(1:1) == '#') GOTO 30
+            IF (line == ' ' .OR. line(1:1) == '#' .OR. line(1:1) == '!') GOTO 30
             !
             GOTO 20
 10          tend = .TRUE.

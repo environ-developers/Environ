@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Ismaila Dabo       (DMSE, Penn State)
@@ -701,6 +703,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Read values into local variables
+        !
+        IF (ionode) &
+            WRITE (program_unit, '(A)') &
+            '     Reading input from environ.in'
         !
         CALL environ_read_namelist(environ_unit_input)
         !
@@ -1934,26 +1940,27 @@ CONTAINS
         CHARACTER(LEN=80) :: card
         CHARACTER(LEN=1), EXTERNAL :: capital
         LOGICAL :: tend
-        INTEGER :: i
+        INTEGER :: i, local_unit
         !
         !--------------------------------------------------------------------------------
+        ! Set default READ unit if none provided
         !
-        parse_unit = unit ! #TODO FIX THIS !!!
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = 5
+        END IF
         !
         !=-----------------------------------------------------------------------------=!
         !  START OF LOOP
         !=-----------------------------------------------------------------------------=!
         !
-100     CALL env_read_line(input_line, end_of_file=tend)
+100     CALL env_read_line(local_unit, input_line, end_of_file=tend)
         !
         !--------------------------------------------------------------------------------
         ! Skip blank/comment lines (REDUNDANT)
         !
         IF (tend) GOTO 120
-        !
-        ! #TODO redundant IF statement? add to env_read_line?
-        IF (input_line == ' ' .OR. input_line(1:1) == '#' .OR. input_line(1:1) == '!') &
-            GOTO 100
         !
         READ (input_line, *) card
         !
@@ -1968,9 +1975,9 @@ CONTAINS
         ! Read cards
         !
         IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
-            CALL card_external_charges(input_line)
+            CALL card_external_charges(local_unit, input_line)
         ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
-            CALL card_dielectric_regions(input_line)
+            CALL card_dielectric_regions(local_unit, input_line)
         ELSE
             !
             ! #TODO add more meaningful warnings
@@ -2037,10 +2044,12 @@ CONTAINS
     !!      axis(i)   ( integer )    1/2/3 for x/y/z direction of line/plane (optional, default=3)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE card_external_charges(input_line)
+    SUBROUTINE card_external_charges(unit, input_line)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: unit
         !
         CHARACTER(LEN=256) :: input_line
         INTEGER :: ie, ix, ierr, nfield
@@ -2085,7 +2094,7 @@ CONTAINS
         !
         DO ie = 1, env_external_charges
             !
-            CALL env_read_line(input_line, end_of_file=tend)
+            CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) &
                 CALL errore('environ_cards', 'end of file reading external charges', ie)
@@ -2255,10 +2264,12 @@ CONTAINS
     !!      axis(i)    ( integer )    1/2/3 for x/y/z direction of line/plane (optional)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE card_dielectric_regions(input_line)
+    SUBROUTINE card_dielectric_regions(unit, input_line)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: unit
         !
         CHARACTER(LEN=256) :: input_line
         INTEGER :: ie, ix, ierr, nfield
@@ -2301,7 +2312,7 @@ CONTAINS
         !
         DO ie = 1, env_dielectric_regions
             !
-            CALL env_read_line(input_line, end_of_file=tend)
+            CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) CALL errore('environ_cards', &
                                   'end of file reading dielectric regions', ie)
