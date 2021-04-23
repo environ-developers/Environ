@@ -16,7 +16,7 @@ MODULE correction_ms
     !
     USE environ_types
     USE electrostatic_types
-    USE environ_output, ONLY: environ_unit
+    USE environ_output, ONLY: environ_unit, ionode, verbose
     USE modules_constants, ONLY: e2, fpi, k_boltzmann_ry, pi, tpi
     !
     IMPLICIT NONE
@@ -158,8 +158,11 @@ CONTAINS
         ! Finds the total length of the depletion region
         !
         depletion_length = 2.D0 * fact * ez
-        WRITE (environ_unit, *) "depletion length: ", depletion_length
-        WRITE (environ_unit, *) "vms: ", vms
+        !
+        IF (ionode .AND. verbose > 0) THEN
+            WRITE (environ_unit, *) "depletion length: ", depletion_length
+            WRITE (environ_unit, *) "vms: ", vms
+        END IF
         !
         vbound = 0.D0
         icount = 0
