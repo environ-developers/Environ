@@ -130,7 +130,7 @@ CONTAINS
             !
             DO ir = 1, mapping%small%ir_end
                 !
-                IF (mapping%map(ir) > 0) & ! This test may be redundant
+                IF (mapping%map(ir) > 0) &
                     auxlarge(mapping%map(ir)) = fsmall%of_r(ir)
                 !
             END DO
@@ -268,7 +268,7 @@ CONTAINS
             !
             DO ir = 1, mapping%small%ir_end
                 !
-                IF (mapping%map(ir) > 0) & ! This test may be redundant
+                IF (mapping%map(ir) > 0) &
                     fsmall%of_r(ir) = auxlarge(mapping%map(ir))
                 !
             END DO

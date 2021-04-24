@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -322,7 +324,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            !  Calculate electrolyte charge
+            ! Calculate electrolyte charge
             !
             residual%of_r = 0.D0
             denominator%of_r = 1.D0
@@ -374,7 +376,7 @@ CONTAINS
             residual%of_r = gam%of_r * residual%of_r / denominator%of_r
             !
             !----------------------------------------------------------------------------
-            ! residual is now the new electrolyte charge
+            ! Residual is now the new electrolyte charge
             !
             residual%of_r = residual%of_r - rhoaux%of_r
             rhoaux%of_r = rhoaux%of_r + mix * residual%of_r

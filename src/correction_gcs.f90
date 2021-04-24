@@ -387,7 +387,7 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'calc_gradvgcs'
         !
         !--------------------------------------------------------------------------------
-        !        
+        !
         CALL start_clock('calc_gvst')
         !
         IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &

@@ -399,7 +399,7 @@ CONTAINS
                 DO ir = 1, potential%cell%ir_end
                     !
                     !--------------------------------------------------------------------
-                    ! numerical problems arise when computing exp( -z*pot/kT )
+                    ! Numerical problems arise when computing exp( -z*pot/kT )
                     ! in regions close to the nuclei (exponent is too large).
                     !
                     arg = -z * pot(ir) / kT

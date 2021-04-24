@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -323,7 +325,7 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-        ! double check that one and only one solver is specified
+        ! Double check that one and only one solver is specified
         !
         number = 0
         !
@@ -444,7 +446,7 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-        ! double check number of active cores
+        ! Double check number of active cores
         !
         number = 0
         !

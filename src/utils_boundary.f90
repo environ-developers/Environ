@@ -130,7 +130,7 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-        ! double check number of active cores
+        ! Double check number of active cores
         !
         number = 0
         !
@@ -845,10 +845,8 @@ CONTAINS
                 !
             ELSE
                 !
-                !------------------------------------------------------------------------
-                ! boundary has not changed
-                !
                 IF (bound%update_status == 2) bound%update_status = 0
+                ! boundary has not changed
                 !
                 RETURN
                 !
@@ -941,10 +939,8 @@ CONTAINS
                 !
             ELSE
                 !
-                !------------------------------------------------------------------------
-                ! Boundary has not changed
-                !
                 IF (bound%update_status == 2) bound%update_status = 0
+                ! boundary has not changed
                 !
                 RETURN
                 !

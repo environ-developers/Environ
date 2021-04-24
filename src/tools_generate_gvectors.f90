@@ -335,7 +335,7 @@ CONTAINS
             CALL errore('ggen', 'g-vectors (ngm) missing !', ABS(ngm - ngm_save))
         !
         !--------------------------------------------------------------------------------
-        ! determine first nonzero g vector
+        ! Determine first nonzero g vector
         !
         IF (gg(1) <= eps8) THEN
             gstart = 2

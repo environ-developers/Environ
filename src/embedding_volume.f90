@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
@@ -61,7 +63,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         de_dboundary%of_r = de_dboundary%of_r + pressure
-        ! The functional derivative of the volume term is just unity
+        ! the functional derivative of the volume term is just unity
         !
         RETURN
         !
@@ -84,7 +86,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        evolume = pressure * boundary%volume * e2 / 2.D0 ! Computes the PV energy
+        evolume = pressure * boundary%volume * e2 / 2.D0 ! computes the PV energy
         !
         RETURN
         !

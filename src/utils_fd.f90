@@ -256,7 +256,7 @@ CONTAINS
         CASE DEFAULT
             !
             !----------------------------------------------------------------------------
-                ! DEBUGGING
+            ! DEBUGGING
             !
             WRITE (*, *) 'ERROR: finite difference type unknown, ifdtype=', ifdtype
             !

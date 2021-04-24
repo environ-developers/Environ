@@ -13,9 +13,8 @@
 !    GNU General Public License for more detail, either the file
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
-!!
-!! At this time the subroutines are mostly wrappers for the FFT
-!! solver of Quantum ESPRESSO.
+!
+!----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
@@ -276,8 +275,6 @@ CONTAINS
                     CALL errore(sub_name, &
                                 'Missing electrolyte for &
                                 &electrochemical boundary correction', 1)
-                !
-                WRITE (environ_unit, *) "Calling calc_vms_gcs now"
                 !
                 CALL calc_vms_gcs(core%correction%oned_analytic, electrolyte, &
                                   semiconductor, charges, local)

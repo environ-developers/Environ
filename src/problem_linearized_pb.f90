@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -80,7 +82,7 @@ CONTAINS
             CALL init_environ_density(potential%cell, local_screening)
             !
             IF (PRESENT(screening)) THEN
-                local_screening%of_r = screening%of_r ! External screening
+                local_screening%of_r = screening%of_r ! external screening
             ELSE
                 !
                 !------------------------------------------------------------------------
@@ -177,7 +179,7 @@ CONTAINS
             CALL init_environ_density(potential%cell, local_screening)
             !
             IF (PRESENT(screening)) THEN
-                local_screening%of_r = screening%of_r ! External screening
+                local_screening%of_r = screening%of_r ! external screening
             ELSE
                 !
                 !------------------------------------------------------------------------

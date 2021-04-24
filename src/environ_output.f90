@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -2090,9 +2092,9 @@ CONTAINS
                         IF (ABS(tmp) < 1.D-99) tmp = 0.D0
                         !
                         IF (MOD(count, 6) == 0) THEN
-                            WRITE (300, '(e12.6,1x)') tmp
+                            WRITE (300, '(e13.6,1x)') tmp
                         ELSE
-                            WRITE (300, '(e12.6,1x)', advance='no') tmp
+                            WRITE (300, '(e13.6,1x)', advance='no') tmp
                         END IF
                         !
                     END DO

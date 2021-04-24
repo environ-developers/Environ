@@ -91,7 +91,7 @@ end block
 
 # comments
 
-## attached to single-line code
+## attached to single-line code (lowercase)
 
 - <= col 90 (including comment):
   - on the same line, separated by a single blank space from code
@@ -112,10 +112,13 @@ code...... &
     ......
 ```
 
-## !---------- sectioning
+## section comments (sentence-case)
+
+- see `!---------- sectioning`
+
+# !---------- sectioning
 
 - up to, but not including col 90
-- use dashed line to separate variable declaration from subroutine/function body
 - use to section code blocks (multiple commands of common purpose)
 
 ```

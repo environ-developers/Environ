@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
@@ -26,7 +28,7 @@
 !! to the dipole of the system along the direction perpendicular to the slab,
 !! the second order proportional to the total charge of the system.
 !!
-!! The variables needed to correct periodic boundary conditions for a partially periodic 
+!! The variables needed to correct periodic boundary conditions for a partially periodic
 !! system. Real space correction with planar average approximation.
 !!
 !----------------------------------------------------------------------------------------
@@ -162,7 +164,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vperiodic
     !------------------------------------------------------------------------------------
-    !> 
+    !>
     !! Note that in this subroutine the ionic density is implicit (and thus
     !! spread gaussians). Since the gradient of the corrective potential does
     !! not depend on the quadrupole moment of rhotot, it should be independent

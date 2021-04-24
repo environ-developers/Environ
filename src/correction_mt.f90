@@ -6,7 +6,7 @@
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
 !----------------------------------------------------------------------------------------
-!> 
+!>
 !! The variables needed to the Martyna-Tuckerman method for isolated systems
 !!
 !----------------------------------------------------------------------------------------

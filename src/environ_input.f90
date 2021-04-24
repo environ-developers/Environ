@@ -42,7 +42,7 @@ MODULE environ_input
     SAVE
     !
     !=---------------------------------------------------------------------------------=!
-!       ENVIRON Cards Parameters
+!     ENVIRON Cards Parameters
     !=---------------------------------------------------------------------------------=!
     !
     ! Local parameters of external charges
@@ -72,7 +72,7 @@ MODULE environ_input
     CHARACTER(LEN=80) :: dielectric_regions = 'bohr' ! atomic positions (bohr|angstrom)
     !
     !=---------------------------------------------------------------------------------=!
-!       ENVIRON Namelist Input Parameters
+!     ENVIRON Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
     LOGICAL :: environ_restart = .FALSE.
@@ -234,7 +234,7 @@ MODULE environ_input
         sc_chg_thr, env_external_charges, env_dielectric_regions
     !
     !=---------------------------------------------------------------------------------=!
-!       BOUNDARY Namelist Input Parameters
+!     BOUNDARY Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
     ! Soft boundary (electronic) parameters
@@ -457,7 +457,7 @@ MODULE environ_input
         electrolyte_softness, derivatives, ifdtype, nfdpoint, sc_distance, sc_spread
     !
     !=---------------------------------------------------------------------------------=!
-!       ELECTROSTATIC Namelist Input Parameters
+!     ELECTROSTATIC Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
     CHARACTER(LEN=80) :: problem = 'none'
@@ -735,7 +735,7 @@ CONTAINS
             OPEN (unit=environ_unit, file='environ.debug', status='unknown')
         !
         !=-----------------------------------------------------------------------------=!
-        !  Set module variables according to input
+        ! Set module variables according to input
         !=-----------------------------------------------------------------------------=!
         !
         ! Set electrostatic first as it does not depend on anything else
@@ -1485,7 +1485,7 @@ CONTAINS
             CALL errore(sub_name, ' electrolyte_softness out of range ', 1)
         !
         !--------------------------------------------------------------------------------
-        ! semiconductor checks
+        ! Semiconductor checks
         !
         IF (sc_distance < 0.0_DP) &
             CALL errore(sub_name, ' electrolyte_distance out of range ', 1)
@@ -1744,7 +1744,7 @@ CONTAINS
         SELECT CASE (TRIM(ADJUSTL(environ_type)))
             !
             !----------------------------------------------------------------------------
-            ! water experimental permittivities
+            ! Water experimental permittivities
             !
         CASE ('water', 'water-cation', 'water-anion')
             env_static_permittivity = 78.3D0
@@ -1802,8 +1802,8 @@ CONTAINS
             !
             radius_mode = 'uff'
             softness = 0.5D0
-            env_surface_tension = 50.D0 !! NOTE THAT WE ARE USING THE
-            env_pressure = -0.35D0      !! SET FOR CLUSTERS, AS IN SCCS
+            env_surface_tension = 50.D0 ! NOTE THAT WE ARE USING THE
+            env_pressure = -0.35D0      ! SET FOR CLUSTERS, AS IN SCCS
             !
             SELECT CASE (TRIM(ADJUSTL(environ_type)))
             CASE ('water')
@@ -1989,7 +1989,7 @@ CONTAINS
         END IF
         !
         !=-----------------------------------------------------------------------------=!
-        !  END OF LOOP
+        ! END OF LOOP
         !=-----------------------------------------------------------------------------=!
         !
         GOTO 100
@@ -2102,14 +2102,14 @@ CONTAINS
             CALL env_field_count(nfield, input_line)
             !
             !----------------------------------------------------------------------------
-            ! read field 1 (total charge of the external density)
+            ! Read field 1 (total charge of the external density)
             !
             CALL env_get_field(1, field_str, input_line)
             !
             READ (field_str, *) extcharge_charge(ie)
             !
             !----------------------------------------------------------------------------
-            ! read fields 2-4 (x-y-z position of external density)
+            ! Read fields 2-4 (x-y-z position of external density)
             !
             CALL env_get_field(2, field_str, input_line)
             !
@@ -2124,7 +2124,7 @@ CONTAINS
             READ (field_str, *) extcharge_pos(3, ie)
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 5 (spread of the density)
+            ! Optionally read field 5 (spread of the density)
             !
             IF (nfield >= 5) THEN
                 !
@@ -2139,7 +2139,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 6 and 7 (dimensionality and direction)
+            ! Optionally read field 6 and 7 (dimensionality and direction)
             !
             IF (nfield >= 6) THEN
                 !
@@ -2320,7 +2320,7 @@ CONTAINS
             CALL env_field_count(nfield, input_line)
             !
             !----------------------------------------------------------------------------
-            ! read field 1-2 (static and optical permettivity inside dielectric region)
+            ! Read field 1-2 (static and optical permettivity inside dielectric region)
             !
             CALL env_get_field(1, field_str, input_line)
             !
@@ -2339,7 +2339,7 @@ CONTAINS
                             ' optical permittivity must be .gt. 1', ie)
             !
             !----------------------------------------------------------------------------
-            ! read fields 3-5 (x-y-z position of dielectric region)
+            ! Read fields 3-5 (x-y-z position of dielectric region)
             !
             CALL env_get_field(3, field_str, input_line)
             !
@@ -2354,7 +2354,7 @@ CONTAINS
             READ (field_str, *) epsregion_pos(3, ie)
             !
             !----------------------------------------------------------------------------
-            ! read field 6 (size/width of the dielectric region)
+            ! Read field 6 (size/width of the dielectric region)
             !
             CALL env_get_field(6, field_str, input_line)
             !
@@ -2365,7 +2365,7 @@ CONTAINS
                             ' width must be positive', ie)
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 7 (spread of interface of the dielectric region)
+            ! Optionally read field 7 (spread of interface of the dielectric region)
             !
             IF (nfield >= 7) THEN
                 !
@@ -2380,7 +2380,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 7 and 8 (dimensionality and direction)
+            ! Optionally read field 7 and 8 (dimensionality and direction)
             !
             IF (nfield >= 8) THEN
                 !

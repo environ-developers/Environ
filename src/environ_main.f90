@@ -15,6 +15,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Ismaila Dabo       (DMSE, Penn State)
@@ -232,7 +234,6 @@ CONTAINS
                 !
                 IF (electrolyte%boundary%field_aware) THEN
                     !
-                    !--------------------------------------------------------------------
                     ! CALL field_aware_de_drho(electrolyte%boundary, de_dboundary, vsoftcavity) ! #TODO field-aware
                     ! if field-aware, correct the derivative of the interface function
                     !

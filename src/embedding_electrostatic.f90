@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -244,13 +246,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Include environment contributions
         !
-        IF (charges%include_dielectric) THEN 
+        IF (charges%include_dielectric) THEN
             degauss = degauss + charges%dielectric%charge * 0.5D0 ! polarization charge
         END IF
         !
-        IF (charges%include_electrolyte) THEN 
+        IF (charges%include_electrolyte) THEN
             !
-            ! Note: electrolyte electrostatic interaction should be negative
+            ! note: electrolyte electrostatic interaction should be negative
             energy = energy - 0.5D0 * scalar_product_environ_density( &
                      charges%electrolyte%density, potential)
             !

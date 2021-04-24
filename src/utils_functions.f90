@@ -236,16 +236,16 @@ CONTAINS
         !
         SELECT CASE (type_)
         CASE (1)
-            CALL generate_gaussian(dim, axis, charge, spread, pos, density) ! Gaussian
+            CALL generate_gaussian(dim, axis, charge, spread, pos, density) ! gaussian
         CASE (2)
+            !
             CALL generate_erfc(dim, axis, charge, width, spread, pos, density)
             ! CHARGE * NORMALIZED_ERFC_HALF(X); integrates to charge
+            !
         CASE (3)
             !
-            !----------------------------------------------------------------------------
-            ! Exponential
-            !
             CALL generate_exponential(dim, axis, width, spread, pos, density)
+            ! exponential
             !
         CASE (4)
             !
@@ -344,17 +344,19 @@ CONTAINS
         !
         SELECT CASE (type_)
         CASE (1)
+            !
             CALL generate_gradgaussian(dim, axis, charge, spread, pos, gradient)
-            ! Gaussian
+            ! gaussian
+            !
         CASE (2)
+            !
             CALL generate_graderfc(dim, axis, charge, width, spread, pos, gradient)
             ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
+            !
         CASE (3)
             !
-            !----------------------------------------------------------------------------
-            ! Exponential
-            !
             CALL generate_gradexponential(dim, axis, width, spread, pos, gradient)
+            ! exponential
             !
         CASE (4)
             !
@@ -451,12 +453,14 @@ CONTAINS
         !
         SELECT CASE (type_)
         CASE (1)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! Gaussian
+            CALL errore(sub_name, 'Options not yet implemented', 1) ! gaussian
         CASE (2)
+            !
             CALL generate_laplerfc(dim, axis, charge, width, spread, pos, laplacian)
             ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
+            !
         CASE (3)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! Exponential
+            CALL errore(sub_name, 'Options not yet implemented', 1) ! exponential
         CASE (4)
             !
             !----------------------------------------------------------------------------
@@ -554,13 +558,15 @@ CONTAINS
         !
         SELECT CASE (type_)
         CASE (1)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! Gaussian
+            CALL errore(sub_name, 'Options not yet implemented', 1) ! gaussian
         CASE (2)
+            !
             CALL generate_hesserfc(dim, axis, charge, width, spread, pos, hessian)
             ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
+            !
         CASE (3)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! Exponential
-        CASE (4) 
+            CALL errore(sub_name, 'Options not yet implemented', 1) ! exponential
+        CASE (4)
             !
             !----------------------------------------------------------------------------
             ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
@@ -570,7 +576,7 @@ CONTAINS
             !
             CALL generate_hesserfc(dim, axis, local_charge, width, spread, pos, hessian)
             !
-        CASE (5) 
+        CASE (5)
             !
             !----------------------------------------------------------------------------
             ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF )

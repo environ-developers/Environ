@@ -45,10 +45,10 @@ MODULE core_types
         INTEGER :: ngm = 0  ! local  number of G vectors (on this processor)
         ! with gamma tricks, only vectors in G>
         !
-        REAL(DP) :: gcutm = 0.0_DP   ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
+        REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
         !
         INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
-        ! Needed in parallel execution:
+        ! needed in parallel execution:
         ! gstart=2 for the proc that holds G=0
         ! gstart=1 for all others
         !
@@ -56,7 +56,7 @@ MODULE core_types
         ! G^2 in increasing order (in units of tpiba2=(2pi/a)^2)
         !
         REAL(DP), ALLOCATABLE :: g(:, :)
-        ! G-vectors cartesian components ( in units tpiba =(2pi/a)  )
+        ! G-vectors cartesian components ( in units tpiba =(2pi/a) )
         !
         !--------------------------------------------------------------------------------
         ! Martyna-Tuckerman correction

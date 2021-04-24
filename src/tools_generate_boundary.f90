@@ -14,6 +14,8 @@
 !    in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Ismaila Dabo       (DMSE, Penn State)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -1239,7 +1241,7 @@ CONTAINS
         tol = 1.D-60
         !
         !--------------------------------------------------------------------------------
-        ! temporary quotient
+        ! Temporary quotient
         !
         DO i = 1, n
             !
@@ -1736,6 +1738,7 @@ CONTAINS
         !
         CALL convolution_fft(fft, boundary%local, boundary%probe, filled_fraction)
         !
+        !--------------------------------------------------------------------------------
         ! Step 3: compute the filling function and its derivative
         !
         boundary%filling%of_r = 0.D0
@@ -1863,7 +1866,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            ! if needed, now can recompute dsurface
+            ! Recompute dsurface, if needed
             !
             IF (deriv >= 3) THEN
                 !

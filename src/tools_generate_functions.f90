@@ -15,6 +15,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
@@ -450,7 +452,7 @@ CONTAINS
             CALL minimum_image(cell, r, r2) ! minimum image convention
             !
             !----------------------------------------------------------------------------
-            ! compute error function
+            ! Compute error function
             !
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
@@ -995,7 +997,7 @@ CONTAINS
         CASE (0)
             !
             !----------------------------------------------------------------------------
-            ! zero-dimensional erfc, volume is approx the one of the
+            ! Zero-dimensional erfc, volume is approx the one of the
             ! sphere of radius=width
             !
             erfcvolume = fpi / 3.D0 * width**3 * &
@@ -1003,7 +1005,7 @@ CONTAINS
         CASE (1)
             !
             !----------------------------------------------------------------------------
-            ! one-dimensional erfc, volume is approx the one of the
+            ! One-dimensional erfc, volume is approx the one of the
             ! cylinder of radius=width and length=alat*at(axis,axis)
             !
             erfcvolume = pi * width**2 * cell%at(axis, axis) * cell%alat * &
@@ -1011,7 +1013,7 @@ CONTAINS
         CASE (2)
             !
             !----------------------------------------------------------------------------
-            ! two-dimensional erfc, volume is exactly the one of the
+            ! Two-dimensional erfc, volume is exactly the one of the
             ! box, does not depend on spread
             !
             erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis) / cell%alat

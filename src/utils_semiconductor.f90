@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Quinn Campbell (Department of Materials Science and Engineering, Penn State)
 !
 !----------------------------------------------------------------------------------------

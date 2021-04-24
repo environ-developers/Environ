@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Ismaila Dabo       (DMSE, Penn State)
@@ -27,7 +29,7 @@
 MODULE environ_init
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY : bohr_radius_si, rydberg_si
+    USE modules_constants, ONLY: bohr_radius_si, rydberg_si
     USE cell_types
     USE core_types
     USE environ_types
@@ -764,7 +766,7 @@ CONTAINS
         !
         system_cell%update = .TRUE.
         !
-        CALL update_environ_cell(at, system_cell) ! Update system cell parameters
+        CALL update_environ_cell(at, system_cell) ! update system cell parameters
         !
         IF (ldoublecell) THEN
             environment_cell%update = .TRUE.
@@ -781,7 +783,7 @@ CONTAINS
             !
         END IF
         !
-        CALL core_initcell(system_cell, environment_cell) ! Update cores
+        CALL core_initcell(system_cell, environment_cell) ! update cores
         !
         !--------------------------------------------------------------------------------
         ! Update fixed quantities defined inside the cell

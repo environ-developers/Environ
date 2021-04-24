@@ -14,11 +14,13 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------------------
-!> 
+!>
 !! Module to initialize electrostatic-related variables
 !!
 !----------------------------------------------------------------------------------------
@@ -39,7 +41,7 @@ MODULE electrostatic_init
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
-    !> 
+    !>
     !! Copies input variables read in input to global variables
     !! kept in the electrostatic_base module
     !!

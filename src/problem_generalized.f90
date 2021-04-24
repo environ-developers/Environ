@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
@@ -758,7 +760,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             !
             Ap%of_r = factsqrt%of_r * z%of_r + r%of_r + beta * Ap%of_r
-            ! Apply operator to conjugate direction
+            ! apply operator to conjugate direction
             !
             !----------------------------------------------------------------------------
             ! Step downhill

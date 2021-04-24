@@ -196,7 +196,7 @@ CONTAINS
 #endif
         !
         cell%ntot = cell%dfft%nr1 * cell%dfft%nr2 * cell%dfft%nr3
-        ! Total number of physical points
+        ! total number of physical points
         !
         !--------------------------------------------------------------------------------
         ! Set basic cell properties
@@ -231,11 +231,11 @@ CONTAINS
         cell%at = at
         !
         CALL volume(cell%alat, cell%at(1, 1), cell%at(1, 2), cell%at(1, 3), cell%omega)
-        ! Calculate cell volume
+        ! calculate cell volume
         !
         cell%cubic = iscubic(cell%at) ! Check if the cell is cubic
         !
-        ! Calculate reciprocal cell
+        ! calculate reciprocal cell
         CALL recips(cell%at(1, 1), cell%at(1, 2), cell%at(1, 3), &
                     cell%bg(1, 1), cell%bg(1, 2), cell%bg(1, 3))
         !
@@ -740,7 +740,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        center = NINT(small_n / 2.D0) ! Indexes of center of small cell
+        center = NINT(small_n / 2.D0) ! indexes of center of small cell
         !
         !--------------------------------------------------------------------------------
         ! Indexes of origin of small cell

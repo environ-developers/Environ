@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -366,7 +368,7 @@ MODULE environ_types
         !
         !--------------------------------------------------------------------------------
         !
-        TYPE(environ_functions) :: simple ! Components needed for boundary of system
+        TYPE(environ_functions) :: simple ! components needed for boundary of system
         !
         !--------------------------------------------------------------------------------
         ! Components needed for solvent-aware boundary
