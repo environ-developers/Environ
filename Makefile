@@ -104,6 +104,10 @@ revert-qe-patches: check-qe-makeinc
 	@ printf "\nReverting QE patches using Environ version ${ENVIRON_VERSION}...\n"
 	@ ./patches/environpatch.sh -revert
 
+update-Environ-dependencies:
+	@ printf "\nUpdating Environ dependencies...\n\n"
+	@ ./install/makedeps.sh
+
 update-QE-dependencies:
 	@ printf "\nUpdating QE dependencies...\n\n"
 	@ (cd ../ && ./install/makedeps.sh)
@@ -117,20 +121,26 @@ install-QE+Environ: check-environ-makeinc check-qe-makeinc
 	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
 	if [ "$$c" = "y" ]; then \
 		printf "\nUse # cores (default = 1) -> "; read cores; \
-		$(MAKE) -j$${cores:=1} compile-environ; \
-		$(MAKE) -j$${cores:=1} patch-qe; \
-		$(MAKE) -j$${cores:=1} update-QE-dependencies; \
-		$(MAKE) -j$${cores:=1} compile-qe-pw; \
+		$(MAKE) update-Environ-dependencies; \
+		printf '' > install/Environ_comp.log; \
+		$(MAKE) -j$${cores:=1} compile-environ 2>&1 | tee install/Environ_comp.log; \
+		$(MAKE) check-for-errors prog=Environ; if [ $$? != 0 ]; then exit; fi; \
+		$(MAKE) patch-qe; \
+		$(MAKE) update-QE-dependencies; \
+		printf '' > install/QE_comp.log; \
+		$(MAKE) -j$${cores:=1} compile-qe-pw 2>&1 | tee install/QE_comp.log; \
+		$(MAKE) check-for-errors prog=QE; if [ $$? != 0 ]; then exit; fi; \
 	else \
 		echo; \
-	fi 2>&1 | tee install/compilation.log; \
-	$(MAKE) check-for-errors
+	fi
 
 check-for-errors:
-	@ if grep -qE "error #[0-9]+" install/compilation.log; then \
-		printf "\nErrors found. See install/compilation.log\n\n"; \
+	@ if grep -qE "error #[0-9]+" install/$(prog)_comp.log; then \
+		printf "\nErrors found. See install/$(prog)_comp.log\n\n"; \
+		exit 1 >a; \
 	else \
-		printf "\nInstallation successful!\n\n"; \
+		printf "\n$(prog) compilation successful!\n\n"; \
+		exit; \
 	fi
 
 uninstall-QE+Environ: 
