@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
 #    This file is part of Environ version 1.1
@@ -14,7 +16,8 @@
 #    `License' in the root directory of the present distribution, or
 #    online at <http://www.gnu.org/licenses/>.
 #
-# Author: Oliviero Andreussi (Department of Physics, University of North Thexas)
+# Author: Oliviero Andreussi (Department of Physics, University of North Texas)
+#	      Edan Bainglass (Department of Physics, University of North Texas)
 #
 
 ifndef VERBOSE
@@ -33,6 +36,9 @@ doc:
 ################################################################################
 # COMPILATION ROUTINES
 ################################################################################
+
+# for development purposes
+recompile: compile-environ compile-qe-pw
 
 compile-environ: check-environ-makeinc libsdir
 	@ $(MAKE) libfft
@@ -53,14 +59,14 @@ decompile-qe-pw:
 libfft:
 	@ printf "\nCompiling FFTXlib...\n\n"
 	@ ( \
-		cd FFTXlib ; $(MAKE) TLDEPS=all || exit 1; \
+		cd FFTXlib && $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
 	 )
 
 libutil: 
 	@ printf "\nCompiling UtilXlib...\n\n"
 	@ ( \
-		cd UtilXlib ; $(MAKE) TLDEPS=all || exit 1; \
+		cd UtilXlib && $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
 	)
 
@@ -74,35 +80,37 @@ libenv:
 libsdir:
 	@ test -d libs || mkdir libs
 
-check-environ-makeinc: # TODO can the error be silent?
+check-environ-makeinc:
 	@ if [ ! -e make.inc ]; then \
 		  printf "\nMissing make.inc. Please configure installation.\n\n"; \
 		  exit 1; \
 	  fi
 	
-check-qe-makeinc: # TODO can the error be silent?
+check-qe-makeinc:
 	@ if [ ! -e ../make.inc ]; then \
 		  printf "\nMissing QE/make.inc. Please configure the QE installation.\n\n"; \
 		  exit 1; \
 	  fi
 
 ################################################################################
-# INSTALL ROUTINES FOR QE+ENVIRON
+# PATCHING ROUTINES FOR QE+ENVIRON
 ################################################################################
 
 patch-qe: check-qe-makeinc
 	@ printf "\nApplying QE patches using Environ version ${ENVIRON_VERSION}...\n"
 	@ ./patches/environpatch.sh -patch
-	@ $(MAKE) update-QE-dependencies
 
 revert-qe-patches: check-qe-makeinc
 	@ printf "\nReverting QE patches using Environ version ${ENVIRON_VERSION}...\n"
 	@ ./patches/environpatch.sh -revert
-	@ $(MAKE) update-QE-dependencies
 
 update-QE-dependencies:
 	@ printf "\nUpdating QE dependencies...\n\n"
 	@ (cd ../ && ./install/makedeps.sh)
+
+################################################################################
+# INSTALL ROUTINES FOR QE+ENVIRON
+################################################################################
 
 install-QE+Environ: check-environ-makeinc check-qe-makeinc
 	@ printf "\nThis will compile Environ, patch QE, then compile QE.\n"
@@ -111,10 +119,18 @@ install-QE+Environ: check-environ-makeinc check-qe-makeinc
 		printf "\nUse # cores (default = 1) -> "; read cores; \
 		$(MAKE) -j$${cores:=1} compile-environ; \
 		$(MAKE) -j$${cores:=1} patch-qe; \
+		$(MAKE) -j$${cores:=1} update-QE-dependencies; \
 		$(MAKE) -j$${cores:=1} compile-qe-pw; \
-		printf "\nDone!\n\n"; \
 	else \
 		echo; \
+	fi 2>&1 | tee install/compilation.log; \
+	$(MAKE) check-for-errors
+
+check-for-errors:
+	@ if grep -qE "error #[0-9]+" install/compilation.log; then \
+		printf "\nErrors found. See install/compilation.log\n\n"; \
+	else \
+		printf "\nInstallation successful!\n\n"; \
 	fi
 
 uninstall-QE+Environ: 
@@ -123,6 +139,7 @@ uninstall-QE+Environ:
 	if [ "$$c" = "y" ]; then \
 		$(MAKE) decompile-environ; \
 		$(MAKE) revert-qe-patches; \
+		$(MAKE) update-QE-dependencies; \
 		$(MAKE) decompile-qe-pw; \
 		printf "\nDone!\n\n"; \
 	else \
@@ -168,7 +185,7 @@ clean-doc:
 veryclean: clean
 	@ printf "Config........"
 	@ (cd install && \
-	   rm -rf config.log configure.msg config.status)
+	   rm -rf *.log configure.msg config.status)
 	@ rm make.inc
 	@ printf " done!\n"
 
