@@ -24,16 +24,15 @@
 
 cd $XS_SRC
 
-if test -e "Environ_PATCH" ; then
-    echo "-- File Environ_PATCH exists in XSpectra/src directory"
-    echo "-- I guess you have already patched XSpectra/src with Environ $(tail -1 Environ_PATCH)"
-    echo "-- Please unpatch it first, or start from a clean source tree"
-    echo "-- See you later..."
-    echo "* ABORT"
-    exit
+patch_makefile
+
+check_src_patched
+if test "$PATCHED" == 1; then 
+   return
+else
+   patch_message
 fi
 
-echo "* I will try to patch XSpectra/src with Environ version $ENVIRON_VERSION ..."
 echo "#Please do not remove or modify this file"                          >  Environ_PATCH
 echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
 echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
@@ -100,12 +99,12 @@ index c8f9685..37f2708 100644
 EOF
 
 
-patch -b -z PreENVIRON --ignore-whitespace -i tmp.XS.1
-patch -b -z PreENVIRON --ignore-whitespace -i tmp.XS.2
-patch -b -z PreENVIRON --ignore-whitespace -i tmp.XS.3
+patch -b -z PreENVIRON --ignore-whitespace -i tmp.XS.1 >/dev/null
+patch -b -z PreENVIRON --ignore-whitespace -i tmp.XS.2 >/dev/null
+patch -b -z PreENVIRON --ignore-whitespace -i tmp.XS.3 >/dev/null
 
 rm tmp.XS.? 
 
-echo "- DONE!"
+printf " done!\n"
 
 cd $QE_DIR

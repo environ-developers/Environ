@@ -25,19 +25,18 @@
 
 cd $PW_SRC
 
-if test -e "Environ_PATCH" ; then
-    echo "-- File Environ_PATCH exists in PW/src directory"
-    echo "-- I guess you have already patched PW/src with Environ $(tail -1 Environ_PATCH)"
-    echo "-- Please unpatch it first, or start from a clean source tree"
-    echo "-- See you later..."
-    echo "* ABORT"
-    exit
+patch_makefile
+
+check_src_patched
+if test "$PATCHED" == 1; then 
+   return
+else
+   patch_message
 fi
 
-echo "* I will try to patch PW/src with Environ version $ENVIRON_VERSION ..."
-echo "#Please do not remove or modify this file"                          >  Environ_PATCH
-echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
-echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
+echo "#Please do not remove or modify this file" >Environ_PATCH
+echo "#It keeps track of patched versions of the Environ addson package" >>Environ_PATCH
+echo "$ENVIRON_VERSION" >>Environ_PATCH
 
 # plugin_int_forces
 
@@ -45,13 +44,13 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
   USE environ_main,  ONLY : calc_fenviron\
 !Environ patch
-' plugin_int_forces.f90 > tmp.1
+' plugin_int_forces.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
   REAL(DP), ALLOCATABLE :: force_environ(:,:)\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
@@ -82,7 +81,7 @@ sed '/Environ CALLS BEGIN/ a\
 9001 FORMAT(5x,"The global environment contribution to forces")\
 9002 FORMAT(5X,"atom ",I4," type ",I2,"   force = ",3F14.8)\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_int_forces.f90
 
@@ -109,7 +108,7 @@ sed '/Environ MODULES BEGIN/ a\
   USE environ_input,     ONLY : read_environ\
   USE environ_output,    ONLY : set_environ_output\
 !Environ patch
-' plugin_read_input.f90 > tmp.1
+' plugin_read_input.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
@@ -119,7 +118,7 @@ sed '/Environ VARIABLES BEGIN/ a\
 ! Compatible with QE-6.3.X and QE-GIT\
 ! END BACKWARD COMPATIBILITY\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
@@ -138,7 +137,7 @@ sed '/Environ CALLS BEGIN/ a\
 ! END BACKWARD COMPATIBILITY\
    ENDIF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_read_input.f90
 
@@ -150,7 +149,7 @@ USE environ_base, ONLY : ltddfpt\
 USE environ_init, ONLY : environ_clean, environ_clean_pw, &\
                          environ_clean_tddfpt\
 !Environ patch
-' plugin_clean.f90 > tmp.1
+' plugin_clean.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
@@ -160,7 +159,7 @@ sed '/Environ VARIABLES BEGIN/ a\
 ! Compatible with QE-6.3.X and QE-GIT\
 ! END BACKWARD COMPATIBILITY\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
@@ -200,7 +199,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
    END IF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_clean.f90
 
@@ -212,14 +211,14 @@ USE    io_global,      ONLY : stdout \
 USE    environ_output, ONLY : environ_summary, & \
                               update_output_program_unit \
 !Environ patch
-' plugin_summary.f90 > tmp.1
+' plugin_summary.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
    if(use_environ) CALL update_output_program_unit( stdout ) \
    if(use_environ) CALL environ_summary() \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_summary.f90
 
@@ -232,13 +231,13 @@ USE    cell_base,    ONLY : at, alat\
 USE    environ_init, ONLY : environ_initbase\
 USE    gvect,        ONLY : gcutm\
 !Environ patch
-' plugin_initbase.f90 > tmp.1
+' plugin_initbase.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
 INTEGER :: ir_end, idx0, j0, k0\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
@@ -259,7 +258,7 @@ sed '/Environ CALLS BEGIN/ a\
                              & intra_bgrp_comm, me_bgrp, root_bgrp, &\
                              & gcutm )\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_initbase.f90
 
@@ -269,13 +268,13 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    environ_output, ONLY : environ_clock \
 !Environ patch
-' plugin_clock.f90 > tmp.1
+' plugin_clock.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
    if(use_environ) CALL environ_clock() \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_clock.f90
 
@@ -287,7 +286,7 @@ USE    control_flags,  ONLY : conv_elec \
 USE    environ_output, ONLY : environ_print_energies, & \
                               environ_print_potential_warning \
 !Environ patch
-' plugin_print_energies.f90 > tmp.1
+' plugin_print_energies.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
@@ -298,7 +297,7 @@ sed '/Environ CALLS BEGIN/ a\
      end if \
    end if \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_print_energies.f90
 
@@ -313,7 +312,7 @@ USE gvect,                ONLY : igtongl\
 USE control_flags,        ONLY : gamma_only\
 USE vlocal,               ONLY : vloc\
 !Environ patch
-' plugin_init_ions.f90 > tmp.1
+' plugin_init_ions.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
@@ -321,7 +320,7 @@ INTEGER :: i\
 COMPLEX( DP ), DIMENSION(:), ALLOCATABLE :: aux\
 REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: vloc_of_r\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
@@ -339,7 +338,7 @@ IF ( use_environ ) THEN\
    DEALLOCATE(vloc_of_r)\
 ENDIF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_init_ions.f90
 
@@ -350,13 +349,13 @@ sed '/Environ MODULES BEGIN/ a\
 USE cell_base,            ONLY : at\
 USE environ_init,         ONLY : environ_initcell\
 !Environ patch
-' plugin_init_cell.f90 > tmp.1
+' plugin_init_cell.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
   IF ( use_environ ) call environ_initcell( at )\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_init_cell.f90
 
@@ -368,7 +367,7 @@ USE environ_base,          ONLY : deenviron, eelectrostatic, & \
                                   esurface, evolume, econfine, eelectrolyte \
 USE environ_main,          ONLY : calc_eenviron \
 !Environ patch
-' plugin_scf_energy.f90 > tmp.1
+' plugin_scf_energy.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
@@ -382,7 +381,7 @@ sed '/Environ CALLS BEGIN/ a\
         ! \
   END IF \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_scf_energy.f90
 
@@ -392,13 +391,13 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE environ_init,         ONLY : environ_initpotential\
 !Environ patch
-' plugin_init_potential.f90 > tmp.1
+' plugin_init_potential.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF(use_environ) CALL environ_initpotential( dfftp%nnr, vltot )\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_init_potential.f90
 
@@ -414,13 +413,13 @@ USE environ_init,          ONLY : environ_initelectrons\
 USE environ_main,          ONLY : calc_venviron\
 USE environ_output,        ONLY : environ_print_potential_shift\
 !Environ patch
-' plugin_scf_potential.f90 > tmp.1
+' plugin_scf_potential.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
 INTEGER :: local_verbose\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
@@ -462,7 +461,7 @@ sed '/Environ CALLS BEGIN/ a\
 9200 FORMAT(/"     add environment contribution to local potential")\
      ENDIF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_scf_potential.f90
 
@@ -478,7 +477,7 @@ USE control_flags,    ONLY : lbfgs\
 USE environ_base,  ONLY : louterloop\
 USE control_flags,    ONLY : nstep\
 !Environ patch
-' plugin_initialization.f90 > tmp.1
+' plugin_initialization.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
@@ -520,12 +519,11 @@ END IF \
 &"*******************************************") \
  \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_initialization.f90
 
 #plugin_ext_forces (where I'm hiding all the semiconductor shit)
-
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
@@ -558,7 +556,7 @@ USE ions_base,        ONLY : nat, ityp, zv \
 USE extrapolation,    ONLY : update_pot \
 USE qexsd_module,     ONLY:   qexsd_set_status \
 !Environ patch
-' plugin_ext_forces.f90 > tmp.1
+' plugin_ext_forces.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
@@ -583,7 +581,7 @@ REAL(DP)                  :: v_cut, bulk_potential \
 REAL(DP)                  :: ionic_charge \
 LOGICAL                   :: converge \
 ! !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
@@ -782,10 +780,9 @@ END IF \
 "***************************************************") \
 1004 FORMAT(1x,4F14.8,2ES12.5) \
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_ext_forces.f90
-
 
 # plugin_check
 
@@ -794,7 +791,7 @@ sed '/Environ CALLS BEGIN/ a\
 IF (use_environ) CALL errore( calling_subroutine, &\
    & "Calculation not compatible with Environ embedding", 1)\
 !Environ patch
-' plugin_check.f90 > tmp.1
+' plugin_check.f90 >tmp.1
 
 mv tmp.1 plugin_check.f90
 
@@ -818,7 +815,7 @@ mv tmp.1 plugin_check.f90
 
 # force_lc
 
-cat > tmp.1 <<EOF
+cat >tmp.1 <<EOF
 !Environ patch
 subroutine external_force_lc( rhor, force )
 
@@ -875,6 +872,6 @@ EOF
 # END BACKWARD COMPATIBILITY
 rm tmp.1
 
-echo "- DONE!"
+printf " done!\n"
 
 cd $QE_DIR

@@ -24,16 +24,15 @@
 
 cd $TD_SRC
 
-if test -e "Environ_PATCH" ; then
-    echo "-- File Environ_PATCH exists in TDDFPT/src directory"
-    echo "-- I guess you have already patched TDDFPT/src with Environ $(tail -1 Environ_PATCH)"
-    echo "-- Please unpatch it first, or start from a clean source tree"
-    echo "-- See you later..."
-    echo "* ABORT"
-    exit
+patch_makefile
+
+check_src_patched
+if test "$PATCHED" == 1; then 
+   return
+else
+   patch_message
 fi
 
-echo "* I will try to patch TDDFPT/src with Environ version $ENVIRON_VERSION ..."
 echo "#Please do not remove or modify this file"                          >  Environ_PATCH
 echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
 echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
@@ -253,6 +252,6 @@ fi
 
 rm tmp.6.1 tmp.6.2
 
-echo "- DONE!"
+printf " done!\n"
 
 cd $QE_DIR

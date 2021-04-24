@@ -24,16 +24,15 @@
 
 cd $CP_SRC
 
-if test -e "Environ_PATCH" ; then
-    echo "-- File Environ_PATCH exists in CPV/src directory"
-    echo "-- I guess you have already patched CPV/src with Environ $(tail -1 Environ_PATCH)"
-    echo "-- Please unpatch it first, or start from a clean source tree"
-    echo "-- See you later..."
-    echo "* ABORT"
-    exit
+patch_makefile
+
+check_src_patched
+if test "$PATCHED" == 1; then 
+   return
+else
+   patch_message
 fi
 
-echo "* I will try to patch CPV/src with Environ version $ENVIRON_VERSION ..."
 echo "#Please do not remove or modify this file"                          >  Environ_PATCH
 echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
 echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
@@ -577,6 +576,6 @@ cat tmp.2             >> plugin_utilities.f90
 echo "!Environ patch" >> plugin_utilities.f90
 rm tmp.1 tmp.2
 
-echo "- DONE!"
+printf " done!\n"
 
 cd $QE_DIR

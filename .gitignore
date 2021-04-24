@@ -1,3 +1,9 @@
+# Configuration files
+*.log
+*.status
+*.msg
+*.inc
+
 # Compiled Object files
 *.slo
 *.lo

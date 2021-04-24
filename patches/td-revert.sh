@@ -24,14 +24,15 @@
 
 cd $TD_SRC
 
-if test ! -e Environ_PATCH ; then
-    echo "-- File Environ_PATCH is not there"
-    echo "-- I guess you never patched, so there is nothing to revert"
-    echo "* ABORT"
-    exit
+revert_makefile
+
+check_src_reverted
+if test "$REVERTED" == 1; then 
+   return
+else
+   revert_message
 fi
 
-echo "* I will try to revert TDDFPT/src with Environ version $ENVIRON_VERSION ..."
 rm "Environ_PATCH"
 
 if [ -e lr_readin.f90PreENVIRON ]; then
@@ -228,6 +229,6 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
 
 fi
 
-echo "* DONE!"
+printf " done!\n"
 
 cd $QE_DIR
