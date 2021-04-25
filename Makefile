@@ -150,8 +150,14 @@ uninstall-QE+Environ:
 		$(MAKE) decompile-environ; \
 		$(MAKE) revert-qe-patches; \
 		$(MAKE) update-QE-dependencies; \
-		$(MAKE) decompile-qe-pw; \
-		printf "\nDone!\n\n"; \
+		printf "\nPreparing to decompile QE...\n"; \
+		printf "\nDo you wish to proceed (y|n)? "; read c; \
+		if [ "$$c" = "y" ]; then \
+			$(MAKE) decompile-qe-pw; \
+			printf "\nDone!\n\n"; \
+		else \
+			printf "\nQE decompilation skipped!\n\n"; \
+		fi; \
 	else \
 		echo; \
 	fi
