@@ -5,11 +5,17 @@
 MODULE utils_oned_analytic
     !------------------------------------------------------------------------------------
     !
-    USE core_types
+    USE modules_constants, ONLY: DP
+    !
+    USE core_types, ONLY: oned_analytic_core
+    USE cell_types, ONLY: environ_cell
+    !
+    USE tools_generate_functions, ONLY: generate_axis, generate_distance
     !
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE create_oned_analytic_core(oned_analytic)
@@ -137,8 +143,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE update_oned_analytic_core_origin(origin, oned_analytic)
         !--------------------------------------------------------------------------------
-        !
-        USE tools_generate_functions, ONLY: generate_axis, generate_distance
         !
         IMPLICIT NONE
         !

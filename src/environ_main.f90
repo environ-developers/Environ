@@ -31,13 +31,48 @@
 MODULE environ_main
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE electrostatic_types
-    USE environ_output
+    USE modules_constants, ONLY: DP, e2, fpi
     !
-    PRIVATE
+    USE physical_types, ONLY: environ_charges, environ_electrons
+    USE representation_types, ONLY: environ_density, environ_gradient
     !
-    PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron, calc_dvenviron
+    USE environ_base, ONLY: vzero, solvent, lelectrostatic, velectrostatic, &
+                            vreference, dvtot, lsoftcavity, vsoftcavity, lsurface, &
+                            env_surface_tension, lvolume, env_pressure, lconfine, &
+                            env_confine, vconfine, lstatic, static, lexternals, &
+                            lelectrolyte, electrolyte, lsoftsolvent, lsoftelectrolyte, &
+                            system_cell, environment_cell, system_charges, &
+                            environment_charges, mapping, system_electrons, &
+                            environment_electrons, niter, lrigidcavity, lrigidsolvent, &
+                            lrigidelectrolyte, loptical, optical, &
+                            system_response_charges, environment_response_charges
+    !
+    USE electrostatic_base, ONLY: reference, outer
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
+    ! USE utils_charges, ONLY: update_environ_charges ! #TODO keep for now until external tests are fully debugged
+    USE utils_electrons
+    !
+    USE tools_charges, ONLY: charges_of_potential
+    USE tools_dielectric, ONLY: calc_dedielectric_dboundary, calc_dvdielectric_dboundary
+    USE tools_electrolyte, ONLY: calc_deelectrolyte_dboundary, calc_eelectrolyte
+    !
+    USE tools_math, ONLY: scalar_product_environ_density, &
+                          scalar_product_environ_gradient_density
+    !
+    USE tools_mapping, ONLY: map_large_to_small
+    !
+    USE tools_generate_boundary, ONLY: solvent_aware_de_dboundary, calc_dboundary_dions
+    !
+    USE embedding_electrostatic, ONLY: calc_velectrostatic, calc_eelectrostatic, &
+                                       calc_felectrostatic
+    !
+    USE embedding_confine, ONLY: calc_vconfine, calc_deconfine_dboundary
+    USE embedding_surface, ONLY: calc_desurface_dboundary, calc_esurface
+    USE embedding_volume, ONLY: calc_devolume_dboundary, calc_evolume
+    !
+    USE environ_output, ONLY: print_environ_density, print_environ_charges
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -50,33 +85,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_venviron(update, nnr, vtot, local_verbose)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: vzero, solvent, &
-                                lelectrostatic, velectrostatic, &
-                                vreference, dvtot, &
-                                lsoftcavity, vsoftcavity, &
-                                lsurface, env_surface_tension, &
-                                lvolume, env_pressure, &
-                                lconfine, env_confine, vconfine, &
-                                lstatic, static, lexternals, &
-                                lelectrolyte, electrolyte, &
-                                lsoftsolvent, lsoftelectrolyte, &
-                                system_cell, environment_cell, &
-                                system_charges, environment_charges, &
-                                mapping
-        !
-        USE electrostatic_base, ONLY: reference, outer
-        USE embedding_electrostatic, ONLY: calc_velectrostatic
-        USE embedding_surface, ONLY: calc_desurface_dboundary
-        USE embedding_volume, ONLY: calc_devolume_dboundary
-        USE embedding_confine, ONLY: calc_vconfine, calc_deconfine_dboundary
-        USE utils_dielectric, ONLY: calc_dedielectric_dboundary
-        USE utils_electrolyte, ONLY: calc_deelectrolyte_dboundary
-        USE utils_charges, ONLY: update_environ_charges, charges_of_potential
-        USE utils_mapping, ONLY: map_large_to_small, map_small_to_large
-        !
-        USE tools_generate_boundary, ONLY: solvent_aware_de_dboundary, &
-                                           field_aware_de_drho
         !
         IMPLICIT NONE
         !
@@ -281,25 +289,7 @@ CONTAINS
                              eelectrolyte)
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: system_electrons, solvent, &
-                                lelectrostatic, velectrostatic, &
-                                vreference, dvtot, &
-                                lsoftcavity, vsoftcavity, &
-                                lsurface, env_surface_tension, &
-                                lvolume, env_pressure, &
-                                lconfine, vconfine, env_confine, &
-                                lstatic, static, &
-                                lelectrolyte, electrolyte, &
-                                system_charges, environment_charges, &
-                                environment_electrons, niter
-        !
-        USE electrostatic_base, ONLY: reference, outer
-        USE embedding_electrostatic, ONLY: calc_eelectrostatic
-        USE embedding_surface, ONLY: calc_esurface
-        USE embedding_volume, ONLY: calc_evolume
         ! USE embedding_confine, ONLY: calc_econfine #TODO to-be-decided
-        USE utils_electrolyte, ONLY: calc_eelectrolyte
-        USE utils_charges, ONLY: update_environ_charges
         !
         IMPLICIT NONE
         !
@@ -364,32 +354,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_fenviron(nat, force_environ)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: lelectrostatic, velectrostatic, &
-                                lstatic, static, &
-                                lelectrolyte, electrolyte, &
-                                lrigidcavity, lrigidsolvent, &
-                                lrigidelectrolyte, &
-                                lsurface, env_surface_tension, &
-                                lvolume, env_pressure, &
-                                lconfine, env_confine, &
-                                lsolvent, solvent, system_cell, &
-                                environment_cell, system_charges, &
-                                environment_charges
-        !
-        USE electrostatic_base, ONLY: outer
-        !
-        USE embedding_electrostatic, ONLY: calc_felectrostatic
-        USE embedding_surface, ONLY: calc_desurface_dboundary
-        USE embedding_volume, ONLY: calc_devolume_dboundary
-        USE embedding_confine, ONLY: calc_deconfine_dboundary
-        USE utils_dielectric, ONLY: calc_dedielectric_dboundary
-        USE utils_electrolyte, ONLY: calc_deelectrolyte_dboundary
-        !
-        USE tools_generate_boundary, ONLY: calc_dboundary_dions, &
-                                           solvent_aware_de_dboundary, &
-                                           field_aware_dboundary_dions, &
-                                           compute_ion_field_partial
         !
         IMPLICIT NONE
         !
@@ -525,26 +489,27 @@ CONTAINS
     END SUBROUTINE calc_fenviron
     !------------------------------------------------------------------------------------
     !>
-    !! Calculates the Environ contribution to the local potential. All
-    !! the Environ modules need to be called here. The potentials are
-    !! all computed on the dense real-space grid and added to vtot.
+    !! Calculates the Environ contribution to the response potential in TD calculations
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dvenviron(nnr, rho, drho, dvtot)
+    SUBROUTINE calc_dvenviron(nnr, dv)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: vzero, solvent, lelectrostatic, loptical
-        USE solvent_tddfpt, ONLY: calc_vsolvent_tddfpt
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
-        REAL(DP), INTENT(IN) :: rho(nnr) ! ground-state charge-density
-        REAL(DP), INTENT(IN) :: drho(nnr) ! response charge-density
         !
-        REAL(DP), INTENT(OUT) :: dvtot(nnr)
+        REAL(DP), INTENT(INOUT) :: dv(nnr)
         !
-        REAL(DP), DIMENSION(:), ALLOCATABLE :: dvpol, dvepsilon
+        TYPE(environ_density) :: aux
+        TYPE(environ_density) :: dvreference
+        TYPE(environ_density) :: dvelectrostatic
+        TYPE(environ_density) :: dvsoftcavity
+        TYPE(environ_density) :: dv_dboundary
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL init_environ_density(system_cell, aux)
         !
         !--------------------------------------------------------------------------------
         ! If any form of electrostatic embedding is present, calculate its contribution
@@ -553,29 +518,58 @@ CONTAINS
             !
             !----------------------------------------------------------------------------
             ! Electrostatics is also computed inside the calling program,
-            ! need to remove the reference #TODO to-be-decided
+            ! need to remove the reference
             !
-            IF (loptical) THEN
-                ALLOCATE (dvpol(nnr))
-                dvpol = 0.D0
-                !
-                ALLOCATE (dvepsilon(nnr))
-                dvepsilon = 0.D0
-                !
-                ! BACKWARD COMPATIBILITY
-                ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-                ! CALL calc_vsolvent_tddfpt(nnr, 1, rho, drho, dvpol, dvepsilon)
-                ! Compatible with QE-6.4.X QE-GIT
-                CALL calc_vsolvent_tddfpt(nnr, rho, drho, dvpol, dvepsilon)
-                ! END BACKWARD COMPATIBILITY
-                !
-                dvtot = dvtot + dvpol + dvepsilon
-                !
-                DEALLOCATE (dvpol)
-                DEALLOCATE (dvepsilon)
-            END IF
+            CALL init_environ_density(system_cell, dvreference)
+            !
+            CALL calc_velectrostatic(reference, system_response_charges, dvreference)
+            !
+            CALL init_environ_density(environment_cell, dvelectrostatic)
+            !
+            CALL calc_velectrostatic(outer, environment_response_charges, dvelectrostatic)
+            !
+            CALL map_large_to_small(mapping, dvelectrostatic, aux)
+            !
+            dv(:) = dv(:) + aux%of_r(:) - dvreference%of_r(:)
+            !
+            CALL destroy_environ_density(dvreference)
             !
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Compute the response potential depending on the boundary
+        !
+        IF (lsoftcavity) THEN
+            !
+            CALL init_environ_density(environment_cell, dvsoftcavity)
+            !
+            CALL init_environ_density(environment_cell, dv_dboundary)
+            !
+            IF (lsoftsolvent) THEN
+                dv_dboundary%of_r = 0.D0
+                !
+                ! if dielectric embedding, calcultes dielectric contribution
+                IF (loptical) &
+                    CALL calc_dvdielectric_dboundary(optical, velectrostatic, &
+                                                     dvelectrostatic, dv_dboundary)
+                !
+                dvsoftcavity%of_r = dv_dboundary%of_r * solvent%dscaled%of_r
+                !
+            END IF
+            !
+            CALL map_large_to_small(mapping, dvsoftcavity, aux)
+            !
+            dv(:) = dv(:) + aux%of_r(:)
+            !
+            CALL destroy_environ_density(dv_dboundary)
+            !
+            CALL destroy_environ_density(dvsoftcavity)
+            !
+        END IF
+        !
+        IF (lelectrostatic) CALL destroy_environ_density(dvelectrostatic)
+        !
+        CALL destroy_environ_density(aux)
         !
         RETURN
         !

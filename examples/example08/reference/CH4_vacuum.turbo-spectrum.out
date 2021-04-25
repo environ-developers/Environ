@@ -1,15 +1,18 @@
  Warning: Only a single CPU will be used!
 
-     Program TDDFPT_PP v.6.1 (svn rev. 13369) starts on 29Jan2018 at 16: 2:30 
+     Program TDDFPT_PP v.6.7+ starts on 22Apr2021 at 12:40:23 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
           URL http://www.quantum-espresso.org", 
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote
 
      Parallel version (MPI), running on     1 processors
+
+     MPI processes distributed on     1 nodes
 
      Reading   3000 Lanczos steps for direction 1
        3000 steps will be considered
@@ -25,24 +28,26 @@
 
      Polarization direction:1
      Lanczos coefficients:
-     Average =    13.02554484
-     Average oscillation amplitude =     0.38894329
+     Average =    13.02619576
+     Average oscillation amplitude =     0.39186976
 
      Polarization direction:2
      Lanczos coefficients:
-     Average =    13.02584479
-     Average oscillation amplitude =     0.38791497
+     Average =    13.02545433
+     Average oscillation amplitude =     0.39218897
 
      Polarization direction:3
      Lanczos coefficients:
-     Average =    13.02603740
-     Average oscillation amplitude =     0.38850979
+     Average =    13.02537107
+     Average oscillation amplitude =     0.39013336
 
      Data ready, starting to calculate observables...
 
      Broadening =      0.01000000 Ry
 
      Output file name: CH4_vacuum.plot_chi.
+
+     Output file name for the oscillator strength S  CH4_vacuum.plot_S.da
 
      chi_i_j: dipole polarizability tensor  in units of e^2*a_0^2/energy
 
@@ -54,10 +59,10 @@
 
      Functions are reported in \hbar.\omega  Energy unit is (Ry)
  
-     TDDFPT_PP    :    19.32s CPU        19.38s WALL
+     TDDFPT_PP    :     11.09s CPU     11.21s WALL
 
  
-   This run was terminated on:  16: 2:50  29Jan2018            
+   This run was terminated on:  12:40:35  22Apr2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.

@@ -31,15 +31,10 @@
 MODULE embedding_volume
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE environ_output
-    USE modules_constants, ONLY: e2
+    USE modules_constants, ONLY: DP, e2
     !
-    IMPLICIT NONE
-    !
-    PRIVATE
-    !
-    PUBLIC :: calc_devolume_dboundary, calc_evolume
+    USE physical_types, ONLY: environ_boundary
+    USE representation_types, ONLY: environ_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS

@@ -31,21 +31,26 @@
 MODULE problem_poisson
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE electrostatic_types
-    USE correction_periodic
-    USE correction_gcs
+    USE modules_constants, ONLY: DP, e2
+    !
+    USE electrostatic_types, ONLY: electrostatic_core
+    USE cell_types, ONLY: environ_cell
+    USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_semiconductor
+    USE representation_types, ONLY: environ_density, environ_gradient
+    !
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
+    !
     USE core_fft, ONLY: poisson_fft, gradpoisson_fft
-    USE modules_constants, ONLY: e2
+    !
+    USE correction_periodic, ONLY: calc_vperiodic, calc_gradvperiodic
+    USE correction_gcs
     USE correction_ms
-    USE correction_ms_gcs
-    USE environ_output
+    USE correction_ms_gcs, ONLY: calc_vms_gcs, calc_gradvms_gcs
     !
-    IMPLICIT NONE
+    USE environ_output, ONLY: verbose, ionode, environ_unit
     !
-    PRIVATE
-    !
-    PUBLIC :: poisson_direct, poisson_gradient_direct
+    !------------------------------------------------------------------------------------
     !
     INTERFACE poisson_direct
         MODULE PROCEDURE poisson_direct_charges, poisson_direct_density
@@ -54,6 +59,11 @@ MODULE problem_poisson
     INTERFACE poisson_gradient_direct
         MODULE PROCEDURE poisson_gradient_direct_charges, poisson_gradient_direct_density
     END INTERFACE poisson_gradient_direct
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: poisson_direct_charges, poisson_direct_density, &
+               poisson_gradient_direct_charges, poisson_gradient_direct_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS

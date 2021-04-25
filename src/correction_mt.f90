@@ -14,16 +14,20 @@ MODULE correction_mt
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP, pi, tpi, fpi, e2
-    USE cell_types
-    USE core_types
     !
-    IMPLICIT NONE
+    USE core_types, ONLY: fft_core
+    USE fft_types, ONLY: fft_type_descriptor
+    USE cell_types, ONLY: environ_cell
+    USE physical_types, ONLY: environ_ions
     !
-    SAVE
+    USE tools_cell, ONLY: ir2r, minimum_image
+    USE modules_erf, ONLY: environ_erf, environ_erfc
     !
-    PRIVATE
+    USE fft_interfaces, ONLY: fwfft
     !
-    PUBLIC :: update_mt_correction, calc_vmt, calc_gradvmt, calc_fmt
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: smooth_coulomb_r, smooth_coulomb_g
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -34,8 +38,7 @@ CONTAINS
     SUBROUTINE update_mt_correction(fft)
         !--------------------------------------------------------------------------------
         !
-        USE modules_erf, ONLY: environ_erfc
-        USE fft_interfaces, ONLY: fwfft
+        IMPLICIT NONE
         !
         TYPE(fft_core), TARGET, INTENT(INOUT) :: fft
         !
@@ -125,6 +128,8 @@ CONTAINS
     SUBROUTINE calc_vmt(fft, rho, v)
         !--------------------------------------------------------------------------------
         !
+        IMPLICIT NONE
+        !
         TYPE(fft_core), INTENT(IN) :: fft
         COMPLEX(DP), INTENT(IN) :: rho(fft%ngm)
         !
@@ -154,6 +159,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_gradvmt(ipol, fft, rho, v)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: ipol
         TYPE(fft_core), INTENT(IN) :: fft
@@ -191,7 +198,7 @@ CONTAINS
     SUBROUTINE calc_fmt(fft, rho, ions, force)
         !--------------------------------------------------------------------------------
         !
-        USE environ_types
+        IMPLICIT NONE
         !
         TYPE(fft_core), INTENT(IN) :: fft
         TYPE(environ_ions), INTENT(IN) :: ions
@@ -236,7 +243,7 @@ CONTAINS
     REAL(DP) FUNCTION smooth_coulomb_r(alpha, r)
         !--------------------------------------------------------------------------------
         !
-        USE modules_erf, ONLY: environ_erf
+        IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: alpha, r
         !
@@ -256,6 +263,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     REAL(DP) FUNCTION smooth_coulomb_g(alpha, beta, q2)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: alpha, beta, q2
         !

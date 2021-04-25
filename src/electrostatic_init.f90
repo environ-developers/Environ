@@ -27,16 +27,14 @@
 MODULE electrostatic_init
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
+    USE modules_constants, ONLY: DP
+    !
     USE core_base
-    USE electrostatic_types
     USE electrostatic_base
+    !
+    USE utils_electrostatics
+    !
     USE environ_output, ONLY: environ_unit
-    !
-    PRIVATE
-    !
-    PUBLIC :: set_electrostatic_base, electrostatic_initbase, electrostatic_initcell, &
-              electrostatic_initions, electrostatic_clean
     !
     !------------------------------------------------------------------------------------
 CONTAINS

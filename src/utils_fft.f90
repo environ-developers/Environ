@@ -5,13 +5,14 @@
 MODULE utils_fft
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, pi, tpi
-    USE core_types
+    USE modules_constants, ONLY: DP
     !
-    PRIVATE
+    USE core_types, ONLY: fft_core
+    USE cell_types, ONLY: environ_cell
     !
-    PUBLIC :: create_fft_core, init_fft_core_first, init_fft_core_second, &
-              update_fft_core_cell, destroy_fft_core
+    USE tools_generate_gvectors, ONLY: env_gvect_init, env_ggen
+    !
+    USE correction_mt, ONLY: update_mt_correction
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -89,10 +90,6 @@ CONTAINS
     SUBROUTINE init_fft_core_second(gcutm, cell, fft)
         !--------------------------------------------------------------------------------
         !
-        USE fft_types, ONLY: fft_type_init
-        USE tools_generate_gvectors, ONLY: env_gvect_init, env_ggen
-        USE correction_mt, ONLY: update_mt_correction
-        !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: gcutm
@@ -133,8 +130,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE update_fft_core_cell(cell, fft)
         !--------------------------------------------------------------------------------
-        !
-        USE correction_mt, ONLY: update_mt_correction
         !
         IMPLICIT NONE
         !

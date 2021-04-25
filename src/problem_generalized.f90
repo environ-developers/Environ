@@ -37,21 +37,43 @@
 MODULE problem_generalized
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, fpi
-    USE environ_types
-    USE electrostatic_types
-    USE environ_output
-    USE problem_poisson, ONLY: poisson_direct, poisson_gradient_direct
+    USE modules_constants, ONLY: DP, e2, fpi
     !
-    IMPLICIT NONE
+    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_core, &
+                                   iterative_solver, gradient_solver
     !
-    PRIVATE
+    USE physical_types, ONLY: environ_charges, environ_dielectric, &
+                              environ_electrolyte, environ_semiconductor
     !
-    PUBLIC :: generalized_gradient
+    USE representation_types, ONLY: environ_density, environ_gradient
+    USE cell_types, ONLY: environ_cell
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
+    !
+    USE tools_math, ONLY: scalar_product_environ_density, &
+                          scalar_product_environ_gradient, &
+                          euclidean_norm_environ_density, &
+                          quadratic_mean_environ_density, &
+                          integrate_environ_density
+    !
+    USE core_fft, ONLY: gradient_fft, laplacian_fft
+    !
+    USE problem_poisson
+    !
+    USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
+    !
+    !------------------------------------------------------------------------------------
     !
     INTERFACE generalized_gradient
         MODULE PROCEDURE generalized_gradient_charges, generalized_gradient_density
     END INTERFACE generalized_gradient
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: generalized_gradient_charges, generalized_gradient_density, &
+               generalized_iterative, generalized_gradient_none, &
+               generalized_gradient_sqrt, generalized_gradient_left
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -405,8 +427,6 @@ CONTAINS
     SUBROUTINE generalized_gradient_none(gradient, core, charges, dielectric, &
                                          potential, electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
-        !
-        USE core_fft, ONLY: gradient_fft, laplacian_fft
         !
         IMPLICIT NONE
         !
@@ -839,8 +859,6 @@ CONTAINS
     SUBROUTINE generalized_gradient_left(gradient, core, charges, dielectric, &
                                          potential, electrolyte, semiconductor)
         !--------------------------------------------------------------------------------
-        !
-        USE core_fft, ONLY: gradient_fft
         !
         IMPLICIT NONE
         !

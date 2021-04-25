@@ -6,20 +6,29 @@ MODULE core_fft
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP, e2, tpi, fpi
+    !
+    USE core_types, ONLY: fft_core
+    USE fft_types, ONLY: fft_type_descriptor
+    USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
+    USE physical_types, ONLY: environ_ions
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    !
+    USE correction_mt, ONLY: calc_vmt, calc_gradvmt, calc_fmt
     USE fft_interfaces, ONLY: fwfft, invfft
-    USE core_types
-    USE environ_types
     !
-    PRIVATE
+    USE mp, ONLY: mp_sum
     !
-    PUBLIC :: poisson_fft, gradpoisson_fft, force_fft, convolution_fft, &
-              gradient_fft, graddot_fft, laplacian_fft, hessian_fft, &
-              field_of_gradrho, hessv_h_of_rho_r
+    !------------------------------------------------------------------------------------
     !
     INTERFACE convolution_fft
         MODULE PROCEDURE convolution_fft_density, convolution_fft_gradient, &
             convolution_fft_hessian
     END INTERFACE convolution_fft
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: convolution_fft_density, convolution_fft_gradient, convolution_fft_hessian
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -31,8 +40,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE poisson_fft(fft, fin, fout)
         !--------------------------------------------------------------------------------
-        !
-        USE correction_mt, ONLY: calc_vmt
         !
         IMPLICIT NONE
         !
@@ -117,8 +124,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE gradpoisson_fft(fft, fin, gout)
         !--------------------------------------------------------------------------------
-        !
-        USE correction_mt, ONLY: calc_gradvmt
         !
         IMPLICIT NONE
         !
@@ -225,9 +230,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE force_fft(fft, rho, ions, nat, force)
         !--------------------------------------------------------------------------------
-        !
-        USE mp, ONLY: mp_sum
-        USE correction_mt, ONLY: calc_fmt
         !
         IMPLICIT NONE
         !
@@ -940,8 +942,6 @@ CONTAINS
     SUBROUTINE hessv_h_of_rho_r(rho, hessv, fft)
         !--------------------------------------------------------------------------------
         !
-        USE correction_mt, ONLY: calc_vmt
-        !
         IMPLICIT NONE
         !
         TYPE(fft_core), INTENT(IN), TARGET :: fft
@@ -1057,8 +1057,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE field_of_gradrho(gradrho, e, fft)
         !--------------------------------------------------------------------------------
-        !
-        USE correction_mt, ONLY: calc_vmt
         !
         IMPLICIT NONE
         !

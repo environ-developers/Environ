@@ -5,7 +5,15 @@
 MODULE core_init
     !------------------------------------------------------------------------------------
     !
+    USE modules_constants, ONLY: DP
+    !
+    USE cell_types, ONLY: environ_cell
+    !
     USE core_base
+    !
+    USE utils_fd
+    USE utils_oned_analytic
+    USE utils_fft
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -16,9 +24,7 @@ CONTAINS
     SUBROUTINE set_core_base(ifdtype, nfdpoint, use_internal_pbc_corr, dim, axis)
         !--------------------------------------------------------------------------------
         !
-        USE utils_fd, ONLY: init_fd_core_first
-        USE utils_oned_analytic, ONLY: init_oned_analytic_core_first
-        USE utils_fft, ONLY: init_fft_core_first
+        IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: use_internal_pbc_corr
         INTEGER, INTENT(IN) :: ifdtype, nfdpoint, dim, axis
@@ -45,10 +51,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE core_initbase(gcutm, environment_cell, system_cell)
         !--------------------------------------------------------------------------------
-        !
-        USE utils_oned_analytic, ONLY: init_oned_analytic_core_second
-        USE utils_fd, ONLY: init_fd_core_second
-        USE utils_fft, ONLY: init_fft_core_second
         !
         IMPLICIT NONE
         !
@@ -78,9 +80,6 @@ CONTAINS
     SUBROUTINE core_initcell(system_cell, environment_cell)
         !--------------------------------------------------------------------------------
         !
-        USE utils_oned_analytic, ONLY: update_oned_analytic_core_cell
-        USE utils_fft, ONLY: update_fft_core_cell
-        !
         IMPLICIT NONE
         !
         TYPE(environ_cell), INTENT(IN) :: system_cell, environment_cell
@@ -106,8 +105,6 @@ CONTAINS
     SUBROUTINE core_initions(pos)
         !--------------------------------------------------------------------------------
         !
-        USE utils_oned_analytic, ONLY: update_oned_analytic_core_origin
-        !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: pos(3)
@@ -126,10 +123,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE core_clean(lflag)
         !--------------------------------------------------------------------------------
-        !
-        USE utils_oned_analytic, ONLY: destroy_oned_analytic_core
-        USE utils_fd, ONLY: destroy_fd_core
-        USE utils_fft, ONLY: destroy_fft_core
         !
         IMPLICIT NONE
         !

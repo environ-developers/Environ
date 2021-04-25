@@ -27,13 +27,17 @@
 MODULE core_fd
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE core_types
-    USE cell_types
+    USE modules_constants, ONLY: DP
     !
-    PRIVATE
+    USE core_types, ONLY: fd_core
+    USE representation_types, ONLY: environ_density, environ_gradient
+    USE cell_types, ONLY: environ_cell
+    USE fft_types, ONLY: fft_type_descriptor
     !
-    PUBLIC :: gradient_fd
+    USE tools_cell, ONLY: ir2ijk
+    !
+    USE scatter_mod, ONLY: scatter_grid
+    USE mp, ONLY: mp_sum
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -43,9 +47,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE gradient_fd(fd, f, grad)
         !--------------------------------------------------------------------------------
-        !
-        USE scatter_mod, ONLY: scatter_grid
-        USE mp, ONLY: mp_sum
         !
         IMPLICIT NONE
         !

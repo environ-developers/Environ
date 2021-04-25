@@ -24,14 +24,15 @@
 
 cd $XS_SRC
 
-if test ! -e Environ_PATCH ; then
-    echo "-- File Environ_PATCH is not there"
-    echo "-- I guess you never patched, so there is nothing to revert"
-    echo "* ABORT"
-    exit
+revert_makefile
+
+check_src_reverted
+if test "$REVERTED" == 1; then 
+   return
+else
+   revert_message
 fi
 
-echo "* I will try to revert XSpectra/src with Environ version $ENVIRON_VERSION ..."
 rm "Environ_PATCH"
 
 if [ -e read_input_and_bcast.f90PreENVIRON ]; then
@@ -109,6 +110,6 @@ EOF
     rm tmp.XS.3
 fi
 
-echo "* DONE!"
+printf " done!\n"
 
 cd $QE_DIR

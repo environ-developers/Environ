@@ -35,16 +35,24 @@
 MODULE embedding_electrostatic
     !------------------------------------------------------------------------------------
     !
-    USE electrostatic_types
-    USE environ_types
-    USE environ_output
-    USE modules_constants, ONLY: e2, pi, tpi, fpi
+    USE modules_constants, ONLY: DP, e2, tpi
     !
-    SAVE
+    USE electrostatic_types, ONLY: electrostatic_setup, electrostatic_core
+    USE physical_types, ONLY: environ_charges
+    USE representation_types, ONLY: environ_density
+    USE cell_types, ONLY: environ_cell
     !
-    PRIVATE
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
-    PUBLIC :: calc_velectrostatic, calc_eelectrostatic, calc_felectrostatic
+    USE tools_math, ONLY: scalar_product_environ_density
+    USE core_fft, ONLY: force_fft
+    !
+    USE correction_periodic, ONLY: calc_fperiodic
+    !
+    USE problem_poisson, ONLY: poisson_direct
+    USE problem_generalized, ONLY: generalized_gradient
+    USE problem_linearized_pb, ONLY: linearized_pb_gradient
+    USE problem_pb, ONLY: pb_nested
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -55,11 +63,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_velectrostatic(setup, charges, potential)
         !--------------------------------------------------------------------------------
-        !
-        USE problem_poisson, ONLY: poisson_direct
-        USE problem_generalized, ONLY: generalized_gradient
-        USE problem_linearized_pb, ONLY: linearized_pb_gradient
-        USE problem_pb, ONLY: pb_nested
         !
         IMPLICIT NONE
         !
@@ -301,9 +304,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_felectrostatic(setup, natoms, charges, forces)
         !--------------------------------------------------------------------------------
-        !
-        USE core_fft, ONLY: force_fft
-        USE correction_periodic, ONLY: calc_fperiodic
         !
         IMPLICIT NONE
         !

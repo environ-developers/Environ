@@ -238,6 +238,26 @@ sum_ = 1 + var1 + &
        & + var2 * var3
 ```
 
-# debugging
+## imports
 
-- if writing to environ_unit, make sure to set verbose > 0 in environ.in
+- explicit imports ONLY (DO NOT rely on nested imports!!!)
+- grouped at the top of the module, !-separated into subgroups (in order):
+  - constants
+  - types
+  - bases
+  - utils
+  - tools
+  - other functions
+  - I/O
+  - debugging
+  - parallelization
+
+## private/public
+
+- only state what is private, if any
+
+## files
+
+- tools contain numerical functionality
+- utils contain "administrative" functionality (create, init, update, copy, set, destroy)
+  - may contain private helper functions for the above tasks

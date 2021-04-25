@@ -37,13 +37,20 @@
 MODULE modules_parser
     !------------------------------------------------------------------------------------
     !
-    USE environ_output, ONLY: program_unit
     USE modules_constants, ONLY: DP
     !
-    PRIVATE
+    ! WE MAY WANT TO ADD A SECOND COMM ON IMAGES #TODO may be required for NEB
+    USE environ_output, ONLY: program_unit, comm, ionode, ionode_id
     !
-    PUBLIC :: parse_unit, env_field_count, env_read_line, env_get_field
-    PUBLIC :: env_version_parse, env_version_compare
+    USE mp, ONLY: mp_bcast
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: env_field_compare
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -120,10 +127,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE env_read_line(unit, line, nfield, field, end_of_file, error)
         !--------------------------------------------------------------------------------
-        !
-        USE mp, ONLY: mp_bcast
-        USE environ_output, ONLY: comm ! WE MAY WANT TO ADD A SECOND COMM ON IMAGES #TODO may be required for NEB
-        USE environ_output, ONLY: ionode, ionode_id
         !
         IMPLICIT NONE
         !
@@ -212,6 +215,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE env_con_cam(num, line, car)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CHARACTER(LEN=*) :: line
         CHARACTER(LEN=1) :: sep
@@ -340,6 +345,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
         CHARACTER(*) :: str1, str2
         CHARACTER(10) :: env_version_compare
         !
