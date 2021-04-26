@@ -36,21 +36,37 @@
 MODULE utils_boundary
     !------------------------------------------------------------------------------------
     !
-    USE core_types
-    USE environ_types
-    USE environ_output
-    USE utils_functions
+    USE modules_constants, ONLY: DP, e2
+    !
+    USE physical_types, ONLY: environ_boundary, environ_electrons, environ_ions, &
+                              environ_system
+    !
+    USE representation_types, ONLY: environ_functions, environ_gradient, environ_density
+    USE core_types, ONLY: fft_core, fd_core, boundary_core
+    USE cell_types, ONLY: environ_cell
+    !
     USE environ_base, ONLY: niter
     !
-    IMPLICIT NONE
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             copy_environ_density, destroy_environ_density
     !
-    PRIVATE
+    USE utils_gradient, ONLY: create_environ_gradient, init_environ_gradient, &
+                              copy_environ_gradient, destroy_environ_gradient, &
+                              update_gradient_modulus
     !
-    PUBLIC :: create_boundary_core, init_boundary_core, destroy_boundary_core
+    USE utils_functions, ONLY: copy_environ_functions, destroy_environ_functions
     !
-    PUBLIC :: create_environ_boundary, init_environ_boundary_first, &
-              init_environ_boundary_second, copy_environ_boundary, set_soft_spheres, &
-              update_environ_boundary, destroy_environ_boundary
+    USE utils_hessian, ONLY: create_environ_hessian, init_environ_hessian, &
+                             copy_environ_hessian, destroy_environ_hessian
+    !
+    USE tools_functions, ONLY: density_of_functions, gradient_of_functions
+    USE tools_math, ONLY: integrate_environ_density, scalar_product_environ_density
+    !
+    USE tools_generate_boundary, ONLY: boundary_of_density, boundary_of_functions, &
+                                       boundary_of_system, solvent_aware_boundary, &
+                                       invert_boundary ! #TODO is this for DEBUGGING?
+    !
+    USE environ_output, ONLY: ionode, environ_unit
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -130,7 +146,7 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-        ! double check number of active cores
+        ! Double check number of active cores
         !
         number = 0
         !
@@ -671,8 +687,6 @@ CONTAINS
     SUBROUTINE set_soft_spheres(boundary, scale)
         !--------------------------------------------------------------------------------
         !
-        ! USE tools_generate_boundary, ONLY : scaling_of_field #TODO field-aware
-        !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN), OPTIONAL :: scale
@@ -738,12 +752,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE update_environ_boundary(bound)
         !--------------------------------------------------------------------------------
-        !
-        USE tools_generate_boundary, ONLY: boundary_of_density, boundary_of_functions, &
-                                           boundary_of_system, solvent_aware_boundary, &
-                                           invert_boundary, compute_ion_field, &
-                                           compute_normal_field, &
-                                           compute_dion_field_drho, field_aware_density
         !
         IMPLICIT NONE
         !
@@ -845,10 +853,8 @@ CONTAINS
                 !
             ELSE
                 !
-                !------------------------------------------------------------------------
-                ! boundary has not changed
-                !
                 IF (bound%update_status == 2) bound%update_status = 0
+                ! boundary has not changed
                 !
                 RETURN
                 !
@@ -941,10 +947,8 @@ CONTAINS
                 !
             ELSE
                 !
-                !------------------------------------------------------------------------
-                ! Boundary has not changed
-                !
                 IF (bound%update_status == 2) bound%update_status = 0
+                ! boundary has not changed
                 !
                 RETURN
                 !

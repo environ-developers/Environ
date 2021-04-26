@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Quinn Campbell (Department of Materials Science and Engineering, Penn State)
 !
 !----------------------------------------------------------------------------------------
@@ -26,18 +28,17 @@
 MODULE utils_semiconductor
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
+    USE modules_constants, ONLY: DP
+    !
+    USE physical_types, ONLY: environ_semiconductor, environ_system
+    USE cell_types, ONLY: environ_cell
+    !
     USE environ_base, ONLY: semiconductor
-    USE environ_output
-    USE utils_functions
     !
-    IMPLICIT NONE
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
     !
-    PRIVATE
-    !
-    PUBLIC :: create_environ_semiconductor, init_environ_semiconductor_first, &
-              init_environ_semiconductor_second, update_environ_semiconductor, &
-              destroy_environ_semiconductor
+    USE tools_math, ONLY: integrate_environ_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS

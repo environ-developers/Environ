@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Ismaila Dabo       (DMSE, Penn State)
@@ -27,26 +29,38 @@
 MODULE environ_init
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY : bohr_radius_si, rydberg_si
-    USE cell_types
-    USE core_types
-    USE environ_types
-    USE environ_output
+    USE modules_constants, ONLY: DP, e2, bohr_radius_si, rydberg_si
+    !
     USE environ_base
+    USE core_base, ONLY: lfd, fd, lfft_environment, environment_fft
     !
+    USE electrostatic_base, ONLY: need_pbc_correction, need_gradient, &
+                                  need_factsqrt, need_auxiliary, need_electrolyte, &
+                                  need_semiconductor, need_outer_loop
+    !
+    USE utils_electrons
     USE utils_ions
-    USE utils_boundary
-    USE utils_dielectric
-    USE utils_electrolyte
+    USE utils_system
     USE utils_externals
-    USE utils_charges
+    USE utils_boundary
     USE utils_semiconductor
+    USE utils_electrolyte
+    USE utils_dielectric
+    USE utils_mapping
+    USE utils_cell
+    USE utils_charges
     !
-    PRIVATE
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
     !
-    PUBLIC :: set_environ_base, environ_initbase, environ_initcell, &
-              environ_initions, environ_initelectrons, environ_initpotential, &
-              environ_clean, environ_clean_pw, environ_clean_tddfpt
+    USE tools_mapping, ONLY: map_small_to_large
+    !
+    USE core_init, ONLY: core_initbase, core_initcell, core_initions, core_clean
+    USE electrostatic_init, ONLY: electrostatic_clean
+    !
+    USE environ_output, ONLY: environ_unit, print_environ_ions, print_environ_system, &
+                              print_environ_boundary, print_environ_dielectric, &
+                              print_environ_electrolyte, print_environ_electrons
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -103,12 +117,6 @@ CONTAINS
          epsregion_axis, epsregion_pos, &
          epsregion_spread, epsregion_width)
         !--------------------------------------------------------------------------------
-        !
-        USE electrostatic_base, ONLY: need_pbc_correction, need_gradient, &
-                                      need_factsqrt, need_auxiliary, need_electrolyte, &
-                                      need_semiconductor, need_outer_loop
-        !
-        USE core_base
         !
         IMPLICIT NONE
         !
@@ -292,7 +300,32 @@ CONTAINS
         !
         IF (lstatic) CALL create_environ_dielectric(static)
         !
-        IF (loptical) CALL create_environ_dielectric(optical)
+        !--------------------------------------------------------------------------------
+        ! Set response properties for TD calculations
+        !
+        IF (loptical) THEN
+            !
+            CALL create_environ_dielectric(optical)
+            !
+            CALL create_environ_electrons(system_response_electrons)
+            !
+            CALL init_environ_electrons_first(0, system_response_electrons)
+            !
+            CALL create_environ_charges(system_response_charges)
+            !
+            CALL init_environ_charges_first(electrons=system_response_electrons, &
+                                            charges=system_response_charges)
+            !
+            CALL create_environ_electrons(environment_response_electrons)
+            !
+            CALL init_environ_electrons_first(0, environment_response_electrons)
+            !
+            CALL create_environ_charges(environment_response_charges)
+            !
+            CALL init_environ_charges_first(electrons=environment_response_electrons, &
+                                            dielectric=optical, charges=environment_response_charges)
+            !
+        END IF
         !
         IF (lelectrostatic .OR. lconfine) THEN
             !
@@ -505,26 +538,7 @@ CONTAINS
     SUBROUTINE environ_initbase(alat, at, comm, me, root, gcutm, e2)
         !--------------------------------------------------------------------------------
         !
-        USE modules_constants, ONLY: e2_ => e2
-        !
-        USE environ_base, ONLY: system_cell, system_electrons, &
-                                system_charges, environment_electrons, &
-                                environment_charges, &
-                                vzero, deenviron, &
-                                lelectrostatic, eelectrostatic, &
-                                velectrostatic, vreference, dvtot, &
-                                lsoftcavity, vsoftcavity, &
-                                lelectrolyte, electrolyte, &
-                                lsolvent, solvent, lstatic, static, &
-                                loptical, optical, &
-                                lexternals, externals, &
-                                lsurface, esurface, lvolume, evolume, &
-                                lconfine, vconfine, econfine, &
-                                eelectrolyte, environment_cell, &
-                                ldoublecell, mapping
-        !
-        USE cell_types, ONLY: init_environ_cell
-        USE core_init, ONLY: core_initbase
+        USE modules_constants, ONLY: e2_ => e2 ! #TODO clean this up
         !
         IMPLICIT NONE
         !
@@ -672,7 +686,19 @@ CONTAINS
         !
         IF (lstatic) CALL init_environ_dielectric_second(environment_cell, static)
         !
-        IF (loptical) CALL init_environ_dielectric_second(environment_cell, optical)
+        IF (loptical) THEN
+            !
+            CALL init_environ_electrons_second(system_cell, system_response_electrons)
+            !
+            CALL init_environ_charges_second(system_cell, system_response_charges)
+            !
+            CALL init_environ_electrons_second(environment_cell, environment_response_electrons)
+            !
+            CALL init_environ_charges_second(environment_cell, environment_response_charges)
+            !
+            CALL init_environ_dielectric_second(environment_cell, optical)
+            !
+        END IF
         !
         IF (lelectrolyte) &
             CALL init_environ_electrolyte_second(environment_cell, electrolyte)
@@ -701,8 +727,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_initpotential(nnr, vltot)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: vzero
         !
         IMPLICIT NONE
         !
@@ -736,23 +760,6 @@ CONTAINS
     SUBROUTINE environ_initcell(at)
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: lstatic, static, &
-                                loptical, optical, &
-                                lexternals, externals, &
-                                lelectrolyte, electrolyte, &
-                                lelectrostatic, &
-                                system_cell, environment_cell, &
-                                ldoublecell, mapping, &
-                                lsemiconductor, semiconductor
-        !
-        USE cell_types, ONLY: update_environ_cell
-        USE utils_dielectric, ONLY: update_environ_dielectric
-        USE utils_electrolyte, ONLY: update_environ_electrolyte
-        USE utils_externals, ONLY: update_environ_externals
-        USE utils_semiconductor, ONLY: update_environ_semiconductor
-        !
-        USE core_init, ONLY: core_initcell
-        !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: at(3, 3)
@@ -764,7 +771,7 @@ CONTAINS
         !
         system_cell%update = .TRUE.
         !
-        CALL update_environ_cell(at, system_cell) ! Update system cell parameters
+        CALL update_environ_cell(at, system_cell) ! update system cell parameters
         !
         IF (ldoublecell) THEN
             environment_cell%update = .TRUE.
@@ -781,7 +788,7 @@ CONTAINS
             !
         END IF
         !
-        CALL core_initcell(system_cell, environment_cell) ! Update cores
+        CALL core_initcell(system_cell, environment_cell) ! update cores
         !
         !--------------------------------------------------------------------------------
         ! Update fixed quantities defined inside the cell
@@ -814,28 +821,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_initions(nnr, nat, ntyp, ityp, zv, tau, vloc)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: system_cell, system_ions, &
-                                system_electrons, system_system, &
-                                environment_ions, &
-                                environment_electrons, &
-                                environment_system, &
-                                lsolvent, solvent, &
-                                lstatic, static, &
-                                loptical, optical, &
-                                lelectrolyte, electrolyte, &
-                                lrigidcavity, &
-                                lelectrostatic, system_charges, &
-                                environment_charges, &
-                                ldoublecell, environment_cell, &
-                                lexternals, externals
-        !
-        USE utils_boundary, ONLY: update_environ_boundary, set_soft_spheres
-        USE utils_dielectric, ONLY: update_environ_dielectric
-        USE utils_electrolyte, ONLY: update_environ_electrolyte
-        USE utils_externals, ONLY: update_environ_externals
-        USE core_init, ONLY: core_initions
-        USE utils_mapping, ONLY: map_small_to_large
         !
         IMPLICIT NONE
         !
@@ -1020,21 +1005,6 @@ CONTAINS
         ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
-        USE environ_base, ONLY: system_electrons, &
-                                environment_electrons, &
-                                lsolvent, solvent, &
-                                lstatic, static, &
-                                loptical, optical, &
-                                lelectrolyte, electrolyte, &
-                                lsoftcavity, lsoftsolvent, &
-                                lsoftelectrolyte, &
-                                lelectrostatic, mapping, &
-                                system_charges, environment_charges
-        !
-        USE utils_boundary, ONLY: update_environ_boundary
-        USE utils_dielectric, ONLY: update_environ_dielectric
-        USE utils_mapping, ONLY: map_small_to_large
-        !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
@@ -1158,6 +1128,59 @@ CONTAINS
     END SUBROUTINE environ_initelectrons
     !------------------------------------------------------------------------------------
     !>
+    !! Initialize the response charges to be used in the TDDFPT + Environ
+    !! modules. This initialization is called by plugin_tddfpt_potential.f90
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_initresponse(nnr, drho)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: nnr
+        REAL(DP), INTENT(IN) :: drho(nnr)
+        !
+        REAL(DP), ALLOCATABLE :: aux(:)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        system_response_electrons%update = .TRUE.
+        environment_response_electrons%update = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+        ! Update response charges in system cell
+        !
+        CALL update_environ_electrons(nnr, drho, system_response_electrons, 0.D0)
+        !
+        CALL update_environ_charges(system_response_charges)
+        !
+        !--------------------------------------------------------------------------------
+        ! Update response charges in environment cell
+        !
+        IF (ldoublecell) THEN
+            !
+            ALLOCATE (aux(environment_cell%nnr))
+            !
+            CALL map_small_to_large(mapping, nnr, environment_cell%nnr, drho, aux)
+            !
+            CALL update_environ_electrons(environment_cell%nnr, aux, &
+                                          environment_response_electrons, 0.D0)
+            !
+        ELSE
+            CALL update_environ_electrons(nnr, drho, environment_response_electrons, 0.D0)
+        END IF
+        !
+        CALL update_environ_charges(environment_response_charges)
+        !
+        system_response_electrons%update = .FALSE.
+        environment_response_electrons%update = .FALSE.
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_initresponse
+    !------------------------------------------------------------------------------------
+    !>
     !! Clean up all the Environ related allocated variables, and call
     !! clean up subroutines of specific Environ modules.
     !!
@@ -1189,16 +1212,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_clean_pw(lflag)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: vzero, lelectrostatic, vreference, &
-                                lsoftcavity, vsoftcavity, lstatic, &
-                                static, lexternals, externals, &
-                                lconfine, vconfine, &
-                                lelectrolyte, electrolyte, &
-                                system_ions, system_electrons, system_system, &
-                                environment_ions, environment_electrons, &
-                                environment_system, system_charges, &
-                                environment_charges, lsemiconductor, semiconductor
         !
         IMPLICIT NONE
         !
@@ -1260,19 +1273,13 @@ CONTAINS
     END SUBROUTINE environ_clean_pw
     !------------------------------------------------------------------------------------
     !>
-    !! Clean up all the Environ related allocated variables, and call
-    !! clean up subroutines of specific Environ modules. These are quantities
-    !! that may be needed by TDDFPT, thus may need to be cleaned later
+    !! Clean up all the Environ-related allocated variables and call clean up 
+    !! subroutines of specific Environ modules. These are quantities that may 
+    !! be needed by TDDFPT, thus may need to be cleaned later
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_clean_tddfpt(lflag)
         !--------------------------------------------------------------------------------
-        !
-        USE environ_base, ONLY: lelectrostatic, velectrostatic, &
-                                loptical, optical, lsolvent, solvent
-        !
-        USE core_init, ONLY: core_clean
-        USE electrostatic_init, ONLY: electrostatic_clean
         !
         IMPLICIT NONE
         !
@@ -1304,7 +1311,19 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Destroy derived types which were allocated in input
         !
-        IF (loptical) CALL destroy_environ_dielectric(lflag, optical)
+        IF (loptical) THEN
+            !
+            CALL destroy_environ_charges(lflag, environment_response_charges)
+            !
+            CALL destroy_environ_electrons(lflag, environment_response_electrons)
+            !
+            CALL destroy_environ_charges(lflag, system_response_charges)
+            !
+            CALL destroy_environ_electrons(lflag, system_response_electrons)
+            !
+            CALL destroy_environ_dielectric(lflag, optical)
+            !
+        END IF
         !
         IF (lsolvent) CALL destroy_environ_boundary(lflag, solvent)
         !

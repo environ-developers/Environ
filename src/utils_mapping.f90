@@ -5,21 +5,11 @@
 MODULE utils_mapping
     !------------------------------------------------------------------------------------
     !
+    USE modules_constants, ONLY: DP
+    !
     USE cell_types
-    USE environ_types
-    USE scatter_mod, ONLY: scatter_grid, gather_grid
-    USE mp, ONLY: mp_sum
     !
-    PRIVATE
-    PUBLIC :: map_small_to_large, map_large_to_small
-    !
-    INTERFACE map_small_to_large
-        MODULE PROCEDURE map_small_to_large_real, map_small_to_large_density
-    END INTERFACE map_small_to_large
-    !
-    INTERFACE map_large_to_small
-        MODULE PROCEDURE map_large_to_small_real, map_large_to_small_density
-    END INTERFACE map_large_to_small
+    USE tools_cell, ONLY: ir2ijk
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -27,259 +17,179 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE map_small_to_large_real(mapping, nsmall, nlarge, fsmall, flarge)
+    SUBROUTINE create_environ_mapping(mapping)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_mapping), INTENT(IN) :: mapping
-        INTEGER, INTENT(IN) :: nsmall, nlarge
-        REAL(DP), INTENT(IN) :: fsmall(nsmall)
-        !
-        REAL(DP), INTENT(INOUT) :: flarge(nlarge)
-        !
-        INTEGER :: ir
-        REAL(DP), ALLOCATABLE :: auxlarge(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_real'
+        TYPE(environ_mapping), INTENT(INOUT) :: mapping
         !
         !--------------------------------------------------------------------------------
-        ! Check if input/output dimensions match mapping cells
         !
-        IF (nsmall /= mapping%small%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of small cell', 1)
-        !
-        IF (nlarge /= mapping%large%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of large cell', 1)
-        !
-        !--------------------------------------------------------------------------------
-        ! If the cells are the same, just copy
-        !
-        IF (nsmall == nlarge) THEN
-            flarge = fsmall
-        ELSE
-            !
-            !----------------------------------------------------------------------------
-            ! Copy small cell to corresponding gridpoints in the full large cell
-            !
-            ALLOCATE (auxlarge(mapping%large%ntot))
-            auxlarge = 0.D0
-            !
-            DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) &
-                    auxlarge(mapping%map(ir)) = fsmall(ir)
-                !
-            END DO
-            !
-#if defined (__MPI)
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
-            !
-            CALL scatter_grid(mapping%large%dfft, auxlarge, flarge)
-            !
-#else
-            flarge = auxlarge
-#endif
-            DEALLOCATE (auxlarge)
-        END IF
+        mapping%nrep = 1
+        mapping%large => NULL()
+        mapping%small => NULL()
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE map_small_to_large_real
+    END SUBROUTINE create_environ_mapping
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE map_small_to_large_density(mapping, fsmall, flarge)
+    SUBROUTINE init_environ_mapping_first(nrep, mapping)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_mapping), INTENT(IN) :: mapping
-        TYPE(environ_density), INTENT(IN) :: fsmall
+        INTEGER, INTENT(IN) :: nrep(3)
         !
-        TYPE(environ_density), INTENT(INOUT) :: flarge
-        !
-        INTEGER :: ir
-        REAL(DP), ALLOCATABLE :: auxlarge(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large'
+        TYPE(environ_mapping), INTENT(INOUT) :: mapping
         !
         !--------------------------------------------------------------------------------
-        ! Check if input/output dimensions match mapping cells
         !
-        IF (.NOT. ASSOCIATED(fsmall%cell, mapping%small)) &
-            CALL errore(sub_name, 'Mismatch of small cell', 1)
-        !
-        IF (.NOT. ASSOCIATED(flarge%cell, mapping%large)) &
-            CALL errore(sub_name, 'Mismatch of large cell', 1)
-        !
-        !--------------------------------------------------------------------------------
-        ! If the cells are the same, just copy
-        !
-        IF (ASSOCIATED(mapping%large, mapping%small)) THEN
-            flarge%of_r = fsmall%of_r
-        ELSE
-            !
-            !----------------------------------------------------------------------------
-            ! Copy small cell to corresponding gridpoints in the full large cell
-            !
-            ALLOCATE (auxlarge(mapping%large%ntot))
-            auxlarge = 0.D0
-            !
-            DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) & ! This test may be redundant
-                    auxlarge(mapping%map(ir)) = fsmall%of_r(ir)
-                !
-            END DO
-            !
-#if defined (__MPI)
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
-            !
-            CALL scatter_grid(mapping%large%dfft, auxlarge, flarge%of_r)
-            !
-#else
-            flarge%of_r = auxlarge
-#endif
-            DEALLOCATE (auxlarge)
-        END IF
+        mapping%nrep = nrep
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE map_small_to_large_density
+    END SUBROUTINE init_environ_mapping_first
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE map_large_to_small_real(mapping, nlarge, nsmall, flarge, fsmall)
+    SUBROUTINE init_environ_mapping_second(small, large, mapping)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_mapping), INTENT(IN) :: mapping
-        INTEGER, INTENT(IN) :: nsmall, nlarge
-        REAL(DP), INTENT(IN) :: flarge(nlarge)
+        TYPE(environ_cell), TARGET, INTENT(IN) :: small, large
         !
-        REAL(DP), INTENT(INOUT) :: fsmall(nsmall)
-        !
-        INTEGER :: ir
-        REAL(DP), ALLOCATABLE :: auxlarge(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_real'
+        TYPE(environ_mapping), INTENT(INOUT) :: mapping
         !
         !--------------------------------------------------------------------------------
-        ! Check if input/output dimensions match mapping cells
+        ! Check that small%at and large%at are compatible with mapping%nrep
         !
-        IF (nsmall /= mapping%small%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of small cell', 1)
+        mapping%small => small
+        mapping%large => large
         !
-        IF (nlarge /= mapping%large%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of large cell', 1)
-        !
-        !--------------------------------------------------------------------------------
-        ! If the cells are the same, just copy
-        !
-        IF (nsmall == nlarge) THEN
-            fsmall = flarge
-        ELSE
-            !
-            !----------------------------------------------------------------------------
-            ! Copy portion of large cell to corresponding gridpoints in the small cell
-            !
-            ALLOCATE (auxlarge(mapping%large%ntot))
-            auxlarge = 0.D0
-#if defined (__MPI)
-            CALL gather_grid(mapping%large%dfft, flarge, auxlarge)
-            !
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
-            !
-#else
-            auxlarge = flarge
-#endif
-            fsmall = 0.D0
-            !
-            DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) &
-                    fsmall(ir) = auxlarge(mapping%map(ir))
-                !
-            END DO
-            !
-            DEALLOCATE (auxlarge)
-        END IF
+        IF (.NOT. ASSOCIATED(mapping%small, mapping%large)) &
+            ALLOCATE (mapping%map(mapping%small%nnr))
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE map_large_to_small_real
+    END SUBROUTINE init_environ_mapping_second
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE map_large_to_small_density(mapping, flarge, fsmall)
+    SUBROUTINE update_environ_mapping(mapping, pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_mapping), INTENT(IN) :: mapping
-        TYPE(environ_density), INTENT(IN) :: flarge
+        REAL(DP), INTENT(IN), OPTIONAL :: pos(3)
         !
-        TYPE(environ_density), INTENT(INOUT) :: fsmall
+        TYPE(environ_mapping), INTENT(INOUT) :: mapping
         !
-        INTEGER :: ir
-        REAL(DP), ALLOCATABLE :: auxlarge(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_density'
-        !
-        !--------------------------------------------------------------------------------
-        ! Check if input/output dimensions match mapping cells
-        !
-        IF (.NOT. ASSOCIATED(fsmall%cell, mapping%small)) &
-            CALL errore(sub_name, 'Mismatch of small cell', 1)
-        !
-        IF (.NOT. ASSOCIATED(flarge%cell, mapping%large)) &
-            CALL errore(sub_name, 'Mismatch of large cell', 1)
+        LOGICAL :: physical
+        INTEGER :: ir, ipol
+        INTEGER, DIMENSION(3) :: small_n, large_n, center, origin, shift, ijk
+        REAL(DP) :: tmp(3)
         !
         !--------------------------------------------------------------------------------
-        ! If the cells are the same, just copy
         !
-        IF (ASSOCIATED(mapping%large, mapping%small)) THEN
-            fsmall%of_r = flarge%of_r
+        IF (ASSOCIATED(mapping%small, mapping%large)) RETURN
+        ! environment cell is identical to system cell (env_nrep = 0 in environ.in)
+        !
+        !--------------------------------------------------------------------------------
+        ! Compute mapping
+        !
+        small_n(1) = mapping%small%dfft%nr1
+        small_n(2) = mapping%small%dfft%nr2
+        small_n(3) = mapping%small%dfft%nr3
+        !
+        large_n(1) = mapping%large%dfft%nr1
+        large_n(2) = mapping%large%dfft%nr2
+        large_n(3) = mapping%large%dfft%nr3
+        !
+        !--------------------------------------------------------------------------------
+        !
+        center = NINT(small_n / 2.D0) ! Indexes of center of small cell
+        !
+        !--------------------------------------------------------------------------------
+        ! Indexes of origin of small cell
+        !
+        IF (PRESENT(pos)) THEN
+            tmp = MATMUL(mapping%small%bg, pos) ! #TODO center of charge (think molecule)
+            origin = NINT(tmp * small_n)
         ELSE
+            origin = 0 ! center of charge
+        END IF
+        !
+        shift = center - origin
+        !
+        !--------------------------------------------------------------------------------
+        ! Shift origin of large cell
+        !
+        mapping%large%origin = -MATMUL(mapping%large%at, (0.5 - origin / DBLE(large_n)))
+        !
+        mapping%map = 0
+        !
+        DO ir = 1, mapping%small%ir_end
+            !
+            CALL ir2ijk(mapping%small, ir, ijk(1), ijk(2), ijk(3), physical)
+            !
+            IF (.NOT. physical) CYCLE
             !
             !----------------------------------------------------------------------------
-            ! Copy portion of large cell to corresponding gridpoints in the small cell
+            ! Shift to center small cell
             !
-            ALLOCATE (auxlarge(mapping%large%ntot))
-            auxlarge = 0.D0
+            ijk = ijk + shift
+            ijk = ijk - FLOOR(DBLE(ijk) / small_n) * small_n ! enforce periodicity
             !
-#if defined(__MPI)
-            CALL gather_grid(mapping%large%dfft, flarge%of_r, auxlarge)
+            !----------------------------------------------------------------------------
+            ! Map small cell to large cell #TODO check if this works in parallel
             !
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
+            ijk = ijk + small_n * mapping%nrep
             !
-#else
-            auxlarge = flarge%of_r
-#endif
-            fsmall%of_r = 0.D0
+            mapping%map(ir) = 1 + ijk(1) &                         ! x-point
+                              & + ijk(2) * large_n(1) &            ! y-row
+                              & + ijk(3) * large_n(1) * large_n(2) ! z-plane
             !
-            DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) & ! This test may be redundant
-                    fsmall%of_r(ir) = auxlarge(mapping%map(ir))
-                !
-            END DO
-            !
-            DEALLOCATE (auxlarge)
-        END IF
+        END DO
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE map_large_to_small_density
+    END SUBROUTINE update_environ_mapping
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_environ_mapping(lflag, mapping)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, INTENT(IN) :: lflag
+        !
+        TYPE(environ_mapping), INTENT(INOUT) :: mapping
+        !
+        !--------------------------------------------------------------------------------
+        !
+        mapping%nrep = 1
+        NULLIFY (mapping%small)
+        NULLIFY (mapping%large)
+        !
+        IF (ALLOCATED(mapping%map)) DEALLOCATE (mapping%map)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_environ_mapping
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

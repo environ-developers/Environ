@@ -14,6 +14,8 @@
 !    in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Ismaila Dabo       (DMSE, Penn State)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -30,20 +32,38 @@
 MODULE tools_generate_boundary
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: sqrtpi, pi, tpi, fpi
-    USE environ_types
-    USE environ_output
+    USE modules_constants, ONLY: DP, sqrtpi, tpi
     !
-    PRIVATE
+    USE representation_types
+    USE physical_types, ONLY: environ_boundary
+    USE core_types, ONLY: fft_core, fd_core
+    USE cell_types, ONLY: environ_cell
     !
-    PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
-              invert_boundary, calc_dboundary_dions, solvent_aware_boundary, &
-              solvent_aware_de_dboundary, &
-              compute_ion_field, compute_ion_field_partial, &
-              compute_normal_field, compute_dion_field_drho, &
-              scaling_of_field, dscaling_of_field, &
-              field_aware_de_drho, field_aware_dboundary_dions, field_aware_density, &
-              delectronic_field_drho
+    USE utils_hessian, ONLY: init_environ_hessian, destroy_environ_hessian
+    !
+    USE utils_gradient, ONLY: init_environ_gradient, update_gradient_modulus, &
+                              destroy_environ_gradient
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    !
+    USE tools_functions
+    USE tools_math, ONLY: scalar_product_environ_gradient, integrate_environ_density
+    !
+    USE core_fft, ONLY: gradient_fft, laplacian_fft, hessian_fft, convolution_fft
+    USE core_fd, ONLY: gradient_fd
+    !
+    USE modules_erf, ONLY: environ_erfc
+    !
+    USE environ_output, ONLY: ionode, program_unit
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: sfunct0, sfunct1, sfunct2, dsfunct0, dsfunct1, dsfunct2, d2sfunct1, &
+               d2sfunct2, boundfunct, d2boundfunct, dsurface_fft, calc_dsurface, &
+               calc_partial_of_boundary_highmem, calc_gradient_of_boundary_highmem, &
+               calc_laplacian_of_boundary_highmem, calc_dsurface_of_boundary_highmem, &
+               calc_gradient_of_boundary_lowmem, calc_laplacian_of_boundary_lowmem, &
+               calc_dsurface_of_boundary_lowmem, compute_convolution_deriv
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -213,8 +233,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     FUNCTION sfunct2(x, xthr, spread)
         !--------------------------------------------------------------------------------
-        !
-        USE modules_erf, ONLY: environ_erfc
         !
         IMPLICIT NONE
         !
@@ -458,10 +476,6 @@ CONTAINS
     SUBROUTINE boundary_of_density(density, boundary)
         !--------------------------------------------------------------------------------
         !
-        USE core_types
-        USE core_fd, ONLY: gradient_fd
-        USE core_fft, ONLY: gradient_fft, laplacian_fft, hessian_fft
-        !
         IMPLICIT NONE
         !
         TYPE(environ_density), TARGET, INTENT(IN) :: density
@@ -629,9 +643,6 @@ CONTAINS
     SUBROUTINE dsurface_fft(fft, x, grad, lapl, hess, dsurface)
         !--------------------------------------------------------------------------------
         !
-        USE core_types
-        USE core_fft, ONLY: hessian_fft
-        !
         IMPLICIT NONE
         !
         TYPE(fft_core), INTENT(IN) :: fft
@@ -722,12 +733,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE boundary_of_functions(nsoft_spheres, soft_spheres, boundary)
         !--------------------------------------------------------------------------------
-        !
-        USE core_types
-        USE core_fft, ONLY: gradient_fft, laplacian_fft, hessian_fft
-        !
-        USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
-                                   laplacian_of_functions, hessian_of_functions
         !
         IMPLICIT NONE
         !
@@ -1239,7 +1244,7 @@ CONTAINS
         tol = 1.D-60
         !
         !--------------------------------------------------------------------------------
-        ! temporary quotient
+        ! Temporary quotient
         !
         DO i = 1, n
             !
@@ -1399,8 +1404,6 @@ CONTAINS
     SUBROUTINE calc_dboundary_dions(index, boundary, partial)
         !--------------------------------------------------------------------------------
         !
-        USE utils_functions, ONLY: density_of_functions, gradient_of_functions
-        !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: index
@@ -1529,11 +1532,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE boundary_of_system(simple, boundary)
         !--------------------------------------------------------------------------------
-        !
-        USE core_fft, ONLY: gradient_fft, laplacian_fft
-        !
-        USE utils_functions, ONLY: density_of_functions, gradient_of_functions, &
-                                   laplacian_of_functions, hessian_of_functions
         !
         IMPLICIT NONE
         !
@@ -1677,10 +1675,6 @@ CONTAINS
     SUBROUTINE solvent_aware_boundary(boundary)
         !--------------------------------------------------------------------------------
         !
-        USE core_types
-        USE core_fft, ONLY: gradient_fft, laplacian_fft, hessian_fft, convolution_fft
-        USE utils_functions, ONLY: density_of_functions
-        !
         IMPLICIT NONE
         !
         TYPE(environ_boundary), INTENT(INOUT), TARGET :: boundary
@@ -1736,6 +1730,7 @@ CONTAINS
         !
         CALL convolution_fft(fft, boundary%local, boundary%probe, filled_fraction)
         !
+        !--------------------------------------------------------------------------------
         ! Step 3: compute the filling function and its derivative
         !
         boundary%filling%of_r = 0.D0
@@ -1863,7 +1858,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            ! if needed, now can recompute dsurface
+            ! Recompute dsurface, if needed
             !
             IF (deriv >= 3) THEN
                 !
@@ -1902,8 +1897,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE solvent_aware_de_dboundary(boundary, de_dboundary)
         !--------------------------------------------------------------------------------
-        !
-        USE core_fft, ONLY: convolution_fft
         !
         IMPLICIT NONE
         !
@@ -1953,8 +1946,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE compute_convolution_deriv(deriv, bound, grad, lapl, hess)
         !--------------------------------------------------------------------------------
-        !
-        USE core_fft, ONLY: convolution_fft
         !
         IMPLICIT NONE
         !

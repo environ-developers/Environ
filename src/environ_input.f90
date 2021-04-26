@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Ismaila Dabo       (DMSE, Penn State)
@@ -29,18 +31,25 @@ MODULE environ_input
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP, bohr_radius_angs, nsx
-    USE modules_parser, ONLY: env_field_count, env_read_line, env_get_field, parse_unit
-    USE mp, ONLY: mp_bcast
     !
+    USE environ_init, ONLY: set_environ_base
+    USE electrostatic_init, ONLY: set_electrostatic_base
+    USE core_init, ONLY: set_core_base
+    !
+    USE modules_parser, ONLY: env_field_count, env_read_line, env_get_field
     USE environ_output, ONLY: ionode, ionode_id, comm, program_unit, &
                               verbose_ => verbose, environ_unit
+    !
+    USE mp, ONLY: mp_bcast
+    !
+    !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     SAVE
     !
     !=---------------------------------------------------------------------------------=!
-!       ENVIRON Cards Parameters
+!     ENVIRON Cards Parameters
     !=---------------------------------------------------------------------------------=!
     !
     ! Local parameters of external charges
@@ -70,7 +79,7 @@ MODULE environ_input
     CHARACTER(LEN=80) :: dielectric_regions = 'bohr' ! atomic positions (bohr|angstrom)
     !
     !=---------------------------------------------------------------------------------=!
-!       ENVIRON Namelist Input Parameters
+!     ENVIRON Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
     LOGICAL :: environ_restart = .FALSE.
@@ -232,7 +241,7 @@ MODULE environ_input
         sc_chg_thr, env_external_charges, env_dielectric_regions
     !
     !=---------------------------------------------------------------------------------=!
-!       BOUNDARY Namelist Input Parameters
+!     BOUNDARY Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
     ! Soft boundary (electronic) parameters
@@ -455,7 +464,7 @@ MODULE environ_input
         electrolyte_softness, derivatives, ifdtype, nfdpoint, sc_distance, sc_spread
     !
     !=---------------------------------------------------------------------------------=!
-!       ELECTROSTATIC Namelist Input Parameters
+!     ELECTROSTATIC Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
     CHARACTER(LEN=80) :: problem = 'none'
@@ -666,9 +675,7 @@ CONTAINS
         ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
-        USE environ_init, ONLY: set_environ_base
-        USE electrostatic_init, ONLY: set_electrostatic_base
-        USE core_init, ONLY: set_core_base
+        IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: prog
         LOGICAL, INTENT(IN) :: use_internal_pbc_corr
@@ -702,6 +709,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Read values into local variables
         !
+        IF (ionode) &
+            WRITE (program_unit, '(A)') &
+            '     Reading input from environ.in'
+        !
         CALL environ_read_namelist(environ_unit_input)
         !
         CALL environ_read_cards(environ_unit_input)
@@ -729,7 +740,7 @@ CONTAINS
             OPEN (unit=environ_unit, file='environ.debug', status='unknown')
         !
         !=-----------------------------------------------------------------------------=!
-        !  Set module variables according to input
+        ! Set module variables according to input
         !=-----------------------------------------------------------------------------=!
         !
         ! Set electrostatic first as it does not depend on anything else
@@ -1479,7 +1490,7 @@ CONTAINS
             CALL errore(sub_name, ' electrolyte_softness out of range ', 1)
         !
         !--------------------------------------------------------------------------------
-        ! semiconductor checks
+        ! Semiconductor checks
         !
         IF (sc_distance < 0.0_DP) &
             CALL errore(sub_name, ' electrolyte_distance out of range ', 1)
@@ -1738,7 +1749,7 @@ CONTAINS
         SELECT CASE (TRIM(ADJUSTL(environ_type)))
             !
             !----------------------------------------------------------------------------
-            ! water experimental permittivities
+            ! Water experimental permittivities
             !
         CASE ('water', 'water-cation', 'water-anion')
             env_static_permittivity = 78.3D0
@@ -1796,8 +1807,8 @@ CONTAINS
             !
             radius_mode = 'uff'
             softness = 0.5D0
-            env_surface_tension = 50.D0 !! NOTE THAT WE ARE USING THE
-            env_pressure = -0.35D0      !! SET FOR CLUSTERS, AS IN SCCS
+            env_surface_tension = 50.D0 ! NOTE THAT WE ARE USING THE
+            env_pressure = -0.35D0      ! SET FOR CLUSTERS, AS IN SCCS
             !
             SELECT CASE (TRIM(ADJUSTL(environ_type)))
             CASE ('water')
@@ -1934,26 +1945,27 @@ CONTAINS
         CHARACTER(LEN=80) :: card
         CHARACTER(LEN=1), EXTERNAL :: capital
         LOGICAL :: tend
-        INTEGER :: i
+        INTEGER :: i, local_unit
         !
         !--------------------------------------------------------------------------------
+        ! Set default READ unit if none provided
         !
-        parse_unit = unit ! #TODO FIX THIS !!!
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = 5
+        END IF
         !
         !=-----------------------------------------------------------------------------=!
         !  START OF LOOP
         !=-----------------------------------------------------------------------------=!
         !
-100     CALL env_read_line(input_line, end_of_file=tend)
+100     CALL env_read_line(local_unit, input_line, end_of_file=tend)
         !
         !--------------------------------------------------------------------------------
         ! Skip blank/comment lines (REDUNDANT)
         !
         IF (tend) GOTO 120
-        !
-        ! #TODO redundant IF statement? add to env_read_line?
-        IF (input_line == ' ' .OR. input_line(1:1) == '#' .OR. input_line(1:1) == '!') &
-            GOTO 100
         !
         READ (input_line, *) card
         !
@@ -1968,9 +1980,9 @@ CONTAINS
         ! Read cards
         !
         IF (TRIM(card) == 'EXTERNAL_CHARGES') THEN
-            CALL card_external_charges(input_line)
+            CALL card_external_charges(local_unit, input_line)
         ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
-            CALL card_dielectric_regions(input_line)
+            CALL card_dielectric_regions(local_unit, input_line)
         ELSE
             !
             ! #TODO add more meaningful warnings
@@ -1982,7 +1994,7 @@ CONTAINS
         END IF
         !
         !=-----------------------------------------------------------------------------=!
-        !  END OF LOOP
+        ! END OF LOOP
         !=-----------------------------------------------------------------------------=!
         !
         GOTO 100
@@ -2037,10 +2049,12 @@ CONTAINS
     !!      axis(i)   ( integer )    1/2/3 for x/y/z direction of line/plane (optional, default=3)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE card_external_charges(input_line)
+    SUBROUTINE card_external_charges(unit, input_line)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: unit
         !
         CHARACTER(LEN=256) :: input_line
         INTEGER :: ie, ix, ierr, nfield
@@ -2085,7 +2099,7 @@ CONTAINS
         !
         DO ie = 1, env_external_charges
             !
-            CALL env_read_line(input_line, end_of_file=tend)
+            CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) &
                 CALL errore('environ_cards', 'end of file reading external charges', ie)
@@ -2093,14 +2107,14 @@ CONTAINS
             CALL env_field_count(nfield, input_line)
             !
             !----------------------------------------------------------------------------
-            ! read field 1 (total charge of the external density)
+            ! Read field 1 (total charge of the external density)
             !
             CALL env_get_field(1, field_str, input_line)
             !
             READ (field_str, *) extcharge_charge(ie)
             !
             !----------------------------------------------------------------------------
-            ! read fields 2-4 (x-y-z position of external density)
+            ! Read fields 2-4 (x-y-z position of external density)
             !
             CALL env_get_field(2, field_str, input_line)
             !
@@ -2115,7 +2129,7 @@ CONTAINS
             READ (field_str, *) extcharge_pos(3, ie)
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 5 (spread of the density)
+            ! Optionally read field 5 (spread of the density)
             !
             IF (nfield >= 5) THEN
                 !
@@ -2130,7 +2144,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 6 and 7 (dimensionality and direction)
+            ! Optionally read field 6 and 7 (dimensionality and direction)
             !
             IF (nfield >= 6) THEN
                 !
@@ -2183,8 +2197,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE card_external_charges
     !------------------------------------------------------------------------------------
-    !
     !>
+    !!
     !------------------------------------------------------------------------------------
     SUBROUTINE allocate_input_extcharge(env_external_charges)
         !--------------------------------------------------------------------------------
@@ -2255,10 +2269,12 @@ CONTAINS
     !!      axis(i)    ( integer )    1/2/3 for x/y/z direction of line/plane (optional)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE card_dielectric_regions(input_line)
+    SUBROUTINE card_dielectric_regions(unit, input_line)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: unit
         !
         CHARACTER(LEN=256) :: input_line
         INTEGER :: ie, ix, ierr, nfield
@@ -2301,7 +2317,7 @@ CONTAINS
         !
         DO ie = 1, env_dielectric_regions
             !
-            CALL env_read_line(input_line, end_of_file=tend)
+            CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) CALL errore('environ_cards', &
                                   'end of file reading dielectric regions', ie)
@@ -2309,7 +2325,7 @@ CONTAINS
             CALL env_field_count(nfield, input_line)
             !
             !----------------------------------------------------------------------------
-            ! read field 1-2 (static and optical permettivity inside dielectric region)
+            ! Read field 1-2 (static and optical permettivity inside dielectric region)
             !
             CALL env_get_field(1, field_str, input_line)
             !
@@ -2328,7 +2344,7 @@ CONTAINS
                             ' optical permittivity must be .gt. 1', ie)
             !
             !----------------------------------------------------------------------------
-            ! read fields 3-5 (x-y-z position of dielectric region)
+            ! Read fields 3-5 (x-y-z position of dielectric region)
             !
             CALL env_get_field(3, field_str, input_line)
             !
@@ -2343,7 +2359,7 @@ CONTAINS
             READ (field_str, *) epsregion_pos(3, ie)
             !
             !----------------------------------------------------------------------------
-            ! read field 6 (size/width of the dielectric region)
+            ! Read field 6 (size/width of the dielectric region)
             !
             CALL env_get_field(6, field_str, input_line)
             !
@@ -2354,7 +2370,7 @@ CONTAINS
                             ' width must be positive', ie)
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 7 (spread of interface of the dielectric region)
+            ! Optionally read field 7 (spread of interface of the dielectric region)
             !
             IF (nfield >= 7) THEN
                 !
@@ -2369,7 +2385,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            ! optionally read field 7 and 8 (dimensionality and direction)
+            ! Optionally read field 7 and 8 (dimensionality and direction)
             !
             IF (nfield >= 8) THEN
                 !

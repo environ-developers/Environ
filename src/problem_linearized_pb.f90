@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -32,21 +34,36 @@
 MODULE problem_linearized_pb
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, fpi
-    USE environ_types
-    USE electrostatic_types
-    USE environ_output
+    USE modules_constants, ONLY: DP, e2, fpi
+    !
+    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_core, &
+                                   gradient_solver
+    !
+    USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_dielectric
+    USE representation_types, ONLY: environ_density, environ_gradient
+    USE cell_types, ONLY: environ_cell
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    !
+    USE tools_math, ONLY: scalar_product_environ_density, &
+                          euclidean_norm_environ_density, &
+                          quadratic_mean_environ_density, &
+                          integrate_environ_density
+    !
     USE problem_poisson, ONLY: poisson_direct
     !
-    IMPLICIT NONE
+    USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
     !
-    PRIVATE
-    !
-    PUBLIC :: linearized_pb_gradient
+    !------------------------------------------------------------------------------------
     !
     INTERFACE linearized_pb_gradient
         MODULE PROCEDURE linearized_pb_gradient_charges, linearized_pb_gradient_density
     END INTERFACE linearized_pb_gradient
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: linearized_pb_gradient_charges, linearized_pb_gradient_density, &
+               linearized_pb_gradient_sqrt
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -80,7 +97,7 @@ CONTAINS
             CALL init_environ_density(potential%cell, local_screening)
             !
             IF (PRESENT(screening)) THEN
-                local_screening%of_r = screening%of_r ! External screening
+                local_screening%of_r = screening%of_r ! external screening
             ELSE
                 !
                 !------------------------------------------------------------------------
@@ -177,7 +194,7 @@ CONTAINS
             CALL init_environ_density(potential%cell, local_screening)
             !
             IF (PRESENT(screening)) THEN
-                local_screening%of_r = screening%of_r ! External screening
+                local_screening%of_r = screening%of_r ! external screening
             ELSE
                 !
                 !------------------------------------------------------------------------

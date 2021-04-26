@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
@@ -26,25 +28,30 @@
 !! to the dipole of the system along the direction perpendicular to the slab,
 !! the second order proportional to the total charge of the system.
 !!
-!! The variables needed to correct periodic boundary conditions for a partially periodic 
+!! The variables needed to correct periodic boundary conditions for a partially periodic
 !! system. Real space correction with planar average approximation.
 !!
 !----------------------------------------------------------------------------------------
 MODULE correction_periodic
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, pi, tpi, fpi
-    USE environ_types
-    USE core_types
-    USE environ_output
+    USE modules_constants, ONLY: DP, e2, pi, tpi, fpi
+    !
+    USE core_types, ONLY: oned_analytic_core
+    USE representation_types, ONLY: environ_density, environ_gradient
+    USE physical_types, ONLY: environ_charges
+    USE cell_types, ONLY: environ_cell
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
+    !
+    USE tools_math, ONLY: multipoles_environ_density
+    !
+    !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
     REAL(DP), PARAMETER :: madelung(3) = (/2.837297479D0, 2.8883D0, 2.885D0/)
-    !
-    PRIVATE
-    !
-    PUBLIC :: calc_vperiodic, calc_fperiodic, calc_gradvperiodic
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -162,7 +169,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vperiodic
     !------------------------------------------------------------------------------------
-    !> 
+    !>
     !! Note that in this subroutine the ionic density is implicit (and thus
     !! spread gaussians). Since the gradient of the corrective potential does
     !! not depend on the quadrupole moment of rhotot, it should be independent

@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
@@ -33,16 +35,24 @@
 MODULE embedding_electrostatic
     !------------------------------------------------------------------------------------
     !
-    USE electrostatic_types
-    USE environ_types
-    USE environ_output
-    USE modules_constants, ONLY: e2, pi, tpi, fpi
+    USE modules_constants, ONLY: DP, e2, tpi
     !
-    SAVE
+    USE electrostatic_types, ONLY: electrostatic_setup, electrostatic_core
+    USE physical_types, ONLY: environ_charges
+    USE representation_types, ONLY: environ_density
+    USE cell_types, ONLY: environ_cell
     !
-    PRIVATE
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
-    PUBLIC :: calc_velectrostatic, calc_eelectrostatic, calc_felectrostatic
+    USE tools_math, ONLY: scalar_product_environ_density
+    USE core_fft, ONLY: force_fft
+    !
+    USE correction_periodic, ONLY: calc_fperiodic
+    !
+    USE problem_poisson, ONLY: poisson_direct
+    USE problem_generalized, ONLY: generalized_gradient
+    USE problem_linearized_pb, ONLY: linearized_pb_gradient
+    USE problem_pb, ONLY: pb_nested
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -53,11 +63,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_velectrostatic(setup, charges, potential)
         !--------------------------------------------------------------------------------
-        !
-        USE problem_poisson, ONLY: poisson_direct
-        USE problem_generalized, ONLY: generalized_gradient
-        USE problem_linearized_pb, ONLY: linearized_pb_gradient
-        USE problem_pb, ONLY: pb_nested
         !
         IMPLICIT NONE
         !
@@ -244,13 +249,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Include environment contributions
         !
-        IF (charges%include_dielectric) THEN 
+        IF (charges%include_dielectric) THEN
             degauss = degauss + charges%dielectric%charge * 0.5D0 ! polarization charge
         END IF
         !
-        IF (charges%include_electrolyte) THEN 
+        IF (charges%include_electrolyte) THEN
             !
-            ! Note: electrolyte electrostatic interaction should be negative
+            ! note: electrolyte electrostatic interaction should be negative
             energy = energy - 0.5D0 * scalar_product_environ_density( &
                      charges%electrolyte%density, potential)
             !
@@ -299,9 +304,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_felectrostatic(setup, natoms, charges, forces)
         !--------------------------------------------------------------------------------
-        !
-        USE core_fft, ONLY: force_fft
-        USE correction_periodic, ONLY: calc_fperiodic
         !
         IMPLICIT NONE
         !

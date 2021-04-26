@@ -15,12 +15,16 @@ MODULE tools_generate_gvectors
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP, eps8
-    USE fft_types, ONLY: fft_stick_index, fft_type_descriptor
+    !
+    USE core_types, ONLY: fft_core
+    USE fft_types, ONLY: fft_type_descriptor, fft_stick_index
+    !
     USE modules_sort, ONLY: hpsort_eps
     USE fft_ggen, ONLY: fft_set_nl
-    USE mp, ONLY: mp_rank, mp_max, mp_size, mp_sum
     !
-    PRIVATE
+    USE mp, ONLY: mp_sum, mp_rank, mp_size
+    !
+    !------------------------------------------------------------------------------------
     !
     PUBLIC :: env_ggen, env_gvect_init
     !
@@ -33,8 +37,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE env_gvect_init(fft, ngm_g, comm)
         !--------------------------------------------------------------------------------
-        !
-        USE core_types
         !
         IMPLICIT NONE
         !
@@ -66,12 +68,11 @@ CONTAINS
     END SUBROUTINE env_gvect_init
     !------------------------------------------------------------------------------------
     !>
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE env_deallocate_gvect(fft)
         !--------------------------------------------------------------------------------
-        !
-        USE core_types
         !
         IMPLICIT NONE
         !
@@ -335,7 +336,7 @@ CONTAINS
             CALL errore('ggen', 'g-vectors (ngm) missing !', ABS(ngm - ngm_save))
         !
         !--------------------------------------------------------------------------------
-        ! determine first nonzero g vector
+        ! Determine first nonzero g vector
         !
         IF (gg(1) <= eps8) THEN
             gstart = 2

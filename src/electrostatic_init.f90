@@ -14,32 +14,32 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 !
 !----------------------------------------------------------------------------------------
-!> 
+!>
 !! Module to initialize electrostatic-related variables
 !!
 !----------------------------------------------------------------------------------------
 MODULE electrostatic_init
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
+    USE modules_constants, ONLY: DP
+    !
     USE core_base
-    USE electrostatic_types
     USE electrostatic_base
+    !
+    USE utils_electrostatics
+    !
     USE environ_output, ONLY: environ_unit
-    !
-    PRIVATE
-    !
-    PUBLIC :: set_electrostatic_base, electrostatic_initbase, electrostatic_initcell, &
-              electrostatic_initions, electrostatic_clean
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
-    !> 
+    !>
     !! Copies input variables read in input to global variables
     !! kept in the electrostatic_base module
     !!

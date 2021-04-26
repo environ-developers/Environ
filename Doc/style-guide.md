@@ -91,7 +91,7 @@ end block
 
 # comments
 
-## attached to single-line code
+## attached to single-line code (lowercase)
 
 - <= col 90 (including comment):
   - on the same line, separated by a single blank space from code
@@ -112,10 +112,13 @@ code...... &
     ......
 ```
 
-## !---------- sectioning
+## section comments (sentence-case)
+
+- see `!---------- sectioning`
+
+# !---------- sectioning
 
 - up to, but not including col 90
-- use dashed line to separate variable declaration from subroutine/function body
 - use to section code blocks (multiple commands of common purpose)
 
 ```
@@ -235,6 +238,26 @@ sum_ = 1 + var1 + &
        & + var2 * var3
 ```
 
-# debugging
+## imports
 
-- if writing to environ_unit, make sure to set verbose > 0 in environ.in
+- explicit imports ONLY (DO NOT rely on nested imports!!!)
+- grouped at the top of the module, !-separated into subgroups (in order):
+  - constants
+  - types
+  - bases
+  - utils
+  - tools
+  - other functions
+  - I/O
+  - debugging
+  - parallelization
+
+## private/public
+
+- only state what is private, if any
+
+## files
+
+- tools contain numerical functionality
+- utils contain "administrative" functionality (create, init, update, copy, set, destroy)
+  - may contain private helper functions for the above tasks

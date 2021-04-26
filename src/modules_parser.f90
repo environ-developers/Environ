@@ -37,15 +37,20 @@
 MODULE modules_parser
     !------------------------------------------------------------------------------------
     !
-    USE environ_output, ONLY: program_unit
     USE modules_constants, ONLY: DP
     !
-    PRIVATE
+    ! WE MAY WANT TO ADD A SECOND COMM ON IMAGES #TODO may be required for NEB
+    USE environ_output, ONLY: program_unit, comm, ionode, ionode_id
     !
-    PUBLIC :: parse_unit, env_field_count, env_read_line, env_get_field
-    PUBLIC :: env_version_parse, env_version_compare
+    USE mp, ONLY: mp_bcast
     !
-    INTEGER :: parse_unit = 5 ! normally 5, but can be set otherwise
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: env_field_compare
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -120,15 +125,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_read_line(line, nfield, field, end_of_file, error)
+    SUBROUTINE env_read_line(unit, line, nfield, field, end_of_file, error)
         !--------------------------------------------------------------------------------
-        !
-        USE mp, ONLY: mp_bcast
-        USE environ_output, ONLY: comm ! WE MAY WANT TO ADD A SECOND COMM ON IMAGES #TODO may be required for NEB
-        USE environ_output, ONLY: ionode, ionode_id
         !
         IMPLICIT NONE
         !
+        INTEGER, INTENT(IN) :: unit
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: field
         INTEGER, OPTIONAL, INTENT(IN) :: nfield
         !
@@ -146,9 +148,9 @@ CONTAINS
         terr = .FALSE.
         !
         IF (ionode) THEN
-30          READ (parse_unit, fmt='(A256)', ERR=15, END=10) line
+30          READ (unit, fmt='(A256)', ERR=15, END=10) line
             !
-            IF (line == ' ' .OR. line(1:1) == '#') GOTO 30
+            IF (line == ' ' .OR. line(1:1) == '#' .OR. line(1:1) == '!') GOTO 30
             !
             GOTO 20
 10          tend = .TRUE.
@@ -213,6 +215,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE env_con_cam(num, line, car)
         !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CHARACTER(LEN=*) :: line
         CHARACTER(LEN=1) :: sep
@@ -341,6 +345,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
         CHARACTER(*) :: str1, str2
         CHARACTER(10) :: env_version_compare
         !

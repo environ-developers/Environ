@@ -5,6 +5,8 @@
 ! in the root directory of the present distribution,
 ! or http://www.gnu.org/copyleft/gpl.txt .
 !
+!----------------------------------------------------------------------------------------
+!
 ! original version by Q. Campbell
 !
 !----------------------------------------------------------------------------------------
@@ -14,16 +16,21 @@
 MODULE correction_ms
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE electrostatic_types
-    USE environ_output, ONLY: environ_unit, ionode, verbose
-    USE modules_constants, ONLY: e2, fpi, k_boltzmann_ry, pi, tpi
+    USE modules_constants, ONLY: DP, e2, fpi, k_boltzmann_ry, pi, tpi
     !
-    IMPLICIT NONE
+    USE core_types, ONLY: oned_analytic_core
+    USE cell_types, ONLY: environ_cell
+    USE physical_types, ONLY: environ_semiconductor
+    USE representation_types, ONLY: environ_density, environ_gradient
     !
-    PRIVATE
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
     !
-    PUBLIC :: calc_vms, calc_gradvms
+    USE tools_math, ONLY: multipoles_environ_density
+    !
+    USE environ_output, ONLY: ionode, verbose, environ_unit
+    !
+    USE mp, ONLY: mp_sum
     !
     !------------------------------------------------------------------------------------
 CONTAINS

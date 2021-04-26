@@ -1,6 +1,6 @@
 &lr_input
     prefix='CH4_vacuum'
-    outdir='/home/fnattino/Programs/qe-6.1/tempdir/'
+    outdir='/Users/oliviero/PWSCF/espresso-git/tempdir/'
     restart = .false.
 /
 &lr_dav

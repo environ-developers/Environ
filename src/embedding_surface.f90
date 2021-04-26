@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !
@@ -34,15 +36,10 @@
 MODULE embedding_surface
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE environ_output
-    USE modules_constants, ONLY: e2
+    USE modules_constants, ONLY: DP, e2
     !
-    IMPLICIT NONE
-    !
-    PRIVATE
-    !
-    PUBLIC :: calc_desurface_dboundary, calc_esurface
+    USE physical_types, ONLY: environ_boundary
+    USE representation_types, ONLY: environ_density
     !
     !------------------------------------------------------------------------------------
 CONTAINS

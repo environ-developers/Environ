@@ -38,22 +38,30 @@
 MODULE utils_dielectric
     !------------------------------------------------------------------------------------
     !
-    USE environ_types
-    USE environ_output
-    USE utils_functions
-    USE core_fft, ONLY: gradient_fft
-    USE modules_constants, ONLY: e2, fpi
+    USE modules_constants, ONLY: DP, e2, fpi
     !
-    IMPLICIT NONE
+    USE physical_types, ONLY: environ_dielectric, environ_boundary
+    USE representation_types, ONLY: environ_density, environ_gradient
+    USE cell_types, ONLY: environ_cell
     !
-    SAVE
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
     !
-    PRIVATE
+    USE utils_gradient, ONLY: create_environ_gradient, init_environ_gradient, &
+                              update_gradient_modulus, destroy_environ_gradient
     !
-    PUBLIC :: create_environ_dielectric, init_environ_dielectric_first, &
-              set_dielectric_regions, init_environ_dielectric_second, &
-              update_environ_dielectric, calc_dedielectric_dboundary, &
-              destroy_environ_dielectric, dielectric_of_potential
+    USE utils_functions, ONLY: destroy_environ_functions
+    !
+    USE tools_functions, ONLY: density_of_functions, gradient_of_functions, &
+                               laplacian_of_functions
+    !
+    USE tools_math, ONLY: scalar_product_environ_gradient
+    !
+    USE environ_output, ONLY: verbose, print_environ_density
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: update_dielectric_background, dielectric_of_boundary
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -332,6 +340,78 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_dielectric
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_environ_dielectric(lflag, dielectric)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, INTENT(IN) :: lflag
+        !
+        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_dielectric'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (lflag) THEN
+            !
+            IF (dielectric%nregions > 0) THEN
+                CALL destroy_environ_functions(dielectric%nregions, dielectric%regions)
+            ELSE
+                !
+                IF (ALLOCATED(dielectric%regions)) &
+                    CALL errore(sub_name, 'Found unexpected allocated object', 1)
+                !
+            END IF
+            !
+            IF (.NOT. ASSOCIATED(dielectric%boundary)) &
+                CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+            !
+            NULLIFY (dielectric%boundary)
+        END IF
+        !
+        IF (dielectric%initialized) THEN
+            !
+            CALL destroy_environ_density(dielectric%background)
+            !
+            IF (dielectric%nregions > 0) THEN
+                !
+                CALL destroy_environ_gradient(dielectric%gradbackground)
+                !
+                IF (dielectric%need_factsqrt) &
+                    CALL destroy_environ_density(dielectric%laplbackground)
+                !
+            END IF
+            !
+            CALL destroy_environ_density(dielectric%epsilon)
+            !
+            CALL destroy_environ_density(dielectric%depsilon)
+            !
+            CALL destroy_environ_gradient(dielectric%gradlog)
+            !
+            IF (dielectric%need_gradient) &
+                CALL destroy_environ_gradient(dielectric%gradient)
+            !
+            IF (dielectric%need_factsqrt) &
+                CALL destroy_environ_density(dielectric%factsqrt)
+            !
+            CALL destroy_environ_density(dielectric%density)
+            !
+            IF (dielectric%need_auxiliary) &
+                CALL destroy_environ_density(dielectric%iterative)
+            !
+            dielectric%initialized = .FALSE.
+            !
+        END IF
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_environ_dielectric
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -641,163 +721,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE dielectric_of_boundary
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE dielectric_of_potential(charges, potential, dielectric)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_density), INTENT(IN) :: charges, potential
-        !
-        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
-        !
-        TYPE(environ_cell), POINTER :: cell
-        !
-        TYPE(environ_gradient) :: gradient
-        !
-        CHARACTER(LEN=80) :: sub_name = 'dielectric_of_potential'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
-        !
-        IF (.NOT. ASSOCIATED(potential%cell, dielectric%density%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and dielectric', 1)
-        !
-        cell => charges%cell
-        !
-        CALL init_environ_gradient(cell, gradient)
-        !
-        CALL gradient_fft(dielectric%boundary%core%fft, potential, gradient)
-        !
-        CALL scalar_product_environ_gradient(dielectric%gradlog, gradient, &
-                                             dielectric%density)
-        !
-        dielectric%density%of_r = dielectric%density%of_r / fpi / e2 + charges%of_r * &
-                                  (1.D0 - dielectric%epsilon%of_r) / &
-                                  dielectric%epsilon%of_r
-        !
-        CALL destroy_environ_gradient(gradient)
-        !
-        dielectric%charge = integrate_environ_density(dielectric%density)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE dielectric_of_potential
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_dedielectric_dboundary(dielectric, velectrostatic, de_dboundary)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_dielectric), INTENT(IN) :: dielectric
-        TYPE(environ_density), INTENT(IN) :: velectrostatic
-        !
-        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
-        !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_gradient) :: gradient
-        !
-        !--------------------------------------------------------------------------------
-        !
-        cell => de_dboundary%cell
-        !
-        CALL init_environ_gradient(cell, gradient)
-        !
-        CALL gradient_fft(dielectric%boundary%core%fft, velectrostatic, gradient)
-        !
-        CALL update_gradient_modulus(gradient)
-        !
-        de_dboundary%of_r = de_dboundary%of_r - &
-                            gradient%modulus%of_r**2 * dielectric%depsilon%of_r * &
-                            0.5D0 / fpi / e2
-        !
-        CALL destroy_environ_gradient(gradient)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_dedielectric_dboundary
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_dielectric(lflag, dielectric)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
-        !
-        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
-        !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_dielectric'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (lflag) THEN
-            !
-            IF (dielectric%nregions > 0) THEN
-                CALL destroy_environ_functions(dielectric%nregions, dielectric%regions)
-            ELSE
-                !
-                IF (ALLOCATED(dielectric%regions)) &
-                    CALL errore(sub_name, 'Found unexpected allocated object', 1)
-                !
-            END IF
-            !
-            IF (.NOT. ASSOCIATED(dielectric%boundary)) &
-                CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
-            !
-            NULLIFY (dielectric%boundary)
-        END IF
-        !
-        IF (dielectric%initialized) THEN
-            !
-            CALL destroy_environ_density(dielectric%background)
-            !
-            IF (dielectric%nregions > 0) THEN
-                !
-                CALL destroy_environ_gradient(dielectric%gradbackground)
-                !
-                IF (dielectric%need_factsqrt) &
-                    CALL destroy_environ_density(dielectric%laplbackground)
-                !
-            END IF
-            !
-            CALL destroy_environ_density(dielectric%epsilon)
-            !
-            CALL destroy_environ_density(dielectric%depsilon)
-            !
-            CALL destroy_environ_gradient(dielectric%gradlog)
-            !
-            IF (dielectric%need_gradient) &
-                CALL destroy_environ_gradient(dielectric%gradient)
-            !
-            IF (dielectric%need_factsqrt) &
-                CALL destroy_environ_density(dielectric%factsqrt)
-            !
-            CALL destroy_environ_density(dielectric%density)
-            !
-            IF (dielectric%need_auxiliary) &
-                CALL destroy_environ_density(dielectric%iterative)
-            !
-            dielectric%initialized = .FALSE.
-            !
-        END IF
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_environ_dielectric
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

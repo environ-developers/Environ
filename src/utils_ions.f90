@@ -14,6 +14,8 @@
 !    `License' in the root directory of the present distribution, or
 !    online at <http://www.gnu.org/licenses/>.
 !
+!----------------------------------------------------------------------------------------
+!
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
@@ -32,11 +34,20 @@
 MODULE utils_ions
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, pi, tpi, fpi, bohr_radius_angs
-    USE environ_types
+    USE modules_constants, ONLY: DP, e2, pi, tpi, bohr_radius_angs
+    !
+    USE physical_types, ONLY: environ_ions, environ_iontype
+    USE representation_types, ONLY: environ_functions
+    USE cell_types, ONLY: environ_cell
+    !
     USE environ_base, ONLY: potential_shift
-    USE environ_output
-    USE utils_functions
+    !
+    USE utils_density, ONLY: create_environ_density, init_environ_density, &
+                             destroy_environ_density
+    !
+    USE utils_functions, ONLY: destroy_environ_functions
+    !
+    USE tools_functions, ONLY: density_of_functions
     !
     !------------------------------------------------------------------------------------
     !
@@ -117,10 +128,7 @@ MODULE utils_ions
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE
-    !
-    PUBLIC :: create_environ_ions, init_environ_ions_first, init_environ_ions_second, &
-              update_environ_ions, destroy_environ_ions
+    PRIVATE :: set_iontype_defaults, get_atmnum, lowcase
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -314,7 +322,7 @@ CONTAINS
             IF (PRESENT(vloc)) THEN
                 !
                 !------------------------------------------------------------------------
-                ! INPUT/REFERENCE POTENTIALS IN SYSTEM CELL
+                ! Input/reference potentials in system cell
                 !
                 IF (.NOT. ASSOCIATED(ions%vloc(i)%cell)) &
                     CALL init_environ_density(cell, ions%vloc(i))
@@ -333,8 +341,8 @@ CONTAINS
         IF (ions%use_smeared_ions) THEN
             !
             !----------------------------------------------------------------------------
-            ! THE FOLLOWING TEST ON ALLOCATION IS ONLY THERE BECAUSE OF WHEN THIS
-            ! INITIALIZATION IS CALLED, IF MERGED WITH THE FIRST STEP REMOVE THE TEST
+            ! #TODO The following test on allocation is only there because of when this
+            ! initialization is called. If merged with the first step, remove the test.
             !
             IF (.NOT. ALLOCATED(ions%density%of_r)) THEN
                 CALL init_environ_density(cell, ions%density)
@@ -351,7 +359,7 @@ CONTAINS
                 DO i = 1, ions%number
                     ions%smeared_ions(i) = &
                         environ_functions(1, 1, 0, 0.0_DP, &
-                                           ions%iontype(ions%ityp(i))%atomicspread, &
+                                          ions%iontype(ions%ityp(i))%atomicspread, &
                                           ions%iontype(ions%ityp(i))%zv, &
                                           ions%tau(:, i))
                 END DO
@@ -363,8 +371,8 @@ CONTAINS
         IF (ions%use_core_electrons) THEN
             !
             !----------------------------------------------------------------------------
-            ! THE FOLLOWING TEST ON ALLOCATION IS ONLY THERE BECAUSE OF WHEN THIS
-            ! INITIALIZATION IS CALLED, IF MERGED WITH THE FIRST STEP REMOVE THE TEST
+            ! #TODO The following test on allocation is only there because of when this
+            ! initialization is called. If merged with the first step, remove the test.
             !
             IF (.NOT. ALLOCATED(ions%core%of_r)) THEN
                 CALL init_environ_density(cell, ions%core)
@@ -425,7 +433,7 @@ CONTAINS
         IF (ions%number /= nat) &
             CALL errore(sub_name, 'Mismatch in number of atoms', 1)
         !
-        ions%tau = tau ! Update positions
+        ions%tau = tau ! update positions
         !
         !--------------------------------------------------------------------------------
         ! Center of ionic charge used by three sub-modules
@@ -454,7 +462,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Compute quadrupole moment of point-like (and gaussian) nuclei
         !
-        ions%dipole = 0.D0 ! This is due to the choice of ionic center
+        ions%dipole = 0.D0 ! this is due to the choice of ionic center
         ions%quadrupole_pc = 0.D0
         ions%quadrupole_correction = 0.D0
         ions%selfenergy_correction = 0.D0
@@ -623,7 +631,7 @@ CONTAINS
         CHARACTER(LEN=3), INTENT(IN) :: label
         !
         INTEGER :: i, get_atmnum
-        CHARACTER(LEN=3) :: clean_label, lower
+        CHARACTER(LEN=2) :: clean_label, lower
         !
         !--------------------------------------------------------------------------------
         !
@@ -652,11 +660,11 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(len=3), INTENT(IN) :: string
+        CHARACTER(LEN=2), INTENT(IN) :: string
         !
-        CHARACTER(len=3), INTENT(OUT) :: lower_str
+        CHARACTER(LEN=2), INTENT(OUT) :: lower_str
         !
-        CHARACTER(len=1) :: c
+        CHARACTER(LEN=1) :: c
         INTEGER :: i, ci
         !
         !--------------------------------------------------------------------------------

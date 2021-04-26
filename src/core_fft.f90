@@ -6,20 +6,29 @@ MODULE core_fft
     !------------------------------------------------------------------------------------
     !
     USE modules_constants, ONLY: DP, e2, tpi, fpi
+    !
+    USE core_types, ONLY: fft_core
+    USE fft_types, ONLY: fft_type_descriptor
+    USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
+    USE physical_types, ONLY: environ_ions
+    !
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
+    !
+    USE correction_mt, ONLY: calc_vmt, calc_gradvmt, calc_fmt
     USE fft_interfaces, ONLY: fwfft, invfft
-    USE core_types
-    USE environ_types
     !
-    PRIVATE
+    USE mp, ONLY: mp_sum
     !
-    PUBLIC :: poisson_fft, gradpoisson_fft, force_fft, convolution_fft, &
-              gradient_fft, graddot_fft, laplacian_fft, hessian_fft, &
-              field_of_gradrho, hessv_h_of_rho_r
+    !------------------------------------------------------------------------------------
     !
     INTERFACE convolution_fft
         MODULE PROCEDURE convolution_fft_density, convolution_fft_gradient, &
             convolution_fft_hessian
     END INTERFACE convolution_fft
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE :: convolution_fft_density, convolution_fft_gradient, convolution_fft_hessian
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -31,8 +40,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE poisson_fft(fft, fin, fout)
         !--------------------------------------------------------------------------------
-        !
-        USE correction_mt, ONLY: calc_vmt
         !
         IMPLICIT NONE
         !
@@ -50,7 +57,7 @@ CONTAINS
         TYPE(fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft_core
+        ! Add tests for compatilibity between input, output, and fft_core
         !
         tpiba2 => fft%cell%tpiba2
         omega => fft%cell%omega
@@ -97,7 +104,7 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! transform hartree potential to real space
+        ! Transform hartree potential to real space
         !
         CALL invfft('Rho', auxr, dfft)
         !
@@ -118,8 +125,6 @@ CONTAINS
     SUBROUTINE gradpoisson_fft(fft, fin, gout)
         !--------------------------------------------------------------------------------
         !
-        USE correction_mt, ONLY: calc_gradvmt
-        !
         IMPLICIT NONE
         !
         TYPE(fft_core), TARGET, INTENT(IN) :: fft
@@ -138,7 +143,7 @@ CONTAINS
         TYPE(fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         omega => fft%cell%omega
@@ -176,14 +181,14 @@ CONTAINS
 !$omp end parallel do
             !
             !----------------------------------------------------------------------------
-            ! and add the factor e2*fpi/2\pi/a coming from the missing prefactor of
+            ! Add the factor e2*fpi/2\pi/a coming from the missing prefactor of
             ! V = e2 * fpi divided by the 2\pi/a factor missing in G
             !
             fac = e2 * fpi / tpiba
             auxr = auxr * fac
             !
             !----------------------------------------------------------------------------
-            ! add martyna-tuckerman correction, if needed
+            ! Add martyna-tuckerman correction, if needed
             !
             IF (fft%use_internal_pbc_corr) THEN
                 ALLOCATE (vaux(ngm))
@@ -205,7 +210,7 @@ CONTAINS
             END IF
             !
             !----------------------------------------------------------------------------
-            ! bring back to R-space, (\grad_ipol a)(r) ...
+            ! Bring back to R-space, (\grad_ipol a)(r) ...
             !
             CALL invfft('Rho', auxr, dfft)
             !
@@ -225,9 +230,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE force_fft(fft, rho, ions, nat, force)
         !--------------------------------------------------------------------------------
-        !
-        USE mp, ONLY: mp_sum
-        USE correction_mt, ONLY: calc_fmt
         !
         IMPLICIT NONE
         !
@@ -250,7 +252,7 @@ CONTAINS
         TYPE(fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         omega => fft%cell%omega
@@ -286,7 +288,7 @@ CONTAINS
         DEALLOCATE (auxr)
         !
         !--------------------------------------------------------------------------------
-        ! aux contains now n(G)
+        ! Aux now contains n(G)
         !
         IF (dfft%lgamma) THEN
             fact = 2.D0
@@ -319,7 +321,7 @@ CONTAINS
         ! END DO
         !
         !--------------------------------------------------------------------------------
-        ! add martyna-tuckerman correction, if needed
+        ! Add martyna-tuckerman correction, if needed
         !
         IF (fft%use_internal_pbc_corr) THEN
             ALLOCATE (ftmp(3, nat))
@@ -369,7 +371,7 @@ CONTAINS
         TYPE(fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         dfft => fft%cell%dfft
         omega => fft%cell%omega
@@ -438,7 +440,7 @@ CONTAINS
         INTEGER :: ipol
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         CALL init_environ_density(fa%cell, local)
         !
@@ -518,7 +520,7 @@ CONTAINS
         INTEGER :: ipol, jpol
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         CALL init_environ_density(fa%cell, local)
         !
@@ -606,7 +608,7 @@ CONTAINS
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         dfft => fft%cell%dfft
@@ -620,7 +622,7 @@ CONTAINS
         CALL fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
         !
         !--------------------------------------------------------------------------------
-        ! multiply by (iG) to get (\grad_ipol a)(G)
+        ! Multiply by (iG) to get (\grad_ipol a)(G)
         !
         DO ipol = 1, 3
             gaux(:) = (0.0_DP, 0.0_DP)
@@ -676,7 +678,7 @@ CONTAINS
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         dfft => fft%cell%dfft
@@ -700,7 +702,7 @@ CONTAINS
             CALL fwfft('Rho', aux, dfft) ! bring a(ipol,r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
-            ! multiply by iG to get the gradient in G-space
+            ! Multiply by iG to get the gradient in G-space
             !
             DO n = 1, dfft%ngm
                 fp = (aux(dfft%nl(n)) + aux(dfft%nlm(n))) * 0.5_DP
@@ -722,8 +724,8 @@ CONTAINS
             CALL fwfft('Rho', aux, dfft) ! bring a(ipol, r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
-            ! multiply by iG to get the gradient in G-space
-            ! fill both gaux(G) and gaux(-G) = gaux*(G)
+            ! Multiply by iG to get the gradient in G-space
+            ! Fill both gaux(G) and gaux(-G) = gaux*(G)
             !
             DO n = 1, dfft%ngm
                 !
@@ -742,7 +744,7 @@ CONTAINS
                 CALL fwfft('Rho', aux, dfft) ! bring a(ipol,r) to G-space, a(G)
                 !
                 !------------------------------------------------------------------------
-                ! multiply by iG to get the gradient in G-space
+                ! Multiply by iG to get the gradient in G-space
                 !
                 DO n = 1, dfft%ngm
                     !
@@ -759,7 +761,7 @@ CONTAINS
         CALL invfft('Rho', gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
         !
         da%of_r(:) = tpiba * REAL(gaux(:))
-        ! add the factor 2\pi/a missing in the definition of G and sum
+        ! Add the factor 2\pi/a missing in the definition of G and sum
         !
         DEALLOCATE (aux, gaux)
         !
@@ -770,8 +772,8 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !! Calculates lapla = laplacian(a)
-    !! input : fft     FFT descriptor and G vectors
-    !!         a(:)     a real function on the real-space FFT grid
+    !! input : fft      FFT descriptor and G vectors
+    !!         a(:)     A real function on the real-space FFT grid
     !! output: lapla(:) \nabla^2 a, real, on the real-space FFT grid
     !!
     !------------------------------------------------------------------------------------
@@ -793,7 +795,7 @@ CONTAINS
         TYPE(fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba2 => fft%cell%tpiba2
         gg => fft%gg
@@ -859,7 +861,7 @@ CONTAINS
         TYPE(fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! add tests for compatilibity between input, output, and fft
+        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         g => fft%g
@@ -874,7 +876,7 @@ CONTAINS
         CALL fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
         !
         !--------------------------------------------------------------------------------
-        ! multiply by (iG) to get (\grad_ipol a)(G)
+        ! Multiply by (iG) to get (\grad_ipol a)(G)
         !
         DO ipol = 1, 3
             gaux(:) = (0.0_DP, 0.0_DP)
@@ -895,7 +897,7 @@ CONTAINS
             ! add the factor 2\pi/a missing in the definition of G
             !
             !----------------------------------------------------------------------------
-            ! compute the second derivatives
+            ! Compute the second derivatives
             !
             DO jpol = 1, ipol
                 haux(:) = (0.0_DP, 0.0_DP)
@@ -939,8 +941,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE hessv_h_of_rho_r(rho, hessv, fft)
         !--------------------------------------------------------------------------------
-        !
-        USE correction_mt, ONLY: calc_vmt
         !
         IMPLICIT NONE
         !
@@ -999,14 +999,14 @@ CONTAINS
                 END DO
                 !
                 !------------------------------------------------------------------------
-                ! and add the factor e2*fpi coming from the missing prefactor of
+                ! Add the factor e2*fpi coming from the missing prefactor of
                 ! V = e2 * fpi
                 !
                 fac = e2 * fpi
                 gaux = gaux * fac
                 !
                 !------------------------------------------------------------------------
-                ! add martyna-tuckerman correction, if needed
+                ! Add martyna-tuckerman correction, if needed
                 !
                 IF (do_comp_mt) THEN
                     ALLOCATE (vaux(ngm), rgtot(ngm))
@@ -1057,8 +1057,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     SUBROUTINE field_of_gradrho(gradrho, e, fft)
         !--------------------------------------------------------------------------------
-        !
-        USE correction_mt, ONLY: calc_vmt
         !
         IMPLICIT NONE
         !
@@ -1121,14 +1119,14 @@ CONTAINS
             END DO
             !
             !----------------------------------------------------------------------------
-            ! add the factor e2*fpi/2\pi/a coming from the missing prefactor of
+            ! Add the factor e2*fpi/2\pi/a coming from the missing prefactor of
             ! V = e2 * fpi divided by the 2\pi/a factor missing in G
             !
             fac = e2 * fpi / tpiba
             aux = aux * fac
             !
             !----------------------------------------------------------------------------
-            ! add martyna-tuckerman correction, if needed
+            ! Add martyna-tuckerman correction, if needed
             !
             IF (do_comp_mt) THEN
                 rgtot(1:ngm) = gaux(fft%cell%dfft%nl(1:ngm))

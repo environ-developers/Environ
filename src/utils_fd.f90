@@ -5,16 +5,18 @@
 MODULE utils_fd
     !------------------------------------------------------------------------------------
     !
-    USE core_types
+    USE core_types, ONLY: fd_core
+    USE cell_types, ONLY: environ_cell
     !
-    PRIVATE
+    !------------------------------------------------------------------------------------
     !
-    PUBLIC :: create_fd_core, init_fd_core_first, init_fd_core_second, destroy_fd_core
+    PRIVATE :: set_fd_coefficients
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
+    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE create_fd_core(fd)
@@ -256,7 +258,7 @@ CONTAINS
         CASE DEFAULT
             !
             !----------------------------------------------------------------------------
-                ! DEBUGGING
+            ! DEBUGGING
             !
             WRITE (*, *) 'ERROR: finite difference type unknown, ifdtype=', ifdtype
             !
