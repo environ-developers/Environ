@@ -520,8 +520,6 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_ions'
         !
         !--------------------------------------------------------------------------------
-        ! ityp, tau and iontype should have been allocated
-        ! raise an error if they are not
         !
         IF (ions%initialized) THEN
             !
