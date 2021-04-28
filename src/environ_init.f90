@@ -535,10 +535,8 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initbase(alat, at, comm, me, root, gcutm, e2)
+    SUBROUTINE environ_initbase(alat, at, comm, me, root, gcutm, e2_local)
         !--------------------------------------------------------------------------------
-        !
-        USE modules_constants, ONLY: e2_ => e2 ! #TODO clean this up
         !
         IMPLICIT NONE
         !
@@ -546,7 +544,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: alat
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
-        REAL(DP), OPTIONAL, INTENT(IN) :: e2
+        REAL(DP), OPTIONAL, INTENT(IN) :: e2_local
         !
         INTEGER :: m(3)
         !
@@ -559,9 +557,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Common initialization for simulations with Environ
         !
-        e2_ = 2.D0
+        e2 = 2.D0
         !
-        IF (PRESENT(e2)) e2_ = e2
+        IF (PRESENT(e2_local)) e2 = e2_local
         !
         CALL init_environ_cell(gcutm, comm, alat, at, system_cell) ! create system cell
         !

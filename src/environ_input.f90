@@ -62,7 +62,7 @@ MODULE environ_input
     REAL(DP), ALLOCATABLE :: extcharge_spread(:) ! gaussian density spread (bohr)
     REAL(DP), ALLOCATABLE :: extcharge_pos(:, :) ! cartesian position of density
     !
-    CHARACTER(LEN=80) :: external_charges = 'bohr' ! atomic positions (bohr|angstrom)
+    CHARACTER(LEN=80) :: extcharge_units = 'bohr' ! atomic positions (bohr|angstrom)
     !
     !------------------------------------------------------------------------------------
     ! Local parameters of dielectric regions
@@ -76,7 +76,7 @@ MODULE environ_input
     REAL(DP), ALLOCATABLE :: epsregion_spread(:) ! interface spread (bohr)
     REAL(DP), ALLOCATABLE :: epsregion_pos(:, :) ! cartesian center of region
     !
-    CHARACTER(LEN=80) :: dielectric_regions = 'bohr' ! atomic positions (bohr|angstrom)
+    CHARACTER(LEN=80) :: epsregion_units = 'bohr' ! atomic positions (bohr|angstrom)
     !
     !=---------------------------------------------------------------------------------=!
 !     ENVIRON Namelist Input Parameters
@@ -2076,9 +2076,9 @@ CONTAINS
         CALL allocate_input_extcharge(env_external_charges)
         !
         IF (matches("BOHR", input_line)) THEN
-            external_charges = 'bohr'
+            extcharge_units = 'bohr'
         ELSE IF (matches("ANGSTROM", input_line)) THEN
-            external_charges = 'angstrom'
+            extcharge_units = 'angstrom'
         ELSE
             !
             IF (TRIM(ADJUSTL(input_line)) /= 'EXTERNAL_CHARGES') &
@@ -2087,10 +2087,10 @@ CONTAINS
             !
             CALL infomsg('read_cards ', 'No units specified in EXTERNAL_CHARGES card')
             !
-            external_charges = 'bohr'
+            extcharge_units = 'bohr'
             !
             CALL infomsg('read_cards ', &
-                         'EXTERNAL_CHARGES: units set to '//TRIM(external_charges))
+                         'EXTERNAL_CHARGES: units set to '//TRIM(extcharge_units))
             !
         END IF
         !
@@ -2185,10 +2185,10 @@ CONTAINS
         DO ie = 1, env_external_charges
             !
             DO ix = 1, 3
-                CALL convert_length(external_charges, extcharge_pos(ix, ie))
+                CALL convert_length(extcharge_units, extcharge_pos(ix, ie))
             END DO
             !
-            CALL convert_length(external_charges, extcharge_spread(ie))
+            CALL convert_length(extcharge_units, extcharge_spread(ie))
             !
         END DO
         !
@@ -2200,12 +2200,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE allocate_input_extcharge(env_external_charges)
+    SUBROUTINE allocate_input_extcharge(external_charges)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: env_external_charges
+        INTEGER, INTENT(IN) :: external_charges
         !
         !--------------------------------------------------------------------------------
         !
@@ -2219,11 +2219,11 @@ CONTAINS
         !
         IF (ALLOCATED(extcharge_pos)) DEALLOCATE (extcharge_pos)
         !
-        ALLOCATE (extcharge_dim(env_external_charges))
-        ALLOCATE (extcharge_axis(env_external_charges))
-        ALLOCATE (extcharge_charge(env_external_charges))
-        ALLOCATE (extcharge_spread(env_external_charges))
-        ALLOCATE (extcharge_pos(3, env_external_charges))
+        ALLOCATE (extcharge_dim(external_charges))
+        ALLOCATE (extcharge_axis(external_charges))
+        ALLOCATE (extcharge_charge(external_charges))
+        ALLOCATE (extcharge_spread(external_charges))
+        ALLOCATE (extcharge_pos(3, external_charges))
         !
         extcharge_dim = 0
         extcharge_axis = 3
@@ -2294,9 +2294,9 @@ CONTAINS
         CALL allocate_input_epsregion(env_dielectric_regions)
         !
         IF (matches("BOHR", input_line)) THEN
-            dielectric_regions = 'bohr'
+            epsregion_units = 'bohr'
         ELSE IF (matches("ANGSTROM", input_line)) THEN
-            dielectric_regions = 'angstrom'
+            epsregion_units = 'angstrom'
         ELSE
             !
             IF (TRIM(ADJUSTL(input_line)) /= 'DIELECTRIC_REGIONS') &
@@ -2305,10 +2305,10 @@ CONTAINS
             !
             CALL infomsg('read_cards ', 'No units specified in DIELECTRIC_REGIONS card')
             !
-            dielectric_regions = 'bohr'
+            epsregion_units = 'bohr'
             !
             CALL infomsg('read_cards ', &
-                         'DIELECTRIC_REGIONS: units set to '//TRIM(dielectric_regions))
+                         'DIELECTRIC_REGIONS: units set to '//TRIM(epsregion_units))
             !
         END IF
         !
@@ -2426,12 +2426,12 @@ CONTAINS
         DO ie = 1, env_dielectric_regions
             !
             DO ix = 1, 3
-                CALL convert_length(dielectric_regions, epsregion_pos(ix, ie))
+                CALL convert_length(epsregion_units, epsregion_pos(ix, ie))
             END DO
             !
-            CALL convert_length(dielectric_regions, epsregion_width(ie))
+            CALL convert_length(epsregion_units, epsregion_width(ie))
             !
-            CALL convert_length(dielectric_regions, epsregion_spread(ie))
+            CALL convert_length(epsregion_units, epsregion_spread(ie))
             !
         END DO
         !
@@ -2443,12 +2443,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE allocate_input_epsregion(env_dielectric_regions)
+    SUBROUTINE allocate_input_epsregion(dielectric_regions)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: env_dielectric_regions
+        INTEGER, INTENT(IN) :: dielectric_regions
         !
         !--------------------------------------------------------------------------------
         !
@@ -2464,12 +2464,12 @@ CONTAINS
         !
         IF (ALLOCATED(epsregion_pos)) DEALLOCATE (epsregion_pos)
         !
-        ALLOCATE (epsregion_dim(env_dielectric_regions))
-        ALLOCATE (epsregion_axis(env_dielectric_regions))
-        ALLOCATE (epsregion_eps(2, env_dielectric_regions))
-        ALLOCATE (epsregion_width(env_dielectric_regions))
-        ALLOCATE (epsregion_spread(env_dielectric_regions))
-        ALLOCATE (epsregion_pos(3, env_dielectric_regions))
+        ALLOCATE (epsregion_dim(dielectric_regions))
+        ALLOCATE (epsregion_axis(dielectric_regions))
+        ALLOCATE (epsregion_eps(2, dielectric_regions))
+        ALLOCATE (epsregion_width(dielectric_regions))
+        ALLOCATE (epsregion_spread(dielectric_regions))
+        ALLOCATE (epsregion_pos(3, dielectric_regions))
         !
         epsregion_dim = 0
         epsregion_axis = 3
