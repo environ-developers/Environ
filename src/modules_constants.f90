@@ -88,6 +88,11 @@ MODULE modules_constants
     REAL(DP), PARAMETER :: AVOGADRO = 6.02214129D+23
     !
     !------------------------------------------------------------------------------------
+    ! Madelung constants
+    !
+    REAL(DP), PARAMETER :: madelung(3) = (/2.837297479D0, 2.8883D0, 2.885D0/)
+    !
+    !------------------------------------------------------------------------------------
     ! Rydberg vs Hartree units (e2 = 2 in Ry)
     !
     REAL(DP) :: e2

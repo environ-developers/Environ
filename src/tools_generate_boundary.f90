@@ -47,12 +47,12 @@ MODULE tools_generate_boundary
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
     USE tools_functions
-    USE tools_math, ONLY: scalar_product_environ_gradient, integrate_environ_density
+    !
+    USE tools_math, ONLY: scalar_product_environ_gradient, integrate_environ_density, &
+                          environ_erfc
     !
     USE core_fft, ONLY: gradient_fft, laplacian_fft, hessian_fft, convolution_fft
     USE core_fd, ONLY: gradient_fd
-    !
-    USE modules_erf, ONLY: environ_erfc
     !
     USE environ_output, ONLY: ionode, program_unit
     !

@@ -66,7 +66,12 @@ MODULE utils_boundary
                                        boundary_of_system, solvent_aware_boundary, &
                                        invert_boundary ! #TODO is this for DEBUGGING?
     !
+    ! USE boundary_field_aware, ONLY: compute_normal_field, field_aware_density, &
+    !                                 compute_dion_field_drho, compute_ion_field ! #TODO field_aware
+    !
     USE environ_output, ONLY: ionode, environ_unit
+    !
+    USE environ_debugging
     !
     !------------------------------------------------------------------------------------
 CONTAINS
