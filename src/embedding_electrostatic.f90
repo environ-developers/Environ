@@ -37,9 +37,10 @@ MODULE embedding_electrostatic
     !
     USE modules_constants, ONLY: DP, e2, tpi
     !
-    USE electrostatic_types, ONLY: electrostatic_setup, electrostatic_core
+    USE electrostatic_types, ONLY: electrostatic_setup
     USE physical_types, ONLY: environ_charges
     USE representation_types, ONLY: environ_density
+    USE core_types, ONLY: core_container
     USE cell_types, ONLY: environ_cell
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
@@ -209,7 +210,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(electrostatic_core), TARGET, INTENT(IN) :: core
+        TYPE(core_container), TARGET, INTENT(IN) :: core
         TYPE(environ_density), INTENT(IN) :: potential
         !
         TYPE(environ_charges), INTENT(INOUT) :: charges
@@ -243,7 +244,7 @@ CONTAINS
         ELSE IF (core%use_oned_analytic) THEN
             CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
+            CALL errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ MODULE utils_electrostatics
     USE modules_constants, ONLY: DP, tpi
     !
     USE electrostatic_types
-    USE core_types, ONLY: fft_core, oned_analytic_core
+    USE core_types, ONLY: fft_core, oned_analytic_core, core_container
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -228,104 +228,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_electrostatic_core(core)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(electrostatic_core), INTENT(INOUT) :: core
-        !
-        !--------------------------------------------------------------------------------
-        !
-        core%type_ = 'default'
-        !
-        core%use_fft = .FALSE.
-        NULLIFY (core%fft)
-        !
-        core%use_oned_analytic = .FALSE.
-        NULLIFY (core%oned_analytic)
-        !
-        core%need_correction = .FALSE.
-        NULLIFY (core%correction)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_electrostatic_core
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_electrostatic_core(type_, core, fft, oned_analytic)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CHARACTER(LEN=80), INTENT(IN) :: type_
-        TYPE(fft_core), INTENT(IN), TARGET, OPTIONAL :: fft
-        TYPE(oned_analytic_core), INTENT(IN), TARGET, OPTIONAL :: oned_analytic
-        !
-        TYPE(electrostatic_core), INTENT(INOUT) :: core
-        !
-        !
-        INTEGER :: number
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_electrostatic_core'
-        !
-        !--------------------------------------------------------------------------------
-        ! Assign the selected numerical core
-        !
-        core%type_ = type_
-        !
-        SELECT CASE (TRIM(ADJUSTL(type_))) ! trim/adjust before core%type_ assignment
-        CASE ('fft', 'default')
-            !
-            IF (.NOT. PRESENT(fft)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
-            !
-            core%use_fft = .TRUE.
-            core%fft => fft
-        CASE ('1da', '1d-analytic', 'oned_analytic', 'gcs', 'gouy-chapman', &
-              'gouy-chapman-stern', 'ms', 'mott-schottky', 'ms-gcs', &
-              'mott-schottky-gouy-chapman-stern')
-            !
-            IF (.NOT. PRESENT(oned_analytic)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
-            !
-            core%use_oned_analytic = .TRUE.
-            core%oned_analytic => oned_analytic
-        CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected keyword for electrostatic core type', 1)
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Double check number of active cores
-        !
-        number = 0
-        !
-        IF (core%use_fft) number = number + 1
-        !
-        IF (core%use_oned_analytic) number = number + 1
-        !
-        IF (number /= 1) &
-            CALL errore(sub_name, 'Too few or too many cores are active', 1)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_electrostatic_core
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE add_correction(correction, core)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(electrostatic_core), TARGET, INTENT(IN) :: correction
+        TYPE(core_container), TARGET, INTENT(IN) :: correction
         !
-        TYPE(electrostatic_core), INTENT(INOUT) :: core
+        TYPE(core_container), INTENT(INOUT) :: core
         !
         !--------------------------------------------------------------------------------
         !
@@ -336,34 +246,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE add_correction
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_electrostatic_core(lflag, core)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
-        !
-        TYPE(electrostatic_core), INTENT(INOUT) :: core
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (lflag) THEN
-            core%use_fft = .FALSE.
-            NULLIFY (core%fft)
-            core%use_oned_analytic = .FALSE.
-            NULLIFY (core%oned_analytic)
-            core%need_correction = .FALSE.
-            NULLIFY (core%correction)
-        END IF
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_electrostatic_core
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -399,7 +281,7 @@ CONTAINS
         !
         CHARACTER(LEN=80), INTENT(IN) :: problem
         TYPE(electrostatic_solver), TARGET, INTENT(IN) :: solver
-        TYPE(electrostatic_core), TARGET, INTENT(IN) :: core
+        TYPE(core_container), TARGET, INTENT(IN) :: core
         !
         TYPE(electrostatic_setup), INTENT(INOUT) :: setup
         !

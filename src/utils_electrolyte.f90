@@ -36,7 +36,7 @@ MODULE utils_electrolyte
     USE physical_types, ONLY: environ_electrolyte, environ_electrons, environ_ions, &
                               environ_system
     !
-    USE core_types, ONLY: boundary_core
+    USE core_types, ONLY: core_container
     USE cell_types, ONLY: environ_cell
     !
     USE utils_boundary, ONLY: create_environ_boundary, init_environ_boundary_first, &
@@ -121,7 +121,7 @@ CONTAINS
         TYPE(environ_electrons), INTENT(IN) :: electrons
         TYPE(environ_ions), INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(boundary_core), TARGET, INTENT(IN) :: core
+        TYPE(core_container), TARGET, INTENT(IN) :: core
         TYPE(environ_electrolyte), INTENT(INOUT) :: electrolyte
         !
         INTEGER :: ityp

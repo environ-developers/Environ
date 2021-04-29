@@ -31,7 +31,7 @@ MODULE electrostatic_types
     !
     USE modules_constants, ONLY: DP
     !
-    USE core_types, ONLY: fft_core, oned_analytic_core
+    USE core_types, ONLY: fft_core, oned_analytic_core, core_container
     !
     !------------------------------------------------------------------------------------
     !
@@ -113,37 +113,6 @@ MODULE electrostatic_types
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE electrostatic_core
-        !--------------------------------------------------------------------------------
-        !
-        CHARACTER(LEN=80) :: type_
-        !
-        LOGICAL :: use_fft
-        TYPE(fft_core), POINTER :: fft => NULL()
-        !
-        LOGICAL :: use_oned_analytic
-        TYPE(oned_analytic_core), POINTER :: oned_analytic => NULL()
-        !
-        ! #TODO future work
-        !
-        ! LOGICAL :: use_oned_numeric
-        ! TYPE(oned_numeric_core), POINTER :: oned_numeric => NULL()
-        !
-        ! LOGICAL :: use_multigrid
-        ! TYPE(multigrid_core), POINTER :: multigrid => NULL()
-        !
-        ! LOGICAL :: use_bigdft
-        ! TYPE(bigdft_core), POINTER :: bigdft => NULL()
-        !
-        LOGICAL :: need_correction
-        TYPE(electrostatic_core), POINTER :: correction => NULL()
-        !
-        !--------------------------------------------------------------------------------
-    END TYPE electrostatic_core
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     TYPE electrostatic_setup
         !--------------------------------------------------------------------------------
         !
@@ -151,7 +120,7 @@ MODULE electrostatic_types
         !
         TYPE(electrostatic_solver), POINTER :: solver => NULL()
         !
-        TYPE(electrostatic_core), POINTER :: core => NULL()
+        TYPE(core_container), POINTER :: core => NULL()
         !
         LOGICAL :: nested_problem
         TYPE(electrostatic_setup), POINTER :: inner => NULL()
