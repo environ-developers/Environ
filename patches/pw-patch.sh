@@ -31,7 +31,7 @@ check_src_patched
 if test "$PATCHED" == 1; then 
    return
 else
-   patch_message
+   message "Patching"
 fi
 
 echo "#Please do not remove or modify this file" >Environ_PATCH

@@ -30,7 +30,7 @@ check_src_reverted
 if test "$REVERTED" == 1; then 
    return
 else
-   revert_message
+   message "Reverting"
 fi
 
 rm "Environ_PATCH"

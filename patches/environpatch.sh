@@ -93,8 +93,8 @@ fi
 
 # functions used in patch/revert scripts
 
-function print_header() {
-	printf "%s" "$1${DOTS:0:-${#1}}"
+function fill_with_dots() {
+	printf "%s" "$1${DOTS:${#1}}"
 }
 
 function check_src_patched() {
@@ -109,7 +109,7 @@ function patch_makefile() {
 		echo "  - $1Makefile already patched!"
 		return
 	else
-		print_header "  - Patching $1Makefile"
+		fill_with_dots "  - Patching $1Makefile"
 		mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
 		mod2='QEMODS+=../../Environ/libs/*'
 
@@ -126,8 +126,8 @@ function patch_makefile() {
 	fi
 }
 
-function patch_message() {
-	print_header "  - Patching src"
+function message() {
+	fill_with_dots "  - $1 src"
 }
 
 function check_src_reverted() {
@@ -139,7 +139,7 @@ function check_src_reverted() {
 
 function revert_makefile() {
 	if test "$(grep '# Environ patch' Makefile)"; then
-		print_header "  - Reverting $1Makefile"
+		fill_with_dots "  - Reverting $1Makefile"
 		sed -i.tmp "/# Environ patch/,/^\s*$/d" Makefile && rm Makefile.tmp
 		printf " done!\n"
 	else
@@ -148,13 +148,9 @@ function revert_makefile() {
 	fi
 }
 
-function revert_message() {
-	print_header "  - Reverting src"
-}
-
 case "$1" in
 -patch)
-
+	
 	# patch to QE/install/makedeps.sh
 	file="../install/makedeps.sh"
 	if test "$(grep '# Environ patch' $file)"; then
