@@ -38,29 +38,23 @@ doc:
 # COMPILATION ROUTINES
 ################################################################################
 
-# for development purposes
-recompile: compile-Environ compile-QE-pw
-
 compile-Environ: check-Environ-makeinc libsdir update-Environ-dependencies
 	@ $(MAKE) libfft 2>&1 | tee install/Environ_comp.log
 	@ $(MAKE) libutil 2>&1 | tee -a install/Environ_comp.log
 	@ $(MAKE) libenv 2>&1 | tee -a install/Environ_comp.log
-	@ $(MAKE) check-for-errors prog=Environ
+	@ $(MAKE) check-for-errors in=Environ
 
 decompile-Environ:
 	@ printf "\nCleaning up Environ...\n\n"; $(MAKE) clean
 
-compile-QE-pw: check-QE-makeinc
-	@ if test "$(title)"; then \
-		  title="$(title)"; \
-	  else \
-		  title="Compiling QE"; \
-	  fi; \
+compile-QE: check-QE-makeinc
+	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi
+	@ if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log
-	@ (cd ../ && $(MAKE) pw 2>&1 | tee -a Environ/install/QE_comp.log)
-	@ $(MAKE) check-for-errors prog=QE
+	@ (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
+	@ $(MAKE) check-for-errors in=QE
 
-decompile-QE-pw:
+decompile-QE:
 	@ printf "\nCleaning up QE...\n\n"
 	@ (cd ../ && $(MAKE) clean)
 
@@ -105,11 +99,11 @@ check-QE-makeinc:
 	  fi
 
 check-for-errors:
-	@ if grep -qE "error #[0-9]+" install/$(prog)_comp.log; then \
-		printf "\nErrors found. See install/$(prog)_comp.log\n\n"; \
+	@ if grep -qE "error #[0-9]+" install/$(in)_comp.log; then \
+		printf "\nErrors found. See install/$(in)_comp.log\n\n"; \
 		exit 1; \
 	else \
-		printf "\n$(prog) compilation successful!\n\n"; \
+		printf "\n$(in) compilation successful!\n\n"; \
 		exit; \
 	fi
 
@@ -137,37 +131,58 @@ update-QE-dependencies:
 # INSTALL ROUTINES FOR QE+ENVIRON
 ################################################################################
 
+print_menu:
+	@ printf "\nSelect a package:\n\n"
+	@ printf "%s\n%s\n%s\n%s\n%s\n%s\n\n%s" \
+			 "   1 - PW" \
+			 "   2 - CP" \
+			 "   3 - TD" \
+			 "   4 - XS" \
+			 "   5 - 1-4" \
+			 "   6 - Full QE" \
+			 "-> "
+
 install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	@ printf "\nPreparing to install QE + Environ $(ENVIRON_VERSION)...\n"
-	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
-	if [ "$$c" = "y" ]; then \
-		printf "\nUse # cores (default = 1) -> "; read cores; \
-		printf "\nWould you like to pre-compile QE (y|n)? "; read p; \
-		if [ "$$p" = "y" ]; then \
-			$(MAKE) -j$${cores:=1} compile-QE-pw title="Pre-compiling QE"; \
-			if [ $$? != 0 ]; then exit; fi; \
-			(cd install && mv QE_comp.log QE_precomp.log); \
-			title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
-		else \
-			printf "\nQE pre-compilation skipped!\n\n"; \
-			title="Compiling QE with Environ $(ENVIRON_VERSION)"; \
-		fi; \
-		$(MAKE) -j$${cores:=1} compile-Environ; \
+	@ make print_menu; read c; \
+	\
+	case $$c in \
+	1) opt=pw;; \
+	2) opt="pw cp";; \
+	3) opt=tddfpt;; \
+	4) opt=xspectra;; \
+	5) opt="pw cp tddfpt xspectra";; \
+	6) opt=all;; \
+	*) exit;; \
+	esac; \
+	\
+	printf "\nUse # cores (default = 1) -> "; read cores; \
+	printf "\nWould you like to pre-compile QE (y|n)? "; read p; \
+	\
+	if [ "$$p" = "y" ]; then \
+		$(MAKE) -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
 		if [ $$? != 0 ]; then exit; fi; \
-		$(MAKE) patch-QE; \
-		$(MAKE) update-QE-dependencies; \
-		$(MAKE) -j$${cores:=1} compile-QE-pw title="$$title"; \
-		if [ $$? != 0 ]; then exit; fi; \
-		if [ $$p = "y" ]; then \
-			( \
-				cd install && \
-				mv QE_comp.log temp; \
-				cat QE_precomp.log temp > QE_comp.log; \
-				rm temp QE_precomp.log; \
-			); \
-		fi; \
+		(cd install && mv QE_comp.log QE_precomp.log); \
+		title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
 	else \
-		echo; \
+		printf "\nQE pre-compilation skipped!\n\n"; \
+		title="Compiling QE with Environ $(ENVIRON_VERSION)"; \
+	fi; \
+	\
+	$(MAKE) -j$${cores:=1} compile-Environ; \
+	if [ $$? != 0 ]; then exit; fi; \
+	$(MAKE) patch-QE; \
+	$(MAKE) update-QE-dependencies; \
+	$(MAKE) -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
+	if [ $$? != 0 ]; then exit; fi; \
+	\
+	if [ $$p = "y" ]; then \
+		( \
+			cd install && \
+			mv QE_comp.log temp; \
+			cat QE_precomp.log temp > QE_comp.log; \
+			rm temp QE_precomp.log; \
+		); \
 	fi
 
 uninstall-QE+Environ:
@@ -180,7 +195,7 @@ uninstall-QE+Environ:
 		printf "\nPreparing to decompile QE...\n"; \
 		printf "\nDo you wish to proceed (y|n)? "; read c; \
 		if [ "$$c" = "y" ]; then \
-			$(MAKE) decompile-QE-pw; \
+			$(MAKE) decompile-QE; \
 			printf "\nDone!\n\n"; \
 		else \
 			printf "\nQE decompilation skipped!\n\n"; \

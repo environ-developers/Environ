@@ -24,7 +24,7 @@
 
 cd $CP_SRC
 
-patch_makefile
+patch_makefile cp
 
 check_src_patched
 if test "$PATCHED" == 1; then 
@@ -200,58 +200,34 @@ mv tmp.3 plugin_get_potential.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    environ_init, ONLY : environ_initbase\
-USE    cell_base,    ONLY : at, bg, alat, omega, ibrav\
+USE    cell_base,    ONLY : at, alat\
+USE    gvect,        ONLY : gcutm\
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 !Environ patch
 ' plugin_init_base.f90 > tmp.1
 
-sed '/Environ VARIABLES BEGIN/ a\
-!Environ patch \
-INTEGER :: ir_end, idx0, j0, k0\
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch\
+  IF ( use_environ ) CALL environ_initbase(alat, at, &\
+                                           & intra_bgrp_comm, me_bgrp, root_bgrp, &\
+                                           & gcutm, 1.D0)\
 !Environ patch
 ' tmp.1 > tmp.2
 
-sed '/Environ CALLS BEGIN/ a\
-!Environ patch\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X\
-!  idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)\
-!  ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl\
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT\
-#if defined (__MPI)\
-    j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p\
-    ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)\
-#else\
-    j0 = 0; k0 = 0;\
-    ir_end = dfftp%nnr\
-#endif\
-! END BACKWARD COMPATIBILITY\
-  IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, bg, &\
-                             & dfftp%nnr, ir_end, dfftp%nr1x, dfftp%nr2x, dfftp%nr3x, &\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X\
-!                             & idx0, &\
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT\
-                             & j0, k0, dfftp%my_nr2p, dfftp%my_nr3p, &\
-! END BACKWARD COMPATIBILITY\
-                             & intra_bgrp_comm, me_bgrp, root_bgrp, 1.D0 )\
-!Environ patch
-' tmp.2 > tmp.1
-
-mv tmp.1 plugin_init_base.f90
+mv tmp.2 plugin_init_base.f90
 
 #plugin_init_cell.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE cell_base,        ONLY : at, omega \
+USE cell_base,        ONLY : at \
 USE environ_init,     ONLY : environ_initcell \
 !Environ patch
 ' plugin_init_cell.f90 > tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  IF ( use_environ ) call environ_initcell( omega, at ) \
+  IF ( use_environ ) call environ_initcell( at ) \
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -261,8 +237,9 @@ mv tmp.2 plugin_init_cell.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE cell_base,        ONLY : alat, omega, tpiba2 \
+USE cell_base,        ONLY : alat \
 USE ions_base,        ONLY : zv \
+USE vlocal,           ONLY : vloc \
 USE environ_init,     ONLY : environ_initions \
 !Environ patch
 ' plugin_init_ions.f90 > tmp.1
@@ -297,7 +274,7 @@ sed '/Environ CALLS BEGIN/ a\
      ALLOCATE(tau_tmp(3,nat)) \
      tau_tmp = tau / alat \
      ! \
-     call environ_initions( dfftp%nnr, nat, nsp, ityp_tmp, zv, tau_tmp ) \
+     call environ_initions( dfftp%nnr, nat, nsp, ityp_tmp, zv, tau_tmp, vloc ) \
      ! \
      DEALLOCATE(ityp_tmp) \
      DEALLOCATE(tau_tmp) \
@@ -405,12 +382,6 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF ( use_environ ) THEN\
       CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout)\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!      CALL read_environ("CP", 1, nspin, nat, ntyp, atom_label, .FALSE., ion_radius)\
-! Compatible with QE-6.4.X QE-GIT\
-       CALL read_environ("CP", 1, nat, ntyp, atom_label, .FALSE., ion_radius)\
-! END BACKWARD COMPATIBILITY\
    ENDIF\
 !Environ patch
 ' tmp.2 > tmp.1

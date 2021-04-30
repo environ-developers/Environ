@@ -2,14 +2,14 @@
 #
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
-#    This file is part of Environ version 1.1
+#    This file is part of Environ version 2.0
 #
-#    Environ 1.1 is free software: you can redistribute it and/or modify
+#    Environ 2.0 is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
 #
-#    Environ 1.1 is distributed in the hope that it will be useful,
+#    Environ 2.0 is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more detail, either the file
@@ -19,9 +19,10 @@
 # PATCH SCRIPT FOR Environ
 #
 # Author: Oliviero Andreussi (Department of Physics, UNT)
+#		  Edan Bainglass     (Department of Physics, UNT)
 #
 
-export ENVIRON_VERSION="1.1"
+export ENVIRON_VERSION="2.0"
 export ENVIRON_PATCH=$(
 	cd "${BASH_SOURCE%/*}"
 	pwd
@@ -29,6 +30,22 @@ export ENVIRON_PATCH=$(
 export ENVIRON_DIR="${ENVIRON_PATCH}/.."
 export ENVIRON_TEST="${ENVIRON_DIR}/tests"
 export ENVIRON_SRC="${ENVIRON_DIR}/src"
+
+# other variables used in patch/revert scripts
+export PATCHED=0
+export REVERTED=0
+
+# local variables
+DOTS='........................................'
+PW_DEP_DIRS="NEB/src \
+			 PP/src \
+			 PHonon/PH \
+			 PHonon/Gamma \
+			 PWCOND/src HP/src \
+			 GWW/pw4gww \
+			 GWW/head \
+			 GWW/bse \
+			 GWW/simple"
 
 # Installation script assumes that Environ directory is placed
 # in main QE directory. Modify the following line if this is not the case
@@ -74,8 +91,11 @@ if [ "$#" -eq 0 ]; then
 	exit
 fi
 
-PATCHED=0
-REVERTED=0
+# functions used in patch/revert scripts
+
+function print_header() {
+	printf "%s" "$1${DOTS:0:-${#1}}"
+}
 
 function check_src_patched() {
 	if test -e "Environ_PATCH"; then
@@ -86,19 +106,28 @@ function check_src_patched() {
 
 function patch_makefile() {
 	if test "$(grep '# Environ patch' Makefile)"; then
-		echo "  - Makefile already patched!"
+		echo "  - $1Makefile already patched!"
 		return
 	else
-		printf "  - Patching Makefile..."
+		print_header "  - Patching $1Makefile"
 		mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
-		mod2='QEMODS+=../../Environ/libs/libenviron.a'
-		sed -i "/^TLDEPS/i # Environ patch\n$mod1\n$mod2\n" Makefile
+		mod2='QEMODS+=../../Environ/libs/*'
+
+		# CP uses modules from PW
+		if [ "$1" == cp ]; then
+			mod1="$mod1 "'$(MOD_FLAG)../../PW/src'""
+			mod2="$mod2 ../../PW/src/libpw.a"
+		fi
+
+		patch="\n# Environ patch\n$mod1\n$mod2"
+
+		sed -i.tmp "/^TLDEPS/a \\$patch" Makefile && rm Makefile.tmp
 		printf " done!\n"
 	fi
 }
 
 function patch_message() {
-	printf "  - Patching src........"
+	print_header "  - Patching src"
 }
 
 function check_src_reverted() {
@@ -110,17 +139,17 @@ function check_src_reverted() {
 
 function revert_makefile() {
 	if test "$(grep '# Environ patch' Makefile)"; then
-		printf "  - Reverting Makefile..."
-		sed -i "/# Environ patch/,/^\s*$/d" Makefile
+		print_header "  - Reverting $1Makefile"
+		sed -i.tmp "/# Environ patch/,/^\s*$/d" Makefile && rm Makefile.tmp
 		printf " done!\n"
 	else
-		echo "  - Makefile has not been patched!"
+		echo "  - $1Makefile has not been patched!"
 		return
 	fi
 }
 
 function revert_message() {
-	printf "  - Reverting src........"
+	print_header "  - Reverting src"
 }
 
 case "$1" in
@@ -131,20 +160,24 @@ case "$1" in
 	if test "$(grep '# Environ patch' $file)"; then
 		printf "\n* install/makedeps.sh already patched!\n\n"
 	else
-		printf "\n* Patching install/makedeps.sh..."
-		sed -i '/cd $TOPDIR\/..\/$DIR/a \
+		printf "\n* Patching install/makedeps.sh.........."
+		sed -i.tmp '/cd $TOPDIR\/..\/$DIR/a \
 		\
 		# Environ patch\
 		case $DIR in\
-		PW/src | CPV/src | TDDFPT/src | XSpectra/src)\
+		PW/src | TDDFPT/src | XSpectra/src)\
 			DEPENDS="$DEPENDS $LEVEL2/Environ/src"\
 			;;\
-		esac' ../install/makedeps.sh
+		CPV/src)\
+            DEPENDS="$DEPENDS $LEVEL2/PW/src $LEVEL2/Environ/src"\
+			;;\
+		esac' $file && rm $file.tmp
 		printf " done!\n\n"
 	fi
 
-
 	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
+
+		# apply patch scripts
 		for i in pw cp td xs; do
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
@@ -152,6 +185,21 @@ case "$1" in
 				source "$PATCH_SCRIPT"
 			fi
 		done
+
+		cd "$ENVIRON_DIR" || exit # return to Environ root directory
+
+		# apply Makefile patches to QE packages that rely on pw.x
+		printf "\n* Patching Makefiles dependent on pw.x\n"
+		for i in $PW_DEP_DIRS; do
+			loc=../$i
+			if test -e "$loc"; then
+				(
+					cd "$loc" || exit
+					patch_makefile "$i/"
+				)
+			fi
+		done
+
 	else
 		case "$2" in
 		pw)
@@ -187,21 +235,23 @@ case "$1" in
 			done
 			;;
 		esac
-	fi	
+	fi
 	;;
 -revert)
 
 	# revert patch to QE/install/makedeps.sh
 	file="../install/makedeps.sh"
 	if test "$(grep '# Environ patch' $file)"; then
-		printf "\n* Reverting install/makedeps.sh..."
-		sed -i '/# Environ patch/,/^\s*$/d' ../install/makedeps.sh
+		printf "\n* Reverting install/makedeps.sh........."
+		sed -i.tmp '/# Environ patch/,/^\s*$/d' $file && rm $file.tmp
 		printf " done!\n\n"
 	else
 		printf "\n* install/makedeps.sh has not been patched!\n\n"
 	fi
 
 	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
+
+		# apply revert scripts
 		for i in pw cp td xs; do
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
@@ -209,6 +259,21 @@ case "$1" in
 				source "$REVERT_SCRIPT"
 			fi
 		done
+
+		cd "$ENVIRON_DIR" || exit # return to Environ root directory
+
+		# revert Makefile patches to QE packages that rely on pw.x
+		printf "\n* Reverting Makefiles dependent on pw.x\n"
+		for i in $PW_DEP_DIRS; do
+			loc=../$i
+			if test -e "$loc"; then
+				(
+					cd "$loc" || exit 1
+					revert_makefile "$i/"
+				)
+			fi
+		done
+
 	else
 		case "$2" in
 		pw)

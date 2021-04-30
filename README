@@ -1,13 +1,13 @@
 # Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
 #
-#    This file is part of Environ version 1.1
+#    This file is part of Environ version 2.0
 #
-#    Environ 1.1 is free software: you can redistribute it and/or modify
+#    Environ 2.0 is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 2 of the License, or
 #    (at your option) any later version.
 #
-#    Environ 1.1 is distributed in the hope that it will be useful,
+#    Environ 2.0 is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more detail, either the file
@@ -16,65 +16,68 @@
 #
 # Compilation instructions for ENVIRON module
 #
-# Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
+# Authors: Oliviero Andreussi (Department of Physics, University of North Texas)
 #          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
 #          Iurii Timrov       (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
 #          Ismaila Dabo       (Department of Materials Science and Engineering, Penn State)
 #          Nicola Marzari     (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
-#
+#          Quinn Campbell     (Sandia National Labs)
+#          Edan Bainglass     (Department of Physics, University of North Texas)
+#          Matthew Truscott   (Department of Physics, University of North Texas)
+#          Gabriel Medrano    (Department of Physics, University of North Texas)
 
 This is the distribution of the ENVIRON module for Quantum ESPRESSO.
 These are the steps to compile Quantum ESPRESSO with the Environ module,
 for more information on installation and usage of the module, please
 check the web site http://www.quantum-environment.org/
 
-The installation procedure assumes that the Environ directory has been
-placed in the main Quantum ESPRESSO directory. All the installation steps
-need to be performed from the main Quantum ESPRESSO directory.
-
-Preliminary steps:
-
-   -1) configure QE following the standard procedure, running
-          ./configure 
-       should be enough in most cases.
-    0) compile QE without the Environ module, e.g. running
-          make pw
-
-If there are problems with the preliminary steps, look up for solutions
+If there are problems with the QE compilation steps, look up for solutions
 on the PW-forum or refer to the Quantum ESPRESSO documentation and web site
 http://www.quantum-espresso.org/
 
-    1) run the QE script addonpatch.sh with the -patch option
-          ./install/addsonpatch.sh Environ Environ/src Modules -patch
-    2) run the Environ installation script with the -patch option
-          ./Environ/patches/environpatch.sh -patch
-    3) run the QE script to regenerate modules' dependencies
-          ./install/makedeps.sh
-    4) re-compile, e.g.
-          make pw
-    5) run executables with -environ flag, e.g.
-          pw.x -environ < pw.in > pw.out
+Installation procedure:
 
-To clean up the compilation with Environ follow these steps:
+* from QE root directory
+   
+    1) configure QE installation with
+            ./configure
+            - should be enough in most cases
 
-    1) run the QE script addsonpatch.sh with the -revert option
-          ./install/addsonpatch.sh Environ Environ/src Modules -revert
-    2) run the Environ installation script with the -revert option
-          ./Environ/patches/environpatch.sh -revert
-    3) run the QE script to regenerate modules' dependencies
-          ./install/makedeps.sh
-    4) be sure to remove objects, modules and executables
-          make clean
+* from Environ root directory (placed in the QE root directory) 
+    
+    1) configure Environ with
+            ./configure
+            - should be enough in most cases
+    
+    2) install QE + Environ 2.0 with
+            
+            make install-QE+Environ
 
-The above instructions refer to Environ v1.0 installed on QE-6.3 and later versions
+            a) select QE package(s)
+            b) select number of cores (for parallel compilation)
+            c) (optional) pre-compile QE without Environ (for the more cautious)
+            
+            * compilation will write logs to Environ/install
+            * compilation will terminate if errors are detected
+            * NOTE: if pre-compiled, QE re-compilation will only update 
+                    the patched files (relatively quick)
+    
+    3) run executables with -environ flag, e.g.
+            
+            pw.x -environ < pw.in > pw.out
+
+To clean up the compilation with Environ:
+
+    1) uninstall QE + Environ 2.0 with
+            
+            make uninstall-QE+Environ
+            
+            - (optional) confirm cleaning of QE
+
+      * for more flexible cleaning, see Environ/Makefile
+
+The above instructions refer to Environ v2.0 installed on QE-6.3 and later versions
 For previous versions of QE (namely QE-6.1.X and QE-6.2.X) please refer to the 
 instructions on the website:
 
 http://www.quantum-environment.org/installation.html
-
-Also, when compiling codes different from pw.x, depending on the compiler it is 
-possible to get an error related to missing dependencies. The error can be easily 
-fixed by modifying by hand the relative Makefiles, instructions are reported online:
-
-http://www.quantum-environment.org/installation-issues.html
-
