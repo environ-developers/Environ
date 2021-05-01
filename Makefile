@@ -25,7 +25,7 @@ ifndef VERBOSE
 endif
 
 ENVIRON_VERSION=2.0
-DIRS="PW/src CPV/src XSpectra/src TDDFPT/src"
+DIRS="PW/src XSpectra/src TDDFPT/src" # TODO add CPV/src after PW/src when CP is fixed
 
 default: all
 
@@ -133,26 +133,23 @@ update-QE-dependencies:
 
 print_menu:
 	@ printf "\nSelect a package:\n\n"
-	@ printf "%s\n%s\n%s\n%s\n%s\n%s\n\n%s" \
+	@ printf "%s\n%s\n%s\n%s\n\n%s" \
 			 "   1 - PW" \
-			 "   2 - CP" \
-			 "   3 - TD" \
-			 "   4 - XS" \
-			 "   5 - 1-4" \
-			 "   6 - Full QE" \
+			 "   2 - TD" \
+			 "   3 - XS" \
+			 "   4 - ALL" \
 			 "-> "
 
+# TODO add CP option when fixed
 install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	@ printf "\nPreparing to install QE + Environ $(ENVIRON_VERSION)...\n"
 	@ make print_menu; read c; \
 	\
 	case $$c in \
 	1) opt=pw;; \
-	2) opt="pw cp";; \
-	3) opt=tddfpt;; \
-	4) opt=xspectra;; \
-	5) opt="pw cp tddfpt xspectra";; \
-	6) opt=all;; \
+	2) opt=tddfpt;; \
+	3) opt=xspectra;; \
+	4) opt="pw tddfpt xspectra";; \
 	*) exit;; \
 	esac; \
 	\

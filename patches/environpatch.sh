@@ -61,12 +61,12 @@ if [ ! -d $PW_SRC ]; then
 	exit
 fi
 
-export CP_SRC="${QE_DIR}/CPV/src"
-if [ ! -d $CP_SRC ]; then
-	echo "Cannot find CPV/src directory"
-	echo "Searching in $CP_SRC"
-	exit
-fi
+# export CP_SRC="${QE_DIR}/CPV/src" # TODO turn on when CP is fixed
+# if [ ! -d $CP_SRC ]; then
+# 	echo "Cannot find CPV/src directory"
+# 	echo "Searching in $CP_SRC"
+# 	exit
+# fi
 
 export TD_SRC="${QE_DIR}/TDDFPT/src"
 if [ ! -d $TD_SRC ]; then
@@ -111,15 +111,19 @@ function patch_makefile() {
 	else
 		fill_with_dots "  - Patching $1Makefile"
 		mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
-		mod2='QEMODS+=../../Environ/libs/*'
+		mod2='QEMODS+=../../Environ/libs/libenviron.a'
 
-		# CP uses modules from PW
-		if [ "$1" == cp ]; then
-			mod1="$mod1 "'$(MOD_FLAG)../../PW/src'""
-			mod2="$mod2 ../../PW/src/libpw.a"
-		fi
+		# # CP uses modules from PW # TODO turn on when CP is fixed
+		# if [ "$1" == cp ]; then
+		# 	mod1="$mod1 "'$(MOD_FLAG)../../PW/src'""
+		# 	mod2="$mod2 ../../Environ/libs/libqefft.a ../../PW/src/libpw.a"
+		# fi
 
-		patch="\n# Environ patch\n$mod1\n$mod2"
+		sed -i.tmp '/^TLDEPS/a \
+\
+# Environ patch\
+'"$mod1"'\
+'"$mod2"'' Makefile && rm Makefile.tmp
 
 		printf " done! \n"
 	fi
@@ -156,15 +160,18 @@ case "$1" in
 		printf "\n* install/makedeps.sh already patched! \n\n"
 	else
 		printf "\n* Patching install/makedeps.sh.........."
+
+		# TODO add this after PW/src when CP is fixed
+		# CPV/src)\
+		# 	DEPENDS="$DEPENDS $LEVEL2/PW/src $LEVEL2/Environ/src"\
+		# 	;;\
+
 		sed -i.tmp '/cd $TOPDIR\/..\/$DIR/a \
 		\
 		# Environ patch\
 		case $DIR in\
 		PW/src | TDDFPT/src | XSpectra/src)\
 			DEPENDS="$DEPENDS $LEVEL2/Environ/src"\
-			;;\
-		CPV/src)\
-            DEPENDS="$DEPENDS $LEVEL2/PW/src $LEVEL2/Environ/src"\
 			;;\
 		esac' $file && rm $file.tmp
 		printf " done! \n\n"
@@ -173,7 +180,7 @@ case "$1" in
 	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
 
 		# apply patch scripts
-		for i in pw cp td xs; do
+		for i in pw td xs; do # TODO add cp after pw when CP is fixed
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
 				echo "* Applying patches to $i"
@@ -204,13 +211,13 @@ case "$1" in
 				source "$PATCH_SCRIPT"
 			fi
 			;;
-		cp)
-			PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
-			if test -e "$PATCH_SCRIPT"; then
-				echo "* Applying patches to cp"
-				source "$PATCH_SCRIPT"
-			fi
-			;;
+		# cp) # TODO turn on when CP is fixed
+		# 	PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
+		# 	if test -e "$PATCH_SCRIPT"; then
+		# 		echo "* Applying patches to cp"
+		# 		source "$PATCH_SCRIPT"
+		# 	fi
+		# 	;;
 		td)
 			for i in pw td; do
 				PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
@@ -247,7 +254,7 @@ case "$1" in
 	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
 
 		# apply revert scripts
-		for i in pw cp td xs; do
+		for i in pw td xs; do # TODO add cp after pw when functional
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
 				echo "* Reverting patches to $i"
@@ -278,13 +285,13 @@ case "$1" in
 				source "$REVERT_SCRIPT"
 			fi
 			;;
-		cp)
-			REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
-			if test -e "$REVERT_SCRIPT"; then
-				echo "* Reverting patches to cp"
-				source "$REVERT_SCRIPT"
-			fi
-			;;
+		# cp) # TODO turn on when CP is fixed
+		# 	REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
+		# 	if test -e "$REVERT_SCRIPT"; then
+		# 		echo "* Reverting patches to cp"
+		# 		source "$REVERT_SCRIPT"
+		# 	fi
+		# 	;;
 		td)
 			for i in pw td; do
 				REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
