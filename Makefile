@@ -103,7 +103,7 @@ check-for-errors:
 		printf "\nErrors found. See install/$(in)_comp.log\n\n"; \
 		exit 1; \
 	else \
-		printf "\n$(in) compilation successful!\n\n"; \
+		printf "\n$(in) compilation successful! \n\n"; \
 		exit; \
 	fi
 
@@ -165,7 +165,7 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 		(cd install && mv QE_comp.log QE_precomp.log); \
 		title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
 	else \
-		printf "\nQE pre-compilation skipped!\n\n"; \
+		printf "\nQE pre-compilation skipped! \n\n"; \
 		title="Compiling QE with Environ $(ENVIRON_VERSION)"; \
 	fi; \
 	\
@@ -196,9 +196,9 @@ uninstall-QE+Environ:
 		printf "\nDo you wish to proceed (y|n)? "; read c; \
 		if [ "$$c" = "y" ]; then \
 			$(MAKE) decompile-QE; \
-			printf "\nDone!\n\n"; \
+			printf "\nDone! \n\n"; \
 		else \
-			printf "\nQE decompilation skipped!\n\n"; \
+			printf "\nQE decompilation skipped! \n\n"; \
 		fi; \
 	else \
 		echo; \
@@ -217,27 +217,27 @@ clean: check-Environ-makeinc
 clean-src:
 	@ printf "src..........."
 	@ (cd src && $(MAKE) clean)
-	@ printf " done!\n"
+	@ printf " done! \n"
 
 clean-fft:
 	@ printf "FFTXlib......."
 	@ (cd FFTXlib && $(MAKE) clean)
-	@ printf " done!\n"
+	@ printf " done! \n"
 
 clean-util:
 	@ printf "UtilXlib......"
 	@ (cd UtilXlib && $(MAKE) clean)
-	@ printf " done!\n"
+	@ printf " done! \n"
 
 clean-libs:
 	@ printf "libs.........."
 	@ if test -d libs; then rm -fr libs; fi
-	@ printf " done!\n"
+	@ printf " done! \n"
 
 clean-doc:
 	@ printf "Docs.........."
 	@ (cd Doc && $(MAKE) clean)
-	@ printf " done!\n"
+	@ printf " done! \n"
 
 # remove files produced by "configure" as well
 veryclean: clean
@@ -245,7 +245,7 @@ veryclean: clean
 	@ (cd install && \
 	   rm -rf *.log configure.msg config.status)
 	@ rm make.inc
-	@ printf " done!\n"
+	@ printf " done! \n"
 
 distclean: clean
 	@ $(MAKE) clean-doc

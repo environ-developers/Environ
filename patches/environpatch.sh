@@ -121,8 +121,7 @@ function patch_makefile() {
 
 		patch="\n# Environ patch\n$mod1\n$mod2"
 
-		sed -i.tmp "/^TLDEPS/a \\$patch" Makefile && rm Makefile.tmp
-		printf " done!\n"
+		printf " done! \n"
 	fi
 }
 
@@ -141,7 +140,7 @@ function revert_makefile() {
 	if test "$(grep '# Environ patch' Makefile)"; then
 		fill_with_dots "  - Reverting $1Makefile"
 		sed -i.tmp "/# Environ patch/,/^\s*$/d" Makefile && rm Makefile.tmp
-		printf " done!\n"
+		printf " done! \n"
 	else
 		echo "  - $1Makefile has not been patched!"
 		return
@@ -150,11 +149,11 @@ function revert_makefile() {
 
 case "$1" in
 -patch)
-	
+
 	# patch to QE/install/makedeps.sh
 	file="../install/makedeps.sh"
 	if test "$(grep '# Environ patch' $file)"; then
-		printf "\n* install/makedeps.sh already patched!\n\n"
+		printf "\n* install/makedeps.sh already patched! \n\n"
 	else
 		printf "\n* Patching install/makedeps.sh.........."
 		sed -i.tmp '/cd $TOPDIR\/..\/$DIR/a \
@@ -168,7 +167,7 @@ case "$1" in
             DEPENDS="$DEPENDS $LEVEL2/PW/src $LEVEL2/Environ/src"\
 			;;\
 		esac' $file && rm $file.tmp
-		printf " done!\n\n"
+		printf " done! \n\n"
 	fi
 
 	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
@@ -240,9 +239,9 @@ case "$1" in
 	if test "$(grep '# Environ patch' $file)"; then
 		printf "\n* Reverting install/makedeps.sh........."
 		sed -i.tmp '/# Environ patch/,/^\s*$/d' $file && rm $file.tmp
-		printf " done!\n\n"
+		printf " done! \n\n"
 	else
-		printf "\n* install/makedeps.sh has not been patched!\n\n"
+		printf "\n* install/makedeps.sh has not been patched! \n\n"
 	fi
 
 	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
