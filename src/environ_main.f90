@@ -72,6 +72,9 @@ MODULE environ_main
     USE embedding_surface, ONLY: calc_desurface_dboundary, calc_esurface
     USE embedding_volume, ONLY: calc_devolume_dboundary, calc_evolume
     !
+    ! USE boundary_field_aware, ONLY: field_aware_de_drho, field_aware_dboundary_dions, &
+    !                                 compute_ion_field_partial ! #TODO field-aware
+    !
     USE environ_output, ONLY: print_environ_density, print_environ_charges
     !
     !------------------------------------------------------------------------------------

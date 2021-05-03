@@ -42,7 +42,7 @@ MODULE utils_boundary
                               environ_system
     !
     USE representation_types, ONLY: environ_functions, environ_gradient, environ_density
-    USE core_types, ONLY: fft_core, fd_core, boundary_core
+    USE core_types, ONLY: fft_core, fd_core, core_container
     USE cell_types, ONLY: environ_cell
     !
     USE environ_base, ONLY: niter
@@ -66,126 +66,15 @@ MODULE utils_boundary
                                        boundary_of_system, solvent_aware_boundary, &
                                        invert_boundary ! #TODO is this for DEBUGGING?
     !
+    ! USE boundary_field_aware, ONLY: compute_normal_field, field_aware_density, &
+    !                                 compute_dion_field_drho, compute_ion_field ! #TODO field_aware
+    !
     USE environ_output, ONLY: ionode, environ_unit
+    !
+    USE environ_debugging
     !
     !------------------------------------------------------------------------------------
 CONTAINS
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE create_boundary_core(core)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(boundary_core), INTENT(INOUT) :: core
-        !
-        !--------------------------------------------------------------------------------
-        !
-        core%type_ = 'default'
-        core%use_fft = .FALSE.
-        NULLIFY (core%fft)
-        core%use_fd = .FALSE.
-        NULLIFY (core%fd)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_boundary_core
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_boundary_core(type_, core, fft, fd)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CHARACTER(LEN=80), INTENT(IN) :: type_
-        TYPE(fft_core), INTENT(IN), TARGET, OPTIONAL :: fft
-        TYPE(fd_core), INTENT(IN), TARGET, OPTIONAL :: fd
-        !
-        TYPE(boundary_core), INTENT(INOUT) :: core
-        !
-        INTEGER :: number
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_boundary_core'
-        !
-        !--------------------------------------------------------------------------------
-        ! Assign the selected numerical core
-        !
-        core%type_ = type_
-        !
-        SELECT CASE (TRIM(ADJUSTL(type_)))
-        CASE ('analytic', 'fft', 'default')
-            !
-            IF (.NOT. PRESENT(fft)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
-            !
-            core%use_fft = .TRUE.
-            core%fft => fft
-        CASE ('fd', 'finite differences', 'finite_differences')
-            !
-            !----------------------------------------------------------------------------
-            ! Note: finite differences core only works for gradient,
-            ! other derivatives still require fft core
-            !
-            IF (.NOT. PRESENT(fd)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
-            !
-            IF (.NOT. PRESENT(fft)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
-            !
-            core%use_fd = .TRUE.
-            core%use_fft = .TRUE.
-            core%fft => fft
-            core%fd => fd
-        CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected keyword for boundary core type', 1)
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Double check number of active cores
-        !
-        number = 0
-        !
-        IF (core%use_fft) number = number + 1
-        !
-        IF (core%use_fd) number = number + 1
-        !
-        IF (number < 1) CALL errore(sub_name, 'Too few cores are active', 1)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_boundary_core
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_boundary_core(lflag, core)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
-        !
-        TYPE(boundary_core), INTENT(INOUT) :: core
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (lflag) THEN
-            core%use_fft = .FALSE.
-            NULLIFY (core%fft)
-            core%use_fd = .FALSE.
-            NULLIFY (core%fd)
-        END IF
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_boundary_core
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -337,7 +226,7 @@ CONTAINS
         TYPE(environ_electrons), TARGET, INTENT(IN) :: electrons
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(boundary_core), TARGET, INTENT(IN) :: core
+        TYPE(core_container), TARGET, INTENT(IN) :: core
         !
         TYPE(environ_boundary), INTENT(INOUT) :: boundary
         !

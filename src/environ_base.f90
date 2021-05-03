@@ -35,7 +35,7 @@ MODULE environ_base
     !
     USE cell_types
     USE physical_types
-    USE core_types, ONLY: boundary_core
+    USE core_types, ONLY: core_container
     USE representation_types, ONLY: environ_density
     !
     !------------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ MODULE environ_base
     ! Details of the continuum interface
     !
     LOGICAL :: lboundary
-    TYPE(boundary_core), TARGET :: derivatives
+    TYPE(core_container), TARGET :: derivatives
     TYPE(environ_boundary), TARGET :: solvent
     !
     !------------------------------------------------------------------------------------

@@ -39,12 +39,13 @@ MODULE problem_generalized
     !
     USE modules_constants, ONLY: DP, e2, fpi
     !
-    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_core, &
-                                   iterative_solver, gradient_solver
+    USE electrostatic_types, ONLY: electrostatic_solver, iterative_solver, &
+                                   gradient_solver
     !
     USE physical_types, ONLY: environ_charges, environ_dielectric, &
                               environ_electrolyte, environ_semiconductor
     !
+    USE core_types, ONLY: core_container
     USE representation_types, ONLY: environ_density, environ_gradient
     USE cell_types, ONLY: environ_cell
     !
@@ -87,7 +88,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(electrostatic_solver), INTENT(IN) :: solver
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         !
         TYPE(environ_charges), INTENT(INOUT) :: charges
         TYPE(environ_density), INTENT(INOUT) :: potential
@@ -175,7 +176,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(electrostatic_solver), INTENT(IN) :: solver
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
@@ -262,7 +263,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(iterative_solver), TARGET, INTENT(IN) :: iterative
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
@@ -431,7 +432,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(gradient_solver), TARGET, INTENT(IN) :: gradient
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
@@ -627,7 +628,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(gradient_solver), TARGET, INTENT(IN) :: gradient
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
@@ -863,7 +864,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(gradient_solver), TARGET, INTENT(IN) :: gradient
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte

@@ -30,6 +30,7 @@ MODULE electrostatic_base
     !------------------------------------------------------------------------------------
     !
     USE electrostatic_types
+    USE core_types, ONLY: core_container
     !
     !------------------------------------------------------------------------------------
     !
@@ -39,7 +40,7 @@ MODULE electrostatic_base
     !
     TYPE(electrostatic_setup) :: inner, outer, reference
     !
-    TYPE(electrostatic_core) :: outer_core, inner_core, reference_core, pbc_core
+    TYPE(core_container) :: outer_core, inner_core, reference_core, pbc_core
     !
     TYPE(electrostatic_solver) :: outer_solver, inner_solver, reference_solver
     !

@@ -34,7 +34,7 @@ MODULE tools_generate_functions
     !
     USE tools_cell, ONLY: ir2ijk, ir2r, displacement, minimum_image
     !
-    USE modules_erf, ONLY: environ_erfc, environ_erf
+    USE tools_math, ONLY: environ_erfc, environ_erf
     !
     USE mp, ONLY: mp_sum
     !

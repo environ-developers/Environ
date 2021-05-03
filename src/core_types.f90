@@ -90,21 +90,37 @@ MODULE core_types
     !------------------------------------------------------------------------------------
     !>
     !!
-    !------------------------------------------------------------------------------------
-    TYPE boundary_core
+    TYPE core_container
         !--------------------------------------------------------------------------------
         !
         CHARACTER(LEN=80) :: type_
         !
-        LOGICAL :: use_fft
-        TYPE(fft_core), POINTER :: fft => NULL()
-        !
         LOGICAL :: use_fd
         TYPE(fd_core), POINTER :: fd => NULL()
         !
+        LOGICAL :: use_fft
+        TYPE(fft_core), POINTER :: fft => NULL()
+        !
+        LOGICAL :: use_oned_analytic
+        TYPE(oned_analytic_core), POINTER :: oned_analytic => NULL()
+        !
+        ! #TODO future work
+        !
+        ! LOGICAL :: use_oned_numeric
+        ! TYPE(oned_numeric_core), POINTER :: oned_numeric => NULL()
+        !
+        ! LOGICAL :: use_multigrid
+        ! TYPE(multigrid_core), POINTER :: multigrid => NULL()
+        !
+        ! LOGICAL :: use_bigdft
+        ! TYPE(bigdft_core), POINTER :: bigdft => NULL()
+        !
+        LOGICAL :: need_correction
+        TYPE(core_container), POINTER :: correction => NULL()
+        !
         !--------------------------------------------------------------------------------
-    END TYPE boundary_core
-    !------------------------------------------------------------------------------------    
+    END TYPE core_container
+    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 END MODULE core_types

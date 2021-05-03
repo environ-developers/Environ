@@ -33,7 +33,7 @@ MODULE problem_poisson
     !
     USE modules_constants, ONLY: DP, e2
     !
-    USE electrostatic_types, ONLY: electrostatic_core
+    USE core_types, ONLY: core_container
     USE cell_types, ONLY: environ_cell
     USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_semiconductor
     USE representation_types, ONLY: environ_density, environ_gradient
@@ -76,7 +76,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         !
         TYPE(environ_charges), INTENT(INOUT) :: charges
         TYPE(environ_density), INTENT(INOUT) :: potential
@@ -119,7 +119,7 @@ CONTAINS
         ELSE IF (core%use_oned_analytic) THEN
             CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
+            CALL errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -188,7 +188,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), INTENT(INOUT) :: charges
@@ -243,7 +243,7 @@ CONTAINS
         ELSE IF (core%use_oned_analytic) THEN
             CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
+            CALL errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -314,7 +314,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         !
         TYPE(environ_charges), INTENT(INOUT) :: charges
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
@@ -330,7 +330,7 @@ CONTAINS
         ELSE IF (core%use_oned_analytic) THEN
             CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
+            CALL errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -400,7 +400,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), INTENT(INOUT) :: charges
@@ -418,7 +418,7 @@ CONTAINS
         ELSE IF (core%use_oned_analytic) THEN
             CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of electrostatic core', 1)
+            CALL errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
