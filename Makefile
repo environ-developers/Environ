@@ -102,28 +102,28 @@ libfft :
 	@ ( \
 		cd FFTXlib && $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
-	 )
+	  )
 
 libutil :
 	@ printf "\nCompiling UtilXlib...\n\n"
 	@ ( \
 		cd UtilXlib && $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
-	)
+	  )
 
 libenv :
 	@ printf "\nCompiling Environ/src...\n\n"
 	@ ( \
 		cd src && $(MAKE) TLDEPS=all || exit 1; \
 	   	mv *.a ../libs \
-	)
+	  )
 
 libsdir :
 	@ test -d libs || mkdir libs
 
 # compile Environ documentation
 compile-doc:
-	if test -d Doc ; then (cd Doc; $(MAKE) TLDEPS=all || exit 1 ); fi
+	@ if test -d Doc ; then (cd Doc; $(MAKE) TLDEPS=all || exit 1 ); fi
 
 ################################################################################
 # CHECKS
@@ -143,12 +143,12 @@ check-QE-makeinc :
 
 check-for-errors :
 	@ if grep -qE "error #[0-9]+" install/$(in)_comp.log; then \
-		printf "\nErrors found. See install/$(in)_comp.log\n\n"; \
-		exit 1; \
-	else \
-		printf "\n$(in) compilation successful! \n\n"; \
-		exit; \
-	fi
+		  printf "\nErrors found. See install/$(in)_comp.log\n\n"; \
+		  exit 1; \
+	  else \
+		  printf "\n$(in) compilation successful! \n\n"; \
+		  exit; \
+	  fi
 
 ################################################################################
 # PATCHING ROUTINES FOR QE+ENVIRON
