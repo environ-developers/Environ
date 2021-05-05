@@ -119,11 +119,11 @@ function patch_makefile() {
 		# 	mod2="$mod2 ../../Environ/libs/libqefft.a ../../PW/src/libpw.a"
 		# fi
 
-		sed -i.tmp '/^TLDEPS/a \
-\
-# Environ patch\
-'"$mod1"'\
-'"$mod2"'' Makefile && rm Makefile.tmp
+		sed -i'' -e '/^TLDEPS/a \
+# Environ patch \
+'"$mod1"' \
+'"$mod2"' \
+# end Environ patch' Makefile
 
 		printf " done! \n"
 	fi
@@ -143,7 +143,7 @@ function check_src_reverted() {
 function revert_makefile() {
 	if test "$(grep '# Environ patch' Makefile)"; then
 		fill_with_dots "  - Reverting $1Makefile"
-		sed -i.tmp "/# Environ patch/,/^\s*$/d" Makefile && rm Makefile.tmp
+		sed -i'' "/# Environ patch/,/# end Environ patch/d" Makefile
 		printf " done! \n"
 	else
 		echo "  - $1Makefile has not been patched!"
@@ -166,14 +166,14 @@ case "$1" in
 		# 	DEPENDS="$DEPENDS $LEVEL2/PW/src $LEVEL2/Environ/src"\
 		# 	;;\
 
-		sed -i.tmp '/cd $TOPDIR\/..\/$DIR/a \
-		\
+		sed -i'' -e '/cd $TOPDIR\/..\/$DIR/a \
 		# Environ patch\
 		case $DIR in\
 		PW/src | TDDFPT/src | XSpectra/src)\
 			DEPENDS="$DEPENDS $LEVEL2/Environ/src"\
 			;;\
-		esac' $file && rm $file.tmp
+		esac\
+		# end Environ patch' $file
 		printf " done! \n\n"
 	fi
 
@@ -245,7 +245,7 @@ case "$1" in
 	file="../install/makedeps.sh"
 	if test "$(grep '# Environ patch' $file)"; then
 		printf "\n* Reverting install/makedeps.sh........."
-		sed -i.tmp '/# Environ patch/,/^\s*$/d' $file && rm $file.tmp
+		sed -i'' '/# Environ patch/,/# end Environ patch/d' $file
 		printf " done! \n\n"
 	else
 		printf "\n* install/makedeps.sh has not been patched! \n\n"
