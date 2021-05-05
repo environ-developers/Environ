@@ -49,6 +49,7 @@ MODULE environ_init
     USE utils_mapping
     USE utils_cell
     USE utils_charges
+    USE utils_core_container
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              destroy_environ_density
@@ -285,7 +286,7 @@ CONTAINS
         !
         IF (lexternals) CALL create_environ_externals(externals)
         !
-        IF (lboundary) CALL create_boundary_core(derivatives)
+        IF (lboundary) CALL create_core_container(derivatives)
         !
         IF (lsolvent) THEN
             label = 'solvent'
@@ -415,7 +416,8 @@ CONTAINS
             !
             IF (derivatives_ == 'fd') lfd = .TRUE.
             !
-            CALL init_boundary_core(derivatives_, derivatives, environment_fft, fd)
+            CALL init_core_container(derivatives_, derivatives, fft=environment_fft, &
+                                     fd=fd)
             !
         END IF
         !
@@ -1271,8 +1273,8 @@ CONTAINS
     END SUBROUTINE environ_clean_pw
     !------------------------------------------------------------------------------------
     !>
-    !! Clean up all the Environ-related allocated variables and call clean up 
-    !! subroutines of specific Environ modules. These are quantities that may 
+    !! Clean up all the Environ-related allocated variables and call clean up
+    !! subroutines of specific Environ modules. These are quantities that may
     !! be needed by TDDFPT, thus may need to be cleaned later
     !!
     !------------------------------------------------------------------------------------
@@ -1325,7 +1327,7 @@ CONTAINS
         !
         IF (lsolvent) CALL destroy_environ_boundary(lflag, solvent)
         !
-        IF (lboundary) CALL destroy_boundary_core(lflag, derivatives)
+        IF (lboundary) CALL destroy_core_container(lflag, derivatives)
         !
         CALL core_clean(lflag)
         !

@@ -35,7 +35,7 @@
 MODULE correction_periodic
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, pi, tpi, fpi
+    USE modules_constants, ONLY: DP, e2, pi, tpi, fpi, madelung
     !
     USE core_types, ONLY: oned_analytic_core
     USE representation_types, ONLY: environ_density, environ_gradient
@@ -46,12 +46,6 @@ MODULE correction_periodic
     USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
     !
     USE tools_math, ONLY: multipoles_environ_density
-    !
-    !------------------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    REAL(DP), PARAMETER :: madelung(3) = (/2.837297479D0, 2.8883D0, 2.885D0/)
     !
     !------------------------------------------------------------------------------------
 CONTAINS

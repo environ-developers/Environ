@@ -870,7 +870,7 @@ EOF
 # cat tmp.1 >> force_lc.f90
 # Compatible with QE-6.3.X and QE-GIT
 # END BACKWARD COMPATIBILITY
-rm tmp.1
+rm tmp.1 tmp.2
 
 printf " done!\n"
 

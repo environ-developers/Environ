@@ -33,7 +33,7 @@ MODULE physical_types
     USE modules_constants, ONLY: DP
     !
     USE cell_types, ONLY: environ_cell
-    USE core_types, ONLY: boundary_core
+    USE core_types, ONLY: core_container
     USE representation_types
     !
     ! BACKWARD COMPATIBILITY
@@ -242,7 +242,7 @@ MODULE physical_types
         TYPE(environ_density) :: dsurface
         TYPE(environ_hessian) :: hessian
         !
-        TYPE(boundary_core), POINTER :: core
+        TYPE(core_container), POINTER :: core
         !
         !--------------------------------------------------------------------------------
         ! Global properties of the boundary

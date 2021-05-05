@@ -21,7 +21,7 @@ MODULE correction_mt
     USE physical_types, ONLY: environ_ions
     !
     USE tools_cell, ONLY: ir2r, minimum_image
-    USE modules_erf, ONLY: environ_erf, environ_erfc
+    USE tools_math, ONLY: environ_erf, environ_erfc
     !
     USE fft_interfaces, ONLY: fwfft
     !

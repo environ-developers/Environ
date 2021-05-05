@@ -32,6 +32,7 @@ MODULE electrostatic_init
     USE core_base
     USE electrostatic_base
     !
+    USE utils_core_container
     USE utils_electrostatics
     !
     USE environ_output, ONLY: environ_unit
@@ -96,15 +97,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set reference core according to calling program
         !
-        CALL create_electrostatic_core(reference_core)
+        CALL create_core_container(reference_core)
         !
         SELECT CASE (prog)
         CASE ('PW', 'CP', 'TD', 'XS')
             lfft_system = .TRUE.
             local_type = "fft"
             !
-            CALL init_electrostatic_core(type_=local_type, fft=system_fft, &
-                                         core=reference_core)
+            CALL init_core_container(local_type, reference_core, fft=system_fft)
             !
         CASE DEFAULT
             CALL errore(sub_name, 'Unexpected name of host code', 1)
@@ -118,7 +118,7 @@ CONTAINS
         need_semiconductor = .FALSE.
         need_outer_loop = .FALSE.
         !
-        CALL create_electrostatic_core(pbc_core)
+        CALL create_core_container(pbc_core)
         !
         !--------------------------------------------------------------------------------
         ! First check keywords specfied in input
@@ -164,44 +164,40 @@ CONTAINS
         IF (need_pbc_correction) THEN
             !
             IF (loned_analytic) &
-                CALL init_electrostatic_core(type_=local_type, &
-                                             oned_analytic=oned_analytic, core=pbc_core)
+                CALL init_core_container(local_type, pbc_core, &
+                                         oned_analytic=oned_analytic)
             !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Set up main (outer) core and inner core (if nested scheme)
         !
-        CALL create_electrostatic_core(outer_core)
+        CALL create_core_container(outer_core)
         !
-        IF (lnested) CALL create_electrostatic_core(inner_core)
+        IF (lnested) CALL create_core_container(inner_core)
         !
         SELECT CASE (core_type)
         CASE ('fft')
             lfft_environment = .TRUE.
             !
-            CALL init_electrostatic_core(type_=core_type, fft=environment_fft, &
-                                         core=outer_core)
+            CALL init_core_container(core_type, outer_core, fft=environment_fft)
             !
             IF (lnested) &
-                CALL init_electrostatic_core(type_=core_type, fft=environment_fft, &
-                                             core=inner_core)
+                CALL init_core_container(core_type, inner_core, fft=environment_fft)
             !
         CASE ('1d-analytic', '1da')
             loned_analytic = .TRUE.
             !
-            CALL init_electrostatic_core(type_=core_type, oned_analytic=oned_analytic, &
-                                         core=outer_core)
+            CALL init_core_container(core_type, outer_core, oned_analytic=oned_analytic)
             !
             IF (lnested) &
-                CALL init_electrostatic_core(type_=core_type, &
-                                             oned_analytic=oned_analytic, &
-                                             core=inner_core)
+                CALL init_core_container(core_type, inner_core, &
+                                         oned_analytic=oned_analytic)
             !
         CASE DEFAULT
             !
             CALL errore(sub_name, &
-                        'Unexpected value for electrostatic core_type keyword', 1)
+                        'Unexpected value for core container type keyword', 1)
             !
         END SELECT
         !
@@ -425,11 +421,11 @@ CONTAINS
         !
         CALL destroy_electrostatic_setup(lflag, reference)
         !
-        CALL destroy_electrostatic_core(lflag, outer_core)
+        CALL destroy_core_container(lflag, outer_core)
         !
-        CALL destroy_electrostatic_core(lflag, reference_core)
+        CALL destroy_core_container(lflag, reference_core)
         !
-        IF (need_pbc_correction) CALL destroy_electrostatic_core(lflag, pbc_core)
+        IF (need_pbc_correction) CALL destroy_core_container(lflag, pbc_core)
         !
         CALL destroy_electrostatic_solver(lflag, outer_solver)
         !

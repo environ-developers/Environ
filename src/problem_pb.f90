@@ -36,9 +36,10 @@ MODULE problem_pb
     !
     USE modules_constants, ONLY: DP, e2, k_boltzmann_ry, pi, fpi
     !
-    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_core, &
-                                   electrostatic_setup, iterative_solver, newton_solver
+    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_setup, &
+                                   iterative_solver, newton_solver
     !
+    USE core_types, ONLY: core_container
     USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_dielectric
     USE representation_types, ONLY: environ_density
     USE cell_types, ONLY: environ_cell
@@ -77,7 +78,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(electrostatic_solver), INTENT(IN) :: solver
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_charges), INTENT(IN) :: charges
         TYPE(electrostatic_setup), OPTIONAL, INTENT(IN) :: inner_setup
         !
@@ -162,7 +163,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(electrostatic_solver), INTENT(IN) :: solver
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
         TYPE(environ_dielectric), OPTIONAL, INTENT(IN) :: dielectric
@@ -247,12 +248,12 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(iterative_solver), TARGET, INTENT(IN) :: iterative
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_dielectric), OPTIONAL, INTENT(IN) :: dielectric
         TYPE(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner_solver
-        TYPE(electrostatic_core), OPTIONAL, INTENT(IN) :: inner_core
+        TYPE(core_container), OPTIONAL, INTENT(IN) :: inner_core
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
         !
@@ -456,7 +457,7 @@ CONTAINS
         !
         TYPE(newton_solver), TARGET, INTENT(IN) :: newton
         TYPE(electrostatic_solver), INTENT(IN) :: inner_solver
-        TYPE(electrostatic_core), INTENT(IN) :: core, inner_core
+        TYPE(core_container), INTENT(IN) :: core, inner_core
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_dielectric), OPTIONAL, INTENT(IN) :: dielectric

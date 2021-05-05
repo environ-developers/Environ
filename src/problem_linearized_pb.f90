@@ -36,9 +36,8 @@ MODULE problem_linearized_pb
     !
     USE modules_constants, ONLY: DP, e2, fpi
     !
-    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_core, &
-                                   gradient_solver
-    !
+    USE electrostatic_types, ONLY: electrostatic_solver, gradient_solver
+    USE core_base, ONLY: core_container
     USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_dielectric
     USE representation_types, ONLY: environ_density, environ_gradient
     USE cell_types, ONLY: environ_cell
@@ -78,7 +77,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(electrostatic_solver), INTENT(IN) :: solver
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_charges), INTENT(IN) :: charges
         TYPE(environ_density), OPTIONAL, INTENT(IN) :: screening
         !
@@ -173,7 +172,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(electrostatic_solver), INTENT(IN) :: solver
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
         TYPE(environ_dielectric), INTENT(IN), OPTIONAL :: dielectric
@@ -266,7 +265,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(gradient_solver), TARGET, INTENT(IN) :: gradient
-        TYPE(electrostatic_core), INTENT(IN) :: core
+        TYPE(core_container), INTENT(IN) :: core
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_density), TARGET, INTENT(IN) :: screening
         TYPE(environ_dielectric), OPTIONAL, TARGET, INTENT(IN) :: dielectric
