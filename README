@@ -35,49 +35,59 @@ If there are problems with the QE compilation steps, look up for solutions
 on the PW-forum or refer to the Quantum ESPRESSO documentation and web site
 http://www.quantum-espresso.org/
 
-Installation procedure:
+MANUAL
 
-* from QE root directory
+QE + Environ 2.0 Installation
+-----------------------------
+
+* From QE root:
+  ------------
    
-    1) configure QE installation with
-            ./configure
-            - should be enough in most cases
+  1) configure QE installation with
 
-* from Environ root directory (placed in the QE root directory) 
+     - ./configure [--prefix=]
+     - no prefix should be enough in most cases
+
+* From Environ root: (placed in the QE root directory)
+  -----------------
     
-    1) configure Environ with
-            ./configure
-            - should be enough in most cases
+  1) configure Environ with
+
+     - ./configure 
+     - no prefix should be enough in most cases
     
-    2) install QE + Environ 2.0 with
-            
-            make install-QE+Environ
+  2) install QE + Environ 2.0 with
 
-            a) select QE package(s)
-            b) select number of cores (for parallel compilation)
-            c) (optional) pre-compile QE without Environ (for the more cautious)
-            
-            * compilation will write logs to Environ/install
-            * compilation will terminate if errors are detected
-            * NOTE: if pre-compiled, QE re-compilation will only update 
-                    the patched files (relatively quick)
+     - make install-QE+Environ
+
+       a) select QE package (pw, tddfpt, xspectra, or all)
+          - see QE documentation for package detail
+
+       b) select number of cores (for parallel compilation)
+          - if issues arise in parallel, run in serial (core=1)"
+
+       c) (optional) pre-compile QE without Environ (for the more cautious)
+
+     * compilation will write logs to Environ/install
+     * compilation will terminate if errors are detected
+     * NOTE: if pre-compiled, QE re-compilation will only update 
+             the patched files (relatively quick)
     
-    3) run executables with -environ flag, e.g.
-            
-            pw.x -environ < pw.in > pw.out
+  3) run executables with -environ flag, e.g.
 
-To clean up the compilation with Environ:
+     - pw.x -environ < pw.in > pw.out
 
-    1) uninstall QE + Environ 2.0 with
-            
-            make uninstall-QE+Environ
-            
-            - (optional) confirm cleaning of QE
+* To uninstall:
+  ------------
 
-      * for more flexible cleaning, see Environ/Makefile
+  - make uninstall-QE+Environ
+  - (optional) confirm cleaning of QE
 
 The above instructions refer to Environ v2.0 installed on QE-6.3 and later versions
 For previous versions of QE (namely QE-6.1.X and QE-6.2.X) please refer to the 
 instructions on the website:
 
 http://www.quantum-environment.org/installation.html
+
+
+END MANUAL

@@ -31,43 +31,90 @@ DIRS="PW/src XSpectra/src TDDFPT/src" # TODO add CPV/src after PW/src when CP is
 # HELP/LIST
 ################################################################################
 
-# quick manual
-help:
+default:
 	@ echo
-	@ echo 'QE + Environ $(ENVIRON_VERSION) installaion:'
+	@ echo " - make help -> installation manual"
 	@ echo
-	@ echo 'From QE root:'
-	@ echo
-	@ echo '  1) ./configure [--prefix=]'
-	@ echo
-	@ echo 'From Environ root:'
-	@ echo
-	@ echo '  1) ./configure [--prefix=]'
-	@ echo
-	@ echo '  2) make install-QE+Environ'
-	@ echo
-	@ echo '     a) select a QE package to install:'
-	@ echo
-	@ echo '        - pw           basic code for scf, structure optimization, MD'
-	@ # echo '	       - cp           CP code: Car-Parrinello molecular dynamics' # TODO add CP option when fixed
-	@ echo '        - tddfpt       time dependent dft code'
-	@ echo '        - xspectra     X-ray core-hole spectroscopy calculations'
-	@ echo '        - all          same as "make pw tddfpt xspectra"' # TODO add cp after pw when CP is fixed
-	@ echo
-	@ echo '     b) select number of cores (for parallel compilation)'
-	@ echo '        - if issues arise in parallel, run in serial (core=1)'
-	@ echo
-	@ echo '     c) (optional) pre-compile QE without Environ (for the more cautious)'
-	@ echo
-	@ echo 'To Uninstall:'
-	@ echo
-	@ echo '  1) make uninstall-QE+Environ'
-	@ echo '     - QE decompilation step is optional (see documentaion for more detail)'
+	@ echo " - make devs -> developer options"
 	@ echo
 
-# list make targets (documented)
-list:
-	@ grep -B 1 "^[^.]\S*:" Makefile | cut -d ':' -f 1 
+# quick manual
+help:
+	@ sed -n '/MANUAL/,/END MANUAL/p' README | head -n -2 | tail -n +2
+
+# rundown of developer make routines
+devs:
+	@ echo
+	@ echo "Installation"
+	@ echo "------------"
+	@ echo
+	@ echo "* see 'make help'"
+	@ echo
+	@ echo "Compilation"
+	@ echo "-----------"
+	@ echo
+	@ echo "* compile-Environ (requires Environ/make.inc)"
+	@ echo
+	@ echo "  - compiles Environ's FFTXlib, UtilXlib, and src"
+	@ echo "  - updates dependencies before compilation"
+	@ echo "  - compilation generates Environ/install/Environ_comp.log"
+	@ echo
+	@ echo "  * NOTE: Environ is decoupled from QE. Changes to QE files"
+	@ echo "          (exluding Environ-patched sections) do not require"
+	@ echo "          Environ recompilation"
+	@ echo
+	@ echo "* compile-QE [prog=] (requires QE/make.inc)"
+	@ echo
+	@ echo "  - (re)compiles QE package -> prog = pw (default) | tddfpt | xspectra"
+	@ echo "  - updates dependencies before compilation"
+	@ echo "  - compilation generates Environ/install/QE_comp.log"
+	@ echo
+	@ echo "  * NOTE: If QE dependencies reflect an Environ-patched state,"
+	@ echo "          Environ must be pre-compiled before QE is (re)compiled."
+	@ echo "          Alternatively, you may revert the patches and update"
+	@ echo "          QE dependencies prior to QE compilation. To do so,"
+	@ echo "          run 'make uninstall-QE+Environ'"
+	@ echo
+	@ echo "Patching & Dependencies"
+	@ echo "-----------------------"
+	@ echo
+	@ echo "* patch-QE (requires QE/make.inc)"
+	@ echo
+	@ echo "  - applies Environ patch to QE/install/makedeps.sh"
+	@ echo "  - patches pw, tddfpt, and xspectra plugin files and Makefiles"
+	@ echo "  - patches Makefiles of all QE packages dependent on pw.x"
+	@ echo
+	@ echo "* revert-QE-patches (requires QE/make.inc)"
+	@ echo
+	@ echo "  - reverts patches applied during patch-QE"
+	@ echo
+	@ echo "* update-Environ-dependencies"
+	@ echo
+	@ echo "  - updates dependencies in Environ's FFTXlib, UtilXlib, and src"
+	@ echo
+	@ echo "* update-QE-dependencies"
+	@ echo
+	@ echo "  - updates dependencies in QE's pw, tddfpt, and xspectra"
+	@ echo
+	@ echo "Cleaning"
+	@ echo "--------"
+	@ echo
+	@ echo "* decompile-Environ"
+	@ echo
+	@ echo "  - wrapper for 'make clean-Environ'"
+	@ echo
+	@ echo "* decompile-QE (requires QE/make.inc)"
+	@ echo
+	@ echo "  - wrapper for QE/Makefile -> 'make clean'"
+	@ echo
+	@ echo "* clean-Environ (requires Environ/make.inc)"
+	@ echo
+	@ echo "  - remove Environ objects and libraries"
+	@ echo
+	@ echo "* veryclean (requires Environ/make.inc)"
+	@ echo
+	@ echo "  - 'make clean-Environ' + removes configuration files"
+	@ echo
 
 ################################################################################
 # COMPILATION ROUTINES
@@ -80,10 +127,6 @@ compile-Environ: check-Environ-makeinc libsdir update-Environ-dependencies
 	@ $(MAKE) libenv 2>&1 | tee -a install/Environ_comp.log
 	@ $(MAKE) check-for-errors in=Environ
 
-# decompile Environ
-decompile-Environ:
-	@ printf "\nCleaning up Environ...\n\n"; $(MAKE) clean
-
 # compile QE (make compile-QE [prog=<pw|tddfpt|xspectra>])
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi
@@ -92,33 +135,28 @@ compile-QE: check-QE-makeinc
 	@ (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
 	@ $(MAKE) check-for-errors in=QE
 
-# decompile QE
-decompile-QE:
-	@ printf "\nCleaning up QE...\n\n"
-	@ (cd ../ && $(MAKE) clean)
-
-libfft :
+libfft:
 	@ printf "\nCompiling FFTXlib...\n\n"
 	@ ( \
 		cd FFTXlib && $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
 	  )
 
-libutil :
+libutil:
 	@ printf "\nCompiling UtilXlib...\n\n"
 	@ ( \
 		cd UtilXlib && $(MAKE) TLDEPS=all || exit 1; \
 		mv *.a ../libs \
 	  )
 
-libenv :
+libenv:
 	@ printf "\nCompiling Environ/src...\n\n"
 	@ ( \
 		cd src && $(MAKE) TLDEPS=all || exit 1; \
 	   	mv *.a ../libs \
 	  )
 
-libsdir :
+libsdir:
 	@ test -d libs || mkdir libs
 
 # compile Environ documentation
@@ -129,19 +167,19 @@ compile-doc:
 # CHECKS
 ################################################################################
 
-check-Environ-makeinc :
+check-Environ-makeinc:
 	@ if [ ! -e make.inc ]; then \
 		  printf "\nMissing make.inc. Please configure installation.\n\n"; \
 		  exit 1; \
 	  fi
 	
-check-QE-makeinc :
+check-QE-makeinc:
 	@ if [ ! -e ../make.inc ]; then \
 		  printf "\nMissing QE/make.inc. Please configure the QE installation.\n\n"; \
 		  exit 1; \
 	  fi
 
-check-for-errors :
+check-for-errors:
 	@ if grep -qE "error #[0-9]+" install/$(in)_comp.log; then \
 		  printf "\nErrors found. See install/$(in)_comp.log\n\n"; \
 		  exit 1; \
@@ -178,7 +216,7 @@ update-QE-dependencies:
 # INSTALL ROUTINES FOR QE+ENVIRON
 ################################################################################
 
-print_menu :
+print_menu:
 	@ printf "\nSelect a package:\n\n"
 	@ printf "%s\n%s\n%s\n%s\n\n%s" \
 			 "   1 - PW" \
@@ -254,30 +292,42 @@ uninstall-QE+Environ:
 # CLEANING
 ################################################################################
 
+# decompile Environ
+decompile-Environ:
+	@ printf "\nCleaning up Environ...\n\n"; $(MAKE) clean-Environ
+
+# decompile QE
+decompile-QE: check-QE-makeinc
+	@ printf "\nCleaning up QE...\n\n"
+	@ (cd ../ && $(MAKE) clean)
+
+# dummy routine called by QE
+clean:
+
 # remove executables and objects
-clean: check-Environ-makeinc
+clean-Environ: check-Environ-makeinc
 	@ $(MAKE) clean-src
 	@ $(MAKE) clean-libs
 	@ $(MAKE) clean-fft
 	@ $(MAKE) clean-util
 
-clean-src :
+clean-src:
 	@ printf "src..........."
 	@ (cd src && $(MAKE) clean)
 	@ printf " done! \n"
 
-clean-fft :
+clean-fft:
 	@ printf "FFTXlib......."
 	@ (cd FFTXlib && $(MAKE) clean)
 	@ printf " done! \n"
 
-clean-util :
+clean-util:
 	@ printf "UtilXlib......"
 	@ (cd UtilXlib && $(MAKE) clean)
 	@ printf " done! \n"
 
 # remove compiled libraries
-clean-libs :
+clean-libs:
 	@ printf "libs.........."
 	@ if test -d libs; then rm -fr libs; fi
 	@ printf " done! \n"
@@ -289,7 +339,7 @@ clean-doc:
 	@ printf " done! \n"
 
 # also remove configuration files
-veryclean: clean
+veryclean: clean-Environ
 	@ printf "Config........"
 	@ (cd install && \
 	   rm -rf *.log configure.msg config.status)
