@@ -75,6 +75,11 @@ devs:
 	@ echo "          QE dependencies prior to QE compilation. To do so,"
 	@ echo "          run 'make uninstall-QE+Environ'"
 	@ echo
+	@ echo "* recompile-QE+Environ"
+	@ echo
+	@ echo "  - wrapper on compile-Environ and compile-QE"
+	@ echo "  - used when changes have been made to Environ"
+	@ echo
 	@ echo "Patching & Dependencies"
 	@ echo "-----------------------"
 	@ echo
@@ -134,6 +139,22 @@ compile-QE: check-QE-makeinc
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log
 	@ (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
 	@ $(MAKE) check-for-errors in=QE
+
+# used after changes made to Environ
+recompile-QE+Environ:
+	@ make print_menu; read c; \
+	\
+	case $$c in \
+	1) opt=pw;; \
+	2) opt=tddfpt;; \
+	3) opt=xspectra;; \
+	4) opt="pw tddfpt xspectra";; \
+	*) exit;; \
+	esac; \
+	\
+	printf "\nUse # cores (default = 1) -> "; read cores; \
+	$(MAKE) compile-Environ; \
+	$(MAKE) compile-QE prog=$$opt
 
 libfft:
 	@ printf "\nCompiling FFTXlib...\n\n"
@@ -243,7 +264,7 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	printf "\nWould you like to pre-compile QE (y|n)? "; read p; \
 	\
 	if [ "$$p" = "y" ]; then \
-		$(MAKE) -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
+		make -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
 		if [ $$? != 0 ]; then exit; fi; \
 		(cd install && mv QE_comp.log QE_precomp.log); \
 		title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
@@ -252,11 +273,11 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 		title="Compiling QE with Environ $(ENVIRON_VERSION)"; \
 	fi; \
 	\
-	$(MAKE) -j$${cores:=1} compile-Environ; \
+	make -j$${cores:=1} compile-Environ; \
 	if [ $$? != 0 ]; then exit; fi; \
-	$(MAKE) patch-QE; \
-	$(MAKE) update-QE-dependencies; \
-	$(MAKE) -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
+	make patch-QE; \
+	make update-QE-dependencies; \
+	make -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
 	if [ $$? != 0 ]; then exit; fi; \
 	\
 	if [ $$p = "y" ]; then \
@@ -273,13 +294,13 @@ uninstall-QE+Environ:
 	@ printf "\nPreparing to uninstall QE + Environ $(ENVIRON_VERSION)...\n"
 	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
 	if [ "$$c" = "y" ]; then \
-		$(MAKE) decompile-Environ; \
-		$(MAKE) revert-QE-patches; \
-		$(MAKE) update-QE-dependencies; \
+		make decompile-Environ; \
+		make revert-QE-patches; \
+		make update-QE-dependencies; \
 		printf "\nPreparing to decompile QE...\n"; \
 		printf "\nDo you wish to proceed (y|n)? "; read c; \
 		if [ "$$c" = "y" ]; then \
-			$(MAKE) decompile-QE; \
+			make decompile-QE; \
 			printf "\nDone! \n\n"; \
 		else \
 			printf "\nQE decompilation skipped! \n\n"; \
