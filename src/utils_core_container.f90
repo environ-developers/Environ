@@ -68,7 +68,7 @@ CONTAINS
         core%type_ = type_
         !
         SELECT CASE (TRIM(ADJUSTL(type_)))
-        CASE ('fd', 'finite differences', 'finite_differences')
+        CASE ('fd')
             !
             !----------------------------------------------------------------------------
             ! Note: finite differences core only works for gradient,
@@ -85,7 +85,7 @@ CONTAINS
             core%fft => fft
             core%fd => fd
             !
-        CASE ('analytic', 'fft', 'default')
+        CASE ('chain', 'fft', 'highmem', 'lowmem')
             !
             IF (.NOT. PRESENT(fft)) &
                 CALL errore(sub_name, 'Missing specified core type', 1)

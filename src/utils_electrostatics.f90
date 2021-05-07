@@ -150,7 +150,7 @@ CONTAINS
         IF (PRESENT(auxiliary)) solver%auxiliary = auxiliary
         !
         SELECT CASE (TRIM(ADJUSTL(solver%type_)))
-        CASE ('direct', 'default')
+        CASE ('direct')
             solver%use_direct = .TRUE.
         CASE ('cg', 'sd', 'gradient')
             !
@@ -293,7 +293,7 @@ CONTAINS
         setup%problem = problem
         !
         SELECT CASE (TRIM(ADJUSTL(setup%problem)))
-        CASE ('poisson', 'default')
+        CASE ('poisson')
         CASE ('generalized', 'gpe')
             !
             IF (solver%use_direct) &

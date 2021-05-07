@@ -314,10 +314,10 @@ MODULE environ_input
     !------------------------------------------------------------------------------------
     ! Numerical core's parameters
     !
-    CHARACTER(LEN=80) :: derivatives = 'analytic'
-    CHARACTER(LEN=80) :: derivatives_allowed(5)
+    CHARACTER(LEN=80) :: derivatives = 'default'
+    CHARACTER(LEN=80) :: derivatives_allowed(6)
     !
-    DATA derivatives_allowed/'fft', 'fd', 'analytic', 'highmem', 'lowmem'/
+    DATA derivatives_allowed/'default', 'fft', 'fd', 'chain', 'highmem', 'lowmem'/
     !
     ! core numerical methods to be exploited for quantities derived from the dielectric
     !
@@ -325,7 +325,7 @@ MODULE environ_input
     !
     ! fd        = finite difference in real space
     !
-    ! analytic  = analytic derivatives for as much as possible (FFTs for the rest)
+    ! chain     = chain-rule derivatives for as much as possible (FFTs for the rest)
     !
     ! highmem   = analytic derivatives for soft-sphere computed by storing all spherical
     !             functions and derivatives
@@ -410,6 +410,7 @@ MODULE environ_input
     !
     DATA electrolyte_mode_allowed/'electronic', 'ionic', 'full', 'external', &
         'system', 'fa-electronic', 'fa-ionic', 'fa-full'/
+    !
     ! electrolyte_mode method for calculating the density that sets the onset of
     ! ionic countercharge ( see solvent_mode above )
     !
@@ -856,7 +857,7 @@ CONTAINS
         !
         CALL environ_checkin() ! check &ENVIRON variables
         !
-        CALL fix_boundary(lboundary) ! update &BOUNDARY defaults
+        CALL fix_boundary(lboundary) ! TRUE/FALSE depending on &ENVIRON
         !
         !--------------------------------------------------------------------------------
         ! &BOUNDARY namelist (only if needed)
@@ -880,7 +881,7 @@ CONTAINS
         !
         CALL set_environ_type() ! set predefined environ_types according to the boundary
         !
-        CALL fix_electrostatic(lelectrostatic) ! update &ELECTROSTATIC defaults
+        CALL fix_electrostatic(lelectrostatic) ! TRUE/FALSE depending on &ENVIRON
         !
         !--------------------------------------------------------------------------------
         ! &ELECTROSTATIC namelist (only if needed)
@@ -1014,7 +1015,7 @@ CONTAINS
         electrolyte_alpha = 1.D0
         electrolyte_softness = 0.5D0
         !
-        derivatives = 'analytic'
+        derivatives = 'default'
         ifdtype = 1
         nfdpoint = 2
         !
@@ -1391,6 +1392,7 @@ CONTAINS
         CHARACTER(LEN=20) :: sub_name = ' boundary_checkin '
         !
         !--------------------------------------------------------------------------------
+        ! Solvent mode checks
         !
         allowed = .FALSE.
         !
@@ -1454,6 +1456,9 @@ CONTAINS
         !
         IF (field_max <= field_min) CALL errore(sub_name, 'field_max out of range ', 1)
         !
+        !--------------------------------------------------------------------------------
+        ! Electrolyte checks
+        !
         allowed = .FALSE.
         !
         DO i = 1, SIZE(electrolyte_mode_allowed)
@@ -1498,6 +1503,9 @@ CONTAINS
         IF (sc_spread <= 0.0_DP) &
             CALL errore(sub_name, ' electrolyte_spread out of range ', 1)
         !
+        !--------------------------------------------------------------------------------
+        ! Derivatives checks
+        !
         allowed = .FALSE.
         !
         DO i = 1, SIZE(derivatives_allowed)
@@ -1505,7 +1513,43 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' derivatives '''//TRIM(core)//''' not allowed ', 1)
+            CALL errore(sub_name, &
+                        ' derivatives '''//TRIM(derivatives)//''' not allowed ', 1)
+        !
+        SELECT CASE (TRIM(solvent_mode))
+        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+            !
+            SELECT CASE (TRIM(derivatives))
+            CASE ('default')
+                !
+                CALL infomsg(sub_name, "Warning: derivatives not provided. &
+                                                &Setting derivatives to 'chain'")
+                !
+                derivatives = 'chain'
+            CASE ('highmem', 'lowmem')
+                !
+                CALL errore(sub_name, "Only 'fd', 'fft', or 'chain' are allowed &
+                                      &with electronic interfaces")
+                !
+            END SELECT
+            !
+        CASE ('ionic', 'fa-ionic')
+            !
+            SELECT CASE (TRIM(derivatives))
+            CASE ('default')
+                !
+                CALL infomsg(sub_name, "Warning: derivatives not provided. &
+                                                &Setting derivatives to 'lowmem'")
+                !
+                derivatives = 'lowmem'
+            CASE ('fd', 'chain')
+                !
+                CALL errore(sub_name, "Only 'highmem' or 'lowmem' are allowed &
+                                      &with electronic interfaces")
+                !
+            END SELECT
+            !
+        END SELECT
         !
         IF (ifdtype < 1) CALL errore(sub_name, ' ifdtype out of range ', 1)
         !
@@ -1636,9 +1680,21 @@ CONTAINS
             CALL errore(sub_name, ' pbc_correction '''// &
                         TRIM(pbc_correction)//''' not allowed ', 1)
         !
-        IF (TRIM(pbc_correction) == 'gcs' .AND. &
-            TRIM(electrolyte_mode) /= 'system') &
-            CALL errore(sub_name, 'Only system boundary for gcs correction', 1)
+        IF (TRIM(pbc_correction) == 'gcs') THEN
+            !
+            IF (electrolyte_distance == 0.0_DP) &
+                CALL errore(sub_name, 'electrolyte_distance must be set &
+                                      &(greater than zero) for gcs correction', 1)
+            !
+            IF (TRIM(electrolyte_mode) /= 'system') THEN
+                !
+                CALL infomsg(sub_name, "Warning: gcs correction requires 'system' &
+                                       &boundary. Setting electrolyte_mode to 'system'")
+                !
+                electrolyte_mode = 'system'
+            END IF
+            !
+        END IF
         !
         allowed = .FALSE.
         !
@@ -1698,16 +1754,6 @@ CONTAINS
         !
         IF (sc_permittivity > 1.D0 .OR. sc_carrier_density > 0) &
             lboundary = .TRUE.
-        !
-        IF ((solvent_mode == 'ionic' .OR. solvent_mode == 'fa-ionic') .AND. &
-            derivatives /= 'analytic') THEN
-            !
-            IF (ionode) &
-                WRITE (program_unit, *) &
-                'Only analytic derivatives for ionic solvent_mode'
-            !
-            derivatives = 'analytic'
-        END IF
         !
         RETURN
         !

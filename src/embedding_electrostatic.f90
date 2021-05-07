@@ -87,7 +87,7 @@ CONTAINS
         CASE ('poisson')
             !
             SELECT CASE (setup%solver%type_)
-            CASE ('direct', 'default')
+            CASE ('direct')
                 CALL poisson_direct(setup%core, charges, potential)
             CASE DEFAULT
                 CALL errore(sub_name, 'unexpected solver keyword', 1)
@@ -105,7 +105,7 @@ CONTAINS
                 !
                 ! CALL generalized_direct() #TODO future work
                 !
-            CASE ('cg', 'sd', 'iterative', 'default')
+            CASE ('cg', 'sd', 'iterative')
                 CALL generalized_gradient(setup%solver, setup%core, charges, potential)
             CASE ('lbfgs')
                 !

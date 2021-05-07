@@ -710,8 +710,8 @@ continuum void should be filled or not.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="boundary_core" type="CHARACTER" >
-         <default> &apos;analytic&apos;
+      <var name="derivatives" type="CHARACTER" >
+         <default> &apos;chain&apos; for electronic interfaces | &apos;lowmem&apos; for ionic interfaces
          </default>
          <info>
 Specify the numerical approach used to compute derivatives of the continuum interface with respect
@@ -719,10 +719,9 @@ to real-space coordinates or QM degrees of freedom.
 
 &apos;fft&apos;      : fast Fourier transform
 &apos;fd&apos;       : finite differences in real-space
-&apos;analytic&apos; : analytic derivatives for as much as possible (and FFTs for the rest)
-
-NOTE: analytic derivatives, especially for ions-dependent interfaces, may require a large amount of storage.
-If this prevents the calculation to run, use FFTs instead.
+&apos;chain&apos;    : chain rule derivatives for as much as possible (and FFTs for the rest)
+&apos;highmem&apos;  : analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
+&apos;lowmem&apos;   : more efficient analytic derivatives
          </info>
          <status> OPTIONAL
          </status>
