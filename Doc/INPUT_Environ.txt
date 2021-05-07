@@ -724,19 +724,18 @@ NAMELIST: &BOUNDARY
    +--------------------------------------------------------------------
    
    +--------------------------------------------------------------------
-   Variable:       boundary_core
+   Variable:       derivatives
    
    Type:           CHARACTER
-   Default:        'analytic'
+   Default:        'chain' for electronic interfaces | 'lowmem' for ionic interfaces
    Description:    Specify the numerical approach used to compute derivatives of the continuum interface with respect
                    to real-space coordinates or QM degrees of freedom.
                    
                    'fft'      : fast Fourier transform
                    'fd'       : finite differences in real-space
-                   'analytic' : analytic derivatives for as much as possible (and FFTs for the rest)
-                   
-                   NOTE: analytic derivatives, especially for ions-dependent interfaces, may require a large amount of storage.
-                   If this prevents the calculation to run, use FFTs instead.
+                   'chain'    : chain rule derivatives for as much as possible (and FFTs for the rest)
+                   'highmem'  : analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
+                   'lowmem'   : more efficient analytic derivatives
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -1140,4 +1139,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Wed Apr 24 00:16:59 CEST 2019
+This file has been created by helpdoc utility on Fri May 07 14:43:58 CDT 2021

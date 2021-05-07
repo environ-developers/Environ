@@ -566,7 +566,7 @@ CONTAINS
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
                                   boundary%laplacian, hessian, boundary%dsurface)
             !
-        CASE ('analytic', 'fd')
+        CASE ('chain', 'fd')
             !
             IF (deriv == 1 .OR. deriv == 2) &
                 CALL gradient_fft(fft, density, boundary%gradient)
@@ -603,7 +603,7 @@ CONTAINS
             !
             IF (deriv >= 1) THEN
                 !
-                IF (boundary%core%type_ == 'analytic') THEN
+                IF (boundary%core%type_ == 'chain') THEN
                     !
                     DO ipol = 1, 3
                         gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
@@ -813,7 +813,7 @@ CONTAINS
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
                                   boundary%laplacian, hessian, boundary%dsurface)
             !
-        CASE ('analytic', 'highmem')
+        CASE ('highmem')
             !
             IF (deriv >= 1) ALLOCATE (gradlocal(nsoft_spheres))
             !
@@ -876,10 +876,6 @@ CONTAINS
             IF (deriv == 3) DEALLOCATE (hesslocal)
             !
         CASE ('lowmem')
-            !
-            CALL errore(sub_name, 'Option not yet implimented', 1)
-            !
-            ! #TODO consider moving into same branch as highmem and switching for function calls
             !
             IF (deriv >= 1) ALLOCATE (gradlocal(nsoft_spheres))
             !
@@ -992,7 +988,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_partial_of_boundary_highmem(n, i, local, gradlocal, partial)
+    SUBROUTINE calc_partial_of_boundary(n, i, local, gradlocal, partial)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -1005,7 +1001,7 @@ CONTAINS
         !
         INTEGER :: j, ipol
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_partial_of_boundary_highmem'
+        CHARACTER(LEN=80) :: sub_name = 'calc_partial_of_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1026,7 +1022,7 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_partial_of_boundary_highmem
+    END SUBROUTINE calc_partial_of_boundary
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -1056,7 +1052,7 @@ CONTAINS
         !
         DO i = 1, n
             !
-            CALL calc_partial_of_boundary_highmem(n, i, local, gradlocal, partial)
+            CALL calc_partial_of_boundary(n, i, local, gradlocal, partial)
             !
             gradient%of_r = gradient%of_r + partial%of_r
         END DO
@@ -1163,7 +1159,7 @@ CONTAINS
         !
         DO i = 1, n
             !
-            CALL calc_partial_of_boundary_highmem(n, i, local, gradlocal, partial)
+            CALL calc_partial_of_boundary(n, i, local, gradlocal, partial)
             !
             gradient%of_r = gradient%of_r + partial%of_r
             !
@@ -1457,29 +1453,24 @@ CONTAINS
         !
         IF (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic') THEN
             !
-            SELECT CASE (boundary%core%type_)
-            CASE ('fft', 'fd', 'analytic', 'highmem', 'lowmem')
+            CALL gradient_of_functions(boundary%soft_spheres(index), partial, &
+                                       .TRUE.)
+            !
+            CALL init_environ_density(cell, local)
+            !
+            DO i = 1, number
                 !
-                CALL gradient_of_functions(boundary%soft_spheres(index), partial, &
-                                           .TRUE.)
+                IF (i == index) CYCLE
                 !
-                CALL init_environ_density(cell, local)
+                CALL density_of_functions(boundary%soft_spheres(i), local, .TRUE.)
                 !
-                DO i = 1, number
-                    !
-                    IF (i == index) CYCLE
-                    !
-                    CALL density_of_functions(boundary%soft_spheres(i), local, .TRUE.)
-                    !
-                    DO ipol = 1, 3
-                        partial%of_r(ipol, :) = partial%of_r(ipol, :) * local%of_r(:)
-                    END DO
-                    !
+                DO ipol = 1, 3
+                    partial%of_r(ipol, :) = partial%of_r(ipol, :) * local%of_r(:)
                 END DO
                 !
-                CALL destroy_environ_density(local)
-                !
-            END SELECT
+            END DO
+            !
+            CALL destroy_environ_density(local)
             !
         ELSE IF (boundary%mode == 'full') THEN
             !
@@ -1591,7 +1582,7 @@ CONTAINS
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
                                   boundary%laplacian, hesslocal, boundary%dsurface)
             !
-        CASE ('analytic')
+        CASE ('chain')
             !
             IF (deriv >= 1) &
                 CALL gradient_of_functions(simple, boundary%gradient, .TRUE.)
@@ -1771,7 +1762,7 @@ CONTAINS
                                   boundary%laplacian, boundary%hessian, &
                                   boundary%dsurface)
             !
-        CASE ('analytic', 'highmem')
+        CASE ('chain', 'highmem')
             !
             !----------------------------------------------------------------------------
             ! Allocate local fields for derivatives of convolution

@@ -100,21 +100,21 @@ CONTAINS
     SUBROUTINE set_bibliography()
         !--------------------------------------------------------------------------------
         !
-        bibliography(1) = "O. Andreussi, I. Dabo and N. Marzari, J.&
-                          & Chem. Phys. 136, 064102 (2012)"
-        bibliography(2) = "I. Timrov, O. Andreussi, A. Biancardi, N.&
-                          & Marzari, and S. Baroni, J. Chem. Phys.&
-                          & 142, 034111 (2015)"
-        bibliography(3) = "O. Andreussi, I. Dabo and N. Marzari, J.&
-                          & Chem. Phys. 136, 064102 (2012)"
-        bibliography(4) = "O. Andreussi, I. Dabo and N. Marzari, J.&
-                          & Chem. Phys. 136, 064102 (2012)"
-        bibliography(5) = "O. Andreussi, N.G. Hoermann, F. Nattino,&
-                          & G. Fisicaro, S. Goedecker, and N. Marzari,&
-                          & J. Chem. Theory Comput. 15, 1996 (2019)"
-        bibliography(6) = "F. Nattino, M. Truscott, N. Marzari, and&
-                          & O. Andreussi, J. Chem. Phys. 150, 041722&
-                          & (2019)"
+        bibliography(1) = "O. Andreussi, I. Dabo and N. Marzari, J. &
+                          &Chem. Phys. 136, 064102 (2012)"
+        bibliography(2) = "I. Timrov, O. Andreussi, A. Biancardi, N. &
+                          &Marzari, and S. Baroni, J. Chem. Phys. &
+                          &142, 034111 (2015)"
+        bibliography(3) = "O. Andreussi, I. Dabo and N. Marzari, J. &
+                          &Chem. Phys. 136, 064102 (2012)"
+        bibliography(4) = "O. Andreussi, I. Dabo and N. Marzari, J. &
+                          &Chem. Phys. 136, 064102 (2012)"
+        bibliography(5) = "O. Andreussi, N.G. Hoermann, F. Nattino, &
+                          &G. Fisicaro, S. Goedecker, and N. Marzari, &
+                          &J. Chem. Theory Comput. 15, 1996 (2019)"
+        bibliography(6) = "F. Nattino, M. Truscott, N. Marzari, and &
+                          &O. Andreussi, J. Chem. Phys. 150, 041722 &
+                          &(2019)"
         !
         RETURN
         !
