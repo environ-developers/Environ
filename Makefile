@@ -114,7 +114,7 @@ devs:
 	@ echo
 	@ echo "* clean-Environ (requires Environ/make.inc)"
 	@ echo
-	@ echo "  - remove Environ objects and libraries"
+	@ echo "  - remove Environ objects, libraries, and compilation logs"
 	@ echo
 	@ echo "* veryclean (requires Environ/make.inc)"
 	@ echo
@@ -125,20 +125,24 @@ devs:
 # COMPILATION ROUTINES
 ################################################################################
 
-# compile Environ (updates dependencies by default)
 compile-Environ: check-Environ-makeinc libsdir update-Environ-dependencies
-	@ $(MAKE) libfft 2>&1 | tee install/Environ_comp.log
-	@ $(MAKE) libutil 2>&1 | tee -a install/Environ_comp.log
-	@ $(MAKE) libenv 2>&1 | tee -a install/Environ_comp.log
-	@ $(MAKE) check-for-errors in=Environ
+	@ printf "\nCompiling Environ $(ENVIRON_VERSION)...\n\n"
+	@ $(MAKE) compile-util
+	@ $(MAKE) compile-fft
+	@ $(MAKE) compile-src
+	@ ( \
+		cd install; \
+		cat UtilXlib_comp.log FFTXlib_comp.log src_comp.log > Environ_comp.log; \
+		rm UtilXlib_comp.log FFTXlib_comp.log src_comp.log \
+	)
+	@ printf "\nEnviron $(ENVIRON_VERSION) compilation successful! \n\n"
 
-# compile QE (make compile-QE [prog=<pw|tddfpt|xspectra>])
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi
 	@ if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log
 	@ (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
-	@ $(MAKE) check-for-errors in=QE
+	@ $(MAKE) check-for-errors prog=QE
 
 # used after changes made to Environ
 recompile-QE+Environ:
@@ -156,31 +160,36 @@ recompile-QE+Environ:
 	$(MAKE) compile-Environ; \
 	$(MAKE) compile-QE prog=$$opt
 
-libfft:
-	@ printf "\nCompiling FFTXlib...\n\n"
+compile-util: libsdir
+	@ printf "\nCompiling UtilXlib...\n\n" 2>&1 | \
+	tee install/UtilXlib_comp.log
 	@ ( \
-		cd FFTXlib && $(MAKE) TLDEPS=all || exit 1; \
+		cd UtilXlib && $(MAKE) all || exit 1; \
 		mv *.a ../libs \
-	  )
+	) 2>&1 | tee -a install/UtilXlib_comp.log
+	@ $(MAKE) check-for-errors prog=UtilXlib
 
-libutil:
-	@ printf "\nCompiling UtilXlib...\n\n"
+compile-fft: libsdir
+	@ printf "\nCompiling FFTXlib...\n\n" 2>&1 | \
+	tee install/FFTXlib_comp.log
 	@ ( \
-		cd UtilXlib && $(MAKE) TLDEPS=all || exit 1; \
+		cd FFTXlib && $(MAKE) all || exit 1; \
 		mv *.a ../libs \
-	  )
-
-libenv:
-	@ printf "\nCompiling Environ/src...\n\n"
+	) 2>&1 | tee -a install/FFTXlib_comp.log
+	@ $(MAKE) check-for-errors prog=FFTXlib
+	 
+compile-src: libsdir
+	@ printf "\nCompiling Environ/src...\n\n" 2>&1 | \
+	tee install/src_comp.log
 	@ ( \
-		cd src && $(MAKE) TLDEPS=all || exit 1; \
+		cd src && $(MAKE) all || exit 1; \
 	   	mv *.a ../libs \
-	  )
+	) 2>&1 | tee -a install/src_comp.log
+	@ $(MAKE) check-for-errors prog=src
 
 libsdir:
 	@ test -d libs || mkdir libs
 
-# compile Environ documentation
 compile-doc:
 	@ if test -d Doc ; then (cd Doc; $(MAKE) TLDEPS=all || exit 1 ); fi
 
@@ -201,11 +210,11 @@ check-QE-makeinc:
 	  fi
 
 check-for-errors:
-	@ if grep -qE "error #[0-9]+" install/$(in)_comp.log; then \
-		  printf "\nErrors found. See install/$(in)_comp.log\n\n"; \
+	@ if grep -qE "error #[0-9]+" install/$(prog)_comp.log; then \
+		  printf "\nErrors found. See install/$(prog)_comp.log\n\n"; \
 		  exit 1; \
 	  else \
-		  printf "\n$(in) compilation successful! \n\n"; \
+		  printf "\n$(prog) compilation successful! \n\n"; \
 		  exit; \
 	  fi
 
@@ -213,22 +222,18 @@ check-for-errors:
 # PATCHING ROUTINES FOR QE+ENVIRON
 ################################################################################
 
-# patch QE
 patch-QE: check-QE-makeinc
 	@ printf "\nApplying QE patches using Environ version ${ENVIRON_VERSION}\n"
 	@ ./patches/environpatch.sh -patch
 
-# revert QE patches
 revert-QE-patches: check-QE-makeinc
 	@ printf "\nReverting QE patches using Environ version ${ENVIRON_VERSION}\n"
 	@ ./patches/environpatch.sh -revert
 
-# update Environ dependencies
 update-Environ-dependencies:
 	@ printf "\nUpdating Environ dependencies...\n\n"
 	@ ./install/makedeps.sh
 
-# update QE dependencies
 update-QE-dependencies:
 	@ printf "\nUpdating QE dependencies...\n\n"
 	@ (cd ../ && ./install/makedeps.sh "$(DIRS)")
@@ -247,7 +252,6 @@ print_menu:
 			 "-> "
 
 # TODO add CP option when fixed
-# compile Environ, patch QE, update QE dependencies, and compile selected QE package(s)
 install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	@ printf "\nPreparing to install QE + Environ $(ENVIRON_VERSION)...\n"
 	@ make print_menu; read c; \
@@ -289,7 +293,6 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 		); \
 	fi
 
-# decompile Environ, revert QE patches, update QE dependencies, and (optional) decompile QE
 uninstall-QE+Environ:
 	@ printf "\nPreparing to uninstall QE + Environ $(ENVIRON_VERSION)...\n"
 	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
@@ -313,11 +316,9 @@ uninstall-QE+Environ:
 # CLEANING
 ################################################################################
 
-# decompile Environ
 decompile-Environ:
 	@ printf "\nCleaning up Environ...\n\n"; $(MAKE) clean-Environ
 
-# decompile QE
 decompile-QE: check-QE-makeinc
 	@ printf "\nCleaning up QE...\n\n"
 	@ (cd ../ && $(MAKE) clean)
@@ -329,6 +330,7 @@ clean:
 clean-Environ: check-Environ-makeinc
 	@ $(MAKE) clean-src
 	@ $(MAKE) clean-libs
+	@ $(MAKE) clean-logs
 	@ $(MAKE) clean-fft
 	@ $(MAKE) clean-util
 
@@ -347,13 +349,19 @@ clean-util:
 	@ (cd UtilXlib && $(MAKE) clean)
 	@ printf " done! \n"
 
-# remove compiled libraries
 clean-libs:
 	@ printf "libs.........."
 	@ if test -d libs; then rm -fr libs; fi
 	@ printf " done! \n"
 
-# remove compiled documentation files
+clean-logs:
+	@ printf "logs.........."
+	@ ( \
+		cd install && \
+		find . -type f -name '*log' -not -name config.log | xargs rm -f \
+	)
+	@ printf " done! \n"
+
 clean-doc:
 	@ printf "Docs.........."
 	@ (cd Doc && $(MAKE) clean)
