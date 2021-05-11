@@ -66,12 +66,13 @@ QE + Environ 2.0 Installation
        b) select number of cores (for parallel compilation)
           - if issues arise in parallel, run in serial (core=1)"
 
-       c) (optional) pre-compile QE without Environ (for the more cautious)
+     * NOTE: installation pre-compiles QE, compiles Environ, applies 
+             Environ patches to QE, and re-compiles QE. This scheme is 
+             not only safer in general, but also required for QE < 6.7
+             due to the use of iotk (see QE documentation for details)
 
-     * compilation will write logs to Environ/install
-     * compilation will terminate if errors are detected
-     * NOTE: if pre-compiled, QE re-compilation will only update 
-             the patched files (relatively quick)
+     * compilation will write logs to Environ/install at each step
+     * compilation will terminate if errors are detected at any step
     
   3) run executables with -environ flag, e.g.
 
@@ -81,13 +82,12 @@ QE + Environ 2.0 Installation
   ------------
 
   - make uninstall-QE+Environ
-  - (optional) confirm cleaning of QE
+    - (optional) uninstall QE
 
 The above instructions refer to Environ v2.0 installed on QE-6.3 and later versions
 For previous versions of QE (namely QE-6.1.X and QE-6.2.X) please refer to the 
 instructions on the website:
 
 http://www.quantum-environment.org/installation.html
-
 
 END MANUAL

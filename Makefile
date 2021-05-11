@@ -33,14 +33,16 @@ DIRS="PW/src XSpectra/src TDDFPT/src" # TODO add CPV/src after PW/src when CP is
 
 default:
 	@ echo
-	@ echo " - make help -> installation manual"
+	@ echo "- make help -> installation manual"
 	@ echo
-	@ echo " - make devs -> developer options"
+	@ echo "- make devs -> developer options"
 	@ echo
 
 # quick manual
 help:
-	@ sed -n '/MANUAL/,/END MANUAL/p' README | head -n -2 | tail -n +2
+	@ echo
+	@ sed -n '/^QE + Environ/,/^http/p' README
+	@ echo
 
 # rundown of developer make routines
 devs:
@@ -138,10 +140,10 @@ compile-Environ: check-Environ-makeinc libsdir update-Environ-dependencies
 	@ printf "\nEnviron $(ENVIRON_VERSION) compilation successful! \n\n"
 
 compile-QE: check-QE-makeinc
-	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi
-	@ if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
-	  printf "\n$$title...\n\n" | tee install/QE_comp.log
-	@ (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
+	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi; \
+	  if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
+	  printf "\n$$title...\n\n" | tee install/QE_comp.log; \
+	  (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
 	@ $(MAKE) check-for-errors prog=QE
 
 # used after changes made to Environ
@@ -265,33 +267,28 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	esac; \
 	\
 	printf "\nUse # cores (default = 1) -> "; read cores; \
-	printf "\nWould you like to pre-compile QE (y|n)? "; read p; \
 	\
-	if [ "$$p" = "y" ]; then \
-		make -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
-		if [ $$? != 0 ]; then exit; fi; \
-		(cd install && mv QE_comp.log QE_precomp.log); \
-		title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
-	else \
-		printf "\nQE pre-compilation skipped! \n\n"; \
-		title="Compiling QE with Environ $(ENVIRON_VERSION)"; \
-	fi; \
+	make -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
+	if [ $$? != 0 ]; then exit; fi; \
+	(cd install && mv QE_comp.log QE_precomp.log); \
 	\
 	make -j$${cores:=1} compile-Environ; \
 	if [ $$? != 0 ]; then exit; fi; \
 	make patch-QE; \
 	make update-QE-dependencies; \
+	\
+	title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
 	make -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
 	if [ $$? != 0 ]; then exit; fi; \
 	\
-	if [ $$p = "y" ]; then \
-		( \
-			cd install && \
-			mv QE_comp.log temp; \
-			cat QE_precomp.log temp > QE_comp.log; \
-			rm temp QE_precomp.log; \
-		); \
-	fi
+	printf "\nQE + Environ $(ENVIRON_VERSION) installaion complete! \n\n"
+	\
+	( \
+		cd install && \
+		mv QE_comp.log temp; \
+		cat QE_precomp.log temp > QE_comp.log; \
+		rm temp QE_precomp.log; \
+	)
 
 uninstall-QE+Environ:
 	@ printf "\nPreparing to uninstall QE + Environ $(ENVIRON_VERSION)...\n"
@@ -328,26 +325,11 @@ clean:
 
 # remove executables and objects
 clean-Environ: check-Environ-makeinc
-	@ $(MAKE) clean-src
 	@ $(MAKE) clean-libs
 	@ $(MAKE) clean-logs
-	@ $(MAKE) clean-fft
 	@ $(MAKE) clean-util
-
-clean-src:
-	@ printf "src..........."
-	@ (cd src && $(MAKE) clean)
-	@ printf " done! \n"
-
-clean-fft:
-	@ printf "FFTXlib......."
-	@ (cd FFTXlib && $(MAKE) clean)
-	@ printf " done! \n"
-
-clean-util:
-	@ printf "UtilXlib......"
-	@ (cd UtilXlib && $(MAKE) clean)
-	@ printf " done! \n"
+	@ $(MAKE) clean-fft
+	@ $(MAKE) clean-src
 
 clean-libs:
 	@ printf "libs.........."
@@ -362,6 +344,21 @@ clean-logs:
 	)
 	@ printf " done! \n"
 
+clean-util:
+	@ printf "utilxlib......"
+	@ (cd UtilXlib && $(MAKE) clean)
+	@ printf " done! \n"
+
+clean-fft:
+	@ printf "fftxlib......."
+	@ (cd FFTXlib && $(MAKE) clean)
+	@ printf " done! \n"
+
+clean-src:
+	@ printf "src..........."
+	@ (cd src && $(MAKE) clean)
+	@ printf " done! \n"
+
 clean-doc:
 	@ printf "Docs.........."
 	@ (cd Doc && $(MAKE) clean)
@@ -369,7 +366,7 @@ clean-doc:
 
 # also remove configuration files
 veryclean: clean-Environ
-	@ printf "Config........"
+	@ printf "config........"
 	@ (cd install && \
 	   rm -rf *.log configure.msg config.status)
 	@ rm make.inc
