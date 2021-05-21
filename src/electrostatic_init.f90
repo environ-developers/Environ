@@ -38,6 +38,12 @@ MODULE electrostatic_init
     USE environ_output, ONLY: environ_unit
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: set_electrostatic_base, electrostatic_clean
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -61,7 +67,6 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=20) :: sub_name = ' set_electrostatic_base '
         INTEGER, INTENT(IN) :: maxstep, ndiis, inner_maxstep, pbc_dim_, pbc_axis_
         REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol, inner_mix
         !
@@ -78,6 +83,8 @@ CONTAINS
         !
         INTEGER :: i
         CHARACTER(LEN=80) :: local_type, local_auxiliary, local_problem, inner_problem
+        !
+        CHARACTER(LEN=20) :: sub_name = 'set_electrostatic_base'
         !
         !--------------------------------------------------------------------------------
         ! Initial setup of core flags
@@ -107,7 +114,7 @@ CONTAINS
             CALL init_core_container(local_type, reference_core, fft=system_fft)
             !
         CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected name of host code', 1)
+            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -152,12 +159,12 @@ CONTAINS
                 loned_analytic = .TRUE.
                 local_type = 'ms-gcs'
             CASE DEFAULT
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
             END SELECT
             !
         ELSE
             !
-            ! #TODO add comment about not using pbc correction (use infomsg)
+            ! #TODO add comment about not using pbc correction (use env_infomsg)
             !
         END IF
         !
@@ -196,8 +203,8 @@ CONTAINS
             !
         CASE DEFAULT
             !
-            CALL errore(sub_name, &
-                        'Unexpected value for core container type keyword', 1)
+            CALL env_errore(sub_name, &
+                            'Unexpected value for core container type keyword', 1)
             !
         END SELECT
         !
@@ -230,7 +237,7 @@ CONTAINS
             CALL init_electrostatic_solver(type_=local_type, solver=reference_solver)
             !
         CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected name of host code', 1)
+            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -263,8 +270,8 @@ CONTAINS
             !
         CASE DEFAULT
             !
-            CALL errore(sub_name, &
-                        'Unexpected value for electrostatic solver keyword', 1)
+            CALL env_errore(sub_name, &
+                            'Unexpected value for electrostatic solver keyword', 1)
             !
         END SELECT
         !
@@ -321,9 +328,9 @@ CONTAINS
                     !
                 ELSE
                     !
-                    CALL errore(sub_name, &
-                                'Unexpected value for auxiliary charge &
-                                &in nested solver', 1)
+                    CALL env_errore(sub_name, &
+                                    'Unexpected value for auxiliary charge &
+                                    &in nested solver', 1)
                     !
                 END IF
                 !
@@ -358,7 +365,7 @@ CONTAINS
         CASE ('PW', 'CP', 'TD', 'XS')
             local_problem = "poisson"
         CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected name of host code', 1)
+            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
         END SELECT
         !
         CALL init_electrostatic_setup(local_problem, reference_solver, reference_core, &

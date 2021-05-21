@@ -7,16 +7,20 @@ MODULE utils_cell
     !
     USE modules_constants, ONLY: DP, tpi
     !
-    USE fft_types, ONLY: fft_type_descriptor, fft_type_init, fft_type_deallocate
+    USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_type_init, &
+                             env_fft_type_deallocate
+    !
+    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_deallocate
+    !
     USE cell_types, ONLY: environ_cell
     !
     USE tools_cell, ONLY: volume, recips
     !
-    USE stick_base, ONLY: sticks_map, sticks_map_deallocate
-    !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: init_dfft, destroy_dfft, iscubic
+    PRIVATE
+    !
+    PUBLIC :: init_environ_cell, update_environ_cell, destroy_environ_cell
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -39,7 +43,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (alat < 1.D-8) CALL errore(sub_name, 'Wrong alat', 1)
+        IF (alat < 1.D-8) CALL env_errore(sub_name, 'Wrong alat', 1)
         !
         cell%alat = alat
         !
@@ -68,7 +72,7 @@ CONTAINS
         ! Real space grid, local dimensions (processor-specific)
         !
         cell%nnr = cell%dfft%nnr
-#if defined (__MPI)
+#if defined(__MPI)
         cell%j0 = cell%dfft%my_i0r2p
         cell%k0 = cell%dfft%my_i0r3p
         !
@@ -187,9 +191,9 @@ CONTAINS
         INTEGER, INTENT(IN) :: comm
         REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
         !
-        TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
+        TYPE(env_fft_type_descriptor), INTENT(INOUT) :: dfft
         !
-        TYPE(sticks_map) :: smap
+        TYPE(env_sticks_map) :: smap
         REAL(DP) :: bg(3, 3)
         !
         !--------------------------------------------------------------------------------
@@ -197,12 +201,12 @@ CONTAINS
         !
         CALL recips(at(1, 1), at(1, 2), at(1, 3), bg(1, 1), bg(1, 2), bg(1, 3))
         !
-        CALL fft_type_init(dfft, smap, "rho", .TRUE., .TRUE., comm, at, bg, gcutm, &
-                           nyfft=1, nmany=1)
+        CALL env_fft_type_init(dfft, smap, .TRUE., .TRUE., comm, at, bg, gcutm, &
+                               nyfft=1, nmany=1)
         !
         dfft%rho_clock_label = 'fft'
         !
-        CALL sticks_map_deallocate(smap)
+        CALL env_sticks_map_deallocate(smap)
         !
         RETURN
         !
@@ -219,11 +223,11 @@ CONTAINS
         !
         LOGICAL, INTENT(IN) :: lflag
         !
-        TYPE(fft_type_descriptor), INTENT(INOUT) :: dfft
+        TYPE(env_fft_type_descriptor), INTENT(INOUT) :: dfft
         !
         !--------------------------------------------------------------------------------
         !
-        CALL fft_type_deallocate(dfft)
+        CALL env_fft_type_deallocate(dfft)
         !
         RETURN
         !

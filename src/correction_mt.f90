@@ -13,21 +13,23 @@
 MODULE correction_mt
     !------------------------------------------------------------------------------------
     !
+    USE env_fft_types, ONLY: env_fft_type_descriptor
+    USE env_fft_interfaces, ONLY: env_fwfft
+    !
     USE modules_constants, ONLY: DP, pi, tpi, fpi, e2
     !
     USE core_types, ONLY: fft_core
-    USE fft_types, ONLY: fft_type_descriptor
     USE cell_types, ONLY: environ_cell
     USE physical_types, ONLY: environ_ions
     !
     USE tools_cell, ONLY: ir2r, minimum_image
     USE tools_math, ONLY: environ_erf, environ_erfc
     !
-    USE fft_interfaces, ONLY: fwfft
-    !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: smooth_coulomb_r, smooth_coulomb_g
+    PRIVATE
+    !
+    PUBLIC :: update_mt_correction, calc_vmt, calc_gradvmt, calc_fmt
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -49,8 +51,10 @@ CONTAINS
         !
         REAL(DP), POINTER :: alpha, beta, omega, tpiba2
         REAL(DP), POINTER :: mt_corr(:)
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         TYPE(environ_cell), POINTER :: cell
+        !
+        CHARACTER(LEN=80) :: sub_name = 'update_mt_correction'
         !
         !--------------------------------------------------------------------------------
         !
@@ -76,7 +80,7 @@ CONTAINS
             alpha = alpha - 0.1_DP
             !
             IF (alpha <= 0._DP) &
-                CALL errore('init_mt_correction', 'optimal alpha not found', 1)
+                CALL env_errore(sub_name, 'optimal alpha not found', 1)
             !
             upperbound = e2 * SQRT(2.D0 * alpha / tpi) * &
                          environ_erfc(SQRT(ecutrho / 4.D0 / alpha))
@@ -102,7 +106,7 @@ CONTAINS
             !
         END DO
         !
-        CALL fwfft('Rho', aux, dfft)
+        CALL env_fwfft(aux, dfft)
         !
 !$omp parallel do
         DO ig = 1, fft%ngm

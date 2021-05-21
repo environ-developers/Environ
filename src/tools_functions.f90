@@ -60,16 +60,16 @@ MODULE tools_functions
         MODULE PROCEDURE hessian_of_functions_scalar, hessian_of_functions_array
     END INTERFACE hessian_of_functions
     !
-    ! INTERFACE derivative_of_functions ! #TODO field-aware (add rpocedures to private)
+    ! INTERFACE derivative_of_functions ! #TODO field-aware (add interface to PUBLIC)
     !     MODULE PROCEDURE derivative_of_functions_scalar, derivative_of_functions_array
     ! END INTERFACE derivative_of_functions
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: density_of_functions_scalar, density_of_functions_array, &
-               gradient_of_functions_scalar, gradient_of_functions_array, &
-               laplacian_of_functions_scalar, laplacian_of_functions_array, &
-               hessian_of_functions_scalar, hessian_of_functions_array
+    PRIVATE
+    !
+    PUBLIC :: density_of_functions, gradient_of_functions, laplacian_of_functions, &
+              hessian_of_functions
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -330,14 +330,14 @@ CONTAINS
         !
         SELECT CASE (type_)
         CASE (1)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! gaussian
+            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! gaussian
         CASE (2)
             !
             CALL generate_laplerfc(dim, axis, charge, width, spread, pos, laplacian)
             ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
             !
         CASE (3)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! exponential
+            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! exponential
         CASE (4)
             !
             !----------------------------------------------------------------------------
@@ -435,14 +435,14 @@ CONTAINS
         !
         SELECT CASE (type_)
         CASE (1)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! gaussian
+            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! gaussian
         CASE (2)
             !
             CALL generate_hesserfc(dim, axis, charge, width, spread, pos, hessian)
             ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
             !
         CASE (3)
-            CALL errore(sub_name, 'Options not yet implemented', 1) ! exponential
+            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! exponential
         CASE (4)
             !
             !----------------------------------------------------------------------------
@@ -538,7 +538,7 @@ CONTAINS
     !         !
     !     CASE (1) ! Gaussian
     !         !
-    !         CALL errore(sub_name, 'Options not yet implemented', 1)
+    !         CALL env_errore(sub_name, 'Options not yet implemented', 1)
     !         !
     !     CASE (2) ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
     !         !
@@ -547,7 +547,7 @@ CONTAINS
     !         !
     !     CASE (3) ! Exponential
     !         !
-    !         CALL errore(sub_name, 'Options not yet implemented', 1)
+    !         CALL env_errore(sub_name, 'Options not yet implemented', 1)
     !         !
     !     CASE (4) ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
     !         !

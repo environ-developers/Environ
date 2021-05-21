@@ -12,6 +12,15 @@ MODULE utils_oned_analytic
     !
     USE tools_generate_functions, ONLY: generate_axis, generate_distance
     !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: init_oned_analytic_core_first, init_oned_analytic_core_second, &
+              update_oned_analytic_core_cell, update_oned_analytic_core_origin, &
+              destroy_oned_analytic_core
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -54,15 +63,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (dim == 3 .OR. dim < 0) &
-            CALL errore(sub_name, &
-                        'Wrong dimensions for analytic one dimensional core', 1)
+            CALL env_errore(sub_name, &
+                            'Wrong dimensions for analytic one dimensional core', 1)
         !
         oned_analytic%d = dim
         oned_analytic%p = 3 - dim
         !
         IF ((dim == 1 .OR. dim == 2) .AND. (axis > 3 .OR. axis < 1)) &
-            CALL errore(sub_name, &
-                        'Wrong choice of axis for analytic one dimensional core', 1)
+            CALL env_errore(sub_name, &
+                            'Wrong choice of axis for analytic one dimensional core', 1)
         !
         oned_analytic%axis = axis
         !
@@ -161,7 +170,7 @@ CONTAINS
                                    oned_analytic%x)
             !
         ELSE IF (oned_analytic%d == 1) THEN
-            CALL errore(sub_name, 'Option not yet implemented', 1)
+            CALL env_errore(sub_name, 'Option not yet implemented', 1)
         ELSE IF (oned_analytic%d == 2) THEN
             !
             CALL generate_axis(oned_analytic%cell, oned_analytic%axis, &
@@ -193,12 +202,14 @@ CONTAINS
         IF (oned_analytic%initialized) THEN
             !
             IF (.NOT. ALLOCATED(oned_analytic%x)) &
-                CALL errore(sub_name, 'Trying to destroy a non-allocated component', 1)
+                CALL env_errore(sub_name, &
+                                'Trying to destroy a non-allocated component', 1)
             !
             DEALLOCATE (oned_analytic%x)
             !
             IF (.NOT. ASSOCIATED(oned_analytic%cell)) &
-                CALL errore(sub_name, 'Trying to nullify a non-associated pointer', 1)
+                CALL env_errore(sub_name, &
+                                'Trying to nullify a non-associated pointer', 1)
             !
             NULLIFY (oned_analytic%cell)
             oned_analytic%initialized = .FALSE.

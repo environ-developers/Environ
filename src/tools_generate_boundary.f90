@@ -58,12 +58,11 @@ MODULE tools_generate_boundary
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: sfunct0, sfunct1, sfunct2, dsfunct0, dsfunct1, dsfunct2, d2sfunct1, &
-               d2sfunct2, boundfunct, d2boundfunct, dsurface_fft, calc_dsurface, &
-               calc_partial_of_boundary_highmem, calc_gradient_of_boundary_highmem, &
-               calc_laplacian_of_boundary_highmem, calc_dsurface_of_boundary_highmem, &
-               calc_gradient_of_boundary_lowmem, calc_laplacian_of_boundary_lowmem, &
-               calc_dsurface_of_boundary_lowmem, compute_convolution_deriv
+    PRIVATE
+    !
+    PUBLIC :: boundary_of_density, boundary_of_functions, boundary_of_system, &
+              calc_dboundary_dions, invert_boundary, solvent_aware_boundary, &
+              solvent_aware_de_dboundary
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -344,7 +343,7 @@ CONTAINS
                 (const - 1.D0)
             !
         CASE DEFAULT
-            CALL errore(fun_name, 'Unknown boundary type', 1)
+            CALL env_errore(fun_name, 'Unknown boundary type', 1)
         END SELECT
         !
         RETURN
@@ -399,7 +398,7 @@ CONTAINS
                           dsfunct1(rho, rhomax, rhomin, tbeta)
             !
         CASE DEFAULT
-            CALL errore(fun_name, 'Unknown boundary type', 1)
+            CALL env_errore(fun_name, 'Unknown boundary type', 1)
         END SELECT
         !
         RETURN
@@ -444,7 +443,7 @@ CONTAINS
         !
         SELECT CASE (ifunct)
         CASE (0)
-            CALL errore(fun_name, 'Option not yet implemented', 1)
+            CALL env_errore(fun_name, 'Option not yet implemented', 1)
         CASE (1)
             d2boundfunct = -d2sfunct1(rho, rhomax, rhomin, tbeta)
         CASE (2)
@@ -455,7 +454,7 @@ CONTAINS
                             d2sfunct1(rho, rhomax, rhomin, tbeta))
             !
         CASE DEFAULT
-            CALL errore(fun_name, 'Unknown boundary type', 1)
+            CALL env_errore(fun_name, 'Unknown boundary type', 1)
         END SELECT
         !
         RETURN
@@ -498,7 +497,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(density%cell, boundary%scaled%cell)) &
-            CALL errore(sub_name, 'Inconsistent domains', 1)
+            CALL env_errore(sub_name, 'Inconsistent domains', 1)
         !
         ir_end => density%cell%ir_end
         nnr => density%cell%nnr
@@ -1005,7 +1004,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (i > n) CALL errore(sub_name, 'Index out of bound', 1)
+        IF (i > n) CALL env_errore(sub_name, 'Index out of bound', 1)
         !
         DO ipol = 1, 3
             partial%of_r(ipol, :) = gradlocal(i)%of_r(ipol, :)
@@ -1430,26 +1429,26 @@ CONTAINS
         ELSE IF (boundary%need_system) THEN
             number => boundary%system%ions%number
         ELSE
-            CALL errore(sub_name, 'Missing details of ions', 1)
+            CALL env_errore(sub_name, 'Missing details of ions', 1)
         END IF
         !
         IF (index > number) &
-            CALL errore(sub_name, 'Index greater than number of ions', 1)
+            CALL env_errore(sub_name, 'Index greater than number of ions', 1)
         !
         IF (index <= 0) &
-            CALL errore(sub_name, 'Index of ion is zero or lower', 1)
+            CALL env_errore(sub_name, 'Index of ion is zero or lower', 1)
         !
         IF (boundary%mode == 'ionic' .AND. &
             .NOT. ALLOCATED(boundary%soft_spheres)) &
-            CALL errore(sub_name, 'Missing details of ionic boundary', 1)
+            CALL env_errore(sub_name, 'Missing details of ionic boundary', 1)
         !
         IF (boundary%mode == 'full' .AND. &
             .NOT. ALLOCATED(boundary%ions%core_electrons)) &
-            CALL errore(sub_name, 'Missing details of core electrons', 1)
+            CALL env_errore(sub_name, 'Missing details of core electrons', 1)
         !
         IF (boundary%mode == 'full' .AND. &
             .NOT. ASSOCIATED(boundary%dscaled%cell, cell)) &
-            CALL errore(sub_name, 'Mismatch or unassociated boundary derivative', 1)
+            CALL env_errore(sub_name, 'Mismatch or unassociated boundary derivative', 1)
         !
         IF (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic') THEN
             !

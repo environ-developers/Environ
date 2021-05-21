@@ -46,7 +46,7 @@ MODULE problem_poisson
     USE correction_periodic, ONLY: calc_vperiodic, calc_gradvperiodic
     USE correction_gcs
     USE correction_ms
-    USE correction_ms_gcs, ONLY: calc_vms_gcs, calc_gradvms_gcs
+    USE correction_ms_gcs
     !
     USE environ_output, ONLY: verbose, ionode, environ_unit
     !
@@ -62,8 +62,9 @@ MODULE problem_poisson
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: poisson_direct_charges, poisson_direct_density, &
-               poisson_gradient_direct_charges, poisson_gradient_direct_density
+    PRIVATE
+    !
+    PUBLIC :: poisson_direct, poisson_gradient_direct
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -95,7 +96,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of charges and potential', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
         cell => charges%density%cell
         !
@@ -117,9 +118,9 @@ CONTAINS
             ! END BACKWARD COMPATIBILITY
             CALL poisson_fft(core%fft, charges%density, potential)
         ELSE IF (core%use_oned_analytic) THEN
-            CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
+            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of core container', 1)
+            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -136,9 +137,9 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_vgcs(core%correction%oned_analytic, charges%electrolyte, &
                                charges%density, potential)
@@ -146,9 +147,9 @@ CONTAINS
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_vms(core%correction%oned_analytic, charges%semiconductor, &
                               charges%density, potential)
@@ -156,20 +157,20 @@ CONTAINS
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for &electrochemical &
+                                    &boundary correction', 1)
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_vms_gcs(core%correction%oned_analytic, charges%electrolyte, &
                                   charges%semiconductor, charges%density, potential)
                 !
             CASE DEFAULT
-                CALL errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
             END SELECT
             !
         END IF
@@ -210,7 +211,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of charges and potential', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -241,9 +242,9 @@ CONTAINS
             ! END BACKWARD COMPATIBILITY
             CALL poisson_fft(core%fft, charges, local)
         ELSE IF (core%use_oned_analytic) THEN
-            CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
+            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of core container', 1)
+            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -257,9 +258,9 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_vgcs(core%correction%oned_analytic, electrolyte, charges, &
                                local)
@@ -267,9 +268,9 @@ CONTAINS
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_vms(core%correction%oned_analytic, semiconductor, charges, &
                               local)
@@ -277,21 +278,21 @@ CONTAINS
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for electrochemical &
+                                    &boundary correction', 1)
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_vms_gcs(core%correction%oned_analytic, electrolyte, &
                                   semiconductor, charges, local)
                 !
             CASE DEFAULT
                 !
-                CALL errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
                 !
             END SELECT
             !
@@ -328,9 +329,9 @@ CONTAINS
             CALL gradpoisson_fft(core%fft, charges%density, gradient)
             !
         ELSE IF (core%use_oned_analytic) THEN
-            CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
+            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of core container', 1)
+            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -347,9 +348,9 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_gradvgcs(core%correction%oned_analytic, charges%electrolyte, &
                                    charges%density, gradient)
@@ -357,9 +358,9 @@ CONTAINS
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_gradvms(core%correction%oned_analytic, &
                                   charges%semiconductor, charges%density, gradient)
@@ -367,21 +368,21 @@ CONTAINS
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for electrochemical &
+                                    &boundary correction', 1)
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for electrochemical &
+                                    &boundary correction', 1)
                 !
                 CALL calc_gradvms_gcs(core%correction%oned_analytic, &
                                       charges%electrolyte, charges%semiconductor, &
                                       charges%density, gradient)
                 !
             CASE DEFAULT
-                CALL errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
             END SELECT
             !
         END IF
@@ -416,9 +417,9 @@ CONTAINS
             CALL gradpoisson_fft(core%fft, charges, gradient)
             !
         ELSE IF (core%use_oned_analytic) THEN
-            CALL errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
+            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
-            CALL errore(sub_name, 'Unexpected setup of core container', 1)
+            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -435,9 +436,9 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for &
+                                    &electrochemical boundary correction', 1)
                 !
                 CALL calc_gradvgcs(core%correction%oned_analytic, electrolyte, &
                                    charges, gradient)
@@ -445,9 +446,9 @@ CONTAINS
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for &
+                                    &electrochemical boundary correction', 1)
                 !
                 CALL calc_gradvms(core%correction%oned_analytic, semiconductor, &
                                   charges, gradient)
@@ -455,20 +456,20 @@ CONTAINS
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL errore(sub_name, &
-                                'Missing semiconductor for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing semiconductor for &
+                                    &electrochemical boundary correction', 1)
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL errore(sub_name, &
-                                'Missing electrolyte for &
-                                &electrochemical boundary correction', 1)
+                    CALL env_errore(sub_name, &
+                                    'Missing electrolyte for &
+                                    &electrochemical boundary correction', 1)
                 !
                 CALL calc_gradvms_gcs(core%correction%oned_analytic, electrolyte, &
                                       semiconductor, charges, gradient)
                 !
             CASE DEFAULT
-                CALL errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
             END SELECT
             !
         END IF

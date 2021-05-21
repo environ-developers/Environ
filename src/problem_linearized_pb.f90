@@ -37,7 +37,7 @@ MODULE problem_linearized_pb
     USE modules_constants, ONLY: DP, e2, fpi
     !
     USE electrostatic_types, ONLY: electrostatic_solver, gradient_solver
-    USE core_base, ONLY: core_container
+    USE core_types, ONLY: core_container
     USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_dielectric
     USE representation_types, ONLY: environ_density, environ_gradient
     USE cell_types, ONLY: environ_cell
@@ -61,8 +61,9 @@ MODULE problem_linearized_pb
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: linearized_pb_gradient_charges, linearized_pb_gradient_density, &
-               linearized_pb_gradient_sqrt
+    PRIVATE
+    !
+    PUBLIC :: linearized_pb_gradient
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -85,11 +86,11 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=25) :: sub_name = 'linearized_pb_gradient'
+        CHARACTER(LEN=25) :: sub_name = 'linearized_pb_gradient_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vlinpb')
+        CALL env_start_clock(sub_name)
         !
         IF (solver%use_gradient) THEN
             !
@@ -134,7 +135,7 @@ CONTAINS
                                                          charges%dielectric)
                         !
                     CASE DEFAULT
-                        CALL errore(sub_name, 'unexpected preconditioner keyword', 1)
+                        CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
                     END SELECT
                     !
                 ELSE
@@ -146,16 +147,16 @@ CONTAINS
                 END IF
                 !
             ELSE
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
             END IF
             !
             CALL destroy_environ_density(local_screening)
             !
         ELSE
-            CALL errore(sub_name, 'unexpected solver keyword', 1)
+            CALL env_errore(sub_name, 'unexpected solver keyword', 1)
         END IF
         !
-        CALL stop_clock('calc_vlinpb')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -182,11 +183,11 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=25) :: sub_name = 'linearized_pb_gradient'
+        CHARACTER(LEN=25) :: sub_name = 'linearized_pb_gradient_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vlinpb')
+        CALL env_start_clock(sub_name)
         !
         IF (solver%use_gradient) THEN
             !
@@ -228,7 +229,7 @@ CONTAINS
                                                          potential, dielectric)
                         !
                     CASE DEFAULT
-                        CALL errore(sub_name, 'unexpected preconditioner keyword', 1)
+                        CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
                     END SELECT
                     !
                 ELSE
@@ -239,16 +240,16 @@ CONTAINS
                 END IF
                 !
             ELSE
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
             END IF
             !
             CALL destroy_environ_density(local_screening)
             !
         ELSE
-            CALL errore(sub_name, 'unexpected solver keyword', 1)
+            CALL env_errore(sub_name, 'unexpected solver keyword', 1)
         END IF
         !
-        CALL stop_clock('calc_vlinpb')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -300,15 +301,15 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, screening%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
             !
         END IF
         !
@@ -365,7 +366,7 @@ CONTAINS
             rzold = scalar_product_environ_density(r, z)
             !
             IF (ABS(rzold) < 1.D-30) &
-                CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             IF (PRESENT(dielectric)) THEN
                 r%of_r = (factsqrt%of_r + scr%of_r) * (x%of_r - z%of_r)
@@ -429,7 +430,7 @@ CONTAINS
             rznew = scalar_product_environ_density(r, z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input

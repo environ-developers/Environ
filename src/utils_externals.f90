@@ -47,6 +47,14 @@ MODULE utils_externals
     USE tools_math, ONLY: integrate_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_externals, init_environ_externals_first, &
+              init_environ_externals_second, update_environ_externals, &
+              destroy_environ_externals
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -69,7 +77,7 @@ CONTAINS
         externals%number = 0
         !
         IF (ALLOCATED(externals%functions)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         CALL create_environ_density(externals%density, label)
         !

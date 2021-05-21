@@ -12,6 +12,13 @@ MODULE utils_hessian
                              copy_environ_density, destroy_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_hessian, init_environ_hessian, copy_environ_hessian, &
+              update_environ_hessian, destroy_environ_hessian
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -43,7 +50,7 @@ CONTAINS
         NULLIFY (hessian%cell)
         !
         IF (ALLOCATED(hessian%of_r)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         CALL create_environ_density(hessian%laplacian, laplacian_label)
         !
@@ -71,12 +78,12 @@ CONTAINS
         hessian%update = .FALSE.
         !
         IF (ASSOCIATED(hessian%cell)) &
-            CALL errore(sub_name, 'Trying to associate an associated object', 1)
+            CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
         !
         hessian%cell => cell
         !
         IF (ALLOCATED(hessian%of_r)) &
-            CALL errore(sub_name, 'Trying to allocate an allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
         !
         ALLOCATE (hessian%of_r(3, 3, hessian%cell%nnr))
         hessian%of_r = 0.D0
@@ -107,7 +114,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(horiginal%cell)) &
-            CALL errore(sub_name, 'Trying to copy a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
         hcopy%cell => horiginal%cell
         !
@@ -172,12 +179,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(hessian%cell)) &
-            CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
         !
         NULLIFY (hessian%cell)
         !
         IF (.NOT. ALLOCATED(hessian%of_r)) &
-            CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
         !
         DEALLOCATE (hessian%of_r)
         !

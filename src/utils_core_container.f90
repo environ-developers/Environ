@@ -10,6 +10,12 @@ MODULE utils_core_container
     USE core_types
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_core_container, init_core_container, destroy_core_container
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -75,10 +81,10 @@ CONTAINS
             ! other derivatives still require fft core
             !
             IF (.NOT. PRESENT(fd)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
+                CALL env_errore(sub_name, 'Missing specified core type', 1)
             !
             IF (.NOT. PRESENT(fft)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
+                CALL env_errore(sub_name, 'Missing specified core type', 1)
             !
             core%use_fd = .TRUE.
             core%use_fft = .TRUE.
@@ -88,7 +94,7 @@ CONTAINS
         CASE ('chain', 'fft', 'highmem', 'lowmem')
             !
             IF (.NOT. PRESENT(fft)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
+                CALL env_errore(sub_name, 'Missing specified core type', 1)
             !
             core%use_fft = .TRUE.
             core%fft => fft
@@ -98,13 +104,13 @@ CONTAINS
               'mott-schottky-gouy-chapman-stern')
             !
             IF (.NOT. PRESENT(oned_analytic)) &
-                CALL errore(sub_name, 'Missing specified core type', 1)
+                CALL env_errore(sub_name, 'Missing specified core type', 1)
             !
             core%use_oned_analytic = .TRUE.
             core%oned_analytic => oned_analytic
             !
         CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected keyword for core_container type', 1)
+            CALL env_errore(sub_name, 'Unexpected keyword for core_container type', 1)
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -119,7 +125,7 @@ CONTAINS
         IF (core%use_oned_analytic) number = number + 1
         !
         IF (number /= 1) &
-            CALL errore(sub_name, 'Incorrect number of active cores', 1)
+            CALL env_errore(sub_name, 'Incorrect number of active cores', 1)
         !
         RETURN
         !

@@ -30,17 +30,20 @@
 MODULE environ_input
     !------------------------------------------------------------------------------------
     !
+    USE env_io, ONLY: env_find_free_unit, env_field_count, env_read_line, &
+                      env_get_field
+    !
+    USE env_char_ops, ONLY: env_uppercase, env_is_substring
+    USE env_mp, ONLY: env_mp_bcast
+    !
     USE modules_constants, ONLY: DP, bohr_radius_angs, nsx
     !
     USE environ_init, ONLY: set_environ_base
     USE electrostatic_init, ONLY: set_electrostatic_base
     USE core_init, ONLY: set_core_base
     !
-    USE modules_parser, ONLY: env_field_count, env_read_line, env_get_field
     USE environ_output, ONLY: ionode, ionode_id, comm, program_unit, &
                               verbose_ => verbose, environ_unit
-    !
-    USE mp, ONLY: mp_bcast
     !
     !------------------------------------------------------------------------------------
     !
@@ -659,6 +662,12 @@ MODULE environ_input
         pbc_correction, pbc_axis, inner_tol, inner_solver, inner_maxstep, inner_mix
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: read_environ
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -697,13 +706,15 @@ CONTAINS
         INTEGER :: environ_unit_input
         INTEGER :: is
         !
+        CHARACTER(LEN=80) :: sub_name = 'read_environ'
+        !
         !--------------------------------------------------------------------------------
         ! Open environ input file: environ.in
         !
-        environ_unit_input = find_free_unit()
+        environ_unit_input = env_find_free_unit()
         INQUIRE (file="environ.in", exist=ext)
         !
-        IF (.NOT. ext) CALL errore('read_environ', ' missing environ.in file ', 1)
+        IF (.NOT. ext) CALL env_errore(sub_name, ' missing environ.in file ', 1)
         !
         OPEN (unit=environ_unit_input, file="environ.in", status="old")
         !
@@ -832,6 +843,8 @@ CONTAINS
         LOGICAL :: lboundary, lelectrostatic
         INTEGER :: ios
         !
+        CHARACTER(LEN=80) :: sub_name = 'environ_read_namelist'
+        !
         !--------------------------------------------------------------------------------
         ! Set defaults
         !
@@ -848,10 +861,10 @@ CONTAINS
         !
         IF (ionode) READ (environ_unit_input, environ, iostat=ios)
         !
-        CALL mp_bcast(ios, ionode_id, comm)
+        CALL env_mp_bcast(ios, ionode_id, comm)
         !
         IF (ios /= 0) &
-            CALL errore(' read_environ ', ' reading namelist environ ', ABS(ios))
+            CALL env_errore(sub_name, ' reading namelist environ ', ABS(ios))
         !
         CALL environ_bcast() ! broadcast &ENVIRON variables
         !
@@ -870,10 +883,10 @@ CONTAINS
             ! #TODO warn if &BOUNDARY is empty here?
         END IF
         !
-        CALL mp_bcast(ios, ionode_id, comm)
+        CALL env_mp_bcast(ios, ionode_id, comm)
         !
         IF (ios /= 0) &
-            CALL errore(' read_environ ', ' reading namelist boundary ', ABS(ios))
+            CALL env_errore(sub_name, ' reading namelist boundary ', ABS(ios))
         !
         CALL boundary_bcast() ! broadcast &BOUNDARY variables
         !
@@ -894,10 +907,10 @@ CONTAINS
             ! #TODO warn if &ELECTROSTATIC is empty here?
         END IF
         !
-        CALL mp_bcast(ios, ionode_id, comm)
+        CALL env_mp_bcast(ios, ionode_id, comm)
         !
         IF (ios /= 0) &
-            CALL errore(' read_environ ', ' reading namelist electrostatic ', ABS(ios))
+            CALL env_errore(sub_name, ' reading namelist electrostatic ', ABS(ios))
         !
         CALL electrostatic_bcast() ! broadcast &ELECTROSTATIC variables
         !
@@ -1074,61 +1087,61 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CALL mp_bcast(environ_restart, ionode_id, comm)
+        CALL env_mp_bcast(environ_restart, ionode_id, comm)
         !
-        CALL mp_bcast(verbose, ionode_id, comm)
+        CALL env_mp_bcast(verbose, ionode_id, comm)
         !
-        CALL mp_bcast(environ_thr, ionode_id, comm)
+        CALL env_mp_bcast(environ_thr, ionode_id, comm)
         !
-        CALL mp_bcast(environ_nskip, ionode_id, comm)
+        CALL env_mp_bcast(environ_nskip, ionode_id, comm)
         !
-        CALL mp_bcast(environ_type, ionode_id, comm)
+        CALL env_mp_bcast(environ_type, ionode_id, comm)
         !
-        CALL mp_bcast(system_ntyp, ionode_id, comm)
+        CALL env_mp_bcast(system_ntyp, ionode_id, comm)
         !
-        CALL mp_bcast(system_dim, ionode_id, comm)
+        CALL env_mp_bcast(system_dim, ionode_id, comm)
         !
-        CALL mp_bcast(system_axis, ionode_id, comm)
+        CALL env_mp_bcast(system_axis, ionode_id, comm)
         !
-        CALL mp_bcast(env_nrep, ionode_id, comm)
+        CALL env_mp_bcast(env_nrep, ionode_id, comm)
         !
-        CALL mp_bcast(env_electrostatic, ionode_id, comm)
+        CALL env_mp_bcast(env_electrostatic, ionode_id, comm)
         !
-        CALL mp_bcast(atomicspread, ionode_id, comm)
+        CALL env_mp_bcast(atomicspread, ionode_id, comm)
         !
-        CALL mp_bcast(env_static_permittivity, ionode_id, comm)
+        CALL env_mp_bcast(env_static_permittivity, ionode_id, comm)
         !
-        CALL mp_bcast(env_optical_permittivity, ionode_id, comm)
+        CALL env_mp_bcast(env_optical_permittivity, ionode_id, comm)
         !
-        CALL mp_bcast(env_surface_tension, ionode_id, comm)
+        CALL env_mp_bcast(env_surface_tension, ionode_id, comm)
         !
-        CALL mp_bcast(env_pressure, ionode_id, comm)
+        CALL env_mp_bcast(env_pressure, ionode_id, comm)
         !
-        CALL mp_bcast(env_confine, ionode_id, comm)
+        CALL env_mp_bcast(env_confine, ionode_id, comm)
         !
-        CALL mp_bcast(env_electrolyte_ntyp, ionode_id, comm)
+        CALL env_mp_bcast(env_electrolyte_ntyp, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_linearized, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_linearized, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_entropy, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_entropy, ionode_id, comm)
         !
-        CALL mp_bcast(cion, ionode_id, comm)
+        CALL env_mp_bcast(cion, ionode_id, comm)
         !
-        CALL mp_bcast(cionmax, ionode_id, comm)
+        CALL env_mp_bcast(cionmax, ionode_id, comm)
         !
-        CALL mp_bcast(rion, ionode_id, comm)
+        CALL env_mp_bcast(rion, ionode_id, comm)
         !
-        CALL mp_bcast(zion, ionode_id, comm)
+        CALL env_mp_bcast(zion, ionode_id, comm)
         !
-        CALL mp_bcast(temperature, ionode_id, comm)
+        CALL env_mp_bcast(temperature, ionode_id, comm)
         !
-        CALL mp_bcast(sc_permittivity, ionode_id, comm)
+        CALL env_mp_bcast(sc_permittivity, ionode_id, comm)
         !
-        CALL mp_bcast(sc_carrier_density, ionode_id, comm)
+        CALL env_mp_bcast(sc_carrier_density, ionode_id, comm)
         !
-        CALL mp_bcast(env_external_charges, ionode_id, comm)
+        CALL env_mp_bcast(env_external_charges, ionode_id, comm)
         !
-        CALL mp_bcast(env_dielectric_regions, ionode_id, comm)
+        CALL env_mp_bcast(env_dielectric_regions, ionode_id, comm)
         !
         RETURN
         !
@@ -1144,73 +1157,73 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CALL mp_bcast(solvent_mode, ionode_id, comm)
+        CALL env_mp_bcast(solvent_mode, ionode_id, comm)
         !
-        CALL mp_bcast(stype, ionode_id, comm)
+        CALL env_mp_bcast(stype, ionode_id, comm)
         !
-        CALL mp_bcast(rhomax, ionode_id, comm)
+        CALL env_mp_bcast(rhomax, ionode_id, comm)
         !
-        CALL mp_bcast(rhomin, ionode_id, comm)
+        CALL env_mp_bcast(rhomin, ionode_id, comm)
         !
-        CALL mp_bcast(tbeta, ionode_id, comm)
+        CALL env_mp_bcast(tbeta, ionode_id, comm)
         !
-        CALL mp_bcast(radius_mode, ionode_id, comm)
+        CALL env_mp_bcast(radius_mode, ionode_id, comm)
         !
-        CALL mp_bcast(alpha, ionode_id, comm)
+        CALL env_mp_bcast(alpha, ionode_id, comm)
         !
-        CALL mp_bcast(softness, ionode_id, comm)
+        CALL env_mp_bcast(softness, ionode_id, comm)
         !
-        CALL mp_bcast(solvationrad, ionode_id, comm)
+        CALL env_mp_bcast(solvationrad, ionode_id, comm)
         !
-        CALL mp_bcast(corespread, ionode_id, comm)
+        CALL env_mp_bcast(corespread, ionode_id, comm)
         !
-        CALL mp_bcast(solvent_distance, ionode_id, comm)
+        CALL env_mp_bcast(solvent_distance, ionode_id, comm)
         !
-        CALL mp_bcast(solvent_spread, ionode_id, comm)
+        CALL env_mp_bcast(solvent_spread, ionode_id, comm)
         !
-        CALL mp_bcast(solvent_radius, ionode_id, comm)
+        CALL env_mp_bcast(solvent_radius, ionode_id, comm)
         !
-        CALL mp_bcast(radial_scale, ionode_id, comm)
+        CALL env_mp_bcast(radial_scale, ionode_id, comm)
         !
-        CALL mp_bcast(radial_spread, ionode_id, comm)
+        CALL env_mp_bcast(radial_spread, ionode_id, comm)
         !
-        CALL mp_bcast(filling_threshold, ionode_id, comm)
+        CALL env_mp_bcast(filling_threshold, ionode_id, comm)
         !
-        CALL mp_bcast(filling_spread, ionode_id, comm)
+        CALL env_mp_bcast(filling_spread, ionode_id, comm)
         !
-        CALL mp_bcast(field_awareness, ionode_id, comm)
+        CALL env_mp_bcast(field_awareness, ionode_id, comm)
         !
-        CALL mp_bcast(charge_asymmetry, ionode_id, comm)
+        CALL env_mp_bcast(charge_asymmetry, ionode_id, comm)
         !
-        CALL mp_bcast(field_max, ionode_id, comm)
+        CALL env_mp_bcast(field_max, ionode_id, comm)
         !
-        CALL mp_bcast(field_min, ionode_id, comm)
+        CALL env_mp_bcast(field_min, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_mode, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_mode, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_distance, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_distance, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_spread, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_spread, ionode_id, comm)
         !
-        CALL mp_bcast(sc_distance, ionode_id, comm)
+        CALL env_mp_bcast(sc_distance, ionode_id, comm)
         !
-        CALL mp_bcast(sc_spread, ionode_id, comm)
+        CALL env_mp_bcast(sc_spread, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_rhomax, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_rhomax, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_rhomin, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_rhomin, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_tbeta, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_tbeta, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_alpha, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_alpha, ionode_id, comm)
         !
-        CALL mp_bcast(electrolyte_softness, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_softness, ionode_id, comm)
         !
-        CALL mp_bcast(derivatives, ionode_id, comm)
+        CALL env_mp_bcast(derivatives, ionode_id, comm)
         !
-        CALL mp_bcast(ifdtype, ionode_id, comm)
+        CALL env_mp_bcast(ifdtype, ionode_id, comm)
         !
-        CALL mp_bcast(nfdpoint, ionode_id, comm)
+        CALL env_mp_bcast(nfdpoint, ionode_id, comm)
         !
         RETURN
         !
@@ -1226,47 +1239,47 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CALL mp_bcast(problem, ionode_id, comm)
+        CALL env_mp_bcast(problem, ionode_id, comm)
         !
-        CALL mp_bcast(tol, ionode_id, comm)
+        CALL env_mp_bcast(tol, ionode_id, comm)
         !
-        CALL mp_bcast(solver, ionode_id, comm)
+        CALL env_mp_bcast(solver, ionode_id, comm)
         !
-        CALL mp_bcast(inner_solver, ionode_id, comm)
+        CALL env_mp_bcast(inner_solver, ionode_id, comm)
         !
-        CALL mp_bcast(inner_tol, ionode_id, comm)
+        CALL env_mp_bcast(inner_tol, ionode_id, comm)
         !
-        CALL mp_bcast(inner_maxstep, ionode_id, comm)
+        CALL env_mp_bcast(inner_maxstep, ionode_id, comm)
         !
-        CALL mp_bcast(inner_mix, ionode_id, comm)
+        CALL env_mp_bcast(inner_mix, ionode_id, comm)
         !
-        CALL mp_bcast(auxiliary, ionode_id, comm)
+        CALL env_mp_bcast(auxiliary, ionode_id, comm)
         !
-        CALL mp_bcast(step_type, ionode_id, comm)
+        CALL env_mp_bcast(step_type, ionode_id, comm)
         !
-        CALL mp_bcast(step, ionode_id, comm)
+        CALL env_mp_bcast(step, ionode_id, comm)
         !
-        CALL mp_bcast(maxstep, ionode_id, comm)
+        CALL env_mp_bcast(maxstep, ionode_id, comm)
         !
-        CALL mp_bcast(mix_type, ionode_id, comm)
+        CALL env_mp_bcast(mix_type, ionode_id, comm)
         !
-        CALL mp_bcast(mix, ionode_id, comm)
+        CALL env_mp_bcast(mix, ionode_id, comm)
         !
-        CALL mp_bcast(ndiis, ionode_id, comm)
+        CALL env_mp_bcast(ndiis, ionode_id, comm)
         !
-        CALL mp_bcast(preconditioner, ionode_id, comm)
+        CALL env_mp_bcast(preconditioner, ionode_id, comm)
         !
-        CALL mp_bcast(screening_type, ionode_id, comm)
+        CALL env_mp_bcast(screening_type, ionode_id, comm)
         !
-        CALL mp_bcast(screening, ionode_id, comm)
+        CALL env_mp_bcast(screening, ionode_id, comm)
         !
-        CALL mp_bcast(core, ionode_id, comm)
+        CALL env_mp_bcast(core, ionode_id, comm)
         !
-        CALL mp_bcast(pbc_dim, ionode_id, comm)
+        CALL env_mp_bcast(pbc_dim, ionode_id, comm)
         !
-        CALL mp_bcast(pbc_correction, ionode_id, comm)
+        CALL env_mp_bcast(pbc_correction, ionode_id, comm)
         !
-        CALL mp_bcast(pbc_axis, ionode_id, comm)
+        CALL env_mp_bcast(pbc_axis, ionode_id, comm)
         !
         RETURN
         !
@@ -1285,17 +1298,19 @@ CONTAINS
         INTEGER :: i
         LOGICAL :: allowed = .FALSE.
         !
-        CHARACTER(LEN=20) :: sub_name = ' environ_checkin '
+        CHARACTER(LEN=20) :: sub_name = 'environ_checkin'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (environ_restart) CALL infomsg(sub_name, ' environ restarting')
+        IF (environ_restart) CALL env_infomsg(sub_name, ' environ restarting')
         !
-        IF (verbose < 0) CALL errore(sub_name, ' verbose out of range ', 1)
+        IF (verbose < 0) CALL env_errore(sub_name, ' verbose out of range ', 1)
         !
-        IF (environ_thr < 0.0_DP) CALL errore(sub_name, ' environ_thr out of range ', 1)
+        IF (environ_thr < 0.0_DP) &
+            CALL env_errore(sub_name, ' environ_thr out of range ', 1)
         !
-        IF (environ_nskip < 0) CALL errore(sub_name, ' environ_nskip out of range ', 1)
+        IF (environ_nskip < 0) &
+            CALL env_errore(sub_name, ' environ_nskip out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1304,31 +1319,31 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' environ_type '''// &
-                        TRIM(environ_type)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' environ_type '''// &
+                            TRIM(environ_type)//''' not allowed ', 1)
         !
-        IF (system_ntyp < 0) CALL errore(sub_name, ' system_ntype out of range ', 1)
+        IF (system_ntyp < 0) CALL env_errore(sub_name, ' system_ntype out of range ', 1)
         !
         IF (system_dim < 0 .OR. system_dim > 3) &
-            CALL errore(sub_name, ' system_dim out of range ', 1)
+            CALL env_errore(sub_name, ' system_dim out of range ', 1)
         !
         IF (system_axis < 1 .OR. system_axis > 3) &
-            CALL errore(sub_name, ' system_axis out of range ', 1)
+            CALL env_errore(sub_name, ' system_axis out of range ', 1)
         !
         IF (env_nrep(1) < 0 .OR. env_nrep(2) < 0 .OR. env_nrep(3) < 0) &
-            CALL errore(sub_name, ' env_nrep cannot be smaller than 0', 1)
+            CALL env_errore(sub_name, ' env_nrep cannot be smaller than 0', 1)
         !
         IF (env_static_permittivity < 1.0_DP) &
-            CALL errore(sub_name, ' env_static_permittivity out of range ', 1)
+            CALL env_errore(sub_name, ' env_static_permittivity out of range ', 1)
         !
         IF (env_optical_permittivity < 1.0_DP) &
-            CALL errore(sub_name, ' env_optical_permittivity out of range ', 1)
+            CALL env_errore(sub_name, ' env_optical_permittivity out of range ', 1)
         !
         IF (env_surface_tension < 0.0_DP) &
-            CALL errore(sub_name, ' env_surface_tension out of range ', 1)
+            CALL env_errore(sub_name, ' env_surface_tension out of range ', 1)
         !
         IF (env_electrolyte_ntyp < 0 .OR. env_electrolyte_ntyp == 1) &
-            CALL errore(sub_name, ' env_electrolyte_ntyp out of range ', 1)
+            CALL env_errore(sub_name, ' env_electrolyte_ntyp out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1340,37 +1355,38 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' electrolyte_entropy '''// &
-                        TRIM(electrolyte_entropy)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' electrolyte_entropy '''// &
+                            TRIM(electrolyte_entropy)//''' not allowed ', 1)
         !
-        IF (temperature < 0.0_DP) CALL errore(sub_name, ' temperature out of range ', 1)
+        IF (temperature < 0.0_DP) &
+            CALL env_errore(sub_name, ' temperature out of range ', 1)
         !
         DO i = 1, env_electrolyte_ntyp
             !
             IF (cion(i) < 0.D0) &
-                CALL errore(sub_name, ' cion cannot be negative ', 1)
+                CALL env_errore(sub_name, ' cion cannot be negative ', 1)
             !
         END DO
         !
         IF (cionmax < 0.D0 .OR. rion < 0.D0) &
-            CALL errore(sub_name, 'cionmax and rion cannot be negative ', 1)
+            CALL env_errore(sub_name, 'cionmax and rion cannot be negative ', 1)
         !
         IF (cionmax > 0.D0 .AND. rion > 0.D0) &
-            CALL errore(sub_name, 'either cionmax or rion can be set ', 1)
+            CALL env_errore(sub_name, 'either cionmax or rion can be set ', 1)
         !
         allowed = .FALSE.
         !
         IF (sc_permittivity < 1.D0) &
-            CALL errore(sub_name, 'sc_permittivity out of range', 1)
+            CALL env_errore(sub_name, 'sc_permittivity out of range', 1)
         !
         IF (sc_carrier_density < 0.D0) &
-            CALL errore(sub_name, 'sc_carrier_density cannot be negative', 1)
+            CALL env_errore(sub_name, 'sc_carrier_density cannot be negative', 1)
         !
         IF (env_external_charges < 0) &
-            CALL errore(sub_name, ' env_external_charges out of range ', 1)
+            CALL env_errore(sub_name, ' env_external_charges out of range ', 1)
         !
         IF (env_dielectric_regions < 0) &
-            CALL errore(sub_name, ' env_dielectric_regions out of range ', 1)
+            CALL env_errore(sub_name, ' env_dielectric_regions out of range ', 1)
         !
         RETURN
         !
@@ -1389,7 +1405,7 @@ CONTAINS
         INTEGER :: i
         LOGICAL :: allowed = .FALSE.
         !
-        CHARACTER(LEN=20) :: sub_name = ' boundary_checkin '
+        CHARACTER(LEN=20) :: sub_name = 'boundary_checkin'
         !
         !--------------------------------------------------------------------------------
         ! Solvent mode checks
@@ -1401,18 +1417,19 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' solvent_mode '''// &
-                        TRIM(solvent_mode)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' solvent_mode '''// &
+                            TRIM(solvent_mode)//''' not allowed ', 1)
         !
-        IF (stype > 2) CALL errore(sub_name, ' stype out of range ', 1)
+        IF (stype > 2) CALL env_errore(sub_name, ' stype out of range ', 1)
         !
-        IF (rhomax < 0.0_DP) CALL errore(sub_name, ' rhomax out of range ', 1)
+        IF (rhomax < 0.0_DP) CALL env_errore(sub_name, ' rhomax out of range ', 1)
         !
-        IF (rhomin < 0.0_DP) CALL errore(sub_name, ' rhomin out of range ', 1)
+        IF (rhomin < 0.0_DP) CALL env_errore(sub_name, ' rhomin out of range ', 1)
         !
-        IF (rhomax < rhomin) CALL errore(sub_name, ' inconsistent rhomax and rhomin', 1)
+        IF (rhomax < rhomin) &
+            CALL env_errore(sub_name, ' inconsistent rhomax and rhomin', 1)
         !
-        IF (tbeta < 0.0_DP) CALL errore(sub_name, ' tbeta out of range ', 1)
+        IF (tbeta < 0.0_DP) CALL env_errore(sub_name, ' tbeta out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1421,40 +1438,41 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' radius_mode '''// &
-                        TRIM(radius_mode)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' radius_mode '''// &
+                            TRIM(radius_mode)//''' not allowed ', 1)
         !
-        IF (alpha <= 0.0_DP) CALL errore(sub_name, ' alpha out of range ', 1)
+        IF (alpha <= 0.0_DP) CALL env_errore(sub_name, ' alpha out of range ', 1)
         !
-        IF (softness <= 0.0_DP) CALL errore(sub_name, ' softness out of range ', 1)
+        IF (softness <= 0.0_DP) CALL env_errore(sub_name, ' softness out of range ', 1)
         !
         IF (solvent_spread <= 0.0_DP) &
-            CALL errore(sub_name, ' solvent_spread out of range ', 1)
+            CALL env_errore(sub_name, ' solvent_spread out of range ', 1)
         !
         IF (solvent_radius < 0.0_DP) &
-            CALL errore(sub_name, 'solvent_radius out of range ', 1)
+            CALL env_errore(sub_name, 'solvent_radius out of range ', 1)
         !
         IF (radial_scale < 1.0_DP) &
-            CALL errore(sub_name, 'radial_scale out of range ', 1)
+            CALL env_errore(sub_name, 'radial_scale out of range ', 1)
         !
         IF (radial_spread <= 0.0_DP) &
-            CALL errore(sub_name, 'radial_spread out of range ', 1)
+            CALL env_errore(sub_name, 'radial_spread out of range ', 1)
         !
         IF (filling_threshold <= 0.0_DP) &
-            CALL errore(sub_name, 'filling_threshold out of range ', 1)
+            CALL env_errore(sub_name, 'filling_threshold out of range ', 1)
         !
         IF (filling_spread <= 0.0_DP) &
-            CALL errore(sub_name, 'filling_spread out of range ', 1)
+            CALL env_errore(sub_name, 'filling_spread out of range ', 1)
         !
         IF (field_awareness < 0.0_DP) &
-            CALL errore(sub_name, 'field_awareness out of range ', 1)
+            CALL env_errore(sub_name, 'field_awareness out of range ', 1)
         !
         IF (ABS(charge_asymmetry) > 1.0_DP) &
-            CALL errore(sub_name, 'charge_asymmetry out of range ', 1)
+            CALL env_errore(sub_name, 'charge_asymmetry out of range ', 1)
         !
-        IF (field_min < 0.0_DP) CALL errore(sub_name, 'field_min out of range ', 1)
+        IF (field_min < 0.0_DP) CALL env_errore(sub_name, 'field_min out of range ', 1)
         !
-        IF (field_max <= field_min) CALL errore(sub_name, 'field_max out of range ', 1)
+        IF (field_max <= field_min) &
+            CALL env_errore(sub_name, 'field_max out of range ', 1)
         !
         !--------------------------------------------------------------------------------
         ! Electrolyte checks
@@ -1466,42 +1484,42 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' electrolyte_mode '''// &
-                        TRIM(electrolyte_mode)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' electrolyte_mode '''// &
+                            TRIM(electrolyte_mode)//''' not allowed ', 1)
         !
         IF (electrolyte_distance < 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_distance out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_distance out of range ', 1)
         !
         IF (electrolyte_spread <= 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_spread out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_spread out of range ', 1)
         !
         IF (electrolyte_rhomax < 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_rhomax out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_rhomax out of range ', 1)
         !
         IF (electrolyte_rhomin < 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_rhomin out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_rhomin out of range ', 1)
         !
         IF (electrolyte_rhomax < electrolyte_rhomin) &
-            CALL errore(sub_name, &
-                        ' inconsistent electrolyte_rhomax and electrolyte_rhomin', 1)
+            CALL env_errore(sub_name, &
+                            ' inconsistent electrolyte_rhomax and electrolyte_rhomin', 1)
         !
         IF (electrolyte_tbeta < 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_tbeta out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_tbeta out of range ', 1)
         !
         IF (electrolyte_alpha <= 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_alpha out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_alpha out of range ', 1)
         !
         IF (electrolyte_softness <= 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_softness out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_softness out of range ', 1)
         !
         !--------------------------------------------------------------------------------
         ! Semiconductor checks
         !
         IF (sc_distance < 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_distance out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_distance out of range ', 1)
         !
         IF (sc_spread <= 0.0_DP) &
-            CALL errore(sub_name, ' electrolyte_spread out of range ', 1)
+            CALL env_errore(sub_name, ' electrolyte_spread out of range ', 1)
         !
         !--------------------------------------------------------------------------------
         ! Derivatives checks
@@ -1513,8 +1531,8 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, &
-                        ' derivatives '''//TRIM(derivatives)//''' not allowed ', 1)
+            CALL env_errore(sub_name, &
+                            ' derivatives '''//TRIM(derivatives)//''' not allowed ', 1)
         !
         SELECT CASE (TRIM(solvent_mode))
         CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
@@ -1522,14 +1540,14 @@ CONTAINS
             SELECT CASE (TRIM(derivatives))
             CASE ('default')
                 !
-                CALL infomsg(sub_name, "Warning: derivatives not provided. &
+                CALL env_infomsg(sub_name, "Warning: derivatives not provided. &
                                                 &Setting derivatives to 'chain'")
                 !
                 derivatives = 'chain'
             CASE ('highmem', 'lowmem')
                 !
-                CALL errore(sub_name, "Only 'fd', 'fft', or 'chain' are allowed &
-                                      &with electronic interfaces")
+                CALL env_errore(sub_name, "Only 'fd', 'fft', or 'chain' are allowed &
+                                      &with electronic interfaces", 1)
                 !
             END SELECT
             !
@@ -1538,22 +1556,22 @@ CONTAINS
             SELECT CASE (TRIM(derivatives))
             CASE ('default')
                 !
-                CALL infomsg(sub_name, "Warning: derivatives not provided. &
+                CALL env_infomsg(sub_name, "Warning: derivatives not provided. &
                                                 &Setting derivatives to 'lowmem'")
                 !
                 derivatives = 'lowmem'
             CASE ('fd', 'chain')
                 !
-                CALL errore(sub_name, "Only 'highmem' or 'lowmem' are allowed &
-                                      &with electronic interfaces")
+                CALL env_errore(sub_name, "Only 'highmem' or 'lowmem' are allowed &
+                                      &with electronic interfaces", 1)
                 !
             END SELECT
             !
         END SELECT
         !
-        IF (ifdtype < 1) CALL errore(sub_name, ' ifdtype out of range ', 1)
+        IF (ifdtype < 1) CALL env_errore(sub_name, ' ifdtype out of range ', 1)
         !
-        IF (nfdpoint < 1) CALL errore(sub_name, ' nfdpoint out of range ', 1)
+        IF (nfdpoint < 1) CALL env_errore(sub_name, ' nfdpoint out of range ', 1)
         !
         RETURN
         !
@@ -1572,7 +1590,7 @@ CONTAINS
         INTEGER :: i
         LOGICAL :: allowed = .FALSE.
         !
-        CHARACTER(LEN=20) :: sub_name = ' electrostatic_checkin '
+        CHARACTER(LEN=20) :: sub_name = 'electrostatic_checkin'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1583,9 +1601,9 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' problem '''//TRIM(problem)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' problem '''//TRIM(problem)//''' not allowed ', 1)
         !
-        IF (tol <= 0.0_DP) CALL errore(sub_name, ' tolerance out of range ', 1)
+        IF (tol <= 0.0_DP) CALL env_errore(sub_name, ' tolerance out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1594,7 +1612,7 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' solver '''//TRIM(solver)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' solver '''//TRIM(solver)//''' not allowed ', 1)
         !
         allowed = .FALSE.
         !
@@ -1603,8 +1621,8 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' auxiliary '''// &
-                        TRIM(auxiliary)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' auxiliary '''// &
+                            TRIM(auxiliary)//''' not allowed ', 1)
         !
         allowed = .FALSE.
         !
@@ -1613,12 +1631,12 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' step_type '''// &
-                        TRIM(step_type)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' step_type '''// &
+                            TRIM(step_type)//''' not allowed ', 1)
         !
-        IF (step <= 0.0_DP) CALL errore(sub_name, ' step out of range ', 1)
+        IF (step <= 0.0_DP) CALL env_errore(sub_name, ' step out of range ', 1)
         !
-        IF (maxstep <= 1) CALL errore(sub_name, ' maxstep out of range ', 1)
+        IF (maxstep <= 1) CALL env_errore(sub_name, ' maxstep out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1627,11 +1645,12 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' mix_type '''//TRIM(mix_type)//''' not allowed ', 1)
+            CALL env_errore(sub_name, &
+                            ' mix_type '''//TRIM(mix_type)//''' not allowed ', 1)
         !
-        IF (ndiis <= 0) CALL errore(sub_name, ' ndiis out of range ', 1)
+        IF (ndiis <= 0) CALL env_errore(sub_name, ' ndiis out of range ', 1)
         !
-        IF (mix <= 0.0_DP) CALL errore(sub_name, ' mix out of range ', 1)
+        IF (mix <= 0.0_DP) CALL env_errore(sub_name, ' mix out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1640,8 +1659,8 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' preconditioner '''// &
-                        TRIM(preconditioner)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' preconditioner '''// &
+                            TRIM(preconditioner)//''' not allowed ', 1)
         !
         allowed = .FALSE.
         !
@@ -1650,10 +1669,10 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' screening_type '''// &
-                        TRIM(screening_type)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' screening_type '''// &
+                            TRIM(screening_type)//''' not allowed ', 1)
         !
-        IF (screening < 0.0_DP) CALL errore(sub_name, ' screening out of range ', 1)
+        IF (screening < 0.0_DP) CALL env_errore(sub_name, ' screening out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1662,13 +1681,13 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' core '''//TRIM(core)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' core '''//TRIM(core)//''' not allowed ', 1)
         !
         IF (pbc_dim < -3 .OR. pbc_dim > 3) &
-            CALL errore(sub_name, ' pbc_dim out of range ', 1)
+            CALL env_errore(sub_name, ' pbc_dim out of range ', 1)
         !
         IF (pbc_axis < 1 .OR. pbc_axis > 3) &
-            CALL errore(sub_name, ' cell_axis out of range ', 1)
+            CALL env_errore(sub_name, ' cell_axis out of range ', 1)
         !
         allowed = .FALSE.
         !
@@ -1677,18 +1696,18 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' pbc_correction '''// &
-                        TRIM(pbc_correction)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' pbc_correction '''// &
+                            TRIM(pbc_correction)//''' not allowed ', 1)
         !
         IF (TRIM(pbc_correction) == 'gcs') THEN
             !
             IF (electrolyte_distance == 0.0_DP) &
-                CALL errore(sub_name, 'electrolyte_distance must be set &
+                CALL env_errore(sub_name, 'electrolyte_distance must be set &
                                       &(greater than zero) for gcs correction', 1)
             !
             IF (TRIM(electrolyte_mode) /= 'system') THEN
                 !
-                CALL infomsg(sub_name, "Warning: gcs correction requires 'system' &
+                CALL env_infomsg(sub_name, "Warning: gcs correction requires 'system' &
                                        &boundary. Setting electrolyte_mode to 'system'")
                 !
                 electrolyte_mode = 'system'
@@ -1703,14 +1722,15 @@ CONTAINS
         END DO
         !
         IF (.NOT. allowed) &
-            CALL errore(sub_name, ' inner solver '''// &
-                        TRIM(inner_solver)//''' not allowed ', 1)
+            CALL env_errore(sub_name, ' inner solver '''// &
+                            TRIM(inner_solver)//''' not allowed ', 1)
         !
-        IF (inner_mix <= 0.0_DP) CALL errore(sub_name, ' inner_mix out of range ', 1)
+        IF (inner_mix <= 0.0_DP) CALL env_errore(sub_name, ' inner_mix out of range ', 1)
         !
-        IF (inner_tol <= 0.0_DP) CALL errore(sub_name, ' inner_tol out of range ', 1)
+        IF (inner_tol <= 0.0_DP) CALL env_errore(sub_name, ' inner_tol out of range ', 1)
         !
-        IF (inner_maxstep <= 1) CALL errore(sub_name, ' inner_maxstep out of range ', 1)
+        IF (inner_maxstep <= 1) &
+            CALL env_errore(sub_name, ' inner_maxstep out of range ', 1)
         !
         RETURN
         !
@@ -1729,7 +1749,7 @@ CONTAINS
         !
         LOGICAL, INTENT(OUT) :: lboundary
         !
-        CHARACTER(LEN=20) :: sub_name = ' fix_boundary '
+        CHARACTER(LEN=20) :: sub_name = 'fix_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1769,7 +1789,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=20) :: sub_name = ' set_environ_type '
+        CHARACTER(LEN=20) :: sub_name = 'set_environ_type'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1801,7 +1821,7 @@ CONTAINS
             env_static_permittivity = 78.3D0
             env_optical_permittivity = 1.D0 ! 1.776D0
         CASE DEFAULT
-            CALL errore(sub_name, 'unrecognized value for environ_type', 1)
+            CALL env_errore(sub_name, 'unrecognized value for environ_type', 1)
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -1854,7 +1874,7 @@ CONTAINS
             radius_mode = 'uff'
             softness = 0.5D0
             env_surface_tension = 50.D0 ! NOTE THAT WE ARE USING THE
-            env_pressure = -0.35D0      ! SET FOR CLUSTERS, AS IN SCCS
+            env_pressure = -0.35D0 ! SET FOR CLUSTERS, AS IN SCCS
             !
             SELECT CASE (TRIM(ADJUSTL(environ_type)))
             CASE ('water')
@@ -1883,7 +1903,7 @@ CONTAINS
         !
         LOGICAL, INTENT(OUT) :: lelectrostatic
         !
-        CHARACTER(LEN=20) :: sub_name = ' fix_electrostatic '
+        CHARACTER(LEN=20) :: sub_name = 'fix_electrostatic'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1913,7 +1933,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80) :: sub_name = ' set_electrostatic_problem '
+        CHARACTER(LEN=80) :: sub_name = 'set_electrostatic_problem'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1956,8 +1976,8 @@ CONTAINS
                 IF (solver == 'iterative' .AND. auxiliary == 'none') auxiliary = 'full'
                 !
                 IF (solver /= 'iterative') &
-                    CALL errore(sub_name, &
-                                'GCS correction requires iterative solver', 1)
+                    CALL env_errore(sub_name, &
+                                    'GCS correction requires iterative solver', 1)
                 !
             END IF
         ELSE
@@ -1969,7 +1989,7 @@ CONTAINS
                    problem == 'modpb' .OR. &
                    problem == 'generalized') &
             .AND. (inner_solver /= 'none')) &
-            CALL errore(sub_name, 'Only pb or modpb problems allow inner solver', 1)
+            CALL env_errore(sub_name, 'Only pb or modpb problems allow inner solver', 1)
         !
         RETURN
         !
@@ -1989,9 +2009,10 @@ CONTAINS
         !
         CHARACTER(LEN=256) :: input_line
         CHARACTER(LEN=80) :: card
-        CHARACTER(LEN=1), EXTERNAL :: capital
         LOGICAL :: tend
         INTEGER :: i, local_unit
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_read_cards'
         !
         !--------------------------------------------------------------------------------
         ! Set default READ unit if none provided
@@ -2006,7 +2027,8 @@ CONTAINS
         !  START OF LOOP
         !=-----------------------------------------------------------------------------=!
         !
-100     CALL env_read_line(local_unit, input_line, end_of_file=tend)
+100     CALL env_read_line(local_unit, input_line, end_of_file=tend, ionode=ionode, &
+                           ionode_id=ionode_id, comm=comm)
         !
         !--------------------------------------------------------------------------------
         ! Skip blank/comment lines (REDUNDANT)
@@ -2018,9 +2040,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Force uppercase
         !
-        DO i = 1, LEN_TRIM(input_line)
-            input_line(i:i) = capital(input_line(i:i))
-        END DO
+        CALL env_uppercase(input_line, input_line)
         !
         !--------------------------------------------------------------------------------
         ! Read cards
@@ -2051,12 +2071,12 @@ CONTAINS
         ! Final check
         !
         IF (env_external_charges > 0 .AND. .NOT. taextchg) &
-            CALL errore(' environ_read_cards  ', &
-                        ' missing card external_charges', 0)
+            CALL env_errore(sub_name, &
+                            ' missing card external_charges', 0)
         !
         IF (env_dielectric_regions > 0 .AND. .NOT. taepsreg) &
-            CALL errore(' environ_read_cards  ', &
-                        ' missing card dielectric_regions', 0)
+            CALL env_errore(sub_name, &
+                            ' missing card dielectric_regions', 0)
         !
         RETURN
         !
@@ -2105,38 +2125,39 @@ CONTAINS
         CHARACTER(LEN=256) :: input_line
         INTEGER :: ie, ix, ierr, nfield
         LOGICAL :: tend
-        LOGICAL, EXTERNAL :: matches
         CHARACTER(LEN=4) :: lb_pos
         CHARACTER(LEN=256) :: field_str
+        !
+        CHARACTER(LEN=80) :: sub_name = 'card_external_charges'
         !
         !--------------------------------------------------------------------------------
         ! Validate input
         !
         IF (taextchg) &
-            CALL errore(' card_external_charges  ', ' two occurrences', 2)
+            CALL env_errore(sub_name, ' two occurrences', 2)
         !
         IF (env_external_charges > nsx) &
-            CALL errore(' card_external_charges ', ' nsx out of range ', &
-                        env_external_charges)
+            CALL env_errore(sub_name, ' nsx out of range ', &
+                            env_external_charges)
         !
         CALL allocate_input_extcharge(env_external_charges)
         !
-        IF (matches("BOHR", input_line)) THEN
+        IF (env_is_substring("BOHR", input_line)) THEN
             extcharge_units = 'bohr'
-        ELSE IF (matches("ANGSTROM", input_line)) THEN
+        ELSE IF (env_is_substring("ANGSTROM", input_line)) THEN
             extcharge_units = 'angstrom'
         ELSE
             !
             IF (TRIM(ADJUSTL(input_line)) /= 'EXTERNAL_CHARGES') &
-                CALL errore('read_cards ', &
-                            'unknown option for EXTERNAL_CHARGES: '//input_line, 1)
+                CALL env_errore(sub_name, &
+                                'unknown option for EXTERNAL_CHARGES: '//input_line, 1)
             !
-            CALL infomsg('read_cards ', 'No units specified in EXTERNAL_CHARGES card')
+            CALL env_infomsg(sub_name, 'No units specified in EXTERNAL_CHARGES card')
             !
             extcharge_units = 'bohr'
             !
-            CALL infomsg('read_cards ', &
-                         'EXTERNAL_CHARGES: units set to '//TRIM(extcharge_units))
+            CALL env_infomsg(sub_name, &
+                             'EXTERNAL_CHARGES: units set to '//TRIM(extcharge_units))
             !
         END IF
         !
@@ -2145,10 +2166,11 @@ CONTAINS
         !
         DO ie = 1, env_external_charges
             !
-            CALL env_read_line(unit, input_line, end_of_file=tend)
+            CALL env_read_line(unit, input_line, end_of_file=tend, ionode=ionode, &
+                               ionode_id=ionode_id, comm=comm)
             !
             IF (tend) &
-                CALL errore('environ_cards', 'end of file reading external charges', ie)
+                CALL env_errore(sub_name, 'end of file reading external charges', ie)
             !
             CALL env_field_count(nfield, input_line)
             !
@@ -2184,8 +2206,7 @@ CONTAINS
                 READ (field_str, *) extcharge_spread(ie)
                 !
                 IF (extcharge_spread(ie) < 0.D0) &
-                    CALL errore(' card_external_charges  ', &
-                                ' spread must be positive', ie)
+                    CALL env_errore(sub_name, ' spread must be positive', ie)
                 !
             END IF
             !
@@ -2199,13 +2220,13 @@ CONTAINS
                 READ (field_str, *) extcharge_dim(ie)
                 !
                 IF (extcharge_dim(ie) < 0 .OR. extcharge_dim(ie) > 2) &
-                    CALL errore(' card_external_charges  ', &
-                                ' wrong excharge dimension ', ie)
+                    CALL env_errore(sub_name, &
+                                    ' wrong excharge dimension ', ie)
                 !
                 IF (extcharge_dim(ie) > 0) THEN
                     !
                     IF (nfield == 6) &
-                        CALL errore('environ_cards', &
+                        CALL env_errore(sub_name, &
                                     'missing axis direction of partially periodic &
                                     &external charge', ie)
                     !
@@ -2214,8 +2235,8 @@ CONTAINS
                     READ (field_str, *) extcharge_axis(ie)
                     !
                     IF (extcharge_axis(ie) < 0 .OR. extcharge_axis(ie) > 3) &
-                        CALL errore(' card_external_charges  ', &
-                                    ' wrong excharge axis ', ie)
+                        CALL env_errore(sub_name, &
+                                        ' wrong excharge axis ', ie)
                     !
                 END IF
                 !
@@ -2325,36 +2346,36 @@ CONTAINS
         CHARACTER(LEN=256) :: input_line
         INTEGER :: ie, ix, ierr, nfield
         LOGICAL :: tend
-        LOGICAL, EXTERNAL :: matches
         CHARACTER(LEN=4) :: lb_pos
         CHARACTER(LEN=256) :: field_str
         !
+        CHARACTER(LEN=80) :: sub_name = 'card_dielectric_regions'
+        !
         !--------------------------------------------------------------------------------
         !
-        IF (taepsreg) CALL errore(' card_dielectric_regions  ', ' two occurrences', 2)
+        IF (taepsreg) CALL env_errore(sub_name, ' two occurrences', 2)
         !
         IF (env_dielectric_regions > nsx) &
-            CALL errore(' card_dielectric_regions ', ' nsx out of range ', &
-                        env_dielectric_regions)
+            CALL env_errore(sub_name, ' nsx out of range ', env_dielectric_regions)
         !
         CALL allocate_input_epsregion(env_dielectric_regions)
         !
-        IF (matches("BOHR", input_line)) THEN
+        IF (env_is_substring("BOHR", input_line)) THEN
             epsregion_units = 'bohr'
-        ELSE IF (matches("ANGSTROM", input_line)) THEN
+        ELSE IF (env_is_substring("ANGSTROM", input_line)) THEN
             epsregion_units = 'angstrom'
         ELSE
             !
             IF (TRIM(ADJUSTL(input_line)) /= 'DIELECTRIC_REGIONS') &
-                CALL errore('read_cards ', &
-                            'unknown option for DIELECTRIC_REGIONS: '//input_line, 1)
+                CALL env_errore(sub_name, &
+                                'unknown option for DIELECTRIC_REGIONS: '//input_line, 1)
             !
-            CALL infomsg('read_cards ', 'No units specified in DIELECTRIC_REGIONS card')
+            CALL env_infomsg(sub_name, 'No units specified in DIELECTRIC_REGIONS card')
             !
             epsregion_units = 'bohr'
             !
-            CALL infomsg('read_cards ', &
-                         'DIELECTRIC_REGIONS: units set to '//TRIM(epsregion_units))
+            CALL env_infomsg(sub_name, &
+                             'DIELECTRIC_REGIONS: units set to '//TRIM(epsregion_units))
             !
         END IF
         !
@@ -2363,10 +2384,11 @@ CONTAINS
         !
         DO ie = 1, env_dielectric_regions
             !
-            CALL env_read_line(unit, input_line, end_of_file=tend)
+            CALL env_read_line(unit, input_line, end_of_file=tend, ionode=ionode, &
+                               ionode_id=ionode_id, comm=comm)
             !
-            IF (tend) CALL errore('environ_cards', &
-                                  'end of file reading dielectric regions', ie)
+            IF (tend) CALL env_errore(sub_name, &
+                                      'end of file reading dielectric regions', ie)
             !
             CALL env_field_count(nfield, input_line)
             !
@@ -2378,16 +2400,16 @@ CONTAINS
             READ (field_str, *) epsregion_eps(1, ie)
             !
             IF (epsregion_eps(1, ie) < 1.D0) &
-                CALL errore(' card_dielectric_regions  ', &
-                            ' static permittivity must be .gt. 1', ie)
+                CALL env_errore(sub_name, &
+                                ' static permittivity must be .gt. 1', ie)
             !
             CALL env_get_field(2, field_str, input_line)
             !
             READ (field_str, *) epsregion_eps(2, ie)
             !
             IF (epsregion_eps(2, ie) < 1.D0) &
-                CALL errore(' card_dielectric_regions  ', &
-                            ' optical permittivity must be .gt. 1', ie)
+                CALL env_errore(sub_name, &
+                                ' optical permittivity must be .gt. 1', ie)
             !
             !----------------------------------------------------------------------------
             ! Read fields 3-5 (x-y-z position of dielectric region)
@@ -2412,8 +2434,8 @@ CONTAINS
             READ (field_str, *) epsregion_width(ie)
             !
             IF (epsregion_width(ie) < 0.D0) &
-                CALL errore(' card_dielectric_regions  ', &
-                            ' width must be positive', ie)
+                CALL env_errore(sub_name, &
+                                ' width must be positive', ie)
             !
             !----------------------------------------------------------------------------
             ! Optionally read field 7 (spread of interface of the dielectric region)
@@ -2425,8 +2447,8 @@ CONTAINS
                 READ (field_str, *) epsregion_spread(ie)
                 !
                 IF (epsregion_spread(ie) < 0.D0) &
-                    CALL errore(' card_dielectric_regions ', &
-                                ' spread must be positive', ie)
+                    CALL env_errore(sub_name, &
+                                    ' spread must be positive', ie)
                 !
             END IF
             !
@@ -2440,23 +2462,23 @@ CONTAINS
                 READ (field_str, *) epsregion_dim(ie)
                 !
                 IF (epsregion_dim(ie) < 0 .OR. epsregion_dim(ie) > 2) &
-                    CALL errore(' card_dielectric_regions ', &
-                                ' wrong epsregion dimension ', ie)
+                    CALL env_errore(sub_name, &
+                                    ' wrong epsregion dimension ', ie)
                 !
                 IF (epsregion_dim(ie) > 0) THEN
                     !
                     IF (nfield == 8) &
-                        CALL errore('environ_cards', &
-                                    'missing axis direction of partially periodic &
-                                    &dielectric region', ie)
+                        CALL env_errore(sub_name, &
+                                        'missing axis direction of partially periodic &
+                                        &dielectric region', ie)
                     !
                     CALL env_get_field(9, field_str, input_line)
                     !
                     READ (field_str, *) epsregion_axis(ie)
                     !
                     IF (epsregion_axis(ie) < 1 .OR. epsregion_axis(ie) > 3) &
-                        CALL errore(' card_dielectric_regions ', &
-                                    ' wrong epsregion axis ', ie)
+                        CALL env_errore(sub_name, &
+                                        ' wrong epsregion axis ', ie)
                     !
                 END IF
                 !
@@ -2542,6 +2564,8 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: length
         !
+        CHARACTER(LEN=80) :: sub_name = 'convert_length'
+        !
         !--------------------------------------------------------------------------------
         !
         SELECT CASE (length_format)
@@ -2551,8 +2575,8 @@ CONTAINS
             length = length / bohr_radius_angs ! length in A: convert to a.u.
         CASE DEFAULT
             !
-            CALL errore('iosys', 'length_format='// &
-                        TRIM(length_format)//' not implemented', 1)
+            CALL env_errore(sub_name, 'length_format='// &
+                            TRIM(length_format)//' not implemented', 1)
             !
         END SELECT
         !

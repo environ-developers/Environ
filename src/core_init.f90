@@ -12,8 +12,14 @@ MODULE core_init
     USE core_base
     !
     USE utils_fd
-    USE utils_oned_analytic
     USE utils_fft
+    USE utils_oned_analytic
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: set_core_base, core_initbase, core_initcell, core_initions, core_clean
     !
     !------------------------------------------------------------------------------------
 CONTAINS

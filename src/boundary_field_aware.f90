@@ -300,7 +300,7 @@ CONTAINS
     !     TYPE(environ_density) :: prod
     !     TYPE(environ_gradient) :: gradaux
     !     !
-    !     IF (nsoft_spheres .LT. 1) CALL errore(sub_name, 'Missing soft-spheres', 1)
+    !     IF (nsoft_spheres .LT. 1) CALL env_errore(sub_name, 'Missing soft-spheres', 1)
     !     cell => dion_field_drho(1)%cell
     !     !
     !     ALLOCATE (local(nsoft_spheres))
@@ -727,7 +727,7 @@ CONTAINS
     !         nsoft_spheres => boundary%ions%number
     !         !
     !         IF (nsoft_spheres .LE. 0) &
-    !             CALL errore(sub_name, 'Inconsistent number of soft-spheres', 1)
+    !             CALL env_errore(sub_name, 'Inconsistent number of soft-spheres', 1)
     !         !
     !         ALLOCATE (local(nsoft_spheres))
     !         !
@@ -893,7 +893,7 @@ CONTAINS
     !         nsoft_spheres => boundary%ions%number
     !         !
     !         IF (nsoft_spheres .LE. 0) &
-    !             CALL errore(sub_name, 'Inconsistent number of soft-spheres', 1)
+    !             CALL env_errore(sub_name, 'Inconsistent number of soft-spheres', 1)
     !         !
     !         ALLOCATE (local(nsoft_spheres))
     !         !

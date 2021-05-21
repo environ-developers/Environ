@@ -41,6 +41,14 @@ MODULE utils_semiconductor
     USE tools_math, ONLY: integrate_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_semiconductor, init_environ_semiconductor_first, &
+              init_environ_semiconductor_second, update_environ_semiconductor, &
+              destroy_environ_semiconductor
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>

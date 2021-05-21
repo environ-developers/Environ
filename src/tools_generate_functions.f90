@@ -27,16 +27,15 @@
 MODULE tools_generate_functions
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_sum
+    !
     USE modules_constants, ONLY: DP, sqrtpi, pi, fpi
     !
     USE cell_types, ONLY: environ_cell
     USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
     !
     USE tools_cell, ONLY: ir2ijk, ir2r, displacement, minimum_image
-    !
     USE tools_math, ONLY: environ_erfc, environ_erf
-    !
-    USE mp, ONLY: mp_sum
     !
     !------------------------------------------------------------------------------------
     !
@@ -47,7 +46,12 @@ MODULE tools_generate_functions
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: tol, exp_tol
+    PRIVATE
+    !
+    PUBLIC :: generate_gaussian, generate_gradgaussian, generate_exponential, &
+              generate_gradexponential, generate_erfc, generate_graderfc, &
+              generate_laplerfc, generate_hesserfc, generate_axis, generate_distance, &
+              erfcvolume
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -115,7 +119,7 @@ CONTAINS
         !
         IF (.NOT. reverse) THEN
             !
-            CALL mp_sum(f1d(:), cell%dfft%comm)
+            CALL env_mp_sum(f1d(:), cell%dfft%comm)
             !
             f1d = f1d / DBLE(narea)
         END IF
@@ -156,10 +160,10 @@ CONTAINS
         IF (ABS(charge) < tol) RETURN
         !
         IF (ABS(spread) < tol) &
-            CALL errore(sub_name, 'Wrong spread for Gaussian function', 1)
+            CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong axis in generate_gaussian', 1)
+            CALL env_errore(sub_name, 'Wrong axis in generate_gaussian', 1)
         !
         SELECT CASE (dim)
         CASE (0)
@@ -171,7 +175,7 @@ CONTAINS
             length = ABS(cell%at(axis, axis) * cell%alat)
             scale = charge * length / cell%omega / (sqrtpi * spread)
         CASE default
-            CALL errore(sub_name, 'Wrong value of dim', 1)
+            CALL env_errore(sub_name, 'Wrong value of dim', 1)
         END SELECT
         !
         spr2 = (spread / cell%alat)**2
@@ -237,10 +241,10 @@ CONTAINS
         IF (ABS(charge) < tol) RETURN
         !
         IF (ABS(spread) < tol) &
-            CALL errore(sub_name, 'Wrong spread for Gaussian function', 1)
+            CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong value of axis', 1)
+            CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         SELECT CASE (dim)
         CASE (0)
@@ -252,7 +256,7 @@ CONTAINS
             length = ABS(cell%at(axis, axis) * cell%alat)
             scale = charge * length / cell%omega / (sqrtpi * spread)
         CASE default
-            CALL errore(sub_name, 'Wrong value of dim', 1)
+            CALL env_errore(sub_name, 'Wrong value of dim', 1)
         END SELECT
         !
         scale = scale * 2.D0 / spread**2 * cell%alat
@@ -318,7 +322,7 @@ CONTAINS
         cell => density%cell
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong value of axis', 1)
+            CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         ALLOCATE (local(cell%nnr))
         local = 0.D0
@@ -380,7 +384,7 @@ CONTAINS
         cell => gradient%cell
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong value of axis', 1)
+            CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         ALLOCATE (gradlocal(3, cell%nnr))
         gradlocal = 0.D0
@@ -443,7 +447,7 @@ CONTAINS
         cell => density%cell
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong value of axis', 1)
+            CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         scale = charge / chargeanalytic * 0.5D0
@@ -477,10 +481,10 @@ CONTAINS
         !
         chargelocal = SUM(local) * cell%omega / DBLE(cell%ntot) * 0.5D0
         !
-        CALL mp_sum(chargelocal, cell%dfft%comm)
+        CALL env_mp_sum(chargelocal, cell%dfft%comm)
         !
         IF (ABS(chargelocal - chargeanalytic) / chargeanalytic > 1.D-4) &
-            CALL infomsg(sub_name, 'WARNING: wrong integral of erfc function')
+            CALL env_infomsg(sub_name, 'WARNING: wrong integral of erfc function')
         !
         !--------------------------------------------------------------------------------
         !
@@ -523,7 +527,7 @@ CONTAINS
         cell => gradient%cell
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong value of axis', 1)
+            CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         !
@@ -592,7 +596,7 @@ CONTAINS
         cell => laplacian%cell
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong value of axis', 1)
+            CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         !
@@ -673,7 +677,7 @@ CONTAINS
         cell => hessian%cell
         !
         IF (axis < 1 .OR. axis > 3) &
-            CALL errore(sub_name, 'Wrong value of axis', 1)
+            CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         scale = charge / chargeanalytic / sqrtpi / spread
@@ -725,7 +729,7 @@ CONTAINS
     END SUBROUTINE generate_hesserfc
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO field-aware
+    !! #TODO field-aware (add routine to PUBLIC)
     !!
     !------------------------------------------------------------------------------------
     ! SUBROUTINE generate_deriverfc(nnr, dim, axis, charge, width, spread, pos, drho)
@@ -733,7 +737,7 @@ CONTAINS
     !     !
     !     USE modules_constants, ONLY: DP, sqrtpi
     !     USE fft_base, ONLY: dfftp
-    !     USE mp, ONLY: mp_sum
+    !     USE env_mp, ONLY: env_mp_sum
     !     USE mp_bands, ONLY: me_bgrp, intra_bgrp_comm
     !     !
     !     IMPLICIT NONE
@@ -877,7 +881,7 @@ CONTAINS
     !     ! double check that the integral of the generated charge corresponds to
     !     ! what is expected
     !     !
-    !     CALL mp_sum(chargelocal, intra_bgrp_comm)
+    !     CALL env_mp_sum(chargelocal, intra_bgrp_comm)
     !     chargelocal = chargelocal * omega / DBLE(ntot) * 0.5D0
     !     !
     !     IF (ABS(chargelocal - chargeanalytic) / chargeanalytic > 1.D-4) &
@@ -998,7 +1002,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (spread < tol .OR. width < tol) &
-            CALL errore(fun_name, 'Wrong parameters of erfc function', 1)
+            CALL env_errore(fun_name, 'Wrong parameters of erfc function', 1)
         !
         t = spread / width
         invt = width / spread

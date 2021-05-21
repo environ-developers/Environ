@@ -72,9 +72,9 @@ MODULE problem_generalized
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: generalized_gradient_charges, generalized_gradient_density, &
-               generalized_iterative, generalized_gradient_none, &
-               generalized_gradient_sqrt, generalized_gradient_left
+    PRIVATE
+    !
+    PUBLIC :: generalized_gradient
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -93,11 +93,11 @@ CONTAINS
         TYPE(environ_charges), INTENT(INOUT) :: charges
         TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER*20 :: sub_name = 'generalized_gradient'
+        CHARACTER*20 :: sub_name = 'generalized_gradient_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vsolv')
+        CALL env_start_clock(sub_name)
         !
         potential%of_r = 0.D0
         !
@@ -128,12 +128,12 @@ CONTAINS
                                                    charges%semiconductor)
                     !
                 CASE DEFAULT
-                    CALL errore(sub_name, 'unexpected preconditioner keyword', 1)
+                    CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
                 END SELECT
                 !
             ELSE
                 !
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL generalized_gradient_rhoaux(charges, dielectric, potential) #TODO future-work
                 !
@@ -149,17 +149,17 @@ CONTAINS
                 !
             ELSE
                 !
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL generalized_iterative_velect(charges, dielectric, potential) #TODO future-work
                 !
             END IF
             !
         ELSE
-            CALL errore(sub_name, 'unexpected auxiliary keyword', 1)
+            CALL env_errore(sub_name, 'unexpected auxiliary keyword', 1)
         END IF
         !
-        CALL stop_clock('calc_vsolv')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -184,11 +184,11 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: potential
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        CHARACTER*20 :: sub_name = 'generalized_gradient'
+        CHARACTER*20 :: sub_name = 'generalized_gradient_density'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vsolv')
+        CALL env_start_clock(sub_name)
         !
         potential%of_r = 0.D0
         !
@@ -213,12 +213,12 @@ CONTAINS
                                                    dielectric, potential, electrolyte)
                     !
                 CASE DEFAULT
-                    CALL errore(sub_name, 'unexpected preconditioner keyword', 1)
+                    CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
                 END SELECT
                 !
             ELSE
                 !
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL generalized_gradient_rhoaux(charges, dielectric, potential) #TODO future-work
                 !
@@ -234,7 +234,7 @@ CONTAINS
                 !
             ELSE
                 !
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL generalized_iterative_velect(charges, dielectric, potential) #TODO future-work
                 !
@@ -242,11 +242,11 @@ CONTAINS
             !
         ELSE
             !
-            CALL errore(sub_name, 'unexpected auxiliary keyword', 1)
+            CALL env_errore(sub_name, 'unexpected auxiliary keyword', 1)
             !
         END IF
         !
-        CALL stop_clock('calc_vsolv')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -300,10 +300,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -469,10 +469,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -524,7 +524,7 @@ CONTAINS
             rznew = scalar_product_environ_density(r, z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
@@ -664,10 +664,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -706,7 +706,7 @@ CONTAINS
             rzold = scalar_product_environ_density(r, z)
             !
             IF (ABS(rzold) < 1.D-30) &
-                CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             r%of_r = factsqrt%of_r * (x%of_r - z%of_r)
             delta_en = euclidean_norm_environ_density(r)
@@ -760,7 +760,7 @@ CONTAINS
             rznew = scalar_product_environ_density(r, z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
@@ -876,8 +876,6 @@ CONTAINS
         TYPE(environ_density), POINTER :: x, b, eps
         TYPE(environ_gradient), POINTER :: gradeps
         !
-        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_left'
-        !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_en, delta_qm
         TYPE(environ_density) :: r, z, p, Ap
@@ -886,6 +884,8 @@ CONTAINS
         LOGICAL, POINTER :: lconjugate
         INTEGER, POINTER :: maxstep
         REAL(DP), POINTER :: tolvelect
+        !
+        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_left'
         !
         !--------------------------------------------------------------------------------
         !
@@ -901,10 +901,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -942,7 +942,7 @@ CONTAINS
 
 !             rzold = scalar_product_environ_density(r, z)
 !             IF (ABS(rzold) < 1.D-30) &
-!                  & CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
+!                  & CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
 
 !             r%of_r = x%of_r - z%of_r
 !             CALL gradient_fft(core%fft, r, g)
@@ -991,7 +991,7 @@ CONTAINS
             rznew = scalar_product_environ_density(r, z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input

@@ -27,17 +27,24 @@
 MODULE core_fd
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_sum
+    !
+    USE env_fft_types, ONLY: env_fft_type_descriptor
+    USE env_scatter_mod, ONLY: env_scatter_grid
+    !
     USE modules_constants, ONLY: DP
     !
     USE core_types, ONLY: fd_core
     USE representation_types, ONLY: environ_density, environ_gradient
     USE cell_types, ONLY: environ_cell
-    USE fft_types, ONLY: fft_type_descriptor
     !
     USE tools_cell, ONLY: ir2ijk
     !
-    USE scatter_mod, ONLY: scatter_grid
-    USE mp, ONLY: mp_sum
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: gradient_fd
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -62,7 +69,7 @@ CONTAINS
         LOGICAL :: physical
         INTEGER, POINTER :: nnr, nfdpoint
         TYPE(environ_cell), POINTER :: cell
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         !
@@ -125,12 +132,12 @@ CONTAINS
         !
         ALLOCATE (gradaux(nnr, 3))
         !
-#if defined (__MPI)
+#if defined(__MPI)
         DO ipol = 1, 3
             !
-            CALL mp_sum(gradtmp(:, ipol), cell%dfft%comm)
+            CALL env_mp_sum(gradtmp(:, ipol), cell%dfft%comm)
             !
-            CALL scatter_grid(dfft, gradtmp(:, ipol), gradaux(:, ipol))
+            CALL env_scatter_grid(dfft, gradtmp(:, ipol), gradaux(:, ipol))
             !
         END DO
         !

@@ -34,6 +34,8 @@
 MODULE utils_ions
     !------------------------------------------------------------------------------------
     !
+    USE env_char_ops, ONLY: env_lowercase
+    
     USE modules_constants, ONLY: DP, e2, pi, tpi, bohr_radius_angs
     !
     USE physical_types, ONLY: environ_ions, environ_iontype
@@ -128,7 +130,10 @@ MODULE utils_ions
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: set_iontype_defaults, get_atmnum, lowcase
+    PRIVATE
+    !
+    PUBLIC :: create_environ_ions, init_environ_ions_first, &
+              init_environ_ions_second, update_environ_ions, destroy_environ_ions
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -152,17 +157,17 @@ CONTAINS
         ions%update = .FALSE.
         !
         IF (ALLOCATED(ions%ityp)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         IF (ALLOCATED(ions%iontype)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         NULLIFY (ions%tau)
         !
         ions%use_smeared_ions = .FALSE.
         !
         IF (ALLOCATED(ions%smeared_ions)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         label = 'smeared_ions'
         !
@@ -171,14 +176,14 @@ CONTAINS
         ions%use_core_electrons = .FALSE.
         !
         IF (ALLOCATED(ions%core_electrons)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         label = 'core_electrons'
         !
         CALL create_environ_density(ions%core, label)
         !
         IF (ALLOCATED(ions%vloc)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         RETURN
         !
@@ -257,15 +262,15 @@ CONTAINS
             ! If need cavity defined exclusively on ions, check radius is not zero
             !
             IF (.NOT. lsoftcavity .AND. (ions%iontype(i)%solvationrad == 0.D0)) &
-                CALL errore(sub_name, &
-                            'Missing solvation radius for one of the atom types', 1)
+                CALL env_errore(sub_name, &
+                                'Missing solvation radius for one of the atom types', 1)
             !
             !----------------------------------------------------------------------------
             ! If need smeared ions, check spread is not zero
             !
             IF (lsmearedions .AND. (ions%iontype(i)%atomicspread == 0.D0)) &
-                CALL errore(sub_name, &
-                            'Missing atomic spread for one of the atom types', 1)
+                CALL env_errore(sub_name, &
+                                'Missing atomic spread for one of the atom types', 1)
             !
             CALL create_environ_density(ions%vloc(i))
             !
@@ -305,10 +310,10 @@ CONTAINS
         ! Check on dimensions, can skip if merged with first step
         !
         IF (ions%number /= nat) &
-            CALL errore(sub_name, 'Mismatch in number of atoms', 1)
+            CALL env_errore(sub_name, 'Mismatch in number of atoms', 1)
         !
         IF (ions%ntyp /= ntyp) &
-            CALL errore(sub_name, 'Mismatch in number of atom types', 1)
+            CALL env_errore(sub_name, 'Mismatch in number of atom types', 1)
         !
         ions%alat = cell%alat ! needed because the ionic positions are scaled by alat
         ions%ityp = ityp
@@ -431,7 +436,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ions%number /= nat) &
-            CALL errore(sub_name, 'Mismatch in number of atoms', 1)
+            CALL env_errore(sub_name, 'Mismatch in number of atoms', 1)
         !
         ions%tau = tau ! update positions
         !
@@ -448,7 +453,7 @@ CONTAINS
         END DO
         !
         IF (ABS(ions%charge) < 1.D-8) &
-            CALL errore(sub_name, 'Ionic charge equal to zero', 1)
+            CALL env_errore(sub_name, 'Ionic charge equal to zero', 1)
         !
         ions%center = ions%center / ions%charge
         !
@@ -544,17 +549,17 @@ CONTAINS
         IF (lflag) THEN
             !
             IF (.NOT. ALLOCATED(ions%ityp)) &
-                CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
             !
             DEALLOCATE (ions%ityp)
             !
             IF (.NOT. ALLOCATED(ions%iontype)) &
-                CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
             !
             DEALLOCATE (ions%iontype)
             !
             IF (.NOT. ASSOCIATED(ions%tau)) &
-                CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
             !
             DEALLOCATE (ions%tau)
             DEALLOCATE (ions%vloc)
@@ -589,8 +594,9 @@ CONTAINS
         iontype%atmnum = get_atmnum(label)
         !
         IF (iontype%atmnum == 0) &
-            CALL errore(sub_name, &
-                        'Can not assign the atom type associated with input label', 1)
+            CALL env_errore(sub_name, &
+                            'Can not assign the atom type associated &
+                            &with input label', 1)
         !
         ! iontype%weight = weights(iontype%atmnum) ! #TODO future work
         !
@@ -607,7 +613,7 @@ CONTAINS
         CASE ('muff')
             iontype%solvationrad = MUFF_diameters(iontype%atmnum) * 0.5_DP
         CASE DEFAULT
-            CALL errore(sub_name, 'Unknown radius_mode', 1)
+            CALL env_errore(sub_name, 'Unknown radius_mode', 1)
         END SELECT
         !
         iontype%solvationrad = iontype%solvationrad / bohr_radius_angs
@@ -623,66 +629,36 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     FUNCTION get_atmnum(label)
+        !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=3), INTENT(IN) :: label
         !
         INTEGER :: i, get_atmnum
-        CHARACTER(LEN=2) :: clean_label, lower
+        CHARACTER(LEN=2) :: clean_label
         !
         !--------------------------------------------------------------------------------
         !
         clean_label = TRIM(ADJUSTL(label))
         !
-        CALL lowcase(clean_label, lower)
+        CALL env_lowercase(clean_label, clean_label)
         !
         get_atmnum = 0
         !
         DO i = 1, SIZE(elements)
-            IF (lower == elements(i)) THEN
+            !
+            IF (clean_label == elements(i)) THEN
                 get_atmnum = i
+                !
                 EXIT
+                !
             END IF
+            !
         END DO
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_atmnum
-    !------------------------------------------------------------------------------------
-    !>
-    !! Uses ASCII table values to shift uppercase (65-90) to lowercase (97-122)
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE lowcase(string, lower_str)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CHARACTER(LEN=2), INTENT(IN) :: string
-        !
-        CHARACTER(LEN=2), INTENT(OUT) :: lower_str
-        !
-        CHARACTER(LEN=1) :: c
-        INTEGER :: i, ci
-        !
-        !--------------------------------------------------------------------------------
-        !
-        lower_str = string
-        !
-        DO i = 1, LEN(string)
-            c = string(i:i)
-            ci = ICHAR(c)
-            !
-            IF (ci >= 65 .AND. ci <= 90) THEN
-                lower_str(i:i) = CHAR(ci + 32)
-            END IF
-            !
-        END DO
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE lowcase
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

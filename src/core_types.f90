@@ -47,7 +47,7 @@ MODULE core_types
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: ngm = 0  ! local  number of G vectors (on this processor)
+        INTEGER :: ngm = 0 ! local  number of G vectors (on this processor)
         ! with gamma tricks, only vectors in G>
         !
         REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
@@ -90,6 +90,7 @@ MODULE core_types
     !------------------------------------------------------------------------------------
     !>
     !!
+    !------------------------------------------------------------------------------------
     TYPE core_container
         !--------------------------------------------------------------------------------
         !
@@ -121,6 +122,11 @@ MODULE core_types
         !--------------------------------------------------------------------------------
     END TYPE core_container
     !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+    ! Keeping imports private
+    !
+    PRIVATE :: DP, environ_cell
     !
     !------------------------------------------------------------------------------------
 END MODULE core_types

@@ -39,6 +39,13 @@ MODULE tools_electrolyte
     USE tools_math, ONLY: scalar_product_environ_density, integrate_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: electrolyte_of_boundary, electrolyte_of_potential, calc_eelectrolyte, &
+              calc_deelectrolyte_dboundary
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>

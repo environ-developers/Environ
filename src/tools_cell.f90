@@ -10,9 +10,19 @@ MODULE tools_cell
     USE cell_types, ONLY: environ_cell
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: ir2ijk, ir2r, displacement, minimum_image, volume, recips
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
+    !! Returns indices i, j, k yielding the position of grid point ir in the real-space
+    !! FFT grid described by descriptor dfft:
+    !!
+    !! r(:, ir) = i * tau(:, 1) / n1 + j * tau(:, 2) / n2 + k * tau(:, 3) / n3
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE ir2ijk(cell, ir, i, j, k, physical)
@@ -224,6 +234,8 @@ CONTAINS
         !
         REAL(dp), INTENT(OUT) :: omega
         !
+        CHARACTER(LEN=80) :: sub_name = 'volume'
+        !
         !--------------------------------------------------------------------------------
         !
         omega = a1(1) * (a2(2) * a3(3) - a2(3) * a3(2)) - &
@@ -232,12 +244,12 @@ CONTAINS
         !
         IF (omega < 0.0_DP) THEN
             !
-            CALL infomsg('volume', 'axis vectors are left-handed')
+            CALL env_infomsg(sub_name, 'axis vectors are left-handed')
             !
             omega = ABS(omega)
         END IF
         !
-        IF (alat < 1.0_DP) CALL infomsg('volume', 'strange lattice parameter')
+        IF (alat < 1.0_DP) CALL env_infomsg(sub_name, 'strange lattice parameter')
         !
         omega = omega * alat**3
         !

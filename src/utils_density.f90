@@ -11,6 +11,13 @@ MODULE utils_density
     USE tools_math, ONLY: multipoles_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_density, init_environ_density, copy_environ_density, &
+              update_environ_density, destroy_environ_density
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -40,7 +47,7 @@ CONTAINS
         NULLIFY (density%cell)
         !
         IF (ALLOCATED(density%of_r)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         RETURN
         !
@@ -66,12 +73,12 @@ CONTAINS
         density%update = .FALSE.
         !
         IF (ASSOCIATED(density%cell)) &
-            CALL errore(sub_name, 'Trying to associate an associated object', 1)
+            CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
         !
         density%cell => cell
         !
         IF (ALLOCATED(density%of_r)) &
-            CALL errore(sub_name, 'Trying to allocate an allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
         !
         ALLOCATE (density%of_r(density%cell%nnr))
         density%of_r = 0.D0
@@ -104,7 +111,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(doriginal%cell)) &
-            CALL errore(sub_name, 'Trying to copy a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
         dcopy%cell => doriginal%cell
         !
@@ -166,12 +173,12 @@ CONTAINS
         density%update = .FALSE.
         !
         IF (.NOT. ASSOCIATED(density%cell)) &
-            CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
         !
         NULLIFY (density%cell)
         !
         IF (.NOT. ALLOCATED(density%of_r)) &
-            CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
         !
         DEALLOCATE (density%of_r)
         !

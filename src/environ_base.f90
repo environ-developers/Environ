@@ -44,6 +44,9 @@ MODULE environ_base
     !
     SAVE
     !
+    !------------------------------------------------------------------------------------
+    ! Environ execution parameters
+    !
     LOGICAL :: environ_restart, update_venviron
     REAL(DP) :: environ_thr
     INTEGER :: environ_nskip
@@ -144,6 +147,15 @@ MODULE environ_base
     !
     TYPE(environ_density) :: vzero, velectrostatic, vreference, dvtot, vconfine, &
                              vsoftcavity
+    !
+    !------------------------------------------------------------------------------------
+    ! Keeping imports private
+    !
+    PRIVATE :: DP, environ_cell, environ_mapping, environ_iontype, environ_ions, &
+               environ_electrons, environ_externals, environ_charges, environ_system, &
+               environ_boundary, environ_dielectric, environ_ioncctype, &
+               environ_electrolyte, environ_semiconductor, core_container, &
+               environ_density
     !
     !------------------------------------------------------------------------------------
 END MODULE environ_base

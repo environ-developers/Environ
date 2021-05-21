@@ -11,6 +11,16 @@ MODULE utils_electrostatics
     USE core_types, ONLY: fft_core, oned_analytic_core, core_container
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: init_gradient_solver, init_iterative_solver, init_newton_solver, &
+              create_electrostatic_solver, init_electrostatic_solver, &
+              destroy_electrostatic_solver, add_correction, &
+              create_electrostatic_setup, init_electrostatic_setup, &
+              destroy_electrostatic_setup, add_inner_setup, set_electrostatic_flags
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -155,26 +165,29 @@ CONTAINS
         CASE ('cg', 'sd', 'gradient')
             !
             IF (.NOT. PRESENT(gradient)) &
-                CALL errore(sub_name, 'Missing specified solver type', 1)
+                CALL env_errore(sub_name, 'Missing specified solver type', 1)
             !
             solver%use_gradient = .TRUE.
             solver%gradient => gradient
         CASE ('iterative')
             !
             IF (.NOT. PRESENT(iterative)) &
-                CALL errore(sub_name, 'Missing specified solver type', 1)
+                CALL env_errore(sub_name, 'Missing specified solver type', 1)
             !
             solver%use_iterative = .TRUE.
             solver%iterative => iterative
         CASE ('newton')
             !
             IF (.NOT. PRESENT(newton)) &
-                CALL errore(sub_name, 'Missing specified solver type', 1)
+                CALL env_errore(sub_name, 'Missing specified solver type', 1)
             !
             solver%use_newton = .TRUE.
             solver%newton => newton
         CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected option for electrostatic solver type', 1)
+            !
+            CALL env_errore(sub_name, &
+                            'Unexpected option for electrostatic solver type', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -191,7 +204,7 @@ CONTAINS
         IF (solver%use_newton) number = number + 1
         !
         IF (number /= 1) &
-            CALL errore(sub_name, 'Too few or too many solvers are active', 1)
+            CALL env_errore(sub_name, 'Too few or too many solvers are active', 1)
         !
         RETURN
         !
@@ -297,55 +310,55 @@ CONTAINS
         CASE ('generalized', 'gpe')
             !
             IF (solver%use_direct) &
-                CALL errore(sub_name, &
-                            'Cannot use a direct solver for &
-                            &the Generalized Poisson eq.', 1)
+                CALL env_errore(sub_name, &
+                                'Cannot use a direct solver for &
+                                &the Generalized Poisson eq.', 1)
             !
         CASE ('linpb', 'linmodpb', 'linearized-pb')
             !
             IF (solver%use_direct .OR. solver%use_iterative) &
-                CALL errore(sub_name, &
-                            'Only gradient-based solver for &
-                            &the linearized Poisson-Boltzmann eq.', 1)
+                CALL env_errore(sub_name, &
+                                'Only gradient-based solver for &
+                                &the linearized Poisson-Boltzmann eq.', 1)
             !
             IF (core%need_correction) THEN
                 !
                 IF (core%correction%type_ /= '1da') &
-                    CALL errore(sub_name, &
-                                'linearized-PB problem requires &
-                                &parabolic pbc correction.', 1)
+                    CALL env_errore(sub_name, &
+                                    'linearized-PB problem requires &
+                                    &parabolic pbc correction.', 1)
                 !
             ELSE
                 !
-                CALL errore(sub_name, &
-                            'linearized-PB problem requires &
-                            &parabolic pbc correction.', 1)
+                CALL env_errore(sub_name, &
+                                'linearized-PB problem requires &
+                                &parabolic pbc correction.', 1)
                 !
             END IF
             !
         CASE ('pb', 'modpb', 'poisson-boltzmann')
             !
             IF (solver%use_direct .OR. solver%use_gradient) &
-                CALL errore(sub_name, &
-                            'No direct or gradient-based solver for &
-                            &the full Poisson-Boltzmann eq.', 1)
+                CALL env_errore(sub_name, &
+                                'No direct or gradient-based solver for &
+                                &the full Poisson-Boltzmann eq.', 1)
             !
             IF (core%need_correction) THEN
                 !
                 IF (core%correction%type_ /= '1da') &
-                    CALL errore(sub_name, &
-                                'full-PB problem requires &
-                                &parabolic pbc correction.', 1)
+                    CALL env_errore(sub_name, &
+                                    'full-PB problem requires &
+                                    &parabolic pbc correction.', 1)
                 !
             ELSE
                 !
-                CALL errore(sub_name, &
-                            'full-PB problem requires parabolic pbc correction.', 1)
+                CALL env_errore(sub_name, &
+                                'full-PB problem requires parabolic pbc correction.', 1)
                 !
             END IF
             !
         CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected keyword for electrostatic problem', 1)
+            CALL env_errore(sub_name, 'Unexpected keyword for electrostatic problem', 1)
         END SELECT
         !
         setup%solver => solver
@@ -355,28 +368,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_electrostatic_setup
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE add_inner_setup(inner, outer)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(electrostatic_setup), TARGET, INTENT(IN) :: inner
-        !
-        TYPE(electrostatic_setup), INTENT(INOUT) :: outer
-        !
-        !--------------------------------------------------------------------------------
-        !
-        outer%nested_problem = .TRUE.
-        outer%inner => inner
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE add_inner_setup
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -403,6 +394,28 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_electrostatic_setup
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE add_inner_setup(inner, outer)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(electrostatic_setup), TARGET, INTENT(IN) :: inner
+        !
+        TYPE(electrostatic_setup), INTENT(INOUT) :: outer
+        !
+        !--------------------------------------------------------------------------------
+        !
+        outer%nested_problem = .TRUE.
+        outer%inner => inner
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE add_inner_setup
     !------------------------------------------------------------------------------------
     !>
     !!

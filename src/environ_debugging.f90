@@ -27,6 +27,12 @@ MODULE environ_debugging
     USE environ_output, ONLY: ionode, environ_unit
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: test_de_dboundary
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -457,7 +463,7 @@ CONTAINS
     !     CASE ('electronic')
     !         CALL boundary_of_density(electrons%density, bound)
     !     CASE DEFAULT
-    !         CALL errore(sub_name, 'Unrecognized boundary mode', 1)
+    !         CALL env_errore(sub_name, 'Unrecognized boundary mode', 1)
     !     END SELECT
     !     !
     !     !--------------------------------------------------------------------------------
@@ -547,7 +553,7 @@ CONTAINS
     !         !
     !         IF (bound%field_aware) THEN
     !             ! CALL field_aware_de_drho(bound, de_dboundary, vanalytic)
-    !             CALL errore('field-aware6', 'Option not yet implimented ', 1)
+    !             CALL env_errore('field-aware6', 'Option not yet implimented ', 1)
     !         ELSE
     !             vanalytic%of_r = bound%dscaled%of_r * de_dboundary%of_r
     !         END IF

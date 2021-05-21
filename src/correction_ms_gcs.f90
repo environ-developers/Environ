@@ -16,6 +16,8 @@
 MODULE correction_ms_gcs
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_sum
+    !
     USE modules_constants, ONLY: DP, e2, fpi, k_boltzmann_ry, tpi, pi
     !
     USE core_types, ONLY: oned_analytic_core
@@ -32,7 +34,11 @@ MODULE correction_ms_gcs
     !
     USE environ_output, ONLY: environ_unit
     !
-    USE mp, ONLY: mp_sum
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: calc_vms_gcs, calc_gradvms_gcs
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -71,9 +77,10 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(oned_analytic_core), TARGET, INTENT(IN) :: oned_analytic
-        TYPE(environ_semiconductor), TARGET, INTENT(INOUT) :: semiconductor_in
         TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        !
+        TYPE(environ_semiconductor), TARGET, INTENT(INOUT) :: semiconductor_in
         TYPE(environ_density), INTENT(INOUT) :: potential
         !
         INTEGER, POINTER :: nnr
@@ -103,13 +110,15 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_vms_gcs'
         !
-        CALL start_clock('calc_vms_gcs')
+        !--------------------------------------------------------------------------------
+        !
+        CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
         IF (potential%cell%nnr /= oned_analytic%n) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => potential%cell
         nnr => cell%nnr
@@ -125,7 +134,7 @@ CONTAINS
         ! Get parameters of semiconductor to compute analytic correction
         !
         IF (electrolyte%ntyp /= 2) &
-            CALL errore(sub_name, &
+            CALL env_errore(sub_name, &
                         'Unexpected number of counterionic species, &
                         &different from two', 1)
         !
@@ -151,7 +160,7 @@ CONTAINS
         invkbt = 1.D0 / kbt
         !
         IF (env_periodicity /= 2) &
-            CALL errore(sub_name, &
+            CALL env_errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
         !
@@ -197,7 +206,7 @@ CONTAINS
         WRITE (environ_unit, *) "ez: ", ez
         WRITE (environ_unit, *) "ez_gcs: ", ez_gcs
         !
-        fact = -e2 * SQRT(8.D0 * fpi * cion * kbt / e2)!/ permittivity_gcs )
+        fact = -e2 * SQRT(8.D0 * fpi * cion * kbt / e2) !/ permittivity_gcs )
         arg = ez_gcs / fact
         asinh = LOG(arg + SQRT(arg**2 + 1))
         vstern = 2.D0 * kbt / zion * asinh
@@ -224,8 +233,10 @@ CONTAINS
             !
         END DO
         !
-        CALL mp_sum(icount, cell%dfft%comm)
-        CALL mp_sum(vbound, cell%dfft%comm)
+        CALL env_mp_sum(icount, cell%dfft%comm)
+        !
+        CALL env_mp_sum(vbound, cell%dfft%comm)
+        !
         vbound = vbound / DBLE(icount)
         WRITE (environ_unit, *) "vbound: ", vbound
         !
@@ -331,8 +342,9 @@ CONTAINS
             !
         END DO
         !
-        CALL mp_sum(icount, cell%dfft%comm)
-        CALL mp_sum(v_cut, cell%dfft%comm)
+        CALL env_mp_sum(icount, cell%dfft%comm)
+        !
+        CALL env_mp_sum(v_cut, cell%dfft%comm)
         !
         WRITE (environ_unit, *) "v_cut: ", v_cut
         WRITE (environ_unit, *) "icount: ", icount
@@ -451,7 +463,7 @@ CONTAINS
         !
         CALL destroy_environ_density(local)
         !
-        CALL stop_clock('calc_vms_gcs')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -471,6 +483,7 @@ CONTAINS
         TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_semiconductor), TARGET, INTENT(IN) :: semiconductor_in
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        !
         TYPE(environ_gradient), INTENT(INOUT) :: gradv
         !
         INTEGER, POINTER :: nnr
@@ -502,13 +515,15 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_gradvms_gcs'
         !
-        CALL start_clock('calc_gvms_gcs')
+        !--------------------------------------------------------------------------------
+        !
+        CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
         IF (gradv%cell%nnr /= oned_analytic%n) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => gradv%cell
         nnr => cell%nnr
@@ -540,9 +555,9 @@ CONTAINS
         invkbt = 1.D0 / kbt
         !
         IF (env_periodicity /= 2) &
-            CALL errore(sub_name, &
-                        'Option not yet implemented: 1D Poisson-Boltzmann &
-                        &solver only for 2D systems', 1)
+            CALL env_errore(sub_name, &
+                            'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                            &only for 2D systems', 1)
         !
         CALL init_environ_gradient(cell, glocal)
         gvstern => glocal%of_r
@@ -759,7 +774,7 @@ CONTAINS
         !
         CALL destroy_environ_gradient(glocal)
         !
-        CALL stop_clock('calc_gvms_gcs')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !

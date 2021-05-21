@@ -14,19 +14,21 @@
 MODULE tools_generate_gvectors
     !------------------------------------------------------------------------------------
     !
+    USE env_sorting, ONLY: env_hpsort_eps
+    USE env_mp, ONLY: env_mp_sum, env_mp_rank, env_mp_size
+    !
+    USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_stick_index
+    USE env_fft_ggen, ONLY: env_fft_set_nl
+    !
     USE modules_constants, ONLY: DP, eps8
     !
     USE core_types, ONLY: fft_core
-    USE fft_types, ONLY: fft_type_descriptor, fft_stick_index
-    !
-    USE modules_sort, ONLY: hpsort_eps
-    USE fft_ggen, ONLY: fft_set_nl
-    !
-    USE mp, ONLY: mp_sum, mp_rank, mp_size
     !
     !------------------------------------------------------------------------------------
     !
-    PUBLIC :: env_ggen, env_gvect_init
+    PRIVATE
+    !
+    PUBLIC :: env_gvect_init, env_ggen
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -54,7 +56,7 @@ CONTAINS
         ngm = fft%ngm
         ngm_g = ngm
         !
-        CALL mp_sum(ngm_g, comm)
+        CALL env_mp_sum(ngm_g, comm)
         !
         !--------------------------------------------------------------------------------
         ! Allocate arrays - only those that are always kept until the end
@@ -109,7 +111,7 @@ CONTAINS
         ! locally and not globally. In this case no global array needs to be
         ! allocated and sorted: saves memory and a lot of time for large systems
         !
-        TYPE(fft_type_descriptor), INTENT(INOUT) :: dfftp
+        TYPE(env_fft_type_descriptor), INTENT(INOUT) :: dfftp
         INTEGER, INTENT(INOUT) :: ngm
         REAL(DP), INTENT(OUT) :: g(:, :), gg(:)
         INTEGER, INTENT(OUT) :: gstart
@@ -133,6 +135,8 @@ CONTAINS
         INTEGER :: mype, npe
         LOGICAL :: global_sort, is_local
         INTEGER, ALLOCATABLE :: ngmpe(:)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'env_ggen'
         !
         !--------------------------------------------------------------------------------
         !
@@ -201,12 +205,12 @@ CONTAINS
                 !
                 IF (.NOT. global_sort) THEN
                     !
-                    IF (fft_stick_index(dfftp, i, j) == 0) CYCLE jloop
+                    IF (env_fft_stick_index(dfftp, i, j) == 0) CYCLE jloop
                     !
                     is_local = .TRUE.
                 ELSE
                     !
-                    IF (dfftp%lpara .AND. fft_stick_index(dfftp, i, j) == 0) THEN
+                    IF (dfftp%lpara .AND. env_fft_stick_index(dfftp, i, j) == 0) THEN
                         is_local = .FALSE.
                     ELSE
                         is_local = .TRUE.
@@ -244,7 +248,7 @@ CONTAINS
                         ngm = ngm + 1
                         !
                         IF (ngm > ngm_max) &
-                            CALL errore('ggen 1', 'too many g-vectors', ngm)
+                            CALL env_errore(sub_name, 'too many g-vectors', ngm)
                         !
                         IF (tt(k - kstart + 1) > eps8) THEN
                             g2sort_g(ngm) = tt(k - kstart + 1)
@@ -269,14 +273,14 @@ CONTAINS
         END DO iloop
         !
         IF (ngm /= ngm_max) &
-            CALL errore('ggen', 'g-vectors missing !', ABS(ngm - ngm_max))
+            CALL env_errore(sub_name, 'g-vectors missing !', ABS(ngm - ngm_max))
         !
         igsrt(1) = 0
         !
         IF (.NOT. global_sort) THEN
-            CALL hpsort_eps(ngm, g2sort_g, igsrt, eps8)
+            CALL env_hpsort_eps(ngm, g2sort_g, igsrt, eps8)
         ELSE
-            CALL hpsort_eps(ngm_g, g2sort_g, igsrt, eps8)
+            CALL env_hpsort_eps(ngm_g, g2sort_g, igsrt, eps8)
         END IF
         !
         DEALLOCATE (g2sort_g, tt)
@@ -287,13 +291,13 @@ CONTAINS
             ! Compute adequate offsets in order to avoid overlap between
             ! g vectors once they are gathered on a single (global) array
             !
-            mype = mp_rank(comm)
-            npe = mp_size(comm)
+            mype = env_mp_rank(comm)
+            npe = env_mp_size(comm)
             ALLOCATE (ngmpe(npe))
             ngmpe = 0
             ngmpe(mype + 1) = ngm
             !
-            CALL mp_sum(ngmpe, comm)
+            CALL env_mp_sum(ngmpe, comm)
             !
             ngm_offset = 0
             !
@@ -333,7 +337,7 @@ CONTAINS
         DEALLOCATE (igsrt, g2l)
         !
         IF (ngm /= ngm_save) &
-            CALL errore('ggen', 'g-vectors (ngm) missing !', ABS(ngm - ngm_save))
+            CALL env_errore(sub_name, 'g-vectors (ngm) missing !', ABS(ngm - ngm_save))
         !
         !--------------------------------------------------------------------------------
         ! Determine first nonzero g vector
@@ -346,7 +350,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL fft_set_nl(dfftp, at, g)
+        CALL env_fft_set_nl(dfftp, at, g)
         ! set nl and nls with the correct fft correspondence
         !
         !--------------------------------------------------------------------------------

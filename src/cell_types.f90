@@ -5,11 +5,9 @@
 MODULE cell_types
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, tpi
+    USE modules_constants, ONLY: DP
     !
-    USE fft_types, ONLY: fft_type_descriptor, fft_type_init, fft_type_deallocate
-    !
-    USE stick_base, ONLY: sticks_map, sticks_map_deallocate
+    USE env_fft_types, ONLY: env_fft_type_descriptor
     !
     !------------------------------------------------------------------------------------
     !
@@ -48,7 +46,7 @@ MODULE cell_types
         !--------------------------------------------------------------------------------
         ! Properties of the grid
         !
-        TYPE(fft_type_descriptor) :: dfft
+        TYPE(env_fft_type_descriptor) :: dfft
         INTEGER :: ntot ! total number of grid points
         INTEGER :: nnr ! number of grid points allocated in every processor
         INTEGER :: ir_end ! actual number grid points accessed by each processor
@@ -76,6 +74,11 @@ MODULE cell_types
         !--------------------------------------------------------------------------------
     END TYPE environ_mapping
     !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+    ! Keeping imports private
+    !
+    PRIVATE :: DP, env_fft_type_descriptor
     !
     !------------------------------------------------------------------------------------
 END MODULE cell_types

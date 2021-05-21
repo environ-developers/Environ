@@ -5,14 +5,14 @@
 MODULE tools_mapping
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_sum
+    !
+    USE env_scatter_mod, ONLY: env_scatter_grid, env_gather_grid
+    !
     USE modules_constants, ONLY: DP
     !
     USE cell_types, ONLY: environ_mapping
     USE representation_types, ONLY: environ_density
-    !
-    USE scatter_mod, ONLY: scatter_grid, gather_grid
-    !
-    USE mp, ONLY: mp_sum
     !
     !------------------------------------------------------------------------------------
     !
@@ -26,8 +26,9 @@ MODULE tools_mapping
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: map_small_to_large_real, map_small_to_large_density, &
-               map_large_to_small_real, map_large_to_small_density
+    PRIVATE
+    !
+    PUBLIC :: map_small_to_large, map_large_to_small
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -55,10 +56,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= mapping%small%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of small cell', 1)
+            CALL env_errore(sub_name, 'Wrong dimension of small cell', 1)
         !
         IF (nlarge /= mapping%large%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of large cell', 1)
+            CALL env_errore(sub_name, 'Wrong dimension of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -80,10 +81,10 @@ CONTAINS
                 !
             END DO
             !
-#if defined (__MPI)
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
+#if defined(__MPI)
+            CALL env_mp_sum(auxlarge, mapping%large%dfft%comm)
             !
-            CALL scatter_grid(mapping%large%dfft, auxlarge, flarge)
+            CALL env_scatter_grid(mapping%large%dfft, auxlarge, flarge)
             !
 #else
             flarge = auxlarge
@@ -112,16 +113,16 @@ CONTAINS
         INTEGER :: ir
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large'
+        CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_density'
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, mapping%small)) &
-            CALL errore(sub_name, 'Mismatch of small cell', 1)
+            CALL env_errore(sub_name, 'Mismatch of small cell', 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, mapping%large)) &
-            CALL errore(sub_name, 'Mismatch of large cell', 1)
+            CALL env_errore(sub_name, 'Mismatch of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -143,10 +144,10 @@ CONTAINS
                 !
             END DO
             !
-#if defined (__MPI)
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
+#if defined(__MPI)
+            CALL env_mp_sum(auxlarge, mapping%large%dfft%comm)
             !
-            CALL scatter_grid(mapping%large%dfft, auxlarge, flarge%of_r)
+            CALL env_scatter_grid(mapping%large%dfft, auxlarge, flarge%of_r)
             !
 #else
             flarge%of_r = auxlarge
@@ -182,10 +183,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (nsmall /= mapping%small%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of small cell', 1)
+            CALL env_errore(sub_name, 'Wrong dimension of small cell', 1)
         !
         IF (nlarge /= mapping%large%nnr) &
-            CALL errore(sub_name, 'Wrong dimension of large cell', 1)
+            CALL env_errore(sub_name, 'Wrong dimension of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -199,10 +200,10 @@ CONTAINS
             !
             ALLOCATE (auxlarge(mapping%large%ntot))
             auxlarge = 0.D0
-#if defined (__MPI)
-            CALL gather_grid(mapping%large%dfft, flarge, auxlarge)
+#if defined(__MPI)
+            CALL env_gather_grid(mapping%large%dfft, flarge, auxlarge)
             !
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
+            CALL env_mp_sum(auxlarge, mapping%large%dfft%comm)
             !
 #else
             auxlarge = flarge
@@ -246,10 +247,10 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, mapping%small)) &
-            CALL errore(sub_name, 'Mismatch of small cell', 1)
+            CALL env_errore(sub_name, 'Mismatch of small cell', 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, mapping%large)) &
-            CALL errore(sub_name, 'Mismatch of large cell', 1)
+            CALL env_errore(sub_name, 'Mismatch of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -265,9 +266,9 @@ CONTAINS
             auxlarge = 0.D0
             !
 #if defined(__MPI)
-            CALL gather_grid(mapping%large%dfft, flarge%of_r, auxlarge)
+            CALL env_gather_grid(mapping%large%dfft, flarge%of_r, auxlarge)
             !
-            CALL mp_sum(auxlarge, mapping%large%dfft%comm)
+            CALL env_mp_sum(auxlarge, mapping%large%dfft%comm)
             !
 #else
             auxlarge = flarge%of_r

@@ -44,7 +44,10 @@ MODULE utils_functions
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: create_environ_functions_scalar, create_environ_functions_array
+    PRIVATE
+    !
+    PUBLIC :: create_environ_functions, copy_environ_functions, &
+              destroy_environ_functions
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -162,10 +165,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ALLOCATED(f)) &
-            CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
         !
         IF (SIZE(f) /= n) &
-            CALL errore(sub_name, 'Inconsistent size of allocated object', 1)
+            CALL env_errore(sub_name, 'Inconsistent size of allocated object', 1)
         !
         DO i = 1, n
             IF (ASSOCIATED(f(i)%pos)) NULLIFY (f(i)%pos)

@@ -74,6 +74,14 @@ MODULE utils_boundary
     ! USE environ_debugging
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_boundary, init_environ_boundary_first, &
+              init_environ_boundary_second, copy_environ_boundary, &
+              update_environ_boundary, destroy_environ_boundary, set_soft_spheres
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -150,7 +158,7 @@ CONTAINS
         ! Components required for boundary of functions
         !
         IF (ALLOCATED(boundary%soft_spheres)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         !--------------------------------------------------------------------------------
         ! Components required for solvent-aware interface
@@ -181,16 +189,16 @@ CONTAINS
         CALL create_environ_density(boundary%normal_field, label)
         !
         IF (ALLOCATED(boundary%ion_field)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         IF (ALLOCATED(boundary%local_spheres)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         IF (ALLOCATED(boundary%dion_field_drho)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         IF (ALLOCATED(boundary%partial_of_ion_field)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         RETURN
         !
@@ -271,7 +279,8 @@ CONTAINS
         boundary%deltarho = rhomax - rhomin
         !
         IF (const == 1.D0 .AND. boundary%need_electrons .AND. stype == 2) &
-            CALL errore(sub_name, 'stype=2 boundary requires dielectric constant > 1', 1)
+            CALL env_errore(sub_name, &
+                            'stype=2 boundary requires dielectric constant > 1', 1)
         !
         boundary%const = const
         !
@@ -382,7 +391,7 @@ CONTAINS
         !
         IF (boundary%field_aware) THEN
             !
-            CALL errore('field-aware3', 'Option not yet implimented ', 1)
+            CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
             !
             IF (boundary%mode == 'fa-electronic' .OR. &
                 !
@@ -397,7 +406,7 @@ CONTAINS
                 END DO
                 !
             ELSE
-                CALL errore(sub_name, 'boundary must be field-aware', 1)
+                CALL env_errore(sub_name, 'boundary must be field-aware', 1)
             END IF
             !
         END IF
@@ -573,72 +582,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_soft_spheres(boundary, scale)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: scale
-        !
-        TYPE(environ_boundary), INTENT(INOUT) :: boundary
-        !
-        ! LOGICAL :: lscale1, lscale2 ! #TODO field-aware
-        INTEGER :: i
-        REAL(DP) :: radius!, f ! #TODO field-aware
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic')) RETURN
-        !
-        ! #TODO field-aware
-        !
-        ! lscale1 = .FALSE.
-        ! lscale2 = .FALSE.
-        !
-        ! IF (PRESENT(scale)) THEN
-        !     lscale1 = scale .AND. (boundary%mode == 'fa-ionic')
-        ! ELSE
-        !     lscale2 = (boundary%mode == 'fa-ionic')
-        ! END IF
-
-        ! f = 1.D0
-        !
-        DO i = 1, boundary%ions%number ! #TODO field-aware
-            !
-            ! IF (lscale1) f = scaling_of_field(boundary%field_factor, &
-            !                                   boundary%charge_asymmetry, &
-            !                                   boundary%field_max, &
-            !                                   boundary%field_min, &
-            !                                   boundary%ion_field(i))
-            !
-            radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * &
-                     boundary%alpha ! * f
-            !
-            boundary%soft_spheres(i) = environ_functions(5, 1, 0, radius, &
-                                                         boundary%softness, 1.D0, &
-                                                         boundary%ions%tau(:, i))
-            !
-            ! IF (lscale2) boundary%local_spheres(i) = boundary%soft_spheres(i)
-
-            ! IF (lscale1 .AND. verbose >= 1) &
-            !     WRITE (environ_unit, 6100) &
-            !     i, boundary%ions%iontype(boundary%ions%ityp(i))%label, &
-            !     boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad, &
-            !     boundary%alpha, boundary%ion_field(i), f, radius
-            !
-! 6100        FORMAT("atom numer = ", i3, " atom label = ", a3, &
-            !    " solvation radius = ", f8.4, " scaling = ", f8.4, " field flux = ", &
-            !    f8.4, " scaling of field = ", f8.4, " final radius = ", f8.4)
-        END DO
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_soft_spheres
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE update_environ_boundary(bound)
         !--------------------------------------------------------------------------------
         !
@@ -697,8 +640,9 @@ CONTAINS
                 ! Check if the ionic part has been updated
                 !
                 IF (bound%update_status == 0) &
-                    CALL errore(sub_name, &
-                                'Wrong update status, possibly missing ionic update', 1)
+                    CALL env_errore(sub_name, &
+                                    'Wrong update status, possibly &
+                                    &missing ionic update', 1)
                 !
                 bound%density%of_r = bound%electrons%density%of_r + bound%ions%core%of_r
                 !
@@ -844,7 +788,7 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL errore(sub_name, 'Unrecognized boundary mode', 1)
+            CALL env_errore(sub_name, 'Unrecognized boundary mode', 1)
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -945,7 +889,7 @@ CONTAINS
                     !
                     IF (boundary%field_aware .AND. boundary%mode == 'fa-ionic') THEN
                         !
-                        CALL errore('field-aware5', 'Option not yet implimented ', 1)
+                        CALL env_errore(sub_name, 'field-awarenot yet implimented ', 1)
                         !
                         DEALLOCATE (boundary%ion_field)
                         DEALLOCATE (boundary%partial_of_ion_field)
@@ -959,13 +903,14 @@ CONTAINS
                 END IF
                 !
                 IF (.NOT. ASSOCIATED(boundary%ions)) &
-                    CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+                    CALL env_errore(sub_name, &
+                                    'Trying to destroy a non associated object', 1)
                 !
                 NULLIFY (boundary%ions)
             ELSE
                 !
                 IF (ASSOCIATED(boundary%ions)) &
-                    CALL errore(sub_name, 'Found an unexpected associated object', 1)
+                    CALL env_errore(sub_name, 'Found an unexpected associated object', 1)
                 !
             END IF
             !
@@ -985,6 +930,72 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_boundary
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_soft_spheres(boundary, scale)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, INTENT(IN), OPTIONAL :: scale
+        !
+        TYPE(environ_boundary), INTENT(INOUT) :: boundary
+        !
+        ! LOGICAL :: lscale1, lscale2 ! #TODO field-aware
+        INTEGER :: i
+        REAL(DP) :: radius !, f ! #TODO field-aware
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. (boundary%mode == 'ionic' .OR. boundary%mode == 'fa-ionic')) RETURN
+        !
+        ! #TODO field-aware
+        !
+        ! lscale1 = .FALSE.
+        ! lscale2 = .FALSE.
+        !
+        ! IF (PRESENT(scale)) THEN
+        !     lscale1 = scale .AND. (boundary%mode == 'fa-ionic')
+        ! ELSE
+        !     lscale2 = (boundary%mode == 'fa-ionic')
+        ! END IF
+
+        ! f = 1.D0
+        !
+        DO i = 1, boundary%ions%number ! #TODO field-aware
+            !
+            ! IF (lscale1) f = scaling_of_field(boundary%field_factor, &
+            !                                   boundary%charge_asymmetry, &
+            !                                   boundary%field_max, &
+            !                                   boundary%field_min, &
+            !                                   boundary%ion_field(i))
+            !
+            radius = boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad * &
+                     boundary%alpha ! * f
+            !
+            boundary%soft_spheres(i) = environ_functions(5, 1, 0, radius, &
+                                                         boundary%softness, 1.D0, &
+                                                         boundary%ions%tau(:, i))
+            !
+            ! IF (lscale2) boundary%local_spheres(i) = boundary%soft_spheres(i)
+
+            ! IF (lscale1 .AND. verbose >= 1) &
+            !     WRITE (environ_unit, 6100) &
+            !     i, boundary%ions%iontype(boundary%ions%ityp(i))%label, &
+            !     boundary%ions%iontype(boundary%ions%ityp(i))%solvationrad, &
+            !     boundary%alpha, boundary%ion_field(i), f, radius
+            !
+! 6100        FORMAT("atom numer = ", i3, " atom label = ", a3, &
+            !    " solvation radius = ", f8.4, " scaling = ", f8.4, " field flux = ", &
+            !    f8.4, " scaling of field = ", f8.4, " final radius = ", f8.4)
+        END DO
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_soft_spheres
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

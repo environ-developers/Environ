@@ -5,30 +5,37 @@
 MODULE core_fft
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_sum
+    !
+    USE env_fft_interfaces, ONLY: env_fwfft, env_invfft
+    !
     USE modules_constants, ONLY: DP, e2, tpi, fpi
     !
     USE core_types, ONLY: fft_core
-    USE fft_types, ONLY: fft_type_descriptor
+    USE env_fft_types, ONLY: env_fft_type_descriptor
     USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
     USE physical_types, ONLY: environ_ions
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
     USE correction_mt, ONLY: calc_vmt, calc_gradvmt, calc_fmt
-    USE fft_interfaces, ONLY: fwfft, invfft
-    !
-    USE mp, ONLY: mp_sum
     !
     !------------------------------------------------------------------------------------
     !
     INTERFACE convolution_fft
-        MODULE PROCEDURE convolution_fft_density, convolution_fft_gradient, &
+        MODULE PROCEDURE &
+            convolution_fft_density, &
+            convolution_fft_gradient, &
             convolution_fft_hessian
     END INTERFACE convolution_fft
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: convolution_fft_density, convolution_fft_gradient, convolution_fft_hessian
+    PRIVATE
+    !
+    PUBLIC :: poisson_fft, gradpoisson_fft, force_fft, convolution_fft, &
+              gradient_fft, graddot_fft, laplacian_fft, hessian_fft, &
+              hessv_h_of_rho_r, field_of_gradrho
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -54,7 +61,7 @@ CONTAINS
         INTEGER, POINTER :: gstart, ngm
         REAL(DP), POINTER :: tpiba2, omega
         REAL(DP), POINTER :: gg(:)
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         ! Add tests for compatilibity between input, output, and fft_core
@@ -72,7 +79,7 @@ CONTAINS
         ALLOCATE (auxr(dfft%nnr))
         auxr = CMPLX(fin%of_r, 0.D0, kind=DP)
         !
-        CALL fwfft('Rho', auxr, dfft)
+        CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(ngm))
         auxg = auxr(dfft%nl(:))
@@ -106,7 +113,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Transform hartree potential to real space
         !
-        CALL invfft('Rho', auxr, dfft)
+        CALL env_invfft(auxr, dfft)
         !
         fout%of_r(:) = DBLE(auxr(:))
         DEALLOCATE (auxr)
@@ -140,7 +147,7 @@ CONTAINS
         REAL(DP), POINTER :: tpiba, omega
         REAL(DP), POINTER :: gg(:)
         REAL(DP), POINTER :: g(:, :)
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         ! Add tests for compatilibity between input, output, and fft
@@ -159,7 +166,7 @@ CONTAINS
         ALLOCATE (auxr(dfft%nnr))
         auxr(:) = CMPLX(fin%of_r(:), 0.D0, KIND=dp)
         !
-        CALL fwfft('Rho', auxr, dfft)
+        CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(ngm))
         auxg = auxr(dfft%nl(:))
@@ -212,7 +219,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Bring back to R-space, (\grad_ipol a)(r) ...
             !
-            CALL invfft('Rho', auxr, dfft)
+            CALL env_invfft(auxr, dfft)
             !
             gout%of_r(ipol, :) = REAL(auxr(:))
         END DO
@@ -249,7 +256,7 @@ CONTAINS
         INTEGER, POINTER :: ngm, gstart
         REAL(DP), POINTER :: tpiba, omega
         REAL(DP), POINTER :: g(:, :)
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         ! Add tests for compatilibity between input, output, and fft
@@ -271,7 +278,7 @@ CONTAINS
         DO ityp = 1, ions%ntyp
             auxr = CMPLX(ions%vloc(ityp)%of_r, 0.D0, KIND=dp)
             !
-            CALL fwfft('Rho', auxr, dfft)
+            CALL env_fwfft(auxr, dfft)
             !
             vloc(:, ityp) = auxr(dfft%nl(:))
         END DO
@@ -281,7 +288,7 @@ CONTAINS
         !
         auxr(:) = CMPLX(rho%of_r(:), 0.D0, KIND=dp)
         !
-        CALL fwfft('Rho', auxr, dfft)
+        CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(ngm))
         auxg = auxr(dfft%nl(:))
@@ -342,7 +349,7 @@ CONTAINS
             DEALLOCATE (ftmp)
         END IF
         !
-        CALL mp_sum(force, rho%cell%dfft%comm)
+        CALL env_mp_sum(force, rho%cell%dfft%comm)
         !
         DEALLOCATE (auxg)
         DEALLOCATE (vloc)
@@ -368,7 +375,7 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
         REAL(DP), POINTER :: omega
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         ! Add tests for compatilibity between input, output, and fft
@@ -382,7 +389,7 @@ CONTAINS
         ALLOCATE (auxr(dfft%nnr))
         auxr(:) = CMPLX(fa%of_r(:), 0.D0, kind=DP)
         !
-        CALL fwfft('Rho', auxr, dfft)
+        CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(dfft%nnr))
         auxg = 0.D0
@@ -391,7 +398,7 @@ CONTAINS
         !
         auxr(:) = CMPLX(fb%of_r(:), 0.D0, kind=DP)
         !
-        CALL fwfft('Rho', auxr, dfft)
+        CALL env_fwfft(auxr, dfft)
         !
         !--------------------------------------------------------------------------------
         ! Multiply fa(g)*fb(g)
@@ -406,7 +413,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Brings convolution back to real space
         !
-        CALL invfft('Rho', auxg, dfft)
+        CALL env_invfft(auxg, dfft)
         !
         fc%of_r(:) = REAL(auxg(:)) * omega
         !
@@ -435,7 +442,7 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
         REAL(DP), POINTER :: omega
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         INTEGER :: ipol
         !
@@ -464,7 +471,7 @@ CONTAINS
         ! ALLOCATE (auxr(dfft%nnr))
         ! auxr(:) = CMPLX(fa%of_r(:), 0.D0, kind=DP)
         ! !
-        ! CALL fwfft('Rho', auxr, dfft)
+        ! CALL env_fwfft(auxr, dfft)
         ! !
         ! ALLOCATE (auxg(dfft%nnr))
         ! !
@@ -472,7 +479,7 @@ CONTAINS
         !     !
         !     auxg(:) = CMPLX(gb%of_r(ipol, :), 0.D0, kind=DP)
         !     !
-        !     CALL fwfft('Rho', auxg, dfft)
+        !     CALL env_fwfft(auxg, dfft)
         !     !
         !     ! Multiply fa(g)*fb(g)
         !     !
@@ -483,7 +490,7 @@ CONTAINS
         !     !
         !     ! Brings convolution back to real space
         !     !
-        !     CALL invfft('Rho', auxg, dfft)
+        !     CALL env_invfft(auxg, dfft)
         !     !
         !     gc%of_r(ipol, :) = REAL(auxg(:)) * omega
         !     !
@@ -514,7 +521,7 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
         REAL(DP), POINTER :: omega
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         TYPE(environ_density) :: local
         !
         INTEGER :: ipol, jpol
@@ -548,7 +555,7 @@ CONTAINS
         ! ALLOCATE (auxr(dfft%nnr))
         ! auxr(:) = CMPLX(fa%of_r(:), 0.D0, kind=DP)
         ! !
-        ! CALL fwfft('Rho', auxr, dfft)
+        ! CALL env_fwfft(auxr, dfft)
         ! !
         ! ALLOCATE (auxg(dfft%nnr))
         ! !
@@ -557,7 +564,7 @@ CONTAINS
         !         !
         !         auxg(:) = CMPLX(hb%of_r(ipol, jpol, :), 0.D0, kind=DP)
         !         !
-        !         CALL fwfft('Rho', auxg, dfft)
+        !         CALL env_fwfft(auxg, dfft)
         !         !
         !         ! Multiply fa(g)*fb(g)
         !         !
@@ -568,7 +575,7 @@ CONTAINS
         !         !
         !         ! Brings convolution back to real space
         !         !
-        !         CALL invfft('Rho', auxg, dfft)
+        !         CALL env_invfft(auxg, dfft)
         !         !
         !         hc%of_r(ipol, jpol, :) = REAL(auxg(:)) * omega
         !         !
@@ -604,7 +611,7 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
         !
         REAL(DP), POINTER :: tpiba
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
@@ -619,7 +626,7 @@ CONTAINS
         !
         aux = CMPLX(a%of_r(:), 0.0_DP, kind=DP)
         !
-        CALL fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
+        CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
         !
         !--------------------------------------------------------------------------------
         ! Multiply by (iG) to get (\grad_ipol a)(G)
@@ -637,7 +644,7 @@ CONTAINS
                 !
             END IF
             !
-            CALL invfft('Rho', gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
+            CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
             !
             ga%of_r(ipol, :) = tpiba * DBLE(gaux(:))
             ! add the factor 2\pi/a missing in the definition of G
@@ -674,7 +681,7 @@ CONTAINS
         COMPLEX(DP) :: fp, fm, aux1, aux2
         !
         REAL(DP), POINTER :: tpiba
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
@@ -699,7 +706,7 @@ CONTAINS
             ipol = 1
             aux(:) = CMPLX(ga%of_r(ipol, :), ga%of_r(ipol + 1, :), kind=DP)
             !
-            CALL fwfft('Rho', aux, dfft) ! bring a(ipol,r) to G-space, a(G)
+            CALL env_fwfft(aux, dfft) ! bring a(ipol,r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
             ! Multiply by iG to get the gradient in G-space
@@ -721,7 +728,7 @@ CONTAINS
             ipol = 3
             aux(:) = CMPLX(ga%of_r(ipol, :), 0.0_DP, kind=DP)
             !
-            CALL fwfft('Rho', aux, dfft) ! bring a(ipol, r) to G-space, a(G)
+            CALL env_fwfft(aux, dfft) ! bring a(ipol, r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
             ! Multiply by iG to get the gradient in G-space
@@ -741,7 +748,7 @@ CONTAINS
             DO ipol = 1, 3
                 aux = CMPLX(ga%of_r(ipol, :), 0.0_DP, kind=DP)
                 !
-                CALL fwfft('Rho', aux, dfft) ! bring a(ipol,r) to G-space, a(G)
+                CALL env_fwfft(aux, dfft) ! bring a(ipol,r) to G-space, a(G)
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by iG to get the gradient in G-space
@@ -758,7 +765,7 @@ CONTAINS
             !
         END IF
         !
-        CALL invfft('Rho', gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
+        CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
         !
         da%of_r(:) = tpiba * REAL(gaux(:))
         ! Add the factor 2\pi/a missing in the definition of G and sum
@@ -792,7 +799,7 @@ CONTAINS
         !
         REAL(DP), POINTER :: tpiba2
         REAL(DP), POINTER :: gg(:)
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         ! Add tests for compatilibity between input, output, and fft
@@ -806,7 +813,7 @@ CONTAINS
         !
         aux = CMPLX(a%of_r(:), 0.0_DP, kind=DP)
         !
-        CALL fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
+        CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
         !
         !--------------------------------------------------------------------------------
         ! Compute the laplacian
@@ -822,7 +829,7 @@ CONTAINS
             !
         END IF
         !
-        CALL invfft('Rho', laux, dfft) ! bring back to R-space, (\lapl a)(r)
+        CALL env_invfft(laux, dfft) ! bring back to R-space, (\lapl a)(r)
         !
         lapla%of_r = tpiba2 * REAL(laux) ! add the missing factor (2\pi/a)^2 in G
         !
@@ -858,7 +865,7 @@ CONTAINS
         !
         REAL(DP), POINTER :: tpiba
         REAL(DP), POINTER :: g(:, :)
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         ! Add tests for compatilibity between input, output, and fft
@@ -873,7 +880,7 @@ CONTAINS
         !
         aux = CMPLX(a%of_r(:), 0.0_DP, kind=DP)
         !
-        CALL fwfft('Rho', aux, dfft) ! bring a(r) to G-space, a(G)
+        CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
         !
         !--------------------------------------------------------------------------------
         ! Multiply by (iG) to get (\grad_ipol a)(G)
@@ -891,7 +898,7 @@ CONTAINS
                 !
             END IF
             !
-            CALL invfft('Rho', gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
+            CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
             !
             ga%of_r(ipol, :) = tpiba * REAL(gaux(:))
             ! add the factor 2\pi/a missing in the definition of G
@@ -913,7 +920,8 @@ CONTAINS
                     !
                 END IF
                 !
-                CALL invfft('Rho', haux, dfft) ! bring back to R-space (\grad_ipol a)(r)
+                CALL env_invfft(haux, dfft) 
+                ! bring back to R-space (\grad_ipol a)(r)
                 !
                 ha%of_r(ipol, jpol, :) = tpiba * tpiba * REAL(haux(:))
                 ! add the factor 2\pi/a missing in the definition of G
@@ -977,7 +985,7 @@ CONTAINS
         ALLOCATE (rhoaux(fft%cell%dfft%nnr))
         rhoaux(:) = CMPLX(rho(:), 0.D0, KIND=dp)
         !
-        CALL fwfft('Rho', rhoaux, fft%cell%dfft)
+        CALL env_fwfft(rhoaux, fft%cell%dfft)
         !
         !--------------------------------------------------------------------------------
         ! Compute total potential in G space
@@ -1034,7 +1042,7 @@ CONTAINS
                     !
                 END IF
                 !
-                CALL invfft('Rho', gaux, fft%cell%dfft) ! bring back to R-space
+                CALL env_invfft(gaux, fft%cell%dfft) ! bring back to R-space
                 !
                 hessv(ipol, jpol, :) = REAL(gaux(:))
                 !
@@ -1104,7 +1112,7 @@ CONTAINS
         DO ipol = 1, 3
             gaux(:) = CMPLX(gradrho(ipol, :), 0.D0, KIND=dp)
             !
-            CALL fwfft('Rho', gaux, fft%cell%dfft)
+            CALL env_fwfft(gaux, fft%cell%dfft)
             !
             !----------------------------------------------------------------------------
             ! Compute total potential in G space
@@ -1160,7 +1168,8 @@ CONTAINS
             !
         END IF
         !
-        CALL invfft('Rho', eaux, fft%cell%dfft) ! bring back to R-space (\grad_ipol a)(r)
+        CALL env_invfft(eaux, fft%cell%dfft) 
+        ! bring back to R-space (\grad_ipol a)(r)
         !
         e(:) = REAL(eaux(:))
         !

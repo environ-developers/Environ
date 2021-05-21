@@ -12,6 +12,13 @@ MODULE utils_gradient
                              copy_environ_density, destroy_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_gradient, init_environ_gradient, copy_environ_gradient, &
+              update_gradient_modulus, destroy_environ_gradient
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -43,7 +50,7 @@ CONTAINS
         NULLIFY (gradient%cell)
         !
         IF (ALLOCATED(gradient%of_r)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         CALL create_environ_density(gradient%modulus, modulus_label)
         !
@@ -71,12 +78,12 @@ CONTAINS
         gradient%update = .FALSE.
         !
         IF (ASSOCIATED(gradient%cell)) &
-            CALL errore(sub_name, 'Trying to associate an associated object', 1)
+            CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
         !
         gradient%cell => cell
         !
         IF (ALLOCATED(gradient%of_r)) &
-            CALL errore(sub_name, 'Trying to allocate an allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
         !
         ALLOCATE (gradient%of_r(3, gradient%cell%nnr))
         gradient%of_r = 0.D0
@@ -107,7 +114,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(goriginal%cell)) &
-            CALL errore(sub_name, 'Trying to copy a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
         gcopy%cell => goriginal%cell
         !
@@ -172,12 +179,12 @@ CONTAINS
         gradient%update = .FALSE.
         !
         IF (.NOT. ASSOCIATED(gradient%cell)) &
-            CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
         !
         NULLIFY (gradient%cell)
         !
         IF (.NOT. ALLOCATED(gradient%of_r)) &
-            CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
         !
         DEALLOCATE (gradient%of_r)
         !

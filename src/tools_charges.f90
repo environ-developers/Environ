@@ -41,6 +41,12 @@ MODULE tools_charges
     USE tools_electrolyte, ONLY: electrolyte_of_potential
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: charges_of_potential
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -68,7 +74,7 @@ CONTAINS
         IF (charges%include_electrolyte) THEN
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL errore(sub_name, 'Missing expected charge component', 1)
+                CALL env_errore(sub_name, 'Missing expected charge component', 1)
             !
             CALL electrolyte_of_potential(potential, charges%electrolyte)
             !
@@ -84,7 +90,7 @@ CONTAINS
         IF (charges%include_dielectric) THEN
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL errore(sub_name, 'Missing expected charge component', 1)
+                CALL env_errore(sub_name, 'Missing expected charge component', 1)
             !
             CALL dielectric_of_potential(tot_charge_density, potential, &
                                          charges%dielectric)

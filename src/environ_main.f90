@@ -78,6 +78,12 @@ MODULE environ_main
     USE environ_output, ONLY: print_environ_density, print_environ_charges
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: calc_venviron, calc_eenviron, calc_fenviron, calc_dvenviron
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -99,6 +105,8 @@ CONTAINS
         !
         TYPE(environ_density) :: aux
         TYPE(environ_density) :: de_dboundary
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_venviron'
         !
         !--------------------------------------------------------------------------------
         ! If not updating the potentials, add old potentials and exit
@@ -222,7 +230,7 @@ CONTAINS
                     ! CALL field_aware_de_drho(solvent, de_dboundary, vsoftcavity) ! #TODO field-aware
                     ! if field-aware interface use a more cumbersome formula
                     !
-                    CALL errore('field-aware1', 'Option not yet implimented ', 1)
+                    CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
                     !
                 ELSE
                     !
@@ -248,7 +256,7 @@ CONTAINS
                     ! CALL field_aware_de_drho(electrolyte%boundary, de_dboundary, vsoftcavity) ! #TODO field-aware
                     ! if field-aware, correct the derivative of the interface function
                     !
-                    CALL errore('field-aware2', 'Option not yet implimented ', 1)
+                    CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
                     !
                 ELSE
                     !
@@ -529,7 +537,8 @@ CONTAINS
             !
             CALL init_environ_density(environment_cell, dvelectrostatic)
             !
-            CALL calc_velectrostatic(outer, environment_response_charges, dvelectrostatic)
+            CALL calc_velectrostatic(outer, environment_response_charges, &
+                                     dvelectrostatic)
             !
             CALL map_large_to_small(mapping, dvelectrostatic, aux)
             !

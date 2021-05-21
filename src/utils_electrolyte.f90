@@ -50,6 +50,14 @@ MODULE utils_electrolyte
     USE tools_functions, ONLY: density_of_functions
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_electrolyte, init_environ_electrolyte_first, &
+              init_environ_electrolyte_second, update_environ_electrolyte, &
+              destroy_environ_electrolyte
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -153,7 +161,8 @@ CONTAINS
         electrolyte%permittivity = const
         !
         IF (ALLOCATED(electrolyte%ioncctype)) &
-            CALL errore(sub_name, 'Trying to allocate an already allocated object', 1)
+            CALL env_errore(sub_name, &
+                            'Trying to allocate an already allocated object', 1)
         !
         ALLOCATE (electrolyte%ioncctype(ntyp))
         !
@@ -186,7 +195,7 @@ CONTAINS
         END DO
         !
         IF (neutral > 1.D-8) &
-            CALL errore(sub_name, 'Bulk electrolyte is not neutral', 1)
+            CALL env_errore(sub_name, 'Bulk electrolyte is not neutral', 1)
         !
         !--------------------------------------------------------------------------------
         ! If cionmax is not provided in input but radius is, calculate cionmax
@@ -202,7 +211,8 @@ CONTAINS
         sumcbulk = SUM(electrolyte%ioncctype(:)%cbulk)
         !
         IF (electrolyte%cionmax > 0.D0 .AND. electrolyte%cionmax <= sumcbulk) &
-            CALL errore(sub_name, 'cionmax should be larger than the sum of cbulks', 1)
+            CALL env_errore(sub_name, &
+                            'cionmax should be larger than the sum of cbulks', 1)
         !
         electrolyte%energy_second_order = 0.D0
         !
@@ -279,9 +289,11 @@ CONTAINS
         !
         INTEGER :: ityp
         !
+        CHARACTER(LEN=80) :: sub_name = 'update_environ_electrolyte'
+        !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('electrolyte')
+        CALL env_start_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
         ! Check if the boundary is under update (status = 1) or
@@ -304,7 +316,7 @@ CONTAINS
             !
         END IF
         !
-        CALL stop_clock('electrolyte')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -357,7 +369,7 @@ CONTAINS
         IF (lflag) THEN
             !
             IF (.NOT. ALLOCATED(electrolyte%ioncctype)) &
-                CALL errore(sub_name, 'Trying to destroy a non allocated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
             !
             DEALLOCATE (electrolyte%ioncctype)
         END IF

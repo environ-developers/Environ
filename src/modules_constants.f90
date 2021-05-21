@@ -12,11 +12,13 @@
 MODULE modules_constants
     !------------------------------------------------------------------------------------
     !
+    USE env_kinds, ONLY: DP
+    !
+    !------------------------------------------------------------------------------------
+    !
     IMPLICIT NONE
     !
     SAVE
-    !
-    INTEGER, PARAMETER :: DP = SELECTED_REAL_KIND(14, 200)
     !
     INTEGER, PARAMETER :: nsx = 10
     !
@@ -76,14 +78,9 @@ MODULE modules_constants
     !------------------------------------------------------------------------------------
     ! Zero up to a given accuracy
     !
-    REAL(DP), PARAMETER :: eps4 = 1.0E-4_DP
-    REAL(DP), PARAMETER :: eps6 = 1.0E-6_DP
     REAL(DP), PARAMETER :: eps8 = 1.0E-8_DP
-    REAL(DP), PARAMETER :: eps12 = 1.0E-12_DP
-    REAL(DP), PARAMETER :: eps14 = 1.0E-14_DP
-    REAL(DP), PARAMETER :: eps16 = 1.0E-16_DP
-    REAL(DP), PARAMETER :: eps24 = 1.0E-24_DP
-    REAL(DP), PARAMETER :: eps32 = 1.0E-32_DP
+    !
+    !------------------------------------------------------------------------------------
     !
     REAL(DP), PARAMETER :: AVOGADRO = 6.02214129D+23
     !

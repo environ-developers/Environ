@@ -39,13 +39,20 @@ MODULE utils_charges
     USE physical_types, ONLY: environ_charges, environ_electrons, environ_ions, &
                               environ_externals, environ_dielectric, &
                               environ_electrolyte, environ_semiconductor
-
     !
     USE representation_types, ONLY: environ_density
     USE cell_types, ONLY: environ_cell
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              update_environ_density, destroy_environ_density
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_charges, init_environ_charges_first, &
+              init_environ_charges_second, update_environ_charges, &
+              destroy_environ_charges
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -195,7 +202,7 @@ CONTAINS
         IF (charges%include_electrons) THEN
             !
             IF (.NOT. ASSOCIATED(charges%electrons)) &
-                CALL errore(sub_name, 'Missing expected charge component', 1)
+                CALL env_errore(sub_name, 'Missing expected charge component', 1)
             !
             charges%number = charges%number + charges%electrons%number
             charges%charge = charges%charge + charges%electrons%charge
@@ -208,7 +215,7 @@ CONTAINS
         IF (charges%include_ions) THEN
             !
             IF (.NOT. ASSOCIATED(charges%ions)) &
-                CALL errore(sub_name, 'Missing expected charge component', 1)
+                CALL env_errore(sub_name, 'Missing expected charge component', 1)
             !
             charges%number = charges%number + charges%ions%number
             charges%charge = charges%charge + charges%ions%charge
@@ -218,7 +225,7 @@ CONTAINS
         IF (charges%include_externals) THEN
             !
             IF (.NOT. ASSOCIATED(charges%externals)) &
-                CALL errore(sub_name, 'Missing expected charge component', 1)
+                CALL env_errore(sub_name, 'Missing expected charge component', 1)
             !
             charges%number = charges%number + charges%externals%number
             charges%charge = charges%charge + charges%externals%charge
@@ -233,7 +240,7 @@ CONTAINS
         local_charge = charges%density%charge
         !
         IF (ABS(local_charge - charges%charge) > 1.D-5) &
-            CALL errore(sub_name, 'Inconsistent integral of total charge', 1)
+            CALL env_errore(sub_name, 'Inconsistent integral of total charge', 1)
         !
         RETURN
         !

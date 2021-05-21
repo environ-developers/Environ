@@ -16,6 +16,14 @@ MODULE utils_electrons
     USE tools_math, ONLY: integrate_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_electrons, init_environ_electrons_first, &
+              init_environ_electrons_second, update_environ_electrons, &
+              destroy_environ_electrons
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -153,7 +161,7 @@ CONTAINS
         ! END BACKWARD COMPATIBILITY
         !
         IF (nnr /= electrons%density%cell%nnr) &
-            CALL errore(sub_name, 'Missmatch in grid size', 1)
+            CALL env_errore(sub_name, 'Mismatch in grid size', 1)
         !
         !--------------------------------------------------------------------------------
         ! Assign input density to electrons%density%of_r
@@ -177,7 +185,7 @@ CONTAINS
         IF (PRESENT(nelec)) THEN
             !
             IF (ABS(electrons%charge - nelec) > tol) &
-                CALL errore(sub_name, 'Missmatch in integrated electronic charge', 1)
+                CALL env_errore(sub_name, 'Mismatch in integrated electronic charge', 1)
             !
         END IF
         !

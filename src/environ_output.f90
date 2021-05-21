@@ -30,10 +30,23 @@
 MODULE environ_output
     !------------------------------------------------------------------------------------
     !
+    USE env_io, ONLY: env_find_free_unit
+    USE env_mp, ONLY: env_mp_sum
+    !
+    USE env_fft_types, ONLY: env_fft_type_descriptor
+    !
+    ! BACKWARD COMPATIBILITY
+    ! Compatible with QE-5.1.X
+    ! USE fft_base, ONLY : grid_gather
+    ! Compatible with QE-5.2.X
+    ! USE fft_base, ONLY : gather_grid
+    ! Compatible with QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
+    USE env_scatter_mod, ONLY: env_gather_grid
+    ! END BACKWARD COMPATIBILITY
+    !
     USE modules_constants, ONLY: DP, amu_si, bohr_radius_si, rydberg_si, RYTOEV
     !
     USE cell_types, ONLY: environ_cell
-    USE fft_types, ONLY: fft_type_descriptor
     USE representation_types
     USE physical_types
     !
@@ -51,17 +64,6 @@ MODULE environ_output
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
     USE tools_math, ONLY: integrate_environ_density
-    !
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-5.1.X
-    ! USE fft_base, ONLY : grid_gather
-    ! Compatible with QE-5.2.X
-    ! USE fft_base, ONLY : gather_grid
-    ! Compatible with QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
-    USE scatter_mod, ONLY: gather_grid
-    ! END BACKWARD COMPATIBILITY
-    !
-    USE mp, ONLY: mp_sum
     !
     !------------------------------------------------------------------------------------
     !
@@ -88,7 +90,17 @@ MODULE environ_output
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: depth, nbibliography, bibliography, set_bibliography, print_environ_cell
+    PRIVATE
+    !
+    PUBLIC :: ionode, ionode_id, lstdout, comm, program_unit, environ_unit, verbose, &
+              prog, set_environ_output, update_output_program_unit, &
+              print_environ_density, print_environ_gradient, print_environ_hessian, &
+              print_environ_functions, print_environ_iontype, print_environ_ions, &
+              print_environ_electrons, print_environ_externals, print_environ_charges, &
+              print_environ_system, print_environ_boundary, print_environ_dielectric, &
+              print_environ_electrolyte, environ_print_energies, &
+              environ_print_potential_shift, environ_print_potential_warning, &
+              environ_summary, environ_clock, write_cube
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -135,8 +147,6 @@ CONTAINS
         INTEGER, INTENT(IN) :: comm_
         INTEGER, INTENT(IN) :: program_unit_
         !
-        INTEGER, EXTERNAL :: find_free_unit
-        !
         !--------------------------------------------------------------------------------
         !
         CALL set_bibliography()
@@ -146,7 +156,7 @@ CONTAINS
         comm = comm_
         !
         program_unit = program_unit_
-        environ_unit = find_free_unit()
+        environ_unit = env_find_free_unit()
         !
         prog = prog_(1:2)
         !
@@ -653,7 +663,7 @@ CONTAINS
                         functions(ifunctions)%volume
                     !
                 CASE DEFAULT
-                    CALL errore(sub_name, 'Unexpected function type', 1)
+                    CALL env_errore(sub_name, 'Unexpected function type', 1)
                 END SELECT
                 !
                 IF (verbosity >= 3 .AND. ionode) &
@@ -1674,7 +1684,7 @@ CONTAINS
                 !
                 WRITE (program_unit, 9304) deenviron
             ELSE
-                CALL errore(sub_name, 'Wrong program calling Environ', 1)
+                CALL env_errore(sub_name, 'Wrong program calling Environ', 1)
             END IF
             !
         END IF
@@ -1918,26 +1928,26 @@ CONTAINS
         !
         IF (lelectrostatic) THEN
             !
-            CALL print_clock('calc_eelect')
+            CALL env_print_clock('calc_eelect')
             !
-            CALL print_clock('calc_velect')
+            CALL env_print_clock('calc_velect')
             !
-            CALL print_clock('calc_vgcs')
+            CALL env_print_clock('calc_vgcs')
             !
-            CALL print_clock('dielectric')
+            CALL env_print_clock('dielectric')
             !
-            CALL print_clock('electrolyte')
+            CALL env_print_clock('electrolyte')
             !
-            CALL print_clock('calc_felect')
+            CALL env_print_clock('calc_felect')
             !
         END IF
         !
-        IF (lsemiconductor) CALL print_clock('calc_vms')
+        IF (lsemiconductor) CALL env_print_clock('calc_vms')
         !
         !--------------------------------------------------------------------------------
         ! TDDFT
         !
-        IF (ltddfpt) CALL print_clock('calc_vsolvent_tddfpt')
+        IF (ltddfpt) CALL env_print_clock('calc_vsolvent_tddfpt')
         !
         RETURN
         !
@@ -1975,7 +1985,7 @@ CONTAINS
         !
         CHARACTER(LEN=100) :: filemod
         !
-        TYPE(fft_type_descriptor), POINTER :: dfft
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         CHARACTER(LEN=80) :: sub_name = 'write_cube'
         !
@@ -2022,9 +2032,9 @@ CONTAINS
         ! CALL grid_gather( f, flocal )
         ! Compatible with QE-5.2.X QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
         !
-        CALL gather_grid(dfft, f%of_r, flocal)
+        CALL env_gather_grid(dfft, f%of_r, flocal)
         !
-        CALL mp_sum(flocal, dfft%comm)
+        CALL env_mp_sum(flocal, dfft%comm)
         !
 #else
         flocal = f%of_r
@@ -2033,7 +2043,7 @@ CONTAINS
             !
             OPEN (300, file=TRIM(filename), status='unknown')
             !
-            scale = alat!*0.52917720859d0
+            scale = alat !*0.52917720859d0
             WRITE (300, *) 'CUBE FILE GENERATED BY PW.X'
             WRITE (300, *) 'OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z'
             WRITE (300, '(i5,3f12.6)') nat, origin * scale
@@ -2096,13 +2106,4 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
 END MODULE environ_output
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-MODULE environ_info ! #TODO: why? And why here?
-    !------------------------------------------------------------------------------------
-    !
-    USE environ_output
-    !
-    !------------------------------------------------------------------------------------
-END MODULE environ_info
 !----------------------------------------------------------------------------------------

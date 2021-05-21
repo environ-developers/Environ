@@ -68,5 +68,11 @@ MODULE electrostatic_base
     ! logical flags that need to be used outside
     !
     !------------------------------------------------------------------------------------
+    ! Keeping imports private
+    !
+    PRIVATE :: gradient_solver, iterative_solver, newton_solver, &
+               electrostatic_solver, electrostatic_setup, core_container
+    !
+    !------------------------------------------------------------------------------------
 END MODULE electrostatic_base
 !----------------------------------------------------------------------------------------

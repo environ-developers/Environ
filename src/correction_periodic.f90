@@ -48,6 +48,12 @@ MODULE correction_periodic
     USE tools_math, ONLY: multipoles_environ_density
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: calc_vperiodic, calc_gradvperiodic, calc_fperiodic
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -81,13 +87,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vpbc')
+        CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
         IF (.NOT. ASSOCIATED(potential%cell, oned_analytic%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => potential%cell
         alat => cell%alat
@@ -100,8 +106,8 @@ CONTAINS
         axis => oned_analytic%x
         !
         IF (env_periodicity == 0 .AND. .NOT. cell%cubic) &
-            CALL errore(sub_name, &
-                        'Parabolic correction in 0D is only for cubic cells', 1)
+            CALL env_errore(sub_name, &
+                            'Parabolic correction in 0D is only for cubic cells', 1)
         !
         CALL init_environ_density(cell, local)
         !
@@ -132,7 +138,7 @@ CONTAINS
             !
             vperiodic = fact / 3.D0 * vperiodic + const
         CASE (1)
-            CALL errore(sub_name, 'Option not yet implemented', 1)
+            CALL env_errore(sub_name, 'Option not yet implemented', 1)
         CASE (2)
             !
             const = -pi / 3.D0 * charge / axis_length * e2 - &
@@ -147,8 +153,8 @@ CONTAINS
             vperiodic = 0.D0
         CASE DEFAULT
             !
-            CALL errore(sub_name, &
-                        'Unexpected option in dimensionality of PBC correction', 1)
+            CALL env_errore(sub_name, &
+                            'Unexpected option in dimensionality of PBC correction', 1)
             !
         END SELECT
         !
@@ -156,7 +162,7 @@ CONTAINS
         !
         CALL destroy_environ_density(local)
         !
-        CALL stop_clock('calc_vpbc')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -199,10 +205,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(gvtot%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of gradient and charges', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of gradient and charges', 1)
         !
         IF (.NOT. ASSOCIATED(gvtot%cell, oned_analytic%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of gradient and solver', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of gradient and solver', 1)
         !
         cell => gvtot%cell
         omega => cell%omega
@@ -232,13 +238,13 @@ CONTAINS
             END DO
             !
         CASE (1)
-            CALL errore(sub_name, 'Option not yet implemented', 1)
+            CALL env_errore(sub_name, 'Option not yet implemented', 1)
         CASE (2)
             gvperiodic(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
         CASE (3)
             gvperiodic = 0.D0
         CASE DEFAULT
-            CALL errore(sub_name, 'Unexpected option', 1)
+            CALL env_errore(sub_name, 'Unexpected option', 1)
         END SELECT
         !
         gvperiodic = gvperiodic * fact
@@ -288,14 +294,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_fpbc')
+        CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, oned_analytic%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of charges and solver', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of charges and solver', 1)
         !
         IF (natoms /= charges%ions%number) &
-            CALL errore(sub_name, &
-                        'Missmatch in numbers of atoms passed in input and stored', 1)
+            CALL env_errore(sub_name, &
+                            'Mismatch in numbers of atoms &
+                            &passed in input and stored', 1)
         !
         alat => charges%density%cell%alat
         omega => charges%density%cell%omega
@@ -327,13 +334,13 @@ CONTAINS
             CASE (0)
                 ftmp(:, i) = (charge * pos(:) - dipole(:)) / 3.D0
             CASE (1)
-                CALL errore(sub_name, 'Option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
             CASE (2)
                 ftmp(slab_axis, i) = charge * pos(slab_axis) - dipole(slab_axis)
             CASE (3)
                 ftmp = 0.D0
             CASE DEFAULT
-                CALL errore(sub_name, 'Unexpected', 1)
+                CALL env_errore(sub_name, 'Unexpected', 1)
             END SELECT
             !
             ftmp(:, i) = ftmp(:, i) * fact * charges%ions%iontype(ityp(i))%zv
@@ -342,7 +349,7 @@ CONTAINS
         !
         f = f + ftmp
         !
-        CALL stop_clock('calc_fpbc')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !

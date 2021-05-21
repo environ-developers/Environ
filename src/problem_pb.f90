@@ -64,7 +64,7 @@ MODULE problem_pb
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: pb_nested_charges, pb_nested_density, pb_iterative, pb_newton
+    PUBLIC :: pb_nested
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -88,7 +88,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vpb')
+        CALL env_start_clock(sub_name)
         !
         SELECT CASE (solver%type_)
         CASE ('iterative')
@@ -100,8 +100,9 @@ CONTAINS
                     IF (ASSOCIATED(charges%dielectric)) THEN
                         !
                         IF (.NOT. PRESENT(inner_setup)) &
-                            CALL errore(sub_name, &
-                                        'missing setup for inner generalized problem', 1)
+                            CALL env_errore(sub_name, &
+                                            'missing setup for &
+                                            &inner generalized problem', 1)
                         !
                         CALL pb_iterative(solver%iterative, core, potential, &
                                           charges%density, charges%electrolyte, &
@@ -116,7 +117,7 @@ CONTAINS
                     END IF
                     !
                 ELSE
-                    CALL errore(sub_name, 'Option not available', 1)
+                    CALL env_errore(sub_name, 'Option not available', 1)
                 END IF
                 !
             END IF
@@ -124,7 +125,7 @@ CONTAINS
         CASE ('newton')
             !
             IF (.NOT. PRESENT(inner_setup)) &
-                CALL errore(sub_name, 'missing inner setup', 1)
+                CALL env_errore(sub_name, 'missing inner setup', 1)
             !
             IF (ASSOCIATED(charges%dielectric)) THEN
                 !
@@ -141,12 +142,12 @@ CONTAINS
             END IF
             !
         CASE ('lbfgs')
-            CALL errore(sub_name, 'Option not yet implemented', 1)
+            CALL env_errore(sub_name, 'Option not yet implemented', 1)
         CASE DEFAULT
-            CALL errore(sub_name, 'Option not yet implemented', 1)
+            CALL env_errore(sub_name, 'Option not yet implemented', 1)
         END SELECT
         !
-        CALL stop_clock('calc_vpb')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -175,7 +176,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vpb')
+        CALL env_start_clock(sub_name)
         !
         SELECT CASE (solver%type_)
             !
@@ -188,7 +189,7 @@ CONTAINS
                     IF (PRESENT(dielectric)) THEN
                         !
                         IF (.NOT. PRESENT(inner_setup)) &
-                            CALL errore(sub_name, 'missing inner setup', 1)
+                            CALL env_errore(sub_name, 'missing inner setup', 1)
                         !
                         CALL pb_iterative(solver%iterative, core, potential, charges, &
                                           electrolyte, dielectric, inner_setup%solver, &
@@ -202,7 +203,7 @@ CONTAINS
                     END IF
                     !
                 ELSE
-                    CALL errore(sub_name, 'Option not available', 1)
+                    CALL env_errore(sub_name, 'Option not available', 1)
                 END IF
                 !
             END IF
@@ -210,7 +211,7 @@ CONTAINS
         CASE ('newton')
             !
             IF (.NOT. PRESENT(inner_setup)) &
-                CALL errore(sub_name, 'missing inner setup', 1)
+                CALL env_errore(sub_name, 'missing inner setup', 1)
             !
             IF (PRESENT(dielectric)) THEN
                 !
@@ -226,12 +227,12 @@ CONTAINS
             END IF
             !
         CASE ('lbfgs')
-            CALL errore(sub_name, 'Option not yet implemented', 1)
+            CALL env_errore(sub_name, 'Option not yet implemented', 1)
         CASE DEFAULT
-            CALL errore(sub_name, 'Option not yet implemented', 1)
+            CALL env_errore(sub_name, 'Option not yet implemented', 1)
         END SELECT
         !
-        CALL stop_clock('calc_vpb')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -280,18 +281,18 @@ CONTAINS
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
             !
             IF (.NOT. (PRESENT(inner_solver) .OR. PRESENT(inner_core))) &
-                CALL errore(sub_name, 'Missing inner solver', 1)
+                CALL env_errore(sub_name, 'Missing inner solver', 1)
             !
         END IF
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         ir_end => cell%ir_end
@@ -489,13 +490,13 @@ CONTAINS
         !
         IF (PRESENT(dielectric) .AND. &
             .NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         ir_end => cell%ir_end

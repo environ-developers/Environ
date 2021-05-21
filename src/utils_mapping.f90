@@ -12,6 +12,14 @@ MODULE utils_mapping
     USE tools_cell, ONLY: ir2ijk
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_mapping, init_environ_mapping_first, &
+              init_environ_mapping_second, update_environ_mapping, &
+              destroy_environ_mapping
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -155,8 +163,8 @@ CONTAINS
             !
             ijk = ijk + small_n * mapping%nrep
             !
-            mapping%map(ir) = 1 + ijk(1) &                         ! x-point
-                              & + ijk(2) * large_n(1) &            ! y-row
+            mapping%map(ir) = 1 + ijk(1) & ! x-point
+                              & + ijk(2) * large_n(1) & ! y-row
                               & + ijk(3) * large_n(1) * large_n(2) ! z-plane
             !
         END DO

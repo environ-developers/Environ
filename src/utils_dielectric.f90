@@ -61,7 +61,11 @@ MODULE utils_dielectric
     !
     !------------------------------------------------------------------------------------
     !
-    PRIVATE :: update_dielectric_background, dielectric_of_boundary
+    PRIVATE
+    !
+    PUBLIC :: create_environ_dielectric, init_environ_dielectric_first, &
+              init_environ_dielectric_second, update_environ_dielectric, &
+              destroy_environ_dielectric, set_dielectric_regions
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -85,7 +89,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ALLOCATED(dielectric%regions)) &
-            CALL errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
         label = 'background'
         !
@@ -176,53 +180,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_dielectric_regions(nregions, epsregion_dim, epsregion_axis, &
-                                      epsregion_pos, epsregion_width, &
-                                      epsregion_spread, epsregion_eps, dielectric)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: nregions
-        INTEGER, DIMENSION(nregions), INTENT(IN) :: epsregion_dim, epsregion_axis
-        !
-        REAL(DP), DIMENSION(nregions), INTENT(IN) :: epsregion_width, &
-                                                     epsregion_spread, epsregion_eps
-        !
-        REAL(DP), INTENT(IN) :: epsregion_pos(3, nregions)
-        !
-        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
-        !
-        INTEGER :: i
-        !
-        !--------------------------------------------------------------------------------
-        !
-        dielectric%nregions = nregions
-        !
-        IF (dielectric%nregions > 0) THEN
-            ALLOCATE (dielectric%regions(nregions))
-            !
-            DO i = 1, dielectric%nregions
-                dielectric%regions(i)%type_ = 4
-                dielectric%regions(i)%dim = epsregion_dim(i)
-                dielectric%regions(i)%axis = epsregion_axis(i)
-                dielectric%regions(i)%spread = epsregion_spread(i)
-                dielectric%regions(i)%width = epsregion_width(i)
-                dielectric%regions(i)%volume = epsregion_eps(i)
-                ALLOCATE (dielectric%regions(i)%pos(3))
-                dielectric%regions(i)%pos = epsregion_pos(:, i)
-            END DO
-            !
-        END IF
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_dielectric_regions
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_dielectric_second(cell, dielectric)
         !--------------------------------------------------------------------------------
         !
@@ -292,9 +249,11 @@ CONTAINS
         !
         TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
         !
+        CHARACTER(LEN=80) :: sub_name = 'update_environ_dielectric'
+        !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('dielectric')
+        CALL env_start_clock(sub_name)
         !
         IF (dielectric%epsilon%cell%update) THEN
             !
@@ -334,7 +293,7 @@ CONTAINS
             !
         END IF
         !
-        CALL stop_clock('dielectric')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -364,12 +323,12 @@ CONTAINS
             ELSE
                 !
                 IF (ALLOCATED(dielectric%regions)) &
-                    CALL errore(sub_name, 'Found unexpected allocated object', 1)
+                    CALL env_errore(sub_name, 'Found unexpected allocated object', 1)
                 !
             END IF
             !
             IF (.NOT. ASSOCIATED(dielectric%boundary)) &
-                CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
             !
             NULLIFY (dielectric%boundary)
         END IF
@@ -412,6 +371,53 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_dielectric
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_dielectric_regions(nregions, epsregion_dim, epsregion_axis, &
+                                      epsregion_pos, epsregion_width, &
+                                      epsregion_spread, epsregion_eps, dielectric)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: nregions
+        INTEGER, DIMENSION(nregions), INTENT(IN) :: epsregion_dim, epsregion_axis
+        !
+        REAL(DP), DIMENSION(nregions), INTENT(IN) :: epsregion_width, &
+                                                     epsregion_spread, epsregion_eps
+        !
+        REAL(DP), INTENT(IN) :: epsregion_pos(3, nregions)
+        !
+        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
+        !
+        INTEGER :: i
+        !
+        !--------------------------------------------------------------------------------
+        !
+        dielectric%nregions = nregions
+        !
+        IF (dielectric%nregions > 0) THEN
+            ALLOCATE (dielectric%regions(nregions))
+            !
+            DO i = 1, dielectric%nregions
+                dielectric%regions(i)%type_ = 4
+                dielectric%regions(i)%dim = epsregion_dim(i)
+                dielectric%regions(i)%axis = epsregion_axis(i)
+                dielectric%regions(i)%spread = epsregion_spread(i)
+                dielectric%regions(i)%width = epsregion_width(i)
+                dielectric%regions(i)%volume = epsregion_eps(i)
+                ALLOCATE (dielectric%regions(i)%pos(3))
+                dielectric%regions(i)%pos = epsregion_pos(:, i)
+            END DO
+            !
+        END IF
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_dielectric_regions
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -533,7 +539,7 @@ CONTAINS
         REAL(DP), ALLOCATABLE :: d2eps_dbackdbound(:)
         REAL(DP), ALLOCATABLE :: gradepsmod2(:)
         !
-        CHARACTER(LEN=80) :: sub_name = 'epsilon_of_boundary'
+        CHARACTER(LEN=80) :: sub_name = 'dielectric_of_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -544,7 +550,7 @@ CONTAINS
         scaled => dielectric%boundary%scaled%of_r
         !
         IF (.NOT. ALLOCATED(dielectric%boundary%gradient%of_r)) &
-            CALL errore(sub_name, 'Missing required gradient of boundary', 1)
+            CALL env_errore(sub_name, 'Missing required gradient of boundary', 1)
         !
         gradscaled => dielectric%boundary%gradient%of_r
         gradlogeps => dielectric%gradlog%of_r
@@ -553,7 +559,7 @@ CONTAINS
         IF (dielectric%need_gradient) THEN
             !
             IF (.NOT. ALLOCATED(dielectric%boundary%gradient%of_r)) &
-                CALL errore(sub_name, 'Missing required gradient of boundary', 1)
+                CALL env_errore(sub_name, 'Missing required gradient of boundary', 1)
             !
             gradscaled => dielectric%boundary%gradient%of_r
             gradeps => dielectric%gradient%of_r
@@ -562,12 +568,12 @@ CONTAINS
         IF (dielectric%need_factsqrt) THEN
             !
             IF (.NOT. ALLOCATED(dielectric%boundary%gradient%of_r)) &
-                CALL errore(sub_name, 'Missing required gradient of boundary', 1)
+                CALL env_errore(sub_name, 'Missing required gradient of boundary', 1)
             !
             gradscaledmod => dielectric%boundary%gradient%modulus%of_r
             !
             IF (.NOT. ALLOCATED(dielectric%boundary%laplacian%of_r)) &
-                CALL errore(sub_name, 'Missing required laplacian of boundary', 1)
+                CALL env_errore(sub_name, 'Missing required laplacian of boundary', 1)
             !
             laplscaled => dielectric%boundary%laplacian%of_r
             factsqrteps => dielectric%factsqrt%of_r
@@ -633,7 +639,7 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL errore(sub_name, 'Unkown boundary type', 1)
+            CALL env_errore(sub_name, 'Unkown boundary type', 1)
         END SELECT
         !
         !--------------------------------------------------------------------------------

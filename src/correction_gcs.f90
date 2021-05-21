@@ -24,6 +24,8 @@
 MODULE correction_gcs
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_sum
+    !
     USE modules_constants, ONLY: DP, e2, k_boltzmann_ry, pi, tpi, fpi
     !
     USE core_types, ONLY: oned_analytic_core
@@ -36,7 +38,11 @@ MODULE correction_gcs
     !
     USE tools_math, ONLY: multipoles_environ_density
     !
-    USE mp, ONLY: mp_sum
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: calc_vgcs, calc_gradvgcs
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -141,13 +147,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_vgcs')
+        CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
         IF (.NOT. ASSOCIATED(potential%cell, oned_analytic%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => potential%cell
         nnr => cell%nnr
@@ -164,7 +170,7 @@ CONTAINS
         ! Get parameters of electrolyte to compute analytic correction
         !
         IF (electrolyte%ntyp /= 2) &
-            CALL errore(sub_name, &
+            CALL env_errore(sub_name, &
                         'Unexpected number of counterionic species, &
                         &different from two', 1)
         !
@@ -180,7 +186,7 @@ CONTAINS
         invkbt = 1.D0 / kbt
         !
         IF (env_periodicity /= 2) &
-            CALL errore(sub_name, &
+            CALL env_errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
         !
@@ -258,9 +264,9 @@ CONTAINS
             !
         END DO
         !
-        CALL mp_sum(icount, cell%dfft%comm)
+        CALL env_mp_sum(icount, cell%dfft%comm)
         !
-        CALL mp_sum(vbound, cell%dfft%comm)
+        CALL env_mp_sum(vbound, cell%dfft%comm)
         !
         vbound = vbound / DBLE(icount)
         !
@@ -344,7 +350,7 @@ CONTAINS
         !
         CALL destroy_environ_density(local)
         !
-        CALL stop_clock('calc_vgcs')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !
@@ -391,13 +397,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL start_clock('calc_gvst')
+        CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and charges', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
         IF (.NOT. ASSOCIATED(gradv%cell, oned_analytic%cell)) &
-            CALL errore(sub_name, 'Missmatch in domains of potential and solver', 1)
+            CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => gradv%cell
         nnr => cell%nnr
@@ -414,7 +420,7 @@ CONTAINS
         ! Get parameters of electrolyte to compute analytic correction
         !
         IF (electrolyte%ntyp /= 2) &
-            CALL errore(sub_name, &
+            CALL env_errore(sub_name, &
                         'Unexpected number of counterionic species, &
                         &different from two', 1)
         !
@@ -430,7 +436,7 @@ CONTAINS
         invkbt = 1.D0 / kbt
         !
         IF (env_periodicity /= 2) &
-            CALL errore(sub_name, &
+            CALL env_errore(sub_name, &
                         'Option not yet implemented: 1D Poisson-Boltzmann &
                         &solver only for 2D systems', 1)
         !
@@ -553,7 +559,7 @@ CONTAINS
         !
         CALL destroy_environ_gradient(glocal)
         !
-        CALL stop_clock('calc_gvst')
+        CALL env_stop_clock(sub_name)
         !
         RETURN
         !

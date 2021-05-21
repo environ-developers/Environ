@@ -6,7 +6,9 @@
 MODULE core_base
     !------------------------------------------------------------------------------------
     !
-    USE core_types
+    USE core_types, ONLY: fd_core, fft_core, oned_analytic_core
+    !
+    !------------------------------------------------------------------------------------
     !
     SAVE
     !
@@ -21,6 +23,11 @@ MODULE core_base
     !
     LOGICAL :: loned_analytic
     TYPE(oned_analytic_core) :: oned_analytic
+    !
+    !------------------------------------------------------------------------------------
+    ! Keeping imports private
+    !
+    PRIVATE :: fd_core, fft_core, oned_analytic_core
     !
     !------------------------------------------------------------------------------------
 END MODULE core_base

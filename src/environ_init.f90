@@ -29,6 +29,8 @@
 MODULE environ_init
     !------------------------------------------------------------------------------------
     !
+    USE env_mp_base, ONLY: env_allocate_mp_buffers, env_deallocate_mp_buffers
+    !
     USE modules_constants, ONLY: DP, e2, bohr_radius_si, rydberg_si
     !
     USE environ_base
@@ -62,6 +64,15 @@ MODULE environ_init
     USE environ_output, ONLY: environ_unit, print_environ_ions, print_environ_system, &
                               print_environ_boundary, print_environ_dielectric, &
                               print_environ_electrolyte, print_environ_electrons
+    !
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: set_environ_base, environ_initbase, environ_initpotential, &
+              environ_initcell, environ_initions, environ_initelectrons, &
+              environ_initresponse, environ_clean, environ_clean_pw, &
+              environ_clean_tddfpt
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -174,7 +185,7 @@ CONTAINS
         CHARACTER(LEN=80) :: label
         INTEGER :: i
         !
-        CHARACTER(LEN=20) :: sub_name = ' set_environ_base '
+        CHARACTER(LEN=20) :: sub_name = 'set_environ_base'
         !
         !--------------------------------------------------------------------------------
         ! TDDFPT flag
@@ -324,7 +335,8 @@ CONTAINS
             CALL create_environ_charges(environment_response_charges)
             !
             CALL init_environ_charges_first(electrons=environment_response_electrons, &
-                                            dielectric=optical, charges=environment_response_charges)
+                                            dielectric=optical, &
+                                            charges=environment_response_charges)
             !
         END IF
         !
@@ -537,7 +549,7 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initbase(alat, at, comm, me, root, gcutm, e2_local)
+    SUBROUTINE environ_initbase(alat, at, comm, me, root, gcutm, e2_in)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -546,7 +558,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: alat
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
-        REAL(DP), OPTIONAL, INTENT(IN) :: e2_local
+        REAL(DP), OPTIONAL, INTENT(IN) :: e2_in
         !
         INTEGER :: m(3)
         !
@@ -557,11 +569,16 @@ CONTAINS
         CHARACTER(LEN=80) :: label = ' '
         !
         !--------------------------------------------------------------------------------
+        ! Allocate buffers used by env_mp_sum
+        !
+        CALL env_allocate_mp_buffers()
+        !
+        !--------------------------------------------------------------------------------
         ! Common initialization for simulations with Environ
         !
         e2 = 2.D0
         !
-        IF (PRESENT(e2_local)) e2 = e2_local
+        IF (PRESENT(e2_in)) e2 = e2_in
         !
         CALL init_environ_cell(gcutm, comm, alat, at, system_cell) ! create system cell
         !
@@ -692,9 +709,11 @@ CONTAINS
             !
             CALL init_environ_charges_second(system_cell, system_response_charges)
             !
-            CALL init_environ_electrons_second(environment_cell, environment_response_electrons)
+            CALL init_environ_electrons_second(environment_cell, &
+                                               environment_response_electrons)
             !
-            CALL init_environ_charges_second(environment_cell, environment_response_charges)
+            CALL init_environ_charges_second(environment_cell, &
+                                             environment_response_charges)
             !
             CALL init_environ_dielectric_second(environment_cell, optical)
             !
@@ -742,7 +761,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(vzero%cell)) RETURN
         !
         IF (vzero%cell%nnr /= nnr) &
-            CALL errore(sub_name, 'Inconsistent size in input potential', 1)
+            CALL env_errore(sub_name, 'Inconsistent size in input potential', 1)
         !
         vzero%of_r = vltot
         !
@@ -1167,7 +1186,10 @@ CONTAINS
                                           environment_response_electrons, 0.D0)
             !
         ELSE
-            CALL update_environ_electrons(nnr, drho, environment_response_electrons, 0.D0)
+            !
+            CALL update_environ_electrons(nnr, drho, environment_response_electrons, &
+                                          0.D0)
+            !
         END IF
         !
         CALL update_environ_charges(environment_response_charges)
@@ -1197,6 +1219,8 @@ CONTAINS
         CALL environ_clean_pw(lflag)
         !
         CALL environ_clean_tddfpt(lflag)
+        !
+        CALL env_deallocate_mp_buffers()
         !
         RETURN
         !

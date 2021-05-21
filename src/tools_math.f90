@@ -5,6 +5,8 @@
 MODULE tools_math
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_sum
+    !
     USE modules_constants, ONLY: DP
     !
     USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
@@ -12,7 +14,15 @@ MODULE tools_math
     !
     USE tools_cell, ONLY: ir2r, displacement, minimum_image
     !
-    USE mp, ONLY: mp_sum
+    !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: scalar_product_environ_density, scalar_product_environ_gradient, &
+              scalar_product_environ_hessian, scalar_product_environ_gradient_density, &
+              integrate_environ_density, euclidean_norm_environ_density, &
+              quadratic_mean_environ_density, multipoles_environ_density, &
+              environ_erf, environ_erfc
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -35,12 +45,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(density1%cell, density2%cell)) &
-            CALL errore(fun_name, 'operation on fields with inconsistent domains', 1)
+            CALL env_errore(fun_name, 'operation on fields with inconsistent domains', 1)
         !
         ir_end => density1%cell%ir_end
         scalar_product = DOT_PRODUCT(density1%of_r(1:ir_end), density2%of_r(1:ir_end))
         !
-        CALL mp_sum(scalar_product, density1%cell%dfft%comm)
+        CALL env_mp_sum(scalar_product, density1%cell%dfft%comm)
         !
         scalar_product = scalar_product * density1%cell%domega
         !
@@ -70,10 +80,10 @@ CONTAINS
         dens%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(gradA%cell, gradB%cell)) &
-            CALL errore(sub_name, 'Missmatch in domain of input gradients', 1)
+            CALL env_errore(sub_name, 'Mismatch in domain of input gradients', 1)
         !
         IF (.NOT. ASSOCIATED(gradA%cell, dens%cell)) &
-            CALL errore(sub_name, 'Missmatch in domain of input and output', 1)
+            CALL env_errore(sub_name, 'Mismatch in domain of input and output', 1)
         !
         DO ir = 1, dens%cell%ir_end
             dens%of_r(ir) = SUM(gradA%of_r(:, ir) * gradB%of_r(:, ir))
@@ -106,10 +116,10 @@ CONTAINS
         gradout%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(gradin%cell, hess%cell)) &
-            CALL errore(sub_name, 'Missmatch in domain of input hessian/gradients', 1)
+            CALL env_errore(sub_name, 'Mismatch in domain of input hessian/gradients', 1)
         !
         IF (.NOT. ASSOCIATED(gradin%cell, gradout%cell)) &
-            CALL errore(sub_name, 'Missmatch in domain of input and output', 1)
+            CALL env_errore(sub_name, 'Mismatch in domain of input and output', 1)
         !
         DO ir = 1, hess%cell%ir_end
             !
@@ -149,7 +159,7 @@ CONTAINS
         res = 0.D0
         !
         IF (.NOT. ASSOCIATED(gradient%cell, density%cell)) &
-            CALL errore(sub_name, 'Missmatch in domain of input vectors', 1)
+            CALL env_errore(sub_name, 'Mismatch in domain of input vectors', 1)
         !
         ir_end => density%cell%ir_end
         !
@@ -158,7 +168,7 @@ CONTAINS
             scalar_product = DOT_PRODUCT(gradient%of_r(ipol, 1:ir_end), &
                                          density%of_r(1:ir_end))
             !
-            CALL mp_sum(scalar_product, density%cell%dfft%comm)
+            CALL env_mp_sum(scalar_product, density%cell%dfft%comm)
             !
             res(ipol) = scalar_product * density%cell%domega
         END DO
@@ -230,7 +240,7 @@ CONTAINS
         !
         integral = SUM(density%of_r(1:density%cell%ir_end))
         !
-        CALL mp_sum(integral, density%cell%dfft%comm)
+        CALL env_mp_sum(integral, density%cell%dfft%comm)
         !
         integral = integral * density%cell%domega
         !
@@ -258,7 +268,7 @@ CONTAINS
         ir_end => density%cell%ir_end
         euclidean_norm = DOT_PRODUCT(density%of_r(1:ir_end), density%of_r(1:ir_end))
         !
-        CALL mp_sum(euclidean_norm, density%cell%dfft%comm)
+        CALL env_mp_sum(euclidean_norm, density%cell%dfft%comm)
         !
         RETURN
         !
@@ -284,7 +294,7 @@ CONTAINS
         ir_end => density%cell%ir_end
         quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end), density%of_r(1:ir_end))
         !
-        CALL mp_sum(quadratic_mean, density%cell%dfft%comm)
+        CALL env_mp_sum(quadratic_mean, density%cell%dfft%comm)
         !
         quadratic_mean = SQRT(quadratic_mean / density%cell%ntot)
         !
@@ -292,35 +302,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END FUNCTION quadratic_mean_environ_density
-    !------------------------------------------------------------------------------------
-    !>
-    !! #TODO unused
-    !!
-    !------------------------------------------------------------------------------------
-    FUNCTION quadratic_mean_environ_density_old(density) RESULT(quadratic_mean)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_density), INTENT(IN) :: density
-        !
-        INTEGER, POINTER :: ir_end
-        !
-        REAL(DP) :: quadratic_mean
-        !
-        !--------------------------------------------------------------------------------
-        !
-        ir_end => density%cell%ir_end
-        quadratic_mean = DOT_PRODUCT(density%of_r(1:ir_end), density%of_r(1:ir_end))
-        !
-        CALL mp_sum(quadratic_mean, density%cell%dfft%comm)
-        !
-        quadratic_mean = SQRT(quadratic_mean) / density%cell%ntot
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END FUNCTION quadratic_mean_environ_density_old
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -377,11 +358,11 @@ CONTAINS
             !
         END DO
         !
-        CALL mp_sum(monopole, cell%dfft%comm)
+        CALL env_mp_sum(monopole, cell%dfft%comm)
         !
-        CALL mp_sum(dipole, cell%dfft%comm)
+        CALL env_mp_sum(dipole, cell%dfft%comm)
         !
-        CALL mp_sum(quadrupole, cell%dfft%comm)
+        CALL env_mp_sum(quadrupole, cell%dfft%comm)
         !
         monopole = monopole * cell%domega
         dipole = dipole * cell%domega * cell%alat
