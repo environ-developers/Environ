@@ -13,7 +13,7 @@
 #include "fftw_dp.h"
 #include "fftw_sp.h"
 
-int create_plan_1d (fftw_plan *p, int *n, int *idir)
+int env_create_plan_1d (fftw_plan *p, int *n, int *idir)
 {
    fftw_direction dir = ( (*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD ); 
    *p = qe_fftw_create_plan(*n, dir, FFTW_ESTIMATE | FFTW_IN_PLACE);
@@ -31,7 +31,7 @@ int float_create_plan_1d(float_fftw_plan* p, int* n, int* idir)
 	return 0;
 }
 
-int destroy_plan_1d (fftw_plan *p)
+int env_destroy_plan_1d (fftw_plan *p)
 {
    if ( *p != NULL ) qe_fftw_destroy_plan(*p);
    else fprintf(stderr," *** DESTROY_PLAN: warning empty plan ***\n");
@@ -45,44 +45,44 @@ int float_destroy_plan_1d(float_fftw_plan* p)
 	return 0;
 }
 
-int create_plan_2d (fftwnd_plan *p, int *n, int *m, int *idir)
+int env_create_plan_2d (fftwnd_plan *p, int *n, int *m, int *idir)
 {
    fftw_direction dir = ( (*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD );
    *p = qe_fftw2d_create_plan(*m, *n, dir, FFTW_ESTIMATE | FFTW_IN_PLACE);
-   if( *p == NULL ) fprintf(stderr," *** CREATE_PLAN_2D: warning empty plan ***\n");
+   if( *p == NULL ) fprintf(stderr," *** env_create_plan_2d: warning empty plan ***\n");
 /*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
    return 0;
 }
 
-int destroy_plan_2d (fftwnd_plan *p)
+int env_destroy_plan_2d (fftwnd_plan *p)
 {
    if ( *p != NULL ) qe_fftwnd_destroy_plan(*p);
-   else fprintf(stderr," *** DESTROY_PLAN_2D: warning empty plan ***\n");
+   else fprintf(stderr," *** env_destroy_plan_2d: warning empty plan ***\n");
    return 0;
 }
 
-int create_plan_3d (fftwnd_plan *p, int *n, int *m, int *l, int *idir)
+int env_create_plan_3d (fftwnd_plan *p, int *n, int *m, int *l, int *idir)
 {
    fftw_direction dir = ( (*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD );
    *p = qe_fftw3d_create_plan(*l, *m, *n, dir, FFTW_ESTIMATE | FFTW_IN_PLACE);
    if( *p == NULL ) {
-	fprintf(stderr," *** CREATE_PLAN_3D: warning empty plan ***\n");
+	fprintf(stderr," *** env_create_plan_3d: warning empty plan ***\n");
 	fprintf(stderr," *** input was (n,m,l,dir): %d %d %d %d ***\n", *l, *m, *n, *idir);
    }
 /*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
    return 0;
 }
 
-int destroy_plan_3d (fftwnd_plan *p)
+int env_destroy_plan_3d (fftwnd_plan *p)
 
 {
    if ( *p != NULL ) qe_fftwnd_destroy_plan(*p);
-   else fprintf(stderr," *** DESTROY_PLAN_3D: warning empty plan ***\n");
+   else fprintf(stderr," *** env_destroy_plan_3d: warning empty plan ***\n");
    return 0;
 }
 
 
-int fft_x_stick
+int env_fft_x_stick
 (fftw_plan *p, FFTW_COMPLEX *a, int *nx, int *ny, int *nz, int *ldx, int *ldy )
 {
 
@@ -106,7 +106,7 @@ int fft_x_stick
    return 0;
 }
 
-int fft_y_stick
+int env_fft_y_stick
    (fftw_plan *p, FFTW_COMPLEX *a, int *ny, int *ldx )
 {
    fftw(*p, 1, a, (*ldx), 1, 0, 0, 0);
@@ -114,7 +114,7 @@ int fft_y_stick
 }
 
 
-int fft_z_stick
+int env_fft_z_stick
    (fftw_plan *p, FFTW_COMPLEX *zstick, int *ldz, int *nstick_l)
 {
    int howmany, idist;
@@ -124,7 +124,7 @@ int fft_z_stick
    return 0;
 }
 
-int fftw_inplace_drv_1d
+int env_fftw_inplace_drv_1d
    (fftw_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
 {
    fftw(*p, (*nfft), a, (*inca), (*idist), 0, 0, 0);
@@ -138,14 +138,14 @@ int fftw_inplace_drv_2d
    return 0;
 }
 
-int fftw_inplace_drv_3d
+int env_fftw_inplace_drv_3d
    ( fftwnd_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
 {
    fftwnd( *p, (*nfft), a, (*inca), (*idist), 0, 0, 0 );
    return 0;
 }
 
-int fft_x_stick_single
+int env_fft_x_stick_single
 (fftw_plan *p, FFTW_COMPLEX *a, int *nx, int *ny, int *nz, int *ldx, int *ldy )
 {
 
@@ -165,7 +165,7 @@ int fft_x_stick_single
 }
 
 
-int fft_z_stick_single (fftw_plan *p, FFTW_COMPLEX *a, int *ldz)
+int env_fft_z_stick_single (fftw_plan *p, FFTW_COMPLEX *a, int *ldz)
 {
   fftw(*p, 1,a, 1, 0, 0, 0, 0);
 

@@ -242,6 +242,8 @@ sum_ = 1 + var1 + &
 
 - explicit imports ONLY (DO NOT rely on nested imports!!!)
 - grouped at the top of the module, !-separated into subgroups (in order):
+  - util imports
+  - fft imports
   - constants
   - types
   - bases
@@ -250,11 +252,14 @@ sum_ = 1 + var1 + &
   - other functions
   - I/O
   - debugging
-  - parallelization
 
 ## private/public
 
-- only state what is private, if any
+- use empty private (to prevent import inheritance)
+- explicitly define all that is publicly accessible
+- NOTE: for large, mostly accessible modules, this rule may be reversed
+  - explicitly state all that is private, keeping the rest public by default
+  - bases and types are examples of this exception
 
 ## files
 

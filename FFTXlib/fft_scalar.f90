@@ -1,52 +1,56 @@
+!----------------------------------------------------------------------------------------
 !
-! Copyright (C) Quantum ESPRESSO group
+! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+! Copyright (C) 2011 Quantum ESPRESSO group
 !
-! This file is distributed under the terms of the
-! GNU General Public License. See the file `License'
-! in the root directory of the present distribution,
-! or http://www.gnu.org/copyleft/gpl.txt .
+!----------------------------------------------------------------------------------------
 !
-!--------------------------------------------------------------------------!
-! FFT scalar drivers Module - contains machine-dependent routines for      !
-! internal FFTW, FFTW v.3, IBM ESSL, Intel DFTI, ARMlib                    !
-! (both 3d for serial execution and 1d+2d FFTs for parallel execution);    !
-! legacy NEC ASL libraries (3d only, no parallel execution)                !
-! Written by Carlo Cavazzoni, modified by P. Giannozzi, contributions      !
-! by Martin Hilgemans, Guido Roma, Pascal Thibaudeau, Stephane Lefranc,    !
-! Nicolas Lacorne, Filippo Spiga, Nicola Varini, Jason Wood                !
-! Last update Oct 2017                                                     !
-!--------------------------------------------------------------------------!
-
-!=----------------------------------------------------------------------=!
-   MODULE fft_scalar
-!=----------------------------------------------------------------------=!
-
-     USE fft_param
+! This file is part of Environ version 2.0
+!
+! Environ 2.0 is free software: you can redistribute it and/or modify
+! it under the terms of the GNU General Public License as published by
+! the Free Software Foundation, either version 2 of the License, or
+! (at your option) any later version.
+!
+! Environ 2.0 is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+! GNU General Public License for more detail, either the file
+! `License' in the root directory of the present distribution, or
+! online at <http://www.gnu.org/licenses/>.
+!
+!----------------------------------------------------------------------------------------
+!
+! Authors: Carlo Cavazzoni, modified by P. Giannozzi, contributions
+!          by Martin Hilgemans, Guido Roma, Pascal Thibaudeau, Stephane Lefranc,
+!          Nicolas Lacorne, Filippo Spiga, Nicola Varini, Jason Wood
+!
+!----------------------------------------------------------------------------------------
+!>
+!!
+!----------------------------------------------------------------------------------------
+MODULE env_fft_scalar
+    !------------------------------------------------------------------------------------
+    !
 #if defined(__FFTW3)
-     USE fft_scalar_fftw3
+    USE env_fft_scalar_fftw3, ONLY: env_cft_1z, env_cft_2xy, env_cfft3d
 #elif defined(__DFTI)
-     USE fft_scalar_dfti
+    USE env_fft_scalar_dfti, ONLY: env_cft_1z, env_cft_2xy, env_cfft3d
 #elif defined(__LINUX_ESSL)
-     USE fft_scalar_essl
+    USE env_fft_scalar_essl, ONLY: env_cft_1z, env_cft_2xy, env_cfft3d
 #elif defined(__SX6)
-     USE fft_scalar_sx6
+    USE env_fft_scalar_sx6, ONLY: env_cft_1z, env_cft_2xy, env_cfft3d
 #elif defined(__ARM_LIB)
-     USE fft_scalar_arm
+    USE env_fft_scalar_arm, ONLY: env_cft_1z, env_cft_2xy, env_cfft3d
 #elif defined(__FFTW)
-     USE fft_scalar_fftw
+    USE env_fft_scalar_fftw, ONLY: env_cft_1z, env_cft_2xy, env_cfft3d
 #else
-#error No fft_scalar backend selected!
+#error No env_fft_scalar backend selected!
 #endif
 #if defined(__CUDA)
-     USE fft_scalar_cuFFT
+    USE env_fft_scalar_cuFFT, ONLY: env_cft_1z_gpu, env_cft_2xy_gpu, env_cfft3d_gpu
 #endif
-     IMPLICIT NONE
-     SAVE
-
-     PRIVATE
-     PUBLIC :: cft_1z, cft_2xy, cfft3d, cfft3ds
-#if defined(__CUDA)
-     PUBLIC :: cft_1z_gpu, cft_2xy_gpu, cfft3d_gpu, cfft3ds_gpu
-#endif
-
-   END MODULE fft_scalar
+    !
+    !------------------------------------------------------------------------------------
+END MODULE env_fft_scalar
+!----------------------------------------------------------------------------------------

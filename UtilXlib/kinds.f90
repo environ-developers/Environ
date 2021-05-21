@@ -27,20 +27,13 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE env_fft_param
+MODULE env_kinds
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param
+    INTEGER, PARAMETER :: DP = SELECTED_REAL_KIND(14, 200)
+    !
+    INTEGER, PARAMETER :: i8b = SELECTED_INT_KIND(18)
     !
     !------------------------------------------------------------------------------------
-    !
-    INTEGER, PARAMETER :: ndims = 10
-    ! number of different FFT tables that the module could keep into memory
-    ! without reinitialization
-    !
-    INTEGER, PARAMETER :: nfftx = 2049
-    ! max allowed fft dimension
-    !
-    !------------------------------------------------------------------------------------
-END MODULE env_fft_param
+END MODULE env_kinds
 !----------------------------------------------------------------------------------------
