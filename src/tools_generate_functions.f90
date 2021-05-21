@@ -793,34 +793,19 @@ CONTAINS
     !     drholocal = 0.D0
     !     chargelocal = 0.D0
     !     !
-    !     ! BACKWARD COMPATIBILITY
-    !     ! Compatible with QE-5.X QE-6.1.X
-    !     ! idx0 = dfftp%nr1x * dfftp%nr2x * dfftp%ipp(me_bgrp + 1)
-    !     ! ir_end = dfftp%nr1x * dfftp%nr2x * dfftp%npl
-    !     ! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
-    !     #if defined (__MPI)
+    !     #if defined(__MPI)
     !     j0 = dfftp%my_i0r2p; k0 = dfftp%my_i0r3p
     !     ir_end = MIN(nnr, dfftp%nr1x * dfftp%my_nr2p * dfftp%my_nr3p)
     !     #else
     !     j0 = 0; k0 = 0
     !     ir_end = nnr
     !     #endif
-    !     ! END BACKWARD COMPATIBILITY
     !     !
     !     DO ir = 1, ir_end
     !         !
     !         !----------------------------------------------------------------------------
     !         ! three dimensional indexes
     !         !
-    !         ! BACKWARD COMPATIBILITY
-    !         ! Compatible with QE-5.X QE-6.1.X
-    !         ! idx = idx0 + ir - 1
-    !         ! k = idx / (dfftp%nr1x * dfftp%nr2x)
-    !         ! idx = idx - (dfftp%nr1x * dfftp%nr2x) * k
-    !         ! j = idx / dfftp%nr1x
-    !         ! idx = idx - dfftp%nr1x * j
-    !         ! i = idx
-    !         ! Compatible with QE-6.2, QE-6.2.1 and QE-GIT
     !         idx = ir - 1
     !         k = idx / (dfftp%nr1x * dfftp%my_nr2p)
     !         idx = idx - (dfftp%nr1x * dfftp%my_nr2p) * k
@@ -829,7 +814,6 @@ CONTAINS
     !         idx = idx - dfftp%nr1x * j
     !         j = j + j0
     !         i = idx
-    !         ! END BACKWARD COMPATIBILITY
     !         !
     !         !----------------------------------------------------------------------------
     !         !

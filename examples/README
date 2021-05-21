@@ -6,13 +6,13 @@ example02: pw.x
            interlocking spheres ("soft-spheres").
 example03: pw.x
            use of different periodic boundary correction schemes for charged isolated systems
-	   in vacuum and in solution: Martyna-Tuckerman or Point-Counter-Charge (parabolic).
+	       in vacuum and in solution: Martyna-Tuckerman or Point-Counter-Charge (parabolic).
 example04: pw.x
            use of parabolic correction for periodic boundary conditions in
            neutral and charged 2D systems (slab).
 example05: pw.x
            use of external classical charge distribution (planar) to model Helmholtz layer
-	   above a charged 2D system.
+	       above a charged 2D system.
 example06: pw.x
            same as example05, but the electrolyte counter charge layer is modeled according to
            the linearized Poisson-Boltzmann model.
@@ -22,9 +22,9 @@ example07: pw.x
 example08: pw.x turbo_lanczos.x
            calculation of the optical spectrum of a molecule in vacuum and in solution (only dielectric)
 example09: pw.x turbo_davidson.x
-	   calculation of the optical spectrum of a molecule in vacuum and in solution (only dielectric)
+	       calculation of the optical spectrum of a molecule in vacuum and in solution (only dielectric)
 example10: cp.x (only for QE-5.3.0 and later versions)
-	   calculation of the total solvation free energy of an isolated molecule
+	       calculation of the total solvation free energy of an isolated molecule
            including electrostatic/cavitation/PV contributions
 example11: pw.x
            calculation of the silicon charge-voltage curve using the ms-gcs (mott-schotty/gouy-chapman-stern)

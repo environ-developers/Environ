@@ -211,14 +211,6 @@ cat > tmp.6.2 <<EOF
    !
 EOF
 
-# BACKWARD COMPATIBILITY
-# Compatible with QE-5.X QE-6.0.X QE-6.1.X
-#patch -b -z PreENVIRON --ignore-whitespace -i tmp.6.1
-# Compatible with QE-6.2.X
-#patch -b -z PreENVIRON --ignore-whitespace -i tmp.6.2
-# Compatible with QE-6.3.X QE-6.4.X QE-GIT
-# END BACKWARD COMPATIBILITY
-
 # plugin_int_forces
 if [ -e plugin_tddfpt_potential.f90 ]; then
 

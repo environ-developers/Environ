@@ -36,12 +36,6 @@ MODULE physical_types
     USE core_types, ONLY: core_container
     USE representation_types
     !
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
-    ! USE control_flags, ONLY: tddfpt
-    ! Compatible with QE-6.3.X and QE-GIT \
-    ! END BACKWARD COMPATIBILITY
-    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -119,12 +113,6 @@ MODULE physical_types
         LOGICAL :: update = .FALSE.
         LOGICAL :: initialized = .FALSE.
         INTEGER :: number = 0
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER :: nspin = 1
-        ! Compatible with QE-6.4.X QE-GIT
-        !
-        ! END BACKWARD COMPATIBILITY
         !
         TYPE(environ_density) :: density
         REAL(DP) :: charge = 0.0_DP

@@ -675,14 +675,8 @@ CONTAINS
     !! and derived routines for cards (external charges and dielectric regions)
     !!
     !------------------------------------------------------------------------------------
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-    ! SUBROUTINE read_environ(prog, nelec, nspin, nat, ntyp, atom_label, &
-    !                         use_internal_pbc_corr, ion_radius)
-    ! Compatible with QE-6.4.X QE-GIT
     SUBROUTINE read_environ(prog, nelec, nat, ntyp, atom_label, use_internal_pbc_corr, &
                             ion_radius)
-        ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -690,17 +684,8 @@ CONTAINS
         CHARACTER(LEN=*), INTENT(IN) :: prog
         LOGICAL, INTENT(IN) :: use_internal_pbc_corr
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT(IN) :: nspin
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
-        !
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
         REAL(DP), INTENT(IN), OPTIONAL :: ion_radius(:)
-        !
-        INTEGER, EXTERNAL :: find_free_unit
         !
         LOGICAL :: ext
         INTEGER :: environ_unit_input
@@ -757,67 +742,38 @@ CONTAINS
         !
         ! Set electrostatic first as it does not depend on anything else
         !
-        CALL set_electrostatic_base(problem, tol, solver, auxiliary, &
-                                    step_type, step, maxstep, mix_type, &
-                                    ndiis, mix, preconditioner, &
-                                    screening_type, screening, core, &
-                                    ! BACKWARD COMPATIBILITY
-                                    ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-                                    ! pbc_correction, nspin, prog, &
-                                    ! Compatible with QE-6.4.X QE-GIT
-                                    pbc_correction, pbc_dim, pbc_axis, &
-                                    ! END BACKWARD COMPATIBILITY
-                                    prog, inner_tol, inner_solver, &
+        CALL set_electrostatic_base(problem, tol, solver, auxiliary, step_type, step, &
+                                    maxstep, mix_type, ndiis, mix, preconditioner, &
+                                    screening_type, screening, core, pbc_correction, &
+                                    pbc_dim, pbc_axis, prog, inner_tol, inner_solver, &
                                     inner_maxstep, inner_mix)
         !
         !--------------------------------------------------------------------------------
         ! Then set environ base
         !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! CALL set_environ_base(prog, nelec, nspin, &
-        ! Compatible with QE-6.4.X QE-GIT
-        CALL set_environ_base(prog, nelec, &
-                              ! END BACKWARD COMPATIBILITY
-                              nat, ntyp, atom_label, atomicspread, &
-                              corespread, solvationrad, &
-                              environ_restart, environ_thr, &
-                              environ_nskip, environ_type, &
-                              system_ntyp, system_dim, system_axis, &
-                              env_nrep, &
-                              stype, rhomax, rhomin, tbeta, &
-                              env_static_permittivity, &
-                              env_optical_permittivity, &
-                              solvent_mode, &
-                              derivatives, &
-                              radius_mode, alpha, softness, &
-                              solvent_distance, solvent_spread, &
-                              solvent_radius, radial_scale, &
-                              radial_spread, filling_threshold, &
-                              filling_spread, &
-                              field_awareness, charge_asymmetry, &
-                              field_max, field_min, &
-                              env_surface_tension, &
-                              env_pressure, &
-                              env_confine, &
-                              env_electrolyte_ntyp, &
+        CALL set_environ_base(prog, nelec, nat, ntyp, atom_label, atomicspread, &
+                              corespread, solvationrad, environ_restart, environ_thr, &
+                              environ_nskip, environ_type, system_ntyp, system_dim, &
+                              system_axis, env_nrep, stype, rhomax, rhomin, tbeta, &
+                              env_static_permittivity, env_optical_permittivity, &
+                              solvent_mode, derivatives, radius_mode, alpha, softness, &
+                              solvent_distance, solvent_spread, solvent_radius, &
+                              radial_scale, radial_spread, filling_threshold, &
+                              filling_spread, field_awareness, charge_asymmetry, &
+                              field_max, field_min, env_surface_tension, env_pressure, &
+                              env_confine, env_electrolyte_ntyp, &
                               electrolyte_linearized, electrolyte_entropy, &
                               electrolyte_mode, electrolyte_distance, &
-                              electrolyte_spread, cion, cionmax, rion, &
-                              zion, electrolyte_rhomax, &
-                              electrolyte_rhomin, electrolyte_tbeta, &
-                              electrolyte_alpha, electrolyte_softness, &
-                              temperature, &
-                              sc_permittivity, sc_carrier_density, sc_electrode_chg, &
-                              sc_distance, sc_spread, sc_chg_thr, &
-                              env_external_charges, &
-                              extcharge_charge, extcharge_dim, &
-                              extcharge_axis, extcharge_pos, &
-                              extcharge_spread, &
-                              env_dielectric_regions, &
-                              epsregion_eps, epsregion_dim, &
-                              epsregion_axis, epsregion_pos, &
-                              epsregion_spread, epsregion_width)
+                              electrolyte_spread, cion, cionmax, rion, zion, &
+                              electrolyte_rhomax, electrolyte_rhomin, &
+                              electrolyte_tbeta, electrolyte_alpha, &
+                              electrolyte_softness, temperature, sc_permittivity, &
+                              sc_carrier_density, sc_electrode_chg, sc_distance, &
+                              sc_spread, sc_chg_thr, env_external_charges, &
+                              extcharge_charge, extcharge_dim, extcharge_axis, &
+                              extcharge_pos, extcharge_spread, env_dielectric_regions, &
+                              epsregion_eps, epsregion_dim, epsregion_axis, &
+                              epsregion_pos, epsregion_spread, epsregion_width)
         !
         !--------------------------------------------------------------------------------
         ! Eventually set core base

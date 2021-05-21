@@ -34,12 +34,6 @@ MODULE representation_types
     !
     USE cell_types, ONLY: environ_cell
     !
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
-    ! USE control_flags, ONLY: tddfpt
-    ! Compatible with QE-6.3.X and QE-GIT \
-    ! END BACKWARD COMPATIBILITY
-    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE

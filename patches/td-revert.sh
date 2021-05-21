@@ -209,13 +209,6 @@ EOF
    !
 EOF
 
-# BACKWARD COMPATIBILITY
-# Compatible with QE-5.X QE-6.1.X
-#    patch -R --ignore-whitespace -i tmp.6.1
-# Compatible with QE-6.2.X
-#    patch -R --ignore-whitespace -i tmp.6.2
-# Compatible with QE-6.3.X and QE-GIT
-# END BACKWARD COMPATIBILITY
     rm tmp.6.1 tmp.6.2
 fi
 

@@ -34,15 +34,7 @@ MODULE environ_output
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_fft_types, ONLY: env_fft_type_descriptor
-    !
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-5.1.X
-    ! USE fft_base, ONLY : grid_gather
-    ! Compatible with QE-5.2.X
-    ! USE fft_base, ONLY : gather_grid
-    ! Compatible with QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
     USE env_scatter_mod, ONLY: env_gather_grid
-    ! END BACKWARD COMPATIBILITY
     !
     USE modules_constants, ONLY: DP, amu_si, bohr_radius_si, rydberg_si, RYTOEV
     !
@@ -2028,9 +2020,6 @@ CONTAINS
         ALLOCATE (flocal(nr1x * nr2x * nr3x))
 #if defined(__MPI)
         flocal = 0.D0
-        ! Compatible with QE-5.1.X
-        ! CALL grid_gather( f, flocal )
-        ! Compatible with QE-5.2.X QE-5.3.X QE-5.4.X QE-6.X.X QE-GIT
         !
         CALL env_gather_grid(dfft, f%of_r, flocal)
         !

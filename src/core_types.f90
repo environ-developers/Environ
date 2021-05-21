@@ -37,12 +37,6 @@ MODULE core_types
         !--------------------------------------------------------------------------------
         !
         INTEGER :: index
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER :: nspin
-        ! Compatible with QE-6.4.X QE-GIT
-        !
-        ! END BACKWARD COMPATIBILITY
         LOGICAL :: use_internal_pbc_corr = .FALSE.
         !
         TYPE(environ_cell), POINTER :: cell

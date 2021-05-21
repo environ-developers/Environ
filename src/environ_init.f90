@@ -80,65 +80,36 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_base &
-        !--------------------------------------------------------------------------------
-        (prog, nelec, &
-         ! BACKWARD COMPATIBILITY
-         ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-         ! nspin, &
-         ! Compatible with QE-6.4.X QE-GIT
-         ! END BACKWARD COMPATIBILITY
-         nat, ntyp, atom_label, atomicspread, &
-         corespread, solvationrad, &
-         environ_restart_, environ_thr_, &
-         environ_nskip_, environ_type, &
-         system_ntyp, system_dim, system_axis, &
-         env_nrep, &
-         stype, rhomax, rhomin, tbeta, &
-         env_static_permittivity_, &
-         env_optical_permittivity_, solvent_mode, &
-         derivatives_, &
-         radius_mode, alpha, softness, &
-         solvent_distance, solvent_spread, &
-         solvent_radius, radial_scale, &
-         radial_spread, filling_threshold, &
-         filling_spread, &
-         field_awareness, charge_asymmetry, &
-         field_max, field_min, &
-         env_surface_tension_, &
-         env_pressure_, &
-         env_confine_, &
-         env_electrolyte_ntyp_, &
-         electrolyte_linearized, &
-         electrolyte_entropy, electrolyte_mode, &
-         electrolyte_distance, &
-         electrolyte_spread, &
-         cion, cionmax, rion, zion, &
-         electrolyte_rhomax, electrolyte_rhomin, &
-         electrolyte_tbeta, &
-         electrolyte_alpha, electrolyte_softness, &
-         temperature, &
-         sc_permittivity, sc_carrier_density, sc_electrode_chg, &
-         sc_distance, sc_spread, sc_chg_thr, &
-         env_external_charges, &
-         extcharge_charge, extcharge_dim, &
-         extcharge_axis, extcharge_pos, &
-         extcharge_spread, &
-         env_dielectric_regions, &
-         epsregion_eps, epsregion_dim, &
-         epsregion_axis, epsregion_pos, &
-         epsregion_spread, epsregion_width)
+    SUBROUTINE set_environ_base(prog, nelec, nat, ntyp, atom_label, &
+                                atomicspread, corespread, solvationrad, &
+                                environ_restart_, environ_thr_, environ_nskip_, &
+                                environ_type, system_ntyp, system_dim, system_axis, &
+                                env_nrep, stype, rhomax, rhomin, tbeta, &
+                                env_static_permittivity_, env_optical_permittivity_, &
+                                solvent_mode, derivatives_, radius_mode, alpha, &
+                                softness, solvent_distance, solvent_spread, &
+                                solvent_radius, radial_scale, radial_spread, &
+                                filling_threshold, filling_spread, field_awareness, &
+                                charge_asymmetry, field_max, field_min, &
+                                env_surface_tension_, env_pressure_, env_confine_, &
+                                env_electrolyte_ntyp_, electrolyte_linearized, &
+                                electrolyte_entropy, electrolyte_mode, &
+                                electrolyte_distance, electrolyte_spread, cion, &
+                                cionmax, rion, zion, electrolyte_rhomax, &
+                                electrolyte_rhomin, electrolyte_tbeta, &
+                                electrolyte_alpha, electrolyte_softness, temperature, &
+                                sc_permittivity, sc_carrier_density, sc_electrode_chg, &
+                                sc_distance, sc_spread, sc_chg_thr, &
+                                env_external_charges, extcharge_charge, extcharge_dim, &
+                                extcharge_axis, extcharge_pos, extcharge_spread, &
+                                env_dielectric_regions, epsregion_eps, epsregion_dim, &
+                                epsregion_axis, epsregion_pos, epsregion_spread, &
+                                epsregion_width)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: environ_restart_, electrolyte_linearized
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT(IN) :: nspin
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
         !
         INTEGER, INTENT(IN) :: nelec, nat, ntyp, &
                                environ_nskip_, &
@@ -190,19 +161,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! TDDFPT flag
         !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-5.X QE-6.1.X QE-6.2.X
-        ! ltddfpt = tddfpt
-        ! Compatible with QE-6.3.X and QE-GIT
-        !
         SELECT CASE (prog(1:2))
         CASE ('TD')
             ltddfpt = .TRUE.
         CASE DEFAULT
             ltddfpt = .FALSE.
         END SELECT
-        !
-        ! END BACKWARD COMPATIBILITY
         !
         !--------------------------------------------------------------------------------
         ! Create necessary local types
@@ -364,15 +328,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set basic properties of electrons
         !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! CALL init_environ_electrons_first( nelec, nspin, electrons )
-        ! Compatible with QE-6.4.X QE-GIT
         CALL init_environ_electrons_first(nelec, system_electrons)
         !
         CALL init_environ_electrons_first(nelec, environment_electrons)
-        !
-        ! END BACKWARD COMPATIBILITY
         !
         !--------------------------------------------------------------------------------
         ! Set basic properties of the selected system
@@ -1014,28 +972,13 @@ CONTAINS
     !! is performed at every step of electronic optimization.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initelectrons &
-        !--------------------------------------------------------------------------------
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! (nspin, nnr, rho, nelec)
-        ! Compatible with QE-6.4.X QE-GIT
-        (nnr, rho, nelec)
-        ! END BACKWARD COMPATIBILITY
+    SUBROUTINE environ_initelectrons(nnr, rho, nelec)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT( IN )     :: nspin
-        ! REAL ( DP ), INTENT( IN ) :: rho( nnr, nspin )
-        ! Compatible with QE-6.4.X QE-GIT
         REAL(DP), INTENT(IN) :: rho(nnr)
-        ! END BACKWARD COMPATIBILITY
-        !
         REAL(DP), INTENT(IN), OPTIONAL :: nelec
         !
         REAL(DP), ALLOCATABLE :: aux(:)
@@ -1048,10 +991,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update electrons parameters
         !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! CALL update_environ_electrons( nspin, nnr, rho, electrons, nelec )
-        ! Compatible with QE-6.4.X QE-GIT
         CALL update_environ_electrons(nnr, rho, system_electrons, nelec)
         !
         system_electrons%density%label = 'small_electrons'
@@ -1075,8 +1014,6 @@ CONTAINS
         ! CALL write_cube(environment_electrons%density) ! DEBUGGING
         !
         ! STOP ! DEBUGGING
-        !
-        ! END BACKWARD COMPATIBILITY
         !
         CALL print_environ_electrons(system_electrons)
         !

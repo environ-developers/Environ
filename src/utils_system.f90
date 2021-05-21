@@ -10,6 +10,13 @@ MODULE utils_system
     USE physical_types, ONLY: environ_system, environ_ions
     !
     !------------------------------------------------------------------------------------
+    !
+    PRIVATE
+    !
+    PUBLIC :: create_environ_system, init_environ_system, update_environ_system, &
+              destroy_environ_system
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -87,7 +94,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(system%ions)) &
-            CALL errore(sub_name, 'Trying to use a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to use a non associated object', 1)
         !
         system%pos = 0.D0
         system%width = 0.D0
@@ -109,7 +116,7 @@ CONTAINS
         END DO
         !
         IF (ABS(charge) < 1.D-8) &
-            CALL errore(sub_name, 'System charge is zero', 1)
+            CALL env_errore(sub_name, 'System charge is zero', 1)
         !
         system%pos(:) = system%pos(:) / charge
         !
@@ -160,7 +167,7 @@ CONTAINS
         IF (lflag) THEN
             !
             IF (.NOT. ASSOCIATED(system%ions)) &
-                CALL errore(sub_name, 'Trying to destroy a non associated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
             !
             NULLIFY (system%ions)
         END IF

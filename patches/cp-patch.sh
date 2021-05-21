@@ -143,6 +143,8 @@ mv tmp.2 plugin_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
+USE global_version,   ONLY : version_number\
+USE lsda_mod,         ONLY : nspin\
 USE environ_base,     ONLY : update_venviron, vzero,    & \
                              environ_nskip, environ_restart \
 USE environ_output,   ONLY : verbose \
@@ -153,12 +155,7 @@ USE environ_init,     ONLY : environ_initelectrons \
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!\
-! Compatible with QE-6.4.X QE-GIT\
-REAL(DP), DIMENSION(:), ALLOCATABLE :: rhoaux\
-! END BACKWARD COMPATIBILITY\
+REAL(DP), ALLOCATABLE :: rhoaux(:)\
 !Environ patch
 ' tmp.1 > tmp.2
 
@@ -168,16 +165,14 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         ! update electrons-related quantities in environ\
         !\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin )\
-! Compatible with QE-6.4.X QE-GIT\
-        ALLOCATE(rhoaux(dfftp%nnr))\
-        rhoaux = rhoin(:,1)\
-        IF ( nspin .EQ. 2) rhoaux = rhoaux + rhoin(:,2)\
-        CALL environ_initelectrons( dfftp%nnr, rhoaux )\
-        DEALLOCATE(rhoaux)\
-! END BACKWARD COMPATIBILITY\
+        ALLOCATE ( rhoaux(dfftp%nnr) )\
+        rhoaux(:) = rhoin(:, 1)\
+        !\
+        IF ( version_number == "6.3" ) THEN\
+            IF ( nspin == 2 ) rhoaux(:) = rhoaux(:) + rhoin(:, 2)\
+        END IF\
+        !\
+        CALL environ_initelectrons( dfftp%nnr, rhoaux, nelec )\
         !\
         ! environ contribution to the local potential, saved in vzero\
         !\
@@ -362,12 +357,6 @@ USE io_global,        ONLY : ionode, ionode_id, stdout \
 USE mp_images,        ONLY : intra_image_comm \
 USE environ_input,    ONLY : read_environ \
 USE input_parameters, ONLY : ion_radius, atom_label \
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!USE input_parameters, ONLY : nspin\
-! Compatible with QE-6.4.X QE-GIT\
-!\
-! END BACKWARD COMPATIBILITY\
 USE environ_output,   ONLY : set_environ_output \
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
@@ -388,163 +377,6 @@ sed '/Environ CALLS BEGIN/ a\
 
 mv tmp.1 plugin_read_input.f90
 
-rm tmp.2
-
-#plugin_utilities.f90
-
-cat > tmp.1 <<EOF
-!-----------------------------------------------------------------------
-  SUBROUTINE external_laplacian( a, lapla )
-!-----------------------------------------------------------------------
-      !
-      ! Interface for computing hessians in real space, to be called by
-      ! an external module
-      !
-      USE kinds,            ONLY : DP
-      USE fft_base,         ONLY : dfftp
-      USE gvect,            ONLY : ngm, g
-      USE fft_interfaces,   ONLY : fwfft, invfft
-      !
-      IMPLICIT NONE
-      !
-      REAL( DP ), INTENT(IN)  :: a( dfftp%nnr )
-      REAL( DP ), INTENT(OUT) :: lapla( dfftp%nnr )
-      !
-      ! ... Locals
-      !
-      INTEGER :: is
-      COMPLEX(DP), ALLOCATABLE :: auxr(:)
-      COMPLEX(DP), ALLOCATABLE :: auxg(:)
-      REAL(DP), ALLOCATABLE :: d2rho(:,:)
-      REAL(DP), ALLOCATABLE :: dxdyrho(:), dxdzrho(:), dydzrho(:), grada(:)
-      !
-      ALLOCATE( auxg( ngm ) )
-      ALLOCATE( auxr( dfftp%nnr ) )
-      auxr(:) = CMPLX(a( : ),0.D0,kind=dp)
-      CALL fwfft ("Rho", auxr, dfftp)
-      auxg(:) = auxr(dfftp%nl(:))
-      DEALLOCATE( auxr )
-      !
-      ALLOCATE( grada(dfftp%nnr) )
-      ALLOCATE( d2rho(3,dfftp%nnr) )
-      ALLOCATE( dxdyrho(dfftp%nnr) )
-      ALLOCATE( dxdzrho(dfftp%nnr) )
-      ALLOCATE( dydzrho(dfftp%nnr) )
-      ! from G-space A compute R-space grad(A) and second derivatives
-      CALL gradrho(1,auxg,grada,d2rho,dxdyrho,dxdzrho,dydzrho)
-      DEALLOCATE( auxg )
-      ! reorder second derivatives
-      lapla(:) = d2rho(1,:)+d2rho(2,:)+d2rho(3,:)
-      DEALLOCATE( grada, d2rho, dxdyrho, dxdzrho, dydzrho )
-
-  RETURN
-
-!-----------------------------------------------------------------------
-  END SUBROUTINE external_laplacian
-!-----------------------------------------------------------------------
-EOF
-
-cat > tmp.2 <<EOF
-!-----------------------------------------------------------------------
-  SUBROUTINE external_force_lc( rho, force )
-!-----------------------------------------------------------------------
-
-    USE kinds,             ONLY : DP
-    USE cell_base,         ONLY : omega
-    USE fft_base,          ONLY : dfftp
-    USE fft_interfaces,    ONLY : fwfft
-! BACKWARD COMPATIBILITY
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    USE electrons_base,    ONLY : nspin
-! Compatible with QE-6.4.X QE-GIT
-!
-! END BACKWARD COMPATIBILITY
-    USE gvect,             ONLY : ngm, eigts1, eigts2, eigts3
-    USE ions_base,         ONLY : nat
-
-    IMPLICIT NONE
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    REAL(DP), DIMENSION(dfftp%nnr,nspin), INTENT(IN) :: rho
-! Compatible with QE-6.4.X QE-GIT
-    REAL(DP), DIMENSION(dfftp%nnr), INTENT(IN) :: rho
-! END BACKWARD COMPATIBILITY
-    REAL(DP), DIMENSION(3,nat), INTENT(OUT) :: force
-    !
-    ! aux is used to store a possible additional density
-    ! now defined in real space
-    !
-    COMPLEX(DP), ALLOCATABLE :: auxg(:), auxr(:)
-    !
-    force = 0.D0
-    !
-    ALLOCATE( auxr( dfftp%nnr ) )
-! BACKWARD COMPATIBILITY
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    auxr = CMPLX(rho(:,1),0.0, kind=DP)
-!    IF ( nspin .GE. 2 ) auxr = auxr + CMPLX(rho(:,2),0.0, kind=DP)
-! Compatible with QE-6.4.X QE-GIT
-    auxr = CMPLX(rho,0.0, kind=DP)
-! END BACKWARD COMPATIBILITY
-    CALL fwfft( "Rho", auxr, dfftp )
-    ALLOCATE( auxg( ngm ) )
-    auxg(:) = auxr( dfftp%nl (:) )
-    !
-    CALL force_h_of_rho_g( auxg, eigts1, eigts2, eigts3, omega, force )
-    !
-    DEALLOCATE( auxr, auxg )
-    !
-    RETURN
-    !
-!-----------------------------------------------------------------------
-  END SUBROUTINE external_force_lc
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-  SUBROUTINE external_wg_corr_force( rhor, force )
-!-----------------------------------------------------------------------
-
-    USE kinds,             ONLY : DP
-    USE ions_base,         ONLY : nat
-    USE fft_base,          ONLY : dfftp
-! BACKWARD COMPATIBILITY
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    USE electrons_base,    ONLY : nspin
-! Compatible with QE-6.4.X QE-GIT
-!
-! END BACKWARD COMPATIBILITY
-    !
-    IMPLICIT NONE
-    !
-! BACKWARD COMPATIBILITY
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-!    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr, nspin )
-! Compatible with QE-6.4.X QE-GIT
-    REAL( DP ), INTENT(IN) ::  rhor ( dfftp%nnr )
-! END BACKWARD COMPATIBILITY
-    REAL( DP ), INTENT(IN) :: force (3, nat)
-    !
-    CHARACTER(LEN=80) :: sub_name = "external_wg_corr_force"
-    !
-    ! dummy routine, avoiding cross dependencies with pw objects
-    !
-    CALL errore(sub_name,&
-       "the martyna-tuckerman correction is not available in cp",1)
-    !
-    RETURN
-    !
-!-----------------------------------------------------------------------
-  END SUBROUTINE external_wg_corr_force
-!-----------------------------------------------------------------------
-EOF
-
-echo "!Environ patch" >> plugin_utilities.f90
-# BACKWARD COMPATIBILITY
-# Compatible with QE-6.0 QE-6.1.X QE-6.2.X
-#cat tmp.1             >> plugin_utilities.f90
-# END BACKWARD COMPATIBILITY
-cat tmp.2             >> plugin_utilities.f90
-echo "!Environ patch" >> plugin_utilities.f90
 rm tmp.1 tmp.2
 
 printf " done!\n"

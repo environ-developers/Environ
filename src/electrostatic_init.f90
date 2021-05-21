@@ -51,30 +51,18 @@ CONTAINS
     !! kept in the electrostatic_base module
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_electrostatic_base &
-        (problem, tol, solver_type, auxiliary, &
-         step_type, step, maxstep, mix_type, ndiis, mix, &
-         preconditioner, screening_type, screening, &
-         core_type, pbc_correction, pbc_dim_, pbc_axis_, &
-         ! BACKWARD COMPATIBILITY
-         ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-         ! nspin, prog, inner_tol, inner_solver_type, &
-         ! Compatbile with QE-6.4.X QE-GIT
-         prog, inner_tol, inner_solver_type, &
-         ! END BACKWARD COMPATIBILITY
-         inner_maxstep, inner_mix)
+    SUBROUTINE set_electrostatic_base(problem, tol, solver_type, auxiliary, &
+                                      step_type, step, maxstep, mix_type, ndiis, mix, &
+                                      preconditioner, screening_type, screening, &
+                                      core_type, pbc_correction, pbc_dim_, pbc_axis_, &
+                                      prog, inner_tol, inner_solver_type, &
+                                      inner_maxstep, inner_mix)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: maxstep, ndiis, inner_maxstep, pbc_dim_, pbc_axis_
         REAL(DP), INTENT(IN) :: tol, step, mix, screening, inner_tol, inner_mix
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT(IN) :: nspin
-        ! Compatbile with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
         !
         CHARACTER(LEN=*), INTENT(IN) :: problem, solver_type, auxiliary, step_type, &
                                         mix_type, preconditioner, screening_type, &

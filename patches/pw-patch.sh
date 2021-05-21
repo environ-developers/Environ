@@ -91,55 +91,23 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
   USE io_global,  ONLY : ionode, ionode_id, stdout\
   USE mp_images,  ONLY : intra_image_comm\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!  USE input_parameters, ONLY : nspin\
-!  USE input_parameters, ONLY : nat, ntyp, atm => atom_label\
-!  USE input_parameters, ONLY : ibrav\
-! Compatible with QE-6.3.X\
-!  USE lsda_mod,   ONLY : nspin\
-!  USE ions_base,  ONLY : nat, ntyp => nsp, atm\
-!  USE cell_base,  ONLY : ibrav\
-! Compatible with QE-6.4.X QE-GIT\
   USE ions_base,  ONLY : nat, ntyp => nsp, atm\
-  USE cell_base,  ONLY : ibrav\
-! END BACKWARD COMPATIBILITY\
   USE martyna_tuckerman, ONLY : do_comp_mt\
   USE environ_input,     ONLY : read_environ\
   USE environ_output,    ONLY : set_environ_output\
 !Environ patch
 ' plugin_read_input.f90 >tmp.1
 
-sed '/Environ VARIABLES BEGIN/ a\
-!Environ patch\
-! BACKWARD COMPATIBILITY \
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!  CHARACTER( LEN = 2 ) :: prog\
-! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY\
-!Environ patch
-' tmp.1 >tmp.2
-
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X\
-!      prog = "PW"\
-! Compatible with QE-6.3.X QE-6.4.X QE-GIT\
-! END BACKWARD COMPATIBILITY\
       CALL set_environ_output(prog, ionode, ionode_id, intra_image_comm, stdout)\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X\
-!      CALL read_environ(prog, 1, nspin, nat, ntyp, atm, do_comp_mt)\
-! Compatible with QE-6.4.X QE-GIT\
       CALL read_environ(prog, 1, nat, ntyp, atm, do_comp_mt)\
-! END BACKWARD COMPATIBILITY\
    ENDIF\
 !Environ patch
-' tmp.2 >tmp.1
+' tmp.1 >tmp.2
 
-mv tmp.1 plugin_read_input.f90
+mv tmp.2 plugin_read_input.f90
 
 # plugin_clean
 
@@ -151,25 +119,10 @@ USE environ_init, ONLY : environ_clean, environ_clean_pw, &\
 !Environ patch
 ' plugin_clean.f90 >tmp.1
 
-sed '/Environ VARIABLES BEGIN/ a\
-!Environ patch\
-! BACKWARD COMPATIBILITY \
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!  CHARACTER( LEN = 2 ) :: prog\
-! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY\
-!Environ patch
-' tmp.1 >tmp.2
-
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
       !\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!       prog = "PW"\
-! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY\
       IF ( prog(1:2) == "PW" ) THEN\
          !\
          ! When called by PW, but inside a TD calculation\
@@ -199,9 +152,9 @@ sed '/Environ CALLS BEGIN/ a\
       !\
    END IF\
 !Environ patch
-' tmp.2 >tmp.1
+' tmp.1 >tmp.2
 
-mv tmp.1 plugin_clean.f90
+mv tmp.2 plugin_clean.f90
 
 # plugin_summary
 
@@ -241,19 +194,13 @@ INTEGER :: ir_end, idx0, j0, k0\
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.0.X QE-6.1.X\
-!  idx0 = dfftp%nr1x*dfftp%nr2x*dfftp%ipp(me_bgrp+1)\
-!  ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl\
-! Compatible with QE-6.2.X QE-6.3.X QE-6.4.X QE-GIT\
-#if defined (__MPI)\
+#if defined(__MPI)\
     j0 = dfftp%my_i0r2p ; k0 = dfftp%my_i0r3p\
     ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p)\
 #else\
     j0 = 0; k0 = 0;\
     ir_end = dfftp%nnr\
 #endif\
-! END BACKWARD COMPATIBILITY\
   IF ( use_environ ) CALL environ_initbase( alat, at, &\
                              & intra_bgrp_comm, me_bgrp, root_bgrp, &\
                              & gcutm )\
@@ -405,8 +352,10 @@ mv tmp.2 plugin_init_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
+USE global_version,        ONLY : version_number\
 USE klist,                 ONLY : nelec\
 USE control_flags,         ONLY : lscf\
+USE lsda_mod,              ONLY : nspin\
 USE environ_base,          ONLY : update_venviron, environ_thr, &\
                                   environ_restart, ltddfpt\
 USE environ_init,          ONLY : environ_initelectrons\
@@ -418,6 +367,7 @@ USE environ_output,        ONLY : environ_print_potential_shift\
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
 INTEGER :: local_verbose\
+REAL(DP), ALLOCATABLE :: rhoaux(:)\
 !Environ patch
 ' tmp.1 >tmp.2
 
@@ -432,12 +382,14 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         ! update electrons-related quantities in environ\
         !\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec )\
-! Compatible with QE-6.4.X QE-GIT\
-        CALL environ_initelectrons( dfftp%nnr, rhoin%of_r(:,1), nelec )\
-! END BACKWARD COMPATIBILITY\
+        ALLOCATE ( rhoaux(dfftp%nnr) )\
+        rhoaux(:) = rhoin%of_r(:, 1)\
+        !\
+        IF ( version_number == "6.3" ) THEN\
+            IF ( nspin == 2 ) rhoaux(:) = rhoaux(:) + rhoin%of_r(:, 2)\
+        END IF\
+        !\
+        CALL environ_initelectrons( dfftp%nnr, rhoaux, nelec )\
         !\
         ! environ contribution to the local potential\
         !\
@@ -795,82 +747,7 @@ IF (use_environ) CALL errore( calling_subroutine, &\
 
 mv tmp.1 plugin_check.f90
 
-# makov_payne
-
-# sed '/Environ MODULES BEGIN/ a\
-# !Environ patch \
-# USE environ_mp,  ONLY : environ_makov_payne \
-# !Environ patch
-# ' makov_payne.f90 > tmp.1
-#
-# sed '/Environ CALLS BEGIN/ a\
-# !Environ patch \
-#      IF(use_environ) THEN \
-#        CALL environ_makov_payne( dfftp%nnr, nspin, rho%of_r, x0, etot ) \
-#      ENDIF \
-# !Environ patch
-# ' tmp.1 > tmp.2
-#
-# mv tmp.2 makov_payne.f90
-
-# force_lc
-
-cat >tmp.1 <<EOF
-!Environ patch
-subroutine external_force_lc( rhor, force )
-
-  use kinds,            only : DP
-  use cell_base,        only : at, bg, alat, omega
-  use ions_base,        only : nat, ntyp => nsp, ityp, tau, zv, amass
-  use fft_base,         only : dfftp
-  use fft_interfaces,   only : fwfft
-  use gvect,            only : ngm, gstart, ngl, nl, igtongl, g, gg, gcutm
-  use lsda_mod,         only : nspin
-  use vlocal,           only : strf, vloc
-  use control_flags,    only : gamma_only
-  use martyna_tuckerman, only: do_comp_mt, wg_corr_force
-  implicit none
-
-  real( dp ), intent(in) ::  rhor (dfftp%nnr, nspin)
-  real( dp ), intent(out) :: force (3, nat)
-
-  real( dp ), allocatable :: force_tmp(:,:)
-  complex( dp ), allocatable :: auxg(:), auxr(:)
-
-  force = 0.0_dp
-
-  allocate(force_tmp(3,nat))
-
-  if ( do_comp_mt) then
-     force_tmp = 0.0_dp
-     allocate(auxr(dfftp%nnr))
-     allocate(auxg(ngm))
-     auxg = cmplx(0.0_dp,0.0_dp)
-     auxr = cmplx(rhor(:,1),0.0_dp)
-     if ( nspin .eq. 2 ) auxr = auxr + cmplx(rhor(:,2),0.0_dp)
-     call fwfft ("Dense", auxr, dfftp)
-     auxg(:)=auxr(nl(:))
-     call wg_corr_force(.false.,omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, &
-                        1, auxg, force_tmp)
-     deallocate(auxr,auxg)
-     force = force + force_tmp
-  endif
-
-  force_tmp = 0.0_dp
-  call force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl, &
-       g, rhor, nl, nspin, gstart, gamma_only, vloc, force_tmp )
-  force = force + force_tmp
-
-  return
-end subroutine external_force_lc
-!Environ patch
-EOF
-# BACKWARD COMPATIBILITY
-# Compatible with QE-5.X QE-6.1.X, QE-6.2.X
-# cat tmp.1 >> force_lc.f90
-# Compatible with QE-6.3.X and QE-GIT
-# END BACKWARD COMPATIBILITY
-rm tmp.1 tmp.2
+rm tmp.2
 
 printf " done!\n"
 

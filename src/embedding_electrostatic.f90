@@ -323,11 +323,6 @@ CONTAINS
         TYPE(environ_cell), POINTER :: cell
         !
         REAL(DP) :: ftmp(3, natoms)
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! REAL(DP), ALLOCATABLE :: rhoaux(:, :)
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
         TYPE(environ_density) :: aux
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_felectrostatic'
@@ -369,41 +364,11 @@ CONTAINS
         END IF
         !
         IF (setup%core%use_fft) THEN
-            !
             ftmp = 0.D0
-            ! BACKWARD COMPATIBILITY
-            ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-            ! ALLOCATE (rhoaux(cell%nnr, setup%core%fft%nspin))
-            ! rhoaux(:, 1) = aux%of_r
-            ! IF (setup%core%fft%nspin == 2) rhoaux(:, 2) = 0.D0
-            ! CALL external_force_lc(rhoaux, ftmp)
-            ! Compatible with QE-6.4.X and QE-GIT
-            ! CALL external_force_lc(aux%of_r, ftmp)
-            ! END BACKWARD COMPATIBILITY
             !
             CALL force_fft(setup%core%fft, aux, charges%ions, natoms, ftmp)
             !
             forces = forces + ftmp
-            !
-            ! BACKWARD COMPATIBILITY
-            ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X
-            !
-            ! Compatible with QE-6.3.X
-            ! IF (setup%core%fft%use_internal_pbc_corr) THEN
-            !     ftmp = 0.D0
-            !     CALL external_wg_corr_force(rhoaux, ftmp)
-            !     forces = forces + ftmp
-            ! END IF
-            !
-            ! DEALLOCATE (rhoaux)
-            ! Compatible with QE-6.4.X and QE-GIT
-            ! IF (setup%core%fft%use_internal_pbc_corr) THEN
-            !     ftmp = 0.D0
-            !     CALL external_wg_corr_force(aux%of_r, ftmp)
-            !     forces = forces + ftmp
-            ! END IF
-            ! END BACKWARD COMPATIBILITY
-            !
         END IF
         !
         IF (setup%core%need_correction) THEN

@@ -42,12 +42,6 @@ CONTAINS
         !
         electrons%update = .FALSE.
         electrons%number = 0
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! electrons%nspin = 1
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
         electrons%charge = 0.D0
         !
         CALL create_environ_density(electrons%density, label)
@@ -60,35 +54,19 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-    ! SUBROUTINE init_environ_electrons_first(nelec, nspin, electrons)
-    ! Compatible with QE-6.4.X QE-GIT
     SUBROUTINE init_environ_electrons_first(nelec, electrons)
-        ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nelec
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT(IN) :: nspin
-        ! Compatible with QE-6.4.X QE-GIT
         !
-        ! END BACKWARD COMPATIBILITY
         TYPE(environ_electrons), INTENT(INOUT) :: electrons
         !
         !--------------------------------------------------------------------------------
         !
         electrons%initialized = .FALSE.
         electrons%number = nelec
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! electrons%nspin = nspin
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
         !
         RETURN
         !
@@ -121,25 +99,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-    ! SUBROUTINE update_environ_electrons(nspin, nnr, rho, electrons, nelec)
-    ! Compatible with QE-6.4.X QE-GIT
     SUBROUTINE update_environ_electrons(nnr, rho, electrons, nelec)
-        ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT(IN) :: nspin
-        ! REAL(DP), INTENT(IN) :: rho(nnr, nspin)
-        ! Compatible with QE-6.4.X QE-GIT
         REAL(DP), INTENT(IN) :: rho(nnr)
-        ! END BACKWARD COMPATIBILITY
         !
         REAL(DP), INTENT(IN), OPTIONAL :: nelec
         !
@@ -151,29 +117,15 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'update_environ_electrons'
         !
         !--------------------------------------------------------------------------------
-        ! Check on dimensions
         !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! IF (nspin /= electrons%nspin) &
-        !     CALL errore(sub_name, 'Missmatch in spin size', 1)
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
-        !
+        ! check on dimensions
         IF (nnr /= electrons%density%cell%nnr) &
             CALL env_errore(sub_name, 'Mismatch in grid size', 1)
         !
         !--------------------------------------------------------------------------------
         ! Assign input density to electrons%density%of_r
         !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X
-        ! electrons%density%of_r(:) = rho(:, 1)
-        ! IF (electrons%nspin == 2) &
-        !     electrons%density%of_r(:) = electrons%density%of_r(:) + rho(:, 2)
-        ! Compatible with QE-6.4.X and QE-GIT
-        electrons%density%of_r = rho
-        ! END BACKWARD COMPATIBILITY
+        electrons%density%of_r = rho ! assign input density to electrons%density%of_r
         !
         !--------------------------------------------------------------------------------
         ! Update integral of electronic density and, if provided, check

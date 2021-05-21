@@ -47,22 +47,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    ! BACKWARD COMPATIBILITY
-    ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3
-    ! SUBROUTINE init_fft_core( fft, use_internal_pbc_corr, nspin )
-    ! Compatible with QE-6.4.X QE-GIT
     SUBROUTINE init_fft_core_first(fft, use_internal_pbc_corr)
-        ! END BACKWARD COMPATIBILITY
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! INTEGER, INTENT(IN), OPTIONAL :: nspin
-        ! Compatible with QE-6.4.X QE-GIT
-        ! END BACKWARD COMPATIBILITY
         !
         TYPE(fft_core), INTENT(INOUT) :: fft
         !
@@ -75,17 +65,6 @@ CONTAINS
         ELSE
             fft%use_internal_pbc_corr = .FALSE.
         END IF
-        !
-        ! BACKWARD COMPATIBILITY
-        ! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X
-        ! IF (PRESENT(nspin)) THEN
-        !     fft%nspin = nspin
-        ! ELSE
-        !     fft%nspin = 1
-        ! END IF
-        ! Compatible with QE-6.4.X QE-GIT
-        !
-        ! END BACKWARD COMPATIBILITY
         !
         RETURN
         !
