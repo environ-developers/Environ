@@ -80,7 +80,9 @@ devs:
 	@ echo "* recompile-QE+Environ"
 	@ echo
 	@ echo "  - wrapper on compile-Environ and compile-QE"
-	@ echo "  - used when changes have been made to Environ"
+	@ echo "  - used when changes are made to Environ's code"
+	@ echo
+	@ echo "  * DO NOT use this if changing the patching scheme!"
 	@ echo
 	@ echo "Patching & Dependencies"
 	@ echo "-----------------------"
@@ -160,6 +162,7 @@ recompile-QE+Environ:
 	\
 	printf "\nUse # cores (default = 1) -> "; read cores; \
 	$(MAKE) compile-Environ; \
+	if [ $$? != 0 ]; then exit; fi; \
 	$(MAKE) compile-QE prog=$$opt
 
 compile-util: libsdir
@@ -175,7 +178,11 @@ compile-fft: libsdir
 	@ printf "\nCompiling FFTXlib...\n\n" 2>&1 | \
 	tee install/FFTXlib_comp.log
 	@ ( \
-		cd FFTXlib && $(MAKE) all || exit 1; \
+		cd FFTXlib && \
+		$(MAKE) enable-mkl-include; \
+		$(MAKE) all || exit 1; \
+		$(MAKE) disable-mkl-include; \
+		$(MAKE) all || exit 1; \
 		mv *.a ../libs \
 	) 2>&1 | tee -a install/FFTXlib_comp.log
 	@ $(MAKE) check-for-errors prog=FFTXlib
@@ -212,7 +219,7 @@ check-QE-makeinc:
 	  fi
 
 check-for-errors:
-	@ if grep -qE "error #[0-9]+" install/$(prog)_comp.log; then \
+	@ if grep -qE "[Ee]rror #?[0-9]+" install/$(prog)_comp.log; then \
 		  printf "\nErrors found. See install/$(prog)_comp.log\n\n"; \
 		  exit 1; \
 	  else \

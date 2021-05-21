@@ -9,28 +9,30 @@ export LC_ALL
 cd $(echo $0 | sed 's/\(.*\)\/.*/\1/') # extract pathname
 TOPDIR=$(pwd)
 
-dirs=" FFTXlib UtilXlib src "
+dirs=" UtilXlib FFTXlib src "
 
 for dir in $dirs; do
 
     # the following command removes a trailing slash
     DIR=$(echo ${dir%/})
 
-    # default (for FFT and Util libraries)
     DEPENDS=
 
     # generate dependencies file (only for directories that are present)
     if test -d $TOPDIR/../$DIR; then
         cd $TOPDIR/../$DIR
 
+        if test "$DIR" = "FFTXlib"; then
+            DEPENDS="$DEPENDS ../UtilXlib"
+        fi
+
         if test "$DIR" = "src"; then
-            DEPENDS="$DEPENDS ../FFTXlib ../UtilXlib"
+            DEPENDS="$DEPENDS ../UtilXlib ../FFTXlib"
         fi
 
         $TOPDIR/moduledep.sh $DEPENDS >make.depend
 
-        # handle special cases: modules for C-fortran binding,
-        #   	                hdf5, MPI, FoX, libxc
+        # handle special cases: modules for C-fortran binding,hdf5, MPI, FoX, libxc
         sed '/@iso_c_binding@/d' make.depend >tmp
         mv tmp make.depend
         sed '/@hdf5@/d' make.depend >tmp

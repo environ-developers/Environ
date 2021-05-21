@@ -14,21 +14,20 @@
 #    `License' in the root directory of the present distribution, or
 #    online at <http://www.gnu.org/licenses/>.
 #
-# Makefile for ENVIRON module
-#
 # Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
 #          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
 #
+# Makefile for src
 
 include ../make.inc
 
 MODFLAGS = $(BASEMOD_FLAGS)
 
-ENVIRONOBJS = $(patsubst %.f90,%.o,$(wildcard *.f90))
+OBJS = $(patsubst %.f90,%.o,$(wildcard *.f90))
 
-all : libenviron.a
+all : libenv.a
 
-libenviron.a: $(ENVIRONOBJS)
+libenv.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
 

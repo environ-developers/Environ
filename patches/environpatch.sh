@@ -111,7 +111,7 @@ function patch_makefile() {
 	else
 		fill_with_dots "  - Patching $1Makefile"
 		mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
-		mod2='QEMODS+=../../Environ/libs/libenviron.a'
+		mod2='QEMODS+=../../Environ/libs/*'
 
 		# # CP uses modules from PW # TODO turn on when CP is fixed
 		# if [ "$1" == cp ]; then
