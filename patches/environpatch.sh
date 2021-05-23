@@ -151,6 +151,27 @@ function revert_makefile() {
 	fi
 }
 
+function patch_makedeps() {
+
+	case $1 in
+		pw) DEPS="PW/src" ;;
+		# cp) DEPS="PW/src CPV/src" # TODO turn on when CP is fixed
+		tddfpt) DEPS="PW/src | TDDFPT/src";;
+		xspectra) DEPS="PW/src | XSpectra/src";;
+		*) DEPS="PW/src | TDDFPT/src | XSpectra/src";;
+	esac
+	
+
+	sed -i.tmp -e '/cd $TOPDIR\/..\/$DIR/a \
+	# Environ patch\
+	case $DIR in\
+	'"$DEPS"')\
+		DEPENDS="$DEPENDS $LEVEL2/Environ/src"\
+		;;\
+	esac\
+	# end Environ patch' $file && rm $file.tmp
+}
+
 case "$1" in
 -patch)
 
@@ -160,26 +181,44 @@ case "$1" in
 		printf "\n* install/makedeps.sh already patched! \n\n"
 	else
 		printf "\n* Patching install/makedeps.sh.........."
-
-		# TODO add this after PW/src when CP is fixed
-		# CPV/src)\
-		# 	DEPENDS="$DEPENDS $LEVEL2/PW/src $LEVEL2/Environ/src"\
-		# 	;;\
-
-		sed -i.tmp -e '/cd $TOPDIR\/..\/$DIR/a \
-		# Environ patch\
-		case $DIR in\
-		PW/src | TDDFPT/src | XSpectra/src)\
-			DEPENDS="$DEPENDS $LEVEL2/Environ/src"\
-			;;\
-		esac\
-		# end Environ patch' $file && rm $file.tmp
+		patch_makedeps "$2"
 		printf " done! \n\n"
 	fi
 
-	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
-
-		# apply patch scripts
+	case "$2" in
+	pw)
+		PATCH_SCRIPT="${ENVIRON_PATCH}/pw-patch.sh"
+		if test -e "$PATCH_SCRIPT"; then
+			echo "* Applying patches to pw"
+			source "$PATCH_SCRIPT"
+		fi
+		;;
+	# cp) # TODO turn on when CP is fixed
+	# 	PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
+	# 	if test -e "$PATCH_SCRIPT"; then
+	# 		echo "* Applying patches to cp"
+	# 		source "$PATCH_SCRIPT"
+	# 	fi
+	# 	;;
+	tddfpt)
+		for i in pw td; do
+			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
+			if test -e "$PATCH_SCRIPT"; then
+				echo "* Applying patches to $i"
+				source "$PATCH_SCRIPT"
+			fi
+		done
+		;;
+	xspectra)
+		for i in pw xs; do
+			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
+			if test -e "$PATCH_SCRIPT"; then
+				echo "* Applying patches to $i"
+				source "$PATCH_SCRIPT"
+			fi
+		done
+		;;
+	*)
 		for i in pw td xs; do # TODO add cp after pw when CP is fixed
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
@@ -187,57 +226,22 @@ case "$1" in
 				source "$PATCH_SCRIPT"
 			fi
 		done
+	esac
 
-		cd "$ENVIRON_DIR" || exit # return to Environ root directory
+	cd "$ENVIRON_DIR" || exit # return to Environ root directory
 
-		# apply Makefile patches to QE packages that rely on pw.x
-		printf "\n* Patching Makefiles dependent on pw.x\n"
-		for i in $PW_DEP_DIRS; do
-			loc=../$i
-			if test -e "$loc"; then
-				(
-					cd "$loc" || exit
-					patch_makefile "$i/"
-				)
-			fi
-		done
+	# apply Makefile patches to QE packages that rely on pw.x
+	printf "\n* Patching Makefiles dependent on pw.x\n"
+	for i in $PW_DEP_DIRS; do
+		loc=../$i
+		if test -e "$loc"; then
+			(
+				cd "$loc" || exit
+				patch_makefile "$i/"
+			)
+		fi
+	done
 
-	else
-		case "$2" in
-		pw)
-			PATCH_SCRIPT="${ENVIRON_PATCH}/pw-patch.sh"
-			if test -e "$PATCH_SCRIPT"; then
-				echo "* Applying patches to pw"
-				source "$PATCH_SCRIPT"
-			fi
-			;;
-		# cp) # TODO turn on when CP is fixed
-		# 	PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
-		# 	if test -e "$PATCH_SCRIPT"; then
-		# 		echo "* Applying patches to cp"
-		# 		source "$PATCH_SCRIPT"
-		# 	fi
-		# 	;;
-		td)
-			for i in pw td; do
-				PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
-				if test -e "$PATCH_SCRIPT"; then
-					echo "* Applying patches to $i"
-					source "$PATCH_SCRIPT"
-				fi
-			done
-			;;
-		xs)
-			for i in pw xs; do
-				PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
-				if test -e "$PATCH_SCRIPT"; then
-					echo "* Applying patches to $i"
-					source "$PATCH_SCRIPT"
-				fi
-			done
-			;;
-		esac
-	fi
 	;;
 -revert)
 
@@ -251,9 +255,40 @@ case "$1" in
 		printf "\n* install/makedeps.sh has not been patched! \n\n"
 	fi
 
-	if [ "$#" -eq 1 ] || [ "$2" == all ]; then
-
-		# apply revert scripts
+	case "$2" in
+	pw)
+		REVERT_SCRIPT="${ENVIRON_PATCH}/pw-revert.sh"
+		if test -e "$REVERT_SCRIPT"; then
+			echo "* Reverting patches to pw"
+			source "$REVERT_SCRIPT"
+		fi
+		;;
+	# cp) # TODO turn on when CP is fixed
+	# 	REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
+	# 	if test -e "$REVERT_SCRIPT"; then
+	# 		echo "* Reverting patches to cp"
+	# 		source "$REVERT_SCRIPT"
+	# 	fi
+	# 	;;
+	tddfpt)
+		for i in pw td; do
+			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
+			if test -e "$REVERT_SCRIPT"; then
+				echo "* Reverting patches to ${i}"
+				source "$REVERT_SCRIPT"
+			fi
+		done
+		;;
+	xspectra)
+		for i in pw xs; do
+			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
+			if test -e "$REVERT_SCRIPT"; then
+				echo "* Reverting patches to ${i}"
+				source "$REVERT_SCRIPT"
+			fi
+		done
+		;;
+	*)
 		for i in pw td xs; do # TODO add cp after pw when functional
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
@@ -261,56 +296,21 @@ case "$1" in
 				source "$REVERT_SCRIPT"
 			fi
 		done
+	esac
 
-		cd "$ENVIRON_DIR" || exit # return to Environ root directory
+	cd "$ENVIRON_DIR" || exit # return to Environ root directory
 
-		# revert Makefile patches to QE packages that rely on pw.x
-		printf "\n* Reverting Makefiles dependent on pw.x\n"
-		for i in $PW_DEP_DIRS; do
-			loc=../$i
-			if test -e "$loc"; then
-				(
-					cd "$loc" || exit 1
-					revert_makefile "$i/"
-				)
-			fi
-		done
+	# revert Makefile patches to QE packages that rely on pw.x
+	printf "\n* Reverting Makefiles dependent on pw.x\n"
+	for i in $PW_DEP_DIRS; do
+		loc=../$i
+		if test -e "$loc"; then
+			(
+				cd "$loc" || exit 1
+				revert_makefile "$i/"
+			)
+		fi
+	done
 
-	else
-		case "$2" in
-		pw)
-			REVERT_SCRIPT="${ENVIRON_PATCH}/pw-revert.sh"
-			if test -e "$REVERT_SCRIPT"; then
-				echo "* Reverting patches to pw"
-				source "$REVERT_SCRIPT"
-			fi
-			;;
-		# cp) # TODO turn on when CP is fixed
-		# 	REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
-		# 	if test -e "$REVERT_SCRIPT"; then
-		# 		echo "* Reverting patches to cp"
-		# 		source "$REVERT_SCRIPT"
-		# 	fi
-		# 	;;
-		td)
-			for i in pw td; do
-				REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
-				if test -e "$REVERT_SCRIPT"; then
-					echo "* Reverting patches to ${i}"
-					source "$REVERT_SCRIPT"
-				fi
-			done
-			;;
-		xs)
-			for i in pw xs; do
-				REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
-				if test -e "$REVERT_SCRIPT"; then
-					echo "* Reverting patches to ${i}"
-					source "$REVERT_SCRIPT"
-				fi
-			done
-			;;
-		esac
-	fi
 	;;
 esac

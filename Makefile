@@ -25,7 +25,6 @@ ifndef VERBOSE
 endif
 
 ENVIRON_VERSION=2.0
-DIRS="PW/src XSpectra/src TDDFPT/src" # TODO add CPV/src after PW/src when CP is fixed
 
 ################################################################################
 # HELP/LIST
@@ -57,8 +56,7 @@ devs:
 	@ echo
 	@ echo "* compile-Environ (requires Environ/make.inc)"
 	@ echo
-	@ echo "  - compiles Environ's FFTXlib, UtilXlib, and src"
-	@ echo "  - updates dependencies before compilation"
+	@ echo "  - compiles Environ's UtilXlib, FFTXlib, and src"
 	@ echo "  - compilation generates Environ/install/Environ_comp.log"
 	@ echo
 	@ echo "  * NOTE: Environ is decoupled from QE. Changes to QE files"
@@ -68,30 +66,28 @@ devs:
 	@ echo "* compile-QE [prog=] (requires QE/make.inc)"
 	@ echo
 	@ echo "  - (re)compiles QE package -> prog = pw (default) | tddfpt | xspectra"
-	@ echo "  - updates dependencies before compilation"
 	@ echo "  - compilation generates Environ/install/QE_comp.log"
 	@ echo
 	@ echo "  * NOTE: If QE dependencies reflect an Environ-patched state,"
 	@ echo "          Environ must be pre-compiled before QE is (re)compiled."
-	@ echo "          Alternatively, you may revert the patches and update"
-	@ echo "          QE dependencies prior to QE compilation. To do so,"
-	@ echo "          run 'make uninstall-QE+Environ'"
 	@ echo
 	@ echo "* recompile-QE+Environ"
 	@ echo
 	@ echo "  - wrapper on compile-Environ and compile-QE"
-	@ echo "  - used when changes are made to Environ's code"
+	@ echo "  - used when changes are made to Environ"
+	@ echo "  - updates Environ dependencies before compilation"
 	@ echo
 	@ echo "  * DO NOT use this if changing the patching scheme!"
 	@ echo
 	@ echo "Patching & Dependencies"
 	@ echo "-----------------------"
 	@ echo
-	@ echo "* patch-QE (requires QE/make.inc)"
+	@ echo "* patch-QE [prog=] (requires QE/make.inc)"
 	@ echo
 	@ echo "  - applies Environ patch to QE/install/makedeps.sh"
-	@ echo "  - patches pw, tddfpt, and xspectra plugin files and Makefiles"
-	@ echo "  - patches Makefiles of all QE packages dependent on pw.x"
+	@ echo "  - patches plugin file and Makefile of QE/prog"
+	@ echo "  - prog = pw | tddfpt | xspectra | all (default)"
+	@ echo "  - patches Makefiles of all pw.x-dependent QE packages"
 	@ echo
 	@ echo "* revert-QE-patches (requires QE/make.inc)"
 	@ echo
@@ -99,11 +95,12 @@ devs:
 	@ echo
 	@ echo "* update-Environ-dependencies"
 	@ echo
-	@ echo "  - updates dependencies in Environ's FFTXlib, UtilXlib, and src"
+	@ echo "  - updates dependencies in Environ's UtilXlib, FFTXlib, and src"
 	@ echo
 	@ echo "* update-QE-dependencies"
 	@ echo
-	@ echo "  - updates dependencies in QE's pw, tddfpt, and xspectra"
+	@ echo "  - updates dependencies in QE package (prog)"
+	@ echo "  - prog = pw | tddfpt | xspectra | all (default)"
 	@ echo
 	@ echo "Cleaning"
 	@ echo "--------"
@@ -129,7 +126,7 @@ devs:
 # COMPILATION ROUTINES
 ################################################################################
 
-compile-Environ: check-Environ-makeinc libsdir update-Environ-dependencies
+compile-Environ: check-Environ-makeinc libsdir
 	@ printf "\nCompiling Environ $(ENVIRON_VERSION)...\n\n"
 	@ $(MAKE) compile-util
 	@ $(MAKE) compile-fft
@@ -143,6 +140,7 @@ compile-Environ: check-Environ-makeinc libsdir update-Environ-dependencies
 
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi; \
+	  if [ $$prog = all ]; then prog="pw tddfpt xspectra"; fi; \
 	  if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log; \
 	  (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
@@ -156,13 +154,14 @@ recompile-QE+Environ:
 	1) opt=pw;; \
 	2) opt=tddfpt;; \
 	3) opt=xspectra;; \
-	4) opt="pw tddfpt xspectra";; \
+	4) opt=all;; \
 	*) exit;; \
 	esac; \
 	\
 	printf "\nUse # cores (default = 1) -> "; read cores; \
+	make update-Environ-dependencies; \
 	$(MAKE) compile-Environ; \
-	if [ $$? != 0 ]; then exit; fi; \
+	if [ $$? -ne 0 ]; then exit; fi; \
 	$(MAKE) compile-QE prog=$$opt
 
 compile-util: libsdir
@@ -233,19 +232,28 @@ check-for-errors:
 
 patch-QE: check-QE-makeinc
 	@ printf "\nApplying QE patches using Environ version ${ENVIRON_VERSION}\n"
-	@ ./patches/environpatch.sh -patch
+	@ if test $(prog); then prog=$(prog); else prog=all; fi; \
+	  ./patches/environpatch.sh -patch $$prog
 
 revert-QE-patches: check-QE-makeinc
 	@ printf "\nReverting QE patches using Environ version ${ENVIRON_VERSION}\n"
-	@ ./patches/environpatch.sh -revert
+	  ./patches/environpatch.sh -revert
 
 update-Environ-dependencies:
 	@ printf "\nUpdating Environ dependencies...\n\n"
 	@ ./install/makedeps.sh
 
+# TODO add CP option when fixed
 update-QE-dependencies:
 	@ printf "\nUpdating QE dependencies...\n\n"
-	@ (cd ../ && ./install/makedeps.sh "$(DIRS)")
+	@ if test $(prog); then prog=$(prog); else prog=all; fi; \
+	  case $$prog in \
+	  pw) DIRS="PW/src";; \
+	  tddfpt) DIRS="PW/src TDDFPT/src";; \
+	  xspectra) DIRS="PW/src XSpectra/src";; \
+	  *) DIRS="PW/src TDDFPT/src XSpectra/src";; \
+	  esac; \
+	  (cd ../ && ./install/makedeps.sh $$DIRS)
 
 ################################################################################
 # INSTALL ROUTINES FOR QE+ENVIRON
@@ -255,8 +263,8 @@ print_menu:
 	@ printf "\nSelect a package:\n\n"
 	@ printf "%s\n%s\n%s\n%s\n\n%s" \
 			 "   1 - PW" \
-			 "   2 - TD" \
-			 "   3 - XS" \
+			 "   2 - TDDFPT" \
+			 "   3 - XSpectra" \
 			 "   4 - ALL" \
 			 "-> "
 
@@ -269,24 +277,24 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	1) opt=pw;; \
 	2) opt=tddfpt;; \
 	3) opt=xspectra;; \
-	4) opt="pw tddfpt xspectra";; \
+	4) opt=all;; \
 	*) exit;; \
 	esac; \
 	\
 	printf "\nUse # cores (default = 1) -> "; read cores; \
 	\
-	make -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
-	if [ $$? != 0 ]; then exit; fi; \
+	make -j$${cores:=1} compile-QE prog=$$opt title="Pre-compiling QE"; \
+	if [ $$? -ne 0 ]; then exit; fi; \
 	(cd install && mv QE_comp.log QE_precomp.log); \
 	\
 	make -j$${cores:=1} compile-Environ; \
-	if [ $$? != 0 ]; then exit; fi; \
-	make patch-QE; \
-	make update-QE-dependencies; \
+	if [ $$? -ne 0 ]; then exit; fi; \
+	make patch-QE prog=$$opt; \
+	make update-QE-dependencies prog=$$opt; \
 	\
 	title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
-	make -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
-	if [ $$? != 0 ]; then exit; fi; \
+	make -j$${cores:=1} compile-QE prog=$$opt title="$$title"; \
+	if [ $$? -ne 0 ]; then exit; fi; \
 	\
 	printf "\nQE + Environ $(ENVIRON_VERSION) installaion complete! \n\n"
 	\
@@ -300,13 +308,13 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 uninstall-QE+Environ:
 	@ printf "\nPreparing to uninstall QE + Environ $(ENVIRON_VERSION)...\n"
 	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
-	if [ "$$c" = "y" ]; then \
+	if [ "$$c" = y ]; then \
 		make decompile-Environ; \
 		make revert-QE-patches; \
 		make update-QE-dependencies; \
 		printf "\nPreparing to decompile QE...\n"; \
 		printf "\nDo you wish to proceed (y|n)? "; read c; \
-		if [ "$$c" = "y" ]; then \
+		if [ "$$c" = y ]; then \
 			make decompile-QE; \
 			printf "\nDone! \n\n"; \
 		else \
