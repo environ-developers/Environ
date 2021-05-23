@@ -85,7 +85,7 @@ devs:
 	@ echo "* patch-QE [prog=] (requires QE/make.inc)"
 	@ echo
 	@ echo "  - applies Environ patch to QE/install/makedeps.sh"
-	@ echo "  - patches plugin file and Makefile of QE/prog"
+	@ echo "  - patches plugin files and Makefile of QE/<prog>"
 	@ echo "  - prog = pw | tddfpt | xspectra | all (default)"
 	@ echo "  - patches Makefiles of all pw.x-dependent QE packages"
 	@ echo
@@ -97,7 +97,7 @@ devs:
 	@ echo
 	@ echo "  - updates dependencies in Environ's UtilXlib, FFTXlib, and src"
 	@ echo
-	@ echo "* update-QE-dependencies"
+	@ echo "* update-QE-dependencies [prog=]"
 	@ echo
 	@ echo "  - updates dependencies in QE package (prog)"
 	@ echo "  - prog = pw | tddfpt | xspectra | all (default)"

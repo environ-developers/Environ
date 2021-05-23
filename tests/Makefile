@@ -42,12 +42,26 @@ default :
 	@echo 'For additional advanced commands and settings please manually inspect'
 	@echo 'ENVIRONMENT and Makefile files'
 
-prolog :
+prolog : check-version
 	@sed "s|XXXXXX|$(ENVIRON_ROOT)|g" < userconfig.tmp > userconfig
 
 pseudo :
 	@./check_pseudo.sh pw_
 
+check-version:
+	@ v=$$(grep -E 'New in.*[0-9]\.[0-9].*' $(ESPRESSO_ROOT)/Doc/release-notes | grep -oE '[0-9]\.[0-9]' | head -1); \
+	  if [ $$(echo "$$v < 6.6" | bc) -eq 1 ]; then \
+	  	  echo; \
+		  echo "##       ##    ###     #######   ###   ##  ####  ###   ##   ###### "; \
+		  echo "##   #   ##   ## ##    ##   ###  ## #  ##   ##   ## #  ##  ##      "; \
+		  echo " ## ### ##   ## # ##   #######   ##  # ##   ##   ##  # ##  ##  ### "; \
+		  echo "  ### ###   ##     ##  ##    ##  ##   ###  ####  ##   ###   #### ##"; \
+		  echo; \
+		  echo "* For QE < 6.6, some tests may fail with negligible errors. This is due to the following change in QE 6.6:"; \
+		  echo; \
+		  echo '  Default value of parameter "diago_david_ndim" changed to 2 (https://github.com/QEF/q-e/blob/master/Doc/release-notes)'; \
+		  echo; \
+	  fi
 
 run-tests : run-tests-serial
 
