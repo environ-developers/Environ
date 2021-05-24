@@ -11,7 +11,7 @@
 !! G-vector components onto the FFT grid(s) in reciprocal space
 !!
 !----------------------------------------------------------------------------------------
-MODULE tools_generate_gvectors
+MODULE generate_gvectors
     !------------------------------------------------------------------------------------
     !
     USE env_sorting, ONLY: env_hpsort_eps
@@ -20,9 +20,9 @@ MODULE tools_generate_gvectors
     USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_stick_index
     USE env_fft_ggen, ONLY: env_fft_set_nl
     !
-    USE modules_constants, ONLY: DP, eps8
+    USE environ_param, ONLY: DP, eps8
     !
-    USE core_types, ONLY: fft_core
+    USE types_core, ONLY: fft_core
     !
     !------------------------------------------------------------------------------------
     !
@@ -358,5 +358,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE tools_generate_gvectors
+END MODULE generate_gvectors
 !----------------------------------------------------------------------------------------

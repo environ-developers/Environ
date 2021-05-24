@@ -34,20 +34,20 @@
 !! on the polarization charge) are available and implemented.
 !!
 !----------------------------------------------------------------------------------------
-MODULE problem_generalized
+MODULE solver_generalized
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, fpi
+    USE environ_param, ONLY: DP, e2, fpi
     !
-    USE electrostatic_types, ONLY: electrostatic_solver, iterative_solver, &
+    USE types_electrostatic, ONLY: electrostatic_solver, iterative_solver, &
                                    gradient_solver
     !
-    USE physical_types, ONLY: environ_charges, environ_dielectric, &
+    USE types_physical, ONLY: environ_charges, environ_dielectric, &
                               environ_electrolyte, environ_semiconductor
     !
-    USE core_types, ONLY: core_container
-    USE representation_types, ONLY: environ_density, environ_gradient
-    USE cell_types, ONLY: environ_cell
+    USE types_core, ONLY: core_container
+    USE types_representation, ONLY: environ_density, environ_gradient
+    USE types_cell, ONLY: environ_cell
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
@@ -58,9 +58,9 @@ MODULE problem_generalized
                           quadratic_mean_environ_density, &
                           integrate_environ_density
     !
-    USE core_fft, ONLY: gradient_fft, laplacian_fft
+    USE tools_fft, ONLY: gradient_fft, laplacian_fft
     !
-    USE problem_poisson
+    USE solver_poisson
     !
     USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
     !
@@ -1084,5 +1084,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE problem_generalized
+END MODULE solver_generalized
 !----------------------------------------------------------------------------------------

@@ -113,8 +113,8 @@ mv tmp.2 plugin_read_input.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE environ_base, ONLY : ltddfpt\
-USE environ_init, ONLY : environ_clean, environ_clean_pw, &\
+USE base_environ, ONLY : ltddfpt\
+USE init_environ, ONLY : environ_clean, environ_clean_pw, &\
                          environ_clean_tddfpt\
 !Environ patch
 ' plugin_clean.f90 >tmp.1
@@ -181,7 +181,7 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 USE    cell_base,    ONLY : at, alat\
-USE    environ_init, ONLY : environ_initbase\
+USE    init_environ, ONLY : environ_initbase\
 USE    gvect,        ONLY : gcutm\
 !Environ patch
 ' plugin_initbase.f90 >tmp.1
@@ -253,7 +253,7 @@ mv tmp.2 plugin_print_energies.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
 USE ions_base,            ONLY : zv, nat, nsp, ityp, tau\
-USE environ_init,         ONLY : environ_initions\
+USE init_environ,         ONLY : environ_initions\
 USE fft_interfaces,       ONLY : invfft\
 USE gvect,                ONLY : igtongl\
 USE control_flags,        ONLY : gamma_only\
@@ -294,7 +294,7 @@ mv tmp.1 plugin_init_ions.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
 USE cell_base,            ONLY : at\
-USE environ_init,         ONLY : environ_initcell\
+USE init_environ,         ONLY : environ_initcell\
 !Environ patch
 ' plugin_init_cell.f90 >tmp.1
 
@@ -310,7 +310,7 @@ mv tmp.2 plugin_init_cell.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,          ONLY : deenviron, eelectrostatic, & \
+USE base_environ,          ONLY : deenviron, eelectrostatic, & \
                                   esurface, evolume, econfine, eelectrolyte \
 USE environ_main,          ONLY : calc_eenviron \
 !Environ patch
@@ -336,7 +336,7 @@ mv tmp.2 plugin_scf_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_init,         ONLY : environ_initpotential\
+USE init_environ,         ONLY : environ_initpotential\
 !Environ patch
 ' plugin_init_potential.f90 >tmp.1
 
@@ -356,9 +356,9 @@ USE global_version,        ONLY : version_number\
 USE klist,                 ONLY : nelec\
 USE control_flags,         ONLY : lscf\
 USE lsda_mod,              ONLY : nspin\
-USE environ_base,          ONLY : update_venviron, environ_thr, &\
+USE base_environ,          ONLY : update_venviron, environ_thr, &\
                                   environ_restart, ltddfpt\
-USE environ_init,          ONLY : environ_initelectrons\
+USE init_environ,          ONLY : environ_initelectrons\
 USE environ_main,          ONLY : calc_venviron\
 USE environ_output,        ONLY : environ_print_potential_shift\
 !Environ patch
@@ -426,7 +426,7 @@ sed '/Environ MODULES BEGIN/ a\
 USE klist,            ONLY : tot_charge\
 USE force_mod,        ONLY : lforce\
 USE control_flags,    ONLY : lbfgs\
-USE environ_base,  ONLY : louterloop\
+USE base_environ,  ONLY : louterloop\
 USE control_flags,    ONLY : nstep\
 !Environ patch
 ' plugin_initialization.f90 >tmp.1
@@ -489,7 +489,7 @@ sed '/Environ MODULES BEGIN/ a\
 !------------------------------------------------ \
  \
 \
-USE environ_base,  ONLY : louterloop, semiconductor, cell \
+USE base_environ,  ONLY : louterloop, semiconductor, cell \
 USE environ_output,  ONLY : environ_unit \
  \
 USE mp,             ONLY: mp_bcast, mp_barrier, mp_sum \

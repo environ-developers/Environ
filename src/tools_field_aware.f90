@@ -2,7 +2,7 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE boundary_field_aware
+MODULE tools_field_aware
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ CONTAINS
     !                                      electrons, ion_field, partial_of_ion_field, fft)
     !     !--------------------------------------------------------------------------------
     !     !
-    !     USE core_fft, ONLY: hessv_h_of_rho_r
+    !     USE tools_fft, ONLY: hessv_h_of_rho_r
     !     !
     !     IMPLICIT NONE
     !     !
@@ -281,7 +281,7 @@ CONTAINS
     ! SUBROUTINE compute_dion_field_drho(nsoft_spheres, soft_spheres, dion_field_drho, fft)
     !     !--------------------------------------------------------------------------------
     !     !
-    !     USE core_fft, ONLY: field_of_gradrho
+    !     USE tools_fft, ONLY: field_of_gradrho
     !     !
     !     IMPLICIT NONE
     !     !
@@ -644,7 +644,7 @@ CONTAINS
     ! SUBROUTINE delectronic_field_drho(boundary, funct, dfield_drho)
     !     !--------------------------------------------------------------------------------
     !     !
-    !     USE core_fft, ONLY: field_of_gradrho
+    !     USE tools_fft, ONLY: field_of_gradrho
     !     !
     !     IMPLICIT NONE
     !     !
@@ -696,7 +696,7 @@ CONTAINS
     !     !--------------------------------------------------------------------------------
     !     !
     !     USE tools_functions, ONLY: derivative_of_functions
-    !     USE core_fft, ONLY: field_of_gradrho
+    !     USE tools_fft, ONLY: field_of_gradrho
     !     !
     !     IMPLICIT NONE
     !     !
@@ -856,7 +856,7 @@ CONTAINS
     !     !--------------------------------------------------------------------------------
     !     !
     !     USE tools_functions, ONLY: derivative_of_functions
-    !     USE core_fft, ONLY: hessv_h_of_rho_r
+    !     USE tools_fft, ONLY: hessv_h_of_rho_r
     !     !
     !     IMPLICIT NONE
     !     !
@@ -1023,5 +1023,5 @@ CONTAINS
     ! !------------------------------------------------------------------------------------
     ! !
     ! !------------------------------------------------------------------------------------
-END MODULE boundary_field_aware
+END MODULE tools_field_aware
 !----------------------------------------------------------------------------------------

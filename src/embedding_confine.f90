@@ -27,10 +27,10 @@
 MODULE embedding_confine
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE physical_types, ONLY: environ_boundary
-    USE representation_types, ONLY: environ_density
+    USE types_physical, ONLY: environ_boundary
+    USE types_representation, ONLY: environ_density
     !
     !------------------------------------------------------------------------------------
     !

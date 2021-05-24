@@ -5,14 +5,14 @@
 MODULE utils_cell
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, tpi
+    USE environ_param, ONLY: DP, tpi
+    !
+    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_deallocate
     !
     USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_type_init, &
                              env_fft_type_deallocate
     !
-    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_deallocate
-    !
-    USE cell_types, ONLY: environ_cell
+    USE types_cell, ONLY: environ_cell
     !
     USE tools_cell, ONLY: volume, recips
     !

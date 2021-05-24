@@ -249,7 +249,10 @@ sum_ = 1 + var1 + &
   - bases
   - utils
   - tools
-  - other functions
+  - generators
+  - solvers
+  - corrections
+  - embedding
   - I/O
   - debugging
 

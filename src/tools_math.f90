@@ -7,10 +7,10 @@ MODULE tools_math
     !
     USE env_mp, ONLY: env_mp_sum
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
-    USE cell_types, ONLY: environ_cell
+    USE types_representation, ONLY: environ_density, environ_gradient, environ_hessian
+    USE types_cell, ONLY: environ_cell
     !
     USE tools_cell, ONLY: ir2r, displacement, minimum_image
     !

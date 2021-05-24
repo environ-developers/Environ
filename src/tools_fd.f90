@@ -24,7 +24,7 @@
 !! Module to compute finite-differences gradients on dense real space grid
 !!
 !----------------------------------------------------------------------------------------
-MODULE core_fd
+MODULE tools_fd
     !------------------------------------------------------------------------------------
     !
     USE env_mp, ONLY: env_mp_sum
@@ -32,11 +32,11 @@ MODULE core_fd
     USE env_fft_types, ONLY: env_fft_type_descriptor
     USE env_scatter_mod, ONLY: env_scatter_grid
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE core_types, ONLY: fd_core
-    USE representation_types, ONLY: environ_density, environ_gradient
-    USE cell_types, ONLY: environ_cell
+    USE types_core, ONLY: fd_core
+    USE types_representation, ONLY: environ_density, environ_gradient
+    USE types_cell, ONLY: environ_cell
     !
     USE tools_cell, ONLY: ir2ijk
     !
@@ -162,5 +162,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE core_fd
+END MODULE tools_fd
 !----------------------------------------------------------------------------------------

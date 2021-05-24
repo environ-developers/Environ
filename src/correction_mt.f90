@@ -16,11 +16,11 @@ MODULE correction_mt
     USE env_fft_types, ONLY: env_fft_type_descriptor
     USE env_fft_interfaces, ONLY: env_fwfft
     !
-    USE modules_constants, ONLY: DP, pi, tpi, fpi, e2
+    USE environ_param, ONLY: DP, pi, tpi, fpi, e2
     !
-    USE core_types, ONLY: fft_core
-    USE cell_types, ONLY: environ_cell
-    USE physical_types, ONLY: environ_ions
+    USE types_core, ONLY: fft_core
+    USE types_cell, ONLY: environ_cell
+    USE types_physical, ONLY: environ_ions
     !
     USE tools_cell, ONLY: ir2r, minimum_image
     USE tools_math, ONLY: environ_erf, environ_erfc

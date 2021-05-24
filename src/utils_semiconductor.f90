@@ -28,12 +28,12 @@
 MODULE utils_semiconductor
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE physical_types, ONLY: environ_semiconductor, environ_system
-    USE cell_types, ONLY: environ_cell
+    USE types_physical, ONLY: environ_semiconductor, environ_system
+    USE types_cell, ONLY: environ_cell
     !
-    USE environ_base, ONLY: semiconductor
+    USE base_environ, ONLY: semiconductor
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              destroy_environ_density

@@ -34,14 +34,14 @@
 MODULE utils_charges
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE physical_types, ONLY: environ_charges, environ_electrons, environ_ions, &
+    USE types_representation, ONLY: environ_density
+    USE types_cell, ONLY: environ_cell
+    !
+    USE types_physical, ONLY: environ_charges, environ_electrons, environ_ions, &
                               environ_externals, environ_dielectric, &
                               environ_electrolyte, environ_semiconductor
-    !
-    USE representation_types, ONLY: environ_density
-    USE cell_types, ONLY: environ_cell
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              update_environ_density, destroy_environ_density

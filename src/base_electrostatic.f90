@@ -26,11 +26,11 @@
 !! Contains all the main variables needed for the electrostatic solvers.
 !!
 !----------------------------------------------------------------------------------------
-MODULE electrostatic_base
+MODULE base_electrostatic
     !------------------------------------------------------------------------------------
     !
-    USE electrostatic_types
-    USE core_types, ONLY: core_container
+    USE types_electrostatic
+    USE types_core, ONLY: core_container
     !
     !------------------------------------------------------------------------------------
     !
@@ -74,5 +74,5 @@ MODULE electrostatic_base
                electrostatic_solver, electrostatic_setup, core_container
     !
     !------------------------------------------------------------------------------------
-END MODULE electrostatic_base
+END MODULE base_electrostatic
 !----------------------------------------------------------------------------------------

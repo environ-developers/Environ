@@ -5,8 +5,8 @@
 MODULE utils_hessian
     !------------------------------------------------------------------------------------
     !
-    USE cell_types, ONLY: environ_cell
-    USE representation_types, ONLY: environ_density, environ_hessian
+    USE types_cell, ONLY: environ_cell
+    USE types_representation, ONLY: environ_density, environ_hessian
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              copy_environ_density, destroy_environ_density

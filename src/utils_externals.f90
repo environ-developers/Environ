@@ -33,15 +33,15 @@
 MODULE utils_externals
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE physical_types, ONLY: environ_externals
-    USE cell_types, ONLY: environ_cell
+    USE types_physical, ONLY: environ_externals
+    USE types_cell, ONLY: environ_cell
+    !
+    USE utils_functions, ONLY: destroy_environ_functions
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              destroy_environ_density
-    !
-    USE utils_functions, ONLY: destroy_environ_functions
     !
     USE tools_functions, ONLY: density_of_functions
     USE tools_math, ONLY: integrate_environ_density

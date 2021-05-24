@@ -36,11 +36,11 @@ MODULE environ_input
     USE env_char_ops, ONLY: env_uppercase, env_is_substring
     USE env_mp, ONLY: env_mp_bcast
     !
-    USE modules_constants, ONLY: DP, bohr_radius_angs, nsx
+    USE environ_param, ONLY: DP, bohr_radius_angs, nsx
     !
-    USE environ_init, ONLY: set_environ_base
-    USE electrostatic_init, ONLY: set_electrostatic_base
-    USE core_init, ONLY: set_core_base
+    USE init_environ, ONLY: set_environ_base
+    USE init_electrostatic, ONLY: set_electrostatic_base
+    USE init_core, ONLY: set_core_base
     !
     USE environ_output, ONLY: ionode, ionode_id, comm, program_unit, &
                               verbose_ => verbose, environ_unit

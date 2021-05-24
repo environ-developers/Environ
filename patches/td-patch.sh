@@ -47,19 +47,19 @@ cat > tmp.6.1 <<EOF
    USE constants,           ONLY : eps4
    USE control_lr,          ONLY : lrpa
  #if defined(__ENVIRON)
--  USE environ_base,        ONLY : environ_base_init, ir_end
+-  USE base_environ,        ONLY : environ_base_init, ir_end
 +  USE plugin_flags,        ONLY : use_environ
 +  USE environ_output,      ONLY : set_environ_output
    USE environ_input,       ONLY : read_environ
--  USE environ_base,        ONLY : ifdtype, nfdpoint
+-  USE base_environ,        ONLY : ifdtype, nfdpoint
 -  USE ions_base,           ONLY : nsp, ityp, zv, tau, nat
 +  USE ions_base,           ONLY : nsp, atm, ityp, zv, tau, nat
    USE cell_base,           ONLY : at, alat, omega, ibrav
 -  USE solvent_tddfpt,      ONLY : solvent_initbase_tddfpt
--  USE environ_init,        ONLY : environ_initions, environ_initcell,      &
+-  USE init_environ,        ONLY : environ_initions, environ_initcell,      &
 -                                  environ_clean, environ_initbase,         &
 -                                  environ_initions_allocate
-+  USE environ_init,        ONLY : environ_initions, environ_initcell, &
++  USE init_environ,        ONLY : environ_initions, environ_initcell, &
 +                                  environ_clean_pw, environ_initbase,    &
 +                                  environ_initelectrons, environ_initpotential
    USE environ_main,        ONLY : calc_venviron
@@ -133,19 +133,19 @@ cat > tmp.6.2 <<EOF
    USE constants,           ONLY : eps4
    USE control_lr,          ONLY : lrpa
  #if defined(__ENVIRON)
--  USE environ_base,        ONLY : environ_base_init, ir_end
+-  USE base_environ,        ONLY : environ_base_init, ir_end
 +  USE plugin_flags,        ONLY : use_environ
 +  USE environ_output,      ONLY : set_environ_output
    USE environ_input,       ONLY : read_environ
--  USE environ_base,        ONLY : ifdtype, nfdpoint
+-  USE base_environ,        ONLY : ifdtype, nfdpoint
 -  USE ions_base,           ONLY : nsp, ityp, zv, tau, nat
 +  USE ions_base,           ONLY : nsp, atm, ityp, zv, tau, nat
    USE cell_base,           ONLY : at, alat, omega, ibrav
 -  USE solvent_tddfpt,      ONLY : solvent_initbase_tddfpt
--  USE environ_init,        ONLY : environ_initions, environ_initcell,      &
+-  USE init_environ,        ONLY : environ_initions, environ_initcell,      &
 -                                  environ_clean, environ_initbase,         &
 -                                  environ_initions_allocate
-+  USE environ_init,        ONLY : environ_initions, environ_initcell, &
++  USE init_environ,        ONLY : environ_initions, environ_initcell, &
 +                                  environ_clean_pw, environ_initbase,    &
 +                                  environ_initelectrons, environ_initpotential
    USE environ_main,        ONLY : calc_venviron
@@ -217,7 +217,7 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
   sed '/Environ MODULES BEGIN/ a\
       !Environ patch\
       USE scf,              ONLY : rho\
-      USE environ_init,     ONLY : environ_initresponse\
+      USE init_environ,     ONLY : environ_initresponse\
       USE environ_main,     ONLY : calc_dvenviron\
       !Environ patch
       ' plugin_tddfpt_potential.f90 > tmp.1

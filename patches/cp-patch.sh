@@ -41,7 +41,7 @@ echo "$ENVIRON_VERSION"                                                  >> Envi
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base, ONLY: vzero \
+USE base_environ, ONLY: vzero \
 !Environ patch
 ' plugin_add_potential.f90 > tmp.1
 
@@ -86,7 +86,7 @@ mv tmp.1 plugin_add_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_init, ONLY : environ_clean \
+USE    init_environ, ONLY : environ_clean \
 !Environ patch
 ' plugin_clean.f90 > tmp.1
 
@@ -118,7 +118,7 @@ mv tmp.2 plugin_clock.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,          ONLY : deenviron, eelectrostatic, & \
+USE base_environ,          ONLY : deenviron, eelectrostatic, & \
   esurface, evolume, econfine, eelectrolyte \
 USE environ_main,         ONLY : calc_eenviron \
 !Environ patch
@@ -145,11 +145,11 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE global_version,   ONLY : version_number\
 USE lsda_mod,         ONLY : nspin\
-USE environ_base,     ONLY : update_venviron, vzero,    & \
+USE base_environ,     ONLY : update_venviron, vzero,    & \
                              environ_nskip, environ_restart \
 USE environ_output,   ONLY : verbose \
 USE environ_main,     ONLY : calc_venviron \
-USE environ_init,     ONLY : environ_initelectrons \
+USE init_environ,     ONLY : environ_initelectrons \
 !Environ patch
 ' plugin_get_potential.f90 > tmp.1
 
@@ -194,7 +194,7 @@ mv tmp.3 plugin_get_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_init, ONLY : environ_initbase\
+USE    init_environ, ONLY : environ_initbase\
 USE    cell_base,    ONLY : at, alat\
 USE    gvect,        ONLY : gcutm\
 USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
@@ -216,7 +216,7 @@ mv tmp.2 plugin_init_base.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE cell_base,        ONLY : at \
-USE environ_init,     ONLY : environ_initcell \
+USE init_environ,     ONLY : environ_initcell \
 !Environ patch
 ' plugin_init_cell.f90 > tmp.1
 
@@ -235,7 +235,7 @@ sed '/Environ MODULES BEGIN/ a\
 USE cell_base,        ONLY : alat \
 USE ions_base,        ONLY : zv \
 USE vlocal,           ONLY : vloc \
-USE environ_init,     ONLY : environ_initions \
+USE init_environ,     ONLY : environ_initions \
 !Environ patch
 ' plugin_init_ions.f90 > tmp.1
 

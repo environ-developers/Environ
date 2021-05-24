@@ -5,9 +5,9 @@
 MODULE tools_cell
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE cell_types, ONLY: environ_cell
+    USE types_cell, ONLY: environ_cell
     !
     !------------------------------------------------------------------------------------
     !

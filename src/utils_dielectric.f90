@@ -38,11 +38,13 @@
 MODULE utils_dielectric
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, fpi
+    USE environ_param, ONLY: DP, e2, fpi
     !
-    USE physical_types, ONLY: environ_dielectric, environ_boundary
-    USE representation_types, ONLY: environ_density, environ_gradient
-    USE cell_types, ONLY: environ_cell
+    USE types_physical, ONLY: environ_dielectric, environ_boundary
+    USE types_representation, ONLY: environ_density, environ_gradient
+    USE types_cell, ONLY: environ_cell
+    !
+    USE utils_functions, ONLY: destroy_environ_functions
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              destroy_environ_density
@@ -50,12 +52,10 @@ MODULE utils_dielectric
     USE utils_gradient, ONLY: create_environ_gradient, init_environ_gradient, &
                               update_gradient_modulus, destroy_environ_gradient
     !
-    USE utils_functions, ONLY: destroy_environ_functions
+    USE tools_math, ONLY: scalar_product_environ_gradient
     !
     USE tools_functions, ONLY: density_of_functions, gradient_of_functions, &
                                laplacian_of_functions
-    !
-    USE tools_math, ONLY: scalar_product_environ_gradient
     !
     USE environ_output, ONLY: verbose, print_environ_density
     !

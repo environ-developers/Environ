@@ -3,10 +3,10 @@
 !! Internal setup of numerical cores
 !!
 !----------------------------------------------------------------------------------------
-MODULE core_base
+MODULE base_core
     !------------------------------------------------------------------------------------
     !
-    USE core_types, ONLY: fd_core, fft_core, oned_analytic_core
+    USE types_core, ONLY: fd_core, fft_core, oned_analytic_core
     !
     !------------------------------------------------------------------------------------
     !
@@ -30,5 +30,5 @@ MODULE core_base
     PRIVATE :: fd_core, fft_core, oned_analytic_core
     !
     !------------------------------------------------------------------------------------
-END MODULE core_base
+END MODULE base_core
 !----------------------------------------------------------------------------------------

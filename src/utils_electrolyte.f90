@@ -31,13 +31,13 @@
 MODULE utils_electrolyte
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, bohr_radius_si, amu_si, k_boltzmann_ry, fpi
+    USE environ_param, ONLY: DP, e2, bohr_radius_si, amu_si, k_boltzmann_ry, fpi
     !
-    USE physical_types, ONLY: environ_electrolyte, environ_electrons, environ_ions, &
+    USE types_core, ONLY: core_container
+    USE types_cell, ONLY: environ_cell
+    !
+    USE types_physical, ONLY: environ_electrolyte, environ_electrons, environ_ions, &
                               environ_system
-    !
-    USE core_types, ONLY: core_container
-    USE cell_types, ONLY: environ_cell
     !
     USE utils_boundary, ONLY: create_environ_boundary, init_environ_boundary_first, &
                               init_environ_boundary_second, destroy_environ_boundary
@@ -46,7 +46,6 @@ MODULE utils_electrolyte
                              destroy_environ_density
     !
     USE tools_electrolyte, ONLY: electrolyte_of_boundary
-    !
     USE tools_functions, ONLY: density_of_functions
     !
     !------------------------------------------------------------------------------------

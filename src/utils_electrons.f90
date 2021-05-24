@@ -5,10 +5,10 @@
 MODULE utils_electrons
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE physical_types, ONLY: environ_electrons
-    USE cell_types, ONLY: environ_cell
+    USE types_physical, ONLY: environ_electrons
+    USE types_cell, ONLY: environ_cell
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              destroy_environ_density

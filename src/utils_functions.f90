@@ -32,9 +32,9 @@
 MODULE utils_functions
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE representation_types, ONLY: environ_functions
+    USE types_representation, ONLY: environ_functions
     !
     !------------------------------------------------------------------------------------
     !

@@ -18,12 +18,12 @@ MODULE correction_ms
     !
     USE env_mp, ONLY: env_mp_sum
     !
-    USE modules_constants, ONLY: DP, e2, fpi, k_boltzmann_ry, pi, tpi
+    USE environ_param, ONLY: DP, e2, fpi, k_boltzmann_ry, pi, tpi
     !
-    USE core_types, ONLY: oned_analytic_core
-    USE cell_types, ONLY: environ_cell
-    USE physical_types, ONLY: environ_semiconductor
-    USE representation_types, ONLY: environ_density, environ_gradient
+    USE types_core, ONLY: oned_analytic_core
+    USE types_cell, ONLY: environ_cell
+    USE types_physical, ONLY: environ_semiconductor
+    USE types_representation, ONLY: environ_density, environ_gradient
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient

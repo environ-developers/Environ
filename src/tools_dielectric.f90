@@ -36,11 +36,11 @@
 MODULE tools_dielectric
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: e2, fpi
+    USE environ_param, ONLY: e2, fpi
     !
-    USE physical_types, ONLY: environ_dielectric
-    USE representation_types, ONLY: environ_density, environ_gradient
-    USE cell_types, ONLY: environ_cell
+    USE types_physical, ONLY: environ_dielectric
+    USE types_representation, ONLY: environ_density, environ_gradient
+    USE types_cell, ONLY: environ_cell
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
@@ -48,7 +48,7 @@ MODULE tools_dielectric
                               destroy_environ_gradient
     !
     USE tools_math, ONLY: scalar_product_environ_gradient, integrate_environ_density
-    USE core_fft, ONLY: gradient_fft
+    USE tools_fft, ONLY: gradient_fft
     !
     !------------------------------------------------------------------------------------
     !

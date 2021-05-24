@@ -27,14 +27,14 @@
 !! basic derived data types (cell, density, gradient, hessian, electrons, system)
 !!
 !----------------------------------------------------------------------------------------
-MODULE physical_types
+MODULE types_physical
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE cell_types, ONLY: environ_cell
-    USE core_types, ONLY: core_container
-    USE representation_types
+    USE types_cell, ONLY: environ_cell
+    USE types_core, ONLY: core_container
+    USE types_representation
     !
     !------------------------------------------------------------------------------------
     !
@@ -435,5 +435,5 @@ MODULE physical_types
                environ_hessian, environ_functions
     !
     !------------------------------------------------------------------------------------
-END MODULE physical_types
+END MODULE types_physical
 !----------------------------------------------------------------------------------------

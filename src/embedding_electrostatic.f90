@@ -35,25 +35,25 @@
 MODULE embedding_electrostatic
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, tpi
+    USE environ_param, ONLY: DP, e2, tpi
     !
-    USE electrostatic_types, ONLY: electrostatic_setup
-    USE physical_types, ONLY: environ_charges
-    USE representation_types, ONLY: environ_density
-    USE core_types, ONLY: core_container
-    USE cell_types, ONLY: environ_cell
+    USE types_electrostatic, ONLY: electrostatic_setup
+    USE types_physical, ONLY: environ_charges
+    USE types_representation, ONLY: environ_density
+    USE types_core, ONLY: core_container
+    USE types_cell, ONLY: environ_cell
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
     USE tools_math, ONLY: scalar_product_environ_density
-    USE core_fft, ONLY: force_fft
+    USE tools_fft, ONLY: force_fft
+    !
+    USE solver_poisson, ONLY: poisson_direct
+    USE solver_generalized, ONLY: generalized_gradient
+    USE solver_linearized_pb, ONLY: linearized_pb_gradient
+    USE solver_pb, ONLY: pb_nested
     !
     USE correction_periodic, ONLY: calc_fperiodic
-    !
-    USE problem_poisson, ONLY: poisson_direct
-    USE problem_generalized, ONLY: generalized_gradient
-    USE problem_linearized_pb, ONLY: linearized_pb_gradient
-    USE problem_pb, ONLY: pb_nested
     !
     !------------------------------------------------------------------------------------
     !

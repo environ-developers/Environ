@@ -30,17 +30,17 @@
 MODULE tools_functions
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE representation_types, ONLY: environ_functions, environ_density, &
+    USE types_representation, ONLY: environ_functions, environ_density, &
                                     environ_gradient, environ_hessian
     !
-    USE cell_types, ONLY: environ_cell
+    USE types_cell, ONLY: environ_cell
     !
-    USE tools_generate_functions, ONLY: generate_gaussian, generate_erfc, &
-                                        generate_exponential, generate_gradgaussian, &
-                                        generate_graderfc, generate_gradexponential, &
-                                        generate_laplerfc, generate_hesserfc, erfcvolume
+    USE generate_functions, ONLY: generate_gaussian, generate_erfc, &
+                                  generate_exponential, generate_gradgaussian, &
+                                  generate_graderfc, generate_gradexponential, &
+                                  generate_laplerfc, generate_hesserfc, erfcvolume
     !
     !------------------------------------------------------------------------------------
     !

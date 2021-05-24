@@ -31,18 +31,18 @@
 !! \f]
 !!
 !----------------------------------------------------------------------------------------
-MODULE problem_pb
+MODULE solver_pb
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, k_boltzmann_ry, pi, fpi
+    USE environ_param, ONLY: DP, e2, k_boltzmann_ry, pi, fpi
     !
-    USE electrostatic_types, ONLY: electrostatic_solver, electrostatic_setup, &
+    USE types_electrostatic, ONLY: electrostatic_solver, electrostatic_setup, &
                                    iterative_solver, newton_solver
     !
-    USE core_types, ONLY: core_container
-    USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_dielectric
-    USE representation_types, ONLY: environ_density
-    USE cell_types, ONLY: environ_cell
+    USE types_core, ONLY: core_container
+    USE types_physical, ONLY: environ_charges, environ_electrolyte, environ_dielectric
+    USE types_representation, ONLY: environ_density
+    USE types_cell, ONLY: environ_cell
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
@@ -50,9 +50,9 @@ MODULE problem_pb
                           quadratic_mean_environ_density, &
                           integrate_environ_density
     !
-    USE problem_generalized, ONLY: generalized_gradient
-    USE problem_poisson, ONLY: poisson_direct
-    USE problem_linearized_pb, ONLY: linearized_pb_gradient
+    USE solver_generalized, ONLY: generalized_gradient
+    USE solver_poisson, ONLY: poisson_direct
+    USE solver_linearized_pb, ONLY: linearized_pb_gradient
     !
     USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
     !
@@ -710,5 +710,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE problem_pb
+END MODULE solver_pb
 !----------------------------------------------------------------------------------------

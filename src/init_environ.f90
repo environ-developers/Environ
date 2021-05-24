@@ -26,17 +26,17 @@
 !! Module to initilize environ-related variables
 !!
 !----------------------------------------------------------------------------------------
-MODULE environ_init
+MODULE init_environ
     !------------------------------------------------------------------------------------
     !
     USE env_mp_base, ONLY: env_allocate_mp_buffers, env_deallocate_mp_buffers
     !
-    USE modules_constants, ONLY: DP, e2, bohr_radius_si, rydberg_si
+    USE environ_param, ONLY: DP, e2, bohr_radius_si, rydberg_si
     !
-    USE environ_base
-    USE core_base, ONLY: lfd, fd, lfft_environment, environment_fft
+    USE base_environ
+    USE base_core, ONLY: lfd, fd, lfft_environment, environment_fft
     !
-    USE electrostatic_base, ONLY: need_pbc_correction, need_gradient, &
+    USE base_electrostatic, ONLY: need_pbc_correction, need_gradient, &
                                   need_factsqrt, need_auxiliary, need_electrolyte, &
                                   need_semiconductor, need_outer_loop
     !
@@ -58,8 +58,8 @@ MODULE environ_init
     !
     USE tools_mapping, ONLY: map_small_to_large
     !
-    USE core_init, ONLY: core_initbase, core_initcell, core_initions, core_clean
-    USE electrostatic_init, ONLY: electrostatic_clean
+    USE init_core, ONLY: core_initbase, core_initcell, core_initions, core_clean
+    USE init_electrostatic, ONLY: electrostatic_clean
     !
     USE environ_output, ONLY: environ_unit, print_environ_ions, print_environ_system, &
                               print_environ_boundary, print_environ_dielectric, &
@@ -1168,7 +1168,7 @@ CONTAINS
     !! Clean up all the Environ related allocated variables, and call clean up
     !! subroutines of specific Environ modules.
     !!
-    !! The structure of this subroutine mirrors the one of environ_init subroutines
+    !! The structure of this subroutine mirrors the one of init_environ subroutines
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE environ_clean_pw(lflag)
@@ -1186,7 +1186,7 @@ CONTAINS
         IF (ASSOCIATED(dvtot%cell)) CALL destroy_environ_density(dvtot)
         !
         !--------------------------------------------------------------------------------
-        ! Environ_base variables
+        ! base_environ variables
         !
         IF (lelectrostatic .AND. ASSOCIATED(vreference%cell)) &
             CALL destroy_environ_density(vreference)
@@ -1258,7 +1258,7 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Environ_base variables
+        ! base_environ variables
         !
         IF (lelectrostatic) THEN
             !
@@ -1309,5 +1309,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE environ_init
+END MODULE init_environ
 !----------------------------------------------------------------------------------------

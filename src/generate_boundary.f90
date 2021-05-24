@@ -29,30 +29,28 @@
 !! centered on the system position (system boundary)
 !!
 !----------------------------------------------------------------------------------------
-MODULE tools_generate_boundary
+MODULE generate_boundary
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, sqrtpi, tpi
+    USE environ_param, ONLY: DP, sqrtpi, tpi
     !
-    USE representation_types
-    USE physical_types, ONLY: environ_boundary
-    USE core_types, ONLY: fft_core, fd_core
-    USE cell_types, ONLY: environ_cell
+    USE types_representation
+    USE types_physical, ONLY: environ_boundary
+    USE types_core, ONLY: fft_core, fd_core
+    USE types_cell, ONLY: environ_cell
     !
     USE utils_hessian, ONLY: init_environ_hessian, destroy_environ_hessian
+    USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
     USE utils_gradient, ONLY: init_environ_gradient, update_gradient_modulus, &
                               destroy_environ_gradient
     !
-    USE utils_density, ONLY: init_environ_density, destroy_environ_density
-    !
     USE tools_functions
+    USE tools_fft, ONLY: gradient_fft, laplacian_fft, hessian_fft, convolution_fft
+    USE tools_fd, ONLY: gradient_fd
     !
     USE tools_math, ONLY: scalar_product_environ_gradient, integrate_environ_density, &
                           environ_erfc
-    !
-    USE core_fft, ONLY: gradient_fft, laplacian_fft, hessian_fft, convolution_fft
-    USE core_fd, ONLY: gradient_fd
     !
     USE environ_output, ONLY: ionode, program_unit
     !
@@ -1971,5 +1969,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE tools_generate_boundary
+END MODULE generate_boundary
 !----------------------------------------------------------------------------------------

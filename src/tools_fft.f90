@@ -2,19 +2,19 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE core_fft
+MODULE tools_fft
     !------------------------------------------------------------------------------------
     !
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_fft_interfaces, ONLY: env_fwfft, env_invfft
-    !
-    USE modules_constants, ONLY: DP, e2, tpi, fpi
-    !
-    USE core_types, ONLY: fft_core
     USE env_fft_types, ONLY: env_fft_type_descriptor
-    USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
-    USE physical_types, ONLY: environ_ions
+    !
+    USE environ_param, ONLY: DP, e2, tpi, fpi
+    !
+    USE types_core, ONLY: fft_core
+    USE types_representation, ONLY: environ_density, environ_gradient, environ_hessian
+    USE types_physical, ONLY: environ_ions
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !
@@ -1182,5 +1182,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE core_fft
+END MODULE tools_fft
 !----------------------------------------------------------------------------------------

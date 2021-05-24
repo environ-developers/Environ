@@ -24,15 +24,15 @@
 !! Module to generate functions on the real space dense grid
 !!
 !----------------------------------------------------------------------------------------
-MODULE tools_generate_functions
+MODULE generate_functions
     !------------------------------------------------------------------------------------
     !
     USE env_mp, ONLY: env_mp_sum
     !
-    USE modules_constants, ONLY: DP, sqrtpi, pi, fpi
+    USE environ_param, ONLY: DP, sqrtpi, pi, fpi
     !
-    USE cell_types, ONLY: environ_cell
-    USE representation_types, ONLY: environ_density, environ_gradient, environ_hessian
+    USE types_cell, ONLY: environ_cell
+    USE types_representation, ONLY: environ_density, environ_gradient, environ_hessian
     !
     USE tools_cell, ONLY: ir2ijk, ir2r, displacement, minimum_image
     USE tools_math, ONLY: environ_erfc, environ_erf
@@ -735,7 +735,7 @@ CONTAINS
     ! SUBROUTINE generate_deriverfc(nnr, dim, axis, charge, width, spread, pos, drho)
     !     !--------------------------------------------------------------------------------
     !     !
-    !     USE modules_constants, ONLY: DP, sqrtpi
+    !     USE environ_param, ONLY: DP, sqrtpi
     !     USE fft_base, ONLY: dfftp
     !     USE env_mp, ONLY: env_mp_sum
     !     USE mp_bands, ONLY: me_bgrp, intra_bgrp_comm
@@ -1026,6 +1026,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE tools_generate_functions
+END MODULE generate_functions
 !----------------------------------------------------------------------------------------
 

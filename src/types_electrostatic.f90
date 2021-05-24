@@ -26,12 +26,12 @@
 !! of the basic routines to handle them
 !!
 !----------------------------------------------------------------------------------------
-MODULE electrostatic_types
+MODULE types_electrostatic
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE core_types, ONLY: fft_core, oned_analytic_core, core_container
+    USE types_core, ONLY: fft_core, oned_analytic_core, core_container
     !
     !------------------------------------------------------------------------------------
     !
@@ -135,5 +135,5 @@ MODULE electrostatic_types
     PRIVATE :: DP, fft_core, oned_analytic_core, core_container
     !
     !------------------------------------------------------------------------------------
-END MODULE electrostatic_types
+END MODULE types_electrostatic
 !----------------------------------------------------------------------------------------

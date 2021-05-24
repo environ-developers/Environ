@@ -31,12 +31,12 @@
 MODULE environ_main
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, fpi
+    USE environ_param, ONLY: DP, e2, fpi
     !
-    USE physical_types, ONLY: environ_charges, environ_electrons
-    USE representation_types, ONLY: environ_density, environ_gradient
+    USE types_physical, ONLY: environ_charges, environ_electrons
+    USE types_representation, ONLY: environ_density, environ_gradient
     !
-    USE environ_base, ONLY: vzero, solvent, lelectrostatic, velectrostatic, &
+    USE base_environ, ONLY: vzero, solvent, lelectrostatic, velectrostatic, &
                             vreference, dvtot, lsoftcavity, vsoftcavity, lsurface, &
                             env_surface_tension, lvolume, env_pressure, lconfine, &
                             env_confine, vconfine, lstatic, static, lexternals, &
@@ -47,7 +47,7 @@ MODULE environ_main
                             lrigidelectrolyte, loptical, optical, &
                             system_response_charges, environment_response_charges
     !
-    USE electrostatic_base, ONLY: reference, outer
+    USE base_electrostatic, ONLY: reference, outer
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
@@ -63,7 +63,10 @@ MODULE environ_main
     !
     USE tools_mapping, ONLY: map_large_to_small
     !
-    USE tools_generate_boundary, ONLY: solvent_aware_de_dboundary, calc_dboundary_dions
+    ! USE tools_field_aware, ONLY: field_aware_de_drho, field_aware_dboundary_dions, &
+    !                                 compute_ion_field_partial ! #TODO field-aware
+    !
+    USE generate_boundary, ONLY: solvent_aware_de_dboundary, calc_dboundary_dions
     !
     USE embedding_electrostatic, ONLY: calc_velectrostatic, calc_eelectrostatic, &
                                        calc_felectrostatic
@@ -71,9 +74,6 @@ MODULE environ_main
     USE embedding_confine, ONLY: calc_vconfine, calc_deconfine_dboundary
     USE embedding_surface, ONLY: calc_desurface_dboundary, calc_esurface
     USE embedding_volume, ONLY: calc_devolume_dboundary, calc_evolume
-    !
-    ! USE boundary_field_aware, ONLY: field_aware_de_drho, field_aware_dboundary_dions, &
-    !                                 compute_ion_field_partial ! #TODO field-aware
     !
     USE environ_output, ONLY: print_environ_density, print_environ_charges
     !

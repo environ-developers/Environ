@@ -9,10 +9,10 @@ MODULE tools_mapping
     !
     USE env_scatter_mod, ONLY: env_scatter_grid, env_gather_grid
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE cell_types, ONLY: environ_mapping
-    USE representation_types, ONLY: environ_density
+    USE types_cell, ONLY: environ_mapping
+    USE types_representation, ONLY: environ_density
     !
     !------------------------------------------------------------------------------------
     !

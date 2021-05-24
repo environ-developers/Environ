@@ -5,10 +5,10 @@
 MODULE utils_electrostatics
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, tpi
+    USE environ_param, ONLY: DP, tpi
     !
-    USE electrostatic_types
-    USE core_types, ONLY: fft_core, oned_analytic_core, core_container
+    USE types_electrostatic
+    USE types_core, ONLY: fft_core, oned_analytic_core, core_container
     !
     !------------------------------------------------------------------------------------
     !

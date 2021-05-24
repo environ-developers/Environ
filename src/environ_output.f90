@@ -36,13 +36,13 @@ MODULE environ_output
     USE env_fft_types, ONLY: env_fft_type_descriptor
     USE env_scatter_mod, ONLY: env_gather_grid
     !
-    USE modules_constants, ONLY: DP, amu_si, bohr_radius_si, rydberg_si, RYTOEV
+    USE environ_param, ONLY: DP, amu_si, bohr_radius_si, rydberg_si, RYTOEV
     !
-    USE cell_types, ONLY: environ_cell
-    USE representation_types
-    USE physical_types
+    USE types_cell, ONLY: environ_cell
+    USE types_representation
+    USE types_physical
     !
-    USE environ_base, ONLY: lelectrostatic, eelectrostatic, lsurface, esurface, &
+    USE base_environ, ONLY: lelectrostatic, eelectrostatic, lsurface, esurface, &
                             lvolume, evolume, lelectrolyte, eelectrolyte, lconfine, &
                             econfine, deenviron, lsmearedions, potential_shift, &
                             environ_thr, lsolvent, solvent, env_static_permittivity, &
@@ -50,8 +50,8 @@ MODULE environ_output
                             env_pressure, lelectrostatic, ltddfpt, derivatives, &
                             lsemiconductor, system_ions
     !
-    USE electrostatic_base, ONLY: need_pbc_correction, outer
-    USE core_base, ONLY: lfd, fd
+    USE base_electrostatic, ONLY: need_pbc_correction, outer
+    USE base_core, ONLY: lfd, fd
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !

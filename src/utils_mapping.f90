@@ -5,9 +5,9 @@
 MODULE utils_mapping
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE cell_types
+    USE types_cell
     !
     USE tools_cell, ONLY: ir2ijk
     !

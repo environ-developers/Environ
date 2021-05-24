@@ -32,8 +32,8 @@
 MODULE tools_charges
     !------------------------------------------------------------------------------------
     !
-    USE physical_types, ONLY: environ_charges
-    USE representation_types, ONLY: environ_density
+    USE types_physical, ONLY: environ_charges
+    USE types_representation, ONLY: environ_density
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !

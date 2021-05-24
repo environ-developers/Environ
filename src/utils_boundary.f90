@@ -36,16 +36,18 @@
 MODULE utils_boundary
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2
+    USE environ_param, ONLY: DP, e2
     !
-    USE physical_types, ONLY: environ_boundary, environ_electrons, environ_ions, &
+    USE types_representation, ONLY: environ_functions, environ_gradient, environ_density
+    USE types_core, ONLY: fft_core, fd_core, core_container
+    USE types_cell, ONLY: environ_cell
+    !
+    USE types_physical, ONLY: environ_boundary, environ_electrons, environ_ions, &
                               environ_system
     !
-    USE representation_types, ONLY: environ_functions, environ_gradient, environ_density
-    USE core_types, ONLY: fft_core, fd_core, core_container
-    USE cell_types, ONLY: environ_cell
+    USE base_environ, ONLY: niter
     !
-    USE environ_base, ONLY: niter
+    USE utils_functions, ONLY: copy_environ_functions, destroy_environ_functions
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              copy_environ_density, destroy_environ_density
@@ -54,20 +56,18 @@ MODULE utils_boundary
                               copy_environ_gradient, destroy_environ_gradient, &
                               update_gradient_modulus
     !
-    USE utils_functions, ONLY: copy_environ_functions, destroy_environ_functions
-    !
     USE utils_hessian, ONLY: create_environ_hessian, init_environ_hessian, &
                              copy_environ_hessian, destroy_environ_hessian
     !
     USE tools_functions, ONLY: density_of_functions, gradient_of_functions
     USE tools_math, ONLY: integrate_environ_density, scalar_product_environ_density
     !
-    USE tools_generate_boundary, ONLY: boundary_of_density, boundary_of_functions, &
-                                       boundary_of_system, solvent_aware_boundary, &
-                                       invert_boundary ! #TODO is this for DEBUGGING?
-    !
-    ! USE boundary_field_aware, ONLY: compute_normal_field, field_aware_density, &
+    ! USE tools_field_aware, ONLY: compute_normal_field, field_aware_density, &
     !                                 compute_dion_field_drho, compute_ion_field ! #TODO field_aware
+    !
+    USE generate_boundary, ONLY: boundary_of_density, boundary_of_functions, &
+                                 boundary_of_system, solvent_aware_boundary, &
+                                 invert_boundary ! #TODO is this for DEBUGGING?
     !
     USE environ_output, ONLY: ionode, environ_unit
     !

@@ -29,10 +29,10 @@
 MODULE tools_electrolyte
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2, k_boltzmann_ry, fpi
+    USE environ_param, ONLY: DP, e2, k_boltzmann_ry, fpi
     !
-    USE physical_types, ONLY: environ_electrolyte, environ_electrons
-    USE representation_types, ONLY: environ_density
+    USE types_physical, ONLY: environ_electrolyte, environ_electrons
+    USE types_representation, ONLY: environ_density
     !
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
     !

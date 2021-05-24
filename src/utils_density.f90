@@ -5,8 +5,8 @@
 MODULE utils_density
     !------------------------------------------------------------------------------------
     !
-    USE cell_types, ONLY: environ_cell
-    USE representation_types, ONLY: environ_density
+    USE types_cell, ONLY: environ_cell
+    USE types_representation, ONLY: environ_density
     !
     USE tools_math, ONLY: multipoles_environ_density
     !

@@ -24,13 +24,13 @@
 !! Module to initialize electrostatic-related variables
 !!
 !----------------------------------------------------------------------------------------
-MODULE electrostatic_init
+MODULE init_electrostatic
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE core_base
-    USE electrostatic_base
+    USE base_core
+    USE base_electrostatic
     !
     USE utils_core_container
     USE utils_electrostatics
@@ -48,7 +48,7 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !! Copies input variables read in input to global variables
-    !! kept in the electrostatic_base module
+    !! kept in the base_electrostatic module
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE set_electrostatic_base(problem, tol, solver_type, auxiliary, &
@@ -433,5 +433,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE electrostatic_init
+END MODULE init_electrostatic
 !----------------------------------------------------------------------------------------

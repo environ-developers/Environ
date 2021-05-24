@@ -36,18 +36,18 @@ MODULE utils_ions
     !
     USE env_char_ops, ONLY: env_lowercase
     
-    USE modules_constants, ONLY: DP, e2, pi, tpi, bohr_radius_angs
+    USE environ_param, ONLY: DP, e2, pi, tpi, bohr_radius_angs
     !
-    USE physical_types, ONLY: environ_ions, environ_iontype
-    USE representation_types, ONLY: environ_functions
-    USE cell_types, ONLY: environ_cell
+    USE types_physical, ONLY: environ_ions, environ_iontype
+    USE types_representation, ONLY: environ_functions
+    USE types_cell, ONLY: environ_cell
     !
-    USE environ_base, ONLY: potential_shift
+    USE base_environ, ONLY: potential_shift
+    !
+    USE utils_functions, ONLY: destroy_environ_functions
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              destroy_environ_density
-    !
-    USE utils_functions, ONLY: destroy_environ_functions
     !
     USE tools_functions, ONLY: density_of_functions
     !

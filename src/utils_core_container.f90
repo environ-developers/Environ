@@ -5,9 +5,9 @@
 MODULE utils_core_container
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, tpi
+    USE environ_param, ONLY: DP, tpi
     !
-    USE core_types
+    USE types_core
     !
     !------------------------------------------------------------------------------------
     !

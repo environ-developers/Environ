@@ -5,12 +5,12 @@
 MODULE utils_fft
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE core_types, ONLY: fft_core
-    USE cell_types, ONLY: environ_cell
+    USE types_core, ONLY: fft_core
+    USE types_cell, ONLY: environ_cell
     !
-    USE tools_generate_gvectors, ONLY: env_gvect_init, env_ggen
+    USE generate_gvectors, ONLY: env_gvect_init, env_ggen
     !
     USE correction_mt, ONLY: update_mt_correction
     !
@@ -97,7 +97,7 @@ CONTAINS
         IF (fft%use_internal_pbc_corr) ALLOCATE (fft%mt_corr(fft%ngm))
         !
         !--------------------------------------------------------------------------------
-        ! #TODO The following routines are in tools_generate_gvectors
+        ! #TODO The following routines are in generate_gvectors
         ! and may need to be simplified
         !
         CALL env_gvect_init(fft, ngm_g, cell%dfft%comm)

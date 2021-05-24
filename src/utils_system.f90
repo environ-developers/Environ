@@ -5,9 +5,9 @@
 MODULE utils_system
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE physical_types, ONLY: environ_system, environ_ions
+    USE types_physical, ONLY: environ_system, environ_ions
     !
     !------------------------------------------------------------------------------------
     !

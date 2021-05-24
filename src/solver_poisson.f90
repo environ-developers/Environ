@@ -28,20 +28,20 @@
 !! \f]
 !!
 !----------------------------------------------------------------------------------------
-MODULE problem_poisson
+MODULE solver_poisson
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP, e2
+    USE environ_param, ONLY: DP, e2
     !
-    USE core_types, ONLY: core_container
-    USE cell_types, ONLY: environ_cell
-    USE physical_types, ONLY: environ_charges, environ_electrolyte, environ_semiconductor
-    USE representation_types, ONLY: environ_density, environ_gradient
+    USE types_core, ONLY: core_container
+    USE types_cell, ONLY: environ_cell
+    USE types_physical, ONLY: environ_charges, environ_electrolyte, environ_semiconductor
+    USE types_representation, ONLY: environ_density, environ_gradient
     !
     USE utils_density, ONLY: create_environ_density, init_environ_density, &
                              destroy_environ_density
     !
-    USE core_fft, ONLY: poisson_fft, gradpoisson_fft
+    USE tools_fft, ONLY: poisson_fft, gradpoisson_fft
     !
     USE correction_periodic, ONLY: calc_vperiodic, calc_gradvperiodic
     USE correction_gcs
@@ -442,5 +442,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE problem_poisson
+END MODULE solver_poisson
 !----------------------------------------------------------------------------------------

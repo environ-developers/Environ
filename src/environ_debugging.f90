@@ -4,11 +4,11 @@
 MODULE environ_debugging
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE physical_types, ONLY: environ_boundary
-    USE representation_types, ONLY: environ_density, environ_functions, environ_gradient
-    USE cell_types, ONLY: environ_cell
+    USE types_physical, ONLY: environ_boundary
+    USE types_representation, ONLY: environ_density, environ_functions, environ_gradient
+    USE types_cell, ONLY: environ_cell
     !
     USE utils_boundary, ONLY: copy_environ_boundary, destroy_environ_boundary
     USE utils_density, ONLY: init_environ_density, destroy_environ_density
@@ -19,7 +19,7 @@ MODULE environ_debugging
     USE tools_math, ONLY: scalar_product_environ_density, integrate_environ_density
     USE tools_functions, ONLY: density_of_functions, gradient_of_functions
     !
-    USE tools_generate_boundary, ONLY: solvent_aware_boundary, solvent_aware_de_dboundary
+    USE generate_boundary, ONLY: solvent_aware_boundary, solvent_aware_de_dboundary
     !
     USE embedding_volume
     USE embedding_surface
@@ -195,7 +195,7 @@ CONTAINS
     !     !--------------------------------------------------------------------------------
     !     !
     !     USE utils_ions, ONLY: update_environ_ions
-    !     USE tools_generate_boundary, ONLY: compute_ion_field, compute_ion_field_partial
+    !     USE generate_boundary, ONLY: compute_ion_field, compute_ion_field_partial
     !     !
     !     IMPLICIT NONE
     !     !
@@ -425,7 +425,7 @@ CONTAINS
     ! SUBROUTINE update_test_boundary(bound, electrons)
     !     !--------------------------------------------------------------------------------
     !     !
-    !     USE tools_generate_boundary
+    !     USE generate_boundary
     !     !
     !     IMPLICIT NONE
     !     !
@@ -493,7 +493,7 @@ CONTAINS
     ! SUBROUTINE test_energy_derivatives(ideriv, bound)
     !     !--------------------------------------------------------------------------------
     !     !
-    !     USE tools_generate_boundary
+    !     USE generate_boundary
     !     USE utils_ions, ONLY: update_environ_ions
     !     USE embedding_surface, ONLY: calc_esurface, calc_desurface_dboundary
     !     USE embedding_volume, ONLY: calc_evolume, calc_devolume_dboundary

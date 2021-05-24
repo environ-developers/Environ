@@ -5,8 +5,8 @@
 MODULE utils_fd
     !------------------------------------------------------------------------------------
     !
-    USE core_types, ONLY: fd_core
-    USE cell_types, ONLY: environ_cell
+    USE types_core, ONLY: fd_core
+    USE types_cell, ONLY: environ_cell
     !
     !------------------------------------------------------------------------------------
     !

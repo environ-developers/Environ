@@ -5,12 +5,12 @@
 MODULE utils_oned_analytic
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE core_types, ONLY: oned_analytic_core
-    USE cell_types, ONLY: environ_cell
+    USE types_core, ONLY: oned_analytic_core
+    USE types_cell, ONLY: environ_cell
     !
-    USE tools_generate_functions, ONLY: generate_axis, generate_distance
+    USE generate_functions, ONLY: generate_axis, generate_distance
     !
     !------------------------------------------------------------------------------------
     !

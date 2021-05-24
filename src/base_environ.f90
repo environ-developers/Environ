@@ -28,15 +28,15 @@
 !! and the contributions to the energy and to the potential.
 !!
 !----------------------------------------------------------------------------------------
-MODULE environ_base
+MODULE base_environ
     !------------------------------------------------------------------------------------
     !
-    USE modules_constants, ONLY: DP
+    USE environ_param, ONLY: DP
     !
-    USE cell_types
-    USE physical_types
-    USE core_types, ONLY: core_container
-    USE representation_types, ONLY: environ_density
+    USE types_cell
+    USE types_physical
+    USE types_core, ONLY: core_container
+    USE types_representation, ONLY: environ_density
     !
     !------------------------------------------------------------------------------------
     !
@@ -158,5 +158,5 @@ MODULE environ_base
                environ_density
     !
     !------------------------------------------------------------------------------------
-END MODULE environ_base
+END MODULE base_environ
 !----------------------------------------------------------------------------------------
