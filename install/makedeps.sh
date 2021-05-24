@@ -9,7 +9,7 @@ export LC_ALL
 cd $(echo $0 | sed 's/\(.*\)\/.*/\1/') # extract pathname
 TOPDIR=$(pwd)
 
-dirs=" UtilXlib FFTXlib src "
+dirs=" utils FFTs src "
 
 for dir in $dirs; do
 
@@ -22,12 +22,12 @@ for dir in $dirs; do
     if test -d $TOPDIR/../$DIR; then
         cd $TOPDIR/../$DIR
 
-        if test "$DIR" = "FFTXlib"; then
-            DEPENDS="$DEPENDS ../UtilXlib"
+        if test "$DIR" = "FFTs"; then
+            DEPENDS="$DEPENDS ../utils"
         fi
 
         if test "$DIR" = "src"; then
-            DEPENDS="$DEPENDS ../UtilXlib ../FFTXlib"
+            DEPENDS="$DEPENDS ../utils ../FFTs"
         fi
 
         $TOPDIR/moduledep.sh $DEPENDS >make.depend
@@ -44,7 +44,7 @@ for dir in $dirs; do
         sed '/@xc_version.h@/d;/@xc_f03_lib_m@/d' make.depend >tmp
         mv tmp make.depend
 
-        if test "$DIR" = "FFTXlib"; then
+        if test "$DIR" = "FFTs"; then
             # more special cases: modules for FFTs, GPU, OpenMP
             sed '/@omp_lib@/d' make.depend >tmp
             mv tmp make.depend
@@ -56,7 +56,7 @@ for dir in $dirs; do
             mv tmp make.depend
         fi
 
-        if test "$DIR" = "UtilXlib"; then
+        if test "$DIR" = "utils"; then
             sed '/@ifcore@/d' make.depend >tmp
             mv tmp make.depend
             sed '/@cudafor@/d' make.depend >tmp

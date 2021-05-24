@@ -58,7 +58,7 @@ MOD_FLAG      = @imod@
 # while BASEMODS points to the corresponding module libraries
 # Each Makefile can add directories to MODFLAGS and libraries to QEMODS
 
-BASEMOD_FLAGS= $(MOD_FLAG)$(TOPDIR)/UtilXlib $(MOD_FLAG)$(TOPDIR)/FFTXlib 
+BASEMOD_FLAGS= $(MOD_FLAG)$(TOPDIR)/utils $(MOD_FLAG)$(TOPDIR)/FFTs 
 
 # Compilers: fortran-90, fortran-77, C
 # If a parallel compilation is desired, MPIF90 should be a fortran-90

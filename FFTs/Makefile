@@ -1,4 +1,4 @@
-# Makefile for FFTXlib
+# Makefile for FFTs
 
 include ../make.inc
 

@@ -56,7 +56,7 @@ devs:
 	@ echo
 	@ echo "* compile-Environ (requires Environ/make.inc)"
 	@ echo
-	@ echo "  - compiles Environ's UtilXlib, FFTXlib, and src"
+	@ echo "  - compiles Environ's utils, FFTs, and src"
 	@ echo "  - compilation generates Environ/install/Environ_comp.log"
 	@ echo
 	@ echo "  * NOTE: Environ is decoupled from QE. Changes to QE files"
@@ -95,7 +95,7 @@ devs:
 	@ echo
 	@ echo "* update-Environ-dependencies"
 	@ echo
-	@ echo "  - updates dependencies in Environ's UtilXlib, FFTXlib, and src"
+	@ echo "  - updates dependencies in Environ's utils, FFTs, and src"
 	@ echo
 	@ echo "* update-QE-dependencies [prog=]"
 	@ echo
@@ -133,8 +133,8 @@ compile-Environ: check-Environ-makeinc libsdir
 	@ $(MAKE) compile-src
 	@ ( \
 		cd install; \
-		cat UtilXlib_comp.log FFTXlib_comp.log src_comp.log > Environ_comp.log; \
-		rm UtilXlib_comp.log FFTXlib_comp.log src_comp.log \
+		cat utils_comp.log FFTs_comp.log src_comp.log > Environ_comp.log; \
+		rm utils_comp.log FFTs_comp.log src_comp.log \
 	)
 	@ printf "\nEnviron $(ENVIRON_VERSION) compilation successful! \n\n"
 
@@ -165,29 +165,29 @@ recompile-QE+Environ:
 	$(MAKE) compile-QE prog=$$opt
 
 compile-util: libsdir
-	@ printf "\nCompiling UtilXlib...\n\n" 2>&1 | \
-	tee install/UtilXlib_comp.log
+	@ printf "\nCompiling utils...\n\n" 2>&1 | \
+	tee install/utils_comp.log
 	@ ( \
-		cd UtilXlib && $(MAKE) all || exit 1; \
+		cd utils && $(MAKE) all || exit 1; \
 		mv *.a ../libs \
-	) 2>&1 | tee -a install/UtilXlib_comp.log
-	@ $(MAKE) check-for-errors prog=UtilXlib
+	) 2>&1 | tee -a install/utils_comp.log
+	@ $(MAKE) check-for-errors prog=utils
 
 compile-fft: libsdir
-	@ printf "\nCompiling FFTXlib...\n\n" 2>&1 | \
-	tee install/FFTXlib_comp.log
+	@ printf "\nCompiling FFTs...\n\n" 2>&1 | \
+	tee install/FFTs_comp.log
 	@ ( \
-		cd FFTXlib && \
+		cd FFTs && \
 		$(MAKE) enable-mkl-include; \
 		$(MAKE) all || exit 1; \
 		$(MAKE) disable-mkl-include; \
 		$(MAKE) all || exit 1; \
 		mv *.a ../libs \
-	) 2>&1 | tee -a install/FFTXlib_comp.log
-	@ $(MAKE) check-for-errors prog=FFTXlib
+	) 2>&1 | tee -a install/FFTs_comp.log
+	@ $(MAKE) check-for-errors prog=FFTs
 	 
 compile-src: libsdir
-	@ printf "\nCompiling Environ/src...\n\n" 2>&1 | \
+	@ printf "\nCompiling src...\n\n" 2>&1 | \
 	tee install/src_comp.log
 	@ ( \
 		cd src && $(MAKE) all || exit 1; \
@@ -360,13 +360,13 @@ clean-logs:
 	@ printf " done! \n"
 
 clean-util:
-	@ printf "utilxlib......"
-	@ (cd UtilXlib && $(MAKE) clean)
+	@ printf "utils........."
+	@ (cd utils && $(MAKE) clean)
 	@ printf " done! \n"
 
 clean-fft:
-	@ printf "fftxlib......."
-	@ (cd FFTXlib && $(MAKE) clean)
+	@ printf "FFTs.........."
+	@ (cd FFTs && $(MAKE) clean)
 	@ printf " done! \n"
 
 clean-src:

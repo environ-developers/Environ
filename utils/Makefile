@@ -1,4 +1,4 @@
-# Makefile for UtilXlib
+# Makefile for utils
 
 include ../make.inc
 
