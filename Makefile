@@ -40,7 +40,7 @@ default:
 # quick manual
 help:
 	@ echo
-	@ sed -n '/^QE + Environ/,/^http/p' README
+	@ sed -n '/^# QE + Environ/,/^---/p' README.md
 	@ echo
 
 # rundown of developer make routines
