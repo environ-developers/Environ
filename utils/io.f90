@@ -30,7 +30,7 @@
 MODULE env_io
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param
+    USE env_utils_param
     !
     USE env_mp, ONLY: env_mp_bcast, env_mp_abort, env_mp_rank
     !

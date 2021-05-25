@@ -52,9 +52,9 @@
 MODULE env_mp
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param
+    USE env_utils_param
     !
-    USE env_mp_base
+    USE env_base_mp
     !
 #if defined(__CUDA)
     USE cudafor

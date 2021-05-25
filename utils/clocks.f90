@@ -59,7 +59,7 @@
 MODULE env_clocks
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout
+    USE env_utils_param, ONLY: DP, stdout
     !
 #if defined(__CUDA)
     USE cudafor
@@ -152,7 +152,7 @@ END MODULE env_clocks
 SUBROUTINE env_init_clocks(go, max_print_depth_)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout, MPI_COMM_WORLD
+    USE env_utils_param, ONLY: DP, stdout, MPI_COMM_WORLD
     !
     USE env_clocks, ONLY: called, t0cpu, cputime, no, notrunning, maxclock, &
                           clock_label, walltime, t0wall, nclock, mpi_per_thread
@@ -240,7 +240,7 @@ END SUBROUTINE env_init_clocks
 SUBROUTINE env_start_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout
+    USE env_utils_param, ONLY: DP, stdout
     !
     USE env_clocks, ONLY: nclock, clock_label, notrunning, no, maxclock, &
                           t0cpu, t0wall, env_f_wall, env_f_tcpu
@@ -327,7 +327,7 @@ END SUBROUTINE env_start_clock
 SUBROUTINE env_stop_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout
+    USE env_utils_param, ONLY: DP, stdout
     !
     USE env_clocks, ONLY: no, nclock, clock_label, cputime, walltime, &
                           notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
@@ -405,7 +405,7 @@ END SUBROUTINE env_stop_clock
 SUBROUTINE env_start_clock_gpu(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout
+    USE env_utils_param, ONLY: DP, stdout
     !
 #if defined(__TRACE)
     USE env_clocks, ONLY: trace_depth, mpime, max_print_depth
@@ -502,7 +502,7 @@ END SUBROUTINE env_start_clock_gpu
 SUBROUTINE env_stop_clock_gpu(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout
+    USE env_utils_param, ONLY: DP, stdout
     !
 #if defined(__TRACE)
     USE env_clocks, ONLY: trace_depth, mpime, max_print_depth
@@ -605,7 +605,7 @@ END SUBROUTINE env_stop_clock_gpu
 FUNCTION env_get_cpu_and_wall(n) RESULT(t)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP
+    USE env_utils_param, ONLY: DP
     !
     USE env_clocks, ONLY: clock_label, cputime, walltime, mpi_per_thread, &
                           notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
@@ -640,7 +640,7 @@ END FUNCTION env_get_cpu_and_wall
 SUBROUTINE env_print_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: stdout
+    USE env_utils_param, ONLY: stdout
     USE env_clocks, ONLY: nclock, clock_label, gpu_called
     !
     !------------------------------------------------------------------------------------
@@ -698,7 +698,7 @@ END SUBROUTINE env_print_clock
 SUBROUTINE env_print_this_clock(n)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout
+    USE env_utils_param, ONLY: DP, stdout
     !
     USE env_clocks, ONLY: clock_label, cputime, walltime, mpi_per_thread, &
                           notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
@@ -835,7 +835,7 @@ END SUBROUTINE env_print_this_clock
 SUBROUTINE env_print_this_clock_gpu(n)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP, stdout
+    USE env_utils_param, ONLY: DP, stdout
     USE env_clocks, ONLY: clock_label, gputime, called, gpu_called, mpi_per_thread
     !
     !------------------------------------------------------------------------------------
@@ -877,7 +877,7 @@ END SUBROUTINE env_print_this_clock_gpu
 REAL(DP) FUNCTION env_get_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: DP
+    USE env_utils_param, ONLY: DP
     !
     USE env_clocks, ONLY: no, nclock, clock_label, walltime, notrunning, &
                           t0wall, t0cpu, env_f_wall

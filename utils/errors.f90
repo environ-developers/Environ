@@ -27,7 +27,7 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     !
     USE env_mp, ONLY: env_mp_abort, env_mp_rank
     USE env_io, ONLY: env_find_free_unit
-    USE env_util_param
+    USE env_utils_param
     !
     !------------------------------------------------------------------------------------
     !
@@ -134,7 +134,7 @@ END SUBROUTINE env_errore
 SUBROUTINE env_infomsg(routine, message)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: stdout
+    USE env_utils_param, ONLY: stdout
     !
     !------------------------------------------------------------------------------------
     !
@@ -158,7 +158,7 @@ END SUBROUTINE env_infomsg
 SUBROUTINE env_fft_error(calling_routine, message, ierr)
     !------------------------------------------------------------------------------------
     !
-    USE env_util_param, ONLY: MPI_COMM_WORLD
+    USE env_utils_param, ONLY: MPI_COMM_WORLD
     !
     !------------------------------------------------------------------------------------
     !
