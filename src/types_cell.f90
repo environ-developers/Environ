@@ -5,7 +5,7 @@
 MODULE types_cell
     !------------------------------------------------------------------------------------
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor
+    USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     USE environ_param, ONLY: DP
     !

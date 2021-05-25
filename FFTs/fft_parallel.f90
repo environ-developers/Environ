@@ -70,7 +70,7 @@ MODULE env_fft_parallel
     !
     USE env_fft_param
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor
+    USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     USE env_fft_scalar, ONLY: env_cft_1z, env_cft_2xy
     !

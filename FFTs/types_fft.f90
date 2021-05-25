@@ -35,14 +35,14 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE env_fft_types
+MODULE env_types_fft
     !------------------------------------------------------------------------------------
     !
     USE env_fft_param
     !
     USE env_fft_support, ONLY: env_good_fft_order, env_good_fft_dimension
     !
-    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_allocate, &
+    USE env_base_stick, ONLY: env_sticks_map, env_sticks_map_allocate, &
                               env_get_sticks
     !
     USE omp_lib
@@ -1533,5 +1533,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE env_fft_types
+END MODULE env_types_fft
 !----------------------------------------------------------------------------------------

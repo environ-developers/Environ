@@ -32,7 +32,7 @@ MODULE env_fft_buffers
     !
     USE env_fft_param, ONLY: DP
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor
+    USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     !------------------------------------------------------------------------------------
     !

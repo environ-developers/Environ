@@ -33,8 +33,8 @@ MODULE environ_output
     USE env_io, ONLY: env_find_free_unit
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor
-    USE env_scatter_mod, ONLY: env_gather_grid
+    USE env_types_fft, ONLY: env_fft_type_descriptor
+    USE env_base_scatter, ONLY: env_gather_grid
     !
     USE environ_param, ONLY: DP, amu_si, bohr_radius_si, rydberg_si, RYTOEV
     !

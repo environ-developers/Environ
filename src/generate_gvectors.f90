@@ -17,7 +17,7 @@ MODULE generate_gvectors
     USE env_sorting, ONLY: env_hpsort_eps
     USE env_mp, ONLY: env_mp_sum, env_mp_rank, env_mp_size
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_stick_index
+    USE env_types_fft, ONLY: env_fft_type_descriptor, env_fft_stick_index
     USE env_fft_ggen, ONLY: env_fft_set_nl
     !
     USE environ_param, ONLY: DP, eps8

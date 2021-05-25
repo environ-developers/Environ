@@ -13,8 +13,8 @@
 MODULE correction_mt
     !------------------------------------------------------------------------------------
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor
-    USE env_fft_interfaces, ONLY: env_fwfft
+    USE env_types_fft, ONLY: env_fft_type_descriptor
+    USE env_fft_main, ONLY: env_fwfft
     !
     USE environ_param, ONLY: DP, pi, tpi, fpi, e2
     !

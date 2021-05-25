@@ -29,8 +29,8 @@ MODULE tools_fd
     !
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor
-    USE env_scatter_mod, ONLY: env_scatter_grid
+    USE env_types_fft, ONLY: env_fft_type_descriptor
+    USE env_base_scatter, ONLY: env_scatter_grid
     !
     USE environ_param, ONLY: DP
     !

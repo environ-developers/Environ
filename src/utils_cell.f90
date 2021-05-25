@@ -7,9 +7,9 @@ MODULE utils_cell
     !
     USE environ_param, ONLY: DP, tpi
     !
-    USE env_stick_base, ONLY: env_sticks_map, env_sticks_map_deallocate
+    USE env_base_stick, ONLY: env_sticks_map, env_sticks_map_deallocate
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor, env_fft_type_init, &
+    USE env_types_fft, ONLY: env_fft_type_descriptor, env_fft_type_init, &
                              env_fft_type_deallocate
     !
     USE types_cell, ONLY: environ_cell

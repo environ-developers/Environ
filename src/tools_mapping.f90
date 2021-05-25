@@ -7,7 +7,7 @@ MODULE tools_mapping
     !
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_scatter_mod, ONLY: env_scatter_grid, env_gather_grid
+    USE env_base_scatter, ONLY: env_scatter_grid, env_gather_grid
     !
     USE environ_param, ONLY: DP
     !

@@ -41,7 +41,7 @@ MODULE env_fft_scatter_gpu
     !
     USE env_fft_param
     !
-    USE env_fft_types, ONLY: env_fft_type_descriptor
+    USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     USE env_fft_buffers, ONLY: env_check_fft_buffers_size, &
                                f_in => pin_space_scatter_in, &

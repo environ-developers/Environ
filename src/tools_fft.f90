@@ -7,8 +7,8 @@ MODULE tools_fft
     !
     USE env_mp, ONLY: env_mp_sum
     !
-    USE env_fft_interfaces, ONLY: env_fwfft, env_invfft
-    USE env_fft_types, ONLY: env_fft_type_descriptor
+    USE env_fft_main, ONLY: env_fwfft, env_invfft
+    USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     USE environ_param, ONLY: DP, e2, tpi, fpi
     !
