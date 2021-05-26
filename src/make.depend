@@ -166,7 +166,6 @@ init_electrostatic.o : environ_output.o
 init_electrostatic.o : environ_param.o
 init_electrostatic.o : utils_core_container.o
 init_electrostatic.o : utils_electrostatics.o
-init_environ.o : ../utils/base_mp.o
 init_environ.o : base_core.o
 init_environ.o : base_electrostatic.o
 init_environ.o : base_environ.o

@@ -7,7 +7,6 @@ errors.o : mp.o
 errors.o : utils_param.o
 io.o : mp.o
 io.o : utils_param.o
-mp.o : base_mp.o
 mp.o : utils_param.o
 sorting.o : utils_param.o
 utils_cuda.o : utils_param.o

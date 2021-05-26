@@ -54,8 +54,6 @@ MODULE env_mp
     !
     USE env_utils_param
     !
-    USE env_base_mp
-    !
 #if defined(__CUDA)
     USE cudafor
 #endif
@@ -677,7 +675,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI case
 #endif
         !
-        CALL env_bcast_complex(msg, 1, source, gid)
+        CALL env_bcast_real(msg, 2, source, gid)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs SERIAL, __MPI
@@ -712,7 +710,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI case
 #endif
         !
-        CALL env_bcast_complex(msg, SIZE(msg), source, gid)
+        CALL env_bcast_real(msg, 2 * SIZE(msg), source, gid)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs SERIAL, __MPI
@@ -747,7 +745,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI case
 #endif
         !
-        CALL env_bcast_complex(msg, SIZE(msg), source, gid)
+        CALL env_bcast_real(msg, 2 * SIZE(msg), source, gid)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs SERIAL, __MPI
@@ -782,7 +780,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI case
 #endif
         !
-        CALL env_bcast_complex(msg, SIZE(msg), source, gid)
+        CALL env_bcast_real(msg, 2 * SIZE(msg), source, gid)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs SERIAL, __MPI
@@ -817,7 +815,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI case
 #endif
         !
-        CALL env_bcast_complex(msg, SIZE(msg), source, gid)
+        CALL env_bcast_real(msg, 2 * SIZE(msg), source, gid)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs SERIAL, __MPI
@@ -852,7 +850,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI case
 #endif
         !
-        CALL env_bcast_complex(msg, SIZE(msg), source, gid)
+        CALL env_bcast_real(msg, 2 * SIZE(msg), source, gid)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs SERIAL, __MPI
@@ -887,7 +885,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI case
 #endif
         !
-        CALL env_bcast_complex(msg, SIZE(msg), source, gid)
+        CALL env_bcast_real(msg, 2 * SIZE(msg), source, gid)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs SERIAL, __MPI
@@ -1817,7 +1815,7 @@ CONTAINS
 #endif
 #endif
         !
-        CALL env_reduce_base_complex(1, msg, gid, -1)
+        CALL env_reduce_base_real(2, msg, gid, -1)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs __MPI for small copies
@@ -1862,7 +1860,7 @@ CONTAINS
 #endif
 #endif
         !
-        CALL env_reduce_base_complex(SIZE(msg), msg, gid, -1)
+        CALL env_reduce_base_real(2 * SIZE(msg), msg, gid, -1)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs __MPI for small copies
@@ -1907,7 +1905,7 @@ CONTAINS
 #endif
 #endif
         !
-        CALL env_reduce_base_complex(SIZE(msg), msg, gid, -1)
+        CALL env_reduce_base_real(2 * SIZE(msg), msg, gid, -1)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs __MPI for small copies
@@ -1947,7 +1945,7 @@ CONTAINS
         ierr = cudaDeviceSynchronize() ! this syncs __GPU_MPI
 #endif
         !
-        CALL env_reduce_base_complex_to(SIZE(msg), msg, res, gid, -1)
+        CALL env_reduce_base_real_to(2 * SIZE(msg), msg, res, gid, -1)
         !
 #else
         res = msg
@@ -1994,7 +1992,7 @@ CONTAINS
 #endif
 #endif
         !
-        CALL env_reduce_base_complex(SIZE(msg), msg, gid, -1)
+        CALL env_reduce_base_real(2 * SIZE(msg), msg, gid, -1)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs __MPI for small copies
@@ -2039,7 +2037,7 @@ CONTAINS
 #endif
 #endif
         !
-        CALL env_reduce_base_complex(SIZE(msg), msg, gid, -1)
+        CALL env_reduce_base_real(2 * SIZE(msg), msg, gid, -1)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs __MPI for small copies
@@ -2084,7 +2082,7 @@ CONTAINS
 #endif
 #endif
         !
-        CALL env_reduce_base_complex(SIZE(msg), msg, gid, -1)
+        CALL env_reduce_base_real(2 * SIZE(msg), msg, gid, -1)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs __MPI for small copies
@@ -2129,7 +2127,7 @@ CONTAINS
 #endif
 #endif
         !
-        CALL env_reduce_base_complex(SIZE(msg), msg, gid, -1)
+        CALL env_reduce_base_real(2 * SIZE(msg), msg, gid, -1)
         !
 #if defined(__CUDA)
         ierr = cudaDeviceSynchronize() ! this syncs __MPI for small copies

@@ -29,8 +29,6 @@
 MODULE init_environ
     !------------------------------------------------------------------------------------
     !
-    USE env_base_mp, ONLY: env_allocate_mp_buffers, env_deallocate_mp_buffers
-    !
     USE environ_param, ONLY: DP, e2, bohr_radius_si, rydberg_si
     !
     USE base_environ
