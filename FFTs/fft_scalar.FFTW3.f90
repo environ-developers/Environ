@@ -34,8 +34,6 @@
 #error FFTW3 is not compatible with __FFT_SCALAR_THREAD_SAFE
 #endif
 !
-
-!
 !----------------------------------------------------------------------------------------
 !>
 !! FFT scalar drivers Module - contains machine-dependent routines for

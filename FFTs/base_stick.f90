@@ -46,12 +46,21 @@ MODULE env_base_stick
         !--------------------------------------------------------------------------------
         !
         LOGICAL :: lgamma = .FALSE. ! if .true. the map has gamma symmetry
-        LOGICAL :: lpara = .FALSE. ! if .true. the map is set for parallel and serial, if .false. only serial
+        !
+        LOGICAL :: lpara = .FALSE.
+        ! if .true. the map is set for parallel and serial, if .false. only serial
+        !
         INTEGER :: mype = 0 ! my task id (starting from 0)
         INTEGER :: nproc = 1 ! number of task (as nproc in env_fft_type_descriptor)
-        INTEGER :: nyfft = 1 ! number processors in y-direction (as nproc2 in env_fft_type_descriptor)
-        INTEGER, ALLOCATABLE :: iproc(:, :) ! the processor index (as in env_fft_type_descriptor)
-        INTEGER, ALLOCATABLE :: iproc2(:) ! the Y group processor index (as in env_fft_type_descriptor)
+        !
+        INTEGER :: nyfft = 1
+        ! number processors in y-direction (as nproc2 in env_fft_type_descriptor)
+        !
+        INTEGER, ALLOCATABLE :: iproc(:, :)
+        ! the processor index (as in env_fft_type_descriptor)
+        !
+        INTEGER, ALLOCATABLE :: iproc2(:)
+        ! the Y group processor index (as in env_fft_type_descriptor)
         !
 #if defined(__MPI)
         INTEGER :: comm = MPI_COMM_NULL
@@ -65,7 +74,10 @@ MODULE env_base_stick
         INTEGER, ALLOCATABLE :: idx(:) ! the index of each stick
         INTEGER, ALLOCATABLE :: ist(:, :) ! the cartesian coordinates of each stick
         INTEGER, ALLOCATABLE :: stown(:, :) ! the owner of each stick
-        INTEGER, ALLOCATABLE :: indmap(:, :) ! the index of each stick (represented on the map)
+        !
+        INTEGER, ALLOCATABLE :: indmap(:, :)
+        ! the index of each stick (represented on the map)
+        !
         REAL(DP) :: bg(3, 3) ! base vectors, the generators of the mapped space
         !
         !--------------------------------------------------------------------------------
@@ -92,17 +104,16 @@ CONTAINS
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: lgamma, lpara
-        INTEGER, INTENT(IN) :: nyfft
-        INTEGER, INTENT(IN) :: iproc(:, :)
-        INTEGER, INTENT(IN) :: iproc2(:)
+        INTEGER, INTENT(IN) :: comm, nyfft
+        INTEGER, INTENT(IN) :: iproc(:, :), iproc2(:)
         INTEGER, INTENT(IN) :: nr1, nr2, nr3
-        INTEGER, INTENT(IN) :: comm
         REAL(DP), INTENT(IN) :: bg(3, 3)
         !
         TYPE(env_sticks_map) :: smap
-        INTEGER :: lb(3), ub(3)
+        INTEGER, DIMENSION(3) :: lb, ub
         INTEGER :: nzfft, nstx, ierr
-        INTEGER, ALLOCATABLE :: indmap(:, :), stown(:, :), idx(:), ist(:, :)
+        INTEGER, DIMENSION(:, :), ALLOCATABLE :: indmap, stown, ist
+        INTEGER, ALLOCATABLE :: idx(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'env_sticks_map_allocate'
         !
@@ -265,14 +276,14 @@ CONTAINS
     !! st(i,j) will contain the number of G vectors of the stick whose indices are (i,j)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE sticks_map_set(lgamma, ub, lb, bg, gcut, st, comm)
+    SUBROUTINE env_sticks_map_set(lgamma, ub, lb, bg, gcut, st, comm)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: lgamma !  if true use gamma point simmetry
-        INTEGER, INTENT(IN) :: ub(:) !  upper bounds for i-th grid dimension
-        INTEGER, INTENT(IN) :: lb(:) !  lower bounds for i-th grid dimension
+        LOGICAL, INTENT(IN) :: lgamma ! if true use gamma point symmetry
+        INTEGER, INTENT(IN) :: ub(:) ! upper bounds for i-th grid dimension
+        INTEGER, INTENT(IN) :: lb(:) ! lower bounds for i-th grid dimension
         REAL(DP), INTENT(IN) :: bg(:, :) ! reciprocal space base vectors
         REAL(DP), INTENT(IN) :: gcut ! cut-off for potentials
         INTEGER, OPTIONAL, INTENT(IN) :: comm ! communicator of the g-vec group
@@ -280,10 +291,9 @@ CONTAINS
         INTEGER, INTENT(OUT) :: st(lb(1):ub(1), lb(2):ub(2))
         ! stick map for wave functions, note that map is taken in YZ plane
         !
-        REAL(DP) :: b1(3), b2(3), b3(3)
-        INTEGER :: i1, i2, i3, n1, n2, n3, mype, nproc, ierr
+        REAL(DP), DIMENSION(3) :: b1, b2, b3
+        INTEGER :: i1, i2, i3, n1, n2, n3, mype, nproc, ierr, ngm
         REAL(DP) :: amod
-        INTEGER :: ngm
         !
         !--------------------------------------------------------------------------------
         !
@@ -356,12 +366,12 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE sticks_map_set
+    END SUBROUTINE env_sticks_map_set
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE sticks_map_index(ub, lb, st, in1, in2, ngc, index_map)
+    SUBROUTINE env_sticks_map_index(ub, lb, st, in1, in2, ngc, index_map)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -369,7 +379,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: ub(:), lb(:)
         INTEGER, INTENT(IN) :: st(lb(1):ub(1), lb(2):ub(2)) ! stick map for potential
         !
-        INTEGER, INTENT(INOUT) :: index_map(lb(1):ub(1), lb(2):ub(2)) 
+        INTEGER, INTENT(INOUT) :: index_map(lb(1):ub(1), lb(2):ub(2))
         ! keep track of sticks index
         !
         INTEGER, INTENT(OUT) :: in1(:), in2(:)
@@ -377,7 +387,7 @@ CONTAINS
         !
         INTEGER :: j1, j2, i1, i2, nct, min_size, ind
         !
-        CHARACTER(LEN=80) :: sub_name = 'sticks_map_index'
+        CHARACTER(LEN=80) :: sub_name = 'env_sticks_map_index'
         !
         !--------------------------------------------------------------------------------
         ! Initialize the sticks indexes array list
@@ -424,7 +434,7 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE sticks_map_index
+    END SUBROUTINE env_sticks_map_index
     !------------------------------------------------------------------------------------
     !>
     !! This subroutine sorts the sticks indexes, according to the length and type of
@@ -435,7 +445,7 @@ CONTAINS
     !! ngcs for smooth mesh
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE sticks_sort_new(parallel, ng, nct, idx)
+    SUBROUTINE env_sticks_sort_new(parallel, ng, nct, idx)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -447,14 +457,13 @@ CONTAINS
         INTEGER, INTENT(INOUT) :: idx(:) ! index, on output, new sticks indexes
         !
         INTEGER :: mc, ic, nc
-        INTEGER, ALLOCATABLE :: iaux(:)
-        INTEGER, ALLOCATABLE :: itmp(:)
+        INTEGER, DIMENSION(:), ALLOCATABLE :: iaux, itmp
         REAL(DP), ALLOCATABLE :: aux(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'sticks_sort'
         !
         !--------------------------------------------------------------------------------
-        ! We need to avoid sorting elements already sorted previously build 
+        ! We need to avoid sorting elements already sorted previously build
         ! inverse indexes
         !
         ALLOCATE (iaux(nct))
@@ -512,7 +521,7 @@ CONTAINS
                 !
             END DO
             !
-            CALL hpsort(nc, aux, itmp)
+            CALL env_hpsort(nc, aux, itmp)
             !
             DO mc = 1, nc
                 idx(ic + mc) = itmp(mc)
@@ -538,36 +547,48 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE sticks_sort_new
+    END SUBROUTINE env_sticks_sort_new
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE sticks_dist_new(lgamma, mype, nproc, nyfft, iproc, iproc2, ub, lb, idx, &
-                               in1, in2, ngc, nct, ncp, ngp, stown, ng)
+    SUBROUTINE env_sticks_dist_new(lgamma, mype, nproc, nyfft, iproc, iproc2, ub, lb, &
+                                   idx, in1, in2, ngc, nct, ncp, ngp, stown, ng)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: lgamma
-        INTEGER, INTENT(IN) :: mype
-        INTEGER, INTENT(IN) :: nproc
-        INTEGER, INTENT(IN) :: nyfft
+        INTEGER, INTENT(IN) :: mype, nproc, nyfft
         INTEGER, INTENT(IN) :: iproc(:, :), iproc2(:)
-        INTEGER, INTENT(IN) :: ub(:), lb(:), idx(:) ! map's limits
-        INTEGER, INTENT(IN) :: in1(:), in2(:) ! cartesian coordinate of each column, ordered according to idx index
+        INTEGER, INTENT(IN) :: ub(:), lb(:) ! map's limits
+        !
+        INTEGER, INTENT(IN) :: in1(:), in2(:), idx(:) 
+        ! cartesian coordinate of each column, ordered according to idx index
         INTEGER, INTENT(IN) :: ngc(:) ! number of G-vector of each column, ordered according to idx index
         INTEGER, INTENT(IN) :: nct ! total number of relevant sticks
         !
-        INTEGER, INTENT(INOUT) :: stown(lb(1):ub(1), lb(2):ub(2)) ! stick owner's map, including previously assigned ones
-        INTEGER, INTENT(out) :: ncp(:) ! number of sticks (columns) per processor
-        INTEGER, INTENT(out) :: ngp(:) ! number of G-vectors per processor
-        INTEGER, INTENT(out) :: ng ! number of G-vector of this processor. that is ng = ngp(mype+1)
+        INTEGER, INTENT(INOUT) :: stown(lb(1):ub(1), lb(2):ub(2))
+        ! stick owner's map, including previously assigned ones
+        !
+        INTEGER, INTENT(OUT) :: ncp(:) ! number of sticks (columns) per processor
+        INTEGER, INTENT(OUT) :: ngp(:) ! number of G-vectors per processor
+        !
+        INTEGER, INTENT(OUT) :: ng
+        ! number of G-vector of this processor. that is ng = ngp(mype+1)
         !
         INTEGER :: mc, i1, i2, j, jj, icnt, gr, j2, j3
-        INTEGER, ALLOCATABLE :: yc(:), yg(:) ! number of relevant columns and G-vectors in a given yz plane
-        INTEGER, ALLOCATABLE :: ygr(:) ! element in the nyfft group to which a YZ plane belong
-        INTEGER, ALLOCATABLE :: ygrp(:), ygrc(:), ygrg(:) ! number of yz planes, relevant columns and G-vectors belonging to a given element in the nyfft group
+        !
+        INTEGER, ALLOCATABLE :: yc(:), yg(:) 
+        ! number of relevant columns and G-vectors in a given yz plane
+        !
+        INTEGER, ALLOCATABLE :: ygr(:) 
+        ! element in the nyfft group to which a YZ plane belong
+        !
+        INTEGER, DIMENSION(:), ALLOCATABLE :: ygrp, ygrc, ygrg
+        ! number of yz planes, relevant columns and G-vectors
+        ! belonging to a given element in the nyfft group
+        !
         !
         CHARACTER(LEN=80) :: sub_name = 'sticks_dist'
         !
@@ -721,7 +742,7 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE sticks_dist_new
+    END SUBROUTINE env_sticks_dist_new
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -731,7 +752,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: gcut ! kinetic energy cut-off for this stick distribution
+        REAL(DP), INTENT(IN) :: gcut 
+        ! kinetic energy cut-off for this stick distribution
         !
         TYPE(env_sticks_map), INTENT(INOUT) :: smap
         !
@@ -742,7 +764,9 @@ CONTAINS
         INTEGER, INTENT(OUT) :: nstp(:) ! number of sticks per processor
         INTEGER, INTENT(OUT) :: sstp(:) ! number of G-vectors per processor
         INTEGER, INTENT(OUT) :: nst ! total number of sticks
-        INTEGER, INTENT(OUT) :: ng ! number of G-vector of this processor. that is ng = sstp(mype+1)
+        !
+        INTEGER, INTENT(OUT) :: ng 
+        ! number of G-vector of this processor. that is ng = sstp(mype+1)
         !
         INTEGER, ALLOCATABLE :: ngc(:)
         INTEGER :: ic
@@ -756,22 +780,23 @@ CONTAINS
         !
         st = 0
         !
-        CALL sticks_map_set(smap%lgamma, smap%ub, smap%lb, smap%bg, gcut, st, smap%comm)
+        CALL env_sticks_map_set(smap%lgamma, smap%ub, smap%lb, smap%bg, gcut, st, &
+                                smap%comm)
         !
         ALLOCATE (ngc(SIZE(smap%idx)))
         ngc = 0
         !
-        CALL sticks_map_index(smap%ub, smap%lb, st, smap%ist(:, 1), smap%ist(:, 2), &
-                              ngc, smap%indmap)
+        CALL env_sticks_map_index(smap%ub, smap%lb, st, smap%ist(:, 1), smap%ist(:, 2), &
+                                  ngc, smap%indmap)
         !
         nst = COUNT(st > 0)
         !
-        CALL sticks_sort_new(smap%nproc > 1, ngc, SIZE(smap%idx), smap%idx)
+        CALL env_sticks_sort_new(smap%nproc > 1, ngc, SIZE(smap%idx), smap%idx)
         !
-        CALL sticks_dist_new(smap%lgamma, smap%mype, smap%nproc, smap%nyfft, &
-                             smap%iproc, smap%iproc2, smap%ub, smap%lb, smap%idx, &
-                             smap%ist(:, 1), smap%ist(:, 2), ngc, SIZE(smap%idx), &
-                             nstp, sstp, smap%stown, ng)
+        CALL env_sticks_dist_new(smap%lgamma, smap%mype, smap%nproc, smap%nyfft, &
+                                 smap%iproc, smap%iproc2, smap%ub, smap%lb, smap%idx, &
+                                 smap%ist(:, 1), smap%ist(:, 2), ngc, SIZE(smap%idx), &
+                                 nstp, sstp, smap%stown, ng)
         !
         !--------------------------------------------------------------------------------
         ! Assign the owner of each (relavant) stick

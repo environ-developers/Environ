@@ -379,7 +379,7 @@ CONTAINS
     !!    The transpose takes place in two steps:
     !!    1) on each processor the columns are sliced into sections along Z
     !!       that are stored one after the other. On each processor, slices for
-    !!       processor "iproc3" are desc%nr3p(iproc3)*desc%nsw/nsp(me) big.
+    !!       processor "iproc3" are desc%nr3p(iproc3)*desc%nsp/nsp(me) big.
     !!    2) all processors communicate to exchange slices (all columns with
     !!       Z in the slice belonging to "me" must be received, all the others
     !!       must be sent to "iproc3")
@@ -1007,7 +1007,7 @@ CONTAINS
         COMPLEX(DP), DEVICE, INTENT(INOUT) :: f_in_d(nxx_), f_aux_d(nxx_)
         COMPLEX(DP), INTENT(INOUT) :: f_in(nxx_), f_aux(nxx_)
         !
-        INTEGER :: cuf_i, cuf_j, nswip
+        INTEGER :: cuf_i, cuf_j, nspip
         INTEGER :: istat
         INTEGER, POINTER, DEVICE :: p_ismap_d(:)
         !
@@ -1144,12 +1144,12 @@ CONTAINS
                 !
                 DO ip = 1, dfft%nproc
                     ioff = dfft%iss(ip)
-                    nswip = dfft%nsp(ip)
+                    nspip = dfft%nsp(ip)
                     !
                     !$cuf kernel do(2) <<<*,*>>>
                     DO cuf_j = 1, npp
                         !
-                        DO cuf_i = 1, nswip
+                        DO cuf_i = 1, nspip
                             it = (ip - 1) * sendsiz + (cuf_i - 1) * nppx
                             mc = p_ismap_d(cuf_i + ioff)
                             f_aux_d(mc + (cuf_j - 1) * nnp) = f_in_d(cuf_j + it)
@@ -1167,12 +1167,12 @@ CONTAINS
                 !
                 DO gproc = 1, dfft%nproc
                     ioff = dfft%iss(ip)
-                    nswip = dfft%nsw(ip)
+                    nspip = dfft%nsp(ip)
                     !
                     !$cuf kernel do(2) <<<*,*>>>
                     DO cuf_j = 1, npp
                         !
-                        DO cuf_i = 1, nswip
+                        DO cuf_i = 1, nspip
                             mc = p_ismap_d(cuf_i + ioff)
                             it = (cuf_i - 1) * nppx + (gproc - 1) * sendsiz
                             f_aux_d(mc + (cuf_j - 1) * nnp) = f_in_d(cuf_j + it)
@@ -1196,12 +1196,12 @@ CONTAINS
                 !
                 DO ip = 1, dfft%nproc
                     ioff = dfft%iss(ip)
-                    nswip = dfft%nsp(ip)
+                    nspip = dfft%nsp(ip)
                     !
                     !$cuf kernel do(2) <<<*,*>>>
                     DO cuf_j = 1, npp
                         !
-                        DO cuf_i = 1, nswip
+                        DO cuf_i = 1, nspip
                             mc = p_ismap_d(cuf_i + ioff)
                             it = (ip - 1) * sendsiz + (cuf_i - 1) * nppx
                             f_in_d(cuf_j + it) = f_aux_d(mc + (cuf_j - 1) * nnp)
@@ -1217,12 +1217,12 @@ CONTAINS
                 !
                 DO gproc = 1, dfft%nproc
                     ioff = dfft%iss(gproc)
-                    nswip = dfft%nsw(gproc)
+                    nspip = dfft%nsp(gproc)
                     !
                     !$cuf kernel do(2) <<<*,*>>>
                     DO cuf_j = 1, npp
                         !
-                        DO cuf_i = 1, nswip
+                        DO cuf_i = 1, nspip
                             mc = p_ismap_d(cuf_i + ioff)
                             it = (cuf_i - 1) * nppx + (gproc - 1) * sendsiz
                             f_in_d(cuf_j + it) = f_aux_d(mc + (cuf_j - 1) * nnp)
@@ -1502,7 +1502,7 @@ CONTAINS
                                       f_aux(batchsize * nxx_), &
                                       f_aux2(batchsize * nxx_)
         !
-        INTEGER :: cuf_i, cuf_j, nswip
+        INTEGER :: cuf_i, cuf_j, nspip
         INTEGER :: istat
         INTEGER, POINTER, DEVICE :: p_ismap_d(:)
         !
@@ -1688,14 +1688,14 @@ CONTAINS
         !
         DO ip = 1, nprocp
             ioff = dfft%iss(ip)
-            nswip = dfft%nsp(ip)
+            nspip = dfft%nsp(ip)
             !
             !$cuf kernel do(3) <<<*,*,0,dfft%a2a_comp>>>
             DO i = 0, batchsize - 1
                 !
                 DO cuf_j = 1, npp
                     !
-                    DO cuf_i = 1, nswip
+                    DO cuf_i = 1, nspip
                         it = (ip - 1) * sendsiz + (cuf_i - 1) * nppx + i * nppx * ncpx
                         mc = p_ismap_d(cuf_i + ioff)
                         f_aux_d(mc + (cuf_j - 1) * nnp + i * nnr) = f_aux2_d(cuf_j + it)
@@ -1737,7 +1737,7 @@ CONTAINS
                                       f_aux(batchsize * nxx_), &
                                       f_aux2(batchsize * nxx_)
         !
-        INTEGER :: cuf_i, cuf_j, nswip
+        INTEGER :: cuf_i, cuf_j, nspip
         INTEGER :: istat
         INTEGER, POINTER, DEVICE :: p_ismap_d(:)
         !
@@ -1791,14 +1791,14 @@ CONTAINS
             !
             ip = dest + 1
             ioff = dfft%iss(ip)
-            nswip = dfft%nsp(ip)
+            nspip = dfft%nsp(ip)
             !
             !$cuf kernel do(3) <<<*,*,0,dfft%a2a_comp>>>
             DO i = 0, batchsize - 1
                 !
                 DO cuf_j = 1, npp
                     !
-                    DO cuf_i = 1, nswip
+                    DO cuf_i = 1, nspip
                         mc = p_ismap_d(cuf_i + ioff)
                         it = (ip - 1) * sendsiz + (cuf_i - 1) * nppx + i * nppx * ncpx
                         f_aux2_d(cuf_j + it) = f_aux_d(mc + (cuf_j - 1) * nnp + i * nnr)

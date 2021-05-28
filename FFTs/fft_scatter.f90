@@ -733,7 +733,7 @@ CONTAINS
     !!    The transpose takes place in two steps:
     !!    1) on each processor the columns are sliced into sections along Z
     !!       that are stored one after the other. On each processor, slices for
-    !!       processor "iproc3" are desc%nr3p(iproc3)*desc%nsw/nsp(me) big.
+    !!       processor "iproc3" are desc%nr3p(iproc3)*desc%nsp/nsp(me) big.
     !!    2) all processors communicate to exchange slices (all columns with
     !!       Z in the slice belonging to "me" must be received, all the others
     !!       must be sent to "iproc3")

@@ -354,7 +354,7 @@ CONTAINS
         ! aux           : input - output
         ! f             : working space
         ! isgn          : type of scatter
-        ! dfft%nsw(me)  : holds the number of Z-sticks proc. me has.
+        ! dfft%nsp(me)  : holds the number of Z-sticks proc. me has.
         ! dfft%nr3p     : number of planes per processor
         !
         IF (isgn > 0) THEN
