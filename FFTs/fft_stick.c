@@ -13,170 +13,147 @@
 #include "fftw_dp.h"
 #include "fftw_sp.h"
 
-int env_create_plan_1d (fftw_plan *p, int *n, int *idir)
+int env_create_plan_1d(fftw_plan *p, int *n, int *idir)
 {
-   fftw_direction dir = ( (*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD ); 
+   fftw_direction dir = ((*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD);
    *p = qe_fftw_create_plan(*n, dir, FFTW_ESTIMATE | FFTW_IN_PLACE);
-   if( *p == NULL ) fprintf(stderr," *** CREATE_PLAN: warning empty plan ***\n");
-/*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
+   if (*p == NULL)
+      fprintf(stderr, " *** CREATE_PLAN: warning empty plan ***\n");
+   /*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
    return 0;
 }
 
-int float_create_plan_1d(float_fftw_plan* p, int* n, int* idir)
+int env_destroy_plan_1d(fftw_plan *p)
 {
-	fftw_direction dir = ((*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD);
-	*p = qe_float_fftw_create_plan(*n, dir, FFTW_ESTIMATE | FFTW_IN_PLACE);
-	if (*p == NULL) fprintf(stderr, " *** CREATE_PLAN: warning empty plan ***\n");
-	/*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
-	return 0;
-}
-
-int env_destroy_plan_1d (fftw_plan *p)
-{
-   if ( *p != NULL ) qe_fftw_destroy_plan(*p);
-   else fprintf(stderr," *** DESTROY_PLAN: warning empty plan ***\n");
+   if (*p != NULL)
+      qe_fftw_destroy_plan(*p);
+   else
+      fprintf(stderr, " *** DESTROY_PLAN: warning empty plan ***\n");
    return 0;
 }
 
-int float_destroy_plan_1d(float_fftw_plan* p)
+int env_create_plan_2d(fftwnd_plan *p, int *n, int *m, int *idir)
 {
-	if (*p != NULL) qe_float_fftw_destroy_plan(*p);
-	else fprintf(stderr, " *** DESTROY_PLAN: warning empty plan ***\n");
-	return 0;
-}
-
-int env_create_plan_2d (fftwnd_plan *p, int *n, int *m, int *idir)
-{
-   fftw_direction dir = ( (*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD );
+   fftw_direction dir = ((*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD);
    *p = qe_fftw2d_create_plan(*m, *n, dir, FFTW_ESTIMATE | FFTW_IN_PLACE);
-   if( *p == NULL ) fprintf(stderr," *** env_create_plan_2d: warning empty plan ***\n");
-/*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
+   if (*p == NULL)
+      fprintf(stderr, " *** env_create_plan_2d: warning empty plan ***\n");
+   /*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
    return 0;
 }
 
-int env_destroy_plan_2d (fftwnd_plan *p)
+int env_destroy_plan_2d(fftwnd_plan *p)
 {
-   if ( *p != NULL ) qe_fftwnd_destroy_plan(*p);
-   else fprintf(stderr," *** env_destroy_plan_2d: warning empty plan ***\n");
+   if (*p != NULL)
+      qe_fftwnd_destroy_plan(*p);
+   else
+      fprintf(stderr, " *** env_destroy_plan_2d: warning empty plan ***\n");
    return 0;
 }
 
-int env_create_plan_3d (fftwnd_plan *p, int *n, int *m, int *l, int *idir)
+int env_create_plan_3d(fftwnd_plan *p, int *n, int *m, int *l, int *idir)
 {
-   fftw_direction dir = ( (*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD );
+   fftw_direction dir = ((*idir < 0) ? FFTW_FORWARD : FFTW_BACKWARD);
    *p = qe_fftw3d_create_plan(*l, *m, *n, dir, FFTW_ESTIMATE | FFTW_IN_PLACE);
-   if( *p == NULL ) {
-	fprintf(stderr," *** env_create_plan_3d: warning empty plan ***\n");
-	fprintf(stderr," *** input was (n,m,l,dir): %d %d %d %d ***\n", *l, *m, *n, *idir);
+   if (*p == NULL)
+   {
+      fprintf(stderr, " *** env_create_plan_3d: warning empty plan ***\n");
+      fprintf(stderr, " *** input was (n,m,l,dir): %d %d %d %d ***\n", *l, *m, *n, *idir);
    }
-/*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
+   /*   printf(" pointer size = %d, value = %d\n", sizeof ( *p ), *p ); */
    return 0;
 }
 
-int env_destroy_plan_3d (fftwnd_plan *p)
+int env_destroy_plan_3d(fftwnd_plan *p)
 
 {
-   if ( *p != NULL ) qe_fftwnd_destroy_plan(*p);
-   else fprintf(stderr," *** env_destroy_plan_3d: warning empty plan ***\n");
+   if (*p != NULL)
+      qe_fftwnd_destroy_plan(*p);
+   else
+      fprintf(stderr, " *** env_destroy_plan_3d: warning empty plan ***\n");
    return 0;
 }
 
-
-int env_fft_x_stick
-(fftw_plan *p, FFTW_COMPLEX *a, int *nx, int *ny, int *nz, int *ldx, int *ldy )
+int env_fft_x_stick(fftw_plan *p, FFTW_COMPLEX *a, int *nx, int *ny, int *nz, int *ldx, int *ldy)
 {
 
    int i;
    int xstride, bigstride;
    int xhowmany, xidist;
 
-/* trasform  along x and y */
+   /* trasform  along x and y */
    bigstride = (*ldx) * (*ldy);
 
    xhowmany = (*ny);
-   xstride  = 1;
-   xidist   = (*ldx);
+   xstride = 1;
+   xidist = (*ldx);
 
    /* ptr = (double *)a; */
 
-   for(i = 0; i < *nz ; i++) {
-     /* trasform  along x */
-     fftw(*p,xhowmany,&a[i*bigstride],xstride,xidist,0,0,0);
+   for (i = 0; i < *nz; i++)
+   {
+      /* trasform  along x */
+      fftw(*p, xhowmany, &a[i * bigstride], xstride, xidist, 0, 0, 0);
    }
    return 0;
 }
 
-int env_fft_y_stick
-   (fftw_plan *p, FFTW_COMPLEX *a, int *ny, int *ldx )
+int env_fft_y_stick(fftw_plan *p, FFTW_COMPLEX *a, int *ny, int *ldx)
 {
    fftw(*p, 1, a, (*ldx), 1, 0, 0, 0);
    return 0;
 }
 
-
-int env_fft_z_stick
-   (fftw_plan *p, FFTW_COMPLEX *zstick, int *ldz, int *nstick_l)
+int env_fft_z_stick(fftw_plan *p, FFTW_COMPLEX *zstick, int *ldz, int *nstick_l)
 {
    int howmany, idist;
-   howmany = (*nstick_l) ;
-   idist   = (*ldz);
+   howmany = (*nstick_l);
+   idist = (*ldz);
    fftw(*p, howmany, zstick, 1, idist, 0, 0, 0);
    return 0;
 }
 
-int env_fftw_inplace_drv_1d
-   (fftw_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
+int env_fftw_inplace_drv_1d(fftw_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
 {
    fftw(*p, (*nfft), a, (*inca), (*idist), 0, 0, 0);
    return 0;
 }
 
-int fftw_inplace_drv_2d
-  ( fftwnd_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
+int env_fftw_inplace_drv_2d(fftwnd_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
 {
-   fftwnd( *p, (*nfft), a, (*inca), (*idist), 0, 0, 0 );
+   fftwnd(*p, (*nfft), a, (*inca), (*idist), 0, 0, 0);
    return 0;
 }
 
-int env_fftw_inplace_drv_3d
-   ( fftwnd_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
+int env_fftw_inplace_drv_3d(fftwnd_plan *p, int *nfft, FFTW_COMPLEX *a, int *inca, int *idist)
 {
-   fftwnd( *p, (*nfft), a, (*inca), (*idist), 0, 0, 0 );
+   fftwnd(*p, (*nfft), a, (*inca), (*idist), 0, 0, 0);
    return 0;
 }
 
-int env_fft_x_stick_single
-(fftw_plan *p, FFTW_COMPLEX *a, int *nx, int *ny, int *nz, int *ldx, int *ldy )
+int env_fft_x_stick_single(fftw_plan *p, FFTW_COMPLEX *a, int *nx, int *ny, int *nz, int *ldx, int *ldy)
 {
 
    int xstride, bigstride;
    int xhowmany, xidist;
 
-/* trasform  along x and y */
+   /* trasform  along x and y */
    bigstride = (*ldx) * (*ldy);
 
    xhowmany = (*ny);
-   xstride  = 1;
-   xidist   = (*ldx);
+   xstride = 1;
+   xidist = (*ldx);
 
-   fftw(*p,xhowmany,a,xstride,xidist,0,0,0);
+   fftw(*p, xhowmany, a, xstride, xidist, 0, 0, 0);
 
    return 0;
 }
 
-
-int env_fft_z_stick_single (fftw_plan *p, FFTW_COMPLEX *a, int *ldz)
+int env_fft_z_stick_single(fftw_plan *p, FFTW_COMPLEX *a, int *ldz)
 {
-  fftw(*p, 1,a, 1, 0, 0, 0, 0);
+   fftw(*p, 1, a, 1, 0, 0, 0, 0);
 
-  return 0;
-}
-
-int float_fft_z_stick_single(float_fftw_plan* p, FFTW_FLOAT_COMPLEX* a, int* ldz)
-{
-	float_fftw(*p, 1, a, 1, 0, 0, 0, 0);
-
-	return 0;
+   return 0;
 }
 
 /* Computing the N-Dimensional FFT 
@@ -184,7 +161,6 @@ void fftwnd(fftwnd_plan plan, int howmany,
             FFTW_COMPLEX *in, int istride, int idist,
             FFTW_COMPLEX *out, int ostride, int odist);
 */
-
 
 /*
 void fftw(fftw_plan plan, int howmany,

@@ -310,12 +310,12 @@ CONTAINS
         IF (isign < 0) THEN
             tscale = 1.0_DP / (nx * ny)
             !
-            CALL fftw_inplace_drv_2d(fw_plan_2d(ip), nzl, r(1), 1, ldx * ldy)
+            CALL env_fftw_inplace_drv_2d(fw_plan_2d(ip), nzl, r(1), 1, ldx * ldy)
             !
             CALL ZDSCAL(ldx * ldy * nzl, tscale, r(1), 1)
             !
         ELSE IF (isign > 0) THEN
-            CALL fftw_inplace_drv_2d(bw_plan_2d(ip), nzl, r(1), 1, ldx * ldy)
+            CALL env_fftw_inplace_drv_2d(bw_plan_2d(ip), nzl, r(1), 1, ldx * ldy)
         END IF
         !
 #elif defined(_OPENMP)
