@@ -164,7 +164,7 @@ recompile-QE+Environ:
 	if [ $$? -ne 0 ]; then exit; fi; \
 	$(MAKE) compile-QE prog=$$opt
 
-compile-util: libsdir
+compile-util: check-Environ-makeinc libsdir
 	@ printf "\nCompiling utils...\n\n" 2>&1 | \
 	tee install/utils_comp.log
 	@ ( \
@@ -173,20 +173,16 @@ compile-util: libsdir
 	) 2>&1 | tee -a install/utils_comp.log
 	@ $(MAKE) check-for-errors prog=utils
 
-compile-fft: libsdir
+compile-fft: check-Environ-makeinc libsdir
 	@ printf "\nCompiling FFTs...\n\n" 2>&1 | \
 	tee install/FFTs_comp.log
 	@ ( \
-		cd FFTs && \
-		$(MAKE) enable-mkl-include; \
-		$(MAKE) all || exit 1; \
-		$(MAKE) disable-mkl-include; \
-		$(MAKE) all || exit 1; \
+		cd FFTs && $(MAKE) all || exit 1; \
 		mv *.a ../libs \
 	) 2>&1 | tee -a install/FFTs_comp.log
 	@ $(MAKE) check-for-errors prog=FFTs
 	 
-compile-src: libsdir
+compile-src: check-Environ-makeinc libsdir
 	@ printf "\nCompiling src...\n\n" 2>&1 | \
 	tee install/src_comp.log
 	@ ( \

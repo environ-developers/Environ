@@ -2,6 +2,8 @@
 
 include ../make.inc
 
+DFTI = $(findstring DFTI,$(DFLAGS))
+
 MODFLAGS = $(BASEMOD_FLAGS)
 
 OBJS = $(patsubst %.f90,%.o,$(wildcard *.f90))
@@ -10,7 +12,17 @@ C_OBJS = fft_stick.o fftw.o fftw_sp.o fftw_dp.o
 
 OBJS += $(C_OBJS)
 
-all: libfft.a 
+all: driver
+
+driver:
+	@ if test $(DFTI); then \
+		  make enable-mkl-include; \
+		  $(MAKE) libfft.a; \
+		  make disable-mkl-include; \
+		  $(MAKE) libfft.a; \
+	  else \
+	      $(MAKE) libfft.a; \
+	  fi
 
 libfft.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
