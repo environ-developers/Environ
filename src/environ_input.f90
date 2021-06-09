@@ -1996,7 +1996,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Force uppercase
         !
-        CALL env_uppercase(input_line, input_line)
+        input_line = env_uppercase(input_line)
         !
         !--------------------------------------------------------------------------------
         ! Read cards

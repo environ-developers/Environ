@@ -37,14 +37,14 @@ CONTAINS
     !! Converts character to uppercase
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_uppercase(string, upper_str)
+    FUNCTION env_uppercase(string) RESULT(upper_str)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: string
         !
-        CHARACTER(LEN=*), INTENT(OUT) :: upper_str
+        CHARACTER(LEN=LEN(TRIM(string))) :: upper_str
         !
         CHARACTER(LEN=1) :: c
         INTEGER :: i, ci
@@ -66,20 +66,20 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE env_uppercase
+    END FUNCTION env_uppercase
     !------------------------------------------------------------------------------------
     !>
     !! Converts character to lowercase
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_lowercase(string, lower_str)
+    FUNCTION env_lowercase(string) RESULT(lower_str)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=*), INTENT(IN) :: string
         !
-        CHARACTER(LEN=*), INTENT(OUT) :: lower_str
+        CHARACTER(LEN=LEN(TRIM(string))) :: lower_str
         !
         CHARACTER(LEN=1) :: c
         INTEGER :: i, ci
@@ -101,7 +101,7 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE env_lowercase
+    END FUNCTION env_lowercase
     !------------------------------------------------------------------------------------
     !>
     !!

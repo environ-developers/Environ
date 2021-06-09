@@ -636,19 +636,17 @@ CONTAINS
         CHARACTER(LEN=3), INTENT(IN) :: label
         !
         INTEGER :: i, get_atmnum
-        CHARACTER(LEN=2) :: clean_label
+        CHARACTER(LEN=2) :: lowcase_label
         !
         !--------------------------------------------------------------------------------
         !
-        clean_label = TRIM(ADJUSTL(label))
-        !
-        CALL env_lowercase(clean_label, clean_label)
+        lowcase_label = env_lowercase(TRIM(ADJUSTL(label)))
         !
         get_atmnum = 0
         !
         DO i = 1, SIZE(elements)
             !
-            IF (clean_label == elements(i)) THEN
+            IF (lowcase_label == elements(i)) THEN
                 get_atmnum = i
                 !
                 EXIT
