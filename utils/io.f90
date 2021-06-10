@@ -116,8 +116,24 @@ CONTAINS
         !
         IF (ionode) THEN
 30          READ (unit, fmt='(A256)', ERR=15, END=10) line
+            line = TRIM(line)
             !
-            IF (line == ' ' .OR. line(1:1) == '#' .OR. line(1:1) == '!') GOTO 30
+            IF (line == ' ' .OR. (line(1:1) == '#' .OR. &
+                                  line(1:1) == '!' .OR. &
+                                  line(1:1) == '/')) &
+                GOTO 30
+            !
+            IF (line(1:1) == '&') THEN
+                line = env_uppercase(line(2:))
+                !
+                CALL env_warning('Skipping unnecessary '//TRIM(line)//' namelist')
+                !
+                DO WHILE (line(1:1) /= '/') ! consume namelist
+                    READ (unit, fmt='(A256)', ERR=15, END=10) line
+                END DO
+                !
+                GOTO 30
+            END IF
             !
             GOTO 20
 10          tend = .TRUE.
