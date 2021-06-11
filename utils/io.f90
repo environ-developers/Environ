@@ -34,6 +34,8 @@ MODULE env_io
     !
     USE env_mp, ONLY: env_mp_bcast, env_mp_abort, env_mp_rank
     !
+    USE env_char_ops, ONLY: env_uppercase
+    !
 #if defined(__PTRACE)&&defined(__INTEL_COMPILER)
     USE ifcore, ONLY: tracebackqq
 #endif
@@ -415,7 +417,7 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
 #if defined(__INTEL_COMPILER)
     CALL tracebackqq(user_exit_code=-1)
 #elif __GFORTRAN__
-#if (__GNUC__>4) || ((__GNUC__==4) && (__GNUC_MINOR__>=8))
+#if (__GNUC__>4)||((__GNUC__==4)&&(__GNUC_MINOR__>=8))
     CALL backtrace
 #endif
 #else
@@ -442,7 +444,7 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     WRITE (UNIT=crashunit, FMT='(5X,"task #",I10)') mpime
     !
     WRITE (UNIT=crashunit, &
-            FMT='(5X,"from ",A," : error #",I10)') calling_routine, ierr
+           FMT='(5X,"from ",A," : error #",I10)') calling_routine, ierr
     !
     WRITE (UNIT=crashunit, FMT='(5X,A)') message
     WRITE (UNIT=crashunit, FMT='(1X,78("%"),/)')
@@ -476,6 +478,8 @@ SUBROUTINE env_infomsg(routine, message)
     CHARACTER(LEN=*) :: routine ! the name of the calling routine
     CHARACTER(LEN=*) :: message ! the output message
     !
+    !------------------------------------------------------------------------------------
+    !
     WRITE (stdout, '(5X,"Message from routine ",A,":")') routine
     WRITE (stdout, '(5X,A)') message
     !
@@ -483,6 +487,57 @@ SUBROUTINE env_infomsg(routine, message)
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_infomsg
+!----------------------------------------------------------------------------------------
+!>
+!! Writes a WARNING message to output
+!!
+!----------------------------------------------------------------------------------------
+SUBROUTINE env_warning(message)
+    !------------------------------------------------------------------------------------
+    !
+    USE env_utils_param, ONLY: stdout
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=*) :: message ! the output message
+    !
+    !------------------------------------------------------------------------------------
+    !
+    WRITE (stdout, '("Warning: ", A)') message
+    !
+    RETURN
+    !
+    !------------------------------------------------------------------------------------
+END SUBROUTINE env_warning
+!----------------------------------------------------------------------------------------
+!>
+!! Raises an error due to an invalid input option
+!!
+!----------------------------------------------------------------------------------------
+SUBROUTINE env_invalid_opt(routine, param, input)
+    !------------------------------------------------------------------------------------
+    !
+    USE env_utils_param, ONLY: stdout
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=*), INTENT(IN) :: routine ! the calling routine
+    CHARACTER(LEN=*), INTENT(IN) :: param ! the input parameter
+    CHARACTER(LEN=*), INTENT(IN) :: input ! the actual input
+    !
+    !------------------------------------------------------------------------------------
+    !
+    CALL env_errore(routine, &
+                    "'"//TRIM(input)//"' is not a valid option for "//TRIM(param), 1)
+    !
+    RETURN
+    !
+    !------------------------------------------------------------------------------------
+END SUBROUTINE env_invalid_opt
 !----------------------------------------------------------------------------------------
 !>
 !! This is a simple routine which writes an error message to output
