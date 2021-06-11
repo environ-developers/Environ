@@ -206,7 +206,7 @@ CONTAINS
             CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
             !
             ierr = cudaMemcpyAsync(f_in_d, f_in, nxx_, cudaMemcpyHostToDevice, stream)
 #endif
@@ -313,7 +313,7 @@ CONTAINS
             CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
 #endif
             !
             ! step one: store contiguously the columns
@@ -529,7 +529,7 @@ CONTAINS
             CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
             !
             ierr = cudaMemcpy(f_in_d, f_in, nxx_, cudaMemcpyHostToDevice)
 #endif
@@ -668,7 +668,7 @@ CONTAINS
             CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
             !
 #endif
             !
@@ -850,7 +850,7 @@ CONTAINS
             CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
             !
             ierr = cudaMemcpy(f_in_d, f_in, nxx_, cudaMemcpyHostToDevice)
             !
@@ -939,7 +939,7 @@ CONTAINS
             CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
             !
             ! step one: store contiguously the columns
             !
@@ -1068,8 +1068,7 @@ CONTAINS
                 istat = cudaMemcpy2D(f_aux(kdest + 1), nppx, f_in_d(kfrom + 1), nr3x, &
                                      npp_(gproc), ncp_(me), cudaMemcpyDeviceToHost)
                 !
-                IF (istat) CALL env_fft_error(sub_bane, &
-                                              "ERROR cudaMemcpy2D failed : ", istat)
+                IF (istat) CALL env_errore(sub_name, 'cudaMemcpy2D failed', istat)
 #endif
                 !
                 offset = offset + npp_(gproc)
@@ -1125,7 +1124,7 @@ CONTAINS
             !
             CALL env_stop_clock(sub_name)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
             !
 #ifndef __GPU_MPI
             f_in_d(1:sendsiz * dfft%nproc) = f_in(1:sendsiz * dfft%nproc)
@@ -1291,7 +1290,7 @@ CONTAINS
             !
             CALL env_stop_clock(sub_name)
             !
-            IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
             !
             ! step one: store contiguously the columns
             !
@@ -1393,7 +1392,7 @@ CONTAINS
         nnr = dfft%nnr
         ierr = 0
         !
-        IF (isgn < 0) CALL env_fft_error(sub_name, 'isign is wrong', isgn)
+        IF (isgn < 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
         !
         IF (nprocp == 1) GO TO 10
         !
@@ -1428,7 +1427,7 @@ CONTAINS
                                       cudaMemcpyDeviceToDevice, dfft%bstreams(batch_id))
             !
             IF (istat /= cudaSuccess) &
-                CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+                CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #else
             !
 #ifdef __IPC
@@ -1440,7 +1439,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
                 !
             ELSE
                 !
@@ -1450,7 +1449,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
                 !
             END IF
 #else
@@ -1460,7 +1459,7 @@ CONTAINS
                                       cudaMemcpyDeviceToHost, dfft%bstreams(batch_id))
             !
             IF (istat /= cudaSuccess) &
-                CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+                CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #endif
             !
 #endif
@@ -1536,7 +1535,7 @@ CONTAINS
         !
         ierr = 0
         !
-        IF (isgn < 0) CALL env_fft_error(sub_name, 'isign is wrong', isgn)
+        IF (isgn < 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
         !
         IF (nprocp == 1) GO TO 10
         !
@@ -1631,7 +1630,7 @@ CONTAINS
                                   cudaMemcpyDeviceToDevice, dfft%bstreams(batch_id))
         !
         IF (istat /= cudaSuccess) &
-            CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+            CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
         !
         IF (req_cnt > 0) &
             CALL MPI_WAITALL(req_cnt, dfft%srh(1:req_cnt, batch_id), &
@@ -1645,7 +1644,7 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+        IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
         !
 #ifndef __GPU_MPI
         DO proc = 1, nprocp
@@ -1773,7 +1772,7 @@ CONTAINS
         nnr = dfft%nnr
         ierr = 0
         !
-        IF (isgn > 0) CALL env_fft_error(sub_name, 'isign is wrong', isgn)
+        IF (isgn > 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
         !
         !--------------------------------------------------------------------------------
         ! "backward" scatter from planes to columns
@@ -1910,7 +1909,7 @@ CONTAINS
         !
         ierr = 0
         !
-        IF (isgn > 0) CALL env_fft_error(sub_name, 'isign is wrong', isgn)
+        IF (isgn > 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
         !
         !--------------------------------------------------------------------------------
         ! "backward" scatter from planes to columns
@@ -2000,8 +1999,8 @@ CONTAINS
         END DO
         !
         !--------------------------------------------------------------------------------
-        ! Move the data that we already have (and therefore doesn't to pass 
-        ! through MPI avove) directly from f_aux_2 to f_in. The rest will be 
+        ! Move the data that we already have (and therefore doesn't to pass
+        ! through MPI avove) directly from f_aux_2 to f_in. The rest will be
         ! done below
         !
         offset = 0
@@ -2027,7 +2026,7 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        IF (ABS(ierr) /= 0) CALL env_fft_error(sub_name, 'info<>0', ABS(ierr))
+        IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
         !
         !--------------------------------------------------------------------------------
         ! Store contiguously the (remaining) columns (one already done above).
@@ -2047,7 +2046,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #else
                 !
 #ifdef __IPC
@@ -2070,7 +2069,7 @@ CONTAINS
                 END IF
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #else
                 !
                 istat = cudaMemcpy2DAsync(f_in_d(kfrom + 1), nr3x, f_aux(kdest + 1), &
@@ -2079,7 +2078,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_fft_error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #endif
 #endif
                 !

@@ -153,12 +153,16 @@ CONTAINS
         prog = prog_(1:2)
         !
         SELECT CASE (prog)
+            !
         CASE ('PW', 'pw')
             lstdout = .TRUE.
+            !
         CASE ('CP', 'cp')
             lstdout = .TRUE.
+            !
         CASE DEFAULT
             lstdout = .FALSE.
+            !
         END SELECT
         !
         lstdout = lstdout .AND. ionode
@@ -617,6 +621,7 @@ CONTAINS
             DO ifunctions = 1, nfunctions
                 !
                 SELECT CASE (functions(ifunctions)%type_)
+                    !
                 CASE (1)
                     !
                     IF (ionode) &
@@ -656,6 +661,7 @@ CONTAINS
                     !
                 CASE DEFAULT
                     CALL env_errore(sub_name, 'Unexpected function type', 1)
+                    !
                 END SELECT
                 !
                 IF (verbosity >= 3 .AND. ionode) &
@@ -1232,6 +1238,7 @@ CONTAINS
                 IF (ionode) WRITE (UNIT=environ_unit, FMT=2003) boundary%type_
                 !
                 SELECT CASE (boundary%type_)
+                    !
                 CASE (0)
                     !
                     IF (ionode) &

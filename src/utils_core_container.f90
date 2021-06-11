@@ -74,6 +74,7 @@ CONTAINS
         core%type_ = type_
         !
         SELECT CASE (TRIM(ADJUSTL(type_)))
+            !
         CASE ('fd')
             !
             !----------------------------------------------------------------------------
@@ -111,6 +112,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unexpected keyword for core_container type', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------

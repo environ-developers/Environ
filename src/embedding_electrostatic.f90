@@ -90,48 +90,56 @@ CONTAINS
         ! Select the appropriate combination of problem and solver
         !
         SELECT CASE (setup%problem)
+            !
         CASE ('poisson')
             !
             SELECT CASE (setup%solver%type_)
+                !
             CASE ('direct')
                 CALL poisson_direct(setup%core, charges, potential)
+                !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'unexpected solver keyword', 1)
+                CALL env_errore(sub_name, 'Unexpected solver keyword', 1)
+                !
             END SELECT
             !
         CASE ('generalized')
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL env_errore(sub_name, 'missing details of dielectric medium', 1)
+                CALL env_errore(sub_name, 'Missing details of dielectric medium', 1)
             !
             SELECT CASE (setup%solver%type_)
+                !
             CASE ('direct')
                 !
-                CALL env_errore(sub_name, 'option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL generalized_direct() #TODO future work
                 !
             CASE ('cg', 'sd', 'iterative')
                 CALL generalized_gradient(setup%solver, setup%core, charges, potential)
+                !
             CASE ('lbfgs')
                 !
-                CALL env_errore(sub_name, 'option not implemented', 1)
+                CALL env_errore(sub_name, 'Option not implemented', 1)
                 !
                 ! CALL generalized_lbfgs() #TODO future work
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'unexpected solver keyword', 1)
+                CALL env_errore(sub_name, 'Unexpected solver keyword', 1)
+                !
             END SELECT
             !
         CASE ('linpb', 'linmodpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL env_errore(sub_name, 'missing details of electrolyte ions', 1)
+                CALL env_errore(sub_name, 'Missing details of electrolyte ions', 1)
             !
             SELECT CASE (setup%solver%type_)
+                !
             CASE ('direct')
                 !
-                CALL env_errore(sub_name, 'option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL linpb_direct() #TODO future work
                 !
@@ -142,23 +150,25 @@ CONTAINS
                 !
             CASE ('lbfgs')
                 !
-                CALL env_errore(sub_name, 'option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL linpb_lbfgs() #TODO future work
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'unexpected solver keyword', 1)
+                CALL env_errore(sub_name, 'Unexpected solver keyword', 1)
+                !
             END SELECT
             !
         CASE ('pb', 'modpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL env_errore(sub_name, 'missing details of electrolyte ions', 1)
+                CALL env_errore(sub_name, 'Missing details of electrolyte ions', 1)
             !
             SELECT CASE (setup%solver%type_)
+                !
             CASE ('direct')
                 !
-                CALL env_errore(sub_name, 'option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL pb_direct() #TODO future work
                 !
@@ -168,7 +178,7 @@ CONTAINS
                     !
                     IF (.NOT. ASSOCIATED(charges%dielectric)) &
                         CALL env_errore(sub_name, &
-                                        'missing details of dielectric medium', 1)
+                                        'Missing details of dielectric medium', 1)
                     !
                     CALL pb_nested(setup%solver, setup%core, charges, potential, &
                                    setup%inner)
@@ -181,23 +191,25 @@ CONTAINS
                 !
                 IF (.NOT. ASSOCIATED(setup%inner)) &
                     CALL env_errore(sub_name, &
-                                    'missing details of inner electrostatic setup', 1)
+                                    'Missing details of inner electrostatic setup', 1)
                 !
                 CALL pb_nested(setup%solver, setup%core, charges, potential, &
                                setup%inner)
                 !
             CASE ('lbfgs')
                 !
-                CALL env_errore(sub_name, 'option not yet implemented', 1)
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL pb_lbfgs() #TODO future work
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'unexpected solver keyword', 1)
+                CALL env_errore(sub_name, 'Unexpected solver keyword', 1)
+                !
             END SELECT
             !
         CASE DEFAULT
-            CALL env_errore(sub_name, 'unexpected problem keyword', 1)
+            CALL env_errore(sub_name, 'Unexpected problem keyword', 1)
+            !
         END SELECT
         !
         CALL env_stop_clock(sub_name)
@@ -256,9 +268,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Include environment contributions
         !
-        IF (charges%include_dielectric) THEN
+        IF (charges%include_dielectric) &
             degauss = degauss + charges%dielectric%charge * 0.5D0 ! polarization charge
-        END IF
         !
         IF (charges%include_electrolyte) THEN
             !

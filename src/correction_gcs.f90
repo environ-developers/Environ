@@ -171,8 +171,8 @@ CONTAINS
         !
         IF (electrolyte%ntyp /= 2) &
             CALL env_errore(sub_name, &
-                        'Unexpected number of counterionic species, &
-                        &different from two', 1)
+                            'Unexpected number of counterionic species, &
+                            &different from two', 1)
         !
         cion => electrolyte%ioncctype(1)%cbulk
         zion = ABS(electrolyte%ioncctype(1)%z)
@@ -187,8 +187,8 @@ CONTAINS
         !
         IF (env_periodicity /= 2) &
             CALL env_errore(sub_name, &
-                        'Option not yet implemented: 1D Poisson-Boltzmann &
-                        &solver only for 2D systems', 1)
+                            'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                            &only for 2D systems', 1)
         !
         CALL init_environ_density(cell, local)
         !
@@ -241,9 +241,7 @@ CONTAINS
         lin_e = SQRT(permittivity)
         lin_c = -1.D0 * ez * lin_e / lin_k * EXP(lin_k * xstern / lin_e)
         !
-        IF (electrolyte%linearized) THEN
-            vstern = lin_c * EXP(-1.D0 * lin_k * xstern / lin_e)
-        END IF
+        IF (electrolyte%linearized) vstern = lin_c * EXP(-1.D0 * lin_k * xstern / lin_e)
         !
         !--------------------------------------------------------------------------------
         ! Compute value of the reference potential at the boundary with electrolyte
@@ -254,7 +252,6 @@ CONTAINS
         DO i = 1, nnr
             !
             IF (ABS(axis(1, i)) >= xstern) THEN
-                !
                 icount = icount + 1
                 !
                 vbound = vbound + potential%of_r(i) + v(i) - &
@@ -269,7 +266,6 @@ CONTAINS
         CALL env_mp_sum(vbound, cell%dfft%comm)
         !
         vbound = vbound / DBLE(icount)
-        !
         v = v - vbound + vstern
         !
         !--------------------------------------------------------------------------------
@@ -421,8 +417,8 @@ CONTAINS
         !
         IF (electrolyte%ntyp /= 2) &
             CALL env_errore(sub_name, &
-                        'Unexpected number of counterionic species, &
-                        &different from two', 1)
+                            'Unexpected number of counterionic species, &
+                            &different from two', 1)
         !
         cion => electrolyte%ioncctype(1)%cbulk
         zion = ABS(electrolyte%ioncctype(1)%z)
@@ -437,13 +433,12 @@ CONTAINS
         !
         IF (env_periodicity /= 2) &
             CALL env_errore(sub_name, &
-                        'Option not yet implemented: 1D Poisson-Boltzmann &
-                        &solver only for 2D systems', 1)
+                            'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                            &only for 2D systems', 1)
         !
         CALL init_environ_gradient(cell, glocal)
         !
         gvstern => glocal%of_r
-        !
         area = omega / axis_length
         !
         !--------------------------------------------------------------------------------
@@ -545,9 +540,9 @@ CONTAINS
                     dvtmp_dx = f1 * f2 * arg / (1.D0 - arg**2)
                     !
                     ! remove source potential (linear) and add analytic one
-                    gvstern(slab_axis, i) = -gradv%of_r(slab_axis, i) + &
-                                            (dvtmp_dx - ez) * ABS(axis(1, i)) / &
-                                            axis(1, i)
+                    gvstern(slab_axis, i) = &
+                        -gradv%of_r(slab_axis, i) + &
+                        (dvtmp_dx - ez) * ABS(axis(1, i)) / axis(1, i)
                     !
                 END IF
                 !

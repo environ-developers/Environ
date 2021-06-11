@@ -142,9 +142,7 @@ CONTAINS
         !
         global_sort = .TRUE.
         !
-        IF (PRESENT(no_global_sort)) THEN
-            global_sort = .NOT. no_global_sort
-        END IF
+        IF (PRESENT(no_global_sort)) global_sort = .NOT. no_global_sort
         !
         IF (.NOT. global_sort) THEN
             ngm_max = ngm
@@ -248,7 +246,7 @@ CONTAINS
                         ngm = ngm + 1
                         !
                         IF (ngm > ngm_max) &
-                            CALL env_errore(sub_name, 'too many g-vectors', ngm)
+                            CALL env_errore(sub_name, 'Too many g-vectors', ngm)
                         !
                         IF (tt(k - kstart + 1) > eps8) THEN
                             g2sort_g(ngm) = tt(k - kstart + 1)
@@ -273,7 +271,7 @@ CONTAINS
         END DO iloop
         !
         IF (ngm /= ngm_max) &
-            CALL env_errore(sub_name, 'g-vectors missing !', ABS(ngm - ngm_max))
+            CALL env_errore(sub_name, 'G-vectors missing!', ABS(ngm - ngm_max))
         !
         igsrt(1) = 0
         !
@@ -337,7 +335,7 @@ CONTAINS
         DEALLOCATE (igsrt, g2l)
         !
         IF (ngm /= ngm_save) &
-            CALL env_errore(sub_name, 'g-vectors (ngm) missing !', ABS(ngm - ngm_save))
+            CALL env_errore(sub_name, 'G-vectors (ngm) missing!', ABS(ngm - ngm_save))
         !
         !--------------------------------------------------------------------------------
         ! Determine first nonzero g vector

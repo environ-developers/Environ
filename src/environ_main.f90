@@ -130,11 +130,9 @@ CONTAINS
                                                local_depth=0)
                 END IF
                 !
-                IF (lconfine) &
-                    CALL print_environ_density(vconfine, local_verbose)
+                IF (lconfine) CALL print_environ_density(vconfine, local_verbose)
                 !
-                IF (lsoftcavity) &
-                    CALL print_environ_density(vsoftcavity, local_verbose)
+                IF (lsoftcavity) CALL print_environ_density(vsoftcavity, local_verbose)
                 !
             END IF
             !

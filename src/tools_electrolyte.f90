@@ -113,10 +113,7 @@ CONTAINS
             z => electrolyte%ioncctype(ityp)%z
             cfactor = 1.D0
             !
-            IF (electrolyte%linearized) THEN
-                !
-                !------------------------------------------------------------------------
-                ! Linearized PB and modified PB
+            IF (electrolyte%linearized) THEN ! Linearized PB and modified PB
                 !
                 cfactor = 1.D0 - z * pot / kT
                 !
@@ -128,10 +125,7 @@ CONTAINS
                     !
                 END IF
                 !
-            ELSE
-                !
-                !------------------------------------------------------------------------
-                ! Full PB
+            ELSE ! full PB
                 !
                 DO ir = 1, potential%cell%ir_end
                     !
@@ -151,18 +145,14 @@ CONTAINS
                     !
                 END DO
                 !
-                IF (electrolyte%cionmax /= 0.D0) THEN
-                    !
-                    !--------------------------------------------------------------------
-                    ! Full modified PB
+                IF (electrolyte%cionmax /= 0.D0) THEN ! full modified PB
                     !
                     factor = cbulk / electrolyte%cionmax
                     !
                     SELECT CASE (electrolyte%electrolyte_entropy)
-                    CASE ('full')
                         !
-                        denominator%of_r = denominator%of_r - &
-                                           factor * (1.D0 - cfactor)
+                    CASE ('full')
+                        denominator%of_r = denominator%of_r - factor * (1.D0 - cfactor)
                         !
                     CASE ('ions')
                         !
@@ -264,20 +254,15 @@ CONTAINS
         !
         IF (electrolyte%linearized) THEN
             !
-            IF (electrolyte%cionmax == 0.D0) THEN
-                !
-                !------------------------------------------------------------------------
-                ! Linearized PB
+            IF (electrolyte%cionmax == 0.D0) THEN ! Linearized PB
                 !
                 integral = integrate_environ_density(electrolyte%gamma)
                 energy = kT * sumcbulk * (electrolyte%gamma%cell%omega - integral)
                 !
-            ELSE
-                !
-                !------------------------------------------------------------------------
-                ! Linearized modified PB
+            ELSE ! Linearized modified PB
                 !
                 SELECT CASE (electrolyte%electrolyte_entropy)
+                    !
                 CASE ('full')
                     integral = integrate_environ_density(electrolyte%gamma)
                     logterm = LOG(1.D0 - sumcbulk / electrolyte%cionmax)
@@ -295,6 +280,7 @@ CONTAINS
                     integral = integrate_environ_density(f)
                     !
                     energy = -kT * electrolyte%cionmax * integral
+                    !
                 END SELECT
                 !
             END IF
@@ -310,21 +296,17 @@ CONTAINS
                 !
             END DO
             !
-            IF (electrolyte%cionmax == 0.D0) THEN
-                !
-                !------------------------------------------------------------------------
-                ! Full PB
+            IF (electrolyte%cionmax == 0.D0) THEN ! Full PB
                 !
                 f%of_r = electrolyte%gamma%of_r * arg%of_r - sumcbulk
                 integral = integrate_environ_density(f)
                 !
                 energy = -kT * integral
-            ELSE
                 !
-                !------------------------------------------------------------------------
-                ! Full modified PB
+            ELSE ! full modified PB
                 !
                 SELECT CASE (electrolyte%electrolyte_entropy)
+                    !
                 CASE ('full')
                     arg%of_r = arg%of_r / (electrolyte%cionmax - sumcbulk)
                     arg%of_r = arg%of_r + 1.D0
@@ -341,6 +323,7 @@ CONTAINS
                     f%of_r = LOG(arg%of_r)
                     integral = integrate_environ_density(f)
                     energy = -kT * electrolyte%cionmax * integral
+                    !
                 END SELECT
                 !
             END IF
@@ -381,20 +364,15 @@ CONTAINS
         !
         IF (electrolyte%linearized) THEN
             !
-            IF (electrolyte%cionmax == 0.D0) THEN
-                !
-                !------------------------------------------------------------------------
-                ! Linearized PB
+            IF (electrolyte%cionmax == 0.D0) THEN ! linearized PB
                 !
                 de_dboundary%of_r = de_dboundary%of_r - &
                      & electrolyte%dgamma%of_r * kT * sumcbulk
                 !
-            ELSE
-                !
-                !------------------------------------------------------------------------
-                ! Linearized modified PB
+            ELSE ! linearized modified PB
                 !
                 SELECT CASE (electrolyte%electrolyte_entropy)
+                    !
                 CASE ('full')
                     !
                     de_dboundary%of_r = &
@@ -430,20 +408,15 @@ CONTAINS
                 !
             END DO
             !
-            IF (electrolyte%cionmax == 0.D0) THEN
-                !
-                !------------------------------------------------------------------------
-                ! Full PB
+            IF (electrolyte%cionmax == 0.D0) THEN ! full PB
                 !
                 de_dboundary%of_r = de_dboundary%of_r - &
                                     electrolyte%dgamma%of_r * kT * arg%of_r
                 !
-            ELSE
-                !
-                !------------------------------------------------------------------------
-                ! Full modified PB
+            ELSE ! full modified PB
                 !
                 SELECT CASE (electrolyte%electrolyte_entropy)
+                    !
                 CASE ('full')
                     !
                     arg%of_r = arg%of_r / (electrolyte%cionmax - sumcbulk)

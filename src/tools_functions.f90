@@ -112,8 +112,10 @@ CONTAINS
         axis => functions%axis
         !
         SELECT CASE (type_)
+            !
         CASE (1)
             CALL generate_gaussian(dim, axis, charge, spread, pos, density) ! gaussian
+            !
         CASE (2)
             !
             CALL generate_erfc(dim, axis, charge, width, spread, pos, density)
@@ -220,6 +222,7 @@ CONTAINS
         axis => functions%axis
         !
         SELECT CASE (type_)
+            !
         CASE (1)
             !
             CALL generate_gradgaussian(dim, axis, charge, spread, pos, gradient)
@@ -329,8 +332,10 @@ CONTAINS
         axis => functions%axis
         !
         SELECT CASE (type_)
+            !
         CASE (1)
             CALL env_errore(sub_name, 'Options not yet implemented', 1) ! gaussian
+            !
         CASE (2)
             !
             CALL generate_laplerfc(dim, axis, charge, width, spread, pos, laplacian)
@@ -338,6 +343,7 @@ CONTAINS
             !
         CASE (3)
             CALL env_errore(sub_name, 'Options not yet implemented', 1) ! exponential
+            !
         CASE (4)
             !
             !----------------------------------------------------------------------------
@@ -434,8 +440,10 @@ CONTAINS
         axis => functions%axis
         !
         SELECT CASE (type_)
+            !
         CASE (1)
             CALL env_errore(sub_name, 'Options not yet implemented', 1) ! gaussian
+            !
         CASE (2)
             !
             CALL generate_hesserfc(dim, axis, charge, width, spread, pos, hessian)
@@ -443,6 +451,7 @@ CONTAINS
             !
         CASE (3)
             CALL env_errore(sub_name, 'Options not yet implemented', 1) ! exponential
+            !
         CASE (4)
             !
             !----------------------------------------------------------------------------

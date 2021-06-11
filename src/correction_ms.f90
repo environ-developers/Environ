@@ -142,7 +142,6 @@ CONTAINS
         CALL init_environ_density(cell, local)
         !
         v => local%of_r
-        !
         area = omega / axis_length
         !
         CALL multipoles_environ_density(charges, origin, charge, dipole, quadrupole)
@@ -152,9 +151,7 @@ CONTAINS
         ! First apply parabolic correction
         !
         fact = e2 * tpi / omega
-        !
-        const = -pi / 3.D0 * charge / axis_length * e2 - &
-                fact * quadrupole(slab_axis)
+        const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
         !
         v(:) = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
         v(:) = fact * v(:) + const

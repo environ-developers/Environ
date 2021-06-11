@@ -595,7 +595,7 @@ CONTAINS
         !
         IF (iontype%atmnum == 0) &
             CALL env_errore(sub_name, &
-                            'Can not assign the atom type associated &
+                            'Cannot assign the atom type associated &
                             &with input label', 1)
         !
         ! iontype%weight = weights(iontype%atmnum) ! #TODO future work
@@ -604,16 +604,22 @@ CONTAINS
         iontype%corespread = 0.5D0
         !
         SELECT CASE (radius_mode)
+            !
         CASE ('pauling')
             iontype%solvationrad = pauling_radii(iontype%atmnum)
+            !
         CASE ('bondi')
             iontype%solvationrad = bondi_radii(iontype%atmnum)
+            !
         CASE ('uff')
             iontype%solvationrad = UFF_diameters(iontype%atmnum) * 0.5_DP
+            !
         CASE ('muff')
             iontype%solvationrad = MUFF_diameters(iontype%atmnum) * 0.5_DP
+            !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unknown radius_mode', 1)
+            !
         END SELECT
         !
         iontype%solvationrad = iontype%solvationrad / bohr_radius_angs

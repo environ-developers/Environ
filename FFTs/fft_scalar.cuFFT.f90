@@ -104,7 +104,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nsl < 0) CALL env_fft_error(sub_name, " nsl out of range ", nsl)
+        IF (nsl < 0) CALL env_errore(sub_name, 'nsl out of range', nsl)
         !
         !--------------------------------------------------------------------------------
         ! Here initialize table only if necessary
@@ -293,8 +293,7 @@ CONTAINS
         IF (PRESENT(pl2ix)) THEN
             !
             IF (SIZE(pl2ix) < nx) &
-                !
-                CALL env_fft_error(sub_name, ' wrong dimension for arg no. 8 ', 1)
+                CALL env_errore(sub_name, 'Wrong dimension for arg no. 8', 1)
             !
             DO i = 1, nx
                 !
@@ -376,7 +375,7 @@ CONTAINS
             istat = cufftExecZ2Z(cufft_plan_x(ip), r_d(1, 1, 1), r_d(1, 1, 1), &
                                  CUFFT_FORWARD)
             !
-            IF (istat) PRINT *, "error in fftxy fftx istat = ", istat
+            IF (istat) PRINT *, 'error in fftxy fftx istat = ', istat
             !
             !$cuf kernel do(3) <<<*,(16,16,1), 0, stream>>>
             DO k = 1, nzl
@@ -396,7 +395,7 @@ CONTAINS
                 istat = cufftExecZ2Z(cufft_plan_y(1, ip), temp_d(1, 1, 1), &
                                      temp_d(1, 1, 1), CUFFT_FORWARD)
                 !
-                IF (istat) PRINT *, "error in fftxy ffty batch_1 istat = ", istat
+                IF (istat) PRINT *, 'error in fftxy ffty batch_1 istat = ', istat
                 !
             END IF
             !
@@ -406,7 +405,7 @@ CONTAINS
                                      temp_d(1, 1, nx - batch_2 + 1), &
                                      temp_d(1, 1, nx - batch_2 + 1), CUFFT_FORWARD)
                 !
-                IF (istat) PRINT *, "error in fftxy ffty batch_2 istat = ", istat
+                IF (istat) PRINT *, 'error in fftxy ffty batch_2 istat = ', istat
                 !
             END IF
             !
@@ -449,7 +448,7 @@ CONTAINS
                 istat = cufftExecZ2Z(cufft_plan_y(1, ip), temp_d(1, 1, 1), &
                                      temp_d(1, 1, 1), CUFFT_INVERSE)
                 !
-                IF (istat) PRINT *, "error in fftxy ffty batch_1 istat = ", istat
+                IF (istat) PRINT *, 'error in fftxy ffty batch_1 istat = ', istat
                 !
             END IF
             !
@@ -459,7 +458,7 @@ CONTAINS
                                      temp_d(1, 1, nx - batch_2 + 1), &
                                      temp_d(1, 1, nx - batch_2 + 1), CUFFT_INVERSE)
                 !
-                IF (istat) PRINT *, "error in fftxy ffty batch_2 istat = ", istat
+                IF (istat) PRINT *, 'error in fftxy ffty batch_2 istat = ', istat
                 !
             END IF
             !
@@ -479,7 +478,7 @@ CONTAINS
             istat = cufftExecZ2Z(cufft_plan_x(ip), r_d(1, 1, 1), r_d(1, 1, 1), &
                                  CUFFT_INVERSE)
             !
-            IF (istat) PRINT *, "error in fftxy fftx istat = ", istat
+            IF (istat) PRINT *, 'error in fftxy fftx istat = ', istat
 #endif
             !
         END IF
@@ -553,8 +552,8 @@ CONTAINS
                                   CUFFT_Z2Z, BATCH)
             !
 #if defined(__CUDA_DEBUG)
-            PRINT *, "INIT CUFFT ALL_XY PLAN: ", nx, "x", ny, "x", nzl, "ldx:", ldx, &
-                "batch:", batch_1, batch_2
+            PRINT *, 'INIT CUFFT ALL_XY PLAN: ', nx, 'x', ny, 'x', nzl, 'ldx:', ldx, &
+                'batch:', batch_1, batch_2
 #endif
             !
 #else
@@ -588,8 +587,8 @@ CONTAINS
                 istat = cufftDestroy(cufft_plan_y(2, icurrent))
             !
 #if defined(__CUDA_DEBUG)
-            PRINT *, "INIT CUFFT XY PLAN: ", nx, "x", ny, "x", nzl, "ldx:", ldx, &
-                "batch:", batch_1, batch_2
+            PRINT *, 'INIT CUFFT XY PLAN: ', nx, 'x', ny, 'x', nzl, 'ldx:', ldx, &
+                'batch:', batch_1, batch_2
 #endif
             !
             istat = cufftPlanMany(cufft_plan_x(icurrent), RANK, FFT_DIM_X, &
@@ -666,15 +665,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nx < 1) CALL env_fft_error(sub_name, ' nx is less than 1 ', 1)
+        IF (nx < 1) CALL env_errore(sub_name, ' nx is less than 1 ', 1)
         !
-        IF (ny < 1) CALL env_fft_error(sub_name, ' ny is less than 1 ', 1)
+        IF (ny < 1) CALL env_errore(sub_name, ' ny is less than 1 ', 1)
         !
-        IF (nz < 1) CALL env_fft_error(sub_name, ' nz is less than 1 ', 1)
+        IF (nz < 1) CALL env_errore(sub_name, ' nz is less than 1 ', 1)
         !
         IF (nx /= ldx .OR. ny /= ldy .OR. nz /= ldz) &
-            CALL env_fft_error(sub_name, &
-                               'leading dimensions must match data dimension', 1)
+            CALL env_errore(sub_name, 'Leading dimensions must match data dimension', 1)
         !
         !--------------------------------------------------------------------------------
         ! Here initialize table only if necessary

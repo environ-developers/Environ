@@ -599,6 +599,7 @@ CONTAINS
         ! Compute epsilon(r) and its derivative wrt boundary
         !
         SELECT CASE (dielectric%boundary%type_)
+            !
         CASE (0, 2)
             eps = 1.D0 + (const - 1.D0) * (1.D0 - scaled)
             deps = (1.D0 - const)
@@ -640,6 +641,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unkown boundary type', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------

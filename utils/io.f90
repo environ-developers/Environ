@@ -79,7 +79,7 @@ CONTAINS
             !
         END DO unit_loop
         !
-        CALL env_infomsg(fun_name, 'free unit not found ?!?')
+        CALL env_infomsg(fun_name, 'Free unit not found?!?')
         !
         RETURN
         !
@@ -111,7 +111,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (LEN(line) < 256) &
-            CALL env_errore(sub_name, ' input line too short ', MAX(LEN(line), 1))
+            CALL env_errore(sub_name, 'Input line too short', MAX(LEN(line), 1))
         !
         tend = .FALSE.
         terr = .FALSE.
@@ -153,13 +153,13 @@ CONTAINS
         IF (PRESENT(end_of_file)) THEN
             end_of_file = tend
         ELSE IF (tend) THEN
-            CALL env_infomsg(sub_name, ' end of file ')
+            CALL env_infomsg(sub_name, 'End of file')
         END IF
         !
         IF (PRESENT(error)) THEN
             error = terr
         ELSE IF (terr) THEN
-            CALL env_infomsg(sub_name, ' read error ')
+            CALL env_infomsg(sub_name, 'Read error')
         END IF
         !
         IF (PRESENT(field) .AND. .NOT. (tend .OR. terr)) &
@@ -254,8 +254,7 @@ CONTAINS
         !
         CALL env_field_count(nc, str)
         !
-        IF (nc < nf) &
-            CALL env_errore(sub_name, ' wrong number of fields: '//TRIM(var), 1)
+        IF (nc < nf) CALL env_errore(sub_name, 'Wrong number of fields: '//TRIM(var), 1)
         !
         RETURN
         !
@@ -538,55 +537,4 @@ SUBROUTINE env_invalid_opt(routine, param, input)
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_invalid_opt
-!----------------------------------------------------------------------------------------
-!>
-!! This is a simple routine which writes an error message to output
-!!
-!----------------------------------------------------------------------------------------
-SUBROUTINE env_fft_error(calling_routine, message, ierr)
-    !------------------------------------------------------------------------------------
-    !
-    USE env_utils_param, ONLY: MPI_COMM_WORLD
-    !
-    !------------------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    CHARACTER(LEN=*), INTENT(IN) :: calling_routine
-    ! the name of the calling calling_routine
-
-    CHARACTER(LEN=*), INTENT(IN) :: message ! the output message
-    INTEGER, INTENT(IN) :: ierr
-    !
-    CHARACTER(LEN=6) :: cerr
-    INTEGER :: info
-    !
-    !------------------------------------------------------------------------------------
-    !
-    IF (ierr <= 0) RETURN
-    !
-    !------------------------------------------------------------------------------------
-    ! The error message is written un the "*" unit
-    !
-    WRITE (cerr, FMT='(I6)') ierr
-    WRITE (UNIT=*, FMT='(/,1X,78("%"))')
-    !
-    WRITE (UNIT=*, FMT='(5X,"Error in routine ",A," (",A,"):")') &
-        TRIM(calling_routine), TRIM(ADJUSTL(cerr))
-    !
-    WRITE (UNIT=*, FMT='(5X,A)') TRIM(message)
-    WRITE (UNIT=*, FMT='(1X,78("%"),/)')
-    !
-    WRITE (*, '("     stopping ...")')
-    !
-#if defined(__MPI)
-    CALL mpi_abort(MPI_COMM_WORLD, ierr, info)
-#endif
-    !
-    STOP 1
-    !
-    RETURN
-    !
-    !------------------------------------------------------------------------------------
-END SUBROUTINE env_fft_error
 !----------------------------------------------------------------------------------------

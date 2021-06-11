@@ -406,7 +406,7 @@ CONTAINS
                 END DO
                 !
             ELSE
-                CALL env_errore(sub_name, 'boundary must be field-aware', 1)
+                CALL env_errore(sub_name, 'Boundary must be field-aware', 1)
             END IF
             !
         END IF
@@ -620,6 +620,7 @@ CONTAINS
         END IF
         !
         SELECT CASE (bound%mode)
+            !
         CASE ('full')
             !
             IF (bound%ions%update) THEN
@@ -789,6 +790,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unrecognized boundary mode', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -889,7 +891,7 @@ CONTAINS
                     !
                     IF (boundary%field_aware .AND. boundary%mode == 'fa-ionic') THEN
                         !
-                        CALL env_errore(sub_name, 'field-awarenot yet implimented ', 1)
+                        CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
                         !
                         DEALLOCATE (boundary%ion_field)
                         DEALLOCATE (boundary%partial_of_ion_field)

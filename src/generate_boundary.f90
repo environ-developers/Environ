@@ -330,10 +330,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         SELECT CASE (ifunct)
+            !
         CASE (0)
             boundfunct = 1.D0 - sfunct0(rho, rhomax, tbeta)
+            !
         CASE (1)
             boundfunct = 1.D0 - sfunct1(rho, rhomax, rhomin, tbeta)
+            !
         CASE (2)
             !
             boundfunct = &
@@ -342,6 +345,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(fun_name, 'Unknown boundary type', 1)
+            !
         END SELECT
         !
         RETURN
@@ -385,10 +389,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         SELECT CASE (ifunct)
+            !
         CASE (0)
             dboundfunct = -dsfunct0(rho, rhomax, tbeta)
+            !
         CASE (1)
             dboundfunct = -dsfunct1(rho, rhomax, rhomin, tbeta)
+            !
         CASE (2)
             !
             dboundfunct = -EXP(LOG(const) * sfunct1(rho, rhomax, rhomin, tbeta)) / &
@@ -397,6 +404,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(fun_name, 'Unknown boundary type', 1)
+            !
         END SELECT
         !
         RETURN
@@ -440,10 +448,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         SELECT CASE (ifunct)
+            !
         CASE (0)
             CALL env_errore(fun_name, 'Option not yet implemented', 1)
+            !
         CASE (1)
             d2boundfunct = -d2sfunct1(rho, rhomax, rhomin, tbeta)
+            !
         CASE (2)
             !
             d2boundfunct = -EXP(LOG(const) * sfunct1(rho, rhomax, rhomin, tbeta)) / &
@@ -453,6 +464,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(fun_name, 'Unknown boundary type', 1)
+            !
         END SELECT
         !
         RETURN
@@ -551,6 +563,7 @@ CONTAINS
         END IF
         !
         SELECT CASE (boundary%core%type_)
+            !
         CASE ('fft')
             !
             IF (deriv == 1 .OR. deriv == 2) &
@@ -798,6 +811,7 @@ CONTAINS
         END IF
         !
         SELECT CASE (boundary%core%type_)
+            !
         CASE ('fft')
             !
             IF (deriv == 1 .OR. deriv == 2) &
@@ -1486,7 +1500,7 @@ CONTAINS
             spurious_force = integrate_environ_density(partial%modulus)
             !
             IF (spurious_force > tolspuriousforce .AND. ionode) &
-                WRITE (program_unit, 4001) index, spurious_force
+                WRITE (program_unit, 4001) index, spurious_force ! #TODO use env_warning?
             !
 4001        FORMAT(1X, 'WARNING: Unphysical forces due to core electrons are non-negligible ' &
                    /, 1X, 'atom type ', I3, ' is subject to a spurious force of ', F12.6, ' ')
@@ -1498,7 +1512,6 @@ CONTAINS
             ! A CHECK ON ATOMS THAT BELONG TO THE SYSTEM
             !
             partial%of_r = 0.D0
-            !
         END IF
         !
         RETURN
@@ -1567,13 +1580,13 @@ CONTAINS
         END IF
         !
         SELECT CASE (boundary%core%type_)
+            !
         CASE ('fft')
             !
             IF (deriv == 1 .OR. deriv == 2) &
                 CALL gradient_fft(fft, boundary%scaled, boundary%gradient)
             !
-            IF (deriv == 2) &
-                CALL laplacian_fft(fft, boundary%scaled, boundary%laplacian)
+            IF (deriv == 2) CALL laplacian_fft(fft, boundary%scaled, boundary%laplacian)
             !
             IF (deriv == 3) &
                 CALL dsurface_fft(fft, boundary%scaled, boundary%gradient, &
@@ -1581,8 +1594,7 @@ CONTAINS
             !
         CASE ('chain')
             !
-            IF (deriv >= 1) &
-                CALL gradient_of_functions(simple, boundary%gradient, .TRUE.)
+            IF (deriv >= 1) CALL gradient_of_functions(simple, boundary%gradient, .TRUE.)
             !
             IF (deriv >= 2) &
                 CALL laplacian_of_functions(simple, boundary%laplacian, .TRUE.)
@@ -1746,6 +1758,7 @@ CONTAINS
         ! Step 5: compute boundary derivatives, if needed
         !
         SELECT CASE (boundary%core%type_)
+            !
         CASE ('fft')
             !
             IF (deriv == 1 .OR. deriv == 2) &

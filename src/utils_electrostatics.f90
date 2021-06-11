@@ -160,8 +160,10 @@ CONTAINS
         IF (PRESENT(auxiliary)) solver%auxiliary = auxiliary
         !
         SELECT CASE (TRIM(ADJUSTL(solver%type_)))
+            !
         CASE ('direct')
             solver%use_direct = .TRUE.
+            !
         CASE ('cg', 'sd', 'gradient')
             !
             IF (.NOT. PRESENT(gradient)) &
@@ -169,6 +171,7 @@ CONTAINS
             !
             solver%use_gradient = .TRUE.
             solver%gradient => gradient
+            !
         CASE ('iterative')
             !
             IF (.NOT. PRESENT(iterative)) &
@@ -176,6 +179,7 @@ CONTAINS
             !
             solver%use_iterative = .TRUE.
             solver%iterative => iterative
+            !
         CASE ('newton')
             !
             IF (.NOT. PRESENT(newton)) &
@@ -183,6 +187,7 @@ CONTAINS
             !
             solver%use_newton = .TRUE.
             solver%newton => newton
+            !
         CASE DEFAULT
             !
             CALL env_errore(sub_name, &
@@ -306,7 +311,9 @@ CONTAINS
         setup%problem = problem
         !
         SELECT CASE (TRIM(ADJUSTL(setup%problem)))
+            !
         CASE ('poisson')
+            !
         CASE ('generalized', 'gpe')
             !
             IF (solver%use_direct) &
@@ -325,13 +332,13 @@ CONTAINS
                 !
                 IF (core%correction%type_ /= '1da') &
                     CALL env_errore(sub_name, &
-                                    'linearized-PB problem requires &
+                                    'Linearized-PB problem requires &
                                     &parabolic pbc correction.', 1)
                 !
             ELSE
                 !
                 CALL env_errore(sub_name, &
-                                'linearized-PB problem requires &
+                                'Linearized-PB problem requires &
                                 &parabolic pbc correction.', 1)
                 !
             END IF
@@ -347,18 +354,19 @@ CONTAINS
                 !
                 IF (core%correction%type_ /= '1da') &
                     CALL env_errore(sub_name, &
-                                    'full-PB problem requires &
+                                    'Full-PB problem requires &
                                     &parabolic pbc correction.', 1)
                 !
             ELSE
                 !
                 CALL env_errore(sub_name, &
-                                'full-PB problem requires parabolic pbc correction.', 1)
+                                'Full-PB problem requires parabolic pbc correction.', 1)
                 !
             END IF
             !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unexpected keyword for electrostatic problem', 1)
+            !
         END SELECT
         !
         setup%solver => solver
@@ -433,15 +441,19 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         SELECT CASE (setup%problem)
+            !
         CASE ('generalized', 'linpb', 'linmodpb', 'pb', 'modpb')
             !
             IF (setup%solver%use_gradient) THEN
                 !
                 SELECT CASE (setup%solver%gradient%preconditioner)
+                    !
                 CASE ('sqrt')
                     need_factsqrt = .TRUE.
+                    !
                 CASE ('left', 'none')
                     need_gradient = .TRUE.
+                    !
                 END SELECT
                 !
             END IF

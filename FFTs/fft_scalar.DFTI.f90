@@ -97,7 +97,7 @@ CONTAINS
         INTEGER, SAVE :: icurrent = 1
         LOGICAL :: found
         !
-        TYPE(env_dfti_descriptor_array), SAVE :: hand(ndims) 
+        TYPE(env_dfti_descriptor_array), SAVE :: hand(ndims)
         ! Intel MKL native FFT driver
         !
         LOGICAL, SAVE :: dfti_first = .TRUE.
@@ -127,7 +127,7 @@ CONTAINS
         !
         IF (nsl <= 0) THEN
             !
-            IF (nsl < 0) CALL env_fft_error(sub_name, " nsl out of range ", nsl)
+            IF (nsl < 0) CALL env_errore(sub_name, 'nsl out of range', nsl)
             !
             RETURN
             !
@@ -158,9 +158,9 @@ CONTAINS
             !
             IF (dfti_status /= 0) &
                 !
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DftiComputeForward '// &
-                                   DftiErrorMessage(dfti_status), dfti_status)
+                CALL env_errore(sub_name, &
+                                'Stopped in DftiComputeForward '// &
+                                DftiErrorMessage(dfti_status), dfti_status)
             !
         ELSE IF (isign > 0) THEN
             !
@@ -171,9 +171,9 @@ CONTAINS
             END IF
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DftiComputeBackward '// &
-                                   DftiErrorMessage(dfti_status), dfti_status)
+                CALL env_errore(sub_name, &
+                                'Stopped in DftiComputeBackward '// &
+                                DftiErrorMessage(dfti_status), dfti_status)
             !
         END IF
         !
@@ -230,7 +230,7 @@ CONTAINS
                 dfti_status = DftiFreeDescriptor(hand(icurrent)%desc)
                 !
                 IF (dfti_status /= 0) THEN
-                    WRITE (*, *) "stopped in DftiFreeDescriptor", dfti_status
+                    WRITE (*, *) 'Stopped in DftiFreeDescriptor', dfti_status
                     !
                     STOP
                     !
@@ -242,21 +242,19 @@ CONTAINS
                                                DFTI_COMPLEX, 1, nz)
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DftiCreateDescriptor ', dfti_status)
+                CALL env_errore(sub_name, 'Stopped in DftiCreateDescriptor', dfti_status)
             !
             dfti_status = DftiSetValue(hand(icurrent)%desc, &
                                        DFTI_NUMBER_OF_TRANSFORMS, nsl)
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DFTI_NUMBER_OF_TRANSFORMS ', dfti_status)
+                CALL env_errore(sub_name, &
+                                'Stopped in DFTI_NUMBER_OF_TRANSFORMS', dfti_status)
             !
             dfti_status = DftiSetValue(hand(icurrent)%desc, DFTI_INPUT_DISTANCE, ldz)
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DFTI_INPUT_DISTANCE ', dfti_status)
+                CALL env_errore(sub_name, 'Stopped in DFTI_INPUT_DISTANCE', dfti_status)
             !
             IF (is_inplace) THEN
                 !
@@ -271,33 +269,28 @@ CONTAINS
             END IF
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DFTI_PLACEMENT ', dfti_status)
+                CALL env_errore(sub_name, 'Stopped in DFTI_PLACEMENT', dfti_status)
             !
             dfti_status = DftiSetValue(hand(icurrent)%desc, DFTI_OUTPUT_DISTANCE, ldz)
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DFTI_OUTPUT_DISTANCE ', dfti_status)
+                CALL env_errore(sub_name, 'Stopped in DFTI_OUTPUT_DISTANCE', dfti_status)
             !
             tscale = 1.0_DP / nz
             dfti_status = DftiSetValue(hand(icurrent)%desc, DFTI_FORWARD_SCALE, tscale)
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DFTI_FORWARD_SCALE ', dfti_status)
+                CALL env_errore(sub_name, 'Stopped in DFTI_FORWARD_SCALE', dfti_status)
             !
             dfti_status = DftiSetValue(hand(icurrent)%desc, DFTI_BACKWARD_SCALE, DBLE(1))
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DFTI_BACKWARD_SCALE ', dfti_status)
+                CALL env_errore(sub_name, 'Stopped in DFTI_BACKWARD_SCALE', dfti_status)
             !
             dfti_status = DftiCommitDescriptor(hand(icurrent)%desc)
             !
             IF (dfti_status /= 0) &
-                CALL env_fft_error(sub_name, &
-                                   ' stopped in DftiCommitDescriptor ', dfti_status)
+                CALL env_errore(sub_name, 'Stopped in DftiCommitDescriptor', dfti_status)
             !
             zdims(1, icurrent) = nz
             zdims(2, icurrent) = nsl
@@ -354,7 +347,7 @@ CONTAINS
         IF (PRESENT(pl2ix)) THEN
             !
             IF (SIZE(pl2ix) < nx) &
-                CALL env_fft_error(sub_name, ' wrong dimension for arg no. 8 ', 1)
+                CALL env_errore(sub_name, 'Wrong dimension for arg no. 8', 1)
             !
             DO i = 1, nx
                 IF (pl2ix(i) < 1) dofft(i) = .FALSE.
@@ -381,7 +374,7 @@ CONTAINS
             dfti_status = DftiComputeForward(hand(ip)%desc, r(:))
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DftiComputeForward", dfti_status
+                WRITE (*, *) 'Stopped in DftiComputeForward', dfti_status
                 !
                 STOP
                 !
@@ -391,7 +384,7 @@ CONTAINS
             dfti_status = DftiComputeBackward(hand(ip)%desc, r(:))
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DftiComputeBackward", dfti_status
+                WRITE (*, *) 'Stopped in DftiComputeBackward', dfti_status
                 !
                 STOP
                 !
@@ -446,7 +439,7 @@ CONTAINS
                 dfti_status = DftiFreeDescriptor(hand(icurrent)%desc)
                 !
                 IF (dfti_status /= 0) THEN
-                    WRITE (*, *) "stopped in DftiFreeDescriptor", dfti_status
+                    WRITE (*, *) 'Stopped in DftiFreeDescriptor', dfti_status
                     !
                     STOP
                     !
@@ -458,7 +451,7 @@ CONTAINS
                                                DFTI_COMPLEX, 2, (/nx, ny/))
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DftiCreateDescriptor", dfti_status
+                WRITE (*, *) 'Stopped in DftiCreateDescriptor', dfti_status
                 !
                 STOP
                 !
@@ -468,7 +461,7 @@ CONTAINS
                                        DFTI_NUMBER_OF_TRANSFORMS, nzl)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DFTI_NUMBER_OF_TRANSFORMS", dfti_status
+                WRITE (*, *) 'Stopped in DFTI_NUMBER_OF_TRANSFORMS', dfti_status
                 !
                 STOP
                 !
@@ -478,7 +471,7 @@ CONTAINS
                                        DFTI_INPUT_DISTANCE, ldx * ldy)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DFTI_INPUT_DISTANCE", dfti_status
+                WRITE (*, *) 'Stopped in DFTI_INPUT_DISTANCE', dfti_status
                 !
                 STOP
                 !
@@ -488,7 +481,7 @@ CONTAINS
                                        DFTI_INPLACE)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DFTI_PLACEMENT", dfti_status
+                WRITE (*, *) 'Stopped in DFTI_PLACEMENT', dfti_status
                 !
                 STOP
                 !
@@ -499,7 +492,7 @@ CONTAINS
                                        DFTI_FORWARD_SCALE, tscale)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DFTI_FORWARD_SCALE", dfti_status
+                WRITE (*, *) 'Stopped in DFTI_FORWARD_SCALE', dfti_status
                 !
                 STOP
                 !
@@ -509,7 +502,7 @@ CONTAINS
                                        DFTI_BACKWARD_SCALE, DBLE(1))
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DFTI_BACKWARD_SCALE", dfti_status
+                WRITE (*, *) 'Stopped in DFTI_BACKWARD_SCALE', dfti_status
                 !
                 STOP
                 !
@@ -518,7 +511,7 @@ CONTAINS
             dfti_status = DftiCommitDescriptor(hand(icurrent)%desc)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in DftiCommitDescriptor", dfti_status
+                WRITE (*, *) 'Stopped in DftiCommitDescriptor', dfti_status
                 !
                 STOP
                 !
@@ -576,13 +569,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nx < 1) CALL env_fft_error(sub_name, ' nx is less than 1 ', 1)
+        IF (nx < 1) CALL env_errore(sub_name, 'nx is less than 1', 1)
         !
-        IF (ny < 1) CALL env_fft_error(sub_name, ' ny is less than 1 ', 1)
+        IF (ny < 1) CALL env_errore(sub_name, 'ny is less than 1', 1)
         !
-        IF (nz < 1) CALL env_fft_error(sub_name, ' nz is less than 1 ', 1)
+        IF (nz < 1) CALL env_errore(sub_name, 'nz is less than 1', 1)
         !
-        IF (howmany < 1) CALL env_fft_error(sub_name, ' howmany is less than 1 ', 1)
+        IF (howmany < 1) CALL env_errore(sub_name, 'howmany is less than 1', 1)
         !
         !--------------------------------------------------------------------------------
         ! Here initialize table only if necessary
@@ -599,7 +592,7 @@ CONTAINS
             dfti_status = DftiComputeForward(hand(ip)%desc, f(1:))
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in env_cfft3d, DftiComputeForward", dfti_status
+                WRITE (*, *) 'Stopped in env_cfft3d, DftiComputeForward', dfti_status
                 !
                 STOP
                 !
@@ -609,7 +602,7 @@ CONTAINS
             dfti_status = DftiComputeBackward(hand(ip)%desc, f(1:))
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in env_cfft3d, DftiComputeBackward", dfti_status
+                WRITE (*, *) 'Stopped in env_cfft3d, DftiComputeBackward', dfti_status
                 !
                 STOP
                 !
@@ -668,7 +661,7 @@ CONTAINS
                 dfti_status = DftiFreeDescriptor(hand(icurrent)%desc)
                 !
                 IF (dfti_status /= 0) THEN
-                    WRITE (*, *) "stopped in env_cfft3d, DftiFreeDescriptor", dfti_status
+                    WRITE (*, *) 'Stopped in env_cfft3d, DftiFreeDescriptor', dfti_status
                     !
                     STOP
                     !
@@ -680,7 +673,7 @@ CONTAINS
                                                DFTI_COMPLEX, 3, (/nx, ny, nz/))
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in env_cfft3d, DftiCreateDescriptor", dfti_status
+                WRITE (*, *) 'Stopped in env_cfft3d, DftiCreateDescriptor', dfti_status
                 !
                 STOP
                 !
@@ -691,7 +684,7 @@ CONTAINS
             !
             IF (dfti_status /= 0) THEN
                 !
-                WRITE (*, *) "stopped in env_cfft3d, DFTI_NUMBER_OF_TRANSFORMS", &
+                WRITE (*, *) 'Stopped in env_cfft3d, DFTI_NUMBER_OF_TRANSFORMS', &
                     dfti_status
                 !
                 STOP
@@ -702,7 +695,7 @@ CONTAINS
                                        DFTI_INPUT_DISTANCE, ldx * ldy * ldz)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in cfft3dm, DFTI_INPUT_DISTANCE", dfti_status
+                WRITE (*, *) 'Stopped in cfft3dm, DFTI_INPUT_DISTANCE', dfti_status
                 !
                 STOP
                 !
@@ -712,7 +705,7 @@ CONTAINS
                                        DFTI_PLACEMENT, DFTI_INPLACE)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in env_cfft3d, DFTI_PLACEMENT", dfti_status
+                WRITE (*, *) 'Stopped in env_cfft3d, DFTI_PLACEMENT', dfti_status
                 !
                 STOP
                 !
@@ -723,7 +716,7 @@ CONTAINS
                                        DFTI_FORWARD_SCALE, tscale)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in env_cfft3d, DFTI_FORWARD_SCALE", dfti_status
+                WRITE (*, *) 'Stopped in env_cfft3d, DFTI_FORWARD_SCALE', dfti_status
                 !
                 STOP
                 !
@@ -734,7 +727,7 @@ CONTAINS
                                        DFTI_BACKWARD_SCALE, tscale)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in env_cfft3d, DFTI_BACKWARD_SCALE", dfti_status
+                WRITE (*, *) 'Stopped in env_cfft3d, DFTI_BACKWARD_SCALE', dfti_status
                 !
                 STOP
                 !
@@ -743,7 +736,7 @@ CONTAINS
             dfti_status = DftiCommitDescriptor(hand(icurrent)%desc)
             !
             IF (dfti_status /= 0) THEN
-                WRITE (*, *) "stopped in env_cfft3d, DftiCreateDescriptor", dfti_status
+                WRITE (*, *) 'Stopped in env_cfft3d, DftiCreateDescriptor', dfti_status
                 !
                 STOP
                 !

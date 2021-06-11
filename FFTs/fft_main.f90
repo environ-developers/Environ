@@ -116,8 +116,8 @@ CONTAINS
             !
             IF (howmany_ /= 1) THEN
                 !
-                CALL env_fft_error(sub_name, &
-                                   'howmany not yet implemented for parallel driver', 1)
+                CALL env_errore(sub_name, &
+                                'howmany not yet implemented for parallel driver', 1)
                 !
             END IF
             !
@@ -179,8 +179,8 @@ CONTAINS
         ELSE IF (dfft%lpara) THEN
             !
             IF (howmany_ /= 1) THEN
-                CALL env_fft_error(sub_name, &
-                                   'howmany not yet implemented for parallel driver', 1)
+                CALL env_errore(sub_name, &
+                                'howmany not yet implemented for parallel driver', 1)
             END IF
             !
             CALL env_tg_cft3s_2d(f, dfft, -1)
@@ -243,9 +243,8 @@ CONTAINS
             !
             IF (stream_ /= 0) THEN
                 !
-                CALL env_fft_error(sub_name, &
-                                  'stream support not implemented &
-                                  &for parallel driver', 1)
+                CALL env_errore(sub_name, &
+                                'Stream support not implemented for parallel driver', 1)
                 !
             END IF
             !
@@ -321,9 +320,8 @@ CONTAINS
             !
             IF (stream_ /= 0) THEN
                 !
-                CALL env_fft_error(sub_name, &
-                                  'stream support not implemented &
-                                  &for parallel driver', 1)
+                CALL env_errore(sub_name, &
+                                'Stream support not implemented for parallel driver', 1)
                 !
             END IF
             !

@@ -118,8 +118,10 @@ CONTAINS
         dr(:) = r1(:) - r2(:)
         !
         SELECT CASE (dim)
+            !
         CASE (1)
             dr(axis) = 0.D0
+            !
         CASE (2)
             !
             DO i = 1, 3
@@ -244,12 +246,12 @@ CONTAINS
         !
         IF (omega < 0.0_DP) THEN
             !
-            CALL env_infomsg(sub_name, 'axis vectors are left-handed')
+            CALL env_infomsg(sub_name, 'Axis vectors are left-handed')
             !
             omega = ABS(omega)
         END IF
         !
-        IF (alat < 1.0_DP) CALL env_infomsg(sub_name, 'strange lattice parameter')
+        IF (alat < 1.0_DP) CALL env_infomsg(sub_name, 'Strange lattice parameter')
         !
         omega = omega * alat**3
         !

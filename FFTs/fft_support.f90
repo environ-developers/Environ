@@ -111,8 +111,7 @@ CONTAINS
         !
         IF (PRESENT(np)) THEN
             !
-            IF (np <= 0 .OR. np > nr) &
-                CALL env_fft_error(fun_name, ' invalid np ', 1)
+            IF (np <= 0 .OR. np > nr) CALL env_errore(fun_name, 'Invalid np', 1)
             !
             DO WHILE (((.NOT. env_allowed(new)) .OR. (MOD(new, np) /= 0)) .AND. &
                       (new <= nfftx))
@@ -127,8 +126,7 @@ CONTAINS
             !
         END IF
         !
-        IF (new > nfftx) &
-            CALL env_fft_error(fun_name, ' fft order too large ', new)
+        IF (new > nfftx) CALL env_errore(fun_name, 'FFT order too large', new)
         !
         env_good_fft_order = new
         !
@@ -178,7 +176,7 @@ CONTAINS
         END DO factors_loop
         !
         IF (nr /= (mr * 2**pwr(1) * 3**pwr(2) * 5**pwr(3) * 7**pwr(4) * 11**pwr(5))) &
-            CALL env_fft_error(fun_name, ' what ?!? ', 1)
+            CALL env_errore(fun_name, 'WHAT?!?', 1)
         !
         IF (mr /= 1) THEN
             !

@@ -160,10 +160,13 @@ CONTAINS
         ! TDDFPT flag
         !
         SELECT CASE (prog(1:2))
+            !
         CASE ('TD')
             ltddfpt = .TRUE.
+            !
         CASE DEFAULT
             ltddfpt = .FALSE.
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -933,8 +936,7 @@ CONTAINS
                 !
                 CALL update_environ_electrolyte(electrolyte)
                 !
-                IF (.NOT. electrolyte%update) &
-                    CALL print_environ_electrolyte(electrolyte)
+                IF (.NOT. electrolyte%update) CALL print_environ_electrolyte(electrolyte)
                 !
             END IF
             !

@@ -75,10 +75,7 @@ CONTAINS
             auxlarge = 0.D0
             !
             DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) &
-                    auxlarge(mapping%map(ir)) = fsmall(ir)
-                !
+                IF (mapping%map(ir) > 0) auxlarge(mapping%map(ir)) = fsmall(ir)
             END DO
             !
 #if defined(__MPI)
@@ -138,10 +135,7 @@ CONTAINS
             auxlarge = 0.D0
             !
             DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) &
-                    auxlarge(mapping%map(ir)) = fsmall%of_r(ir)
-                !
+                IF (mapping%map(ir) > 0) auxlarge(mapping%map(ir)) = fsmall%of_r(ir)
             END DO
             !
 #if defined(__MPI)
@@ -211,10 +205,7 @@ CONTAINS
             fsmall = 0.D0
             !
             DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) &
-                    fsmall(ir) = auxlarge(mapping%map(ir))
-                !
+                IF (mapping%map(ir) > 0) fsmall(ir) = auxlarge(mapping%map(ir))
             END DO
             !
             DEALLOCATE (auxlarge)
@@ -276,10 +267,7 @@ CONTAINS
             fsmall%of_r = 0.D0
             !
             DO ir = 1, mapping%small%ir_end
-                !
-                IF (mapping%map(ir) > 0) &
-                    fsmall%of_r(ir) = auxlarge(mapping%map(ir))
-                !
+                IF (mapping%map(ir) > 0) fsmall%of_r(ir) = auxlarge(mapping%map(ir))
             END DO
             !
             DEALLOCATE (auxlarge)

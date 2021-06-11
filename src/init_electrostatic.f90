@@ -95,6 +95,7 @@ CONTAINS
         CALL create_core_container(reference_core)
         !
         SELECT CASE (prog)
+            !
         CASE ('PW', 'CP', 'TD', 'XS')
             lfft_system = .TRUE.
             local_type = "fft"
@@ -103,6 +104,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unexpected name of host code', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -116,29 +118,34 @@ CONTAINS
         CALL create_core_container(pbc_core)
         !
         !--------------------------------------------------------------------------------
-        ! First check keywords specfied in input
+        ! First check keywords specified in input
         !
         IF (pbc_dim_ >= 0) THEN
             pbc_dim = pbc_dim_
             pbc_axis = pbc_axis_
             !
             SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
+                !
             CASE ('none')
                 need_pbc_correction = .FALSE.
+                !
             CASE ('parabolic')
                 need_pbc_correction = .TRUE.
                 loned_analytic = .TRUE.
                 local_type = '1da'
+                !
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 need_pbc_correction = .TRUE.
                 need_electrolyte = .TRUE.
                 loned_analytic = .TRUE.
                 local_type = 'gcs'
+                !
             CASE ('ms', 'mott-schottky')
                 need_pbc_correction = .TRUE.
                 need_semiconductor = .TRUE.
                 loned_analytic = .TRUE.
                 local_type = 'ms'
+                !
             CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
                 need_pbc_correction = .TRUE.
                 need_semiconductor = .TRUE.
@@ -146,8 +153,10 @@ CONTAINS
                 need_electrolyte = .TRUE.
                 loned_analytic = .TRUE.
                 local_type = 'ms-gcs'
+                !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                !
             END SELECT
             !
         ELSE
@@ -172,6 +181,7 @@ CONTAINS
         IF (lnested) CALL create_core_container(inner_core)
         !
         SELECT CASE (core_type)
+            !
         CASE ('fft')
             lfft_environment = .TRUE.
             !
@@ -219,6 +229,7 @@ CONTAINS
         CALL create_electrostatic_solver(reference_solver)
         !
         SELECT CASE (prog)
+            !
         CASE ('PW', 'CP', 'TD', 'XS')
             local_type = "direct"
             !
@@ -226,6 +237,7 @@ CONTAINS
             !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unexpected name of host code', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -234,8 +246,10 @@ CONTAINS
         CALL create_electrostatic_solver(outer_solver)
         !
         SELECT CASE (solver_type)
+            !
         CASE ('direct')
             CALL init_electrostatic_solver(type_=solver_type, solver=outer_solver)
+            !
         CASE ('cg', 'sd')
             lgradient = .TRUE.
             !
@@ -287,12 +301,14 @@ CONTAINS
             CALL create_electrostatic_solver(inner_solver)
             !
             SELECT CASE (solver_type)
+                !
             CASE ('iterative')
                 !
                 IF (auxiliary == 'ioncc') THEN
                     inner_problem = 'generalized'
                     !
                     SELECT CASE (inner_solver_type)
+                        !
                     CASE ('cg', 'sd')
                         lgradient = .TRUE.
                         !
@@ -350,10 +366,13 @@ CONTAINS
         CALL create_electrostatic_setup(reference)
         !
         SELECT CASE (prog)
+            !
         CASE ('PW', 'CP', 'TD', 'XS')
             local_problem = "poisson"
+            !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unexpected name of host code', 1)
+            !
         END SELECT
         !
         CALL init_electrostatic_setup(local_problem, reference_solver, reference_core, &

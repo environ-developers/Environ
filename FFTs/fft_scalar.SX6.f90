@@ -91,7 +91,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nsl < 0) CALL env_fft_error(sub_name, " nsl out of range ", nsl)
+        IF (nsl < 0) CALL env_errore(sub_name, 'nsl out of range', nsl)
         !
         !--------------------------------------------------------------------------------
         ! Here initialize table only if necessary
@@ -214,7 +214,7 @@ CONTAINS
         IF (PRESENT(pl2ix)) THEN
             !
             IF (SIZE(pl2ix) < nx) &
-                CALL env_fft_error(sub_name, ' wrong dimension for arg no. 8 ', 1)
+                CALL env_errore(sub_name, 'Wrong dimension for arg no. 8', 1)
             !
             DO i = 1, nx
                 IF (pl2ix(i) < 1) dofft(i) = .FALSE.
@@ -414,15 +414,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nx < 1) CALL env_fft_error(sub_name, ' nx is less than 1 ', 1)
+        IF (nx < 1) CALL env_errore(sub_name, 'nx is less than 1', 1)
         !
-        IF (ny < 1) CALL env_fft_error(sub_name, ' ny is less than 1 ', 1)
+        IF (ny < 1) CALL env_errore(sub_name, 'ny is less than 1', 1)
         !
-        IF (nz < 1) CALL env_fft_error(sub_name, ' nz is less than 1 ', 1)
+        IF (nz < 1) CALL env_errore(sub_name, 'nz is less than 1', 1)
         !
         IF (howmany /= 1) &
-            CALL env_fft_error(sub_name, &
-                               'homany different from 1 not yet implemented for SX6', 1)
+            CALL env_errore(sub_name, &
+                            'homany different from 1 not yet implemented for SX6', 1)
         !
 #if defined(ASL)
         ALLOCATE (cw2(ldx * ldy * ldz))
@@ -493,7 +493,7 @@ CONTAINS
         !$omp end parallel do
 #endif
         !
-        IF (err /= 0) CALL env_fft_error(sub_name, 'FFT returned an error ', err)
+        IF (err /= 0) CALL env_errore(sub_name, 'FFT returned an error', err)
         !
         DEALLOCATE (cw2)
         !
@@ -551,8 +551,7 @@ CONTAINS
                          auxp(1, icurrent), cw2(1), err)
 #endif
             !
-            IF (err /= 0) &
-                CALL env_fft_error(sub_name, 'FFT init returned an error ', err)
+            IF (err /= 0) CALL env_errore(sub_name, 'FFT init returned an error', err)
             !
             dims(1, icurrent) = nx
             dims(2, icurrent) = ny

@@ -100,15 +100,15 @@ CONTAINS
             !
             ALLOCATE (dev_space_fftparallel(current_size), STAT=info)
             !
-            IF (info /= 0) CALL env_fft_error(sub_name, ' Allocation failed ', 1)
+            IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 1)
             !
             ALLOCATE (pin_space_scatter_in(current_size), STAT=info)
             !
-            IF (info /= 0) CALL env_fft_error(sub_name, ' Allocation failed ', 2)
+            IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 2)
             !
             ALLOCATE (pin_space_scatter_out(current_size), STAT=info)
             !
-            IF (info /= 0) CALL env_fft_error(sub_name, ' Allocation failed ', 3)
+            IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 3)
             !
             !----------------------------------------------------------------------------
             ! Slab decomposition implements double buffering
@@ -123,13 +123,11 @@ CONTAINS
                 !
                 ALLOCATE (dev_space_scatter_dblbuffer(current_size), STAT=info)
                 !
-                IF (info /= 0) &
-                    CALL env_fft_error(sub_name, ' Allocation failed ', 4)
+                IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 4)
                 !
                 ALLOCATE (pin_space_scatter_dblbuffer(current_size), STAT=info)
                 !
-                IF (info /= 0) &
-                    CALL env_fft_error(sub_name, ' Allocation failed ', 5)
+                IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 5)
                 !
             END IF
             !

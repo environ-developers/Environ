@@ -1,13 +1,15 @@
-# Style Guide
+<font size="7">STYLE GUIDE</font>
 
-# keywords
+<br>
+
+# Keywords
 
 - uppercase all Fortran built-in keywords
 
-# indentation
+# Indentation
 
 - 4 spaces
-- if/do blocks
+- blocks
 
 ```
 IF (condition) THEN
@@ -15,21 +17,6 @@ IF (condition) THEN
 ELSE IF
     code
 END IF
-
-DO x = 1, 10
-    code
-END DO
-```
-
-- select blocks
-
-```
-SELECT CASE (x)
-CASE (1)
-    code
-CASE (2)
-    code
-END SELECT
 ```
 
 - wrapped lines
@@ -43,8 +30,8 @@ IF (condition) &
 
 - return/exit/stop
 - implicit none
-- do/select/if/etc. blocks (including nested blocks)
 - single if-statements, except when only line in a block
+- do/select/if/etc. blocks (including nested blocks)
 
 ```
 !
@@ -60,16 +47,33 @@ end block
 !
 ```
 
+- for select blocks, group case (with code) in separate blocks
+
+```
+SELECT CASE (x)
+    !
+CASE (1)
+    code
+    !
+CASE (2)
+    code
+    !
+END SELECT
+```
+
 - wrapped lines (when using & continuation)
 - for clarity (attach comment)
 - between IN, OUT/INOUT, and local-variable blocks in subroutines
 
 ```
 !
-........(IN)
-........(IN)
+........INTENT(IN)
+........INTENT(IN)
+........INTENT(IN), OPTIONAL
 !
-........(OUT)
+........INTENT(INOUT)
+........INTENT(OUT)
+........INTENT(OUT), OPTIONAL
 !
 local vars
 !
@@ -89,18 +93,20 @@ end block
 !
 ```
 
-# comments
+<br>
 
-## attached to single-line code (lowercase)
+# COMMENTS
 
-- <= col 90 (including comment):
+# Attached to single-line code (lowercase)
+
+- < col 90 (including comment):
   - on the same line, separated by a single blank space from code
 
 ```
 code ! comment...
 ```
 
-- col 91+:
+- \>= col 90:
   - directly below code (\*above code if line is continued across multiple lines)
 
 ```
@@ -112,7 +118,7 @@ code...... &
     ......
 ```
 
-## section comments (sentence-case)
+# Section comments (sentence-case)
 
 - see `!---------- sectioning`
 
@@ -134,14 +140,15 @@ code...
 !
 ```
 
-- use dashed line to separate variable declaration from subroutine/function body
+- use dashed line to separate USE statements, variable declarations, and body
 - section-closing dashed line not required if final block
   - for IF, DO, SELECT blocks, final means before END statement
 
-# docstrings
+# Docstrings
 
 - docstrings should be added to the following blocks:
   - module
+  - interface
   - type definition
   - subroutine
   - function
@@ -160,31 +167,31 @@ code...
         code
 ```
 
-- leave !> line and last line blank
+- leave !> line and last !! line blank
 
-# operators
+<br>
 
-## conditional operators
+# OPERATORS
+
+# Conditional operators
 
 - use `> >= == \= <= <` instead of `.LT. .LE. .EQ. .NE. .GE. .GT.`
 - use `.EQV. .NEQV.` when comparing logical values, e.g. `(1 < 2) .EQV. (3 \= 4)`
 
-## operator spacing
+# Operator spacing
 
 - +-_/ single space on both ends ----> ```1 _ 2 + 2 / 4 - 3```
   - no space around `-` if used as a negative sign ----> `-7`
 - no space around powers ----> `3**2`
 - single space on both ends of all conditionals ----> `a == b .AND. c < d`
 
-## short-circuit
+# Short-circuit
 
 - DO NOT assume that FORTRAN will apply short-circuit logic
 
-# arguments/parameters
+<br>
 
-- keep intent(OUT) and intent(INOUT) variables at the end of the list
-
-# variable definition
+# VARIABLE DECLARATION
 
 - define same-type variables in a single (or continued) line using a single TYPE descriptor
   - exceptions:
@@ -200,7 +207,7 @@ TYPE2 :: name8 ! comment
 TYPE3 :: name9, name10
 ```
 
-## dimensions
+# Dimensions
 
 - `TYPE :: name(dim)`
   - when defining a single variable
@@ -209,7 +216,9 @@ TYPE3 :: name9, name10
 - `TYPE, DIMENSION(dim) :: name1, name2`
   - when defining multiple variables of the same TYPE and dimensions, or
 
-# continuation-line &
+<br>
+
+# Continuation-line &
 
 - ! spacing on both ends of wrapped block
 - use 4-space tabs to align
@@ -238,7 +247,18 @@ sum_ = 1 + var1 + &
        & + var2 * var3
 ```
 
-## imports
+<br>
+
+# subroutines/functions
+
+- always use IMPLICIT-NONE
+- separate declarations from body (see `!---------- sectioning`)
+- group INTENT(IN) and INTENT(OUT) separately, with OPTIONALs at the bottom of each block
+- match order of declaration with order of parameters as best/close as possible
+
+<br>
+
+# Imports
 
 - explicit imports ONLY (DO NOT rely on nested imports!!!)
 - grouped at the top of the module, !-separated into subgroups (in order):
@@ -256,7 +276,9 @@ sum_ = 1 + var1 + &
   - I/O
   - debugging
 
-## private/public
+<br>
+
+# Private/public
 
 - use empty private (to prevent import inheritance)
 - explicitly define all that is publicly accessible
@@ -264,8 +286,16 @@ sum_ = 1 + var1 + &
   - explicitly state all that is private, keeping the rest public by default
   - bases and types are examples of this exception
 
-## files
+<br>
+
+# Files
 
 - tools contain numerical functionality
 - utils contain "administrative" functionality (create, init, update, copy, set, destroy)
   - may contain private helper functions for the above tasks
+
+<br>
+
+# Error/info/warning messages
+
+- use sentence-case unless first word of sentence is a parameter, e.g. `"environ_type must be..."`

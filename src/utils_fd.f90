@@ -142,10 +142,8 @@ CONTAINS
         icfd = 0
         !
         SELECT CASE (ifdtype)
-        CASE (1)
             !
-            !----------------------------------------------------------------------------
-            ! (2N+1)-point Central Differences
+        CASE (1) ! (2N+1)-point Central Differences
             !
             IF (nfdpoint == 1) THEN
                 ncfd = 2
@@ -177,10 +175,7 @@ CONTAINS
                 !
             END IF
             !
-        CASE (2)
-            !
-            !----------------------------------------------------------------------------
-            ! Low-Noise Lanczos Differentiators ( M = 2 )
+        CASE (2) ! low-Noise Lanczos Differentiators ( M = 2 )
             !
             IF (nfdpoint >= 2) THEN
                 ncfd = (nfdpoint) * (nfdpoint + 1) * (2 * nfdpoint + 1) / 3
@@ -201,10 +196,7 @@ CONTAINS
                 !
             END IF
             !
-        CASE (3)
-            !
-            !----------------------------------------------------------------------------
-            ! Super Lanczos Low-Noise Differentiators ( M = 4 )
+        CASE (3) ! super Lanczos Low-Noise Differentiators ( M = 4 )
             !
             IF (nfdpoint == 3) THEN
                 ncfd = 252
@@ -236,10 +228,7 @@ CONTAINS
                 !
             END IF
             !
-        CASE (4)
-            !
-            !----------------------------------------------------------------------------
-            ! Smooth Noise-Robust Differentiators  ( n = 2 )
+        CASE (4) ! smooth Noise-Robust Differentiators  ( n = 2 )
             !
             IF (nfdpoint == 2) THEN
                 ncfd = 8
@@ -275,10 +264,7 @@ CONTAINS
                 !
             END IF
             !
-        CASE (5)
-            !
-            !----------------------------------------------------------------------------
-            ! Smooth Noise-Robust Differentiators  ( n = 4 )
+        CASE (5) ! smooth Noise-Robust Differentiators  ( n = 4 )
             !
             IF (nfdpoint == 3) THEN
                 ncfd = 96

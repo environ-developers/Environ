@@ -135,8 +135,8 @@ CONTAINS
         !
         IF (electrolyte%ntyp /= 2) &
             CALL env_errore(sub_name, &
-                        'Unexpected number of counterionic species, &
-                        &different from two', 1)
+                            'Unexpected number of counterionic species, &
+                            &different from two', 1)
         !
         cion => electrolyte%ioncctype(1)%cbulk
         zion => electrolyte%ioncctype(1)%z
@@ -161,10 +161,11 @@ CONTAINS
         !
         IF (env_periodicity /= 2) &
             CALL env_errore(sub_name, &
-                        'Option not yet implemented: 1D Poisson-Boltzmann &
-                        &solver only for 2D systems', 1)
+                            'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                            &only for 2D systems', 1)
         !
         CALL init_environ_density(cell, local)
+        !
         v => local%of_r
         !
         !--------------------------------------------------------------------------------
@@ -223,7 +224,6 @@ CONTAINS
         DO i = 1, nnr
             !
             IF (ABS(axis(1, i)) >= xstern_gcs) THEN
-                !
                 icount = icount + 1
                 !
                 vbound = vbound + potential%of_r(i) + v(i) - &
@@ -270,17 +270,11 @@ CONTAINS
                 !
                 vtmp = f2 * acoth
                 !
-                !------------------------------------------------------------------------
-                ! Having to add extra handling for electrode charge
-                !
-                IF (ISNAN(vtmp)) THEN
-                    vtmp = 0.D0
-                END IF
-                !
-                !------------------------------------------------------------------------
-                ! Remove source potential (linear) and add analytic one
+                IF (ISNAN(vtmp)) vtmp = 0.D0
+                ! having to add extra handling for electrode charge
                 !
                 v(i) = v(i) + vtmp - vstern - ez * (ABS(axis(1, i)) - xstern_gcs)
+                ! remove source potential (linear) and add analytic one
                 !
             END IF
             !
@@ -296,9 +290,7 @@ CONTAINS
         IF (semiconductor_in%slab_charge == 0.D0) THEN
             ez_ms = 0.D0
         ELSE
-            !
             ez_ms = tpi * e2 * (electrode_charge - semiconductor_in%slab_charge) / area
-            !
         END IF
         !
         WRITE (environ_unit, *) &
@@ -379,17 +371,11 @@ CONTAINS
                     !
                     vtmp = f2 * acoth
                     !
-                    !--------------------------------------------------------------------
-                    ! Having to add extra handling for electrode charge
-                    !
-                    IF (ISNAN(vtmp)) THEN
-                        vtmp = 0.D0
-                    END IF
-                    !
-                    !--------------------------------------------------------------------
-                    ! Remove source potential (linear) and add analytic one
+                    IF (ISNAN(vtmp)) vtmp = 0.D0
+                    ! having to add extra handling for electrode charge
                     !
                     v(i) = v(i) + vtmp - vstern - ez * (ABS(axis(1, i)) - xstern_gcs)
+                    ! remove source potential (linear) and add analytic one
                     !
                 ELSE
                     distance = ABS(axis(1, i)) - xstern_ms
@@ -416,10 +402,8 @@ CONTAINS
                     !
                     WRITE (environ_unit, *) "ms correction: ", vtmp
                     !
-                    !--------------------------------------------------------------------
-                    ! Remove source potential (linear) and add analytic one
-                    !
                     v(i) = v(i) + vtmp - ez * distance
+                    ! remove source potential (linear) and add analytic one
                     !
                 END IF
                 !
@@ -436,11 +420,7 @@ CONTAINS
         max_axis = 0.0
         !
         DO i = 1, nnr
-            !
-            IF (axis(1, i) > max_axis) THEN
-                max_axis = axis(1, i)
-            END IF
-            !
+            IF (axis(1, i) > max_axis) max_axis = axis(1, i)
         END DO
         !
         v_edge = 0.D0

@@ -106,6 +106,7 @@ CONTAINS
             IF (solver%auxiliary == 'none') THEN
                 !
                 SELECT CASE (solver%gradient%preconditioner) ! #TODO none and left need work
+                    !
                 CASE ('none')
                     !
                     CALL generalized_gradient_none(solver%gradient, core, &
@@ -128,7 +129,8 @@ CONTAINS
                                                    charges%semiconductor)
                     !
                 CASE DEFAULT
-                    CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
+                    CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                    !
                 END SELECT
                 !
             ELSE
@@ -156,7 +158,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL env_errore(sub_name, 'unexpected auxiliary keyword', 1)
+            CALL env_errore(sub_name, 'Unexpected auxiliary keyword', 1)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -197,6 +199,7 @@ CONTAINS
             IF (solver%auxiliary == 'none') THEN
                 !
                 SELECT CASE (solver%gradient%preconditioner)
+                    !
                 CASE ('none')
                     !
                     CALL generalized_gradient_none(solver%gradient, core, charges, &
@@ -213,7 +216,8 @@ CONTAINS
                                                    dielectric, potential, electrolyte)
                     !
                 CASE DEFAULT
-                    CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
+                    CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                    !
                 END SELECT
                 !
             ELSE
@@ -242,7 +246,7 @@ CONTAINS
             !
         ELSE
             !
-            CALL env_errore(sub_name, 'unexpected auxiliary keyword', 1)
+            CALL env_errore(sub_name, 'Unexpected auxiliary keyword', 1)
             !
         END IF
         !
@@ -394,7 +398,7 @@ CONTAINS
         !
         IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
-9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+9007    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         !--------------------------------------------------------------------------------
         ! Compute total electrostatic potential
@@ -599,7 +603,7 @@ CONTAINS
         !
         IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
-9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+9007    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         CALL destroy_environ_density(l)
         !
@@ -722,7 +726,7 @@ CONTAINS
                 !
                 IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9001) delta_en
                 !
-9001            FORMAT(' Warning: bad guess with residual norm = ', E14.6, &
+9001            FORMAT(' Warning: Bad guess with residual norm = ', E14.6, &
                        ', reset to no guess')
                 !
                 x%update = .FALSE.
@@ -837,7 +841,7 @@ CONTAINS
         !
         IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
-9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+9007    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         CALL destroy_environ_density(r)
         !
@@ -957,7 +961,7 @@ CONTAINS
 !                 x%of_r = z%of_r
 !             ELSE
 !                 IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9001) delta_qm
-! 9001            FORMAT(' Warning: bad guess with residual norm = ', E14.6, ', reset to no guess')
+! 9001            FORMAT(' Warning: Bad guess with residual norm = ', E14.6, ', reset to no guess')
 !                 x%update = .FALSE.
 !             END IF
 
@@ -1065,7 +1069,7 @@ CONTAINS
         !
         IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
-9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+9007    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         CALL destroy_environ_gradient(g)
         !

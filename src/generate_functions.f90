@@ -93,12 +93,16 @@ CONTAINS
             IF (.NOT. physical) CYCLE ! do not include points outside the physical range
             !
             SELECT CASE (axis)
+                !
             CASE (1)
                 idx = i
+                !
             CASE (2)
                 idx = j
+                !
             CASE (3)
                 idx = k
+                !
             END SELECT
             !
             idx = idx + 1 + shift
@@ -162,20 +166,24 @@ CONTAINS
         IF (ABS(spread) < tol) &
             CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong axis in generate_gaussian', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         SELECT CASE (dim)
+            !
         CASE (0)
             scale = charge / (sqrtpi * spread)**3
+            !
         CASE (1)
             length = ABS(cell%at(axis, axis) * cell%alat)
             scale = charge / length / (sqrtpi * spread)**2
+            !
         CASE (2)
             length = ABS(cell%at(axis, axis) * cell%alat)
             scale = charge * length / cell%omega / (sqrtpi * spread)
+            !
         CASE default
             CALL env_errore(sub_name, 'Wrong value of dim', 1)
+            !
         END SELECT
         !
         spr2 = (spread / cell%alat)**2
@@ -243,20 +251,24 @@ CONTAINS
         IF (ABS(spread) < tol) &
             CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong value of axis', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         SELECT CASE (dim)
+            !
         CASE (0)
             scale = charge / (sqrtpi * spread)**3
+            !
         CASE (1)
             length = ABS(cell%at(axis, axis) * cell%alat)
             scale = charge / length / (sqrtpi * spread)**2
+            !
         CASE (2)
             length = ABS(cell%at(axis, axis) * cell%alat)
             scale = charge * length / cell%omega / (sqrtpi * spread)
+            !
         CASE default
             CALL env_errore(sub_name, 'Wrong value of dim', 1)
+            !
         END SELECT
         !
         scale = scale * 2.D0 / spread**2 * cell%alat
@@ -321,8 +333,7 @@ CONTAINS
         !
         cell => density%cell
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong value of axis', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         ALLOCATE (local(cell%nnr))
         local = 0.D0
@@ -383,8 +394,7 @@ CONTAINS
         !
         cell => gradient%cell
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong value of axis', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         ALLOCATE (gradlocal(3, cell%nnr))
         gradlocal = 0.D0
@@ -446,8 +456,7 @@ CONTAINS
         !
         cell => density%cell
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong value of axis', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         scale = charge / chargeanalytic * 0.5D0
@@ -484,7 +493,7 @@ CONTAINS
         CALL env_mp_sum(chargelocal, cell%dfft%comm)
         !
         IF (ABS(chargelocal - chargeanalytic) / chargeanalytic > 1.D-4) &
-            CALL env_infomsg(sub_name, 'WARNING: wrong integral of erfc function')
+            CALL env_warning('Wrong integral of erfc function')
         !
         !--------------------------------------------------------------------------------
         !
@@ -526,8 +535,7 @@ CONTAINS
         !
         cell => gradient%cell
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong value of axis', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         !
@@ -595,8 +603,7 @@ CONTAINS
         !
         cell => laplacian%cell
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong value of axis', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         !
@@ -624,6 +631,7 @@ CONTAINS
             arg = (dist - width) / spread
             !
             SELECT CASE (dim)
+                !
             CASE (0)
                 !
                 IF (dist > tol) &
@@ -636,6 +644,7 @@ CONTAINS
                 !
             CASE (2)
                 lapllocal(ir) = EXP(-arg**2) * arg / spread * 2.D0
+                !
             END SELECT
             !
         END DO
@@ -676,8 +685,7 @@ CONTAINS
         !
         cell => hessian%cell
         !
-        IF (axis < 1 .OR. axis > 3) &
-            CALL env_errore(sub_name, 'Wrong value of axis', 1)
+        IF (axis < 1 .OR. axis > 3) CALL env_errore(sub_name, 'Wrong value of axis', 1)
         !
         chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
         scale = charge / chargeanalytic / sqrtpi / spread
@@ -994,6 +1002,7 @@ CONTAINS
         f2 = EXP(-(invt)**2) / 2.D0 / sqrtpi ! f2 is close to zero for t-->0
         !
         SELECT CASE (dim)
+            !
         CASE (0)
             !
             !----------------------------------------------------------------------------
@@ -1002,6 +1011,7 @@ CONTAINS
             !
             erfcvolume = fpi / 3.D0 * width**3 * &
                          ((1.D0 + 1.5D0 * t**2) * f1 + (1.D0 + t**2) * t * f2)
+            !
         CASE (1)
             !
             !----------------------------------------------------------------------------
@@ -1010,6 +1020,7 @@ CONTAINS
             !
             erfcvolume = pi * width**2 * cell%at(axis, axis) * cell%alat * &
                          ((1.D0 + 0.5D0 * t**2) * f1 + t * f2)
+            !
         CASE (2)
             !
             !----------------------------------------------------------------------------
@@ -1017,6 +1028,7 @@ CONTAINS
             ! box, does not depend on spread
             !
             erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis) / cell%alat
+            !
         END SELECT
         !
         RETURN
@@ -1028,4 +1040,3 @@ CONTAINS
     !------------------------------------------------------------------------------------
 END MODULE generate_functions
 !----------------------------------------------------------------------------------------
-

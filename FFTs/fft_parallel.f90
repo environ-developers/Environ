@@ -248,9 +248,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             !
 #if defined(_OPENMP)&&defined(__FFT_SCALAR_THREAD_SAFE)
-            CALL env_fft_error(sub_name//'::execute_using_tasks', &
-                              'needs thread-safe env_fft_scalar backend selected &
-                              &at compile time.', 1)
+            CALL env_errore(sub_name//'::execute_using_tasks', &
+                            'Needs thread-safe env_fft_scalar backend selected &
+                            &at compile time.', 1)
 #endif
             !
             IF (isgn > 0) THEN ! G -> R
@@ -408,9 +408,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             !
 #if defined(_OPENMP)&&defined(__FFT_SCALAR_THREAD_SAFE)
-            CALL env_fft_error(sub_name//'::execute_using_threads', &
-                              'needs thread-safe env_fft_scalar backend selected &
-                              &at compile time.', 1)
+            CALL env_errore(sub_name//'::execute_using_threads', &
+                            'Needs thread-safe env_fft_scalar backend selected &
+                            &at compile time.', 1)
 #endif
             !
             IF (isgn > 0) THEN ! G -> R
@@ -579,7 +579,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (dfft%has_task_groups) &
-            CALL env_fft_error(sub_name, 'task groups on large mesh not implemented', 1)
+            CALL env_errore(sub_name, 'Task groups on large mesh not implemented', 1)
         !
         n1 = dfft%nr1
         n2 = dfft%nr2

@@ -127,6 +127,7 @@ CONTAINS
                 IF (ASSOCIATED(charges%dielectric)) THEN
                     !
                     SELECT CASE (solver%gradient%preconditioner)
+                        !
                     CASE ('sqrt')
                         !
                         CALL linearized_pb_gradient_sqrt(solver%gradient, core, &
@@ -135,7 +136,8 @@ CONTAINS
                                                          charges%dielectric)
                         !
                     CASE DEFAULT
-                        CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
+                        CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                        !
                     END SELECT
                     !
                 ELSE
@@ -153,7 +155,7 @@ CONTAINS
             CALL destroy_environ_density(local_screening)
             !
         ELSE
-            CALL env_errore(sub_name, 'unexpected solver keyword', 1)
+            CALL env_errore(sub_name, 'Unexpected solver keyword', 1)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -222,6 +224,7 @@ CONTAINS
                 IF (PRESENT(dielectric)) THEN
                     !
                     SELECT CASE (solver%gradient%preconditioner)
+                        !
                     CASE ('sqrt')
                         !
                         CALL linearized_pb_gradient_sqrt(solver%gradient, core, &
@@ -229,7 +232,8 @@ CONTAINS
                                                          potential, dielectric)
                         !
                     CASE DEFAULT
-                        CALL env_errore(sub_name, 'unexpected preconditioner keyword', 1)
+                        CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                        !
                     END SELECT
                     !
                 ELSE
@@ -246,7 +250,7 @@ CONTAINS
             CALL destroy_environ_density(local_screening)
             !
         ELSE
-            CALL env_errore(sub_name, 'unexpected solver keyword', 1)
+            CALL env_errore(sub_name, 'Unexpected solver keyword', 1)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -387,7 +391,7 @@ CONTAINS
                 !
                 IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9001) delta_en
                 !
-9001            FORMAT(' Warning: bad guess with residual norm = ', &
+9001            FORMAT(' Warning: Bad guess with residual norm = ', &
                        E14.6, ', reset to no guess')
                 !
                 x%update = .FALSE.
@@ -506,9 +510,8 @@ CONTAINS
         !
         IF (core%use_fft) THEN
             !
-            IF (.NOT. (core%fft%use_internal_pbc_corr .OR. core%need_correction)) THEN
+            IF (.NOT. (core%fft%use_internal_pbc_corr .OR. core%need_correction)) &
                 shift = -integrate_environ_density(x) / cell%omega
-            END IF
             !
         END IF
         !
@@ -516,7 +519,7 @@ CONTAINS
         !
         IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
-9007    FORMAT('     polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
+9007    FORMAT('     Polarization accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         CALL destroy_environ_density(r)
         !

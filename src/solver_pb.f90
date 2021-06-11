@@ -91,6 +91,7 @@ CONTAINS
         CALL env_start_clock(sub_name)
         !
         SELECT CASE (solver%type_)
+            !
         CASE ('iterative')
             !
             IF (solver%use_iterative) THEN
@@ -101,7 +102,7 @@ CONTAINS
                         !
                         IF (.NOT. PRESENT(inner_setup)) &
                             CALL env_errore(sub_name, &
-                                            'missing setup for &
+                                            'Missing setup for &
                                             &inner generalized problem', 1)
                         !
                         CALL pb_iterative(solver%iterative, core, potential, &
@@ -125,7 +126,7 @@ CONTAINS
         CASE ('newton')
             !
             IF (.NOT. PRESENT(inner_setup)) &
-                CALL env_errore(sub_name, 'missing inner setup', 1)
+                CALL env_errore(sub_name, 'Missing inner setup', 1)
             !
             IF (ASSOCIATED(charges%dielectric)) THEN
                 !
@@ -143,8 +144,10 @@ CONTAINS
             !
         CASE ('lbfgs')
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            !
         END SELECT
         !
         CALL env_stop_clock(sub_name)
@@ -189,7 +192,7 @@ CONTAINS
                     IF (PRESENT(dielectric)) THEN
                         !
                         IF (.NOT. PRESENT(inner_setup)) &
-                            CALL env_errore(sub_name, 'missing inner setup', 1)
+                            CALL env_errore(sub_name, 'Missing inner setup', 1)
                         !
                         CALL pb_iterative(solver%iterative, core, potential, charges, &
                                           electrolyte, dielectric, inner_setup%solver, &
@@ -211,7 +214,7 @@ CONTAINS
         CASE ('newton')
             !
             IF (.NOT. PRESENT(inner_setup)) &
-                CALL env_errore(sub_name, 'missing inner setup', 1)
+                CALL env_errore(sub_name, 'Missing inner setup', 1)
             !
             IF (PRESENT(dielectric)) THEN
                 !
@@ -228,8 +231,10 @@ CONTAINS
             !
         CASE ('lbfgs')
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            !
         END SELECT
         !
         CALL env_stop_clock(sub_name)
@@ -369,6 +374,7 @@ CONTAINS
                     factor = cbulk / cionmax
                     !
                     SELECT CASE (electrolyte%electrolyte_entropy)
+                        !
                     CASE ('full')
                         !
                         denominator%of_r = denominator%of_r - &
@@ -406,7 +412,7 @@ CONTAINS
             IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tolrhoaux
             !
-9004        FORMAT('outer delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
+9004        FORMAT('Outer delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
             IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9003) totaux
             !
@@ -430,7 +436,7 @@ CONTAINS
         !
         IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
-9007    FORMAT('     electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
+9007    FORMAT('     Electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         CALL destroy_environ_density(denominator)
         !
@@ -587,6 +593,7 @@ CONTAINS
                 IF (cionmax > 0.D0) THEN
                     !
                     SELECT CASE (electrolyte%electrolyte_entropy)
+                        !
                     CASE ('full')
                         !
                         denominator%of_r = denominator%of_r - &
@@ -663,7 +670,7 @@ CONTAINS
             IF (verbose >= 1 .AND. ionode) &
                 WRITE (environ_unit, 9004) delta_qm, delta_en, tol
             !
-9004        FORMAT('outer delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
+9004        FORMAT('Outer delta_qm = ', E14.6, ' delta_en = ', E14.6, ' tol = ', E14.6)
             !
             IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 9003) totaux
             !
@@ -687,7 +694,7 @@ CONTAINS
         !
         IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 9007) delta_en, iter
         !
-9007    FORMAT('     electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
+9007    FORMAT('     Electrolyte accuracy =', 1PE8.1, ', # of iterations = ', i3)
         !
         CALL destroy_environ_density(cfactor)
         !

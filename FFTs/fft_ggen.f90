@@ -101,7 +101,7 @@ CONTAINS
             IF (n3 < 0) n3 = n3 + dfft%nr3
             !
             IF (n1 >= dfft%nr1 .OR. n2 >= dfft%nr2 .OR. n3 >= dfft%nr3) &
-                CALL env_fft_error(sub_name, 'Mesh too small?', ng)
+                CALL env_errore(sub_name, 'Mesh too small?', ng)
             !
             IF (dfft%lpara) THEN
                 !

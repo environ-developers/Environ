@@ -109,6 +109,7 @@ CONTAINS
         IF (core%need_correction) THEN
             !
             SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+                !
             CASE ('1da', 'oned_analytic')
                 !
                 CALL calc_vperiodic(core%correction%oned_analytic, charges%density, &
@@ -151,6 +152,7 @@ CONTAINS
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                !
             END SELECT
             !
         END IF
@@ -214,8 +216,10 @@ CONTAINS
         IF (core%need_correction) THEN
             !
             SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+                !
             CASE ('1da', 'oned_analytic')
                 CALL calc_vperiodic(core%correction%oned_analytic, charges, local)
+                !
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
@@ -252,7 +256,6 @@ CONTAINS
                                   semiconductor, charges, local)
                 !
             CASE DEFAULT
-                !
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
                 !
             END SELECT
@@ -286,9 +289,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (core%use_fft) THEN
-            !
             CALL gradpoisson_fft(core%fft, charges%density, gradient)
-            !
         ELSE IF (core%use_oned_analytic) THEN
             CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
         ELSE
@@ -301,6 +302,7 @@ CONTAINS
         IF (core%need_correction) THEN
             !
             SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+                !
             CASE ('1da', 'oned_analytic')
                 !
                 CALL calc_gradvperiodic(core%correction%oned_analytic, &
@@ -344,6 +346,7 @@ CONTAINS
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                !
             END SELECT
             !
         END IF
@@ -389,6 +392,7 @@ CONTAINS
         IF (core%need_correction) THEN
             !
             SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+                !
             CASE ('1da', 'oned_analytic')
                 !
                 CALL calc_gradvperiodic(core%correction%oned_analytic, charges, &
@@ -431,6 +435,7 @@ CONTAINS
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                !
             END SELECT
             !
         END IF

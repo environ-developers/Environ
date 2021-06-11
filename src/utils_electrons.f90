@@ -122,9 +122,6 @@ CONTAINS
         IF (nnr /= electrons%density%cell%nnr) &
             CALL env_errore(sub_name, 'Mismatch in grid size', 1)
         !
-        !--------------------------------------------------------------------------------
-        ! Assign input density to electrons%density%of_r
-        !
         electrons%density%of_r = rho ! assign input density to electrons%density%of_r
         !
         !--------------------------------------------------------------------------------

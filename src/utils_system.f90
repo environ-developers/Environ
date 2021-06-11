@@ -115,8 +115,7 @@ CONTAINS
             system%pos(:) = system%pos(:) + system%ions%tau(:, i) * zv
         END DO
         !
-        IF (ABS(charge) < 1.D-8) &
-            CALL env_errore(sub_name, 'System charge is zero', 1)
+        IF (ABS(charge) < 1.D-8) CALL env_errore(sub_name, 'System charge is zero', 1)
         !
         system%pos(:) = system%pos(:) / charge
         !

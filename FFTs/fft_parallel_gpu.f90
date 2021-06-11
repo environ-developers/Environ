@@ -339,8 +339,8 @@ CONTAINS
         nx3 = dfft%nr3x
         !
         IF (dfft%has_task_groups) &
-            CALL env_fft_error(sub_name, &
-                               'task groups in 2D + 1D decomposition not implemented', 1)
+            CALL env_errore(sub_name, &
+                            'task groups in 2D + 1D decomposition not implemented', 1)
         !
         CALL env_check_fft_buffers_size(dfft)
         !
@@ -439,9 +439,9 @@ CONTAINS
         sticks = dfft%nsp
         !
         IF (dfft%nproc <= 1) &
-            CALL env_fft_error(sub_name, &
-                               'this subroutine should never be called with nproc= ', &
-                               dfft%nproc)
+            CALL env_errore(sub_name, &
+                            'This subroutine should never be called with nproc=', &
+                            dfft%nproc)
         !
         IF (isgn > 0) THEN
             DO j = 0, batchsize - 1, dfft%subbatchsize

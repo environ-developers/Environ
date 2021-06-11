@@ -133,7 +133,7 @@ SUBROUTINE env_mp_synchronize(gid)
     !
     CALL mpi_barrier(gid, ierr)
     !
-    IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_barrier ', ierr)
+    IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_barrier', ierr)
 #endif
     !
     RETURN
@@ -191,7 +191,7 @@ SUBROUTINE env_bcast_integer(array, n, root, gid)
         !
         CALL MPI_BCAST(array, n, MPI_INTEGER, root, gid, ierr)
         !
-        IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 1 ', ierr)
+        IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 1', ierr)
         !
     ELSE
         nblk = n / msgsiz_max
@@ -202,7 +202,7 @@ SUBROUTINE env_bcast_integer(array, n, root, gid)
             !
             CALL MPI_BCAST(array(istart), blksiz, MPI_INTEGER, root, gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 2 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 2', ierr)
             !
         END DO
         !
@@ -213,7 +213,7 @@ SUBROUTINE env_bcast_integer(array, n, root, gid)
             !
             CALL MPI_BCAST(array(istart), blksiz, MPI_INTEGER, root, gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 3 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 3', ierr)
             !
         END IF
         !
@@ -289,7 +289,7 @@ SUBROUTINE env_bcast_integer8(array, n, root, gid)
         !
         CALL MPI_BCAST(array, n, MPI_INTEGER8, root, gid, ierr)
         !
-        IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 1 ', ierr)
+        IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 1', ierr)
         !
     ELSE
         nblk = n / msgsiz_max
@@ -300,7 +300,7 @@ SUBROUTINE env_bcast_integer8(array, n, root, gid)
             !
             CALL MPI_BCAST(array(istart), blksiz, MPI_INTEGER8, root, gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 2 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 2', ierr)
             !
         END DO
         !
@@ -311,7 +311,7 @@ SUBROUTINE env_bcast_integer8(array, n, root, gid)
             !
             CALL MPI_BCAST(array(istart), blksiz, MPI_INTEGER8, root, gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 3 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 3', ierr)
             !
         END IF
         !
@@ -386,7 +386,7 @@ SUBROUTINE env_bcast_real(array, n, root, gid)
         !
         CALL MPI_BCAST(array, n, MPI_DOUBLE_PRECISION, root, gid, ierr)
         !
-        IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 1 ', ierr)
+        IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 1', ierr)
         !
     ELSE
         nblk = n / msgsiz_max
@@ -398,7 +398,7 @@ SUBROUTINE env_bcast_real(array, n, root, gid)
             CALL MPI_BCAST(array(istart), blksiz, MPI_DOUBLE_PRECISION, root, &
                            gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 2 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 2', ierr)
             !
         END DO
         !
@@ -410,7 +410,7 @@ SUBROUTINE env_bcast_real(array, n, root, gid)
             CALL MPI_BCAST(array(istart), blksiz, MPI_DOUBLE_PRECISION, root, &
                            gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 3 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 3', ierr)
             !
         END IF
         !
@@ -486,7 +486,7 @@ SUBROUTINE env_bcast_logical(array, n, root, gid)
         !
         CALL MPI_BCAST(array, n, MPI_LOGICAL, root, gid, ierr)
         !
-        IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 1 ', ierr)
+        IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 1', ierr)
         !
     ELSE
         nblk = n / msgsiz_max
@@ -497,7 +497,7 @@ SUBROUTINE env_bcast_logical(array, n, root, gid)
             !
             CALL MPI_BCAST(array(istart), blksiz, MPI_LOGICAL, root, gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 2 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 2', ierr)
             !
         END DO
         !
@@ -508,7 +508,7 @@ SUBROUTINE env_bcast_logical(array, n, root, gid)
             !
             CALL MPI_BCAST(array(istart), blksiz, MPI_LOGICAL, root, gid, ierr)
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, ' error in mpi_bcast 3 ', ierr)
+            IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_bcast 3', ierr)
             !
         END IF
         !
@@ -597,21 +597,21 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
         !
         CALL mpi_comm_rank(comm, myid, info)
         !
-        IF (info /= 0) CALL errore(sub_name, 'error in mpi_comm_rank', info)
+        IF (info /= 0) CALL errore(sub_name, 'Error in mpi_comm_rank', info)
         !
         IF (myid == root) THEN
             !
             CALL MPI_REDUCE(MPI_IN_PLACE, ps, dim, MPI_INTEGER, MPI_SUM, &
                             root, comm, info)
             !
-            IF (info /= 0) CALL errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         ELSE
             !
             CALL MPI_REDUCE(ps, ps, dim, MPI_INTEGER, MPI_SUM, &
                             root, comm, info)
             !
-            IF (info /= 0) CALL errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         END IF
         !
@@ -620,7 +620,7 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
         CALL MPI_ALLREDUCE(MPI_IN_PLACE, ps, dim, MPI_INTEGER, MPI_SUM, &
                            comm, info)
         !
-        IF (info /= 0) CALL errore(sub_name, 'error in mpi_allreduce 1', info)
+        IF (info /= 0) CALL errore(sub_name, 'Error in mpi_allreduce 1', info)
         !
     END IF
     !
@@ -698,20 +698,20 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
         !
         CALL mpi_comm_rank(comm, myid, info)
         !
-        IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_rank', info)
+        IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_rank', info)
         !
         IF (myid == root) THEN
             !
             CALL MPI_REDUCE(MPI_IN_PLACE, ps, dim, MPI_INTEGER8, MPI_SUM, root, &
                             comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         ELSE
             !
             CALL MPI_REDUCE(ps, ps, dim, MPI_INTEGER8, MPI_SUM, root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         END IF
         !
@@ -719,7 +719,7 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
         !
         CALL MPI_ALLREDUCE(MPI_IN_PLACE, ps, dim, MPI_INTEGER8, MPI_SUM, comm, info)
         !
-        IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_allreduce 1', info)
+        IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 1', info)
         !
     END IF
     !
@@ -797,21 +797,21 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
         !
         CALL mpi_comm_rank(comm, myid, info)
         !
-        IF (info /= 0) CALL errore(sub_name, 'error in mpi_comm_rank', info)
+        IF (info /= 0) CALL errore(sub_name, 'Error in mpi_comm_rank', info)
         !
         IF (myid == root) THEN
             !
             CALL MPI_REDUCE(MPI_IN_PLACE, ps, dim, MPI_DOUBLE_PRECISION, MPI_SUM, &
                             root, comm, info)
             !
-            IF (info /= 0) CALL errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         ELSE
             !
             CALL MPI_REDUCE(ps, ps, dim, MPI_DOUBLE_PRECISION, MPI_SUM, &
                             root, comm, info)
             !
-            IF (info /= 0) CALL errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         END IF
         !
@@ -820,7 +820,7 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
         CALL MPI_ALLREDUCE(MPI_IN_PLACE, ps, dim, MPI_DOUBLE_PRECISION, MPI_SUM, &
                            comm, info)
         !
-        IF (info /= 0) CALL errore(sub_name, 'error in mpi_allreduce 1', info)
+        IF (info /= 0) CALL errore(sub_name, 'Error in mpi_allreduce 1', info)
         !
     END IF
     !
@@ -892,11 +892,11 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
     !
     CALL mpi_comm_size(comm, nproc, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_size', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_size', info)
     !
     CALL mpi_comm_rank(comm, myid, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_rank', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_rank', info)
     !
     IF (dim <= 0 .OR. nproc <= 1) GO TO 1 ! go to the end of the subroutine
     !
@@ -913,15 +913,14 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
             CALL MPI_REDUCE(ps(1 + (n - 1) * maxb), buff_i, maxb, &
                             MPI_INTEGER, MPI_SUM, root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         ELSE
             !
             CALL MPI_ALLREDUCE(ps(1 + (n - 1) * maxb), buff_i, maxb, &
                                MPI_INTEGER, MPI_SUM, comm, info)
             !
-            IF (info /= 0) &
-                CALL env_errore(sub_name, 'error in mpi_allreduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 1', info)
             !
         END IF
         !
@@ -931,7 +930,7 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
             info = cudaMemcpy(ps((1 + (n - 1) * maxb)), buff_i(1), maxb, &
                               cudaMemcpyDeviceToDevice)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in cudaMemcpy ', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in cudaMemcpy', info)
 #else
             !
             ps((1 + (n - 1) * maxb):(n * maxb)) = buff_i(1:maxb)
@@ -951,7 +950,7 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
                             (dim - nbuf * maxb), MPI_INTEGER, MPI_SUM, &
                             root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 2', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 2', info)
             !
         ELSE
             !
@@ -959,8 +958,7 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
                                (dim - nbuf * maxb), MPI_INTEGER, MPI_SUM, &
                                comm, info)
             !
-            IF (info /= 0) &
-                CALL env_errore(sub_name, 'error in mpi_allreduce 2', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 2', info)
             !
         END IF
         !
@@ -970,7 +968,7 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
             info = cudaMemcpy(ps((1 + nbuf * maxb)), buff_i(1), maxb, &
                               cudaMemcpyDeviceToDevice)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in cudaMemcpy ', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in cudaMemcpy', info)
 #else
             !
             ps((1 + nbuf * maxb):dim) = buff_i(1:(dim - nbuf * maxb))
@@ -1046,11 +1044,11 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     !
     CALL mpi_comm_size(comm, nproc, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_size', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_size', info)
     !
     CALL mpi_comm_rank(comm, myid, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_rank', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_rank', info)
     !
     IF (dim <= 0 .OR. nproc <= 1) GOTO 1 ! go to the end of the subroutine
     !
@@ -1067,15 +1065,14 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
             CALL MPI_REDUCE(ps(1 + (n - 1) * maxb), buff_i, maxb, &
                             MPI_INTEGER8, MPI_SUM, root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         ELSE
             !
             CALL MPI_ALLREDUCE(ps(1 + (n - 1) * maxb), buff_i, maxb, &
                                MPI_INTEGER8, MPI_SUM, comm, info)
             !
-            IF (info /= 0) &
-                CALL env_errore(sub_name, 'error in mpi_allreduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 1', info)
             !
         END IF
         !
@@ -1085,7 +1082,7 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
             info = cudaMemcpy(ps((1 + (n - 1) * maxb)), buff_i(1), maxb, &
                               cudaMemcpyDeviceToDevice)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in cudaMemcpy ', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in cudaMemcpy', info)
 #else
             !
             ps((1 + (n - 1) * maxb):(n * maxb)) = buff_i(1:maxb)
@@ -1104,15 +1101,14 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
             CALL MPI_REDUCE(ps(1 + nbuf * maxb), buff_i, (dim - nbuf * maxb), &
                             MPI_INTEGER8, MPI_SUM, root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 2', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 2', info)
             !
         ELSE
             !
             CALL MPI_ALLREDUCE(ps(1 + nbuf * maxb), buff_i, (dim - nbuf * maxb), &
                                MPI_INTEGER8, MPI_SUM, comm, info)
             !
-            IF (info /= 0) &
-                CALL env_errore(sub_name, 'error in mpi_allreduce 2', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 2', info)
             !
         END IF
         !
@@ -1122,7 +1118,7 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
             info = cudaMemcpy(ps((1 + nbuf * maxb)), buff_i(1), maxb, &
                               cudaMemcpyDeviceToDevice)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in cudaMemcpy ', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in cudaMemcpy', info)
 #else
             !
             ps((1 + nbuf * maxb):dim) = buff_i(1:(dim - nbuf * maxb))
@@ -1199,11 +1195,11 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     !
     CALL mpi_comm_size(comm, nproc, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_size', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_size', info)
     !
     CALL mpi_comm_rank(comm, myid, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_rank', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_rank', info)
     !
     IF (dim <= 0 .OR. nproc <= 1) GO TO 1 ! go to the end of the subroutine
     !
@@ -1220,15 +1216,14 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
             CALL MPI_REDUCE(ps(1 + (n - 1) * maxb), buff_r, maxb, &
                             MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         ELSE
             !
             CALL MPI_ALLREDUCE(ps(1 + (n - 1) * maxb), buff_r, maxb, &
                                MPI_DOUBLE_PRECISION, MPI_SUM, comm, info)
             !
-            IF (info /= 0) &
-                CALL env_errore(sub_name, 'error in mpi_allreduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 1', info)
             !
         END IF
         !
@@ -1238,7 +1233,7 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
             info = cudaMemcpy(ps((1 + (n - 1) * maxb)), buff_r(1), maxb, &
                               cudaMemcpyDeviceToDevice)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in cudaMemcpy ', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in cudaMemcpy', info)
 #else
             !
             ps((1 + (n - 1) * maxb):(n * maxb)) = buff_r(1:maxb)
@@ -1258,7 +1253,7 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
                             (dim - nbuf * maxb), MPI_DOUBLE_PRECISION, &
                             MPI_SUM, root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 2', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 2', info)
             !
         ELSE
             !
@@ -1267,7 +1262,7 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
                                MPI_SUM, comm, info)
             !
             IF (info /= 0) &
-                CALL env_errore(sub_name, 'error in mpi_allreduce 2', info)
+                CALL env_errore(sub_name, 'Error in mpi_allreduce 2', info)
             !
         END IF
         !
@@ -1277,7 +1272,7 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
             info = cudaMemcpy(ps((1 + nbuf * maxb)), buff_r(1), maxb, &
                               cudaMemcpyDeviceToDevice)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in cudaMemcpy ', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in cudaMemcpy', info)
 #else
             !
             ps((1 + nbuf * maxb):dim) = buff_r(1:(dim - nbuf * maxb))
@@ -1360,11 +1355,11 @@ SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
     !
     CALL mpi_comm_size(comm, nproc, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_size', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_size', info)
     !
     CALL mpi_comm_rank(comm, myid, info)
     !
-    IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_comm_rank', info)
+    IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_comm_rank', info)
     !
     IF (dim > 0 .AND. nproc <= 1) psout = ps
     !
@@ -1385,7 +1380,7 @@ SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
                             psout(1 + (n - 1) * maxb), maxb, &
                             MPI_DOUBLE_PRECISION, MPI_SUM, root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 1', info)
             !
         ELSE
             !
@@ -1393,8 +1388,7 @@ SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
                                psout(1 + (n - 1) * maxb), maxb, &
                                MPI_DOUBLE_PRECISION, MPI_SUM, comm, info)
             !
-            IF (info /= 0) &
-                CALL env_errore(sub_name, 'error in mpi_allreduce 1', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 1', info)
             !
         END IF
         !
@@ -1411,7 +1405,7 @@ SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
                             (dim - nbuf * maxb), MPI_DOUBLE_PRECISION, MPI_SUM, &
                             root, comm, info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'error in mpi_reduce 2', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_reduce 2', info)
             !
         ELSE
             !
@@ -1419,8 +1413,7 @@ SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
                                (dim - nbuf * maxb), MPI_DOUBLE_PRECISION, MPI_SUM, &
                                comm, info)
             !
-            IF (info /= 0) CALL &
-                env_errore(sub_name, 'error in mpi_allreduce 2', info)
+            IF (info /= 0) CALL env_errore(sub_name, 'Error in mpi_allreduce 2', info)
             !
         END IF
         !

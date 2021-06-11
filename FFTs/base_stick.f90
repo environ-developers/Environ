@@ -154,16 +154,16 @@ CONTAINS
             smap%iproc2 = iproc2
             !
             IF (ALLOCATED(smap%indmap)) &
-                CALL env_fft_error(sub_name, ' indmap already allocated ', 1)
+                CALL env_errore(sub_name, 'indmap already allocated', 1)
             !
             IF (ALLOCATED(smap%stown)) &
-                CALL env_fft_error(sub_name, ' stown already allocated ', 1)
+                CALL env_errore(sub_name, 'stown already allocated', 1)
             !
             IF (ALLOCATED(smap%idx)) &
-                CALL env_fft_error(sub_name, ' idx already allocated ', 1)
+                CALL env_errore(sub_name, 'idx already allocated', 1)
             !
             IF (ALLOCATED(smap%ist)) &
-                CALL env_fft_error(sub_name, ' ist already allocated ', 1)
+                CALL env_errore(sub_name, 'ist already allocated', 1)
             !
             ALLOCATE (smap%indmap(lb(1):ub(1), lb(2):ub(2)))
             ALLOCATE (smap%stown(lb(1):ub(1), lb(2):ub(2)))
@@ -180,10 +180,10 @@ CONTAINS
             ! Change the size of the map, but keep the data already there
             !
             IF (smap%lgamma .NEQV. lgamma) &
-                CALL env_fft_error(sub_name, ' changing gamma symmetry not allowed ', 1)
+                CALL env_errore(sub_name, 'Changing gamma symmetry not allowed', 1)
             !
             IF (smap%comm /= comm) &
-                CALL env_fft_error(sub_name, ' changing communicator not allowed ', 1)
+                CALL env_errore(sub_name, 'Changing communicator not allowed', 1)
             !
             ALLOCATE (indmap(lb(1):ub(1), lb(2):ub(2)))
             ALLOCATE (stown(lb(1):ub(1), lb(2):ub(2)))
@@ -228,10 +228,10 @@ CONTAINS
         ELSE
             !
             IF (smap%lgamma .NEQV. lgamma) &
-                CALL env_fft_error(sub_name, ' changing gamma symmetry not allowed ', 2)
+                CALL env_errore(sub_name, 'Changing gamma symmetry not allowed', 2)
             !
             IF (smap%comm /= comm) &
-                CALL env_fft_error(sub_name, ' changing communicator not allowed ', 1)
+                CALL env_errore(sub_name, 'Changing communicator not allowed', 1)
             !
         END IF
         !
@@ -419,8 +419,7 @@ CONTAINS
                     !
                     ind = index_map(i1, i2)
                     !
-                    IF (nct > min_size) &
-                        CALL env_fft_error(sub_name, ' too many sticks ', nct)
+                    IF (nct > min_size) CALL env_errore(sub_name, 'Too many sticks', nct)
                     !
                     in1(ind) = i1
                     in2(ind) = i2
@@ -482,7 +481,7 @@ CONTAINS
             DO mc = 2, nct
                 !
                 IF (idx(mc) /= 0) &
-                    CALL env_fft_error(sub_name, ' non contiguous indexes 1 ', nct)
+                    CALL env_errore(sub_name, 'Non-contiguous indexes 1', nct)
                 !
             END DO
             !
@@ -499,7 +498,7 @@ CONTAINS
             DO mc = ic + 1, nct
                 !
                 IF (idx(mc) /= 0) &
-                    CALL env_fft_error(sub_name, ' non contiguous indexes 2 ', nct)
+                    CALL env_errore(sub_name, 'Non-contiguous indexes 2', nct)
                 !
             END DO
             !
@@ -563,7 +562,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: iproc(:, :), iproc2(:)
         INTEGER, INTENT(IN) :: ub(:), lb(:) ! map's limits
         !
-        INTEGER, INTENT(IN) :: in1(:), in2(:), idx(:) 
+        INTEGER, INTENT(IN) :: in1(:), in2(:), idx(:)
         ! cartesian coordinate of each column, ordered according to idx index
         INTEGER, INTENT(IN) :: ngc(:) ! number of G-vector of each column, ordered according to idx index
         INTEGER, INTENT(IN) :: nct ! total number of relevant sticks
@@ -579,10 +578,10 @@ CONTAINS
         !
         INTEGER :: mc, i1, i2, j, jj, icnt, gr, j2, j3
         !
-        INTEGER, ALLOCATABLE :: yc(:), yg(:) 
+        INTEGER, ALLOCATABLE :: yc(:), yg(:)
         ! number of relevant columns and G-vectors in a given yz plane
         !
-        INTEGER, ALLOCATABLE :: ygr(:) 
+        INTEGER, ALLOCATABLE :: ygr(:)
         ! element in the nyfft group to which a YZ plane belong
         !
         INTEGER, DIMENSION(:), ALLOCATABLE :: ygrp, ygrc, ygrg
@@ -622,7 +621,7 @@ CONTAINS
                 IF (ygr(i1) == 0) ygr(i1) = gr
                 !
                 IF (ygr(i1) .NE. gr) &
-                    CALL env_fft_error(sub_name, ' ygroups are not compatible ', 1)
+                    CALL env_errore(sub_name, 'ygroups are not compatible', 1)
                 !
             END IF
             !
@@ -752,7 +751,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: gcut 
+        REAL(DP), INTENT(IN) :: gcut
         ! kinetic energy cut-off for this stick distribution
         !
         TYPE(env_sticks_map), INTENT(INOUT) :: smap
@@ -765,7 +764,7 @@ CONTAINS
         INTEGER, INTENT(OUT) :: sstp(:) ! number of G-vectors per processor
         INTEGER, INTENT(OUT) :: nst ! total number of sticks
         !
-        INTEGER, INTENT(OUT) :: ng 
+        INTEGER, INTENT(OUT) :: ng
         ! number of G-vector of this processor. that is ng = sstp(mype+1)
         !
         INTEGER, ALLOCATABLE :: ngc(:)
@@ -776,7 +775,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ALLOCATED(smap%stown)) &
-            CALL env_fft_error(sub_name, ' sticks map, not allocated ', 1)
+            CALL env_errore(sub_name, 'Sticks map not allocated', 1)
         !
         st = 0
         !

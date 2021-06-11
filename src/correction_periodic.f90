@@ -122,11 +122,9 @@ CONTAINS
         fact = e2 * tpi / omega
         !
         SELECT CASE (env_periodicity)
+            !
         CASE (0)
-            !
-            const = madelung(1) * charge / alat * e2 &
-                    - fact * SUM(quadrupole(:)) / 3.D0
-            !
+            const = madelung(1) * charge / alat * e2 - fact * SUM(quadrupole(:)) / 3.D0
             vperiodic = 0.D0
             !
             DO icor = 1, 3
@@ -137,20 +135,22 @@ CONTAINS
             END DO
             !
             vperiodic = fact / 3.D0 * vperiodic + const
+            !
         CASE (1)
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
-        CASE (2)
             !
-            const = -pi / 3.D0 * charge / axis_length * e2 - &
-                    fact * quadrupole(slab_axis)
+        CASE (2)
+            const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
             !
             vperiodic(:) = -charge * axis(1, :)**2 + &
                            2.D0 * dipole(slab_axis) * axis(1, :)
             !
             vperiodic = fact * vperiodic + const
+            !
         CASE (3)
             const = 0.D0
             vperiodic = 0.D0
+            !
         CASE DEFAULT
             !
             CALL env_errore(sub_name, &
@@ -231,6 +231,7 @@ CONTAINS
         fact = e2 * fpi / omega
         !
         SELECT CASE (env_periodicity)
+            !
         CASE (0)
             !
             DO icor = 1, 3
@@ -239,12 +240,16 @@ CONTAINS
             !
         CASE (1)
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            !
         CASE (2)
             gvperiodic(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
+            !
         CASE (3)
             gvperiodic = 0.D0
+            !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unexpected option', 1)
+            !
         END SELECT
         !
         gvperiodic = gvperiodic * fact
@@ -301,8 +306,7 @@ CONTAINS
         !
         IF (natoms /= charges%ions%number) &
             CALL env_errore(sub_name, &
-                            'Mismatch in numbers of atoms &
-                            &passed in input and stored', 1)
+                            'Mismatch in numbers of atoms passed in input and stored', 1)
         !
         alat => charges%density%cell%alat
         omega => charges%density%cell%omega
@@ -331,16 +335,22 @@ CONTAINS
             pos(:) = (tau(:, i) - origin(:)) * alat
             !
             SELECT CASE (env_periodicity)
+                !
             CASE (0)
                 ftmp(:, i) = (charge * pos(:) - dipole(:)) / 3.D0
+                !
             CASE (1)
                 CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                !
             CASE (2)
                 ftmp(slab_axis, i) = charge * pos(slab_axis) - dipole(slab_axis)
+                !
             CASE (3)
                 ftmp = 0.D0
+                !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected', 1)
+                !
             END SELECT
             !
             ftmp(:, i) = ftmp(:, i) * fact * charges%ions%iontype(ityp(i))%zv
