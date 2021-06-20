@@ -159,10 +159,6 @@ CONTAINS
                 !
             END SELECT
             !
-        ELSE
-            !
-            ! #TODO add comment about not using pbc correction (use env_infomsg)
-            !
         END IF
         !
         IF (need_pbc_correction) THEN

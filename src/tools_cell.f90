@@ -245,13 +245,13 @@ CONTAINS
                 a1(3) * (a2(1) * a3(2) - a2(2) * a3(1))
         !
         IF (omega < 0.0_DP) THEN
-            !
-            CALL env_infomsg(sub_name, 'Axis vectors are left-handed')
-            !
             omega = ABS(omega)
+            !
+            CALL env_warning('axis vectors are left-handed') ! #TODO fixed now?
+            !
         END IF
         !
-        IF (alat < 1.0_DP) CALL env_infomsg(sub_name, 'Strange lattice parameter')
+        IF (alat < 1.0_DP) CALL env_warning('strange lattice parameter')
         !
         omega = omega * alat**3
         !

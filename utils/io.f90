@@ -79,7 +79,7 @@ CONTAINS
             !
         END DO unit_loop
         !
-        CALL env_infomsg(fun_name, 'Free unit not found?!?')
+        CALL env_warning('free unit not found?!?')
         !
         RETURN
         !
@@ -125,12 +125,9 @@ CONTAINS
                                   line(1:1) == '/')) &
                 GOTO 30
             !
-            IF (line(1:1) == '&') THEN
-                line = env_uppercase(line(2:))
+            IF (line(1:1) == '&') THEN ! consume unnecessary namelists
                 !
-                CALL env_warning('Skipping unnecessary '//TRIM(line)//' namelist')
-                !
-                DO WHILE (line(1:1) /= '/') ! consume namelist
+                DO WHILE (line(1:1) /= '/')
                     READ (unit, fmt='(A256)', ERR=15, END=10) line
                 END DO
                 !
@@ -153,13 +150,13 @@ CONTAINS
         IF (PRESENT(end_of_file)) THEN
             end_of_file = tend
         ELSE IF (tend) THEN
-            CALL env_infomsg(sub_name, 'End of file')
+            CALL env_write('End of file')
         END IF
         !
         IF (PRESENT(error)) THEN
             error = terr
         ELSE IF (terr) THEN
-            CALL env_infomsg(sub_name, 'Read error')
+            CALL env_write('Read error')
         END IF
         !
         IF (PRESENT(field) .AND. .NOT. (tend .OR. terr)) &
@@ -461,11 +458,10 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
 END SUBROUTINE env_errore
 !----------------------------------------------------------------------------------------
 !>
-!! This is a simple routine which writes an info message
-!! from a given routine to output.
+!! Writes an indented (5X) info message to output
 !!
 !----------------------------------------------------------------------------------------
-SUBROUTINE env_infomsg(routine, message)
+SUBROUTINE env_write(message)
     !------------------------------------------------------------------------------------
     !
     USE env_utils_param, ONLY: stdout
@@ -474,21 +470,72 @@ SUBROUTINE env_infomsg(routine, message)
     !
     IMPLICIT NONE
     !
-    CHARACTER(LEN=*) :: routine ! the name of the calling routine
-    CHARACTER(LEN=*) :: message ! the output message
+    CHARACTER(LEN=*), INTENT(IN) :: message
     !
     !------------------------------------------------------------------------------------
     !
-    WRITE (stdout, '(5X,"Message from routine ",A,":")') routine
-    WRITE (stdout, '(5X,A)') message
+    WRITE (stdout, '(5X,A)') TRIM(message)
     !
     RETURN
     !
     !------------------------------------------------------------------------------------
-END SUBROUTINE env_infomsg
+END SUBROUTINE env_write
 !----------------------------------------------------------------------------------------
 !>
-!! Writes a WARNING message to output
+!! Writes an indented (5X) '=' divider (blank line above) to output
+!! Optional blank line below
+!!
+!----------------------------------------------------------------------------------------
+SUBROUTINE env_divider(blank)
+    !------------------------------------------------------------------------------------
+    !
+    USE env_utils_param, ONLY: stdout
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    LOGICAL, INTENT(IN) :: blank
+    !
+    !------------------------------------------------------------------------------------
+    !
+    WRITE (stdout, FMT=1)
+    !
+    IF (blank) WRITE (stdout, *) ! blank line
+    !
+1   FORMAT(/, 5X, 80('='))
+    !
+    RETURN
+    !
+    !------------------------------------------------------------------------------------
+END SUBROUTINE env_divider
+!----------------------------------------------------------------------------------------
+!>
+!! Writes an indented (5X) header (blank line above) to output
+!!
+!----------------------------------------------------------------------------------------
+SUBROUTINE env_header(message)
+    !------------------------------------------------------------------------------------
+    !
+    USE env_utils_param, ONLY: stdout
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=*), INTENT(IN) :: message
+    !
+    !------------------------------------------------------------------------------------
+    !
+    WRITE (stdout, '(/,5X,A)') TRIM(message)
+    !
+    RETURN
+    !
+    !------------------------------------------------------------------------------------
+END SUBROUTINE env_header
+!----------------------------------------------------------------------------------------
+!>
+!! Writes a message message to output warning the user of a non-terminating issue
 !!
 !----------------------------------------------------------------------------------------
 SUBROUTINE env_warning(message)
@@ -500,16 +547,56 @@ SUBROUTINE env_warning(message)
     !
     IMPLICIT NONE
     !
-    CHARACTER(LEN=*) :: message ! the output message
+    CHARACTER(LEN=*), INTENT(IN) :: message ! the output message
     !
     !------------------------------------------------------------------------------------
     !
-    WRITE (stdout, '("Warning: ", A)') message
+    WRITE (stdout, '("Warning: ", A,/)') TRIM(message)
     !
     RETURN
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_warning
+!----------------------------------------------------------------------------------------
+!>
+!! Writes a commented message to output regarding a forced default setting
+!!
+!----------------------------------------------------------------------------------------
+SUBROUTINE env_default(param, default, message)
+    !------------------------------------------------------------------------------------
+    !
+    USE env_utils_param, ONLY: stdout
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    CHARACTER(LEN=*), INTENT(IN) :: param ! input parameter
+    CHARACTER(LEN=*), INTENT(IN) :: default ! default value
+    CHARACTER(LEN=*), INTENT(IN) :: message ! additional comment
+    !
+    CHARACTER(LEN=80) :: comment
+    !
+    CHARACTER(LEN=25) :: p
+    CHARACTER(LEN=15) :: d
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IF (message /= '') THEN
+        comment = '! '//message
+    ELSE
+        comment = ''
+    END IF
+    !
+    p = ADJUSTL(param)
+    d = ADJUSTL(default)
+    !
+    WRITE (stdout, '(5X,A," = ",A, A)') p, d, TRIM(ADJUSTL(comment))
+    !
+    RETURN
+    !
+    !------------------------------------------------------------------------------------
+END SUBROUTINE env_default
 !----------------------------------------------------------------------------------------
 !>
 !! Raises an error due to an invalid input option

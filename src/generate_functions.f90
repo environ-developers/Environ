@@ -493,7 +493,7 @@ CONTAINS
         CALL env_mp_sum(chargelocal, cell%dfft%comm)
         !
         IF (ABS(chargelocal - chargeanalytic) / chargeanalytic > 1.D-4) &
-            CALL env_warning('Wrong integral of erfc function')
+            CALL env_warning('wrong integral of erfc function')
         !
         !--------------------------------------------------------------------------------
         !
