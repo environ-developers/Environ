@@ -10,7 +10,7 @@ MODULE tools_fft
     USE env_fft_main, ONLY: env_fwfft, env_invfft
     USE env_types_fft, ONLY: env_fft_type_descriptor
     !
-    USE environ_param, ONLY: DP, e2, tpi, fpi
+    USE environ_param, ONLY: DP, e2, tpi, fpi, eps8
     !
     USE types_core, ONLY: fft_core
     USE types_representation, ONLY: environ_density, environ_gradient, environ_hessian
@@ -59,15 +59,13 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
         !
         INTEGER, POINTER :: gstart, ngm
-        REAL(DP), POINTER :: tpiba2, omega
+        REAL(DP), POINTER :: tpiba2
         REAL(DP), POINTER :: gg(:)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft_core
         !
         tpiba2 => fft%cell%tpiba2
-        omega => fft%cell%omega
         gstart => fft%gstart
         ngm => fft%ngm
         gg => fft%gg
@@ -144,16 +142,14 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
         !
         INTEGER, POINTER :: ngm, gstart
-        REAL(DP), POINTER :: tpiba, omega
+        REAL(DP), POINTER :: tpiba
         REAL(DP), POINTER :: gg(:)
         REAL(DP), POINTER :: g(:, :)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
-        omega => fft%cell%omega
         ngm => fft%ngm
         gstart => fft%gstart
         gg => fft%gg
@@ -164,7 +160,7 @@ CONTAINS
         ! Bring rho to G space
         !
         ALLOCATE (auxr(dfft%nnr))
-        auxr(:) = CMPLX(fin%of_r(:), 0.D0, KIND=dp)
+        auxr(:) = CMPLX(fin%of_r(:), 0.D0, KIND=DP)
         !
         CALL env_fwfft(auxr, dfft)
         !
@@ -182,7 +178,7 @@ CONTAINS
                 !
                 auxr(dfft%nl(ig)) = &
                     CMPLX(-AIMAG(auxg(ig)), &
-                          REAL(auxg(ig), kind=dp)) * g(ipol, ig) / gg(ig)
+                          REAL(auxg(ig), kind=DP)) * g(ipol, ig) / gg(ig)
                 !
             END DO
 !$omp end parallel do
@@ -243,59 +239,45 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat
         TYPE(fft_core), TARGET, INTENT(IN) :: fft
         TYPE(environ_density), INTENT(IN) :: rho
-        TYPE(environ_ions), INTENT(IN) :: ions
+        TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         !
         REAL(DP), INTENT(OUT) :: force(3, nat)
         !
         INTEGER :: iat, ig, ityp
-        REAL(DP) :: fact, arg
+        REAL(DP) :: fpibg2, e_arg, gauss_term, t_arg, euler_term, fact
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
-        REAL(DP), ALLOCATABLE :: vloc(:, :)
         REAL(DP), ALLOCATABLE :: ftmp(:, :)
         !
         INTEGER, POINTER :: ngm, gstart
-        REAL(DP), POINTER :: tpiba, omega
-        REAL(DP), POINTER :: g(:, :)
+        REAL(DP), POINTER :: tpiba, tpiba2, Z, D, R(:)
+        REAL(DP), POINTER :: G(:, :), G2(:)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
-        omega => fft%cell%omega
+        tpiba2 => fft%cell%tpiba2
         ngm => fft%ngm
         gstart => fft%gstart
-        g => fft%g
+        G => fft%g
+        G2 => fft%gg
         dfft => fft%cell%dfft
         !
         ALLOCATE (auxr(dfft%nnr))
         !
         !--------------------------------------------------------------------------------
-        ! Bring vloc from R space to G space
-        !
-        ALLOCATE (vloc(ngm, ions%ntyp))
-        !
-        DO ityp = 1, ions%ntyp
-            auxr = CMPLX(ions%vloc(ityp)%of_r, 0.D0, KIND=dp)
-            !
-            CALL env_fwfft(auxr, dfft)
-            !
-            vloc(:, ityp) = auxr(dfft%nl(:))
-        END DO
-        !
-        !--------------------------------------------------------------------------------
         ! Bring rho to G space
         !
-        auxr(:) = CMPLX(rho%of_r(:), 0.D0, KIND=dp)
+        auxr = CMPLX(rho%of_r, 0.D0, KIND=DP)
         !
         CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(ngm))
-        auxg = auxr(dfft%nl(:))
+        auxg = auxr(dfft%nl(:)) ! aux now contains n(G)
         DEALLOCATE (auxr)
         !
         !--------------------------------------------------------------------------------
-        ! Aux now contains n(G)
+        ! Compute forces
         !
         IF (dfft%lgamma) THEN
             fact = 2.D0
@@ -303,20 +285,31 @@ CONTAINS
             fact = 1.D0
         END IF
         !
+        force = 0.D0
+        !
         DO iat = 1, nat
-            force(:, iat) = 0.D0
+            D => ions%iontype(ions%ityp(iat))%atomicspread
+            Z => ions%iontype(ions%ityp(iat))%zv
+            R => ions%tau(:, iat)
             !
             DO ig = gstart, ngm
-                arg = tpi * SUM(g(:, ig) * ions%tau(:, iat))
                 !
-                force(:, iat) = force(:, iat) + &
-                                g(:, ig) * vloc(ig, ions%ityp(iat)) * &
-                                (SIN(arg) * DBLE(auxg(ig)) + COS(arg) * AIMAG(auxg(ig)))
+                IF (G2(ig) <= eps8) CYCLE
                 !
+                fpibg2 = fpi / (G2(ig) * tpiba2)
+                !
+                e_arg = -0.25D0 * D**2 * G2(ig) * tpiba2
+                gauss_term = Z * fpibg2 * EXP(e_arg)
+                !
+                t_arg = tpi * SUM(G(:, ig) * R)
+                euler_term = SIN(t_arg) * DBLE(auxg(ig)) + COS(t_arg) * AIMAG(auxg(ig))
+                !
+                force(:, iat) = force(:, iat) + G(:, ig) * gauss_term * euler_term
             END DO
             !
-            force(:, iat) = fact * force(:, iat) * omega * tpiba
         END DO
+        !
+        force = e2 * fact * force * tpiba
         !
         !--------------------------------------------------------------------------------
         ! DEBUGGING
@@ -352,7 +345,6 @@ CONTAINS
         CALL env_mp_sum(force, rho%cell%dfft%comm)
         !
         DEALLOCATE (auxg)
-        DEALLOCATE (vloc)
         !
         RETURN
         !
@@ -378,7 +370,6 @@ CONTAINS
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         dfft => fft%cell%dfft
         omega => fft%cell%omega
@@ -447,7 +438,6 @@ CONTAINS
         INTEGER :: ipol
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         CALL init_environ_density(fa%cell, local)
         !
@@ -527,7 +517,6 @@ CONTAINS
         INTEGER :: ipol, jpol
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         CALL init_environ_density(fa%cell, local)
         !
@@ -615,7 +604,6 @@ CONTAINS
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         dfft => fft%cell%dfft
@@ -685,7 +673,6 @@ CONTAINS
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         dfft => fft%cell%dfft
@@ -802,7 +789,6 @@ CONTAINS
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba2 => fft%cell%tpiba2
         gg => fft%gg
@@ -868,7 +854,6 @@ CONTAINS
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
-        ! Add tests for compatilibity between input, output, and fft
         !
         tpiba => fft%cell%tpiba
         g => fft%g
@@ -920,7 +905,7 @@ CONTAINS
                     !
                 END IF
                 !
-                CALL env_invfft(haux, dfft) 
+                CALL env_invfft(haux, dfft)
                 ! bring back to R-space (\grad_ipol a)(r)
                 !
                 ha%of_r(ipol, jpol, :) = tpiba * tpiba * REAL(haux(:))
@@ -957,7 +942,7 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: hessv(3, 3, fft%cell%dfft%nnr)
         !
-        REAL(DP), POINTER :: omega, tpiba2
+        REAL(DP), POINTER :: tpiba2
         !
         INTEGER, POINTER :: ngm, gstart
         LOGICAL, POINTER :: do_comp_mt
@@ -970,7 +955,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        omega => fft%cell%omega
         tpiba2 => fft%cell%tpiba2
         ngm => fft%ngm
         gstart => fft%gstart
@@ -983,7 +967,7 @@ CONTAINS
         ! Bring rho to G space
         !
         ALLOCATE (rhoaux(fft%cell%dfft%nnr))
-        rhoaux(:) = CMPLX(rho(:), 0.D0, KIND=dp)
+        rhoaux(:) = CMPLX(rho(:), 0.D0, KIND=DP)
         !
         CALL env_fwfft(rhoaux, fft%cell%dfft)
         !
@@ -1002,7 +986,7 @@ CONTAINS
                     !
                     gaux(fft%cell%dfft%nl(ig)) = &
                         CMPLX(REAL(rhoaux(fft%cell%dfft%nl(ig))), &
-                              AIMAG(rhoaux(fft%cell%dfft%nl(ig))), kind=dp) * fac
+                              AIMAG(rhoaux(fft%cell%dfft%nl(ig))), kind=DP) * fac
                     !
                 END DO
                 !
@@ -1027,7 +1011,7 @@ CONTAINS
                         !
                         gaux(fft%cell%dfft%nl(ig)) = &
                             gaux(fft%cell%dfft%nl(ig)) + &
-                            CMPLX(REAL(vaux(ig)), AIMAG(vaux(ig)), kind=dp) * fac
+                            CMPLX(REAL(vaux(ig)), AIMAG(vaux(ig)), kind=DP) * fac
                         !
                     END DO
                     !
@@ -1073,7 +1057,7 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: e(fft%cell%dfft%nnr)
         !
-        REAL(DP), POINTER :: omega, tpiba
+        REAL(DP), POINTER :: tpiba
         !
         INTEGER, POINTER :: ngm, gstart
         LOGICAL, POINTER :: do_comp_mt
@@ -1087,7 +1071,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        omega => fft%cell%omega
         tpiba => fft%cell%tpiba
         ngm => fft%ngm
         gstart => fft%gstart
@@ -1100,17 +1083,17 @@ CONTAINS
         ! Bring gradrho to G space
         !
         ALLOCATE (eaux(fft%cell%dfft%nnr))
-        eaux(:) = CMPLX(0.D0, 0.D0, KIND=dp)
+        eaux(:) = CMPLX(0.D0, 0.D0, KIND=DP)
         !
         ALLOCATE (aux(fft%cell%dfft%nnr))
-        aux(:) = CMPLX(0.D0, 0.D0, KIND=dp)
+        aux(:) = CMPLX(0.D0, 0.D0, KIND=DP)
         !
         ALLOCATE (gaux(fft%cell%dfft%nnr))
         !
         IF (do_comp_mt) ALLOCATE (vaux(ngm), rgtot(ngm))
         !
         DO ipol = 1, 3
-            gaux(:) = CMPLX(gradrho(ipol, :), 0.D0, KIND=dp)
+            gaux(:) = CMPLX(gradrho(ipol, :), 0.D0, KIND=DP)
             !
             CALL env_fwfft(gaux, fft%cell%dfft)
             !
@@ -1122,7 +1105,7 @@ CONTAINS
                 !
                 aux(fft%cell%dfft%nl(ig)) = &
                     CMPLX(-AIMAG(gaux(fft%cell%dfft%nl(ig))), &
-                          REAL(gaux(fft%cell%dfft%nl(ig))), kind=dp) * fac
+                          REAL(gaux(fft%cell%dfft%nl(ig))), kind=DP) * fac
                 !
             END DO
             !
@@ -1146,7 +1129,7 @@ CONTAINS
                     !
                     aux(fft%cell%dfft%nl(ig)) = &
                         aux(fft%cell%dfft%nl(ig)) + &
-                        CMPLX(-AIMAG(vaux(ig)), REAL(vaux(ig)), kind=dp) * fac
+                        CMPLX(-AIMAG(vaux(ig)), REAL(vaux(ig)), kind=DP) * fac
                     !
                 END DO
                 !
@@ -1168,7 +1151,7 @@ CONTAINS
             !
         END IF
         !
-        CALL env_invfft(eaux, fft%cell%dfft) 
+        CALL env_invfft(eaux, fft%cell%dfft)
         ! bring back to R-space (\grad_ipol a)(r)
         !
         e(:) = REAL(eaux(:))
