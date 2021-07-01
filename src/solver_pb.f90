@@ -34,6 +34,8 @@
 MODULE solver_pb
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, program_unit, lstdout
+    !
     USE environ_param, ONLY: DP, e2, k_boltzmann_ry, pi, fpi
     !
     USE types_electrostatic, ONLY: electrostatic_solver, electrostatic_setup, &
@@ -53,8 +55,6 @@ MODULE solver_pb
     USE solver_generalized, ONLY: generalized_gradient
     USE solver_poisson, ONLY: poisson_direct
     USE solver_linearized_pb, ONLY: linearized_pb_gradient
-    !
-    USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
     !
     !------------------------------------------------------------------------------------
     !

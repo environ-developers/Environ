@@ -37,6 +37,8 @@
 MODULE solver_generalized
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, program_unit, lstdout
+    !
     USE environ_param, ONLY: DP, e2, fpi
     !
     USE types_electrostatic, ONLY: electrostatic_solver, iterative_solver, &
@@ -61,8 +63,6 @@ MODULE solver_generalized
     USE tools_fft, ONLY: gradient_fft, laplacian_fft
     !
     USE solver_poisson
-    !
-    USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
     !
     !------------------------------------------------------------------------------------
     !

@@ -48,8 +48,6 @@ MODULE solver_poisson
     USE correction_ms
     USE correction_ms_gcs
     !
-    USE environ_output, ONLY: verbose, ionode, environ_unit
-    !
     !------------------------------------------------------------------------------------
     !
     INTERFACE poisson_direct

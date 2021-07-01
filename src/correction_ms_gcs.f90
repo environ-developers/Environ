@@ -16,6 +16,7 @@
 MODULE correction_ms_gcs
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: environ_unit
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, e2, fpi, k_boltzmann_ry, tpi, pi
@@ -31,8 +32,6 @@ MODULE correction_ms_gcs
     USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
     !
     USE tools_math, ONLY: multipoles_environ_density
-    !
-    USE environ_output, ONLY: environ_unit
     !
     !------------------------------------------------------------------------------------
     !

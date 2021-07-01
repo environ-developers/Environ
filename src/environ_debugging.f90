@@ -4,6 +4,8 @@
 MODULE environ_debugging
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, environ_unit
+    !
     USE environ_param, ONLY: DP
     !
     USE types_physical, ONLY: environ_boundary
@@ -23,8 +25,6 @@ MODULE environ_debugging
     !
     USE embedding_volume
     USE embedding_surface
-    !
-    USE environ_output, ONLY: ionode, environ_unit
     !
     !------------------------------------------------------------------------------------
     !

@@ -36,6 +36,8 @@
 MODULE utils_boundary
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    !
     USE environ_param, ONLY: DP, e2
     !
     USE types_representation, ONLY: environ_functions, environ_gradient, environ_density
@@ -68,8 +70,6 @@ MODULE utils_boundary
     USE generate_boundary, ONLY: boundary_of_density, boundary_of_functions, &
                                  boundary_of_system, solvent_aware_boundary, &
                                  invert_boundary ! #TODO is this for DEBUGGING?
-    !
-    USE environ_output, ONLY: ionode, environ_unit
     !
     ! USE environ_debugging
     !

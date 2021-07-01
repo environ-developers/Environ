@@ -27,6 +27,8 @@
 MODULE init_electrostatic
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: prog
+    !
     USE environ_param, ONLY: DP
     !
     USE base_core
@@ -34,8 +36,6 @@ MODULE init_electrostatic
     !
     USE utils_core_container
     USE utils_electrostatics
-    !
-    USE environ_output, ONLY: environ_unit
     !
     !------------------------------------------------------------------------------------
     !
@@ -55,8 +55,8 @@ CONTAINS
                                       step_type, step, maxstep, mix_type, ndiis, mix, &
                                       preconditioner, screening_type, screening, &
                                       core_type, pbc_correction, pbc_dim_, pbc_axis_, &
-                                      prog, inner_tol, inner_solver_type, &
-                                      inner_maxstep, inner_mix)
+                                      inner_tol, inner_solver_type, inner_maxstep, &
+                                      inner_mix)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -66,8 +66,7 @@ CONTAINS
         !
         CHARACTER(LEN=*), INTENT(IN) :: problem, solver_type, auxiliary, step_type, &
                                         mix_type, preconditioner, screening_type, &
-                                        core_type, pbc_correction, prog, &
-                                        inner_solver_type
+                                        core_type, pbc_correction, inner_solver_type
         !
         INTEGER :: i
         CHARACTER(LEN=80) :: local_type, local_auxiliary, local_problem, inner_problem

@@ -32,6 +32,8 @@
 MODULE generate_boundary
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, program_unit
+    !
     USE environ_param, ONLY: DP, sqrtpi, tpi
     !
     USE types_representation
@@ -51,8 +53,6 @@ MODULE generate_boundary
     !
     USE tools_math, ONLY: scalar_product_environ_gradient, integrate_environ_density, &
                           environ_erfc
-    !
-    USE environ_output, ONLY: ionode, program_unit
     !
     !------------------------------------------------------------------------------------
     !

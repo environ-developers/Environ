@@ -34,6 +34,8 @@
 MODULE solver_linearized_pb
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, program_unit, lstdout
+    !
     USE environ_param, ONLY: DP, e2, fpi
     !
     USE types_electrostatic, ONLY: electrostatic_solver, gradient_solver
@@ -50,8 +52,6 @@ MODULE solver_linearized_pb
                           integrate_environ_density
     !
     USE solver_poisson, ONLY: poisson_direct
-    !
-    USE environ_output, ONLY: verbose, ionode, environ_unit, program_unit, lstdout
     !
     !------------------------------------------------------------------------------------
     !

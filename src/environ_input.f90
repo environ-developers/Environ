@@ -29,6 +29,8 @@
 MODULE environ_input
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, ionode_id, comm, verbose_ => verbose, environ_unit
+    !
     USE env_io, ONLY: env_find_free_unit, env_field_count, env_read_line, &
                       env_get_field
     !
@@ -42,9 +44,6 @@ MODULE environ_input
     USE init_environ, ONLY: set_environ_base
     USE init_electrostatic, ONLY: set_electrostatic_base
     USE init_core, ONLY: set_core_base
-    !
-    USE environ_output, ONLY: ionode, ionode_id, comm, program_unit, &
-                              verbose_ => verbose, environ_unit
     !
     !------------------------------------------------------------------------------------
     !
@@ -60,13 +59,12 @@ CONTAINS
     !! and derived routines for cards (external charges and dielectric regions)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_environ(prog, nelec, nat, ntyp, atom_label, use_internal_pbc_corr, &
+    SUBROUTINE read_environ(nelec, nat, ntyp, atom_label, use_internal_pbc_corr, &
                             ion_radius)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=*), INTENT(IN) :: prog
         LOGICAL, INTENT(IN) :: use_internal_pbc_corr
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
@@ -132,13 +130,13 @@ CONTAINS
         CALL set_electrostatic_base(problem, tol, solver, auxiliary, step_type, step, &
                                     maxstep, mix_type, ndiis, mix, preconditioner, &
                                     screening_type, screening, core, pbc_correction, &
-                                    pbc_dim, pbc_axis, prog, inner_tol, inner_solver, &
+                                    pbc_dim, pbc_axis, inner_tol, inner_solver, &
                                     inner_maxstep, inner_mix)
         !
         !--------------------------------------------------------------------------------
         ! Then set environ base
         !
-        CALL set_environ_base(prog, nelec, nat, ntyp, atom_label, atomicspread, &
+        CALL set_environ_base(nelec, nat, ntyp, atom_label, atomicspread, &
                               corespread, solvationrad, environ_restart, environ_thr, &
                               environ_nskip, environ_type, system_ntyp, system_dim, &
                               system_axis, env_nrep, stype, rhomax, rhomin, tbeta, &
@@ -1098,7 +1096,7 @@ CONTAINS
                 electrolyte_mode = 'system'
                 !
                 CALL env_default('electrolyte_mode', electrolyte_mode, &
-                                "gcs correction requires 'system' boundary")
+                                 "gcs correction requires 'system' boundary")
                 !
             END IF
             !
@@ -1534,8 +1532,7 @@ CONTAINS
         !  START OF LOOP
         !=-----------------------------------------------------------------------------=!
         !
-100     CALL env_read_line(local_unit, input_line, end_of_file=tend, ionode=ionode, &
-                           ionode_id=ionode_id, comm=comm)
+100     CALL env_read_line(local_unit, input_line, end_of_file=tend)
         !
         !--------------------------------------------------------------------------------
         ! Skip blank/comment lines (REDUNDANT)
@@ -1664,8 +1661,7 @@ CONTAINS
         !
         DO ie = 1, env_external_charges
             !
-            CALL env_read_line(unit, input_line, end_of_file=tend, ionode=ionode, &
-                               ionode_id=ionode_id, comm=comm)
+            CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) &
                 CALL env_errore(sub_name, 'End of file reading external charges', ie)
@@ -1886,8 +1882,7 @@ CONTAINS
         !
         DO ie = 1, env_dielectric_regions
             !
-            CALL env_read_line(unit, input_line, end_of_file=tend, ionode=ionode, &
-                               ionode_id=ionode_id, comm=comm)
+            CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) &
                 CALL env_errore(sub_name, 'End of file reading dielectric regions', ie)

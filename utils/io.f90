@@ -1,27 +1,27 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
-! Copyright (C) 2011 Quantum ESPRESSO group
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2002-2009 Quantum ESPRESSO (www.quantum-espresso.org)
 !
 !----------------------------------------------------------------------------------------
 !
-! This file is part of Environ version 2.0
-!
-! Environ 2.0 is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or
-! (at your option) any later version.
-!
-! Environ 2.0 is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more detail, either the file
-! `License' in the root directory of the present distribution, or
-! online at <http://www.gnu.org/licenses/>.
+!     This file is part of Environ version 2.0
+!         
+!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     it under the terms of the GNU General Public License as published by
+!     the Free Software Foundation, either version 2 of the License, or
+!     (at your option) any later version.
+!     
+!     Environ 2.0 is distributed in the hope that it will be useful,
+!     but WITHOUT ANY WARRANTY; without even the implied warranty of
+!     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!     GNU General Public License for more detail, either the file
+!     `License' in the root directory of the present distribution, or
+!     online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors:
+! Authors: Compiled and modified by Edan Bainglass
 !
 !----------------------------------------------------------------------------------------
 !>
@@ -32,9 +32,9 @@ MODULE env_io
     !
     USE env_utils_param
     !
-    USE env_mp, ONLY: env_mp_bcast, env_mp_abort, env_mp_rank
+    USE env_base_io
     !
-    USE env_char_ops, ONLY: env_uppercase
+    USE env_mp, ONLY: env_mp_bcast, env_mp_abort, env_mp_rank
     !
 #if defined(__PTRACE)&&defined(__INTEL_COMPILER)
     USE ifcore, ONLY: tracebackqq
@@ -90,14 +90,12 @@ CONTAINS
     !! WE MAY WANT TO ADD A SECOND COMM ON IMAGES #TODO may be required for NEB
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_read_line(unit, line, nfield, field, end_of_file, error, ionode, &
-                             ionode_id, comm)
+    SUBROUTINE env_read_line(unit, line, nfield, field, end_of_file, error)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: unit, ionode_id, comm
-        LOGICAL, INTENT(IN) :: ionode
+        INTEGER, INTENT(IN) :: unit
         CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: field
         INTEGER, OPTIONAL, INTENT(IN) :: nfield
         !
@@ -357,6 +355,7 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     !------------------------------------------------------------------------------------
     !
     USE env_mp, ONLY: env_mp_abort, env_mp_rank
+    USE env_base_io, ONLY: ionode
     USE env_io, ONLY: env_find_free_unit
     USE env_utils_param
     !
@@ -374,6 +373,10 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     CHARACTER(LEN=6) :: cerr
     !
     !------------------------------------------------------------------------------------
+    !
+    ! #TODO figure this out
+    !
+    ! IF (.NOT. ionode) CALL env_mp_abort(1, MPI_COMM_WORLD) ! #TODO what if ionode != 0?
     !
     IF (ierr <= 0) RETURN
     !

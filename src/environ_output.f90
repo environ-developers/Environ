@@ -30,8 +30,10 @@
 MODULE environ_output
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io
     USE env_io, ONLY: env_find_free_unit
     USE env_mp, ONLY: env_mp_sum
+    USE env_char_ops, ONLY: env_uppercase
     !
     USE env_types_fft, ONLY: env_fft_type_descriptor
     USE env_base_scatter, ONLY: env_gather_grid
@@ -61,22 +63,6 @@ MODULE environ_output
     !
     IMPLICIT NONE
     !
-    SAVE
-    !
-    LOGICAL :: ionode = .TRUE.
-    INTEGER :: ionode_id
-    !
-    LOGICAL :: lstdout ! whether environ can print on standard output
-    !
-    INTEGER :: comm ! WE MAY NEED A SECOND COMMUNICATOR FOR IMAGE PARALLELIZATION
-    !
-    INTEGER :: program_unit
-    INTEGER :: environ_unit
-    INTEGER :: verbose
-    INTEGER :: depth = 1
-    !
-    CHARACTER(LEN=2) :: prog
-    !
     INTEGER, PARAMETER :: nbibliography = 6
     CHARACTER(LEN=80) :: bibliography(nbibliography)
     !
@@ -84,8 +70,7 @@ MODULE environ_output
     !
     PRIVATE
     !
-    PUBLIC :: ionode, ionode_id, lstdout, comm, program_unit, environ_unit, verbose, &
-              prog, set_environ_output, update_output_program_unit, &
+    PUBLIC :: set_environ_output, update_output_program_unit, &
               print_environ_density, print_environ_gradient, print_environ_hessian, &
               print_environ_functions, print_environ_iontype, print_environ_ions, &
               print_environ_electrons, print_environ_externals, print_environ_charges, &
@@ -150,14 +135,11 @@ CONTAINS
         program_unit = program_unit_
         environ_unit = env_find_free_unit()
         !
-        prog = prog_(1:2)
+        prog = env_uppercase(prog_(1:2))
         !
         SELECT CASE (prog)
             !
-        CASE ('PW', 'pw')
-            lstdout = .TRUE.
-            !
-        CASE ('CP', 'cp')
+        CASE ('PW', 'CP')
             lstdout = .TRUE.
             !
         CASE DEFAULT
@@ -1656,7 +1638,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (prog == 'PW') THEN
+            SELECT CASE (prog)
+                !
+            CASE ('PW')
                 !
                 IF (lelectrostatic) WRITE (program_unit, 9201) eelectrostatic
                 !
@@ -1669,7 +1653,8 @@ CONTAINS
                 IF (lconfine) WRITE (program_unit, 9206) econfine
                 !
                 WRITE (program_unit, 9204) deenviron
-            ELSE IF (prog == 'CP') THEN
+                !
+            CASE ('CP')
                 !
                 IF (lelectrostatic) WRITE (program_unit, 9301) eelectrostatic
                 !
@@ -1682,9 +1667,11 @@ CONTAINS
                 IF (lconfine) WRITE (program_unit, 9306) econfine
                 !
                 WRITE (program_unit, 9304) deenviron
-            ELSE
+                !
+            CASE DEFAULT
                 CALL env_errore(sub_name, 'Wrong program calling Environ', 1)
-            END IF
+                !
+            END SELECT
             !
         END IF
         !

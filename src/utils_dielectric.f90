@@ -38,6 +38,8 @@
 MODULE utils_dielectric
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    !
     USE environ_param, ONLY: DP, e2, fpi
     !
     USE types_physical, ONLY: environ_dielectric, environ_boundary
@@ -57,7 +59,7 @@ MODULE utils_dielectric
     USE tools_functions, ONLY: density_of_functions, gradient_of_functions, &
                                laplacian_of_functions
     !
-    USE environ_output, ONLY: verbose, print_environ_density
+    USE environ_output, ONLY: print_environ_density
     !
     !------------------------------------------------------------------------------------
     !

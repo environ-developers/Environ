@@ -29,6 +29,8 @@
 MODULE init_environ
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: prog, environ_unit
+    !
     USE environ_param, ONLY: DP, e2, bohr_radius_si, rydberg_si
     !
     USE base_environ
@@ -59,7 +61,7 @@ MODULE init_environ
     USE init_core, ONLY: core_initbase, core_initcell, core_initions, core_clean
     USE init_electrostatic, ONLY: electrostatic_clean
     !
-    USE environ_output, ONLY: environ_unit, print_environ_ions, print_environ_system, &
+    USE environ_output, ONLY: print_environ_ions, print_environ_system, &
                               print_environ_boundary, print_environ_dielectric, &
                               print_environ_electrolyte, print_environ_electrons
     !
@@ -78,7 +80,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_base(prog, nelec, nat, ntyp, atom_label, &
+    SUBROUTINE set_environ_base(nelec, nat, ntyp, atom_label, &
                                 atomicspread, corespread, solvationrad, &
                                 environ_restart_, environ_thr_, environ_nskip_, &
                                 environ_type, system_ntyp, system_dim, system_axis, &
@@ -144,7 +146,7 @@ CONTAINS
                                 epsregion_pos(:, :), epsregion_spread(:), &
                                 epsregion_width(:)
         !
-        CHARACTER(LEN=*), INTENT(IN) :: prog, environ_type, &
+        CHARACTER(LEN=*), INTENT(IN) :: environ_type, &
                                         solvent_mode, radius_mode, &
                                         electrolyte_mode, electrolyte_entropy, &
                                         derivatives_
@@ -159,7 +161,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! TDDFPT flag
         !
-        SELECT CASE (prog(1:2))
+        SELECT CASE (prog)
             !
         CASE ('TD')
             ltddfpt = .TRUE.

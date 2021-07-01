@@ -102,7 +102,7 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
       CALL set_environ_output(prog, ionode, ionode_id, intra_image_comm, stdout)\
-      CALL read_environ(prog, 1, nat, ntyp, atm, do_comp_mt)\
+      CALL read_environ(1, nat, ntyp, atm, do_comp_mt)\
    ENDIF\
 !Environ patch
 ' tmp.1 >tmp.2

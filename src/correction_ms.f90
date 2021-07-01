@@ -16,6 +16,7 @@
 MODULE correction_ms
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, verbose, environ_unit
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, e2, fpi, k_boltzmann_ry, pi, tpi
@@ -29,8 +30,6 @@ MODULE correction_ms
     USE utils_gradient, ONLY: init_environ_gradient, destroy_environ_gradient
     !
     USE tools_math, ONLY: multipoles_environ_density
-    !
-    USE environ_output, ONLY: ionode, verbose, environ_unit
     !
     !------------------------------------------------------------------------------------
     !
