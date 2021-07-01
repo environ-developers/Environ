@@ -92,7 +92,6 @@ MODULE types_physical
         LOGICAL :: use_core_electrons = .FALSE.
         TYPE(environ_functions), ALLOCATABLE :: core_electrons(:)
         TYPE(environ_density) :: core
-        TYPE(environ_density), ALLOCATABLE :: vloc(:)
         !
         REAL(DP) :: charge = 0.0_DP
         REAL(DP) :: quadrupole_correction

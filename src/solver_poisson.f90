@@ -196,9 +196,7 @@ CONTAINS
         ! Using a local variable for the potential because the routine may be
         ! called with the same argument for charges and potential
         !
-        llab = 'vloc'
-        !
-        CALL create_environ_density(local, llab)
+        CALL create_environ_density(local)
         !
         CALL init_environ_density(cell, local)
         !

@@ -797,20 +797,14 @@ CONTAINS
     !! be the most efficient choice, but it is a safe choice.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initions(nnr, nat, ntyp, ityp, zv, tau, vloc)
+    SUBROUTINE environ_initions(nnr, nat, ntyp, ityp, zv, tau)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr, nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
-        REAL(DP), INTENT(IN) :: zv(ntyp)
-        REAL(DP), INTENT(IN) :: tau(3, nat)
-        REAL(DP), INTENT(IN) :: vloc(nnr, ntyp)
-        !
-        INTEGER :: ia, it, dim, axis, icor, max_ntyp
-        REAL(DP) :: charge, spread, dist, pos(3)
-        REAL(DP), ALLOCATABLE :: aux(:, :)
+        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         !
         !--------------------------------------------------------------------------------
         !
@@ -819,9 +813,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL init_environ_ions_second(nat, ntyp, nnr, ityp, zv, system_cell, system_ions)
         ! second step of initialization for system ions
-        CALL init_environ_ions_second(nat, ntyp, nnr, ityp, zv, system_cell, &
-                                      system_ions, vloc)
         !
         !--------------------------------------------------------------------------------
         ! Update system ions parameters
@@ -847,26 +840,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Second step of initialization for environment ions
         !
-        IF (ldoublecell) THEN
-            ALLOCATE (aux(environment_cell%nnr, ntyp))
-            !
-            DO it = 1, ntyp
-                !
-                CALL map_small_to_large(mapping, nnr, environment_cell%nnr, &
-                                        vloc(:, it), aux(:, it))
-                !
-            END DO
-            !
-            CALL init_environ_ions_second(nat, ntyp, environment_cell%nnr, ityp, zv, &
-                                          environment_cell, environment_ions, aux)
-            !
-            DEALLOCATE (aux)
-        ELSE
-            !
-            CALL init_environ_ions_second(nat, ntyp, environment_cell%nnr, ityp, zv, &
-                                          environment_cell, environment_ions, vloc)
-            !
-        END IF
+        CALL init_environ_ions_second(nat, ntyp, environment_cell%nnr, ityp, zv, &
+                                      environment_cell, environment_ions)
         !
         !--------------------------------------------------------------------------------
         ! Update environment ions parameters

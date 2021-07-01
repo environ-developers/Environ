@@ -182,9 +182,6 @@ CONTAINS
         !
         CALL create_environ_density(ions%core, label)
         !
-        IF (ALLOCATED(ions%vloc)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
         RETURN
         !
         !--------------------------------------------------------------------------------
@@ -242,8 +239,6 @@ CONTAINS
         !
         ALLOCATE (ions%iontype(ntyp))
         !
-        ALLOCATE (ions%vloc(ntyp))
-        !
         DO i = 1, ntyp
             !
             CALL set_iontype_defaults(i, atom_label(i), radius_mode, ions%iontype(i))
@@ -272,8 +267,6 @@ CONTAINS
                 CALL env_errore(sub_name, &
                                 'Missing atomic spread for one of the atom types', 1)
             !
-            CALL create_environ_density(ions%vloc(i))
-            !
         END DO
         !
         ions%use_smeared_ions = lsmearedions
@@ -289,7 +282,7 @@ CONTAINS
     !! charges and whether we need to compute the smeared density or not
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions_second(nat, ntyp, nnr, ityp, zv, cell, ions, vloc)
+    SUBROUTINE init_environ_ions_second(nat, ntyp, nnr, ityp, zv, cell, ions)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -298,7 +291,6 @@ CONTAINS
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
         TYPE(environ_cell), INTENT(IN) :: cell
-        REAL(DP), OPTIONAL, INTENT(IN) :: vloc(nnr, ntyp)
         !
         TYPE(environ_ions), INTENT(INOUT) :: ions
         !
@@ -320,21 +312,6 @@ CONTAINS
         !
         DO i = 1, ions%ntyp
             ions%iontype(i)%zv = -zv(i)
-            !
-            !----------------------------------------------------------------------------
-            ! Store pseudopotential in R-space in ions%vloc%of_r
-            !
-            IF (PRESENT(vloc)) THEN
-                !
-                !------------------------------------------------------------------------
-                ! Input/reference potentials in system cell
-                !
-                IF (.NOT. ASSOCIATED(ions%vloc(i)%cell)) &
-                    CALL init_environ_density(cell, ions%vloc(i))
-                !
-                ions%vloc(i)%of_r = vloc(:, i)
-            END IF
-            !
         END DO
         !
         ions%charge = 0.D0
@@ -520,8 +497,6 @@ CONTAINS
         !
         TYPE(environ_ions), INTENT(INOUT) :: ions
         !
-        INTEGER :: i
-        !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_ions'
         !
         !--------------------------------------------------------------------------------
@@ -537,11 +512,6 @@ CONTAINS
             END IF
             !
             ions%charge = 0.D0
-            !
-            DO i = 1, ions%ntyp
-                CALL destroy_environ_density(ions%vloc(i))
-            END DO
-            !
             ions%initialized = .FALSE.
             !
         END IF
@@ -562,7 +532,6 @@ CONTAINS
                 CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
             !
             DEALLOCATE (ions%tau)
-            DEALLOCATE (ions%vloc)
             !
         END IF
         !

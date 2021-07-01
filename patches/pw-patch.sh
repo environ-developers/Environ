@@ -257,37 +257,16 @@ USE init_environ,         ONLY : environ_initions\
 USE fft_interfaces,       ONLY : invfft\
 USE gvect,                ONLY : igtongl\
 USE control_flags,        ONLY : gamma_only\
-USE vlocal,               ONLY : vloc\
 !Environ patch
 ' plugin_init_ions.f90 >tmp.1
 
-sed '/Environ VARIABLES BEGIN/ a\
+sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-INTEGER :: i\
-COMPLEX( DP ), DIMENSION(:), ALLOCATABLE :: aux\
-REAL( DP ), DIMENSION(:,:), ALLOCATABLE :: vloc_of_r\
+IF (use_environ) CALL environ_initions(dfftp%nnr, nat, nsp, ityp, zv, tau)\
 !Environ patch
 ' tmp.1 >tmp.2
 
-sed '/Environ CALLS BEGIN/ a\
-!Environ patch\
-IF ( use_environ ) THEN\
-   ALLOCATE(aux(dfftp%nnr))\
-   ALLOCATE(vloc_of_r(dfftp%nnr,nsp))\
-   DO i = 1, nsp\
-      aux(dfftp%nl(:)) = CMPLX( vloc(igtongl(:),i), 0.0_DP, KIND=DP )\
-      IF ( gamma_only ) aux(dfftp%nlm(:)) = CONJG( aux(dfftp%nl(:)) )\
-      CALL invfft( "Rho", aux, dfftp )\
-      vloc_of_r(:,i) = DBLE( aux(:) )\
-   ENDDO\
-   CALL environ_initions( dfftp%nnr, nat, nsp, ityp, zv, tau, vloc_of_r )\
-   DEALLOCATE(aux)\
-   DEALLOCATE(vloc_of_r)\
-ENDIF\
-!Environ patch
-' tmp.2 >tmp.1
-
-mv tmp.1 plugin_init_ions.f90
+mv tmp.2 plugin_init_ions.f90
 
 # plugin_init_cell
 
