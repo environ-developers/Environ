@@ -6,7 +6,7 @@
    <toc>
    </toc>
    <intro>
-    <b>Input data format:</b> { } = optional, [ ] = it depends, | = or
+<b>Input data format:</b> { } = optional, [ ] = it depends, | = or
 
 All quantities whose dimensions are not explicitly specified are in
 RYDBERG ATOMIC UNITS. Charge is &quot;number&quot; charge (i.e. not multiplied
@@ -17,245 +17,87 @@ by e); potentials are in energy units (i.e. they are multiplied by e).
 Comment lines in <i>namelists</i> can be introduced by a &quot;!&quot;, exactly as in fortran
 code. Comments lines in <i>cards</i> can be introduced by either a &quot;!&quot; or a &quot;#&quot;
 character in the first position of a line.
+
 Do not start any line in <i>cards</i> with a &quot;/&quot; character.
 
 <b>Structure of the environ.in input file:</b>
 ===============================================================================
 
 <b>&amp;ENVIRON</b>
-  ...
+    ...
 <b>/</b>
 
 [ <b>&amp;BOUNDARY</b>
-  ...
-  <b>/</b> ]
+    ...
+<b>/</b> ]
 
 [ <b>&amp;ELECTROSTATIC</b>
-  ...
-  <b>/</b> ]
+    ...
+<b>/</b> ]
 
 [ <b>EXTERNAL_CHARGES</b> { bohr | angstrom }
-   Q1 0.0 0.0 0.0 { spread_Q1 dim_Q1 axis_Q1 }
-   Q2 0.5 0.0 0.0 { spread_Q2 dim_Q2 axis_Q2 } ]
+    Q1 0.0 0.0 0.0 { spread_Q1 dim_Q1 axis_Q1 }
+    Q2 0.5 0.0 0.0 { spread_Q2 dim_Q2 axis_Q2 } ]
 
 [ <b>DIELECTRIC_REGIONS</b> { bohr | angstrom }
-   EPSst_E1 EPSopt_E1 0.0 0.0 0.0 width_E1 { spread_E1 dim_E1 axis_E1 }
-   EPSst_E2 EPSopt_E2 0.0 0.0 0.0 width_E2 { spread_E2 dim_E2 axis_E2 } ]
+    EPSst_E1 EPSopt_E1 0.0 0.0 0.0 width_E1 { spread_E1 dim_E1 axis_E1 }
+    EPSst_E2 EPSopt_E2 0.0 0.0 0.0 width_E2 { spread_E2 dim_E2 axis_E2 } ]
    </intro>
    <namelist name="ENVIRON" >
       <label> This namelist is always needed !
       </label>
-      <var name="environ_type" type="CHARACTER" >
-         <default> &apos;input&apos;
+      <dimension name="atomicspread" start="1" end="ntyp" type="REAL" >
+         <default> -0.5D0
          </default>
          <info>
-Set up all of the environment embedding flags and interface
-parameters according to predefined types:
-
-&apos;input&apos;:
-         Do not use predefined types, read the flags of the different contribution from input
-         or use the defauls values (which correspond to no contributions).
-
-&apos;vacuum&apos;:
-         All environment embeddings are turned off, but pbc corrections, external charges and
-         electrolyte charges can be present.
-
-&apos;water&apos;:
-         Set up the main physical constants to the experimental values for water at room temperature
-         ( env_static_permittivity = 78.3 ). Set the tunable embedding flags to the values optimized
-         to reproduce aqueous solvation of small neutral organic compounds, corresponding to
-         non-electrostatic contributions modelled via pressure ( env_pressure = -0.35 GPa )
-         and surface tension ( env_surface_tension = 50 dyn/cm ) effects (see references below).
-         For electrons-dependent interfaces (self-consistent continuum solvation, SCCS), set soft
-         interface parameters to the optimal values ( rhomax = 0.005; rhomin = 0.0001)
-         derived in O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012).
-         For ions-dependent interfaces (soft-sphere continuum solvation, SSCS), set rigid
-         interface parameter to the optimal value ( alpha = 1.12 ) derived in
-         G. Fisicaro et al. J. Chem. Theory Comput. 13, 8, 3829 (2017).
-
-&apos;water-cation&apos;:
-         Set up the main physical constants to the experimental values for water at room temperature
-         ( env_static_permittivity = 78.3 ). Set the tunable embedding flags to the values optimized
-         to reproduce aqueous solvation of small organic cations.
-         SCCS parameters ( env_pressure = 0.125 GPa; env_surface_tension = 5.0 dyn/cm;
-         rhomax = 0.0035;  rhomin = 0.0002 ) were derived in C. Dupont, O. Andreussi and
-         N. Marzari, J. Chem. Phys. 139, 214110 (2013)
-         SSCS parameters ( env_pressure = -0.35 GPa; env_surface_tension = 50.0 dyn/cm;
-         alpha = 1.10 ) were derived in G. Fisicaro et al. J. Chem. Theory Comput.
-         13, 8, 3829 (2017).
-
-&apos;water-anion&apos;:
-         Set up the main physical constants to the experimental values for water at room temperature
-         ( env_static_permittivity = 78.3 ). Set the tunable embedding flags to the values optimized
-         to reproduce aqueous solvation of small organic cations.
-         SCCS parameters ( env_pressure = 0.45 GPa; env_surface_tension = 0.0 dyn/cm;
-         rhomax = 0.0155;  rhomin = 0.0024 ) were derived in C. Dupont, O. Andreussi and
-         N. Marzari, J. Chem. Phys. 139, 214110 (2013)
-         SSCS parameters ( env_pressure = -0.35 GPa; env_surface_tension = 50.0 dyn/cm;
-         alpha = 0.98 ) were derived in G. Fisicaro et al. J. Chem. Theory Comput.
-         13, 8, 3829 (2017).
+In the calculation of electrostatic contributions, ionic charge densities are modelled
+as gaussians of fixed spread, as specified by atomicspread(ityp) for each atomic type.
+Results are identical to using point-like charges (as is usually done in PW), unless the gaussian
+spreads are too large. The default value of 0.5 a.u. was derived to be safe enough in most
+common atom types. Too small of a value may require larger density cutoffs (ecutrho).
          </info>
          <status> OPTIONAL
          </status>
-      </var>
-      <var name="verbose" type="INTEGER" >
-         <default> 0
-         </default>
-         <info>
-Control the amount of output written to specific output files, mostly useful for debugging purposes
-
-verbose .EQ. 0  minimal information written to standard output
-verbose .EQ. 1  additional information written to environ.debug file
-verbose .EQ. 2  dumping of main physical quantities on the real-space grid in the form of
-                  *.cube files (only at the end of each SCF cycle)
-verbose .GE. 3  dumping of several intermediate physical quantites on the real-space grid
-                as this is done at every SCF step it will slow down the calculation significantly
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="environ_restart" type="LOGICAL" >
-         <default> .false.
-         </default>
-         <info>
-Compute environ contributions during the initialization step, useful for &apos;restart&apos; calculations
-and systems with a good-enough initial guess.
-Must be set to activate environ in nscf calculations.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="oldenviron" type="LOGICAL" >
-         <default> .false.
-         </default>
-         <info>
-Use some legacy code in order to compare with results from Environ v0.2
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="environ_thr" type="REAL" >
-         <default> 1.d-1
-         </default>
-         <info>
-Only include/update environment contributions when SCF accuracy is below this threshold.
-Since the environment region is defined in terms of the electronic density, the test is done
-in order to avoid computing unphysical environment contributions, usually to skip the
-environ calculation during the first couple of SCF step.
-
-IMPORTANT: as the SCF accuracy is an extensive property (increases with the number of electrons in
-the system), the optimal environ_thr will also vary with system size.
-         </info>
-         <status> IMPORTANT. The default value is only valid for small systems, while is too conservative for larger systems
-         </status>
-      </var>
-      <var name="environ_nskip" type="INTEGER" >
-         <default> 1
-         </default>
-         <info>
-Only include/update environment contributions after the first environ_nskip steps of CP dynamics.
-         </info>
-      </var>
-      <var name="system_ntyp" type="INTEGER" >
-         <default> 0
-         </default>
-         <info>
-Specify the atom types that are used to determine the origin and size of the embedded system,
-for system-dependent properties in Environ (e.g. see later system-dependent boundary)
-Atom types up to system_ntyp are used, all atoms are used by default or if system_ntyp == 0.
-         </info>
-      </var>
-      <var name="system_dim" type="INTEGER" >
-         <default> 0
-         </default>
-         <info>
-Dimensionality of the embedded system, used to determine size (only ortogonally to periodic
-dimensions) and position (0 = 0D, 1 = 1D, 2 = 2D).
-         </info>
-      </var>
-      <var name="system_axis" type="INTEGER" >
-         <default> 3
-         </default>
-         <info>
-Main axis of the embedded system, only necessary for partially periodic systems
-(1 = x, 2 = y, 3 = z).
-         </info>
-      </var>
-      <var name="env_electrostatic" type="LOGICAL" >
-         <default> .false.
-         </default>
-         <info>
-Generic keyword that flags the need to read the &amp;ELECTROSTATIC namelist. Any electrostatic
-embedding keyword (env_static_permittivity, env_electrolyte_ntyp) will turn this keyword on.
-One needs to turn on explicitly this keyword to activate electrostatic embedding effects
-that do not have a specific activation keyword, such as for PBC correction schemes.
-         </info>
-         <status> REQUIRED
-         </status>
-      </var>
-      <var name="env_static_permittivity" type="REAL" >
+      </dimension>
+      <dimension name="cion" start="1" end="env_electrolyte_ntyp" type="REAL" >
          <default> 1.D0
          </default>
          <info>
-Static dielectric permittivity of the elctrostatic continuum embedding model.
-This keyword (like all the env_* keywords) is also the flag which controls the activation
-of the specific contribution: if set equal to one (=vacuum) no dielectric effects from the environment.
+Molar concentration of ionic countercharge (in mol/L).
          </info>
-         <status> REQUIRED
+         <status> OPTIONAL
          </status>
-      </var>
-      <var name="env_optical_permittivity" type="REAL" >
-         <default> 1.D0
+      </dimension>
+      <var name="cionmax" type="REAL" >
+         <default> 1.D3
          </default>
          <info>
-Optical dielectric permittivity of the electrostatic continuum embedding model,
-only needed for TDDFPT calculations. If set equal to one (=vacuum) no dielectric
-effects in linear response calculations.
+Maximum molar concentration of ionic countercharge (in mol/L).
          </info>
-         <status> REQUIRED
+         <status> OPTIONAL
          </status>
       </var>
-      <var name="env_surface_tension" type="REAL" >
-         <default> 0.D0
+      <var name="electrolyte_entropy" type="CHARACTER" >
+         <default> &apos;full&apos;
          </default>
          <info>
-Surface tension (gamma) of the environment in CGS units dyn/cm.
-This keyword controls the activation of the surface-dependent contribution to
-the solute&apos;s Hamiltonian (gamma*S): if set equal to 0.D0 no surface
-contribution from the environment.
+Keyword to set the electrolyte entropy terms that are affected by the Stern-layer correction.
 
-This contribution may be straighforwardly used to compute cavitation free energies,
-as proposed by Scherlis et al. in J. Chem. Phys. 124, 074103 (2006).
-NOTE that the current implementation uses an improved definition of the
-quantum-surface O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012).
-This contribution can also be used as a simplified approach to the more general
-non-electrostatic contributions to solvation, as in the SCCS approach.
-In this second case, env_surface_tension needs not to correspond to the
-real surface tension of the solvent, but is used as a fitting parameter.
-See O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+&apos;ions&apos; : only ionic terms (Ringe et al. J. Chem. Theory Comput. 12, 4052).
+&apos;full&apos; : all terms (Dabo et al. arXiv 0901.0096).
          </info>
-         <status> REQUIRED
+         <status> OPTIONAL
          </status>
       </var>
-      <var name="env_pressure" type="REAL" >
-         <default> 0.D0
+      <var name="electrolyte_linearized" type="LOGICAL" >
+         <default> .FALSE.
          </default>
          <info>
-External pressure (P) of the environment in GPa.
-This keyword controls the activation of the volume-dependet contribution to
-the solute&apos;s Hamiltonian (P*V): if set equal to 0.D0 no volume contribution
-from the environment.
-
-This contribution may be straightforwardly used to compute the electronic entalpy,
-i.e. to model finite systems under pressure, as proposed by M. Cococcioni et al. in
-Phys. Rev. Lett. 94, 145501 (2005). This contribution can also be used as a simplified
-approach to more complex and general non-electrostatic contributions to solvation,
-as in the SCCS approach. In this second case, env_pressure needs not correspond to the
-real external pressure of the environment, but is used as a fitting parameter
-(and can assume negative values). See O. Andreussi, I. Dabo and N. Marzari,
-J. Chem. Phys. 136 064102 (2012)
+Controls if the linear-regime approximation is employed for the electrolyte model.
+It can be used in combination with the numerical Poisson-Boltzmann (PB) model as well as with the
+Gouy-Chapman-Stern correction that exploits the 1D-solution of the PB equation (see pbc_correction).
          </info>
-         <status> REQUIRED
+         <status> OPTIONAL
          </status>
       </var>
       <var name="env_confine" type="REAL" >
@@ -263,8 +105,9 @@ J. Chem. Phys. 136 064102 (2012)
          </default>
          <info>
 Confinement potential barrier in Rydberg atomic units.
+
 This keyword controls the activation of the confinement potential contribution
-to the solute&apos;s Hamiltonian: if set equal to 0.D0 no confinement contribution
+to the solute&apos;s Hamiltonian. A value of 0.D0 means no confinement contribution
 from the environment.
 
 The confinement potential may be used to favour electron localization: a potential that
@@ -275,24 +118,13 @@ delocalized states.
          <status> REQUIRED
          </status>
       </var>
-      <var name="env_external_charges" type="INTEGER" >
-         <default> 0
-         </default>
-         <info>
-Number of fixed external charges. This keyword controls how many fixed external densities of charge need to be
-included in the simulation box. Shape, position and amount of charge of each external density need to be specified
-in the EXTERNAL_CHARGES card.
-         </info>
-         <status> REQUIRED
-         </status>
-      </var>
       <var name="env_dielectric_regions" type="INTEGER" >
          <default> 0
          </default>
          <info>
-Number of fixed dielectric regions. This keyword controls how many regions of fixed permittivities (static and optical)
-need to be included in the simulation box. Shape, position and permittivities of each region need to be specified
-in the DIELECTRIC_REGIONS card.
+Number of fixed dielectric regions. This keyword controls how many regions of fixed
+permittivities (static and optical) need to be included in the simulation box. Shape,
+position, and permittivities of each region need to be specified in the DIELECTRIC_REGIONS card.
          </info>
          <status> REQUIRED
          </status>
@@ -301,48 +133,224 @@ in the DIELECTRIC_REGIONS card.
          <default> 0
          </default>
          <info>
-Number counter-charge species to be added in the continuum region modelling the electrolyte (if different
-from zero, must be greater or equal to 2, in order for the electrolyte to be charge neutral).
+Number of countercharge species to be added in the continuum region modelling
+the electrolyte. If different from zero, must be greater or equal to 2 in order
+for the electrolyte to be charge neutral.
          </info>
          <status> REQUIRED
          </status>
       </var>
-      <var name="electrolyte_entropy" type="CHARACTER" >
-         <default> &apos;full&apos;
-         </default>
-         <info>
-Keyword to set the electrolyte entropy terms that are affected by the Stern-layer correction.
-&apos;ions&apos; : only ionic terms ( Ringe et al. J. Chem. Theory Comput. 12, 4052 ).
-&apos;full&apos; : all terms ( Dabo et al. arXiv 0901.0096 ).
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="electrolyte_linearized" type="LOGICAL" >
+      <var name="env_electrostatic" type="LOGICAL" >
          <default> .FALSE.
          </default>
          <info>
-Control if the linear-regime approximation is employed for the electrolyte model.
-It can be used in combination with the numerical Poisson-Boltzmann (PB) model as well as with the
-Gouy-Chapman-Stern correction that exploits the 1D-solution of the PB equation (see pbc_correction).
+Generic keyword that flags the need to read the &amp;ELECTROSTATIC namelist. Any electrostatic
+embedding keyword (env_static_permittivity, env_electrolyte_ntyp) will turn this keyword on.
+One needs to turn on this keyword explicitly to activate electrostatic embedding effects
+that do not have a specific activation keyword, such as for PBC correction schemes.
          </info>
-         <status> OPTIONAL
+         <status> REQUIRED
          </status>
       </var>
-      <dimension name="cion" start="1" end="env_electrolyte_ntyp" type="REAL" >
-         <default> 1.0
+      <var name="env_external_charges" type="INTEGER" >
+         <default> 0
          </default>
          <info>
-Molar concentration of ionic countercharge (in mol/L).
+Number of fixed external charges. This keyword controls how many fixed external densities
+of charge need to be included in the simulation box. Shape, position, and amount of charge
+of each external density need to be specified in the EXTERNAL_CHARGES card.
+         </info>
+         <status> REQUIRED
+         </status>
+      </var>
+      <dimension name="env_nrep" start="1" end="3" type="INTEGER" >
+         <default> 0
+         </default>
+         <info>
+Number of additional replicas of the system cell on each side along the three axis.
+nrep = 1 means there is one more cell on the left and on the right of the cell.
+The environment cell is (2*nrep+1) times the system cell along the three axis.
          </info>
          <status> OPTIONAL
          </status>
       </dimension>
-      <var name="cionmax" type="REAL" >
-         <default> 0.D0
+      <var name="env_optical_permittivity" type="REAL" >
+         <default> 1.D0
          </default>
          <info>
-Maximum molar concentration of ionic countercharge (in mol/L).
+Optical dielectric permittivity of the electrostatic continuum embedding model,
+only needed for TDDFPT calculations. A value of 1 (=vacuum) means no dielectric
+effects in linear response calculations.
+         </info>
+         <status> REQUIRED
+         </status>
+      </var>
+      <var name="env_pressure" type="REAL" >
+         <default> see below
+         </default>
+         <info>
+External pressure (P) of the environment in GPa.
+
+This keyword controls the activation of the volume-dependent contribution to
+the solute&apos;s Hamiltonian (P*V). A value of 0.D0 means no volume contribution
+from the environment.
+
+This contribution may be straightforwardly used to compute the electronic enthalpy,
+i.e. to model finite systems under pressure, as proposed by M. Cococcioni et al. in
+Phys. Rev. Lett. 94, 145501 (2005). This contribution can also be used as a simplified
+approach to more complex and general non-electrostatic contributions to solvation,
+as in the SCCS approach. In this second case, env_pressure needs not correspond to the
+real external pressure of the environment, but is used as a fitting parameter
+(and can assume negative values).
+
+See O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full :
+    environ_type .EQ. input | vacuum : 0.D0
+    environ_type .EQ. water          : -0.35D0
+    environ_type .EQ. water-cation   : 0.125D0
+    environ_type .EQ. water-anion    : 0.450D0
+
+solvent_mode .EQ. ionic : -0.35D0
+         </info>
+         <status> REQUIRED
+         </status>
+      </var>
+      <var name="env_static_permittivity" type="REAL" >
+         <default> see below
+         </default>
+         <info>
+Static dielectric permittivity of the electrostatic continuum embedding model.
+
+This keyword (like all the env_* keywords) is also the flag which controls the
+activation of the specific contribution. A value of 1 (=vacuum) means no dielectric
+effects from the environment.
+
+DEFAULT:
+
+environ_type .EQ. water | water-cation | water-anion : 78.3D0
+environ_type .EQ. input | vacuum                     : 1.D0
+         </info>
+         <status> REQUIRED
+         </status>
+      </var>
+      <var name="env_surface_tension" type="REAL" >
+         <default> see below
+         </default>
+         <info>
+Surface tension (gamma) of the environment in CGS units dyn/cm.
+
+This keyword controls the activation of the surface-dependent contribution to
+the solute&apos;s Hamiltonian (gamma*S). A value of 0.D0 means no surface
+contribution from the environment.
+
+This contribution may be straightforwardly used to compute cavitation free energies,
+as proposed by Scherlis et al. in J. Chem. Phys. 124, 074103 (2006).
+NOTE that the current implementation uses an improved definition of the quantum-surface.
+This contribution can also be used as a simplified approach to the more general
+non-electrostatic contributions to solvation, as in the SCCS approach.
+In this second case, env_surface_tension does not need to correspond to the
+real surface tension of the solvent, but is used as a fitting parameter.
+
+See O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full :
+    environ_type .EQ. input | vacuum | water-anion : 0.D0
+    environ_type .EQ. water                        : 50.D0
+    environ_type .EQ. water-cation                 : 5.D0
+
+solvent_mode .EQ. ionic : 50.D0
+         </info>
+         <status> REQUIRED
+         </status>
+      </var>
+      <var name="environ_nskip" type="INTEGER" >
+         <default> 1
+         </default>
+         <info>
+Only include/update environment contributions after the first environ_nskip steps of CP dynamics.
+         </info>
+      </var>
+      <var name="environ_restart" type="LOGICAL" >
+         <default> .FALSE.
+         </default>
+         <info>
+Compute environ contributions during the initialization step, useful for &apos;restart&apos; calculations
+and systems with a good-enough initial guess.
+
+Must be set to activate environ in nscf calculations.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="environ_thr" type="REAL" >
+         <default> 1.D-1
+         </default>
+         <info>
+Only include/update environment contributions when SCF accuracy is below this threshold.
+Since the environment region is defined in terms of the electronic density, the test is done
+in order to avoid computing unphysical environment contributions, usually to skip the
+environ calculation during the first couple of SCF step.
+
+IMPORTANT: as the SCF accuracy is an extensive property (increases with the number of electrons in
+the system), the optimal environ_thr will also vary with system size.
+         </info>
+         <status> IMPORTANT - the default value is only valid for small systems - too conservative for larger systems
+         </status>
+      </var>
+      <var name="environ_type" type="CHARACTER" >
+         <default> &apos;input&apos;
+         </default>
+         <info>
+Set up all of the environment embedding flags and interface
+parameters according to predefined types:
+
+&apos;input&apos;:
+    Do not use predefined types, read the flags of the different contribution from input
+    or use the defaults values (which correspond to no contributions).
+
+&apos;vacuum&apos;:
+    All environment embeddings are turned off, but pbc corrections, external charges and
+    electrolyte charges can be present.
+
+&apos;water&apos;:
+    Set up the main physical constants to the experimental values for water at room temperature
+    (env_static_permittivity = 78.3). Set the tunable embedding flags to the values optimized
+    to reproduce aqueous solvation of small neutral organic compounds, corresponding to
+    non-electrostatic contributions modelled via pressure (env_pressure = -0.35 GPa)
+    and surface tension (env_surface_tension = 50 dyn/cm) effects (see references below).
+    For electrons-dependent interfaces (self-consistent continuum solvation, SCCS), set soft
+    interface parameters to the optimal values (rhomax = 0.005; rhomin = 0.0001)
+    derived in O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012).
+    For ions-dependent interfaces (soft-sphere continuum solvation, SSCS), set rigid
+    interface parameter to the optimal value (alpha = 1.12) derived in
+    G. Fisicaro et al. J. Chem. Theory Comput. 13, 8, 3829 (2017).
+
+&apos;water-cation&apos;:
+    Set up the main physical constants to the experimental values for water at room temperature
+    (env_static_permittivity = 78.3). Set the tunable embedding flags to the values optimized
+    to reproduce aqueous solvation of small organic cations.
+    SCCS parameters (env_pressure = 0.125 GPa; env_surface_tension = 5.0 dyn/cm;
+    rhomax = 0.0035;  rhomin = 0.0002) were derived in C. Dupont, O. Andreussi and
+    N. Marzari, J. Chem. Phys. 139, 214110 (2013)
+    SSCS parameters (env_pressure = -0.35 GPa; env_surface_tension = 50.0 dyn/cm;
+    alpha = 1.10) were derived in G. Fisicaro et al. J. Chem. Theory Comput.
+    13, 8, 3829 (2017).
+
+&apos;water-anion&apos;:
+    Set up the main physical constants to the experimental values for water at room temperature
+    (env_static_permittivity = 78.3). Set the tunable embedding flags to the values optimized
+    to reproduce aqueous solvation of small organic cations.
+    SCCS parameters (env_pressure = 0.45 GPa; env_surface_tension = 0.0 dyn/cm;
+    rhomax = 0.0155;  rhomin = 0.0024) were derived in C. Dupont, O. Andreussi and
+    N. Marzari, J. Chem. Phys. 139, 214110 (2013)
+    SSCS parameters (env_pressure = -0.35 GPa; env_surface_tension = 50.0 dyn/cm;
+    alpha = 0.98) were derived in G. Fisicaro et al. J. Chem. Theory Comput.
+    13, 8, 3829 (2017).
          </info>
          <status> OPTIONAL
          </status>
@@ -356,45 +364,81 @@ Mean atomic radius of ionic countercharge (a.u.).
          <status> OPTIONAL
          </status>
       </var>
+      <var name="sc_carrier_density" type="REAL" >
+         <default> 0.D0
+         </default>
+         <info>
+Concentration of charge carriers within the semiconductor (cm^-3).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="sc_permittivity" type="REAL" >
+         <default> 1.D0
+         </default>
+         <info>
+Dielectric permittivity of the semiconductor.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="system_axis" type="INTEGER" >
+         <default> 3
+         </default>
+         <info>
+Main axis of the embedded system, only necessary for partially periodic systems
+(1 = x, 2 = y, 3 = z).
+         </info>
+      </var>
+      <var name="system_dim" type="INTEGER" >
+         <default> 0
+         </default>
+         <info>
+Dimensionality of the embedded system, used to determine size (only orthogonally periodic
+dimensions) and position (0 = 0D, 1 = 1D, 2 = 2D).
+         </info>
+      </var>
+      <var name="system_ntyp" type="INTEGER" >
+         <default> 0
+         </default>
+         <info>
+Specify the atom types that are used to determine the origin and size of the embedded system,
+for system-dependent properties in Environ (e.g. see later system-dependent boundary).
+
+Atom types up to system_ntyp are used, all atoms are used by default or if system_ntyp == 0.
+         </info>
+      </var>
+      <var name="temperature" type="REAL" >
+         <default> 300.D0
+         </default>
+         <info>
+Temperature of electrolyte solution, needed by Poisson-Boltzmann equation. Also used in
+semiconductor simulations.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="verbose" type="INTEGER" >
+         <default> 0
+         </default>
+         <info>
+Control the amount of output written to specific output files, mostly useful for debugging purposes
+
+verbose .EQ. 0 : minimal information written to standard output
+verbose .EQ. 1 : additional information written to environ.debug file
+verbose .EQ. 2 : dumping of main physical quantities on the real-space grid in the form of
+                *.cube files (only at the end of each SCF cycle)
+verbose .GE. 3 : dumping of several intermediate physical quantities on the real-space grid
+                as this is done at every SCF step it will slow down the calculation significantly
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
       <dimension name="zion" start="1" end="env_electrolyte_ntyp" type="REAL" >
-         <default> 1.0
+         <default> 1.D0
          </default>
          <info>
 Valence of ionic countercharge.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </dimension>
-      <var name="temperature" type="REAL" >
-         <default> 300.0
-         </default>
-         <info>
-Temperature of electrolyte solution, needed by Poisson-Boltzmann equation.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="add_jellium" type="LOGICAL" >
-         <default> .FALSE.
-         </default>
-         <info>
-Control if jellium polarization is included in the calculation of dielectric environment effects on
-charged solutes. The jellium contribution, although it formally needs to be considered, is a PBC
-artifact and needs to be removed when applying periodic boundary correction schemes. Thus, in any
-reasonable simulation there is no need to explicitly include the jellium contribution.
-         </info>
-         <status> OBSOLETE
-         </status>
-      </var>
-      <dimension name="atomicspread" start="1" end="ntyp" type="REAL" >
-         <default> 0.5
-         </default>
-         <info>
-In the calculation of electrostatic contributions, ionic charge densities are modelled
-as gaussians of fixed spread, as specified by atomicspread(ityp) for each atomic type.
-Results are identical to using point-like charges (as is usually done in PW), unless the gaussian
-spreads are too large. The default value of 0.5 a.u. was derived to be safe enough in most
-common atom types. A too small value may require larger density cutoffs (ecutrho).
          </info>
          <status> OPTIONAL
          </status>
@@ -403,99 +447,83 @@ common atom types. A too small value may require larger density cutoffs (ecutrho
    <namelist name="BOUNDARY" >
       <label> This namelist is not needed if there are no embedding schemes requiring a continuum interface
       </label>
-      <var name="solvent_mode" type="CHARACTER" >
-         <default> &apos;electronic&apos;
-         </default>
-         <info>
-Choice of the interface function representing the boundary between the
-QM region and the solvent embedding environment. Dielectric, surface and
-volume embedding will all act on the solvent interface (as opposed to
-the electrolyte embedding that will act on the electrolyte interface).
-
-&apos;electronic&apos;:
-       interface depends self-consist. on electronic density, corresponds
-       to the Self-consistent Continuum Solvation approach (SCCS).
-
-&apos;ionic&apos;:
-       interface defined on atomic positions, corresponds to the
-       Soft-sphere Continuum Solvation approach (SSCS).
-
-&apos;full&apos;:
-       similar to electronic, but an extra density is added to
-       represent the core electrons and the nuclei. This extra
-       density is defined as the sum of gaussian functions centered
-       on atomic positions of width specified by the corespread(ityp) keyword.
-
-&apos;system&apos;:
-       inteface defined as a simple analytical function of system position and
-       dimensionality.
-         </info>
-         <status> REQUIRED
-         </status>
-      </var>
-      <var name="rhomax" type="REAL" >
-         <default> 0.005
-         </default>
-         <info>
-First parameter of the density-dependent interface function,
-roughly corresponding to the density threshold of the continuum model.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="rhomin" type="REAL" >
-         <default> 0.0001
-         </default>
-         <info>
-Second parameter of the density-dependent interface function, when stype=1.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="tbeta" type="REAL" >
-         <default> 4.8
-         </default>
-         <info>
-Second parameter of the density-dependent interface function, when stype=0.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
       <var name="alpha" type="REAL" >
-         <default> 1.0
+         <default> see below
+         </default>
+         <info>
+Main parameter of ions-dependent interface function, corresponding to the homogeneous
+scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad
+(ntyp)).
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full :
+    environ_type .EQ. input | vacuum : 1.D0
+    environ_type .EQ. water          : 1.12D0
+    environ_type .EQ. water-cation   : 1.10D0
+    environ_type .EQ. water-anion    : 0.98D0
+
+solvent_mode .EQ. ionic : 1.D0
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <dimension name="corespread" start="1" end="ntyp" type="REAL" >
+         <default> -0.5D0
+         </default>
+         <info>
+Numerical spread of the atomic-centered Gaussian functions used to model core electrons and
+ions for interfaces defined on the full set of degrees of freedom of the QM system
+(interface mode = full).
+
+NOTE: this numerical parameter should only be used to avoid artefacts coming from the missing
+core electrons, if this parameter affects the final results, a WARNING will be issued and a smaller
+(even null) value should be used instead.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </dimension>
+      <var name="derivatives" type="CHARACTER" >
+         <default> see below
+         </default>
+         <info>
+Specify the numerical approach used to compute derivatives of the continuum interface with respect
+to real-space coordinates or QM degrees of freedom.
+
+&apos;fft&apos;     : fast Fourier transform
+&apos;fd&apos;      : finite differences in real-space
+&apos;chain&apos;   : chain rule derivatives for as much as possible (and FFTs for the rest)
+&apos;highmem&apos; : analytic derivatives for soft-sphere computed by storing all spherical functions
+            and derivatives
+&apos;lowmem&apos;  : more efficient analytic derivatives
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full : &apos;chain&apos;
+solvent_mode .EQ. ionic             : &apos;lowmem&apos;
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="electrolyte_alpha" type="REAL" >
+         <default> 1.D0
          </default>
          <info>
 Main parameter of ions-dependent interface function, corresponding to the homogeneous
 scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
+Used for the electrolyte interface.
          </info>
          <status> OPTIONAL
          </status>
       </var>
-      <var name="softness" type="REAL" >
-         <default> 0.5
-         </default>
-         <info>
-Numerical spread of the soft-sphere functions used for the ions-dependent interfaces.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="solvent_distance" type="REAL" >
-         <default> 1.0
+      <var name="electrolyte_distance" type="REAL" >
+         <default> 0.D0
          </default>
          <info>
 Distance of the system-dependent interface from the center of the system, computed as the
 center of ionic charge of the atomic types entering the definition of the system
 (as specified in the system_ntyp keyword of the &amp;ENVIRON namelist).
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="solvent_spread" type="REAL" >
-         <default> 0.5
-         </default>
-         <info>
-Numerical spread of the analytical function used for the system-dependent interface.
+Used for the electrolyte interface.
          </info>
          <status> OPTIONAL
          </status>
@@ -504,76 +532,54 @@ Numerical spread of the analytical function used for the system-dependent interf
          <default> &apos;electronic&apos;
          </default>
          <info>
-Choice of the interface function representing the boundary between the
-QM region and the electrolyte embedding environment. Please note that a
-separate set of keywords is used to specify the parameters of the electrolyte
-interface function (all exploiting the electrolyte_ prefix).
+Choice of the interface function representing the boundary between the QM region and the
+electrolyte embedding environment. Please note that a separate set of keywords is used to
+specify the parameters of the electrolyte interface function (all exploiting the
+electrolyte_ prefix).
 
 &apos;electronic&apos;:
-       interface depends self-consist. on electronic density, corresponds
-       to the Self-consistent Continuum Solvation approach (SCCS).
+    interface depends self-consist. on electronic density, corresponds
+    to the Self-consistent Continuum Solvation approach (SCCS).
 
 &apos;ionic&apos;:
-       interface defined on atomic positions, corresponds to the
-       Soft-sphere Continuum Solvation approach (SSCS).
+    interface defined on atomic positions, corresponds to the
+    Soft-sphere Continuum Solvation approach (SSCS).
 
 &apos;full&apos;:
-       similar to electronic, but an extra density is added to
-       represent the core electrons and the nuclei. This extra
-       density is defined as the sum of gaussian functions centered
-       on atomic positions of width specified by the corespread(ityp) keyword.
+    similar to electronic, but an extra density is added to
+    represent the core electrons and the nuclei. This extra
+    density is defined as the sum of gaussian functions centered
+    on atomic positions of width specified by the corespread(ityp) keyword.
 
 &apos;system&apos;:
-       inteface defined as a simple analytical function of system position and
-       dimensionality.
+    interface defined as a simple analytical function of system position and
+    dimensionality.
          </info>
          <status> REQUIRED
          </status>
       </var>
       <var name="electrolyte_rhomax" type="REAL" >
-         <default> 0.005
+         <default> 0.005D0
          </default>
          <info>
-First parameter of the density-dependent interface function,
-roughly corresponding to the density threshold of the continuum model.
-Used for the electrolyte interface.
+First parameter of the density-dependent interface function, roughly corresponding to the
+density threshold of the continuum model. Used for the electrolyte interface.
          </info>
          <status> OPTIONAL
          </status>
       </var>
       <var name="electrolyte_rhomin" type="REAL" >
-         <default> 0.0001
+         <default> 0.0001D0
          </default>
          <info>
-Second parameter of the density-dependent interface function, when stype=1.
-Used for the electrolyte interface.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="electrolyte_tbeta" type="REAL" >
-         <default> 4.8
-         </default>
-         <info>
-Second parameter of the density-dependent interface function, when stype=0
-Used for the electrolyte interface.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="electrolyte_alpha" type="REAL" >
-         <default> 1.0
-         </default>
-         <info>
-Main parameter of ions-dependent interface function, corresponding to the homogeneous
-scaling factor of ionic radii (specified by the radius_mode keyword or by solvationrad(ntyp)).
-Used for the electrolyte interface.
+Second parameter of the density-dependent interface function, when stype=1. Used for the
+electrolyte interface.
          </info>
          <status> OPTIONAL
          </status>
       </var>
       <var name="electrolyte_softness" type="REAL" >
-         <default> 0.5
+         <default> 0.5D0
          </default>
          <info>
 Numerical spread of the soft-sphere functions used for the ions-dependent interfaces.
@@ -582,20 +588,8 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="electrolyte_distance" type="REAL" >
-         <default> 1.0
-         </default>
-         <info>
-Distance of the system-dependent interface from the center of the system, computed as the
-center of ionic charge of the atomic types entering the definition of the system
-(as specified in the system_ntyp keyword of the &amp;ENVIRON namelist).
-Used for the electrolyte interface.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
       <var name="electrolyte_spread" type="REAL" >
-         <default> 0.5
+         <default> 0.5D0
          </default>
          <info>
 Numerical spread of the analytical function used for the system-dependent interface.
@@ -604,19 +598,96 @@ Used for the electrolyte interface.
          <status> OPTIONAL
          </status>
       </var>
-      <var name="stype" type="INTEGER" >
+      <var name="electrolyte_tbeta" type="REAL" >
+         <default> 4.8D0
+         </default>
+         <info>
+Second parameter of the density-dependent interface function, when stype=0. Used for the
+electrolyte interface.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="filling_spread" type="REAL" >
+         <default> 0.02D0
+         </default>
+         <info>
+For solvent-aware interfaces, numerical spread of the switching function used to decide whether
+the continuum void should be filled or not.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="filling_threshold" type="REAL" >
+         <default> 0.825D0
+         </default>
+         <info>
+For solvent-aware interfaces, threshold of filled-fraction used to decide whether to fill or not
+a continuum void. The default value of 7/8 correspond to the geometrical condition required to
+homogenously fill a spherical void of radius smaller than the solvent radius.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="ifdtype" type="INTEGER" >
+         <default> 1
+         </default>
+         <info>
+The gradient of the dielectric function is computed in real-space using finite differences.
+Different finite differences schemes have been implemented following:
+
+P. Holoborodko, Smooth noise robust differentiators, 2008
+<link>http://www.holoborodko.com/pavel/numerical-methods/numerical-derivative/smooth-low-noise-differentiators</link>
+
+Each scheme can exploit different numbers of points of the real-space grid (as defined by nfdpoint).
+
+ifdtype .EQ. 1 : Central differences
+ifdtype .EQ. 2 : Low-noise Lanczos (m=2)
+ifdtype .EQ. 3 : Low-noise Lanczos (m=4)
+ifdtype .EQ. 4 : Smooth noise-robust (n=2)
+ifdtype .EQ. 5 : Smooth noise-robust (n=4)
+
+Central differences are used by default and have been tested more deeply. The other schemes
+work fine, but are not deeply tested in terms of performances.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="nfdpoint" type="INTEGER" >
          <default> 2
          </default>
          <info>
-The shape of the environment region is defined according to a specific switching function of the electronic
-density:
+Number of point from the real-space grid, to be used by the different finite-difference schemes
+to compute gradients.
+Number of points = 2 * nfdpoint + 1
+e.g. ifdtype.EQ.1 .AND. nfdpoint.EQ.1 correspond to central differences with three points
 
-stype .EQ. 0 : Original switching function from Fattebert and Gygi.
-               Requires two parameters: rhomax and tbeta
-stype .EQ. 1 : Optimally smooth switching function from the SCCS method, redefined for the non-electrostatic part.
-               Requires two parameters: rhomax and rhomin
-stype .EQ. 2 : Optimally smooth switching function from the SCCS method of Andreussi et al.
-               Requires two parameters: rhomax and rhomin
+IMPORTANT: nfdpoint .EQ. 1 seems to be enough for most applications, but more refined
+finite-difference schemes are needed (nfdpoint.EQ.2 is enough) for energy conservation
+in MD simulations in continuum dielectric.
+
+See test case reported in O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
+         </info>
+         <status> IMPORTANT
+         </status>
+      </var>
+      <var name="radial_scale" type="REAL" >
+         <default> 2.D0
+         </default>
+         <info>
+For solvent-aware interfaces, compute the filled fraction on a spherical volume whose radius is
+radial_scale * solvent_radius. The default value of 2.0 guarantees that spherical voids of the size
+of a solvent molecule will be homogenously filled. Larger values will let the algorithm sample a
+larger volume of space, increasing the non-locality of the algorithm.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="radial_spread" type="REAL" >
+         <default> 0.5D0
+         </default>
+         <info>
+For solvent-aware interfaces, numerical spread of the step function used to compute the filled fraction.
          </info>
          <status> OPTIONAL
          </status>
@@ -630,12 +701,77 @@ Specify the predefined set of atomic radii to be used when building an ions-depe
 &apos;pauling&apos; : R.C. Weast, ed., Handbook of chemistry and physics (CRC Press, Cleveland, 1981)
 &apos;bondi&apos;   : A. Bondi, J. Phys. Chem. 68, 441 (1964)
 &apos;uff&apos;     : A.K. Rapp/&apos;{e} et al. J. Am. Chem. Soc. 114(25) pp.10024-10035 (1992)
+&apos;muff&apos;    : Fisicaro JCTC (2017)
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="rhomax" type="REAL" >
+         <default> see below
+         </default>
+         <info>
+First parameter of the density-dependent interface function, roughly corresponding to
+the density threshold of the continuum model.
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full :
+    environ_type .EQ. input | vacuum | water : 0.005D0
+    environ_type .EQ. water-cation           : 0.0035D0
+    environ_type .EQ. water-anion            : 0.0155D0
+
+solvent_mode .EQ. ionic : 0.005D0
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="rhomin" type="REAL" >
+         <default> see below
+         </default>
+         <info>
+Second parameter of the density-dependent interface function, when stype=1.
+
+DEFAULT:
+
+solvent_mode .EQ. electronic | full :
+    environ_type .EQ. input | vacuum | water : 0.0001D0
+    environ_type .EQ. water-cation           : 0.0002D0
+    environ_type .EQ. water-anion            : 0.0024D0
+
+solvent_mode .EQ. ionic : 0.0001D0
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="sc_distance" type="REAL" >
+         <default> 0.D0
+         </default>
+         <info>
+Distance from the system where the Mott-Schottky boundary starts.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="sc_spread" type="REAL" >
+         <default> 0.5D0
+         </default>
+         <info>
+Spread of the interfaces for the Mott-Schottky boundary.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="softness" type="REAL" >
+         <default> 0.5D0
+         </default>
+         <info>
+Numerical spread of the soft-sphere functions used for the ions-dependent interfaces.
          </info>
          <status> OPTIONAL
          </status>
       </var>
       <dimension name="solvationrad" start="1" end="ntyp" type="REAL" >
-         <default> 3.0
+         <default> -3.D0
          </default>
          <info>
 Atomic radii used for the ions-dependent interface as introduced by G. Fisicaro et al.
@@ -645,187 +781,181 @@ set by the radius_mode keyword.
          <status> OPTIONAL
          </status>
       </dimension>
-      <dimension name="corespread" start="1" end="ntyp" type="REAL" >
-         <default> 0.5
+      <var name="solvent_distance" type="REAL" >
+         <default> 1.D0
          </default>
          <info>
-Numerical spread of the atomic-centered Gaussian functions used to model core electrons and
-ions for interfaces defined on the full set of degrees of freedom of the QM system (iterface mode = full).
-NOTE: this numerical parameter should only be used to avoid artefacts coming from the missing
-core electrons, if this parameter affects the final results a WARNING will be issued and a smaller
-(even null) value should be used instead.
+Distance of the system-dependent interface from the center of the system, computed as the
+center of ionic charge of the atomic types entering the definition of the system
+(as specified in the system_ntyp keyword of the &amp;ENVIRON namelist).
          </info>
          <status> OPTIONAL
          </status>
-      </dimension>
+      </var>
+      <var name="solvent_mode" type="CHARACTER" >
+         <default> &apos;electronic&apos;
+         </default>
+         <info>
+Choice of the interface function representing the boundary between the
+QM region and the solvent embedding environment. Dielectric, surface and
+volume embedding will all act on the solvent interface (as opposed to
+the electrolyte embedding that will act on the electrolyte interface).
+
+&apos;electronic&apos;:
+    interface depends self-consist. on electronic density, corresponds
+    to the Self-consistent Continuum Solvation approach (SCCS).
+
+&apos;ionic&apos;:
+    interface defined on atomic positions, corresponds to the
+    Soft-sphere Continuum Solvation approach (SSCS).
+
+&apos;full&apos;:
+    similar to electronic, but an extra density is added to
+    represent the core electrons and the nuclei. This extra
+    density is defined as the sum of gaussian functions centered
+    on atomic positions of width specified by the corespread(ityp) keyword.
+
+&apos;system&apos;:
+    inteface defined as a simple analytical function of system position and
+    dimensionality.
+         </info>
+         <status> REQUIRED
+         </status>
+      </var>
       <var name="solvent_radius" type="REAL" >
-         <default> 0.0
+         <default> 0.D0
          </default>
          <info>
-Size of the solvent molecules, used in the solvent-aware algorithm to decide whether to fill a continuum
-void or not. If set equal to 0.D0, use the standard local algorithm.
+Size of the solvent molecules, used in the solvent-aware algorithm to decide whether to fill
+a continuum void or not. If set equal to 0.D0, use the standard local algorithm.
          </info>
          <status> OPTIONAL
          </status>
       </var>
-      <var name="radial_scale" type="REAL" >
-         <default> 2.0
+      <var name="solvent_spread" type="REAL" >
+         <default> 0.5D0
          </default>
          <info>
-For solvent-aware interfaces, compute the filled fraction on a spherical volume whose radius is
-radial_scale * solvent_radius. The deafaul value of 2.0 guarantees that spherical voids of the size
-of a solvent molecule will be homogenously filled. Larger values will let the algorithm sample a
-larger volume of space, increasing the non-locality of the algorithm.
+Numerical spread of the analytical function used for the system-dependent interface.
          </info>
          <status> OPTIONAL
          </status>
       </var>
-      <var name="radial_spread" type="REAL" >
-         <default> 0.5
+      <var name="stype" type="INTEGER" >
+         <default> 2
          </default>
          <info>
-For solvent-aware interfaces, numerical spread of the step function used to compute the filled fraction.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="filling_threshold" type="REAL" >
-         <default> 0.825
-         </default>
-         <info>
-For solvent-aware interfaces, threshold of filled-fraction used to decide whether to fill or not
-a continuum void. The default value of 7/8 correspond to the geometrical condition required to
-homogenously fill a spherical void of radius smaller than the solvent radius.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="filling_spread" type="REAL" >
-         <default> 0.02
-         </default>
-         <info>
-For solvent-aware interfaces, numerical spread of the switching function used to decide whether the
-continuum void should be filled or not.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="derivatives" type="CHARACTER" >
-         <default> &apos;chain&apos; for electronic interfaces | &apos;lowmem&apos; for ionic interfaces
-         </default>
-         <info>
-Specify the numerical approach used to compute derivatives of the continuum interface with respect
-to real-space coordinates or QM degrees of freedom.
+The shape of the environment region is defined according to a specific switching function
+of the electronic density:
 
-&apos;fft&apos;      : fast Fourier transform
-&apos;fd&apos;       : finite differences in real-space
-&apos;chain&apos;    : chain rule derivatives for as much as possible (and FFTs for the rest)
-&apos;highmem&apos;  : analytic derivatives for soft-sphere computed by storing all spherical functions and derivatives
-&apos;lowmem&apos;   : more efficient analytic derivatives
+stype .EQ. 0 : Original switching function from Fattebert and Gygi.
+               Requires two parameters: rhomax and tbeta
+stype .EQ. 1 : Optimally smooth switching function from the SCCS method, redefined for the
+               non-electrostatic part.
+               Requires two parameters: rhomax and rhomin
+stype .EQ. 2 : Optimally smooth switching function from the SCCS method of Andreussi et al.
+               Requires two parameters: rhomax and rhomin
          </info>
          <status> OPTIONAL
          </status>
       </var>
-      <var name="ifdtype" type="INTEGER" >
-         <default> 1
+      <var name="tbeta" type="REAL" >
+         <default> 4.8D0
          </default>
          <info>
-The gradient of the dielectric function is computed in real-space using finite differences.
-Different finite differences schemes have been implemented following
-P. Holoborodko, Smooth noise robust differentiators, 2008
-<link>http://www.holoborodko.com/pavel/numerical-methods/numerical-derivative/smooth-low-noise-differentiators</link>
-Each scheme can exploit different numbers of points of the real-space grid (as defined by nfdpoint).
-
-ifdtype .EQ. 1 : Central differences
-ifdtype .EQ. 2 : Low-noise Lanczos (m=2)
-ifdtype .EQ. 3 : Low-noise Lanczos (m=4)
-ifdtype .EQ. 4 : Smooth noise-robust (n=2)
-ifdtype .EQ. 5 : Smooth noise-robust (n=4)
-
-Central differences are used by default and have been tested more deeply. The other schemes work fine,
-but are not deeply tested in terms of performances.
+Second parameter of the density-dependent interface function, when stype=0.
          </info>
          <status> OPTIONAL
-         </status>
-      </var>
-      <var name="nfdpoint" type="INTEGER" >
-         <default> 1
-         </default>
-         <info>
-Number of point from the real-space grid, to be used by the different finite-difference schemes to compute gradients.
-Number of points = 2 * nfdpoint + 1
-e.g. ifdtype.EQ.1 .AND. nfdpoint.EQ.1 correspond to central differences with three points
-
-IMPORTANT: nfdpoint .EQ. 1 seems to be enough for most applications, but more refinied finite-difference schemes are
-needed (nfdpoint.EQ.2 is enough) for energy conservation in MD simulations in continuum dielectric.
-See test case reported in O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136 064102 (2012)
-         </info>
-         <status> IMPORTANT
          </status>
       </var>
    </namelist>
    <namelist name="ELECTROSTATIC" >
       <label> This namelist is not needed if there are no electrostatic embedding effects
       </label>
-      <var name="problem" type="CHARACTER" >
-         <default> &apos;poisson&apos;
-         </default>
-         <info>
-Type of electrostatic problem that need to be solved. This keyword is usually set automatically by the
-ENVIRON namelist, but it may be used to specify a linearized or modified version of an electrostatic problem.
-
-&apos;poisson&apos;     : standard Poisson equation, with or without periodic boundary conditions
-&apos;generalized&apos; : generalized Poisson equation, a dielectric embedding must be present
-&apos;pb&apos;          : non-linear Poisson-Boltzmann equation, an electrolyte embedding must be present,
-                a dielectric embedding is optional.
-&apos;modpb&apos;       : non-linear size-modified Poisson-Boltzmann equation, an electrolyte embedding must
-                be present, a dielectric embedding is optional.
-&apos;linpb&apos;       : linearized version of the Poisson-Boltzmann problem.
-&apos;linmodpb&apos;    : linearized version of the modified Poisson-Boltzmann problem.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="solver" type="CHARACTER" >
-         <default> &apos;direct&apos;
-         </default>
-         <info>
-Type of numerical solver used to get the solution of the electrostatic problem.
-
-&apos;direct&apos;    : Get the direct solution of the problem as provided by the adopted numerical core.
-              At this time, the FFT numerical core of Environ only allows the &apos;poisson&apos; problem to be solved directly.
-&apos;iterative&apos; : Use a fixed-point search algorithm (used to be the default for the &apos;generalized&apos; problem in Environ v0.2).
-&apos;sd&apos;        : Use a steepest-descent algorithm, possibly preconditioned.
-&apos;cg&apos;        : Use a conjugate-gradient algorithm, possibly preconditioned.
-&apos;newton&apos;    : Use Newton&apos;s rooth-finding method.
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
       <var name="auxiliary" type="CHARACTER" >
-         <default> &apos;none&apos;
+         <default> see below
          </default>
          <info>
 The electrostatic problem is defined and solved in terms of the electrostatic potential or of an auxiliary quantity.
 
 &apos;none&apos; : solve for the electrostatic potential.
-&apos;full&apos; : solve for the auxiliary charge (e.g. for &apos;generalized&apos; problems solve for the polarization charge,
-         used to be the default in Environ v0.2).
+&apos;full&apos; : solve for the auxiliary charge (e.g. for &apos;generalized&apos; problems solve for
+         the polarization charge, used to be the default in Environ v0.2).
 &apos;ioncc&apos;: solve for the electrolyte charge.
+
+DEFAULT:
+
+IF ((env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) .AND.
+     pbc_correction .EQ. &apos;gcs&apos; .AND. solver .EQ. &apos;iterative&apos;) THEN
+    auxiliary = &apos;full&apos;
+ELSE
+    auxiliary = &apos;none&apos;
          </info>
          <status> OPTIONAL
          </status>
       </var>
-      <var name="tol" type="REAL" >
-         <default> 1.D-5
+      <var name="core" type="CHARACTER" >
+         <default> &apos;fft&apos;
          </default>
          <info>
-Accuracy of the electrostatic calculation: higher accuracies will require more cycles,
-but will ensure smoother SCF convergece. As electrostatic solver iterations are usually
-cheaper than SCF cycles, it is recommended to increase this accuracy whenever the SCF has problems converging.
-The units depend on the actual quantity that is computed by the algorithm, either the potential
-(auxiliary = &apos;none&apos;) or an auxiliary charge (auxiliary = &apos;full&apos;). In the latter case, much smaller thresholds
-should be adopted (e.g. lower than 1.D-8).
+The choice of the core numerical methods to be exploited for the different operations.
+
+&apos;fft&apos; : fast Fourier transforms
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_maxstep" type="INTEGER" >
+         <default> 200
+         </default>
+         <info>
+Same as maxstep, but refers to the inner loop in the electrostatic calculation
+(nested schemes only).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_mix" type="REAL" >
+         <default> 0.5D0
+         </default>
+         <info>
+Same as mix, but refers to the inner loop in the electrostatic calculation
+(nested schemes only).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_solver" type="CHARACTER" >
+         <default> see below
+         </default>
+         <info>
+Same as solver, but refers to the algorithm used to get the solution of the inner loop
+in the electrostatic problem (nested schemes only).
+
+&apos;cg&apos;        :
+&apos;sd&apos;        :
+&apos;iterative&apos; :
+&apos;direct&apos;    :
+
+DEFAULT:
+
+IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;) THEN
+    IF (.NOT. electrolyte_linearized) THEN
+        inner_solver = &apos;cg&apos;
+    ELSE
+        inner_solver = &apos;none&apos;
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="inner_tol" type="REAL" >
+         <default> 1.D-10
+         </default>
+         <info>
+Accuracy of the inner loop in the electrostatic calculation (nested schemes only).
+As for the tol parameter, higher accuracies will require more cycles, but will ensure
+smoother convergence of the outer electrostatic loop (thresholds smaller than 1.D-15
+are recommended).
          </info>
          <status> IMPORTANT
          </status>
@@ -840,63 +970,35 @@ Maximum number of steps to get the solution of the electrostatic problem.
          </status>
       </var>
       <var name="mix" type="REAL" >
-         <default> 0.5
+         <default> 0.5D0
          </default>
          <info>
-Linear mixing parameter for iterative solver. Usually does not affect results (and it shouldn&apos;t)
-and does not affect performances, large values work fine in most common applications.
+Linear mixing parameter for iterative solver. Usually does not affect results
+(and it shouldn&apos;t) and does not affect performances, large values work fine in
+most common applications.
          </info>
          <status> OPTIONAL
          </status>
       </var>
-      <var name="inner_solver" type="CHARACTER" >
-         <default> &apos;none&apos;
+      <var name="mix_type" type="CHARACTER" >
+         <default> &apos;linear&apos;
          </default>
          <info>
-Same as solver, but refers to the algorithm used to get the solution of the inner loop
-in the electrostatic problem (nested schemes only).
+The mixing method for iterative calculations.
+
+&apos;linear&apos;   :
+&apos;anderson&apos; :
+&apos;diis&apos;     :
+&apos;broyden&apos;  :
          </info>
          <status> OPTIONAL
          </status>
       </var>
-      <var name="inner_tol" type="REAL" >
-         <default> 1.D-10
+      <var name="ndiis" type="INTEGER" >
+         <default> 1
          </default>
          <info>
-Accuracy of the inner loop in the electrostatic calculation (nested schemes only).
-As for the tol parameter, higher accuracies will require more cycles, but will ensure
-smoother convergence of the outer electrostatic loop (thresholds smaller that 1.D-15
-are recommended).
-         </info>
-         <status> IMPORTANT
-         </status>
-      </var>
-      <var name="inner_maxstep" type="INTEGER" >
-         <default> 200
-         </default>
-         <info>
-Same as maxstep, but refers to the inner loop in the electrostatic calculation (nested schemes
-only).
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="inner_mix" type="REAL" >
-         <default> 0.5
-         </default>
-         <info>
-Same as mix, but refers to the inner loop in the electrostatic calculation (nested schemes
-only).
-         </info>
-         <status> OPTIONAL
-         </status>
-      </var>
-      <var name="pbc_dim" type="INTEGER" >
-         <default> 3
-         </default>
-         <info>
-Dimensionality of the simulation cell, i.e. periodic boundary conditions are applied on 3/2/1/0 sides
-of the cell.
+The order of DIIS interpolation of iterative calculation.
          </info>
          <status> OPTIONAL
          </status>
@@ -905,10 +1007,11 @@ of the cell.
          <default> 3
          </default>
          <info>
-For partially periodic simulation cells (1D or 2D), choice of the sides with periodic boundary conditions.
-1 = x, 2 = y, 3 = z, where
-  if pbc_dim = 2, specified axis is orthogonal to 2D plane.
-  if pbc_dim = 1, specified axis is along the 1D direction.
+For partially periodic simulation cells (1D or 2D), choice of the sides with periodic
+boundary conditions (1 = x, 2 = y, 3 = z)
+
+pbc_dim .EQ. 1 : specified axis is along the 1D direction.
+pbc_dim .EQ. 2 : specified axis is orthogonal to 2D plane.
          </info>
          <status> OPTIONAL
          </status>
@@ -918,14 +1021,175 @@ For partially periodic simulation cells (1D or 2D), choice of the sides with per
          </default>
          <info>
 Type of pbc correction scheme to be used.
-&apos;none&apos; : no correction.
-&apos;parabolic&apos; : parabolic point-counter-charge (PCC) correction, only implemeted for 0D and 2D systems.
-&apos;gcs&apos; : Gouy-Chapman-Stern correction, only implemented for 2D systems. It exploits the one-dimensional
-        analytic solution of the Poisson-Boltzmann equation. The analytic potential replaces the numerical
-        one where the distance from the system is larger than electrolyte_distance (all charge
-        distributions, including the polarization charge, must be fully included within this distance).
+
+&apos;none&apos;      : no correction
+&apos;parabolic&apos; : parabolic point-counter-charge (PCC) correction, only implemented for 0D
+              and 2D systems
+&apos;gcs&apos;       : Gouy-Chapman-Stern correction, only implemented for 2D systems. It
+              exploits the one-dimensional analytic solution of the Poisson-Boltzmann
+              equation. The analytic potential replaces the numerical one where the
+              distance from the system is larger than electrolyte_distance (all charge
+              distributions, including the polarization charge, must be fully included
+              within this distance)
+&apos;ms&apos;        : Mott-Schottky correction, only implemented for 2D systems, assumes the
+              system is embedded in a semiconductor with sc_permittivity and
+              sc_carrier_density. It exploits the one-dimensional analytic solution of
+              the Mott-Schottky equation. The analytic potential replaces the
+              numerical one where the distance from the system is larger than sc_distance (all charge distributions, including the polarization
+              charge, must be fully included within this distance)
          </info>
          <status> OPTIONAL
+         </status>
+      </var>
+      <var name="pbc_dim" type="INTEGER" >
+         <default> -3
+         </default>
+         <info>
+Dimensionality of the simulation cell, i.e. periodic boundary conditions are applied
+on 3/2/1/0 sides of the cell.
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="preconditioner" type="CHARACTER" >
+         <default> &apos;sqrt&apos;
+         </default>
+         <info>
+The type of preconditioner.
+
+&apos;none&apos; : no preconditioner
+&apos;left&apos; : left linear preconditioner eps nabla v = r
+&apos;sqrt&apos; : sqrt preconditioner sqrt(eps) nabla (sqrt(eps) * v) = r
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="problem" type="CHARACTER" >
+         <default> see below
+         </default>
+         <info>
+Type of electrostatic problem that need to be solved. This keyword is usually set
+automatically by the ENVIRON namelist, but it may be used to specify a linearized
+or modified version of an electrostatic problem.
+
+&apos;poisson&apos;     : standard Poisson equation, with or without periodic boundary conditions
+&apos;generalized&apos; : generalized Poisson equation, a dielectric embedding must be present
+&apos;pb&apos;          : non-linear Poisson-Boltzmann equation, an electrolyte embedding must
+                be present, a dielectric embedding is optional
+&apos;modpb&apos;       : non-linear size-modified Poisson-Boltzmann equation, an electrolyte
+                embedding must be present, a dielectric embedding is optional
+&apos;linpb&apos;       : linearized version of the Poisson-Boltzmann problem
+&apos;linmodpb&apos;    : linearized version of the modified Poisson-Boltzmann problem
+
+DEFAULT:
+
+IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;) THEN
+    IF (electrolyte_linearized) THEN
+        IF (cionmax &gt; 0.D0 .OR. rion &gt; 0.D0) THEN
+            problem = &apos;linmodpb&apos;
+        ELSE
+            problem = &apos;linpb&apos;
+ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
+    problem = &apos;generalized&apos;
+ELSE
+    problem = &apos;poisson&apos;
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="screening" type="REAL" >
+         <default> 0.D0
+         </default>
+         <info>
+Same as mix, but refers to the inner loop in the electrostatic calculation
+(nested schemes only).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="screening_type" type="CHARACTER" >
+         <default> &apos;none&apos;
+         </default>
+         <info>
+Uses the screened coulomb Green&apos;s function instead of the vacuum one.
+
+&apos;none&apos;    : unscreened coulomb
+&apos;input&apos;   : screened coulomb with screening length provided in input
+&apos;linear&apos;  : screened coulomb with screening length from linear component
+            of the problem
+&apos;optimal&apos; : screened coulomb with screening length optimized (to be defined)
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="solver" type="CHARACTER" >
+         <default> see below
+         </default>
+         <info>
+Type of numerical solver used to get the solution of the electrostatic problem.
+
+&apos;direct&apos;    : Get the direct solution of the problem as provided by the adopted
+              numerical core. At this time, the FFT numerical core of Environ only
+              allows the &apos;poisson&apos; problem to be solved directly
+&apos;iterative&apos; : Use a fixed-point search algorithm (used to be the default for the
+              &apos;generalized&apos; problem in Environ v0.2)
+&apos;sd&apos;        : Use a steepest-descent algorithm, possibly preconditioned
+&apos;cg&apos;        : Use a conjugate-gradient algorithm, possibly preconditioned
+&apos;newton&apos;    : Use Newton&apos;s root-finding method
+
+DEFAULT:
+
+IF (env_electrolyte_ntyp .GT. 0 .AND. pbc_correction .NE. &apos;gcs&apos;) THEN
+    IF (electrolyte_linearized) THEN
+        solver = &apos;cg&apos;
+    ELSE
+        solver = &apos;newton&apos;
+ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) THEN
+    IF (pbc_correction .NE. &apos;gcs&apos;) THEN
+        solver = &apos;cg&apos;
+    ELSE
+        solver = &apos;iterative&apos;
+ELSE
+    solver = &apos;direct&apos;
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="step" type="REAL" >
+         <default> 0.3D0
+         </default>
+         <info>
+Step size to be used if step_type = &apos;input&apos; (inherits the tasks of the old mixrhopol).
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="step_type" type="CHARACTER" >
+         <default> &apos;optimal&apos;
+         </default>
+         <info>
+The step size in gradient descent algorithms or iterative mixing.
+
+&apos;optimal&apos; : step size that minimize the cost function on the descent direction
+&apos;input&apos;   : fixed step size as defined in input (step keyword)
+&apos;random&apos;  : random step size within zero and twice the optima value
+         </info>
+         <status> OPTIONAL
+         </status>
+      </var>
+      <var name="tol" type="REAL" >
+         <default> 1.D-5
+         </default>
+         <info>
+Accuracy of the electrostatic calculation: higher accuracies will require more cycles,
+but will ensure smoother SCF convergence. As electrostatic solver iterations are
+usually cheaper than SCF cycles, it is recommended to increase this accuracy whenever
+the SCF has problems converging.
+The units depend on the actual quantity that is computed by the algorithm, either the
+potential (auxiliary = &apos;none&apos;) or an auxiliary charge (auxiliary = &apos;full&apos;). In the
+latter case, much smaller thresholds should be adopted (e.g. lower than 1.D-8).
+         </info>
+         <status> IMPORTANT
          </status>
       </var>
    </namelist>
@@ -936,27 +1200,25 @@ Type of pbc correction scheme to be used.
          <default> (DEPRECATED) bohr
          </default>
          <info>
-bohr    : atomic positions are in cartesian coordinate,
-          in atomic units (i.e. Bohr radii)
+bohr     : atomic positions are in cartesian coordinate, in atomic units
+           (i.e. Bohr radii)
 
-angstrom: atomic positions are in cartesian coordinates,
-          in Angstrom
+angstrom : atomic positions are in cartesian coordinates, in Angstrom
          </info>
       </flag>
       <syntax>
-         <table name="epsregion_coordinates" >
+         <table name="extcharge_coordinates" >
             <rows start="1" end="nec" >
                <col name="Q" type="REAL" >
-                  <info> total charge of external object
+                  <info> Total charge of external object
                   </info>
                </col>
                <colgroup type="REAL" >
                   <info>
-positions
+Positions
 
-NOTE: each atomic coordinate can also be specified
-      as a simple algebraic expression, see the
-      description in the input file of PW.
+NOTE: each atomic coordinate can also be specified as a simple algebraic expression,
+      see the description in the input file of PW.
                   </info>
                   <col name="x" >
                   </col>
@@ -968,20 +1230,17 @@ NOTE: each atomic coordinate can also be specified
                <optional>
                   <col name="spread" type="REAL" >
                      <info>
-Gaussian spread of the external charge density
-in atomic units
+Gaussian spread of the external charge density in atomic units
                      </info>
                      <default> 0.5
                      </default>
                   </col>
                   <col name="dim" type="INTEGER" >
                      <info>
-dimensionality of the charge density:
+Dimensionality of the charge density
 
 dim .EQ. 0 : point-like (gaussian shaped) charge density
-
 dim .EQ. 1 : linear (gaussian shaped) charge density
-
 dim .EQ. 2 : planar (gaussian shaped) charge density
                      </info>
                      <default> 0
@@ -989,15 +1248,13 @@ dim .EQ. 2 : planar (gaussian shaped) charge density
                   </col>
                   <col name="axis" type="INTEGER" >
                      <info>
-axis of the external charge density:
+Axis of the external charge density
 
 if dim.EQ.0 : axis has no meaning/use
-
-if dim.EQ.1 : axis identifies the direction of the linear
-charge density: axis.EQ.1|2|3 means lines along x|y|z respectively
-
-if dim.EQ.2 : axis identifies the direction ortogonal to the planar
-charge density: axis.EQ.1|2|3 means planes ortogonal to x|y|z
+if dim.EQ.1 : axis identifies the direction of the linear charge density.
+              axis .EQ. 1|2|3 means lines along x|y|z respectively
+if dim.EQ.2 : axis identifies the direction orthogonal to the planar charge density.
+              axis .EQ. 1|2|3 means planes orthogonal to x|y|z
                      </info>
                      <default> 3
                      </default>
@@ -1014,8 +1271,8 @@ charge density: axis.EQ.1|2|3 means planes ortogonal to x|y|z
          <default> (DEPRECATED) bohr
          </default>
          <info>
-bohr    : positions are in cartesian coordinate,
-          in atomic units (i.e. Bohr radii)
+bohr    : positions are in cartesian coordinate, in atomic units
+          (i.e. Bohr radii)
 
 angstrom: positions are in cartesian coordinates,
           in Angstrom
@@ -1025,20 +1282,18 @@ angstrom: positions are in cartesian coordinates,
          <table name="epsregion_coordinates" >
             <rows start="1" end="ndr" >
                <col name="EpsSt" type="REAL" >
-                  <info> static permittivity inside of dielectric region
+                  <info> Static permittivity inside of dielectric region
                   </info>
                </col>
                <col name="EpsOpt" type="REAL" >
-                  <info> optical permittivity inside of dielectric region
+                  <info> Optical permittivity inside of dielectric region
                   </info>
                </col>
                <colgroup type="REAL" >
                   <info>
-positions
+Positions
 
-NOTE: each coordinate can also be specified as a simple
-      algebraic expression, see the description in the
-      input file of PW.
+NOTE: each coordinate can also be specified as a simple algebraic expression, see the description in the input file of PW.
                   </info>
                   <col name="x" >
                   </col>
@@ -1048,24 +1303,22 @@ NOTE: each coordinate can also be specified as a simple
                   </col>
                </colgroup>
                <col name="width" type="REAL" >
-                  <info> width of the dielectric region in atomic units
+                  <info> Width of the dielectric region in atomic units
                   </info>
                </col>
                <optional>
                   <col name="spread" type="REAL" >
-                     <info> spread of the external charge density in atomic units
+                     <info> Spread of the dielectric region in atomic units
                      </info>
                      <default> 0.5
                      </default>
                   </col>
                   <col name="dim" type="INTEGER" >
                      <info>
-dimensionality of the dielectric region:
+Dimensionality of the dielectric region
 
 dim .EQ. 0 : sphere-like (erfc shaped) region
-
 dim .EQ. 1 : cylinder-like (erfc shaped) region
-
 dim .EQ. 2 : planar (erfc shaped) region
                      </info>
                      <default> 0
@@ -1073,15 +1326,15 @@ dim .EQ. 2 : planar (erfc shaped) region
                   </col>
                   <col name="axis" type="INTEGER" >
                      <info>
-axis of the dielectric region:
+Axis of the dielectric region.
 
-if dim.EQ.0 : axis has no meaning/use
-
-if dim.EQ.1 : axis identifies the direction of the linear
-charge density: axis.EQ.1|2|3 means lines along x|y|z respectively
-
-if dim.EQ.2 : axis identifies the direction ortogonal to the planar
-charge density: axis.EQ.1|2|3 means planes ortogonal to x|y|z
+dim .EQ. 0 : axis has no meaning/use
+dim .EQ. 1 : axis identifies the direction of the linear charge
+             density.
+             axis .EQ. 1|2|3 means lines along x|y|z respectively
+dim .EQ. 2 : axis identifies the direction orthogonal to the planar
+             charge density.
+             axis .EQ. 1|2|3 means planes orthogonal to x|y|z
                      </info>
                      <default> 3
                      </default>

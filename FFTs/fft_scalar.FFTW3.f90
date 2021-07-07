@@ -1,30 +1,31 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
-! Copyright (C) 2011 Quantum ESPRESSO group
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) Quantum ESPRESSO (www.quantum-espresso.org)
 !
 !----------------------------------------------------------------------------------------
 !
-! This file is part of Environ version 2.0
-!
-! Environ 2.0 is free software: you can redistribute it and/or modify
-! it under the terms of the GNU General Public License as published by
-! the Free Software Foundation, either version 2 of the License, or
-! (at your option) any later version.
-!
-! Environ 2.0 is distributed in the hope that it will be useful,
-! but WITHOUT ANY WARRANTY; without even the implied warranty of
-! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-! GNU General Public License for more detail, either the file
-! `License' in the root directory of the present distribution, or
-! online at <http://www.gnu.org/licenses/>.
+!     This file is part of Environ version 2.0
+!         
+!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     it under the terms of the GNU General Public License as published by
+!     the Free Software Foundation, either version 2 of the License, or
+!     (at your option) any later version.
+!     
+!     Environ 2.0 is distributed in the hope that it will be useful,
+!     but WITHOUT ANY WARRANTY; without even the implied warranty of
+!     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!     GNU General Public License for more detail, either the file
+!     `License' in the root directory of the present distribution, or
+!     online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
 !
 ! Authors: Carlo Cavazzoni, modified by P. Giannozzi, contributions
 !          by Martin Hilgemans, Guido Roma, Pascal Thibaudeau, Stephane Lefranc,
-!          Nicolas Lacorne, Filippo Spiga, Nicola Varini - Last update Jul 2015
+!          Nicolas Lacorne, Filippo Spiga, Nicola Varini, Jason Wood
 !          stick and plane revision - Stefano de Gironcoli - September 2016
+!          Modified by Edan Bainglass
 !
 !----------------------------------------------------------------------------------------
 !
@@ -36,9 +37,7 @@
 !
 !----------------------------------------------------------------------------------------
 !>
-!! FFT scalar drivers Module - contains machine-dependent routines for
-!! FFTW, FFTW3, ESSL (both 3d for serial execution and 1d+2d FFTs for
-!! parallel execution; NEC ASL libraries (3d only, no parallel execution)
+!! FFTW v.3 routines
 !!
 !----------------------------------------------------------------------------------------
 MODULE env_fft_scalar_fftw3

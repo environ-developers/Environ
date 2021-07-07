@@ -1,26 +1,35 @@
 #!/bin/bash
+#----------------------------------------------------------------------------------------
 #
-# Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 #
-#    This file is part of Environ version 1.0
+#----------------------------------------------------------------------------------------
 #
-#    Environ 1.0 is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 2 of the License, or
-#    (at your option) any later version.
+#     This file is part of Environ version 2.0
+#     
+#     Environ 2.0 is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 2 of the License, or
+#     (at your option) any later version.
+#     
+#     Environ 2.0 is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more detail, either the file
+#     `License' in the root directory of the present distribution, or
+#     online at <http://www.gnu.org/licenses/>.
 #
-#    Environ 1.0 is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more detail, either the file
-#    `License' in the root directory of the present distribution, or
-#    online at <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------------------------------
 #
-# PATCH REVERT script for files in XSpectra/src
+# Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+#          Oliviero Andreussi (Department of Physics, UNT)
+#          Edan Bainglass     (Department of Physics, UNT)
 #
-# Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
-#          Oliviero Andreussi (Department of Physics, University of North Thexas)
+#----------------------------------------------------------------------------------------
 #
+# PATCH REVERT for plugin files and Makefile in XSpectra/src
+#
+#----------------------------------------------------------------------------------------
 
 cd $XS_SRC
 

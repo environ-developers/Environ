@@ -1,4 +1,4 @@
-# Copyright (C) 2021 ENVIRON (www.quantum-environment.org)
+# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 
 ### This file is part of Environ version 2.0
 
@@ -9,7 +9,7 @@
 
     Environ 2.0 is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more detail, either the file
     `License' in the root directory of the present distribution, or
     online at <http://www.gnu.org/licenses/>.
@@ -56,7 +56,7 @@
     For previous versions of QE (namely QE-6.1.X and QE-6.2.X), please refer 
     to the instructions on the website:
 
-# http://www.quantum-environment.org/installation.html
+# http://www.quantum-environ.org/installation.html
 
 From QE root:
 

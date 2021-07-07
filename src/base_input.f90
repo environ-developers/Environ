@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+! Copyright (C) 2018 ENVIRON (www.quantum-environ.org)
 !
 !----------------------------------------------------------------------------------------
 !
@@ -373,13 +373,13 @@ MODULE env_base_input
     !------------------------------------------------------------------------------------
     ! Soft solvent boundary (electronic) parameters
     !
-    REAL(DP) :: rhomax = 0.005
+    REAL(DP) :: rhomax = 0.005D0
     ! first parameter of the sw function, roughly corresponding to the density
     ! threshold of the solvation model
     !
-    REAL(DP) :: rhomin = 0.0001 ! second parameter of the sw function when stype=1 or 2
+    REAL(DP) :: rhomin = 0.0001D0 ! second parameter of the sw function when stype=1 or 2
     !
-    REAL(DP) :: tbeta = 4.8 ! second parameter of the sw function when stype=0
+    REAL(DP) :: tbeta = 4.8D0 ! second parameter of the sw function when stype=0
     !
     !------------------------------------------------------------------------------------
     ! Rigid solvent boundary (ionic) parameters
@@ -487,7 +487,7 @@ MODULE env_base_input
     REAL(DP) :: tol = 1.D-5
     ! convergence threshold for electrostatic potential or auxiliary charge
     !
-    REAL(DP) :: inner_tol = 1.D-5 ! same as tol for inner loop in nested algorithms
+    REAL(DP) :: inner_tol = 1.D-10 ! same as tol for inner loop in nested algorithms
     !
     !------------------------------------------------------------------------------------
     ! Driver's parameters
@@ -543,7 +543,7 @@ MODULE env_base_input
     !
     ! random  = random step size within zero and twice the optima value
     !
-    REAL(DP) :: step = 0.3
+    REAL(DP) :: step = 0.3D0
     ! step size to be used if step_type = 'input'
     ! (inherits the tasks of the old mixrhopol)
     !
@@ -569,8 +569,8 @@ MODULE env_base_input
     ! mixing method for iterative calculations: linear | anderson | diis | broyden
     !
     INTEGER :: ndiis = 1 ! order of DIIS interpolation of iterative calculation
-    REAL(DP) :: mix = 0.5 ! mixing parameter to be used in the iterative driver
-    REAL(DP) :: inner_mix = 0.5 ! same as mix but for inner loop in nested algorithm
+    REAL(DP) :: mix = 0.5D0 ! mixing parameter to be used in the iterative driver
+    REAL(DP) :: inner_mix = 0.5D0 ! same as mix but for inner loop in nested algorithm
     !
     !------------------------------------------------------------------------------------
     ! Preconditioner's parameters
@@ -597,15 +597,15 @@ MODULE env_base_input
     !
     ! none      = unscreened coulomb
     !
-    ! input     = screened coulomb with screening lenght provided in input
+    ! input     = screened coulomb with screening length provided in input
     !
-    ! linear    = screened coulomb with screening lenght from linear component
+    ! linear    = screened coulomb with screening length from linear component
     !             of the problem
     !
-    ! optimal   = screened coulomb with screening lenght optimized (to be defined)
+    ! optimal   = screened coulomb with screening length optimized (to be defined)
     !
     REAL(DP) :: screening = 0.D0
-    ! screening lenght to be used if screening_type = 'input'
+    ! screening length to be used if screening_type = 'input'
     !
     !------------------------------------------------------------------------------------
     ! Numerical core's parameters

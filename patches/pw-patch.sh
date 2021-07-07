@@ -1,27 +1,36 @@
 #!/bin/bash
+#----------------------------------------------------------------------------------------
 #
-# Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 #
-#    This file is part of Environ version 1.1
+#----------------------------------------------------------------------------------------
 #
-#    Environ 1.1 is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 2 of the License, or
-#    (at your option) any later version.
+#     This file is part of Environ version 2.0
+#     
+#     Environ 2.0 is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 2 of the License, or
+#     (at your option) any later version.
+#     
+#     Environ 2.0 is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more detail, either the file
+#     `License' in the root directory of the present distribution, or
+#     online at <http://www.gnu.org/licenses/>.
 #
-#    Environ 1.1 is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more detail, either the file
-#    `License' in the root directory of the present distribution, or
-#    online at <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------------------------------
 #
-# PATCH script for plugin files in PW/src
-#
-# Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
-#          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
+# Authors: Oliviero Andreussi (Department of Physics, UNT)
+#          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
 #          Ismaila Dabo       (Department of Materials Science and Engineering, Penn State)
+#          Edan Bainglass     (Department of Physics, UNT)
 #
+#----------------------------------------------------------------------------------------
+#
+# PATCH script for plugin files and Makefile in PW/src
+#
+#----------------------------------------------------------------------------------------
 
 cd $PW_SRC
 
