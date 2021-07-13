@@ -75,7 +75,7 @@ devs:
 	@ echo
 	@ echo "* compile-QE [prog=] (requires QE/make.inc)"
 	@ echo
-	@ echo "  - (re)compiles QE package -> prog = pw (default) | tddfpt | xspectra"
+	@ echo "  - (re)compiles QE package -> prog = pw (default) | cp | tddfpt | xspectra"
 	@ echo "  - compilation generates Environ/install/QE_comp.log"
 	@ echo
 	@ echo "  * NOTE: If QE dependencies reflect an Environ-patched state,"
@@ -96,7 +96,7 @@ devs:
 	@ echo
 	@ echo "  - applies Environ patch to QE/install/makedeps.sh"
 	@ echo "  - patches plugin files and Makefile of QE/<prog>"
-	@ echo "  - prog = pw | tddfpt | xspectra | all (default)"
+	@ echo "  - prog = pw | cp | tddfpt | xspectra | all (default)"
 	@ echo "  - patches Makefiles of all pw.x-dependent QE packages"
 	@ echo
 	@ echo "* revert-QE-patches (requires QE/make.inc)"
@@ -110,7 +110,7 @@ devs:
 	@ echo "* update-QE-dependencies [prog=]"
 	@ echo
 	@ echo "  - updates dependencies in QE package (prog)"
-	@ echo "  - prog = pw | tddfpt | xspectra | all (default)"
+	@ echo "  - prog = pw | cp | tddfpt | xspectra | all (default)"
 	@ echo
 	@ echo "Cleaning"
 	@ echo "--------"
@@ -150,7 +150,7 @@ compile-Environ: check-Environ-makeinc libsdir
 
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi; \
-	  if [ $$prog = all ]; then prog="pw tddfpt xspectra"; fi; \
+	  if [ $$prog = all ]; then prog="pw cp tddfpt xspectra"; fi; \
 	  if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log; \
 	  (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
@@ -162,9 +162,10 @@ recompile-QE+Environ:
 	\
 	case $$c in \
 	1) opt=pw;; \
-	2) opt=tddfpt;; \
-	3) opt=xspectra;; \
-	4) opt=all;; \
+	2) opt=cp;; \
+	3) opt=tddfpt;; \
+	4) opt=xspectra;; \
+	5) opt=all;; \
 	*) exit;; \
 	esac; \
 	\
@@ -249,15 +250,15 @@ update-Environ-dependencies:
 	@ printf "\nUpdating Environ dependencies...\n\n"
 	@ ./install/makedeps.sh
 
-# TODO add CP option when fixed
 update-QE-dependencies:
 	@ printf "\nUpdating QE dependencies...\n\n"
 	@ if test $(prog); then prog=$(prog); else prog=all; fi; \
 	  case $$prog in \
 	  pw) DIRS="PW/src";; \
-	  tddfpt) DIRS="PW/src TDDFPT/src";; \
+	  cp) DIRS="CPV/src";; \
+	  tddfpt) DIRS="PW/src | TDDFPT/src";; \
 	  xspectra) DIRS="PW/src XSpectra/src";; \
-	  *) DIRS="PW/src TDDFPT/src XSpectra/src";; \
+	  *) DIRS="PW/src CPV/src TDDFPT/src XSpectra/src";; \
 	  esac; \
 	  (cd ../ && ./install/makedeps.sh $$DIRS)
 
@@ -267,23 +268,24 @@ update-QE-dependencies:
 
 print_menu:
 	@ printf "\nSelect a package:\n\n"
-	@ printf "%s\n%s\n%s\n%s\n\n%s" \
+	@ printf "%s\n%s\n%s\n%s\n%s\n\n%s" \
 			 "   1 - PW" \
-			 "   2 - TDDFPT" \
-			 "   3 - XSpectra" \
-			 "   4 - ALL" \
+			 "   2 - CP" \
+			 "   3 - TDDFPT" \
+			 "   4 - XSpectra" \
+			 "   5 - ALL" \
 			 "-> "
 
-# TODO add CP option when fixed
 install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	@ printf "\nPreparing to install QE + Environ $(ENVIRON_VERSION)...\n"
 	@ make print_menu; read c; \
 	\
 	case $$c in \
 	1) opt=pw;; \
-	2) opt=tddfpt;; \
-	3) opt=xspectra;; \
-	4) opt=all;; \
+	2) opt=cp;; \
+	3) opt=tddfpt;; \
+	4) opt=xspectra;; \
+	5) opt=all;; \
 	*) exit;; \
 	esac; \
 	\

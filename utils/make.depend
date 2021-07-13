@@ -2,9 +2,7 @@ base_mp.o : data_buffer.o
 base_mp.o : utils_param.o
 clocks.o : utils_param.o
 data_buffer.o : utils_param.o
-errors.o : io.o
-errors.o : mp.o
-errors.o : utils_param.o
+io.o : char_ops.o
 io.o : mp.o
 io.o : utils_param.o
 mp.o : utils_param.o

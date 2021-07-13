@@ -6,6 +6,7 @@ base_environ.o : types_cell.o
 base_environ.o : types_core.o
 base_environ.o : types_physical.o
 base_environ.o : types_representation.o
+base_input.o : environ_param.o
 correction_gcs.o : ../utils/mp.o
 correction_gcs.o : environ_param.o
 correction_gcs.o : tools_math.o
@@ -91,6 +92,7 @@ environ_debugging.o : utils_gradient.o
 environ_input.o : ../utils/char_ops.o
 environ_input.o : ../utils/io.o
 environ_input.o : ../utils/mp.o
+environ_input.o : base_input.o
 environ_input.o : environ_output.o
 environ_input.o : environ_param.o
 environ_input.o : init_core.o

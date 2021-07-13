@@ -69,12 +69,12 @@ if [ ! -d $PW_SRC ]; then
 	exit
 fi
 
-# export CP_SRC="${QE_DIR}/CPV/src" # TODO turn on when CP is fixed
-# if [ ! -d $CP_SRC ]; then
-# 	echo "Cannot find CPV/src directory"
-# 	echo "Searching in $CP_SRC"
-# 	exit
-# fi
+export CP_SRC="${QE_DIR}/CPV/src" 
+if [ ! -d $CP_SRC ]; then
+	echo "Cannot find CPV/src directory"
+	echo "Searching in $CP_SRC"
+	exit
+fi
 
 export TD_SRC="${QE_DIR}/TDDFPT/src"
 if [ ! -d $TD_SRC ]; then
@@ -121,12 +121,6 @@ function patch_makefile() {
 		mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
 		mod2='QEMODS+=../../Environ/libs/*'
 
-		# # CP uses modules from PW # TODO turn on when CP is fixed
-		# if [ "$1" == cp ]; then
-		# 	mod1="$mod1 "'$(MOD_FLAG)../../PW/src'""
-		# 	mod2="$mod2 ../../Environ/libs/libqefft.a ../../PW/src/libpw.a"
-		# fi
-
 		sed -i.tmp -e '/^TLDEPS/a \
 # Environ patch \
 '"$mod1"' \
@@ -163,10 +157,10 @@ function patch_makedeps() {
 
 	case $1 in
 		pw) DEPS="PW/src" ;;
-		# cp) DEPS="PW/src CPV/src" # TODO turn on when CP is fixed
+		cp) DEPS="CPV/src" ;; 
 		tddfpt) DEPS="PW/src | TDDFPT/src";;
 		xspectra) DEPS="PW/src | XSpectra/src";;
-		*) DEPS="PW/src | TDDFPT/src | XSpectra/src";;
+		*) DEPS="PW/src | TDDFPT/src | XSpectra/src | CPV/src";;
 	esac
 	
 
@@ -201,13 +195,13 @@ case "$1" in
 			source "$PATCH_SCRIPT"
 		fi
 		;;
-	# cp) # TODO turn on when CP is fixed
-	# 	PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
-	# 	if test -e "$PATCH_SCRIPT"; then
-	# 		echo "* Applying patches to cp"
-	# 		source "$PATCH_SCRIPT"
-	# 	fi
-	# 	;;
+	cp) 
+		PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
+		if test -e "$PATCH_SCRIPT"; then
+			echo "* Applying patches to cp"
+			source "$PATCH_SCRIPT"
+		fi	
+		;;
 	tddfpt)
 		for i in pw td; do
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
@@ -227,7 +221,7 @@ case "$1" in
 		done
 		;;
 	*)
-		for i in pw td xs; do # TODO add cp after pw when CP is fixed
+		for i in pw cp td xs; do 
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
 				echo "* Applying patches to $i"
@@ -271,13 +265,13 @@ case "$1" in
 			source "$REVERT_SCRIPT"
 		fi
 		;;
-	# cp) # TODO turn on when CP is fixed
-	# 	REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
-	# 	if test -e "$REVERT_SCRIPT"; then
-	# 		echo "* Reverting patches to cp"
-	# 		source "$REVERT_SCRIPT"
-	# 	fi
-	# 	;;
+	cp)
+		REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
+		if test -e "$REVERT_SCRIPT"; then
+			echo "* Reverting patches to cp"
+			source "$REVERT_SCRIPT"
+		fi
+		;;
 	tddfpt)
 		for i in pw td; do
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
@@ -297,7 +291,7 @@ case "$1" in
 		done
 		;;
 	*)
-		for i in pw td xs; do # TODO add cp after pw when functional
+		for i in pw cp td xs; do 
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
 				echo "* Reverting patches to $i"

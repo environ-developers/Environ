@@ -153,12 +153,12 @@ mv tmp.2 plugin_energy.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE global_version,   ONLY : version_number\
-USE lsda_mod,         ONLY : nspin\
 USE base_environ,     ONLY : update_venviron, vzero,    & \
                              environ_nskip, environ_restart \
 USE environ_output,   ONLY : verbose \
 USE environ_main,     ONLY : calc_venviron \
 USE init_environ,     ONLY : environ_initelectrons \
+USE electrons_base,   ONLY : nelt\
 !Environ patch
 ' plugin_get_potential.f90 > tmp.1
 
@@ -181,7 +181,7 @@ sed '/Environ CALLS BEGIN/ a\
             IF ( nspin == 2 ) rhoaux(:) = rhoaux(:) + rhoin(:, 2)\
         END IF\
         !\
-        CALL environ_initelectrons( dfftp%nnr, rhoaux, nelec )\
+        CALL environ_initelectrons( dfftp%nnr, rhoaux, Real( nelt, DP) )\
         !\
         ! environ contribution to the local potential, saved in vzero\
         !\
@@ -242,18 +242,13 @@ mv tmp.2 plugin_init_cell.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE cell_base,        ONLY : alat \
-USE ions_base,        ONLY : zv \
-USE vlocal,           ONLY : vloc \
+USE ions_base,        ONLY : zv, ityp \
 USE init_environ,     ONLY : environ_initions \
 !Environ patch
 ' plugin_init_ions.f90 > tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
-INTEGER :: i, is, ia \
-REAL(DP) :: charge, shift \
-REAL(DP) :: rhops, r2, fact \
-INTEGER, ALLOCATABLE :: ityp_tmp(:) \
 REAL(DP), ALLOCATABLE :: tau_tmp(:,:) \
 !Environ patch
 ' tmp.1 > tmp.2
@@ -262,25 +257,13 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF ( use_environ ) THEN \
      ! \
-     ! need to rebuild ityp, as the atoms are reshuffled in CP wrt the input \
-     ! \
-     ALLOCATE(ityp_tmp(nat)) \
-     i = 0 \
-     DO is = 1, nsp \
-       DO ia = 1, na(is) \
-         i = i + 1 \
-         ityp_tmp(i) = is \
-       ENDDO \
-     ENDDO \
-     ! \
      ! need to convert atomic positions because Environ assumes the same units of PW \
      ! \
      ALLOCATE(tau_tmp(3,nat)) \
      tau_tmp = tau / alat \
      ! \
-     call environ_initions( dfftp%nnr, nat, nsp, ityp_tmp, zv, tau_tmp, vloc ) \
+     call environ_initions( dfftp%nnr, nat, nsp, ityp, zv, tau_tmp ) \
      ! \
-     DEALLOCATE(ityp_tmp) \
      DEALLOCATE(tau_tmp) \
      ! \
   ENDIF \
@@ -380,13 +363,14 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF ( use_environ ) THEN\
       CALL set_environ_output("CP", ionode, ionode_id, intra_image_comm, stdout)\
+      CALL read_environ("CP", 1, nat, ntyp, atom_label, .FALSE.)\
    ENDIF\
 !Environ patch
 ' tmp.2 > tmp.1
 
 mv tmp.1 plugin_read_input.f90
 
-rm tmp.1 tmp.2
+rm tmp.2
 
 printf " done!\n"
 
