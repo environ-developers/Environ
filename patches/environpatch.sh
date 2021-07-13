@@ -109,6 +109,8 @@ function check_src_patched() {
 	if test -e "Environ_PATCH"; then
 		echo "  - src already patched!"
 		PATCHED=1
+	else
+		PATCHED=0
 	fi
 }
 
@@ -139,6 +141,8 @@ function check_src_reverted() {
 	if test ! -e Environ_PATCH; then
 		echo "  - src has not been patched!"
 		REVERTED=1
+	else
+		REVERTED=0
 	fi
 }
 

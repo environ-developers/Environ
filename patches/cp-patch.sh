@@ -33,7 +33,7 @@
 
 cd $CP_SRC
 
-patch_makefile cp
+patch_makefile
 
 check_src_patched
 if test "$PATCHED" == 1; then 
