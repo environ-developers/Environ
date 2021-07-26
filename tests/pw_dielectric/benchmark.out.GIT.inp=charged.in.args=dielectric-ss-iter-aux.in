@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.7MaX starts on 22Jan2021 at 10: 2:47 
+     Program PWSCF v.6.7+ starts on 20Apr2021 at 12:36:59 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -177,7 +177,7 @@
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfcs are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is        9.0 secs
+     total cpu time spent up to now is        9.7 secs
 
      Self-consistent Calculation
 
@@ -190,7 +190,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.7E-06, # of iterations =  20
 
-     total cpu time spent up to now is       17.3 secs
+     total cpu time spent up to now is       18.3 secs
 
      total energy              =     -80.29562589 Ry
      estimated scf accuracy    <       3.64924908 Ry
@@ -206,7 +206,7 @@
      add environment contribution to local potential
      polarization accuracy = 4.8E-06, # of iterations =  17
 
-     total cpu time spent up to now is       24.5 secs
+     total cpu time spent up to now is       26.3 secs
 
      total energy              =     -81.12375400 Ry
      estimated scf accuracy    <       1.21963531 Ry
@@ -222,7 +222,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.6E-06, # of iterations =  15
 
-     total cpu time spent up to now is       31.1 secs
+     total cpu time spent up to now is       33.4 secs
 
      total energy              =     -81.36165928 Ry
      estimated scf accuracy    <       0.12160594 Ry
@@ -238,7 +238,7 @@
      add environment contribution to local potential
      polarization accuracy = 6.6E-06, # of iterations =  12
 
-     total cpu time spent up to now is       36.9 secs
+     total cpu time spent up to now is       39.7 secs
 
      total energy              =     -81.40176863 Ry
      estimated scf accuracy    <       0.01819355 Ry
@@ -254,7 +254,7 @@
      add environment contribution to local potential
      polarization accuracy = 7.4E-06, # of iterations =   9
 
-     total cpu time spent up to now is       42.0 secs
+     total cpu time spent up to now is       45.1 secs
 
      total energy              =     -81.40607717 Ry
      estimated scf accuracy    <       0.00148474 Ry
@@ -270,12 +270,12 @@
      add environment contribution to local potential
      polarization accuracy = 7.6E-06, # of iterations =   6
 
-     total cpu time spent up to now is       46.3 secs
+     total cpu time spent up to now is       49.8 secs
 
      total energy              =     -81.40646123 Ry
      estimated scf accuracy    <       0.00019261 Ry
      electrostatic embedding   =      -0.13516265 Ry
-     correction to one-el term =      -4.41997925 Ry
+     correction to one-el term =      -4.41997917 Ry
 
      iteration #  7     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
@@ -286,12 +286,12 @@
      add environment contribution to local potential
      polarization accuracy = 5.5E-06, # of iterations =   4
 
-     total cpu time spent up to now is       50.2 secs
+     total cpu time spent up to now is       53.9 secs
 
      total energy              =     -81.40650109 Ry
      estimated scf accuracy    <       0.00001994 Ry
      electrostatic embedding   =      -0.13471475 Ry
-     correction to one-el term =      -4.39565834 Ry
+     correction to one-el term =      -4.39565836 Ry
 
      iteration #  8     ecut=    30.00 Ry     beta= 0.70
      Davidson diagonalization with overlap
@@ -301,7 +301,7 @@
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.0668 ev
 
-     total cpu time spent up to now is       52.5 secs
+     total cpu time spent up to now is       56.3 secs
 
      End of self-consistent calculation
 
@@ -316,12 +316,12 @@
      estimated scf accuracy    <       0.00000129 Ry
 
      The total energy is the sum of the following terms:
-     one-electron contribution =    -241.01149912 Ry
+     one-electron contribution =    -241.01149918 Ry
      hartree contribution      =     122.71905973 Ry
      xc contribution           =     -22.90407011 Ry
      ewald contribution        =      64.30784069 Ry
      electrostatic embedding   =      -0.13436703 Ry
-     correction to one-el term =      -4.38351273 Ry
+     correction to one-el term =      -4.38351268 Ry
 
      convergence has been achieved in   8 iterations
  forces lc
@@ -339,13 +339,13 @@
      Forces acting on atoms (cartesian axes, Ry/au):
 
      atom    1 type  1   force =     0.22881211    0.00000257    0.10186668
-     atom    2 type  1   force =    -0.03260233    0.00000259   -0.08335840
+     atom    2 type  1   force =    -0.03260234    0.00000260   -0.08335840
      atom    3 type  3   force =    -0.14650840   -0.00000426    0.04624330
-     atom    4 type  2   force =     0.02044762   -0.03140250    0.00885594
-     atom    5 type  2   force =    -0.03453867   -0.00000044    0.01210111
-     atom    6 type  2   force =     0.02044574    0.03140423    0.00885710
-     atom    7 type  4   force =    -0.10188811   -0.00000633   -0.00424531
-     atom    8 type  2   force =     0.00856210    0.00000068   -0.05965000
+     atom    4 type  2   force =     0.02044763   -0.03140250    0.00885594
+     atom    5 type  2   force =    -0.03453867   -0.00000043    0.01210111
+     atom    6 type  2   force =     0.02044574    0.03140423    0.00885711
+     atom    7 type  4   force =    -0.10188812   -0.00000634   -0.00424531
+     atom    8 type  2   force =     0.00856211    0.00000068   -0.05965000
      atom    9 type  2   force =     0.04705428    0.00000360    0.03963088
      atom   10 type  2   force =    -0.00978434   -0.00000015   -0.07030130
 
@@ -353,58 +353,58 @@
 
      Writing output data file /Users/gabrielmedrano/Desktop/q-e/Environ/tests/../..//tempdir/pwscf.save/
 
-     init_run     :      8.26s CPU      8.91s WALL (       1 calls)
-     electrons    :     45.22s CPU     43.57s WALL (       1 calls)
-     forces       :     15.40s CPU     15.71s WALL (       1 calls)
+     init_run     :      8.91s CPU      9.56s WALL (       1 calls)
+     electrons    :     47.84s CPU     46.72s WALL (       1 calls)
+     forces       :     16.57s CPU     16.94s WALL (       1 calls)
 
      Called by init_run:
-     wfcinit      :      0.13s CPU      0.12s WALL (       1 calls)
-     potinit      :      0.96s CPU      1.01s WALL (       1 calls)
-     hinit0       :      6.52s CPU      6.89s WALL (       1 calls)
+     wfcinit      :      0.13s CPU      0.13s WALL (       1 calls)
+     potinit      :      1.05s CPU      1.10s WALL (       1 calls)
+     hinit0       :      7.04s CPU      7.41s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      1.77s CPU      1.44s WALL (       8 calls)
-     sum_band     :     10.74s CPU      6.09s WALL (       8 calls)
-     v_of_rho     :      4.89s CPU      5.63s WALL (       9 calls)
-     newd         :      3.39s CPU      4.75s WALL (       9 calls)
-     mix_rho      :      0.59s CPU      0.65s WALL (       8 calls)
+     c_bands      :      1.90s CPU      1.55s WALL (       8 calls)
+     sum_band     :     10.67s CPU      6.37s WALL (       8 calls)
+     v_of_rho     :      5.17s CPU      5.96s WALL (       9 calls)
+     newd         :      3.59s CPU      4.96s WALL (       9 calls)
+     mix_rho      :      0.64s CPU      0.72s WALL (       8 calls)
 
      Called by c_bands:
-     init_us_2    :      0.06s CPU      0.06s WALL (      17 calls)
-     regterg      :      1.68s CPU      1.36s WALL (       8 calls)
+     init_us_2    :      0.06s CPU      0.07s WALL (      17 calls)
+     regterg      :      1.82s CPU      1.46s WALL (       8 calls)
 
      Called by *egterg:
      rdiaghg      :      0.01s CPU      0.01s WALL (      39 calls)
-     h_psi        :      1.49s CPU      1.33s WALL (      40 calls)
-     s_psi        :      0.10s CPU      0.02s WALL (      40 calls)
+     h_psi        :      1.58s CPU      1.44s WALL (      40 calls)
+     s_psi        :      0.12s CPU      0.01s WALL (      40 calls)
      g_psi        :      0.01s CPU      0.01s WALL (      31 calls)
 
      Called by h_psi:
      h_psi:calbec :      0.05s CPU      0.04s WALL (      40 calls)
-     vloc_psi     :      1.22s CPU      1.22s WALL (      40 calls)
-     add_vuspsi   :      0.22s CPU      0.07s WALL (      40 calls)
+     vloc_psi     :      1.31s CPU      1.32s WALL (      40 calls)
+     add_vuspsi   :      0.22s CPU      0.08s WALL (      40 calls)
 
      General routines
-     calbec       :      0.06s CPU      0.05s WALL (      52 calls)
-     fft          :     19.79s CPU     20.72s WALL (     500 calls)
+     calbec       :      0.07s CPU      0.06s WALL (      52 calls)
+     fft          :     21.32s CPU     22.34s WALL (     500 calls)
      ffts         :      0.08s CPU      0.08s WALL (      17 calls)
-     fftw         :      1.11s CPU      1.11s WALL (     366 calls)
-     interpolate  :      0.39s CPU      0.44s WALL (       9 calls)
+     fftw         :      1.18s CPU      1.18s WALL (     366 calls)
+     interpolate  :      0.41s CPU      0.46s WALL (       9 calls)
 
      Parallel routines
-     fft_scatt_xy :      1.86s CPU      1.87s WALL (     397 calls)
-     fft_scatt_yz :      2.46s CPU      2.46s WALL (     397 calls)
+     fft_scatt_xy :      2.03s CPU      2.04s WALL (     397 calls)
+     fft_scatt_yz :      2.70s CPU      2.71s WALL (     397 calls)
 
      Environ routines
      calc_eelect  :      0.04s CPU      0.04s WALL (      16 calls)
-     calc_velect  :     20.95s CPU     22.06s WALL (      14 calls)
-     dielectric   :      0.07s CPU      0.08s WALL (       2 calls)
-     calc_felect  :      0.33s CPU      0.35s WALL (       1 calls)
+     calc_velect  :     22.79s CPU     24.01s WALL (      14 calls)
+     dielectric   :      0.08s CPU      0.09s WALL (       2 calls)
+     calc_felect  :      0.34s CPU      0.36s WALL (       1 calls)
 
-     PWSCF        :   1m 8.97s CPU   1m 8.37s WALL
+     PWSCF        :   1m13.41s CPU   1m13.41s WALL
 
 
-   This run was terminated on:  10: 3:56  22Jan2021            
+   This run was terminated on:  12:38:12  20Apr2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -860,7 +860,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.2349396398E-12
+ integral of density        =     0.3374091130E-12
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Starting from polarization: rhoiter =      1.712484
@@ -928,7 +928,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     0.5654489223E-12
+ integral of density        =     0.6840371890E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -936,7 +936,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.2779391943E-12
+ integral of density        =     0.1930163848E-12
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -948,7 +948,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.4607376209E-11
+ integral of density        =     0.4584448048E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Starting from polarization: rhoiter =      1.587198
@@ -976,7 +976,7 @@
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.899048E-05 delta_en =   0.139672E-03 tol =   0.100000E-04
+ delta_qm =   0.899049E-05 delta_en =   0.139672E-03 tol =   0.100000E-04
  Iteration #          6
  calling poisson_gradient_direct
  finished poisson_gradient_direct
@@ -996,12 +996,12 @@
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.206642E-05 delta_en =   0.737872E-05 tol =   0.100000E-04
+ delta_qm =   0.206642E-05 delta_en =   0.737870E-05 tol =   0.100000E-04
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =    -0.3319320127E-12
+ integral of density        =     0.1945916679E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -1009,7 +1009,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.2376372761E-11
+ integral of density        =     0.5661068322E-11
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -1021,7 +1021,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.1473907416E-11
+ integral of density        =     0.1037692566E-10
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Starting from polarization: rhoiter =      1.581865
@@ -1029,12 +1029,12 @@
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.194955E-04 delta_en =   0.656767E-03 tol =   0.100000E-04
+ delta_qm =   0.194954E-04 delta_en =   0.656764E-03 tol =   0.100000E-04
  Iteration #          2
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.106005E-04 delta_en =   0.194178E-03 tol =   0.100000E-04
+ delta_qm =   0.106005E-04 delta_en =   0.194177E-03 tol =   0.100000E-04
  Iteration #          3
  calling poisson_gradient_direct
  finished poisson_gradient_direct
@@ -1044,22 +1044,22 @@
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.504352E-05 delta_en =   0.439553E-04 tol =   0.100000E-04
+ delta_qm =   0.504351E-05 delta_en =   0.439551E-04 tol =   0.100000E-04
  Iteration #          5
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.326370E-05 delta_en =   0.184062E-04 tol =   0.100000E-04
+ delta_qm =   0.326367E-05 delta_en =   0.184059E-04 tol =   0.100000E-04
  Iteration #          6
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.209861E-05 delta_en =   0.761040E-05 tol =   0.100000E-04
+ delta_qm =   0.209859E-05 delta_en =   0.761026E-05 tol =   0.100000E-04
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =    -0.9197580968E-13
+ integral of density        =     0.1746783788E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -1067,7 +1067,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =    -0.5429915776E-12
+ integral of density        =    -0.3076151473E-11
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -1079,7 +1079,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =    -0.2524828083E-11
+ integral of density        =    -0.1411340181E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Starting from polarization: rhoiter =      1.578027
@@ -1087,27 +1087,27 @@
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.940507E-05 delta_en =   0.152851E-03 tol =   0.100000E-04
+ delta_qm =   0.940505E-05 delta_en =   0.152850E-03 tol =   0.100000E-04
  Iteration #          2
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.541859E-05 delta_en =   0.507359E-04 tol =   0.100000E-04
+ delta_qm =   0.541858E-05 delta_en =   0.507358E-04 tol =   0.100000E-04
  Iteration #          3
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.293692E-05 delta_en =   0.149048E-04 tol =   0.100000E-04
+ delta_qm =   0.293686E-05 delta_en =   0.149042E-04 tol =   0.100000E-04
  Iteration #          4
  calling poisson_gradient_direct
  finished poisson_gradient_direct
  finished scalar product environ gradient
- delta_qm =   0.178190E-05 delta_en =   0.548672E-05 tol =   0.100000E-04
+ delta_qm =   0.178188E-05 delta_en =   0.548656E-05 tol =   0.100000E-04
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =    -0.1985736678E-12
+ integral of density        =    -0.1956813312E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -1115,7 +1115,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.3082102474E-11
+ integral of density        =    -0.2492159771E-11
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -1127,15 +1127,15 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.3082102474E-11
+ integral of density        =    -0.2492159771E-11
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =    -0.2524828083E-11
+ integral of density        =    -0.1411340181E-11
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =    -0.1985736678E-12
+ integral of density        =    -0.1956813312E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34

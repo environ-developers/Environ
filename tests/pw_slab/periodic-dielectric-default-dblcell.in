@@ -1,0 +1,19 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_static_permittivity = 100.
+   env_nrep(3) = 1
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'full'
+   !
+ /
+ &ELECTROSTATIC
+   pbc_dim = 2
+   pbc_axis = 3
+   pbc_correction = 'parabolic'
+   tol = 1d-6
+ /

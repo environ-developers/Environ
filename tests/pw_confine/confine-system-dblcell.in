@@ -1,0 +1,16 @@
+&ENVIRON
+   environ_thr      = 10.0
+   environ_type     = 'vacuum'
+   env_confine      = 0.5
+   system_dim       = 0
+   env_nrep(1) = 1
+   env_nrep(2) = 1
+   env_nrep(3) = 1
+/
+&BOUNDARY
+   solvent_mode     = 'system'
+   solvent_distance = 4.5
+/
+&ELECTROSTATIC
+/
+

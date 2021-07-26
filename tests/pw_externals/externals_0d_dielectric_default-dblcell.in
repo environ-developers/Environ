@@ -1,0 +1,19 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_static_permittivity = 100.
+   env_external_charges = 1
+   env_nrep(1) = 1
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'full'
+   !
+ /
+ &ELECTROSTATIC
+   tol = 1.d-7
+ /
+ EXTERNAL_CHARGES ( bohr )
+ -1.0 0. 0. 15.

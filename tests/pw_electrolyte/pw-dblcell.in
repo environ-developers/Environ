@@ -1,0 +1,39 @@
+ &CONTROL
+   !
+   calculation = 'scf'
+   restart_mode = 'from_scratch'
+   tprnfor = .TRUE.
+   !
+ /
+ &SYSTEM
+   !
+   ecutrho = 300
+   ecutwfc = 30
+   ibrav = 1
+   celldm(1) = 10
+   nat = 11
+   ntyp = 3
+   !
+/
+ &ELECTRONS
+   !
+   conv_thr = 5.D-4
+   !
+ /
+K_POINTS gamma 
+ATOMIC_SPECIES  
+N   14      N.pbe-rrkjus.UPF
+C   12      C.pbe-rrkjus.UPF
+H    1      H.pbe-rrkjus.UPF
+ATOMIC_POSITIONS (angstrom)
+N  -1.29405370   0.00000009   0.00160193 
+C  -0.65255172   1.18925086   0.00109798 
+C   0.72927125   1.20927160   0.00077403 
+C   1.42556924   0.00000010   0.00069792 
+C   0.72927138  -1.20927146   0.00140341 
+C  -0.65255153  -1.18925032   0.00187670 
+H  -1.27676235   2.08397459   0.00090457 
+H   1.24837996   2.16895032   0.00042522 
+H   2.51813531  -0.00000009   0.00001054 
+H   1.24838024  -2.16895013   0.00169726 
+H  -1.27676191  -2.08397409   0.00258267 

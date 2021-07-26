@@ -1,5 +1,5 @@
 
-     Program PWSCF v.6.7MaX starts on 22Jan2021 at 10: 1:36 
+     Program PWSCF v.6.7+ starts on 20Apr2021 at 12:35:46 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
@@ -177,7 +177,7 @@
      negative rho (up, down):  4.438E-04 0.000E+00
      Starting wfcs are   22 randomized atomic wfcs
 
-     total cpu time spent up to now is       13.1 secs
+     total cpu time spent up to now is       14.0 secs
 
      Self-consistent Calculation
 
@@ -190,7 +190,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.4E-06, # of iterations =  17
 
-     total cpu time spent up to now is       18.2 secs
+     total cpu time spent up to now is       19.5 secs
 
      total energy              =     -80.29562589 Ry
      estimated scf accuracy    <       3.64924908 Ry
@@ -206,7 +206,7 @@
      add environment contribution to local potential
      polarization accuracy = 6.2E-06, # of iterations =  17
 
-     total cpu time spent up to now is       23.6 secs
+     total cpu time spent up to now is       25.2 secs
 
      total energy              =     -81.12511621 Ry
      estimated scf accuracy    <       1.21997961 Ry
@@ -222,7 +222,7 @@
      add environment contribution to local potential
      polarization accuracy = 9.9E-06, # of iterations =  17
 
-     total cpu time spent up to now is       29.2 secs
+     total cpu time spent up to now is       30.8 secs
 
      total energy              =     -81.36290489 Ry
      estimated scf accuracy    <       0.12146851 Ry
@@ -238,7 +238,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.8E-06, # of iterations =  17
 
-     total cpu time spent up to now is       35.4 secs
+     total cpu time spent up to now is       36.5 secs
 
      total energy              =     -81.40299139 Ry
      estimated scf accuracy    <       0.01821925 Ry
@@ -254,7 +254,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.6E-06, # of iterations =  17
 
-     total cpu time spent up to now is       41.8 secs
+     total cpu time spent up to now is       42.0 secs
 
      total energy              =     -81.40731948 Ry
      estimated scf accuracy    <       0.00150414 Ry
@@ -270,7 +270,7 @@
      add environment contribution to local potential
      polarization accuracy = 5.7E-06, # of iterations =  17
 
-     total cpu time spent up to now is       47.1 secs
+     total cpu time spent up to now is       47.6 secs
 
      total energy              =     -81.40771344 Ry
      estimated scf accuracy    <       0.00019683 Ry
@@ -286,7 +286,7 @@
      add environment contribution to local potential
      polarization accuracy = 6.0E-06, # of iterations =  17
 
-     total cpu time spent up to now is       52.4 secs
+     total cpu time spent up to now is       53.2 secs
 
      total energy              =     -81.40777506 Ry
      estimated scf accuracy    <       0.00002056 Ry
@@ -301,7 +301,7 @@
 
      the potential shift due to the Gaussian-smeared nuclei is    -0.0668 ev
 
-     total cpu time spent up to now is       54.8 secs
+     total cpu time spent up to now is       55.6 secs
 
      End of self-consistent calculation
 
@@ -316,12 +316,12 @@
      estimated scf accuracy    <       0.00000111 Ry
 
      The total energy is the sum of the following terms:
-     one-electron contribution =    -240.99567639 Ry
-     hartree contribution      =     122.71462461 Ry
+     one-electron contribution =    -240.99567641 Ry
+     hartree contribution      =     122.71462462 Ry
      xc contribution           =     -22.90350585 Ry
      ewald contribution        =      64.30784069 Ry
      electrostatic embedding   =      -0.13562099 Ry
-     correction to one-el term =      -4.39544428 Ry
+     correction to one-el term =      -4.39544426 Ry
 
      convergence has been achieved in   8 iterations
  forces lc
@@ -341,70 +341,70 @@
      atom    1 type  1   force =     0.22882591   -0.00001883    0.10184505
      atom    2 type  1   force =    -0.03260776   -0.00002354   -0.08277664
      atom    3 type  3   force =    -0.14589113   -0.00003404    0.04595753
-     atom    4 type  2   force =     0.02062541   -0.03158376    0.00908149
+     atom    4 type  2   force =     0.02062541   -0.03158375    0.00908149
      atom    5 type  2   force =    -0.03468621    0.00001691    0.01231897
      atom    6 type  2   force =     0.02062455    0.03162262    0.00908474
-     atom    7 type  4   force =    -0.10325765   -0.00004659   -0.00493444
+     atom    7 type  4   force =    -0.10325765   -0.00004659   -0.00493443
      atom    8 type  2   force =     0.00874740    0.00002204   -0.05987966
-     atom    9 type  2   force =     0.04742840    0.00002356    0.03974640
+     atom    9 type  2   force =     0.04742839    0.00002356    0.03974640
      atom   10 type  2   force =    -0.00980892    0.00002164   -0.07044345
 
      Total force =     0.348783     Total SCF correction =     0.001835
 
      Writing output data file /Users/gabrielmedrano/Desktop/q-e/Environ/tests/../..//tempdir/pwscf.save/
 
-     init_run     :     12.26s CPU     12.98s WALL (       1 calls)
-     electrons    :     43.35s CPU     41.73s WALL (       1 calls)
-     forces       :     15.70s CPU     16.05s WALL (       1 calls)
+     init_run     :     13.17s CPU     13.93s WALL (       1 calls)
+     electrons    :     42.98s CPU     41.64s WALL (       1 calls)
+     forces       :     16.81s CPU     17.19s WALL (       1 calls)
 
      Called by init_run:
      wfcinit      :      0.12s CPU      0.12s WALL (       1 calls)
-     potinit      :      0.99s CPU      1.05s WALL (       1 calls)
-     hinit0       :     10.50s CPU     10.92s WALL (       1 calls)
+     potinit      :      1.04s CPU      1.10s WALL (       1 calls)
+     hinit0       :     11.31s CPU     11.76s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      1.83s CPU      1.49s WALL (       8 calls)
-     sum_band     :     11.10s CPU      6.48s WALL (       8 calls)
-     v_of_rho     :      5.03s CPU      5.83s WALL (       9 calls)
-     newd         :      3.52s CPU      4.89s WALL (       9 calls)
-     mix_rho      :      0.62s CPU      0.69s WALL (       8 calls)
+     c_bands      :      1.84s CPU      1.49s WALL (       8 calls)
+     sum_band     :     10.73s CPU      6.38s WALL (       8 calls)
+     v_of_rho     :      5.12s CPU      5.88s WALL (       9 calls)
+     newd         :      3.54s CPU      5.01s WALL (       9 calls)
+     mix_rho      :      0.63s CPU      0.70s WALL (       8 calls)
 
      Called by c_bands:
-     init_us_2    :      0.06s CPU      0.07s WALL (      17 calls)
-     regterg      :      1.74s CPU      1.40s WALL (       8 calls)
+     init_us_2    :      0.06s CPU      0.06s WALL (      17 calls)
+     regterg      :      1.76s CPU      1.40s WALL (       8 calls)
 
      Called by *egterg:
      rdiaghg      :      0.01s CPU      0.01s WALL (      38 calls)
-     h_psi        :      1.53s CPU      1.37s WALL (      39 calls)
-     s_psi        :      0.11s CPU      0.02s WALL (      39 calls)
+     h_psi        :      1.52s CPU      1.37s WALL (      39 calls)
+     s_psi        :      0.12s CPU      0.01s WALL (      39 calls)
      g_psi        :      0.01s CPU      0.01s WALL (      30 calls)
 
      Called by h_psi:
      h_psi:calbec :      0.04s CPU      0.04s WALL (      39 calls)
-     vloc_psi     :      1.25s CPU      1.26s WALL (      39 calls)
-     add_vuspsi   :      0.23s CPU      0.07s WALL (      39 calls)
+     vloc_psi     :      1.25s CPU      1.25s WALL (      39 calls)
+     add_vuspsi   :      0.22s CPU      0.08s WALL (      39 calls)
 
      General routines
      calbec       :      0.06s CPU      0.05s WALL (      51 calls)
-     fft          :     16.90s CPU     17.69s WALL (     404 calls)
+     fft          :     16.95s CPU     17.72s WALL (     404 calls)
      ffts         :      0.09s CPU      0.09s WALL (      17 calls)
-     fftw         :      1.14s CPU      1.14s WALL (     362 calls)
-     interpolate  :      0.42s CPU      0.48s WALL (       9 calls)
+     fftw         :      1.13s CPU      1.13s WALL (     362 calls)
+     interpolate  :      0.42s CPU      0.47s WALL (       9 calls)
 
      Parallel routines
-     fft_scatt_xy :      1.44s CPU      1.44s WALL (     301 calls)
-     fft_scatt_yz :      1.91s CPU      1.91s WALL (     301 calls)
+     fft_scatt_xy :      1.48s CPU      1.48s WALL (     301 calls)
+     fft_scatt_yz :      1.90s CPU      1.91s WALL (     301 calls)
 
      Environ routines
      calc_eelect  :      0.04s CPU      0.04s WALL (      16 calls)
-     calc_velect  :     18.06s CPU     19.11s WALL (      14 calls)
-     dielectric   :      0.10s CPU      0.11s WALL (       2 calls)
+     calc_velect  :     18.03s CPU     19.05s WALL (      14 calls)
+     dielectric   :      0.10s CPU      0.12s WALL (       2 calls)
      calc_felect  :      0.33s CPU      0.35s WALL (       1 calls)
 
-     PWSCF        :   1m11.41s CPU   1m10.94s WALL
+     PWSCF        :   1m13.06s CPU   1m12.95s WALL
 
 
-   This run was terminated on:  10: 2:47  22Jan2021            
+   This run was terminated on:  12:36:59  20Apr2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
@@ -752,66 +752,66 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =    -0.6106489799E-11
+ integral of density        =    -0.6069112291E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Warning: bad guess with residual norm =   0.121941E+04, reset to no guess
  Iteration #          1
-  pAp =    97.527627808376693       rzold =    93.654977279760672       alpha =   0.96029175921078436     
+  pAp =    97.527627808376678       rzold =    93.654977279760658       alpha =   0.96029175921078436     
  delta_qm =   0.256673E-01 delta_en =   0.113842E+04 tol =   0.100000E-04
  Iteration #          2
-  pAp =    404.55160763757476       rzold =    36.498581478049815       alpha =    9.0219840408464674E-002
+  pAp =    404.55160763757436       rzold =    36.498581478049800       alpha =    9.0219840408464730E-002
  delta_qm =   0.369061E-02 delta_en =   0.235364E+02 tol =   0.100000E-04
  Iteration #          3
-  pAp =    1.6472637890738628       rzold =   0.27746627623606190       alpha =   0.16844070638623163     
+  pAp =    1.6472637890738668       rzold =   0.27746627623606201       alpha =   0.16844070638623126     
  delta_qm =   0.176809E-02 delta_en =   0.540200E+01 tol =   0.100000E-04
  Iteration #          4
-  pAp =   0.27039072609654213       rzold =    3.9735224146899367E-002  alpha =   0.14695483354969813     
+  pAp =   0.27039072609654136       rzold =    3.9735224146899360E-002  alpha =   0.14695483354969852     
  delta_qm =   0.131704E-02 delta_en =   0.299738E+01 tol =   0.100000E-04
  Iteration #          5
-  pAp =    1.8955969117206192E-002  rzold =    5.5585983558393412E-003  alpha =   0.29323736082656110     
+  pAp =    1.8955969117206213E-002  rzold =    5.5585983558393169E-003  alpha =   0.29323736082655949     
  delta_qm =   0.862105E-03 delta_en =   0.128429E+01 tol =   0.100000E-04
  Iteration #          6
-  pAp =    5.9022374064320940E-003  rzold =    2.2013732215081017E-003  alpha =   0.37297266611287211     
+  pAp =    5.9022374064320168E-003  rzold =    2.2013732215080653E-003  alpha =   0.37297266611287083     
  delta_qm =   0.446913E-03 delta_en =   0.345135E+00 tol =   0.100000E-04
  Iteration #          7
-  pAp =    2.1664408956050003E-003  rzold =    7.0729198764653994E-004  alpha =   0.32647647534784074     
+  pAp =    2.1664408956049669E-003  rzold =    7.0729198764652606E-004  alpha =   0.32647647534783941     
  delta_qm =   0.295552E-03 delta_en =   0.150943E+00 tol =   0.100000E-04
  Iteration #          8
-  pAp =    1.5577525334102868E-003  rzold =    3.7545872814522782E-004  alpha =   0.24102591399627535     
+  pAp =    1.5577525334102538E-003  rzold =    3.7545872814521037E-004  alpha =   0.24102591399626924     
  delta_qm =   0.223494E-03 delta_en =   0.863127E-01 tol =   0.100000E-04
  Iteration #          9
-  pAp =    4.8496750647691688E-004  rzold =    2.2034414147375077E-004  alpha =   0.45434825742132179     
+  pAp =    4.8496750647688712E-004  rzold =    2.2034414147373594E-004  alpha =   0.45434825742131907     
  delta_qm =   0.132089E-03 delta_en =   0.301495E-01 tol =   0.100000E-04
  Iteration #         10
-  pAp =    3.2292564781143498E-004  rzold =    1.2075261427467361E-004  alpha =   0.37393317964383033     
+  pAp =    3.2292564781141432E-004  rzold =    1.2075261427466088E-004  alpha =   0.37393317964381484     
  delta_qm =   0.621696E-04 delta_en =   0.667883E-02 tol =   0.100000E-04
  Iteration #         11
-  pAp =    7.6217927710837274E-005  rzold =    2.4815640992338230E-005  alpha =   0.32558797828361508     
+  pAp =    7.6217927710824725E-005  rzold =    2.4815640992334402E-005  alpha =   0.32558797828361846     
  delta_qm =   0.444198E-04 delta_en =   0.340955E-02 tol =   0.100000E-04
  Iteration #         12
-  pAp =    1.7328647561663757E-005  rzold =    5.6062845166108998E-006  alpha =   0.32352695134810794     
+  pAp =    1.7328647561661304E-005  rzold =    5.6062845166101138E-006  alpha =   0.32352695134810838     
  delta_qm =   0.293185E-04 delta_en =   0.148535E-02 tol =   0.100000E-04
  Iteration #         13
-  pAp =    4.0813452537997396E-006  rzold =    1.7202196839619040E-006  alpha =   0.42148350041211935     
+  pAp =    4.0813452537991018E-006  rzold =    1.7202196839617384E-006  alpha =   0.42148350041214466     
  delta_qm =   0.181486E-04 delta_en =   0.569156E-03 tol =   0.100000E-04
  Iteration #         14
-  pAp =    2.6095619484477353E-006  rzold =    1.0074092027167290E-006  alpha =   0.38604532968300431     
+  pAp =    2.6095619484477226E-006  rzold =    1.0074092027166776E-006  alpha =   0.38604532968298644     
  delta_qm =   0.111886E-04 delta_en =   0.216319E-03 tol =   0.100000E-04
  Iteration #         15
-  pAp =    8.4903365841160577E-007  rzold =    3.5559920782691540E-007  alpha =   0.41882816341130652     
+  pAp =    8.4903365841152583E-007  rzold =    3.5559920782688390E-007  alpha =   0.41882816341130885     
  delta_qm =   0.638847E-05 delta_en =   0.705241E-04 tol =   0.100000E-04
  Iteration #         16
-  pAp =    2.1564304330862002E-007  rzold =    9.7617053919592688E-008  alpha =   0.45267889203310363     
+  pAp =    2.1564304330893882E-007  rzold =    9.7617053919614883E-008  alpha =   0.45267889203253731     
  delta_qm =   0.357273E-05 delta_en =   0.220569E-04 tol =   0.100000E-04
  Iteration #         17
-  pAp =    7.3360117828447354E-008  rzold =    3.2451514190732181E-008  alpha =   0.44235907944722841     
+  pAp =    7.3360117834062905E-008  rzold =    3.2451514191215420E-008  alpha =   0.44235907941995406     
  delta_qm =   0.183225E-05 delta_en =   0.580116E-05 tol =   0.100000E-04
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     0.1355294477E-11
+ integral of density        =     0.9148591350E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -819,7 +819,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.3382808437E-12
+ integral of density        =     0.1306533482E-10
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -831,66 +831,66 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =    -0.1400155712E-11
+ integral of density        =    -0.3043688758E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Warning: bad guess with residual norm =   0.120707E+04, reset to no guess
  Iteration #          1
-  pAp =    97.488715276943822       rzold =    93.651333199210256       alpha =   0.96063767927567401     
+  pAp =    97.488715276889067       rzold =    93.651333199181835       alpha =   0.96063767927592203     
  delta_qm =   0.255452E-01 delta_en =   0.112762E+04 tol =   0.100000E-04
  Iteration #          2
-  pAp =    400.48460425062859       rzold =    36.139948562014894       alpha =    9.0240544027000935E-002
+  pAp =    400.48460424793029       rzold =    36.139948561769984       alpha =    9.0240544026997396E-002
  delta_qm =   0.372561E-02 delta_en =   0.239849E+02 tol =   0.100000E-04
  Iteration #          3
-  pAp =    1.6864813837501509       rzold =   0.28446275272306193       alpha =   0.16867233487660280     
+  pAp =    1.6864813837564248       rzold =   0.28446275272385607       alpha =   0.16867233487644620     
  delta_qm =   0.177112E-02 delta_en =   0.542052E+01 tol =   0.100000E-04
  Iteration #          4
-  pAp =   0.27549290112922747       rzold =    4.0371803613145719E-002  alpha =   0.14654389803753318     
+  pAp =   0.27549290112922048       rzold =    4.0371803613129621E-002  alpha =   0.14654389803747847     
  delta_qm =   0.131945E-02 delta_en =   0.300837E+01 tol =   0.100000E-04
  Iteration #          5
-  pAp =    1.9408491496427857E-002  rzold =    5.6441452232050158E-003  alpha =   0.29080803236273278     
+  pAp =    1.9408491496437440E-002  rzold =    5.6441452231968513E-003  alpha =   0.29080803236216851     
  delta_qm =   0.865925E-03 delta_en =   0.129570E+01 tol =   0.100000E-04
  Iteration #          6
-  pAp =    5.8202002733117294E-003  rzold =    2.1990414549588962E-003  alpha =   0.37782917282803880     
+  pAp =    5.8202002732717310E-003  rzold =    2.1990414549486526E-003  alpha =   0.37782917282887540     
  delta_qm =   0.446816E-03 delta_en =   0.344985E+00 tol =   0.100000E-04
  Iteration #          7
-  pAp =    2.0148185833855285E-003  rzold =    6.9313174430323812E-004  alpha =   0.34401695022018258     
+  pAp =    2.0148185833802684E-003  rzold =    6.9313174430109584E-004  alpha =   0.34401695022001744     
  delta_qm =   0.289948E-03 delta_en =   0.145272E+00 tol =   0.100000E-04
  Iteration #          8
-  pAp =    1.3149655381917912E-003  rzold =    3.3652674460934675E-004  alpha =   0.25592058106108589     
+  pAp =    1.3149655381852745E-003  rzold =    3.3652674460793507E-004  alpha =   0.25592058106128063     
  delta_qm =   0.220612E-03 delta_en =   0.841010E-01 tol =   0.100000E-04
  Iteration #          9
-  pAp =    5.8013288667985304E-004  rzold =    2.3600550496263663E-004  alpha =   0.40681283613020980     
+  pAp =    5.8013288667857661E-004  rzold =    2.3600550496175954E-004  alpha =   0.40681283612959301     
  delta_qm =   0.133181E-03 delta_en =   0.306498E-01 tol =   0.100000E-04
  Iteration #         10
-  pAp =    3.3697518046257126E-004  rzold =    1.2402314491939518E-004  alpha =   0.36804830773930181     
+  pAp =    3.3697518046259327E-004  rzold =    1.2402314491931994E-004  alpha =   0.36804830773905445     
  delta_qm =   0.624859E-04 delta_en =   0.674696E-02 tol =   0.100000E-04
  Iteration #         11
-  pAp =    7.7224360435788263E-005  rzold =    2.5275650173071734E-005  alpha =   0.32730151509753624     
+  pAp =    7.7224360435573130E-005  rzold =    2.5275650173023301E-005  alpha =   0.32730151509782091     
  delta_qm =   0.444376E-04 delta_en =   0.341228E-02 tol =   0.100000E-04
  Iteration #         12
-  pAp =    1.7088800319293997E-005  rzold =    5.5836091031406599E-006  alpha =   0.32674084773736417     
+  pAp =    1.7088800319168738E-005  rzold =    5.5836091031119268E-006  alpha =   0.32674084773807771     
  delta_qm =   0.292525E-04 delta_en =   0.147867E-02 tol =   0.100000E-04
  Iteration #         13
-  pAp =    4.1181933950864089E-006  rzold =    1.7246683478836739E-006  alpha =   0.41879246126261310     
+  pAp =    4.1181933950750282E-006  rzold =    1.7246683478765330E-006  alpha =   0.41879246126203645     
  delta_qm =   0.182277E-04 delta_en =   0.574125E-03 tol =   0.100000E-04
  Iteration #         14
-  pAp =    2.6416814061630726E-006  rzold =    1.0143303192335426E-006  alpha =   0.38397148000780806     
+  pAp =    2.6416814061584432E-006  rzold =    1.0143303192310218E-006  alpha =   0.38397148000752673     
  delta_qm =   0.111955E-04 delta_en =   0.216586E-03 tol =   0.100000E-04
  Iteration #         15
-  pAp =    8.5367601707865432E-007  rzold =    3.5781952261545676E-007  alpha =   0.41915142918029136     
+  pAp =    8.5367601707393794E-007  rzold =    3.5781952261381685E-007  alpha =   0.41915142918068604     
  delta_qm =   0.641857E-05 delta_en =   0.711902E-04 tol =   0.100000E-04
  Iteration #         16
-  pAp =    2.1518345937384538E-007  rzold =    9.7825263634224329E-008  alpha =   0.45461330493934132     
+  pAp =    2.1518345936865846E-007  rzold =    9.7825263633416034E-008  alpha =   0.45461330494654328     
  delta_qm =   0.357621E-05 delta_en =   0.220999E-04 tol =   0.100000E-04
  Iteration #         17
-  pAp =    7.1035336385871274E-008  rzold =    3.2263399788618009E-008  alpha =   0.45418803415471837     
- delta_qm =   0.180121E-05 delta_en =   0.560626E-05 tol =   0.100000E-04
+  pAp =    7.1035336319101493E-008  rzold =    3.2263399782736179E-008  alpha =   0.45418803449883166     
+ delta_qm =   0.180121E-05 delta_en =   0.560627E-05 tol =   0.100000E-04
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =    -0.7655366053E-11
+ integral of density        =     0.1697991542E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -898,7 +898,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =    -0.7364808352E-12
+ integral of density        =     0.2084827167E-11
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -910,66 +910,66 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.6067599098E-11
+ integral of density        =    -0.8291178443E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Warning: bad guess with residual norm =   0.119968E+04, reset to no guess
  Iteration #          1
-  pAp =    97.455359265946839       rzold =    93.639108590306904       alpha =   0.96084103835453794     
+  pAp =    97.455359265750630       rzold =    93.639108590205424       alpha =   0.96084103835543111     
  delta_qm =   0.254717E-01 delta_en =   0.112114E+04 tol =   0.100000E-04
  Iteration #          2
-  pAp =    398.04828869554819       rzold =    35.922583510293023       alpha =    9.0246798015425775E-002
+  pAp =    398.04828868585889       rzold =    35.922583509414579       alpha =    9.0246798015415686E-002
  delta_qm =   0.375415E-02 delta_en =   0.243538E+02 tol =   0.100000E-04
  Iteration #          3
-  pAp =    1.7084492593624567       rzold =   0.28937696675285307       alpha =   0.16937990119814275     
+  pAp =    1.7084492593878462       rzold =   0.28937696675627272       alpha =   0.16937990119762719     
  delta_qm =   0.177360E-02 delta_en =   0.543570E+01 tol =   0.100000E-04
  Iteration #          4
-  pAp =   0.27965293697081767       rzold =    4.0864948872479087E-002  alpha =   0.14612737243214943     
+  pAp =   0.27965293697107846       rzold =    4.0864948872460942E-002  alpha =   0.14612737243194829     
  delta_qm =   0.132064E-02 delta_en =   0.301378E+01 tol =   0.100000E-04
  Iteration #          5
-  pAp =    1.9725082627523201E-002  rzold =    5.7009544517299142E-003  alpha =   0.28902056125104097     
+  pAp =    1.9725082627617661E-002  rzold =    5.7009544517135800E-003  alpha =   0.28902056124882886     
  delta_qm =   0.868643E-03 delta_en =   0.130384E+01 tol =   0.100000E-04
  Iteration #          6
-  pAp =    5.8168362936751291E-003  rzold =    2.2038733117233909E-003  alpha =   0.37887834562573947     
+  pAp =    5.8168362935302016E-003  rzold =    2.2038733116877345E-003  alpha =   0.37887834562904943     
  delta_qm =   0.448898E-03 delta_en =   0.348208E+00 tol =   0.100000E-04
  Iteration #          7
-  pAp =    2.0054544198697621E-003  rzold =    6.9660201343193389E-004  alpha =   0.34735370025371731     
+  pAp =    2.0054544198408832E-003  rzold =    6.9660201342399601E-004  alpha =   0.34735370025476114     
  delta_qm =   0.289628E-03 delta_en =   0.144952E+00 tol =   0.100000E-04
  Iteration #          8
-  pAp =    1.2740354628089250E-003  rzold =    3.3090787160854876E-004  alpha =   0.25973207282549327     
+  pAp =    1.2740354627601555E-003  rzold =    3.3090787159984760E-004  alpha =   0.25973207282860611     
  delta_qm =   0.220430E-03 delta_en =   0.839621E-01 tol =   0.100000E-04
  Iteration #          9
-  pAp =    6.0310871795219865E-004  rzold =    2.3962893507291756E-004  alpha =   0.39732295014165281     
+  pAp =    6.0310871795925291E-004  rzold =    2.3962893507147761E-004  alpha =   0.39732295013461794     
  delta_qm =   0.133798E-03 delta_en =   0.309345E-01 tol =   0.100000E-04
  Iteration #         10
-  pAp =    3.3981618996140051E-004  rzold =    1.2512275147182953E-004  alpha =   0.36820715189009134     
+  pAp =    3.3981618996321221E-004  rzold =    1.2512275147193866E-004  alpha =   0.36820715188844944     
  delta_qm =   0.626971E-04 delta_en =   0.679265E-02 tol =   0.100000E-04
  Iteration #         11
-  pAp =    7.7920925842750907E-005  rzold =    2.5547151024430146E-005  alpha =   0.32785995222882525     
+  pAp =    7.7920925842022839E-005  rzold =    2.5547151024294898E-005  alpha =   0.32785995223015296     
  delta_qm =   0.444994E-04 delta_en =   0.342179E-02 tol =   0.100000E-04
  Iteration #         12
-  pAp =    1.7066636343397239E-005  rzold =    5.5921848250449240E-006  alpha =   0.32766766177732704     
+  pAp =    1.7066636342901318E-005  rzold =    5.5921848249350613E-006  alpha =   0.32766766178041112     
  delta_qm =   0.292401E-04 delta_en =   0.147741E-02 tol =   0.100000E-04
  Iteration #         13
-  pAp =    4.1130293255340702E-006  rzold =    1.7250877638306846E-006  alpha =   0.41942024413032475     
+  pAp =    4.1130293254793959E-006  rzold =    1.7250877638020517E-006  alpha =   0.41942024412893852     
  delta_qm =   0.182619E-04 delta_en =   0.576281E-03 tol =   0.100000E-04
  Iteration #         14
-  pAp =    2.6638445461621647E-006  rzold =    1.0173046583889638E-006  alpha =   0.38189340284687701     
+  pAp =    2.6638445461555689E-006  rzold =    1.0173046583803679E-006  alpha =   0.38189340284459572     
  delta_qm =   0.112217E-04 delta_en =   0.217599E-03 tol =   0.100000E-04
  Iteration #         15
-  pAp =    8.6562158821153015E-007  rzold =    3.6146702805318365E-007  alpha =   0.41758088404427907     
+  pAp =    8.6562158819820093E-007  rzold =    3.6146702804794433E-007  alpha =   0.41758088404465649     
  delta_qm =   0.643952E-05 delta_en =   0.716558E-04 tol =   0.100000E-04
  Iteration #         16
-  pAp =    2.1778133802589337E-007  rzold =    9.8767170793709214E-008  alpha =   0.45351530892865660     
+  pAp =    2.1778133802439046E-007  rzold =    9.8767170792430313E-008  alpha =   0.45351530892591385     
  delta_qm =   0.359583E-05 delta_en =   0.223430E-04 tol =   0.100000E-04
  Iteration #         17
-  pAp =    7.2028374785201033E-008  rzold =    3.2572252413704109E-008  alpha =   0.45221417963183602     
+  pAp =    7.2028374792803828E-008  rzold =    3.2572252414569268E-008  alpha =   0.45221417959611493     
  delta_qm =   0.181550E-05 delta_en =   0.569558E-05 tol =   0.100000E-04
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =    -0.2443189683E-11
+ integral of density        =    -0.2982256417E-11
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -977,7 +977,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.1653942415E-11
+ integral of density        =    -0.1277137860E-11
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -989,66 +989,66 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.5792395370E-11
+ integral of density        =     0.3322247827E-11
 
 %%%% COMPUTE ELECTROSTATIC POTENTIAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  Warning: bad guess with residual norm =   0.119520E+04, reset to no guess
  Iteration #          1
-  pAp =    97.466206203412142       rzold =    93.663644564182633       alpha =   0.96098584537810416     
+  pAp =    97.466206203469241       rzold =    93.663644564198961       alpha =   0.96098584537770870     
  delta_qm =   0.254273E-01 delta_en =   0.111724E+04 tol =   0.100000E-04
  Iteration #          2
-  pAp =    396.63330768243338       rzold =    35.793825311349494       alpha =    9.0244123773911639E-002
+  pAp =    396.63330768645017       rzold =    35.793825311719480       alpha =    9.0244123773930526E-002
  delta_qm =   0.375961E-02 delta_en =   0.244248E+02 tol =   0.100000E-04
  Iteration #          3
-  pAp =    1.7122886334940037       rzold =   0.29021377387670827       alpha =   0.16948881642957223     
+  pAp =    1.7122886334924323       rzold =   0.29021377387638991       alpha =   0.16948881642954183     
  delta_qm =   0.177403E-02 delta_en =   0.543830E+01 tol =   0.100000E-04
  Iteration #          4
-  pAp =   0.28097534638838345       rzold =    4.1034152011862904E-002  alpha =   0.14604182373759822     
+  pAp =   0.28097534638854688       rzold =    4.1034152011925902E-002  alpha =   0.14604182373773750     
  delta_qm =   0.132024E-02 delta_en =   0.301198E+01 tol =   0.100000E-04
  Iteration #          5
-  pAp =    1.9746088146533346E-002  rzold =    5.7036140974113967E-003  alpha =   0.28884779886960710     
+  pAp =    1.9746088146597351E-002  rzold =    5.7036140974370013E-003  alpha =   0.28884779886996753     
  delta_qm =   0.868897E-03 delta_en =   0.130461E+01 tol =   0.100000E-04
  Iteration #          6
-  pAp =    5.8228697076150920E-003  rzold =    2.2039082526701956E-003  alpha =   0.37849176837804666     
+  pAp =    5.8228697076406228E-003  rzold =    2.2039082526808373E-003  alpha =   0.37849176837821469     
  delta_qm =   0.449868E-03 delta_en =   0.349714E+00 tol =   0.100000E-04
  Iteration #          7
-  pAp =    2.0368243822163818E-003  rzold =    7.0156637458393140E-004  alpha =   0.34444126882481546     
+  pAp =    2.0368243821719738E-003  rzold =    7.0156637457995260E-004  alpha =   0.34444126883037174     
  delta_qm =   0.291016E-03 delta_en =   0.146345E+00 tol =   0.100000E-04
  Iteration #          8
-  pAp =    1.3320082723225625E-003  rzold =    3.3960850653273181E-004  alpha =   0.25495975782535635     
+  pAp =    1.3320082722360705E-003  rzold =    3.3960850651993708E-004  alpha =   0.25495975783230618     
  delta_qm =   0.221532E-03 delta_en =   0.848040E-01 tol =   0.100000E-04
  Iteration #          9
-  pAp =    5.8127856106742566E-004  rzold =    2.3658421573564365E-004  alpha =   0.40700660850314924     
+  pAp =    5.8127856110364712E-004  rzold =    2.3658421574159990E-004  alpha =   0.40700660848803411     
  delta_qm =   0.133968E-03 delta_en =   0.310131E-01 tol =   0.100000E-04
  Iteration #         10
-  pAp =    3.3739876272134304E-004  rzold =    1.2489784171606337E-004  alpha =   0.37017871882125497     
+  pAp =    3.3739876272551668E-004  rzold =    1.2489784171672774E-004  alpha =   0.37017871881864495     
  delta_qm =   0.627230E-04 delta_en =   0.679825E-02 tol =   0.100000E-04
  Iteration #         11
-  pAp =    7.8025499307363155E-005  rzold =    2.5586031241615816E-005  alpha =   0.32791884023485257     
+  pAp =    7.8025499307447790E-005  rzold =    2.5586031241658060E-005  alpha =   0.32791884023503826     
  delta_qm =   0.445161E-04 delta_en =   0.342435E-02 tol =   0.100000E-04
  Iteration #         12
-  pAp =    1.7078382935193458E-005  rzold =    5.5963748102994772E-006  alpha =   0.32768762894799697     
+  pAp =    1.7078382935269531E-005  rzold =    5.5963748103157470E-006  alpha =   0.32768762894748998     
  delta_qm =   0.292403E-04 delta_en =   0.147744E-02 tol =   0.100000E-04
  Iteration #         13
-  pAp =    4.1074039847888874E-006  rzold =    1.7245297981142784E-006  alpha =   0.41985882189840545     
+  pAp =    4.1074039847996278E-006  rzold =    1.7245297981205877E-006  alpha =   0.41985882189884366     
  delta_qm =   0.182653E-04 delta_en =   0.576495E-03 tol =   0.100000E-04
  Iteration #         14
-  pAp =    2.6670366174938691E-006  rzold =    1.0173431181681357E-006  alpha =   0.38145075005535589     
+  pAp =    2.6670366175030306E-006  rzold =    1.0173431181707533E-006  alpha =   0.38145075005502704     
  delta_qm =   0.112285E-04 delta_en =   0.217867E-03 tol =   0.100000E-04
  Iteration #         15
-  pAp =    8.7035524181847450E-007  rzold =    3.6276028389555493E-007  alpha =   0.41679565591817735     
- delta_qm =   0.644235E-05 delta_en =   0.717187E-04 tol =   0.100000E-04
+  pAp =    8.7035524183046606E-007  rzold =    3.6276028389747060E-007  alpha =   0.41679565591463585     
+ delta_qm =   0.644235E-05 delta_en =   0.717188E-04 tol =   0.100000E-04
  Iteration #         16
-  pAp =    2.1969445775122576E-007  rzold =    9.9178983290892325E-008  alpha =   0.45144053384905641     
- delta_qm =   0.361033E-05 delta_en =   0.225236E-04 tol =   0.100000E-04
+  pAp =    2.1969445785698423E-007  rzold =    9.9178983300636182E-008  alpha =   0.45144053367608977     
+ delta_qm =   0.361032E-05 delta_en =   0.225235E-04 tol =   0.100000E-04
  Iteration #         17
-  pAp =    7.6594825834469006E-008  rzold =    3.3242390527344865E-008  alpha =   0.43400308265189907     
- delta_qm =   0.186973E-05 delta_en =   0.604093E-05 tol =   0.100000E-04
+  pAp =    7.6594827369675301E-008  rzold =    3.3242390663087559E-008  alpha =   0.43400307572530117     
+ delta_qm =   0.186975E-05 delta_en =   0.604102E-05 tol =   0.100000E-04
  Charges are converged, EXIT
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     0.7371157183E-11
+ integral of density        =     0.1145667923E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
@@ -1056,7 +1056,7 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.4881073940E-11
+ integral of density        =    -0.3996977646E-11
 
 %%%% ELECTRONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  number of electrons        =         24
@@ -1068,15 +1068,15 @@
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = dvtot                                                                           
- integral of density        =     0.4881073940E-11
+ integral of density        =    -0.3996977646E-11
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = vreference                                                                      
- integral of density        =     0.5792395370E-11
+ integral of density        =     0.3322247827E-11
 
 %%%% DENSITY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  density label              = velectrostatic                                                                  
- integral of density        =     0.7371157183E-11
+ integral of density        =     0.1145667923E-12
 
 %%%% CHARGES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  total number of charges    =         34
