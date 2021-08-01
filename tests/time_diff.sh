@@ -32,44 +32,49 @@
 # TODO: add check for long tests
 
 runtime() {
-    grep "PWSCF *:" "$1" | grep -Eo "[0-9]{2}\.[0-9]{2}" | tail -1
+    grep "PWSCF *:" "$1" | grep -Eo "[0-9]+\.[0-9]+" | tail -1
 }
 
 # LOAD TEST DIRECTORIES
-if [[ "$*" ]]; then
+if [ "$*" ]; then
     testdirs="$*"
 else
-    mapfile -t testdirs <<<"$(find . -name "pw_*")"
+    mapfile -t testdirs <<<"$(find . -name "pw_*" | sort)"
 fi
 
 # START PROCESS
 for dir in "${testdirs[@]}"; do
+
+    # ----------------------------------------------------- INPUT VALIDATION
+
+    if [ -z "$dir" ]; then # MISSING FOLDER
+        printf "Missing directory %s\n" "$dir"; continue
+    fi
+
+    if [ -z "$(find "$dir" -name "test\.out*")" ] ; then # MISSING TESTS
+        continue
+    fi
+
+    if [ -z "$(find "$dir" -name "benchmark*")" ]; then # MISSING BENCHMARKS
+        printf "Missing benchmarks in %s\n" "$dir"; continue
+    fi
+
+    # ----------------------------------------------------- IF VALID DATA...
+
     printf "\n%10s\n" "$dir" # HEADER
 
-    # ------------------------------- INPUT VALIDATION
-    if [ -z "$dir" ]; then
-        echo "Missing directory"
-        continue
-    fi
-
-    if ! compgen -G "$dir/benchmark*" >/dev/null; then
-        echo "Missing benchmarks"
-        continue
-    fi
-
-    if ! compgen -G "$dir/test\.out*" >/dev/null; then
-        echo "Missing tests"
-        continue
-    fi
-    # ------------------------------------------------
-
-    mapfile -t files <<<"$(find "$dir" -name "benchmark*")"
+    mapfile -t files <<<"$(find "$dir" -name "benchmark*" | sort)"
     printf "%50s\t%11s\n" "Test" "delta_t (s)"
     for file in "${files[@]}"; do
-        inp=$(echo "$file" | cut -d "=" -f 2-) # JOB NAME
-        bench_t=$(runtime "$file")
-        test_t=$(runtime "$(find "$dir" -name "test.out*$inp*")")
-        delta="$(echo "$bench_t" "$test_t" | awk '{printf "%.2f", $2 - $1}')"
-        printf "%50s\t%7s\n" "$inp" "$delta"
+        job=$(echo "$file" | cut -d "=" -f 2-) # JOB NAME
+        test=$(find "$dir" -name "test.out*$job*")
+        if [ "$test" ]; then
+            bench_t=$(runtime "$file")
+            test_t=$(runtime "$test")
+            delta="$(echo "$bench_t" "$test_t" | awk '{printf "%.2f", $2 - $1}')"
+            printf "%50s\t%7s\n" "$job" "$delta"
+        fi
     done
+
+    echo
 done

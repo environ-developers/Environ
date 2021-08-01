@@ -47,3 +47,5 @@ export NETWORK_PSEUDO=http://www.quantum-espresso.org/wp-content/uploads/upf_fil
 export TESTCODE_DIR=${ENVIRON_ROOT}/tests/testcode
 
 export TESTCODE_NPROCS=4
+
+export JOBCONFIG=jobconfig
