@@ -6,12 +6,12 @@
 #----------------------------------------------------------------------------------------
 #
 #     This file is part of Environ version 2.0
-#     
+#
 #     Environ 2.0 is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation, either version 2 of the License, or
 #     (at your option) any later version.
-#     
+#
 #     Environ 2.0 is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -31,10 +31,13 @@
 #----------------------------------------------------------------------------------------
 
 export ENVIRON_VERSION="2.0"
-export ENVIRON_PATCH=$(
-	cd "${BASH_SOURCE%/*}"
+
+ENVIRON_PATCH=$(
+	cd "${BASH_SOURCE%/*}" || exit
 	pwd
 )
+export ENVIRON_PATCH
+
 export ENVIRON_DIR="${ENVIRON_PATCH}/.."
 export ENVIRON_TEST="${ENVIRON_DIR}/tests"
 export ENVIRON_SRC="${ENVIRON_DIR}/src"
@@ -63,28 +66,28 @@ export QE_DIR="$ENVIRON_DIR/.."
 # Set QE source directories and check that they are present
 
 export PW_SRC="${QE_DIR}/PW/src"
-if [ ! -d $PW_SRC ]; then
+if [ ! -d "$PW_SRC" ]; then
 	echo "Cannot find PW/src directory"
 	echo "Searching in $PW_SRC"
 	exit
 fi
 
-export CP_SRC="${QE_DIR}/CPV/src" 
-if [ ! -d $CP_SRC ]; then
+export CP_SRC="${QE_DIR}/CPV/src"
+if [ ! -d "$CP_SRC" ]; then
 	echo "Cannot find CPV/src directory"
 	echo "Searching in $CP_SRC"
 	exit
 fi
 
 export TD_SRC="${QE_DIR}/TDDFPT/src"
-if [ ! -d $TD_SRC ]; then
+if [ ! -d "$TD_SRC" ]; then
 	echo "Cannot find TDDFPT/src directory"
 	echo "Searching in $TD_SRC"
 	exit
 fi
 
 export XS_SRC="${QE_DIR}/XSpectra/src"
-if [ ! -d $XS_SRC ]; then
+if [ ! -d "$XS_SRC" ]; then
 	echo "Cannot find XSpectra/src directory"
 	echo "Searching in $XS_SRC"
 	exit
@@ -101,11 +104,11 @@ fi
 
 # functions used in patch/revert scripts
 
-function fill_with_dots() {
+fill_with_dots() {
 	printf "%s" "$1${DOTS:${#1}}"
 }
 
-function check_src_patched() {
+check_src_patched() {
 	if test -e "Environ_PATCH"; then
 		echo "  - src already patched!"
 		PATCHED=1
@@ -114,14 +117,14 @@ function check_src_patched() {
 	fi
 }
 
-function patch_makefile() {
+patch_makefile() {
 	if test "$(grep '# Environ patch' Makefile)"; then
 		echo "  - $1Makefile already patched!"
 		return
 	else
 		fill_with_dots "  - Patching $1Makefile"
-		mod1='MODFLAGS+=$(MOD_FLAG)../../Environ/src'
-		mod2='QEMODS+=../../Environ/libs/*'
+		mod1="MODFLAGS+=\$(MOD_FLAG)../../Environ/src"
+		mod2="QEMODS+=../../Environ/libs/*"
 
 		sed -i.tmp -e '/^TLDEPS/a \
 # Environ patch \
@@ -133,11 +136,11 @@ function patch_makefile() {
 	fi
 }
 
-function message() {
+message() {
 	fill_with_dots "  - $1 src"
 }
 
-function check_src_reverted() {
+check_src_reverted() {
 	if test ! -e Environ_PATCH; then
 		echo "  - src has not been patched!"
 		REVERTED=1
@@ -146,7 +149,7 @@ function check_src_reverted() {
 	fi
 }
 
-function revert_makefile() {
+revert_makefile() {
 	if test "$(grep '# Environ patch' Makefile)"; then
 		fill_with_dots "  - Reverting $1Makefile"
 		sed -i.tmp -e '/# Environ patch/,/# end Environ patch/d' Makefile && rm Makefile.tmp
@@ -157,14 +160,14 @@ function revert_makefile() {
 	fi
 }
 
-function patch_makedeps() {
+patch_makedeps() {
 
 	case $1 in
-		pw) DEPS="PW/src" ;;
-		cp) DEPS="CPV/src" ;; 
-		tddfpt) DEPS="PW/src | TDDFPT/src";;
-		xspectra) DEPS="PW/src | XSpectra/src";;
-		*) DEPS="PW/src | TDDFPT/src | XSpectra/src | CPV/src";;
+	pw) DEPS="PW/src" ;;
+	cp) DEPS="CPV/src" ;;
+	tddfpt) DEPS="PW/src | TDDFPT/src" ;;
+	xspectra) DEPS="PW/src | XSpectra/src" ;;
+	*) DEPS="PW/src | TDDFPT/src | XSpectra/src | CPV/src" ;;
 	esac
 
 	sed -i.tmp -e '/cd $TOPDIR\/..\/$DIR/a \
@@ -182,7 +185,7 @@ case "$1" in
 
 	# patch to QE/install/makedeps.sh
 	file="../install/makedeps.sh"
-	
+
 	if test "$(grep '# Environ patch' $file)"; then
 		sed -i.tmp -e '/# Environ patch/,/# end Environ patch/d' $file && rm $file.tmp
 	fi
@@ -196,22 +199,22 @@ case "$1" in
 		PATCH_SCRIPT="${ENVIRON_PATCH}/pw-patch.sh"
 		if test -e "$PATCH_SCRIPT"; then
 			echo "* Applying patches to pw"
-			source "$PATCH_SCRIPT"
+			. "$PATCH_SCRIPT"
 		fi
 		;;
-	cp) 
+	cp)
 		PATCH_SCRIPT="${ENVIRON_PATCH}/cp-patch.sh"
 		if test -e "$PATCH_SCRIPT"; then
 			echo "* Applying patches to cp"
-			source "$PATCH_SCRIPT"
-		fi	
+			. "$PATCH_SCRIPT"
+		fi
 		;;
 	tddfpt)
 		for i in pw td; do
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
 				echo "* Applying patches to $i"
-				source "$PATCH_SCRIPT"
+				. "$PATCH_SCRIPT"
 			fi
 		done
 		;;
@@ -220,18 +223,19 @@ case "$1" in
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
 				echo "* Applying patches to $i"
-				source "$PATCH_SCRIPT"
+				. "$PATCH_SCRIPT"
 			fi
 		done
 		;;
 	*)
-		for i in pw cp td xs; do 
+		for i in pw cp td xs; do
 			PATCH_SCRIPT="${ENVIRON_PATCH}/${i}-patch.sh"
 			if test -e "$PATCH_SCRIPT"; then
 				echo "* Applying patches to $i"
-				source "$PATCH_SCRIPT"
+				. "$PATCH_SCRIPT"
 			fi
 		done
+		;;
 	esac
 
 	cd "$ENVIRON_DIR" || exit # return to Environ root directory
@@ -266,14 +270,14 @@ case "$1" in
 		REVERT_SCRIPT="${ENVIRON_PATCH}/pw-revert.sh"
 		if test -e "$REVERT_SCRIPT"; then
 			echo "* Reverting patches to pw"
-			source "$REVERT_SCRIPT"
+			. "$REVERT_SCRIPT"
 		fi
 		;;
 	cp)
 		REVERT_SCRIPT="${ENVIRON_PATCH}/cp-revert.sh"
 		if test -e "$REVERT_SCRIPT"; then
 			echo "* Reverting patches to cp"
-			source "$REVERT_SCRIPT"
+			. "$REVERT_SCRIPT"
 		fi
 		;;
 	tddfpt)
@@ -281,7 +285,7 @@ case "$1" in
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
 				echo "* Reverting patches to ${i}"
-				source "$REVERT_SCRIPT"
+				. "$REVERT_SCRIPT"
 			fi
 		done
 		;;
@@ -290,18 +294,19 @@ case "$1" in
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
 				echo "* Reverting patches to ${i}"
-				source "$REVERT_SCRIPT"
+				. "$REVERT_SCRIPT"
 			fi
 		done
 		;;
 	*)
-		for i in pw cp td xs; do 
+		for i in pw cp td xs; do
 			REVERT_SCRIPT="${ENVIRON_PATCH}/${i}-revert.sh"
 			if test -e "$REVERT_SCRIPT"; then
 				echo "* Reverting patches to $i"
-				source "$REVERT_SCRIPT"
+				. "$REVERT_SCRIPT"
 			fi
 		done
+		;;
 	esac
 
 	cd "$ENVIRON_DIR" || exit # return to Environ root directory

@@ -2,11 +2,12 @@ base_mp.o : data_buffer.o
 base_mp.o : utils_param.o
 clocks.o : utils_param.o
 data_buffer.o : utils_param.o
-io.o : char_ops.o
+io.o : base_io.o
 io.o : mp.o
 io.o : utils_param.o
 mp.o : utils_param.o
 sorting.o : utils_param.o
+tools_math.o : kinds.o
 utils_cuda.o : utils_param.o
 utils_param.o : kinds.o
 utils_param.o : parallel_include.o
