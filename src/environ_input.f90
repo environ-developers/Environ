@@ -29,27 +29,20 @@
 MODULE environ_input
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, ionode_id, comm, verbose_ => verbose, environ_unit
-    !
-    USE env_io, ONLY: env_find_free_unit, env_field_count, env_read_line, &
-                      env_get_field
-    !
-    USE env_char_ops, ONLY: env_uppercase, env_is_substring
+    USE env_base_io, ONLY: ionode, ionode_id, comm, environ_unit, verbose_ => verbose
+    USE env_io
     USE env_mp, ONLY: env_mp_bcast
+    USE env_char_ops, ONLY: env_uppercase, env_is_substring
     !
-    USE environ_param, ONLY: DP, bohr_radius_angs, nsx
+    USE environ_param, ONLY: DP, BOHR_RADIUS_ANGS, nsx
     !
     USE env_base_input
-    !
-    USE init_environ, ONLY: set_environ_base
-    USE init_electrostatic, ONLY: set_electrostatic_base
-    USE init_core, ONLY: set_core_base
     !
     !------------------------------------------------------------------------------------
     !
     PRIVATE
     !
-    PUBLIC :: read_environ
+    PUBLIC :: read_environ_input
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -59,22 +52,15 @@ CONTAINS
     !! and derived routines for cards (external charges and dielectric regions)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_environ(nelec, nat, ntyp, atom_label, use_internal_pbc_corr, &
-                            ion_radius)
+    SUBROUTINE read_environ_input()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-        INTEGER, INTENT(IN) :: nelec, nat, ntyp
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
-        REAL(DP), INTENT(IN), OPTIONAL :: ion_radius(:)
-        !
         LOGICAL :: ext
         INTEGER :: environ_unit_input
-        INTEGER :: is
         !
-        CHARACTER(LEN=80) :: sub_name = 'read_environ'
+        CHARACTER(LEN=80) :: sub_name = 'read_environ_input'
         !
         !--------------------------------------------------------------------------------
         ! Open environ input file: environ.in
@@ -102,73 +88,15 @@ CONTAINS
         CLOSE (environ_unit_input)
         !
         !--------------------------------------------------------------------------------
-        ! If passed from input, overwrites atomic spread
-        ! (USED IN CP TO HAVE CONSISTENT RADII FOR ELECTROSTATICS)
-        !
-        IF (PRESENT(ion_radius)) THEN
-            !
-            DO is = 1, ntyp
-                atomicspread(is) = ion_radius(is)
-            END DO
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
         ! Set verbosity and open debug file
         !
-        verbose_ = verbose
-        !
-        IF (verbose_ >= 1) &
+        IF (verbose >= 1) &
             OPEN (unit=environ_unit, file='environ.debug', status='unknown')
-        !
-        !=-----------------------------------------------------------------------------=!
-        ! Set module variables according to input
-        !=-----------------------------------------------------------------------------=!
-        !
-        ! Set electrostatic first as it does not depend on anything else
-        !
-        CALL set_electrostatic_base(problem, tol, solver, auxiliary, step_type, step, &
-                                    maxstep, mix_type, ndiis, mix, preconditioner, &
-                                    screening_type, screening, core, pbc_correction, &
-                                    pbc_dim, pbc_axis, inner_tol, inner_solver, &
-                                    inner_maxstep, inner_mix)
-        !
-        !--------------------------------------------------------------------------------
-        ! Then set environ base
-        !
-        CALL set_environ_base(nelec, nat, ntyp, atom_label, atomicspread, &
-                              corespread, solvationrad, environ_restart, environ_thr, &
-                              environ_nskip, environ_type, system_ntyp, system_dim, &
-                              system_axis, env_nrep, stype, rhomax, rhomin, tbeta, &
-                              env_static_permittivity, env_optical_permittivity, &
-                              solvent_mode, derivatives, radius_mode, alpha, softness, &
-                              solvent_distance, solvent_spread, solvent_radius, &
-                              radial_scale, radial_spread, filling_threshold, &
-                              filling_spread, field_awareness, charge_asymmetry, &
-                              field_max, field_min, env_surface_tension, env_pressure, &
-                              env_confine, env_electrolyte_ntyp, &
-                              electrolyte_linearized, electrolyte_entropy, &
-                              electrolyte_mode, electrolyte_distance, &
-                              electrolyte_spread, cion, cionmax, rion, zion, &
-                              electrolyte_rhomax, electrolyte_rhomin, &
-                              electrolyte_tbeta, electrolyte_alpha, &
-                              electrolyte_softness, temperature, sc_permittivity, &
-                              sc_carrier_density, sc_electrode_chg, sc_distance, &
-                              sc_spread, sc_chg_thr, env_external_charges, &
-                              extcharge_charge, extcharge_dim, extcharge_axis, &
-                              extcharge_pos, extcharge_spread, env_dielectric_regions, &
-                              epsregion_eps, epsregion_dim, epsregion_axis, &
-                              epsregion_pos, epsregion_spread, epsregion_width)
-        !
-        !--------------------------------------------------------------------------------
-        ! Eventually set core base
-        !
-        CALL set_core_base(ifdtype, nfdpoint, use_internal_pbc_corr, pbc_dim, pbc_axis)
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE read_environ
+    END SUBROUTINE read_environ_input
     !------------------------------------------------------------------------------------
     !>
     !! Sets default values for all variables and overwrites with provided input
@@ -1231,9 +1159,7 @@ CONTAINS
         ! Depending on the boundary mode, set fitted parameters
         !
         IF (TRIM(ADJUSTL(solvent_mode)) == 'electronic' .OR. &
-            TRIM(ADJUSTL(solvent_mode)) == 'full') THEN ! .OR. &
-            ! TRIM(ADJUSTL(solvent_mode)) == 'fa-electronic' .OR. & ! #TODO field-aware
-            !     TRIM(ADJUSTL(solvent_mode)) == 'fa-full') THEN
+            TRIM(ADJUSTL(solvent_mode)) == 'full') THEN
             !
             !----------------------------------------------------------------------------
             ! Self-consistent continuum solvation (SCCS)
@@ -1455,11 +1381,11 @@ CONTAINS
                 !
             ELSE
                 !
-                IF (solver /= 'iterative') THEN
-                    solver = 'iterative'
+                IF (solver /= 'fp') THEN
+                    solver = 'fp'
                     !
                     CALL env_default('solver', solver, &
-                                     'gcs correction requires iterative solver')
+                                     'gcs correction requires fixed-point solver')
                     !
                 END IF
                 !
@@ -2070,7 +1996,7 @@ CONTAINS
             length = length ! input length are in a.u., do nothing
             !
         CASE ('angstrom')
-            length = length / bohr_radius_angs ! length in A: convert to a.u.
+            length = length / BOHR_RADIUS_ANGS ! length in A: convert to a.u.
             !
         CASE DEFAULT
             CALL env_errore(sub_name, TRIM(length_format)//' units not implemented', 1)

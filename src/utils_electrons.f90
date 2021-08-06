@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -29,49 +29,81 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE utils_electrons
+MODULE class_electrons
     !------------------------------------------------------------------------------------
+    !
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
     !
     USE environ_param, ONLY: DP
     !
-    USE types_physical, ONLY: environ_electrons
-    USE types_cell, ONLY: environ_cell
+    USE class_cell
     !
-    USE utils_density, ONLY: create_environ_density, init_environ_density, &
-                             destroy_environ_density
-    !
-    USE tools_math, ONLY: integrate_environ_density
+    USE class_density
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: create_environ_electrons, init_environ_electrons_first, &
-              init_environ_electrons_second, update_environ_electrons, &
-              destroy_environ_electrons
-    !
-    !------------------------------------------------------------------------------------
-CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_electrons(electrons)
+    TYPE, PUBLIC :: environ_electrons
+        !--------------------------------------------------------------------------------
+        !
+        LOGICAL :: lupdate = .FALSE.
+        LOGICAL :: initialized = .FALSE.
+        INTEGER :: number = 0
+        !
+        TYPE(environ_density) :: density
+        REAL(DP) :: charge = 0.0_DP
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: create => create_environ_electrons
+        PROCEDURE :: init_first => init_environ_electrons_first
+        PROCEDURE :: init_second => init_environ_electrons_second
+        PROCEDURE :: update => update_environ_electrons
+        PROCEDURE :: destroy => destroy_environ_electrons
+        !
+        PROCEDURE :: printout => print_environ_electrons
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE environ_electrons
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+CONTAINS
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_electrons(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_electrons), INTENT(INOUT) :: electrons
+        CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: label = 'electrons'
         !
         !--------------------------------------------------------------------------------
         !
-        electrons%update = .FALSE.
-        electrons%number = 0
-        electrons%charge = 0.D0
+        this%lupdate = .FALSE.
+        this%number = 0
+        this%charge = 0.D0
         !
-        CALL create_environ_density(electrons%density, label)
+        CALL this%density%create(label)
         !
         RETURN
         !
@@ -81,19 +113,19 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons_first(nelec, electrons)
+    SUBROUTINE init_environ_electrons_first(this, nelec)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nelec
         !
-        TYPE(environ_electrons), INTENT(INOUT) :: electrons
+        CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        electrons%initialized = .FALSE.
-        electrons%number = nelec
+        this%initialized = .FALSE.
+        this%number = nelec
         !
         RETURN
         !
@@ -103,20 +135,20 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons_second(cell, electrons)
+    SUBROUTINE init_environ_electrons_second(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), INTENT(IN) :: cell
         !
-        TYPE(environ_electrons), INTENT(INOUT) :: electrons
+        CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        CALL init_environ_density(cell, electrons%density)
+        CALL this%density%init(cell)
         !
-        electrons%initialized = .TRUE.
+        this%initialized = .TRUE.
         !
         RETURN
         !
@@ -126,7 +158,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_electrons(nnr, rho, electrons, nelec)
+    SUBROUTINE update_environ_electrons(this, nnr, rho, nelec)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -136,7 +168,7 @@ CONTAINS
         !
         REAL(DP), INTENT(IN), OPTIONAL :: nelec
         !
-        TYPE(environ_electrons), INTENT(INOUT) :: electrons
+        CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         REAL(DP), PARAMETER :: tol = 1.D-4
         REAL(DP) :: charge
@@ -146,21 +178,21 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ! check on dimensions
-        IF (nnr /= electrons%density%cell%nnr) &
+        IF (nnr /= this%density%cell%nnr) &
             CALL env_errore(sub_name, 'Mismatch in grid size', 1)
         !
-        electrons%density%of_r = rho ! assign input density to electrons%density%of_r
+        this%density%of_r = rho
         !
         !--------------------------------------------------------------------------------
         ! Update integral of electronic density and, if provided, check
         ! against input value
         !
-        electrons%charge = integrate_environ_density(electrons%density)
-        electrons%number = NINT(electrons%charge)
+        this%charge = this%density%integrate()
+        this%number = NINT(this%charge)
         !
         IF (PRESENT(nelec)) THEN
             !
-            IF (ABS(electrons%charge - nelec) > tol) &
+            IF (ABS(this%charge - nelec) > tol) &
                 CALL env_errore(sub_name, 'Mismatch in integrated electronic charge', 1)
             !
         END IF
@@ -173,23 +205,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_electrons(lflag, electrons)
+    SUBROUTINE destroy_environ_electrons(this, lflag)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: lflag
         !
-        TYPE(environ_electrons), INTENT(INOUT) :: electrons
+        CLASS(environ_electrons), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        IF (electrons%initialized) THEN
+        IF (this%initialized) THEN
             !
-            CALL destroy_environ_density(electrons%density)
+            CALL this%density%destroy()
             !
-            electrons%charge = 0.D0
-            electrons%initialized = .FALSE.
+            this%charge = 0.D0
+            this%initialized = .FALSE.
         END IF
         !
         RETURN
@@ -197,7 +229,90 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrons
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
     !
     !------------------------------------------------------------------------------------
-END MODULE utils_electrons
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_electrons(this, local_verbose, local_depth)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_electrons), INTENT(IN) :: this
+        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        !
+        INTEGER :: verbosity, passed_verbosity, passed_depth
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_electrons'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (verbose == 0) RETURN
+        !
+        IF (PRESENT(local_verbose)) THEN
+            verbosity = verbose + local_verbose
+        ELSE
+            verbosity = verbose
+        END IF
+        !
+        IF (verbosity == 0) RETURN
+        !
+        IF (PRESENT(local_depth)) THEN
+            passed_verbosity = verbosity - verbose - local_depth
+            passed_depth = local_depth
+        ELSE
+            passed_verbosity = verbosity - verbose - depth
+            passed_depth = depth
+        END IF
+        !
+        IF (verbosity >= 1) THEN
+            !
+            IF (ionode) THEN
+                !
+                IF (verbosity >= verbose) THEN ! header
+                    WRITE (environ_unit, 1000)
+                ELSE
+                    !
+                    CALL env_block_divider(verbosity)
+                    !
+                    WRITE (environ_unit, 1001)
+                END IF
+                !
+                WRITE (environ_unit, 1002) this%number
+                WRITE (environ_unit, 1003) this%charge
+                !
+            END IF
+            !
+            IF (verbosity >= 3) &
+                CALL this%density%printout(passed_verbosity, passed_depth)
+            !
+            IF (verbosity < verbose) CALL env_block_divider(verbosity)
+            !
+        END IF
+        !
+        FLUSH (environ_unit)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(/, 4('%'), ' ELECTRONS ', 65('%'))
+1001    FORMAT(/, ' ELECTRONS', /, ' =========')
+        !
+1002    FORMAT(/, ' number of electrons        = ', I10)
+        !
+1003    FORMAT(/, ' total electronic charge    = ', F14.7)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_electrons
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+END MODULE class_electrons
 !----------------------------------------------------------------------------------------

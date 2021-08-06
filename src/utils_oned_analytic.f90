@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -31,225 +31,243 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE utils_oned_analytic
+MODULE class_core_1da
     !------------------------------------------------------------------------------------
     !
     USE environ_param, ONLY: DP
     !
-    USE types_core, ONLY: oned_analytic_core
-    USE types_cell, ONLY: environ_cell
+    USE class_cell
+    !
+    USE class_core_numerical
     !
     USE generate_functions, ONLY: generate_axis, generate_distance
     !
     !------------------------------------------------------------------------------------
     !
+    IMPLICIT NONE
+    !
     PRIVATE
     !
-    PUBLIC :: init_oned_analytic_core_first, init_oned_analytic_core_second, &
-              update_oned_analytic_core_cell, update_oned_analytic_core_origin, &
-              destroy_oned_analytic_core
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    TYPE, EXTENDS(numerical_core), PUBLIC :: core_1da
+        !--------------------------------------------------------------------------------
+        !
+        LOGICAL :: initialized = .FALSE.
+        INTEGER :: n, d, p, axis
+        REAL(DP) :: size, origin(3)
+        REAL(DP), ALLOCATABLE :: x(:, :)
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: create => create_core_1da
+        PROCEDURE :: init_first => init_core_1da_first
+        PROCEDURE :: init_second => init_core_1da_second
+        PROCEDURE :: update_cell => update_core_1da_cell
+        PROCEDURE :: update_origin => update_core_1da_origin
+        PROCEDURE :: destroy => destroy_core_1da
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE core_1da
+    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_oned_analytic_core(oned_analytic)
+    SUBROUTINE create_core_1da(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(oned_analytic_core), INTENT(INOUT) :: oned_analytic
-        !
-        CHARACTER(LEN=80) :: sub_name = 'create_oned_analytic_core'
+        CLASS(core_1da), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (oned_analytic%cell)
-        oned_analytic%initialized = .FALSE.
+        this%core_type = '1d-analytic'
+        !
+        NULLIFY (this%cell)
+        this%initialized = .FALSE.
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_oned_analytic_core
+    END SUBROUTINE create_core_1da
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_oned_analytic_core_first(dim, axis, oned_analytic)
+    SUBROUTINE init_core_1da_first(this, dim, axis)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: dim, axis
         !
-        TYPE(oned_analytic_core), INTENT(INOUT) :: oned_analytic
+        CLASS(core_1da), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_oned_analytic_core_first'
+        CHARACTER(LEN=80) :: sub_name = 'init_core_1da_first'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         IF (dim == 3 .OR. dim < 0) &
             CALL env_errore(sub_name, &
                             'Wrong dimensions for analytic one dimensional core', 1)
         !
-        oned_analytic%d = dim
-        oned_analytic%p = 3 - dim
+        this%d = dim
+        this%p = 3 - dim
         !
         IF ((dim == 1 .OR. dim == 2) .AND. (axis > 3 .OR. axis < 1)) &
             CALL env_errore(sub_name, &
                             'Wrong choice of axis for analytic one dimensional core', 1)
         !
-        oned_analytic%axis = axis
-        !
-        oned_analytic%initialized = .FALSE.
+        this%axis = axis
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_oned_analytic_core_first
+    END SUBROUTINE init_core_1da_first
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_oned_analytic_core_second(cell, oned_analytic)
+    SUBROUTINE init_core_1da_second(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), INTENT(IN) :: cell
         !
-        TYPE(oned_analytic_core), INTENT(INOUT) :: oned_analytic
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_oned_analytic_core_second'
+        CLASS(core_1da), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        CALL update_oned_analytic_core_cell(cell, oned_analytic)
+        CALL this%update_cell(cell)
         !
-        oned_analytic%n = cell%nnr
-        ALLOCATE (oned_analytic%x(oned_analytic%p, oned_analytic%n))
+        this%n = cell%nnr
+        ALLOCATE (this%x(this%p, this%n))
         !
-        CALL update_oned_analytic_core_origin(cell%origin, oned_analytic)
+        CALL this%update_origin(cell%origin)
         !
-        oned_analytic%initialized = .TRUE.
+        this%initialized = .TRUE.
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_oned_analytic_core_second
+    END SUBROUTINE init_core_1da_second
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_oned_analytic_core_cell(cell, oned_analytic)
+    SUBROUTINE update_core_1da_cell(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         !
-        TYPE(oned_analytic_core), INTENT(INOUT) :: oned_analytic
+        CLASS(core_1da), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        oned_analytic%cell => cell
+        this%cell => cell
         !
-        IF (oned_analytic%d == 0) THEN
-            oned_analytic%size = cell%omega
-        ELSE IF (oned_analytic%d == 1) THEN
-            !
-            oned_analytic%size = &
-                cell%omega / cell%at(oned_analytic%axis, oned_analytic%axis) / cell%alat
-            !
-        ELSE IF (oned_analytic%d == 2) THEN
-            !
-            oned_analytic%size = &
-                cell%at(oned_analytic%axis, oned_analytic%axis) * cell%alat
-            !
+        IF (this%d == 0) THEN
+            this%size = cell%omega
+        ELSE IF (this%d == 1) THEN
+            this%size = cell%omega / cell%at(this%axis, this%axis) / cell%alat
+        ELSE IF (this%d == 2) THEN
+            this%size = cell%at(this%axis, this%axis) * cell%alat
         END IF
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE update_oned_analytic_core_cell
+    END SUBROUTINE update_core_1da_cell
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_oned_analytic_core_origin(origin, oned_analytic)
+    SUBROUTINE update_core_1da_origin(this, origin)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: origin(3)
-        TYPE(oned_analytic_core), INTENT(INOUT) :: oned_analytic
         !
-        CHARACTER(LEN=80) :: sub_name = 'update_oned_analytic_core_origin'
+        CLASS(core_1da), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'update_core_1da_origin'
         !
         !--------------------------------------------------------------------------------
         !
-        oned_analytic%origin = origin
+        this%origin = origin
         !
-        IF (oned_analytic%d == 0) THEN
-            !
-            CALL generate_distance(oned_analytic%cell, oned_analytic%origin, &
-                                   oned_analytic%x)
-            !
-        ELSE IF (oned_analytic%d == 1) THEN
+        IF (this%d == 0) THEN
+            CALL generate_distance(this%cell, this%origin, this%x)
+        ELSE IF (this%d == 1) THEN
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
-        ELSE IF (oned_analytic%d == 2) THEN
-            !
-            CALL generate_axis(oned_analytic%cell, oned_analytic%axis, &
-                               oned_analytic%origin, oned_analytic%x(1, :))
-            !
+        ELSE IF (this%d == 2) THEN
+            CALL generate_axis(this%cell, this%axis, this%origin, this%x(1, :))
         END IF
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE update_oned_analytic_core_origin
+    END SUBROUTINE update_core_1da_origin
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_oned_analytic_core(lflag, oned_analytic)
+    SUBROUTINE destroy_core_1da(this, lflag)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: lflag
         !
-        TYPE(oned_analytic_core), INTENT(INOUT) :: oned_analytic
+        CLASS(core_1da), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_oned_analytic_core'
+        CHARACTER(LEN=80) :: sub_name = 'destroy_core_1da'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (oned_analytic%initialized) THEN
+        IF (this%initialized) THEN
             !
-            IF (.NOT. ALLOCATED(oned_analytic%x)) &
+            IF (.NOT. ALLOCATED(this%x)) &
                 CALL env_errore(sub_name, &
                                 'Trying to destroy a non-allocated component', 1)
             !
-            DEALLOCATE (oned_analytic%x)
+            DEALLOCATE (this%x)
             !
-            IF (.NOT. ASSOCIATED(oned_analytic%cell)) &
+            IF (.NOT. ASSOCIATED(this%cell)) &
                 CALL env_errore(sub_name, &
                                 'Trying to nullify a non-associated pointer', 1)
             !
-            NULLIFY (oned_analytic%cell)
-            oned_analytic%initialized = .FALSE.
+            NULLIFY (this%cell)
+            this%initialized = .FALSE.
         END IF
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_oned_analytic_core
+    END SUBROUTINE destroy_core_1da
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE utils_oned_analytic
+END MODULE class_core_1da
 !----------------------------------------------------------------------------------------

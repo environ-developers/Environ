@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -29,129 +29,174 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE utils_fd
+MODULE class_core_fd
     !------------------------------------------------------------------------------------
     !
-    USE types_core, ONLY: fd_core
-    USE types_cell, ONLY: environ_cell
+    USE environ_param, ONLY: DP
+    !
+    USE class_cell
+    !
+    USE class_core_numerical
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: init_fd_core_first, init_fd_core_second, destroy_fd_core
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    TYPE, EXTENDS(numerical_core), PUBLIC :: core_fd
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER :: ifdtype
+        INTEGER :: nfdpoint
+        INTEGER, ALLOCATABLE :: icfd(:)
+        INTEGER :: ncfd
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: create => create_core_fd
+        PROCEDURE :: init_first => init_core_fd_first
+        PROCEDURE :: init_second => init_core_fd_second
+        PROCEDURE :: destroy => destroy_core_fd
+        !
+        PROCEDURE :: set_coefficients
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE core_fd
+    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
     !>
-    !! #TODO unused
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_fd_core(fd)
+    SUBROUTINE create_core_fd(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(fd_core), INTENT(INOUT) :: fd
+        CLASS(core_fd), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (fd%cell) ! create empty finite difference core
+        this%core_type = 'fd'
+        !
+        NULLIFY (this%cell) ! create empty finite difference core
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_fd_core
+    END SUBROUTINE create_core_fd
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_fd_core_first(ifdtype, nfdpoint, fd)
+    SUBROUTINE init_core_fd_first(this, ifdtype, nfdpoint)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: ifdtype, nfdpoint
         !
-        TYPE(fd_core), INTENT(INOUT) :: fd
+        CLASS(core_fd), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         ! Set finite differences tools
         !
-        fd%ifdtype = ifdtype
-        fd%nfdpoint = nfdpoint
-        ALLOCATE (fd%icfd(-nfdpoint:nfdpoint))
+        CALL this%create()
         !
-        CALL set_fd_coefficients(fd)
+        this%ifdtype = ifdtype
+        this%nfdpoint = nfdpoint
+        ALLOCATE (this%icfd(-nfdpoint:nfdpoint))
+        !
+        CALL this%set_coefficients()
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_fd_core_first
+    END SUBROUTINE init_core_fd_first
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_fd_core_second(cell, fd)
+    SUBROUTINE init_core_fd_second(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         !
-        TYPE(fd_core), INTENT(INOUT) :: fd
+        CLASS(core_fd), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        fd%cell => cell
+        this%cell => cell
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_fd_core_second
+    END SUBROUTINE init_core_fd_second
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_fd_core(lflag, fd)
+    SUBROUTINE destroy_core_fd(this, lflag)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: lflag
         !
-        TYPE(fd_core), INTENT(INOUT) :: fd
+        CLASS(core_fd), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_fd_core'
+        CHARACTER(LEN=80) :: sub_name = 'destroy_core_fd'
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (fd%cell)
+        NULLIFY (this%cell)
         !
         IF (lflag) THEN
             !
-            IF (.NOT. ALLOCATED(fd%icfd)) &
+            IF (.NOT. ALLOCATED(this%icfd)) &
                 CALL env_errore(sub_name, &
                                 'Trying to deallocate a non-allocated object', 1)
             !
-            DEALLOCATE (fd%icfd)
+            DEALLOCATE (this%icfd)
         END IF
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_fd_core
+    END SUBROUTINE destroy_core_fd
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                               PRIVATE HELPER METHODS
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_fd_coefficients(fd)
+    SUBROUTINE set_coefficients(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(fd_core), TARGET, INTENT(INOUT) :: fd
+        CLASS(core_fd), TARGET, INTENT(INOUT) :: this
         !
         INTEGER, POINTER :: ifdtype, nfdpoint, ncfd
         INTEGER, POINTER :: icfd(:)
@@ -160,10 +205,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ifdtype => fd%ifdtype
-        nfdpoint => fd%nfdpoint
-        ncfd => fd%ncfd
-        icfd => fd%icfd
+        ifdtype => this%ifdtype
+        nfdpoint => this%nfdpoint
+        ncfd => this%ncfd
+        icfd => this%icfd
         !
         ncfd = 0
         icfd = 0
@@ -341,9 +386,9 @@ CONTAINS
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_fd_coefficients
+    END SUBROUTINE set_coefficients
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE utils_fd
+END MODULE class_core_fd
 !----------------------------------------------------------------------------------------

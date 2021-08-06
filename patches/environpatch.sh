@@ -166,7 +166,6 @@ function patch_makedeps() {
 		xspectra) DEPS="PW/src | XSpectra/src";;
 		*) DEPS="PW/src | TDDFPT/src | XSpectra/src | CPV/src";;
 	esac
-	
 
 	sed -i.tmp -e '/cd $TOPDIR\/..\/$DIR/a \
 	# Environ patch\
@@ -183,13 +182,14 @@ case "$1" in
 
 	# patch to QE/install/makedeps.sh
 	file="../install/makedeps.sh"
+	
 	if test "$(grep '# Environ patch' $file)"; then
-		printf "\n* install/makedeps.sh already patched! \n\n"
-	else
-		printf "\n* Patching install/makedeps.sh.........."
-		patch_makedeps "$2"
-		printf " done! \n\n"
+		sed -i.tmp -e '/# Environ patch/,/# end Environ patch/d' $file && rm $file.tmp
 	fi
+
+	printf "\n* Patching install/makedeps.sh.........."
+	patch_makedeps "$2"
+	printf " done! \n\n"
 
 	case "$2" in
 	pw)

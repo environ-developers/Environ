@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -21,85 +21,92 @@
 !----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
-!! Module to compute an confinement functionas, defined on a smooth
-!! continuum interface function
 !!
 !----------------------------------------------------------------------------------------
-MODULE embedding_confine
+MODULE env_write_cube
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP
+    USE env_base_io, ONLY: ionode, verbose
     !
-    USE types_physical, ONLY: environ_boundary
-    USE types_representation, ONLY: environ_density
+    USE class_density
     !
-    !------------------------------------------------------------------------------------
-    !
-    PRIVATE
-    !
-    PUBLIC :: calc_vconfine, calc_deconfine_dboundary
+    USE class_ions
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
-    !! Calculates the confine contribution to the potential
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_vconfine(confine, boundary, vconfine)
+    SUBROUTINE write_cube(density, ions, local_verbose, local_depth, idx, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: confine
-        TYPE(environ_boundary), INTENT(IN) :: boundary
+        TYPE(environ_density), INTENT(IN) :: density
+        TYPE(environ_ions), INTENT(IN) :: ions
+        INTEGER, INTENT(IN), OPTIONAL :: local_verbose, local_depth, idx
+        CHARACTER(LEN=100), INTENT(IN), OPTIONAL :: label
         !
-        TYPE(environ_density), INTENT(INOUT) :: vconfine
+        CHARACTER(LEN=100) :: filename, filemod, local_label
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vconfine'
+        INTEGER :: verbosity
         !
         !--------------------------------------------------------------------------------
-        ! The confine potetial is defined as confine * ( 1 - s(r) )
         !
-        vconfine%of_r = 0.D0
-        vconfine%of_r = confine * (1.D0 - boundary%scaled%of_r)
+        IF (verbose == 0) RETURN
+        !
+        IF (PRESENT(local_verbose)) THEN
+            verbosity = verbose + local_verbose
+        ELSE
+            verbosity = verbose
+        END IF
+        !
+        IF (PRESENT(idx)) THEN
+            WRITE (filemod, '(i4.4)') idx
+        ELSE
+            filemod = ''
+        END IF
+        !
+        IF (PRESENT(label)) THEN
+            local_label = label
+        ELSE
+            local_label = density%label
+        END IF
+        !
+        filename = TRIM(ADJUSTL(local_label))//TRIM(filemod)//'.cube'
+        !
+        !--------------------------------------------------------------------------------
+        ! Write cube
+        !
+        CALL density%printout(local_verbose, local_depth, .FALSE.)
+        !
+        IF (verbosity >= 3) THEN
+            !
+            OPEN (300, file=TRIM(filename), status='unknown')
+            !
+            CALL density%cell%write_cube(ions%number) ! write cube cell data
+            !
+            CALL ions%write_cube() ! write cube ion data
+            !
+            CALL density%write_cube()
+            !
+            CLOSE (300)
+            !
+        END IF
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_vconfine
-    !------------------------------------------------------------------------------------
-    !>
-    !! Calculates the confine contribution to the interface potential
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_deconfine_dboundary(confine, rhoelec, de_dboundary)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: confine
-        TYPE(environ_density), INTENT(IN) :: rhoelec
-        !
-        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_deconfine_dboundary'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        de_dboundary%of_r = de_dboundary%of_r - confine * rhoelec%of_r
-        ! the functional derivative of the confine term is - confine * rho^elec(r)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_deconfine_dboundary
+    END SUBROUTINE write_cube
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE embedding_confine
+END MODULE env_write_cube
 !----------------------------------------------------------------------------------------

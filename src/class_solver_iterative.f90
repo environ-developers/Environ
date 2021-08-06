@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -20,86 +20,91 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Oliviero Andreussi (Department of Physics, UNT)
+! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !          Edan Bainglass     (Department of Physics, UNT)
 !
-! Original version by M. Cococcioni and N. Marzari (MIT)
-!
 !----------------------------------------------------------------------------------------
 !>
-!! Module to compute an enthalpy functiona, defined as the quantum volume
-!! of the system times the external pressure of the environment.
-!! Original method developed in Cococcioni et al, PRL (2005)
 !!
 !----------------------------------------------------------------------------------------
-MODULE embedding_volume
+MODULE class_solver_iterative
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP, e2
+    USE environ_param, ONLY: DP
     !
-    USE types_physical, ONLY: environ_boundary
-    USE types_representation, ONLY: environ_density
+    USE class_core_container_electrostatics
+    !
+    USE class_solver
+    USE class_solver_direct
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: calc_devolume_dboundary, calc_evolume
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    TYPE, EXTENDS(solver_direct), PUBLIC :: solver_iterative
+        !--------------------------------------------------------------------------------
+        !
+        CHARACTER(LEN=80) :: auxiliary
+        REAL(DP) :: tol
+        INTEGER :: maxiter
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: create => create_solver_iterative
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE solver_iterative
+    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
     !>
-    !! Calculates the PV contribution to the potential
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_devolume_dboundary(pressure, boundary, de_dboundary)
+    SUBROUTINE create_solver_iterative(this, cores, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: pressure
-        TYPE(environ_boundary), INTENT(IN) :: boundary
+        TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
+        INTEGER, INTENT(IN) :: maxiter
+        REAL(DP), INTENT(IN) :: tol
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
         !
-        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_devolume_dboundary'
+        CLASS(solver_iterative), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        de_dboundary%of_r = de_dboundary%of_r + pressure
-        ! the functional derivative of the volume term is just unity
+        CALL this%set_cores(cores)
+        !
+        this%maxiter = maxiter
+        this%tol = tol
+        !
+        IF (PRESENT(auxiliary)) this%auxiliary = auxiliary
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_devolume_dboundary
-    !------------------------------------------------------------------------------------
-    !>
-    !! Calculates the PV contribution to the energy
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_evolume(pressure, boundary, evolume)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: pressure
-        TYPE(environ_boundary), TARGET, INTENT(IN) :: boundary
-        !
-        REAL(DP), INTENT(OUT) :: evolume
-        !
-        !--------------------------------------------------------------------------------
-        !
-        evolume = pressure * boundary%volume * e2 / 2.D0 ! computes the PV energy
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_evolume
+    END SUBROUTINE create_solver_iterative
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE embedding_volume
+END MODULE class_solver_iterative
 !----------------------------------------------------------------------------------------

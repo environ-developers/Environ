@@ -150,7 +150,7 @@ compile-Environ: check-Environ-makeinc libsdir
 
 compile-QE: check-QE-makeinc
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=pw; fi; \
-	  if [ $$prog = all ]; then prog="pw cp tddfpt xspectra"; fi; \
+	  if [ "$$prog" = all ]; then prog="pw cp tddfpt xspectra"; fi; \
 	  if test "$(title)"; then title="$(title)"; else title="Compiling QE"; fi; \
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log; \
 	  (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
@@ -163,8 +163,8 @@ recompile-QE+Environ:
 	case $$c in \
 	1) opt=pw;; \
 	2) opt=cp;; \
-	3) opt=tddfpt;; \
-	4) opt=xspectra;; \
+	3) opt="pw tddfpt";; \
+	4) opt="pw xspectra";; \
 	5) opt=all;; \
 	*) exit;; \
 	esac; \
@@ -173,7 +173,7 @@ recompile-QE+Environ:
 	make update-Environ-dependencies; \
 	$(MAKE) compile-Environ; \
 	if [ $$? -ne 0 ]; then exit; fi; \
-	$(MAKE) compile-QE prog=$$opt
+	$(MAKE) compile-QE prog="$$opt"
 
 compile-util: check-Environ-makeinc libsdir
 	@ printf "\nCompiling utils...\n\n" 2>&1 | \
@@ -252,11 +252,11 @@ update-Environ-dependencies:
 
 update-QE-dependencies:
 	@ printf "\nUpdating QE dependencies...\n\n"
-	@ if test $(prog); then prog=$(prog); else prog=all; fi; \
+	@ if test "$(prog)"; then prog="$(prog)"; else prog=all; fi; \
 	  case $$prog in \
 	  pw) DIRS="PW/src";; \
 	  cp) DIRS="CPV/src";; \
-	  tddfpt) DIRS="PW/src | TDDFPT/src";; \
+	  tddfpt) DIRS="PW/src TDDFPT/src";; \
 	  xspectra) DIRS="PW/src XSpectra/src";; \
 	  *) DIRS="PW/src CPV/src TDDFPT/src XSpectra/src";; \
 	  esac; \
@@ -281,27 +281,27 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	@ make print_menu; read c; \
 	\
 	case $$c in \
-	1) opt=pw;; \
-	2) opt=cp;; \
-	3) opt=tddfpt;; \
-	4) opt=xspectra;; \
+	1) opt=pw; patch=pw;; \
+	2) opt=cp; patch=cp;; \
+	3) opt="pw tddfpt"; patch=tddfpt;; \
+	4) opt="pw xspectra"; patch=xspectra;; \
 	5) opt=all;; \
 	*) exit;; \
 	esac; \
 	\
 	printf "\nUse # cores (default = 1) -> "; read cores; \
 	\
-	make -j$${cores:=1} compile-QE prog=$$opt title="Pre-compiling QE"; \
+	make -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
 	if [ $$? -ne 0 ]; then exit; fi; \
 	(cd install && mv QE_comp.log QE_precomp.log); \
 	\
 	make -j$${cores:=1} compile-Environ; \
 	if [ $$? -ne 0 ]; then exit; fi; \
-	make patch-QE prog=$$opt; \
-	make update-QE-dependencies prog=$$opt; \
+	make patch-QE prog=$$patch; \
+	make update-QE-dependencies prog="$$patch"; \
 	\
 	title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
-	make -j$${cores:=1} compile-QE prog=$$opt title="$$title"; \
+	make -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
 	if [ $$? -ne 0 ]; then exit; fi; \
 	\
 	printf "\nQE + Environ $(ENVIRON_VERSION) installaion complete! \n\n"

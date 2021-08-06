@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -29,57 +29,99 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE utils_hessian
+MODULE class_hessian
     !------------------------------------------------------------------------------------
     !
-    USE types_cell, ONLY: environ_cell
-    USE types_representation, ONLY: environ_density, environ_hessian
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
     !
-    USE utils_density, ONLY: create_environ_density, init_environ_density, &
-                             copy_environ_density, destroy_environ_density
+    USE environ_param, ONLY: DP
+    !
+    USE class_cell
+    USE class_density
+    USE class_gradient
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: create_environ_hessian, init_environ_hessian, copy_environ_hessian, &
-              update_environ_hessian, destroy_environ_hessian
-    !
-    !------------------------------------------------------------------------------------
-CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_hessian(hessian, label)
+    TYPE, PUBLIC :: environ_hessian
+        !--------------------------------------------------------------------------------
+        !
+        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
+        !
+        CHARACTER(LEN=80) :: label = ' '
+        ! optionally have an associated label, used for printout and debugs
+        !
+        TYPE(environ_cell), POINTER :: cell => NULL()
+        ! each quantity in real-space is associated with its definition domain
+        !
+        REAL(DP), ALLOCATABLE :: of_r(:, :, :)
+        ! the quantity in real-space, local to each processor
+        !
+        TYPE(environ_density) :: laplacian
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: create => create_environ_hessian
+        PROCEDURE :: init => init_environ_hessian
+        PROCEDURE :: copy => copy_environ_hessian
+        PROCEDURE :: update_laplacian => update_hessian_laplacian
+        PROCEDURE :: destroy => destroy_environ_hessian
+        !
+        PROCEDURE :: scalar_product => scalar_product_environ_hessian
+        !
+        PROCEDURE :: printout => print_environ_hessian
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE environ_hessian
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+CONTAINS
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_hessian(this, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=80), OPTIONAL, INTENT(IN) :: label
         !
-        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        CLASS(environ_hessian), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: laplacian_label
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_hessian'
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
         IF (PRESENT(label)) THEN
-            hessian%label = label
+            this%label = label
             laplacian_label = TRIM(ADJUSTL(label))//'_laplacian'
         ELSE
-            hessian%label = 'hessian'
+            this%label = 'hessian'
             laplacian_label = 'hessian_laplacian'
         END IF
         !
-        NULLIFY (hessian%cell)
+        NULLIFY (this%cell)
         !
-        IF (ALLOCATED(hessian%of_r)) &
+        IF (ALLOCATED(this%of_r)) &
             CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
-        CALL create_environ_density(hessian%laplacian, laplacian_label)
+        CALL this%laplacian%create(laplacian_label)
         !
         RETURN
         !
@@ -89,33 +131,33 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_hessian(cell, hessian)
+    SUBROUTINE init_environ_hessian(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         !
-        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        CLASS(environ_hessian), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        hessian%update = .FALSE.
+        this%lupdate = .FALSE.
         !
-        IF (ASSOCIATED(hessian%cell)) &
+        IF (ASSOCIATED(this%cell)) &
             CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
         !
-        hessian%cell => cell
+        this%cell => cell
         !
-        IF (ALLOCATED(hessian%of_r)) &
+        IF (ALLOCATED(this%of_r)) &
             CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
         !
-        ALLOCATE (hessian%of_r(3, 3, hessian%cell%nnr))
-        hessian%of_r = 0.D0
+        ALLOCATE (this%of_r(3, 3, this%cell%nnr))
+        this%of_r = 0.D0
         !
-        CALL init_environ_density(cell, hessian%laplacian)
+        CALL this%laplacian%init(cell)
         !
         RETURN
         !
@@ -125,14 +167,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_hessian(horiginal, hcopy)
+    SUBROUTINE copy_environ_hessian(this, copy)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_hessian), INTENT(IN) :: horiginal
+        CLASS(environ_hessian), INTENT(IN) :: this
         !
-        TYPE(environ_hessian), INTENT(OUT) :: hcopy
+        TYPE(environ_hessian), INTENT(OUT) :: copy
         !
         INTEGER :: n
         !
@@ -140,24 +182,23 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(horiginal%cell)) &
+        IF (.NOT. ASSOCIATED(this%cell)) &
             CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
-        hcopy%cell => horiginal%cell
+        copy%cell => this%cell
+        copy%lupdate = this%lupdate
+        copy%label = this%label
         !
-        hcopy%update = horiginal%update
-        hcopy%label = horiginal%label
-        !
-        IF (ALLOCATED(horiginal%of_r)) THEN
-            n = SIZE(horiginal%of_r, 3)
+        IF (ALLOCATED(this%of_r)) THEN
+            n = SIZE(this%of_r, 3)
             !
-            IF (ALLOCATED(hcopy%of_r)) DEALLOCATE (hcopy%of_r)
+            IF (ALLOCATED(copy%of_r)) DEALLOCATE (copy%of_r)
             !
-            ALLOCATE (hcopy%of_r(3, 3, n))
-            hcopy%of_r = horiginal%of_r
+            ALLOCATE (copy%of_r(3, 3, n))
+            copy%of_r = this%of_r
         END IF
         !
-        CALL copy_environ_density(horiginal%laplacian, hcopy%laplacian)
+        CALL this%laplacian%copy(copy%laplacian)
         !
         RETURN
         !
@@ -167,22 +208,22 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_hessian_laplacian(hessian)
+    SUBROUTINE update_hessian_laplacian(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        CLASS(environ_hessian), INTENT(INOUT) :: this
         !
         INTEGER, POINTER :: ir_end
         !
         !--------------------------------------------------------------------------------
         !
-        ir_end => hessian%cell%ir_end
+        ir_end => this%cell%ir_end
         !
-        hessian%laplacian%of_r(1:ir_end) = hessian%of_r(1, 1, 1:ir_end) + &
-                                           hessian%of_r(2, 2, 1:ir_end) + &
-                                           hessian%of_r(3, 3, 1:ir_end)
+        this%laplacian%of_r(1:ir_end) = this%of_r(1, 1, 1:ir_end) + &
+                                        this%of_r(2, 2, 1:ir_end) + &
+                                        this%of_r(3, 3, 1:ir_end)
         !
         RETURN
         !
@@ -192,37 +233,207 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_hessian(hessian)
+    SUBROUTINE destroy_environ_hessian(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        CLASS(environ_hessian), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_hessian'
         !
-        hessian%update = .FALSE.
+        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(hessian%cell)) &
+        IF (.NOT. ASSOCIATED(this%cell)) &
             CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
         !
-        NULLIFY (hessian%cell)
+        NULLIFY (this%cell)
         !
-        IF (.NOT. ALLOCATED(hessian%of_r)) &
+        IF (.NOT. ALLOCATED(this%of_r)) &
             CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
         !
-        DEALLOCATE (hessian%of_r)
+        DEALLOCATE (this%of_r)
         !
-        CALL destroy_environ_density(hessian%laplacian)
+        CALL this%laplacian%destroy()
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_hessian
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  GENERAL METHODS
     !
     !------------------------------------------------------------------------------------
-END MODULE utils_hessian
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE scalar_product_environ_hessian(this, gradin, gradout)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_hessian), INTENT(IN) :: this
+        TYPE(environ_gradient), INTENT(IN) :: gradin
+        !
+        TYPE(environ_gradient), INTENT(INOUT) :: gradout
+        !
+        INTEGER :: ir, ipol
+        !
+        CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_hessian'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        gradout%of_r = 0.D0
+        !
+        IF (.NOT. ASSOCIATED(gradin%cell, this%cell)) &
+            CALL env_errore(sub_name, 'Mismatch in domain of input hessian/gradients', 1)
+        !
+        IF (.NOT. ASSOCIATED(gradin%cell, gradout%cell)) &
+            CALL env_errore(sub_name, 'Mismatch in domain of input and output', 1)
+        !
+        DO ir = 1, this%cell%ir_end
+            !
+            DO ipol = 1, 3
+                gradout%of_r(ipol, ir) = SUM(this%of_r(:, ipol, ir) * gradin%of_r(:, ir))
+            END DO
+            !
+        END DO
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE scalar_product_environ_hessian
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_hessian(this, local_verbose, local_depth)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_hessian), INTENT(IN) :: this
+        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        !
+        TYPE(environ_cell), POINTER :: cell
+        TYPE(environ_density) :: dens
+        !
+        INTEGER :: verbosity, passed_verbosity, passed_depth
+        REAL(DP) :: integral
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_hessian'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (verbose == 0) RETURN
+        !
+        IF (PRESENT(local_verbose)) THEN
+            verbosity = verbose + local_verbose
+        ELSE
+            verbosity = verbose
+        END IF
+        !
+        IF (verbosity == 0) RETURN
+        !
+        IF (PRESENT(local_depth)) THEN
+            passed_verbosity = verbosity - verbose - local_depth
+            passed_depth = local_depth
+        ELSE
+            passed_verbosity = verbosity - verbose - depth
+            passed_depth = depth
+        END IF
+        !
+        IF (verbosity >= 1) THEN
+            !
+            IF (ionode) THEN
+                !
+                IF (verbosity >= verbose) THEN ! header
+                    WRITE (environ_unit, 1000)
+                ELSE
+                    !
+                    CALL env_block_divider(verbosity)
+                    !
+                    WRITE (environ_unit, 1001)
+                END IF
+                !
+                WRITE (environ_unit, 1002) ADJUSTL(this%label)
+                !
+            END IF
+            !
+            ! #TODO ADD MAXVAL AND MINVAL
+            !
+            IF (verbosity >= 3) CALL this%laplacian%write_cube_no_ions()
+            !
+            IF (verbosity >= 4) THEN
+                cell => this%cell
+                !
+                CALL dens%init(cell)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_xx'
+                dens%of_r(:) = this%of_r(1, 1, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_xy'
+                dens%of_r(:) = this%of_r(1, 2, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_xz'
+                dens%of_r(:) = this%of_r(1, 3, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_yy'
+                dens%of_r(:) = this%of_r(2, 2, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_yz'
+                dens%of_r(:) = this%of_r(2, 3, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_zz'
+                dens%of_r(:) = this%of_r(3, 3, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                CALL dens%destroy()
+                !
+            END IF
+            !
+            IF (verbosity < verbose) CALL env_block_divider(verbosity)
+            !
+        END IF
+        !
+        FLUSH (environ_unit)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(/, 4('%'), ' HESSIAN ', 67('%'))
+1001    FORMAT(/, ' HESSIAN', /, '=======')
+        !
+1002    FORMAT(/, ' hessian label              = ', A50)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_hessian
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+END MODULE class_hessian
 !----------------------------------------------------------------------------------------

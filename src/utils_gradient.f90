@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -29,57 +29,104 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE utils_gradient
+MODULE class_gradient
     !------------------------------------------------------------------------------------
     !
-    USE types_cell, ONLY: environ_cell
-    USE types_representation, ONLY: environ_gradient, environ_density
+    USE env_mp, ONLY: env_mp_sum
     !
-    USE utils_density, ONLY: create_environ_density, init_environ_density, &
-                             copy_environ_density, destroy_environ_density
+    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    !
+    USE environ_param, ONLY: DP
+    !
+    USE class_cell
+    USE class_density
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: create_environ_gradient, init_environ_gradient, copy_environ_gradient, &
-              update_gradient_modulus, destroy_environ_gradient
-    !
-    !------------------------------------------------------------------------------------
-CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_gradient(gradient, label)
+    TYPE, PUBLIC :: environ_gradient
+        !--------------------------------------------------------------------------------
+        !
+        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
+        !
+        CHARACTER(LEN=80) :: label = ' '
+        ! optionally have an associated label, used for printout and debugs
+        !
+        TYPE(environ_cell), POINTER :: cell => NULL()
+        ! each quantity in real-space is associated with its definition domain
+        !
+        REAL(DP), ALLOCATABLE :: of_r(:, :)
+        ! the quantity in real-space, local to each processor
+        !
+        TYPE(environ_density) :: modulus
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: create => create_environ_gradient
+        PROCEDURE :: init => init_environ_gradient
+        PROCEDURE :: copy => copy_environ_gradient
+        PROCEDURE :: update_modulus => update_gradient_modulus
+        PROCEDURE :: destroy => destroy_environ_gradient
+        !
+        PROCEDURE :: scalar_product => scalar_product_environ_gradient
+        PROCEDURE :: scalar_product_density => scalar_product_environ_gradient_density
+        !
+        PROCEDURE :: printout => print_environ_gradient
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE environ_gradient
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+CONTAINS
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_gradient(this, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(environ_gradient), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: modulus_label
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_density'
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
         IF (PRESENT(label)) THEN
-            gradient%label = label
+            this%label = label
             modulus_label = TRIM(ADJUSTL(label))//'_modulus'
         ELSE
-            gradient%label = 'gradient'
+            this%label = 'gradient'
             modulus_label = 'gradient_modulus'
         END IF
         !
-        NULLIFY (gradient%cell)
+        NULLIFY (this%cell)
         !
-        IF (ALLOCATED(gradient%of_r)) &
+        IF (ALLOCATED(this%of_r)) &
             CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
         !
-        CALL create_environ_density(gradient%modulus, modulus_label)
+        CALL this%modulus%create(modulus_label)
         !
         RETURN
         !
@@ -89,33 +136,33 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_gradient(cell, gradient)
+    SUBROUTINE init_environ_gradient(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(environ_gradient), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        gradient%update = .FALSE.
+        this%lupdate = .FALSE.
         !
-        IF (ASSOCIATED(gradient%cell)) &
+        IF (ASSOCIATED(this%cell)) &
             CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
         !
-        gradient%cell => cell
+        this%cell => cell
         !
-        IF (ALLOCATED(gradient%of_r)) &
+        IF (ALLOCATED(this%of_r)) &
             CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
         !
-        ALLOCATE (gradient%of_r(3, gradient%cell%nnr))
-        gradient%of_r = 0.D0
+        ALLOCATE (this%of_r(3, this%cell%nnr))
+        this%of_r = 0.D0
         !
-        CALL init_environ_density(cell, gradient%modulus)
+        CALL this%modulus%init(cell)
         !
         RETURN
         !
@@ -125,14 +172,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_gradient(goriginal, gcopy)
+    SUBROUTINE copy_environ_gradient(this, copy)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_gradient), INTENT(IN) :: goriginal
+        CLASS(environ_gradient), INTENT(IN) :: this
         !
-        TYPE(environ_gradient), INTENT(OUT) :: gcopy
+        TYPE(environ_gradient), INTENT(OUT) :: copy
         !
         INTEGER :: n
         !
@@ -140,24 +187,24 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(goriginal%cell)) &
+        IF (.NOT. ASSOCIATED(this%cell)) &
             CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
-        gcopy%cell => goriginal%cell
+        copy%cell => this%cell
         !
-        gcopy%update = goriginal%update
-        gcopy%label = goriginal%label
+        copy%lupdate = this%lupdate
+        copy%label = this%label
         !
-        IF (ALLOCATED(goriginal%of_r)) THEN
-            n = SIZE(goriginal%of_r, 2)
+        IF (ALLOCATED(this%of_r)) THEN
+            n = SIZE(this%of_r, 2)
             !
-            IF (ALLOCATED(gcopy%of_r)) DEALLOCATE (gcopy%of_r)
+            IF (ALLOCATED(copy%of_r)) DEALLOCATE (copy%of_r)
             !
-            ALLOCATE (gcopy%of_r(3, n))
-            gcopy%of_r = goriginal%of_r
+            ALLOCATE (copy%of_r(3, n))
+            copy%of_r = this%of_r
         END IF
         !
-        CALL copy_environ_density(goriginal%modulus, gcopy%modulus)
+        CALL this%modulus%copy(copy%modulus)
         !
         RETURN
         !
@@ -167,22 +214,22 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_gradient_modulus(gradient)
+    SUBROUTINE update_gradient_modulus(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(environ_gradient), INTENT(INOUT) :: this
         !
         INTEGER, POINTER :: ir_end
         !
         !--------------------------------------------------------------------------------
         !
-        ir_end => gradient%cell%ir_end
+        ir_end => this%cell%ir_end
         !
-        gradient%modulus%of_r(1:ir_end) = SQRT(gradient%of_r(1, 1:ir_end)**2 + &
-                                               gradient%of_r(2, 1:ir_end)**2 + &
-                                               gradient%of_r(3, 1:ir_end)**2)
+        this%modulus%of_r(1:ir_end) = SQRT(this%of_r(1, 1:ir_end)**2 + &
+                                           this%of_r(2, 1:ir_end)**2 + &
+                                           this%of_r(3, 1:ir_end)**2)
         !
         RETURN
         !
@@ -192,37 +239,230 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_gradient(gradient)
+    SUBROUTINE destroy_environ_gradient(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(environ_gradient), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        gradient%update = .FALSE.
+        this%lupdate = .FALSE.
         !
-        IF (.NOT. ASSOCIATED(gradient%cell)) &
+        IF (.NOT. ASSOCIATED(this%cell)) &
             CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
         !
-        NULLIFY (gradient%cell)
+        NULLIFY (this%cell)
         !
-        IF (.NOT. ALLOCATED(gradient%of_r)) &
+        IF (.NOT. ALLOCATED(this%of_r)) &
             CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
         !
-        DEALLOCATE (gradient%of_r)
+        DEALLOCATE (this%of_r)
         !
-        CALL destroy_environ_density(gradient%modulus)
+        CALL this%modulus%destroy()
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_gradient
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  GENERAL METHODS
     !
     !------------------------------------------------------------------------------------
-END MODULE utils_gradient
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE scalar_product_environ_gradient(this, gradB, dens)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_gradient), INTENT(IN) :: this, gradB
+        !
+        TYPE(environ_density), INTENT(INOUT) :: dens
+        !
+        INTEGER :: ir
+        !
+        CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_gradient'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        dens%of_r = 0.D0
+        !
+        IF (.NOT. ASSOCIATED(this%cell, gradB%cell)) &
+            CALL env_errore(sub_name, 'Mismatch in domain of input gradients', 1)
+        !
+        IF (.NOT. ASSOCIATED(this%cell, dens%cell)) &
+            CALL env_errore(sub_name, 'Mismatch in domain of input and output', 1)
+        !
+        DO ir = 1, dens%cell%ir_end
+            dens%of_r(ir) = SUM(this%of_r(:, ir) * gradB%of_r(:, ir))
+        END DO
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE scalar_product_environ_gradient
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION scalar_product_environ_gradient_density(this, density) RESULT(res)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_gradient), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: density
+        !
+        REAL(DP) :: res(3)
+        !
+        INTEGER, POINTER :: ir_end
+        !
+        INTEGER :: ipol
+        REAL(DP) :: scalar_product
+        !
+        CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_gradient_density'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        res = 0.D0
+        !
+        IF (.NOT. ASSOCIATED(this%cell, density%cell)) &
+            CALL env_errore(sub_name, 'Mismatch in domain of input vectors', 1)
+        !
+        ir_end => density%cell%ir_end
+        !
+        DO ipol = 1, 3
+            !
+            scalar_product = DOT_PRODUCT(this%of_r(ipol, 1:ir_end), &
+                                         density%of_r(1:ir_end))
+            !
+            CALL env_mp_sum(scalar_product, density%cell%dfft%comm)
+            !
+            res(ipol) = scalar_product * density%cell%domega
+        END DO
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION scalar_product_environ_gradient_density
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_gradient(this, local_verbose, local_depth)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_gradient), INTENT(IN) :: this
+        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
+        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        !
+        TYPE(environ_cell), POINTER :: cell
+        TYPE(environ_density) :: dens
+        !
+        INTEGER :: verbosity, passed_verbosity, passed_depth
+        REAL(DP) :: integral
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_gradient'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (verbose == 0) RETURN
+        !
+        IF (PRESENT(local_verbose)) THEN
+            verbosity = verbose + local_verbose
+        ELSE
+            verbosity = verbose
+        END IF
+        !
+        IF (verbosity == 0) RETURN
+        !
+        IF (PRESENT(local_depth)) THEN
+            passed_verbosity = verbosity - verbose - local_depth
+            passed_depth = local_depth
+        ELSE
+            passed_verbosity = verbosity - verbose - depth
+            passed_depth = depth
+        END IF
+        !
+        IF (verbosity >= 1) THEN
+            !
+            IF (ionode) THEN
+                !
+                IF (verbosity >= verbose) THEN ! header
+                    WRITE (environ_unit, 1000)
+                ELSE
+                    !
+                    CALL env_block_divider(verbosity)
+                    !
+                    WRITE (environ_unit, 1001)
+                END IF
+                !
+                WRITE (environ_unit, 1002) ADJUSTL(this%label)
+            END IF
+            !
+            ! #TODO ADD MAXVAL AND MINVAL
+            !
+            IF (verbosity >= 3) CALL this%modulus%write_cube_no_ions()
+            !
+            IF (verbosity >= 4) THEN
+                cell => this%cell
+                !
+                CALL dens%init(cell)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_x'
+                dens%of_r(:) = this%of_r(1, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_y'
+                dens%of_r(:) = this%of_r(2, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                dens%label = TRIM(ADJUSTL(this%label))//'_z'
+                dens%of_r(:) = this%of_r(3, :)
+                !
+                CALL dens%printout(passed_verbosity, passed_depth)
+                !
+                CALL dens%destroy()
+                !
+            END IF
+            !
+            IF (verbosity < verbose) CALL env_block_divider(verbosity)
+            !
+        END IF
+        !
+        FLUSH (environ_unit)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(/, 4('%'), ' GRADIENT ', 66('%'))
+1001    FORMAT(/, ' GRADIENT', /, '========')
+        !
+1002    FORMAT(/, ' gradient label             = ', A50)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_gradient
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+END MODULE class_gradient
 !----------------------------------------------------------------------------------------

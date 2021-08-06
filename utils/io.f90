@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -627,4 +627,55 @@ SUBROUTINE env_invalid_opt(routine, param, input)
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_invalid_opt
+!----------------------------------------------------------------------------------------
+!>
+!!
+!----------------------------------------------------------------------------------------
+SUBROUTINE env_block_divider(verbosity)
+    !------------------------------------------------------------------------------------
+    !
+    USE env_base_io, ONLY: ionode, verbose, environ_unit
+    USE env_utils_param, ONLY: stdout
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
+    !
+    INTEGER, INTENT(IN) :: verbosity
+    !
+    !------------------------------------------------------------------------------------
+    !
+    IF (.NOT. ionode) RETURN
+    !
+    SELECT CASE (verbose - verbosity - 1)
+        !
+    CASE (0)
+        WRITE (environ_unit, 10)
+        !
+    CASE (1)
+        WRITE (environ_unit, 11)
+        !
+    CASE (2)
+        WRITE (environ_unit, 12)
+        !
+    CASE (3)
+        WRITE (environ_unit, 13)
+        !
+    CASE (4)
+        WRITE (environ_unit, 14)
+        !
+    END SELECT
+    !
+    RETURN
+    !
+    !------------------------------------------------------------------------------------
+    !
+10  FORMAT(1X, 79('_'))
+11  FORMAT(1X, 75('_'))
+12  FORMAT(1X, 71('_'))
+13  FORMAT(1X, 67('_'))
+14  FORMAT(1X, 63('_'))
+    !
+    !------------------------------------------------------------------------------------
+END SUBROUTINE env_block_divider
 !----------------------------------------------------------------------------------------

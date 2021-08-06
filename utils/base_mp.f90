@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -140,6 +140,12 @@ SUBROUTINE env_mp_synchronize(gid)
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_mp_synchronize
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!
+!                                    CASTING ROUTINES
+!
+!----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !>
 !!
@@ -534,13 +540,11 @@ SUBROUTINE env_bcast_logical(array, n, root, gid)
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_bcast_logical
 !----------------------------------------------------------------------------------------
-!
 !----------------------------------------------------------------------------------------
 !
-! "reduce"-like subroutines
+!                                 'REDUCE'-LIKE ROUTINES
 !
 !----------------------------------------------------------------------------------------
-!
 !----------------------------------------------------------------------------------------
 #if defined(__USE_INPLACE_MPI)
 !>
@@ -645,9 +649,9 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
 END SUBROUTINE env_reduce_base_integer
 !----------------------------------------------------------------------------------------
 !>
-    !! Sums a distributed variable ps(dim) over the processors.
-    !! This version uses a fixed-length buffer of appropriate (?) dim
-    !!
+!! Sums a distributed variable ps(dim) over the processors.
+!! This version uses a fixed-length buffer of appropriate (?) dim
+!!
 !----------------------------------------------------------------------------------------
 SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     !------------------------------------------------------------------------------------

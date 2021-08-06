@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -309,15 +309,13 @@ MODULE env_base_input
     ! Numerical core's parameters
     !
     CHARACTER(LEN=80) :: derivatives = 'default'
-    CHARACTER(LEN=80) :: derivatives_allowed(6)
+    CHARACTER(LEN=80) :: derivatives_allowed(5)
     !
-    DATA derivatives_allowed/'default', 'fft', 'fd', 'chain', 'highmem', 'lowmem'/
+    DATA derivatives_allowed/'default', 'fft', 'chain', 'highmem', 'lowmem'/
     !
     ! core numerical methods to be exploited for quantities derived from the dielectric
     !
     ! fft       = fast Fourier transforms
-    !
-    ! fd        = finite difference in real space
     !
     ! chain     = chain-rule derivatives for as much as possible (FFTs for the rest)
     !
@@ -495,7 +493,7 @@ MODULE env_base_input
     CHARACTER(LEN=80) :: solver = 'none'
     CHARACTER(LEN=80) :: solver_allowed(7)
     !
-    DATA solver_allowed/'cg', 'sd', 'iterative', 'lbfgs', 'newton', 'nested', 'direct'/
+    DATA solver_allowed/'cg', 'sd', 'fp', 'lbfgs', 'newton', 'nested', 'direct'/
     !
     ! type of numerical solver
     !
@@ -505,7 +503,7 @@ MODULE env_base_input
     !
     ! sd        = steepest descent
     !
-    ! iterative = fixed-point search
+    ! fp        = fixed-point search
     !
     ! lbfgs     = low-memory bfgs
     !
@@ -553,7 +551,7 @@ MODULE env_base_input
     CHARACTER(LEN=80) :: inner_solver = 'none'
     CHARACTER(LEN=80) :: inner_solver_allowed(5)
     !
-    DATA inner_solver_allowed/'none', 'cg', 'sd', 'iterative', 'direct'/
+    DATA inner_solver_allowed/'none', 'cg', 'sd', 'fp', 'direct'/
     ! type of numerical solver for inner loop in nested algorithms
     !
     INTEGER :: inner_maxstep = 200

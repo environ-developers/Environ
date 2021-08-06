@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
 !
 !----------------------------------------------------------------------------------------
 !
@@ -20,27 +20,22 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Oliviero Andreussi (Department of Physics, UNT)
-!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
-!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
-!          Edan Bainglass     (Department of Physics, UNT)
+! Authors: Edan Bainglass (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_fft
+MODULE class_core_container_derivatives
     !------------------------------------------------------------------------------------
     !
-    USE env_mp, ONLY: env_mp_sum
+    USE class_density
+    USE class_gradient
+    USE class_hessian
     !
-    USE environ_param, ONLY: DP
-    !
-    USE class_cell
-    !
-    USE class_core_numerical
-    !
-    USE generate_gvectors, ONLY: env_ggen
+    USE class_core_container
+    USE class_core_fd_derivatives
+    USE class_core_fft_derivatives
     !
     !------------------------------------------------------------------------------------
     !
@@ -52,40 +47,30 @@ MODULE class_core_fft
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(numerical_core), PUBLIC :: core_fft
+    TYPE, EXTENDS(core_container), PUBLIC :: container_derivatives
         !--------------------------------------------------------------------------------
-        !
-        INTEGER :: ngm = 0 ! local  number of G vectors (on this processor)
-        ! with gamma tricks, only vectors in G>
-        !
-        REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
-        !
-        INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
-        ! needed in parallel execution:
-        ! gstart=2 for the proc that holds G=0
-        ! gstart=1 for all others
-        !
-        REAL(DP), ALLOCATABLE :: gg(:)
-        ! G^2 in increasing order (in units of tpiba2=(2pi/a)^2)
-        !
-        REAL(DP), ALLOCATABLE :: g(:, :)
-        ! G-vectors cartesian components ( in units tpiba =(2pi/a) )
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_core_fft
-        PROCEDURE :: init_first => init_core_fft_first
-        PROCEDURE :: init_second => init_core_fft_second
-        PROCEDURE :: update_cell => update_core_fft_cell
-        PROCEDURE :: destroy => destroy_core_fft
+        PROCEDURE :: gradient => calc_gradient
+        PROCEDURE :: graddot => calc_graddot
+        PROCEDURE :: hessian => calc_hessian
+        PROCEDURE :: laplacian => calc_laplacian
         !
-        PROCEDURE, PRIVATE :: init_gvect => env_gvect_init
-        PROCEDURE, PRIVATE :: deallocate_gvect => env_deallocate_gvect
+        PROCEDURE, PRIVATE :: &
+            calc_convolution_density, &
+            calc_convolution_gradient, &
+            calc_convolution_hessian
+        !
+        GENERIC :: convolution => &
+            calc_convolution_density, &
+            calc_convolution_gradient, &
+            calc_convolution_hessian
         !
         !--------------------------------------------------------------------------------
-    END TYPE core_fft
+    END TYPE container_derivatives
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -93,199 +78,242 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
-    !                                   ADMIN METHODS
+    !                                 DERIVATIVE METHODS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_core_fft(this)
+    SUBROUTINE calc_gradient(this, density, gradient)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(IN) :: density
+        !
+        CLASS(container_derivatives), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        this%core_type = 'fft'
-        !
-        NULLIFY (this%cell)
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fd_derivatives)
+            CALL core%gradient(density, gradient)
+            !
+        TYPE IS (core_fft_derivatives)
+            CALL core%gradient(density, gradient)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_core_fft
+    END SUBROUTINE calc_gradient
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_first(this, use_internal_pbc_corr)
+    SUBROUTINE calc_graddot(this, gradient, density)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
+        TYPE(environ_gradient), INTENT(IN) :: gradient
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
+        CLASS(container_derivatives), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: density
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_graddot'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%create()
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_derivatives)
+            CALL core%graddot(gradient, density)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_first
+    END SUBROUTINE calc_graddot
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_second(this, gcutm, cell)
+    SUBROUTINE calc_hessian(this, density, gradient, hessian)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: gcutm
-        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
+        TYPE(environ_density), INTENT(IN) :: density
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
+        CLASS(container_derivatives), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
-        INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
-        ! in serial execution, ngm_g = ngm
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%gcutm = gcutm
-        this%cell => cell
-        !
-        this%ngm = cell%dfft%ngm
+        CHARACTER(LEN=80) :: sub_name = 'calc_hessian'
         !
         !--------------------------------------------------------------------------------
-        ! #TODO The following routines are in generate_gvectors
-        ! and may need to be simplified
         !
-        CALL this%init_gvect(ngm_g, cell%dfft%comm)
-        !
-        CALL env_ggen(this%cell%dfft, cell%dfft%comm, cell%at, cell%bg, this%gcutm, &
-                      ngm_g, this%ngm, this%g, this%gg, this%gstart, .TRUE.)
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_derivatives)
+            CALL core%hessian(density, gradient, hessian)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_second
+    END SUBROUTINE calc_hessian
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_core_fft_cell(this, cell)
+    SUBROUTINE calc_laplacian(this, density, laplacian)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
+        TYPE(environ_density), INTENT(IN) :: density
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
+        CLASS(container_derivatives), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: laplacian
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_laplacian'
         !
         !--------------------------------------------------------------------------------
         !
-        this%cell => cell
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_derivatives)
+            CALL core%laplacian(density, laplacian)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE update_core_fft_cell
+    END SUBROUTINE calc_laplacian
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_fft(this, lflag)
+    SUBROUTINE calc_convolution_density(this, fa, fb, fc)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: lflag
+        CLASS(container_derivatives), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: fa
+        TYPE(environ_density), INTENT(IN) :: fb
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: fc
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_core_fft'
+        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_density'
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (this%cell)
-        !
-        CALL this%deallocate_gvect()
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_derivatives)
+            CALL core%convolution_density(fa, fb, fc)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_core_fft
+    END SUBROUTINE calc_convolution_density
     !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_convolution_gradient(this, fa, gb, gc)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(container_derivatives), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: fa
+        TYPE(environ_gradient), INTENT(IN) :: gb
+        !
+        TYPE(environ_gradient), INTENT(INOUT) :: gc
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_gradient'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_derivatives)
+            CALL core%convolution_gradient(fa, gb, gc)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_convolution_gradient
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_convolution_hessian(this, fa, hb, hc)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(container_derivatives), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: fa
+        TYPE(environ_hessian), INTENT(IN) :: hb
+        !
+        TYPE(environ_hessian), INTENT(INOUT) :: hc
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_hessian'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_derivatives)
+            CALL core%convolution_hessian(fa, hb, hc)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_convolution_hessian
     !------------------------------------------------------------------------------------
     !
-    !                               PRIVATE HELPER METHODS
-    !
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !! Set local and global dimensions, allocate arrays
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE env_gvect_init(this, ngm_g, comm)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        INTEGER, INTENT(INOUT) :: ngm_g
-        !
-        INTEGER :: ngm
-        !
-        INTEGER, INTENT(IN) :: comm
-        ! communicator of the group on which g-vecs are distributed
-        !
-        !--------------------------------------------------------------------------------
-        ! Calculate sum over all processors
-        !
-        ngm = this%ngm
-        ngm_g = ngm
-        !
-        CALL env_mp_sum(ngm_g, comm)
-        !
-        !--------------------------------------------------------------------------------
-        ! Allocate arrays - only those that are always kept until the end
-        !
-        ALLOCATE (this%gg(ngm))
-        ALLOCATE (this%g(3, ngm))
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE env_gvect_init
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE env_deallocate_gvect(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(this%gg)) DEALLOCATE (this%gg)
-        !
-        IF (ALLOCATED(this%g)) DEALLOCATE (this%g)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE env_deallocate_gvect
-    !------------------------------------------------------------------------------------
-    !
-    !------------------------------------------------------------------------------------
-END MODULE class_core_fft
+END MODULE class_core_container_derivatives
 !----------------------------------------------------------------------------------------

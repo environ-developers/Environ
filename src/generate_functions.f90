@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -36,20 +36,16 @@ MODULE generate_functions
     !
     USE environ_param, ONLY: DP, sqrtpi, pi, fpi
     !
-    USE types_cell, ONLY: environ_cell
-    USE types_representation, ONLY: environ_density, environ_gradient, environ_hessian
+    USE class_cell
+    USE class_density
+    USE class_gradient
+    USE class_hessian
     !
-    USE tools_cell, ONLY: ir2ijk, ir2r, displacement, minimum_image
     USE tools_math, ONLY: environ_erfc, environ_erf
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
-    !
-    REAL(DP), PARAMETER :: tol = 1.D-10
-    REAL(DP), PARAMETER :: exp_tol = 4.D1
-    !
-    !------------------------------------------------------------------------------------
     !
     PRIVATE
     !
@@ -59,84 +55,14 @@ MODULE generate_functions
               erfcvolume
     !
     !------------------------------------------------------------------------------------
+    ! NOTE: the spread of H core electrons (currently set to tol) must remain small, 
+    !       but no smaller than tol. 
+    !
+    REAL(DP), PARAMETER :: tol = 1.D-10
+    REAL(DP), PARAMETER :: exp_tol = 4.D1
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
-    !------------------------------------------------------------------------------------
-    !>
-    !! #TODO unused
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE planar_average(cell, nnr, naxis, axis, shift, reverse, f, f1d)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), INTENT(IN) :: cell
-        INTEGER, INTENT(IN) :: nnr, naxis, axis, shift
-        LOGICAL, INTENT(IN) :: reverse
-        !
-        REAL(DP), INTENT(INOUT) :: f(nnr)
-        REAL(DP), INTENT(INOUT) :: f1d(naxis)
-        !
-        INTEGER :: i, j, k, ir
-        INTEGER :: idx, narea
-        LOGICAL :: physical
-        !
-        !--------------------------------------------------------------------------------
-        !
-        narea = cell%ntot / naxis
-        !
-        IF (reverse) THEN
-            f = 0.D0
-        ELSE
-            f1d = 0.D0
-        END IF
-        !
-        DO ir = 1, cell%ir_end
-            !
-            CALL ir2ijk(cell, ir, i, j, k, physical) ! three dimensional indexes
-            !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            SELECT CASE (axis)
-                !
-            CASE (1)
-                idx = i
-                !
-            CASE (2)
-                idx = j
-                !
-            CASE (3)
-                idx = k
-                !
-            END SELECT
-            !
-            idx = idx + 1 + shift
-            !
-            IF (idx > naxis) THEN
-                idx = idx - naxis
-            ELSE IF (idx <= 0) THEN
-                idx = idx + naxis
-            END IF
-            !
-            IF (reverse) THEN
-                f(ir) = f1d(idx)
-            ELSE
-                f1d(idx) = f1d(idx) + f(ir)
-            END IF
-            !
-        END DO
-        !
-        IF (.NOT. reverse) THEN
-            !
-            CALL env_mp_sum(f1d(:), cell%dfft%comm)
-            !
-            f1d = f1d / DBLE(narea)
-        END IF
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE planar_average
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -150,7 +76,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: charge, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_density), INTENT(INOUT) :: density
+        CLASS(environ_density), INTENT(INOUT) :: density
         !
         LOGICAL :: physical
         INTEGER :: ir
@@ -158,7 +84,7 @@ CONTAINS
         REAL(DP) :: r(3), r2
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_gaussian'
         !
@@ -198,20 +124,14 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            !----------------------------------------------------------------------------
-            ! Compute Gaussian function
+            IF (.NOT. physical) CYCLE
             !
             r2 = r2 / spr2
             !
-            IF (r2 <= exp_tol) local(ir) = EXP(-r2)
+            IF (r2 <= exp_tol) local(ir) = EXP(-r2) ! compute Gaussian function
             !
         END DO
         !
@@ -235,7 +155,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: charge, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(environ_gradient), INTENT(INOUT) :: gradient
         !
         LOGICAL :: physical
         INTEGER :: ir
@@ -243,7 +163,7 @@ CONTAINS
         REAL(DP) :: r(3), r2
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_gradgaussian'
         !
@@ -285,20 +205,15 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            !----------------------------------------------------------------------------
-            ! Compute gradient of Gaussian function
+            IF (.NOT. physical) CYCLE
             !
             r2 = r2 / spr2
             !
-            IF (r2 <= exp_tol) gradlocal(:, ir) = EXP(-r2) * r(:)
+            IF (r2 <= exp_tol) gradlocal(:, ir) = EXP(-r2) * r
+            ! compute gradient of Gaussian function
             !
         END DO
         !
@@ -322,7 +237,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: width, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_density), INTENT(INOUT) :: density
+        CLASS(environ_density), INTENT(INOUT) :: density
         !
         LOGICAL :: physical
         INTEGER :: ir
@@ -330,7 +245,7 @@ CONTAINS
         REAL(DP) :: r(3)
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_exponential'
         !
@@ -345,21 +260,16 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            !----------------------------------------------------------------------------
-            ! Compute exponentially decaying function
+            IF (.NOT. physical) CYCLE
             !
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
             !
             IF (ABS(arg) <= exp_tol) local(ir) = EXP(-arg)
+            ! compute exponentially decaying function
             !
         END DO
         !
@@ -383,7 +293,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: width, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(environ_gradient), INTENT(INOUT) :: gradient
         !
         LOGICAL :: physical
         INTEGER :: ir
@@ -391,7 +301,7 @@ CONTAINS
         REAL(DP) :: r(3)
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_gradexponential'
         !
@@ -406,22 +316,17 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            !----------------------------------------------------------------------------
-            ! Compute exponentially decaying function
+            IF (.NOT. physical) CYCLE
             !
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
             !
+            ! compute exponentially decaying function
             IF (r2 > tol .AND. ABS(arg) <= exp_tol) &
-                gradlocal(:, ir) = r(:) / SQRT(r2) / spread * EXP(-arg)
+                gradlocal(:, ir) = r / SQRT(r2) / spread * EXP(-arg)
             !
         END DO
         !
@@ -445,7 +350,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: charge, width, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_density), INTENT(INOUT) :: density
+        CLASS(environ_density), INTENT(INOUT) :: density
         !
         LOGICAL :: physical
         INTEGER :: ir, ir_end, i
@@ -453,7 +358,7 @@ CONTAINS
         REAL(DP) :: r(3)
         REAL(DP), ALLOCATABLE :: local(:)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_erfc'
         !
@@ -471,22 +376,15 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            !----------------------------------------------------------------------------
-            ! Compute error function
+            IF (.NOT. physical) CYCLE
             !
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
-            local(ir) = environ_erfc(arg)
             !
-            !----------------------------------------------------------------------------
+            local(ir) = environ_erfc(arg) ! compute error function
             !
         END DO
         !
@@ -524,7 +422,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: charge, width, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(environ_gradient), INTENT(INOUT) :: gradient
         !
         LOGICAL :: physical
         INTEGER :: ir
@@ -532,7 +430,7 @@ CONTAINS
         REAL(DP) :: r(3)
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_graderfc'
         !
@@ -553,22 +451,17 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            !----------------------------------------------------------------------------
-            ! Compute gradient of error function
+            IF (.NOT. physical) CYCLE
             !
             r = r * cell%alat
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
             !
-            IF (dist > tol) gradlocal(:, ir) = EXP(-arg**2) * r(:) / dist
+            IF (dist > tol) gradlocal(:, ir) = EXP(-arg**2) * r / dist
+            ! compute gradient of error function
             !
         END DO
         !
@@ -592,7 +485,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: charge, width, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_density), INTENT(INOUT) :: laplacian
+        CLASS(environ_density), INTENT(INOUT) :: laplacian
         !
         LOGICAL :: physical
         INTEGER :: ir
@@ -600,7 +493,7 @@ CONTAINS
         REAL(DP) :: r(3)
         REAL(DP), ALLOCATABLE :: lapllocal(:)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_laplerfc'
         !
@@ -621,19 +514,17 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
+            IF (.NOT. physical) CYCLE
             !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
+            dist = SQRT(r2) * cell%alat
             !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
+            arg = (dist - width) / spread
             !
             !----------------------------------------------------------------------------
             ! Compute laplacian of error function
-            !
-            dist = SQRT(r2) * cell%alat
-            arg = (dist - width) / spread
             !
             SELECT CASE (dim)
                 !
@@ -674,7 +565,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: charge, width, spread
         REAL(DP), INTENT(IN) :: pos(3)
         !
-        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        CLASS(environ_hessian), INTENT(INOUT) :: hessian
         !
         LOGICAL :: physical
         INTEGER :: ir, ip, jp
@@ -682,7 +573,7 @@ CONTAINS
         REAL(DP) :: r(3)
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
         !
-        TYPE(environ_cell), POINTER :: cell
+        CLASS(environ_cell), POINTER :: cell
         !
         CHARACTER(LEN=80) :: sub_name = 'generate_hesserfc'
         !
@@ -700,20 +591,17 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
-            !
-            CALL displacement(dim, axis, pos, r, r) ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            !----------------------------------------------------------------------------
-            ! Compute hessian of error function
+            IF (.NOT. physical) CYCLE
             !
             r = r * cell%alat
             dist = SQRT(r2) * cell%alat
             arg = (dist - width) / spread
+            !
+            !----------------------------------------------------------------------------
+            ! Compute hessian of error function
             !
             IF (dist > tol) THEN
                 !
@@ -742,161 +630,6 @@ CONTAINS
     END SUBROUTINE generate_hesserfc
     !------------------------------------------------------------------------------------
     !>
-    !! #TODO field-aware (add routine to PUBLIC)
-    !!
-    !------------------------------------------------------------------------------------
-    ! SUBROUTINE generate_deriverfc(nnr, dim, axis, charge, width, spread, pos, drho)
-    !     !--------------------------------------------------------------------------------
-    !     !
-    !     USE environ_param, ONLY: DP, sqrtpi
-    !     USE fft_base, ONLY: dfftp
-    !     USE env_mp, ONLY: env_mp_sum
-    !     USE mp_bands, ONLY: me_bgrp, intra_bgrp_comm
-    !     !
-    !     IMPLICIT NONE
-    !     !
-    !     REAL(DP), PARAMETER :: tol = 1.D-10
-    !     !
-    !     INTEGER, INTENT(IN) :: nnr, dim, axis
-    !     REAL(DP), INTENT(IN) :: charge, width, spread
-    !     REAL(DP), INTENT(IN) :: pos(3)
-    !     TYPE(environ_density), TARGET, INTENT(INOUT) :: drho
-    !     !
-    !     INTEGER :: i, j, j0, k, k0, ir, ir_end, ip
-    !     INTEGER :: idx, idx0, ntot
-    !     !
-    !     REAL(DP) :: inv_nr1, inv_nr2, inv_nr3
-    !     REAL(DP) :: scale, dist, arg, chargeanalytic, chargelocal
-    !     REAL(DP) :: r(3), s(3)
-    !     REAL(DP), ALLOCATABLE :: drholocal(:)
-    !     REAL(DP), EXTERNAL :: qe_erfc
-    !     REAL(DP) :: alat, at(3, 3), bg(3, 3), omega
-    !     !
-    !     TYPE(environ_cell) :: cell
-    !     alat = drho%cell%alat
-    !     at = drho%cell%at
-    !     bg = drho%cell%bg
-    !     omega = drho%cell%omega
-    !     !
-    !     IF (dfftp%nr1 == 0 .OR. dfftp%nr2 == 0 .OR. dfftp%nr3 == 0) THEN
-    !         WRITE (6, *) 'ERROR: wrong grid dimension', dfftp%nr1, dfftp%nr2, dfftp%nr3
-    !         !
-    !         STOP
-    !         !
-    !     END IF
-    !     !
-    !     inv_nr1 = 1.D0 / DBLE(dfftp%nr1)
-    !     inv_nr2 = 1.D0 / DBLE(dfftp%nr2)
-    !     inv_nr3 = 1.D0 / DBLE(dfftp%nr3)
-    !     !
-    !     ntot = dfftp%nr1 * dfftp%nr2 * dfftp%nr3
-    !     !
-    !     IF (axis < 1 .OR. axis > 3) &
-    !         WRITE (6, *) 'WARNING: wrong axis in generate_gaussian'
-    !     !
-    !     chargeanalytic = erfcvolume(dim, axis, width, spread, cell)
-    !     !
-    !     !--------------------------------------------------------------------------------
-    !     ! scaling factor, take into account rescaling of generated density
-    !     ! to obtain the correct integrated total charge
-    !     !
-    !     scale = charge / chargeanalytic / sqrtpi / spread
-    !     !
-    !     ALLOCATE (drholocal(nnr))
-    !     drholocal = 0.D0
-    !     chargelocal = 0.D0
-    !     !
-    !     #if defined(__MPI)
-    !     j0 = dfftp%my_i0r2p; k0 = dfftp%my_i0r3p
-    !     ir_end = MIN(nnr, dfftp%nr1x * dfftp%my_nr2p * dfftp%my_nr3p)
-    !     #else
-    !     j0 = 0; k0 = 0
-    !     ir_end = nnr
-    !     #endif
-    !     !
-    !     DO ir = 1, ir_end
-    !         !
-    !         !----------------------------------------------------------------------------
-    !         ! three dimensional indexes
-    !         !
-    !         idx = ir - 1
-    !         k = idx / (dfftp%nr1x * dfftp%my_nr2p)
-    !         idx = idx - (dfftp%nr1x * dfftp%my_nr2p) * k
-    !         k = k + k0
-    !         j = idx / dfftp%nr1x
-    !         idx = idx - dfftp%nr1x * j
-    !         j = j + j0
-    !         i = idx
-    !         !
-    !         !----------------------------------------------------------------------------
-    !         !
-    !         IF (i >= dfftp%nr1 .OR. j >= dfftp%nr2 .OR. k >= dfftp%nr3) CYCLE
-    !         ! do not include points outside the physical range
-    !         !
-    !         !----------------------------------------------------------------------------
-    !         !
-    !         DO ip = 1, 3
-    !             !
-    !             r(ip) = DBLE(i) * inv_nr1 * at(ip, 1) + &
-    !                     DBLE(j) * inv_nr2 * at(ip, 2) + &
-    !                     DBLE(k) * inv_nr3 * at(ip, 3)
-    !             !
-    !         END DO
-    !         !
-    !         r(:) = r(:) - pos(:)
-    !         !
-    !         !----------------------------------------------------------------------------
-    !         ! possibly 2D or 1D erfc
-    !         !
-    !         IF (dim == 1) THEN
-    !             r(axis) = 0.D0
-    !         ELSE IF (dim == 2) THEN
-    !             !
-    !             DO i = 1, 3
-    !                 IF (i /= axis) r(i) = 0.D0
-    !             END DO
-    !             !
-    !         END IF
-    !         !
-    !         !----------------------------------------------------------------------------
-    !         ! minimum image convention
-    !         !
-    !         s(:) = MATMUL(r(:), bg(:, :))
-    !         s(:) = s(:) - ANINT(s(:))
-    !         r(:) = MATMUL(at(:, :), s(:))
-    !         r = r * alat
-    !         !
-    !         dist = SQRT(SUM(r * r))
-    !         arg = (dist - width) / spread
-    !         !
-    !         IF (dist > tol) drholocal(ir) = -EXP(-arg**2)
-    !         chargelocal = chargelocal + qe_erfc(arg)
-    !         !
-    !     END DO
-    !     !
-    !     !--------------------------------------------------------------------------------
-    !     ! double check that the integral of the generated charge corresponds to
-    !     ! what is expected
-    !     !
-    !     CALL env_mp_sum(chargelocal, intra_bgrp_comm)
-    !     chargelocal = chargelocal * omega / DBLE(ntot) * 0.5D0
-    !     !
-    !     IF (ABS(chargelocal - chargeanalytic) / chargeanalytic > 1.D-4) &
-    !         WRITE (6, *) &
-    !         'WARNING: significant discrepancy between &
-    !         &the numerical and the !expected erfc charge'
-    !     !
-    !     drholocal = drholocal * scale
-    !     !
-    !     drho%of_r = drho%of_r + drholocal
-    !     DEALLOCATE (drholocal)
-    !     !
-    !     RETURN
-    !     !
-    !     !--------------------------------------------------------------------------------
-    ! END SUBROUTINE generate_deriverfc
-    !------------------------------------------------------------------------------------
-    !>
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE generate_axis(cell, icor, pos, axis)
@@ -904,7 +637,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_cell), INTENT(IN) :: cell
+        CLASS(environ_cell), INTENT(IN) :: cell
         INTEGER, INTENT(IN) :: icor
         REAL(DP), INTENT(IN) :: pos(3)
         !
@@ -918,15 +651,12 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, 0, 0, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
+            IF (.NOT. physical) CYCLE
             !
-            r = r - pos ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            axis(ir) = r(icor)
+            axis(ir) = -r(icor)
             !
         END DO
         !
@@ -945,7 +675,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_cell), INTENT(IN) :: cell
+        CLASS(environ_cell), INTENT(IN) :: cell
         REAL(DP), INTENT(IN) :: pos(3)
         !
         REAL(DP), INTENT(OUT) :: distance(3, cell%nnr)
@@ -958,15 +688,12 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2r(cell, ir, r, physical) ! position in real space grid
+            CALL cell%get_min_distance(ir, 0, 0, pos, r, r2, physical)
+            ! compute minimum distance using minimum image convention
             !
-            IF (.NOT. physical) CYCLE ! do not include points outside the physical range
+            IF (.NOT. physical) CYCLE
             !
-            r = r - pos ! displacement from origin
-            !
-            CALL minimum_image(cell, r, r2) ! minimum image convention
-            !
-            distance(:, ir) = r(:)
+            distance(:, ir) = -r
             !
         END DO
         !
@@ -989,7 +716,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: dim, axis
         REAL(DP), INTENT(IN) :: width, spread
-        TYPE(environ_cell), INTENT(IN) :: cell
+        CLASS(environ_cell), INTENT(IN) :: cell
         !
         REAL(DP) :: f1 = 0.0_DP, f2 = 0.0_DP
         REAL(DP) :: t, invt

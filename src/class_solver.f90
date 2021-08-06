@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -20,93 +20,83 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Oliviero Andreussi (Department of Physics, UNT)
+! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Oliviero Andreussi (Department of Physics, UNT)
 !          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !          Edan Bainglass     (Department of Physics, UNT)
 !
-! Original version by D. Scherlis, M. Cococcioni, and N. Marzari (MIT)
-!
 !----------------------------------------------------------------------------------------
 !>
-!! Module to compute a cavitation functional, defined as the quantum surface
-!! of the system times the surface tension of the environment.
-!! Original method developed in Scherlis et al, J. Chem. Phys. (2006),
-!! but formulas for the quantum surface were not correct and have been
-!! rederived by Andreussi et al., J. Chem. Phys. 136, 064102 (2012)
-!!
-!! The variables needed to introduce an environment with a surface tension
-!! around the system.
 !!
 !----------------------------------------------------------------------------------------
-MODULE embedding_surface
+MODULE class_solver
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP, e2
-    !
-    USE types_physical, ONLY: environ_boundary
-    USE types_representation, ONLY: environ_density
+    USE class_core_container_electrostatics
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: calc_desurface_dboundary, calc_esurface
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    TYPE, ABSTRACT, PUBLIC :: electrostatic_solver
+        !--------------------------------------------------------------------------------
+        !
+        CHARACTER(LEN=80) :: solver_type
+        !
+        TYPE(container_electrostatics), POINTER :: cores => NULL()
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: set_cores => set_electrostatic_cores
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE electrostatic_solver
+    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
-    !>
-    !! Calculates the cavitation contribution to the potential
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_desurface_dboundary(surface_tension, boundary, de_dboundary)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: surface_tension
-        TYPE(environ_boundary), TARGET, INTENT(IN) :: boundary
-        !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: de_dboundary
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_desurface_dboundary'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        de_dboundary%of_r = de_dboundary%of_r + surface_tension * boundary%dsurface%of_r
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_desurface_dboundary
     !------------------------------------------------------------------------------------
     !>
-    !! Calculates the cavitation contribution to the energy
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_esurface(surface_tension, boundary, esurface)
+    SUBROUTINE set_electrostatic_cores(this, cores)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: surface_tension
-        TYPE(environ_boundary), TARGET, INTENT(IN) :: boundary
+        TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
         !
-        REAL(DP), INTENT(OUT) :: esurface
+        CLASS(electrostatic_solver), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_esurface'
+        CHARACTER(LEN=80) :: sub_name = 'set_electrostatic_cores'
         !
         !--------------------------------------------------------------------------------
         !
-        esurface = surface_tension * boundary%surface * e2 / 2.D0
-        ! computes the cavitation energy
+        IF (ASSOCIATED(this%cores)) &
+            CALL env_errore(sub_name, 'Trying to associate an associated core', 1)
+        !
+        this%cores => cores
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_esurface
+    END SUBROUTINE set_electrostatic_cores
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE embedding_surface
+END MODULE class_solver
 !----------------------------------------------------------------------------------------

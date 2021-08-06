@@ -1,30 +1,35 @@
-! Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
-! Copyright (C) 2006-2010 Quantum ESPRESSO group
+!----------------------------------------------------------------------------------------
 !
-!    This file is part of Environ version 1.1
+! Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 !
-!    Environ 1.1 is free software: you can redistribute it and/or modify
-!    it under the terms of the GNU General Public License as published by
-!    the Free Software Foundation, either version 2 of the License, or
-!    (at your option) any later version.
+!----------------------------------------------------------------------------------------
 !
-!    Environ 1.1 is distributed in the hope that it will be useful,
-!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!    GNU General Public License for more detail, either the file
-!    `License' in the root directory of the present distribution, or
-!    online at <http://www.gnu.org/licenses/>.
+!     This file is part of Environ version 2.0
+!
+!     Environ 2.0 is free software: you can redistribute it and/or modify
+!     it under the terms of the GNU General Public License as published by
+!     the Free Software Foundation, either version 2 of the License, or
+!     (at your option) any later version.
+!
+!     Environ 2.0 is distributed in the hope that it will be useful,
+!     but WITHOUT ANY WARRANTY; without even the implied warranty of
+!     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!     GNU General Public License for more detail, either the file
+!     `License' in the root directory of the present distribution, or
+!     online at <http://www.gnu.org/licenses/>.
 !
 !----------------------------------------------------------------------------------------
 !
 ! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
+!          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
-!! Module to compute finite-differences gradients on dense real space grid
 !!
 !----------------------------------------------------------------------------------------
-MODULE tools_fd
+MODULE class_core_fd_derivatives
     !------------------------------------------------------------------------------------
     !
     USE env_mp, ONLY: env_mp_sum
@@ -34,30 +39,53 @@ MODULE tools_fd
     !
     USE environ_param, ONLY: DP
     !
-    USE types_core, ONLY: fd_core
-    USE types_representation, ONLY: environ_density, environ_gradient
-    USE types_cell, ONLY: environ_cell
+    USE class_cell
+    USE class_density
+    USE class_gradient
     !
-    USE tools_cell, ONLY: ir2ijk
+    USE class_core_fd
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: gradient_fd
-    !
-    !------------------------------------------------------------------------------------
-CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_fd(fd, f, grad)
+    TYPE, EXTENDS(core_fd), PUBLIC :: core_fd_derivatives
+        !--------------------------------------------------------------------------------
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: gradient => gradient_fd
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE core_fd_derivatives
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+CONTAINS
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  GENERAL METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE gradient_fd(this, f, grad)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(fd_core), TARGET, INTENT(IN) :: fd
+        CLASS(core_fd_derivatives), TARGET, INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: f
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
@@ -73,10 +101,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        dfft => fd%cell%dfft
-        cell => fd%cell
-        nnr => fd%cell%nnr
-        nfdpoint => fd%nfdpoint
+        dfft => this%cell%dfft
+        cell => this%cell
+        nnr => this%cell%nnr
+        nfdpoint => this%nfdpoint
         !
         ALLOCATE (ix(-nfdpoint:nfdpoint), iy(-nfdpoint:nfdpoint), &
                   iz(-nfdpoint:nfdpoint))
@@ -86,11 +114,11 @@ CONTAINS
         !
         DO ir = 1, cell%ir_end
             !
-            CALL ir2ijk(cell, ir, ix(0), iy(0), iz(0), physical)
+            CALL cell%ir2ijk(ir, ix(0), iy(0), iz(0), physical)
             !
             IF (.NOT. physical) CYCLE ! do not include points outside the physical range
             !
-            DO in = 1, fd%nfdpoint
+            DO in = 1, this%nfdpoint
                 ix(in) = ix(in - 1) + 1
                 !
                 IF (ix(in) > dfft%nr1x - 1) ix(in) = 0
@@ -117,13 +145,13 @@ CONTAINS
                 !
             END DO
             !
-            DO in = -fd%nfdpoint, fd%nfdpoint
+            DO in = -this%nfdpoint, this%nfdpoint
                 i = ix(in) + iy(0) * dfft%nr1x + iz(0) * dfft%nr1x * dfft%nr2x + 1
-                gradtmp(i, 1) = gradtmp(i, 1) - fd%icfd(in) * f%of_r(ir) * dfft%nr1
+                gradtmp(i, 1) = gradtmp(i, 1) - this%icfd(in) * f%of_r(ir) * dfft%nr1
                 i = ix(0) + iy(in) * dfft%nr1x + iz(0) * dfft%nr1x * dfft%nr2x + 1
-                gradtmp(i, 2) = gradtmp(i, 2) - fd%icfd(in) * f%of_r(ir) * dfft%nr2
+                gradtmp(i, 2) = gradtmp(i, 2) - this%icfd(in) * f%of_r(ir) * dfft%nr2
                 i = ix(0) + iy(0) * dfft%nr1x + iz(in) * dfft%nr1x * dfft%nr2x + 1
-                gradtmp(i, 3) = gradtmp(i, 3) - fd%icfd(in) * f%of_r(ir) * dfft%nr3
+                gradtmp(i, 3) = gradtmp(i, 3) - this%icfd(in) * f%of_r(ir) * dfft%nr3
             END DO
             !
         END DO
@@ -153,7 +181,7 @@ CONTAINS
         !
         DEALLOCATE (gradaux)
         !
-        grad%of_r = grad%of_r / DBLE(fd%ncfd) / cell%alat
+        grad%of_r = grad%of_r / DBLE(this%ncfd) / cell%alat
         !
         RETURN
         !
@@ -162,5 +190,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE tools_fd
+END MODULE class_core_fd_derivatives
 !----------------------------------------------------------------------------------------

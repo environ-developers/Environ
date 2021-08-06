@@ -1,16 +1,16 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
 !
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -20,64 +20,57 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Oliviero Andreussi (Department of Physics, UNT)
-!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
-!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
-!          Edan Bainglass     (Department of Physics, UNT)
+! Authors: Edan Bainglass (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
-!! Module used to store global electrostatic-related variables and parameters.
-!! Contains all the main variables needed for the electrostatic solvers.
 !!
 !----------------------------------------------------------------------------------------
-MODULE base_electrostatic
+MODULE class_core_numerical
     !------------------------------------------------------------------------------------
     !
-    USE types_electrostatic
-    USE types_core, ONLY: core_container
+    USE class_cell
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    SAVE
-    !
-    TYPE(electrostatic_setup) :: inner, outer, reference
-    !
-    TYPE(core_container) :: outer_core, inner_core, reference_core, pbc_core
-    !
-    TYPE(electrostatic_solver) :: outer_solver, inner_solver, reference_solver
+    PRIVATE
     !
     !------------------------------------------------------------------------------------
-    ! Internal setup of numerical solvers
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    TYPE, ABSTRACT, PUBLIC :: numerical_core
+        !--------------------------------------------------------------------------------
+        !
+        CHARACTER(LEN=80) :: core_type
+        !
+        TYPE(environ_cell), POINTER :: cell
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE(create_core), DEFERRED :: create
+        PROCEDURE(destroy_core), DEFERRED :: destroy
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE numerical_core
+    !------------------------------------------------------------------------------------
     !
-    LOGICAL :: lgradient, lconjugate
-    TYPE(gradient_solver) :: gradient, inner_gradient
-    LOGICAL :: literative
-    TYPE(iterative_solver) :: iterative, inner_iterative
-    LOGICAL :: lnested, lnewton
-    TYPE(newton_solver) :: newton
+    ABSTRACT INTERFACE
+        SUBROUTINE create_core(this)
+            IMPORT numerical_core
+            CLASS(numerical_core), INTENT(INOUT) :: this
+        END SUBROUTINE
+        SUBROUTINE destroy_core(this, lflag)
+            IMPORT numerical_core
+            LOGICAL, INTENT(IN) :: lflag
+            CLASS(numerical_core), INTENT(INOUT) :: this
+        END SUBROUTINE
+    END INTERFACE
     !
     !------------------------------------------------------------------------------------
-    ! General setup of periodic boundary conditions
-    !
-    LOGICAL :: need_pbc_correction, need_electrolyte, need_semiconductor, &
-               need_outer_loop
-    !
-    INTEGER :: pbc_dim, pbc_axis
-    !
-    !------------------------------------------------------------------------------------
-    !
-    LOGICAL :: need_gradient, need_factsqrt, need_auxiliary
-    ! logical flags that need to be used outside
-    !
-    !------------------------------------------------------------------------------------
-    ! Keeping imports private
-    !
-    PRIVATE :: gradient_solver, iterative_solver, newton_solver, &
-               electrostatic_solver, electrostatic_setup, core_container
-    !
-    !------------------------------------------------------------------------------------
-END MODULE base_electrostatic
+END MODULE class_core_numerical
 !----------------------------------------------------------------------------------------

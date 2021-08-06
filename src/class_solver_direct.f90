@@ -5,12 +5,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -20,74 +20,142 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Oliviero Andreussi (Department of Physics, UNT)
+! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+!          Oliviero Andreussi (Department of Physics, UNT)
+!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
 !          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
-!! This module contains the main drivers and routines to compute the
-!! electrostatic potential that is the solution of a Poisson equation:
-!!
-!! \f[
-!!      \nabla ^2 \phi = -4 \pi \rho
-!! \f]
 !!
 !----------------------------------------------------------------------------------------
-MODULE solver_poisson
+MODULE class_solver_direct
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP, e2
+    USE environ_param, ONLY: DP
     !
-    USE types_core, ONLY: core_container
-    USE types_cell, ONLY: environ_cell
-    USE types_physical, ONLY: environ_charges, environ_electrolyte, environ_semiconductor
-    USE types_representation, ONLY: environ_density, environ_gradient
+    USE class_cell
+    USE class_density
+    USE class_gradient
     !
-    USE utils_density, ONLY: create_environ_density, init_environ_density, &
-                             destroy_environ_density
+    USE class_core_container_electrostatics
+    USE class_core_fft_electrostatics
+    USE class_core_1da
     !
-    USE tools_fft, ONLY: poisson_fft, gradpoisson_fft
+    USE class_solver
     !
-    USE correction_periodic, ONLY: calc_vperiodic, calc_gradvperiodic
-    USE correction_gcs
-    USE correction_ms
-    USE correction_ms_gcs
-    !
-    !------------------------------------------------------------------------------------
-    !
-    INTERFACE poisson_direct
-        MODULE PROCEDURE poisson_direct_charges, poisson_direct_density
-    END INTERFACE poisson_direct
-    !
-    INTERFACE poisson_gradient_direct
-        MODULE PROCEDURE poisson_gradient_direct_charges, poisson_gradient_direct_density
-    END INTERFACE poisson_gradient_direct
+    USE class_charges
+    USE class_electrolyte
+    USE class_semiconductor
     !
     !------------------------------------------------------------------------------------
+    !
+    IMPLICIT NONE
     !
     PRIVATE
     !
-    PUBLIC :: poisson_direct, poisson_gradient_direct
-    !
-    !------------------------------------------------------------------------------------
-CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_direct_charges(core, charges, potential)
+    TYPE, EXTENDS(electrostatic_solver), PUBLIC :: solver_direct
+        !--------------------------------------------------------------------------------
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: set_core => create_solver_direct
+        PROCEDURE :: destroy => destroy_solver_direct
+        !
+        PROCEDURE, PRIVATE :: poisson_direct_charges, poisson_direct_density
+        GENERIC :: poisson => poisson_direct_charges, poisson_direct_density
+        !
+        PROCEDURE, PRIVATE :: &
+            poisson_gradient_direct_charges, poisson_gradient_direct_density
+        !
+        GENERIC :: poisson_gradient => &
+            poisson_gradient_direct_charges, poisson_gradient_direct_density
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE solver_direct
+    !------------------------------------------------------------------------------------
+    !
+    !------------------------------------------------------------------------------------
+CONTAINS
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE create_solver_direct(this, cores)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), INTENT(IN) :: core
+        TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
         !
-        TYPE(environ_charges), INTENT(INOUT) :: charges
+        CLASS(solver_direct), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%solver_type = 'direct'
+        !
+        CALL this%set_cores(cores)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_solver_direct
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_solver_direct(this, lflag)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, INTENT(IN) :: lflag
+        !
+        CLASS(solver_direct), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%cores%destroy(lflag)
+        !
+        NULLIFY (this%cores)
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_solver_direct
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   SOLVER METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE poisson_direct_charges(this, charges, potential)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(solver_direct), INTENT(IN) :: this
+        !
+        TYPE(environ_charges), TARGET, INTENT(INOUT) :: charges
         TYPE(environ_density), INTENT(INOUT) :: potential
         !
         TYPE(environ_cell), POINTER :: cell
-        !
-        REAL(DP) :: edummy, cdummy
         !
         CHARACTER(LEN=80) :: sub_name = 'poisson_direct_charges'
         !
@@ -98,25 +166,17 @@ CONTAINS
         !
         cell => charges%density%cell
         !
-        IF (core%use_fft) THEN
-            CALL poisson_fft(core%fft, charges%density, potential)
-        ELSE IF (core%use_oned_analytic) THEN
-            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
-        ELSE
-            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
-        END IF
+        CALL this%cores%poisson(charges%density, potential)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (core%need_correction) THEN
+        IF (ASSOCIATED(this%cores%correction)) THEN
             !
-            SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('1da', 'oned_analytic')
-                !
-                CALL calc_vperiodic(core%correction%oned_analytic, charges%density, &
-                                    potential)
+                CALL this%cores%correction%calc_v(charges%density, potential)
                 !
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
@@ -125,8 +185,8 @@ CONTAINS
                                     'Missing electrolyte for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_vgcs(core%correction%oned_analytic, charges%electrolyte, &
-                               charges%density, potential)
+                CALL this%cores%correction%calc_v(charges%electrolyte, &
+                                                  charges%density, potential)
                 !
             CASE ('ms', 'mott-schottky')
                 !
@@ -135,10 +195,10 @@ CONTAINS
                                     'Missing semiconductor for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_vms(core%correction%oned_analytic, charges%semiconductor, &
-                              charges%density, potential)
+                CALL this%cores%correction%calc_v(charges%semiconductor, &
+                                                  charges%density, potential)
                 !
-            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
+            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                     CALL env_errore(sub_name, &
@@ -150,8 +210,10 @@ CONTAINS
                                     'Missing electrolyte for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_vms_gcs(core%correction%oned_analytic, charges%electrolyte, &
-                                  charges%semiconductor, charges%density, potential)
+                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                !
+                ! CALL calc_vms_gcs(this%core%correction%oned_analytic, charges%electrolyte, &
+                !                   charges%semiconductor, charges%density, potential)
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
@@ -168,13 +230,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_direct_density(core, charges, potential, electrolyte, &
+    SUBROUTINE poisson_direct_density(this, charges, potential, electrolyte, &
                                       semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), INTENT(IN) :: core
+        CLASS(solver_direct), INTENT(IN) :: this
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), INTENT(INOUT) :: charges
@@ -184,9 +246,7 @@ CONTAINS
         TYPE(environ_cell), POINTER :: cell
         TYPE(environ_density) :: local
         !
-        REAL(DP) :: edummy, cdummy
-        !
-        CHARACTER(LEN=80) :: sub_name = 'poisson_direct_density', llab
+        CHARACTER(LEN=80) :: sub_name = 'poisson_direct_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -199,27 +259,21 @@ CONTAINS
         ! Using a local variable for the potential because the routine may be
         ! called with the same argument for charges and potential
         !
-        CALL create_environ_density(local)
+        CALL local%create()
         !
-        CALL init_environ_density(cell, local)
+        CALL local%init(cell)
         !
-        IF (core%use_fft) THEN
-            CALL poisson_fft(core%fft, charges, local)
-        ELSE IF (core%use_oned_analytic) THEN
-            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
-        ELSE
-            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
-        END IF
+        CALL this%cores%poisson(charges, local)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (core%need_correction) THEN
+        IF (ASSOCIATED(this%cores%correction)) THEN
             !
-            SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('1da', 'oned_analytic')
-                CALL calc_vperiodic(core%correction%oned_analytic, charges, local)
+                CALL this%cores%correction%calc_v(charges, local)
                 !
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
@@ -228,8 +282,7 @@ CONTAINS
                                     'Missing electrolyte for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_vgcs(core%correction%oned_analytic, electrolyte, charges, &
-                               local)
+                CALL this%cores%correction%calc_v(electrolyte, charges, local)
                 !
             CASE ('ms', 'mott-schottky')
                 !
@@ -238,10 +291,9 @@ CONTAINS
                                     'Missing semiconductor for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_vms(core%correction%oned_analytic, semiconductor, charges, &
-                              local)
+                CALL this%cores%correction%calc_v(semiconductor, charges, local)
                 !
-            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
+            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
                     CALL env_errore(sub_name, &
@@ -253,8 +305,10 @@ CONTAINS
                                     'Missing electrolyte for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_vms_gcs(core%correction%oned_analytic, electrolyte, &
-                                  semiconductor, charges, local)
+                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                !
+                ! CALL calc_vms_gcs(this%core%correction%oned_analytic, electrolyte, &
+                !                   semiconductor, charges, local)
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
@@ -265,7 +319,7 @@ CONTAINS
         !
         potential%of_r = local%of_r ! only update the potential at the end
         !
-        CALL destroy_environ_density(local)
+        CALL local%destroy()
         !
         RETURN
         !
@@ -275,39 +329,31 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_gradient_direct_charges(core, charges, gradient)
+    SUBROUTINE poisson_gradient_direct_charges(this, charges, gradient)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), INTENT(IN) :: core
+        CLASS(solver_direct), INTENT(IN) :: this
         !
-        TYPE(environ_charges), INTENT(INOUT) :: charges
+        TYPE(environ_charges), TARGET, INTENT(INOUT) :: charges
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
         CHARACTER(LEN=80) :: sub_name = 'poisson_gradient_direct_charges'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (core%use_fft) THEN
-            CALL gradpoisson_fft(core%fft, charges%density, gradient)
-        ELSE IF (core%use_oned_analytic) THEN
-            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
-        ELSE
-            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
-        END IF
+        CALL this%cores%gradpoisson(charges%density, gradient)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (core%need_correction) THEN
+        IF (ASSOCIATED(this%cores%correction)) THEN
             !
-            SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('1da', 'oned_analytic')
-                !
-                CALL calc_gradvperiodic(core%correction%oned_analytic, &
-                                        charges%density, gradient)
+                CALL this%cores%correction%calc_gradv(charges%density, gradient)
                 !
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
@@ -316,8 +362,8 @@ CONTAINS
                                     'Missing electrolyte for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_gradvgcs(core%correction%oned_analytic, charges%electrolyte, &
-                                   charges%density, gradient)
+                CALL this%cores%correction%calc_gradv(charges%electrolyte, &
+                                                      charges%density, gradient)
                 !
             CASE ('ms', 'mott-schottky')
                 !
@@ -326,10 +372,10 @@ CONTAINS
                                     'Missing semiconductor for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_gradvms(core%correction%oned_analytic, &
-                                  charges%semiconductor, charges%density, gradient)
+                CALL this%cores%correction%calc_gradv(charges%semiconductor, &
+                                                      charges%density, gradient)
                 !
-            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
+            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
                     CALL env_errore(sub_name, &
@@ -341,9 +387,11 @@ CONTAINS
                                     'Missing electrolyte for electrochemical &
                                     &boundary correction', 1)
                 !
-                CALL calc_gradvms_gcs(core%correction%oned_analytic, &
-                                      charges%electrolyte, charges%semiconductor, &
-                                      charges%density, gradient)
+                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                !
+                ! CALL calc_gradvms_gcs(this%core%correction%oned_analytic, &
+                !                       charges%electrolyte, charges%semiconductor, &
+                !                       charges%density, gradient)
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
@@ -360,13 +408,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_gradient_direct_density(core, charges, gradient, electrolyte, &
+    SUBROUTINE poisson_gradient_direct_density(this, charges, gradient, electrolyte, &
                                                semiconductor)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), INTENT(IN) :: core
+        CLASS(solver_direct), INTENT(IN) :: this
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), INTENT(INOUT) :: charges
@@ -377,27 +425,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (core%use_fft) THEN
-            !
-            CALL gradpoisson_fft(core%fft, charges, gradient)
-            !
-        ELSE IF (core%use_oned_analytic) THEN
-            CALL env_errore(sub_name, 'Analytic 1D Poisson kernel is not available', 1)
-        ELSE
-            CALL env_errore(sub_name, 'Unexpected setup of core container', 1)
-        END IF
+        CALL this%cores%gradpoisson(charges, gradient)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (core%need_correction) THEN
+        IF (ASSOCIATED(this%cores%correction)) THEN
             !
-            SELECT CASE (TRIM(ADJUSTL(core%correction%type_)))
+            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('1da', 'oned_analytic')
-                !
-                CALL calc_gradvperiodic(core%correction%oned_analytic, charges, &
-                                        gradient)
+                CALL this%cores%correction%calc_gradv(charges, gradient)
                 !
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
@@ -406,8 +444,7 @@ CONTAINS
                                     'Missing electrolyte for &
                                     &electrochemical boundary correction', 1)
                 !
-                CALL calc_gradvgcs(core%correction%oned_analytic, electrolyte, &
-                                   charges, gradient)
+                CALL this%cores%correction%calc_gradv(electrolyte, charges, gradient)
                 !
             CASE ('ms', 'mott-schottky')
                 !
@@ -416,10 +453,9 @@ CONTAINS
                                     'Missing semiconductor for &
                                     &electrochemical boundary correction', 1)
                 !
-                CALL calc_gradvms(core%correction%oned_analytic, semiconductor, &
-                                  charges, gradient)
+                CALL this%cores%correction%calc_gradv(semiconductor, charges, gradient)
                 !
-            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern')
+            CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
                     CALL env_errore(sub_name, &
@@ -431,8 +467,10 @@ CONTAINS
                                     'Missing electrolyte for &
                                     &electrochemical boundary correction', 1)
                 !
-                CALL calc_gradvms_gcs(core%correction%oned_analytic, electrolyte, &
-                                      semiconductor, charges, gradient)
+                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                !
+                ! CALL calc_gradvms_gcs(this%core%correction%oned_analytic, electrolyte, &
+                !                       semiconductor, charges, gradient)
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
@@ -448,5 +486,5 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE solver_poisson
+END MODULE class_solver_direct
 !----------------------------------------------------------------------------------------

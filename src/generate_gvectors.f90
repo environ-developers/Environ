@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -25,8 +25,8 @@
 !          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
-!
-!> subroutines generating G-vectors and variables nl* needed to map
+!>
+!! Subroutines generating G-vectors and variables nl* needed to map
 !! G-vector components onto the FFT grid(s) in reciprocal space
 !!
 !----------------------------------------------------------------------------------------
@@ -41,74 +41,14 @@ MODULE generate_gvectors
     !
     USE environ_param, ONLY: DP, eps8
     !
-    USE types_core, ONLY: fft_core
-    !
     !------------------------------------------------------------------------------------
     !
     PRIVATE
     !
-    PUBLIC :: env_gvect_init, env_ggen
+    PUBLIC :: env_ggen
     !
     !------------------------------------------------------------------------------------
 CONTAINS
-    !------------------------------------------------------------------------------------
-    !>
-    !! Set local and global dimensions, allocate arrays
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE env_gvect_init(fft, ngm_g, comm)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(fft_core), INTENT(INOUT) :: fft
-        INTEGER, INTENT(INOUT) :: ngm_g
-        !
-        INTEGER :: ngm
-        !
-        INTEGER, INTENT(IN) :: comm
-        ! communicator of the group on which g-vecs are distributed
-        !
-        !--------------------------------------------------------------------------------
-        ! Calculate sum over all processors
-        !
-        ngm = fft%ngm
-        ngm_g = ngm
-        !
-        CALL env_mp_sum(ngm_g, comm)
-        !
-        !--------------------------------------------------------------------------------
-        ! Allocate arrays - only those that are always kept until the end
-        !
-        ALLOCATE (fft%gg(ngm))
-        ALLOCATE (fft%g(3, ngm))
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE env_gvect_init
-    !------------------------------------------------------------------------------------
-    !>
-    !! #TODO unused
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE env_deallocate_gvect(fft)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(fft_core), INTENT(INOUT) :: fft
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(fft%gg)) DEALLOCATE (fft%gg)
-        !
-        IF (ALLOCATED(fft%g)) DEALLOCATE (fft%g)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE env_deallocate_gvect
     !------------------------------------------------------------------------------------
     !>
     !! This routine generates all the reciprocal lattice vectors

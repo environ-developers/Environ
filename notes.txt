@@ -1,27 +1,18 @@
 TO DO (OLIVIERO)
 * fix e2 and unit conversion
-* collect unit conversion factors into a module
-* cleanup backward compatibility
+* collect unit conversion factors into a module (to be dealt at the interface)
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
 * fix input readin in parser, why is it using intra_image_comm?
 * recvec needs to be moved into a derived data type
 * simplify/make more modular environ initialization for coupling with other programs
-* remove dependences on environ_base, electrostatic_base, and core_base
 * add possibility to do environ martyna-tuckerman correction for pbc pw calculation
 * add a test on multiple pbc corrections at the same time
 * core_fft.f90: add tests for compatibility between inputs
-* tools_generate_functions.f90: move away planar_average
-* environ_output.f90: fix write_cube that depends on dfftp and parallelization
-* move potential_shift somewhere else
-* move solvent_tddfpt into environ_main
 * remove dependence on mp_sum and comm as much as possible
 
 LARGE_VS_SMALL CELL
 *** Fix felectrostatics force_fft (vloc is in system cell, environment_charges are in environment_cell)
 *** Fix felectrostatics calc_fperiodic (oned_analytic is in system_cell, environment_charges are in environment_cell)
-
-TO DO (GABRIEL)
-* create two subroutines that map a quantity in the small cell to the large cell and vice versa
 
 NON-PRESSING TASKS
 * profile core_fft routines
@@ -29,6 +20,13 @@ NON-PRESSING TASKS
 * add tests for cp, neb, tddfpt, xspectra
 
 DONE
+* environ_output.f90: fix write_cube that depends on dfftp and parallelization (now methods of ions and density)
+* tools_generate_functions.f90: move away planar_average (now in the class_cell)
+* remove dependences on environ_base, electrostatic_base, and core_base (now attributes of class_environ)
+* move potential_shift somewhere else (Now in utils_ions.f90, where it is modified)
+* cleanup backward compatibility
+* move solvent_tddfpt into environ_main
+* create two subroutines that map a quantity in the small cell to the large cell and vice versa
 * remove oldenviron
 * remove addjellium
 * NOTE: vzero that is stored in environ_init_potential (environ_init.f90) and must be kept only on the small cell.

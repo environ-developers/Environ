@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
 !
 !----------------------------------------------------------------------------------------
 !
@@ -20,27 +20,27 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Oliviero Andreussi (Department of Physics, UNT)
-!          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
-!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
-!          Edan Bainglass     (Department of Physics, UNT)
+! Authors: Edan Bainglass (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_fft
+MODULE class_core_container_electrostatics
     !------------------------------------------------------------------------------------
-    !
-    USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP
     !
-    USE class_cell
+    USE class_density
+    USE class_gradient
     !
-    USE class_core_numerical
+    USE class_core_container_corrections
+    USE class_core_container_derivatives
+    USE class_core_fft_electrostatics
     !
-    USE generate_gvectors, ONLY: env_ggen
+    USE class_ions
+    !
+    USE generate_boundary
     !
     !------------------------------------------------------------------------------------
     !
@@ -52,40 +52,24 @@ MODULE class_core_fft
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(numerical_core), PUBLIC :: core_fft
+    TYPE, EXTENDS(container_derivatives), PUBLIC :: container_electrostatics
         !--------------------------------------------------------------------------------
         !
-        INTEGER :: ngm = 0 ! local  number of G vectors (on this processor)
-        ! with gamma tricks, only vectors in G>
-        !
-        REAL(DP) :: gcutm = 0.0_DP ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
-        !
-        INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
-        ! needed in parallel execution:
-        ! gstart=2 for the proc that holds G=0
-        ! gstart=1 for all others
-        !
-        REAL(DP), ALLOCATABLE :: gg(:)
-        ! G^2 in increasing order (in units of tpiba2=(2pi/a)^2)
-        !
-        REAL(DP), ALLOCATABLE :: g(:, :)
-        ! G-vectors cartesian components ( in units tpiba =(2pi/a) )
+        CLASS(container_corrections), POINTER :: correction => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_core_fft
-        PROCEDURE :: init_first => init_core_fft_first
-        PROCEDURE :: init_second => init_core_fft_second
-        PROCEDURE :: update_cell => update_core_fft_cell
-        PROCEDURE :: destroy => destroy_core_fft
+        PROCEDURE :: add_correction
+        PROCEDURE :: destroy => destroy_electrostatics_container
         !
-        PROCEDURE, PRIVATE :: init_gvect => env_gvect_init
-        PROCEDURE, PRIVATE :: deallocate_gvect => env_deallocate_gvect
+        PROCEDURE :: poisson => calc_poisson
+        PROCEDURE :: gradpoisson => calc_gradpoisson
+        PROCEDURE :: force => calc_force
         !
         !--------------------------------------------------------------------------------
-    END TYPE core_fft
+    END TYPE container_electrostatics
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -100,192 +84,168 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_core_fft(this)
+    SUBROUTINE add_correction(this, correction)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
+        TYPE(container_corrections), TARGET, INTENT(IN) :: correction
+        !
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'add_correction'
         !
         !--------------------------------------------------------------------------------
         !
-        this%core_type = 'fft'
+        IF (ASSOCIATED(this%correction)) &
+            CALL env_errore(sub_name, 'Trying to create an existing container')
         !
-        NULLIFY (this%cell)
+        this%correction => correction
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_core_fft
+    END SUBROUTINE add_correction
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_first(this, use_internal_pbc_corr)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
-        !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%create()
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_second(this, gcutm, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: gcutm
-        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        !
-        INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
-        ! in serial execution, ngm_g = ngm
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%gcutm = gcutm
-        this%cell => cell
-        !
-        this%ngm = cell%dfft%ngm
-        !
-        !--------------------------------------------------------------------------------
-        ! #TODO The following routines are in generate_gvectors
-        ! and may need to be simplified
-        !
-        CALL this%init_gvect(ngm_g, cell%dfft%comm)
-        !
-        CALL env_ggen(this%cell%dfft, cell%dfft%comm, cell%at, cell%bg, this%gcutm, &
-                      ngm_g, this%ngm, this%g, this%gg, this%gstart, .TRUE.)
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_second
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE update_core_fft_cell(this, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%cell => cell
-        !
-        RETURN
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE update_core_fft_cell
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_fft(this, lflag)
+    SUBROUTINE destroy_electrostatics_container(this, lflag)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: lflag
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_core_fft'
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (this%cell)
-        !
-        CALL this%deallocate_gvect()
+        IF (lflag) THEN
+            !
+            CALL this%core%destroy(lflag)
+            !
+            NULLIFY (this%core)
+            !
+            IF (ASSOCIATED(this%correction)) THEN
+                !
+                CALL this%correction%destroy(lflag)
+                !
+                NULLIFY (this%correction)
+            END IF
+            !
+        END IF
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_core_fft
+    END SUBROUTINE destroy_electrostatics_container
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
-    !                               PRIVATE HELPER METHODS
+    !                               ELECTROSTATIC METHODS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
-    !! Set local and global dimensions, allocate arrays
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_gvect_init(this, ngm_g, comm)
+    SUBROUTINE calc_poisson(this, density, potential)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        INTEGER, INTENT(INOUT) :: ngm_g
+        TYPE(environ_density), INTENT(IN) :: density
         !
-        INTEGER :: ngm
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        INTEGER, INTENT(IN) :: comm
-        ! communicator of the group on which g-vecs are distributed
-        !
-        !--------------------------------------------------------------------------------
-        ! Calculate sum over all processors
-        !
-        ngm = this%ngm
-        ngm_g = ngm
-        !
-        CALL env_mp_sum(ngm_g, comm)
+        CHARACTER(LEN=80) :: sub_name = 'calc_poisson'
         !
         !--------------------------------------------------------------------------------
-        ! Allocate arrays - only those that are always kept until the end
         !
-        ALLOCATE (this%gg(ngm))
-        ALLOCATE (this%g(3, ngm))
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_electrostatics)
+            CALL core%poisson(density, potential)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE env_gvect_init
+    END SUBROUTINE calc_poisson
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_deallocate_gvect(this)
+    SUBROUTINE calc_gradpoisson(this, density, gradient)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(IN) :: density
+        !
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_gradpoisson'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%gg)) DEALLOCATE (this%gg)
-        !
-        IF (ALLOCATED(this%g)) DEALLOCATE (this%g)
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_electrostatics)
+            CALL core%gradpoisson(density, gradient)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
         !
         RETURN
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE env_deallocate_gvect
+    END SUBROUTINE calc_gradpoisson
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_force(this, density, ions, natoms, force)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_density), INTENT(IN) :: density
+        TYPE(environ_ions), TARGET, INTENT(IN) :: ions
+        INTEGER, INTENT(IN) :: natoms
+        !
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        REAL(DP), INTENT(OUT) :: force(3, natoms)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_force'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (core => this%core)
+            !
+        TYPE IS (core_fft_electrostatics)
+            CALL core%force(density, ions, natoms, force)
+            !
+        CLASS DEFAULT
+            CALL env_errore(sub_name, 'Unexpected core', 1)
+            !
+        END SELECT
+        !
+        RETURN
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_force
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_fft
+END MODULE class_core_container_electrostatics
 !----------------------------------------------------------------------------------------

@@ -17,7 +17,7 @@
  /
  &ELECTROSTATIC
    !
-   solver = 'iterative'
+   solver = 'fp'
    auxiliary = 'full'
    !
  /
