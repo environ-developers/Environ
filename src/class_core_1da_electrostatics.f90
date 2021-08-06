@@ -101,7 +101,7 @@ CONTAINS
         TYPE(environ_cell), POINTER :: cell
         !
         INTEGER, POINTER :: env_periodicity, slab_axis
-        REAL(DP), POINTER :: alat, omega, axis_length
+        REAL(DP), POINTER :: omega, axis_length
         REAL(DP), POINTER :: origin(:), axis(:, :)
         !
         INTEGER :: icor
@@ -124,7 +124,6 @@ CONTAINS
             CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => potential%cell
-        alat => cell%alat
         omega => cell%omega
         !
         env_periodicity => this%d
@@ -152,7 +151,10 @@ CONTAINS
         SELECT CASE (env_periodicity)
             !
         CASE (0)
-            const = madelung(1) * charge / alat * e2 - fact * SUM(quadrupole(:)) / 3.D0
+            !
+            const = madelung(1) * charge * e2 / omega**(1 / 3.D0) - &
+                    fact * SUM(quadrupole(:)) / 3.D0
+            !
             vperiodic = 0.D0
             !
             DO icor = 1, 3
@@ -312,7 +314,7 @@ CONTAINS
         REAL(DP), POINTER :: tau(:, :)
         !
         INTEGER, POINTER :: env_periodicity, slab_axis
-        REAL(DP), POINTER :: alat, omega
+        REAL(DP), POINTER :: omega
         REAL(DP), POINTER :: origin(:)
         !
         INTEGER :: i
@@ -336,7 +338,6 @@ CONTAINS
             CALL env_errore(sub_name, &
                             'Mismatch in numbers of atoms passed in input and stored', 1)
         !
-        alat => charges%density%cell%alat
         omega => charges%density%cell%omega
         tau => charges%ions%tau
         ityp => charges%ions%ityp
@@ -360,7 +361,7 @@ CONTAINS
         ftmp = 0.D0
         !
         DO i = 1, natoms
-            pos(:) = (tau(:, i) - origin(:)) * alat
+            pos(:) = (tau(:, i) - origin(:))
             !
             SELECT CASE (env_periodicity)
                 !
@@ -415,7 +416,7 @@ CONTAINS
         TYPE(environ_cell), POINTER :: cell
         !
         INTEGER, POINTER :: env_periodicity, slab_axis
-        REAL(DP), POINTER :: alat, omega, axis_length
+        REAL(DP), POINTER :: omega, axis_length
         REAL(DP), POINTER :: origin(:), axis(:, :)
         !
         REAL(DP), POINTER :: cion, permittivity, xstern
@@ -448,7 +449,6 @@ CONTAINS
         !
         cell => potential%cell
         nnr => cell%nnr
-        alat => cell%alat
         omega => cell%omega
         !
         env_periodicity => this%d
@@ -662,7 +662,7 @@ CONTAINS
         TYPE(environ_cell), POINTER :: cell
         !
         INTEGER, POINTER :: env_periodicity, slab_axis
-        REAL(DP), POINTER :: alat, omega, axis_length
+        REAL(DP), POINTER :: omega, axis_length
         REAL(DP), POINTER :: origin(:), axis(:, :)
         !
         REAL(DP), POINTER :: cion, permittivity, xstern
@@ -694,7 +694,6 @@ CONTAINS
         !
         cell => gradv%cell
         nnr => cell%nnr
-        alat => cell%alat
         omega => cell%omega
         !
         env_periodicity => this%d

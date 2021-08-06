@@ -67,7 +67,6 @@ MODULE class_ions
         LOGICAL :: lupdate = .FALSE.
         INTEGER :: number = 0
         REAL(DP) :: center(3)
-        REAL(DP) :: alat
         !
         !--------------------------------------------------------------------------------
         ! Specifications of point-like ions
@@ -234,8 +233,6 @@ CONTAINS
         ALLOCATE (this%ityp(nat))
         this%ityp = 0
         !
-        this%alat = 0.D0
-        !
         !--------------------------------------------------------------------------------
         ! Set ions types, note that also valence charges cannot be initialized here
         !
@@ -313,7 +310,6 @@ CONTAINS
         IF (this%ntyp /= ntyp) &
             CALL env_errore(sub_name, 'Mismatch in number of atom types', 1)
         !
-        this%alat = cell%alat ! needed because the ionic positions are scaled by alat
         this%ityp = ityp
         !
         DO i = 1, this%ntyp
@@ -460,7 +456,7 @@ CONTAINS
             !
             this%quadrupole_pc(:) = this%quadrupole_pc(:) + &
                                     this%iontype(this%ityp(i))%zv * &
-                                    ((this%tau(:, i) - this%center(:)) * this%alat)**2
+                                    ((this%tau(:, i) - this%center(:)))**2
             !
             IF (this%use_smeared_ions) THEN
                 !
@@ -743,10 +739,7 @@ CONTAINS
                 WRITE (environ_unit, 1004)
                 !
                 DO i = 1, this%number
-                    !
-                    WRITE (environ_unit, 1005) &
-                        i, this%ityp(i), this%tau(:, i) * this%alat
-                    !
+                    WRITE (environ_unit, 1005) i, this%ityp(i), this%tau(:, i)
                 END DO
                 !
             END IF
@@ -825,9 +818,7 @@ CONTAINS
             !
             WRITE (300, '(i5,4f12.6)') &
                 this%iontype(this%ityp(iat))%atmnum, 0.D0, &
-                this%tau(1, iat) * this%alat, &
-                this%tau(2, iat) * this%alat, &
-                this%tau(3, iat) * this%alat
+                this%tau(1, iat), this%tau(2, iat), this%tau(3, iat)
             !
         END DO
         !

@@ -66,10 +66,10 @@ MODULE class_core_fft
         ! gstart=1 for all others
         !
         REAL(DP), ALLOCATABLE :: gg(:)
-        ! G^2 in increasing order (in units of tpiba2=(2pi/a)^2)
+        ! G^2 in increasing order (in units of (2pi/a)^2)
         !
         REAL(DP), ALLOCATABLE :: g(:, :)
-        ! G-vectors cartesian components ( in units tpiba =(2pi/a) )
+        ! G-vectors cartesian components (in units 2pi/a)
         !
         !--------------------------------------------------------------------------------
     CONTAINS

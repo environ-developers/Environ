@@ -105,11 +105,11 @@ CONTAINS
             scale = charge / (sqrtpi * spread)**3
             !
         CASE (1)
-            length = ABS(cell%at(axis, axis) * cell%alat)
+            length = ABS(cell%at(axis, axis))
             scale = charge / length / (sqrtpi * spread)**2
             !
         CASE (2)
-            length = ABS(cell%at(axis, axis) * cell%alat)
+            length = ABS(cell%at(axis, axis))
             scale = charge * length / cell%omega / (sqrtpi * spread)
             !
         CASE default
@@ -117,7 +117,7 @@ CONTAINS
             !
         END SELECT
         !
-        spr2 = (spread / cell%alat)**2
+        spr2 = spread**2
         !
         ALLOCATE (local(cell%nnr))
         local = 0.D0
@@ -184,11 +184,11 @@ CONTAINS
             scale = charge / (sqrtpi * spread)**3
             !
         CASE (1)
-            length = ABS(cell%at(axis, axis) * cell%alat)
+            length = ABS(cell%at(axis, axis))
             scale = charge / length / (sqrtpi * spread)**2
             !
         CASE (2)
-            length = ABS(cell%at(axis, axis) * cell%alat)
+            length = ABS(cell%at(axis, axis))
             scale = charge * length / cell%omega / (sqrtpi * spread)
             !
         CASE default
@@ -196,9 +196,9 @@ CONTAINS
             !
         END SELECT
         !
-        scale = scale * 2.D0 / spread**2 * cell%alat
+        scale = scale * 2.D0 / spread**2
         !
-        spr2 = (spread / cell%alat)**2
+        spr2 = spread**2
         !
         ALLOCATE (gradlocal(3, cell%nnr))
         gradlocal = 0.D0
@@ -265,7 +265,7 @@ CONTAINS
             !
             IF (.NOT. physical) CYCLE
             !
-            dist = SQRT(r2) * cell%alat
+            dist = SQRT(r2)
             arg = (dist - width) / spread
             !
             IF (ABS(arg) <= exp_tol) local(ir) = EXP(-arg)
@@ -321,7 +321,7 @@ CONTAINS
             !
             IF (.NOT. physical) CYCLE
             !
-            dist = SQRT(r2) * cell%alat
+            dist = SQRT(r2)
             arg = (dist - width) / spread
             !
             ! compute exponentially decaying function
@@ -381,7 +381,7 @@ CONTAINS
             !
             IF (.NOT. physical) CYCLE
             !
-            dist = SQRT(r2) * cell%alat
+            dist = SQRT(r2)
             arg = (dist - width) / spread
             !
             local(ir) = environ_erfc(arg) ! compute error function
@@ -456,8 +456,7 @@ CONTAINS
             !
             IF (.NOT. physical) CYCLE
             !
-            r = r * cell%alat
-            dist = SQRT(r2) * cell%alat
+            dist = SQRT(r2)
             arg = (dist - width) / spread
             !
             IF (dist > tol) gradlocal(:, ir) = EXP(-arg**2) * r / dist
@@ -519,7 +518,7 @@ CONTAINS
             !
             IF (.NOT. physical) CYCLE
             !
-            dist = SQRT(r2) * cell%alat
+            dist = SQRT(r2)
             !
             arg = (dist - width) / spread
             !
@@ -596,8 +595,7 @@ CONTAINS
             !
             IF (.NOT. physical) CYCLE
             !
-            r = r * cell%alat
-            dist = SQRT(r2) * cell%alat
+            dist = SQRT(r2)
             arg = (dist - width) / spread
             !
             !----------------------------------------------------------------------------
@@ -660,8 +658,6 @@ CONTAINS
             !
         END DO
         !
-        axis = axis * cell%alat
-        !
         RETURN
         !
         !--------------------------------------------------------------------------------
@@ -696,8 +692,6 @@ CONTAINS
             distance(:, ir) = -r
             !
         END DO
-        !
-        distance = distance * cell%alat
         !
         RETURN
         !
@@ -750,7 +744,7 @@ CONTAINS
             ! One-dimensional erfc, volume is approx the one of the
             ! cylinder of radius=width and length=alat*at(axis,axis)
             !
-            erfcvolume = pi * width**2 * cell%at(axis, axis) * cell%alat * &
+            erfcvolume = pi * width**2 * cell%at(axis, axis) * &
                          ((1.D0 + 0.5D0 * t**2) * f1 + t * f2)
             !
         CASE (2)
@@ -759,7 +753,7 @@ CONTAINS
             ! Two-dimensional erfc, volume is exactly the one of the
             ! box, does not depend on spread
             !
-            erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis) / cell%alat
+            erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis)
             !
         END SELECT
         !

@@ -312,13 +312,12 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initbase(this, alat, at, comm_in, me, root, gcutm)
+    SUBROUTINE environ_initbase(this, at, comm_in, me, root, gcutm)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: comm_in, me, root
-        REAL(DP), INTENT(IN) :: alat
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
         !
@@ -335,7 +334,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Common initialization for simulations with Environ
         !
-        CALL this%system_cell%init(gcutm, comm_in, alat, at)
+        CALL this%system_cell%init(gcutm, comm_in, at)
         !
         !--------------------------------------------------------------------------------
         ! Double cell and mapping
@@ -356,7 +355,7 @@ CONTAINS
             environment_nr(2) = this%system_cell%dfft%nr2 * (2 * this%mapping%nrep(2) + 1)
             environment_nr(3) = this%system_cell%dfft%nr3 * (2 * this%mapping%nrep(3) + 1)
             !
-            CALL this%environment_cell%init(gcutm, comm_in, alat, environment_at, &
+            CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
                                             environment_nr)
             !
         ELSE

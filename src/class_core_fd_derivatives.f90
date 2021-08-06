@@ -181,7 +181,7 @@ CONTAINS
         !
         DEALLOCATE (gradaux)
         !
-        grad%of_r = grad%of_r / DBLE(this%ncfd) / cell%alat
+        grad%of_r = grad%of_r / DBLE(this%ncfd)
         !
         RETURN
         !

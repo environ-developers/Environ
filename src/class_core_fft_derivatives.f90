@@ -35,7 +35,7 @@ MODULE class_core_fft_derivatives
     USE env_types_fft, ONLY: env_fft_type_descriptor
     USE env_fft_main, ONLY: env_fwfft, env_invfft
     !
-    USE environ_param, ONLY: DP
+    USE environ_param, ONLY: DP, tpi, tpi2
     !
     USE class_cell
     USE class_density
@@ -100,13 +100,11 @@ CONTAINS
         INTEGER :: ipol
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
         !
-        REAL(DP), POINTER :: tpiba
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba => this%cell%tpiba
         dfft => this%cell%dfft
         g => this%g
         !
@@ -135,7 +133,7 @@ CONTAINS
             !
             CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
             !
-            ga%of_r(ipol, :) = tpiba * DBLE(gaux(:))
+            ga%of_r(ipol, :) = tpi * DBLE(gaux(:))
             ! add the factor 2\pi/a missing in the definition of G
             !
         END DO
@@ -168,13 +166,11 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
         COMPLEX(DP) :: fp, fm, aux1, aux2
         !
-        REAL(DP), POINTER :: tpiba
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         REAL(DP), POINTER :: g(:, :)
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba => this%cell%tpiba
         dfft => this%cell%dfft
         g => this%g
         !
@@ -254,7 +250,7 @@ CONTAINS
         !
         CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
         !
-        da%of_r(:) = tpiba * REAL(gaux(:))
+        da%of_r(:) = tpi * REAL(gaux(:))
         ! Add the factor 2\pi/a missing in the definition of G and sum
         !
         DEALLOCATE (aux, gaux)
@@ -283,13 +279,11 @@ CONTAINS
         INTEGER :: ig
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, laux
         !
-        REAL(DP), POINTER :: tpiba2
         REAL(DP), POINTER :: gg(:)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba2 => this%cell%tpiba2
         gg => this%gg
         dfft => this%cell%dfft
         !
@@ -316,7 +310,7 @@ CONTAINS
         !
         CALL env_invfft(laux, dfft) ! bring back to R-space, (\lapl a)(r)
         !
-        lapla%of_r = tpiba2 * REAL(laux) ! add the missing factor (2\pi/a)^2 in G
+        lapla%of_r = tpi2 * REAL(laux) ! add the missing factor (2\pi)^2 in G
         !
         DEALLOCATE (laux)
         DEALLOCATE (aux)
@@ -347,13 +341,11 @@ CONTAINS
         INTEGER :: ipol, jpol
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux, haux
         !
-        REAL(DP), POINTER :: tpiba
         REAL(DP), POINTER :: g(:, :)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba => this%cell%tpiba
         g => this%g
         dfft => this%cell%dfft
         !
@@ -383,7 +375,7 @@ CONTAINS
             !
             CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
             !
-            ga%of_r(ipol, :) = tpiba * REAL(gaux(:))
+            ga%of_r(ipol, :) = tpi * REAL(gaux(:))
             ! add the factor 2\pi/a missing in the definition of G
             !
             !----------------------------------------------------------------------------
@@ -406,8 +398,8 @@ CONTAINS
                 CALL env_invfft(haux, dfft)
                 ! bring back to R-space (\grad_ipol a)(r)
                 !
-                ha%of_r(ipol, jpol, :) = tpiba * tpiba * REAL(haux(:))
-                ! add the factor 2\pi/a missing in the definition of G
+                ha%of_r(ipol, jpol, :) = tpi2 * REAL(haux(:))
+                ! add the factor (2\pi)**2 missing in the definition of G
                 !
                 ha%of_r(jpol, ipol, :) = ha%of_r(ipol, jpol, :)
                 !

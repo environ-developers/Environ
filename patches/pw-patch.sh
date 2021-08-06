@@ -260,6 +260,7 @@ mv tmp.2 plugin_print_energies.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
+USE cell_base,            ONLY : alat\
 USE ions_base,            ONLY : zv, nat, nsp, ityp, tau\
 USE environ_QE_interface, ONLY : init_environ_ions\
 !Environ patch
@@ -267,7 +268,7 @@ USE environ_QE_interface, ONLY : init_environ_ions\
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-IF (use_environ) CALL init_environ_ions(dfftp%nnr, nat, nsp, ityp, zv, tau)\
+IF (use_environ) CALL init_environ_ions(dfftp%nnr, nat, nsp, ityp, zv, tau, alat)\
 !Environ patch
 ' tmp.1 >tmp.2
 
@@ -277,14 +278,14 @@ mv tmp.2 plugin_init_ions.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE cell_base,            ONLY : at\
+USE cell_base,            ONLY : at, alat\
 USE environ_QE_interface, ONLY : init_environ_cell\
 !Environ patch
 ' plugin_init_cell.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-  IF ( use_environ ) call init_environ_cell( at )\
+  IF ( use_environ ) call init_environ_cell( at, alat )\
 !Environ patch
 ' tmp.1 >tmp.2
 

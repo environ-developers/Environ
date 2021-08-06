@@ -37,7 +37,7 @@ MODULE class_core_fft_electrostatics
     USE env_types_fft, ONLY: env_fft_type_descriptor
     USE env_fft_main, ONLY: env_fwfft, env_invfft
     !
-    USE environ_param, ONLY: DP, pi, tpi, fpi, e2, eps8
+    USE environ_param, ONLY: DP, pi, tpi, tpi2, fpi, e2, eps8
     !
     USE class_cell
     USE class_density
@@ -231,13 +231,11 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
         !
         INTEGER, POINTER :: gstart, ngm
-        REAL(DP), POINTER :: tpiba2
         REAL(DP), POINTER :: gg(:)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba2 => this%cell%tpiba2
         gstart => this%gstart
         ngm => this%ngm
         gg => this%gg
@@ -262,7 +260,7 @@ CONTAINS
         END DO
 !$omp end parallel do
         !
-        auxr = auxr * e2 * fpi / tpiba2
+        auxr = auxr * e2 * fpi / tpi2
         !
         IF (this%use_internal_pbc_corr) THEN
             ALLOCATE (vaux(ngm))
@@ -314,14 +312,12 @@ CONTAINS
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
         !
         INTEGER, POINTER :: ngm, gstart
-        REAL(DP), POINTER :: tpiba
         REAL(DP), POINTER :: gg(:)
         REAL(DP), POINTER :: g(:, :)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba => this%cell%tpiba
         ngm => this%ngm
         gstart => this%gstart
         gg => this%gg
@@ -359,7 +355,7 @@ CONTAINS
             ! Add the factor e2*fpi/2\pi/a coming from the missing prefactor of
             ! V = e2 * fpi divided by the 2\pi/a factor missing in G
             !
-            fac = e2 * fpi / tpiba
+            fac = e2 * fpi / tpi
             auxr = auxr * fac
             !
             !----------------------------------------------------------------------------
@@ -421,14 +417,12 @@ CONTAINS
         REAL(DP), ALLOCATABLE :: ftmp(:, :)
         !
         INTEGER, POINTER :: ngm, gstart
-        REAL(DP), POINTER :: tpiba, tpiba2, Z, D, R(:)
+        REAL(DP), POINTER :: Z, D, R(:)
         REAL(DP), POINTER :: G(:, :), G2(:)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba => this%cell%tpiba
-        tpiba2 => this%cell%tpiba2
         ngm => this%ngm
         gstart => this%gstart
         G => this%g
@@ -468,9 +462,9 @@ CONTAINS
                 !
                 IF (G2(ig) <= eps8) CYCLE
                 !
-                fpibg2 = fpi / (G2(ig) * tpiba2)
+                fpibg2 = fpi / (G2(ig) * tpi2)
                 !
-                e_arg = -0.25D0 * D**2 * G2(ig) * tpiba2
+                e_arg = -0.25D0 * D**2 * G2(ig) * tpi2
                 gauss_term = Z * fpibg2 * EXP(e_arg)
                 !
                 t_arg = tpi * SUM(G(:, ig) * R)
@@ -481,7 +475,7 @@ CONTAINS
             !
         END DO
         !
-        force = e2 * fact * force * tpiba
+        force = e2 * fact * force * tpi
         !
         !--------------------------------------------------------------------------------
         ! DEBUGGING
@@ -539,8 +533,6 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: hessv(3, 3, this%cell%dfft%nnr)
         !
-        REAL(DP), POINTER :: tpiba2
-        !
         INTEGER, POINTER :: ngm, gstart
         LOGICAL, POINTER :: do_comp_mt
         REAL(DP), POINTER :: g(:, :), gg(:)
@@ -552,7 +544,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba2 => this%cell%tpiba2
         ngm => this%ngm
         gstart => this%gstart
         gg => this%gg
@@ -604,7 +595,7 @@ CONTAINS
                     CALL this%vmt(rgtot, vaux)
                     !
                     DO ig = gstart, ngm
-                        fac = g(ipol, ig) * g(jpol, ig) * tpiba2
+                        fac = g(ipol, ig) * g(jpol, ig) * tpi2
                         !
                         gaux(this%cell%dfft%nl(ig)) = &
                             gaux(this%cell%dfft%nl(ig)) + &
@@ -654,8 +645,6 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: e(this%cell%dfft%nnr)
         !
-        REAL(DP), POINTER :: tpiba
-        !
         INTEGER, POINTER :: ngm, gstart
         LOGICAL, POINTER :: do_comp_mt
         REAL(DP), POINTER :: g(:, :), gg(:)
@@ -668,7 +657,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        tpiba => this%cell%tpiba
         ngm => this%ngm
         gstart => this%gstart
         gg => this%gg
@@ -710,7 +698,7 @@ CONTAINS
             ! Add the factor e2*fpi/2\pi/a coming from the missing prefactor of
             ! V = e2 * fpi divided by the 2\pi/a factor missing in G
             !
-            fac = e2 * fpi / tpiba
+            fac = e2 * fpi / tpi
             aux = aux * fac
             !
             !----------------------------------------------------------------------------
@@ -722,7 +710,7 @@ CONTAINS
                 CALL this%vmt(rgtot, vaux)
                 !
                 DO ig = gstart, ngm
-                    fac = g(ipol, ig) * tpiba
+                    fac = g(ipol, ig) * tpi
                     !
                     aux(this%cell%dfft%nl(ig)) = &
                         aux(this%cell%dfft%nl(ig)) + &
@@ -781,7 +769,7 @@ CONTAINS
         REAL(DP) :: r(3), rws, upperbound, ecutrho
         COMPLEX(DP), ALLOCATABLE :: aux(:)
         !
-        REAL(DP), POINTER :: alpha, beta, omega, tpiba2
+        REAL(DP), POINTER :: alpha, beta, omega
         REAL(DP), POINTER :: mt_corr(:)
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         TYPE(environ_cell), POINTER :: cell
@@ -797,9 +785,8 @@ CONTAINS
         cell => this%cell
         dfft => this%cell%dfft
         omega => this%cell%omega
-        tpiba2 => this%cell%tpiba2
         !
-        ecutrho = this%gcutm * tpiba2
+        ecutrho = this%gcutm * tpi2
         !
         !--------------------------------------------------------------------------------
         ! choose alpha in order to have convergence in the sum over G
@@ -830,7 +817,7 @@ CONTAINS
             !
             IF (.NOT. physical) CYCLE
             !
-            aux(ir) = smooth_coulomb_r(alpha, SQRT(rws) * cell%alat)
+            aux(ir) = smooth_coulomb_r(alpha, SQRT(rws))
             !
         END DO
         !
@@ -840,12 +827,12 @@ CONTAINS
         DO ig = 1, this%ngm
             !
             mt_corr(ig) = cell%omega * REAL(aux(dfft%nl(ig))) - &
-                          smooth_coulomb_g(alpha, beta, cell%tpiba2 * this%gg(ig))
+                          smooth_coulomb_g(alpha, beta, tpi2 * this%gg(ig))
             !
         END DO
 !$omp end parallel do
         !
-        mt_corr(:) = mt_corr(:) * EXP(-cell%tpiba2 * this%gg(:) * beta / 4._DP)**2
+        mt_corr(:) = mt_corr(:) * EXP(-tpi2 * this%gg(:) * beta / 4._DP)**2
         !
         DEALLOCATE (aux)
         !
@@ -909,7 +896,7 @@ CONTAINS
         !
 !$omp parallel do private(fac)
         DO ig = this%gstart, this%ngm
-            fac = this%g(ipol, ig) * this%cell%tpiba
+            fac = this%g(ipol, ig) * tpi
             !
             v(ig) = this%mt_corr(ig) * &
                     CMPLX(-AIMAG(rho(ig)), REAL(rho(ig)), kind=dp) * fac
@@ -958,7 +945,7 @@ CONTAINS
             END DO
             !
             force(:, iat) = &
-                force(:, iat) * ions%iontype(ions%ityp(iat))%zv * this%cell%tpiba
+                force(:, iat) * ions%iontype(ions%ityp(iat))%zv * tpi
             !
         END DO
         !

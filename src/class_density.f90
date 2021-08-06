@@ -334,8 +334,8 @@ CONTAINS
         CALL env_mp_sum(quadrupole, cell%dfft%comm)
         !
         monopole = monopole * cell%domega
-        dipole = dipole * cell%domega * cell%alat
-        quadrupole = quadrupole * cell%domega * cell%alat**2
+        dipole = dipole * cell%domega
+        quadrupole = quadrupole * cell%domega
         !
         RETURN
         !

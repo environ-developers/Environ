@@ -245,30 +245,13 @@ USE environ_QE_interface, ONLY : init_environ_ions \
 !Environ patch
 ' plugin_init_ions.f90 > tmp.1
 
-sed '/Environ VARIABLES BEGIN/ a\
+sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-REAL(DP), ALLOCATABLE :: tau_tmp(:,:) \
+IF ( use_environ ) call init_environ_ions( dfftp%nnr, nat, nsp, ityp, zv, tau, alat ) \
 !Environ patch
 ' tmp.1 > tmp.2
 
-sed '/Environ CALLS BEGIN/ a\
-!Environ patch \
-  IF ( use_environ ) THEN \
-     ! \
-     ! need to convert atomic positions because Environ assumes the same units of PW \
-     ! \
-     ALLOCATE(tau_tmp(3,nat)) \
-     tau_tmp = tau / alat \
-     ! \
-     call init_environ_ions( dfftp%nnr, nat, nsp, ityp, zv, tau_tmp ) \
-     ! \
-     DEALLOCATE(tau_tmp) \
-     ! \
-  ENDIF \
-!Environ patch
-' tmp.2 > tmp.1
-
-mv tmp.1 plugin_init_ions.f90
+mv tmp.2 plugin_init_ions.f90
 
 #plugin_int_forces.f90
 

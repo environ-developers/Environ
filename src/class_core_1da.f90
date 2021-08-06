@@ -189,9 +189,9 @@ CONTAINS
         IF (this%d == 0) THEN
             this%size = cell%omega
         ELSE IF (this%d == 1) THEN
-            this%size = cell%omega / cell%at(this%axis, this%axis) / cell%alat
+            this%size = cell%omega / cell%at(this%axis, this%axis)
         ELSE IF (this%d == 2) THEN
-            this%size = cell%at(this%axis, this%axis) * cell%alat
+            this%size = cell%at(this%axis, this%axis)
         END IF
         !
         RETURN

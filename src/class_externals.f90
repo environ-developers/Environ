@@ -176,7 +176,7 @@ CONTAINS
         IF (this%number > 0) THEN
             !
             DO i = 1, this%number
-                this%functions(i)%pos = this%functions(i)%pos / cell%alat
+                this%functions(i)%pos = this%functions(i)%pos
             END DO
             !
         END IF

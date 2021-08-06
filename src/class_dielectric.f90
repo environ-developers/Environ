@@ -278,7 +278,7 @@ CONTAINS
         IF (this%nregions > 0) THEN
             !
             DO i = 1, this%nregions
-                this%regions(i)%pos = this%regions(i)%pos / cell%alat
+                this%regions(i)%pos = this%regions(i)%pos
             END DO
             !
         END IF

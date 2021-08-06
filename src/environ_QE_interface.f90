@@ -190,12 +190,19 @@ CONTAINS
         REAL(DP), INTENT(IN) :: gcutm
         REAL(DP), OPTIONAL, INTENT(IN) :: e2_in
         !
+        REAL(DP), ALLOCATABLE :: at_scaled(:, :)
+        REAL(DP) :: gcutm_scaled
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_base_second'
+        !
         !--------------------------------------------------------------------------------
         ! Allocate buffers used by env_mp_sum
         !
         CALL env_allocate_mp_buffers()
         !
         !--------------------------------------------------------------------------------
+        ! PW uses Ryderg units (2.D0 * AU)
+        ! CP uses Hartree units (e2_in = 1.D0)
         !
         IF (PRESENT(e2_in)) THEN
             e2 = e2_in
@@ -203,7 +210,21 @@ CONTAINS
             e2 = 2.D0
         END IF
         !
-        CALL env%init_second(alat, at, comm_in, me, root, gcutm)
+        !--------------------------------------------------------------------------------
+        !
+        IF (alat < 1.D-8) CALL env_errore(sub_name, 'Wrong alat', 1)
+        !
+        IF (alat < 1.0_DP) CALL env_warning('strange lattice parameter')
+        !
+        ALLOCATE(at_scaled(3, 3))
+        at_scaled = at * alat
+        gcutm_scaled = gcutm / alat**2
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL env%init_second(at_scaled, comm_in, me, root, gcutm_scaled)
+        !
+        DEALLOCATE(at_scaled)
         !
         RETURN
         !
@@ -234,16 +255,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_cell(at)
+    SUBROUTINE init_environ_cell(at, alat)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: at(3, 3)
+        REAL(DP), INTENT(IN) :: at(3, 3), alat
+        !
+        REAL(DP), ALLOCATABLE :: at_scaled(:, :)
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init_cell(at)
+        ALLOCATE(at_scaled(3, 3))
+        at_scaled = at * alat
+        !
+        CALL env%init_cell(at_scaled)
+        !
+        DEALLOCATE(at_scaled)
         !
         RETURN
         !
@@ -253,18 +281,25 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions(nnr, nat, ntyp, ityp, zv, tau)
+    SUBROUTINE init_environ_ions(nnr, nat, ntyp, ityp, zv, tau, alat)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nnr, nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
-        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
+        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat), alat
+        !
+        REAL(DP), ALLOCATABLE :: tau_scaled(:, :)
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init_ions(nnr, nat, ntyp, ityp, zv, tau)
+        ALLOCATE(tau_scaled(3, nat))
+        tau_scaled = tau * alat
+        !
+        CALL env%init_ions(nnr, nat, ntyp, ityp, zv, tau_scaled)
+        !
+        DEALLOCATE(tau_scaled)
         !
         RETURN
         !
