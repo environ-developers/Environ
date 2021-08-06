@@ -6,6 +6,7 @@
 
 ---
 
-- Applied formatting standards
-
-- Renamed files to \<category\>\_\<name\>
+- Added double-cell and Mott-Schottky functionalities
+- Forces now computed with a Gaussian-spread description of ions
+- Redesigned modules as classes with type-bound procedures
+- Rerouted all QE-Environ communication through an interface API module

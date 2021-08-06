@@ -53,7 +53,7 @@
 # QE + Environ 2.0 Installation
 
     The following instructions refer to Environ 2.0 installed on QE >= 6.3
-    For previous versions of QE (namely QE-6.1.X and QE-6.2.X), please refer 
+    For previous versions of QE (namely QE-6.1.X and QE-6.2.X), please refer
     to the instructions on the website:
 
 # http://www.quantum-environ.org/installation.html
@@ -62,19 +62,19 @@ From QE root:
 
 1. configure QE installation with
 
-   - ./configure [--prefix=]
+   - `./configure [--prefix=]`
    - no prefix should be enough in most cases
 
 From Environ root: (placed in the QE root directory)
 
 1. configure Environ with
 
-   - ./configure
-   - no prefix should be enough in most cases
+   - `./configure`
+   - in most cases, no prefix should be enough
 
 2. install QE + Environ 2.0 with
 
-   - make install-QE+Environ
+   - `make install-QE+Environ`
 
      a) select QE package (pw, tddfpt, xspectra, or all)
 
@@ -85,9 +85,9 @@ From Environ root: (placed in the QE root directory)
      - if issues arise in parallel, run in serial (core=1)"
 
    * NOTE: installation pre-compiles QE, compiles Environ, applies
-     Environ patches to QE, and re-compiles QE. This scheme is
-     not only safer in general, but also required for QE < 6.7
-     due to the use of iotk (see QE documentation for details)
+           Environ patches to QE, and re-compiles QE. This scheme is
+           not only safer in general, but also required for QE < 6.7
+           due to the use of iotk (see QE documentation for details)
 
    * compilation will write logs to Environ/install at each step
    * compilation will terminate if errors are detected at any step
@@ -102,7 +102,7 @@ From QE root:
 
 1. uninstall QE + Environ 2.0 with
 
-   - make uninstall-QE+Environ
+   - `make uninstall-QE+Environ`
    - (optional) uninstall QE
 
 ---

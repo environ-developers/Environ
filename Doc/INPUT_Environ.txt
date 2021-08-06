@@ -505,7 +505,6 @@ NAMELIST: &BOUNDARY
                    to real-space coordinates or QM degrees of freedom.
                    
                    'fft'     : fast Fourier transform
-                   'fd'      : finite differences in real-space
                    'chain'   : chain rule derivatives for as much as possible (and FFTs for the rest)
                    'highmem' : analytic derivatives for soft-sphere computed by storing all spherical functions
                                and derivatives
@@ -904,7 +903,7 @@ NAMELIST: &ELECTROSTATIC
                    DEFAULT:
                    
                    IF ((env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) .AND.
-                        pbc_correction .EQ. 'gcs' .AND. solver .EQ. 'iterative') THEN
+                        pbc_correction .EQ. 'gcs' .AND. solver .EQ. 'fp') THEN
                        auxiliary = 'full'
                    ELSE
                        auxiliary = 'none'
@@ -952,7 +951,7 @@ NAMELIST: &ELECTROSTATIC
                    
                    'cg'        :
                    'sd'        :
-                   'iterative' :
+                   'fp'        :
                    'direct'    :
                    
                    DEFAULT:
@@ -1053,8 +1052,9 @@ NAMELIST: &ELECTROSTATIC
                                  system is embedded in a semiconductor with sc_permittivity and
                                  sc_carrier_density. It exploits the one-dimensional analytic solution of
                                  the Mott-Schottky equation. The analytic potential replaces the
-                                 numerical one where the distance from the system is larger than sc_distance (all charge distributions, including the polarization
-                                 charge, must be fully included within this distance)
+                                 numerical one where the distance from the system is larger than sc_distance
+                                 (all charge distributions, including the polarization charge, must be fully
+                                 included within this distance)
    Status:         OPTIONAL
    +--------------------------------------------------------------------
    
@@ -1149,7 +1149,7 @@ NAMELIST: &ELECTROSTATIC
                    'direct'    : Get the direct solution of the problem as provided by the adopted
                                  numerical core. At this time, the FFT numerical core of Environ only
                                  allows the 'poisson' problem to be solved directly
-                   'iterative' : Use a fixed-point search algorithm (used to be the default for the
+                   'fp'        : Use a fixed-point search algorithm (used to be the default for the
                                  'generalized' problem in Environ v0.2)
                    'sd'        : Use a steepest-descent algorithm, possibly preconditioned
                    'cg'        : Use a conjugate-gradient algorithm, possibly preconditioned
@@ -1166,7 +1166,7 @@ NAMELIST: &ELECTROSTATIC
                        IF (pbc_correction .NE. 'gcs') THEN
                            solver = 'cg'
                        ELSE
-                           solver = 'iterative'
+                           solver = 'fp'
                    ELSE
                        solver = 'direct'
    Status:         OPTIONAL
@@ -1392,4 +1392,4 @@ CARD: DIELECTRIC_REGIONS { bohr | angstrom }
 ===END OF CARD==========================================================
 
 
-This file has been created by helpdoc utility on Sun Jun 20 13:00:04 CDT 2021
+This file has been created by helpdoc utility on Sun Aug 01 17:00:22 CDT 2021

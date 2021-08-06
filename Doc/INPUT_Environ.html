@@ -903,7 +903,6 @@ Specify the numerical approach used to compute derivatives of the continuum inte
 to real-space coordinates or QM degrees of freedom.
 
 'fft'     : fast Fourier transform
-'fd'      : finite differences in real-space
 'chain'   : chain rule derivatives for as much as possible (and FFTs for the rest)
 'highmem' : analytic derivatives for soft-sphere computed by storing all spherical functions
             and derivatives
@@ -1610,7 +1609,7 @@ The electrostatic problem is defined and solved in terms of the electrostatic po
 DEFAULT:
 
 IF ((env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) .AND.
-     pbc_correction .EQ. 'gcs' .AND. solver .EQ. 'iterative') THEN
+     pbc_correction .EQ. 'gcs' .AND. solver .EQ. 'fp') THEN
     auxiliary = 'full'
 ELSE
     auxiliary = 'none'
@@ -1702,7 +1701,7 @@ in the electrostatic problem (nested schemes only).
 
 'cg'        :
 'sd'        :
-'iterative' :
+'fp'        :
 'direct'    :
 
 DEFAULT:
@@ -1880,8 +1879,9 @@ Type of pbc correction scheme to be used.
               system is embedded in a semiconductor with sc_permittivity and
               sc_carrier_density. It exploits the one-dimensional analytic solution of
               the Mott-Schottky equation. The analytic potential replaces the
-              numerical one where the distance from the system is larger than sc_distance (all charge distributions, including the polarization
-              charge, must be fully included within this distance)
+              numerical one where the distance from the system is larger than sc_distance
+              (all charge distributions, including the polarization charge, must be fully
+              included within this distance)
          </pre></blockquote></td></tr>
 </table>
 <div align="right" style="margin-bottom: 5;">[<a href="#__top__">Back to Top</a>]</div>
@@ -2042,7 +2042,7 @@ Type of numerical solver used to get the solution of the electrostatic problem.
 'direct'    : Get the direct solution of the problem as provided by the adopted
               numerical core. At this time, the FFT numerical core of Environ only
               allows the 'poisson' problem to be solved directly
-'iterative' : Use a fixed-point search algorithm (used to be the default for the
+'fp'        : Use a fixed-point search algorithm (used to be the default for the
               'generalized' problem in Environ v0.2)
 'sd'        : Use a steepest-descent algorithm, possibly preconditioned
 'cg'        : Use a conjugate-gradient algorithm, possibly preconditioned
@@ -2059,7 +2059,7 @@ ELSE IF (env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) T
     IF (pbc_correction .NE. 'gcs') THEN
         solver = 'cg'
     ELSE
-        solver = 'iterative'
+        solver = 'fp'
 ELSE
     solver = 'direct'
          </pre></blockquote></td></tr>

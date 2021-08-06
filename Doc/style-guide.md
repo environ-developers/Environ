@@ -262,19 +262,17 @@ sum_ = 1 + var1 + &
 
 - explicit imports ONLY (DO NOT rely on nested imports!!!)
 - grouped at the top of the module, !-separated into subgroups (in order):
-  - util imports
-  - fft imports
+  - utils imports
+  - FFTs imports
   - constants
-  - types
-  - bases
-  - utils
-  - tools
+  - representation classes (cell, density, etc.)
+  - core classes (containers, then cores; no !-separator)
+  - solver classes (setup, then solvers; no !-separator)
+  - physical-quantity classes
   - generators
-  - solvers
-  - corrections
-  - embedding
   - I/O
   - debugging
+- each block is sorted alphabetically
 
 <br>
 
@@ -282,20 +280,15 @@ sum_ = 1 + var1 + &
 
 - use empty private (to prevent import inheritance)
 - explicitly define all that is publicly accessible
-- NOTE: for large, mostly accessible modules, this rule may be reversed
-  - explicitly state all that is private, keeping the rest public by default
-  - bases and types are examples of this exception
-
-<br>
-
-# Files
-
-- tools contain numerical functionality
-- utils contain "administrative" functionality (create, init, update, copy, set, destroy)
-  - may contain private helper functions for the above tasks
 
 <br>
 
 # Error/info/warning messages
 
-- use sentence-case unless first word of sentence is a parameter, e.g. `"environ_type must be..."`
+- use `env_errore` to raise an error
+  - requires sub_name and error code
+  - sentence-cased message
+- use `env_write` for indented messages
+- use `env_warning` for non-indented, non-terminating warning messages
+  - outputs `'Warning: '` + supplied message
+  - lowercased message
