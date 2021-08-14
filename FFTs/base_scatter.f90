@@ -73,12 +73,12 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: f_out(:)
         !
+        CHARACTER(LEN=80) :: sub_name = 'env_gather_real_grid'
+        !
 #if defined(__MPI)
         INTEGER :: proc, info, offset_in, offset_aux, ir3
         INTEGER :: displs(0:dfft%nproc - 1), recvcount(0:dfft%nproc - 1)
         REAL(DP), ALLOCATABLE :: f_aux(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'env_gather_real_grid'
         !
         !--------------------------------------------------------------------------------
         !
@@ -178,11 +178,11 @@ CONTAINS
         !
         COMPLEX(DP), ALLOCATABLE :: f_aux(:)
         !
+        CHARACTER(LEN=80) :: sub_name = 'env_gather_complex_grid'
+        !
 #if defined(__MPI)
         INTEGER :: proc, info, offset_in, offset_aux, ir3
         INTEGER :: displs(0:dfft%nproc - 1), recvcount(0:dfft%nproc - 1)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'env_gather_complex_grid'
         !
         !--------------------------------------------------------------------------------
         !
@@ -283,11 +283,11 @@ CONTAINS
         !
         REAL(DP), ALLOCATABLE :: f_aux(:)
         !
+        CHARACTER(LEN=80) :: sub_name = 'env_scatter_real_grid'
+        !
 #if defined(__MPI)
         INTEGER :: proc, info, offset_in, offset_aux, ir3
         INTEGER :: displs(0:dfft%nproc - 1), sendcount(0:dfft%nproc - 1)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'env_scatter_real_grid'
         !
         !--------------------------------------------------------------------------------
         !
@@ -385,11 +385,11 @@ CONTAINS
         !
         COMPLEX(DP), ALLOCATABLE :: f_aux(:)
         !
+        CHARACTER(LEN=80) :: sub_name = 'env_scatter_complex_grid'
+        !
 #if defined(__MPI)
         INTEGER :: proc, info, offset_in, offset_aux, ir3
         INTEGER :: displs(0:dfft%nproc - 1), sendcount(0:dfft%nproc - 1)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'env_scatter_complex_grid'
         !
         !--------------------------------------------------------------------------------
         !

@@ -124,10 +124,10 @@ SUBROUTINE env_mp_synchronize(gid)
     !
     INTEGER, INTENT(IN) :: gid
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_mp_synchronize'
+    !
 #if defined(__MPI)&&defined(__USE_BARRIER)
     INTEGER :: ierr
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_mp_synchronize'
     !
     !------------------------------------------------------------------------------------
     !
@@ -175,11 +175,11 @@ SUBROUTINE env_bcast_integer(array, n, root, gid)
     INTEGER :: array(n)
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_bcast_integer'
+    !
 #if defined(__MPI)
     INTEGER :: msgsiz_max = __MSGSIZ_MAX
     INTEGER :: nblk, blksiz, iblk, istart, ierr
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_bcast_integer'
     !
     !------------------------------------------------------------------------------------
     !
@@ -273,11 +273,11 @@ SUBROUTINE env_bcast_integer8(array, n, root, gid)
     INTEGER(i8b) :: array(n)
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_bcast_integer8'
+    !
 #if defined(__MPI)
     INTEGER :: msgsiz_max = __MSGSIZ_MAX
     INTEGER :: nblk, blksiz, iblk, istart, ierr
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_bcast_integer8'
     !
     !------------------------------------------------------------------------------------
     !
@@ -371,11 +371,11 @@ SUBROUTINE env_bcast_real(array, n, root, gid)
     REAL(DP) :: array(n)
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_bcast_real'
+    !
 #if defined(__MPI)
     INTEGER :: msgsiz_max = __BCAST_MSGSIZ_MAX_GPU
     INTEGER :: nblk, blksiz, iblk, istart, ierr
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_bcast_real'
     !
     !------------------------------------------------------------------------------------
     !
@@ -470,11 +470,11 @@ SUBROUTINE env_bcast_logical(array, n, root, gid)
     LOGICAL :: array(n)
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_bcast_logical'
+    !
 #if defined(__MPI)
     INTEGER :: msgsiz_max = __MSGSIZ_MAX
     INTEGER :: nblk, blksiz, iblk, istart, ierr
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_bcast_logical'
     !
     !------------------------------------------------------------------------------------
     !
@@ -580,10 +580,10 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
     INTEGER :: ps(dim) ! array whose elements have to be reduced
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer'
+    !
 #if defined(__MPI)
     INTEGER :: info, myid
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer'
     !
     !------------------------------------------------------------------------------------
     !
@@ -681,10 +681,10 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     INTEGER(i8b) :: ps(dim) ! array whose elements have to be reduced
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer8'
+    !
 #if defined(__MPI)
     INTEGER :: info, myid
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer8'
     !
     !------------------------------------------------------------------------------------
     !
@@ -780,10 +780,10 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     REAL(DP) :: ps(dim) ! array whose elements have to be reduced
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_real'
+    !
 #if defined(__MPI)
     INTEGER :: info, myid
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_real'
     !
     !------------------------------------------------------------------------------------
     !
@@ -882,11 +882,11 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
     INTEGER :: ps(dim) ! array whose elements have to be reduced
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer'
+    !
 #if defined(__MPI)
     INTEGER :: info, n, nbuf, nproc, myid
     INTEGER, PARAMETER :: maxb = __MSGSIZ_MAX
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer'
     !
     !------------------------------------------------------------------------------------
     !
@@ -1034,11 +1034,11 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     INTEGER(i8b) :: ps(dim) ! array whose elements have to be reduced
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer8'
+    !
 #if defined(__MPI)
     INTEGER :: info, n, nbuf, nproc, myid
     INTEGER, PARAMETER :: maxb = __MSGSIZ_MAX
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_integer8'
     !
     !------------------------------------------------------------------------------------
     !
@@ -1185,11 +1185,11 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     REAL(DP) :: ps(dim) ! array whose elements have to be reduced
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_real'
+    !
 #if defined(__MPI)
     INTEGER :: info, n, nbuf, nproc, myid
     INTEGER, PARAMETER :: maxb = __MSGSIZ_MAX
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_real'
     !
     !------------------------------------------------------------------------------------
     !
@@ -1345,11 +1345,11 @@ SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
     REAL(DP), INTENT(OUT) :: psout(dim)
 #endif
     !
+    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_real_to'
+    !
 #if defined(__MPI)
     INTEGER :: info, n, nbuf, nproc, myid
     INTEGER, PARAMETER :: maxb = __MSGSIZ_MAX
-    !
-    CHARACTER(LEN=80) :: sub_name = 'env_reduce_base_real_to'
     !
     !------------------------------------------------------------------------------------
     !

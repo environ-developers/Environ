@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -117,7 +117,8 @@ MODULE env_mp
     !
     PRIVATE
     !
-    PUBLIC :: env_mp_rank, env_mp_size, env_mp_abort, env_mp_bcast, env_mp_sum
+    PUBLIC :: env_mp_rank, env_mp_size, env_mp_abort, env_mp_stop, &
+              env_mp_bcast, env_mp_sum
     !
     !------------------------------------------------------------------------------------
 CONTAINS
