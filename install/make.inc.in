@@ -139,11 +139,6 @@ SCALAPACK_LIBS = @scalapack_libs@
 
 FFT_LIBS       = @fft_libs@
 
-# HDF5
-HDF5_LIBS = @hdf5_libs@
-FOX_LIB  = -L$(TOPDIR)/FoX/lib  -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common\
-            -lFoX_utils -lFoX_fsys 
-FOX_FLAGS = @foxflags@
 # For parallel execution, the correct path to MPI libraries must
 # be specified in MPI_LIBS (except for IBM if you use mpxlf)
 
@@ -152,11 +147,6 @@ MPI_LIBS       = @mpi_libs@
 # IBM-specific: MASS libraries, if available and if -D__MASS is defined in FDFLAGS
 
 MASS_LIBS      = @mass_libs@
-
-# library for bayesian error estimate functionals
-
-BEEF_LIBS      = @beef_libs@
-BEEF_LIBS_SWITCH = @beef_libs_switch@
 
 # CUDA libraries
 CUDA_LIBS=@cuda_libs@
@@ -176,9 +166,8 @@ RANLIB         = @ranlib@
 
 FLIB_TARGETS   = all
 
-LIBOBJS        = $(TOPDIR)/clib/clib.a
 LIBXC_LIBS     = @LIBS_LIBXC@
-QELIBS         = $(BEEF_LIBS) $(LIBXC_LIBS) $(CUDA_LIBS) $(SCALAPACK_LIBS) $(LAPACK_LIBS) $(FOX_LIB) $(FFT_LIBS) $(BLAS_LIBS) $(MPI_LIBS) $(MASS_LIBS) $(HDF5_LIBS) $(LD_LIBS)
+ENVLIBS         = $(LIBXC_LIBS) $(CUDA_LIBS) $(SCALAPACK_LIBS) $(LAPACK_LIBS) $(FFT_LIBS) $(BLAS_LIBS) $(MPI_LIBS) $(MASS_LIBS) $(LD_LIBS)
 
 # wget or curl - useful to download from network
 WGET = @wget@

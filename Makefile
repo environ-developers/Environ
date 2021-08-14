@@ -136,7 +136,7 @@ devs:
 # COMPILATION ROUTINES
 ################################################################################
 
-compile-Environ: check-Environ-makeinc libsdir
+compile-Environ: check-Environ-makeinc
 	@ printf "\nCompiling Environ $(ENVIRON_VERSION)...\n\n"
 	@ $(MAKE) compile-util
 	@ $(MAKE) compile-fft
@@ -144,7 +144,7 @@ compile-Environ: check-Environ-makeinc libsdir
 	@ ( \
 		cd install; \
 		cat utils_comp.log FFTs_comp.log src_comp.log > Environ_comp.log; \
-		rm utils_comp.log FFTs_comp.log src_comp.log \
+		/bin/rm utils_comp.log FFTs_comp.log src_comp.log \
 	)
 	@ printf "\nEnviron $(ENVIRON_VERSION) compilation successful! \n\n"
 
@@ -175,35 +175,23 @@ recompile-QE+Environ:
 	if [ $$? -ne 0 ]; then exit; fi; \
 	$(MAKE) compile-QE prog="$$opt"
 
-compile-util: check-Environ-makeinc libsdir
+compile-util: check-Environ-makeinc
 	@ printf "\nCompiling utils...\n\n" 2>&1 | \
 	tee install/utils_comp.log
-	@ ( \
-		cd utils && $(MAKE) all || exit 1; \
-		mv *.a ../libs \
-	) 2>&1 | tee -a install/utils_comp.log
+	@ ( cd utils && $(MAKE) all || exit 1 ) 2>&1 | tee -a install/utils_comp.log
 	@ $(MAKE) check-for-errors prog=utils
 
-compile-fft: check-Environ-makeinc libsdir
+compile-fft: check-Environ-makeinc
 	@ printf "\nCompiling FFTs...\n\n" 2>&1 | \
 	tee install/FFTs_comp.log
-	@ ( \
-		cd FFTs && $(MAKE) all || exit 1; \
-		mv *.a ../libs \
-	) 2>&1 | tee -a install/FFTs_comp.log
+	@ ( cd FFTs && $(MAKE) all || exit 1 ) 2>&1 | tee -a install/FFTs_comp.log
 	@ $(MAKE) check-for-errors prog=FFTs
 	 
-compile-src: check-Environ-makeinc libsdir
+compile-src: check-Environ-makeinc
 	@ printf "\nCompiling src...\n\n" 2>&1 | \
 	tee install/src_comp.log
-	@ ( \
-		cd src && $(MAKE) all || exit 1; \
-	   	mv *.a ../libs \
-	) 2>&1 | tee -a install/src_comp.log
+	@ ( cd src && $(MAKE) all || exit 1 ) 2>&1 | tee -a install/src_comp.log
 	@ $(MAKE) check-for-errors prog=src
-
-libsdir:
-	@ test -d libs || mkdir libs
 
 compile-doc:
 	@ if test -d Doc ; then (cd Doc; $(MAKE) TLDEPS=all || exit 1 ); fi
@@ -293,7 +281,7 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	\
 	make -j$${cores:=1} compile-QE prog="$$opt" title="Pre-compiling QE"; \
 	if [ $$? -ne 0 ]; then exit; fi; \
-	(cd install && mv QE_comp.log QE_precomp.log); \
+	(cd install && /bin/mv QE_comp.log QE_precomp.log); \
 	\
 	make -j$${cores:=1} compile-Environ; \
 	if [ $$? -ne 0 ]; then exit; fi; \
@@ -308,9 +296,9 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	\
 	( \
 		cd install && \
-		mv QE_comp.log temp; \
+		/bin/mv QE_comp.log temp; \
 		cat QE_precomp.log temp > QE_comp.log; \
-		rm temp QE_precomp.log; \
+		/bin/rm temp QE_precomp.log; \
 	)
 
 uninstall-QE+Environ:
@@ -356,14 +344,14 @@ clean-Environ: check-Environ-makeinc
 
 clean-libs:
 	@ printf "libs.........."
-	@ if test -d libs; then rm -fr libs; fi
+	@ if test -d libs; then /bin/rm -fr libs; fi
 	@ printf " done! \n"
 
 clean-logs:
 	@ printf "logs.........."
 	@ ( \
 		cd install && \
-		find . -type f -name '*log' -not -name config.log | xargs rm -f \
+		find . -type f -name '*log' -not -name config.log | xargs /bin/rm -f \
 	)
 	@ printf " done! \n"
 
@@ -391,6 +379,6 @@ clean-doc:
 veryclean: clean-Environ
 	@ printf "config........"
 	@ (cd install && \
-	   rm -rf *.log configure.msg config.status)
-	@ rm make.inc
+	   /bin/rm -rf *.log configure.msg config.status)
+	@ /bin/rm make.inc
 	@ printf " done! \n"

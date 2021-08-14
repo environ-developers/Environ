@@ -36,6 +36,7 @@ make.depend
 *.exe
 #*.out
 *.app
+*.x
 
 # Directories with results of examples
 results/

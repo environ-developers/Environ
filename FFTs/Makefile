@@ -41,7 +41,7 @@ C_OBJS = fft_stick.o fftw.o fftw_sp.o fftw_dp.o
 
 OBJS += $(C_OBJS)
 
-all: driver
+all: libsdir driver
 
 driver:
 	@ if test $(DFTI); then \
@@ -56,6 +56,7 @@ driver:
 libfft.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
+	@ /bin/mv libfft.a ../libs
 
 ##################################################################
 # The following two targets are used to get around the inclusion 
@@ -74,16 +75,19 @@ libfft.a: $(OBJS)
 enable-mkl-include:
 	@ file=fft_scalar.DFTI.f90; \
 	  pattern='^! #include "mkl'; \
-	  sed -i.tmp -e "/$$pattern/s/! //" $$file && rm $$file.tmp
+	  sed -i.tmp -e "/$$pattern/s/! //" $$file && /bin/rm $$file.tmp
 
 disable-mkl-include:
 	@ file=fft_scalar.DFTI.f90; \
 	  pattern='^#include "mkl'; \
-	  sed -i.tmp -e "/$$pattern/s/#/! #/" $$file && rm $$file.tmp
+	  sed -i.tmp -e "/$$pattern/s/#/! #/" $$file && /bin/rm $$file.tmp
 	  
 ##################################################################
 
-clean :
-	@ /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L 
+libsdir:
+	@ test -d ../libs || mkdir ../libs
+
+clean:
+	@ /bin/rm -f *.o *.a *.d *.i *~ *_tmp.f90 *.mod *.L
 
 include make.depend

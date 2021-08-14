@@ -36,14 +36,18 @@ MODFLAGS = $(BASEMOD_FLAGS)
 
 OBJS = $(patsubst %.f90,%.o,$(wildcard *.f90))
 
-all : libenv.a
+all: libsdir libenv.a
 
 libenv.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
+	@ /bin/mv libenv.a ../libs
 
-clean :
-	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90
+libsdir:
+	@ test -d ../libs || mkdir ../libs
+
+clean:
+	@ /bin/rm -f *.o *~ *.a *.d *.i *.L *.mod *.F90 *.x
 
 include make.depend
 
