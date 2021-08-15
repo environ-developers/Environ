@@ -328,7 +328,7 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE io_global,            ONLY : ionode, ionode_id, stdout \
 USE mp_images,            ONLY : intra_image_comm \
-USE input_parameters,     ONLY : ion_radius, atom_label \
+USE input_parameters,     ONLY : atom_label \
 USE environ_QE_interface, ONLY : init_environ_io, init_environ_base_first \
 !Environ patch
 ' plugin_read_input.f90 > tmp.1

@@ -137,7 +137,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_base_first(nelec, nat, ntyp, atom_label, &
-                                       use_internal_pbc_corr, ion_radius)
+                                       use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -145,7 +145,6 @@ CONTAINS
         LOGICAL, INTENT(IN) :: use_internal_pbc_corr
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
-        REAL(DP), INTENT(IN), OPTIONAL :: ion_radius(:)
         !
         INTEGER :: is
         !
@@ -156,18 +155,6 @@ CONTAINS
         CALL read_environ_input() ! read namelists and cards from environ.in
         !
         verbose_ = verbose ! set internal verbosity from input
-        !
-        !--------------------------------------------------------------------------------
-        ! If passed from input, overwrites atomic spread
-        ! (USED IN CP TO HAVE CONSISTENT RADII FOR ELECTROSTATICS)
-        !
-        IF (PRESENT(ion_radius)) THEN
-            !
-            DO is = 1, ntyp
-                atomicspread(is) = ion_radius(is)
-            END DO
-            !
-        END IF
         !
         !--------------------------------------------------------------------------------
         !
