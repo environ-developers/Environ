@@ -281,12 +281,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions(nnr, nat, ntyp, ityp, zv, tau, alat)
+    SUBROUTINE init_environ_ions(nat, ntyp, ityp, zv, tau, alat)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nnr, nat, ntyp
+        INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat), alat
         !
@@ -297,7 +297,7 @@ CONTAINS
         ALLOCATE(tau_scaled(3, nat))
         tau_scaled = tau * alat
         !
-        CALL env%init_ions(nnr, nat, ntyp, ityp, zv, tau_scaled)
+        CALL env%init_ions(nat, ntyp, ityp, zv, tau_scaled)
         !
         DEALLOCATE(tau_scaled)
         !
@@ -371,7 +371,7 @@ CONTAINS
         !
         vtot = env%vzero%of_r
         !
-        CALL env%potential(update, nnr, local_verbose)
+        CALL env%potential(update, local_verbose)
         !
         vtot = vtot + env%dvtot%of_r
         !
@@ -384,18 +384,17 @@ CONTAINS
     !!
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_environ_potential_CP(update, nnr, local_verbose)
+    SUBROUTINE calc_environ_potential_CP(update, local_verbose)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: update
-        INTEGER, INTENT(IN) :: nnr
         INTEGER, INTENT(IN), OPTIONAL :: local_verbose
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%potential(update, nnr, local_verbose)
+        CALL env%potential(update, local_verbose)
         !
         RETURN
         !

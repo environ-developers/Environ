@@ -622,12 +622,12 @@ CONTAINS
     !! be the most efficient choice, but it is a safe choice.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initions(this, nnr, nat, ntyp, ityp, zv, tau)
+    SUBROUTINE environ_initions(this, nat, ntyp, ityp, zv, tau)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nnr, nat, ntyp
+        INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         !
@@ -640,7 +640,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%system_ions%init_second(nat, ntyp, nnr, ityp, zv, this%system_cell)
+        CALL this%system_ions%init_second(nat, ntyp, ityp, zv, this%system_cell)
         ! second step of initialization for system ions
         !
         !--------------------------------------------------------------------------------
@@ -667,8 +667,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Second step of initialization for environment ions
         !
-        CALL this%environment_ions%init_second(nat, ntyp, this%environment_cell%nnr, &
-                                               ityp, zv, this%environment_cell)
+        CALL this%environment_ions%init_second(nat, ntyp, ityp, zv, &
+                                               this%environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! Update environment ions parameters
@@ -955,13 +955,12 @@ CONTAINS
     !! all computed on the dense real-space grid and added to vtot.
     !
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_venviron(this, update, nnr, local_verbose)
+    SUBROUTINE calc_venviron(this, update, local_verbose)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: update
-        INTEGER, INTENT(IN) :: nnr
         INTEGER, INTENT(IN), OPTIONAL :: local_verbose
         !
         CLASS(environ_obj), INTENT(INOUT) :: this

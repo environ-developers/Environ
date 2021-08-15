@@ -1035,7 +1035,6 @@ CONTAINS
         CLASS(core_1da_electrostatics), TARGET, INTENT(INOUT) :: this
         TYPE(environ_gradient), INTENT(INOUT) :: gradv
         !
-        INTEGER, POINTER :: nnr
         TYPE(environ_cell), POINTER :: cell
         !
         INTEGER, POINTER :: env_periodicity, slab_axis
@@ -1068,7 +1067,6 @@ CONTAINS
             CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => gradv%cell
-        nnr => cell%nnr
         omega => cell%omega
         !
         env_periodicity => this%d

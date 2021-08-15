@@ -188,7 +188,7 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         IF ( update_venviron .AND. get_environ_verbose() .GT. 1) WRITE( stdout, 9200 )\
         !\
-        CALL calc_environ_potential( update_venviron, dfftp%nnr )\
+        CALL calc_environ_potential( update_venviron )\
         !\
 9200 FORMAT(/"     add environment contribution to local potential")\
      ENDIF\
@@ -247,7 +247,7 @@ USE environ_QE_interface, ONLY : init_environ_ions \
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-IF ( use_environ ) call init_environ_ions( dfftp%nnr, nat, nsp, ityp, zv, tau, alat ) \
+IF ( use_environ ) call init_environ_ions( nat, nsp, ityp, zv, tau, alat ) \
 !Environ patch
 ' tmp.1 > tmp.2
 

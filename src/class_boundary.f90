@@ -1148,7 +1148,7 @@ CONTAINS
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER, POINTER :: ir_end, nnr, stype, deriv
+        INTEGER, POINTER :: ir_end, stype, deriv
         REAL(DP), POINTER :: const, rhomax, rhomin, tbeta
         REAL(DP), DIMENSION(:), POINTER :: rho, eps, deps, d2eps, lapleps, dsurface
         REAL(DP), POINTER :: gradeps(:, :)
@@ -1164,7 +1164,6 @@ CONTAINS
             CALL env_errore(sub_name, 'Inconsistent domains', 1)
         !
         ir_end => this%density%cell%ir_end
-        nnr => this%density%cell%nnr
         rho => this%density%of_r
         !
         stype => this%b_type
@@ -1314,7 +1313,7 @@ CONTAINS
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER, POINTER :: nnr, ir_end, deriv
+        INTEGER, POINTER :: ir_end, deriv
         TYPE(environ_cell), POINTER :: cell
         !
         INTEGER :: i
@@ -1334,7 +1333,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         cell => this%scaled%cell
-        nnr => cell%nnr
         ir_end => cell%ir_end
         nsoft_spheres => this%ions%number
         !
@@ -1568,7 +1566,7 @@ CONTAINS
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER, POINTER :: nnr, ir_end, deriv
+        INTEGER, POINTER :: ir_end, deriv
         TYPE(environ_cell), POINTER :: cell
         !
         TYPE(environ_hessian), POINTER :: hesslocal
@@ -1580,7 +1578,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         cell => this%scaled%cell
-        nnr => cell%nnr
         ir_end => cell%ir_end
         !
         CALL this%simple%density(this%scaled, .TRUE.)
@@ -1627,7 +1624,7 @@ CONTAINS
                 !
                 CALL this%simple%hessian(hesslocal, .TRUE.)
                 !
-                CALL calc_dsurface_no_pre(nnr, ir_end, this%gradient%of_r, &
+                CALL calc_dsurface_no_pre(cell%nnr, ir_end, this%gradient%of_r, &
                                           hesslocal%of_r, this%dsurface%of_r)
                 !
             END IF
@@ -1810,7 +1807,7 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT), TARGET :: this
         !
-        INTEGER, POINTER :: nnr, ir_end, deriv
+        INTEGER, POINTER :: ir_end, deriv
         REAL(DP), POINTER :: thr, spr
         TYPE(environ_cell), POINTER :: cell
         !
@@ -1830,7 +1827,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         cell => this%scaled%cell
-        nnr => this%scaled%cell%nnr
         ir_end => this%scaled%cell%ir_end
         deriv => this%deriv
         !
@@ -1984,8 +1980,9 @@ CONTAINS
             !
             IF (deriv >= 3) THEN
                 !
-                CALL calc_dsurface_no_pre(nnr, ir_end, this%gradient%of_r, &
-                                          this%hessian%of_r, this%dsurface%of_r)
+                CALL calc_dsurface_no_pre(this%scaled%cell%nnr, ir_end, &
+                                          this%gradient%of_r, this%hessian%of_r, &
+                                          this%dsurface%of_r)
                 !
             END IF
             !
@@ -2025,20 +2022,13 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: de_dboundary
         !
-        INTEGER, POINTER :: nnr, ir_end
-        REAL(DP), POINTER :: thr, spr
-        TYPE(environ_cell), POINTER :: cell
-        !
         TYPE(environ_density) :: local
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_solvent_aware_de_dboundary'
         !
         !--------------------------------------------------------------------------------
         !
-        cell => this%scaled%cell
-        nnr => this%scaled%cell%nnr
-        !
-        CALL local%init(cell)
+        CALL local%init(this%scaled%cell)
         !
         !--------------------------------------------------------------------------------
         ! Step 1: compute (1-s)*de_dboudary*dfilling

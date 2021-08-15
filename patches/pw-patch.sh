@@ -268,7 +268,7 @@ USE environ_QE_interface, ONLY : init_environ_ions\
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-IF (use_environ) CALL init_environ_ions(dfftp%nnr, nat, nsp, ityp, zv, tau, alat)\
+IF (use_environ) CALL init_environ_ions(nat, nsp, ityp, zv, tau, alat)\
 !Environ patch
 ' tmp.1 >tmp.2
 

@@ -281,12 +281,12 @@ CONTAINS
     !! charges and whether we need to compute the smeared density or not
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions_second(this, nat, ntyp, nnr, ityp, zv, cell)
+    SUBROUTINE init_environ_ions_second(this, nat, ntyp, ityp, zv, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nat, ntyp, nnr
+        INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         REAL(DP), INTENT(IN) :: zv(ntyp)
         TYPE(environ_cell), INTENT(IN) :: cell
