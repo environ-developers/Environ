@@ -44,7 +44,7 @@ MODULE environ_QE_interface
     !
     USE env_base_input
     !
-    USE class_environ
+    USE class_environ, ONLY: env
     !
     !------------------------------------------------------------------------------------
     !
@@ -75,10 +75,6 @@ MODULE environ_QE_interface
     INTERFACE calc_environ_potential
         MODULE PROCEDURE calc_environ_potential_PW, calc_environ_potential_CP
     END INTERFACE calc_environ_potential
-    !
-    !------------------------------------------------------------------------------------
-    !
-    TYPE(environ_obj), PRIVATE, SAVE :: env
     !
     !------------------------------------------------------------------------------------
 CONTAINS
