@@ -55,9 +55,9 @@ MODULE class_density
     TYPE, PUBLIC :: environ_density
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
+        LOGICAL :: lupdate ! optionally have an associated logical status
         !
-        CHARACTER(LEN=80) :: label = ' '
+        CHARACTER(LEN=80) :: label
         ! optionally have an associated label, used for printout and debugs
         !
         TYPE(environ_cell), POINTER :: cell => NULL()
@@ -77,7 +77,7 @@ MODULE class_density
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_density
+        PROCEDURE, PRIVATE :: create => create_environ_density
         PROCEDURE :: init => init_environ_density
         PROCEDURE :: copy => copy_environ_density
         PROCEDURE :: update => update_environ_density
@@ -112,33 +112,33 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_density(this, local_label)
+    SUBROUTINE create_environ_density(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: local_label
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_density'
         !
-        CHARACTER(LEN=80) :: label = 'density'
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%cell)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
         !--------------------------------------------------------------------------------
         !
-        IF (PRESENT(local_label)) THEN
-            this%label = local_label
-        ELSE
-            this%label = label
-        END IF
-        !
         NULLIFY (this%cell)
         !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
+        this%label = 'density'
+        this%lupdate = .FALSE.
         !
-        RETURN
+        this%charge = 0.D0
+        this%dipole = 0.D0
+        this%quadrupole = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_density
@@ -146,12 +146,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_density(this, cell)
+    SUBROUTINE init_environ_density(this, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_density), INTENT(INOUT) :: this
         !
@@ -159,24 +160,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%lupdate = .FALSE.
+        CALL this%create()
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
+        IF (PRESENT(label)) this%label = label
         !
         this%cell => cell
         !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
-        !
         ALLOCATE (this%of_r(this%cell%nnr))
         this%of_r = 0.D0
-        !
-        this%charge = 0.D0
-        this%dipole = 0.D0
-        this%quadrupole = 0.D0
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_density
@@ -219,8 +210,6 @@ CONTAINS
             copy%of_r = this%of_r
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE copy_environ_density
     !------------------------------------------------------------------------------------
@@ -237,8 +226,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%multipoles(this%cell%origin, this%charge, this%dipole, this%quadrupole)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_density
@@ -257,19 +244,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%lupdate = .FALSE.
-        !
         IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        IF (.NOT. ALLOCATED(this%of_r)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%cell)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
-        !
         DEALLOCATE (this%of_r)
         !
-        RETURN
+        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_density
@@ -337,8 +324,6 @@ CONTAINS
         dipole = dipole * cell%domega
         quadrupole = quadrupole * cell%domega
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE multipoles_environ_density
     !------------------------------------------------------------------------------------
@@ -358,8 +343,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         dipole = this%dipole + this%charge * (this%cell%origin - origin)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION dipole_of_origin
@@ -382,8 +365,6 @@ CONTAINS
         quadrupole = this%quadrupole + &
                      this%charge * (this%cell%origin - origin)**2 + &
                      2.D0 * this%dipole * (this%cell%origin - origin)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION quadrupole_of_origin
@@ -408,8 +389,6 @@ CONTAINS
         !
         integral = integral * this%cell%domega
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END FUNCTION integrate_environ_density
     !------------------------------------------------------------------------------------
@@ -433,8 +412,6 @@ CONTAINS
         euclidean_norm = DOT_PRODUCT(this%of_r(1:ir_end), this%of_r(1:ir_end))
         !
         CALL env_mp_sum(euclidean_norm, this%cell%dfft%comm)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION euclidean_norm_environ_density
@@ -461,8 +438,6 @@ CONTAINS
         CALL env_mp_sum(quadratic_mean, this%cell%dfft%comm)
         !
         quadratic_mean = SQRT(quadratic_mean / this%cell%ntot)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION quadratic_mean_environ_density
@@ -495,8 +470,6 @@ CONTAINS
         CALL env_mp_sum(scalar_product, this%cell%dfft%comm)
         !
         scalar_product = scalar_product * this%cell%domega
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION scalar_product_environ_density
@@ -574,8 +547,6 @@ CONTAINS
         !
         FLUSH (environ_unit)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
         !
 1000    FORMAT(/, 4('%'), ' DENSITY ', 67('%'))
@@ -631,8 +602,6 @@ CONTAINS
         CALL this%write_cube()
         !
         CLOSE (300)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_no_ions
@@ -714,8 +683,6 @@ CONTAINS
         END DO
         !
         DEALLOCATE (flocal)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_density

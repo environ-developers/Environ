@@ -53,9 +53,9 @@ MODULE class_hessian
     TYPE, PUBLIC :: environ_hessian
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
+        LOGICAL :: lupdate ! optionally have an associated logical status
         !
-        CHARACTER(LEN=80) :: label = ' '
+        CHARACTER(LEN=80) :: label
         ! optionally have an associated label, used for printout and debugs
         !
         TYPE(environ_cell), POINTER :: cell => NULL()
@@ -70,7 +70,7 @@ MODULE class_hessian
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_hessian
+        PROCEDURE, PRIVATE :: create => create_environ_hessian
         PROCEDURE :: init => init_environ_hessian
         PROCEDURE :: copy => copy_environ_hessian
         PROCEDURE :: update_laplacian => update_hessian_laplacian
@@ -93,37 +93,29 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_hessian(this, label)
+    SUBROUTINE create_environ_hessian(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), OPTIONAL, INTENT(IN) :: label
-        !
         CLASS(environ_hessian), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: laplacian_label
         !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (PRESENT(label)) THEN
-            this%label = label
-            laplacian_label = TRIM(ADJUSTL(label))//'_laplacian'
-        ELSE
-            this%label = 'hessian'
-            laplacian_label = 'hessian_laplacian'
-        END IF
+        IF (ASSOCIATED(this%cell)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%cell)
         !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        CALL this%laplacian%create(laplacian_label)
-        !
-        RETURN
+        this%label = 'hessian'
+        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_hessian
@@ -131,35 +123,35 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_hessian(this, cell)
+    SUBROUTINE init_environ_hessian(this, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_hessian), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: laplacian_label = 'hessian_laplacian'
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        this%lupdate = .FALSE.
+        CALL this%create()
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
+        IF (PRESENT(label)) THEN
+            this%label = label
+            laplacian_label = TRIM(ADJUSTL(label))//'_laplacian'
+        END IF
         !
         this%cell => cell
-        !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
         !
         ALLOCATE (this%of_r(3, 3, this%cell%nnr))
         this%of_r = 0.D0
         !
-        CALL this%laplacian%init(cell)
-        !
-        RETURN
+        CALL this%laplacian%init(cell, laplacian_label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_hessian
@@ -200,8 +192,6 @@ CONTAINS
         !
         CALL this%laplacian%copy(copy%laplacian)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE copy_environ_hessian
     !------------------------------------------------------------------------------------
@@ -225,8 +215,6 @@ CONTAINS
                                         this%of_r(2, 2, 1:ir_end) + &
                                         this%of_r(3, 3, 1:ir_end)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_hessian_laplacian
     !------------------------------------------------------------------------------------
@@ -242,23 +230,23 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_hessian'
         !
-        this%lupdate = .FALSE.
-        !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
-        !
-        NULLIFY (this%cell)
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
         !
         IF (.NOT. ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%cell)
         !
         DEALLOCATE (this%of_r)
         !
         CALL this%laplacian%destroy()
         !
-        RETURN
+        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_hessian
@@ -303,8 +291,6 @@ CONTAINS
             END DO
             !
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE scalar_product_environ_hessian
@@ -420,8 +406,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

@@ -141,8 +141,6 @@ CONTAINS
         DEALLOCATE (gaux)
         DEALLOCATE (aux)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE gradient_fft
     !------------------------------------------------------------------------------------
@@ -255,8 +253,6 @@ CONTAINS
         !
         DEALLOCATE (aux, gaux)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE graddot_fft
     !------------------------------------------------------------------------------------
@@ -314,8 +310,6 @@ CONTAINS
         !
         DEALLOCATE (laux)
         DEALLOCATE (aux)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE laplacian_fft
@@ -411,8 +405,6 @@ CONTAINS
         DEALLOCATE (gaux)
         DEALLOCATE (aux)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_fft
     !------------------------------------------------------------------------------------
@@ -474,8 +466,6 @@ CONTAINS
         fc%of_r(:) = REAL(auxg(:)) * omega
         !
         DEALLOCATE (auxg)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convolution_density
@@ -553,8 +543,6 @@ CONTAINS
         ! !
         ! DEALLOCATE (auxr)
         ! DEALLOCATE (auxg)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convolution_gradient
@@ -638,8 +626,6 @@ CONTAINS
         ! !
         ! DEALLOCATE (auxr)
         ! DEALLOCATE (auxg)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convolution_hessian

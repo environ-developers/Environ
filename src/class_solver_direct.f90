@@ -65,7 +65,7 @@ MODULE class_solver_direct
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: set_core => create_solver_direct
+        PROCEDURE :: init_direct => init_solver_direct
         PROCEDURE :: destroy => destroy_solver_direct
         !
         PROCEDURE, PRIVATE :: poisson_direct_charges, poisson_direct_density
@@ -93,7 +93,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_solver_direct(this, cores)
+    SUBROUTINE init_solver_direct(this, cores)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -106,12 +106,10 @@ CONTAINS
         !
         this%solver_type = 'direct'
         !
-        CALL this%set_cores(cores)
-        !
-        RETURN
+        CALL this%init_cores(cores)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_solver_direct
+    END SUBROUTINE init_solver_direct
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -125,13 +123,16 @@ CONTAINS
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_solver_direct'
+        !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(this%cores)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
         !
         CALL this%cores%destroy(lflag)
         !
         NULLIFY (this%cores)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_solver_direct
@@ -222,8 +223,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_direct_charges
     !------------------------------------------------------------------------------------
@@ -258,8 +257,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Using a local variable for the potential because the routine may be
         ! called with the same argument for charges and potential
-        !
-        CALL local%create()
         !
         CALL local%init(cell)
         !
@@ -320,8 +317,6 @@ CONTAINS
         potential%of_r = local%of_r ! only update the potential at the end
         !
         CALL local%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_direct_density
@@ -400,8 +395,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_gradient_direct_charges
     !------------------------------------------------------------------------------------
@@ -478,8 +471,6 @@ CONTAINS
             END SELECT
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_gradient_direct_density

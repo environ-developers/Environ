@@ -59,19 +59,19 @@ MODULE class_externals
     TYPE, PUBLIC :: environ_externals
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE.
-        LOGICAL :: initialized = .FALSE.
-        INTEGER :: number = 0
+        LOGICAL :: lupdate
+        LOGICAL :: initialized
+        INTEGER :: number
         !
         TYPE(environ_function), ALLOCATABLE :: functions(:)
         TYPE(environ_density) :: density
-        REAL(DP) :: charge = 0.0_DP
+        REAL(DP) :: charge
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_externals
+        PROCEDURE, PRIVATE :: create => create_environ_externals
         PROCEDURE :: init_first => init_environ_externals_first
         PROCEDURE :: init_second => init_environ_externals_second
         PROCEDURE :: update => update_environ_externals
@@ -102,23 +102,20 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: label = 'externals'
-        !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_externals'
         !
         !--------------------------------------------------------------------------------
         !
+        IF (ALLOCATED(this%functions)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
         this%lupdate = .FALSE.
+        this%initialized = .FALSE.
         this%number = 0
         !
-        IF (ALLOCATED(this%functions)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        CALL this%density%create(label)
-        !
         this%charge = 0.D0
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_externals
@@ -141,6 +138,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         this%number = nexternals
         !
         IF (this%number > 0) THEN
@@ -149,10 +148,6 @@ CONTAINS
                                         axes, dims, spreads, spreads, -charges, pos)
             !
         END IF
-        !
-        this%initialized = .FALSE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_externals_first
@@ -171,6 +166,8 @@ CONTAINS
         !
         INTEGER :: i
         !
+        CHARACTER(LEN=80) :: local_label = 'externals'
+        !
         !--------------------------------------------------------------------------------
         !
         IF (this%number > 0) THEN
@@ -181,11 +178,9 @@ CONTAINS
             !
         END IF
         !
-        CALL this%density%init(cell)
+        CALL this%density%init(cell, local_label)
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_externals_second
@@ -206,17 +201,13 @@ CONTAINS
         !
         this%charge = this%density%integrate()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_externals
     !------------------------------------------------------------------------------------
-    !
+    !!
     !>
     !------------------------------------------------------------------------------------
     SUBROUTINE destroy_environ_externals(this, lflag)
-        !--------------------------------------------------------------------------------
-        !!
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -235,8 +226,6 @@ CONTAINS
             !
             this%initialized = .FALSE.
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_externals
@@ -315,8 +304,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

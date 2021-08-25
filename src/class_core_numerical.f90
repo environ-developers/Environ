@@ -46,7 +46,7 @@ MODULE class_core_numerical
         !
         CHARACTER(LEN=80) :: core_type
         !
-        TYPE(environ_cell), POINTER :: cell
+        TYPE(environ_cell), POINTER :: cell => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS

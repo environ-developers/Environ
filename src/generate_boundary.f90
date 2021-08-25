@@ -74,8 +74,6 @@ CONTAINS
         arg = (ABS(x) / xthr)**fact
         sfunct0 = 0.5D0 * (1.D0 + (1.D0 - arg) / (1.D0 + arg))
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END FUNCTION sfunct0
     !------------------------------------------------------------------------------------
@@ -97,8 +95,6 @@ CONTAINS
         !
         arg = (ABS(x) / xthr)**fact
         dsfunct0 = -fact * ABS(x)**(fact - 1.D0) / xthr**fact / (1.D0 + arg)**2
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION dsfunct0
@@ -136,8 +132,6 @@ CONTAINS
             sfunct1 = 0.D0
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END FUNCTION sfunct1
     !------------------------------------------------------------------------------------
@@ -168,8 +162,6 @@ CONTAINS
         ELSE
             dsfunct1 = 0.D0
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION dsfunct1
@@ -202,8 +194,6 @@ CONTAINS
             d2sfunct1 = 0.D0
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END FUNCTION d2sfunct1
     !------------------------------------------------------------------------------------
@@ -226,8 +216,6 @@ CONTAINS
         !
         arg = (x - xthr) / spread
         sfunct2 = 0.5D0 * environ_erfc(arg)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION sfunct2
@@ -255,8 +243,6 @@ CONTAINS
             dsfunct2 = -EXP(-arg**2) / sqrtpi / spread
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END FUNCTION dsfunct2
     !------------------------------------------------------------------------------------
@@ -281,8 +267,6 @@ CONTAINS
         ELSE
             d2sfunct2 = EXP(-arg**2) / sqrtpi / spread**2 * 2.D0 * arg
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION d2sfunct2
@@ -331,8 +315,6 @@ CONTAINS
             CALL env_errore(fun_name, 'Unknown boundary type', 1)
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION boundfunct
@@ -390,8 +372,6 @@ CONTAINS
             CALL env_errore(fun_name, 'Unknown boundary type', 1)
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION dboundfunct
@@ -451,8 +431,6 @@ CONTAINS
             !
         END SELECT
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END FUNCTION d2boundfunct
     !------------------------------------------------------------------------------------
@@ -489,8 +467,6 @@ CONTAINS
             END DO
             !
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_partial_of_boundary
@@ -529,8 +505,6 @@ CONTAINS
         END DO
         !
         CALL partial%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_gradient_of_boundary_highmem
@@ -586,8 +560,6 @@ CONTAINS
         END DO
         !
         CALL tmp%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_laplacian_of_boundary_highmem
@@ -677,8 +649,6 @@ CONTAINS
         !
         CALL partial%destroy()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dsurface_of_boundary_highmem
     !------------------------------------------------------------------------------------
@@ -726,8 +696,6 @@ CONTAINS
             END DO
             !
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_gradient_of_boundary_lowmem
@@ -783,8 +751,6 @@ CONTAINS
             END DO
             !
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_laplacian_of_boundary_lowmem
@@ -857,8 +823,6 @@ CONTAINS
         CALL calc_dsurface_no_pre(cell%nnr, cell%ir_end, gradient%of_r, hessian%of_r, &
                                   dsurface%of_r)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dsurface_of_boundary_lowmem
     !------------------------------------------------------------------------------------
@@ -905,8 +869,6 @@ CONTAINS
             !
             dsurface(i) = dsurface(i) / gmod / SQRT(gmod)
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dsurface_no_pre

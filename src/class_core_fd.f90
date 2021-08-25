@@ -90,13 +90,21 @@ CONTAINS
         !
         CLASS(core_fd), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'create_core_fd'
+        !
         !--------------------------------------------------------------------------------
         !
+        IF (ASSOCIATED(this%cell)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%icfd)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%cell)
+        !
         this%core_type = 'fd'
-        !
-        NULLIFY (this%cell) ! create empty finite difference core
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_fd
@@ -124,8 +132,6 @@ CONTAINS
         !
         CALL this%set_coefficients()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_fd_first
     !------------------------------------------------------------------------------------
@@ -144,8 +150,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%cell => cell
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_fd_second
@@ -171,13 +175,10 @@ CONTAINS
         IF (lflag) THEN
             !
             IF (.NOT. ALLOCATED(this%icfd)) &
-                CALL env_errore(sub_name, &
-                                'Trying to deallocate a non-allocated object', 1)
+                CALL env_errore(sub_name, 'Trying to deallocate an empty object', 1)
             !
             DEALLOCATE (this%icfd)
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_fd
@@ -382,8 +383,6 @@ CONTAINS
         DO in = 1, nfdpoint
             icfd(-in) = -icfd(in)
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_coefficients

@@ -39,6 +39,8 @@ MODULE class_solver_newton
     USE class_cell
     USE class_density
     !
+    USE class_core_container_electrostatics
+    !
     USE class_solver
     USE class_solver_gradient
     USE class_solver_iterative
@@ -87,18 +89,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_newton(this)
+    SUBROUTINE init_solver_newton(this, cores, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
+        INTEGER, INTENT(IN) :: maxiter
+        REAL(DP), INTENT(IN) :: tol
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
         !
         CLASS(solver_newton), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        this%solver_type = 'newton'
+        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
         !
-        RETURN
+        this%solver_type = 'newton'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_newton
@@ -140,8 +147,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_charges
     !------------------------------------------------------------------------------------
@@ -171,8 +176,6 @@ CONTAINS
         CALL this%pb(inner, potential, charges, electrolyte, dielectric)
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_density
@@ -446,8 +449,6 @@ CONTAINS
         CALL residual%destroy()
         !
         CALL screening%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

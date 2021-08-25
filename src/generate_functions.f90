@@ -138,8 +138,6 @@ CONTAINS
         density%of_r = density%of_r + scale * local
         DEALLOCATE (local)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_gaussian
     !------------------------------------------------------------------------------------
@@ -220,8 +218,6 @@ CONTAINS
         gradient%of_r = gradient%of_r + scale * gradlocal
         DEALLOCATE (gradlocal)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_gradgaussian
     !------------------------------------------------------------------------------------
@@ -275,8 +271,6 @@ CONTAINS
         !
         density%of_r = density%of_r + local
         DEALLOCATE (local)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_exponential
@@ -332,8 +326,6 @@ CONTAINS
         !
         gradient%of_r = gradient%of_r + gradlocal
         DEALLOCATE (gradlocal)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_gradexponential
@@ -405,8 +397,6 @@ CONTAINS
         !
         DEALLOCATE (local)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_erfc
     !------------------------------------------------------------------------------------
@@ -466,8 +456,6 @@ CONTAINS
         !
         gradient%of_r = gradient%of_r + gradlocal * scale
         DEALLOCATE (gradlocal)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_graderfc
@@ -547,8 +535,6 @@ CONTAINS
         laplacian%of_r = laplacian%of_r + lapllocal * scale
         DEALLOCATE (lapllocal)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_laplerfc
     !------------------------------------------------------------------------------------
@@ -622,8 +608,6 @@ CONTAINS
         hessian%of_r = hessian%of_r + hesslocal * scale
         DEALLOCATE (hesslocal)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_hesserfc
     !------------------------------------------------------------------------------------
@@ -658,8 +642,6 @@ CONTAINS
             !
         END DO
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_axis
     !------------------------------------------------------------------------------------
@@ -692,8 +674,6 @@ CONTAINS
             distance(:, ir) = -r
             !
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generate_distance
@@ -756,8 +736,6 @@ CONTAINS
             erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis)
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION erfcvolume

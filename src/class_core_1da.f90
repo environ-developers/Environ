@@ -55,7 +55,7 @@ MODULE class_core_1da
     TYPE, EXTENDS(numerical_core), PUBLIC :: core_1da
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: initialized = .FALSE.
+        LOGICAL :: initialized
         INTEGER :: n, d, p, axis
         REAL(DP) :: size, origin(3)
         REAL(DP), ALLOCATABLE :: x(:, :)
@@ -94,14 +94,23 @@ CONTAINS
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'create_core_1da'
+        !
         !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%cell)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%x)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%cell)
         !
         this%core_type = '1d-analytic'
         !
-        NULLIFY (this%cell)
         this%initialized = .FALSE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_1da
@@ -137,8 +146,6 @@ CONTAINS
         !
         this%axis = axis
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_1da_first
     !------------------------------------------------------------------------------------
@@ -164,8 +171,6 @@ CONTAINS
         CALL this%update_origin(cell%origin)
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_1da_second
@@ -193,8 +198,6 @@ CONTAINS
         ELSE IF (this%d == 2) THEN
             this%size = cell%at(this%axis, this%axis)
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_core_1da_cell
@@ -225,8 +228,6 @@ CONTAINS
             CALL generate_axis(this%cell, this%axis, this%origin, this%x(1, :))
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_core_1da_origin
     !------------------------------------------------------------------------------------
@@ -249,20 +250,17 @@ CONTAINS
         IF (this%initialized) THEN
             !
             IF (.NOT. ALLOCATED(this%x)) &
-                CALL env_errore(sub_name, &
-                                'Trying to destroy a non-allocated component', 1)
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            !
+            IF (.NOT. ASSOCIATED(this%cell)) &
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
             DEALLOCATE (this%x)
             !
-            IF (.NOT. ASSOCIATED(this%cell)) &
-                CALL env_errore(sub_name, &
-                                'Trying to nullify a non-associated pointer', 1)
-            !
             NULLIFY (this%cell)
+            !
             this%initialized = .FALSE.
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_1da

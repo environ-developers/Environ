@@ -40,6 +40,7 @@ MODULE class_solver_gradient
     USE class_density
     USE class_gradient
     !
+    USE class_core_container_electrostatics
     USE class_core_fft_electrostatics
     !
     USE class_solver_iterative
@@ -108,22 +109,31 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_gradient(this, solver_type, lconjugate, step_type, step, &
-                                    preconditioner, screening_type, screening)
+    SUBROUTINE init_solver_gradient(this, lconjugate, step_type, step, preconditioner, &
+                                    screening_type, screening, cores, maxiter, tol, &
+                                    auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), INTENT(IN) :: solver_type
-        CHARACTER(LEN=80), INTENT(IN) :: step_type, preconditioner, screening_type
-        REAL(DP), INTENT(IN) :: step, screening
+        TYPE(container_electrostatics), INTENT(IN) :: cores
         LOGICAL, INTENT(IN) :: lconjugate
+        INTEGER, INTENT(IN) :: maxiter
+        REAL(DP), INTENT(IN) :: tol, step, screening
+        CHARACTER(LEN=80), INTENT(IN) :: step_type, preconditioner, screening_type
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
         !
         CLASS(solver_gradient), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        this%solver_type = solver_type
+        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
+        !
+        IF (lconjugate) THEN
+            this%solver_type = 'cg'
+        ELSE
+            this%solver_type = 'sd'
+        END IF
         !
         this%lconjugate = lconjugate
         this%step_type = step_type
@@ -131,8 +141,6 @@ CONTAINS
         this%preconditioner = preconditioner
         this%screening_type = screening_type
         this%screening = screening
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_gradient
@@ -201,8 +209,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_gradient_charges
     !------------------------------------------------------------------------------------
@@ -258,8 +264,6 @@ CONTAINS
         END IF
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_gradient_density
@@ -345,8 +349,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE linearized_pb_gradient_charges
     !------------------------------------------------------------------------------------
@@ -425,8 +427,6 @@ CONTAINS
         CALL local_screening%destroy()
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE linearized_pb_gradient_density
@@ -634,8 +634,6 @@ CONTAINS
         CALL p%destroy()
         !
         CALL Ap%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !
@@ -902,8 +900,6 @@ CONTAINS
         !
         CALL invsqrt%destroy()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
         !
 1100    FORMAT(/, 4('%'), ' COMPUTE ELECTROSTATIC POTENTIAL ', 43('%'),/)
@@ -1121,8 +1117,6 @@ CONTAINS
         CALL p%destroy()
         !
         CALL Ap%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !
@@ -1425,8 +1419,6 @@ CONTAINS
         CALL Ap%destroy()
         !
         IF (PRESENT(dielectric)) CALL invsqrt%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

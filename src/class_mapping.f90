@@ -57,8 +57,8 @@ MODULE class_mapping
         INTEGER :: nrep(3)
         ! number of system cells in environment cell along a_i = 2 * nrep_i + 1
         !
-        TYPE(environ_cell), POINTER :: small ! system cell
-        TYPE(environ_cell), POINTER :: large ! environment cell
+        TYPE(environ_cell), POINTER :: small => NULL() ! system cell
+        TYPE(environ_cell), POINTER :: large => NULL() ! environment cell
         !
         INTEGER, ALLOCATABLE :: map(:)
         !
@@ -66,7 +66,7 @@ MODULE class_mapping
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_mapping
+        PROCEDURE, PRIVATE :: create => create_environ_mapping
         PROCEDURE :: init_first => init_environ_mapping_first
         PROCEDURE :: init_second => init_environ_mapping_second
         PROCEDURE :: update => update_environ_mapping
@@ -102,13 +102,22 @@ CONTAINS
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_mapping'
+        !
         !--------------------------------------------------------------------------------
         !
-        this%nrep = 1
-        this%large => NULL()
-        this%small => NULL()
+        IF (ASSOCIATED(this%large)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
-        RETURN
+        IF (ASSOCIATED(this%small)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%large)
+        NULLIFY (this%small)
+        !
+        this%nrep = 1
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_mapping
@@ -127,9 +136,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%nrep = nrep
+        CALL this%create()
         !
-        RETURN
+        this%nrep = nrep
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_mapping_first
@@ -154,8 +163,6 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(this%small, this%large)) &
             ALLOCATE (this%map(this%small%nnr))
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_mapping_second
@@ -239,8 +246,6 @@ CONTAINS
             !
         END DO
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_mapping
     !------------------------------------------------------------------------------------
@@ -256,15 +261,24 @@ CONTAINS
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_mapping'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(this%small)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        IF (.NOT. ASSOCIATED(this%large)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         this%nrep = 1
+        !
         NULLIFY (this%small)
         NULLIFY (this%large)
         !
         IF (ALLOCATED(this%map)) DEALLOCATE (this%map)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_mapping
@@ -331,8 +345,6 @@ CONTAINS
             DEALLOCATE (auxlarge)
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE map_small_to_large_real
     !------------------------------------------------------------------------------------
@@ -390,8 +402,6 @@ CONTAINS
 #endif
             DEALLOCATE (auxlarge)
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE map_small_to_large_density
@@ -453,8 +463,6 @@ CONTAINS
             DEALLOCATE (auxlarge)
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE map_large_to_small_real
     !------------------------------------------------------------------------------------
@@ -514,8 +522,6 @@ CONTAINS
             !
             DEALLOCATE (auxlarge)
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE map_large_to_small_density

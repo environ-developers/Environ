@@ -218,6 +218,7 @@ class_solver_direct.o : environ_param.o
 class_solver_fixedpoint.o : ../utils/base_io.o
 class_solver_fixedpoint.o : class_cell.o
 class_solver_fixedpoint.o : class_charges.o
+class_solver_fixedpoint.o : class_core_container_electrostatics.o
 class_solver_fixedpoint.o : class_density.o
 class_solver_fixedpoint.o : class_dielectric.o
 class_solver_fixedpoint.o : class_electrolyte.o
@@ -230,6 +231,7 @@ class_solver_fixedpoint.o : environ_param.o
 class_solver_gradient.o : ../utils/base_io.o
 class_solver_gradient.o : class_cell.o
 class_solver_gradient.o : class_charges.o
+class_solver_gradient.o : class_core_container_electrostatics.o
 class_solver_gradient.o : class_core_fft_electrostatics.o
 class_solver_gradient.o : class_density.o
 class_solver_gradient.o : class_dielectric.o
@@ -245,6 +247,7 @@ class_solver_iterative.o : environ_param.o
 class_solver_newton.o : ../utils/base_io.o
 class_solver_newton.o : class_cell.o
 class_solver_newton.o : class_charges.o
+class_solver_newton.o : class_core_container_electrostatics.o
 class_solver_newton.o : class_density.o
 class_solver_newton.o : class_dielectric.o
 class_solver_newton.o : class_electrolyte.o

@@ -55,29 +55,29 @@ MODULE class_semiconductor
     TYPE, PUBLIC :: environ_semiconductor
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE.
-        LOGICAL :: initialized = .FALSE.
+        LOGICAL :: lupdate
+        LOGICAL :: initialized
         !
         REAL(DP) :: temperature
         REAL(DP) :: permittivity
         REAL(DP) :: carrier_density
         REAL(DP) :: electrode_charge
         REAL(DP) :: charge_threshold
-        REAL(DP) :: slab_charge = 0.D0
+        REAL(DP) :: slab_charge
         !
         TYPE(environ_function) :: simple
         TYPE(environ_density) :: density
         !
-        REAL(DP) :: charge = 0.0_DP
-        REAL(DP) :: flatband_fermi = 0.D0
-        REAL(DP) :: bulk_sc_fermi = 0.D0
-        REAL(DP) :: surf_area_per_sq_cm = 0.D0
+        REAL(DP) :: charge
+        REAL(DP) :: flatband_fermi
+        REAL(DP) :: bulk_sc_fermi
+        REAL(DP) :: surf_area_per_sq_cm
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_semiconductor
+        PROCEDURE, PRIVATE :: create => create_environ_semiconductor
         PROCEDURE :: init_first => init_environ_semiconductor_first
         PROCEDURE :: init_second => init_environ_semiconductor_second
         PROCEDURE :: update => update_environ_semiconductor
@@ -106,17 +106,16 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: label = 'semiconductor'
-        !
         !--------------------------------------------------------------------------------
         !
         this%lupdate = .FALSE.
-        !
-        CALL this%density%create(label)
+        this%initialized = .FALSE.
         !
         this%charge = 0.D0
-        !
-        RETURN
+        this%slab_charge = 0.D0
+        this%flatband_fermi = 0.D0
+        this%bulk_sc_fermi = 0.D0
+        this%surf_area_per_sq_cm = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_semiconductor
@@ -141,6 +140,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         this%temperature = temperature
         this%permittivity = sc_permittivity
         this%carrier_density = sc_carrier_density
@@ -159,10 +160,6 @@ CONTAINS
         this%simple%width = sc_distance
         this%simple%spread = sc_spread
         !
-        this%initialized = .FALSE.
-        !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor_first
     !------------------------------------------------------------------------------------
@@ -178,13 +175,13 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: local_label = 'semiconductor'
+        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell)
+        CALL this%density%init(cell, local_label)
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor_second
@@ -202,8 +199,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%charge = this%density%integrate()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_semiconductor
@@ -228,8 +223,6 @@ CONTAINS
             !
             this%initialized = .FALSE.
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_semiconductor

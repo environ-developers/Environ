@@ -40,6 +40,8 @@ MODULE class_solver_fixedpoint
     USE class_density
     USE class_gradient
     !
+    USE class_core_container_electrostatics
+    !
     USE class_solver
     USE class_solver_gradient
     USE class_solver_iterative
@@ -100,26 +102,29 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_fixedpoint(this, mix_type, mix, ndiis)
+    SUBROUTINE init_solver_fixedpoint(this, mix_type, mix, ndiis, cores, maxiter, tol, &
+                                      auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: ndiis
-        REAL(DP), INTENT(IN) :: mix
+        TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
+        INTEGER, INTENT(IN) :: ndiis, maxiter
+        REAL(DP), INTENT(IN) :: tol, mix
         CHARACTER(LEN=80), INTENT(IN) :: mix_type
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
         !
         CLASS(solver_fixedpoint), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
         !
         this%solver_type = 'fixed-point'
         !
         this%mix_type = mix_type
         this%mix = mix
         this%ndiis = ndiis
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_solver_fixedpoint
@@ -167,8 +172,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_fixedpoint_charges
     !------------------------------------------------------------------------------------
@@ -212,8 +215,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE generalized_fixedpoint_density
     !------------------------------------------------------------------------------------
@@ -256,8 +257,6 @@ CONTAINS
         END IF
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_charges
@@ -303,8 +302,6 @@ CONTAINS
         END IF
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE pb_nested_density
@@ -479,8 +476,6 @@ CONTAINS
         CALL residual%destroy()
         !
         CALL gradpoisson%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !
@@ -720,8 +715,6 @@ CONTAINS
         CALL residual%destroy()
         !
         CALL cfactor%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

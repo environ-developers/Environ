@@ -53,18 +53,18 @@ MODULE class_electrons
     TYPE, PUBLIC :: environ_electrons
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE.
-        LOGICAL :: initialized = .FALSE.
-        INTEGER :: number = 0
+        LOGICAL :: lupdate
+        LOGICAL :: initialized
+        INTEGER :: number
         !
         TYPE(environ_density) :: density
-        REAL(DP) :: charge = 0.0_DP
+        REAL(DP) :: charge
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_electrons
+        PROCEDURE, PRIVATE :: create => create_environ_electrons
         PROCEDURE :: init_first => init_environ_electrons_first
         PROCEDURE :: init_second => init_environ_electrons_second
         PROCEDURE :: update => update_environ_electrons
@@ -95,17 +95,15 @@ CONTAINS
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: label = 'electrons'
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_electrons'
         !
         !--------------------------------------------------------------------------------
         !
         this%lupdate = .FALSE.
+        this%initialized = .FALSE.
+        !
         this%number = 0
         this%charge = 0.D0
-        !
-        CALL this%density%create(label)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_electrons
@@ -124,10 +122,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%initialized = .FALSE.
-        this%number = nelec
+        CALL this%create()
         !
-        RETURN
+        this%number = nelec
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons_first
@@ -144,13 +141,13 @@ CONTAINS
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: local_label = 'electrons'
+        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell)
+        CALL this%density%init(cell, local_label)
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_electrons_second
@@ -197,8 +194,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_electrons
     !------------------------------------------------------------------------------------
@@ -223,8 +218,6 @@ CONTAINS
             this%charge = 0.D0
             this%initialized = .FALSE.
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrons
@@ -297,8 +290,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

@@ -55,7 +55,8 @@ MODULE class_solver
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: set_cores => set_electrostatic_cores
+        PROCEDURE, PRIVATE :: create => create_electrostatic_cores
+        PROCEDURE :: init_cores => init_electrostatic_cores
         !
         !--------------------------------------------------------------------------------
     END TYPE electrostatic_solver
@@ -73,7 +74,31 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_electrostatic_cores(this, cores)
+    SUBROUTINE create_electrostatic_cores(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(electrostatic_solver), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_electrostatic_cores'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%cores)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%cores)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_electrostatic_cores
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_electrostatic_cores(this, cores)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -86,15 +111,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cores)) &
-            CALL env_errore(sub_name, 'Trying to associate an associated core', 1)
+        CALL this%create()
         !
         this%cores => cores
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_electrostatic_cores
+    END SUBROUTINE init_electrostatic_cores
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

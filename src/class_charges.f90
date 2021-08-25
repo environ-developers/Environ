@@ -66,41 +66,43 @@ MODULE class_charges
     TYPE, PUBLIC :: environ_charges
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: include_ions = .FALSE.
+        LOGICAL :: include_ions
         TYPE(environ_ions), POINTER :: ions => NULL()
         !
-        LOGICAL :: include_electrons = .FALSE.
+        LOGICAL :: include_electrons
         TYPE(environ_electrons), POINTER :: electrons => NULL()
         !
-        LOGICAL :: include_externals = .FALSE.
+        LOGICAL :: include_externals
         TYPE(environ_externals), POINTER :: externals => NULL()
         !
-        LOGICAL :: include_dielectric = .FALSE.
+        LOGICAL :: include_dielectric
         TYPE(environ_dielectric), POINTER :: dielectric => NULL()
         !
-        LOGICAL :: include_electrolyte = .FALSE.
+        LOGICAL :: include_electrolyte
         TYPE(environ_electrolyte), POINTER :: electrolyte => NULL()
         !
-        LOGICAL :: include_semiconductor = .FALSE.
+        LOGICAL :: include_semiconductor
         TYPE(environ_semiconductor), POINTER :: semiconductor => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Total smooth free charge
         !
-        INTEGER :: number = 0
-        REAL(DP) :: charge = 0.0_DP
+        INTEGER :: number
+        REAL(DP) :: charge
         TYPE(environ_density) :: density
-        LOGICAL :: initialized = .FALSE.
+        LOGICAL :: initialized
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_charges
+        PROCEDURE, PRIVATE :: create => create_environ_charges
         PROCEDURE :: init_first => init_environ_charges_first
         PROCEDURE :: init_second => init_environ_charges_second
         PROCEDURE :: update => update_environ_charges
         PROCEDURE :: destroy => destroy_environ_charges
+        !
+        PROCEDURE :: add => add_environ_charges
         !
         PROCEDURE :: of_potential => charges_of_potential
         !
@@ -129,7 +131,27 @@ CONTAINS
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: label = 'charge'
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_charges'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%ions)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%electrons)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%externals)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%dielectric)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%electrolyte)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%semiconductor)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -154,9 +176,7 @@ CONTAINS
         this%number = 0
         this%charge = 0.D0
         !
-        CALL this%density%create(label)
-        !
-        RETURN
+        this%initialized = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_charges
@@ -164,56 +184,16 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_charges_first(this, electrons, ions, externals, &
-                                          dielectric, electrolyte, semiconductor)
+    SUBROUTINE init_environ_charges_first(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        TYPE(environ_electrons), OPTIONAL, TARGET, INTENT(IN) :: electrons
-        TYPE(environ_ions), OPTIONAL, TARGET, INTENT(IN) :: ions
-        TYPE(environ_externals), OPTIONAL, TARGET, INTENT(IN) :: externals
-        TYPE(environ_dielectric), OPTIONAL, TARGET, INTENT(IN) :: dielectric
-        TYPE(environ_electrolyte), OPTIONAL, TARGET, INTENT(IN) :: electrolyte
-        TYPE(environ_semiconductor), OPTIONAL, TARGET, INTENT(IN) :: semiconductor
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        IF (PRESENT(ions)) THEN
-            this%include_ions = .TRUE.
-            this%ions => ions
-        END IF
-        !
-        IF (PRESENT(electrons)) THEN
-            this%include_electrons = .TRUE.
-            this%electrons => electrons
-        END IF
-        !
-        IF (PRESENT(externals)) THEN
-            this%include_externals = .TRUE.
-            this%externals => externals
-        END IF
-        !
-        IF (PRESENT(dielectric)) THEN
-            this%include_dielectric = .TRUE.
-            this%dielectric => dielectric
-        END IF
-        !
-        IF (PRESENT(electrolyte)) THEN
-            this%include_electrolyte = .TRUE.
-            this%electrolyte => electrolyte
-        END IF
-        !
-        IF (PRESENT(semiconductor)) THEN
-            this%include_semiconductor = .TRUE.
-            this%semiconductor => semiconductor
-        END IF
-        !
-        this%initialized = .FALSE.
-        !
-        RETURN
+        CALL this%create()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_charges_first
@@ -230,13 +210,13 @@ CONTAINS
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: local_label = 'charge'
+        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%density%init(cell)
+        CALL this%density%init(cell, local_label)
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_charges_second
@@ -298,10 +278,63 @@ CONTAINS
         IF (ABS(local_charge - this%charge) > 1.D-5) &
             CALL env_errore(sub_name, 'Inconsistent integral of total charge', 1)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_charges
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE add_environ_charges(this, electrons, ions, externals, &
+                                   dielectric, electrolyte, semiconductor)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_electrons), OPTIONAL, TARGET, INTENT(IN) :: electrons
+        TYPE(environ_ions), OPTIONAL, TARGET, INTENT(IN) :: ions
+        TYPE(environ_externals), OPTIONAL, TARGET, INTENT(IN) :: externals
+        TYPE(environ_dielectric), OPTIONAL, TARGET, INTENT(IN) :: dielectric
+        TYPE(environ_electrolyte), OPTIONAL, TARGET, INTENT(IN) :: electrolyte
+        TYPE(environ_semiconductor), OPTIONAL, TARGET, INTENT(IN) :: semiconductor
+        !
+        CLASS(environ_charges), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'add_environ_charges'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(ions)) THEN
+            this%include_ions = .TRUE.
+            this%ions => ions
+        END IF
+        !
+        IF (PRESENT(electrons)) THEN
+            this%include_electrons = .TRUE.
+            this%electrons => electrons
+        END IF
+        !
+        IF (PRESENT(externals)) THEN
+            this%include_externals = .TRUE.
+            this%externals => externals
+        END IF
+        !
+        IF (PRESENT(dielectric)) THEN
+            this%include_dielectric = .TRUE.
+            this%dielectric => dielectric
+        END IF
+        !
+        IF (PRESENT(electrolyte)) THEN
+            this%include_electrolyte = .TRUE.
+            this%electrolyte => electrolyte
+        END IF
+        !
+        IF (PRESENT(semiconductor)) THEN
+            this%include_semiconductor = .TRUE.
+            this%semiconductor => semiconductor
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE add_environ_charges
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -339,8 +372,6 @@ CONTAINS
             !
             this%initialized = .FALSE.
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_charges
@@ -400,8 +431,6 @@ CONTAINS
         !
         CALL tot_charge_density%destroy()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE charges_of_potential
     !------------------------------------------------------------------------------------
@@ -458,8 +487,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

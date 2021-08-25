@@ -100,9 +100,9 @@ CONTAINS
         IF (ASSOCIATED(this%correction)) &
             CALL env_errore(sub_name, 'Trying to create an existing container', 1)
         !
-        this%correction => correction
+        !--------------------------------------------------------------------------------
         !
-        RETURN
+        this%correction => correction
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE add_correction
@@ -119,11 +119,16 @@ CONTAINS
         !
         CLASS(container_electrostatics), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_electrostatics_container'
+        !
         !--------------------------------------------------------------------------------
         !
         IF (lflag) THEN
             !
             CALL this%core%destroy(lflag)
+            !
+            IF (.NOT. ASSOCIATED(this%core)) &
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
             NULLIFY (this%core)
             !
@@ -131,12 +136,13 @@ CONTAINS
                 !
                 CALL this%correction%destroy(lflag)
                 !
+                IF (.NOT. ASSOCIATED(this%correction)) &
+                    CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+                !
                 NULLIFY (this%correction)
             END IF
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_electrostatics_container
@@ -174,8 +180,6 @@ CONTAINS
             !
         END SELECT
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_poisson
     !------------------------------------------------------------------------------------
@@ -205,8 +209,6 @@ CONTAINS
             CALL env_errore(sub_name, 'Unexpected core', 1)
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_gradpoisson
@@ -239,8 +241,6 @@ CONTAINS
             CALL env_errore(sub_name, 'Unexpected core', 1)
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_force

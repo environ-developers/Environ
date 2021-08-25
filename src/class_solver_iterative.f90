@@ -60,7 +60,7 @@ MODULE class_solver_iterative
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_solver_iterative
+        PROCEDURE :: init_iterative => init_solver_iterative
         !
         !--------------------------------------------------------------------------------
     END TYPE solver_iterative
@@ -78,7 +78,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_solver_iterative(this, cores, maxiter, tol, auxiliary)
+    SUBROUTINE init_solver_iterative(this, cores, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -92,17 +92,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%set_cores(cores)
+        CALL this%init_cores(cores)
         !
         this%maxiter = maxiter
         this%tol = tol
         !
         IF (PRESENT(auxiliary)) this%auxiliary = auxiliary
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_solver_iterative
+    END SUBROUTINE init_solver_iterative
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

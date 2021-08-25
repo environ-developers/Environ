@@ -93,8 +93,6 @@ CONTAINS
         IF (verbose >= 1) &
             OPEN (unit=environ_unit, file='environ.debug', status='unknown')
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE read_environ_input
     !------------------------------------------------------------------------------------
@@ -201,8 +199,6 @@ CONTAINS
         !
         CALL electrostatic_checkin() ! check &ELECTROSTATIC variables
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_namelist
     !------------------------------------------------------------------------------------
@@ -253,8 +249,6 @@ CONTAINS
         !
         env_external_charges = 0
         env_dielectric_regions = 0
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_defaults
@@ -315,8 +309,6 @@ CONTAINS
         ifdtype = 1
         nfdpoint = 2
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_defaults
     !------------------------------------------------------------------------------------
@@ -355,8 +347,6 @@ CONTAINS
         pbc_dim = -3
         pbc_correction = 'none'
         pbc_axis = 3
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_defaults
@@ -425,8 +415,6 @@ CONTAINS
         CALL env_mp_bcast(env_external_charges, ionode_id, comm)
         !
         CALL env_mp_bcast(env_dielectric_regions, ionode_id, comm)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_bcast
@@ -508,8 +496,6 @@ CONTAINS
         !
         CALL env_mp_bcast(nfdpoint, ionode_id, comm)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_bcast
     !------------------------------------------------------------------------------------
@@ -563,8 +549,6 @@ CONTAINS
         CALL env_mp_bcast(pbc_correction, ionode_id, comm)
         !
         CALL env_mp_bcast(pbc_axis, ionode_id, comm)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_bcast
@@ -686,8 +670,6 @@ CONTAINS
         !
         IF (env_dielectric_regions < 0) &
             CALL env_errore(sub_name, 'env_dielectric_regions out of range', 1)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_checkin
@@ -873,8 +855,6 @@ CONTAINS
         !
         IF (nfdpoint < 1) CALL env_errore(sub_name, 'nfdpoint out of range', 1)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_checkin
     !------------------------------------------------------------------------------------
@@ -1054,8 +1034,6 @@ CONTAINS
         IF (inner_maxstep <= 1) &
             CALL env_errore(sub_name, 'inner_maxstep out of range', 1)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_checkin
     !------------------------------------------------------------------------------------
@@ -1096,8 +1074,6 @@ CONTAINS
         !
         IF (sc_permittivity > 1.D0 .OR. sc_carrier_density > 0) &
             lboundary = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE fix_boundary
@@ -1249,8 +1225,6 @@ CONTAINS
             END SELECT
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_type
@@ -1422,8 +1396,6 @@ CONTAINS
             .AND. (inner_solver /= 'none')) &
             CALL env_errore(sub_name, 'Only pb or modpb problems allow inner solver', 1)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_electrostatic_problem
     !------------------------------------------------------------------------------------
@@ -1499,8 +1471,6 @@ CONTAINS
         !
         IF (env_dielectric_regions > 0 .AND. .NOT. taepsreg) &
             CALL env_errore(sub_name, 'Missing card dielectric_regions', 1)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_cards
@@ -1682,8 +1652,6 @@ CONTAINS
             !
         END DO
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE card_external_charges
     !------------------------------------------------------------------------------------
@@ -1720,8 +1688,6 @@ CONTAINS
         extcharge_charge = 0.0_DP
         extcharge_spread = 0.5_DP
         extcharge_pos = 0.0_DP
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_extcharge
@@ -1925,8 +1891,6 @@ CONTAINS
             !
         END DO
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE card_dielectric_regions
     !------------------------------------------------------------------------------------
@@ -1967,8 +1931,6 @@ CONTAINS
         epsregion_width = 0.0_DP
         epsregion_spread = 0.5_DP
         epsregion_pos = 0.0_DP
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE allocate_input_epsregion

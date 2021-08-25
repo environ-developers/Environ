@@ -51,20 +51,20 @@ MODULE class_system
     TYPE, PUBLIC :: environ_system
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE.
+        LOGICAL :: lupdate
         INTEGER :: ntyp
         INTEGER :: dim
         INTEGER :: axis
         REAL(DP) :: pos(3)
         REAL(DP) :: width
         !
-        TYPE(environ_ions), POINTER :: ions
+        TYPE(environ_ions), POINTER :: ions => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_system
+        PROCEDURE, PRIVATE :: create => create_environ_system
         PROCEDURE :: init => init_environ_system
         PROCEDURE :: update => update_environ_system
         PROCEDURE :: destroy => destroy_environ_system
@@ -94,7 +94,16 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_system'
+        !
         !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%ions)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%ions)
         !
         this%lupdate = .FALSE.
         this%ntyp = 0
@@ -102,9 +111,6 @@ CONTAINS
         this%axis = 1
         this%pos = 0.D0
         this%width = 0.D0
-        NULLIFY (this%ions)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_system
@@ -126,13 +132,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         this%ntyp = ntyp
         this%dim = dim
         this%axis = axis
         !
         this%ions => ions
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_system
@@ -207,8 +213,6 @@ CONTAINS
         !
         this%width = SQRT(this%width)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_system
     !------------------------------------------------------------------------------------
@@ -235,8 +239,6 @@ CONTAINS
             !
             NULLIFY (this%ions)
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_system
@@ -300,8 +302,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

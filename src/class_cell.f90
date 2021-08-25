@@ -62,8 +62,8 @@ MODULE class_cell
     TYPE, PUBLIC :: environ_cell
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE.
-        LOGICAL :: cubic = .FALSE.
+        LOGICAL :: lupdate
+        LOGICAL :: cubic
         REAL(DP) :: omega, domega ! volume quantities
         REAL(DP) :: origin(3)
         REAL(DP) :: at(3, 3) ! real-space lattice vectors
@@ -84,6 +84,7 @@ MODULE class_cell
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_environ_cell
         PROCEDURE :: init => init_environ_cell
         PROCEDURE :: update => update_environ_cell
         PROCEDURE :: destroy => destroy_environ_cell
@@ -111,6 +112,28 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_environ_cell(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_cell), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_cell'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lupdate = .FALSE.
+        this%cubic = .FALSE.
+        !
+        this%origin = 0.D0
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_cell
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr)
         !--------------------------------------------------------------------------------
         !
@@ -126,6 +149,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Create fft descriptor for system cell
+        !
+        CALL this%create()
         !
         IF (PRESENT(nr)) THEN
             this%dfft%nr1 = nr(1)
@@ -163,10 +188,6 @@ CONTAINS
         !
         CALL this%update(at)
         !
-        this%origin = 0.D0
-        !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_cell
     !------------------------------------------------------------------------------------
@@ -195,10 +216,11 @@ CONTAINS
         !
         this%cubic = this%is_cubic() ! check if the cell is cubic (stored once)
         !
-        CALL recips( &
-            this%at(1, 1), this%at(1, 2), this%at(1, 3), &
-            this%bg(1, 1), this%bg(1, 2), this%bg(1, 3) &
-            ) ! calculate reciprocal cell
+        !--------------------------------------------------------------------------------
+        ! Calculate reciprocal cell
+        !
+        CALL recips(this%at(1, 1), this%at(1, 2), this%at(1, 3), &
+                    this%bg(1, 1), this%bg(1, 2), this%bg(1, 3))
         !
         this%domega = this%omega / this%ntot ! Set volume element
         !
@@ -225,8 +247,6 @@ CONTAINS
             !
         END DO
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_cell
     !------------------------------------------------------------------------------------
@@ -245,8 +265,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL this%destroy_dfft(lflag)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_cell
@@ -287,8 +305,6 @@ CONTAINS
         !
         CALL env_sticks_map_deallocate(smap)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_dfft
     !------------------------------------------------------------------------------------
@@ -308,8 +324,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         CALL env_fft_type_deallocate(this%dfft)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_dfft
@@ -350,8 +364,6 @@ CONTAINS
             CALL env_warning('axis vectors are left-handed')
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE
@@ -419,8 +431,6 @@ CONTAINS
             k = l
         END DO
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE recips
     !------------------------------------------------------------------------------------
@@ -449,8 +459,6 @@ CONTAINS
         CALL displacement(dim, axis, pos, r, r) ! displacement from origin
         !
         CALL this%minimum_image(r, r2) ! minimum image convention
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE get_min_distance
@@ -489,8 +497,6 @@ CONTAINS
         !
         physical = i < this%dfft%nr1 .AND. j < this%dfft%nr2 .AND. k < this%dfft%nr3
         ! check if current point was generated for optimization of fft grids
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE ir2ijk
@@ -567,8 +573,6 @@ CONTAINS
             f1d = f1d / DBLE(narea)
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE planar_average
     !------------------------------------------------------------------------------------
@@ -612,8 +616,6 @@ CONTAINS
         !
         r = r + this%origin
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE ir2r
     !------------------------------------------------------------------------------------
@@ -648,8 +650,6 @@ CONTAINS
             END DO
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE displacement
@@ -732,8 +732,6 @@ CONTAINS
         ! y = x - m
         ! r_ws = MATMUL(ws%a, y)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE minimum_image
     !------------------------------------------------------------------------------------
@@ -773,8 +771,6 @@ CONTAINS
         END DO
         !
         is_cubic = tmp < tol
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION is_cubic
@@ -834,8 +830,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
         !
 1000    FORMAT(/, 4('%'), ' CELL ', 70('%'))
@@ -890,8 +884,6 @@ CONTAINS
         WRITE (300, '(i5,3f12.6)') nr1, (at(ipol, 1) / DBLE(nr1), ipol=1, 3)
         WRITE (300, '(i5,3f12.6)') nr2, (at(ipol, 2) / DBLE(nr2), ipol=1, 3)
         WRITE (300, '(i5,3f12.6)') nr3, (at(ipol, 3) / DBLE(nr3), ipol=1, 3)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_cell

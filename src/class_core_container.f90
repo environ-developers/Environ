@@ -54,6 +54,7 @@ MODULE class_core_container
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE, PRIVATE :: create => create_core_container
         PROCEDURE :: init => init_core_container
         PROCEDURE :: destroy => destroy_core_container
         !
@@ -73,6 +74,30 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE create_core_container(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_container), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'create_core_container'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%core)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%core)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_core_container
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE init_core_container(this, core, type_in)
         !--------------------------------------------------------------------------------
         !
@@ -87,8 +112,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%core)) &
-            CALL env_errore(sub_name, 'Trying to create an existing core container', 1)
+        CALL this%create()
         !
         this%core => core
         this%type_ = type_in
@@ -108,16 +132,19 @@ CONTAINS
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_core_container'
+        !
         !--------------------------------------------------------------------------------
         !
         IF (lflag) THEN
+            !
+            IF (.NOT. ASSOCIATED(this%core)) &
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
             CALL this%core%destroy(lflag)
             !
             NULLIFY (this%core)
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_container

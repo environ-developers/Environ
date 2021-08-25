@@ -104,7 +104,7 @@ MODULE class_environ
         LOGICAL :: ldoublecell
         TYPE(environ_mapping) :: mapping
         TYPE(environ_cell) :: system_cell
-        TYPE(environ_cell), POINTER :: environment_cell
+        TYPE(environ_cell), POINTER :: environment_cell => NULL()
         TYPE(environ_ions) :: system_ions, environment_ions
         TYPE(environ_electrons) :: system_electrons, environment_electrons
         !
@@ -331,7 +331,7 @@ CONTAINS
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
-        CHARACTER(LEN=80) :: label = ' '
+        CHARACTER(LEN=80) :: local_label = ' '
         !
         !--------------------------------------------------------------------------------
         ! Common initialization for simulations with Environ
@@ -382,25 +382,20 @@ CONTAINS
             !
         END IF
         !
-        IF (this%l1da) &
-            CALL this%core_1da_elect%init_second(this%environment_cell)
+        IF (this%l1da) CALL this%core_1da_elect%init_second(this%environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! Create local storage for base potential, that needs to be modified
         !
-        label = 'vzero'
+        local_label = 'vzero'
         !
-        CALL this%vzero%create(label)
-        !
-        CALL this%vzero%init(this%system_cell)
+        CALL this%vzero%init(this%system_cell, local_label)
         !
         this%deenviron = 0.0_DP
         !
-        label = 'dvtot'
+        local_label = 'dvtot'
         !
-        CALL this%dvtot%create(label)
-        !
-        CALL this%dvtot%init(this%system_cell)
+        CALL this%dvtot%init(this%system_cell, local_label)
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic contribution
@@ -408,18 +403,13 @@ CONTAINS
         this%eelectrostatic = 0.0_DP
         !
         IF (this%lelectrostatic) THEN
+            local_label = 'velectrostatic'
             !
-            label = 'velectrostatic'
+            CALL this%velectrostatic%init(this%environment_cell, local_label)
             !
-            CALL this%velectrostatic%create(label)
+            local_label = 'vreference'
             !
-            CALL this%velectrostatic%init(this%environment_cell)
-            !
-            label = 'vreference'
-            !
-            CALL this%vreference%create(label)
-            !
-            CALL this%vreference%init(this%system_cell)
+            CALL this%vreference%init(this%system_cell, local_label)
             !
         END IF
         !
@@ -427,12 +417,9 @@ CONTAINS
         ! Contribution to the potential due to boundary
         !
         IF (this%lsoftcavity) THEN
+            local_label = 'vsoftcavity'
             !
-            label = 'vsoftcavity'
-            !
-            CALL this%vsoftcavity%create(label)
-            !
-            CALL this%vsoftcavity%init(this%environment_cell)
+            CALL this%vsoftcavity%init(this%environment_cell, local_label)
             !
         END IF
         !
@@ -448,11 +435,9 @@ CONTAINS
         this%econfine = 0.0_DP
         !
         IF (this%lconfine) THEN
-            label = 'vconfine'
+            local_label = 'vconfine'
             !
-            CALL this%vconfine%create(label)
-            !
-            CALL this%vconfine%init(this%environment_cell)
+            CALL this%vconfine%init(this%environment_cell, local_label)
             !
         END IF
         !
@@ -467,7 +452,10 @@ CONTAINS
         !
         CALL this%environment_electrons%init_second(this%environment_cell)
         !
-        IF (this%lsolvent) CALL this%solvent%init_second(this%environment_cell)
+        local_label = 'solvent'
+        !
+        IF (this%lsolvent) &
+            CALL this%solvent%init_second(this%environment_cell, local_label)
         !
         IF (this%lstatic) CALL this%static%init_second(this%environment_cell)
         !
@@ -503,8 +491,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_initbase
     !------------------------------------------------------------------------------------
@@ -534,8 +520,6 @@ CONTAINS
             CALL env_errore(sub_name, 'Inconsistent size in input potential', 1)
         !
         this%vzero%of_r = vltot
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_initpotential
@@ -611,8 +595,6 @@ CONTAINS
         this%system_cell%lupdate = .FALSE.
         !
         IF (this%ldoublecell) this%environment_cell%lupdate = .FALSE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_initcell
@@ -767,8 +749,6 @@ CONTAINS
         this%environment_system%lupdate = .FALSE.
         this%environment_ions%lupdate = .FALSE.
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_initions
     !------------------------------------------------------------------------------------
@@ -884,8 +864,6 @@ CONTAINS
         this%system_electrons%lupdate = .FALSE.
         this%environment_electrons%lupdate = .FALSE.
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_initelectrons
     !------------------------------------------------------------------------------------
@@ -938,8 +916,6 @@ CONTAINS
         !
         this%system_response_electrons%lupdate = .FALSE.
         this%environment_response_electrons%lupdate = .FALSE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_initresponse
@@ -1133,8 +1109,6 @@ CONTAINS
         !
         CALL write_cube(this%dvtot, this%system_ions, local_verbose)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_venviron
     !------------------------------------------------------------------------------------
@@ -1197,8 +1171,6 @@ CONTAINS
         !
         total_energy = total_energy + this%eelectrostatic + this%esurface + &
                        this%evolume + this%econfine + this%eelectrolyte
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_eenviron
@@ -1312,8 +1284,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_fenviron
     !------------------------------------------------------------------------------------
@@ -1400,8 +1370,6 @@ CONTAINS
         !
         CALL aux%destroy()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dvenviron
     !------------------------------------------------------------------------------------
@@ -1421,8 +1389,6 @@ CONTAINS
         !
         this%deenviron = -this%system_electrons%density%scalar_product(this%dvtot)
         total_energy = total_energy + this%deenviron
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_deenviron
@@ -1579,7 +1545,7 @@ CONTAINS
         SELECT CASE (prog)
             !
         CASE ('PW', 'CP', 'TD', 'XS')
-            CALL this%reference_direct%set_core(this%reference_cores)
+            CALL this%reference_direct%init_direct(this%reference_cores)
             !
         CASE DEFAULT
             CALL env_errore(sub_name, 'Unexpected name of host code', 1)
@@ -1594,7 +1560,7 @@ CONTAINS
         SELECT CASE (solver)
             !
         CASE ('direct')
-            CALL this%direct%set_core(this%outer_cores)
+            CALL this%direct%init_direct(this%outer_cores)
             !
             local_outer_solver => this%direct
             !
@@ -1602,25 +1568,21 @@ CONTAINS
             !
             IF (TRIM(ADJUSTL(solver)) == 'cg') lconjugate = .TRUE.
             !
-            CALL this%gradient%create(this%outer_cores, maxstep, tol, auxiliary)
-            !
-            CALL this%gradient%init(solver, lconjugate, step_type, step, &
-                                    preconditioner, screening_type, screening)
+            CALL this%gradient%init(lconjugate, step_type, step, preconditioner, &
+                                    screening_type, screening, this%outer_cores, &
+                                    maxstep, tol, auxiliary)
             !
             local_outer_solver => this%gradient
             !
         CASE ('fp')
             !
-            CALL this%fixedpoint%create(this%outer_cores, maxstep, tol, auxiliary)
-            !
-            CALL this%fixedpoint%init(mix_type, mix, ndiis)
+            CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_cores, maxstep, &
+                                      tol, auxiliary)
             !
             local_outer_solver => this%fixedpoint
             !
         CASE ('newton')
-            CALL this%newton%create(this%outer_cores, maxstep, tol, auxiliary)
-            !
-            CALL this%newton%init()
+            CALL this%newton%init(this%outer_cores, maxstep, tol, auxiliary)
             !
             local_outer_solver => this%newton
             !
@@ -1650,24 +1612,19 @@ CONTAINS
                         !
                         IF (TRIM(ADJUSTL(inner_solver)) == 'cg') lconjugate = .TRUE.
                         !
-                        CALL this%inner_gradient%create(this%inner_cores, &
-                                                        inner_maxstep, inner_tol, &
-                                                        auxiliary)
-                        !
-                        CALL this%inner_gradient%init(inner_solver, lconjugate, &
-                                                      step_type, step, preconditioner, &
-                                                      screening_type, screening)
+                        CALL this%inner_gradient%init( &
+                            lconjugate, step_type, step, preconditioner, &
+                            screening_type, screening, this%inner_cores, inner_maxstep, &
+                            inner_tol, auxiliary)
                         !
                         local_inner_solver => this%inner_gradient
                         !
                     CASE ('fp')
                         local_auxiliary = 'full'
                         !
-                        CALL this%inner_fixedpoint%create(this%inner_cores, &
-                                                          inner_maxstep, inner_tol, &
-                                                          local_auxiliary)
-                        !
-                        CALL this%inner_fixedpoint%init(mix_type, inner_mix, ndiis)
+                        CALL this%inner_fixedpoint%init( &
+                            mix_type, inner_mix, ndiis, this%inner_cores, &
+                            inner_maxstep, inner_tol, local_auxiliary)
                         !
                         local_inner_solver => this%inner_fixedpoint
                         !
@@ -1685,12 +1642,9 @@ CONTAINS
                 inner_problem = 'linpb'
                 lconjugate = .TRUE.
                 !
-                CALL this%inner_gradient%create(this%inner_cores, inner_maxstep, &
-                                                inner_tol, auxiliary)
-                !
-                CALL this%inner_gradient%init(inner_solver, lconjugate, step_type, &
-                                              step, preconditioner, screening_type, &
-                                              screening)
+                CALL this%inner_gradient%init( &
+                    lconjugate, step_type, step, preconditioner, screening_type, &
+                    screening, this%inner_cores, inner_maxstep, inner_tol, auxiliary)
                 !
                 local_inner_solver => this%inner_gradient
                 !
@@ -1700,8 +1654,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Set reference setup according to calling program
-        !
-        CALL this%reference%create()
         !
         SELECT CASE (prog)
             !
@@ -1718,16 +1670,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Create outer setup
         !
-        CALL this%outer%create()
-        !
         CALL this%outer%init(problem, local_outer_solver)
         !
         !--------------------------------------------------------------------------------
         ! If nested scheme, create inner setup
         !
         IF (lnested) THEN
-            !
-            CALL this%inner%create()
             !
             CALL this%inner%init(inner_problem, local_inner_solver)
             !
@@ -1750,8 +1698,6 @@ CONTAINS
         IF (lnested) &
             CALL this%inner%set_flags(this%need_auxiliary, this%need_gradient, &
                                       this%need_factsqrt)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_electrostatic_base
@@ -1787,21 +1733,6 @@ CONTAINS
             this%ltddfpt = .FALSE.
             !
         END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Create necessary local types
-        !
-        CALL this%system_electrons%create()
-        !
-        CALL this%system_ions%create()
-        !
-        CALL this%system_system%create()
-        !
-        CALL this%environment_electrons%create()
-        !
-        CALL this%environment_ions%create()
-        !
-        CALL this%environment_system%create()
         !
         !--------------------------------------------------------------------------------
         ! General flags
@@ -1881,56 +1812,24 @@ CONTAINS
         this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa') ! field-aware
         !
         !--------------------------------------------------------------------------------
-        ! Create optional types
-        !
-        IF (this%lexternals) CALL this%externals%create()
-        !
-        IF (this%lsolvent) THEN
-            label = 'solvent'
-            !
-            CALL this%solvent%create(label)
-            !
-        END IF
-        !
-        IF (this%lelectrolyte) CALL this%electrolyte%create()
-        !
-        IF (this%lsemiconductor) CALL this%semiconductor%create()
-        !
-        IF (this%lstatic) CALL this%static%create()
-        !
-        !--------------------------------------------------------------------------------
         ! Set response properties for TD calculations
         !
         IF (this%loptical) THEN
             !
-            CALL this%optical%create()
-            !
-            CALL this%system_response_electrons%create()
-            !
             CALL this%system_response_electrons%init_first(0)
             !
-            CALL this%system_response_charges%create()
+            CALL this%system_response_charges%init_first()
             !
-            CALL this%system_response_charges%init_first( &
+            CALL this%system_response_charges%add( &
                 electrons=this%system_response_electrons)
-            !
-            CALL this%environment_response_electrons%create()
             !
             CALL this%environment_response_electrons%init_first(0)
             !
-            CALL this%environment_response_charges%create()
+            CALL this%environment_response_charges%init_first()
             !
-            CALL this%environment_response_charges%init_first( &
+            CALL this%environment_response_charges%add( &
                 electrons=this%environment_response_electrons, &
                 dielectric=this%optical)
-            !
-        END IF
-        !
-        IF (this%lelectrostatic .OR. this%lconfine) THEN
-            !
-            CALL this%system_charges%create()
-            !
-            CALL this%environment_charges%create()
             !
         END IF
         !
@@ -1966,19 +1865,23 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Collect free charges if computing electrostatics or confinement
         !
+        CALL this%system_charges%init_first()
+        !
+        CALL this%environment_charges%init_first()
+        !
         IF (this%lelectrostatic .OR. this%lconfine) THEN
             !
-            CALL this%system_charges%init_first(this%system_electrons)
+            CALL this%system_charges%add(this%system_electrons)
             !
-            CALL this%environment_charges%init_first(this%environment_electrons)
+            CALL this%environment_charges%add(this%environment_electrons)
             !
         END IF
         !
         IF (this%lelectrostatic) THEN
             !
-            CALL this%system_charges%init_first(ions=this%system_ions)
+            CALL this%system_charges%add(ions=this%system_ions)
             !
-            CALL this%environment_charges%init_first(ions=this%environment_ions)
+            CALL this%environment_charges%add(ions=this%environment_ions)
             !
         END IF
         !
@@ -1991,7 +1894,7 @@ CONTAINS
                                            extcharge_axis, extcharge_pos, &
                                            extcharge_spread, extcharge_charge)
             !
-            CALL this%environment_charges%init_first(externals=this%externals)
+            CALL this%environment_charges%add(externals=this%externals)
             !
             DEALLOCATE (extcharge_axis)
             DEALLOCATE (extcharge_dim)
@@ -2041,7 +1944,7 @@ CONTAINS
                 this%environment_system, this%derivatives, temperature, cion, cionmax, &
                 rion, zion, electrolyte_entropy, electrolyte_linearized)
             !
-            CALL this%environment_charges%init_first(electrolyte=this%electrolyte)
+            CALL this%environment_charges%add(electrolyte=this%electrolyte)
             !
         END IF
         !
@@ -2055,7 +1958,7 @@ CONTAINS
                                                sc_distance, sc_spread, sc_chg_thr, &
                                                this%environment_system)
             !
-            CALL this%environment_charges%init_first(semiconductor=this%semiconductor)
+            CALL this%environment_charges%add(semiconductor=this%semiconductor)
             !
         END IF
         !
@@ -2074,7 +1977,7 @@ CONTAINS
                                              epsregion_width, epsregion_spread, &
                                              epsregion_eps(1, :))
             !
-            CALL this%environment_charges%init_first(dielectric=this%static)
+            CALL this%environment_charges%add(dielectric=this%static)
             !
         END IF
         !
@@ -2109,8 +2012,6 @@ CONTAINS
         !
         CALL this%mapping%init_first(env_nrep) ! #TODO should this be inside the above IF?
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_base
     !------------------------------------------------------------------------------------
@@ -2143,8 +2044,6 @@ CONTAINS
         END IF
         !
         IF (this%l1da) CALL this%core_1da_elect%init_first(pbc_dim, pbc_axis)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_core_base

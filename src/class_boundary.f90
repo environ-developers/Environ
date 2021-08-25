@@ -75,39 +75,39 @@ MODULE class_boundary
         !
         CHARACTER(LEN=80) :: label ! boundary label
         CHARACTER(LEN=80) :: mode ! choice of the interface
-        INTEGER :: update_status = 0
-        LOGICAL :: initialized = .FALSE.
+        INTEGER :: update_status
+        LOGICAL :: initialized
         !
         !--------------------------------------------------------------------------------
         ! Parameters for the electrons-dependent interface
         !
         LOGICAL :: need_electrons
-        TYPE(environ_electrons), POINTER :: electrons
+        TYPE(environ_electrons), POINTER :: electrons => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Parameters for the ions-dependent interface
         !
         LOGICAL :: need_ions
-        TYPE(environ_ions), POINTER :: ions
+        TYPE(environ_ions), POINTER :: ions => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Parameters for the system-dependent interface
         !
         LOGICAL :: need_system
-        TYPE(environ_system), POINTER :: system
+        TYPE(environ_system), POINTER :: system => NULL()
         !
         !--------------------------------------------------------------------------------
         !
         TYPE(environ_density) :: scaled ! scaled switching function of interface
         ! varying from 1 (QM region) to 0 (environment region)
         !
-        INTEGER :: deriv = 0
+        INTEGER :: deriv
         TYPE(environ_gradient) :: gradient
         TYPE(environ_density) :: laplacian
         TYPE(environ_density) :: dsurface
         TYPE(environ_hessian) :: hessian
         !
-        TYPE(container_derivatives), POINTER :: derivatives
+        TYPE(container_derivatives), POINTER :: derivatives => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Global properties of the boundary
@@ -166,7 +166,7 @@ MODULE class_boundary
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_boundary
+        PROCEDURE, PRIVATE :: create => create_environ_boundary
         PROCEDURE :: init_first => init_environ_boundary_first
         PROCEDURE :: init_second => init_environ_boundary_second
         PROCEDURE :: copy => copy_environ_boundary
@@ -185,9 +185,7 @@ MODULE class_boundary
         PROCEDURE :: dboundary_dions => calc_dboundary_dions
         PROCEDURE :: sa_de_dboundary => calc_solvent_aware_de_dboundary
         !
-        PROCEDURE :: of_density => boundary_of_density
-        PROCEDURE :: of_functions => boundary_of_functions
-        PROCEDURE :: of_system => boundary_of_system
+        PROCEDURE :: boundary_of_density, boundary_of_functions, boundary_of_system
         !
         PROCEDURE :: convolution_deriv => compute_convolution_deriv
         PROCEDURE :: solvent_aware_boundary
@@ -212,27 +210,45 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_boundary(this, local_label)
+    SUBROUTINE create_environ_boundary(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), INTENT(IN) :: local_label
-        !
         CLASS(environ_boundary), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: label = ' '
         !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
+        IF (ASSOCIATED(this%electrons)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%ions)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%system)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%soft_spheres)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%ion_field)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%local_spheres)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%dion_field_drho)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%partial_of_ion_field)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
         this%update_status = 0
-        this%label = local_label
-        !
-        label = 'boundary_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%scaled%create(label)
+        this%initialized = .FALSE.
         !
         this%volume = 0.D0
         this%surface = 0.D0
@@ -244,88 +260,10 @@ CONTAINS
         this%need_system = .FALSE.
         NULLIFY (this%system)
         !
-        !--------------------------------------------------------------------------------
-        ! Optional components
-        !
         this%deriv = 0
-        label = 'gradboundary_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%gradient%create(label)
-        !
-        label = 'laplboundary_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%laplacian%create(label)
-        !
-        label = 'dsurface_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%dsurface%create(label)
-        !
-        label = 'hessboundary_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%hessian%create(label)
-        !
-        !--------------------------------------------------------------------------------
-        ! Components required for boundary of density
-        !
-        label = 'boundary_density_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%density%create(label)
-        !
-        label = 'dboundary_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%dscaled%create(label)
-        !
-        label = 'd2boundary_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%d2scaled%create(label)
-        !
-        !--------------------------------------------------------------------------------
-        ! Components required for boundary of functions
-        !
-        IF (ALLOCATED(this%soft_spheres)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        ! Components required for solvent-aware interface
         !
         this%solvent_aware = .FALSE.
-        label = 'local_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%local%create(label)
-        !
-        label = 'probe_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%probe%create(label)
-        !
-        label = 'filling_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%filling%create(label)
-        !
-        label = 'dfilling_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%dfilling%create(label)
-        !
-        !--------------------------------------------------------------------------------
-        ! Components required for field-aware interface
-        !
         this%field_aware = .FALSE.
-        label = 'normal_field_'//TRIM(ADJUSTL(local_label))
-        !
-        CALL this%normal_field%create(label)
-        !
-        IF (ALLOCATED(this%ion_field)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        IF (ALLOCATED(this%local_spheres)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        IF (ALLOCATED(this%dion_field_drho)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        IF (ALLOCATED(this%partial_of_ion_field)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_boundary
@@ -366,6 +304,8 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary_first'
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%create()
         !
         IF (need_hessian) THEN
             this%deriv = 3
@@ -449,16 +389,9 @@ CONTAINS
         IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
             ALLOCATE (this%ion_field(this%ions%number))
             ALLOCATE (this%dion_field_drho(this%ions%number))
-            !
-            ALLOCATE (this%partial_of_ion_field(3, this%ions%number, &
-                                                this%ions%number))
-            !
+            ALLOCATE (this%partial_of_ion_field(3, this%ions%number, this%ions%number))
             ALLOCATE (this%local_spheres(this%ions%number))
         END IF
-        !
-        this%initialized = .FALSE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_boundary_first
@@ -466,63 +399,104 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_boundary_second(this, cell)
+    SUBROUTINE init_environ_boundary_second(this, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), INTENT(IN) :: cell
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
         INTEGER :: i
         !
+        CHARACTER(LEN=80) :: local_label
+        !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary_second'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%scaled%init(cell)
+        this%label = label
+        !
+        local_label = 'boundary_'//TRIM(ADJUSTL(label))
+        !
+        CALL this%scaled%init(cell, local_label)
         !
         IF (this%mode == 'electronic' .OR. this%mode == 'full' .OR. &
             this%mode == 'fa-electronic' .OR. this%mode == 'fa-full') THEN
             !
-            CALL this%density%init(cell)
+            local_label = 'boundary_density_'//TRIM(ADJUSTL(label))
             !
-            CALL this%dscaled%init(cell)
+            CALL this%density%init(cell, local_label)
             !
-            CALL this%d2scaled%init(cell)
+            local_label = 'dboundary_'//TRIM(ADJUSTL(label))
+            !
+            CALL this%dscaled%init(cell, local_label)
+            !
+            local_label = 'd2boundary_'//TRIM(ADJUSTL(label))
+            !
+            CALL this%d2scaled%init(cell, local_label)
             !
         END IF
         !
-        IF (this%deriv >= 1) CALL this%gradient%init(cell)
+        IF (this%deriv >= 1) THEN
+            local_label = 'gradboundary_'//TRIM(ADJUSTL(label))
+            !
+            CALL this%gradient%init(cell, local_label)
+            !
+        END IF
         !
-        IF (this%deriv >= 2) CALL this%laplacian%init(cell)
+        IF (this%deriv >= 2) THEN
+            local_label = 'laplboundary_'//TRIM(ADJUSTL(label))
+            !
+            CALL this%laplacian%init(cell, local_label)
+            !
+        END IF
         !
-        IF (this%deriv >= 3) CALL this%dsurface%init(cell)
+        IF (this%deriv >= 3) THEN
+            local_label = 'dsurface_'//TRIM(ADJUSTL(label))
+            !
+            CALL this%dsurface%init(cell, local_label)
+            !
+        END IF
         !
         IF (this%solvent_aware) THEN
+            local_label = 'local_'//TRIM(ADJUSTL(label))
             !
-            CALL this%local%init(cell)
+            CALL this%local%init(cell, local_label)
             !
-            CALL this%probe%init(cell)
+            local_label = 'probe_'//TRIM(ADJUSTL(label))
             !
-            CALL this%filling%init(cell)
+            CALL this%probe%init(cell, local_label)
             !
-            CALL this%dfilling%init(cell)
+            local_label = 'filling_'//TRIM(ADJUSTL(label))
             !
-            IF (this%deriv >= 3) CALL this%hessian%init(cell)
+            CALL this%filling%init(cell, local_label)
+            !
+            local_label = 'dfilling_'//TRIM(ADJUSTL(label))
+            !
+            CALL this%dfilling%init(cell, local_label)
+            !
+            IF (this%deriv >= 3) THEN
+                local_label = 'hessboundary_'//TRIM(ADJUSTL(label))
+                !
+                CALL this%hessian%init(cell, local_label)
+                !
+            END IF
             !
         END IF
         !
         IF (this%field_aware) THEN
             !
-            CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
+            CALL env_errore(sub_name, 'field-aware not yet implimented', 1)
             !
             IF (this%mode == 'fa-electronic' .OR. &
-                !
                 this%mode == 'fa-full') THEN
                 !
-                CALL this%normal_field%init(cell)
+                local_label = 'normal_field_'//TRIM(ADJUSTL(label))
+                !
+                CALL this%normal_field%init(cell, local_label)
                 !
             ELSE IF (this%mode == 'fa-ionic') THEN
                 !
@@ -537,8 +511,6 @@ CONTAINS
         END IF
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_boundary_second
@@ -677,8 +649,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE copy_environ_boundary
     !------------------------------------------------------------------------------------
@@ -750,7 +720,7 @@ CONTAINS
                 !
                 this%density%of_r = this%electrons%density%of_r + this%ions%core%of_r
                 !
-                CALL this%of_density()
+                CALL this%boundary_of_density()
                 !
                 this%update_status = 2 ! boundary has changed and is ready
                 !
@@ -762,7 +732,7 @@ CONTAINS
                 !
                 this%density%of_r = this%electrons%density%of_r
                 !
-                CALL this%of_density()
+                CALL this%boundary_of_density()
                 !
                 this%update_status = 2 ! boundary has changes and is ready
                 !
@@ -784,7 +754,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Only ions are needed, fully update the boundary
                 !
-                CALL this%of_functions()
+                CALL this%boundary_of_functions()
                 !
                 this%update_status = 2 ! boundary has changed and is ready
                 !
@@ -804,7 +774,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Only ions are needed, fully update the boundary
                 !
-                CALL this%of_system()
+                CALL this%boundary_of_system()
                 !
                 ! TO DEBUG SOLVENT-AWARE
                 ! !
@@ -833,8 +803,6 @@ CONTAINS
         !
         IF (this%update_status == 2 .AND. this%solvent_aware) &
             CALL this%solvent_aware_boundary()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_boundary
@@ -920,8 +888,7 @@ CONTAINS
                 END IF
                 !
                 IF (.NOT. ASSOCIATED(this%ions)) &
-                    CALL env_errore(sub_name, &
-                                    'Trying to destroy a non associated object', 1)
+                    CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
                 !
                 NULLIFY (this%ions)
             ELSE
@@ -942,8 +909,6 @@ CONTAINS
             END IF
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_boundary
@@ -975,8 +940,6 @@ CONTAINS
             !
         END DO
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_soft_spheres
     !------------------------------------------------------------------------------------
@@ -1006,8 +969,6 @@ CONTAINS
         vconfine%of_r = 0.D0
         vconfine%of_r = confine * (1.D0 - this%scaled%of_r)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vconfine
     !------------------------------------------------------------------------------------
@@ -1030,8 +991,6 @@ CONTAINS
         de_dboundary%of_r = de_dboundary%of_r - confine * rhoelec%of_r
         ! the functional derivative of the confine term is - confine * rho^elec(r)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_deconfine_dboundary
     !------------------------------------------------------------------------------------
@@ -1053,8 +1012,6 @@ CONTAINS
         !
         evolume = pressure * this%volume * e2 / 2.D0 ! computes the PV energy
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_evolume
     !------------------------------------------------------------------------------------
@@ -1075,8 +1032,6 @@ CONTAINS
         !
         de_dboundary%of_r = de_dboundary%of_r + pressure
         ! the functional derivative of the volume term is just unity
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_devolume_dboundary
@@ -1100,8 +1055,6 @@ CONTAINS
         esurface = surface_tension * this%surface * e2 / 2.D0
         ! computes the cavitation energy
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_esurface
     !------------------------------------------------------------------------------------
@@ -1122,8 +1075,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         de_dboundary%of_r = de_dboundary%of_r + surface_tension * this%dsurface%of_r
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_desurface_dboundary
@@ -1289,8 +1240,6 @@ CONTAINS
         END IF
         !
         IF (deriv >= 3 .AND. .NOT. this%solvent_aware) CALL hessian%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_of_density
@@ -1545,8 +1494,6 @@ CONTAINS
         !
         DEALLOCATE (local)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_of_functions
     !------------------------------------------------------------------------------------
@@ -1650,8 +1597,6 @@ CONTAINS
             !
             this%surface = this%gradient%modulus%integrate()
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_of_system
@@ -1758,8 +1703,6 @@ CONTAINS
             partial%of_r = 0.D0
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
     !------------------------------------------------------------------------------------
@@ -1789,8 +1732,6 @@ CONTAINS
             IF (this%solvent_aware) this%hessian%of_r = -this%hessian%of_r
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE invert_boundary
@@ -1835,8 +1776,7 @@ CONTAINS
         !
         CALL filled_fraction%init(cell)
         !
-        IF (deriv >= 2 .AND. this%derivatives%type_ /= 'fft') &
-            CALL d2filling%init(cell)
+        IF (deriv >= 2 .AND. this%derivatives%type_ /= 'fft') CALL d2filling%init(cell)
         !
         !--------------------------------------------------------------------------------
         ! Step 0: save local interface function for later use
@@ -2002,8 +1942,6 @@ CONTAINS
         !
         CALL filled_fraction%destroy()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE solvent_aware_boundary
     !------------------------------------------------------------------------------------
@@ -2047,8 +1985,6 @@ CONTAINS
         !
         CALL local%destroy()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_solvent_aware_de_dboundary
     !------------------------------------------------------------------------------------
@@ -2086,8 +2022,6 @@ CONTAINS
         !
         IF (deriv >= 3) CALL this%derivatives%convolution(this%probe, this%hessian, hess)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE compute_convolution_deriv
     !------------------------------------------------------------------------------------
@@ -2117,8 +2051,6 @@ CONTAINS
         !
         CALL calc_dsurface_no_pre(dens%cell%nnr, dens%cell%ir_end, grad%of_r, &
                                   hess%of_r, dsurface%of_r)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dsurface
@@ -2290,8 +2222,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

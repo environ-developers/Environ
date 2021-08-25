@@ -67,8 +67,8 @@ MODULE class_dielectric
     TYPE, PUBLIC :: environ_dielectric
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE.
-        LOGICAL :: initialized = .FALSE.
+        LOGICAL :: lupdate
+        LOGICAL :: initialized
         !
         !--------------------------------------------------------------------------------
         ! Basic properties of the dielectric space from input
@@ -83,7 +83,7 @@ MODULE class_dielectric
         !
         !--------------------------------------------------------------------------------
         !
-        TYPE(environ_boundary), POINTER :: boundary
+        TYPE(environ_boundary), POINTER :: boundary => NULL()
         ! boundary is the pointer to the object controlling the interface
         ! between the QM and the continuum region
         !
@@ -100,28 +100,28 @@ MODULE class_dielectric
         ! Quantities related to the dielectric permittivity and
         ! they may be needed by the different solvers
         !
-        LOGICAL :: need_gradient = .FALSE.
+        LOGICAL :: need_gradient
         TYPE(environ_gradient) :: gradient
         !
-        LOGICAL :: need_factsqrt = .FALSE.
+        LOGICAL :: need_factsqrt
         TYPE(environ_density) :: factsqrt
         !
-        LOGICAL :: need_gradlog = .FALSE.
+        LOGICAL :: need_gradlog
         TYPE(environ_gradient) :: gradlog
         !
         !--------------------------------------------------------------------------------
         ! Dielectric polarization charges and individual components
         !
         TYPE(environ_density) :: density
-        LOGICAL :: need_auxiliary = .FALSE.
+        LOGICAL :: need_auxiliary
         TYPE(environ_density) :: iterative
-        REAL(DP) :: charge = 0.0_DP
+        REAL(DP) :: charge
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_dielectric
+        PROCEDURE, PRIVATE :: create => create_environ_dielectric
         PROCEDURE :: init_first => init_environ_dielectric_first
         PROCEDURE :: init_second => init_environ_dielectric_second
         PROCEDURE :: update => update_environ_dielectric
@@ -161,65 +161,31 @@ CONTAINS
         !
         CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: label = ' '
-        !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_dielectric'
-        !
-        this%constant = 1.0_DP
         !
         !--------------------------------------------------------------------------------
         !
         IF (ALLOCATED(this%regions)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
+        CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
-        label = 'background'
+        IF (ASSOCIATED(this%boundary)) &
+        CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
-        CALL this%background%create(label)
-        !
-        label = 'gradbackground'
-        !
-        CALL this%gradbackground%create(label)
-        !
-        label = 'laplbackground'
-        !
-        CALL this%laplbackground%create(label)
-        !
-        label = 'epsilon'
-        !
-        CALL this%epsilon%create(label)
-        !
-        label = 'depsilon'
-        !
-        CALL this%depsilon%create(label)
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%boundary)
         !
-        label = 'epsilon_gradlog'
+        this%lupdate = .FALSE.
+        this%initialized = .FALSE.
         !
-        CALL this%gradlog%create(label)
+        this%constant = 1.0_DP
         !
         this%need_gradient = .FALSE.
-        label = 'epsilon_gradient'
-        !
-        CALL this%gradient%create(label)
-        !
         this%need_factsqrt = .FALSE.
-        label = 'epsilon_factsqrt'
-        !
-        CALL this%factsqrt%create(label)
-        !
-        label = 'polarization_density'
-        !
-        CALL this%density%create(label)
-        !
+        this%need_gradlog = .FALSE.
         this%need_auxiliary = .FALSE.
-        label = 'iterative'
-        !
-        CALL this%iterative%create(label)
         !
         this%charge = 0.D0
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_dielectric
@@ -242,6 +208,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         this%constant = constant
         !
         this%boundary => boundary
@@ -250,10 +218,6 @@ CONTAINS
         this%need_factsqrt = need_factsqrt
         !
         this%need_auxiliary = need_auxiliary
-        !
-        this%initialized = .FALSE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_dielectric_first
@@ -271,47 +235,71 @@ CONTAINS
         !
         INTEGER :: i
         !
+        CHARACTER(LEN=80) :: local_label = ' '
+        !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_dielectric_second'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%nregions > 0) THEN
-            !
-            DO i = 1, this%nregions
-                this%regions(i)%pos = this%regions(i)%pos
-            END DO
-            !
-        END IF
+        local_label = 'background'
         !
-        CALL this%background%init(cell)
+        CALL this%background%init(cell, local_label)
         !
         this%background%of_r(:) = this%constant
         !
         IF (this%nregions > 0) THEN
             !
-            CALL this%gradbackground%init(cell)
+            local_label = 'gradbackground'
             !
-            IF (this%need_factsqrt) CALL this%laplbackground%init(cell)
+            CALL this%gradbackground%init(cell, local_label)
+            !
+            IF (this%need_factsqrt) THEN
+                local_label = 'laplbackground'
+                !
+                CALL this%laplbackground%init(cell, local_label)
+                !
+            END IF
             !
         END IF
         !
-        CALL this%epsilon%init(cell)
+        local_label = 'epsilon'
         !
-        CALL this%depsilon%init(cell)
+        CALL this%epsilon%init(cell, local_label)
         !
-        CALL this%gradlog%init(cell)
+        local_label = 'depsilon'
         !
-        IF (this%need_gradient) CALL this%gradient%init(cell)
+        CALL this%depsilon%init(cell, local_label)
         !
-        IF (this%need_factsqrt) CALL this%factsqrt%init(cell)
+        local_label = 'epsilon_gradlog'
         !
-        CALL this%density%init(cell)
+        CALL this%gradlog%init(cell, local_label)
         !
-        IF (this%need_auxiliary) CALL this%iterative%init(cell)
+        IF (this%need_gradient) THEN
+            local_label = 'epsilon_gradient'
+            !
+            CALL this%gradient%init(cell, local_label)
+            !
+        END IF
+        !
+        IF (this%need_factsqrt) THEN
+            local_label = 'epsilon_factsqrt'
+            !
+            CALL this%factsqrt%init(cell, local_label)
+            !
+        END IF
+        !
+        local_label = 'polarization_density'
+        !
+        CALL this%density%init(cell, local_label)
+        !
+        IF (this%need_auxiliary) THEN
+            local_label = 'iterative'
+            !
+            CALL this%iterative%init(cell, local_label)
+            !
+        END IF
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_dielectric_second
@@ -372,8 +360,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_dielectric
     !------------------------------------------------------------------------------------
@@ -405,7 +391,7 @@ CONTAINS
             END IF
             !
             IF (.NOT. ASSOCIATED(this%boundary)) &
-                CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
             NULLIFY (this%boundary)
         END IF
@@ -439,8 +425,6 @@ CONTAINS
             this%initialized = .FALSE.
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_dielectric
@@ -477,8 +461,6 @@ CONTAINS
                                         axes, dims, widths, spreads, eps, pos)
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_dielectric_regions
@@ -696,8 +678,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE dielectric_of_boundary
     !------------------------------------------------------------------------------------
@@ -745,8 +725,6 @@ CONTAINS
         !
         this%charge = this%density%integrate()
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE dielectric_of_potential
     !------------------------------------------------------------------------------------
@@ -781,8 +759,6 @@ CONTAINS
                             0.5D0 / fpi / e2
         !
         CALL gradient%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dedielectric_dboundary
@@ -830,8 +806,6 @@ CONTAINS
                             aux%of_r * this%depsilon%of_r / (fpi * e2)
         !
         CALL aux%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dvdielectric_dboundary
@@ -927,8 +901,6 @@ CONTAINS
         IF (this%need_factsqrt) CALL lapllocal%destroy()
         !
         IF (verbose >= 3) CALL this%background%printout()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_dielectric_background
@@ -1036,8 +1008,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

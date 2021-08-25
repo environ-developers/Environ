@@ -194,8 +194,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_vperiodic
     !------------------------------------------------------------------------------------
@@ -288,8 +286,6 @@ CONTAINS
         ! sum the periodic contribution to the total gradient of the potential
         !
         CALL glocal%destroy()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_gradvperiodic
@@ -391,8 +387,6 @@ CONTAINS
         CALL local%destroy()
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_fperiodic
@@ -639,8 +633,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_vgcs
     !------------------------------------------------------------------------------------
@@ -846,8 +838,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_gradvgcs
     !------------------------------------------------------------------------------------
@@ -1016,8 +1006,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_vms
     !------------------------------------------------------------------------------------
@@ -1112,8 +1100,6 @@ CONTAINS
         CALL glocal%destroy()
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_1da_gradvms

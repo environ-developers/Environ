@@ -54,9 +54,9 @@ MODULE class_gradient
     TYPE, PUBLIC :: environ_gradient
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
+        LOGICAL :: lupdate ! optionally have an associated logical status
         !
-        CHARACTER(LEN=80) :: label = ' '
+        CHARACTER(LEN=80) :: label
         ! optionally have an associated label, used for printout and debugs
         !
         TYPE(environ_cell), POINTER :: cell => NULL()
@@ -71,7 +71,7 @@ MODULE class_gradient
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_gradient
+        PROCEDURE, PRIVATE :: create => create_environ_gradient
         PROCEDURE :: init => init_environ_gradient
         PROCEDURE :: copy => copy_environ_gradient
         PROCEDURE :: update_modulus => update_gradient_modulus
@@ -98,37 +98,29 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_gradient(this, label)
+    SUBROUTINE create_environ_gradient(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
-        !
         CLASS(environ_gradient), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: modulus_label
         !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (PRESENT(label)) THEN
-            this%label = label
-            modulus_label = TRIM(ADJUSTL(label))//'_modulus'
-        ELSE
-            this%label = 'gradient'
-            modulus_label = 'gradient_modulus'
-        END IF
+        IF (ASSOCIATED(this%cell)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%cell)
         !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        CALL this%modulus%create(modulus_label)
-        !
-        RETURN
+        this%label = 'gradient'
+        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_gradient
@@ -136,35 +128,35 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_gradient(this, cell)
+    SUBROUTINE init_environ_gradient(this, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_gradient), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: modulus_label = 'gradient_modulus'
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_gradient'
         !
         !--------------------------------------------------------------------------------
         !
-        this%lupdate = .FALSE.
+        CALL this%create()
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to associate an associated object', 1)
+        IF (PRESENT(label)) THEN
+            this%label = label
+            modulus_label = TRIM(ADJUSTL(label))//'_modulus'
+        END IF
         !
         this%cell => cell
-        !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to allocate an allocated object', 1)
         !
         ALLOCATE (this%of_r(3, this%cell%nnr))
         this%of_r = 0.D0
         !
-        CALL this%modulus%init(cell)
-        !
-        RETURN
+        CALL this%modulus%init(cell, modulus_label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_gradient
@@ -206,8 +198,6 @@ CONTAINS
         !
         CALL this%modulus%copy(copy%modulus)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE copy_environ_gradient
     !------------------------------------------------------------------------------------
@@ -231,8 +221,6 @@ CONTAINS
                                            this%of_r(2, 1:ir_end)**2 + &
                                            this%of_r(3, 1:ir_end)**2)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_gradient_modulus
     !------------------------------------------------------------------------------------
@@ -250,21 +238,21 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%lupdate = .FALSE.
-        !
         IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
-        !
-        NULLIFY (this%cell)
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
         !
         IF (.NOT. ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        NULLIFY (this%cell)
         !
         DEALLOCATE (this%of_r)
         !
         CALL this%modulus%destroy()
         !
-        RETURN
+        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_gradient
@@ -304,8 +292,6 @@ CONTAINS
         DO ir = 1, dens%cell%ir_end
             dens%of_r(ir) = SUM(this%of_r(:, ir) * gradB%of_r(:, ir))
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE scalar_product_environ_gradient
@@ -348,8 +334,6 @@ CONTAINS
             !
             res(ipol) = scalar_product * density%cell%domega
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION scalar_product_environ_gradient_density
@@ -449,8 +433,6 @@ CONTAINS
         END IF
         !
         FLUSH (environ_unit)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
         !

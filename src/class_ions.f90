@@ -63,35 +63,35 @@ MODULE class_ions
     TYPE, PUBLIC :: environ_ions
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: initialized = .FALSE.
-        LOGICAL :: lupdate = .FALSE.
-        INTEGER :: number = 0
+        LOGICAL :: initialized
+        LOGICAL :: lupdate
+        INTEGER :: number
         REAL(DP) :: center(3)
         !
         !--------------------------------------------------------------------------------
         ! Specifications of point-like ions
         !
-        INTEGER :: ntyp = 0
+        INTEGER :: ntyp
         INTEGER, ALLOCATABLE :: ityp(:)
-        REAL(DP), POINTER :: tau(:, :)
+        REAL(DP), POINTER :: tau(:, :) => NULL()
         TYPE(environ_iontype), ALLOCATABLE :: iontype(:)
         !
         !--------------------------------------------------------------------------------
         ! Parameters of the fictitious gaussian ionic density
         ! needed by electrostatic calculations
         !
-        LOGICAL :: use_smeared_ions = .FALSE.
+        LOGICAL :: use_smeared_ions
         TYPE(environ_function), ALLOCATABLE :: smeared_ions(:)
         TYPE(environ_density) :: density
         !
         !--------------------------------------------------------------------------------
         ! Parameters of the density of core electrons
         !
-        LOGICAL :: use_core_electrons = .FALSE.
+        LOGICAL :: use_core_electrons
         TYPE(environ_function), ALLOCATABLE :: core_electrons(:)
         TYPE(environ_density) :: core
         !
-        REAL(DP) :: charge = 0.0_DP
+        REAL(DP) :: charge
         REAL(DP) :: quadrupole_correction
         REAL(DP) :: selfenergy_correction
         REAL(DP) :: dipole(3)
@@ -104,7 +104,7 @@ MODULE class_ions
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_environ_ions
+        PROCEDURE, PRIVATE :: create => create_environ_ions
         PROCEDURE :: init_first => init_environ_ions_first
         PROCEDURE :: init_second => init_environ_ions_second
         PROCEDURE :: update => update_environ_ions
@@ -146,41 +146,41 @@ CONTAINS
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: label = ' '
-        !
         CHARACTER(LEN=80) :: sub_name = 'create_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
-        this%lupdate = .FALSE.
+        IF (ASSOCIATED(this%tau)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
         IF (ALLOCATED(this%ityp)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
         IF (ALLOCATED(this%iontype)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%smeared_ions)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%core_electrons)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%tau)
         !
+        this%lupdate = .FALSE.
+        this%initialized = .FALSE.
         this%use_smeared_ions = .FALSE.
-        !
-        IF (ALLOCATED(this%smeared_ions)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        label = 'smeared_ions'
-        !
-        CALL this%density%create(label)
-        !
         this%use_core_electrons = .FALSE.
         !
-        IF (ALLOCATED(this%core_electrons)) &
-            CALL env_errore(sub_name, 'Trying to create an already allocated object', 1)
-        !
-        label = 'core_electrons'
-        !
-        CALL this%core%create(label)
-        !
-        RETURN
+        this%center = 0.D0
+        this%charge = 0.D0
+        this%dipole = 0.D0
+        this%quadrupole_pc = 0.D0
+        this%quadrupole_gauss = 0.D0
+        this%quadrupole_correction = 0.D0
+        this%selfenergy_correction = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_ions
@@ -212,20 +212,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%center = 0.D0
-        this%dipole = 0.D0
-        this%quadrupole_pc = 0.D0
-        this%quadrupole_gauss = 0.D0
-        this%quadrupole_correction = 0.D0
-        this%selfenergy_correction = 0.D0
+        CALL this%create()
         !
         this%number = nat
         this%ntyp = ntyp
         !
         !--------------------------------------------------------------------------------
         ! Allocate the basic vectors, cannot initialize them here
-        !
-        this%initialized = .FALSE.
         !
         ALLOCATE (this%tau(3, nat))
         this%tau = 0.D0
@@ -271,8 +264,6 @@ CONTAINS
         this%use_smeared_ions = lsmearedions
         this%use_core_electrons = lcoredensity
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_ions_first
     !------------------------------------------------------------------------------------
@@ -298,6 +289,8 @@ CONTAINS
         INTEGER, DIMENSION(:), ALLOCATABLE :: local_dim, local_axis
         REAL(DP), DIMENSION(:), ALLOCATABLE :: atomicspread, corespread, Z, local_width
         CHARACTER(LEN=20) :: item
+        !
+        CHARACTER(LEN=80) :: local_label
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ions_second'
         !
@@ -329,7 +322,10 @@ CONTAINS
             ! initialization is called. If merged with the first step, remove the test.
             !
             IF (.NOT. ALLOCATED(this%density%of_r)) THEN
+                local_label = 'smeared_ions'
+                !
                 CALL this%density%init(cell)
+                !
             ELSE
                 this%density%of_r = 0.D0
             END IF
@@ -359,7 +355,10 @@ CONTAINS
             ! initialization is called. If merged with the first step, remove the test.
             !
             IF (.NOT. ALLOCATED(this%core%of_r)) THEN
+                local_label = 'core_electrons'
+                !
                 CALL this%core%init(cell)
+                !
             ELSE
                 this%core%of_r = 0.D0
             END IF
@@ -386,8 +385,6 @@ CONTAINS
         END IF
         !
         this%initialized = .TRUE.
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_ions_second
@@ -483,8 +480,6 @@ CONTAINS
             this%quadrupole_gauss(:) = this%quadrupole_pc(:) + this%quadrupole_correction
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_ions
     !------------------------------------------------------------------------------------
@@ -516,29 +511,23 @@ CONTAINS
             !
             this%charge = 0.D0
             this%initialized = .FALSE.
-            !
         END IF
         !
         IF (lflag) THEN
             !
             IF (.NOT. ALLOCATED(this%ityp)) &
-                CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
-            !
-            DEALLOCATE (this%ityp)
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
             IF (.NOT. ALLOCATED(this%iontype)) &
-                CALL env_errore(sub_name, 'Trying to destroy a non allocated object', 1)
-            !
-            DEALLOCATE (this%iontype)
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
             IF (.NOT. ASSOCIATED(this%tau)) &
-                CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
+            DEALLOCATE (this%ityp)
+            DEALLOCATE (this%iontype)
             DEALLOCATE (this%tau)
-            !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_ions
@@ -571,8 +560,6 @@ CONTAINS
         DO i = 1, this%number
             array(i) = this%iontype(this%ityp(i))%label
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convert_iontype_to_ion_array_char
@@ -613,8 +600,6 @@ CONTAINS
             END DO
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convert_iontype_to_ion_array_integer
@@ -667,8 +652,6 @@ CONTAINS
             END DO
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convert_iontype_to_ion_array_real
@@ -778,8 +761,6 @@ CONTAINS
         !
         FLUSH (environ_unit)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
         !
 1000    FORMAT(/, 4('%'), ' IONS ', 70('%'))
@@ -821,8 +802,6 @@ CONTAINS
                 this%tau(1, iat), this%tau(2, iat), this%tau(3, iat)
             !
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_ions

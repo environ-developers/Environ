@@ -62,7 +62,7 @@ MODULE class_core_fft_electrostatics
     TYPE, EXTENDS(core_fft_derivatives), PUBLIC :: core_fft_electrostatics
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: use_internal_pbc_corr = .FALSE.
+        LOGICAL :: use_internal_pbc_corr
         !
         REAL(DP) :: alpha, beta
         REAL(DP), ALLOCATABLE :: mt_corr(:)
@@ -111,6 +111,13 @@ CONTAINS
         !
         CLASS(core_fft_electrostatics), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'init_core_fft_electrostatics_first'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ALLOCATED(this%mt_corr)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         CALL this%core_fft%init_first()
@@ -120,8 +127,6 @@ CONTAINS
         ELSE
             this%use_internal_pbc_corr = .FALSE.
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_fft_electrostatics_first
@@ -153,8 +158,6 @@ CONTAINS
             !
         END IF
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_fft_electrostatics_second
     !------------------------------------------------------------------------------------
@@ -175,8 +178,6 @@ CONTAINS
         CALL this%core_fft%update_cell(cell)
         !
         IF (this%use_internal_pbc_corr) CALL this%update_mt_correction()
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_core_fft_electrostatics_cell
@@ -200,8 +201,6 @@ CONTAINS
         CALL this%core_fft%destroy(lflag)
         !
         IF (this%use_internal_pbc_corr) DEALLOCATE (this%mt_corr)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_fft_electrostatics
@@ -285,8 +284,6 @@ CONTAINS
         !
         fout%of_r(:) = DBLE(auxr(:))
         DEALLOCATE (auxr)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_fft
@@ -390,8 +387,6 @@ CONTAINS
         !
         DEALLOCATE (auxr)
         DEALLOCATE (auxg)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE gradpoisson_fft
@@ -512,8 +507,6 @@ CONTAINS
         !
         DEALLOCATE (auxg)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE force_fft
     !------------------------------------------------------------------------------------
@@ -624,8 +617,6 @@ CONTAINS
         !
         DEALLOCATE (gaux)
         DEALLOCATE (rhoaux)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessv_h_of_rho_r
@@ -743,8 +734,6 @@ CONTAINS
         !
         DEALLOCATE (eaux)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE field_of_gradrho
     !------------------------------------------------------------------------------------
@@ -836,8 +825,6 @@ CONTAINS
         !
         DEALLOCATE (aux)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_mt_correction
     !------------------------------------------------------------------------------------
@@ -867,8 +854,6 @@ CONTAINS
 !$omp end parallel do
         !
         v = e2 * v
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_vmt
@@ -905,8 +890,6 @@ CONTAINS
 !$omp end parallel do
         !
         v = e2 * v
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_gradvmt
@@ -950,8 +933,6 @@ CONTAINS
         END DO
         !
         force = e2 * force
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_fmt

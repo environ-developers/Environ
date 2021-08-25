@@ -64,15 +64,15 @@ MODULE class_solver_setup
         !
         CHARACTER(LEN=80) :: problem
         !
-        CLASS(electrostatic_solver), POINTER :: solver
+        CLASS(electrostatic_solver), POINTER :: solver => NULL()
         !
-        CLASS(electrostatic_setup), POINTER :: inner
+        CLASS(electrostatic_setup), POINTER :: inner => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: create => create_electrostatic_setup
+        PROCEDURE, PRIVATE :: create => create_electrostatic_setup
         PROCEDURE :: init => init_electrostatic_setup
         PROCEDURE :: destroy => destroy_electrostatic_setup
         !
@@ -105,13 +105,22 @@ CONTAINS
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'create_electrostatic_setup'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%solver)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ASSOCIATED(this%inner)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         this%problem = 'poisson'
+        !
         NULLIFY (this%solver)
         NULLIFY (this%inner)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_electrostatic_setup
@@ -133,6 +142,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Sanity check on the global setup
+        !
+        CALL this%create()
         !
         this%problem = problem
         this%solver => solver
@@ -211,8 +222,6 @@ CONTAINS
             !
         END SELECT
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_electrostatic_setup
     !------------------------------------------------------------------------------------
@@ -228,6 +237,8 @@ CONTAINS
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_electrostatic_setup'
+        !
         !--------------------------------------------------------------------------------
         !
         IF (lflag) THEN
@@ -242,13 +253,14 @@ CONTAINS
                 !
             END SELECT
             !
+            IF (.NOT. ASSOCIATED(this%solver)) &
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            !
             NULLIFY (this%solver)
             !
             IF (ASSOCIATED(this%inner)) CALL this%inner%destroy(lflag)
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_electrostatic_setup
@@ -297,8 +309,6 @@ CONTAINS
             END SELECT
             !
         END SELECT
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_electrostatic_flags
@@ -438,8 +448,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_velectrostatic
     !------------------------------------------------------------------------------------
@@ -522,8 +530,6 @@ CONTAINS
         energy = energy + eself + degauss
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_eelectrostatic
@@ -608,8 +614,6 @@ CONTAINS
         CALL aux%destroy()
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_felectrostatic
