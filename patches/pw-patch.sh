@@ -211,7 +211,7 @@ sed '/Environ CALLS BEGIN/ a\
     ir_end = dfftp%nnr\
 #endif\
   IF (use_environ) & \
-      CALL init_environ_base_second(alat, at, intra_bgrp_comm, me_bgrp, root_bgrp, gcutm)\
+      CALL init_environ_base_second(alat, at, intra_bgrp_comm, gcutm)\
 !Environ patch
 ' tmp.2 >tmp.1
 

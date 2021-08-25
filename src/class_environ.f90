@@ -314,12 +314,12 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initbase(this, at, comm_in, me, root, gcutm)
+    SUBROUTINE environ_initbase(this, at, comm_in, gcutm)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: comm_in, me, root
+        INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
         !

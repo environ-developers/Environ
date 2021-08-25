@@ -211,7 +211,7 @@ USE    environ_QE_interface, ONLY : init_environ_base_second\
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
   IF ( use_environ ) CALL init_environ_base_second(alat, at, &\
-                                                   & intra_bgrp_comm, me_bgrp, root_bgrp, &\
+                                                   & intra_bgrp_comm, &\
                                                    & gcutm, 1.D0)\
 !Environ patch
 ' tmp.1 > tmp.2

@@ -162,12 +162,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base_second(alat, at, comm_in, me, root, gcutm, e2_in)
+    SUBROUTINE init_environ_base_second(alat, at, comm_in, gcutm, e2_in)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: comm_in, me, root
+        INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: alat
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
@@ -205,7 +205,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init_second(at_scaled, comm_in, me, root, gcutm_scaled)
+        CALL env%init_second(at_scaled, comm_in, gcutm_scaled)
         !
         DEALLOCATE(at_scaled)
         !
