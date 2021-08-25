@@ -98,7 +98,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ASSOCIATED(this%correction)) &
-            CALL env_errore(sub_name, 'Trying to create an existing container')
+            CALL env_errore(sub_name, 'Trying to create an existing container', 1)
         !
         this%correction => correction
         !
