@@ -87,11 +87,13 @@ core_fd_derivatives.o : constants.o
 core_fd_derivatives.o : core_fd.o
 core_fd_derivatives.o : density.o
 core_fd_derivatives.o : gradient.o
+core_fft.o : ../FFTs/fft_ggen.o
+core_fft.o : ../FFTs/types_fft.o
 core_fft.o : ../utils/mp.o
+core_fft.o : ../utils/sorting.o
 core_fft.o : cell.o
 core_fft.o : constants.o
 core_fft.o : core_numerical.o
-core_fft.o : generate_gvectors.o
 core_fft_derivatives.o : ../FFTs/fft_main.o
 core_fft_derivatives.o : ../FFTs/types_fft.o
 core_fft_derivatives.o : cell.o
@@ -166,11 +168,6 @@ generate_functions.o : constants.o
 generate_functions.o : density.o
 generate_functions.o : gradient.o
 generate_functions.o : hessian.o
-generate_gvectors.o : ../FFTs/fft_ggen.o
-generate_gvectors.o : ../FFTs/types_fft.o
-generate_gvectors.o : ../utils/mp.o
-generate_gvectors.o : ../utils/sorting.o
-generate_gvectors.o : constants.o
 gradient.o : ../utils/base_io.o
 gradient.o : ../utils/mp.o
 gradient.o : cell.o
