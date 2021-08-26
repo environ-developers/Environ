@@ -7,6 +7,7 @@ QE_interface.o : input.o
 QE_interface.o : main.o
 base_input.o : constants.o
 boundary.o : ../utils/base_io.o
+boundary.o : ../utils/tools_math.o
 boundary.o : cell.o
 boundary.o : constants.o
 boundary.o : core_container_derivatives.o
@@ -15,7 +16,6 @@ boundary.o : core_fft.o
 boundary.o : density.o
 boundary.o : electrons.o
 boundary.o : functions.o
-boundary.o : generate_boundary.o
 boundary.o : gradient.o
 boundary.o : hessian.o
 boundary.o : ions.o
@@ -73,7 +73,6 @@ core_container_electrostatics.o : core_container_corrections.o
 core_container_electrostatics.o : core_container_derivatives.o
 core_container_electrostatics.o : core_fft_electrostatics.o
 core_container_electrostatics.o : density.o
-core_container_electrostatics.o : generate_boundary.o
 core_container_electrostatics.o : gradient.o
 core_container_electrostatics.o : ions.o
 core_fd.o : cell.o
@@ -155,12 +154,6 @@ functions.o : density.o
 functions.o : generate_functions.o
 functions.o : gradient.o
 functions.o : hessian.o
-generate_boundary.o : ../utils/tools_math.o
-generate_boundary.o : cell.o
-generate_boundary.o : constants.o
-generate_boundary.o : density.o
-generate_boundary.o : gradient.o
-generate_boundary.o : hessian.o
 generate_functions.o : ../utils/mp.o
 generate_functions.o : ../utils/tools_math.o
 generate_functions.o : cell.o

@@ -40,8 +40,6 @@ MODULE class_core_container_electrostatics
     !
     USE class_ions
     !
-    USE generate_boundary
-    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
