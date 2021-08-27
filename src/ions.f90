@@ -46,6 +46,8 @@ MODULE class_ions
     !
     USE class_cell
     USE class_density
+    USE class_function
+    USE class_function_gaussian
     USE class_functions
     !
     USE class_iontype
@@ -81,14 +83,14 @@ MODULE class_ions
         ! needed by electrostatic calculations
         !
         LOGICAL :: use_smeared_ions
-        TYPE(environ_function), ALLOCATABLE :: smeared_ions(:)
+        CLASS(environ_function), ALLOCATABLE :: smeared_ions(:)
         TYPE(environ_density) :: density
         !
         !--------------------------------------------------------------------------------
         ! Parameters of the density of core electrons
         !
         LOGICAL :: use_core_electrons
-        TYPE(environ_function), ALLOCATABLE :: core_electrons(:)
+        CLASS(environ_function), ALLOCATABLE :: core_electrons(:)
         TYPE(environ_density) :: core
         !
         REAL(DP) :: charge
@@ -334,7 +336,7 @@ CONTAINS
             ! Build smeared ions from iontype data
             !
             IF (.NOT. ALLOCATED(this%smeared_ions)) THEN
-                ALLOCATE (this%smeared_ions(this%number))
+                ALLOCATE (environ_function_gaussian :: this%smeared_ions(this%number))
                 !
                 DO i = 1, this%number
                     !
@@ -367,7 +369,7 @@ CONTAINS
             ! Build core electrons from iontype data
             !
             IF (.NOT. ALLOCATED(this%core_electrons)) THEN
-                ALLOCATE (this%core_electrons(this%number))
+                ALLOCATE (environ_function_gaussian :: this%core_electrons(this%number))
                 !
                 DO i = 1, this%number
                     !

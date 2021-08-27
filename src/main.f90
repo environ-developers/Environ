@@ -2090,15 +2090,15 @@ CONTAINS
             !
             IF (this%solvent%solvent_aware) WRITE (program_unit, 1006)
             !
-            IF (this%solvent%field_aware) THEN
-                WRITE (program_unit, 1007)
-                !
-                WRITE (program_unit, 1008) &
-                    this%solvent%field_factor, this%solvent%charge_asymmetry
-                !
-                WRITE (program_unit, 1009) this%solvent%field_min, this%solvent%field_max
-                !
-            END IF
+            ! IF (this%solvent%field_aware) THEN
+            !     WRITE (program_unit, 1007)
+            !     !
+            !     WRITE (program_unit, 1008) &
+            !         this%solvent%field_factor, this%solvent%charge_asymmetry
+            !     !
+            !     WRITE (program_unit, 1009) this%solvent%field_min, this%solvent%field_max
+            !     !
+            ! END IF
             !
         END IF
         !

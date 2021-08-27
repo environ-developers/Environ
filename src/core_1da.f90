@@ -40,8 +40,6 @@ MODULE class_core_1da
     !
     USE class_core_numerical
     !
-    USE generate_functions, ONLY: generate_axis, generate_distance
-    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -214,6 +212,10 @@ CONTAINS
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !
+        LOGICAL :: physical
+        INTEGER :: ir
+        REAL(DP) :: r(3), r2
+        !
         CHARACTER(LEN=80) :: sub_name = 'update_core_1da_origin'
         !
         !--------------------------------------------------------------------------------
@@ -221,11 +223,31 @@ CONTAINS
         this%origin = origin
         !
         IF (this%d == 0) THEN
-            CALL generate_distance(this%cell, this%origin, this%x)
+            !
+            DO ir = 1, this%cell%ir_end
+                !
+                CALL this%cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                this%x(:, ir) = -r
+            END DO
+            !
         ELSE IF (this%d == 1) THEN
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
         ELSE IF (this%d == 2) THEN
-            CALL generate_axis(this%cell, this%axis, this%origin, this%x(1, :))
+            !
+            DO ir = 1, this%cell%ir_end
+                !
+                CALL this%cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                this%x(1, ir) = -r(this%axis)
+            END DO
+            !
         END IF
         !
         !--------------------------------------------------------------------------------

@@ -49,6 +49,8 @@ MODULE class_dielectric
     !
     USE class_cell
     USE class_density
+    USE class_function
+    USE class_function_erfc
     USE class_functions
     USE class_gradient
     !
@@ -74,7 +76,7 @@ MODULE class_dielectric
         ! Basic properties of the dielectric space from input
         !
         INTEGER :: nregions
-        TYPE(environ_function), ALLOCATABLE :: regions(:)
+        CLASS(environ_function), ALLOCATABLE :: regions(:)
         !
         REAL(DP) :: constant
         TYPE(environ_density) :: background
@@ -124,10 +126,9 @@ MODULE class_dielectric
         PROCEDURE, PRIVATE :: create => create_environ_dielectric
         PROCEDURE :: init_first => init_environ_dielectric_first
         PROCEDURE :: init_second => init_environ_dielectric_second
+        PROCEDURE :: set_regions => set_dielectric_regions
         PROCEDURE :: update => update_environ_dielectric
         PROCEDURE :: destroy => destroy_environ_dielectric
-        !
-        PROCEDURE :: set_regions => set_dielectric_regions
         !
         PROCEDURE :: of_boundary => dielectric_of_boundary
         PROCEDURE :: of_potential => dielectric_of_potential
@@ -307,6 +308,38 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE set_dielectric_regions(this, nregions, dims, axes, pos, widths, &
+                                      spreads, eps)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: nregions
+        INTEGER, DIMENSION(nregions), INTENT(IN) :: dims, axes
+        REAL(DP), DIMENSION(nregions), INTENT(IN) :: widths, spreads, eps
+        REAL(DP), INTENT(IN) :: pos(3, nregions)
+        !
+        CLASS(environ_dielectric), INTENT(INOUT) :: this
+        !
+        TYPE(environ_function_erfc) :: fsrc
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%nregions = nregions
+        !
+        IF (this%nregions > 0) THEN
+            !
+            CALL init_environ_functions(this%regions, fsrc, nregions, 4, axes, dims, &
+                                        widths, spreads, eps, pos)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_dielectric_regions
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE update_environ_dielectric(this)
         !--------------------------------------------------------------------------------
         !
@@ -434,36 +467,6 @@ CONTAINS
     !                                  GENERAL METHODS
     !
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE set_dielectric_regions(this, nregions, dims, axes, pos, widths, &
-                                      spreads, eps)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: nregions
-        INTEGER, DIMENSION(nregions), INTENT(IN) :: dims, axes
-        REAL(DP), DIMENSION(nregions), INTENT(IN) :: widths, spreads, eps
-        REAL(DP), INTENT(IN) :: pos(3, nregions)
-        !
-        CLASS(environ_dielectric), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%nregions = nregions
-        !
-        IF (this%nregions > 0) THEN
-            !
-            CALL init_environ_functions(this%regions, nregions, 4, &
-                                        axes, dims, widths, spreads, eps, pos)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_dielectric_regions
     !------------------------------------------------------------------------------------
     !>
     !!

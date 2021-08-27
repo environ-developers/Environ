@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 !
 !----------------------------------------------------------------------------------------
 !
@@ -20,25 +20,22 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Edan Bainglass (Department of Physics, UNT)
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_container_electrostatics
+MODULE class_function_exponential
     !------------------------------------------------------------------------------------
     !
     USE environ_param, ONLY: DP
     !
     USE class_density
+    USE class_function
     USE class_gradient
-    !
-    USE class_core_container_corrections
-    USE class_core_container_derivatives
-    USE class_core_fft_electrostatics
-    !
-    USE class_ions
+    USE class_hessian
     !
     !------------------------------------------------------------------------------------
     !
@@ -50,24 +47,20 @@ MODULE class_core_container_electrostatics
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(container_derivatives), PUBLIC :: container_electrostatics
+    TYPE, EXTENDS(environ_function), PUBLIC :: environ_function_exponential
         !--------------------------------------------------------------------------------
-        !
-        CLASS(container_corrections), POINTER :: correction => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: add_correction
-        PROCEDURE :: destroy => destroy_electrostatics_container
-        !
-        PROCEDURE :: poisson => calc_poisson
-        PROCEDURE :: gradpoisson => calc_gradpoisson
-        PROCEDURE :: force => calc_force
+        PROCEDURE :: density => density_of_function_exponential
+        PROCEDURE :: gradient => gradient_of_function_exponential
+        PROCEDURE :: laplacian => laplacian_of_function_exponential
+        PROCEDURE :: hessian => hessian_of_function_exponential
         !
         !--------------------------------------------------------------------------------
-    END TYPE container_electrostatics
+    END TYPE environ_function_exponential
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -75,175 +68,180 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
-    !                                   ADMIN METHODS
+    !                                  GENERAL METHODS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE add_correction(this, correction)
+    SUBROUTINE density_of_function_exponential(this, density, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(container_corrections), TARGET, INTENT(IN) :: correction
+        CLASS(environ_function_exponential), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: density
         !
-        CHARACTER(LEN=80) :: sub_name = 'add_correction'
+        LOGICAL :: physical
+        INTEGER :: ir
+        REAL(DP) :: r(3), r2, dist, arg
+        REAL(DP), ALLOCATABLE :: local(:)
         !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ASSOCIATED(this%correction)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%correction => correction
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE add_correction
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_electrostatics_container(this, lflag)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
-        !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_electrostatics_container'
+        CHARACTER(LEN=80) :: sub_name = 'density_of_function_exponential'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
-            !
-            CALL this%core%destroy(lflag)
-            !
-            IF (.NOT. ASSOCIATED(this%core)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-            !
-            NULLIFY (this%core)
-            !
-            IF (ASSOCIATED(this%correction)) THEN
-                !
-                CALL this%correction%destroy(lflag)
-                !
-                IF (.NOT. ASSOCIATED(this%correction)) &
-                    CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-                !
-                NULLIFY (this%correction)
-            END IF
-            !
+        IF (PRESENT(zero)) THEN
+            IF (zero) density%of_r = 0.D0
         END IF
         !
+        ASSOCIATE (cell => density%cell, &
+                   pos => this%pos, &
+                   spread => this%spread, &
+                   width => this%width, &
+                   dim => this%dim, &
+                   axis => this%axis)
+            !
+            IF (axis < 1 .OR. axis > 3) &
+                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            !
+            ALLOCATE (local(cell%nnr))
+            local = 0.D0
+            !
+            DO ir = 1, cell%ir_end
+                !
+                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                dist = SQRT(r2)
+                arg = (dist - width) / spread
+                !
+                IF (ABS(arg) <= exp_tol) local(ir) = EXP(-arg)
+                ! compute exponentially decaying function
+                !
+            END DO
+            !
+            density%of_r = density%of_r + local
+            DEALLOCATE (local)
+            !
+        END ASSOCIATE
+        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_electrostatics_container
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                               ELECTROSTATIC METHODS
-    !
-    !------------------------------------------------------------------------------------
+    END SUBROUTINE density_of_function_exponential
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_poisson(this, density, potential)
+    SUBROUTINE gradient_of_function_exponential(this, gradient, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        CLASS(environ_function_exponential), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_poisson'
+        LOGICAL :: physical
+        INTEGER :: ir
+        REAL(DP) :: r(3), r2, dist, arg
+        REAL(DP), ALLOCATABLE ::gradlocal(:, :)
         !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_electrostatics)
-            CALL core%poisson(density, potential)
-            !
-        CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function_exponential'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_poisson
+        !
+        IF (PRESENT(zero)) THEN
+            IF (zero) gradient%of_r = 0.D0
+        END IF
+        !
+        ASSOCIATE (cell => gradient%cell, &
+                   pos => this%pos, &
+                   spread => this%spread, &
+                   width => this%width, &
+                   dim => this%dim, &
+                   axis => this%axis)
+            !
+            IF (axis < 1 .OR. axis > 3) &
+                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            !
+            ALLOCATE (gradlocal(3, cell%nnr))
+            gradlocal = 0.D0
+            !
+            DO ir = 1, cell%ir_end
+                !
+                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                ! compute minimum distance using minimum image convention
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                dist = SQRT(r2)
+                arg = (dist - width) / spread
+                !
+                ! compute exponentially decaying function
+                IF (r2 > tol .AND. ABS(arg) <= exp_tol) &
+                    gradlocal(:, ir) = r / SQRT(r2) / spread * EXP(-arg)
+                !
+            END DO
+            !
+            gradient%of_r = gradient%of_r + gradlocal
+            DEALLOCATE (gradlocal)
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE gradient_of_function_exponential
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradpoisson(this, density, gradient)
+    SUBROUTINE laplacian_of_function_exponential(this, laplacian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        CLASS(environ_function_exponential), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradpoisson'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_electrostatics)
-            CALL core%gradpoisson(density, gradient)
-            !
-        CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function_exponential'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradpoisson
+        !
+        CALL env_errore(sub_name, 'Options not yet implemented', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE laplacian_of_function_exponential
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_force(this, density, ions, natoms, force)
+    SUBROUTINE hessian_of_function_exponential(this, hessian, zero)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
-        TYPE(environ_ions), TARGET, INTENT(IN) :: ions
-        INTEGER, INTENT(IN) :: natoms
+        CLASS(environ_function_exponential), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        REAL(DP), INTENT(OUT) :: force(3, natoms)
+        TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_force'
+        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function_exponential'
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft_electrostatics)
-            CALL core%force(density, ions, natoms, force)
-            !
-        CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        CALL env_errore(sub_name, 'Options not yet implemented', 1)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_force
+    END SUBROUTINE hessian_of_function_exponential
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_container_electrostatics
+END MODULE class_function_exponential
 !----------------------------------------------------------------------------------------

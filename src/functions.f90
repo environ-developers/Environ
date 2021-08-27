@@ -43,13 +43,12 @@ MODULE class_functions
     !
     USE class_cell
     USE class_density
+    USE class_function
+    USE class_function_erfc
+    USE class_function_exponential
+    USE class_function_gaussian
     USE class_gradient
     USE class_hessian
-    !
-    USE generate_functions, ONLY: generate_gaussian, generate_erfc, &
-                                  generate_exponential, generate_gradgaussian, &
-                                  generate_graderfc, generate_gradexponential, &
-                                  generate_laplerfc, generate_hesserfc, erfcvolume
     !
     !------------------------------------------------------------------------------------
     !
@@ -60,38 +59,6 @@ MODULE class_functions
     PUBLIC :: init_environ_functions, copy_environ_functions, &
               destroy_environ_functions, density_of_functions, gradient_of_functions, &
               laplacian_of_functions, hessian_of_functions, print_environ_functions
-    !
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    TYPE, PUBLIC :: environ_function
-        !--------------------------------------------------------------------------------
-        !
-        INTEGER :: f_type, axis, dim
-        REAL(DP) :: width, spread, volume
-        !
-        REAL(DP), POINTER :: pos(:)
-        ! environ_functions are not designed to be mobile, thus position
-        ! can be included in the definition of the type
-        !
-        !--------------------------------------------------------------------------------
-    CONTAINS
-        !--------------------------------------------------------------------------------
-        !
-        PROCEDURE, PRIVATE :: create => create_environ_function
-        PROCEDURE :: init => init_environ_function
-        PROCEDURE :: copy => copy_environ_function
-        PROCEDURE :: destroy => destroy_environ_function
-        !
-        PROCEDURE :: density => density_of_function
-        PROCEDURE :: gradient => gradient_of_function
-        PROCEDURE :: laplacian => laplacian_of_function
-        PROCEDURE :: hessian => hessian_of_function
-        !
-        !--------------------------------------------------------------------------------
-    END TYPE environ_function
-    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -105,443 +72,20 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_function(this)
+    SUBROUTINE init_environ_functions(f, fsrc, n, type_in, axis_in, dim_in, width_in, &
+                                      spread_in, volume_in, pos_in)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%pos)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_environ_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_function(this, type_in, axis, dim_in, width, spread_in, &
-                                     volume_in, pos)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: type_in, dim_in, axis
-        REAL(DP), INTENT(IN) :: width, spread_in, volume_in
-        REAL(DP), TARGET, INTENT(IN) :: pos(3)
-        !
-        CLASS(environ_function), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%create()
-        !
-        this%f_type = type_in
-        this%dim = dim_in
-        this%axis = axis
-        this%spread = spread_in
-        this%width = width
-        this%volume = volume_in
-        !
-        this%pos => pos
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE copy_environ_function(this, copy)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_function), INTENT(IN) :: this
-        !
-        TYPE(environ_function), INTENT(OUT) :: copy
-        !
-        !--------------------------------------------------------------------------------
-        !
-        copy%pos => this%pos
-        !
-        copy%f_type = this%f_type
-        copy%dim = this%dim
-        copy%axis = this%axis
-        copy%spread = this%spread
-        copy%width = this%width
-        copy%volume = this%volume
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE copy_environ_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_function(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_function), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_function'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ASSOCIATED(this%pos)) NULLIFY (this%pos)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_environ_function
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                                  GENERAL METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE density_of_function(this, density, zero)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
-        !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: density
-        !
-        INTEGER :: i
-        REAL(DP) :: local_charge
-        !
-        INTEGER, POINTER :: type_, dim, axis
-        TYPE(environ_cell), POINTER :: cell
-        REAL(DP), POINTER :: charge, spread, width
-        REAL(DP), POINTER :: pos(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'density_of_function'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (PRESENT(zero)) THEN
-            IF (zero) density%of_r = 0.D0
-        END IF
-        !
-        cell => density%cell
-        !
-        type_ => this%f_type
-        pos => this%pos
-        spread => this%spread
-        charge => this%volume
-        width => this%width
-        dim => this%dim
-        axis => this%axis
-        !
-        SELECT CASE (type_)
-            !
-        CASE (1)
-            CALL generate_gaussian(dim, axis, charge, spread, pos, density) ! gaussian
-            !
-        CASE (2)
-            !
-            CALL generate_erfc(dim, axis, charge, width, spread, pos, density)
-            ! CHARGE * NORMALIZED_ERFC_HALF(X); integrates to charge
-            !
-        CASE (3)
-            !
-            CALL generate_exponential(dim, axis, width, spread, pos, density)
-            ! exponential
-            !
-        CASE (4)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
-            ! Goes from charge to 0
-            !
-            local_charge = erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_erfc(dim, axis, local_charge, width, spread, pos, density)
-            !
-        CASE (5)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF )
-            ! goes from 0 to charge
-            !
-            local_charge = -erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_erfc(dim, axis, local_charge, width, spread, pos, density)
-            !
-            density%of_r = density%of_r + charge
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE density_of_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE gradient_of_function(this, gradient, zero)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
-        !
-        TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
-        !
-        INTEGER :: i
-        REAL(DP) :: local_charge
-        !
-        INTEGER, POINTER :: type_, dim, axis
-        TYPE(environ_cell), POINTER :: cell
-        REAL(DP), POINTER :: charge, spread, width
-        REAL(DP), POINTER :: pos(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        cell => gradient%cell
-        !
-        IF (PRESENT(zero)) THEN
-            IF (zero) gradient%of_r = 0.D0
-        END IF
-        !
-        type_ => this%f_type
-        pos => this%pos
-        spread => this%spread
-        charge => this%volume
-        width => this%width
-        dim => this%dim
-        axis => this%axis
-        !
-        SELECT CASE (type_)
-            !
-        CASE (1)
-            !
-            CALL generate_gradgaussian(dim, axis, charge, spread, pos, gradient)
-            ! gaussian
-            !
-        CASE (2)
-            !
-            CALL generate_graderfc(dim, axis, charge, width, spread, pos, gradient)
-            ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
-            !
-        CASE (3)
-            !
-            CALL generate_gradexponential(dim, axis, width, spread, pos, gradient)
-            ! exponential
-            !
-        CASE (4)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
-            ! goes from charge to 0
-            !
-            local_charge = erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_graderfc(dim, axis, local_charge, width, spread, pos, gradient)
-            !
-        CASE (5)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF )
-            ! goes from 0 to charge
-            !
-            local_charge = -erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_graderfc(dim, axis, local_charge, width, spread, pos, gradient)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE gradient_of_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE laplacian_of_function(this, laplacian, zero)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
-        !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
-        !
-        INTEGER :: i
-        REAL(DP) :: local_charge
-        !
-        INTEGER, POINTER :: type_, dim, axis
-        TYPE(environ_cell), POINTER :: cell
-        REAL(DP), POINTER :: charge, spread, width
-        REAL(DP), POINTER :: pos(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        cell => laplacian%cell
-        !
-        IF (PRESENT(zero)) THEN
-            IF (zero) laplacian%of_r = 0.D0
-        END IF
-        !
-        type_ => this%f_type
-        pos => this%pos
-        spread => this%spread
-        charge => this%volume
-        width => this%width
-        dim => this%dim
-        axis => this%axis
-        !
-        SELECT CASE (type_)
-            !
-        CASE (1)
-            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! gaussian
-            !
-        CASE (2)
-            !
-            CALL generate_laplerfc(dim, axis, charge, width, spread, pos, laplacian)
-            ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
-            !
-        CASE (3)
-            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! exponential
-            !
-        CASE (4)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
-            ! goes from charge to 0
-            !
-            local_charge = erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_laplerfc(dim, axis, local_charge, width, spread, &
-                                   pos, laplacian)
-            !
-        CASE (5)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF )
-            ! goes from 0 to charge
-            !
-            local_charge = -erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_laplerfc(dim, axis, local_charge, width, spread, &
-                                   pos, laplacian)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE laplacian_of_function
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE hessian_of_function(this, hessian, zero)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: zero
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
-        !
-        TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
-        !
-        INTEGER :: i
-        REAL(DP) :: local_charge
-        !
-        INTEGER, POINTER :: type_, dim, axis
-        TYPE(environ_cell), POINTER :: cell
-        REAL(DP), POINTER :: charge, spread, width
-        REAL(DP), POINTER :: pos(:)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'hessian_of_function'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        cell => hessian%cell
-        !
-        IF (PRESENT(zero)) THEN
-            IF (zero) hessian%of_r = 0.D0
-        END IF
-        !
-        type_ => this%f_type
-        pos => this%pos
-        spread => this%spread
-        charge => this%volume
-        width => this%width
-        dim => this%dim
-        axis => this%axis
-        !
-        SELECT CASE (type_)
-            !
-        CASE (1)
-            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! gaussian
-            !
-        CASE (2)
-            !
-            CALL generate_hesserfc(dim, axis, charge, width, spread, pos, hessian)
-            ! CHARGE * NORMALIZED_ERFC_HALF(X) ! integrates to charge
-            !
-        CASE (3)
-            CALL env_errore(sub_name, 'Options not yet implemented', 1) ! exponential
-            !
-        CASE (4)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * NORMALIZED_ERFC_HALF(X) * VOLUME_NORMALIZED_ERFC_HALF
-            ! goes from charge to 0
-            !
-            local_charge = erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_hesserfc(dim, axis, local_charge, width, spread, pos, hessian)
-            !
-        CASE (5)
-            !
-            !----------------------------------------------------------------------------
-            ! CHARGE * ( 1 - NORMALIZED_ERFC_HALF(x) * VOLUME_NORMALIZED_ERFC_HALF )
-            ! goes from 0 to charge
-            !
-            local_charge = -erfcvolume(dim, axis, width, spread, cell) * charge
-            !
-            CALL generate_hesserfc(dim, axis, local_charge, width, spread, pos, hessian)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE hessian_of_function
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                                  ARRAY ROUTINES
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_functions(f, n, type_in, axis, dim_in, width, spread_in, &
-                                      volume_in, pos)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: n, type_in
-        INTEGER, DIMENSION(n), INTENT(IN) :: dim_in, axis
-        REAL(DP), DIMENSION(n), INTENT(IN) :: width, spread_in, volume_in
-        REAL(DP), TARGET, INTENT(IN) :: pos(3, n)
-        !
-        TYPE(environ_function), ALLOCATABLE, INTENT(INOUT) :: f(:)
+        CLASS(environ_function), INTENT(IN) :: fsrc
+        INTEGER, INTENT(IN) :: n
+        INTEGER, INTENT(IN) :: type_in
+        INTEGER, DIMENSION(n), INTENT(IN) :: dim_in, axis_in
+        REAL(DP), DIMENSION(n), INTENT(IN) :: width_in, spread_in, volume_in
+        REAL(DP), TARGET, INTENT(IN) :: pos_in(3, n)
+        !
+        CLASS(environ_function), ALLOCATABLE, INTENT(INOUT) :: f(:)
         !
         INTEGER :: i
         !
@@ -549,14 +93,28 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(f)) RETURN
+        IF (ALLOCATED(f)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
-        ALLOCATE (f(n))
+        !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (fsrc)
+            !
+        TYPE IS (environ_function_gaussian)
+            ALLOCATE (environ_function_gaussian :: f(n))
+            !
+        TYPE IS (environ_function_exponential)
+            ALLOCATE (environ_function_exponential :: f(n))
+            !
+        TYPE IS (environ_function_erfc)
+            ALLOCATE (environ_function_erfc :: f(n))
+            !
+        END SELECT
         !
         DO i = 1, n
             !
-            CALL f(i)%init(type_in, axis(i), dim_in(i), width(i), spread_in(i), &
-                           volume_in(i), pos(:, i))
+            CALL f(i)%init(type_in, axis_in(i), dim_in(i), width_in(i), spread_in(i), &
+                           volume_in(i), pos_in(:, i))
             !
         END DO
         !
@@ -572,15 +130,36 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
-        TYPE(environ_function), INTENT(IN) :: f(n)
+        CLASS(environ_function), ALLOCATABLE, INTENT(IN) :: f(:)
         !
-        TYPE(environ_function), ALLOCATABLE, INTENT(OUT) :: copy(:)
+        CLASS(environ_function), ALLOCATABLE, INTENT(OUT) :: copy(:)
         !
         INTEGER :: i
         !
+        CHARACTER(LEN=80) :: sub_name = 'copy_environ_functions'
+        !
         !--------------------------------------------------------------------------------
         !
-        ALLOCATE (copy(n))
+        IF (ALLOCATED(copy)) &
+            CALL env_errore(sub_name, 'Trying to create an existing array', 1)
+        !
+        IF (.NOT. ALLOCATED(f)) &
+            CALL env_errore(sub_name, 'Trying to copy an empty array', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT TYPE (f)
+            !
+        TYPE IS (environ_function_gaussian)
+            ALLOCATE (environ_function_gaussian :: copy(n))
+            !
+        TYPE IS (environ_function_exponential)
+            ALLOCATE (environ_function_exponential :: copy(n))
+            !
+        TYPE IS (environ_function_erfc)
+            ALLOCATE (environ_function_erfc :: copy(n))
+            !
+        END SELECT
         !
         DO i = 1, n
             CALL f(i)%copy(copy(i))
@@ -599,7 +178,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         !
-        TYPE(environ_function), ALLOCATABLE, INTENT(INOUT) :: f(:)
+        CLASS(environ_function), ALLOCATABLE, INTENT(INOUT) :: f(:)
         !
         INTEGER :: i
         !
@@ -607,8 +186,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. ALLOCATED(f)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty array', 1)
+        !
         IF (SIZE(f) /= n) &
             CALL env_errore(sub_name, 'Inconsistent size of allocated object', 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         DO i = 1, n
             CALL f(i)%destroy()
@@ -618,6 +202,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_functions
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                  GENERAL METHODS
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -629,7 +219,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        TYPE(environ_function), INTENT(IN) :: f(n)
+        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: density
         !
@@ -658,7 +248,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        TYPE(environ_function), INTENT(IN) :: f(n)
+        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
@@ -687,11 +277,13 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        TYPE(environ_function), INTENT(IN) :: f(n)
+        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
         INTEGER :: i
+        !
+        CHARACTER(LEN=80) :: sub_name = 'laplacian_of_functions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -716,11 +308,13 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: n
         LOGICAL, INTENT(IN), OPTIONAL :: zero
-        TYPE(environ_function), INTENT(IN) :: f(n)
+        CLASS(environ_function), INTENT(IN) :: f(:)
         !
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
         INTEGER :: i
+        !
+        CHARACTER(LEN=80) :: sub_name = 'hessian_of_functions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -732,8 +326,15 @@ CONTAINS
             CALL f(i)%hessian(hessian)
         END DO
         !
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_functions
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!

@@ -44,6 +44,8 @@ MODULE class_externals
     !
     USE class_cell
     USE class_density
+    USE class_function
+    USE class_function_gaussian
     USE class_functions
     !
     !------------------------------------------------------------------------------------
@@ -63,7 +65,7 @@ MODULE class_externals
         LOGICAL :: initialized
         INTEGER :: number
         !
-        TYPE(environ_function), ALLOCATABLE :: functions(:)
+        CLASS(environ_function), ALLOCATABLE :: functions(:)
         TYPE(environ_density) :: density
         REAL(DP) :: charge
         !
@@ -136,6 +138,8 @@ CONTAINS
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
+        TYPE(environ_function_gaussian) :: fsrc
+        !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
@@ -144,8 +148,8 @@ CONTAINS
         !
         IF (this%number > 0) THEN
             !
-            CALL init_environ_functions(this%functions, nexternals, 1, &
-                                        axes, dims, spreads, spreads, -charges, pos)
+            CALL init_environ_functions(this%functions, fsrc, nexternals, 1, axes, &
+                                        dims, spreads, spreads, -charges, pos)
             !
         END IF
         !
@@ -169,14 +173,6 @@ CONTAINS
         CHARACTER(LEN=80) :: local_label = 'externals'
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (this%number > 0) THEN
-            !
-            DO i = 1, this%number
-                this%functions(i)%pos = this%functions(i)%pos
-            END DO
-            !
-        END IF
         !
         CALL this%density%init(cell, local_label)
         !

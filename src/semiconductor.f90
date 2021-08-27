@@ -38,6 +38,7 @@ MODULE class_semiconductor
     !
     USE class_cell
     USE class_density
+    USE class_function_erfc
     USE class_functions
     !
     USE class_system
@@ -65,7 +66,7 @@ MODULE class_semiconductor
         REAL(DP) :: charge_threshold
         REAL(DP) :: slab_charge
         !
-        TYPE(environ_function) :: simple
+        TYPE(environ_function_erfc) :: simple
         TYPE(environ_density) :: density
         !
         REAL(DP) :: charge
@@ -152,13 +153,8 @@ CONTAINS
         this%electrode_charge = sc_electrode_chg
         this%charge_threshold = sc_chg_thr
         !
-        this%simple%f_type = 4
-        this%simple%pos => system%pos
-        this%simple%volume = 1.D0
-        this%simple%dim = system%dim
-        this%simple%axis = system%axis
-        this%simple%width = sc_distance
-        this%simple%spread = sc_spread
+        CALL this%simple%init(4, system%axis, system%dim, sc_distance, sc_spread, &
+                              1.D0, system%pos)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_semiconductor_first
