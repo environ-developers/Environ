@@ -57,7 +57,6 @@ MODULE class_semiconductor
         !--------------------------------------------------------------------------------
         !
         LOGICAL :: lupdate
-        LOGICAL :: initialized
         !
         REAL(DP) :: temperature
         REAL(DP) :: permittivity
@@ -79,8 +78,7 @@ MODULE class_semiconductor
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_semiconductor
-        PROCEDURE :: init_first => init_environ_semiconductor_first
-        PROCEDURE :: init_second => init_environ_semiconductor_second
+        PROCEDURE :: init => init_environ_semiconductor
         PROCEDURE :: update => update_environ_semiconductor
         PROCEDURE :: destroy => destroy_environ_semiconductor
         !
@@ -107,10 +105,16 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_semiconductor'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ALLOCATED(this%density%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         this%lupdate = .FALSE.
-        this%initialized = .FALSE.
         !
         this%charge = 0.D0
         this%slab_charge = 0.D0
@@ -124,10 +128,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_semiconductor_first(this, temperature, sc_permittivity, &
-                                                sc_carrier_density, sc_electrode_chg, &
-                                                sc_distance, sc_spread, sc_chg_thr, &
-                                                system)
+    SUBROUTINE init_environ_semiconductor(this, temperature, sc_permittivity, &
+                                          sc_carrier_density, sc_electrode_chg, &
+                                          sc_distance, sc_spread, sc_chg_thr, &
+                                          system, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -136,12 +140,20 @@ CONTAINS
                                 sc_carrier_density, sc_distance, sc_spread, sc_chg_thr
         !
         TYPE(environ_system), TARGET, INTENT(IN) :: system
+        TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: local_label = 'semiconductor'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
+        !
+        CALL this%density%init(cell, local_label)
+        !
+        CALL this%simple%init(4, system%axis, system%dim, sc_distance, sc_spread, &
+                              1.D0, system%pos)
         !
         this%temperature = temperature
         this%permittivity = sc_permittivity
@@ -153,34 +165,8 @@ CONTAINS
         this%electrode_charge = sc_electrode_chg
         this%charge_threshold = sc_chg_thr
         !
-        CALL this%simple%init(4, system%axis, system%dim, sc_distance, sc_spread, &
-                              1.D0, system%pos)
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_semiconductor_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_semiconductor_second(this, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), INTENT(IN) :: cell
-        !
-        CLASS(environ_semiconductor), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: local_label = 'semiconductor'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%density%init(cell, local_label)
-        !
-        this%initialized = .TRUE.
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_semiconductor_second
+    END SUBROUTINE init_environ_semiconductor
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -211,14 +197,16 @@ CONTAINS
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_semiconductor'
+        !
         !--------------------------------------------------------------------------------
         !
-        IF (this%initialized) THEN
-            !
-            CALL this%density%destroy()
-            !
-            this%initialized = .FALSE.
-        END IF
+        IF (.NOT. ALLOCATED(this%density%of_r)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%density%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_semiconductor

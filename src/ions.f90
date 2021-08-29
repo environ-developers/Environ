@@ -65,7 +65,6 @@ MODULE class_ions
     TYPE, PUBLIC :: environ_ions
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: initialized
         LOGICAL :: lupdate
         INTEGER :: number
         REAL(DP) :: center(3)
@@ -107,8 +106,7 @@ MODULE class_ions
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_ions
-        PROCEDURE :: init_first => init_environ_ions_first
-        PROCEDURE :: init_second => init_environ_ions_second
+        PROCEDURE :: init => init_environ_ions
         PROCEDURE :: update => update_environ_ions
         PROCEDURE :: destroy => destroy_environ_ions
         !
@@ -167,12 +165,17 @@ CONTAINS
         IF (ALLOCATED(this%core_electrons)) &
             CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
+        IF (ALLOCATED(this%density%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%core%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         NULLIFY (this%tau)
         !
         this%lupdate = .FALSE.
-        this%initialized = .FALSE.
         this%use_smeared_ions = .FALSE.
         this%use_core_electrons = .FALSE.
         !
@@ -188,29 +191,31 @@ CONTAINS
     END SUBROUTINE create_environ_ions
     !------------------------------------------------------------------------------------
     !>
-    !! First step of ions initialization, cannot initialize everything
-    !! because some information is missing when this routine is called
-    !! NEED TO REVISE THE POSITION OF THE CALL INSIDE QE TO MERGE FIRST AND SECOND
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions_first(this, nat, ntyp, lsoftcavity, lcoredensity, &
-                                       lsmearedions, radius_mode, atom_label, &
-                                       atomicspread, corespread, solvationrad)
+    SUBROUTINE init_environ_ions(this, nat, ntyp, atom_label, ityp, zv, atomicspread, &
+                                 corespread, solvationrad, radius_mode, lsoftcavity, &
+                                 lsmearedions, lcoredensity, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat, ntyp
-        LOGICAL, INTENT(IN) :: lsoftcavity, lcoredensity, lsmearedions
-        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        INTEGER, INTENT(IN) :: ityp(nat)
+        REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(ntyp)
         REAL(DP), DIMENSION(ntyp), INTENT(IN) :: atomicspread, corespread, solvationrad
+        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions, lcoredensity
+        TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
         INTEGER :: i
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_ions_first'
+        CHARACTER(LEN=80) :: local_label
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
@@ -219,177 +224,87 @@ CONTAINS
         this%number = nat
         this%ntyp = ntyp
         !
-        !--------------------------------------------------------------------------------
-        ! Allocate the basic vectors, cannot initialize them here
+        ALLOCATE (this%ityp(nat))
+        this%ityp = ityp
         !
         ALLOCATE (this%tau(3, nat))
-        this%tau = 0.D0
-        !
-        ALLOCATE (this%ityp(nat))
-        this%ityp = 0
+        this%tau = 0.D0 ! ionic positions assigned at beginning of each ionic step
         !
         !--------------------------------------------------------------------------------
-        ! Set ions types, note that also valence charges cannot be initialized here
+        ! Ion types
         !
         ALLOCATE (this%iontype(ntyp))
         !
         DO i = 1, ntyp
             !
-            CALL this%iontype(i)%set_defaults(i, atom_label(i), radius_mode)
-            ! given the label we could set some of the properties with defaults
-            !
-            !----------------------------------------------------------------------------
-            ! Check if values were provided in input and overwrite them
-            !
-            IF (atomicspread(i) > 0) this%iontype(i)%atomicspread = atomicspread(i)
-            !
-            IF (corespread(i) > 0) this%iontype(i)%corespread = corespread(i)
-            !
-            IF (solvationrad(i) > 0) this%iontype(i)%solvationrad = solvationrad(i)
-            !
-            !----------------------------------------------------------------------------
-            ! If need cavity defined exclusively on ions, check radius is not zero
-            !
-            IF (.NOT. lsoftcavity .AND. (this%iontype(i)%solvationrad == 0.D0)) &
-                CALL env_errore(sub_name, &
-                                'Missing solvation radius for one of the atom types', 1)
-            !
-            !----------------------------------------------------------------------------
-            ! If need smeared ions, check spread is not zero
-            !
-            IF (lsmearedions .AND. (this%iontype(i)%atomicspread == 0.D0)) &
-                CALL env_errore(sub_name, &
-                                'Missing atomic spread for one of the atom types', 1)
+            CALL this%iontype(i)%init(i, atom_label(i), zv(i), radius_mode, &
+                                      atomicspread(i), corespread(i), solvationrad(i), &
+                                      lsoftcavity, lsmearedions)
             !
         END DO
         !
-        this%use_smeared_ions = lsmearedions
-        this%use_core_electrons = lcoredensity
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_ions_first
-    !------------------------------------------------------------------------------------
-    !>
-    !! Second step of initialization, passing the information on types, atomic valence
-    !! charges and whether we need to compute the smeared density or not
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions_second(this, nat, ntyp, ityp, zv, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: nat, ntyp
-        INTEGER, INTENT(IN) :: ityp(nat)
-        REAL(DP), INTENT(IN) :: zv(ntyp)
-        TYPE(environ_cell), INTENT(IN) :: cell
-        !
-        CLASS(environ_ions), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        INTEGER, DIMENSION(:), ALLOCATABLE :: local_dim, local_axis
-        REAL(DP), DIMENSION(:), ALLOCATABLE :: atomicspread, corespread, Z, local_width
-        CHARACTER(LEN=20) :: item
-        !
-        CHARACTER(LEN=80) :: local_label
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_ions_second'
-        !
-        !--------------------------------------------------------------------------------
-        ! Check on dimensions, can skip if merged with first step
-        !
-        IF (this%number /= nat) &
-            CALL env_errore(sub_name, 'Mismatch in number of atoms', 1)
-        !
-        IF (this%ntyp /= ntyp) &
-            CALL env_errore(sub_name, 'Mismatch in number of atom types', 1)
-        !
-        this%ityp = ityp
-        !
-        DO i = 1, this%ntyp
-            this%iontype(i)%zv = -zv(i)
-        END DO
-        !
-        this%charge = 0.D0
+        ! Total ionic charge
         !
         DO i = 1, this%number
             this%charge = this%charge + this%iontype(this%ityp(i))%zv
         END DO
         !
-        IF (this%use_smeared_ions) THEN
+        !--------------------------------------------------------------------------------
+        ! Smeared ions
+        !
+        IF (lsmearedions) THEN
+            local_label = 'smeared_ions'
             !
-            !----------------------------------------------------------------------------
-            ! #TODO The following test on allocation is only there because of when this
-            ! initialization is called. If merged with the first step, remove the test.
-            !
-            IF (.NOT. ALLOCATED(this%density%of_r)) THEN
-                local_label = 'smeared_ions'
-                !
-                CALL this%density%init(cell)
-                !
-            ELSE
-                this%density%of_r = 0.D0
-            END IF
+            CALL this%density%init(cell, local_label)
             !
             !----------------------------------------------------------------------------
             ! Build smeared ions from iontype data
             !
-            IF (.NOT. ALLOCATED(this%smeared_ions)) THEN
-                ALLOCATE (environ_function_gaussian :: this%smeared_ions(this%number))
+            ALLOCATE (environ_function_gaussian :: this%smeared_ions(this%number))
+            !
+            DO i = 1, this%number
                 !
-                DO i = 1, this%number
-                    !
-                    CALL this%smeared_ions(i)%init( &
-                        1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%atomicspread, &
-                        this%iontype(this%ityp(i))%zv, this%tau(:, i))
-                    !
-                END DO
+                CALL this%smeared_ions(i)%init( &
+                    1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%atomicspread, &
+                    this%iontype(this%ityp(i))%zv, this%tau(:, i))
                 !
-            END IF
+            END DO
             !
         END IF
         !
-        IF (this%use_core_electrons) THEN
+        this%use_smeared_ions = lsmearedions
+        !
+        !--------------------------------------------------------------------------------
+        ! Core electrons
+        !
+        IF (lcoredensity) THEN
+            local_label = 'core_electrons'
             !
-            !----------------------------------------------------------------------------
-            ! #TODO The following test on allocation is only there because of when this
-            ! initialization is called. If merged with the first step, remove the test.
-            !
-            IF (.NOT. ALLOCATED(this%core%of_r)) THEN
-                local_label = 'core_electrons'
-                !
-                CALL this%core%init(cell)
-                !
-            ELSE
-                this%core%of_r = 0.D0
-            END IF
+            CALL this%core%init(cell, local_label)
             !
             !----------------------------------------------------------------------------
             ! Build core electrons from iontype data
             !
-            IF (.NOT. ALLOCATED(this%core_electrons)) THEN
-                ALLOCATE (environ_function_gaussian :: this%core_electrons(this%number))
+            ALLOCATE (environ_function_gaussian :: this%core_electrons(this%number))
+            !
+            DO i = 1, this%number
                 !
-                DO i = 1, this%number
-                    !
-                    IF (TRIM(this%iontype(this%ityp(i))%label) == 'H') &
-                        this%iontype(this%ityp(i))%corespread = 1.D-10
-                    !
-                    CALL this%core_electrons(i)%init( &
-                        1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%corespread, &
-                        -this%iontype(this%ityp(i))%zv, this%tau(:, i))
-                    !
-                END DO
+                IF (TRIM(this%iontype(this%ityp(i))%label) == 'H') &
+                    this%iontype(this%ityp(i))%corespread = 1.D-10
                 !
-            END IF
+                CALL this%core_electrons(i)%init( &
+                    1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%corespread, &
+                    -this%iontype(this%ityp(i))%zv, this%tau(:, i))
+                !
+            END DO
             !
         END IF
         !
-        this%initialized = .TRUE.
+        this%use_core_electrons = lcoredensity
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_ions_second
+    END SUBROUTINE init_environ_ions
     !------------------------------------------------------------------------------------
     !>
     !! Update ionic positions and compute derived quantities
@@ -501,19 +416,23 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%initialized) THEN
+        IF (this%use_smeared_ions) THEN
             !
-            IF (this%use_smeared_ions) THEN
-                !
-                CALL this%density%destroy()
-                !
-                CALL destroy_environ_functions(this%smeared_ions, this%number)
-                !
-            END IF
+            CALL this%density%destroy()
             !
-            this%charge = 0.D0
-            this%initialized = .FALSE.
+            CALL destroy_environ_functions(this%smeared_ions, this%number)
+            !
         END IF
+        !
+        IF (this%use_core_electrons) THEN
+            !
+            CALL this%core%destroy()
+            !
+            CALL destroy_environ_functions(this%core_electrons, this%number)
+            !
+        END IF
+        !
+        this%charge = 0.D0
         !
         IF (lflag) THEN
             !

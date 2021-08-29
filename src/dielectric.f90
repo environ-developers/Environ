@@ -70,7 +70,6 @@ MODULE class_dielectric
         !--------------------------------------------------------------------------------
         !
         LOGICAL :: lupdate
-        LOGICAL :: initialized
         !
         !--------------------------------------------------------------------------------
         ! Basic properties of the dielectric space from input
@@ -124,8 +123,7 @@ MODULE class_dielectric
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_dielectric
-        PROCEDURE :: init_first => init_environ_dielectric_first
-        PROCEDURE :: init_second => init_environ_dielectric_second
+        PROCEDURE :: init => init_environ_dielectric
         PROCEDURE :: set_regions => set_dielectric_regions
         PROCEDURE :: update => update_environ_dielectric
         PROCEDURE :: destroy => destroy_environ_dielectric
@@ -177,7 +175,6 @@ CONTAINS
         NULLIFY (this%boundary)
         !
         this%lupdate = .FALSE.
-        this%initialized = .FALSE.
         !
         this%constant = 1.0_DP
         !
@@ -194,18 +191,22 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_dielectric_first(this, constant, boundary, need_gradient, &
-                                             need_factsqrt, need_auxiliary)
+    SUBROUTINE init_environ_dielectric(this, constant, boundary, need_gradient, &
+                                       need_factsqrt, need_auxiliary, nregions, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         LOGICAL, INTENT(IN) :: need_gradient, need_factsqrt, need_auxiliary
         TYPE(environ_boundary), TARGET, INTENT(IN) :: boundary
+        INTEGER, INTENT(IN) :: nregions
+        TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
         REAL(DP) :: constant
+        !
+        CHARACTER(LEN=80) :: local_label
         !
         !--------------------------------------------------------------------------------
         !
@@ -220,27 +221,10 @@ CONTAINS
         !
         this%need_auxiliary = need_auxiliary
         !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_dielectric_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_dielectric_second(this, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_dielectric), INTENT(INOUT) :: this
-        TYPE(environ_cell), INTENT(INOUT) :: cell
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: local_label = ' '
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_dielectric_second'
+        this%nregions = nregions
         !
         !--------------------------------------------------------------------------------
+        ! Densities
         !
         local_label = 'background'
         !
@@ -248,7 +232,7 @@ CONTAINS
         !
         this%background%of_r(:) = this%constant
         !
-        IF (this%nregions > 0) THEN
+        IF (nregions > 0) THEN
             !
             local_label = 'gradbackground'
             !
@@ -300,10 +284,8 @@ CONTAINS
             !
         END IF
         !
-        this%initialized = .TRUE.
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_dielectric_second
+    END SUBROUTINE init_environ_dielectric
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -325,9 +307,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        this%nregions = nregions
-        !
-        IF (this%nregions > 0) THEN
+        IF (nregions > 0) THEN
             !
             CALL init_environ_functions(this%regions, fsrc, nregions, 4, axes, dims, &
                                         widths, spreads, eps, pos)
@@ -429,35 +409,29 @@ CONTAINS
             NULLIFY (this%boundary)
         END IF
         !
-        IF (this%initialized) THEN
+        CALL this%background%destroy()
+        !
+        IF (this%nregions > 0) THEN
             !
-            CALL this%background%destroy()
+            CALL this%gradbackground%destroy()
             !
-            IF (this%nregions > 0) THEN
-                !
-                CALL this%gradbackground%destroy()
-                !
-                IF (this%need_factsqrt) CALL this%laplbackground%destroy()
-                !
-            END IF
-            !
-            CALL this%epsilon%destroy()
-            !
-            CALL this%depsilon%destroy()
-            !
-            CALL this%gradlog%destroy()
-            !
-            IF (this%need_gradient) CALL this%gradient%destroy()
-            !
-            IF (this%need_factsqrt) CALL this%factsqrt%destroy()
-            !
-            CALL this%density%destroy()
-            !
-            IF (this%need_auxiliary) CALL this%iterative%destroy()
-            !
-            this%initialized = .FALSE.
+            IF (this%need_factsqrt) CALL this%laplbackground%destroy()
             !
         END IF
+        !
+        CALL this%epsilon%destroy()
+        !
+        CALL this%depsilon%destroy()
+        !
+        CALL this%gradlog%destroy()
+        !
+        IF (this%need_gradient) CALL this%gradient%destroy()
+        !
+        IF (this%need_factsqrt) CALL this%factsqrt%destroy()
+        !
+        CALL this%density%destroy()
+        !
+        IF (this%need_auxiliary) CALL this%iterative%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_dielectric

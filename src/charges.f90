@@ -90,15 +90,13 @@ MODULE class_charges
         INTEGER :: number
         REAL(DP) :: charge
         TYPE(environ_density) :: density
-        LOGICAL :: initialized
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_charges
-        PROCEDURE :: init_first => init_environ_charges_first
-        PROCEDURE :: init_second => init_environ_charges_second
+        PROCEDURE :: init => init_environ_charges
         PROCEDURE :: update => update_environ_charges
         PROCEDURE :: destroy => destroy_environ_charges
         !
@@ -153,6 +151,9 @@ CONTAINS
         IF (ASSOCIATED(this%semiconductor)) &
             CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
+        IF (ALLOCATED(this%density%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         this%include_ions = .FALSE.
@@ -176,32 +177,13 @@ CONTAINS
         this%number = 0
         this%charge = 0.D0
         !
-        this%initialized = .FALSE.
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_charges
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_charges_first(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_charges), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%create()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_charges_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_charges_second(this, cell)
+    SUBROUTINE init_environ_charges(this, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -214,12 +196,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         CALL this%density%init(cell, local_label)
         !
-        this%initialized = .TRUE.
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_charges_second
+    END SUBROUTINE init_environ_charges
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -366,12 +348,7 @@ CONTAINS
             !
         END IF
         !
-        IF (this%initialized) THEN
-            !
-            CALL this%density%destroy()
-            !
-            this%initialized = .FALSE.
-        END IF
+        CALL this%density%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_charges

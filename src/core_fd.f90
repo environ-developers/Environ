@@ -61,8 +61,7 @@ MODULE class_core_fd
         !--------------------------------------------------------------------------------
         !
         PROCEDURE :: create => create_core_fd
-        PROCEDURE :: init_first => init_core_fd_first
-        PROCEDURE :: init_second => init_core_fd_second
+        PROCEDURE :: init => init_core_fd
         PROCEDURE :: destroy => destroy_core_fd
         !
         PROCEDURE :: set_coefficients
@@ -112,12 +111,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fd_first(this, ifdtype, nfdpoint)
+    SUBROUTINE init_core_fd(this, ifdtype, nfdpoint, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: ifdtype, nfdpoint
+        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         !
         CLASS(core_fd), INTENT(INOUT) :: this
         !
@@ -132,27 +132,10 @@ CONTAINS
         !
         CALL this%set_coefficients()
         !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fd_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fd_second(this, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        !
-        CLASS(core_fd), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
         this%cell => cell
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fd_second
+    END SUBROUTINE init_core_fd
     !------------------------------------------------------------------------------------
     !>
     !!

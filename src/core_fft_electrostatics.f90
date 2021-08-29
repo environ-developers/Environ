@@ -71,8 +71,7 @@ MODULE class_core_fft_electrostatics
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: init_first => init_core_fft_electrostatics_first
-        PROCEDURE :: init_second => init_core_fft_electrostatics_second
+        PROCEDURE :: init => init_core_fft_electrostatics
         PROCEDURE :: update_cell => update_core_fft_electrostatics_cell
         PROCEDURE :: destroy => destroy_core_fft_electrostatics
         !
@@ -102,16 +101,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_electrostatics_first(this, use_internal_pbc_corr)
+    SUBROUTINE init_core_fft_electrostatics(this, gcutm, cell, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        REAL(DP), INTENT(IN) :: gcutm
+        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         !
         CLASS(core_fft_electrostatics), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_core_fft_electrostatics_first'
+        CHARACTER(LEN=80) :: sub_name = 'init_core_fft_electrostatics'
         !
         !--------------------------------------------------------------------------------
         !
@@ -120,46 +121,20 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%core_fft%init_first()
+        CALL this%core_fft%init(gcutm, cell)
         !
         IF (PRESENT(use_internal_pbc_corr)) THEN
             this%use_internal_pbc_corr = use_internal_pbc_corr
+            ALLOCATE (this%mt_corr(this%ngm))
+            !
+            CALL this%update_mt_correction()
+            !
         ELSE
             this%use_internal_pbc_corr = .FALSE.
         END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_electrostatics_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_electrostatics_second(this, gcutm, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        REAL(DP), INTENT(IN) :: gcutm
-        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
-        !
-        CLASS(core_fft_electrostatics), INTENT(INOUT) :: this
-        !
-        INTEGER :: ngm_g ! global number of G vectors (summed on all procs)
-        ! in serial execution, ngm_g = ngm
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%core_fft%init_second(gcutm, cell)
-        !
-        IF (this%use_internal_pbc_corr) THEN
-            ALLOCATE (this%mt_corr(this%ngm))
-            !
-            CALL this%update_mt_correction()
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_electrostatics_second
+    END SUBROUTINE init_core_fft_electrostatics
     !------------------------------------------------------------------------------------
     !>
     !!

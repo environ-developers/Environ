@@ -78,8 +78,7 @@ MODULE class_core_fft
         !--------------------------------------------------------------------------------
         !
         PROCEDURE :: create => create_core_fft
-        PROCEDURE :: init_first => init_core_fft_first
-        PROCEDURE :: init_second => init_core_fft_second
+        PROCEDURE :: init => init_core_fft
         PROCEDURE :: update_cell => update_core_fft_cell
         PROCEDURE :: destroy => destroy_core_fft
         !
@@ -138,32 +137,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_first(this, use_internal_pbc_corr)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
-        !
-        CLASS(core_fft), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%create()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_fft_second(this, gcutm, cell)
+    SUBROUTINE init_core_fft(this, gcutm, cell, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: gcutm
         TYPE(environ_cell), TARGET, INTENT(IN) :: cell
+        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         !
         CLASS(core_fft), INTENT(INOUT) :: this
         !
@@ -172,9 +153,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         this%gcutm = gcutm
         this%cell => cell
-        !
         this%ngm = cell%dfft%ngm
         !
         !--------------------------------------------------------------------------------
@@ -187,7 +169,7 @@ CONTAINS
                       ngm_g, this%ngm, this%g, this%gg, this%gstart, .TRUE.)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_fft_second
+    END SUBROUTINE init_core_fft
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -225,7 +207,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        !--------------------------------------------------------------------------------
         !
         NULLIFY (this%cell)
         !

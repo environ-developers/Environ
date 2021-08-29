@@ -78,7 +78,6 @@ MODULE class_boundary
         CHARACTER(LEN=80) :: label ! boundary label
         CHARACTER(LEN=80) :: mode ! choice of the interface
         INTEGER :: update_status
-        LOGICAL :: initialized
         !
         !--------------------------------------------------------------------------------
         ! Parameters for the electrons-dependent interface
@@ -169,8 +168,7 @@ MODULE class_boundary
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_boundary
-        PROCEDURE :: init_first => init_environ_boundary_first
-        PROCEDURE :: init_second => init_environ_boundary_second
+        PROCEDURE :: init => init_environ_boundary
         PROCEDURE :: set_soft_spheres
         PROCEDURE :: copy => copy_environ_boundary
         PROCEDURE :: update => update_environ_boundary
@@ -246,10 +244,45 @@ CONTAINS
         ! IF (ALLOCATED(this%partial_of_ion_field)) &
         !     CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
+        IF (ALLOCATED(this%density%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%scaled%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%dscaled%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%d2scaled%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%gradient%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%laplacian%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%dsurface%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%local%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%probe%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%filling%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%dfilling%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%hessian%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         this%update_status = 0
-        this%initialized = .FALSE.
         !
         this%volume = 0.D0
         this%surface = 0.D0
@@ -272,37 +305,41 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_boundary_first(this, need_gradient, need_laplacian, &
-                                           need_hessian, mode, stype, rhomax, rhomin, &
-                                           tbeta, const, alpha, softness, &
-                                           system_distance, system_spread, &
-                                           solvent_radius, radial_scale, &
-                                           radial_spread, filling_threshold, &
-                                           filling_spread, field_factor, &
-                                           charge_asymmetry, field_max, field_min, &
-                                           electrons, ions, system, derivatives)
+    SUBROUTINE init_environ_boundary(this, need_gradient, need_laplacian, need_hessian, &
+                                     mode, stype, rhomax, rhomin, tbeta, const, alpha, &
+                                     softness, system_distance, system_spread, &
+                                     solvent_radius, radial_scale, radial_spread, &
+                                     filling_threshold, filling_spread, field_factor, &
+                                     charge_asymmetry, field_max, field_min, electrons, &
+                                     ions, system, derivatives, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80), INTENT(IN) :: mode
         INTEGER, INTENT(IN) :: stype
-        REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const
+        CHARACTER(LEN=80), INTENT(IN) :: mode
         LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
         !
-        REAL(DP), INTENT(IN) :: alpha, softness, system_distance, system_spread, &
-                                solvent_radius, radial_scale, radial_spread, &
-                                filling_threshold, filling_spread, field_factor, &
-                                charge_asymmetry, field_max, field_min
+        REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, alpha, softness, &
+                                system_distance, system_spread, solvent_radius, &
+                                radial_scale, radial_spread, filling_threshold, &
+                                filling_spread, field_factor, charge_asymmetry, &
+                                field_max, field_min
         !
         TYPE(environ_electrons), TARGET, INTENT(IN) :: electrons
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
         TYPE(container_derivatives), TARGET, INTENT(IN) :: derivatives
+        TYPE(environ_cell), INTENT(IN) :: cell
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary_first'
+        INTEGER :: i
+        !
+        CHARACTER(LEN=80) :: local_label
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -316,26 +353,27 @@ CONTAINS
             this%deriv = 1
         END IF
         !
+        !--------------------------------------------------------------------------------
+        !
         this%mode = mode
         !
-        this%need_electrons = (mode == 'electronic') .OR. &
-                              (mode == 'full') .OR. &
-                              (mode == 'fa-ionic') .OR. &
-                              (mode == 'fa-electronic')
+        this%need_electrons = mode == 'electronic' .OR. mode == 'full' .OR. &
+                              mode == 'fa-ionic' .OR. mode == 'fa-electronic'
         !
         IF (this%need_electrons) this%electrons => electrons
         !
-        this%need_ions = (mode == 'ionic') .OR. &
-                         (mode == 'full') .OR. &
-                         (mode == 'fa-ionic') .OR. &
-                         (mode == 'fa-electronic')
+        this%need_ions = mode == 'ionic' .OR. mode == 'full' .OR. &
+                         mode == 'fa-ionic' .OR. mode == 'fa-electronic'
         !
         IF (this%need_ions) this%ions => ions
         !
-        this%need_system = (mode == 'system')
+        this%need_system = mode == 'system'
         !
         IF (this%need_system) this%system => system
         !
+        !--------------------------------------------------------------------------------
+        !
+        this%label = label
         this%b_type = stype
         this%rhomax = rhomax
         this%rhomin = rhomin
@@ -349,7 +387,6 @@ CONTAINS
                             'stype=2 boundary requires dielectric constant > 1', 1)
         !
         this%const = const
-        !
         this%alpha = alpha
         this%softness = softness
         !
@@ -359,13 +396,9 @@ CONTAINS
         !
         this%solvent_aware = solvent_radius > 0.D0
         !
-        IF (this%solvent_aware) THEN
-            !
-            CALL this%solvent_probe%init(2, 1, 0, &
-                                         solvent_radius * radial_scale, &
+        IF (this%solvent_aware) &
+            CALL this%solvent_probe%init(2, 1, 0, solvent_radius * radial_scale, &
                                          radial_spread, 1.D0)
-            !
-        END IF
         !
         this%filling_threshold = filling_threshold
         this%filling_spread = filling_spread
@@ -386,30 +419,7 @@ CONTAINS
         ! END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_boundary_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_boundary_second(this, cell, label)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), INTENT(IN) :: cell
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
-        !
-        CLASS(environ_boundary), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: local_label
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_boundary_second'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%label = label
+        ! Densities
         !
         local_label = 'boundary_'//TRIM(ADJUSTL(label))
         !
@@ -502,10 +512,8 @@ CONTAINS
             !
         END IF
         !
-        this%initialized = .TRUE.
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_boundary_second
+    END SUBROUTINE init_environ_boundary
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -587,8 +595,6 @@ CONTAINS
         ! copy%charge_asymmetry = this%charge_asymmetry
         ! copy%field_max = this%field_max
         ! copy%field_min = this%field_min
-        !
-        copy%initialized = this%initialized
         !
         IF (ASSOCIATED(this%scaled%cell)) CALL this%scaled%copy(copy%scaled)
         !
@@ -851,41 +857,36 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%initialized) THEN
+        CALL this%scaled%destroy()
+        !
+        IF (this%mode == 'electronic' .OR. this%mode == 'full') THEN
             !
-            CALL this%scaled%destroy()
+            CALL this%density%destroy()
             !
-            IF (this%mode == 'electronic' .OR. this%mode == 'full') THEN
-                !
-                CALL this%density%destroy()
-                !
-                CALL this%dscaled%destroy()
-                !
-                CALL this%d2scaled%destroy()
-                !
-            END IF
+            CALL this%dscaled%destroy()
             !
-            IF (this%deriv >= 1) CALL this%gradient%destroy()
+            CALL this%d2scaled%destroy()
             !
-            IF (this%deriv >= 2) CALL this%laplacian%destroy()
+        END IF
+        !
+        IF (this%deriv >= 1) CALL this%gradient%destroy()
+        !
+        IF (this%deriv >= 2) CALL this%laplacian%destroy()
+        !
+        IF (this%deriv >= 3) CALL this%dsurface%destroy()
+        !
+        IF (this%solvent_aware) THEN
             !
-            IF (this%deriv >= 3) CALL this%dsurface%destroy()
+            CALL this%local%destroy()
             !
-            IF (this%solvent_aware) THEN
-                !
-                CALL this%local%destroy()
-                !
-                CALL this%probe%destroy()
-                !
-                CALL this%filling%destroy()
-                !
-                CALL this%dfilling%destroy()
-                !
-                IF (this%deriv >= 3) CALL this%hessian%destroy()
-                !
-            END IF
+            CALL this%probe%destroy()
             !
-            this%initialized = .FALSE.
+            CALL this%filling%destroy()
+            !
+            CALL this%dfilling%destroy()
+            !
+            IF (this%deriv >= 3) CALL this%hessian%destroy()
+            !
         END IF
         !
         IF (lflag) THEN

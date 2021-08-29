@@ -62,6 +62,7 @@ MODULE class_iontype
     CONTAINS
         !--------------------------------------------------------------------------------
         !
+        PROCEDURE :: init => init_environ_iontype
         PROCEDURE :: set_defaults => set_iontype_defaults
         !
         !--------------------------------------------------------------------------------
@@ -148,7 +149,62 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
-    !                                  GENERAL METHODS
+    !                                   ADMIN METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_iontype(this, index, atom_label, zv, radius_mode, &
+                                     atomicspread, corespread, solvationrad, &
+                                     lsoftcavity, lsmearedions)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: index
+        CHARACTER(LEN=3), INTENT(IN) :: atom_label
+        CHARACTER(LEN=80), INTENT(IN) :: radius_mode
+        REAL(DP), INTENT(IN) :: zv, atomicspread, corespread, solvationrad
+        LOGICAL, INTENT(IN) :: lsoftcavity, lsmearedions
+        !
+        CLASS(environ_iontype), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_iontype'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%set_defaults(index, atom_label, radius_mode)
+        !
+        this%zv = -zv
+        !
+        IF (atomicspread > 0) this%atomicspread = atomicspread
+        !
+        IF (corespread > 0) this%corespread = corespread
+        !
+        IF (solvationrad > 0) this%solvationrad = solvationrad
+        !
+        !--------------------------------------------------------------------------------
+        ! If cavity is defined exclusively on ions, check that radius is not zero
+        !
+        IF (.NOT. lsoftcavity .AND. (this%solvationrad == 0.D0)) &
+            CALL env_errore(sub_name, &
+                            'Missing solvation radius for one of the atom types', 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! If using smeared ions, check that spread is not zero
+        !
+        IF (lsmearedions .AND. (this%atomicspread == 0.D0)) &
+            CALL env_errore(sub_name, &
+                            'Missing atomic spread for one of the atom types', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_environ_iontype
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                               PRIVATE HELPER METHODS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------

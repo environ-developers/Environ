@@ -65,7 +65,6 @@ MODULE class_electrolyte
         !--------------------------------------------------------------------------------
         !
         LOGICAL :: lupdate
-        LOGICAL :: initialized
         CHARACTER(LEN=80) :: electrolyte_entropy
         LOGICAL :: linearized
         INTEGER :: ntyp
@@ -94,8 +93,7 @@ MODULE class_electrolyte
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_electrolyte
-        PROCEDURE :: init_first => init_environ_electrolyte_first
-        PROCEDURE :: init_second => init_environ_electrolyte_second
+        PROCEDURE :: init => init_environ_electrolyte
         PROCEDURE :: update => update_environ_electrolyte
         PROCEDURE :: destroy => destroy_environ_electrolyte
         !
@@ -153,10 +151,21 @@ CONTAINS
         IF (ALLOCATED(this%ioncctype)) &
             CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
+        IF (ALLOCATED(this%density%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%gamma%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%dgamma%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        IF (ALLOCATED(this%de_dboundary_second_order%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
         !--------------------------------------------------------------------------------
         !
         this%lupdate = .FALSE.
-        this%initialized = .FALSE.
         this%linearized = .FALSE.
         !
         this%charge = 0.D0
@@ -167,15 +176,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrolyte_first(this, ntyp, mode, stype, rhomax, rhomin, &
-                                              tbeta, const, alpha, softness, distance, &
-                                              spread, solvent_radius, radial_scale, &
-                                              radial_spread, filling_threshold, &
-                                              filling_spread, field_awareness, &
-                                              charge_asymmetry, field_max, field_min, &
-                                              electrons, ions, system, derivatives, &
-                                              temperature, cbulk, cionmax, radius, z, &
-                                              electrolyte_entropy, linearized)
+    SUBROUTINE init_environ_electrolyte(this, ntyp, mode, stype, rhomax, rhomin, &
+                                        tbeta, const, alpha, softness, distance, &
+                                        spread, solvent_radius, radial_scale, &
+                                        radial_spread, filling_threshold, &
+                                        filling_spread, field_awareness, &
+                                        charge_asymmetry, field_max, field_min, &
+                                        electrons, ions, system, derivatives, &
+                                        temperature, cbulk, cionmax, radius, z, &
+                                        electrolyte_entropy, linearized, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -196,24 +205,29 @@ CONTAINS
         TYPE(environ_ions), INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
         TYPE(container_derivatives), TARGET, INTENT(IN) :: derivatives
+        TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
         INTEGER :: ityp
-        REAL(DP) :: neutral, sumcbulk
+        REAL(DP) :: neutral, sumcbulk, sum_cz2, arg, kT, e
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte_first'
+        CHARACTER(LEN=80) :: ityps, local_label
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
         !
-        CALL this%boundary%init_first(.TRUE., .TRUE., .FALSE., mode, stype, rhomax, &
-                                      rhomin, tbeta, const, alpha, softness, distance, &
-                                      spread, solvent_radius, radial_scale, &
-                                      radial_spread, filling_threshold, filling_spread, &
-                                      field_awareness, charge_asymmetry, field_max, &
-                                      field_min, electrons, ions, system, derivatives)
+        local_label = 'electrolyte'
+        !
+        CALL this%boundary%init(.TRUE., .TRUE., .FALSE., mode, stype, rhomax, &
+                                rhomin, tbeta, const, alpha, softness, distance, &
+                                spread, solvent_radius, radial_scale, radial_spread, &
+                                filling_threshold, filling_spread, field_awareness, &
+                                charge_asymmetry, field_max, field_min, electrons, &
+                                ions, system, derivatives, cell, local_label)
         !
         !--------------------------------------------------------------------------------
         ! Setup all electrolyte parameters (with checks)
@@ -228,21 +242,35 @@ CONTAINS
         ALLOCATE (this%ioncctype(ntyp))
         !
         neutral = 0.D0
+        sum_cz2 = 0.D0
         !
         DO ityp = 1, ntyp
             this%ioncctype(ityp)%index = ityp
             !
-            !----------------------------------------------------------------------------
-            ! Convert bulk concentrations to atomic units
-            !
             this%ioncctype(ityp)%cbulk = cbulk(ityp) * BOHR_RADIUS_SI**3 / AMU_SI
+            ! convert bulk concentrations to atomic units
             !
             this%ioncctype(ityp)%z = -z(ityp)
+            !
+            WRITE (ityps, '(I2.2)') ityp
+            local_label = 'c_electrolyte_'//TRIM(ityps)
+            !
+            CALL this%ioncctype(ityp)%c%init(cell, local_label)
+            !
+            local_label = 'cfactor_electrolyte_'//TRIM(ityps)
+            !
+            CALL this%ioncctype(ityp)%cfactor%init(cell, local_label)
+            !
             neutral = neutral + cbulk(ityp) * z(ityp)
+            sum_cz2 = sum_cz2 + this%ioncctype(ityp)%cbulk * this%ioncctype(ityp)%z**2
         END DO
         !
         IF (neutral > 1.D-8) &
             CALL env_errore(sub_name, 'Bulk electrolyte is not neutral', 1)
+        !
+        kT = K_BOLTZMANN_RY * temperature
+        !
+        this%k2 = sum_cz2 / kT * e2 * fpi ! k^2 = eps / lambda_D^2
         !
         !--------------------------------------------------------------------------------
         ! If cionmax is not provided in input but radius is, calculate cionmax
@@ -264,35 +292,9 @@ CONTAINS
         this%energy_second_order = 0.D0
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_electrolyte_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrolyte_second(this, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), INTENT(IN) :: cell
-        !
-        CLASS(environ_electrolyte), INTENT(INOUT) :: this
-        !
-        INTEGER :: ityp
-        REAL(DP) :: sum_cz2, arg, kT, e
-        !
-        CHARACTER(LEN=80) :: ityps
-        !
-        CHARACTER(LEN=80) :: local_label
-        !
-        !--------------------------------------------------------------------------------
-        !
-        sum_cz2 = 0.D0
-        kT = K_BOLTZMANN_RY * this%temperature
+        ! Densities
         !
         local_label = 'electrolyte'
-        !
-        CALL this%boundary%init_second(cell, local_label)
         !
         CALL this%density%init(cell, local_label)
         !
@@ -304,35 +306,13 @@ CONTAINS
         !
         CALL this%dgamma%init(cell, local_label)
         !
-        DO ityp = 1, this%ntyp
-            !
-            WRITE (ityps, '(I2.2)') ityp
-            local_label = 'c_electrolyte_'//TRIM(ityps)
-            !
-            CALL this%ioncctype(ityp)%c%init(cell, local_label)
-            !
-            local_label = 'cfactor_electrolyte_'//TRIM(ityps)
-            !
-            CALL this%ioncctype(ityp)%cfactor%init(cell, local_label)
-            !
-            sum_cz2 = sum_cz2 + this%ioncctype(ityp)%cbulk * this%ioncctype(ityp)%z**2
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! k^2 = eps / lambda_D^2
-        !
-        this%k2 = sum_cz2 / kT
-        this%k2 = this%k2 * e2 * fpi
-        !
         IF (this%linearized) CALL this%de_dboundary_second_order%init(cell)
         !
-        this%initialized = .TRUE.
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_electrolyte_second
+    END SUBROUTINE init_environ_electrolyte
     !------------------------------------------------------------------------------------
-    !
     !>
+    !!
     !------------------------------------------------------------------------------------
     SUBROUTINE update_environ_electrolyte(this)
         !--------------------------------------------------------------------------------
@@ -395,26 +375,21 @@ CONTAINS
         !
         CALL this%boundary%destroy(lflag)
         !
-        IF (this%initialized) THEN
+        DO ityp = 1, this%ntyp
             !
-            DO ityp = 1, this%ntyp
-                !
-                CALL this%ioncctype(ityp)%c%destroy()
-                !
-                CALL this%ioncctype(ityp)%cfactor%destroy()
-                !
-            END DO
+            CALL this%ioncctype(ityp)%c%destroy()
             !
-            CALL this%gamma%destroy()
+            CALL this%ioncctype(ityp)%cfactor%destroy()
             !
-            CALL this%dgamma%destroy()
-            !
-            CALL this%density%destroy()
-            !
-            IF (this%linearized) CALL this%de_dboundary_second_order%destroy()
-            !
-            this%initialized = .FALSE.
-        END IF
+        END DO
+        !
+        CALL this%gamma%destroy()
+        !
+        CALL this%dgamma%destroy()
+        !
+        CALL this%density%destroy()
+        !
+        IF (this%linearized) CALL this%de_dboundary_second_order%destroy()
         !
         IF (lflag) THEN
             !

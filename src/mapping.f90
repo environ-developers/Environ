@@ -67,8 +67,7 @@ MODULE class_mapping
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_mapping
-        PROCEDURE :: init_first => init_environ_mapping_first
-        PROCEDURE :: init_second => init_environ_mapping_second
+        PROCEDURE :: init => init_environ_mapping
         PROCEDURE :: update => update_environ_mapping
         PROCEDURE :: destroy => destroy_environ_mapping
         !
@@ -125,12 +124,13 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_mapping_first(this, nrep)
+    SUBROUTINE init_environ_mapping(this, nrep, small, large)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nrep(3)
+        TYPE(environ_cell), TARGET, INTENT(IN) :: small, large
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
@@ -139,21 +139,6 @@ CONTAINS
         CALL this%create()
         !
         this%nrep = nrep
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_mapping_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_mapping_second(this, small, large)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), TARGET, INTENT(IN) :: small, large
-        !
-        CLASS(environ_mapping), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         ! Check that small%at and large%at are compatible with this%nrep
@@ -165,7 +150,7 @@ CONTAINS
             ALLOCATE (this%map(this%small%nnr))
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_mapping_second
+    END SUBROUTINE init_environ_mapping
     !------------------------------------------------------------------------------------
     !>
     !!

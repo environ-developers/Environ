@@ -300,7 +300,7 @@ CONTAINS
         CALL this%setup%update_cores(this%system_cell, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
-        ! Update fixed quantities defined inside the cell 
+        ! Update fixed quantities defined inside the cell
         ! NOTE: updating depends on cell%lupdate
         !
         IF (this%setup%lstatic) CALL this%static%update()
@@ -1156,9 +1156,7 @@ CONTAINS
             this%environment_cell => this%system_cell
         END IF
         !
-        CALL this%mapping%init_first(env_nrep)
-        !
-        CALL this%mapping%init_second(this%system_cell, this%environment_cell)
+        CALL this%mapping%init(env_nrep, this%system_cell, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_init_cell
@@ -1245,68 +1243,49 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
         !
         !--------------------------------------------------------------------------------
-        ! Set response properties for TD calculations
+        ! Response
         !
         IF (this%setup%loptical) THEN
             !
-            CALL this%system_response_electrons%init_first(0)
+            CALL this%system_response_electrons%init(0, this%system_cell)
             !
-            CALL this%system_response_charges%init_first()
+            CALL this%system_response_charges%init(this%system_cell)
             !
             CALL this%system_response_charges%add( &
                 electrons=this%system_response_electrons)
             !
-            CALL this%environment_response_electrons%init_first(0)
+            CALL this%environment_response_electrons%init(0, this%environment_cell)
             !
-            CALL this%environment_response_charges%init_first()
+            CALL this%environment_response_charges%init(this%environment_cell)
             !
             CALL this%environment_response_charges%add( &
                 electrons=this%environment_response_electrons, &
                 dielectric=this%optical)
             !
-            !----------------------------------------------------------------------------
-            !
-            CALL this%system_response_electrons%init_second(this%system_cell)
-            !
-            CALL this%system_response_charges%init_second(this%system_cell)
-            !
-            CALL this%environment_response_electrons%init_second(this%environment_cell)
-            !
-            CALL this%environment_response_charges%init_second(this%environment_cell)
-            !
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Allocate and set basic properties of ions
+        ! Ions
         !
-        CALL this%system_ions%init_first(nat, ntyp, this%setup%lsoftcavity, &
-                                         this%setup%lcoredensity, this%setup%lsmearedions, &
-                                         radius_mode, atom_label, atomicspread, &
-                                         corespread, solvationrad)
+        CALL this%system_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
+                                   corespread, solvationrad, radius_mode, &
+                                   this%setup%lsoftcavity, this%setup%lsmearedions, &
+                                   this%setup%lcoredensity, this%system_cell)
         !
-        CALL this%environment_ions%init_first(nat, ntyp, this%setup%lsoftcavity, &
-                                              this%setup%lcoredensity, this%setup%lsmearedions, &
-                                              radius_mode, atom_label, atomicspread, &
-                                              corespread, solvationrad)
-        !
-        CALL this%system_ions%init_second(nat, ntyp, ityp, zv, this%system_cell)
-        !
-        CALL this%environment_ions%init_second(nat, ntyp, ityp, zv, &
-                                               this%environment_cell)
+        CALL this%environment_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
+                                        corespread, solvationrad, radius_mode, &
+                                        this%setup%lsoftcavity, this%setup%lsmearedions, &
+                                        this%setup%lcoredensity, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
-        ! Set basic properties of electrons
+        ! Electrons
         !
-        CALL this%system_electrons%init_first(nelec)
+        CALL this%system_electrons%init(nelec, this%system_cell)
         !
-        CALL this%environment_electrons%init_first(nelec)
-        !
-        CALL this%system_electrons%init_second(this%system_cell)
-        !
-        CALL this%environment_electrons%init_second(this%environment_cell)
+        CALL this%environment_electrons%init(nelec, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
-        ! Set basic properties of the selected system
+        ! System
         !
         CALL this%system_system%init(system_ntyp, system_dim, system_axis, &
                                      this%system_ions)
@@ -1315,21 +1294,17 @@ CONTAINS
                                           this%environment_ions)
         !
         !--------------------------------------------------------------------------------
-        ! Collect free charges if computing electrostatics or confinement
+        ! Free charges (if computing electrostatics or confinement)
         !
-        CALL this%system_charges%init_first()
+        CALL this%system_charges%init(this%system_cell)
         !
-        CALL this%environment_charges%init_first()
+        CALL this%environment_charges%init(this%environment_cell)
         !
         IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
             !
-            CALL this%system_charges%add(this%system_electrons)
+            CALL this%system_charges%add(electrons=this%system_electrons)
             !
-            CALL this%environment_charges%add(this%environment_electrons)
-            !
-            CALL this%system_charges%init_second(this%system_cell)
-            !
-            CALL this%environment_charges%init_second(this%environment_cell)
+            CALL this%environment_charges%add(electrons=this%environment_electrons)
             !
         END IF
         !
@@ -1342,17 +1317,16 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Allocate and set basic properties of external charges
+        ! External charges
         !
         IF (this%setup%lexternals) THEN
             !
-            CALL this%externals%init_first(env_external_charges, extcharge_dim, &
-                                           extcharge_axis, extcharge_pos, &
-                                           extcharge_spread, extcharge_charge)
+            CALL this%externals%init(env_external_charges, extcharge_dim, &
+                                     extcharge_axis, extcharge_pos, &
+                                     extcharge_spread, extcharge_charge, &
+                                     this%environment_cell)
             !
             CALL this%environment_charges%add(externals=this%externals)
-            !
-            CALL this%externals%init_second(this%environment_cell)
             !
             DEALLOCATE (extcharge_axis)
             DEALLOCATE (extcharge_dim)
@@ -1361,31 +1335,29 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Set the parameters of the solvent boundary
+        ! Solvent boundary
         !
         IF (this%setup%lsolvent) THEN
+            local_label = 'solvent'
             !
-            CALL this%solvent%init_first( &
+            CALL this%solvent%init( &
                 this%setup%lgradient, this%setup%need_factsqrt, this%setup%lsurface, &
                 solvent_mode, stype, rhomax, rhomin, tbeta, env_static_permittivity, &
                 alpha, softness, solvent_distance, solvent_spread, solvent_radius, &
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_awareness, charge_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
-                this%environment_system, this%setup%derivatives)
-            !
-            local_label = 'solvent'
-            !
-            CALL this%solvent%init_second(this%environment_cell, local_label)
+                this%environment_system, this%setup%derivatives, this%environment_cell, &
+                local_label)
             !
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Set the parameters of the electrolyte and of its boundary
+        ! Electrolyte
         !
         IF (this%setup%lelectrolyte) THEN
             !
-            CALL this%electrolyte%init_first( &
+            CALL this%electrolyte%init( &
                 env_electrolyte_ntyp, electrolyte_mode, stype, electrolyte_rhomax, &
                 electrolyte_rhomin, electrolyte_tbeta, env_static_permittivity, &
                 electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
@@ -1393,41 +1365,38 @@ CONTAINS
                 filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
                 field_max, field_min, this%environment_electrons, this%environment_ions, &
                 this%environment_system, this%setup%derivatives, temperature, cion, &
-                cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized)
+                cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
+                this%environment_cell)
             !
             CALL this%environment_charges%add(electrolyte=this%electrolyte)
             !
-            CALL this%electrolyte%init_second(this%environment_cell)
-            !
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Set the parameters of the semiconductor
+        ! Semiconductor
         !
         IF (this%setup%lsemiconductor) THEN
             !
-            CALL this%semiconductor%init_first(temperature, sc_permittivity, &
-                                               sc_carrier_density, sc_electrode_chg, &
-                                               sc_distance, sc_spread, sc_chg_thr, &
-                                               this%environment_system)
+            CALL this%semiconductor%init(temperature, sc_permittivity, &
+                                         sc_carrier_density, sc_electrode_chg, &
+                                         sc_distance, sc_spread, sc_chg_thr, &
+                                         this%environment_system, this%environment_cell)
             !
             CALL this%environment_charges%add(semiconductor=this%semiconductor)
-            !
-            CALL this%semiconductor%init_second(this%environment_cell)
             !
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Set the parameters of the dielectric
+        ! Dielectric
         !
         IF (this%setup%lstatic) THEN
             !
-            CALL this%static%init_first(env_static_permittivity, this%solvent, &
-                                        this%setup%need_gradient, &
-                                        this%setup%need_factsqrt, &
-                                        this%setup%need_auxiliary)
+            CALL this%static%init(env_static_permittivity, this%solvent, &
+                                  this%setup%need_gradient, this%setup%need_factsqrt, &
+                                  this%setup%need_auxiliary, env_dielectric_regions, &
+                                  this%environment_cell)
             !
-            IF (env_dielectric_regions > 0) &
+            IF (this%static%nregions > 0) &
                 CALL this%static%set_regions(env_dielectric_regions, epsregion_dim, &
                                              epsregion_axis, epsregion_pos, &
                                              epsregion_width, epsregion_spread, &
@@ -1435,24 +1404,20 @@ CONTAINS
             !
             CALL this%environment_charges%add(dielectric=this%static)
             !
-            CALL this%static%init_second(this%environment_cell)
-            !
         END IF
         !
         IF (this%setup%loptical) THEN
             !
-            CALL this%optical%init_first(env_optical_permittivity, this%solvent, &
-                                         this%setup%need_gradient, &
-                                         this%setup%need_factsqrt, &
-                                         this%setup%need_auxiliary)
+            CALL this%optical%init(env_optical_permittivity, this%solvent, &
+                                   this%setup%need_gradient, this%setup%need_factsqrt, &
+                                   this%setup%need_auxiliary, env_dielectric_regions, &
+                                   this%environment_cell)
             !
-            IF (env_dielectric_regions > 0) &
+            IF (this%optical%nregions > 0) &
                 CALL this%optical%set_regions(env_dielectric_regions, epsregion_dim, &
                                               epsregion_axis, epsregion_pos, &
                                               epsregion_width, epsregion_spread, &
                                               epsregion_eps(2, :))
-            !
-            CALL this%optical%init_second(this%environment_cell)
             !
         END IF
         !

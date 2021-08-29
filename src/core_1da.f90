@@ -53,7 +53,6 @@ MODULE class_core_1da
     TYPE, EXTENDS(numerical_core), PUBLIC :: core_1da
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: initialized
         INTEGER :: n, d, p, axis
         REAL(DP) :: size, origin(3)
         REAL(DP), ALLOCATABLE :: x(:, :)
@@ -63,8 +62,7 @@ MODULE class_core_1da
         !--------------------------------------------------------------------------------
         !
         PROCEDURE :: create => create_core_1da
-        PROCEDURE :: init_first => init_core_1da_first
-        PROCEDURE :: init_second => init_core_1da_second
+        PROCEDURE :: init => init_core_1da
         PROCEDURE :: update_cell => update_core_1da_cell
         PROCEDURE :: update_origin => update_core_1da_origin
         PROCEDURE :: destroy => destroy_core_1da
@@ -108,24 +106,23 @@ CONTAINS
         !
         this%core_type = '1d-analytic'
         !
-        this%initialized = .FALSE.
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_1da
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_1da_first(this, dim, axis)
+    SUBROUTINE init_core_1da(this, dim, axis, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: dim, axis
+        TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_core_1da_first'
+        CHARACTER(LEN=80) :: sub_name = 'init_core_1da'
         !
         !--------------------------------------------------------------------------------
         !
@@ -144,23 +141,6 @@ CONTAINS
         !
         this%axis = axis
         !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_1da_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_1da_second(this, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_cell), INTENT(IN) :: cell
-        !
-        CLASS(core_1da), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
         CALL this%update_cell(cell)
         !
         this%n = cell%nnr
@@ -168,10 +148,8 @@ CONTAINS
         !
         CALL this%update_origin(cell%origin)
         !
-        this%initialized = .TRUE.
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_1da_second
+    END SUBROUTINE init_core_1da
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -269,20 +247,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%initialized) THEN
-            !
-            IF (.NOT. ALLOCATED(this%x)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-            !
-            IF (.NOT. ASSOCIATED(this%cell)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-            !
-            DEALLOCATE (this%x)
-            !
-            NULLIFY (this%cell)
-            !
-            this%initialized = .FALSE.
-        END IF
+        IF (.NOT. ALLOCATED(this%x)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        IF (.NOT. ASSOCIATED(this%cell)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        DEALLOCATE (this%x)
+        !
+        NULLIFY (this%cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_1da

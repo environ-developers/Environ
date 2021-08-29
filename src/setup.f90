@@ -345,38 +345,22 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%lfd) CALL this%core_fd%init_first(ifdtype, nfdpoint)
+        IF (this%lfd) CALL this%core_fd%init(ifdtype, nfdpoint, environment_cell)
         !
         IF (this%lfft_system) &
-            CALL this%core_fft_sys%init_first(use_internal_pbc_corr)
+            CALL this%core_fft_sys%init(gcutm, system_cell, use_internal_pbc_corr)
         !
         IF (this%lfft_environment) THEN
             !
-            CALL this%core_fft_deriv%init_first()
+            CALL this%core_fft_deriv%init(gcutm, environment_cell)
             !
             IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%init_first(use_internal_pbc_corr)
+                CALL this%core_fft_elect%init(gcutm, environment_cell, &
+                                              use_internal_pbc_corr)
             !
         END IF
         !
-        IF (this%l1da) CALL this%core_1da_elect%init_first(pbc_dim, pbc_axis)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (this%lfd) CALL this%core_fd%init_second(environment_cell)
-        !
-        IF (this%lfft_system) CALL this%core_fft_sys%init_second(gcutm, system_cell)
-        !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%init_second(gcutm, environment_cell)
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%init_second(gcutm, environment_cell)
-            !
-        END IF
-        !
-        IF (this%l1da) CALL this%core_1da_elect%init_second(environment_cell)
+        IF (this%l1da) CALL this%core_1da_elect%init(pbc_dim, pbc_axis, environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_numerical_cores

@@ -54,7 +54,6 @@ MODULE class_electrons
         !--------------------------------------------------------------------------------
         !
         LOGICAL :: lupdate
-        LOGICAL :: initialized
         INTEGER :: number
         !
         TYPE(environ_density) :: density
@@ -65,8 +64,7 @@ MODULE class_electrons
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_electrons
-        PROCEDURE :: init_first => init_environ_electrons_first
-        PROCEDURE :: init_second => init_environ_electrons_second
+        PROCEDURE :: init => init_environ_electrons
         PROCEDURE :: update => update_environ_electrons
         PROCEDURE :: destroy => destroy_environ_electrons
         !
@@ -99,8 +97,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (ALLOCATED(this%density%of_r)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
         this%lupdate = .FALSE.
-        this%initialized = .FALSE.
         !
         this%number = 0
         this%charge = 0.D0
@@ -111,32 +113,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons_first(this, nelec)
+    SUBROUTINE init_environ_electrons(this, nelec, cell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nelec
-        !
-        CLASS(environ_electrons), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%create()
-        !
-        this%number = nelec
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_electrons_first
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons_second(this, cell)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
@@ -145,12 +127,14 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        CALL this%create()
+        !
         CALL this%density%init(cell, local_label)
         !
-        this%initialized = .TRUE.
+        this%number = nelec
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_electrons_second
+    END SUBROUTINE init_environ_electrons
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -211,13 +195,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%initialized) THEN
-            !
-            CALL this%density%destroy()
-            !
-            this%charge = 0.D0
-            this%initialized = .FALSE.
-        END IF
+        CALL this%density%destroy()
+        !
+        this%charge = 0.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrons
