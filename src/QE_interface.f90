@@ -40,11 +40,7 @@ MODULE environ_QE_interface
     !
     USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI, RYTOEV, e2
     !
-    USE environ_input, ONLY: read_environ_input
-    !
-    USE env_base_input
-    !
-    USE class_environ, ONLY: env
+    USE env_global_objects, ONLY: setup, env
     !
     !------------------------------------------------------------------------------------
     !
@@ -52,9 +48,9 @@ MODULE environ_QE_interface
     !
     PRIVATE
     !
-    PUBLIC :: init_environ_io, init_environ_base_first, init_environ_base_second, &
-              init_environ_potential, init_environ_cell, init_environ_ions, &
-              init_environ_electrons, init_environ_response
+    PUBLIC :: init_environ_io, read_environ_input, init_environ_first, &
+              init_environ_second, update_environ_potential, update_environ_cell, &
+              update_environ_ions, update_environ_electrons, update_environ_response
     !
     PUBLIC :: calc_environ_potential, calc_environ_energy, calc_environ_force, &
               calc_environ_dpotential, calc_environ_denergy
@@ -127,54 +123,66 @@ CONTAINS
     END SUBROUTINE init_environ_io
     !------------------------------------------------------------------------------------
     !>
-    !! Set global base
+    !! Initialize Environ setup object from file
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base_first(nelec, nat, ntyp, atom_label, &
-                                       use_internal_pbc_corr)
+    SUBROUTINE read_environ_input()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-        INTEGER, INTENT(IN) :: nelec, nat, ntyp
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
-        !
-        INTEGER :: is
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_base_first'
+        CHARACTER(LEN=80) :: sub_name = 'read_environ_input'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL read_environ_input() ! read namelists and cards from environ.in
-        !
-        verbose_ = verbose ! set internal verbosity from input
+        CALL setup%read_input() ! default filename = environ.in
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL env%init_first(nelec, nat, ntyp, atom_label, use_internal_pbc_corr)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_base_first
+    END SUBROUTINE read_environ_input
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base_second(alat, at, comm_in, gcutm, e2_in)
+    SUBROUTINE init_environ_first()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: comm_in
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_first'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL setup%set_flags()
+        !
+        CALL setup%set_numerical_base()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_environ_first
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_second(nelec, nat, ntyp, ityp, atom_label, zv, tau, alat, &
+                                   at, comm_in, gcutm, use_internal_pbc_corr, e2_in)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: nelec, nat, ntyp
+        INTEGER, INTENT(IN) :: ityp(nat)
+        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
+        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         REAL(DP), INTENT(IN) :: alat
         REAL(DP), INTENT(IN) :: at(3, 3)
+        INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: gcutm
-        REAL(DP), OPTIONAL, INTENT(IN) :: e2_in
+        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
+        REAL(DP), INTENT(IN), OPTIONAL :: e2_in
         !
-        REAL(DP), ALLOCATABLE :: at_scaled(:, :)
+        REAL(DP), ALLOCATABLE :: at_scaled(:, :), tau_scaled(:, :)
         REAL(DP) :: gcutm_scaled
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_base_second'
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_second'
         !
         !--------------------------------------------------------------------------------
         ! Allocate buffers used by env_mp_sum
@@ -197,24 +205,30 @@ CONTAINS
         !
         IF (alat < 1.0_DP) CALL env_warning('strange lattice parameter')
         !
-        ALLOCATE(at_scaled(3, 3))
+        ALLOCATE (at_scaled(3, 3))
         at_scaled = at * alat
+        !
+        ALLOCATE (tau_scaled(3, nat))
+        tau_scaled = tau * alat
+        !
         gcutm_scaled = gcutm / alat**2
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init_second(at_scaled, comm_in, gcutm_scaled)
+        CALL env%init(setup, nelec, nat, ntyp, ityp, atom_label, zv, tau_scaled, &
+                      at_scaled, comm_in, gcutm_scaled, use_internal_pbc_corr)
         !
-        DEALLOCATE(at_scaled)
+        DEALLOCATE (at_scaled)
+        DEALLOCATE (tau_scaled)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_base_second
+    END SUBROUTINE init_environ_second
     !------------------------------------------------------------------------------------
     !>
     !! Called at every ionic step
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_potential(nnr, vltot)
+    SUBROUTINE update_environ_potential(nnr, vltot)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -224,15 +238,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init_potential(nnr, vltot)
+        CALL env%update_potential(nnr, vltot)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_potential
+    END SUBROUTINE update_environ_potential
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_cell(at, alat)
+    SUBROUTINE update_environ_cell(at, alat)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -243,46 +257,45 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ALLOCATE(at_scaled(3, 3))
+        ALLOCATE (at_scaled(3, 3))
         at_scaled = at * alat
         !
-        CALL env%init_cell(at_scaled)
+        CALL env%update_cell(at_scaled)
         !
-        DEALLOCATE(at_scaled)
+        DEALLOCATE (at_scaled)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_cell
+    END SUBROUTINE update_environ_cell
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_ions(nat, ntyp, ityp, zv, tau, alat)
+    SUBROUTINE update_environ_ions(nat, tau, alat)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nat, ntyp
-        INTEGER, INTENT(IN) :: ityp(nat)
-        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat), alat
+        INTEGER, INTENT(IN) :: nat
+        REAL(DP), INTENT(IN) :: tau(3, nat), alat
         !
         REAL(DP), ALLOCATABLE :: tau_scaled(:, :)
         !
         !--------------------------------------------------------------------------------
         !
-        ALLOCATE(tau_scaled(3, nat))
+        ALLOCATE (tau_scaled(3, nat))
         tau_scaled = tau * alat
         !
-        CALL env%init_ions(nat, ntyp, ityp, zv, tau_scaled)
+        CALL env%update_ions(nat, tau_scaled)
         !
-        DEALLOCATE(tau_scaled)
+        DEALLOCATE (tau_scaled)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_ions
+    END SUBROUTINE update_environ_ions
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_electrons(nnr, rho, nelec)
+    SUBROUTINE update_environ_electrons(nnr, rho, nelec)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -293,15 +306,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init_electrons(nnr, rho, nelec)
+        CALL env%update_electrons(nnr, rho, nelec)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_electrons
+    END SUBROUTINE update_environ_electrons
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_response(nnr, drho)
+    SUBROUTINE update_environ_response(nnr, drho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -311,10 +324,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init_response(nnr, drho)
+        CALL env%update_response(nnr, drho)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_response
+    END SUBROUTINE update_environ_response
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -456,7 +469,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        env%environ_restart = environ_restart
+        setup%restart = environ_restart
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_restart
@@ -467,7 +480,7 @@ CONTAINS
     REAL(DP) FUNCTION get_environ_threshold()
         !--------------------------------------------------------------------------------
         !
-        get_environ_threshold = env%environ_thr
+        get_environ_threshold = setup%threshold
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_environ_threshold
@@ -478,7 +491,7 @@ CONTAINS
     INTEGER FUNCTION get_environ_nskip()
         !--------------------------------------------------------------------------------
         !
-        get_environ_nskip = env%environ_nskip
+        get_environ_nskip = setup%nskip
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_environ_nskip
@@ -519,7 +532,7 @@ CONTAINS
     LOGICAL FUNCTION is_environ_restart()
         !--------------------------------------------------------------------------------
         !
-        is_environ_restart = env%environ_restart
+        is_environ_restart = setup%restart
         !
         !--------------------------------------------------------------------------------
     END FUNCTION is_environ_restart
@@ -530,204 +543,10 @@ CONTAINS
     LOGICAL FUNCTION is_tddfpt()
         !--------------------------------------------------------------------------------
         !
-        is_tddfpt = env%ltddfpt
+        is_tddfpt = setup%ltddfpt
         !
         !--------------------------------------------------------------------------------
     END FUNCTION is_tddfpt
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                                   OUTPUT METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !! Write out the different Environ contributions to the energy.
-    !! Called by electrons.f90
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_energies()
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ionode) THEN
-            !
-            SELECT CASE (prog)
-                !
-            CASE ('PW')
-                !
-                IF (env%lelectrostatic) WRITE (program_unit, 1000) env%eelectrostatic
-                !
-                IF (env%lsurface) WRITE (program_unit, 1001) env%esurface
-                !
-                IF (env%lvolume) WRITE (program_unit, 1002) env%evolume
-                !
-                IF (env%lconfine) WRITE (program_unit, 1003) env%econfine
-                !
-                IF (env%lelectrolyte) WRITE (program_unit, 1004) env%eelectrolyte
-                !
-                WRITE (program_unit, 1005) env%deenviron
-                !
-            CASE ('CP')
-                !
-                IF (env%lelectrostatic) WRITE (program_unit, 1006) env%eelectrostatic
-                !
-                IF (env%lsurface) WRITE (program_unit, 1007) env%esurface
-                !
-                IF (env%lvolume) WRITE (program_unit, 1008) env%evolume
-                !
-                IF (env%lconfine) WRITE (program_unit, 1009) env%econfine
-                !
-                IF (env%lelectrolyte) WRITE (program_unit, 1010) env%eelectrolyte
-                !
-            CASE DEFAULT
-                CALL env_errore(sub_name, 'Wrong program calling Environ', 1)
-                !
-            END SELECT
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        !
-1000    FORMAT('     electrostatic embedding   =', F17.8, ' Ry')
-1001    FORMAT('     cavitation energy         =', F17.8, ' Ry')
-1002    FORMAT('     PV energy                 =', F17.8, ' Ry')
-1003    FORMAT('     confinement energy        =', F17.8, ' Ry')
-1004    FORMAT('     electrolyte free energy   =', F17.8, ' Ry')
-1005    FORMAT('     correction to one-el term =', F17.8, ' Ry')
-        !
-1006    FORMAT('     electrostatic embedding = ', F14.5, ' Hartree a.u.')
-1007    FORMAT('           cavitation energy = ', F14.5, ' Hartree a.u.')
-1008    FORMAT('                   PV energy = ', F14.5, ' Hartree a.u.')
-1009    FORMAT('     electrolyte free energy = ', F14.5, ' Hartree a.u.')
-1010    FORMAT('          confinement energy = ', F14.5, ' Hartree a.u.')
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE print_environ_energies
-    !------------------------------------------------------------------------------------
-    !>
-    !! If Gaussian nuclei are used, write out the corresponding potential shift
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_potential_shift()
-        !--------------------------------------------------------------------------------
-        !
-        IF (env%lsmearedions) &
-            WRITE (program_unit, 1100) env%environment_ions%potential_shift * RYTOEV
-        !
-1100    FORMAT(/, 5(' '), &
-                'the potential shift due to the Gaussian-smeared nuclei is ', &
-                F10.4, ' ev')
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE print_environ_potential_shift
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_potential_warning()
-        !--------------------------------------------------------------------------------
-        !
-        IF (env%need_pbc_correction) WRITE (program_unit, 1200)
-        !
-1200    FORMAT(/, &
-                5(' '), 'WARNING: you are using the parabolic pbc correction;', /, &
-                5(' '), '         the potential shift above must be added to ', /, &
-                5(' '), '         band and Fermi energies.')
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE print_environ_potential_warning
-    !------------------------------------------------------------------------------------
-    !!
-    !> Write out the main parameters of Environ calculations, summarizing
-    !! the input keywords (some info also on internal vs input units).
-    !! Called by summary.f90
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_summary()
-        !--------------------------------------------------------------------------------
-        !
-        IF (ionode .AND. prog == 'PW') CALL env%summary()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE print_environ_summary
-    !------------------------------------------------------------------------------------
-    !>
-    !! Write out the time informations of the Environ dependent calculations.
-    !! Called by print_clock_pw.f90
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_clocks(passed_unit)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN), OPTIONAL :: passed_unit
-        !
-        INTEGER :: actual_unit
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (PRESENT(passed_unit)) THEN
-            actual_unit = passed_unit
-        ELSE
-            actual_unit = program_unit
-        END IF
-        !
-        WRITE (actual_unit, *)
-        WRITE (actual_unit, '(5X,"Environ routines")')
-        !
-        !--------------------------------------------------------------------------------
-        ! Dielectric subroutines
-        !
-        IF (env%lelectrostatic) THEN
-            !
-            CALL env_print_clock('calc_eelect')
-            !
-            CALL env_print_clock('calc_velect')
-            !
-            CALL env_print_clock('calc_vgcs')
-            !
-            CALL env_print_clock('dielectric')
-            !
-            CALL env_print_clock('electrolyte')
-            !
-            CALL env_print_clock('calc_felect')
-            !
-        END IF
-        !
-        IF (env%lsemiconductor) CALL env_print_clock('calc_vms')
-        !
-        !--------------------------------------------------------------------------------
-        ! TDDFT
-        !
-        IF (env%ltddfpt) CALL env_print_clock('calc_vsolvent_tddfpt')
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE print_environ_clocks
-    !------------------------------------------------------------------------------------
-    !>
-    !! Sets the output file target #TODO do we need this routine?
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE update_output_program_unit(program_unit_in)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: program_unit_in
-        !
-        !--------------------------------------------------------------------------------
-        !
-        program_unit = program_unit_in
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE update_output_program_unit
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -782,18 +601,19 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! base_environ variables
         !
-        IF (env%lelectrostatic .AND. ASSOCIATED(env%vreference%cell)) &
+        IF (setup%lelectrostatic .AND. ASSOCIATED(env%vreference%cell)) &
             CALL env%vreference%destroy()
         !
-        IF (env%lsoftcavity .AND. ASSOCIATED(env%vsoftcavity%cell)) &
+        IF (setup%lsoftcavity .AND. ASSOCIATED(env%vsoftcavity%cell)) &
             CALL env%vsoftcavity%destroy()
         !
-        IF (env%lconfine .AND. ASSOCIATED(env%vconfine%cell)) CALL env%vconfine%destroy()
+        IF (setup%lconfine .AND. ASSOCIATED(env%vconfine%cell)) &
+            CALL env%vconfine%destroy()
         !
         !--------------------------------------------------------------------------------
         ! Destroy derived types which were allocated in input
         !
-        IF (env%lelectrostatic .OR. env%lconfine) THEN
+        IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
             CALL env%system_charges%destroy(lflag)
             !
@@ -801,13 +621,13 @@ CONTAINS
             !
         END IF
         !
-        IF (env%lexternals) CALL env%externals%destroy(lflag)
+        IF (setup%lexternals) CALL env%externals%destroy(lflag)
         !
-        IF (env%lstatic) CALL env%static%destroy(lflag)
+        IF (setup%lstatic) CALL env%static%destroy(lflag)
         !
-        IF (env%lelectrolyte) CALL env%electrolyte%destroy(lflag)
+        IF (setup%lelectrolyte) CALL env%electrolyte%destroy(lflag)
         !
-        IF (env%lsemiconductor) CALL env%semiconductor%destroy(lflag)
+        IF (setup%lsemiconductor) CALL env%semiconductor%destroy(lflag)
         !
         CALL env%system_electrons%destroy(lflag)
         !
@@ -851,7 +671,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! base_environ variables
         !
-        IF (env%lelectrostatic) THEN
+        IF (setup%lelectrostatic) THEN
             !
             IF (ASSOCIATED(env%velectrostatic%cell)) CALL env%velectrostatic%destroy()
             !
@@ -862,7 +682,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Destroy derived types which were allocated in input
         !
-        IF (env%loptical) THEN
+        IF (setup%loptical) THEN
             !
             CALL env%environment_response_charges%destroy(lflag)
             !
@@ -876,11 +696,11 @@ CONTAINS
             !
         END IF
         !
-        IF (env%lsolvent) CALL env%solvent%destroy(lflag)
+        IF (setup%lsolvent) CALL env%solvent%destroy(lflag)
         !
-        IF (env%lboundary) CALL env%derivatives%destroy(lflag)
+        IF (setup%lboundary) CALL setup%derivatives%destroy(lflag)
         !
-        IF (env%ldoublecell) THEN
+        IF (setup%ldoublecell) THEN
             !
             CALL env%mapping%destroy(lflag)
             !
@@ -905,12 +725,206 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env%outer%destroy(lflag)
+        CALL setup%outer%destroy(lflag)
         !
-        CALL env%reference%destroy(lflag)
+        CALL setup%reference%destroy(lflag)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_clean
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! Write out the different Environ contributions to the energy.
+    !! Called by electrons.f90
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_energies()
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ionode) THEN
+            !
+            SELECT CASE (prog)
+                !
+            CASE ('PW')
+                !
+                IF (setup%lelectrostatic) WRITE (program_unit, 1000) env%eelectrostatic
+                !
+                IF (setup%lsurface) WRITE (program_unit, 1001) env%esurface
+                !
+                IF (setup%lvolume) WRITE (program_unit, 1002) env%evolume
+                !
+                IF (setup%lconfine) WRITE (program_unit, 1003) env%econfine
+                !
+                IF (setup%lelectrolyte) WRITE (program_unit, 1004) env%eelectrolyte
+                !
+                WRITE (program_unit, 1005) env%deenviron
+                !
+            CASE ('CP')
+                !
+                IF (setup%lelectrostatic) WRITE (program_unit, 1006) env%eelectrostatic
+                !
+                IF (setup%lsurface) WRITE (program_unit, 1007) env%esurface
+                !
+                IF (setup%lvolume) WRITE (program_unit, 1008) env%evolume
+                !
+                IF (setup%lconfine) WRITE (program_unit, 1009) env%econfine
+                !
+                IF (setup%lelectrolyte) WRITE (program_unit, 1010) env%eelectrolyte
+                !
+            CASE DEFAULT
+                CALL env_errore(sub_name, 'Wrong program calling Environ', 1)
+                !
+            END SELECT
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT('     electrostatic embedding   =', F17.8, ' Ry')
+1001    FORMAT('     cavitation energy         =', F17.8, ' Ry')
+1002    FORMAT('     PV energy                 =', F17.8, ' Ry')
+1003    FORMAT('     confinement energy        =', F17.8, ' Ry')
+1004    FORMAT('     electrolyte free energy   =', F17.8, ' Ry')
+1005    FORMAT('     correction to one-el term =', F17.8, ' Ry')
+        !
+1006    FORMAT('     electrostatic embedding = ', F14.5, ' Hartree a.u.')
+1007    FORMAT('           cavitation energy = ', F14.5, ' Hartree a.u.')
+1008    FORMAT('                   PV energy = ', F14.5, ' Hartree a.u.')
+1009    FORMAT('     electrolyte free energy = ', F14.5, ' Hartree a.u.')
+1010    FORMAT('          confinement energy = ', F14.5, ' Hartree a.u.')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_energies
+    !------------------------------------------------------------------------------------
+    !>
+    !! If Gaussian nuclei are used, write out the corresponding potential shift
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_potential_shift()
+        !--------------------------------------------------------------------------------
+        !
+        IF (setup%lsmearedions) &
+            WRITE (program_unit, 1100) env%environment_ions%potential_shift * RYTOEV
+        !
+1100    FORMAT(/, 5(' '), &
+                'the potential shift due to the Gaussian-smeared nuclei is ', &
+                F10.4, ' ev')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_potential_shift
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_potential_warning()
+        !--------------------------------------------------------------------------------
+        !
+        IF (setup%need_pbc_correction) WRITE (program_unit, 1200)
+        !
+1200    FORMAT(/, &
+                5(' '), 'WARNING: you are using the parabolic pbc correction;', /, &
+                5(' '), '         the potential shift above must be added to ', /, &
+                5(' '), '         band and Fermi energies.')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_potential_warning
+    !------------------------------------------------------------------------------------
+    !!
+    !> Write out the main parameters of Environ calculations, summarizing
+    !! the input keywords (some info also on internal vs input units).
+    !! Called by summary.f90
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_summary()
+        !--------------------------------------------------------------------------------
+        !
+        IF (ionode .AND. prog == 'PW') CALL setup%printout()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_summary
+    !------------------------------------------------------------------------------------
+    !>
+    !! Write out the time informations of the Environ dependent calculations.
+    !! Called by print_clock_pw.f90
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_clocks(passed_unit)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN), OPTIONAL :: passed_unit
+        !
+        INTEGER :: actual_unit
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(passed_unit)) THEN
+            actual_unit = passed_unit
+        ELSE
+            actual_unit = program_unit
+        END IF
+        !
+        WRITE (actual_unit, *)
+        WRITE (actual_unit, '(5X,"Environ routines")')
+        !
+        !--------------------------------------------------------------------------------
+        ! Dielectric subroutines
+        !
+        IF (setup%lelectrostatic) THEN
+            !
+            CALL env_print_clock('calc_eelect')
+            !
+            CALL env_print_clock('calc_velect')
+            !
+            CALL env_print_clock('calc_vgcs')
+            !
+            CALL env_print_clock('dielectric')
+            !
+            CALL env_print_clock('electrolyte')
+            !
+            CALL env_print_clock('calc_felect')
+            !
+        END IF
+        !
+        IF (setup%lsemiconductor) CALL env_print_clock('calc_vms')
+        !
+        !--------------------------------------------------------------------------------
+        ! TDDFT
+        !
+        IF (setup%ltddfpt) CALL env_print_clock('calc_vsolvent_tddfpt')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_clocks
+    !------------------------------------------------------------------------------------
+    !>
+    !! Sets the output file target #TODO do we need this routine?
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_output_program_unit(program_unit_in)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: program_unit_in
+        !
+        !--------------------------------------------------------------------------------
+        !
+        program_unit = program_unit_in
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_output_program_unit
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

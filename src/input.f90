@@ -42,7 +42,7 @@ MODULE environ_input
     !
     PRIVATE
     !
-    PUBLIC :: read_environ_input
+    PUBLIC :: env_read_input
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -52,30 +52,32 @@ CONTAINS
     !! and derived routines for cards (external charges and dielectric regions)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_environ_input()
+    SUBROUTINE env_read_input(filename)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CHARACTER(LEN=80), INTENT(IN) :: filename
+        !
         LOGICAL :: ext
         INTEGER :: environ_unit_input
         !
-        CHARACTER(LEN=80) :: sub_name = 'read_environ_input'
+        CHARACTER(LEN=80) :: sub_name = 'env_read_input'
         !
         !--------------------------------------------------------------------------------
         ! Open environ input file: environ.in
         !
         environ_unit_input = env_find_free_unit()
-        INQUIRE (file="environ.in", exist=ext)
+        INQUIRE (file=TRIM(filename), exist=ext)
         !
-        IF (.NOT. ext) CALL env_errore(sub_name, 'Missing environ.in file', 1)
+        IF (.NOT. ext) CALL env_errore(sub_name, 'Missing input file', 1)
         !
-        OPEN (unit=environ_unit_input, file="environ.in", status="old")
+        OPEN (unit=environ_unit_input, file=TRIM(filename), status="old")
         !
         !--------------------------------------------------------------------------------
         ! Read values into local variables
         !
-        CALL env_header('Reading input from environ.in')
+        CALL env_header('Reading input from '//TRIM(filename))
         !
         CALL env_divider(.FALSE.)
         !
@@ -94,7 +96,7 @@ CONTAINS
             OPEN (unit=environ_unit, file='environ.debug', status='unknown')
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE read_environ_input
+    END SUBROUTINE env_read_input
     !------------------------------------------------------------------------------------
     !>
     !! Sets default values for all variables and overwrites with provided input

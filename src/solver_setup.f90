@@ -74,9 +74,8 @@ MODULE class_solver_setup
         !
         PROCEDURE, PRIVATE :: create => create_electrostatic_setup
         PROCEDURE :: init => init_electrostatic_setup
-        PROCEDURE :: destroy => destroy_electrostatic_setup
-        !
         PROCEDURE :: set_flags => set_electrostatic_flags
+        PROCEDURE :: destroy => destroy_electrostatic_setup
         !
         PROCEDURE :: calc_v => calc_velectrostatic
         PROCEDURE :: calc_e => calc_eelectrostatic
@@ -228,46 +227,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_electrostatic_setup(this, lflag)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
-        !
-        CLASS(electrostatic_setup), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_electrostatic_setup'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (lflag) THEN
-            !
-            SELECT TYPE (solver => this%solver)
-                !
-            TYPE IS (solver_direct)
-                CALL solver%destroy(lflag)
-                !
-            CLASS IS (solver_iterative)
-                CALL solver%destroy(lflag)
-                !
-            END SELECT
-            !
-            IF (.NOT. ASSOCIATED(this%solver)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-            !
-            NULLIFY (this%solver)
-            !
-            IF (ASSOCIATED(this%inner)) CALL this%inner%destroy(lflag)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_electrostatic_setup
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE set_electrostatic_flags(this, need_auxiliary, need_gradient, &
                                        need_factsqrt)
         !--------------------------------------------------------------------------------
@@ -312,6 +271,46 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_electrostatic_flags
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_electrostatic_setup(this, lflag)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        LOGICAL, INTENT(IN) :: lflag
+        !
+        CLASS(electrostatic_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_electrostatic_setup'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (lflag) THEN
+            !
+            SELECT TYPE (solver => this%solver)
+                !
+            TYPE IS (solver_direct)
+                CALL solver%destroy(lflag)
+                !
+            CLASS IS (solver_iterative)
+                CALL solver%destroy(lflag)
+                !
+            END SELECT
+            !
+            IF (.NOT. ASSOCIATED(this%solver)) &
+                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            !
+            NULLIFY (this%solver)
+            !
+            IF (ASSOCIATED(this%inner)) CALL this%inner%destroy(lflag)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_electrostatic_setup
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

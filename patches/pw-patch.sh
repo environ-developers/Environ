@@ -100,9 +100,9 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
   USE io_global,            ONLY : ionode, ionode_id, stdout\
   USE mp_images,            ONLY : intra_image_comm\
-  USE ions_base,            ONLY : nat, ntyp => nsp, atm\
   USE martyna_tuckerman,    ONLY : do_comp_mt\
-  USE environ_QE_interface, ONLY : init_environ_io, init_environ_base_first\
+  USE environ_QE_interface, ONLY : init_environ_io, read_environ_input, &\
+                                   init_environ_first\
 !Environ patch
 ' plugin_read_input.f90 >tmp.1
 
@@ -110,7 +110,8 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
       CALL init_environ_io(prog, ionode, ionode_id, intra_image_comm, stdout)\
-      CALL init_environ_base_first(1, nat, ntyp, atm, do_comp_mt)\
+      CALL read_environ_input()\
+      CALL init_environ_first()\
    ENDIF\
 !Environ patch
 ' tmp.1 >tmp.2
@@ -188,8 +189,10 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE    mp_bands,             ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 USE    cell_base,            ONLY : at, alat\
+USE    ions_base,            ONLY : nat, nsp, ityp, atm, zv, tau\
+USE    martyna_tuckerman,    ONLY : do_comp_mt\
 USE    gvect,                ONLY : gcutm\
-USE    environ_QE_interface, ONLY : init_environ_base_second\
+USE    environ_QE_interface, ONLY : init_environ_second\
 !Environ patch
 ' plugin_initbase.f90 >tmp.1
 
@@ -211,7 +214,8 @@ sed '/Environ CALLS BEGIN/ a\
     ir_end = dfftp%nnr\
 #endif\
   IF (use_environ) & \
-      CALL init_environ_base_second(alat, at, intra_bgrp_comm, gcutm)\
+      CALL init_environ_second(1, nat, nsp, ityp, atm, zv, tau, &\
+                               alat, at, intra_bgrp_comm, gcutm, do_comp_mt)\
 !Environ patch
 ' tmp.2 >tmp.1
 
@@ -261,14 +265,14 @@ mv tmp.2 plugin_print_energies.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
 USE cell_base,            ONLY : alat\
-USE ions_base,            ONLY : zv, nat, nsp, ityp, tau\
-USE environ_QE_interface, ONLY : init_environ_ions\
+USE ions_base,            ONLY : nat, tau\
+USE environ_QE_interface, ONLY : update_environ_ions\
 !Environ patch
 ' plugin_init_ions.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-IF (use_environ) CALL init_environ_ions(nat, nsp, ityp, zv, tau, alat)\
+IF (use_environ) CALL update_environ_ions(nat, tau, alat)\
 !Environ patch
 ' tmp.1 >tmp.2
 
@@ -279,13 +283,13 @@ mv tmp.2 plugin_init_ions.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
 USE cell_base,            ONLY : at, alat\
-USE environ_QE_interface, ONLY : init_environ_cell\
+USE environ_QE_interface, ONLY : update_environ_cell\
 !Environ patch
 ' plugin_init_cell.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-  IF ( use_environ ) call init_environ_cell( at, alat )\
+  IF ( use_environ ) call update_environ_cell( at, alat )\
 !Environ patch
 ' tmp.1 >tmp.2
 
@@ -320,13 +324,13 @@ mv tmp.2 plugin_scf_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_QE_interface, ONLY : init_environ_potential\
+USE environ_QE_interface, ONLY : update_environ_potential\
 !Environ patch
 ' plugin_init_potential.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  IF(use_environ) CALL init_environ_potential( dfftp%nnr, vltot )\
+  IF(use_environ) CALL update_environ_potential( dfftp%nnr, vltot )\
 !Environ patch
 ' tmp.1 >tmp.2
 
@@ -340,7 +344,7 @@ USE global_version,       ONLY : version_number\
 USE klist,                ONLY : nelec\
 USE control_flags,        ONLY : lscf\
 USE lsda_mod,             ONLY : nspin\
-USE environ_QE_interface, ONLY : init_environ_electrons, &\
+USE environ_QE_interface, ONLY : update_environ_electrons, &\
                                  calc_environ_potential, &\
                                  get_environ_threshold, &\
                                  set_environ_restart, &\
@@ -375,7 +379,7 @@ sed '/Environ CALLS BEGIN/ a\
             IF ( nspin == 2 ) rhoaux(:) = rhoaux(:) + rhoin%of_r(:, 2)\
         END IF\
         !\
-        CALL init_environ_electrons( dfftp%nnr, rhoaux, nelec )\
+        CALL update_environ_electrons( dfftp%nnr, rhoaux, nelec )\
         !\
         ! environ contribution to the local potential\
         !\

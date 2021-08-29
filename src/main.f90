@@ -37,26 +37,13 @@ MODULE class_environ
     !
     USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
     !
+    USE env_base_input
+    USE env_setup
+    !
     USE class_cell
     USE class_density
     USE class_gradient
     USE class_mapping
-    !
-    USE class_core_container_corrections
-    USE class_core_container_derivatives
-    USE class_core_container_electrostatics
-    USE class_core_fd_derivatives
-    USE class_core_fft_derivatives
-    USE class_core_fft_electrostatics
-    USE class_core_1da_electrostatics
-    !
-    USE class_solver_setup
-    USE class_solver
-    USE class_solver_direct
-    USE class_solver_fixedpoint
-    USE class_solver_gradient
-    USE class_solver_iterative
-    USE class_solver_newton
     !
     USE class_boundary
     USE class_charges
@@ -68,7 +55,6 @@ MODULE class_environ
     USE class_semiconductor
     USE class_system
     !
-    USE env_base_input
     USE env_write_cube
     !
     !------------------------------------------------------------------------------------
@@ -81,39 +67,30 @@ MODULE class_environ
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE environ_obj
+    TYPE, PUBLIC :: environ_obj
         !--------------------------------------------------------------------------------
         !
-        !--------------------------------------------------------------------------------
-        ! Environ execution parameters
-        !
-        LOGICAL :: environ_restart
-        REAL(DP) :: environ_thr
-        INTEGER :: environ_nskip
+        TYPE(environ_setup), POINTER :: setup => NULL()
         !
         !--------------------------------------------------------------------------------
-        ! Control flags
+        ! Simulation space
         !
-        LOGICAL :: ltddfpt, lsolvent, lelectrostatic, lsoftsolvent, lsoftelectrolyte, &
-                   lsoftcavity, lrigidsolvent, lrigidelectrolyte, lrigidcavity, &
-                   lcoredensity, lsmearedions, lgradient
-        !
-        !--------------------------------------------------------------------------------
-        ! Internal parameters for mapping between environment and system cell
-        !
-        LOGICAL :: ldoublecell
-        TYPE(environ_mapping) :: mapping
         TYPE(environ_cell) :: system_cell
         TYPE(environ_cell), POINTER :: environment_cell => NULL()
-        TYPE(environ_ions) :: system_ions, environment_ions
-        TYPE(environ_electrons) :: system_electrons, environment_electrons
+        TYPE(environ_mapping) :: mapping
         !
         !--------------------------------------------------------------------------------
+        ! Mapped quantities
         !
-        LOGICAL :: lexternals
-        TYPE(environ_externals) :: externals ! external charges
-        TYPE(environ_charges) :: system_charges, environment_charges
+        TYPE(environ_ions) :: system_ions, environment_ions
         TYPE(environ_system) :: system_system, environment_system
+        TYPE(environ_electrons) :: system_electrons, environment_electrons
+        TYPE(environ_charges) :: system_charges, environment_charges
+        !
+        !--------------------------------------------------------------------------------
+        ! Details of the continuum interface
+        !
+        TYPE(environ_boundary) :: solvent
         !
         !--------------------------------------------------------------------------------
         ! Response properties
@@ -125,150 +102,52 @@ MODULE class_environ
                                  environment_response_charges
         !
         !--------------------------------------------------------------------------------
-        ! Details of the continuum interface
+        ! Physical objects
         !
-        LOGICAL :: lboundary
-        TYPE(environ_boundary) :: solvent
-        TYPE(container_derivatives) :: derivatives
-        !
-        !--------------------------------------------------------------------------------
-        ! Dielectric parameters (solvent)
-        !
-        LOGICAL :: lstatic, loptical, ldielectric
-        REAL(DP) :: env_static_permittivity, env_optical_permittivity
+        TYPE(environ_externals) :: externals
         TYPE(environ_dielectric) :: static, optical
-        !
-        !--------------------------------------------------------------------------------
-        ! Ionic countercharge parameters
-        !
-        LOGICAL :: lelectrolyte
-        INTEGER :: env_electrolyte_ntyp
         TYPE(environ_electrolyte) :: electrolyte
-        !
-        !--------------------------------------------------------------------------------
-        ! Semiconductor parameters
-        !
-        LOGICAL :: lsemiconductor, louterloop
         TYPE(environ_semiconductor) :: semiconductor
-        !
-        !--------------------------------------------------------------------------------
-        ! Cavitation energy parameters
-        !
-        LOGICAL :: lsurface
-        REAL(DP) :: env_surface_tension
-        !
-        !--------------------------------------------------------------------------------
-        ! PV term parameters
-        !
-        LOGICAL :: lvolume
-        REAL(DP) :: env_pressure
-        !
-        !--------------------------------------------------------------------------------
-        ! Confinement potential parameters
-        !
-        LOGICAL :: lconfine
-        REAL(DP) :: env_confine
-        !
-        !--------------------------------------------------------------------------------
-        ! Periodicity correction parameters
-        !
-        LOGICAL :: lperiodic
-        !
-        !--------------------------------------------------------------------------------
-        ! Temporary parameters
-        !
-        INTEGER :: nrep
-        INTEGER :: niter ! stores the iteration of environ for debugging purposes
         !
         !--------------------------------------------------------------------------------
         ! Computed physical variables
         !
-        REAL(DP) :: deenviron, eelectrostatic, esurface, evolume, eelectrolyte, econfine
-        !
         TYPE(environ_density) :: &
             vzero, velectrostatic, vreference, dvtot, vconfine, vsoftcavity
         !
-        !--------------------------------------------------------------------------------
-        ! Electrostatic
-        !
-        TYPE(electrostatic_setup) :: reference, outer, inner
-        TYPE(container_electrostatics) :: reference_cores, outer_cores, inner_cores
-        TYPE(container_corrections) :: pbc_core
-        !
-        !--------------------------------------------------------------------------------
-        ! Internal setup of numerical solvers
-        !
-        TYPE(solver_direct) :: reference_direct, direct
-        TYPE(solver_gradient) :: gradient, inner_gradient
-        TYPE(solver_fixedpoint) :: fixedpoint, inner_fixedpoint
-        TYPE(solver_newton) :: newton
-        !
-        !--------------------------------------------------------------------------------
-        ! General setup of periodic boundary conditions
-        !
-        LOGICAL :: need_pbc_correction, need_electrolyte, need_semiconductor, &
-                   need_outer_loop
-        !
-        !--------------------------------------------------------------------------------
-        !
-        LOGICAL :: need_gradient, need_factsqrt, need_auxiliary
-        ! logical flags that need to be used outside
-        !
-        !--------------------------------------------------------------------------------
-        ! Numerical cores
-        !
-        LOGICAL :: lfd
-        TYPE(core_fd_derivatives) :: core_fd
-        !
-        LOGICAL :: lfft_system
-        TYPE(core_fft_electrostatics) :: core_fft_sys
-        !
-        LOGICAL :: lfft_environment
-        TYPE(core_fft_derivatives) :: core_fft_deriv
-        TYPE(core_fft_electrostatics) :: core_fft_elect
-        !
-        LOGICAL :: l1da
-        TYPE(core_1da_electrostatics) :: core_1da_elect
+        REAL(DP) :: evolume = 0.0_DP
+        REAL(DP) :: esurface = 0.0_DP
+        REAL(DP) :: econfine = 0.0_DP
+        REAL(DP) :: deenviron = 0.0_DP
+        REAL(DP) :: eelectrolyte = 0.0_DP
+        REAL(DP) :: eelectrostatic = 0.0_DP
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: init_first => set_environ_bases
-        PROCEDURE :: init_second => environ_initbase
-        PROCEDURE :: init_potential => environ_initpotential
-        PROCEDURE :: init_cell => environ_initcell
-        PROCEDURE :: init_ions => environ_initions
-        PROCEDURE :: init_electrons => environ_initelectrons
-        PROCEDURE :: init_response => environ_initresponse
+        PROCEDURE, PRIVATE :: create => create_environ_base
+        PROCEDURE :: init => init_environ_base
         !
-        PROCEDURE, PRIVATE :: set_core_base, set_electrostatic_base, set_environ_base
+        PROCEDURE, PRIVATE :: init_cell => environ_init_cell
+        PROCEDURE, PRIVATE :: init_physical => environ_init_physical
+        PROCEDURE, PRIVATE :: init_potential => environ_init_potential
         !
-        PROCEDURE :: potential => calc_venviron
-        PROCEDURE :: energy => calc_eenviron
+        PROCEDURE :: update_cell => environ_update_cell
+        PROCEDURE :: update_electrons => environ_update_electrons
+        PROCEDURE :: update_ions => environ_update_ions
+        PROCEDURE :: update_potential => environ_update_potential
+        PROCEDURE :: update_response => environ_update_response
+        !
         PROCEDURE :: force => calc_fenviron
-        PROCEDURE :: dpotential => calc_dvenviron
+        PROCEDURE :: energy => calc_eenviron
         PROCEDURE :: denergy => calc_deenviron
-        !
-        PROCEDURE :: summary => environ_summary
+        PROCEDURE :: potential => calc_venviron
+        PROCEDURE :: dpotential => calc_dvenviron
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_obj
     !------------------------------------------------------------------------------------
-    !
-    CHARACTER(LEN=256) :: bibliography(4)
-    !
-    DATA bibliography/ &
-        "O. Andreussi, I. Dabo and N. Marzari, &
-        &J. Chem. Phys. 136, 064102 (2012)", &
-        "I. Timrov, O. Andreussi, A. Biancardi, N. Marzari, and S. Baroni, &
-        &J. Chem. Phys. 142, 034111 (2015)", &
-        "O. Andreussi, N.G. Hoermann, F. Nattino, G. Fisicaro, S. Goedecker, and N. Marzari, &
-        &J. Chem. Theory Comput. 15, 1996 (2019)", &
-        "F. Nattino, M. Truscott, N. Marzari, and O. Andreussi, &
-        &J. Chem. Phys. 150, 041722 (2019)"/
-    !
-    TYPE(environ_obj), PUBLIC, SAVE :: env
     !
     !------------------------------------------------------------------------------------
 CONTAINS
@@ -282,31 +161,30 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_bases(this, nelec, nat, ntyp, atom_label, &
-                                 use_internal_pbc_corr)
+    SUBROUTINE create_environ_base(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-        INTEGER, INTENT(IN) :: nelec, nat, ntyp
-        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
-        !
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_environ_bases'
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_base'
         !
         !--------------------------------------------------------------------------------
-        ! Set attributes (DO NOT CHANGE THE CALL ORDER)
         !
-        CALL this%set_electrostatic_base()
+        IF (ASSOCIATED(this%setup)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
-        CALL this%set_environ_base(nelec, nat, ntyp, atom_label)
-        !
-        CALL this%set_core_base(use_internal_pbc_corr)
+        IF (ASSOCIATED(this%environment_cell)) &
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environ_bases
+        !
+        NULLIFY (this%setup)
+        NULLIFY (this%environment_cell)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_base
     !------------------------------------------------------------------------------------
     !>
     !! Subroutine to initialize fundamental quantities needed by the
@@ -314,191 +192,45 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initbase(this, at, comm_in, gcutm)
+    SUBROUTINE init_environ_base(this, setup, nelec, nat, ntyp, ityp, atom_label, zv, &
+                                 tau, at, comm_in, gcutm, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: comm_in
-        REAL(DP), INTENT(IN) :: at(3, 3)
-        REAL(DP), INTENT(IN) :: gcutm
+        TYPE(environ_setup), TARGET, INTENT(IN) :: setup
+        !
+        INTEGER, INTENT(IN) :: nat, ntyp
+        INTEGER, INTENT(IN) :: nelec, ityp(nat), comm_in
+        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat), at(3, 3), gcutm
+        CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
+        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         INTEGER :: m(3)
         !
-        INTEGER :: ipol
-        INTEGER :: environment_nr(3)
-        REAL(DP) :: environment_at(3, 3)
-        !
-        CHARACTER(LEN=80) :: local_label = ' '
-        !
-        !--------------------------------------------------------------------------------
-        ! Common initialization for simulations with Environ
-        !
-        CALL this%system_cell%init(gcutm, comm_in, at)
-        !
-        !--------------------------------------------------------------------------------
-        ! Double cell and mapping
-        !
-        IF (this%ldoublecell) THEN
-            !
-            !----------------------------------------------------------------------------
-            ! Scale environment lattice (and corresponding ffts) by 2 * nrep(i) + 1
-            !
-            DO ipol = 1, 3
-                !
-                environment_at(:, ipol) = at(:, ipol) * &
-                                          (2.D0 * this%mapping%nrep(ipol) + 1.D0)
-                !
-            END DO
-            !
-            environment_nr(1) = this%system_cell%dfft%nr1 * (2 * this%mapping%nrep(1) + 1)
-            environment_nr(2) = this%system_cell%dfft%nr2 * (2 * this%mapping%nrep(2) + 1)
-            environment_nr(3) = this%system_cell%dfft%nr3 * (2 * this%mapping%nrep(3) + 1)
-            !
-            CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
-                                            environment_nr)
-            !
-        ELSE
-            this%environment_cell => this%system_cell
-        END IF
-        !
-        CALL this%mapping%init_second(this%system_cell, this%environment_cell)
-        !
-        !--------------------------------------------------------------------------------
-        ! Initialize numerical cores
-        !
-        IF (this%lfd) CALL this%core_fd%init_second(this%environment_cell)
-        !
-        IF (this%lfft_system) CALL this%core_fft_sys%init_second(gcutm, this%system_cell)
-        !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%init_second(gcutm, this%environment_cell)
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%init_second(gcutm, this%environment_cell)
-            !
-        END IF
-        !
-        IF (this%l1da) CALL this%core_1da_elect%init_second(this%environment_cell)
-        !
-        !--------------------------------------------------------------------------------
-        ! Create local storage for base potential, that needs to be modified
-        !
-        local_label = 'vzero'
-        !
-        CALL this%vzero%init(this%system_cell, local_label)
-        !
-        this%deenviron = 0.0_DP
-        !
-        local_label = 'dvtot'
-        !
-        CALL this%dvtot%init(this%system_cell, local_label)
-        !
-        !--------------------------------------------------------------------------------
-        ! Electrostatic contribution
-        !
-        this%eelectrostatic = 0.0_DP
-        !
-        IF (this%lelectrostatic) THEN
-            local_label = 'velectrostatic'
-            !
-            CALL this%velectrostatic%init(this%environment_cell, local_label)
-            !
-            local_label = 'vreference'
-            !
-            CALL this%vreference%init(this%system_cell, local_label)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Contribution to the potential due to boundary
-        !
-        IF (this%lsoftcavity) THEN
-            local_label = 'vsoftcavity'
-            !
-            CALL this%vsoftcavity%init(this%environment_cell, local_label)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Surface & volume contributions
-        !
-        this%esurface = 0.0_DP ! cavity contribution
-        this%evolume = 0.0_DP ! pressure contribution
-        !
-        !--------------------------------------------------------------------------------
-        ! Confinement contribution
-        !
-        this%econfine = 0.0_DP
-        !
-        IF (this%lconfine) THEN
-            local_label = 'vconfine'
-            !
-            CALL this%vconfine%init(this%environment_cell, local_label)
-            !
-        END IF
-        !
         !--------------------------------------------------------------------------------
         !
-        this%eelectrolyte = 0.0_DP ! non-electrostatic electrolyte contribution
+        this%setup => setup
+        !
+        CALL this%init_cell(gcutm, comm_in, at)
+        !
+        CALL this%setup%set_cores(this%system_cell, this%environment_cell, gcutm, &
+                                  use_internal_pbc_corr)
+        !
+        CALL this%init_potential()
+        !
+        CALL this%init_physical(nelec, nat, ntyp, ityp, atom_label, zv, tau)
         !
         !--------------------------------------------------------------------------------
-        ! Second step of initialization of some environ derived type
-        !
-        CALL this%system_electrons%init_second(this%system_cell)
-        !
-        CALL this%environment_electrons%init_second(this%environment_cell)
-        !
-        local_label = 'solvent'
-        !
-        IF (this%lsolvent) &
-            CALL this%solvent%init_second(this%environment_cell, local_label)
-        !
-        IF (this%lstatic) CALL this%static%init_second(this%environment_cell)
-        !
-        IF (this%loptical) THEN
-            !
-            CALL this%system_response_electrons%init_second(this%system_cell)
-            !
-            CALL this%system_response_charges%init_second(this%system_cell)
-            !
-            CALL this%environment_response_electrons%init_second(this%environment_cell)
-            !
-            CALL this%environment_response_charges%init_second(this%environment_cell)
-            !
-            CALL this%optical%init_second(this%environment_cell)
-            !
-        END IF
-        !
-        IF (this%lelectrolyte) CALL this%electrolyte%init_second(this%environment_cell)
-        !
-        IF (this%lexternals) CALL this%externals%init_second(this%environment_cell)
-        !
-        IF (this%lelectrostatic .OR. this%lconfine) THEN
-            !
-            CALL this%system_charges%init_second(this%system_cell)
-            !
-            CALL this%environment_charges%init_second(this%environment_cell)
-            !
-        END IF
-        !
-        IF (this%lsemiconductor) THEN
-            !
-            CALL this%semiconductor%init_second(this%environment_cell)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_initbase
+    END SUBROUTINE init_environ_base
     !------------------------------------------------------------------------------------
     !>
     !! Save local potential that will be overwritten by environ
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initpotential(this, nnr, vltot)
+    SUBROUTINE environ_update_potential(this, nnr, vltot)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -508,7 +240,7 @@ CONTAINS
         !
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'environ_initpotential'
+        CHARACTER(LEN=80) :: sub_name = 'environ_update_potential'
         !
         !--------------------------------------------------------------------------------
         !
@@ -522,7 +254,7 @@ CONTAINS
         this%vzero%of_r = vltot
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_initpotential
+    END SUBROUTINE environ_update_potential
     !------------------------------------------------------------------------------------
     !>
     !! Initialize the cell-related quantities to be used in the Environ
@@ -530,7 +262,7 @@ CONTAINS
     !! is performed at every step of electronic optimization.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initcell(this, at)
+    SUBROUTINE environ_update_cell(this, at)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -548,7 +280,7 @@ CONTAINS
         !
         CALL this%system_cell%update(at)
         !
-        IF (this%ldoublecell) THEN
+        IF (this%setup%ldoublecell) THEN
             this%environment_cell%lupdate = .TRUE.
             !
             DO ipol = 1, 3
@@ -565,39 +297,28 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update cores
         !
-        IF (this%lfft_system) CALL this%core_fft_sys%update_cell(this%system_cell)
-        !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%update_cell(this%environment_cell)
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%update_cell(this%environment_cell)
-            !
-        END IF
-        !
-        IF (this%l1da) &
-            CALL this%core_1da_elect%update_cell(this%environment_cell)
+        CALL this%setup%update_cores(this%system_cell, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
-        ! Update fixed quantities defined inside the cell
+        ! Update fixed quantities defined inside the cell 
+        ! NOTE: updating depends on cell%lupdate
         !
-        IF (this%lstatic) CALL this%static%update()
+        IF (this%setup%lstatic) CALL this%static%update()
         !
-        IF (this%loptical) CALL this%optical%update()
+        IF (this%setup%loptical) CALL this%optical%update()
         !
-        IF (this%lelectrolyte) CALL this%electrolyte%update()
+        IF (this%setup%lelectrolyte) CALL this%electrolyte%update()
         !
-        IF (this%lexternals) CALL this%externals%update()
+        IF (this%setup%lexternals) CALL this%externals%update()
         !
-        IF (this%lsemiconductor) CALL this%semiconductor%update()
+        IF (this%setup%lsemiconductor) CALL this%semiconductor%update()
         !
         this%system_cell%lupdate = .FALSE.
         !
-        IF (this%ldoublecell) this%environment_cell%lupdate = .FALSE.
+        IF (this%setup%ldoublecell) this%environment_cell%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_initcell
+    END SUBROUTINE environ_update_cell
     !------------------------------------------------------------------------------------
     !>
     !! Initialize the ions-related quantities to be used in the Environ
@@ -606,14 +327,13 @@ CONTAINS
     !! be the most efficient choice, but it is a safe choice.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initions(this, nat, ntyp, ityp, zv, tau)
+    SUBROUTINE environ_update_ions(this, nat, tau)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: nat, ntyp
-        INTEGER, INTENT(IN) :: ityp(nat)
-        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
+        INTEGER, INTENT(IN) :: nat
+        REAL(DP), INTENT(IN) :: tau(3, nat)
         !
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
@@ -621,11 +341,6 @@ CONTAINS
         !
         this%system_ions%lupdate = .TRUE.
         this%environment_ions%lupdate = .TRUE.
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%system_ions%init_second(nat, ntyp, ityp, zv, this%system_cell)
-        ! second step of initialization for system ions
         !
         !--------------------------------------------------------------------------------
         ! Update system ions parameters
@@ -649,12 +364,6 @@ CONTAINS
         ! update mapping with correct shift of environment cell
         !
         !--------------------------------------------------------------------------------
-        ! Second step of initialization for environment ions
-        !
-        CALL this%environment_ions%init_second(nat, ntyp, ityp, zv, &
-                                               this%environment_cell)
-        !
-        !--------------------------------------------------------------------------------
         ! Update environment ions parameters
         !
         CALL this%environment_ions%update(nat, tau)
@@ -673,22 +382,22 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set soft-sphere parameters
         !
-        IF (this%lsolvent) CALL this%solvent%set_soft_spheres()
+        IF (this%setup%lsolvent) CALL this%solvent%set_soft_spheres()
         !
-        IF (this%lelectrolyte) CALL this%electrolyte%boundary%set_soft_spheres()
+        IF (this%setup%lelectrolyte) CALL this%electrolyte%boundary%set_soft_spheres()
         !
         !--------------------------------------------------------------------------------
-        ! Update cores
+        ! Update cores ! #TODO not OOP compliant - rethink!
         !
-        IF (this%l1da) &
-            CALL this%core_1da_elect%update_origin(this%environment_system%pos)
+        IF (this%setup%l1da) &
+            CALL this%setup%core_1da_elect%update_origin(this%environment_system%pos)
         !
         !--------------------------------------------------------------------------------
         ! Update rigid environ properties, defined on ions
         !
-        IF (this%lrigidcavity) THEN
+        IF (this%setup%lrigidcavity) THEN
             !
-            IF (this%lsolvent) THEN
+            IF (this%setup%lsolvent) THEN
                 !
                 CALL this%solvent%update()
                 !
@@ -697,7 +406,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
                 !
-                IF (this%lstatic) THEN
+                IF (this%setup%lstatic) THEN
                     !
                     CALL this%static%update()
                     !
@@ -705,7 +414,7 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (this%loptical) THEN
+                IF (this%setup%loptical) THEN
                     !
                     CALL this%optical%update()
                     !
@@ -715,7 +424,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (this%lelectrolyte) THEN
+            IF (this%setup%lelectrolyte) THEN
                 !
                 CALL this%electrolyte%boundary%update()
                 !
@@ -734,9 +443,9 @@ CONTAINS
         ! External charges rely on the environment cell, which is defined
         ! with respect to the system origin
         !
-        IF (this%lexternals) CALL this%externals%update()
+        IF (this%setup%lexternals) CALL this%externals%update()
         !
-        IF (this%lelectrostatic .OR. this%lconfine) THEN
+        IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
             !
             CALL this%system_charges%update()
             !
@@ -750,7 +459,7 @@ CONTAINS
         this%environment_ions%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_initions
+    END SUBROUTINE environ_update_ions
     !------------------------------------------------------------------------------------
     !>
     !! Initialize the electrons-related quantities to be used in the Environ
@@ -758,7 +467,7 @@ CONTAINS
     !! is performed at every step of electronic optimization.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initelectrons(this, nnr, rho, nelec)
+    SUBROUTINE environ_update_electrons(this, nnr, rho, nelec)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -785,7 +494,7 @@ CONTAINS
         !
         ! CALL this%system_electrons%density%write_cube() ! DEBUGGING
         !
-        IF (this%ldoublecell) THEN
+        IF (this%setup%ldoublecell) THEN
             ALLOCATE (aux(this%environment_cell%nnr))
             !
             CALL this%mapping%to_large(nnr, this%environment_cell%nnr, rho, aux)
@@ -806,7 +515,7 @@ CONTAINS
         !
         CALL this%environment_electrons%printout()
         !
-        IF (this%lelectrostatic .OR. this%lconfine) THEN
+        IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
             !
             CALL this%system_charges%update()
             !
@@ -817,9 +526,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update soft environ properties, defined on electrons
         !
-        IF (this%lsoftcavity) THEN
+        IF (this%setup%lsoftcavity) THEN
             !
-            IF (this%lsoftsolvent) THEN
+            IF (this%setup%lsoftsolvent) THEN
                 !
                 CALL this%solvent%update()
                 !
@@ -828,7 +537,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
                 !
-                IF (this%lstatic) THEN
+                IF (this%setup%lstatic) THEN
                     !
                     CALL this%static%update()
                     !
@@ -836,7 +545,7 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (this%loptical) THEN
+                IF (this%setup%loptical) THEN
                     !
                     CALL this%optical%update()
                     !
@@ -846,7 +555,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (this%lsoftelectrolyte) THEN
+            IF (this%setup%lsoftelectrolyte) THEN
                 !
                 CALL this%electrolyte%boundary%update()
                 !
@@ -865,14 +574,14 @@ CONTAINS
         this%environment_electrons%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_initelectrons
+    END SUBROUTINE environ_update_electrons
     !------------------------------------------------------------------------------------
     !>
     !! Initialize the response charges to be used in the TDDFPT + Environ
     !! modules. This initialization is called by plugin_tddfpt_potential.f90
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_initresponse(this, nnr, drho)
+    SUBROUTINE environ_update_response(this, nnr, drho)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -899,7 +608,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update response charges in environment cell
         !
-        IF (this%ldoublecell) THEN
+        IF (this%setup%ldoublecell) THEN
             !
             ALLOCATE (aux(this%environment_cell%nnr))
             !
@@ -918,7 +627,7 @@ CONTAINS
         this%environment_response_electrons%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_initresponse
+    END SUBROUTINE environ_update_response
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
@@ -926,7 +635,6 @@ CONTAINS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
-    !
     !>
     !! Calculates the Environ contribution to the local potential. All
     !! the Environ modules need to be called here. The potentials are
@@ -957,7 +665,7 @@ CONTAINS
                 !
                 CALL write_cube(this%dvtot, this%system_ions, local_verbose)
                 !
-                IF (this%lelectrostatic) THEN
+                IF (this%setup%lelectrostatic) THEN
                     !
                     CALL write_cube(this%vreference, this%system_ions, local_verbose)
                     !
@@ -967,10 +675,10 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (this%lconfine) &
+                IF (this%setup%lconfine) &
                     CALL write_cube(this%vconfine, this%system_ions, local_verbose)
                 !
-                IF (this%lsoftcavity) &
+                IF (this%setup%lsoftcavity) &
                     CALL write_cube(this%vsoftcavity, this%system_ions, local_verbose)
                 !
             END IF
@@ -986,19 +694,19 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! If any form of electrostatic embedding is present, calculate its contribution
         !
-        IF (this%lelectrostatic) THEN
+        IF (this%setup%lelectrostatic) THEN
             !
             !----------------------------------------------------------------------------
             ! Electrostatics is also computed inside the calling program,
             ! need to remove the reference #TODO to-be-decided
             !
-            CALL this%reference%calc_v(this%system_charges, this%vreference)
+            CALL this%setup%reference%calc_v(this%system_charges, this%vreference)
             !
             CALL write_cube(this%vreference, this%system_ions)
             !
-            CALL this%outer%calc_v(this%environment_charges, this%velectrostatic)
+            CALL this%setup%outer%calc_v(this%environment_charges, this%velectrostatic)
             !
-            ! IF (this%lexternals) CALL this%environment_charges%update(this%lexternals)
+            ! IF (this%setup%lexternals) CALL this%environment_charges%update()
             ! #TODO keep for now until external tests are fully debugged
             !
             CALL write_cube(this%velectrostatic, this%system_ions)
@@ -1016,9 +724,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! #TODO add brief description of confine
         !
-        IF (this%lconfine) THEN
+        IF (this%setup%lconfine) THEN
             !
-            CALL this%solvent%vconfine(this%env_confine, this%vconfine)
+            CALL this%solvent%vconfine(this%setup%confine, this%vconfine)
             !
             CALL write_cube(this%vconfine, this%system_ions)
             !
@@ -1030,31 +738,32 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Compute the total potential depending on the boundary
         !
-        IF (this%lsoftcavity) THEN
+        IF (this%setup%lsoftcavity) THEN
             this%vsoftcavity%of_r = 0.D0
             !
             CALL de_dboundary%init(this%environment_cell)
             !
-            IF (this%lsoftsolvent) THEN
+            IF (this%setup%lsoftsolvent) THEN
                 de_dboundary%of_r = 0.D0
                 !
                 ! if surface tension greater than zero, calculate cavity contribution
-                IF (this%lsurface) &
-                    CALL this%solvent%desurface_dboundary(this%env_surface_tension, &
+                IF (this%setup%lsurface) &
+                    CALL this%solvent%desurface_dboundary(this%setup%surface_tension, &
                                                           de_dboundary)
                 !
                 ! if external pressure different from zero, calculate PV contribution
-                IF (this%lvolume) &
-                    CALL this%solvent%devolume_dboundary(this%env_pressure, de_dboundary)
+                IF (this%setup%lvolume) &
+                    CALL this%solvent%devolume_dboundary(this%setup%pressure, &
+                                                         de_dboundary)
                 !
                 ! if confinement potential not zero, calculate confine contribution
-                IF (this%lconfine) &
-                    CALL this%solvent%deconfine_dboundary(this%env_confine, &
+                IF (this%setup%lconfine) &
+                    CALL this%solvent%deconfine_dboundary(this%setup%confine, &
                                                           this%environment_charges%electrons%density, &
                                                           de_dboundary)
                 !
                 ! if dielectric embedding, calculate dielectric contribution
-                IF (this%lstatic) &
+                IF (this%setup%lstatic) &
                     CALL this%static%de_dboundary(this%velectrostatic, de_dboundary)
                 !
                 ! if solvent-aware interface correct the potential
@@ -1072,7 +781,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (this%lsoftelectrolyte) THEN
+            IF (this%setup%lsoftelectrolyte) THEN
                 de_dboundary%of_r = 0.D0
                 !
                 CALL this%electrolyte%de_dboundary(de_dboundary)
@@ -1138,17 +847,18 @@ CONTAINS
         this%econfine = 0.D0
         this%eelectrolyte = 0.D0
         !
-        this%niter = this%niter + 1
+        this%setup%niter = this%setup%niter + 1
         !
         !--------------------------------------------------------------------------------
         ! If electrostatic is on, compute electrostatic energy
         !
-        IF (this%lelectrostatic) THEN
+        IF (this%setup%lelectrostatic) THEN
             !
-            CALL this%reference%calc_e(this%system_charges, this%vreference, ereference)
+            CALL this%setup%reference%calc_e(this%system_charges, this%vreference, &
+                                             ereference)
             !
-            CALL this%outer%calc_e(this%environment_charges, this%velectrostatic, &
-                                   this%eelectrostatic)
+            CALL this%setup%outer%calc_e(this%environment_charges, &
+                                         this%velectrostatic, this%eelectrostatic)
             !
             this%eelectrostatic = this%eelectrostatic - ereference
         END IF
@@ -1156,18 +866,18 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ! if surface tension not zero, compute cavitation energy
-        IF (this%lsurface) &
-            CALL this%solvent%esurface(this%env_surface_tension, this%esurface)
+        IF (this%setup%lsurface) &
+            CALL this%solvent%esurface(this%setup%surface_tension, this%esurface)
         !
-        IF (this%lvolume) CALL this%solvent%evolume(this%env_pressure, this%evolume)
+        IF (this%setup%lvolume) CALL this%solvent%evolume(this%setup%pressure, this%evolume)
         ! if pressure not zero, compute PV energy
         !
         ! if confinement potential not zero compute confine energy
-        IF (this%lconfine) &
+        IF (this%setup%lconfine) &
             this%econfine = this%environment_electrons%density%scalar_product(this%vconfine)
         !
         ! if electrolyte is present, calculate its non-electrostatic contribution
-        IF (this%lelectrolyte) CALL this%electrolyte%energy(this%eelectrolyte)
+        IF (this%setup%lelectrolyte) CALL this%electrolyte%energy(this%eelectrolyte)
         !
         total_energy = total_energy + this%eelectrostatic + this%esurface + &
                        this%evolume + this%econfine + this%eelectrolyte
@@ -1200,39 +910,39 @@ CONTAINS
         force_environ = 0.D0
         !
         ! compute the electrostatic embedding contribution to the interatomic forces
-        IF (this%lelectrostatic) &
-            CALL this%outer%calc_f(nat, this%environment_charges, force_environ)
+        IF (this%setup%lelectrostatic) &
+            CALL this%setup%outer%calc_f(nat, this%environment_charges, force_environ)
         !
         !--------------------------------------------------------------------------------
         ! Compute the total forces depending on the boundary
         !
-        IF (this%lrigidcavity) THEN
+        IF (this%setup%lrigidcavity) THEN
             !
             CALL de_dboundary%init(this%environment_cell)
             !
             CALL partial%init(this%environment_cell)
             !
-            IF (this%lrigidsolvent) THEN
+            IF (this%setup%lrigidsolvent) THEN
                 !
                 de_dboundary%of_r = 0.D0
                 !
                 ! if surface tension greater than zero, calculate cavity contribution
-                IF (this%lsurface) &
-                    CALL this%solvent%desurface_dboundary(this%env_surface_tension, &
+                IF (this%setup%lsurface) &
+                    CALL this%solvent%desurface_dboundary(this%setup%surface_tension, &
                                                           de_dboundary)
                 !
                 ! if external pressure not zero, calculate PV contribution
-                IF (this%lvolume) &
-                    CALL this%solvent%devolume_dboundary(this%env_pressure, de_dboundary)
+                IF (this%setup%lvolume) &
+                    CALL this%solvent%devolume_dboundary(this%setup%pressure, de_dboundary)
                 !
                 ! if confinement potential not zero, calculate confine contribution
-                IF (this%lconfine) &
-                    CALL this%solvent%deconfine_dboundary(this%env_confine, &
+                IF (this%setup%lconfine) &
+                    CALL this%solvent%deconfine_dboundary(this%setup%confine, &
                                                           this%environment_charges%electrons%density, &
                                                           de_dboundary)
                 !
                 ! if dielectric embedding, calculate dielectric contribution
-                IF (this%lstatic) &
+                IF (this%setup%lstatic) &
                     CALL this%static%de_dboundary(this%velectrostatic, de_dboundary)
                 !
                 ! if solvent-aware, correct the potential
@@ -1253,7 +963,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (this%lrigidelectrolyte) THEN
+            IF (this%setup%lrigidelectrolyte) THEN
                 !
                 de_dboundary%of_r = 0.D0
                 !
@@ -1314,7 +1024,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! If any form of electrostatic embedding is present, calculate its contribution
         !
-        IF (this%lelectrostatic) THEN
+        IF (this%setup%lelectrostatic) THEN
             !
             !----------------------------------------------------------------------------
             ! Electrostatics is also computed inside the calling program,
@@ -1322,11 +1032,12 @@ CONTAINS
             !
             CALL dvreference%init(this%system_cell)
             !
-            CALL this%reference%calc_v(this%system_response_charges, dvreference)
+            CALL this%setup%reference%calc_v(this%system_response_charges, dvreference)
             !
             CALL dvelectrostatic%init(this%environment_cell)
             !
-            CALL this%outer%calc_v(this%environment_response_charges, dvelectrostatic)
+            CALL this%setup%outer%calc_v(this%environment_response_charges, &
+                                         dvelectrostatic)
             !
             CALL this%mapping%to_small(dvelectrostatic, aux)
             !
@@ -1339,17 +1050,17 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Compute the response potential depending on the boundary
         !
-        IF (this%lsoftcavity) THEN
+        IF (this%setup%lsoftcavity) THEN
             !
             CALL dvsoftcavity%init(this%environment_cell)
             !
             CALL dv_dboundary%init(this%environment_cell)
             !
-            IF (this%lsoftsolvent) THEN
+            IF (this%setup%lsoftsolvent) THEN
                 dv_dboundary%of_r = 0.D0
                 !
                 ! if dielectric embedding, calcultes dielectric contribution
-                IF (this%loptical) &
+                IF (this%setup%loptical) &
                     CALL this%optical%dv_dboundary(this%velectrostatic, &
                                                    dvelectrostatic, dv_dboundary)
                 !
@@ -1366,7 +1077,7 @@ CONTAINS
             !
         END IF
         !
-        IF (this%lelectrostatic) CALL dvelectrostatic%destroy()
+        IF (this%setup%lelectrostatic) CALL dvelectrostatic%destroy()
         !
         CALL aux%destroy()
         !
@@ -1402,419 +1113,141 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_electrostatic_base(this)
+    SUBROUTINE environ_init_cell(this, gcutm, comm_in, at)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        INTEGER, INTENT(IN) :: comm_in
+        REAL(DP), INTENT(IN) :: at(3, 3)
+        REAL(DP), INTENT(IN) :: gcutm
+        !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
-        CLASS(electrostatic_solver), POINTER :: local_outer_solver, local_inner_solver
+        INTEGER :: ipol
+        INTEGER :: environment_nr(3)
+        REAL(DP) :: environment_at(3, 3)
         !
-        LOGICAL :: lconjugate, lnested
-        !
-        CHARACTER(LEN=80) :: local_type, local_auxiliary, local_problem, inner_problem
-        !
-        CHARACTER(LEN=20) :: sub_name = 'set_electrostatic_base'
+        CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
         !
         !--------------------------------------------------------------------------------
-        ! Initial setup of core flags
         !
-        this%lfd = .FALSE.
-        this%l1da = .FALSE.
-        this%lfft_system = .FALSE.
-        this%lfft_environment = .FALSE.
+        CALL this%system_cell%init(gcutm, comm_in, at)
         !
         !--------------------------------------------------------------------------------
-        ! Setup nested scheme if required
+        ! Double cell and mapping
         !
-        IF (inner_solver /= 'none') THEN
-            lnested = .TRUE.
+        IF (this%setup%ldoublecell) THEN
+            ALLOCATE (this%environment_cell)
+            !
+            !----------------------------------------------------------------------------
+            ! Scale environment lattice (and corresponding ffts) by 2 * nrep(i) + 1
+            !
+            DO ipol = 1, 3
+                environment_at(:, ipol) = at(:, ipol) * (2.D0 * env_nrep(ipol) + 1.D0)
+            END DO
+            !
+            environment_nr = this%system_cell%dfft%nr1 * (2 * env_nrep + 1)
+            !
+            CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
+                                            environment_nr)
+            !
         ELSE
-            lnested = .FALSE.
+            this%environment_cell => this%system_cell
         END IF
         !
-        !--------------------------------------------------------------------------------
-        ! Set reference core according to calling program
+        CALL this%mapping%init_first(env_nrep)
         !
-        SELECT CASE (prog)
-            !
-        CASE ('PW', 'CP', 'TD', 'XS')
-            this%lfft_system = .TRUE.
-            local_type = 'fft'
-            !
-            CALL this%reference_cores%init(this%core_fft_sys, local_type)
-            !
-        CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
-            !
-        END SELECT
+        CALL this%mapping%init_second(this%system_cell, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
-        ! Numerical core for periodic boundary or electrolyte corrections
-        !
-        this%need_pbc_correction = .FALSE.
-        this%need_electrolyte = .FALSE.
-        this%need_semiconductor = .FALSE.
-        this%need_outer_loop = .FALSE.
-        !
-        !--------------------------------------------------------------------------------
-        ! First check keywords specified in input
-        !
-        IF (pbc_dim >= 0) THEN
-            !
-            SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
-                !
-            CASE ('none')
-                this%need_pbc_correction = .FALSE.
-                !
-            CASE ('parabolic')
-                this%need_pbc_correction = .TRUE.
-                this%l1da = .TRUE.
-                local_type = '1da'
-                !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_electrolyte = .TRUE.
-                this%l1da = .TRUE.
-                local_type = 'gcs'
-                !
-            CASE ('ms', 'mott-schottky')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                this%l1da = .TRUE.
-                local_type = 'ms'
-                !
-            CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                this%need_outer_loop = .TRUE.
-                this%need_electrolyte = .TRUE.
-                this%l1da = .TRUE.
-                local_type = 'ms-gcs'
-                !
-            CASE DEFAULT
-                CALL env_errore(sub_name, 'Option not yet implemented', 1)
-                !
-            END SELECT
-            !
-        END IF
-        !
-        IF (this%need_pbc_correction .AND. this%l1da) &
-            CALL this%pbc_core%init(this%core_1da_elect, local_type)
-        !
-        !--------------------------------------------------------------------------------
-        ! Set up main (outer) core and inner core (if nested scheme)
-        !
-        SELECT CASE (core)
-            !
-        CASE ('fft')
-            this%lfft_environment = .TRUE.
-            local_type = 'fft'
-            !
-            CALL this%outer_cores%init(this%core_fft_elect, local_type)
-            !
-            IF (lnested) CALL this%inner_cores%init(this%core_fft_elect, local_type)
-            !
-        CASE ('1d-analytic', '1da')
-            this%l1da = .TRUE.
-            local_type = '1d-analytic'
-            !
-            CALL this%outer_cores%init(this%core_1da_elect, local_type)
-            !
-            IF (lnested) CALL this%inner_cores%init(this%core_1da_elect, local_type)
-            !
-        CASE DEFAULT
-            !
-            CALL env_errore(sub_name, &
-                            'Unexpected value for core container type keyword', 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Setup corrections if necessary
-        !
-        IF (this%need_pbc_correction) CALL this%outer_cores%add_correction(this%pbc_core)
-        !
-        IF (lnested .AND. this%need_pbc_correction) &
-            CALL this%inner_cores%add_correction(this%pbc_core)
-        !
-        !--------------------------------------------------------------------------------
-        ! Set reference solver according to calling program
-        !
-        SELECT CASE (prog)
-            !
-        CASE ('PW', 'CP', 'TD', 'XS')
-            CALL this%reference_direct%init_direct(this%reference_cores)
-            !
-        CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Set up main (outer) solver
-        !
-        lconjugate = .FALSE.
-        !
-        SELECT CASE (solver)
-            !
-        CASE ('direct')
-            CALL this%direct%init_direct(this%outer_cores)
-            !
-            local_outer_solver => this%direct
-            !
-        CASE ('cg', 'sd')
-            !
-            IF (TRIM(ADJUSTL(solver)) == 'cg') lconjugate = .TRUE.
-            !
-            CALL this%gradient%init(lconjugate, step_type, step, preconditioner, &
-                                    screening_type, screening, this%outer_cores, &
-                                    maxstep, tol, auxiliary)
-            !
-            local_outer_solver => this%gradient
-            !
-        CASE ('fp')
-            !
-            CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_cores, maxstep, &
-                                      tol, auxiliary)
-            !
-            local_outer_solver => this%fixedpoint
-            !
-        CASE ('newton')
-            CALL this%newton%init(this%outer_cores, maxstep, tol, auxiliary)
-            !
-            local_outer_solver => this%newton
-            !
-        CASE DEFAULT
-            !
-            CALL env_errore(sub_name, &
-                            'Unexpected value for electrostatic solver keyword', 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! If nested scheme, set up inner solver
-        !
-        IF (lnested) THEN
-            lconjugate = .FALSE.
-            !
-            SELECT CASE (solver)
-                !
-            CASE ('fp')
-                !
-                IF (auxiliary == 'ioncc') THEN
-                    inner_problem = 'generalized'
-                    !
-                    SELECT CASE (inner_solver)
-                        !
-                    CASE ('cg', 'sd')
-                        !
-                        IF (TRIM(ADJUSTL(inner_solver)) == 'cg') lconjugate = .TRUE.
-                        !
-                        CALL this%inner_gradient%init( &
-                            lconjugate, step_type, step, preconditioner, &
-                            screening_type, screening, this%inner_cores, inner_maxstep, &
-                            inner_tol, auxiliary)
-                        !
-                        local_inner_solver => this%inner_gradient
-                        !
-                    CASE ('fp')
-                        local_auxiliary = 'full'
-                        !
-                        CALL this%inner_fixedpoint%init( &
-                            mix_type, inner_mix, ndiis, this%inner_cores, &
-                            inner_maxstep, inner_tol, local_auxiliary)
-                        !
-                        local_inner_solver => this%inner_fixedpoint
-                        !
-                    END SELECT
-                    !
-                ELSE
-                    !
-                    CALL env_errore(sub_name, &
-                                    'Unexpected value for auxiliary charge &
-                                    &in nested solver', 1)
-                    !
-                END IF
-                !
-            CASE ('newton')
-                inner_problem = 'linpb'
-                lconjugate = .TRUE.
-                !
-                CALL this%inner_gradient%init( &
-                    lconjugate, step_type, step, preconditioner, screening_type, &
-                    screening, this%inner_cores, inner_maxstep, inner_tol, auxiliary)
-                !
-                local_inner_solver => this%inner_gradient
-                !
-            END SELECT
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Set reference setup according to calling program
-        !
-        SELECT CASE (prog)
-            !
-        CASE ('PW', 'CP', 'TD', 'XS')
-            local_problem = 'poisson'
-            !
-        CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
-            !
-        END SELECT
-        !
-        CALL this%reference%init(local_problem, this%reference_direct)
-        !
-        !--------------------------------------------------------------------------------
-        ! Create outer setup
-        !
-        CALL this%outer%init(problem, local_outer_solver)
-        !
-        !--------------------------------------------------------------------------------
-        ! If nested scheme, create inner setup
-        !
-        IF (lnested) THEN
-            !
-            CALL this%inner%init(inner_problem, local_inner_solver)
-            !
-            this%outer%inner => this%inner
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Set logical flags according to electrostatic setup
-        !
-        this%need_gradient = .FALSE.
-        this%need_factsqrt = .FALSE.
-        this%need_auxiliary = .FALSE.
-        !
-        CALL this%reference%set_flags(this%need_auxiliary, this%need_gradient, &
-                                      this%need_factsqrt)
-        !
-        CALL this%outer%set_flags(this%need_auxiliary, this%need_gradient, &
-                                  this%need_factsqrt)
-        !
-        IF (lnested) &
-            CALL this%inner%set_flags(this%need_auxiliary, this%need_gradient, &
-                                      this%need_factsqrt)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_electrostatic_base
+    END SUBROUTINE environ_init_cell
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_base(this, nelec, nat, ntyp, atom_label)
+    SUBROUTINE environ_init_potential(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_obj), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: local_label
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_init_potential'
+        !
+        !--------------------------------------------------------------------------------
+        ! Create local storage for base potential, that needs to be modified
+        !
+        local_label = 'vzero'
+        !
+        CALL this%vzero%init(this%system_cell, local_label)
+        !
+        local_label = 'dvtot'
+        !
+        CALL this%dvtot%init(this%system_cell, local_label)
+        !
+        !--------------------------------------------------------------------------------
+        ! Electrostatic contribution
+        !
+        IF (this%setup%lelectrostatic) THEN
+            local_label = 'velectrostatic'
+            !
+            CALL this%velectrostatic%init(this%environment_cell, local_label)
+            !
+            local_label = 'vreference'
+            !
+            CALL this%vreference%init(this%system_cell, local_label)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Contribution to the potential due to boundary
+        !
+        IF (this%setup%lsoftcavity) THEN
+            local_label = 'vsoftcavity'
+            !
+            CALL this%vsoftcavity%init(this%environment_cell, local_label)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Confinement contribution
+        !
+        IF (this%setup%lconfine) THEN
+            local_label = 'vconfine'
+            !
+            CALL this%vconfine%init(this%environment_cell, local_label)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_init_potential
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_init_physical(this, nelec, nat, ntyp, ityp, atom_label, zv, tau)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
+        INTEGER, INTENT(IN) :: ityp(nat)
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
+        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         !
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
-        INTEGER :: i
+        CHARACTER(LEN=80) :: local_label
         !
-        CHARACTER(LEN=80) :: label
-        !
-        CHARACTER(LEN=20) :: sub_name = 'set_environ_base'
-        !
-        !--------------------------------------------------------------------------------
-        ! TDDFPT flag
-        !
-        SELECT CASE (prog)
-            !
-        CASE ('TD')
-            this%ltddfpt = .TRUE.
-            !
-        CASE DEFAULT
-            this%ltddfpt = .FALSE.
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! General flags
-        !
-        this%environ_restart = environ_restart
-        this%environ_thr = environ_thr
-        this%environ_nskip = environ_nskip
-        !
-        !--------------------------------------------------------------------------------
-        ! Set main environment flags, convert to internal units
-        !
-        this%env_static_permittivity = env_static_permittivity
-        this%env_optical_permittivity = env_optical_permittivity
-        !
-        this%env_surface_tension = &
-            env_surface_tension * 1.D-3 * BOHR_RADIUS_SI**2 / RYDBERG_SI
-        !
-        this%env_pressure = env_pressure * 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
-        this%env_confine = env_confine
-        this%env_electrolyte_ntyp = env_electrolyte_ntyp
-        !
-        !--------------------------------------------------------------------------------
-        ! Set basic logical flags
-        !
-        this%lstatic = env_static_permittivity > 1.D0
-        this%loptical = env_optical_permittivity > 1.D0
-        !
-        IF (env_dielectric_regions > 0) THEN
-            !
-            DO i = 1, env_dielectric_regions
-                this%lstatic = this%lstatic .OR. (epsregion_eps(1, i) > 1.D0)
-                this%loptical = this%loptical .OR. (epsregion_eps(2, i) > 1.D0)
-            END DO
-            !
-        END IF
-        !
-        this%lsurface = this%env_surface_tension > 0.D0
-        this%lvolume = this%env_pressure /= 0.D0
-        this%lconfine = this%env_confine /= 0.D0
-        this%lexternals = env_external_charges > 0
-        this%lelectrolyte = this%env_electrolyte_ntyp > 0 .OR. this%need_electrolyte
-        this%lsemiconductor = this%need_semiconductor
-        this%lperiodic = this%need_pbc_correction
-        this%ldoublecell = SUM(env_nrep) > 0
-        this%louterloop = this%need_outer_loop
-        !
-        !--------------------------------------------------------------------------------
-        ! Derived flags
-        !
-        this%ldielectric = this%lstatic .OR. this%loptical
-        !
-        this%lsolvent = this%ldielectric .OR. this%lsurface .OR. this%lvolume .OR. &
-                        this%lconfine
-        !
-        this%lelectrostatic = this%ldielectric .OR. this%lelectrolyte .OR. &
-                              this%lexternals .OR. this%lperiodic
-        !
-        this%lsoftsolvent = this%lsolvent .AND. (solvent_mode == 'electronic' .OR. &
-                                                 solvent_mode == 'full' .OR. &
-                                                 solvent_mode(1:2) == 'fa')
-        !
-        this%lsoftelectrolyte = this%lelectrolyte .AND. &
-                                (electrolyte_mode == 'electronic' .OR. &
-                                 electrolyte_mode == 'full' .OR. &
-                                 electrolyte_mode(1:2) == 'fa') ! field-aware
-        !
-        this%lsoftcavity = this%lsoftsolvent .OR. this%lsoftelectrolyte
-        this%lrigidsolvent = this%lsolvent .AND. solvent_mode /= 'electronic'
-        this%lrigidelectrolyte = this%lelectrolyte .AND. electrolyte_mode /= 'electronic'
-        this%lrigidcavity = this%lrigidsolvent .OR. this%lrigidelectrolyte
-        !
-        this%lcoredensity = (this%lsolvent .AND. solvent_mode == 'full') .OR. &
-                            (this%lelectrolyte .AND. electrolyte_mode == 'full')
-        !
-        this%lsmearedions = this%lelectrostatic
-        this%lboundary = this%lsolvent .OR. this%lelectrolyte
-        this%lgradient = this%ldielectric .OR. (solvent_mode(1:2) == 'fa') ! field-aware
+        CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
         !
         !--------------------------------------------------------------------------------
         ! Set response properties for TD calculations
         !
-        IF (this%loptical) THEN
+        IF (this%setup%loptical) THEN
             !
             CALL this%system_response_electrons%init_first(0)
             !
@@ -1831,20 +1264,35 @@ CONTAINS
                 electrons=this%environment_response_electrons, &
                 dielectric=this%optical)
             !
+            !----------------------------------------------------------------------------
+            !
+            CALL this%system_response_electrons%init_second(this%system_cell)
+            !
+            CALL this%system_response_charges%init_second(this%system_cell)
+            !
+            CALL this%environment_response_electrons%init_second(this%environment_cell)
+            !
+            CALL this%environment_response_charges%init_second(this%environment_cell)
+            !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Allocate and set basic properties of ions
         !
-        CALL this%system_ions%init_first(nat, ntyp, this%lsoftcavity, &
-                                         this%lcoredensity, this%lsmearedions, &
+        CALL this%system_ions%init_first(nat, ntyp, this%setup%lsoftcavity, &
+                                         this%setup%lcoredensity, this%setup%lsmearedions, &
                                          radius_mode, atom_label, atomicspread, &
                                          corespread, solvationrad)
         !
-        CALL this%environment_ions%init_first(nat, ntyp, this%lsoftcavity, &
-                                              this%lcoredensity, this%lsmearedions, &
+        CALL this%environment_ions%init_first(nat, ntyp, this%setup%lsoftcavity, &
+                                              this%setup%lcoredensity, this%setup%lsmearedions, &
                                               radius_mode, atom_label, atomicspread, &
                                               corespread, solvationrad)
+        !
+        CALL this%system_ions%init_second(nat, ntyp, ityp, zv, this%system_cell)
+        !
+        CALL this%environment_ions%init_second(nat, ntyp, ityp, zv, &
+                                               this%environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! Set basic properties of electrons
@@ -1852,6 +1300,10 @@ CONTAINS
         CALL this%system_electrons%init_first(nelec)
         !
         CALL this%environment_electrons%init_first(nelec)
+        !
+        CALL this%system_electrons%init_second(this%system_cell)
+        !
+        CALL this%environment_electrons%init_second(this%environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! Set basic properties of the selected system
@@ -1869,15 +1321,19 @@ CONTAINS
         !
         CALL this%environment_charges%init_first()
         !
-        IF (this%lelectrostatic .OR. this%lconfine) THEN
+        IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
             !
             CALL this%system_charges%add(this%system_electrons)
             !
             CALL this%environment_charges%add(this%environment_electrons)
             !
+            CALL this%system_charges%init_second(this%system_cell)
+            !
+            CALL this%environment_charges%init_second(this%environment_cell)
+            !
         END IF
         !
-        IF (this%lelectrostatic) THEN
+        IF (this%setup%lelectrostatic) THEN
             !
             CALL this%system_charges%add(ions=this%system_ions)
             !
@@ -1888,13 +1344,15 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Allocate and set basic properties of external charges
         !
-        IF (this%lexternals) THEN
+        IF (this%setup%lexternals) THEN
             !
             CALL this%externals%init_first(env_external_charges, extcharge_dim, &
                                            extcharge_axis, extcharge_pos, &
                                            extcharge_spread, extcharge_charge)
             !
             CALL this%environment_charges%add(externals=this%externals)
+            !
+            CALL this%externals%init_second(this%environment_cell)
             !
             DEALLOCATE (extcharge_axis)
             DEALLOCATE (extcharge_dim)
@@ -1903,55 +1361,50 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Setup cores needed for derivatives of boundaries
-        !
-        IF (this%lboundary) THEN
-            this%lfft_environment = .TRUE.
-            !
-            IF (derivatives == 'fd') this%lfd = .TRUE.
-            !
-            CALL this%derivatives%init(this%core_fft_deriv, derivatives)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
         ! Set the parameters of the solvent boundary
         !
-        IF (this%lsolvent) THEN
+        IF (this%setup%lsolvent) THEN
             !
             CALL this%solvent%init_first( &
-                this%lgradient, this%need_factsqrt, this%lsurface, solvent_mode, stype, &
-                rhomax, rhomin, tbeta, this%env_static_permittivity, alpha, softness, &
-                solvent_distance, solvent_spread, solvent_radius, radial_scale, &
-                radial_spread, filling_threshold, filling_spread, field_awareness, &
-                charge_asymmetry, field_max, field_min, this%environment_electrons, &
-                this%environment_ions, this%environment_system, this%derivatives)
+                this%setup%lgradient, this%setup%need_factsqrt, this%setup%lsurface, &
+                solvent_mode, stype, rhomax, rhomin, tbeta, env_static_permittivity, &
+                alpha, softness, solvent_distance, solvent_spread, solvent_radius, &
+                radial_scale, radial_spread, filling_threshold, filling_spread, &
+                field_awareness, charge_asymmetry, field_max, field_min, &
+                this%environment_electrons, this%environment_ions, &
+                this%environment_system, this%setup%derivatives)
+            !
+            local_label = 'solvent'
+            !
+            CALL this%solvent%init_second(this%environment_cell, local_label)
             !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Set the parameters of the electrolyte and of its boundary
         !
-        IF (this%lelectrolyte) THEN
+        IF (this%setup%lelectrolyte) THEN
             !
             CALL this%electrolyte%init_first( &
                 env_electrolyte_ntyp, electrolyte_mode, stype, electrolyte_rhomax, &
-                electrolyte_rhomin, electrolyte_tbeta, this%env_static_permittivity, &
+                electrolyte_rhomin, electrolyte_tbeta, env_static_permittivity, &
                 electrolyte_alpha, electrolyte_softness, electrolyte_distance, &
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
                 field_max, field_min, this%environment_electrons, this%environment_ions, &
-                this%environment_system, this%derivatives, temperature, cion, cionmax, &
-                rion, zion, electrolyte_entropy, electrolyte_linearized)
+                this%environment_system, this%setup%derivatives, temperature, cion, &
+                cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized)
             !
             CALL this%environment_charges%add(electrolyte=this%electrolyte)
+            !
+            CALL this%electrolyte%init_second(this%environment_cell)
             !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Set the parameters of the semiconductor
         !
-        IF (this%lsemiconductor) THEN
+        IF (this%setup%lsemiconductor) THEN
             !
             CALL this%semiconductor%init_first(temperature, sc_permittivity, &
                                                sc_carrier_density, sc_electrode_chg, &
@@ -1960,16 +1413,19 @@ CONTAINS
             !
             CALL this%environment_charges%add(semiconductor=this%semiconductor)
             !
+            CALL this%semiconductor%init_second(this%environment_cell)
+            !
         END IF
         !
         !--------------------------------------------------------------------------------
         ! Set the parameters of the dielectric
         !
-        IF (this%lstatic) THEN
+        IF (this%setup%lstatic) THEN
             !
-            CALL this%static%init_first(this%env_static_permittivity, this%solvent, &
-                                        this%need_gradient, this%need_factsqrt, &
-                                        this%need_auxiliary)
+            CALL this%static%init_first(env_static_permittivity, this%solvent, &
+                                        this%setup%need_gradient, &
+                                        this%setup%need_factsqrt, &
+                                        this%setup%need_auxiliary)
             !
             IF (env_dielectric_regions > 0) &
                 CALL this%static%set_regions(env_dielectric_regions, epsregion_dim, &
@@ -1979,19 +1435,24 @@ CONTAINS
             !
             CALL this%environment_charges%add(dielectric=this%static)
             !
+            CALL this%static%init_second(this%environment_cell)
+            !
         END IF
         !
-        IF (this%loptical) THEN
+        IF (this%setup%loptical) THEN
             !
-            CALL this%optical%init_first(this%env_optical_permittivity, this%solvent, &
-                                         this%need_gradient, this%need_factsqrt, &
-                                         this%need_auxiliary)
+            CALL this%optical%init_first(env_optical_permittivity, this%solvent, &
+                                         this%setup%need_gradient, &
+                                         this%setup%need_factsqrt, &
+                                         this%setup%need_auxiliary)
             !
             IF (env_dielectric_regions > 0) &
                 CALL this%optical%set_regions(env_dielectric_regions, epsregion_dim, &
                                               epsregion_axis, epsregion_pos, &
                                               epsregion_width, epsregion_spread, &
                                               epsregion_eps(2, :))
+            !
+            CALL this%optical%init_second(this%environment_cell)
             !
         END IF
         !
@@ -2006,210 +1467,7 @@ CONTAINS
         IF (ALLOCATED(epsregion_eps)) DEALLOCATE (epsregion_eps)
         !
         !--------------------------------------------------------------------------------
-        ! Set the parameters for double cell mapping
-        !
-        IF (this%ldoublecell) ALLOCATE (this%environment_cell)
-        !
-        CALL this%mapping%init_first(env_nrep) ! #TODO should this be inside the above IF?
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environ_base
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE set_core_base(this, use_internal_pbc_corr)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: use_internal_pbc_corr
-        !
-        CLASS(environ_obj), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        ! Set up active numerical cores
-        !
-        IF (this%lfd) CALL this%core_fd%init_first(ifdtype, nfdpoint)
-        !
-        IF (this%lfft_system) CALL this%core_fft_sys%init_first(use_internal_pbc_corr)
-        !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%init_first()
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%init_first(use_internal_pbc_corr)
-            !
-        END IF
-        !
-        IF (this%l1da) CALL this%core_1da_elect%init_first(pbc_dim, pbc_axis)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_core_base
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                                   OUTPUT METHODS
-    !
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !!
-    !> Write out the main parameters of Environ calculations, summarizing
-    !! the input keywords (some info also on internal vs input units).
-    !! Called by summary.f90
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE environ_summary(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_obj), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        WRITE (program_unit, *)
-        WRITE (program_unit, 1000)
-        WRITE (program_unit, 1001) bibliography(1)
-        !
-        !--------------------------------------------------------------------------------
-        ! Environ Summary
-        !
-        WRITE (program_unit, 1002) this%environ_thr
-        !
-        IF (this%lsolvent) THEN
-            !
-            IF (this%solvent%b_type == 0) THEN
-                WRITE (program_unit, 1003) 'Fatteber-Gygi'
-                WRITE (program_unit, 1004) this%solvent%rhozero, this%solvent%tbeta
-            ELSE IF (this%solvent%b_type == 1) THEN
-                WRITE (program_unit, 1003) 'SCCS'
-                WRITE (program_unit, 1005) this%solvent%rhomax, this%solvent%rhomin
-            END IF
-            !
-            IF (this%solvent%solvent_aware) WRITE (program_unit, 1006)
-            !
-            ! IF (this%solvent%field_aware) THEN
-            !     WRITE (program_unit, 1007)
-            !     !
-            !     WRITE (program_unit, 1008) &
-            !         this%solvent%field_factor, this%solvent%charge_asymmetry
-            !     !
-            !     WRITE (program_unit, 1009) this%solvent%field_min, this%solvent%field_max
-            !     !
-            ! END IF
-            !
-        END IF
-        !
-        IF (this%env_static_permittivity > 1.D0) THEN
-            WRITE (program_unit, 1010) this%env_static_permittivity
-            !
-            IF (this%ltddfpt) WRITE (program_unit, 1011) this%env_optical_permittivity
-            !
-            WRITE (program_unit, 1012) TRIM(this%solvent%mode)
-        END IF
-        !
-        IF (this%env_surface_tension > 0.D0) &
-            WRITE (program_unit, 1013) &
-            this%env_surface_tension / 1.D-3 / BOHR_RADIUS_SI**2 * RYDBERG_SI, &
-            this%env_surface_tension
-        !
-        IF (this%env_pressure /= 0.D0) &
-            WRITE (program_unit, 1014) &
-            this%env_pressure * RYDBERG_SI / BOHR_RADIUS_SI**3 * 1.D-9, &
-            this%env_pressure
-        !
-        !------------------------------------------------------------------------
-        ! Electrostatic Summary
-        !
-        IF (this%lelectrostatic) THEN
-            WRITE (program_unit, 1015)
-            WRITE (program_unit, 1016) this%outer%problem, this%outer%solver%solver_type
-            !
-            SELECT TYPE (solver => this%outer%solver)
-                !
-            CLASS IS (solver_iterative)
-                WRITE (program_unit, 1017) solver%auxiliary
-                !
-            END SELECT
-            !
-            WRITE (program_unit, 1018) this%outer%solver%cores%core%core_type
-            !
-            IF (ASSOCIATED(this%outer%solver%cores%correction)) THEN
-                !
-                WRITE (program_unit, 1019) &
-                    this%outer%solver%cores%correction%core%core_type
-                !
-            END IF
-            !
-            IF (this%lfd) THEN
-                !
-                IF (this%core_fd%ifdtype == 1) THEN
-                    WRITE (program_unit, 1020) 'central diff.', this%core_fd%nfdpoint
-                ELSE IF (this%core_fd%ifdtype == 2 .OR. this%core_fd%ifdtype == 3) THEN
-                    WRITE (program_unit, 1020) 'lanczos diff.', this%core_fd%nfdpoint
-                ELSE IF (this%core_fd%ifdtype == 4 .OR. this%core_fd%ifdtype == 5) THEN
-                    WRITE (program_unit, 1020) 'noise-robust diff.', this%core_fd%nfdpoint
-                END IF
-                !
-            END IF
-            !
-        END IF
-        !
-        WRITE (program_unit, 1021)
-        !
-        !--------------------------------------------------------------------------------
-        !
-1000    FORMAT(/, 5X, 'Environ Module', /, 5X, '==============')
-!
-1001    FORMAT(/, 5X, 'Please cite', /, 9X, A80, &
-                /, 5X, 'in publications or presentations arising from this work.',/)
-        !
-1002    FORMAT('     compensation onset threshold      = ', E24.4, ' ')
-1003    FORMAT('     switching function adopted        = ', A24, ' ')
-        !
-1004    FORMAT('     solvation density threshold       = ', E24.4, ' ' &
-               /'     smoothness exponent (2 x beta)    = ', F24.2, ' ')
-        !
-1005    FORMAT('     density limit for vacuum region   = ', E24.4, ' ' &
-               /'     density limit for bulk solvent    = ', E24.4, ' ')
-        !
-1006    FORMAT('     interface is solvent aware            ')
-1007    FORMAT('     interface is field aware            ')
-        !
-1008    FORMAT('     field aware factor                = ', F24.2, ' ' &
-               /'     asymmetry of field-awareness      = ', F24.2, ' ')
-        !
-1009    FORMAT('     field limit for no correction     = ', F24.2, ' ' &
-               /'     field limit for full correction   = ', F24.2, ' ')
-        !
-1010    FORMAT('     static permittivity               = ', F24.2, ' ')
-1011    FORMAT('     optical permittivity              = ', F24.4, ' ')
-1012    FORMAT('     epsilon calculation mode          = ', A24, ' ')
-        !
-1013    FORMAT('     surface tension in input (dyn/cm) = ', F24.2, ' ' &
-               /'     surface tension in internal units = ', E24.4, ' ')
-        !
-1014    FORMAT('     external pressure in input (GPa)  = ', F24.2, ' ' &
-               /'     external pressure in inter. units = ', E24.4, ' ')
-        !
-1015    FORMAT(/, 5X, 'Electrostatic Setup', /, 5X, '-------------------')
-        !
-1016    FORMAT('     electrostatic problem to solve    = ', A24, ' ' &
-               /'     numerical solver adopted          = ', A24, ' ')
-        !
-1017    FORMAT('     type of auxiliary density adopted = ', A24, ' ')
-1018    FORMAT('     type of core tool for poisson     = ', A24, ' ')
-1019    FORMAT('     type of core tool for correction  = ', A24, ' ')
-        !
-1020    FORMAT('     type of numerical differentiator  = ', A24, ' ' &
-               /'     number of points in num. diff.    = ', I24, ' ')
-        !
-1021    FORMAT(/)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_summary
+    END SUBROUTINE environ_init_physical
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
