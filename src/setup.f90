@@ -37,6 +37,7 @@ MODULE env_setup
     USE environ_input, ONLY: env_read_input
     !
     USE class_cell
+    USE class_mapping
     !
     USE class_core_container_corrections
     USE class_core_container_derivatives
@@ -144,6 +145,13 @@ MODULE env_setup
         LOGICAL :: need_outer_loop = .FALSE.
         !
         !--------------------------------------------------------------------------------
+        ! Simulation space
+        !
+        TYPE(environ_cell) :: system_cell
+        TYPE(environ_cell), POINTER :: environment_cell => NULL()
+        TYPE(environ_mapping) :: mapping
+        !
+        !--------------------------------------------------------------------------------
         ! Derivatives
         !
         TYPE(container_derivatives) :: derivatives
@@ -156,7 +164,7 @@ MODULE env_setup
         TYPE(container_corrections) :: pbc_core
         !
         !--------------------------------------------------------------------------------
-        ! Internal setup of numerical solvers
+        ! Numerical solvers
         !
         TYPE(solver_direct) :: reference_direct, direct
         TYPE(solver_gradient) :: gradient, inner_gradient
@@ -180,8 +188,17 @@ MODULE env_setup
         !
         PROCEDURE :: set_flags => set_environ_flags
         PROCEDURE :: set_numerical_base => set_environ_numerical_base
-        PROCEDURE :: set_cores => set_environ_numerical_cores
+        !
+        PROCEDURE :: init_cell => environ_init_cell
+        PROCEDURE :: update_cell => environ_update_cell
+        PROCEDURE :: end_cell_update => environ_end_cell_update
+        !
+        PROCEDURE :: update_mapping => environ_update_mapping
+        !
+        PROCEDURE :: init_cores => init_environ_numerical_cores
         PROCEDURE :: update_cores => update_environ_numerical_cores
+        !
+        !
         !
         PROCEDURE, PRIVATE :: set_core_containers => set_environ_core_containers
         PROCEDURE, PRIVATE :: set_electrostatics => set_environ_electrostatic
@@ -328,16 +345,65 @@ CONTAINS
     END SUBROUTINE set_environ_numerical_base
     !------------------------------------------------------------------------------------
     !>
-    !! Set up active numerical cores
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_numerical_cores(this, system_cell, environment_cell, gcutm, &
-                                           use_internal_pbc_corr)
+    SUBROUTINE environ_init_cell(this, gcutm, comm_in, at)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_cell), INTENT(IN) :: system_cell, environment_cell
+        INTEGER, INTENT(IN) :: comm_in
+        REAL(DP), INTENT(IN) :: at(3, 3)
+        REAL(DP), INTENT(IN) :: gcutm
+        !
+        CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
+        !
+        INTEGER :: ipol
+        INTEGER :: environment_nr(3)
+        REAL(DP) :: environment_at(3, 3)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%system_cell%init(gcutm, comm_in, at)
+        !
+        !--------------------------------------------------------------------------------
+        ! Double cell and mapping
+        !
+        IF (this%ldoublecell) THEN
+            ALLOCATE (this%environment_cell)
+            !
+            !----------------------------------------------------------------------------
+            ! Scale environment lattice (and corresponding ffts) by 2 * nrep(i) + 1
+            !
+            DO ipol = 1, 3
+                environment_at(:, ipol) = at(:, ipol) * (2.D0 * env_nrep(ipol) + 1.D0)
+            END DO
+            !
+            environment_nr = this%system_cell%dfft%nr1 * (2 * env_nrep + 1)
+            !
+            CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
+                                            environment_nr)
+            !
+        ELSE
+            this%environment_cell => this%system_cell
+        END IF
+        !
+        CALL this%mapping%init(env_nrep, this%system_cell, this%environment_cell)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_init_cell
+    !------------------------------------------------------------------------------------
+    !>
+    !! Set up active numerical cores
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_numerical_cores(this, gcutm, use_internal_pbc_corr)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
         REAL(DP), INTENT(IN) :: gcutm
         LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         !
@@ -345,35 +411,104 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%lfd) CALL this%core_fd%init(ifdtype, nfdpoint, environment_cell)
+        IF (this%lfd) CALL this%core_fd%init(ifdtype, nfdpoint, this%environment_cell)
         !
         IF (this%lfft_system) &
-            CALL this%core_fft_sys%init(gcutm, system_cell, use_internal_pbc_corr)
+            CALL this%core_fft_sys%init(gcutm, this%system_cell, use_internal_pbc_corr)
         !
         IF (this%lfft_environment) THEN
             !
-            CALL this%core_fft_deriv%init(gcutm, environment_cell)
+            CALL this%core_fft_deriv%init(gcutm, this%environment_cell)
             !
             IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%init(gcutm, environment_cell, &
+                CALL this%core_fft_elect%init(gcutm, this%environment_cell, &
                                               use_internal_pbc_corr)
             !
         END IF
         !
-        IF (this%l1da) CALL this%core_1da_elect%init(pbc_dim, pbc_axis, environment_cell)
+        IF (this%l1da) CALL this%core_1da_elect%init(pbc_dim, pbc_axis, &
+                                                     this%environment_cell)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environ_numerical_cores
+    END SUBROUTINE init_environ_numerical_cores
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   UPDATE METHODS
+    !
+    !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Initialize the cell-related quantities to be used in the Environ
+    !! modules. This initialization is called by electrons.f90, thus it
+    !! is performed at every step of electronic optimization.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_numerical_cores(this, system_cell, environment_cell)
+    SUBROUTINE environ_update_cell(this, at)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_cell), INTENT(IN) :: system_cell, environment_cell
+        REAL(DP), INTENT(IN) :: at(3, 3)
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        INTEGER :: ipol
+        REAL(DP) :: environment_at(3, 3)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%system_cell%lupdate = .TRUE.
+        !
+        CALL this%system_cell%update(at)
+        !
+        IF (this%ldoublecell) THEN
+            this%environment_cell%lupdate = .TRUE.
+            !
+            DO ipol = 1, 3
+                !
+                environment_at(:, ipol) = at(:, ipol) * &
+                                          (2.D0 * this%mapping%nrep(ipol) + 1.D0)
+                !
+            END DO
+            !
+            CALL this%environment_cell%update(environment_at)
+            !
+        END IF
+        !
+        CALL this%update_cores()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_update_cell
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_end_cell_update(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_end_cell_update'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%system_cell%lupdate = .FALSE.
+        !
+        IF (this%ldoublecell) this%environment_cell%lupdate = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_end_cell_update
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_environ_numerical_cores(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
@@ -381,21 +516,42 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%lfft_system) CALL this%core_fft_sys%update_cell(system_cell)
+        IF (this%lfft_system) CALL this%core_fft_sys%update_cell(this%system_cell)
         !
         IF (this%lfft_environment) THEN
             !
-            CALL this%core_fft_deriv%update_cell(environment_cell)
+            CALL this%core_fft_deriv%update_cell(this%environment_cell)
             !
             IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%update_cell(environment_cell)
+                CALL this%core_fft_elect%update_cell(this%environment_cell)
             !
         END IF
         !
-        IF (this%l1da) CALL this%core_1da_elect%update_cell(environment_cell)
+        IF (this%l1da) CALL this%core_1da_elect%update_cell(this%environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_numerical_cores
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_update_mapping(this, pos)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN) :: pos(3)
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'environ_update_mapping'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%mapping%update(pos)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_update_mapping
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

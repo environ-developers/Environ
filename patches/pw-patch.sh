@@ -102,7 +102,7 @@ sed '/Environ MODULES BEGIN/ a\
   USE mp_images,            ONLY : intra_image_comm\
   USE martyna_tuckerman,    ONLY : do_comp_mt\
   USE environ_QE_interface, ONLY : init_environ_io, read_environ_input, &\
-                                   init_environ_first\
+                                   init_environ_setup\
 !Environ patch
 ' plugin_read_input.f90 >tmp.1
 
@@ -111,7 +111,7 @@ sed '/Environ CALLS BEGIN/ a\
    IF (use_environ) THEN\
       CALL init_environ_io(prog, ionode, ionode_id, intra_image_comm, stdout)\
       CALL read_environ_input()\
-      CALL init_environ_first()\
+      CALL init_environ_setup()\
    ENDIF\
 !Environ patch
 ' tmp.1 >tmp.2
@@ -192,7 +192,7 @@ USE    cell_base,            ONLY : at, alat\
 USE    ions_base,            ONLY : nat, nsp, ityp, atm, zv, tau\
 USE    martyna_tuckerman,    ONLY : do_comp_mt\
 USE    gvect,                ONLY : gcutm\
-USE    environ_QE_interface, ONLY : init_environ_second\
+USE    environ_QE_interface, ONLY : init_environ_cell, init_environ_base\
 !Environ patch
 ' plugin_initbase.f90 >tmp.1
 
@@ -213,9 +213,13 @@ sed '/Environ CALLS BEGIN/ a\
     k0 = 0\
     ir_end = dfftp%nnr\
 #endif\
-  IF (use_environ) & \
-      CALL init_environ_second(1, nat, nsp, ityp, atm, zv, tau, &\
-                               alat, at, intra_bgrp_comm, gcutm, do_comp_mt)\
+  IF (use_environ) THEN\
+      !\
+      CALL init_environ_cell(alat, at, intra_bgrp_comm, gcutm, do_comp_mt)\
+      !\
+      CALL init_environ_base(1, nat, nsp, ityp, atm, zv, tau, alat)\
+      !\
+  END IF\
 !Environ patch
 ' tmp.2 >tmp.1
 

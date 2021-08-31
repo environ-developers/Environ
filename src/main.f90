@@ -73,13 +73,6 @@ MODULE class_environ
         TYPE(environ_setup), POINTER :: setup => NULL()
         !
         !--------------------------------------------------------------------------------
-        ! Simulation space
-        !
-        TYPE(environ_cell) :: system_cell
-        TYPE(environ_cell), POINTER :: environment_cell => NULL()
-        TYPE(environ_mapping) :: mapping
-        !
-        !--------------------------------------------------------------------------------
         ! Mapped quantities
         !
         TYPE(environ_ions) :: system_ions, environment_ions
@@ -129,15 +122,14 @@ MODULE class_environ
         PROCEDURE, PRIVATE :: create => create_environ_base
         PROCEDURE :: init => init_environ_base
         !
-        PROCEDURE, PRIVATE :: init_cell => environ_init_cell
         PROCEDURE, PRIVATE :: init_physical => environ_init_physical
         PROCEDURE, PRIVATE :: init_potential => environ_init_potential
         !
-        PROCEDURE :: update_cell => environ_update_cell
         PROCEDURE :: update_electrons => environ_update_electrons
         PROCEDURE :: update_ions => environ_update_ions
         PROCEDURE :: update_potential => environ_update_potential
         PROCEDURE :: update_response => environ_update_response
+        PROCEDURE :: update_cell_dependent_quantities
         !
         PROCEDURE :: force => calc_fenviron
         PROCEDURE :: energy => calc_eenviron
@@ -175,13 +167,9 @@ CONTAINS
         IF (ASSOCIATED(this%setup)) &
             CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
-        IF (ASSOCIATED(this%environment_cell)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
         !--------------------------------------------------------------------------------
         !
         NULLIFY (this%setup)
-        NULLIFY (this%environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_base
@@ -193,7 +181,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_base(this, setup, nelec, nat, ntyp, ityp, atom_label, zv, &
-                                 tau, at, comm_in, gcutm, use_internal_pbc_corr)
+                                 tau)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -201,23 +189,15 @@ CONTAINS
         TYPE(environ_setup), TARGET, INTENT(IN) :: setup
         !
         INTEGER, INTENT(IN) :: nat, ntyp
-        INTEGER, INTENT(IN) :: nelec, ityp(nat), comm_in
-        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat), at(3, 3), gcutm
+        INTEGER, INTENT(IN) :: nelec, ityp(nat)
+        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
-        !
-        INTEGER :: m(3)
         !
         !--------------------------------------------------------------------------------
         !
         this%setup => setup
-        !
-        CALL this%init_cell(gcutm, comm_in, at)
-        !
-        CALL this%setup%set_cores(this%system_cell, this%environment_cell, gcutm, &
-                                  use_internal_pbc_corr)
         !
         CALL this%init_potential()
         !
@@ -257,51 +237,20 @@ CONTAINS
     END SUBROUTINE environ_update_potential
     !------------------------------------------------------------------------------------
     !>
-    !! Initialize the cell-related quantities to be used in the Environ
-    !! modules. This initialization is called by electrons.f90, thus it
-    !! is performed at every step of electronic optimization.
+    !! Update fixed quantities defined inside the cell
+    !! NOTE: updating depends on cell%lupdate
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_update_cell(this, at)
+    SUBROUTINE update_cell_dependent_quantities(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        REAL(DP), INTENT(IN) :: at(3, 3)
-        !
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
-        INTEGER :: ipol
-        REAL(DP) :: environment_at(3, 3)
+        CHARACTER(LEN=80) :: sub_name = 'update_cell_dependent_quantities'
         !
         !--------------------------------------------------------------------------------
-        !
-        this%system_cell%lupdate = .TRUE.
-        !
-        CALL this%system_cell%update(at)
-        !
-        IF (this%setup%ldoublecell) THEN
-            this%environment_cell%lupdate = .TRUE.
-            !
-            DO ipol = 1, 3
-                !
-                environment_at(:, ipol) = at(:, ipol) * &
-                                          (2.D0 * this%mapping%nrep(ipol) + 1.D0)
-                !
-            END DO
-            !
-            CALL this%environment_cell%update(environment_at)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Update cores
-        !
-        CALL this%setup%update_cores(this%system_cell, this%environment_cell)
-        !
-        !--------------------------------------------------------------------------------
-        ! Update fixed quantities defined inside the cell
-        ! NOTE: updating depends on cell%lupdate
         !
         IF (this%setup%lstatic) CALL this%static%update()
         !
@@ -313,12 +262,8 @@ CONTAINS
         !
         IF (this%setup%lsemiconductor) CALL this%semiconductor%update()
         !
-        this%system_cell%lupdate = .FALSE.
-        !
-        IF (this%setup%ldoublecell) this%environment_cell%lupdate = .FALSE.
-        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_update_cell
+    END SUBROUTINE update_cell_dependent_quantities
     !------------------------------------------------------------------------------------
     !>
     !! Initialize the ions-related quantities to be used in the Environ
@@ -360,7 +305,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%mapping%update(this%system_system%pos)
+        CALL this%setup%update_mapping(this%system_system%pos)
         ! update mapping with correct shift of environment cell
         !
         !--------------------------------------------------------------------------------
@@ -476,9 +421,15 @@ CONTAINS
         REAL(DP), INTENT(IN) :: rho(nnr)
         REAL(DP), INTENT(IN), OPTIONAL :: nelec
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP), ALLOCATABLE :: aux(:)
+        !
+        TYPE(environ_cell), POINTER :: environment_cell
+        !
+        !--------------------------------------------------------------------------------
+        !
+        environment_cell => this%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         !
@@ -495,11 +446,11 @@ CONTAINS
         ! CALL this%system_electrons%density%write_cube() ! DEBUGGING
         !
         IF (this%setup%ldoublecell) THEN
-            ALLOCATE (aux(this%environment_cell%nnr))
+            ALLOCATE (aux(environment_cell%nnr))
             !
-            CALL this%mapping%to_large(nnr, this%environment_cell%nnr, rho, aux)
+            CALL this%setup%mapping%to_large(nnr, environment_cell%nnr, rho, aux)
             !
-            CALL this%environment_electrons%update(this%environment_cell%nnr, aux, nelec)
+            CALL this%environment_electrons%update(environment_cell%nnr, aux, nelec)
             !
         ELSE
             CALL this%environment_electrons%update(nnr, rho, nelec)
@@ -589,9 +540,15 @@ CONTAINS
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: drho(nnr)
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP), ALLOCATABLE :: aux(:)
+        !
+        TYPE(environ_cell), POINTER :: environment_cell
+        !
+        !--------------------------------------------------------------------------------
+        !
+        environment_cell => this%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         !
@@ -610,11 +567,11 @@ CONTAINS
         !
         IF (this%setup%ldoublecell) THEN
             !
-            ALLOCATE (aux(this%environment_cell%nnr))
+            ALLOCATE (aux(environment_cell%nnr))
             !
-            CALL this%mapping%to_large(nnr, this%environment_cell%nnr, drho, aux)
+            CALL this%setup%mapping%to_large(nnr, environment_cell%nnr, drho, aux)
             !
-            CALL this%environment_response_electrons%update(this%environment_cell%nnr, &
+            CALL this%environment_response_electrons%update(environment_cell%nnr, &
                                                             aux, 0.D0)
             !
         ELSE
@@ -649,12 +606,18 @@ CONTAINS
         LOGICAL, INTENT(IN) :: update
         INTEGER, INTENT(IN), OPTIONAL :: local_verbose
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         TYPE(environ_density) :: aux
         TYPE(environ_density) :: de_dboundary
         !
+        TYPE(environ_mapping), POINTER :: mapping
+        !
         CHARACTER(LEN=80) :: sub_name = 'calc_venviron'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        mapping => this%setup%mapping
         !
         !--------------------------------------------------------------------------------
         ! If not updating the potentials, add old potentials and exit
@@ -689,7 +652,7 @@ CONTAINS
         !
         this%dvtot%of_r = 0.D0
         !
-        CALL aux%init(this%system_cell)
+        CALL aux%init(this%setup%system_cell)
         !
         !--------------------------------------------------------------------------------
         ! If any form of electrostatic embedding is present, calculate its contribution
@@ -711,7 +674,7 @@ CONTAINS
             !
             CALL write_cube(this%velectrostatic, this%system_ions)
             !
-            CALL this%mapping%to_small(this%velectrostatic, aux)
+            CALL mapping%to_small(this%velectrostatic, aux)
             !
             this%dvtot%of_r = aux%of_r - this%vreference%of_r
             !
@@ -730,7 +693,7 @@ CONTAINS
             !
             CALL write_cube(this%vconfine, this%system_ions)
             !
-            CALL this%mapping%to_small(this%vconfine, aux)
+            CALL mapping%to_small(this%vconfine, aux)
             !
             this%dvtot%of_r = this%dvtot%of_r + aux%of_r
         END IF
@@ -741,7 +704,7 @@ CONTAINS
         IF (this%setup%lsoftcavity) THEN
             this%vsoftcavity%of_r = 0.D0
             !
-            CALL de_dboundary%init(this%environment_cell)
+            CALL de_dboundary%init(this%setup%environment_cell)
             !
             IF (this%setup%lsoftsolvent) THEN
                 de_dboundary%of_r = 0.D0
@@ -806,7 +769,7 @@ CONTAINS
             !
             CALL write_cube(this%vsoftcavity, this%system_ions)
             !
-            CALL this%mapping%to_small(this%vsoftcavity, aux)
+            CALL mapping%to_small(this%vsoftcavity, aux)
             !
             this%dvtot%of_r = this%dvtot%of_r + aux%of_r
             !
@@ -898,12 +861,18 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nat
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: force_environ(3, nat)
         !
         INTEGER :: i
         TYPE(environ_density) :: de_dboundary
         TYPE(environ_gradient) :: partial
+        !
+        TYPE(environ_cell), POINTER :: environment_cell
+        !
+        !--------------------------------------------------------------------------------
+        !
+        environment_cell => this%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         !
@@ -918,9 +887,9 @@ CONTAINS
         !
         IF (this%setup%lrigidcavity) THEN
             !
-            CALL de_dboundary%init(this%environment_cell)
+            CALL de_dboundary%init(environment_cell)
             !
-            CALL partial%init(this%environment_cell)
+            CALL partial%init(environment_cell)
             !
             IF (this%setup%lrigidsolvent) THEN
                 !
@@ -1008,7 +977,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nnr
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: dv(nnr)
         !
         TYPE(environ_density) :: aux
@@ -1017,9 +986,18 @@ CONTAINS
         TYPE(environ_density) :: dvsoftcavity
         TYPE(environ_density) :: dv_dboundary
         !
+        TYPE(environ_cell), POINTER :: system_cell, environment_cell
+        TYPE(environ_mapping), POINTER :: mapping
+        !
         !--------------------------------------------------------------------------------
         !
-        CALL aux%init(this%system_cell)
+        system_cell => this%setup%system_cell
+        environment_cell => this%setup%environment_cell
+        mapping => this%setup%mapping
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL aux%init(system_cell)
         !
         !--------------------------------------------------------------------------------
         ! If any form of electrostatic embedding is present, calculate its contribution
@@ -1030,16 +1008,16 @@ CONTAINS
             ! Electrostatics is also computed inside the calling program,
             ! need to remove the reference
             !
-            CALL dvreference%init(this%system_cell)
+            CALL dvreference%init(system_cell)
             !
             CALL this%setup%reference%calc_v(this%system_response_charges, dvreference)
             !
-            CALL dvelectrostatic%init(this%environment_cell)
+            CALL dvelectrostatic%init(environment_cell)
             !
             CALL this%setup%outer%calc_v(this%environment_response_charges, &
                                          dvelectrostatic)
             !
-            CALL this%mapping%to_small(dvelectrostatic, aux)
+            CALL mapping%to_small(dvelectrostatic, aux)
             !
             dv(:) = dv(:) + aux%of_r(:) - dvreference%of_r(:)
             !
@@ -1052,9 +1030,9 @@ CONTAINS
         !
         IF (this%setup%lsoftcavity) THEN
             !
-            CALL dvsoftcavity%init(this%environment_cell)
+            CALL dvsoftcavity%init(environment_cell)
             !
-            CALL dv_dboundary%init(this%environment_cell)
+            CALL dv_dboundary%init(environment_cell)
             !
             IF (this%setup%lsoftsolvent) THEN
                 dv_dboundary%of_r = 0.D0
@@ -1067,7 +1045,7 @@ CONTAINS
                 dvsoftcavity%of_r = dv_dboundary%of_r * this%solvent%dscaled%of_r
             END IF
             !
-            CALL this%mapping%to_small(dvsoftcavity, aux)
+            CALL mapping%to_small(dvsoftcavity, aux)
             !
             dv(:) = dv(:) + aux%of_r(:)
             !
@@ -1113,78 +1091,34 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_cell(this, gcutm, comm_in, at)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: comm_in
-        REAL(DP), INTENT(IN) :: at(3, 3)
-        REAL(DP), INTENT(IN) :: gcutm
-        !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
-        !
-        INTEGER :: ipol
-        INTEGER :: environment_nr(3)
-        REAL(DP) :: environment_at(3, 3)
-        !
-        CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%system_cell%init(gcutm, comm_in, at)
-        !
-        !--------------------------------------------------------------------------------
-        ! Double cell and mapping
-        !
-        IF (this%setup%ldoublecell) THEN
-            ALLOCATE (this%environment_cell)
-            !
-            !----------------------------------------------------------------------------
-            ! Scale environment lattice (and corresponding ffts) by 2 * nrep(i) + 1
-            !
-            DO ipol = 1, 3
-                environment_at(:, ipol) = at(:, ipol) * (2.D0 * env_nrep(ipol) + 1.D0)
-            END DO
-            !
-            environment_nr = this%system_cell%dfft%nr1 * (2 * env_nrep + 1)
-            !
-            CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
-                                            environment_nr)
-            !
-        ELSE
-            this%environment_cell => this%system_cell
-        END IF
-        !
-        CALL this%mapping%init(env_nrep, this%system_cell, this%environment_cell)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_init_cell
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE environ_init_potential(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: local_label
         !
+        TYPE(environ_cell), POINTER :: system_cell, environment_cell
+        !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_potential'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        system_cell => this%setup%system_cell
+        environment_cell => this%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         ! Create local storage for base potential, that needs to be modified
         !
         local_label = 'vzero'
         !
-        CALL this%vzero%init(this%system_cell, local_label)
+        CALL this%vzero%init(system_cell, local_label)
         !
         local_label = 'dvtot'
         !
-        CALL this%dvtot%init(this%system_cell, local_label)
+        CALL this%dvtot%init(system_cell, local_label)
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic contribution
@@ -1192,11 +1126,11 @@ CONTAINS
         IF (this%setup%lelectrostatic) THEN
             local_label = 'velectrostatic'
             !
-            CALL this%velectrostatic%init(this%environment_cell, local_label)
+            CALL this%velectrostatic%init(environment_cell, local_label)
             !
             local_label = 'vreference'
             !
-            CALL this%vreference%init(this%system_cell, local_label)
+            CALL this%vreference%init(system_cell, local_label)
             !
         END IF
         !
@@ -1206,7 +1140,7 @@ CONTAINS
         IF (this%setup%lsoftcavity) THEN
             local_label = 'vsoftcavity'
             !
-            CALL this%vsoftcavity%init(this%environment_cell, local_label)
+            CALL this%vsoftcavity%init(environment_cell, local_label)
             !
         END IF
         !
@@ -1216,7 +1150,7 @@ CONTAINS
         IF (this%setup%lconfine) THEN
             local_label = 'vconfine'
             !
-            CALL this%vconfine%init(this%environment_cell, local_label)
+            CALL this%vconfine%init(environment_cell, local_label)
             !
         END IF
         !
@@ -1236,27 +1170,34 @@ CONTAINS
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
         REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: local_label
         !
+        TYPE(environ_cell), POINTER :: system_cell, environment_cell
+        !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        system_cell => this%setup%system_cell
+        environment_cell => this%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         ! Response
         !
         IF (this%setup%loptical) THEN
             !
-            CALL this%system_response_electrons%init(0, this%system_cell)
+            CALL this%system_response_electrons%init(0, system_cell)
             !
-            CALL this%system_response_charges%init(this%system_cell)
+            CALL this%system_response_charges%init(system_cell)
             !
             CALL this%system_response_charges%add( &
                 electrons=this%system_response_electrons)
             !
-            CALL this%environment_response_electrons%init(0, this%environment_cell)
+            CALL this%environment_response_electrons%init(0, environment_cell)
             !
-            CALL this%environment_response_charges%init(this%environment_cell)
+            CALL this%environment_response_charges%init(environment_cell)
             !
             CALL this%environment_response_charges%add( &
                 electrons=this%environment_response_electrons, &
@@ -1270,19 +1211,19 @@ CONTAINS
         CALL this%system_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
                                    corespread, solvationrad, radius_mode, &
                                    this%setup%lsoftcavity, this%setup%lsmearedions, &
-                                   this%setup%lcoredensity, this%system_cell)
+                                   this%setup%lcoredensity, system_cell)
         !
         CALL this%environment_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
                                         corespread, solvationrad, radius_mode, &
                                         this%setup%lsoftcavity, this%setup%lsmearedions, &
-                                        this%setup%lcoredensity, this%environment_cell)
+                                        this%setup%lcoredensity, environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! Electrons
         !
-        CALL this%system_electrons%init(nelec, this%system_cell)
+        CALL this%system_electrons%init(nelec, system_cell)
         !
-        CALL this%environment_electrons%init(nelec, this%environment_cell)
+        CALL this%environment_electrons%init(nelec, environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! System
@@ -1296,9 +1237,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Free charges (if computing electrostatics or confinement)
         !
-        CALL this%system_charges%init(this%system_cell)
+        CALL this%system_charges%init(system_cell)
         !
-        CALL this%environment_charges%init(this%environment_cell)
+        CALL this%environment_charges%init(environment_cell)
         !
         IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
             !
@@ -1324,7 +1265,7 @@ CONTAINS
             CALL this%externals%init(env_external_charges, extcharge_dim, &
                                      extcharge_axis, extcharge_pos, &
                                      extcharge_spread, extcharge_charge, &
-                                     this%environment_cell)
+                                     environment_cell)
             !
             CALL this%environment_charges%add(externals=this%externals)
             !
@@ -1347,7 +1288,7 @@ CONTAINS
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_awareness, charge_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
-                this%environment_system, this%setup%derivatives, this%environment_cell, &
+                this%environment_system, this%setup%derivatives, environment_cell, &
                 local_label)
             !
         END IF
@@ -1366,7 +1307,7 @@ CONTAINS
                 field_max, field_min, this%environment_electrons, this%environment_ions, &
                 this%environment_system, this%setup%derivatives, temperature, cion, &
                 cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
-                this%environment_cell)
+                environment_cell)
             !
             CALL this%environment_charges%add(electrolyte=this%electrolyte)
             !
@@ -1380,7 +1321,7 @@ CONTAINS
             CALL this%semiconductor%init(temperature, sc_permittivity, &
                                          sc_carrier_density, sc_electrode_chg, &
                                          sc_distance, sc_spread, sc_chg_thr, &
-                                         this%environment_system, this%environment_cell)
+                                         this%environment_system, environment_cell)
             !
             CALL this%environment_charges%add(semiconductor=this%semiconductor)
             !
@@ -1394,7 +1335,7 @@ CONTAINS
             CALL this%static%init(env_static_permittivity, this%solvent, &
                                   this%setup%need_gradient, this%setup%need_factsqrt, &
                                   this%setup%need_auxiliary, env_dielectric_regions, &
-                                  this%environment_cell)
+                                  environment_cell)
             !
             IF (this%static%nregions > 0) &
                 CALL this%static%set_regions(env_dielectric_regions, epsregion_dim, &
@@ -1411,7 +1352,7 @@ CONTAINS
             CALL this%optical%init(env_optical_permittivity, this%solvent, &
                                    this%setup%need_gradient, this%setup%need_factsqrt, &
                                    this%setup%need_auxiliary, env_dielectric_regions, &
-                                   this%environment_cell)
+                                   environment_cell)
             !
             IF (this%optical%nregions > 0) &
                 CALL this%optical%set_regions(env_dielectric_regions, epsregion_dim, &

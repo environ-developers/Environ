@@ -254,6 +254,7 @@ setup.o : core_fd_derivatives.o
 setup.o : core_fft_derivatives.o
 setup.o : core_fft_electrostatics.o
 setup.o : input.o
+setup.o : mapping.o
 setup.o : solver.o
 setup.o : solver_direct.o
 setup.o : solver_fixedpoint.o

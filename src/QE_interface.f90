@@ -48,9 +48,11 @@ MODULE environ_QE_interface
     !
     PRIVATE
     !
-    PUBLIC :: init_environ_io, read_environ_input, init_environ_first, &
-              init_environ_second, update_environ_potential, update_environ_cell, &
-              update_environ_ions, update_environ_electrons, update_environ_response
+    PUBLIC :: init_environ_io, read_environ_input, init_environ_setup, &
+              init_environ_cell, init_environ_base
+
+    PUBLIC :: update_environ_potential, update_environ_cell, update_environ_ions, &
+              update_environ_electrons, update_environ_response
     !
     PUBLIC :: calc_environ_potential, calc_environ_energy, calc_environ_force, &
               calc_environ_dpotential, calc_environ_denergy
@@ -143,12 +145,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_first()
+    SUBROUTINE init_environ_setup()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_first'
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
         !
@@ -157,13 +159,56 @@ CONTAINS
         CALL setup%set_numerical_base()
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_first
+    END SUBROUTINE init_environ_setup
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_second(nelec, nat, ntyp, ityp, atom_label, zv, tau, alat, &
-                                   at, comm_in, gcutm, use_internal_pbc_corr, e2_in)
+    SUBROUTINE init_environ_cell(alat, at, comm_in, gcutm, use_internal_pbc_corr)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: comm_in
+        REAL(DP), INTENT(IN) :: alat, at(3, 3), gcutm
+        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
+        !
+        REAL(DP), ALLOCATABLE :: at_scaled(:, :)
+        REAL(DP) :: gcutm_scaled
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_cell'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (alat < 1.D-8) CALL env_errore(sub_name, 'Wrong alat', 1)
+        !
+        IF (alat < 1.0_DP) CALL env_warning('strange lattice parameter')
+        !
+        !--------------------------------------------------------------------------------
+        ! Allocate buffers used by env_mp_sum
+        !
+        CALL env_allocate_mp_buffers()
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ALLOCATE (at_scaled(3, 3))
+        at_scaled = at * alat
+        !
+        gcutm_scaled = gcutm / alat**2
+        !
+        CALL setup%init_cell(gcutm_scaled, comm_in, at_scaled)
+        !
+        CALL setup%init_cores(gcutm_scaled, use_internal_pbc_corr)
+        !
+        DEALLOCATE (at_scaled)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_environ_cell
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_environ_base(nelec, nat, ntyp, ityp, atom_label, zv, tau, alat, e2_in)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -173,21 +218,12 @@ CONTAINS
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
         REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         REAL(DP), INTENT(IN) :: alat
-        REAL(DP), INTENT(IN) :: at(3, 3)
-        INTEGER, INTENT(IN) :: comm_in
-        REAL(DP), INTENT(IN) :: gcutm
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         REAL(DP), INTENT(IN), OPTIONAL :: e2_in
         !
         REAL(DP), ALLOCATABLE :: at_scaled(:, :), tau_scaled(:, :)
         REAL(DP) :: gcutm_scaled
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_second'
-        !
-        !--------------------------------------------------------------------------------
-        ! Allocate buffers used by env_mp_sum
-        !
-        CALL env_allocate_mp_buffers()
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_base'
         !
         !--------------------------------------------------------------------------------
         ! PW uses Ryderg units (2.D0 * AU)
@@ -205,24 +241,17 @@ CONTAINS
         !
         IF (alat < 1.0_DP) CALL env_warning('strange lattice parameter')
         !
-        ALLOCATE (at_scaled(3, 3))
-        at_scaled = at * alat
-        !
         ALLOCATE (tau_scaled(3, nat))
         tau_scaled = tau * alat
         !
-        gcutm_scaled = gcutm / alat**2
-        !
         !--------------------------------------------------------------------------------
         !
-        CALL env%init(setup, nelec, nat, ntyp, ityp, atom_label, zv, tau_scaled, &
-                      at_scaled, comm_in, gcutm_scaled, use_internal_pbc_corr)
+        CALL env%init(setup, nelec, nat, ntyp, ityp, atom_label, zv, tau_scaled)
         !
-        DEALLOCATE (at_scaled)
         DEALLOCATE (tau_scaled)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_environ_second
+    END SUBROUTINE init_environ_base
     !------------------------------------------------------------------------------------
     !>
     !! Called at every ionic step
@@ -260,7 +289,11 @@ CONTAINS
         ALLOCATE (at_scaled(3, 3))
         at_scaled = at * alat
         !
-        CALL env%update_cell(at_scaled)
+        CALL setup%update_cell(at_scaled)
+        !
+        CALL env%update_cell_dependent_quantities()
+        !
+        CALL setup%end_cell_update()
         !
         DEALLOCATE (at_scaled)
         !
@@ -702,13 +735,13 @@ CONTAINS
         !
         IF (setup%ldoublecell) THEN
             !
-            CALL env%mapping%destroy(lflag)
+            CALL setup%mapping%destroy(lflag)
             !
-            CALL env%environment_cell%destroy(lflag)
+            CALL setup%environment_cell%destroy(lflag)
             !
         END IF
         !
-        CALL env%system_cell%destroy(lflag)
+        CALL setup%system_cell%destroy(lflag)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_second
