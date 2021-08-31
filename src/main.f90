@@ -180,8 +180,7 @@ CONTAINS
     !! only once per pw.x execution.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(this, setup, nelec, nat, ntyp, ityp, atom_label, zv, &
-                                 tau)
+    SUBROUTINE init_environ_base(this, setup, nelec, nat, ntyp, atom_label, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -190,7 +189,7 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: nat, ntyp
         INTEGER, INTENT(IN) :: nelec, ityp(nat)
-        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
+        REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
@@ -201,7 +200,7 @@ CONTAINS
         !
         CALL this%init_potential()
         !
-        CALL this%init_physical(nelec, nat, ntyp, ityp, atom_label, zv, tau)
+        CALL this%init_physical(nelec, nat, ntyp, atom_label, ityp, zv)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_base
@@ -1160,15 +1159,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_physical(this, nelec, nat, ntyp, ityp, atom_label, zv, tau)
+    SUBROUTINE environ_init_physical(this, nelec, nat, ntyp, atom_label, ityp, zv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
+        REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
-        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !

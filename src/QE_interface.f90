@@ -208,7 +208,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_base(nelec, nat, ntyp, ityp, atom_label, zv, tau, alat, e2_in)
+    SUBROUTINE init_environ_base(nelec, nat, ntyp, atom_label, ityp, zv, e2_in)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -216,11 +216,10 @@ CONTAINS
         INTEGER, INTENT(IN) :: nelec, nat, ntyp
         INTEGER, INTENT(IN) :: ityp(nat)
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
-        REAL(DP), INTENT(IN) :: zv(ntyp), tau(3, nat)
-        REAL(DP), INTENT(IN) :: alat
+        REAL(DP), INTENT(IN) :: zv(ntyp)
         REAL(DP), INTENT(IN), OPTIONAL :: e2_in
         !
-        REAL(DP), ALLOCATABLE :: at_scaled(:, :), tau_scaled(:, :)
+        REAL(DP), ALLOCATABLE :: at_scaled(:, :)
         REAL(DP) :: gcutm_scaled
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_base'
@@ -237,18 +236,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (alat < 1.D-8) CALL env_errore(sub_name, 'Wrong alat', 1)
-        !
-        IF (alat < 1.0_DP) CALL env_warning('strange lattice parameter')
-        !
-        ALLOCATE (tau_scaled(3, nat))
-        tau_scaled = tau * alat
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL env%init(setup, nelec, nat, ntyp, ityp, atom_label, zv, tau_scaled)
-        !
-        DEALLOCATE (tau_scaled)
+        CALL env%init(setup, nelec, nat, ntyp, atom_label, ityp, zv)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_base

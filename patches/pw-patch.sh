@@ -217,7 +217,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL init_environ_cell(alat, at, intra_bgrp_comm, gcutm, do_comp_mt)\
       !\
-      CALL init_environ_base(1, nat, nsp, ityp, atm, zv, tau, alat)\
+      CALL init_environ_base(1, nat, nsp, atm, ityp, zv)\
       !\
   END IF\
 !Environ patch
