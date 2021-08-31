@@ -49,6 +49,7 @@ MODULE class_electrolyte
     USE class_boundary
     USE class_electrons
     USE class_ions
+    USE class_ioncctype
     USE class_system
     !
     !------------------------------------------------------------------------------------
@@ -106,23 +107,6 @@ MODULE class_electrolyte
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_electrolyte
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    TYPE environ_ioncctype
-        !--------------------------------------------------------------------------------
-        !
-        INTEGER :: index
-        REAL(DP) :: cbulk ! bulk concentration
-        REAL(DP) :: z ! charge
-        !
-        TYPE(environ_density) :: c ! local concentration
-        TYPE(environ_density) :: cfactor ! exp(-z\phi\beta) or 1 - z\phi\beta
-        TYPE(environ_density) :: potential
-        !
-        !--------------------------------------------------------------------------------
-    END TYPE environ_ioncctype
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -245,21 +229,8 @@ CONTAINS
         sum_cz2 = 0.D0
         !
         DO ityp = 1, ntyp
-            this%ioncctype(ityp)%index = ityp
             !
-            this%ioncctype(ityp)%cbulk = cbulk(ityp) * BOHR_RADIUS_SI**3 / AMU_SI
-            ! convert bulk concentrations to atomic units
-            !
-            this%ioncctype(ityp)%z = -z(ityp)
-            !
-            WRITE (ityps, '(I2.2)') ityp
-            local_label = 'c_electrolyte_'//TRIM(ityps)
-            !
-            CALL this%ioncctype(ityp)%c%init(cell, local_label)
-            !
-            local_label = 'cfactor_electrolyte_'//TRIM(ityps)
-            !
-            CALL this%ioncctype(ityp)%cfactor%init(cell, local_label)
+            CALL this%ioncctype(ityp)%init(ityp, cbulk(ityp), z(ityp), cell)
             !
             neutral = neutral + cbulk(ityp) * z(ityp)
             sum_cz2 = sum_cz2 + this%ioncctype(ityp)%cbulk * this%ioncctype(ityp)%z**2
@@ -376,11 +347,7 @@ CONTAINS
         CALL this%boundary%destroy(lflag)
         !
         DO ityp = 1, this%ntyp
-            !
-            CALL this%ioncctype(ityp)%c%destroy()
-            !
-            CALL this%ioncctype(ityp)%cfactor%destroy()
-            !
+            CALL this%ioncctype(ityp)%destroy()
         END DO
         !
         CALL this%gamma%destroy()

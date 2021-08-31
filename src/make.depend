@@ -137,6 +137,7 @@ electrolyte.o : core_container_derivatives.o
 electrolyte.o : density.o
 electrolyte.o : electrons.o
 electrolyte.o : functions.o
+electrolyte.o : ioncctype.o
 electrolyte.o : ions.o
 electrolyte.o : system.o
 electrons.o : ../utils/base_io.o
@@ -201,6 +202,9 @@ input.o : ../utils/io.o
 input.o : ../utils/mp.o
 input.o : base_input.o
 input.o : constants.o
+ioncctype.o : cell.o
+ioncctype.o : constants.o
+ioncctype.o : density.o
 ions.o : ../utils/base_io.o
 ions.o : ../utils/char_ops.o
 ions.o : cell.o
