@@ -65,6 +65,8 @@ MODULE class_cell
         LOGICAL :: lupdate = .FALSE.
         LOGICAL :: cubic = .FALSE.
         !
+        CHARACTER(LEN=80) :: label = 'system'
+        !
         REAL(DP) :: at(3, 3) ! real-space lattice vectors
         REAL(DP) :: bg(3, 3) ! reciprocal lattice vectors
         !
@@ -115,18 +117,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr)
+    SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: comm
         REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
-        INTEGER, OPTIONAL, INTENT(IN) :: nr(3)
+        INTEGER, INTENT(IN), OPTIONAL :: nr(3)
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label 
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_cell'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(label)) this%label = label
         !
         !--------------------------------------------------------------------------------
         ! Create fft descriptor for system cell
@@ -823,12 +830,13 @@ CONTAINS
                 WRITE (local_unit, 1001)
             END IF
             !
-            WRITE (local_unit, 1002) this%omega
+            WRITE (local_unit, 1002) this%label
+            WRITE (local_unit, 1003) this%omega
             !
             IF (local_verbose >= 3) THEN
-                WRITE (local_unit, 1003) this%at
-                WRITE (local_unit, 1004) this%dfft%nr1, this%dfft%nr2, this%dfft%nr3
-                WRITE (local_unit, 1005) this%ntot, this%nnr, this%domega
+                WRITE (local_unit, 1004) this%at
+                WRITE (local_unit, 1005) this%dfft%nr1, this%dfft%nr2, this%dfft%nr3
+                WRITE (local_unit, 1006) this%ntot, this%nnr, this%domega
             END IF
             !
             IF (local_verbose < base_verbose) &
@@ -843,15 +851,17 @@ CONTAINS
 1000    FORMAT(/, 4('%'), ' CELL ', 70('%'))
 1001    FORMAT(/, ' CELL', /, ' ====')
         !
-1002    FORMAT(/, ' cell volume                = ', F12.6)
+1002    FORMAT(/, ' cell label                 = ', A15)
         !
-1003    FORMAT(/, ' simulation cell axes       = ', 3F12.6, /, &
+1003    FORMAT(/, ' cell volume                = ', F12.6)
+        !
+1004    FORMAT(/, ' simulation cell axes       = ', 3F12.6, /, &
                 '                              ', 3F12.6, /, &
                 '                              ', 3F12.6)
         !
-1004    FORMAT(/, ' r-space grid dim           = ', 3I4)
+1005    FORMAT(/, ' r-space grid dim           = ', 3I4)
         !
-1005    FORMAT(/, ' total size of grid         = ', I12, /, &
+1006    FORMAT(/, ' total size of grid         = ', I12, /, &
                 ' r-space size per proc.     = ', I12, /, &
                 ' finite element volume      = ', F12.6)
         !

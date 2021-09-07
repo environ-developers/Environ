@@ -362,6 +362,8 @@ CONTAINS
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
+        CHARACTER(LEN=80) :: local_label 
+        !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
         !
         !--------------------------------------------------------------------------------
@@ -385,8 +387,10 @@ CONTAINS
             environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
             environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
             !
+            local_label = 'environment'
+            !
             CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
-                                            environment_nr)
+                                            environment_nr, local_label)
             !
         ELSE
             this%environment_cell => this%system_cell
@@ -464,6 +468,8 @@ CONTAINS
         !
         CALL this%system_cell%update(at)
         !
+        CALL this%system_cell%printout()
+        !
         IF (this%ldoublecell) THEN
             this%environment_cell%lupdate = .TRUE.
             !
@@ -475,6 +481,8 @@ CONTAINS
             END DO
             !
             CALL this%environment_cell%update(environment_at)
+            !
+            CALL this%environment_cell%printout()
             !
         END IF
         !
