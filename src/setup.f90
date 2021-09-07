@@ -29,7 +29,7 @@
 MODULE env_setup
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: program_unit, prog, verbose_ => verbose
+    USE env_base_io, ONLY: program_unit, prog, global_verbose
     !
     USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
     !
@@ -261,7 +261,7 @@ CONTAINS
         !
         CALL env_read_input(local_filename)
         !
-        verbose_ = verbose ! set internal verbosity from input
+        global_verbose = verbose ! set internal verbosity from input
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_input
@@ -381,7 +381,9 @@ CONTAINS
                 environment_at(:, ipol) = at(:, ipol) * (2.D0 * env_nrep(ipol) + 1.D0)
             END DO
             !
-            environment_nr = this%system_cell%dfft%nr1 * (2 * env_nrep + 1)
+            environment_nr(1) = this%system_cell%dfft%nr1 * (2 * env_nrep(1) + 1)
+            environment_nr(2) = this%system_cell%dfft%nr2 * (2 * env_nrep(2) + 1)
+            environment_nr(3) = this%system_cell%dfft%nr3 * (2 * env_nrep(3) + 1)
             !
             CALL this%environment_cell%init(gcutm, comm_in, environment_at, &
                                             environment_nr)

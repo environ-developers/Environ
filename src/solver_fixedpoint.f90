@@ -350,7 +350,7 @@ CONTAINS
         mix => this%mix
         tolrhoaux => this%tol
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1000)
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1000)
         !
         !--------------------------------------------------------------------------------
         ! Check that fields have the same defintion domain
@@ -383,7 +383,7 @@ CONTAINS
         totzero = rhozero%integrate()
         totiter = rhoiter%integrate()
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1001) totiter
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1001) totiter
         !
         !--------------------------------------------------------------------------------
         ! Create local variables
@@ -397,9 +397,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (verbose >= 3) THEN
+            IF (global_verbose >= 3) THEN
                 WRITE (environ_unit, 1002)
-            ELSE IF (verbose >= 1) THEN
+            ELSE IF (global_verbose >= 1) THEN
                 WRITE (environ_unit, 1003)
             END IF
             !
@@ -429,13 +429,13 @@ CONTAINS
             !
             IF (ionode) THEN
                 !
-                IF (verbose >= 3) THEN
+                IF (global_verbose >= 3) THEN
                     !
                     WRITE (environ_unit, 1004) &
                         iter, delta_qm, delta_en, tolrhoaux, totiter, totzero, totpol, &
                         total
                     !
-                ELSE IF (verbose >= 1) THEN
+                ELSE IF (global_verbose >= 1) THEN
                     WRITE (environ_unit, 1005) iter, delta_qm, delta_en, tolrhoaux
                 END IF
                 !
@@ -446,7 +446,7 @@ CONTAINS
             !
             IF (delta_en < tolrhoaux .AND. iter > 0) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1006)
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1006)
                 !
                 EXIT
                 !
@@ -456,7 +456,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 1008) delta_en, iter
+        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1008) delta_en, iter
         !
         !--------------------------------------------------------------------------------
         ! Compute total electrostatic potential
@@ -533,7 +533,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1100)
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1100)
         !
         IF (PRESENT(dielectric)) THEN
             !
@@ -580,9 +580,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (verbose >= 3) THEN
+            IF (global_verbose >= 3) THEN
                 WRITE (environ_unit, 1101)
-            ELSE IF (verbose >= 1) THEN
+            ELSE IF (global_verbose >= 1) THEN
                 WRITE (environ_unit, 1102)
             END IF
             !
@@ -678,12 +678,12 @@ CONTAINS
             !
             IF (ionode) THEN
                 !
-                IF (verbose >= 3) THEN
+                IF (global_verbose >= 3) THEN
                     !
                     WRITE (environ_unit, 1103) &
                         iter, delta_qm, delta_en, tolrhoaux, totaux
                     !
-                ELSE IF (verbose >= 1) THEN
+                ELSE IF (global_verbose >= 1) THEN
                     WRITE (environ_unit, 1104) iter, delta_qm, delta_en, tolrhoaux
                 END IF
                 !
@@ -694,7 +694,7 @@ CONTAINS
             !
             IF (delta_en < tolrhoaux .AND. iter > 0) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1105)
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1105)
                 !
                 EXIT
                 !
@@ -704,7 +704,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 1107) delta_en, iter
+        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1107) delta_en, iter
         !
         CALL denominator%destroy()
         !

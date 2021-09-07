@@ -39,7 +39,7 @@
 MODULE class_ions
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     USE env_char_ops, ONLY: env_lowercase
 
     USE environ_param, ONLY: DP, e2, pi, tpi, BOHR_RADIUS_ANGS
@@ -584,119 +584,129 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the ions
+    !!
+    !! Nested objects receive a decremented passed verbose to trigger block printing
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_ions(this, local_verbose, local_depth)
+    SUBROUTINE print_environ_ions(this, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_ions), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: verbosity, passed_verbosity, passed_depth
-        !
-        INTEGER :: i
+        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, i
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_ions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose == 0) RETURN
-        !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
+            END IF
+            !
+            passed_verbose = verbose - 1
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+            passed_verbose = local_verbose - base_verbose - 1
+            !
         ELSE
-            verbosity = verbose
+            RETURN
         END IF
         !
-        IF (verbosity == 0) RETURN
-        !
-        IF (PRESENT(local_depth)) THEN
-            passed_verbosity = verbosity - verbose - local_depth
-            passed_depth = local_depth
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
         ELSE
-            passed_verbosity = verbosity - verbose - depth
-            passed_depth = depth
+            local_unit = environ_unit
         END IF
         !
-        IF (verbosity >= 1) THEN
+        IF (local_verbose >= 1) THEN
             !
             IF (ionode) THEN
+                WRITE (local_unit, 1000)
                 !
-                IF (verbosity >= verbose) THEN ! header
-                    WRITE (environ_unit, 1000)
-                ELSE
-                    !
-                    CALL env_block_divider(verbosity)
-                    !
-                    WRITE (environ_unit, 1001)
-                END IF
-                !
-                WRITE (environ_unit, 1002) &
+                WRITE (local_unit, 1001) &
                     this%charge, this%center, this%dipole, this%quadrupole_pc
                 !
                 IF (this%use_smeared_ions) &
-                    WRITE (environ_unit, 1003) this%quadrupole_gauss
+                    WRITE (local_unit, 1002) this%quadrupole_gauss
                 !
-                WRITE (environ_unit, 1004)
+                WRITE (local_unit, 1003)
                 !
                 DO i = 1, this%number
-                    WRITE (environ_unit, 1005) i, this%ityp(i), this%tau(:, i)
+                    WRITE (local_unit, 1004) i, this%ityp(i), this%tau(:, i)
                 END DO
                 !
             END IF
             !
-            IF (verbosity >= 3) THEN
+            IF (local_verbose >= 3) THEN
                 !
-                CALL print_environ_iontypes(this%iontype, this%ntyp, passed_verbosity, &
-                                            passed_depth)
+                CALL print_environ_iontypes(this%iontype, this%ntyp, passed_verbose, &
+                                            debug_verbose, local_unit)
                 !
                 IF (this%use_smeared_ions) THEN
                     !
-                    CALL this%density%printout(passed_verbosity, passed_depth)
+                    CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                     !
-                    IF (verbosity >= 4) &
+                    IF (local_verbose >= 4) &
                         CALL print_environ_functions(this%smeared_ions, this%number, &
-                                                     passed_verbosity, passed_depth)
+                                                     passed_verbose, debug_verbose, &
+                                                     local_unit)
                     !
                 END IF
                 !
                 IF (this%use_core_electrons) THEN
                     !
-                    IF (verbosity >= 4) &
-                        CALL this%core%printout(passed_verbosity, passed_depth)
+                    IF (local_verbose >= 4) &
+                        CALL this%core%printout(passed_verbose, debug_verbose, &
+                                                local_unit)
                     !
-                    IF (verbosity >= 5) &
+                    IF (local_verbose >= 5) &
                         CALL print_environ_functions(this%core_electrons, this%number, &
-                                                     passed_verbosity, passed_depth)
+                                                     passed_verbose, debug_verbose, &
+                                                     local_unit)
                     !
                 END IF
                 !
             END IF
             !
-            IF (verbosity < verbose) CALL env_block_divider(verbosity)
-            !
         END IF
         !
-        FLUSH (environ_unit)
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !
 1000    FORMAT(/, 4('%'), ' IONS ', 70('%'))
-1001    FORMAT(/, ' IONS', /, ' ====')
         !
-1002    FORMAT(/, ' total charge               = ', F14.7, /, &
+1001    FORMAT(/, ' total charge               = ', F14.7, /, &
                 ' center of charge           = ', 3F14.7, /, &
                 ' dipole                     = ', 3F14.7, /, &
                 ' quadrupole (pc)            = ', 3F14.7)
         !
-1003    FORMAT(' quadrupole (gauss)         = ', 3F14.7)
+1002    FORMAT(' quadrupole (gauss)         = ', 3F14.7)
         !
-1004    FORMAT(/, '   i | type | coordinates', /, 1X, 71('-'))
+1003    FORMAT(/, '   i | type | coordinates', /, 1X, 71('-'))
         !
-1005    FORMAT(1X, I3, ' | ', I4, ' |                 ', 3F14.7)
+1004    FORMAT(1X, I3, ' | ', I4, ' |                 ', 3F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_ions

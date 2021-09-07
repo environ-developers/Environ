@@ -32,7 +32,7 @@
 MODULE class_hessian
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     !
     USE environ_param, ONLY: DP
     !
@@ -302,110 +302,131 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the hessian
+    !!
+    !! Nested objects receive a decremented passed verbose to trigger block printing
+    !! If called by a parent object, prints details in block format
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_hessian(this, local_verbose, local_depth)
+    SUBROUTINE print_environ_hessian(this, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_hessian), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density) :: dens
+        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
-        INTEGER :: verbosity, passed_verbosity, passed_depth
         REAL(DP) :: integral
+        TYPE(environ_density) :: dens
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_hessian'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose == 0) RETURN
-        !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
+            END IF
+            !
+            passed_verbose = verbose - 1
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+            passed_verbose = local_verbose - base_verbose - 1
+            !
         ELSE
-            verbosity = verbose
+            RETURN
         END IF
         !
-        IF (verbosity == 0) RETURN
-        !
-        IF (PRESENT(local_depth)) THEN
-            passed_verbosity = verbosity - verbose - local_depth
-            passed_depth = local_depth
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
         ELSE
-            passed_verbosity = verbosity - verbose - depth
-            passed_depth = depth
+            local_unit = environ_unit
         END IF
         !
-        IF (verbosity >= 1) THEN
+        IF (local_verbose >= 1) THEN
             !
             IF (ionode) THEN
                 !
-                IF (verbosity >= verbose) THEN ! header
-                    WRITE (environ_unit, 1000)
+                IF (local_verbose >= base_verbose) THEN ! header
+                    WRITE (local_unit, 1000)
                 ELSE
                     !
-                    CALL env_block_divider(verbosity)
+                    CALL env_block_divider(ionode, local_verbose, base_verbose, &
+                                           local_unit)
                     !
-                    WRITE (environ_unit, 1001)
+                    WRITE (local_unit, 1001)
                 END IF
                 !
-                WRITE (environ_unit, 1002) ADJUSTL(this%label)
+                WRITE (local_unit, 1002) ADJUSTL(this%label)
                 !
             END IF
             !
             ! #TODO ADD MAXVAL AND MINVAL
             !
-            IF (verbosity >= 3) CALL this%laplacian%write_cube_no_ions()
+            IF (local_verbose >= 3) CALL this%laplacian%write_cube_no_ions()
             !
-            IF (verbosity >= 4) THEN
-                cell => this%cell
+            IF (local_verbose >= 4) THEN
                 !
-                CALL dens%init(cell)
+                CALL dens%init(this%cell)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xx'
                 dens%of_r(:) = this%of_r(1, 1, :)
                 !
-                CALL dens%printout(passed_verbosity, passed_depth)
+                CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xy'
                 dens%of_r(:) = this%of_r(1, 2, :)
                 !
-                CALL dens%printout(passed_verbosity, passed_depth)
+                CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xz'
                 dens%of_r(:) = this%of_r(1, 3, :)
                 !
-                CALL dens%printout(passed_verbosity, passed_depth)
+                CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_yy'
                 dens%of_r(:) = this%of_r(2, 2, :)
                 !
-                CALL dens%printout(passed_verbosity, passed_depth)
+                CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_yz'
                 dens%of_r(:) = this%of_r(2, 3, :)
                 !
-                CALL dens%printout(passed_verbosity, passed_depth)
+                CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_zz'
                 dens%of_r(:) = this%of_r(3, 3, :)
                 !
-                CALL dens%printout(passed_verbosity, passed_depth)
+                CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 CALL dens%destroy()
                 !
             END IF
             !
-            IF (verbosity < verbose) CALL env_block_divider(verbosity)
+            IF (local_verbose < base_verbose) &
+                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
             !
         END IF
         !
-        FLUSH (environ_unit)
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !

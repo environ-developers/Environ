@@ -32,7 +32,7 @@
 MODULE class_density
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_base_scatter, ONLY: env_gather_grid
@@ -481,71 +481,94 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the density
+    !!
+    !! If called by a parent object, prints details in block format
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_density(this, local_verbose, local_depth, lcube)
+    SUBROUTINE print_environ_density(this, verbose, debug_verbose, unit, lcube)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_density), INTENT(IN) :: this
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         LOGICAL, INTENT(IN), OPTIONAL :: lcube
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-        INTEGER, INTENT(IN), OPTIONAL :: local_depth
         !
-        INTEGER :: verbosity, passed_verbosity, passed_depth
-        LOGICAL :: print_cube
+        INTEGER :: base_verbose, local_verbose, local_unit
+        !
+        LOGICAL :: print_cube = .TRUE.
         REAL(DP) :: integral
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_density'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose == 0) RETURN
-        !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
+            END IF
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
         ELSE
-            verbosity = verbose
+            RETURN
         END IF
         !
-        IF (verbosity == 0) RETURN
-        !
-        IF (PRESENT(lcube)) THEN
-            print_cube = lcube
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
         ELSE
-            print_cube = .TRUE.
+            local_unit = environ_unit
         END IF
         !
-        IF (verbosity >= 1) THEN
+        IF (PRESENT(lcube)) print_cube = lcube
+        !
+        IF (local_verbose >= 1) THEN
             !
             IF (ionode) THEN
                 !
-                IF (verbosity >= verbose) THEN ! header
-                    WRITE (environ_unit, 1000)
+                IF (local_verbose >= base_verbose) THEN ! header
+                    WRITE (local_unit, 1000)
                 ELSE
                     !
-                    CALL env_block_divider(verbosity)
+                    CALL env_block_divider(ionode, local_verbose, base_verbose, &
+                                           local_unit)
                     !
-                    WRITE (environ_unit, 1001)
+                    WRITE (local_unit, 1001)
                 END IF
                 !
-                WRITE (environ_unit, 1002) ADJUSTL(this%label)
+                WRITE (local_unit, 1002) ADJUSTL(this%label)
             END IF
             !
             integral = this%integrate()
             !
-            IF (ionode) WRITE (environ_unit, 1003) integral
+            IF (ionode) WRITE (local_unit, 1003) integral
             !
             ! #TODO ADD MAXVAL AND MINVAL
             !
-            IF (verbosity >= 3 .AND. print_cube) CALL this%write_cube_no_ions()
+            IF (local_verbose >= 3 .AND. print_cube) CALL this%write_cube_no_ions()
             !
-            IF (verbosity < verbose) CALL env_block_divider(verbosity)
+            IF (local_verbose < base_verbose) &
+                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
             !
         END IF
         !
-        FLUSH (environ_unit)
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !

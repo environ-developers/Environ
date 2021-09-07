@@ -38,7 +38,7 @@
 MODULE class_boundary
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, program_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, program_unit, global_verbose
     !
     USE environ_param, ONLY: DP, e2, sqrtpi, tpi
     !
@@ -2893,108 +2893,119 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the boundary
+    !!
+    !! Nested objects receive a decremented passed verbose to trigger block printing
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_boundary(this, local_verbose, local_depth)
+    SUBROUTINE print_environ_boundary(this, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_boundary), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: verbosity, passed_verbosity, passed_depth
+        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_boundary'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose == 0) RETURN
-        !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
+            END IF
+            !
+            passed_verbose = verbose - 1
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+            passed_verbose = local_verbose - base_verbose - 1
+            !
         ELSE
-            verbosity = verbose
+            RETURN
         END IF
         !
-        IF (verbosity == 0) RETURN
-        !
-        IF (PRESENT(local_depth)) THEN
-            passed_verbosity = verbosity - verbose - local_depth
-            passed_depth = local_depth
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
         ELSE
-            passed_verbosity = verbosity - verbose - depth
-            passed_depth = depth
+            local_unit = environ_unit
         END IF
         !
-        IF (verbosity >= 1) THEN
+        IF (local_verbose >= 1) THEN
             !
             IF (ionode) THEN
-                !
-                IF (verbosity >= verbose) THEN ! header
-                    WRITE (environ_unit, 1100)
-                ELSE
-                    !
-                    CALL env_block_divider(verbosity)
-                    !
-                    WRITE (environ_unit, 1101)
-                END IF
-                !
-                WRITE (environ_unit, 1102) this%label, this%mode
-                !
+                WRITE (local_unit, 1100)
+                WRITE (local_unit, 1101) this%label, this%mode
             END IF
             !
             IF (this%need_electrons) THEN
                 !
                 IF (ionode) THEN
-                    !
-                    WRITE (environ_unit, 1103) this%b_type
+                    WRITE (local_unit, 1102) this%b_type
                     !
                     SELECT CASE (this%b_type)
                         !
                     CASE (0)
-                        WRITE (environ_unit, 1104) this%rhozero, this%tbeta
+                        WRITE (local_unit, 1103) this%rhozero, this%tbeta
                         !
                     CASE (1)
-                        WRITE (environ_unit, 1105) this%rhomax, this%rhomin
+                        WRITE (local_unit, 1104) this%rhomax, this%rhomin
                         !
-                        IF (verbosity >= 3) WRITE (environ_unit, 1106) this%fact
+                        IF (local_verbose >= 3) WRITE (local_unit, 1105) this%fact
                         !
                     CASE (2)
-                        WRITE (environ_unit, 1107) this%rhomax, this%rhomin
+                        WRITE (local_unit, 1106) this%rhomax, this%rhomin
                         !
                     END SELECT
                     !
                 END IF
                 !
-                IF (verbosity >= 4) THEN
+                IF (local_verbose >= 4) THEN
                     !
-                    CALL this%density%printout(passed_verbosity, passed_depth)
+                    CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                     !
-                    IF (ionode .AND. this%need_ions) WRITE (environ_unit, 1108)
+                    IF (ionode .AND. this%need_ions) WRITE (local_unit, 1107)
                     !
                 END IF
                 !
-                IF (verbosity >= 5) THEN
+                IF (local_verbose >= 5) THEN
                     !
-                    CALL this%dscaled%printout(passed_verbosity, passed_depth)
+                    CALL this%dscaled%printout(passed_verbose, debug_verbose, local_unit)
                     !
-                    CALL this%d2scaled%printout(passed_verbosity, passed_depth)
+                    CALL this%d2scaled%printout(passed_verbose, debug_verbose, &
+                                                local_unit)
                     !
                 END IF
                 !
             ELSE IF (this%need_ions) THEN
                 !
-                IF (ionode) WRITE (environ_unit, 1109) this%alpha, this%softness
+                IF (ionode) WRITE (local_unit, 1108) this%alpha, this%softness
                 !
-                IF (verbosity >= 3) &
+                IF (local_verbose >= 3) &
                     CALL print_environ_functions(this%soft_spheres, this%ions%number, &
-                                                 passed_verbosity, passed_depth)
+                                                 passed_verbose, debug_verbose, &
+                                                 local_unit)
                 !
             ELSE IF (ionode .AND. this%need_system) THEN
                 !
-                WRITE (environ_unit, 1110) &
+                WRITE (local_unit, 1109) &
                     this%simple%pos, this%simple%width, &
                     this%simple%spread, this%simple%dim, &
                     this%simple%axis
@@ -3002,100 +3013,102 @@ CONTAINS
             END IF
             !
             IF (ionode) THEN
-                WRITE (environ_unit, 1111) this%volume
+                WRITE (local_unit, 1110) this%volume
                 !
-                IF (this%deriv >= 1) WRITE (environ_unit, 1112) this%surface
+                IF (this%deriv >= 1) WRITE (local_unit, 1111) this%surface
                 !
             END IF
             !
-            IF (verbosity >= 4) CALL this%scaled%printout(passed_verbosity, passed_depth)
+            IF (local_verbose >= 4) &
+                CALL this%scaled%printout(passed_verbose, debug_verbose, local_unit)
             !
             IF (this%solvent_aware) THEN
                 !
                 IF (ionode) &
-                    WRITE (environ_unit, 1113) &
+                    WRITE (local_unit, 1112) &
                     this%filling_threshold, this%filling_spread, &
                     this%solvent_probe%width, this%solvent_probe%spread
                 !
-                IF (verbosity >= 4) THEN
+                IF (local_verbose >= 4) THEN
                     !
-                    CALL this%local%printout(passed_verbosity, passed_depth)
+                    CALL this%local%printout(passed_verbose, debug_verbose, local_unit)
                     !
-                    CALL this%filling%printout(passed_verbosity, passed_depth)
+                    CALL this%filling%printout(passed_verbose, debug_verbose, local_unit)
                     !
                 END IF
                 !
-                IF (verbosity >= 5) THEN
+                IF (local_verbose >= 5) THEN
                     !
-                    CALL this%dfilling%printout(passed_verbosity, passed_depth)
+                    CALL this%dfilling%printout(passed_verbose, debug_verbose, &
+                                                local_unit)
                     !
-                    CALL this%probe%printout(passed_verbosity, passed_depth)
+                    CALL this%probe%printout(passed_verbose, debug_verbose, local_unit)
                     !
                 END IF
                 !
             END IF
             !
-            IF (verbosity >= 5) THEN
+            IF (local_verbose >= 5) THEN
                 !
                 IF (this%deriv >= 1) &
-                    CALL this%gradient%printout(passed_verbosity, passed_depth)
+                    CALL this%gradient%printout(passed_verbose, debug_verbose, &
+                                                local_unit)
                 !
                 IF (this%deriv >= 2) &
-                    CALL this%laplacian%printout(passed_verbosity, passed_depth)
+                    CALL this%laplacian%printout(passed_verbose, debug_verbose, &
+                                                 local_unit)
                 !
                 IF (this%deriv == 3) &
-                    CALL this%dsurface%printout(passed_verbosity, passed_depth)
+                    CALL this%dsurface%printout(passed_verbose, debug_verbose, &
+                                                local_unit)
                 !
             END IF
-            !
-            IF (verbosity < verbose) CALL env_block_divider(verbosity)
             !
         END IF
         !
-        FLUSH (environ_unit)
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !
 1100    FORMAT(/, 4('%'), ' BOUNDARY ', 66('%'))
-1101    FORMAT(/, ' BOUNDARY', /, '========')
         !
-1102    FORMAT(/, ' boundary label             = ', A20, /, &
+1101    FORMAT(/, ' boundary label             = ', A20, /, &
                 ' boundary mode              = ', A20)
         !
-1103    FORMAT(/, ' boundary is built as a type-', I1, ' function of a smooth density')
+1102    FORMAT(/, ' boundary is built as a type-', I1, ' function of a smooth density')
         !
-1104    FORMAT(/, ' using the Fattebert-Gygi function:', /, &
+1103    FORMAT(/, ' using the Fattebert-Gygi function:', /, &
                 ' rhozero                    = ', F14.7, /, &
                 ' 2*beta                     = ', F14.7)
         !
-1105    FORMAT(/, ' using the optimal SCCS function:', /, &
+1104    FORMAT(/, ' using the optimal SCCS function:', /, &
                 ' rhomax                     = ', F14.7, /, &
                 ' rhomin                     = ', F14.7)
         !
-1106    FORMAT(' log(rhomax/rhomin)         = ', F14.7)
+1105    FORMAT(' log(rhomax/rhomin)         = ', F14.7)
         !
-1107    FORMAT(/, ' using the modified SCCS function:', /, &
+1106    FORMAT(/, ' using the modified SCCS function:', /, &
                 ' rhomax                     = ', F14.7, /, &
                 ' rhomin                     = ', F14.7)
         !
-1108    FORMAT(/, ' adding fictitious core-electrons')
+1107    FORMAT(/, ' adding fictitious core-electrons')
         !
-1109    FORMAT(/, ' boundary is built from soft-spheres centered on ionic positions:', /, &
+1108    FORMAT(/, ' boundary is built from soft-spheres centered on ionic positions:', /, &
                 ' solvent-dependent scaling  = ', F14.7, /, &
                 ' softness parameter         = ', F14.7)
         !
-1110    FORMAT(/, ' boundary is built as an analytic function centered on system position:', /, &
+1109    FORMAT(/, ' boundary is built as an analytic function centered on system position:', /, &
                 ' center of the boundary     = ', 3F14.7, /, &
                 ' distance from the center   = ', F14.7, /, &
                 ' spread of the interface    = ', F14.7, /, &
                 ' dimensionality             = ', I2, /, &
                 ' axis                       = ', I2)
         !
-1111    FORMAT(/, ' volume of the QM region    = ', F14.7)
+1110    FORMAT(/, ' volume of the QM region    = ', F14.7)
         !
-1112    FORMAT(/, ' surface of the QM region   = ', F14.7)
+1111    FORMAT(/, ' surface of the QM region   = ', F14.7)
         !
-1113    FORMAT(/, ' using solvent-aware boundary:', /, &
+1112    FORMAT(/, ' using solvent-aware boundary:', /, &
                 ' filling threshold          = ', F14.7, /, &
                 ' filling spread             = ', F14.7, /, &
                 ' solvent radius x rad scale = ', F14.7, /, &

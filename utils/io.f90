@@ -629,40 +629,42 @@ SUBROUTINE env_invalid_opt(routine, param, input)
 END SUBROUTINE env_invalid_opt
 !----------------------------------------------------------------------------------------
 !>
+!! Prints a block divider of variable length determnied by verbosity
+!!
+!! @param ionode       : (LOGICAL) if current processor is responsible for I/O
+!! @param verbose      : (INTEGER) local verbose of the calling printer
+!! @param base_verbose : (INTEGER) verbosity to be measured against
+!! @param unit         : (INTEGER) output target 
 !!
 !----------------------------------------------------------------------------------------
-SUBROUTINE env_block_divider(verbosity)
-    !------------------------------------------------------------------------------------
-    !
-    USE env_base_io, ONLY: ionode, verbose, environ_unit
-    USE env_utils_param, ONLY: stdout
-    !
+SUBROUTINE env_block_divider(ionode, verbose, base_verbose, unit)
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    INTEGER, INTENT(IN) :: verbosity
+    LOGICAL, INTENT(IN) :: ionode
+    INTEGER, INTENT(IN) :: verbose, base_verbose, unit
     !
     !------------------------------------------------------------------------------------
     !
     IF (.NOT. ionode) RETURN
     !
-    SELECT CASE (verbose - verbosity - 1)
+    SELECT CASE (base_verbose - verbose - 1)
         !
     CASE (0)
-        WRITE (environ_unit, 10)
+        WRITE (unit, 10)
         !
     CASE (1)
-        WRITE (environ_unit, 11)
+        WRITE (unit, 11)
         !
     CASE (2)
-        WRITE (environ_unit, 12)
+        WRITE (unit, 12)
         !
     CASE (3)
-        WRITE (environ_unit, 13)
+        WRITE (unit, 13)
         !
     CASE (4)
-        WRITE (environ_unit, 14)
+        WRITE (unit, 14)
         !
     END SELECT
     !

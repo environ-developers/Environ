@@ -37,7 +37,7 @@
 MODULE class_functions
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     !
     USE environ_param, ONLY: DP
     !
@@ -337,60 +337,88 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the functions
+    !!
+    !! If called by a parent object, prints details in block format
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_functions(f, n, local_verbose, local_depth)
+    SUBROUTINE print_environ_functions(f, n, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: n
-        TYPE(environ_function), INTENT(IN) :: f(n)
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose, local_depth
+        CLASS(environ_function), INTENT(IN) :: f(:)
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: i, verbosity, passed_verbosity, passed_depth
+        INTEGER :: base_verbose, local_verbose, local_unit, i
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_functions'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ionode .OR. verbose == 0) RETURN
+        IF (.NOT. ionode) RETURN
         !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
-        ELSE
-            verbosity = verbose
-        END IF
-        !
-        IF (verbosity == 0) RETURN
-        !
-        IF (verbosity >= 1) THEN
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
             !
-            IF (verbosity >= verbose) THEN ! header
-                WRITE (environ_unit, 1000)
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
             ELSE
-                !
-                CALL env_block_divider(verbosity)
-                !
-                WRITE (environ_unit, 1001)
+                local_verbose = debug_verbose
             END IF
             !
-            WRITE (environ_unit, 1002) ! legend
-            WRITE (environ_unit, 1003) ! table headers
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+        ELSE
+            RETURN
+        END IF
+        !
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = environ_unit
+        END IF
+        !
+        IF (local_verbose >= 1) THEN
+            !
+            IF (local_verbose >= base_verbose) THEN ! header
+                WRITE (local_unit, 1000)
+            ELSE
+                !
+                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
+                !
+                WRITE (local_unit, 1001)
+            END IF
+            !
+            WRITE (local_unit, 1002) ! legend
+            WRITE (local_unit, 1003) ! table headers
             !
             DO i = 1, n
                 !
-                WRITE (environ_unit, 1004) &
+                WRITE (local_unit, 1004) &
                     i, f(i)%f_type, f(i)%dim, f(i)%axis, f(i)%width, f(i)%spread, &
                     f(i)%volume, f(i)%pos
                 !
             END DO
             !
-            IF (verbosity < verbose) CALL env_block_divider(verbosity)
+            IF (local_verbose < base_verbose) &
+                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
             !
         END IF
         !
-        FLUSH (environ_unit)
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !
@@ -398,16 +426,16 @@ CONTAINS
 1001    FORMAT(/, ' FUNCTIONS', /, ' =========')
         !
 1002    FORMAT(/, ' 1 - Gaussian', /, &
-                ' 2 - Complimentory error function', /, &
+                ' 2 - Complementary error function', /, &
                 ' 3 - Exponential', /, &
-                ' 4 - Scaled complimentory error function', /, &
+                ' 4 - Scaled complementary error function', /, &
                 ' 5 - Scaled error function')
         !
 1003    FORMAT(/, '   i | type | dim | axis | width | spread |  volume  | position', /, &
-                1X, 83('-'))
+                1X, 84('-'))
 !
 1004    FORMAT(1X, I3, ' | ', I4, ' | ', I3, ' | ', I4, ' | ', F5.3, ' | ', &
-               F6.3, ' | ', F8.3, ' |', 3F10.7)
+               F6.3, ' | ', F8.3, ' |', 3F10.5)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_functions

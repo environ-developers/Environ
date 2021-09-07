@@ -29,7 +29,7 @@
 MODULE environ_input
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, ionode_id, comm, environ_unit, verbose_ => verbose
+    USE env_base_io, ONLY: ionode, ionode_id, comm, environ_unit
     USE env_io
     USE env_mp, ONLY: env_mp_bcast
     USE env_char_ops, ONLY: env_uppercase, env_is_substring

@@ -34,7 +34,7 @@ MODULE environ_QE_interface
     USE env_char_ops, ONLY: env_uppercase
     !
     USE env_base_io, ONLY: prog, ionode, ionode_id, comm, program_unit, environ_unit, &
-                           lstdout, depth, verbose_ => verbose
+                           lstdout, global_verbose
     !
     USE env_io, ONLY: env_find_free_unit
     !
@@ -219,9 +219,6 @@ CONTAINS
         REAL(DP), INTENT(IN) :: zv(ntyp)
         REAL(DP), INTENT(IN), OPTIONAL :: e2_in
         !
-        REAL(DP), ALLOCATABLE :: at_scaled(:, :)
-        REAL(DP) :: gcutm_scaled
-        !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_base'
         !
         !--------------------------------------------------------------------------------
@@ -383,7 +380,6 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !>
     !!
-    !!
     !------------------------------------------------------------------------------------
     SUBROUTINE calc_environ_potential_CP(update, local_verbose)
         !--------------------------------------------------------------------------------
@@ -542,7 +538,7 @@ CONTAINS
     INTEGER FUNCTION get_environ_verbose()
         !--------------------------------------------------------------------------------
         !
-        get_environ_verbose = verbose_
+        get_environ_verbose = global_verbose
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_environ_verbose

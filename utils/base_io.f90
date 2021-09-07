@@ -42,8 +42,7 @@ MODULE env_base_io
     !
     INTEGER :: program_unit
     INTEGER :: environ_unit
-    INTEGER :: verbose
-    INTEGER :: depth = 1
+    INTEGER :: global_verbose
     !
     CHARACTER(LEN=2) :: prog ! the calling program
     !

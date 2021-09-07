@@ -43,7 +43,7 @@
 MODULE class_dielectric
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     !
     USE environ_param, ONLY: DP, e2, fpi
     !
@@ -165,10 +165,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ALLOCATED(this%regions)) &
-        CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
         IF (ASSOCIATED(this%boundary)) &
-        CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -877,7 +877,7 @@ CONTAINS
         !
         IF (this%need_factsqrt) CALL lapllocal%destroy()
         !
-        IF (verbose >= 3) CALL this%background%printout()
+        IF (global_verbose >= 3) CALL this%background%printout()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_dielectric_background
@@ -889,120 +889,129 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the dielectric
+    !!
+    !! Nested objects receive a decremented passed verbose to trigger block printing
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_dielectric(this, local_verbose, local_depth)
+    SUBROUTINE print_environ_dielectric(this, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_dielectric), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: verbosity, passed_verbosity, passed_depth
+        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_dielectric'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose == 0) RETURN
-        !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
-        ELSE
-            verbosity = verbose
-        END IF
-        !
-        IF (verbosity == 0) RETURN
-        !
-        IF (PRESENT(local_depth)) THEN
-            passed_verbosity = verbosity - verbose - local_depth
-            passed_depth = local_depth
-        ELSE
-            passed_verbosity = verbosity - verbose - depth
-            passed_depth = depth
-        END IF
-        !
-        IF (verbosity >= 1) THEN
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
             !
-            IF (ionode) THEN
-                !
-                IF (verbosity >= verbose) THEN ! header
-                    WRITE (environ_unit, 1000)
-                ELSE
-                    !
-                    CALL env_block_divider(verbosity)
-                    !
-                    WRITE (environ_unit, 1001)
-                END IF
-                !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
             END IF
+            !
+            passed_verbose = verbose - 1
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+            passed_verbose = local_verbose - base_verbose - 1
+            !
+        ELSE
+            RETURN
+        END IF
+        !
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = environ_unit
+        END IF
+        !
+        IF (local_verbose >= 1) THEN
+            !
+            IF (ionode) WRITE (local_unit, 1000)
             !
             IF (this%nregions == 0) THEN
-                IF (ionode) WRITE (environ_unit, 1002) this%constant
+                IF (ionode) WRITE (local_unit, 1001) this%constant
             ELSE
-                IF (ionode) WRITE (environ_unit, 1003) this%constant, this%nregions
+                IF (ionode) WRITE (local_unit, 1002) this%constant, this%nregions
                 !
                 CALL print_environ_functions(this%regions, this%nregions, &
-                                             passed_verbosity, passed_depth)
+                                             passed_verbose, debug_verbose, local_unit)
                 !
-                IF (verbosity >= 4) &
-                    CALL this%background%printout(passed_verbosity, passed_depth)
-                !
-            END IF
-            !
-            IF (verbosity >= 3) THEN
-                !
-                CALL this%density%printout(passed_verbosity, passed_depth)
-                !
-                CALL this%epsilon%printout(passed_verbosity, passed_depth)
+                IF (local_verbose >= 4) &
+                    CALL this%background%printout(passed_verbose, debug_verbose, &
+                                                  local_unit)
                 !
             END IF
             !
-            IF (verbosity >= 5) &
-                CALL this%depsilon%printout(passed_verbosity, passed_depth)
+            IF (local_verbose >= 3) THEN
+                !
+                CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
+                !
+                CALL this%epsilon%printout(passed_verbose, debug_verbose, local_unit)
+                !
+            END IF
+            !
+            IF (local_verbose >= 5) &
+                CALL this%depsilon%printout(passed_verbose, debug_verbose, local_unit)
             !
             IF (ionode) THEN
-                WRITE (environ_unit, 1004) this%need_gradient, this%need_factsqrt
-                WRITE (environ_unit, 1005) this%charge
+                WRITE (local_unit, 1003) this%need_gradient, this%need_factsqrt
+                WRITE (local_unit, 1004) this%charge
             END IF
             !
-            IF (verbosity >= 5) THEN
+            IF (local_verbose >= 5) THEN
                 !
-                CALL this%gradlog%printout(passed_verbosity, passed_depth)
+                CALL this%gradlog%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 IF (this%need_gradient) &
-                    CALL this%gradient%printout(passed_verbosity, passed_depth)
+                    CALL this%gradient%printout(passed_verbose, debug_verbose, &
+                                                local_unit)
                 !
                 IF (this%need_factsqrt) &
-                    CALL this%factsqrt%printout(passed_verbosity, passed_depth)
+                    CALL this%factsqrt%printout(passed_verbose, debug_verbose, &
+                                                local_unit)
                 !
             END IF
-            !
-            IF (verbosity < verbose) CALL env_block_divider(verbosity)
             !
         END IF
         !
-        FLUSH (environ_unit)
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !
 1000    FORMAT(/, 4('%'), ' DIELECTRIC ', 65('%'))
-1001    FORMAT(/, ' DIELECTRIC', /, ' ==========')
         !
-1002    FORMAT(/, ' dielectric build on homogeneous background:', /, &
+1001    FORMAT(/, ' dielectric build on homogeneous background:', /, &
                 ' environment bulk permitt.  = ', F14.7)
         !
-1003    FORMAT(/, ' dielectric build in the presence of dielectric regions:', /, &
+1002    FORMAT(/, ' dielectric build in the presence of dielectric regions:', /, &
                 ' environment bulk permitt.  = ', F14.7, /, &
                 ' number of dielec. regions  = ', I4)
         !
-1004    FORMAT(/, ' dielectric flags:', /, &
+1003    FORMAT(/, ' dielectric flags:', /, &
                 ' need gradient              = ', L2, /, &
                 ' need factor depend. sqrt   = ', L2)
         !
-1005    FORMAT(/, ' total dielectric charge    = ', F14.7)
+1004    FORMAT(/, ' total dielectric charge    = ', F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_dielectric

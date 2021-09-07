@@ -31,7 +31,7 @@
 MODULE class_cell
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, tpi
@@ -668,21 +668,19 @@ CONTAINS
         REAL(DP), INTENT(OUT) :: r2
         !
         INTEGER :: ic
-        REAL(DP) :: s(3)
-        REAL(DP) :: rmin(3)
-        REAL(DP) :: r2min
+        REAL(DP) :: s(3), rmin(3), r2min
         !
-        s(:) = MATMUL(r(:), this%bg(:, :))
-        s(:) = s(:) - FLOOR(s(:)) ! #TODO NINT?
-        r(:) = MATMUL(this%at(:, :), s(:))
+        !--------------------------------------------------------------------------------
+        !
+        s = MATMUL(r, this%bg)
+        s = s - FLOOR(s)
+        r = MATMUL(this%at, s)
         !
         rmin = r
         r2min = SUM(r * r)
         !
         DO ic = 2, 8
-            s(1) = r(1) + this%corners(1, ic)
-            s(2) = r(2) + this%corners(2, ic)
-            s(3) = r(3) + this%corners(3, ic)
+            s = r + this%corners(:, ic)
             r2 = SUM(s * s)
             !
             IF (r2 < r2min) THEN
@@ -782,53 +780,84 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the cell
+    !!
+    !! If called by a parent object, prints details in block format
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_cell(this, local_verbose, local_depth)
+    SUBROUTINE print_environ_cell(this, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_cell), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: verbosity
+        INTEGER :: base_verbose, local_verbose, local_unit
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_cell'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ionode .OR. verbose == 0) RETURN
+        IF (.NOT. ionode) RETURN
         !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
+            END IF
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
         ELSE
-            verbosity = verbose
+            RETURN
         END IF
         !
-        IF (verbosity == 0) RETURN
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = environ_unit
+        END IF
         !
-        IF (verbosity >= 1) THEN
+        IF (local_verbose >= 1) THEN
             !
-            IF (verbosity >= verbose) THEN ! header
-                WRITE (environ_unit, 1000)
+            IF (local_verbose >= base_verbose) THEN ! header
+                WRITE (local_unit, 1000)
             ELSE
                 !
-                CALL env_block_divider(verbosity)
+                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
                 !
-                WRITE (environ_unit, 1001)
+                WRITE (local_unit, 1001)
             END IF
             !
-            WRITE (environ_unit, 1002) this%omega
+            WRITE (local_unit, 1002) this%omega
             !
-            IF (verbosity >= 3) THEN
-                WRITE (environ_unit, 1003) this%at
-                WRITE (environ_unit, 1004) this%dfft%nr1, this%dfft%nr2, this%dfft%nr3
-                WRITE (environ_unit, 1005) this%ntot, this%nnr, this%domega
+            IF (local_verbose >= 3) THEN
+                WRITE (local_unit, 1003) this%at
+                WRITE (local_unit, 1004) this%dfft%nr1, this%dfft%nr2, this%dfft%nr3
+                WRITE (local_unit, 1005) this%ntot, this%nnr, this%domega
             END IF
             !
-            CALL env_block_divider(verbosity)
+            IF (local_verbose < base_verbose) &
+                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
             !
         END IF
+        !
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !

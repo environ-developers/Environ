@@ -32,7 +32,7 @@
 MODULE class_electrons
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, verbose, depth
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     !
     USE environ_param, ONLY: DP
     !
@@ -209,76 +209,83 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
+    !! Prints the details of the electrolyte
+    !!
+    !! Nested objects receive a decremented passed verbose to trigger block printing
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_electrons(this, local_verbose, local_depth)
+    SUBROUTINE print_environ_electrons(this, verbose, debug_verbose, unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_electrons), INTENT(IN) :: this
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose
-        INTEGER, INTENT(IN), OPTIONAL :: local_depth
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: verbosity, passed_verbosity, passed_depth
+        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_electrons'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose == 0) RETURN
-        !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
-        ELSE
-            verbosity = verbose
-        END IF
-        !
-        IF (verbosity == 0) RETURN
-        !
-        IF (PRESENT(local_depth)) THEN
-            passed_verbosity = verbosity - verbose - local_depth
-            passed_depth = local_depth
-        ELSE
-            passed_verbosity = verbosity - verbose - depth
-            passed_depth = depth
-        END IF
-        !
-        IF (verbosity >= 1) THEN
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
             !
-            IF (ionode) THEN
-                !
-                IF (verbosity >= verbose) THEN ! header
-                    WRITE (environ_unit, 1000)
-                ELSE
-                    !
-                    CALL env_block_divider(verbosity)
-                    !
-                    WRITE (environ_unit, 1001)
-                END IF
-                !
-                WRITE (environ_unit, 1002) this%number
-                WRITE (environ_unit, 1003) this%charge
-                !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
             END IF
             !
-            IF (verbosity >= 3) &
-                CALL this%density%printout(passed_verbosity, passed_depth)
+            passed_verbose = verbose - 1
             !
-            IF (verbosity < verbose) CALL env_block_divider(verbosity)
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+            passed_verbose = local_verbose - base_verbose - 1
+            !
+        ELSE
+            RETURN
+        END IF
+        !
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = environ_unit
+        END IF
+        !
+        IF (local_verbose >= 1) THEN
+            !
+            IF (ionode) THEN
+                WRITE (local_unit, 1000)
+                WRITE (local_unit, 1001) this%number
+                WRITE (local_unit, 1002) this%charge
+            END IF
+            !
+            IF (local_verbose >= 3) &
+                CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
             !
         END IF
         !
-        FLUSH (environ_unit)
+        FLUSH (local_unit)
         !
         !--------------------------------------------------------------------------------
         !
 1000    FORMAT(/, 4('%'), ' ELECTRONS ', 65('%'))
-1001    FORMAT(/, ' ELECTRONS', /, ' =========')
         !
-1002    FORMAT(/, ' number of electrons        = ', I10)
+1001    FORMAT(/, ' number of electrons        = ', I10)
         !
-1003    FORMAT(/, ' total electronic charge    = ', F14.7)
+1002    FORMAT(/, ' total electronic charge    = ', F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_electrons

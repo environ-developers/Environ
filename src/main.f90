@@ -633,7 +633,7 @@ CONTAINS
                     !
                     CALL write_cube(this%velectrostatic, this%system_ions, local_verbose)
                     !
-                    CALL this%system_charges%printout(local_verbose, 0)
+                    CALL this%system_charges%printout(local_verbose)
                     !
                 END IF
                 !

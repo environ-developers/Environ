@@ -34,7 +34,7 @@
 MODULE class_core_1da_electrostatics
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, verbose, environ_unit
+    USE env_base_io, ONLY: ionode, global_verbose, environ_unit
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, e2, K_BOLTZMANN_RY, pi, tpi, fpi, madelung
@@ -945,7 +945,7 @@ CONTAINS
         !
         depletion_length = 2.D0 * fact * ez
         !
-        IF (ionode .AND. verbose > 0) THEN
+        IF (ionode .AND. global_verbose > 0) THEN
             WRITE (environ_unit, *) "depletion length: ", depletion_length
             WRITE (environ_unit, *) "vms: ", vms
         END IF

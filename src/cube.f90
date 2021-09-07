@@ -32,7 +32,7 @@
 MODULE env_write_cube
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, verbose
+    USE env_base_io, ONLY: ionode, global_verbose, environ_unit
     !
     USE class_density
     !
@@ -44,28 +44,34 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE write_cube(density, ions, local_verbose, local_depth, idx, label)
+    SUBROUTINE write_cube(density, ions, verbose, unit, idx, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(environ_density), INTENT(IN) :: density
         TYPE(environ_ions), INTENT(IN) :: ions
-        INTEGER, INTENT(IN), OPTIONAL :: local_verbose, local_depth, idx
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, unit, idx
         CHARACTER(LEN=100), INTENT(IN), OPTIONAL :: label
         !
         CHARACTER(LEN=100) :: filename, filemod, local_label
         !
-        INTEGER :: verbosity
+        INTEGER :: local_verbose, local_unit
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose == 0) RETURN
+        IF (global_verbose == 0) RETURN
         !
-        IF (PRESENT(local_verbose)) THEN
-            verbosity = verbose + local_verbose
+        IF (PRESENT(verbose)) THEN
+            local_verbose = global_verbose + verbose
         ELSE
-            verbosity = verbose
+            local_verbose = global_verbose
+        END IF
+        !
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = environ_unit
         END IF
         !
         IF (PRESENT(idx)) THEN
@@ -85,9 +91,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Write cube
         !
-        CALL density%printout(local_verbose, local_depth, .FALSE.)
+        CALL density%printout(verbose, unit=local_unit, lcube=.FALSE.)
         !
-        IF (verbosity >= 3) THEN
+        IF (local_verbose >= 3) THEN
             !
             OPEN (300, file=TRIM(filename), status='unknown')
             !

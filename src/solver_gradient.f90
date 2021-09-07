@@ -475,7 +475,7 @@ CONTAINS
         maxiter => this%maxiter
         tolvelect => this%tol
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1000)
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1000)
         !
         !--------------------------------------------------------------------------------
         ! Check that fields have the same defintion domain
@@ -524,9 +524,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (verbose >= 3) THEN
+            IF (global_verbose >= 3) THEN
                 WRITE (environ_unit, 1001)
-            ELSE IF (verbose >= 1) THEN
+            ELSE IF (global_verbose >= 1) THEN
                 WRITE (environ_unit, 1002)
             END IF
             !
@@ -591,13 +591,13 @@ CONTAINS
             !
             IF (ionode) THEN
                 !
-                IF (verbose >= 3) THEN
+                IF (global_verbose >= 3) THEN
                     !
                     WRITE (environ_unit, 1003) &
                         iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                         tolvelect
                     !
-                ELSE IF (verbose >= 1) THEN
+                ELSE IF (global_verbose >= 1) THEN
                     !
                     WRITE (environ_unit, 1004) &
                         iter, alpha, beta, delta_qm, delta_en, tolvelect
@@ -611,7 +611,7 @@ CONTAINS
             !
             IF (delta_en < tolvelect .AND. iter > 0) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1005)
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1005)
                 !
                 EXIT
                 !
@@ -621,7 +621,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 1007) delta_en, iter
+        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1007) delta_en, iter
         !
         CALL l%destroy()
         !
@@ -698,7 +698,7 @@ CONTAINS
         maxiter => this%maxiter
         tolvelect => this%tol
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1100)
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1100)
         !
         !--------------------------------------------------------------------------------
         ! Check that fields have the same defintion domain
@@ -754,12 +754,12 @@ CONTAINS
             !
             IF (delta_en < 1.D-02) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1101) delta_en
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1101) delta_en
                 !
                 x%of_r = z%of_r
             ELSE
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1102) delta_en
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1102) delta_en
                 !
                 x%lupdate = .FALSE.
             END IF
@@ -780,9 +780,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (verbose >= 3) THEN
+            IF (global_verbose >= 3) THEN
                 WRITE (environ_unit, 1103)
-            ELSE IF (verbose >= 1) THEN
+            ELSE IF (global_verbose >= 1) THEN
                 WRITE (environ_unit, 1104)
             END IF
             !
@@ -841,13 +841,13 @@ CONTAINS
             !
             IF (ionode) THEN
                 !
-                IF (verbose >= 3) THEN
+                IF (global_verbose >= 3) THEN
                     !
                     WRITE (environ_unit, 1105) &
                         iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                         tolvelect
                     !
-                ELSE IF (verbose >= 1) THEN
+                ELSE IF (global_verbose >= 1) THEN
                     !
                     WRITE (environ_unit, 1106) &
                         iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
@@ -861,7 +861,7 @@ CONTAINS
             !
             IF (delta_en < tolvelect .AND. iter > 0) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1107)
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1107)
                 !
                 EXIT
                 !
@@ -888,7 +888,7 @@ CONTAINS
         !
         x%of_r = x%of_r + shift
         !
-        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 1109) delta_en, iter
+        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1109) delta_en, iter
         !
         CALL r%destroy()
         !
@@ -969,7 +969,7 @@ CONTAINS
         maxiter => this%maxiter
         tolvelect => this%tol
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1200)
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1200)
         !
         !--------------------------------------------------------------------------------
         ! Check that fields have the same defintion domain
@@ -1009,9 +1009,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (verbose >= 3) THEN
+            IF (global_verbose >= 3) THEN
                 WRITE (environ_unit, 1201)
-            ELSE IF (verbose >= 1) THEN
+            ELSE IF (global_verbose >= 1) THEN
                 WRITE (environ_unit, 1202)
             END IF
             !
@@ -1076,13 +1076,13 @@ CONTAINS
             !
             IF (ionode) THEN
                 !
-                IF (verbose >= 3) THEN
+                IF (global_verbose >= 3) THEN
                     !
                     WRITE (environ_unit, 1203) &
                         iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                         tolvelect
                     !
-                ELSE IF (verbose >= 1) THEN
+                ELSE IF (global_verbose >= 1) THEN
                     !
                     WRITE (environ_unit, 1204) &
                         iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
@@ -1096,7 +1096,7 @@ CONTAINS
             !
             IF (delta_en < tolvelect .AND. iter > 0) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1205)
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1205)
                 !
                 EXIT
                 !
@@ -1106,7 +1106,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 1207) delta_en, iter
+        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1207) delta_en, iter
         !
         CALL g%destroy()
         !
@@ -1180,7 +1180,7 @@ CONTAINS
         maxiter => this%maxiter
         tolvelect => this%tol
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1300)
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1300)
         !
         !--------------------------------------------------------------------------------
         ! Check that fields have the same defintion domain
@@ -1264,12 +1264,12 @@ CONTAINS
             !
             IF (delta_en < 1.D-02) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1301) delta_en
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1301) delta_en
                 !
                 x%of_r = z%of_r
             ELSE
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1302) delta_en
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1302) delta_en
                 !
                 x%lupdate = .FALSE.
             END IF
@@ -1288,9 +1288,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (verbose >= 3) THEN
+            IF (global_verbose >= 3) THEN
                 WRITE (environ_unit, 1303)
-            ELSE IF (verbose >= 1) THEN
+            ELSE IF (global_verbose >= 1) THEN
                 WRITE (environ_unit, 1304)
             END IF
             !
@@ -1360,13 +1360,13 @@ CONTAINS
             !
             IF (ionode) THEN
                 !
-                IF (verbose >= 3) THEN
+                IF (global_verbose >= 3) THEN
                     !
                     WRITE (environ_unit, 1305) &
                         iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                         tolvelect
                     !
-                ELSE IF (verbose >= 1) THEN
+                ELSE IF (global_verbose >= 1) THEN
                     !
                     WRITE (environ_unit, 1306) &
                         iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
@@ -1380,7 +1380,7 @@ CONTAINS
             !
             IF (delta_en < tolvelect .AND. iter > 0) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1307)
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1307)
                 !
                 EXIT
                 !
@@ -1408,7 +1408,7 @@ CONTAINS
         !
         x%of_r = x%of_r + shift
         !
-        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 1309) delta_en, iter
+        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1309) delta_en, iter
         !
         CALL r%destroy()
         !

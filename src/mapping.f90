@@ -116,7 +116,7 @@ CONTAINS
         NULLIFY (this%large)
         NULLIFY (this%small)
         !
-        this%nrep = 1
+        this%nrep = 0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_mapping
@@ -171,11 +171,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%small, this%large)) RETURN
-        ! environment cell is identical to system cell (env_nrep = 0 in environ.in)
+        IF (ASSOCIATED(this%small, this%large)) RETURN ! identical cells
         !
         !--------------------------------------------------------------------------------
-        ! Compute mapping
+        ! Set grid points
         !
         small_n(1) = this%small%dfft%nr1
         small_n(2) = this%small%dfft%nr2
@@ -186,25 +185,29 @@ CONTAINS
         large_n(3) = this%large%dfft%nr3
         !
         !--------------------------------------------------------------------------------
-        !
-        center = NINT(small_n / 2.D0) ! Indexes of center of small cell
-        !
-        !--------------------------------------------------------------------------------
-        ! Indexes of origin of small cell
+        ! Define origin of small cell (in units of nnr)
         !
         IF (PRESENT(pos)) THEN
-            tmp = MATMUL(this%small%bg, pos) ! #TODO center of charge (think molecule)
-            origin = NINT(tmp * small_n)
+            tmp = MATMUL(this%small%bg, pos)
+            origin = NINT(tmp * small_n) ! center of charge
         ELSE
-            origin = 0 ! center of charge
+            origin = 0
         END IF
         !
+        !--------------------------------------------------------------------------------
+        ! Compute shift placing center of charge at center of small cell
+        ! (Minimizes potential cutting of DFT densities)
+        !
+        center = NINT(small_n / 2.D0)
         shift = center - origin
         !
         !--------------------------------------------------------------------------------
-        ! Shift origin of large cell
+        ! Shift large cell origin in internal length units
         !
         this%large%origin = -MATMUL(this%large%at, (0.5 - origin / DBLE(large_n)))
+        !
+        !--------------------------------------------------------------------------------
+        ! Generate mapping
         !
         this%map = 0
         !
@@ -215,15 +218,14 @@ CONTAINS
             IF (.NOT. physical) CYCLE
             !
             !----------------------------------------------------------------------------
-            ! Shift to center small cell
+            ! Shift center of charge to center of small cell
             !
             ijk = ijk + shift
             ijk = ijk - FLOOR(DBLE(ijk) / small_n) * small_n ! enforce periodicity
+            ijk = ijk + small_n * this%nrep
             !
             !----------------------------------------------------------------------------
-            ! Map small cell to large cell #TODO check if this works in parallel
-            !
-            ijk = ijk + small_n * this%nrep
+            ! Map small cell to large cell
             !
             this%map(ir) = 1 + ijk(1) & ! x-point
                            & + ijk(2) * large_n(1) & ! y-row

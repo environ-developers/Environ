@@ -221,7 +221,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1000)
+        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1000)
         !
         IF (PRESENT(dielectric)) THEN
             !
@@ -270,9 +270,9 @@ CONTAINS
         !
         IF (ionode) THEN
             !
-            IF (verbose >= 3) THEN
+            IF (global_verbose >= 3) THEN
                 WRITE (environ_unit, 1001)
-            ELSE IF (verbose >= 1) THEN
+            ELSE IF (global_verbose >= 1) THEN
                 WRITE (environ_unit, 1002)
             END IF
             !
@@ -408,12 +408,12 @@ CONTAINS
             !
             IF (ionode) THEN
                 !
-                IF (verbose >= 3) THEN
+                IF (global_verbose >= 3) THEN
                     !
                     WRITE (environ_unit, 1003) &
                         iter, delta_qm, delta_en, tol, totaux
                     !
-                ELSE IF (verbose >= 1) THEN
+                ELSE IF (global_verbose >= 1) THEN
                     WRITE (environ_unit, 1004) iter, delta_qm, delta_en, tol
                 END IF
                 !
@@ -424,7 +424,7 @@ CONTAINS
             !
             IF (delta_en < tol .AND. iter > 0) THEN
                 !
-                IF (verbose >= 1 .AND. ionode) WRITE (environ_unit, 1005)
+                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1005)
                 !
                 EXIT
                 !
@@ -434,7 +434,7 @@ CONTAINS
             !
         END DO
         !
-        IF (lstdout .AND. verbose >= 1) WRITE (program_unit, 1007) delta_en, iter
+        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1007) delta_en, iter
         !
         CALL cfactor%destroy()
         !
