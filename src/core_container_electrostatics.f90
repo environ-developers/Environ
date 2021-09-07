@@ -95,8 +95,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%correction)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%correction)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !

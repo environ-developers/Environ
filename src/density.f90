@@ -55,9 +55,9 @@ MODULE class_density
     TYPE, PUBLIC :: environ_density
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate ! optionally have an associated logical status
+        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
         !
-        CHARACTER(LEN=80) :: label
+        CHARACTER(LEN=80) :: label = 'density'
         ! optionally have an associated label, used for printout and debugs
         !
         TYPE(environ_cell), POINTER :: cell => NULL()
@@ -69,9 +69,9 @@ MODULE class_density
         !--------------------------------------------------------------------------------
         ! Multipole moments of the quantity
         !
-        REAL(DP) :: charge
-        REAL(DP) :: dipole(3)
-        REAL(DP) :: quadrupole(3)
+        REAL(DP) :: charge = 0.D0
+        REAL(DP) :: dipole(3) = 0.D0
+        REAL(DP) :: quadrupole(3) = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -123,22 +123,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%cell)
-        !
-        this%label = 'density'
-        this%lupdate = .FALSE.
-        !
-        this%charge = 0.D0
-        this%dipole = 0.D0
-        this%quadrupole = 0.D0
+        IF (ALLOCATED(this%of_r)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_density
@@ -189,9 +176,6 @@ CONTAINS
         INTEGER :: n
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
         copy%cell => this%cell
         !
@@ -244,19 +228,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL env_destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
         NULLIFY (this%cell)
         !
         DEALLOCATE (this%of_r)
-        !
-        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_density

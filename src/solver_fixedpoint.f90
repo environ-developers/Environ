@@ -102,15 +102,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_fixedpoint(this, mix_type, mix, ndiis, cores, maxiter, tol, &
-                                      auxiliary)
+    SUBROUTINE init_solver_fixedpoint(this, mix_type, mix, ndiis, cores, maxiter, &
+                                      tol_in, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
         INTEGER, INTENT(IN) :: ndiis, maxiter
-        REAL(DP), INTENT(IN) :: tol, mix
+        REAL(DP), INTENT(IN) :: tol_in, mix
         CHARACTER(LEN=80), INTENT(IN) :: mix_type
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
         !
@@ -118,7 +118,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
+        CALL this%init_iterative(cores, maxiter, tol_in, auxiliary)
         !
         this%solver_type = 'fixed-point'
         !

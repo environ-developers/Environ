@@ -108,18 +108,13 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%solver)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%solver)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%inner)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%inner)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
         this%problem = 'poisson'
-        !
-        NULLIFY (this%solver)
-        NULLIFY (this%inner)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_electrostatic_setup

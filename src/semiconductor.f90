@@ -56,28 +56,27 @@ MODULE class_semiconductor
     TYPE, PUBLIC :: environ_semiconductor
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate
+        LOGICAL :: lupdate = .FALSE.
         !
         REAL(DP) :: temperature
         REAL(DP) :: permittivity
         REAL(DP) :: carrier_density
         REAL(DP) :: electrode_charge
         REAL(DP) :: charge_threshold
-        REAL(DP) :: slab_charge
+        !
+        REAL(DP) :: slab_charge = 0.D0
+        REAL(DP) :: charge = 0.D0
+        REAL(DP) :: flatband_fermi = 0.D0
+        REAL(DP) :: bulk_sc_fermi = 0.D0
+        REAL(DP) :: surf_area_per_sq_cm = 0.D0
         !
         TYPE(environ_function_erfc) :: simple
         TYPE(environ_density) :: density
-        !
-        REAL(DP) :: charge
-        REAL(DP) :: flatband_fermi
-        REAL(DP) :: bulk_sc_fermi
-        REAL(DP) :: surf_area_per_sq_cm
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create => create_environ_semiconductor
         PROCEDURE :: init => init_environ_semiconductor
         PROCEDURE :: update => update_environ_semiconductor
         PROCEDURE :: destroy => destroy_environ_semiconductor
@@ -94,36 +93,6 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_semiconductor(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_semiconductor), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_semiconductor'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(this%density%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%lupdate = .FALSE.
-        !
-        this%charge = 0.D0
-        this%slab_charge = 0.D0
-        this%flatband_fermi = 0.D0
-        this%bulk_sc_fermi = 0.D0
-        this%surf_area_per_sq_cm = 0.D0
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_environ_semiconductor
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -147,8 +116,6 @@ CONTAINS
         CHARACTER(LEN=80) :: local_label = 'semiconductor'
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL this%create()
         !
         CALL this%density%init(cell, local_label)
         !
@@ -198,11 +165,6 @@ CONTAINS
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_semiconductor'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ALLOCATED(this%density%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
         !
         !--------------------------------------------------------------------------------
         !

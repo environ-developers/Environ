@@ -137,12 +137,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%pos)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%pos)
+        IF (ASSOCIATED(this%pos)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_function
@@ -199,14 +194,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(copy%pos)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (.NOT. ASSOCIATED(this%pos)) &
-            CALL env_errore(sub_name, 'Trying to copy an empty object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
         CALL copy%init(this%f_type, this%axis, this%dim, this%width, this%spread, &
                        this%volume, this%pos)
         !
@@ -227,8 +214,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%pos)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%pos)) CALL env_destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !

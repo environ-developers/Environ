@@ -65,9 +65,10 @@ MODULE class_ions
     TYPE, PUBLIC :: environ_ions
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate
-        INTEGER :: number
-        REAL(DP) :: center(3)
+        LOGICAL :: lupdate = .FALSE.
+        !
+        INTEGER :: number = 0
+        REAL(DP) :: center(3) = 0.D0
         !
         !--------------------------------------------------------------------------------
         ! Specifications of point-like ions
@@ -81,25 +82,26 @@ MODULE class_ions
         ! Parameters of the fictitious gaussian ionic density
         ! needed by electrostatic calculations
         !
-        LOGICAL :: use_smeared_ions
+        LOGICAL :: use_smeared_ions = .FALSE.
         CLASS(environ_function), ALLOCATABLE :: smeared_ions(:)
         TYPE(environ_density) :: density
         !
         !--------------------------------------------------------------------------------
         ! Parameters of the density of core electrons
         !
-        LOGICAL :: use_core_electrons
+        LOGICAL :: use_core_electrons = .FALSE.
         CLASS(environ_function), ALLOCATABLE :: core_electrons(:)
         TYPE(environ_density) :: core
         !
-        REAL(DP) :: charge
-        REAL(DP) :: quadrupole_correction
-        REAL(DP) :: selfenergy_correction
-        REAL(DP) :: dipole(3)
-        REAL(DP) :: quadrupole_pc(3)
-        REAL(DP) :: quadrupole_gauss(3)
+        REAL(DP) :: charge = 0.D0
+        REAL(DP) :: dipole(3) = 0.D0
+        REAL(DP) :: quadrupole_pc(3) = 0.D0
+        REAL(DP) :: quadrupole_gauss(3) = 0.D0
+        REAL(DP) :: quadrupole_correction = 0.D0
+        REAL(DP) :: selfenergy_correction = 0.D0
         !
         REAL(DP) :: potential_shift ! due to Gaussian-spread description (if used)
+        ! #TODO set to zero?
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -150,42 +152,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%tau)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%tau)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%ityp)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%ityp)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%iontype)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%iontype)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%smeared_ions)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%smeared_ions)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%core_electrons)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%density%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%core%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%tau)
-        !
-        this%lupdate = .FALSE.
-        this%use_smeared_ions = .FALSE.
-        this%use_core_electrons = .FALSE.
-        !
-        this%center = 0.D0
-        this%charge = 0.D0
-        this%dipole = 0.D0
-        this%quadrupole_pc = 0.D0
-        this%quadrupole_gauss = 0.D0
-        this%quadrupole_correction = 0.D0
-        this%selfenergy_correction = 0.D0
+        IF (ALLOCATED(this%core_electrons)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_ions
@@ -436,14 +411,11 @@ CONTAINS
         !
         IF (lflag) THEN
             !
-            IF (.NOT. ALLOCATED(this%ityp)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            IF (.NOT. ALLOCATED(this%ityp)) CALL env_destroy_error(sub_name)
             !
-            IF (.NOT. ALLOCATED(this%iontype)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            IF (.NOT. ALLOCATED(this%iontype)) CALL env_destroy_error(sub_name)
             !
-            IF (.NOT. ASSOCIATED(this%tau)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            IF (.NOT. ASSOCIATED(this%tau)) CALL env_destroy_error(sub_name)
             !
             DEALLOCATE (this%ityp)
             DEALLOCATE (this%iontype)

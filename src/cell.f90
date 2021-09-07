@@ -62,18 +62,22 @@ MODULE class_cell
     TYPE, PUBLIC :: environ_cell
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate
-        LOGICAL :: cubic
-        REAL(DP) :: omega, domega ! volume quantities
-        REAL(DP) :: origin(3)
+        LOGICAL :: lupdate = .FALSE.
+        LOGICAL :: cubic = .FALSE.
+        !
         REAL(DP) :: at(3, 3) ! real-space lattice vectors
         REAL(DP) :: bg(3, 3) ! reciprocal lattice vectors
+        !
+        REAL(DP) :: origin(3) = 0.D0
         REAL(DP) :: corners(3, 8)
+        !
+        REAL(DP) :: omega, domega ! volume quantities
         !
         !--------------------------------------------------------------------------------
         ! Properties of the grid
         !
         TYPE(env_fft_type_descriptor) :: dfft
+        !
         INTEGER :: ntot ! total number of grid points
         INTEGER :: nnr ! number of grid points allocated in every processor
         INTEGER :: ir_end ! actual number grid points accessed by each processor
@@ -84,7 +88,6 @@ MODULE class_cell
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create => create_environ_cell
         PROCEDURE :: init => init_environ_cell
         PROCEDURE :: update => update_environ_cell
         PROCEDURE :: destroy => destroy_environ_cell
@@ -112,28 +115,6 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_cell(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_cell), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_cell'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%lupdate = .FALSE.
-        this%cubic = .FALSE.
-        !
-        this%origin = 0.D0
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_environ_cell
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
     SUBROUTINE init_environ_cell(this, gcutm, comm, at, nr)
         !--------------------------------------------------------------------------------
         !
@@ -149,8 +130,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Create fft descriptor for system cell
-        !
-        CALL this%create()
         !
         IF (PRESENT(nr)) THEN
             this%dfft%nr1 = nr(1)
@@ -222,7 +201,7 @@ CONTAINS
         CALL recips(this%at(1, 1), this%at(1, 2), this%at(1, 3), &
                     this%bg(1, 1), this%bg(1, 2), this%bg(1, 3))
         !
-        this%domega = this%omega / this%ntot ! Set volume element
+        this%domega = this%omega / this%ntot ! set volume element
         !
         !--------------------------------------------------------------------------------
         ! Calculate corners for minimum image convention

@@ -61,7 +61,6 @@ MODULE class_ioncctype
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create => create_environ_ioncctype
         PROCEDURE :: init => init_environ_ioncctype
         PROCEDURE :: destroy => destroy_environ_ioncctype
         !
@@ -77,29 +76,6 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE create_environ_ioncctype(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_ioncctype), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'create_environ_ioncctype'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ALLOCATED(this%c%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%cfactor%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE create_environ_ioncctype
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -120,8 +96,6 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ioncctype'
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL this%create()
         !
         this%index = index
         this%z = -z
@@ -153,14 +127,6 @@ CONTAINS
         CLASS(environ_ioncctype), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_ioncctype'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ALLOCATED(this%c%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-        !
-        IF (.NOT. ALLOCATED(this%cfactor%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
         !
         !--------------------------------------------------------------------------------
         !

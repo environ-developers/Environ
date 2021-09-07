@@ -85,12 +85,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%core)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%core)
+        IF (ASSOCIATED(this%core)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_container

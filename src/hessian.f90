@@ -53,9 +53,9 @@ MODULE class_hessian
     TYPE, PUBLIC :: environ_hessian
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate ! optionally have an associated logical status
+        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
         !
-        CHARACTER(LEN=80) :: label
+        CHARACTER(LEN=80) :: label = 'hessian'
         ! optionally have an associated label, used for printout and debugs
         !
         TYPE(environ_cell), POINTER :: cell => NULL()
@@ -104,18 +104,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%cell)
-        !
-        this%label = 'hessian'
-        this%lupdate = .FALSE.
+        IF (ALLOCATED(this%of_r)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_hessian
@@ -146,12 +137,12 @@ CONTAINS
             laplacian_label = TRIM(ADJUSTL(label))//'_laplacian'
         END IF
         !
+        CALL this%laplacian%init(cell, laplacian_label)
+        !
         this%cell => cell
         !
         ALLOCATE (this%of_r(3, 3, this%cell%nnr))
         this%of_r = 0.D0
-        !
-        CALL this%laplacian%init(cell, laplacian_label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_hessian
@@ -173,9 +164,6 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'copy_environ_hessian'
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
         copy%cell => this%cell
         copy%lupdate = this%lupdate
@@ -232,21 +220,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL env_destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%laplacian%destroy()
         !
         NULLIFY (this%cell)
         !
         DEALLOCATE (this%of_r)
-        !
-        CALL this%laplacian%destroy()
-        !
-        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_hessian

@@ -69,15 +69,15 @@ MODULE class_dielectric
     TYPE, PUBLIC :: environ_dielectric
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate
+        LOGICAL :: lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
         ! Basic properties of the dielectric space from input
         !
-        INTEGER :: nregions
+        INTEGER :: nregions = 0
         CLASS(environ_function), ALLOCATABLE :: regions(:)
         !
-        REAL(DP) :: constant
+        REAL(DP) :: constant = 1.0_DP
         TYPE(environ_density) :: background
         TYPE(environ_gradient) :: gradbackground
         TYPE(environ_density) :: laplbackground
@@ -101,22 +101,24 @@ MODULE class_dielectric
         ! Quantities related to the dielectric permittivity and
         ! they may be needed by the different solvers
         !
-        LOGICAL :: need_gradient
+        LOGICAL :: need_gradient = .FALSE.
         TYPE(environ_gradient) :: gradient
         !
-        LOGICAL :: need_factsqrt
+        LOGICAL :: need_factsqrt = .FALSE.
         TYPE(environ_density) :: factsqrt
         !
-        LOGICAL :: need_gradlog
+        LOGICAL :: need_gradlog = .FALSE.
         TYPE(environ_gradient) :: gradlog
         !
         !--------------------------------------------------------------------------------
         ! Dielectric polarization charges and individual components
         !
         TYPE(environ_density) :: density
-        LOGICAL :: need_auxiliary
+        !
+        LOGICAL :: need_auxiliary = .FALSE.
         TYPE(environ_density) :: iterative
-        REAL(DP) :: charge
+        !
+        REAL(DP) :: charge = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -164,26 +166,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%regions)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%regions)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%boundary)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%boundary)
-        !
-        this%lupdate = .FALSE.
-        !
-        this%constant = 1.0_DP
-        !
-        this%need_gradient = .FALSE.
-        this%need_factsqrt = .FALSE.
-        this%need_gradlog = .FALSE.
-        this%need_auxiliary = .FALSE.
-        !
-        this%charge = 0.D0
+        IF (ASSOCIATED(this%boundary)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_dielectric
@@ -403,8 +388,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (.NOT. ASSOCIATED(this%boundary)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            IF (.NOT. ASSOCIATED(this%boundary)) CALL env_destroy_error(sub_name)
             !
             NULLIFY (this%boundary)
         END IF

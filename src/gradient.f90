@@ -54,9 +54,9 @@ MODULE class_gradient
     TYPE, PUBLIC :: environ_gradient
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate ! optionally have an associated logical status
+        LOGICAL :: lupdate = .FALSE. ! optionally have an associated logical status
         !
-        CHARACTER(LEN=80) :: label
+        CHARACTER(LEN=80) :: label = 'gradient'
         ! optionally have an associated label, used for printout and debugs
         !
         TYPE(environ_cell), POINTER :: cell => NULL()
@@ -109,18 +109,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%cell)
-        !
-        this%label = 'gradient'
-        this%lupdate = .FALSE.
+        IF (ALLOCATED(this%of_r)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_gradient
@@ -151,12 +142,12 @@ CONTAINS
             modulus_label = TRIM(ADJUSTL(label))//'_modulus'
         END IF
         !
+        CALL this%modulus%init(cell, modulus_label)
+        !
         this%cell => cell
         !
         ALLOCATE (this%of_r(3, this%cell%nnr))
         this%of_r = 0.D0
-        !
-        CALL this%modulus%init(cell, modulus_label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_gradient
@@ -178,9 +169,6 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'copy_environ_gradient'
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to copy a non associated object', 1)
         !
         copy%cell => this%cell
         !
@@ -238,21 +226,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL env_destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
+        !
+        CALL this%modulus%destroy()
         !
         NULLIFY (this%cell)
         !
         DEALLOCATE (this%of_r)
-        !
-        CALL this%modulus%destroy()
-        !
-        this%lupdate = .FALSE.
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_gradient

@@ -94,15 +94,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%x)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%x)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%cell)
         !
         this%core_type = '1d-analytic'
         !

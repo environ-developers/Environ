@@ -65,9 +65,10 @@ MODULE class_electrolyte
     TYPE, PUBLIC :: environ_electrolyte
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate
+        LOGICAL :: lupdate = .FALSE.
+        LOGICAL :: linearized = .FALSE.
+        !
         CHARACTER(LEN=80) :: electrolyte_entropy
-        LOGICAL :: linearized
         INTEGER :: ntyp
         TYPE(environ_ioncctype), ALLOCATABLE :: ioncctype(:)
         !
@@ -86,8 +87,9 @@ MODULE class_electrolyte
         TYPE(environ_density) :: dgamma
         !
         TYPE(environ_density) :: de_dboundary_second_order
-        REAL(DP) :: energy_second_order
-        REAL(DP) :: charge
+        REAL(DP) :: energy_second_order = 0.D0
+        !
+        REAL(DP) :: charge = 0.D0
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -132,27 +134,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%ioncctype)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%density%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%gamma%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%dgamma%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%de_dboundary_second_order%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%lupdate = .FALSE.
-        this%linearized = .FALSE.
-        !
-        this%charge = 0.D0
+        IF (ALLOCATED(this%ioncctype)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_electrolyte
@@ -220,7 +202,6 @@ CONTAINS
         this%ntyp = ntyp
         this%electrolyte_entropy = TRIM(electrolyte_entropy)
         this%temperature = temperature
-        this%cionmax = 0.D0
         this%permittivity = const
         !
         ALLOCATE (this%ioncctype(ntyp))
@@ -243,10 +224,10 @@ CONTAINS
         !
         this%k2 = sum_cz2 / kT * e2 * fpi ! k^2 = eps / lambda_D^2
         !
-        !--------------------------------------------------------------------------------
-        ! If cionmax is not provided in input but radius is, calculate cionmax
-        !
         this%cionmax = cionmax * BOHR_RADIUS_SI**3 / AMU_SI
+        !
+        !--------------------------------------------------------------------------------
+        ! If not given cionmax in input, but given radius, calculate cionmax
         !
         IF (cionmax == 0.D0 .AND. radius > 0.D0) &
             this%cionmax = 0.64D0 * 3.D0 / fpi / radius**3
@@ -259,8 +240,6 @@ CONTAINS
         IF (this%cionmax > 0.D0 .AND. this%cionmax <= sumcbulk) &
             CALL env_errore(sub_name, &
                             'cionmax should be larger than the sum of cbulks', 1)
-        !
-        this%energy_second_order = 0.D0
         !
         !--------------------------------------------------------------------------------
         ! Densities
@@ -360,8 +339,7 @@ CONTAINS
         !
         IF (lflag) THEN
             !
-            IF (.NOT. ALLOCATED(this%ioncctype)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            IF (.NOT. ALLOCATED(this%ioncctype)) CALL env_destroy_error(sub_name)
             !
             DEALLOCATE (this%ioncctype)
         END IF

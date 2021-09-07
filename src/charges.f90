@@ -66,29 +66,30 @@ MODULE class_charges
     TYPE, PUBLIC :: environ_charges
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: include_ions
+        LOGICAL :: include_ions = .FALSE.
         TYPE(environ_ions), POINTER :: ions => NULL()
         !
-        LOGICAL :: include_electrons
+        LOGICAL :: include_electrons = .FALSE.
         TYPE(environ_electrons), POINTER :: electrons => NULL()
         !
-        LOGICAL :: include_externals
+        LOGICAL :: include_externals = .FALSE.
         TYPE(environ_externals), POINTER :: externals => NULL()
         !
-        LOGICAL :: include_dielectric
+        LOGICAL :: include_dielectric = .FALSE.
         TYPE(environ_dielectric), POINTER :: dielectric => NULL()
         !
-        LOGICAL :: include_electrolyte
+        LOGICAL :: include_electrolyte = .FALSE.
         TYPE(environ_electrolyte), POINTER :: electrolyte => NULL()
         !
-        LOGICAL :: include_semiconductor
+        LOGICAL :: include_semiconductor = .FALSE.
         TYPE(environ_semiconductor), POINTER :: semiconductor => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Total smooth free charge
         !
-        INTEGER :: number
-        REAL(DP) :: charge
+        INTEGER :: number = 0
+        REAL(DP) :: charge = 0.D0
+        !
         TYPE(environ_density) :: density
         !
         !--------------------------------------------------------------------------------
@@ -133,49 +134,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%ions)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%electrons)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%electrons)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%externals)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%externals)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%dielectric)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%dielectric)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%electrolyte)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%electrolyte)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%semiconductor)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%density%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%include_ions = .FALSE.
-        NULLIFY (this%ions)
-        !
-        this%include_electrons = .FALSE.
-        NULLIFY (this%electrons)
-        !
-        this%include_externals = .FALSE.
-        NULLIFY (this%externals)
-        !
-        this%include_dielectric = .FALSE.
-        NULLIFY (this%dielectric)
-        !
-        this%include_electrolyte = .FALSE.
-        NULLIFY (this%electrolyte)
-        !
-        this%include_semiconductor = .FALSE.
-        NULLIFY (this%semiconductor)
-        !
-        this%number = 0
-        this%charge = 0.D0
+        IF (ASSOCIATED(this%semiconductor)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_charges
@@ -345,6 +314,8 @@ CONTAINS
             IF (ASSOCIATED(this%dielectric)) NULLIFY (this%dielectric)
             !
             IF (ASSOCIATED(this%electrolyte)) NULLIFY (this%electrolyte)
+            !
+            IF (ASSOCIATED(this%semiconductor)) NULLIFY (this%semiconductor)
             !
         END IF
         !

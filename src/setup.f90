@@ -1023,11 +1023,11 @@ CONTAINS
             !
             IF (solvent_radius > 0.D0) WRITE (program_unit, 1006)
             !
-            ! IF (field_factor > 0.D0) THEN
-            !     WRITE (program_unit, 1007)
-            !     WRITE (program_unit, 1008) field_factor, charge_asymmetry
-            !     WRITE (program_unit, 1009) field_min, field_max
-            ! END IF
+            IF (field_awareness > 0.D0) THEN
+                WRITE (program_unit, 1007)
+                WRITE (program_unit, 1008) field_awareness, charge_asymmetry
+                WRITE (program_unit, 1009) field_min, field_max
+            END IF
             !
         END IF
         !

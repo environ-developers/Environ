@@ -57,12 +57,12 @@ MODULE class_core_fft
     TYPE, EXTENDS(numerical_core), PUBLIC :: core_fft
         !--------------------------------------------------------------------------------
         !
-        INTEGER :: ngm ! local  number of G vectors (on this processor)
+        INTEGER :: ngm = 0 ! local  number of G vectors (on this processor)
         ! with gamma tricks, only vectors in G>
         !
-        REAL(DP) :: gcutm ! ecutrho/(2 pi/a)^2, cut-off for |G|^2
+        REAL(DP) :: gcutm = 0.0_DP! ecutrho/(2 pi/a)^2, cut-off for |G|^2
         !
-        INTEGER :: gstart ! index of the first G vector whose module is > 0
+        INTEGER :: gstart = 2 ! index of the first G vector whose module is > 0
         ! needed in parallel execution:
         ! gstart=2 for the proc that holds G=0
         ! gstart=1 for all others
@@ -112,24 +112,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%g)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%g)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%gg)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%gg)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
-        NULLIFY (this%cell)
-        !
         this%core_type = 'fft'
-        !
-        this%ngm = 0
-        this%gcutm = 0.0_DP
-        this%gstart = 2
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_fft

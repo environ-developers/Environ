@@ -93,8 +93,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(f)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(f)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -140,14 +139,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(copy)) &
-            CALL env_errore(sub_name, 'Trying to create an existing array', 1)
-        !
-        IF (.NOT. ALLOCATED(f)) &
-            CALL env_errore(sub_name, 'Trying to copy an empty array', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
         SELECT TYPE (f)
             !
         TYPE IS (environ_function_gaussian)
@@ -186,8 +177,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(f)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty array', 1)
+        IF (.NOT. ALLOCATED(f)) CALL env_destroy_error(sub_name)
         !
         IF (SIZE(f) /= n) &
             CALL env_errore(sub_name, 'Inconsistent size of allocated object', 1)

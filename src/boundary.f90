@@ -77,24 +77,24 @@ MODULE class_boundary
         !
         CHARACTER(LEN=80) :: label ! boundary label
         CHARACTER(LEN=80) :: mode ! choice of the interface
-        INTEGER :: update_status
+        INTEGER :: update_status = 0
         !
         !--------------------------------------------------------------------------------
         ! Parameters for the electrons-dependent interface
         !
-        LOGICAL :: need_electrons
+        LOGICAL :: need_electrons = .FALSE.
         TYPE(environ_electrons), POINTER :: electrons => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Parameters for the ions-dependent interface
         !
-        LOGICAL :: need_ions
+        LOGICAL :: need_ions = .FALSE.
         TYPE(environ_ions), POINTER :: ions => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Parameters for the system-dependent interface
         !
-        LOGICAL :: need_system
+        LOGICAL :: need_system = .FALSE.
         TYPE(environ_system), POINTER :: system => NULL()
         !
         !--------------------------------------------------------------------------------
@@ -102,19 +102,19 @@ MODULE class_boundary
         TYPE(environ_density) :: scaled ! scaled switching function of interface
         ! varying from 1 (QM region) to 0 (environment region)
         !
-        INTEGER :: deriv
+        INTEGER :: deriv = 0
         TYPE(environ_gradient) :: gradient
         TYPE(environ_density) :: laplacian
-        TYPE(environ_density) :: dsurface
         TYPE(environ_hessian) :: hessian
+        TYPE(environ_density) :: dsurface
         !
         TYPE(container_derivatives), POINTER :: derivatives => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Global properties of the boundary
         !
-        REAL(DP) :: volume
-        REAL(DP) :: surface
+        REAL(DP) :: volume = 0.D0
+        REAL(DP) :: surface = 0.D0
         !
         !--------------------------------------------------------------------------------
         ! Components needed for boundary of density
@@ -142,7 +142,7 @@ MODULE class_boundary
         !--------------------------------------------------------------------------------
         ! Components needed for solvent-aware boundary
         !
-        LOGICAL :: solvent_aware
+        LOGICAL :: solvent_aware = .FALSE.
         TYPE(environ_function_erfc) :: solvent_probe
         REAL(DP) :: filling_threshold, filling_spread
         !
@@ -154,14 +154,14 @@ MODULE class_boundary
         !--------------------------------------------------------------------------------
         ! Components needed for field-aware boundary
         !
-        LOGICAL :: field_aware
-        ! REAL(DP) :: field_factor, charge_asymmetry, field_max, field_min
-        !
-        ! TYPE(environ_density) :: normal_field
-        ! REAL(DP), ALLOCATABLE :: ion_field(:)
-        ! CLASS(environ_function), ALLOCATABLE :: local_spheres(:)
-        ! TYPE(environ_density), ALLOCATABLE :: dion_field_drho(:)
-        ! REAL(DP), ALLOCATABLE :: partial_of_ion_field(:, :, :)
+        LOGICAL :: field_aware = .FALSE.
+        REAL(DP) :: field_factor, charge_asymmetry, field_max, field_min
+        
+        TYPE(environ_density) :: normal_field
+        REAL(DP), ALLOCATABLE :: ion_field(:)
+        CLASS(environ_function), ALLOCATABLE :: local_spheres(:)
+        TYPE(environ_density), ALLOCATABLE :: dion_field_drho(:)
+        REAL(DP), ALLOCATABLE :: partial_of_ion_field(:, :, :)
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -220,84 +220,23 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%electrons)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%electrons)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%ions)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%ions)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%system)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%system)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%soft_spheres)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%derivatives)) CALL env_create_error(sub_name)
         !
-        ! IF (ALLOCATED(this%ion_field)) &
-        !     CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        ! !
-        ! IF (ALLOCATED(this%local_spheres)) &
-        !     CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        ! !
-        ! IF (ALLOCATED(this%dion_field_drho)) &
-        !     CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        ! !
-        ! IF (ALLOCATED(this%partial_of_ion_field)) &
-        !     CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%soft_spheres)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%density%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%ion_field)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%scaled%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%local_spheres)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%dscaled%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%dion_field_drho)) CALL env_create_error(sub_name)
         !
-        IF (ALLOCATED(this%d2scaled%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%gradient%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%laplacian%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%dsurface%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%local%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%probe%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%filling%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%dfilling%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%hessian%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%update_status = 0
-        !
-        this%volume = 0.D0
-        this%surface = 0.D0
-        !
-        this%need_electrons = .FALSE.
-        NULLIFY (this%electrons)
-        this%need_ions = .FALSE.
-        NULLIFY (this%ions)
-        this%need_system = .FALSE.
-        NULLIFY (this%system)
-        !
-        this%deriv = 0
-        !
-        this%solvent_aware = .FALSE.
-        this%field_aware = .FALSE.
+        IF (ALLOCATED(this%partial_of_ion_field)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_boundary
@@ -405,18 +344,18 @@ CONTAINS
         !
         this%derivatives => derivatives
         !
-        ! this%field_aware = field_factor > 0.D0
-        ! this%field_factor = field_factor
-        ! this%charge_asymmetry = charge_asymmetry
-        ! this%field_max = field_max
-        ! this%field_min = field_min
-        ! !
-        ! IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
-        !     ALLOCATE (this%ion_field(this%ions%number))
-        !     ALLOCATE (this%dion_field_drho(this%ions%number))
-        !     ALLOCATE (this%partial_of_ion_field(3, this%ions%number, this%ions%number))
-        !     ALLOCATE (this%local_spheres(this%ions%number))
-        ! END IF
+        this%field_aware = field_factor > 0.D0
+        this%field_factor = field_factor
+        this%charge_asymmetry = charge_asymmetry
+        this%field_max = field_max
+        this%field_min = field_min
+        !
+        IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
+            ALLOCATE (this%ion_field(this%ions%number))
+            ALLOCATE (this%dion_field_drho(this%ions%number))
+            ALLOCATE (this%partial_of_ion_field(3, this%ions%number, this%ions%number))
+            ALLOCATE (environ_function_erfc :: this%local_spheres(this%ions%number))
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Densities
@@ -493,22 +432,22 @@ CONTAINS
             !
             CALL env_errore(sub_name, 'field-aware not yet implimented', 1)
             !
-            ! IF (this%mode == 'fa-electronic' .OR. &
-            !     this%mode == 'fa-full') THEN
-            !     !
-            !     local_label = 'normal_field_'//TRIM(ADJUSTL(label))
-            !     !
-            !     CALL this%normal_field%init(cell, local_label)
-            !     !
-            ! ELSE IF (this%mode == 'fa-ionic') THEN
-            !     !
-            !     DO i = 1, this%ions%number
-            !         CALL this%dion_field_drho(i)%init(cell)
-            !     END DO
-            !     !
-            ! ELSE
-            !     CALL env_errore(sub_name, 'Boundary must be field-aware', 1)
-            ! END IF
+            IF (this%mode == 'fa-electronic' .OR. &
+                this%mode == 'fa-full') THEN
+                !
+                local_label = 'normal_field_'//TRIM(ADJUSTL(label))
+                !
+                CALL this%normal_field%init(cell, local_label)
+                !
+            ELSE IF (this%mode == 'fa-ionic') THEN
+                !
+                DO i = 1, this%ions%number
+                    CALL this%dion_field_drho(i)%init(cell)
+                END DO
+                !
+            ELSE
+                CALL env_errore(sub_name, 'Boundary must be field-aware', 1)
+            END IF
             !
         END IF
         !
@@ -591,10 +530,10 @@ CONTAINS
         copy%filling_spread = this%filling_spread
         !
         copy%field_aware = this%field_aware
-        ! copy%field_factor = this%field_factor
-        ! copy%charge_asymmetry = this%charge_asymmetry
-        ! copy%field_max = this%field_max
-        ! copy%field_min = this%field_min
+        copy%field_factor = this%field_factor
+        copy%charge_asymmetry = this%charge_asymmetry
+        copy%field_max = this%field_max
+        copy%field_min = this%field_min
         !
         IF (ASSOCIATED(this%scaled%cell)) CALL this%scaled%copy(copy%scaled)
         !
@@ -624,8 +563,8 @@ CONTAINS
         !
         IF (ASSOCIATED(this%dfilling%cell)) CALL this%dfilling%copy(copy%dfilling)
         !
-        ! IF (ASSOCIATED(this%normal_field%cell)) &
-        !     CALL this%normal_field%copy(copy%normal_field)
+        IF (ASSOCIATED(this%normal_field%cell)) &
+            CALL this%normal_field%copy(copy%normal_field)
         !
         IF (ALLOCATED(this%soft_spheres)) THEN
             n = SIZE(this%soft_spheres)
@@ -643,43 +582,43 @@ CONTAINS
             IF (ALLOCATED(copy%soft_spheres)) DEALLOCATE (copy%soft_spheres)
         END IF
         !
-        ! IF (ALLOCATED(this%ion_field)) THEN
-        !     n = SIZE(this%ion_field)
-        !     !
-        !     IF (ALLOCATED(copy%ion_field)) DEALLOCATE (copy%ion_field)
-        !     !
-        !     IF (ALLOCATED(copy%partial_of_ion_field)) &
-        !         DEALLOCATE (copy%partial_of_ion_field)
-        !     !
-        !     ALLOCATE (copy%ion_field(n))
-        !     ALLOCATE (copy%partial_of_ion_field(3, n, n))
-        !     !
-        !     IF (ALLOCATED(copy%dion_field_drho)) THEN
-        !         m = SIZE(copy%dion_field_drho)
-        !         !
-        !         DO i = 1, m
-        !             CALL copy%dion_field_drho(i)%destroy()
-        !         END DO
-        !         !
-        !         DEALLOCATE (copy%dion_field_drho)
-        !     END IF
-        !     !
-        !     ALLOCATE (copy%dion_field_drho(n))
-        !     !
-        !     DO i = 1, n
-        !         CALL this%dion_field_drho(i)%copy(copy%dion_field_drho(i))
-        !     END DO
-        !     !
-        ! ELSE
-        !     !
-        !     IF (ALLOCATED(copy%ion_field)) DEALLOCATE (copy%ion_field)
-        !     !
-        !     IF (ALLOCATED(copy%partial_of_ion_field)) &
-        !         DEALLOCATE (copy%partial_of_ion_field)
-        !     !
-        !     IF (ALLOCATED(copy%dion_field_drho)) DEALLOCATE (copy%dion_field_drho)
-        !     !
-        ! END IF
+        IF (ALLOCATED(this%ion_field)) THEN
+            n = SIZE(this%ion_field)
+            !
+            IF (ALLOCATED(copy%ion_field)) DEALLOCATE (copy%ion_field)
+            !
+            IF (ALLOCATED(copy%partial_of_ion_field)) &
+                DEALLOCATE (copy%partial_of_ion_field)
+            !
+            ALLOCATE (copy%ion_field(n))
+            ALLOCATE (copy%partial_of_ion_field(3, n, n))
+            !
+            IF (ALLOCATED(copy%dion_field_drho)) THEN
+                m = SIZE(copy%dion_field_drho)
+                !
+                DO i = 1, m
+                    CALL copy%dion_field_drho(i)%destroy()
+                END DO
+                !
+                DEALLOCATE (copy%dion_field_drho)
+            END IF
+            !
+            ALLOCATE (copy%dion_field_drho(n))
+            !
+            DO i = 1, n
+                CALL this%dion_field_drho(i)%copy(copy%dion_field_drho(i))
+            END DO
+            !
+        ELSE
+            !
+            IF (ALLOCATED(copy%ion_field)) DEALLOCATE (copy%ion_field)
+            !
+            IF (ALLOCATED(copy%partial_of_ion_field)) &
+                DEALLOCATE (copy%partial_of_ion_field)
+            !
+            IF (ALLOCATED(copy%dion_field_drho)) DEALLOCATE (copy%dion_field_drho)
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE copy_environ_boundary
@@ -903,19 +842,18 @@ CONTAINS
                         !
                         CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
                         !
-                        ! DEALLOCATE (this%ion_field)
-                        ! DEALLOCATE (this%partial_of_ion_field)
-                        ! !
-                        ! CALL destroy_environ_functions(this%local_spheres, &
-                        !                                this%ions%number)
-                        ! !
-                        ! DEALLOCATE (this%dion_field_drho)
+                        DEALLOCATE (this%ion_field)
+                        DEALLOCATE (this%partial_of_ion_field)
+                        !
+                        CALL destroy_environ_functions(this%local_spheres, &
+                                                       this%ions%number)
+                        !
+                        DEALLOCATE (this%dion_field_drho)
                     END IF
                     !
                 END IF
                 !
-                IF (.NOT. ASSOCIATED(this%ions)) &
-                    CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+                IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
                 !
                 NULLIFY (this%ions)
             ELSE

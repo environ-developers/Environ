@@ -116,8 +116,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%mt_corr)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ALLOCATED(this%mt_corr)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !

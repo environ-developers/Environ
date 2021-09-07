@@ -61,12 +61,14 @@ MODULE class_externals
     TYPE, PUBLIC :: environ_externals
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate
-        INTEGER :: number
+        LOGICAL :: lupdate = .FALSE.
+
+        INTEGER :: number = 0
+        REAL(DP) :: charge = 0.D0
+        !
+        TYPE(environ_density) :: density
         !
         CLASS(environ_function), ALLOCATABLE :: functions(:)
-        TYPE(environ_density) :: density
-        REAL(DP) :: charge
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -106,18 +108,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%functions)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        IF (ALLOCATED(this%density%of_r)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        this%lupdate = .FALSE.
-        this%number = 0
-        !
-        this%charge = 0.D0
+        IF (ALLOCATED(this%functions)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_externals
@@ -147,6 +138,8 @@ CONTAINS
         !
         CALL this%create()
         !
+        CALL this%density%init(cell, local_label)
+        !
         this%number = nexternals
         !
         IF (this%number > 0) THEN
@@ -155,8 +148,6 @@ CONTAINS
                                         dims, spreads, spreads, -charges, pos)
             !
         END IF
-        !
-        CALL this%density%init(cell, local_label)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_externals
@@ -194,9 +185,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) CALL destroy_environ_functions(this%functions, this%number)
-        !
         CALL this%density%destroy()
+        !
+        IF (lflag) CALL destroy_environ_functions(this%functions, this%number)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_externals

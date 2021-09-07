@@ -51,12 +51,13 @@ MODULE class_system
     TYPE, PUBLIC :: environ_system
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: lupdate
-        INTEGER :: ntyp
-        INTEGER :: dim
-        INTEGER :: axis
-        REAL(DP) :: pos(3)
-        REAL(DP) :: width
+        LOGICAL :: lupdate = .FALSE.
+        !
+        INTEGER :: ntyp = 0
+        INTEGER :: dim = 0
+        INTEGER :: axis = 1
+        REAL(DP) :: width = 0.D0
+        REAL(DP) :: pos(3) = 0.D0
         !
         TYPE(environ_ions), POINTER :: ions => NULL()
         !
@@ -98,19 +99,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%ions)
-        !
-        this%lupdate = .FALSE.
-        this%ntyp = 0
-        this%dim = 0
-        this%axis = 1
-        this%pos = 0.D0
-        this%width = 0.D0
+        IF (ASSOCIATED(this%ions)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_system
@@ -163,9 +152,6 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'update_environ_system'
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(this%ions)) &
-            CALL env_errore(sub_name, 'Trying to use a non associated object', 1)
         !
         this%pos = 0.D0
         this%width = 0.D0
@@ -234,8 +220,7 @@ CONTAINS
         !
         IF (lflag) THEN
             !
-            IF (.NOT. ASSOCIATED(this%ions)) &
-                CALL env_errore(sub_name, 'Trying to destroy a non associated object', 1)
+            IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
             !
             NULLIFY (this%ions)
         END IF

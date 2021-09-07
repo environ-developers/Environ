@@ -54,7 +54,7 @@ MODULE class_mapping
     TYPE, PUBLIC :: environ_mapping
         !--------------------------------------------------------------------------------
         !
-        INTEGER :: nrep(3)
+        INTEGER :: nrep(3) = 0
         ! number of system cells in environment cell along a_i = 2 * nrep_i + 1
         !
         TYPE(environ_cell), POINTER :: small => NULL() ! system cell
@@ -105,18 +105,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%large)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+        IF (ASSOCIATED(this%large)) CALL env_create_error(sub_name)
         !
-        IF (ASSOCIATED(this%small)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
-        !
-        !--------------------------------------------------------------------------------
-        !
-        NULLIFY (this%large)
-        NULLIFY (this%small)
-        !
-        this%nrep = 0
+        IF (ASSOCIATED(this%small)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_mapping
@@ -252,15 +243,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%small)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%small)) CALL env_destroy_error(sub_name)
         !
-        IF (.NOT. ASSOCIATED(this%large)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%large)) CALL env_destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
-        !
-        this%nrep = 1
         !
         NULLIFY (this%small)
         NULLIFY (this%large)
