@@ -368,7 +368,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE force_fft(this, rho, ions, nat, force)
+    SUBROUTINE force_fft(this, nat, rho, ions, force)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -378,16 +378,27 @@ CONTAINS
         TYPE(environ_density), INTENT(IN) :: rho
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         !
-        REAL(DP), INTENT(OUT) :: force(3, nat)
+        REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
         INTEGER :: iat, ig, ityp
-        REAL(DP) :: fpibg2, e_arg, gauss_term, t_arg, euler_term, fact
+        !
+        REAL(DP) :: fact ! symmetry factor
+        REAL(DP) :: fpibg2 ! 4pi / G^2
+        REAL(DP) :: e_arg ! -D^2 * G^2 / 4
+        REAL(DP) :: t_arg ! G . R
+        REAL(DP) :: gauss_term ! Z * 4pi / G^2 * exp(-D^2 * G^2 / 4)
+        REAL(DP) :: euler_term ! sin(G . R) * Re(rho(G)) + cos(G . R) * Im(rho(G))
+        !
+        REAL(DP) :: R(3) ! position vector
+        !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         REAL(DP), ALLOCATABLE :: ftmp(:, :)
         !
-        INTEGER, POINTER :: ngm, gstart
-        REAL(DP), POINTER :: Z, D, R(:)
+        REAL(DP), POINTER :: Z ! ionic charge
+        REAL(DP), POINTER :: D ! gaussian spread of smeared ion function
         REAL(DP), POINTER :: G(:, :), G2(:)
+        !
+        INTEGER, POINTER :: ngm, gstart
         TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
         !--------------------------------------------------------------------------------
@@ -412,7 +423,7 @@ CONTAINS
         DEALLOCATE (auxr)
         !
         !--------------------------------------------------------------------------------
-        ! Compute forces
+        ! Set symmetry factor
         !
         IF (dfft%lgamma) THEN
             fact = 2.D0
@@ -420,16 +431,19 @@ CONTAINS
             fact = 1.D0
         END IF
         !
+        !--------------------------------------------------------------------------------
+        ! Compute force
+        !
         force = 0.D0
         !
         DO iat = 1, nat
             D => ions%iontype(ions%ityp(iat))%atomicspread
             Z => ions%iontype(ions%ityp(iat))%zv
-            R => ions%tau(:, iat)
+            R = ions%tau(:, iat) - this%cell%origin ! account for any origin shift
             !
             DO ig = gstart, ngm
                 !
-                IF (G2(ig) <= eps8) CYCLE
+                IF (G2(ig) <= eps8) CYCLE ! skip G(1)
                 !
                 fpibg2 = fpi / (G2(ig) * tpi2)
                 !
@@ -901,9 +915,7 @@ CONTAINS
                 !
             END DO
             !
-            force(:, iat) = &
-                force(:, iat) * ions%iontype(ions%ityp(iat))%zv * tpi
-            !
+            force(:, iat) = force(:, iat) * ions%iontype(ions%ityp(iat))%zv * tpi
         END DO
         !
         force = e2 * force

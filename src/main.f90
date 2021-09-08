@@ -869,17 +869,28 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: environment_cell
         !
+        REAL(DP), DIMENSION(3, nat) :: system_force, environment_force
+        !
         !--------------------------------------------------------------------------------
         !
         environment_cell => this%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
+        ! Compute the electrostatic embedding contribution to the interatomic forces
+        ! as the difference of contributions from the full charge density computed in 
+        ! the environment cell (outer solver) and those from the charge density of ions 
+        ! and electrons computed in the system cell (reference solver)
         !
         force_environ = 0.D0
         !
-        ! compute the electrostatic embedding contribution to the interatomic forces
-        IF (this%setup%lelectrostatic) &
-            CALL this%setup%outer%calc_f(nat, this%environment_charges, force_environ)
+        IF (this%setup%lelectrostatic) THEN
+            !
+            CALL this%setup%reference%calc_f(nat, this%system_charges, system_force)
+            !
+            CALL this%setup%outer%calc_f(nat, this%environment_charges, environment_force)
+            !
+            force_environ = environment_force - system_force
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Compute the total forces depending on the boundary

@@ -213,17 +213,17 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_force(this, density, ions, natoms, force)
+    SUBROUTINE calc_force(this, natoms, density, ions, force)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        INTEGER, INTENT(IN) :: natoms
         TYPE(environ_density), INTENT(IN) :: density
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
-        INTEGER, INTENT(IN) :: natoms
         !
         CLASS(container_electrostatics), INTENT(INOUT) :: this
-        REAL(DP), INTENT(OUT) :: force(3, natoms)
+        REAL(DP), INTENT(INOUT) :: force(3, natoms)
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_force'
         !
@@ -232,7 +232,7 @@ CONTAINS
         SELECT TYPE (core => this%core)
             !
         TYPE IS (core_fft_electrostatics)
-            CALL core%force(density, ions, natoms, force)
+            CALL core%force(natoms, density, ions, force)
             !
         CLASS DEFAULT
             CALL env_errore(sub_name, 'Unexpected core', 1)

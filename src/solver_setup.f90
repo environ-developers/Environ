@@ -529,10 +529,14 @@ CONTAINS
     END SUBROUTINE calc_eelectrostatic
     !------------------------------------------------------------------------------------
     !>
-    !! Calculates the electrostatic embedding contribution to the interatomic forces
+    !! Calculates the electrostatic contribution to the interatomic forces
+    !!
+    !! If called by the reference solver, aux will only include ions and electrons.
+    !! If called by the outer solver, aux will include the full charge density, 
+    !! including any environment-specific contributions
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_felectrostatic(this, natoms, charges, forces)
+    SUBROUTINE calc_felectrostatic(this, natoms, charges, force)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -541,11 +545,8 @@ CONTAINS
         TYPE(environ_charges), INTENT(IN) :: charges
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
-        REAL(DP), INTENT(INOUT) :: forces(3, natoms)
+        REAL(DP), INTENT(INOUT) :: force(3, natoms)
         !
-        TYPE(environ_cell), POINTER :: cell
-        !
-        REAL(DP) :: ftmp(3, natoms)
         TYPE(environ_density) :: aux
         !
         CHARACTER(LEN=80) :: sub_name = 'calc_felectrostatic'
@@ -554,13 +555,13 @@ CONTAINS
         !
         CALL env_start_clock(sub_name)
         !
-        cell => charges%density%cell
-        !
         !--------------------------------------------------------------------------------
         ! Electrostatic contributions to forces are formulated in terms
         ! of the auxiliary charges times the derivatives of the pseudopotentials
         !
-        CALL aux%init(cell)
+        CALL aux%init(charges%density%cell)
+        !
+        aux%of_r = charges%density%of_r
         !
         IF (charges%include_dielectric) THEN
             !
@@ -578,31 +579,16 @@ CONTAINS
             aux%of_r = aux%of_r + charges%electrolyte%density%of_r
         END IF
         !
-        IF (charges%include_externals) THEN
-            !
-            IF (.NOT. ASSOCIATED(charges%externals)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
-            !
-            aux%of_r = aux%of_r + charges%externals%density%of_r
-        END IF
-        !
         SELECT TYPE (core => this%solver%cores%core)
             !
         TYPE IS (core_fft_electrostatics)
-            ftmp = 0.D0
-            !
-            CALL this%solver%cores%force(aux, charges%ions, natoms, ftmp)
-            !
-            forces = forces + ftmp
+            CALL this%solver%cores%force(natoms, aux, charges%ions, force)
             !
         END SELECT
         !
         IF (ASSOCIATED(this%solver%cores%correction)) THEN
-            ftmp = 0.D0
+            CALL this%solver%cores%correction%calc_f(natoms, charges, aux, force)
             !
-            CALL this%solver%cores%correction%calc_f(natoms, charges, aux, ftmp)
-            !
-            forces = forces + ftmp
         END IF
         !
         CALL aux%destroy()

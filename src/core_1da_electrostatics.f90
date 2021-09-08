@@ -344,7 +344,7 @@ CONTAINS
         !
         CALL local%init(charges%density%cell)
         !
-        local%of_r = charges%density%of_r + auxiliary%of_r
+        local%of_r = auxiliary%of_r
         !
         CALL local%multipoles(origin, charge, dipole, quadrupole)
         ! compute multipoles of the system with respect to the chosen origin
@@ -357,12 +357,12 @@ CONTAINS
         ftmp = 0.D0
         !
         DO i = 1, natoms
-            pos(:) = (tau(:, i) - origin(:))
+            pos = tau(:, i) - origin
             !
             SELECT CASE (env_periodicity)
                 !
             CASE (0)
-                ftmp(:, i) = (charge * pos(:) - dipole(:)) / 3.D0
+                ftmp(:, i) = (charge * pos - dipole) / 3.D0
                 !
             CASE (1)
                 CALL env_errore(sub_name, 'Option not yet implemented', 1)
