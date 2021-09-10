@@ -240,6 +240,7 @@ mapping.o : ../utils/mp.o
 mapping.o : cell.o
 mapping.o : constants.o
 mapping.o : density.o
+semiconductor.o : ../utils/base_io.o
 semiconductor.o : cell.o
 semiconductor.o : constants.o
 semiconductor.o : density.o

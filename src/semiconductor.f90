@@ -34,7 +34,9 @@
 MODULE class_semiconductor
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
+    !
+    USE environ_param, ONLY: DP, BOHR_RADIUS_CM
     !
     USE class_cell
     USE class_density
@@ -80,6 +82,8 @@ MODULE class_semiconductor
         PROCEDURE :: init => init_environ_semiconductor
         PROCEDURE :: update => update_environ_semiconductor
         PROCEDURE :: destroy => destroy_environ_semiconductor
+        !
+        PROCEDURE :: printout => print_environ_semiconductor
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_semiconductor
@@ -172,6 +176,101 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_semiconductor
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! Prints the details of the semiconductor
+    !!
+    !! Nested objects receive a decremented passed verbose to trigger block printing
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = io%debug_unit)
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_semiconductor(this, verbose, debug_verbose, unit)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_semiconductor), INTENT(IN) :: this
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        !
+        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_semiconductor'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
+            END IF
+            !
+            passed_verbose = verbose - 1
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+            passed_verbose = local_verbose - base_verbose - 1
+            !
+        ELSE
+            RETURN
+        END IF
+        !
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = environ_unit
+        END IF
+        !
+        IF (local_verbose >= 1) THEN
+            !
+            IF (ionode) THEN
+                WRITE (local_unit, 1000)
+                !
+                WRITE (local_unit, 1001) &
+                    this%carrier_density / BOHR_RADIUS_CM**3, this%temperature, &
+                    this%permittivity
+                !
+                WRITE (local_unit, 1002) this%charge
+            END IF
+            !
+            IF (local_verbose >= 3) &
+                CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
+            !
+        END IF
+        !
+        FLUSH (local_unit)
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(/, 4('%'), ' SEMICONDUCTOR ', 64('%'))
+        !
+1001    FORMAT(/, ' Mott-Schottky:', /, &
+                ' dopant concentation   (cm^-3) = ', E15.4, /, &
+                ' semiconductor temperature (K) = ', F7.1, /, &
+                ' dielectric constant           = ', F7.2)
+        !
+1002    FORMAT(/, ' total semiconductor charge    = ', F14.7)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_semiconductor
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
