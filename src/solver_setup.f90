@@ -532,17 +532,18 @@ CONTAINS
     !! Calculates the electrostatic contribution to the interatomic forces
     !!
     !! If called by the reference solver, aux will only include ions and electrons.
-    !! If called by the outer solver, aux will include the full charge density, 
+    !! If called by the outer solver, aux will include the full charge density,
     !! including any environment-specific contributions
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_felectrostatic(this, natoms, charges, force)
+    SUBROUTINE calc_felectrostatic(this, natoms, charges, force, ldoublecell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: natoms
         TYPE(environ_charges), INTENT(IN) :: charges
+        LOGICAL, INTENT(IN) :: ldoublecell
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         REAL(DP), INTENT(INOUT) :: force(3, natoms)
@@ -561,7 +562,16 @@ CONTAINS
         !
         CALL aux%init(charges%density%cell)
         !
-        aux%of_r = charges%density%of_r
+        IF (ldoublecell) THEN
+            aux%of_r = charges%density%of_r ! ions, electrons, and (if active) externals
+            !
+        ELSE IF (charges%include_externals) THEN
+            !
+            IF (.NOT. ASSOCIATED(charges%externals)) &
+                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+            !
+            aux%of_r = aux%of_r + charges%externals%density%of_r
+        END IF
         !
         IF (charges%include_dielectric) THEN
             !
@@ -587,6 +597,9 @@ CONTAINS
         END SELECT
         !
         IF (ASSOCIATED(this%solver%cores%correction)) THEN
+            !
+            IF (.NOT. ldoublecell) aux%of_r = aux%of_r + charges%density%of_r
+            !
             CALL this%solver%cores%correction%calc_f(natoms, charges, aux, force)
             !
         END IF

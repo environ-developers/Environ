@@ -869,27 +869,34 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: environment_cell
         !
-        REAL(DP), DIMENSION(3, nat) :: system_force, environment_force
+        REAL(DP), DIMENSION(3, nat) :: freference, felectrostatic
         !
         !--------------------------------------------------------------------------------
         !
         environment_cell => this%setup%environment_cell
         !
         !--------------------------------------------------------------------------------
-        ! Compute the electrostatic embedding contribution to the interatomic forces
-        ! as the difference of contributions from the full charge density computed in 
-        ! the environment cell (outer solver) and those from the charge density of ions 
-        ! and electrons computed in the system cell (reference solver)
+        ! Compute the electrostatic embedding contribution to the interatomic forces.
+        ! If using doublecell, take the difference of contributions from the full charge
+        ! density computed in the environment cell (outer solver) and those from the
+        ! charge density of ions/electrons computed in the system cell (reference solver)
         !
         force_environ = 0.D0
+        freference = 0.D0
         !
         IF (this%setup%lelectrostatic) THEN
             !
-            CALL this%setup%reference%calc_f(nat, this%system_charges, system_force)
+            CALL this%setup%outer%calc_f(nat, this%environment_charges, felectrostatic, &
+                                         this%setup%ldoublecell)
             !
-            CALL this%setup%outer%calc_f(nat, this%environment_charges, environment_force)
+            IF (this%setup%ldoublecell) THEN
+                !
+                CALL this%setup%reference%calc_f(nat, this%system_charges, freference, &
+                                                 this%setup%ldoublecell)
+                !
+            END IF
             !
-            force_environ = environment_force - system_force
+            force_environ = felectrostatic - freference
         END IF
         !
         !--------------------------------------------------------------------------------
