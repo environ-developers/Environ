@@ -62,10 +62,10 @@ MODULE class_core_fft_electrostatics
     TYPE, EXTENDS(core_fft_derivatives), PUBLIC :: core_fft_electrostatics
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: use_internal_pbc_corr
+        LOGICAL :: use_internal_pbc_corr = .FALSE.
         !
         REAL(DP) :: alpha, beta
-        REAL(DP), ALLOCATABLE :: mt_corr(:)
+        REAL(DP), ALLOCATABLE :: correction(:)
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -75,16 +75,13 @@ MODULE class_core_fft_electrostatics
         PROCEDURE :: update_cell => update_core_fft_electrostatics_cell
         PROCEDURE :: destroy => destroy_core_fft_electrostatics
         !
+        PROCEDURE, PRIVATE :: update_mt_correction
+        !
         PROCEDURE :: poisson => poisson_fft
         PROCEDURE :: gradpoisson => gradpoisson_fft
         PROCEDURE :: force => force_fft
         !
         PROCEDURE :: hessv_h_of_rho_r, field_of_gradrho
-        !
-        PROCEDURE, PRIVATE :: update_mt_correction
-        PROCEDURE, PRIVATE :: vmt => calc_vmt
-        PROCEDURE, PRIVATE :: gradvmt => calc_gradvmt
-        PROCEDURE, PRIVATE :: fmt => calc_fmt
         !
         !--------------------------------------------------------------------------------
     END TYPE core_fft_electrostatics
@@ -116,20 +113,21 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%mt_corr)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%correction)) CALL env_create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%core_fft%init(gcutm, cell)
         !
-        IF (PRESENT(use_internal_pbc_corr)) THEN
+        IF (PRESENT(use_internal_pbc_corr)) &
             this%use_internal_pbc_corr = use_internal_pbc_corr
-            ALLOCATE (this%mt_corr(this%ngm))
-            !
+        !
+        ALLOCATE (this%correction(this%ngm))
+        !
+        IF (this%use_internal_pbc_corr) THEN
             CALL this%update_mt_correction()
-            !
         ELSE
-            this%use_internal_pbc_corr = .FALSE.
+            this%correction = 0.D0
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -174,7 +172,7 @@ CONTAINS
         !
         CALL this%core_fft%destroy(lflag)
         !
-        IF (this%use_internal_pbc_corr) DEALLOCATE (this%mt_corr)
+        IF (this%use_internal_pbc_corr) DEALLOCATE (this%correction)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_fft_electrostatics
@@ -186,22 +184,25 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
-    !! Solves the Poisson equation \nabla \fout(r) = - 4 \pi \fin(r)
+    !! Solves the Poisson equation \nabla^2 \phi(r) = - 4 \pi \rho(r)
     !! Input and output functions are defined in real space
     !!
+    !! @ param rho : input density
+    !! @ param phi : output potential => \phi(r)
+    !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE poisson_fft(this, fin, fout)
+    SUBROUTINE poisson_fft(this, rho, phi)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(core_fft_electrostatics), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fin
+        TYPE(environ_density), INTENT(IN) :: rho
         !
-        TYPE(environ_density), INTENT(INOUT) :: fout
+        TYPE(environ_density), INTENT(INOUT) :: phi
         !
         INTEGER :: ig
-        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
         INTEGER, POINTER :: gstart, ngm
         REAL(DP), POINTER :: gg(:)
@@ -215,68 +216,59 @@ CONTAINS
         dfft => this%cell%dfft
         !
         !--------------------------------------------------------------------------------
-        ! Bring fin%of_r from R-space --> G-space
+        ! Bring rho to G space
         !
         ALLOCATE (auxr(dfft%nnr))
-        auxr = CMPLX(fin%of_r, 0.D0, kind=DP)
+        auxr = CMPLX(rho%of_r, 0.D0, kind=DP)
         !
         CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(ngm))
-        auxg = auxr(dfft%nl(:))
+        auxg = auxr(dfft%nl)
         !
         auxr = CMPLX(0.D0, 0.D0, kind=DP)
         !
+        auxr(dfft%nl(1)) = auxg(1) * this%correction(1) * pi ! G = 0 term
+        !
 !$omp parallel do
         DO ig = gstart, ngm
-            auxr(dfft%nl(ig)) = auxg(ig) / gg(ig)
+            auxr(dfft%nl(ig)) = auxg(ig) * (1.D0 / gg(ig) + this%correction(ig) * pi)
         END DO
 !$omp end parallel do
         !
-        auxr = auxr * e2 * fpi / tpi2
+        auxr = auxr * e2 / pi
         !
-        IF (this%use_internal_pbc_corr) THEN
-            ALLOCATE (vaux(ngm))
-            !
-            CALL this%vmt(auxg, vaux)
-            !
-            auxr(dfft%nl(1:ngm)) = auxr(dfft%nl(1:ngm)) + vaux(1:ngm)
-            DEALLOCATE (vaux)
-        END IF
-        !
-        IF (dfft%lgamma) THEN
-            !
-            auxr(dfft%nlm(:)) = CMPLX(REAL(auxr(dfft%nl(:))), &
-                                      -AIMAG(auxr(dfft%nl(:))), kind=DP)
-            !
-        END IF
+        IF (dfft%lgamma) &
+            auxr(dfft%nlm) = CMPLX(REAL(auxr(dfft%nl)), -AIMAG(auxr(dfft%nl)), kind=DP)
         !
         !--------------------------------------------------------------------------------
         ! Transform hartree potential to real space
         !
         CALL env_invfft(auxr, dfft)
         !
-        fout%of_r(:) = DBLE(auxr(:))
+        phi%of_r = DBLE(auxr)
         DEALLOCATE (auxr)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_fft
     !------------------------------------------------------------------------------------
     !>
-    !! Solves the Poisson equation \grad \gout(r) = - 4 \pi \fin(r)
-    !! where gout is the gradient of the potential
+    !! Solves the Poisson equation \nabla^2 \phi(r) = - 4 \pi \rho(r)
     !! Input and output functions are defined in real space
     !!
+    !! @ param rho  : input density
+    !! @ param gphi : output gradient of the potential => \nabla \phi(r)
+    !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE gradpoisson_fft(this, fin, gout)
+    SUBROUTINE gradpoisson_fft(this, rho, gphi)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(core_fft_electrostatics), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fin
+        TYPE(environ_density), INTENT(IN) :: rho
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gout
+        TYPE(environ_gradient), INTENT(INOUT) :: gphi
         !
         INTEGER :: ipol, ig
         REAL(DP) :: fac
@@ -299,64 +291,49 @@ CONTAINS
         ! Bring rho to G space
         !
         ALLOCATE (auxr(dfft%nnr))
-        auxr(:) = CMPLX(fin%of_r(:), 0.D0, KIND=DP)
+        auxr = CMPLX(rho%of_r, 0.D0, KIND=DP)
         !
         CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(ngm))
-        auxg = auxr(dfft%nl(:))
+        auxg = auxr(dfft%nl)
         !
         !--------------------------------------------------------------------------------
         ! Compute gradient of potential in G space one direction at a time
         !
         DO ipol = 1, 3
-            auxr(:) = CMPLX(0.0_DP, 0.0_DP)
+            auxr = CMPLX(0.0_DP, 0.0_DP)
             !
 !$omp parallel do private(fac)
             DO ig = gstart, ngm
                 !
-                auxr(dfft%nl(ig)) = &
-                    CMPLX(-AIMAG(auxg(ig)), &
-                          REAL(auxg(ig), kind=DP)) * g(ipol, ig) / gg(ig)
+                auxr(dfft%nl(ig)) = g(ipol, ig) * &
+                                    (1.D0 / gg(ig) + this%correction(ig) * pi) * &
+                                    CMPLX(-AIMAG(auxg(ig)), REAL(auxg(ig), kind=DP))
                 !
             END DO
 !$omp end parallel do
             !
-            !----------------------------------------------------------------------------
-            ! Add the factor e2*fpi/2\pi/a coming from the missing prefactor of
-            ! V = e2 * fpi divided by the 2\pi/a factor missing in G
-            !
-            fac = e2 * fpi / tpi
-            auxr = auxr * fac
-            !
-            !----------------------------------------------------------------------------
-            ! Add martyna-tuckerman correction, if needed
-            !
-            IF (this%use_internal_pbc_corr) THEN
-                ALLOCATE (vaux(ngm))
-                !
-                CALL this%gradvmt(ipol, auxg, vaux)
-                !
-                auxr(dfft%nl(:)) = auxr(dfft%nl(:)) + vaux(:)
-                DEALLOCATE (vaux)
-            END IF
+            auxr = auxr * 2.D0 * e2
+            ! add the factor 2*e2 coming from the missing prefactor of
+            ! V = e2 * 4pi divided by the 2pi factor missing in G
             !
             !----------------------------------------------------------------------------
             ! Assuming GAMMA ONLY
             !
             IF (dfft%lgamma) THEN
                 !
-                auxr(dfft%nlm(:)) = &
-                    CMPLX(REAL(auxr(dfft%nl(:))), -AIMAG(auxr(dfft%nl(:))), kind=DP)
+                auxr(dfft%nlm) = &
+                    CMPLX(REAL(auxr(dfft%nl)), -AIMAG(auxr(dfft%nl)), kind=DP)
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! Bring back to R-space, (\grad_ipol a)(r) ...
+            ! Bring back to R-space, (\grad_ipol a)(r)
             !
             CALL env_invfft(auxr, dfft)
             !
-            gout%of_r(ipol, :) = REAL(auxr(:))
+            gphi%of_r(ipol, :) = REAL(auxr)
         END DO
         !
         DEALLOCATE (auxr)
@@ -366,6 +343,12 @@ CONTAINS
     END SUBROUTINE gradpoisson_fft
     !------------------------------------------------------------------------------------
     !>
+    !! Compute the force in G-space using a Gaussian-smeared ion description
+    !!
+    !! @ param nat   : number of ions
+    !! @ param rho   : input density
+    !! @ param ions  : object containing the charge, spread, and position of the ions
+    !! @ param force : output force
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE force_fft(this, nat, rho, ions, force)
@@ -384,15 +367,15 @@ CONTAINS
         !
         REAL(DP) :: fact ! symmetry factor
         REAL(DP) :: fpibg2 ! 4pi / G^2
-        REAL(DP) :: e_arg ! -D^2 * G^2 / 4
         REAL(DP) :: t_arg ! G . R
-        REAL(DP) :: gauss_term ! Z * 4pi / G^2 * exp(-D^2 * G^2 / 4)
+        REAL(DP) :: e_arg ! -D^2 * G^2 / 4
         REAL(DP) :: euler_term ! sin(G . R) * Re(rho(G)) + cos(G . R) * Im(rho(G))
+        REAL(DP) :: gauss_term ! Z * 4pi / G^2 * exp(-D^2 * G^2 / 4)
+        REAL(DP) :: main_term ! gauss_term + any active PBC correction
         !
         REAL(DP) :: R(3) ! position vector
         !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
-        REAL(DP), ALLOCATABLE :: ftmp(:, :)
         !
         REAL(DP), POINTER :: Z ! ionic charge
         REAL(DP), POINTER :: D ! gaussian spread of smeared ion function
@@ -419,7 +402,7 @@ CONTAINS
         CALL env_fwfft(auxr, dfft)
         !
         ALLOCATE (auxg(ngm))
-        auxg = auxr(dfft%nl(:)) ! aux now contains n(G)
+        auxg = auxr(dfft%nl) ! aux now contains n(G)
         DEALLOCATE (auxr)
         !
         !--------------------------------------------------------------------------------
@@ -437,59 +420,28 @@ CONTAINS
         force = 0.D0
         !
         DO iat = 1, nat
-            D => ions%iontype(ions%ityp(iat))%atomicspread
             Z => ions%iontype(ions%ityp(iat))%zv
+            D => ions%iontype(ions%ityp(iat))%atomicspread
             R = ions%tau(:, iat) - this%cell%origin ! account for any origin shift
             !
             DO ig = gstart, ngm
-                !
-                IF (G2(ig) <= eps8) CYCLE ! skip G(1)
-                !
                 fpibg2 = fpi / (G2(ig) * tpi2)
-                !
-                e_arg = -0.25D0 * D**2 * G2(ig) * tpi2
-                gauss_term = Z * fpibg2 * EXP(e_arg)
                 !
                 t_arg = tpi * SUM(G(:, ig) * R)
                 euler_term = SIN(t_arg) * DBLE(auxg(ig)) + COS(t_arg) * AIMAG(auxg(ig))
                 !
-                force(:, iat) = force(:, iat) + G(:, ig) * gauss_term * euler_term
+                e_arg = -0.25D0 * D**2 * G2(ig) * tpi2
+                gauss_term = fpibg2 * EXP(e_arg)
+                !
+                main_term = gauss_term + this%correction(ig)
+                !
+                force(:, iat) = force(:, iat) + G(:, ig) * euler_term * main_term
             END DO
             !
+            force(:, iat) = force(:, iat) * Z
         END DO
         !
-        force = e2 * fact * force * tpi
-        !
-        !--------------------------------------------------------------------------------
-        ! DEBUGGING
-        !
-        ! WRITE (*, *) 'forces lc' !
-        ! !
-        ! DO iat = 1, nat
-        !     WRITE (*, '(i8,3f10.4)') iat, force(:, iat)
-        ! END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! Add martyna-tuckerman correction, if needed
-        !
-        IF (this%use_internal_pbc_corr) THEN
-            ALLOCATE (ftmp(3, nat))
-            !
-            CALL this%fmt(auxg, ions, ftmp)
-            !
-            force = force + fact * ftmp
-            !
-            !----------------------------------------------------------------------------
-            ! DEBUGGING
-            !
-            ! WRITE (*, *) 'forces mt', fact
-            ! !
-            ! DO iat = 1, nat
-            !     WRITE (*, '(i8,3f10.4)') iat, fact * ftmp(:, iat)
-            ! END DO
-            !
-            DEALLOCATE (ftmp)
-        END IF
+        force = force * tpi * e2 * fact
         !
         CALL env_mp_sum(force, rho%cell%dfft%comm)
         !
@@ -515,13 +467,12 @@ CONTAINS
         REAL(DP), INTENT(OUT) :: hessv(3, 3, this%cell%dfft%nnr)
         !
         INTEGER, POINTER :: ngm, gstart
-        LOGICAL, POINTER :: do_comp_mt
         REAL(DP), POINTER :: g(:, :), gg(:)
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
-        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: rhoaux, gaux, rgtot, vaux
-        REAL(DP) :: fac, eh_corr
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         INTEGER :: ig, ipol, jpol
-        LOGICAL :: gamma_only
+        LOGICAL :: gamma_only = .TRUE.
         !
         !--------------------------------------------------------------------------------
         !
@@ -529,33 +480,32 @@ CONTAINS
         gstart => this%gstart
         gg => this%gg
         g => this%g
-        do_comp_mt => this%use_internal_pbc_corr
-        gamma_only = .TRUE.
+        dfft => this%cell%dfft
         !
         !--------------------------------------------------------------------------------
         ! Bring rho to G space
         !
-        ALLOCATE (rhoaux(this%cell%dfft%nnr))
-        rhoaux(:) = CMPLX(rho(:), 0.D0, KIND=DP)
+        ALLOCATE (auxr(dfft%nnr))
+        auxr = CMPLX(rho, 0.D0, KIND=DP)
         !
-        CALL env_fwfft(rhoaux, this%cell%dfft)
+        CALL env_fwfft(auxr, dfft)
         !
         !--------------------------------------------------------------------------------
         ! Compute total potential in G space
         !
-        ALLOCATE (gaux(this%cell%dfft%nnr))
+        ALLOCATE (auxg(dfft%nnr))
         !
         DO ipol = 1, 3
             !
             DO jpol = 1, 3
-                gaux(:) = (0.0_DP, 0.0_DP)
+                auxg = (0.0_DP, 0.0_DP)
                 !
                 DO ig = gstart, ngm
-                    fac = g(ipol, ig) * g(jpol, ig) / gg(ig)
                     !
-                    gaux(this%cell%dfft%nl(ig)) = &
-                        CMPLX(REAL(rhoaux(this%cell%dfft%nl(ig))), &
-                              AIMAG(rhoaux(this%cell%dfft%nl(ig))), kind=DP) * fac
+                    auxg(dfft%nl(ig)) = &
+                        g(ipol, ig) * g(jpol, ig) * &
+                        (1.D0 / gg(ig) + this%correction(ig) * tpi2) * &
+                        CMPLX(DBLE(auxr(dfft%nl(ig))), AIMAG(auxr(dfft%nl(ig))), kind=DP)
                     !
                 END DO
                 !
@@ -563,48 +513,25 @@ CONTAINS
                 ! Add the factor e2*fpi coming from the missing prefactor of
                 ! V = e2 * fpi
                 !
-                fac = e2 * fpi
-                gaux = gaux * fac
-                !
-                !------------------------------------------------------------------------
-                ! Add martyna-tuckerman correction, if needed
-                !
-                IF (do_comp_mt) THEN
-                    ALLOCATE (vaux(ngm), rgtot(ngm))
-                    rgtot(1:ngm) = rhoaux(this%cell%dfft%nl(1:ngm))
-                    !
-                    CALL this%vmt(rgtot, vaux)
-                    !
-                    DO ig = gstart, ngm
-                        fac = g(ipol, ig) * g(jpol, ig) * tpi2
-                        !
-                        gaux(this%cell%dfft%nl(ig)) = &
-                            gaux(this%cell%dfft%nl(ig)) + &
-                            CMPLX(REAL(vaux(ig)), AIMAG(vaux(ig)), kind=DP) * fac
-                        !
-                    END DO
-                    !
-                    DEALLOCATE (rgtot, vaux)
-                END IF
+                auxg = auxg * e2 * fpi
                 !
                 IF (gamma_only) THEN
                     !
-                    gaux(this%cell%dfft%nlm(:)) = &
-                        CMPLX(REAL(gaux(this%cell%dfft%nl(:))), &
-                              -AIMAG(gaux(this%cell%dfft%nl(:))), kind=DP)
+                    auxg(dfft%nlm) = &
+                        CMPLX(DBLE(auxg(dfft%nl)), -AIMAG(auxg(dfft%nl)), kind=DP)
                     !
                 END IF
                 !
-                CALL env_invfft(gaux, this%cell%dfft) ! bring back to R-space
+                CALL env_invfft(auxg, dfft) ! bring back to R-space
                 !
-                hessv(ipol, jpol, :) = REAL(gaux(:))
+                hessv(ipol, jpol, :) = REAL(auxg)
                 !
             END DO
             !
         END DO
         !
-        DEALLOCATE (gaux)
-        DEALLOCATE (rhoaux)
+        DEALLOCATE (auxg)
+        DEALLOCATE (auxr)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessv_h_of_rho_r
@@ -625,14 +552,13 @@ CONTAINS
         REAL(DP), INTENT(OUT) :: e(this%cell%dfft%nnr)
         !
         INTEGER, POINTER :: ngm, gstart
-        LOGICAL, POINTER :: do_comp_mt
         REAL(DP), POINTER :: g(:, :), gg(:)
+        TYPE(env_fft_type_descriptor), POINTER :: dfft
         !
-        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, eaux, gaux, rgtot, vaux
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, auxe
         !
-        REAL(DP) :: fac, eh_corr
         INTEGER :: ig, ipol
-        LOGICAL :: gamma_only
+        LOGICAL :: gamma_only = .TRUE.
         !
         !--------------------------------------------------------------------------------
         !
@@ -640,87 +566,54 @@ CONTAINS
         gstart => this%gstart
         gg => this%gg
         g => this%g
-        do_comp_mt => this%use_internal_pbc_corr
-        gamma_only = .TRUE.
+        dfft => this%cell%dfft
         !
         !--------------------------------------------------------------------------------
         ! Bring gradrho to G space
         !
-        ALLOCATE (eaux(this%cell%dfft%nnr))
-        eaux(:) = CMPLX(0.D0, 0.D0, KIND=DP)
+        ALLOCATE (auxe(dfft%nnr))
+        auxe = CMPLX(0.D0, 0.D0, KIND=DP)
         !
-        ALLOCATE (aux(this%cell%dfft%nnr))
-        aux(:) = CMPLX(0.D0, 0.D0, KIND=DP)
+        ALLOCATE (auxr(dfft%nnr))
+        auxr = CMPLX(0.D0, 0.D0, KIND=DP)
         !
-        ALLOCATE (gaux(this%cell%dfft%nnr))
-        !
-        IF (do_comp_mt) ALLOCATE (vaux(ngm), rgtot(ngm))
+        ALLOCATE (auxg(dfft%nnr))
         !
         DO ipol = 1, 3
-            gaux(:) = CMPLX(gradrho(ipol, :), 0.D0, KIND=DP)
+            auxg = CMPLX(gradrho(ipol, :), 0.D0, KIND=DP)
             !
-            CALL env_fwfft(gaux, this%cell%dfft)
+            CALL env_fwfft(auxg, dfft)
             !
             !----------------------------------------------------------------------------
             ! Compute total potential in G space
             !
             DO ig = gstart, ngm
-                fac = g(ipol, ig) / gg(ig)
                 !
-                aux(this%cell%dfft%nl(ig)) = &
-                    CMPLX(-AIMAG(gaux(this%cell%dfft%nl(ig))), &
-                          REAL(gaux(this%cell%dfft%nl(ig))), kind=DP) * fac
+                auxr(dfft%nl(ig)) = &
+                    g(ipol, ig) * (1.D0 / gg(ig) + this%correction(ig) * pi) * &
+                    CMPLX(-AIMAG(auxg(dfft%nl(ig))), REAL(auxg(dfft%nl(ig))), kind=DP)
                 !
             END DO
             !
-            !----------------------------------------------------------------------------
-            ! Add the factor e2*fpi/2\pi/a coming from the missing prefactor of
-            ! V = e2 * fpi divided by the 2\pi/a factor missing in G
+            auxr = auxr * 2.D0 * e2
+            ! add the factor 2*e2 coming from the missing prefactor of
+            ! V = e2 * 4pi divided by the 2pi factor missing in G
             !
-            fac = e2 * fpi / tpi
-            aux = aux * fac
-            !
-            !----------------------------------------------------------------------------
-            ! Add martyna-tuckerman correction, if needed
-            !
-            IF (do_comp_mt) THEN
-                rgtot(1:ngm) = gaux(this%cell%dfft%nl(1:ngm))
-                !
-                CALL this%vmt(rgtot, vaux)
-                !
-                DO ig = gstart, ngm
-                    fac = g(ipol, ig) * tpi
-                    !
-                    aux(this%cell%dfft%nl(ig)) = &
-                        aux(this%cell%dfft%nl(ig)) + &
-                        CMPLX(-AIMAG(vaux(ig)), REAL(vaux(ig)), kind=DP) * fac
-                    !
-                END DO
-                !
-            END IF
-            !
-            eaux = eaux + aux
+            auxe = auxe + auxr
         END DO
         !
-        IF (do_comp_mt) DEALLOCATE (rgtot, vaux)
+        DEALLOCATE (auxg)
+        DEALLOCATE (auxr)
         !
-        DEALLOCATE (gaux)
-        DEALLOCATE (aux)
+        IF (gamma_only) &
+            auxe(dfft%nlm) = CMPLX(REAL(auxe(dfft%nl)), -AIMAG(auxe(dfft%nl)), kind=DP)
         !
-        IF (gamma_only) THEN
-            !
-            eaux(this%cell%dfft%nlm(:)) = &
-                CMPLX(REAL(eaux(this%cell%dfft%nl(:))), &
-                      -AIMAG(eaux(this%cell%dfft%nl(:))), kind=DP)
-            !
-        END IF
-        !
-        CALL env_invfft(eaux, this%cell%dfft)
+        CALL env_invfft(auxe, dfft)
         ! bring back to R-space (\grad_ipol a)(r)
         !
-        e(:) = REAL(eaux(:))
+        e = REAL(auxe)
         !
-        DEALLOCATE (eaux)
+        DEALLOCATE (auxe)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE field_of_gradrho
@@ -757,7 +650,7 @@ CONTAINS
         !
         alpha => this%alpha
         beta => this%beta
-        mt_corr => this%mt_corr
+        mt_corr => this%correction
         !
         cell => this%cell
         dfft => this%cell%dfft
@@ -809,119 +702,12 @@ CONTAINS
         END DO
 !$omp end parallel do
         !
-        mt_corr(:) = mt_corr(:) * EXP(-tpi2 * this%gg(:) * beta / 4._DP)**2
+        mt_corr = mt_corr * EXP(-tpi2 * this%gg * beta / 4._DP)**2
         !
         DEALLOCATE (aux)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_mt_correction
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_vmt(this, rho, v)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(core_fft_electrostatics), INTENT(IN) :: this
-        COMPLEX(DP), INTENT(IN) :: rho(this%ngm)
-        !
-        COMPLEX(DP), INTENT(OUT) :: v(this%ngm)
-        !
-        INTEGER :: ig
-        !
-        !--------------------------------------------------------------------------------
-        !
-        v(:) = (0._DP, 0._DP)
-        !
-!$omp parallel do
-        DO ig = 1, this%ngm
-            v(ig) = this%mt_corr(ig) * rho(ig)
-        END DO
-!$omp end parallel do
-        !
-        v = e2 * v
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_vmt
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradvmt(this, ipol, rho, v)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        INTEGER, INTENT(IN) :: ipol
-        CLASS(core_fft_electrostatics), INTENT(IN) :: this
-        COMPLEX(DP), INTENT(IN) :: rho(this%ngm)
-        !
-        COMPLEX(DP), INTENT(OUT) :: v(this%ngm)
-        !
-        INTEGER :: ig
-        REAL(DP) :: fac
-        !
-        !--------------------------------------------------------------------------------
-        !
-        v(:) = (0._DP, 0._DP)
-        !
-!$omp parallel do private(fac)
-        DO ig = this%gstart, this%ngm
-            fac = this%g(ipol, ig) * tpi
-            !
-            v(ig) = this%mt_corr(ig) * &
-                    CMPLX(-AIMAG(rho(ig)), REAL(rho(ig)), kind=dp) * fac
-            !
-        END DO
-!$omp end parallel do
-        !
-        v = e2 * v
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradvmt
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_fmt(this, rho, ions, force)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(core_fft_electrostatics), INTENT(IN) :: this
-        TYPE(environ_ions), INTENT(IN) :: ions
-        COMPLEX(DP), INTENT(IN) :: rho(this%ngm)
-        !
-        REAL(DP), INTENT(OUT) :: force(3, ions%number)
-        !
-        INTEGER :: iat, ig
-        REAL(DP) :: arg
-        !
-        !--------------------------------------------------------------------------------
-        !
-        force = 0._DP
-        !
-        DO iat = 1, ions%number
-            !
-            DO ig = 1, this%ngm
-                arg = tpi * SUM(this%g(:, ig) * ions%tau(:, iat))
-                !
-                force(:, iat) = &
-                    force(:, iat) + this%g(:, ig) * &
-                    (SIN(arg) * REAL(rho(ig)) + COS(arg) * AIMAG(rho(ig))) * &
-                    this%mt_corr(ig)
-                !
-            END DO
-            !
-            force(:, iat) = force(:, iat) * ions%iontype(ions%ityp(iat))%zv * tpi
-        END DO
-        !
-        force = e2 * force
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_fmt
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
