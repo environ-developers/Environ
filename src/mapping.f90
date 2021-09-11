@@ -31,6 +31,7 @@
 MODULE class_mapping
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_base_scatter, ONLY: env_scatter_grid, env_gather_grid
@@ -79,6 +80,8 @@ MODULE class_mapping
         !
         GENERIC :: to_large => map_small_to_large_real, map_small_to_large_density
         GENERIC :: to_small => map_large_to_small_real, map_large_to_small_density
+        !
+        PROCEDURE :: printout => print_environ_mapping
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_mapping
@@ -139,8 +142,10 @@ CONTAINS
         this%small => small
         this%large => large
         !
-        IF (.NOT. ASSOCIATED(this%small, this%large)) &
+        IF (.NOT. ASSOCIATED(this%small, this%large)) THEN
             ALLOCATE (this%map(this%small%nnr))
+            this%map = 0
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_mapping
@@ -202,8 +207,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Generate mapping
         !
-        this%map = 0
-        !
         DO ir = 1, this%small%ir_end
             !
             CALL this%small%ir2ijk(ir, ijk(1), ijk(2), ijk(3), physical)
@@ -227,6 +230,11 @@ CONTAINS
         END DO
         !
         this%initialized = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+        ! Output current state
+        !
+        CALL this%printout()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_mapping
@@ -515,6 +523,87 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE map_large_to_small_density
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! Prints the details of the mapping
+    !!
+    !! @param verbose       : (INTEGER) adds verbosity to global verbose
+    !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
+    !! @param unit          : (INTEGER) output target (default = environ_unit)
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_mapping(this, verbose, debug_verbose, unit)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_mapping), INTENT(IN) :: this
+        INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
+        !
+        INTEGER :: base_verbose, local_verbose, local_unit
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_mapping'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(debug_verbose)) THEN
+            base_verbose = debug_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = verbose
+            ELSE
+                local_verbose = debug_verbose
+            END IF
+            !
+        ELSE IF (global_verbose > 0) THEN
+            base_verbose = global_verbose
+            !
+            IF (PRESENT(verbose)) THEN
+                local_verbose = base_verbose + verbose
+            ELSE
+                local_verbose = base_verbose
+            END IF
+            !
+        ELSE
+            RETURN
+        END IF
+        !
+        IF (PRESENT(unit)) THEN
+            local_unit = unit
+        ELSE
+            local_unit = environ_unit
+        END IF
+        !
+        IF (local_verbose >= 1) THEN
+            !
+            IF (ionode) THEN
+                WRITE (local_unit, 1000)
+                WRITE (local_unit, 1001) this%nrep
+                WRITE (local_unit, 1002) this%small%origin, this%large%origin
+            END IF
+            !
+        END IF
+        !
+        FLUSH (local_unit)
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(/, 4('%'), ' MAPPING ', 67('%'))
+!
+1001    FORMAT(/, ' number of replicas (x,y,z) = ', 3I14)
+!
+1002    FORMAT(/, ' cell origins:', /, &
+                ' system                     = ', 3F14.7, /, &
+                ' environment                = ', 3F14.7)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_mapping
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

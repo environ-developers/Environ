@@ -236,6 +236,7 @@ main.o : semiconductor.o
 main.o : setup.o
 main.o : system.o
 mapping.o : ../FFTs/base_scatter.o
+mapping.o : ../utils/base_io.o
 mapping.o : ../utils/mp.o
 mapping.o : cell.o
 mapping.o : constants.o
