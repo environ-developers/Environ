@@ -97,7 +97,9 @@ SUBROUTINE env_deallocate_mp_buffers()
     !
     !------------------------------------------------------------------------------------
     !
-    DEALLOCATE (buff_r, buff_i)
+    IF (ALLOCATED(buff_r)) DEALLOCATE (buff_r)
+    !
+    IF (ALLOCATED(buff_i)) DEALLOCATE (buff_i)
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_deallocate_mp_buffers
