@@ -315,11 +315,11 @@ CONTAINS
 !
 1002    FORMAT(/, ' system is built from the first ', I3, ' ionic types')
         !
-1003    FORMAT(/, ' system defined dimension   = ', I1, /, &
-                ' system defined axis        = ', I1)
+1003    FORMAT(/, ' system defined dimension   = ', I14, /, &
+                ' system defined axis        = ', I14)
         !
-1004    FORMAT(/, ' system center              =', 3F10.7, /, &
-                ' system width               = ', F9.7)
+1004    FORMAT(/, ' system center              = ', 3F14.7, /, &
+                ' system width               = ', F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_system

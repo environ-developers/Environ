@@ -557,7 +557,7 @@ CONTAINS
         !
 1002    FORMAT(/, ' density label              = ', A50)
         !
-1003    FORMAT(/, ' integral of density        = ', G19.10)
+1003    FORMAT(/, ' integral of density        = ', G18.10)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_density

@@ -284,7 +284,7 @@ CONTAINS
         !
 1000    FORMAT(/, 4('%'), ' EXTERNALS ', 65('%'))
         !
-1001    FORMAT(/, ' number of external charges = ', I10)
+1001    FORMAT(/, ' number of external charges = ', I14)
         !
 1002    FORMAT(/, ' total external charge      = ', F14.7)
         !

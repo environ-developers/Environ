@@ -858,17 +858,17 @@ CONTAINS
         !
 1002    FORMAT(/, ' cell label                 = ', A15)
         !
-1003    FORMAT(/, ' cell volume                = ', F12.6)
+1003    FORMAT(/, ' cell volume                = ', F14.6)
         !
-1004    FORMAT(/, ' simulation cell axes       = ', 3F12.6, /, &
-                '                              ', 3F12.6, /, &
-                '                              ', 3F12.6)
+1004    FORMAT(/, ' simulation cell axes       = ', 3F14.6, /, &
+                '                              ', 3F14.6, /, &
+                '                              ', 3F14.6)
         !
-1005    FORMAT(/, ' r-space grid dim           = ', 3I4)
+1005    FORMAT(/, ' r-space grid dim           = ', 3I14)
         !
-1006    FORMAT(/, ' total size of grid         = ', I12, /, &
-                ' r-space size per proc.     = ', I12, /, &
-                ' finite element volume      = ', F12.6)
+1006    FORMAT(/, ' total size of grid         = ', I14, /, &
+                ' r-space size per proc.     = ', I14, /, &
+                ' finite element volume      = ', F14.6)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_cell

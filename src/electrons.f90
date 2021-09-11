@@ -257,7 +257,7 @@ CONTAINS
         !
 1000    FORMAT(/, 4('%'), ' ELECTRONS ', 65('%'))
         !
-1001    FORMAT(/, ' number of electrons        = ', I10)
+1001    FORMAT(/, ' number of electrons        = ', I14)
         !
 1002    FORMAT(/, ' total electronic charge    = ', F14.7)
         !

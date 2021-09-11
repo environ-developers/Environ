@@ -992,11 +992,11 @@ CONTAINS
         !
 1002    FORMAT(/, ' dielectric build in the presence of dielectric regions:', /, &
                 ' environment bulk permitt.  = ', F14.7, /, &
-                ' number of dielec. regions  = ', I4)
+                ' number of dielec. regions  = ', I14)
         !
 1003    FORMAT(/, ' dielectric flags:', /, &
-                ' need gradient              = ', L2, /, &
-                ' need factor depend. sqrt   = ', L2)
+                ' need gradient              = ', L14, /, &
+                ' need factor depend. sqrt   = ', L14)
         !
 1004    FORMAT(/, ' total dielectric charge    = ', F14.7)
         !

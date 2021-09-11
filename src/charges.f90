@@ -469,7 +469,7 @@ CONTAINS
         !
 1000    FORMAT(/, 4('%'), ' CHARGES ', 67('%'))
         !
-1001    FORMAT(/, ' total number of charges    = ', I10)
+1001    FORMAT(/, ' total number of charges    = ', I14)
         !
 1002    FORMAT(/, ' total charge               = ', F14.7)
         !

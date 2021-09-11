@@ -821,28 +821,9 @@ CONTAINS
                 !
                 IF (this%cionmax > 0.D0) WRITE (local_unit, 1002) this%cionmax
                 !
+                WRITE (local_unit, 1003) this%linearized
+                WRITE (local_unit, 1004) this%charge
             END IF
-            !
-            DO ityp = 1, this%ntyp
-                !
-                IF (ionode) &
-                    WRITE (local_unit, 1003) &
-                    this%ioncctype(ityp)%index, this%ioncctype(ityp)%cbulk, &
-                    this%ioncctype(ityp)%cbulk * AMU_SI / BOHR_RADIUS_SI**3, &
-                    this%ioncctype(ityp)%z
-                !
-                IF (local_verbose >= 5) THEN
-                    !
-                    CALL this%ioncctype(ityp)%c%printout(passed_verbose, debug_verbose, &
-                                                         local_unit)
-                    !
-                    CALL this%ioncctype(ityp)%cfactor%printout(passed_verbose, &
-                                                               debug_verbose, &
-                                                               local_unit)
-                    !
-                END IF
-                !
-            END DO
             !
             IF (local_verbose >= 3) THEN
                 !
@@ -856,8 +837,33 @@ CONTAINS
                 CALL this%dgamma%printout(passed_verbose, debug_verbose, local_unit)
             !
             IF (ionode) THEN
-                WRITE (local_unit, 1004) this%linearized
-                WRITE (local_unit, 1005) this%charge
+                WRITE (local_unit, 1005) 
+                WRITE (local_unit, 1006) ! header
+            END IF
+            !
+            DO ityp = 1, this%ntyp
+                !
+                IF (ionode) &
+                    WRITE (local_unit, 1007) &
+                    this%ioncctype(ityp)%index, this%ioncctype(ityp)%cbulk, &
+                    this%ioncctype(ityp)%cbulk * AMU_SI / BOHR_RADIUS_SI**3, &
+                    this%ioncctype(ityp)%z
+                !
+            END DO
+            !
+            IF (local_verbose >= 5) THEN
+                !
+                DO ityp = 1, this%ntyp
+                    !
+                    CALL this%ioncctype(ityp)%c%printout(passed_verbose, debug_verbose, &
+                                                         local_unit)
+                    !
+                    CALL this%ioncctype(ityp)%cfactor%printout(passed_verbose, &
+                                                               debug_verbose, &
+                                                               local_unit)
+                    !
+                END DO
+                !
             END IF
             !
         END IF
@@ -868,22 +874,23 @@ CONTAINS
         !
 1000    FORMAT(/, 4('%'), ' ELECTROLYTE ', 64('%'))
         !
-1001    FORMAT(/, ' number electrolyte species = ', I4, /, &
-                ' solvent temperature        = ', F7.1, /, &
+1001    FORMAT(/, ' number electrolyte species = ', I14, /, &
+                ' solvent temperature        = ', F14.1, /, &
                 ' Debye length / sqrt(eps)   = ', F14.7)
         !
 1002    FORMAT(/, ' modified Poisson-Boltzmann:', /, &
                 ' maximum concentration      = ', F14.7)
         !
-1003    FORMAT(/, ' electrolyte species:', I4, /, &
-                ' bulk concentration (a.u.)  = ', E15.4, /, &
-                ' bulk concentration (mol/L) = ', F14.7, /, &
-                ' ionic charge               = ', F7.2)
+1003    FORMAT(/, ' electrolyte flags:', /, &
+                ' linearized                 = ', L14)
         !
-1004    FORMAT(/, ' electrolyte flags:', /, &
-                ' linearized                 = ', L2)
+1004    FORMAT(/, ' total electrolyte charge   = ', F14.7)
         !
-1005    FORMAT(/, ' total electrolyte charge   = ', F14.7)
+1005    FORMAT(/, ' species', /, 1X, 7('='))
+        !
+1006    FORMAT(/, '   i |  c_bulk (a.u.) | c_bulk (mol/L) | ionic charge', /, 1X, 52('-'))
+        !
+1007    FORMAT(1X, I3, ' | ', E14.4, ' | ', F14.7, ' | ', F12.2)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_electrolyte

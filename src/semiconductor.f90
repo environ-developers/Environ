@@ -268,9 +268,9 @@ CONTAINS
 1000    FORMAT(/, 4('%'), ' SEMICONDUCTOR ', 64('%'))
         !
 1001    FORMAT(/, ' Mott-Schottky:', /, &
-                ' dopant concentation   (cm^-3) = ', E15.4, /, &
-                ' semiconductor temperature (K) = ', F7.1, /, &
-                ' dielectric constant           = ', F7.2)
+                ' dopant concent.    (cm^-3) = ', E14.4, /, &
+                ' semiconductor temp.    (K) = ', F14.1, /, &
+                ' dielectric constant        = ', F14.2)
         !
 1002    FORMAT(/, ' total semiconductor charge    = ', F14.7)
         !

@@ -3044,8 +3044,8 @@ CONTAINS
                 ' center of the boundary     = ', 3F14.7, /, &
                 ' distance from the center   = ', F14.7, /, &
                 ' spread of the interface    = ', F14.7, /, &
-                ' dimensionality             = ', I2, /, &
-                ' axis                       = ', I2)
+                ' dimensionality             = ', I14, /, &
+                ' axis                       = ', I14)
         !
 1110    FORMAT(/, ' volume of the QM region    = ', F14.7)
         !
