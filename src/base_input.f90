@@ -76,6 +76,8 @@ MODULE env_base_input
 !     ENVIRON Namelist Input Parameters
     !=---------------------------------------------------------------------------------=!
     !
+    LOGICAL :: environ_debug = .FALSE.
+    !
     LOGICAL :: environ_restart = .FALSE.
     ! restart a previous calculation: environ contributions are computed during
     ! initialization
@@ -133,6 +135,9 @@ MODULE env_base_input
     ! number of additional replicas of the system cell on each side along the three axis
     ! nrep = 1 means there is one more cell on the left and on the right of the cell
     ! the environment cell is (2*nrep+1) times the system cell along the three axis
+    !
+    REAL(DP) :: mapping_pos(3) = 0.D0 ! specified for finite-difference debugging
+    ! if not specified, mapping will be fixed on the center of charge
     !
     !------------------------------------------------------------------------------------
     ! Modification of electrostatic embedding (e.g. PBC correction)
@@ -226,13 +231,14 @@ MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
     NAMELIST /environ/ &
-        environ_restart, verbose, environ_thr, environ_nskip, environ_type, &
-        system_ntyp, system_dim, system_axis, env_nrep, env_electrostatic, &
-        atomicspread, env_static_permittivity, env_optical_permittivity, &
-        env_surface_tension, env_pressure, env_confine, env_electrolyte_ntyp, &
-        cion, cionmax, rion, zion, temperature, electrolyte_linearized, &
-        electrolyte_entropy, sc_permittivity, sc_carrier_density, sc_electrode_chg, &
-        sc_chg_thr, env_external_charges, env_dielectric_regions
+        environ_debug, environ_restart, verbose, environ_thr, environ_nskip, &
+        environ_type, system_ntyp, system_dim, system_axis, env_nrep, mapping_pos, &
+        env_electrostatic, atomicspread, env_static_permittivity, &
+        env_optical_permittivity, env_surface_tension, env_pressure, env_confine, &
+        env_electrolyte_ntyp, cion, cionmax, rion, zion, temperature, &
+        electrolyte_linearized, electrolyte_entropy, sc_permittivity, &
+        sc_carrier_density, sc_electrode_chg, sc_chg_thr, env_external_charges, &
+        env_dielectric_regions
     !
     !=---------------------------------------------------------------------------------=!
 !     BOUNDARY Namelist Input Parameters

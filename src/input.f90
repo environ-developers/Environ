@@ -213,6 +213,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
+        environ_debug = .FALSE.
+        !
         environ_restart = .FALSE.
         verbose = 0
         environ_thr = 1.D-1
@@ -224,6 +226,7 @@ CONTAINS
         system_axis = 3
         !
         env_nrep = 0
+        mapping_pos = 0.D0
         !
         env_electrostatic = .FALSE.
         atomicspread(:) = -0.5D0
@@ -362,6 +365,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
+        CALL env_mp_bcast(environ_debug, ionode_id, comm)
+        !
         CALL env_mp_bcast(environ_restart, ionode_id, comm)
         !
         CALL env_mp_bcast(verbose, ionode_id, comm)
@@ -379,6 +384,8 @@ CONTAINS
         CALL env_mp_bcast(system_axis, ionode_id, comm)
         !
         CALL env_mp_bcast(env_nrep, ionode_id, comm)
+        !
+        CALL env_mp_bcast(mapping_pos, ionode_id, comm)
         !
         CALL env_mp_bcast(env_electrostatic, ionode_id, comm)
         !

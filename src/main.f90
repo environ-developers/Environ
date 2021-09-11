@@ -281,6 +281,8 @@ CONTAINS
         !
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
+        REAL(DP) :: local_pos(3)
+        !
         !--------------------------------------------------------------------------------
         !
         this%system_ions%lupdate = .TRUE.
@@ -303,9 +305,25 @@ CONTAINS
         CALL this%system_system%printout()
         !
         !--------------------------------------------------------------------------------
+        ! Update cell mapping
         !
-        CALL this%setup%update_mapping(this%system_system%pos)
-        ! update mapping with correct shift of environment cell
+        IF (.NOT. this%setup%mapping%initialized) THEN
+            !
+            IF (this%setup%ldoublecell) THEN
+                !
+                IF (environ_debug) THEN
+                    local_pos = mapping_pos ! debugging with finite-differences 
+                ELSE
+                    local_pos = this%system_system%pos ! center of charge
+                END IF
+                !
+                CALL this%setup%update_mapping(local_pos)
+                !
+            ELSE
+                this%setup%mapping%initialized = .TRUE. ! one-to-one mapping
+            END IF
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Update environment ions parameters
@@ -331,7 +349,7 @@ CONTAINS
         IF (this%setup%lelectrolyte) CALL this%electrolyte%boundary%set_soft_spheres()
         !
         !--------------------------------------------------------------------------------
-        ! Update cores ! #TODO not OOP compliant - rethink!
+        ! Update cores
         !
         IF (this%setup%l1da) &
             CALL this%setup%core_1da_elect%update_origin(this%environment_system%pos)
