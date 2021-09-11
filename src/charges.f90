@@ -230,6 +230,11 @@ CONTAINS
             CALL env_errore(sub_name, 'Inconsistent integral of total charge', 1)
         !
         !--------------------------------------------------------------------------------
+        ! Output current state
+        !
+        CALL this%printout()
+        !
+        !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_charges
     !------------------------------------------------------------------------------------
     !>

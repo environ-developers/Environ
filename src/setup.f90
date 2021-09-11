@@ -468,8 +468,6 @@ CONTAINS
         !
         CALL this%system_cell%update(at)
         !
-        CALL this%system_cell%printout()
-        !
         IF (this%ldoublecell) THEN
             this%environment_cell%lupdate = .TRUE.
             !
@@ -481,8 +479,6 @@ CONTAINS
             END DO
             !
             CALL this%environment_cell%update(environment_at)
-            !
-            CALL this%environment_cell%printout()
             !
         END IF
         !

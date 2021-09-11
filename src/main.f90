@@ -293,16 +293,12 @@ CONTAINS
         !
         CALL this%system_ions%update(nat, tau)
         !
-        CALL this%system_ions%printout()
-        !
         !--------------------------------------------------------------------------------
         ! Update system system parameters
         !
         this%system_system%lupdate = .TRUE.
         !
         CALL this%system_system%update()
-        !
-        CALL this%system_system%printout()
         !
         !--------------------------------------------------------------------------------
         ! Update cell mapping
@@ -330,16 +326,12 @@ CONTAINS
         !
         CALL this%environment_ions%update(nat, tau)
         !
-        CALL this%environment_ions%printout()
-        !
         !--------------------------------------------------------------------------------
         ! Update environment system parameters
         !
         this%environment_system%lupdate = .TRUE.
         !
         CALL this%environment_system%update()
-        !
-        CALL this%environment_system%printout()
         !
         !--------------------------------------------------------------------------------
         ! Set soft-sphere parameters
@@ -363,26 +355,12 @@ CONTAINS
                 !
                 CALL this%solvent%update()
                 !
-                IF (this%solvent%update_status == 2) CALL this%solvent%printout()
-                !
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
                 !
-                IF (this%setup%lstatic) THEN
-                    !
-                    CALL this%static%update()
-                    !
-                    IF (.NOT. this%static%lupdate) CALL this%static%printout()
-                    !
-                END IF
+                IF (this%setup%lstatic) CALL this%static%update()
                 !
-                IF (this%setup%loptical) THEN
-                    !
-                    CALL this%optical%update()
-                    !
-                    IF (.NOT. this%optical%lupdate) CALL this%optical%printout()
-                    !
-                END IF
+                IF (this%setup%loptical) CALL this%optical%update()
                 !
             END IF
             !
@@ -390,12 +368,7 @@ CONTAINS
                 !
                 CALL this%electrolyte%boundary%update()
                 !
-                IF (this%electrolyte%boundary%update_status == 2) &
-                    CALL this%electrolyte%boundary%printout()
-                !
                 CALL this%electrolyte%update()
-                !
-                IF (.NOT. this%electrolyte%lupdate) CALL this%electrolyte%printout()
                 !
             END IF
             !
@@ -460,8 +433,6 @@ CONTAINS
         !
         this%system_electrons%density%label = 'small_electrons'
         !
-        ! CALL this%system_electrons%density%write_cube() ! DEBUGGING
-        !
         IF (this%setup%ldoublecell) THEN
             ALLOCATE (aux(environment_cell%nnr))
             !
@@ -474,14 +445,6 @@ CONTAINS
         END IF
         !
         this%environment_electrons%density%label = 'large_electrons'
-        !
-        ! CALL this%environment_electrons%density%write_cube() ! DEBUGGING
-        !
-        ! STOP ! DEBUGGING
-        !
-        CALL this%system_electrons%printout()
-        !
-        CALL this%environment_electrons%printout()
         !
         IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
             !
@@ -500,26 +463,12 @@ CONTAINS
                 !
                 CALL this%solvent%update()
                 !
-                IF (this%solvent%update_status == 2) CALL this%solvent%printout()
-                !
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
                 !
-                IF (this%setup%lstatic) THEN
-                    !
-                    CALL this%static%update()
-                    !
-                    IF (.NOT. this%static%lupdate) CALL this%static%printout()
-                    !
-                END IF
+                IF (this%setup%lstatic) CALL this%static%update()
                 !
-                IF (this%setup%loptical) THEN
-                    !
-                    CALL this%optical%update()
-                    !
-                    IF (.NOT. this%optical%lupdate) CALL this%optical%printout()
-                    !
-                END IF
+                IF (this%setup%loptical) CALL this%optical%update()
                 !
             END IF
             !
@@ -527,12 +476,7 @@ CONTAINS
                 !
                 CALL this%electrolyte%boundary%update()
                 !
-                IF (this%electrolyte%boundary%update_status == 2) &
-                    CALL this%electrolyte%boundary%printout()
-                !
                 CALL this%electrolyte%update()
-                !
-                IF (.NOT. this%electrolyte%lupdate) CALL this%electrolyte%printout()
                 !
             END IF
             !

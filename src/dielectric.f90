@@ -861,7 +861,10 @@ CONTAINS
         !
         IF (this%need_factsqrt) CALL lapllocal%destroy()
         !
-        IF (global_verbose >= 3) CALL this%background%printout()
+        !--------------------------------------------------------------------------------
+        ! Output current state
+        !
+        IF (.NOT. this%lupdate) CALL this%printout()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_dielectric_background

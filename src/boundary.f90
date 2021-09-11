@@ -156,7 +156,7 @@ MODULE class_boundary
         !
         LOGICAL :: field_aware = .FALSE.
         REAL(DP) :: field_factor, charge_asymmetry, field_max, field_min
-        
+
         TYPE(environ_density) :: normal_field
         REAL(DP), ALLOCATABLE :: ion_field(:)
         CLASS(environ_function), ALLOCATABLE :: local_spheres(:)
@@ -774,6 +774,11 @@ CONTAINS
         !
         IF (this%update_status == 2 .AND. this%solvent_aware) &
             CALL this%solvent_aware_boundary()
+        !
+        !--------------------------------------------------------------------------------
+        ! Output current state
+        !
+        IF (this%update_status == 2) CALL this%printout()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_boundary
