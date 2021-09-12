@@ -170,7 +170,12 @@ CONTAINS
         !
         CALL this%core_fft%destroy()
         !
-        IF (this%use_internal_pbc_corr) DEALLOCATE (this%correction)
+        IF (this%use_internal_pbc_corr) THEN
+            !
+            IF (.NOT. ALLOCATED(this%correction)) CALL env_destroy_error(sub_name)
+            !
+            DEALLOCATE (this%correction)
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_fft_electrostatics

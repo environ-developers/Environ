@@ -149,8 +149,7 @@ CONTAINS
         !
         NULLIFY (this%cell)
         !
-        IF (.NOT. ALLOCATED(this%icfd)) &
-            CALL env_errore(sub_name, 'Trying to deallocate an empty object', 1)
+        IF (.NOT. ALLOCATED(this%icfd)) CALL env_destroy_error(sub_name)
         !
         DEALLOCATE (this%icfd)
         !

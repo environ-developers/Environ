@@ -195,8 +195,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !

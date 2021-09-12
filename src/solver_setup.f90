@@ -288,8 +288,7 @@ CONTAINS
             !
         END SELECT
         !
-        IF (.NOT. ASSOCIATED(this%solver)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%solver)) CALL env_destroy_error(sub_name)
         !
         NULLIFY (this%solver)
         !

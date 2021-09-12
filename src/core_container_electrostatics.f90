@@ -120,8 +120,7 @@ CONTAINS
         !
         CALL this%core%destroy()
         !
-        IF (.NOT. ASSOCIATED(this%core)) &
-            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        IF (.NOT. ASSOCIATED(this%core)) CALL env_destroy_error(sub_name)
         !
         NULLIFY (this%core)
         !
@@ -129,8 +128,7 @@ CONTAINS
             !
             CALL this%correction%destroy()
             !
-            IF (.NOT. ASSOCIATED(this%correction)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+            IF (.NOT. ASSOCIATED(this%correction)) CALL env_destroy_error(sub_name)
             !
             NULLIFY (this%correction)
         END IF
