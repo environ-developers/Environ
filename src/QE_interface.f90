@@ -576,18 +576,12 @@ CONTAINS
     !! clean up subroutines of specific Environ modules.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean(lflag)
+    SUBROUTINE environ_clean()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
+        CALL environ_clean_first()
         !
-        LOGICAL, INTENT(IN) :: lflag
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL environ_clean_first(lflag)
-        !
-        CALL environ_clean_second(lflag)
+        CALL environ_clean_second()
         !
         CALL env_deallocate_mp_buffers()
         !
@@ -601,12 +595,8 @@ CONTAINS
     !! The structure of this subroutine mirrors the one of init_environ subroutines
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean_first(lflag)
+    SUBROUTINE environ_clean_first()
         !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         !--------------------------------------------------------------------------------
         ! Deallocate environment variables
@@ -632,31 +622,31 @@ CONTAINS
         !
         IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
-            CALL env%system_charges%destroy(lflag)
+            CALL env%system_charges%destroy()
             !
-            CALL env%environment_charges%destroy(lflag)
+            CALL env%environment_charges%destroy()
             !
         END IF
         !
-        IF (setup%lexternals) CALL env%externals%destroy(lflag)
+        IF (setup%lexternals) CALL env%externals%destroy()
         !
-        IF (setup%lstatic) CALL env%static%destroy(lflag)
+        IF (setup%lstatic) CALL env%static%destroy()
         !
-        IF (setup%lelectrolyte) CALL env%electrolyte%destroy(lflag)
+        IF (setup%lelectrolyte) CALL env%electrolyte%destroy()
         !
-        IF (setup%lsemiconductor) CALL env%semiconductor%destroy(lflag)
+        IF (setup%lsemiconductor) CALL env%semiconductor%destroy()
         !
-        CALL env%system_electrons%destroy(lflag)
+        CALL env%system_electrons%destroy()
         !
-        CALL env%system_ions%destroy(lflag)
+        CALL env%system_ions%destroy()
         !
-        CALL env%system_system%destroy(lflag)
+        CALL env%system_system%destroy()
         !
-        CALL env%environment_electrons%destroy(lflag)
+        CALL env%environment_electrons%destroy()
         !
-        CALL env%environment_ions%destroy(lflag)
+        CALL env%environment_ions%destroy()
         !
-        CALL env%environment_system%destroy(lflag)
+        CALL env%environment_system%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_first
@@ -667,23 +657,18 @@ CONTAINS
     !! be needed by TDDFPT, thus may need to be cleaned later
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_clean_second(lflag)
+    SUBROUTINE environ_clean_second()
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         LOGICAL :: opnd
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
-            INQUIRE (unit=environ_unit, opened=opnd)
-            !
-            IF (opnd) CLOSE (unit=environ_unit)
-            !
-        END IF
+        INQUIRE (unit=environ_unit, opened=opnd)
+        !
+        IF (opnd) CLOSE (unit=environ_unit)
         !
         !--------------------------------------------------------------------------------
         ! base_environ variables
@@ -692,7 +677,7 @@ CONTAINS
             !
             IF (ASSOCIATED(env%velectrostatic%cell)) CALL env%velectrostatic%destroy()
             !
-            CALL electrostatic_clean(lflag)
+            CALL electrostatic_clean()
             !
         END IF
         !
@@ -701,31 +686,31 @@ CONTAINS
         !
         IF (setup%loptical) THEN
             !
-            CALL env%environment_response_charges%destroy(lflag)
+            CALL env%environment_response_charges%destroy()
             !
-            CALL env%environment_response_electrons%destroy(lflag)
+            CALL env%environment_response_electrons%destroy()
             !
-            CALL env%system_response_charges%destroy(lflag)
+            CALL env%system_response_charges%destroy()
             !
-            CALL env%system_response_electrons%destroy(lflag)
+            CALL env%system_response_electrons%destroy()
             !
-            CALL env%optical%destroy(lflag)
+            CALL env%optical%destroy()
             !
         END IF
         !
-        IF (setup%lsolvent) CALL env%solvent%destroy(lflag)
+        IF (setup%lsolvent) CALL env%solvent%destroy()
         !
-        IF (setup%lboundary) CALL setup%derivatives%destroy(lflag)
+        IF (setup%lboundary) CALL setup%derivatives%destroy()
         !
         IF (setup%ldoublecell) THEN
             !
-            CALL setup%mapping%destroy(lflag)
+            CALL setup%mapping%destroy()
             !
-            CALL setup%environment_cell%destroy(lflag)
+            CALL setup%environment_cell%destroy()
             !
         END IF
         !
-        CALL setup%system_cell%destroy(lflag)
+        CALL setup%system_cell%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_clean_second
@@ -733,18 +718,12 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE electrostatic_clean(lflag)
+    SUBROUTINE electrostatic_clean()
         !--------------------------------------------------------------------------------
         !
-        IMPLICIT NONE
+        CALL setup%outer%destroy()
         !
-        LOGICAL, INTENT(IN) :: lflag
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL setup%outer%destroy(lflag)
-        !
-        CALL setup%reference%destroy(lflag)
+        CALL setup%reference%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_clean

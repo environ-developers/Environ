@@ -244,18 +244,16 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_cell(this, lflag)
+    SUBROUTINE destroy_environ_cell(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%destroy_dfft(lflag)
+        CALL this%destroy_dfft()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_cell
@@ -303,12 +301,10 @@ CONTAINS
     !! Local fft-descriptor destructor
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_dfft(this, lflag)
+    SUBROUTINE destroy_dfft(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !

@@ -270,12 +270,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_electrostatic_setup(this, lflag)
+    SUBROUTINE destroy_electrostatic_setup(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
         !
@@ -283,26 +281,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
+        SELECT TYPE (solver => this%solver)
             !
-            SELECT TYPE (solver => this%solver)
-                !
-            TYPE IS (solver_direct)
-                CALL solver%destroy(lflag)
-                !
-            CLASS IS (solver_iterative)
-                CALL solver%destroy(lflag)
-                !
-            END SELECT
+        CLASS IS (solver_direct)
+            CALL solver%destroy()
             !
-            IF (.NOT. ASSOCIATED(this%solver)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-            !
-            NULLIFY (this%solver)
-            !
-            IF (ASSOCIATED(this%inner)) CALL this%inner%destroy(lflag)
-            !
-        END IF
+        END SELECT
+        !
+        IF (.NOT. ASSOCIATED(this%solver)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        NULLIFY (this%solver)
+        !
+        IF (ASSOCIATED(this%inner)) CALL this%inner%destroy()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_electrostatic_setup

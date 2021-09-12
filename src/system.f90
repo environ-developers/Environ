@@ -210,12 +210,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_system(this, lflag)
+    SUBROUTINE destroy_environ_system(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
@@ -223,12 +221,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
-            !
-            IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
-            !
-            NULLIFY (this%ions)
-        END IF
+        IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
+        !
+        NULLIFY (this%ions)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_system

@@ -364,12 +364,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_dielectric(this, lflag)
+    SUBROUTINE destroy_environ_dielectric(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
@@ -377,21 +375,18 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
+        IF (this%nregions > 0) THEN
+            CALL destroy_environ_functions(this%regions, this%nregions)
+        ELSE
             !
-            IF (this%nregions > 0) THEN
-                CALL destroy_environ_functions(this%regions, this%nregions)
-            ELSE
-                !
-                IF (ALLOCATED(this%regions)) &
-                    CALL env_errore(sub_name, 'Found unexpected allocated object', 1)
-                !
-            END IF
+            IF (ALLOCATED(this%regions)) &
+                CALL env_errore(sub_name, 'Found unexpected allocated object', 1)
             !
-            IF (.NOT. ASSOCIATED(this%boundary)) CALL env_destroy_error(sub_name)
-            !
-            NULLIFY (this%boundary)
         END IF
+        !
+        IF (.NOT. ASSOCIATED(this%boundary)) CALL env_destroy_error(sub_name)
+        !
+        NULLIFY (this%boundary)
         !
         CALL this%background%destroy()
         !

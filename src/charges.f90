@@ -293,12 +293,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_charges(this, lflag)
+    SUBROUTINE destroy_environ_charges(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
@@ -306,21 +304,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
-            !
-            IF (ASSOCIATED(this%ions)) NULLIFY (this%ions)
-            !
-            IF (ASSOCIATED(this%electrons)) NULLIFY (this%electrons)
-            !
-            IF (ASSOCIATED(this%externals)) NULLIFY (this%externals)
-            !
-            IF (ASSOCIATED(this%dielectric)) NULLIFY (this%dielectric)
-            !
-            IF (ASSOCIATED(this%electrolyte)) NULLIFY (this%electrolyte)
-            !
-            IF (ASSOCIATED(this%semiconductor)) NULLIFY (this%semiconductor)
-            !
-        END IF
+        IF (ASSOCIATED(this%ions)) NULLIFY (this%ions)
+        !
+        IF (ASSOCIATED(this%electrons)) NULLIFY (this%electrons)
+        !
+        IF (ASSOCIATED(this%externals)) NULLIFY (this%externals)
+        !
+        IF (ASSOCIATED(this%dielectric)) NULLIFY (this%dielectric)
+        !
+        IF (ASSOCIATED(this%electrolyte)) NULLIFY (this%electrolyte)
+        !
+        IF (ASSOCIATED(this%semiconductor)) NULLIFY (this%semiconductor)
         !
         CALL this%density%destroy()
         !

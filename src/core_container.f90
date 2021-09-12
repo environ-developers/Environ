@@ -118,12 +118,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_container(this, lflag)
+    SUBROUTINE destroy_core_container(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(core_container), INTENT(INOUT) :: this
         !
@@ -131,15 +129,12 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
-            !
-            IF (.NOT. ASSOCIATED(this%core)) &
-                CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-            !
-            CALL this%core%destroy(lflag)
-            !
-            NULLIFY (this%core)
-        END IF
+        IF (.NOT. ASSOCIATED(this%core)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        CALL this%core%destroy()
+        !
+        NULLIFY (this%core)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_container

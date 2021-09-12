@@ -114,12 +114,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_solver_direct(this, lflag)
+    SUBROUTINE destroy_solver_direct(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
@@ -130,7 +128,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(this%cores)) &
             CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
         !
-        CALL this%cores%destroy(lflag)
+        CALL this%cores%destroy()
         !
         NULLIFY (this%cores)
         !

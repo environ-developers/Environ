@@ -184,12 +184,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_fft(this, lflag)
+    SUBROUTINE destroy_core_fft(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(core_fft), INTENT(INOUT) :: this
         !

@@ -64,9 +64,8 @@ MODULE class_core_numerical
             IMPORT numerical_core
             CLASS(numerical_core), INTENT(INOUT) :: this
         END SUBROUTINE
-        SUBROUTINE destroy_core(this, lflag)
+        SUBROUTINE destroy_core(this)
             IMPORT numerical_core
-            LOGICAL, INTENT(IN) :: lflag
             CLASS(numerical_core), INTENT(INOUT) :: this
         END SUBROUTINE
     END INTERFACE

@@ -136,12 +136,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_fd(this, lflag)
+    SUBROUTINE destroy_core_fd(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(core_fd), INTENT(INOUT) :: this
         !
@@ -151,13 +149,10 @@ CONTAINS
         !
         NULLIFY (this%cell)
         !
-        IF (lflag) THEN
-            !
-            IF (.NOT. ALLOCATED(this%icfd)) &
-                CALL env_errore(sub_name, 'Trying to deallocate an empty object', 1)
-            !
-            DEALLOCATE (this%icfd)
-        END IF
+        IF (.NOT. ALLOCATED(this%icfd)) &
+            CALL env_errore(sub_name, 'Trying to deallocate an empty object', 1)
+        !
+        DEALLOCATE (this%icfd)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_fd

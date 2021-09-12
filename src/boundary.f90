@@ -786,12 +786,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_boundary(this, lflag)
+    SUBROUTINE destroy_environ_boundary(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_boundary), INTENT(INOUT) :: this
         !
@@ -833,54 +831,46 @@ CONTAINS
             !
         END IF
         !
-        IF (lflag) THEN
-            !
-            !----------------------------------------------------------------------------
-            ! These components were allocated first, destroy only if lflag = .TRUE.
-            !
-            IF (this%need_ions) THEN
-                IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
+        IF (this%need_ions) THEN
+            IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
+                !
+                CALL destroy_environ_functions(this%soft_spheres, this%ions%number)
+                !
+                IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
                     !
-                    CALL destroy_environ_functions(this%soft_spheres, this%ions%number)
+                    CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
                     !
-                    IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
-                        !
-                        CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
-                        !
-                        DEALLOCATE (this%ion_field)
-                        DEALLOCATE (this%partial_of_ion_field)
-                        !
-                        CALL destroy_environ_functions(this%local_spheres, &
-                                                       this%ions%number)
-                        !
-                        DEALLOCATE (this%dion_field_drho)
-                    END IF
+                    DEALLOCATE (this%ion_field)
+                    DEALLOCATE (this%partial_of_ion_field)
                     !
+                    CALL destroy_environ_functions(this%local_spheres, this%ions%number)
+                    !
+                    DEALLOCATE (this%dion_field_drho)
                 END IF
                 !
-                IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
-                !
-                NULLIFY (this%ions)
-            ELSE
-                !
-                IF (ASSOCIATED(this%ions)) &
-                    CALL env_errore(sub_name, 'Found an unexpected associated object', 1)
-                !
             END IF
             !
-            IF (this%need_electrons) THEN
-                IF (ASSOCIATED(this%electrons)) NULLIFY (this%electrons)
-            END IF
+            IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
             !
-            IF (this%solvent_aware) DEALLOCATE (this%solvent_probe%pos)
+            NULLIFY (this%ions)
+        ELSE
             !
-            IF (this%need_system) THEN
-                !
-                CALL this%simple%destroy()
-                !
-                IF (ASSOCIATED(this%system)) NULLIFY (this%system)
-                !
-            END IF
+            IF (ASSOCIATED(this%ions)) &
+                CALL env_errore(sub_name, 'Found an unexpected associated object', 1)
+            !
+        END IF
+        !
+        IF (this%need_electrons) THEN
+            IF (ASSOCIATED(this%electrons)) NULLIFY (this%electrons)
+        END IF
+        !
+        IF (this%solvent_aware) DEALLOCATE (this%solvent_probe%pos)
+        !
+        IF (this%need_system) THEN
+            !
+            CALL this%simple%destroy()
+            !
+            IF (ASSOCIATED(this%system)) NULLIFY (this%system)
             !
         END IF
         !

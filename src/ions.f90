@@ -383,12 +383,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_ions(this, lflag)
+    SUBROUTINE destroy_environ_ions(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
@@ -414,18 +412,15 @@ CONTAINS
         !
         this%charge = 0.D0
         !
-        IF (lflag) THEN
-            !
-            IF (.NOT. ALLOCATED(this%ityp)) CALL env_destroy_error(sub_name)
-            !
-            IF (.NOT. ALLOCATED(this%iontype)) CALL env_destroy_error(sub_name)
-            !
-            IF (.NOT. ASSOCIATED(this%tau)) CALL env_destroy_error(sub_name)
-            !
-            DEALLOCATE (this%ityp)
-            DEALLOCATE (this%iontype)
-            DEALLOCATE (this%tau)
-        END IF
+        IF (.NOT. ALLOCATED(this%ityp)) CALL env_destroy_error(sub_name)
+        !
+        IF (.NOT. ALLOCATED(this%iontype)) CALL env_destroy_error(sub_name)
+        !
+        IF (.NOT. ASSOCIATED(this%tau)) CALL env_destroy_error(sub_name)
+        !
+        DEALLOCATE (this%ityp)
+        DEALLOCATE (this%iontype)
+        DEALLOCATE (this%tau)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_ions

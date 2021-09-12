@@ -230,12 +230,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_1da(this, lflag)
+    SUBROUTINE destroy_core_1da(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !

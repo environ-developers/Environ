@@ -157,12 +157,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_fft_electrostatics(this, lflag)
+    SUBROUTINE destroy_core_fft_electrostatics(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(core_fft_electrostatics), INTENT(INOUT) :: this
         !
@@ -170,7 +168,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%core_fft%destroy(lflag)
+        CALL this%core_fft%destroy()
         !
         IF (this%use_internal_pbc_corr) DEALLOCATE (this%correction)
         !

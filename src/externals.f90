@@ -179,12 +179,10 @@ CONTAINS
     !!
     !>
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_externals(this, lflag)
+    SUBROUTINE destroy_environ_externals(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_externals), INTENT(INOUT) :: this
         !
@@ -192,7 +190,7 @@ CONTAINS
         !
         CALL this%density%destroy()
         !
-        IF (lflag) CALL destroy_environ_functions(this%functions, this%number)
+        CALL destroy_environ_functions(this%functions, this%number)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_externals

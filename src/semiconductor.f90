@@ -164,12 +164,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_semiconductor(this, lflag)
+    SUBROUTINE destroy_environ_semiconductor(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this
         !

@@ -313,12 +313,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_electrolyte(this, lflag)
+    SUBROUTINE destroy_environ_electrolyte(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
@@ -328,7 +326,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%boundary%destroy(lflag)
+        CALL this%boundary%destroy()
         !
         DO ityp = 1, this%ntyp
             CALL this%ioncctype(ityp)%destroy()
@@ -342,12 +340,9 @@ CONTAINS
         !
         IF (this%linearized) CALL this%de_dboundary_second_order%destroy()
         !
-        IF (lflag) THEN
-            !
-            IF (.NOT. ALLOCATED(this%ioncctype)) CALL env_destroy_error(sub_name)
-            !
-            DEALLOCATE (this%ioncctype)
-        END IF
+        IF (.NOT. ALLOCATED(this%ioncctype)) CALL env_destroy_error(sub_name)
+        !
+        DEALLOCATE (this%ioncctype)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_environ_electrolyte
@@ -837,7 +832,7 @@ CONTAINS
                 CALL this%dgamma%printout(passed_verbose, debug_verbose, local_unit)
             !
             IF (ionode) THEN
-                WRITE (local_unit, 1005) 
+                WRITE (local_unit, 1005)
                 WRITE (local_unit, 1006) ! header
             END IF
             !

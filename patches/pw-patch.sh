@@ -141,7 +141,7 @@ sed '/Environ CALLS BEGIN/ a\
          ! ones initialized while processing the input:\
          ! this allows NEB simulations\
          !\
-         IF (.NOT. is_tddfpt()) CALL environ_clean(lflag)\
+         IF (.NOT. is_tddfpt()) CALL environ_clean()\
          !\
       ELSE IF ( prog(1:2) == "TD" ) THEN\
          !\
@@ -151,9 +151,9 @@ sed '/Environ CALLS BEGIN/ a\
          ! fully cleaned (no NEB with TD).\
          !\
          IF (.NOT. lflag) THEN\
-            CALL environ_clean_first(.TRUE.)\
+            CALL environ_clean_first()\
          ELSE\
-            CALL environ_clean_second(.TRUE.)\
+            CALL environ_clean_second()\
          END IF\
          !\
       END IF\

@@ -242,12 +242,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_mapping(this, lflag)
+    SUBROUTINE destroy_environ_mapping(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !

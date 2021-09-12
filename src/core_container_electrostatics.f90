@@ -107,12 +107,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_electrostatics_container(this, lflag)
+    SUBROUTINE destroy_electrostatics_container(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(container_electrostatics), INTENT(INOUT) :: this
         !
@@ -120,25 +118,21 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (lflag) THEN
+        CALL this%core%destroy()
+        !
+        IF (.NOT. ASSOCIATED(this%core)) &
+            CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
+        !
+        NULLIFY (this%core)
+        !
+        IF (ASSOCIATED(this%correction)) THEN
             !
-            CALL this%core%destroy(lflag)
+            CALL this%correction%destroy()
             !
-            IF (.NOT. ASSOCIATED(this%core)) &
+            IF (.NOT. ASSOCIATED(this%correction)) &
                 CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
             !
-            NULLIFY (this%core)
-            !
-            IF (ASSOCIATED(this%correction)) THEN
-                !
-                CALL this%correction%destroy(lflag)
-                !
-                IF (.NOT. ASSOCIATED(this%correction)) &
-                    CALL env_errore(sub_name, 'Trying to destroy an empty object', 1)
-                !
-                NULLIFY (this%correction)
-            END IF
-            !
+            NULLIFY (this%correction)
         END IF
         !
         !--------------------------------------------------------------------------------

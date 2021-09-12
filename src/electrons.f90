@@ -160,12 +160,10 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_environ_electrons(this, lflag)
+    SUBROUTINE destroy_environ_electrons(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN) :: lflag
         !
         CLASS(environ_electrons), INTENT(INOUT) :: this
         !
