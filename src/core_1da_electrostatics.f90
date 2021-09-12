@@ -126,7 +126,7 @@ CONTAINS
         cell => potential%cell
         omega => cell%omega
         !
-        env_periodicity => this%d
+        env_periodicity => this%dim
         slab_axis => this%axis
         axis_length => this%size
         origin => this%origin
@@ -241,7 +241,7 @@ CONTAINS
         cell => gvtot%cell
         omega => cell%omega
         !
-        env_periodicity => this%d
+        env_periodicity => this%dim
         slab_axis => this%axis
         origin => this%origin
         axis => this%x
@@ -338,7 +338,7 @@ CONTAINS
         tau => charges%ions%tau
         ityp => charges%ions%ityp
         !
-        env_periodicity => this%d
+        env_periodicity => this%dim
         slab_axis => this%axis
         origin => this%origin
         !
@@ -445,7 +445,7 @@ CONTAINS
         nnr => cell%nnr
         omega => cell%omega
         !
-        env_periodicity => this%d
+        env_periodicity => this%dim
         slab_axis => this%axis
         axis_length => this%size
         origin => this%origin
@@ -688,7 +688,7 @@ CONTAINS
         nnr => cell%nnr
         omega => cell%omega
         !
-        env_periodicity => this%d
+        env_periodicity => this%dim
         slab_axis => this%axis
         axis_length => this%size
         origin => this%origin
@@ -884,14 +884,14 @@ CONTAINS
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
             CALL env_errore(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
-        IF (potential%cell%nnr /= this%n) &
+        IF (potential%cell%nnr /= this%nnr) &
             CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => potential%cell
         nnr => cell%nnr
         omega => cell%omega
         !
-        env_periodicity => this%d
+        env_periodicity => this%dim
         slab_axis => this%axis
         axis_length => this%size
         origin => this%origin
@@ -1051,13 +1051,13 @@ CONTAINS
         IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &
             CALL env_errore(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
-        IF (gradv%cell%nnr /= this%n) &
+        IF (gradv%cell%nnr /= this%nnr) &
             CALL env_errore(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         cell => gradv%cell
         omega => cell%omega
         !
-        env_periodicity => this%d
+        env_periodicity => this%dim
         slab_axis => this%axis
         axis_length => this%size
         origin => this%origin

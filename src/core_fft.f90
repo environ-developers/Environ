@@ -151,8 +151,6 @@ CONTAINS
         this%ngm = cell%dfft%ngm
         !
         !--------------------------------------------------------------------------------
-        ! #TODO The following routines are in generate_gvectors
-        ! and may need to be simplified
         !
         CALL this%init_gvect(ngm_g, cell%dfft%comm)
         !

@@ -53,8 +53,14 @@ MODULE class_core_1da
     TYPE, EXTENDS(numerical_core), PUBLIC :: core_1da
         !--------------------------------------------------------------------------------
         !
-        INTEGER :: n, d, p, axis
-        REAL(DP) :: size, origin(3)
+        INTEGER :: nnr = 0
+        INTEGER :: dim = 0
+        INTEGER :: pdim = 0
+        INTEGER :: axis = 0
+        !
+        REAL(DP) :: size = 0.D0
+        REAL(DP) :: origin(3) = 0.D0
+        !
         REAL(DP), ALLOCATABLE :: x(:, :)
         !
         !--------------------------------------------------------------------------------
@@ -114,7 +120,7 @@ CONTAINS
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: dim, axis
-        TYPE(environ_cell), INTENT(IN) :: cell
+        TYPE(environ_cell), TARGET, INTENT(IN) :: cell
         !
         CLASS(core_1da), INTENT(INOUT) :: this
         !
@@ -128,21 +134,17 @@ CONTAINS
             CALL env_errore(sub_name, &
                             'Wrong dimensions for analytic one dimensional core', 1)
         !
-        this%d = dim
-        this%p = 3 - dim
+        this%dim = dim
+        this%pdim = 3 - dim
         !
         IF ((dim == 1 .OR. dim == 2) .AND. (axis > 3 .OR. axis < 1)) &
             CALL env_errore(sub_name, &
                             'Wrong choice of axis for analytic one dimensional core', 1)
         !
         this%axis = axis
-        !
-        CALL this%update_cell(cell)
-        !
-        this%n = cell%nnr
-        ALLOCATE (this%x(this%p, this%n))
-        !
-        CALL this%update_origin(cell%origin)
+        this%nnr = cell%nnr
+        this%cell => cell
+        ALLOCATE (this%x(this%pdim, this%nnr))
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_core_1da
@@ -163,11 +165,11 @@ CONTAINS
         !
         this%cell => cell
         !
-        IF (this%d == 0) THEN
+        IF (this%dim == 0) THEN
             this%size = cell%omega
-        ELSE IF (this%d == 1) THEN
+        ELSE IF (this%dim == 1) THEN
             this%size = cell%omega / cell%at(this%axis, this%axis)
-        ELSE IF (this%d == 2) THEN
+        ELSE IF (this%dim == 2) THEN
             this%size = cell%at(this%axis, this%axis)
         END IF
         !
@@ -196,7 +198,7 @@ CONTAINS
         !
         this%origin = origin
         !
-        IF (this%d == 0) THEN
+        IF (this%dim == 0) THEN
             !
             DO ir = 1, this%cell%ir_end
                 !
@@ -208,9 +210,9 @@ CONTAINS
                 this%x(:, ir) = -r
             END DO
             !
-        ELSE IF (this%d == 1) THEN
+        ELSE IF (this%dim == 1) THEN
             CALL env_errore(sub_name, 'Option not yet implemented', 1)
-        ELSE IF (this%d == 2) THEN
+        ELSE IF (this%dim == 2) THEN
             !
             DO ir = 1, this%cell%ir_end
                 !

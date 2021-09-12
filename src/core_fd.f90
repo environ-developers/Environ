@@ -51,10 +51,11 @@ MODULE class_core_fd
     TYPE, EXTENDS(numerical_core), PUBLIC :: core_fd
         !--------------------------------------------------------------------------------
         !
-        INTEGER :: ifdtype
-        INTEGER :: nfdpoint
+        INTEGER :: ifdtype = 0
+        INTEGER :: nfdpoint = 0
+        INTEGER :: ncfd = 0
+        !
         INTEGER, ALLOCATABLE :: icfd(:)
-        INTEGER :: ncfd
         !
         !--------------------------------------------------------------------------------
     CONTAINS

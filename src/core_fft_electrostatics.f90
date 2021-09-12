@@ -64,7 +64,9 @@ MODULE class_core_fft_electrostatics
         !
         LOGICAL :: use_internal_pbc_corr = .FALSE.
         !
-        REAL(DP) :: alpha, beta
+        REAL(DP) :: alpha = 0.D0
+        REAL(DP) :: beta = 0.D0
+        !
         REAL(DP), ALLOCATABLE :: correction(:)
         !
         !--------------------------------------------------------------------------------
