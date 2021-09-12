@@ -80,7 +80,6 @@ MODULE class_density
         PROCEDURE, PRIVATE :: create => create_environ_density
         PROCEDURE :: init => init_environ_density
         PROCEDURE :: copy => copy_environ_density
-        PROCEDURE :: update => update_environ_density
         PROCEDURE :: destroy => destroy_environ_density
         !
         PROCEDURE :: multipoles => multipoles_environ_density
@@ -196,23 +195,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE copy_environ_density
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_density(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_density), INTENT(INOUT) :: this
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%multipoles(this%cell%origin, this%charge, this%dipole, this%quadrupole)
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE update_environ_density
     !------------------------------------------------------------------------------------
     !>
     !!

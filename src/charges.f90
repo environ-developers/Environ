@@ -222,9 +222,7 @@ CONTAINS
             this%density%of_r = this%density%of_r + this%externals%density%of_r
         END IF
         !
-        CALL this%density%update()
-        !
-        local_charge = this%density%charge
+        local_charge = this%density%integrate()
         !
         IF (ABS(local_charge - this%charge) > 1.D-5) &
             CALL env_errore(sub_name, 'Inconsistent integral of total charge', 1)
