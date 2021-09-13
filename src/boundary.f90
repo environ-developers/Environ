@@ -38,7 +38,7 @@
 MODULE class_boundary
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, program_unit, global_verbose
+    USE env_base_io, ONLY: io
     !
     USE environ_param, ONLY: DP, e2, sqrtpi, tpi
     !
@@ -1622,11 +1622,8 @@ CONTAINS
             !
             spurious_force = partial%modulus%integrate()
             !
-            IF (spurious_force > tolspuriousforce .AND. ionode) &
-                WRITE (program_unit, 1000) index, spurious_force
-            !
-1000        FORMAT(' WARNING: Unphysical forces due to core electrons are non-negligible ', /, &
-                   ' atom type ', I3, ' is subject to a spurious force of ', F12.6)
+            IF (spurious_force > tolspuriousforce .AND. io%lnode) &
+                WRITE (io%unit, 1000) index, spurious_force
             !
         ELSE IF (this%mode == 'system') THEN
             !
@@ -1636,6 +1633,11 @@ CONTAINS
             !
             partial%of_r = 0.D0
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT(' WARNING: Unphysical forces due to core electrons are non-negligible ', /, &
+               ' atom type ', I3, ' is subject to a spurious force of ', F12.6)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_dboundary_dions
@@ -2832,7 +2834,7 @@ CONTAINS
     !!
     !! @param verbose       : (INTEGER) adds verbosity to global verbose
     !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
-    !! @param unit          : (INTEGER) output target (default = environ_unit)
+    !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_boundary(this, verbose, debug_verbose, unit)
@@ -2860,8 +2862,8 @@ CONTAINS
             !
             passed_verbose = verbose - 1
             !
-        ELSE IF (global_verbose > 0) THEN
-            base_verbose = global_verbose
+        ELSE IF (io%verbosity > 0) THEN
+            base_verbose = io%verbosity
             !
             IF (PRESENT(verbose)) THEN
                 local_verbose = base_verbose + verbose
@@ -2878,19 +2880,19 @@ CONTAINS
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (local_verbose >= 1) THEN
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 WRITE (local_unit, 1100)
                 WRITE (local_unit, 1101) this%label, this%mode
             END IF
             !
             IF (this%need_electrons) THEN
                 !
-                IF (ionode) THEN
+                IF (io%lnode) THEN
                     WRITE (local_unit, 1102) this%b_type
                     !
                     SELECT CASE (this%b_type)
@@ -2914,7 +2916,7 @@ CONTAINS
                     !
                     CALL this%density%printout(passed_verbose, debug_verbose, local_unit)
                     !
-                    IF (ionode .AND. this%need_ions) WRITE (local_unit, 1107)
+                    IF (io%lnode .AND. this%need_ions) WRITE (local_unit, 1107)
                     !
                 END IF
                 !
@@ -2929,14 +2931,14 @@ CONTAINS
                 !
             ELSE IF (this%need_ions) THEN
                 !
-                IF (ionode) WRITE (local_unit, 1108) this%alpha, this%softness
+                IF (io%lnode) WRITE (local_unit, 1108) this%alpha, this%softness
                 !
                 IF (local_verbose >= 3) &
                     CALL print_environ_functions(this%soft_spheres, this%ions%number, &
                                                  passed_verbose, debug_verbose, &
                                                  local_unit)
                 !
-            ELSE IF (ionode .AND. this%need_system) THEN
+            ELSE IF (io%lnode .AND. this%need_system) THEN
                 !
                 WRITE (local_unit, 1109) &
                     this%simple%pos, this%simple%width, &
@@ -2945,7 +2947,7 @@ CONTAINS
                 !
             END IF
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 WRITE (local_unit, 1110) this%volume
                 !
                 IF (this%deriv >= 1) WRITE (local_unit, 1111) this%surface
@@ -2957,7 +2959,7 @@ CONTAINS
             !
             IF (this%solvent_aware) THEN
                 !
-                IF (ionode) &
+                IF (io%lnode) &
                     WRITE (local_unit, 1112) &
                     this%filling_threshold, this%filling_spread, &
                     this%solvent_probe%width, this%solvent_probe%spread

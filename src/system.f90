@@ -32,7 +32,7 @@
 MODULE class_system
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
+    USE env_base_io, ONLY: io
     !
     USE environ_param, ONLY: DP
     !
@@ -239,7 +239,7 @@ CONTAINS
     !!
     !! @param verbose       : (INTEGER) adds verbosity to global verbose
     !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
-    !! @param unit          : (INTEGER) output target (default = environ_unit)
+    !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_system(this, verbose, debug_verbose, unit)
@@ -256,7 +256,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ionode) RETURN
+        IF (.NOT. io%lnode) RETURN
         !
         IF (PRESENT(debug_verbose)) THEN
             base_verbose = debug_verbose
@@ -267,8 +267,8 @@ CONTAINS
                 local_verbose = debug_verbose
             END IF
             !
-        ELSE IF (global_verbose > 0) THEN
-            base_verbose = global_verbose
+        ELSE IF (io%verbosity > 0) THEN
+            base_verbose = io%verbosity
             !
             IF (PRESENT(verbose)) THEN
                 local_verbose = base_verbose + verbose
@@ -283,7 +283,7 @@ CONTAINS
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (local_verbose >= 1) THEN

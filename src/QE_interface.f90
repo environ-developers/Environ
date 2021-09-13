@@ -33,8 +33,7 @@ MODULE environ_QE_interface
     !
     USE env_char_ops, ONLY: env_uppercase
     !
-    USE env_base_io, ONLY: prog, ionode, ionode_id, comm, program_unit, environ_unit, &
-                           lstdout, global_verbose
+    USE env_base_io, ONLY: io
     !
     USE env_io, ONLY: env_find_free_unit
     !
@@ -87,39 +86,36 @@ CONTAINS
     !! Set global I/O constants
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_io(prog_, ionode_, ionode_id_, comm_, program_unit_)
+    SUBROUTINE init_environ_io(prog, ionode, ionode_id, comm, program_unit)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=*), INTENT(IN) :: prog_
-        LOGICAL, INTENT(IN) :: ionode_
-        INTEGER, INTENT(IN) :: ionode_id_
-        INTEGER, INTENT(IN) :: comm_
-        INTEGER, INTENT(IN) :: program_unit_
+        CHARACTER(LEN=*), INTENT(IN) :: prog
+        LOGICAL, INTENT(IN) :: ionode
+        INTEGER, INTENT(IN) :: ionode_id
+        INTEGER, INTENT(IN) :: comm
+        INTEGER, INTENT(IN) :: program_unit
+        !
+        LOGICAL :: lstdout
+        INTEGER :: environ_unit
         !
         !--------------------------------------------------------------------------------
         !
-        ionode = ionode_
-        ionode_id = ionode_id_
-        comm = comm_
-        !
-        program_unit = program_unit_
         environ_unit = env_find_free_unit()
+        io%prog = env_uppercase(prog(1:2))
         !
-        prog = env_uppercase(prog_(1:2))
-        !
-        SELECT CASE (prog)
+        SELECT CASE (io%prog)
             !
         CASE ('PW', 'CP')
-            lstdout = .TRUE.
+            lstdout = .TRUE. .AND. ionode
             !
         CASE DEFAULT
             lstdout = .FALSE.
             !
         END SELECT
         !
-        lstdout = lstdout .AND. ionode
+        CALL io%init(ionode, ionode_id, comm, program_unit, environ_unit, lstdout)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_io
@@ -538,7 +534,7 @@ CONTAINS
     INTEGER FUNCTION get_environ_verbose()
         !--------------------------------------------------------------------------------
         !
-        get_environ_verbose = global_verbose
+        get_environ_verbose = io%verbosity
         !
         !--------------------------------------------------------------------------------
     END FUNCTION get_environ_verbose
@@ -666,9 +662,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        INQUIRE (unit=environ_unit, opened=opnd)
+        INQUIRE (unit=io%debug_unit, opened=opnd)
         !
-        IF (opnd) CLOSE (unit=environ_unit)
+        IF (opnd) CLOSE (unit=io%debug_unit)
         !
         !--------------------------------------------------------------------------------
         ! base_environ variables
@@ -748,35 +744,35 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ionode) THEN
+        IF (io%lnode) THEN
             !
-            SELECT CASE (prog)
+            SELECT CASE (io%prog)
                 !
             CASE ('PW')
                 !
-                IF (setup%lelectrostatic) WRITE (program_unit, 1000) env%eelectrostatic
+                IF (setup%lelectrostatic) WRITE (io%unit, 1000) env%eelectrostatic
                 !
-                IF (setup%lsurface) WRITE (program_unit, 1001) env%esurface
+                IF (setup%lsurface) WRITE (io%unit, 1001) env%esurface
                 !
-                IF (setup%lvolume) WRITE (program_unit, 1002) env%evolume
+                IF (setup%lvolume) WRITE (io%unit, 1002) env%evolume
                 !
-                IF (setup%lconfine) WRITE (program_unit, 1003) env%econfine
+                IF (setup%lconfine) WRITE (io%unit, 1003) env%econfine
                 !
-                IF (setup%lelectrolyte) WRITE (program_unit, 1004) env%eelectrolyte
+                IF (setup%lelectrolyte) WRITE (io%unit, 1004) env%eelectrolyte
                 !
-                WRITE (program_unit, 1005) env%deenviron
+                WRITE (io%unit, 1005) env%deenviron
                 !
             CASE ('CP')
                 !
-                IF (setup%lelectrostatic) WRITE (program_unit, 1006) env%eelectrostatic
+                IF (setup%lelectrostatic) WRITE (io%unit, 1006) env%eelectrostatic
                 !
-                IF (setup%lsurface) WRITE (program_unit, 1007) env%esurface
+                IF (setup%lsurface) WRITE (io%unit, 1007) env%esurface
                 !
-                IF (setup%lvolume) WRITE (program_unit, 1008) env%evolume
+                IF (setup%lvolume) WRITE (io%unit, 1008) env%evolume
                 !
-                IF (setup%lconfine) WRITE (program_unit, 1009) env%econfine
+                IF (setup%lconfine) WRITE (io%unit, 1009) env%econfine
                 !
-                IF (setup%lelectrolyte) WRITE (program_unit, 1010) env%eelectrolyte
+                IF (setup%lelectrolyte) WRITE (io%unit, 1010) env%eelectrolyte
                 !
             CASE DEFAULT
                 CALL env_errore(sub_name, 'Wrong program calling Environ', 1)
@@ -811,7 +807,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (setup%lsmearedions) &
-            WRITE (program_unit, 1100) env%environment_ions%potential_shift * RYTOEV
+            WRITE (io%unit, 1100) env%environment_ions%potential_shift * RYTOEV
         !
 1100    FORMAT(/, 5(' '), &
                 'the potential shift due to the Gaussian-smeared nuclei is ', &
@@ -826,7 +822,7 @@ CONTAINS
     SUBROUTINE print_environ_potential_warning()
         !--------------------------------------------------------------------------------
         !
-        IF (setup%need_pbc_correction) WRITE (program_unit, 1200)
+        IF (setup%need_pbc_correction) WRITE (io%unit, 1200)
         !
 1200    FORMAT(/, &
                 5(' '), 'WARNING: you are using the parabolic pbc correction;', /, &
@@ -845,7 +841,7 @@ CONTAINS
     SUBROUTINE print_environ_summary()
         !--------------------------------------------------------------------------------
         !
-        IF (ionode .AND. prog == 'PW') CALL setup%printout()
+        IF (io%lnode) CALL setup%printout()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_summary
@@ -869,7 +865,7 @@ CONTAINS
         IF (PRESENT(passed_unit)) THEN
             actual_unit = passed_unit
         ELSE
-            actual_unit = program_unit
+            actual_unit = io%unit
         END IF
         !
         WRITE (actual_unit, *)
@@ -917,7 +913,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        program_unit = program_unit_in
+        io%unit = program_unit_in
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_output_program_unit

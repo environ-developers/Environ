@@ -29,7 +29,7 @@
 MODULE env_setup
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: program_unit, prog, global_verbose
+    USE env_base_io, ONLY: io
     !
     USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
     !
@@ -261,7 +261,13 @@ CONTAINS
         !
         CALL env_read_input(local_filename)
         !
-        global_verbose = verbose ! set internal verbosity from input
+        !--------------------------------------------------------------------------------
+        ! Set verbosity and open debug file
+        !
+        io%verbosity = verbose ! set internal verbosity from input
+        !
+        IF (io%verbosity >= 1) &
+            OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_read_input
@@ -362,7 +368,7 @@ CONTAINS
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
-        CHARACTER(LEN=80) :: local_label 
+        CHARACTER(LEN=80) :: local_label
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_cell'
         !
@@ -583,7 +589,7 @@ CONTAINS
         this%ldoublecell = SUM(env_nrep) > 0
         this%lperiodic = this%need_pbc_correction
         this%louterloop = this%need_outer_loop
-        this%ltddfpt = prog == 'TD'
+        this%ltddfpt = io%prog == 'TD'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_execution_flags
@@ -714,7 +720,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference core
         !
-        SELECT CASE (prog)
+        SELECT CASE (io%prog)
             !
         CASE ('PW', 'CP', 'TD', 'XS')
             this%lfft_system = .TRUE.
@@ -831,7 +837,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference solver
         !
-        SELECT CASE (prog)
+        SELECT CASE (io%prog)
             !
         CASE ('PW', 'CP', 'TD', 'XS')
             CALL this%reference_direct%init_direct(this%reference_cores)
@@ -942,7 +948,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference setup
         !
-        SELECT CASE (prog)
+        SELECT CASE (io%prog)
             !
         CASE ('PW', 'CP', 'TD', 'XS')
             local_problem = 'poisson'
@@ -1006,75 +1012,75 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        WRITE (program_unit, *)
-        WRITE (program_unit, 1000)
-        WRITE (program_unit, 1001) bibliography(1)
+        WRITE (io%unit, *)
+        WRITE (io%unit, 1000)
+        WRITE (io%unit, 1001) bibliography(1)
         !
         !--------------------------------------------------------------------------------
         ! Environ Summary
         !
-        WRITE (program_unit, 1002) environ_thr
+        WRITE (io%unit, 1002) environ_thr
         !
         IF (this%lsolvent) THEN
             !
             IF (stype == 0) THEN
-                WRITE (program_unit, 1003) 'Fatteber-Gygi'
-                WRITE (program_unit, 1004) (rhomax + rhomin) * 0.5_DP, tbeta
+                WRITE (io%unit, 1003) 'Fatteber-Gygi'
+                WRITE (io%unit, 1004) (rhomax + rhomin) * 0.5_DP, tbeta
             ELSE IF (stype == 1) THEN
-                WRITE (program_unit, 1003) 'SCCS'
-                WRITE (program_unit, 1005) rhomax, rhomin
+                WRITE (io%unit, 1003) 'SCCS'
+                WRITE (io%unit, 1005) rhomax, rhomin
             END IF
             !
-            IF (solvent_radius > 0.D0) WRITE (program_unit, 1006)
+            IF (solvent_radius > 0.D0) WRITE (io%unit, 1006)
             !
             IF (field_awareness > 0.D0) THEN
-                WRITE (program_unit, 1007)
-                WRITE (program_unit, 1008) field_awareness, charge_asymmetry
-                WRITE (program_unit, 1009) field_min, field_max
+                WRITE (io%unit, 1007)
+                WRITE (io%unit, 1008) field_awareness, charge_asymmetry
+                WRITE (io%unit, 1009) field_min, field_max
             END IF
             !
         END IF
         !
         IF (env_static_permittivity > 1.D0) THEN
-            WRITE (program_unit, 1010) env_static_permittivity
+            WRITE (io%unit, 1010) env_static_permittivity
             !
-            IF (this%ltddfpt) WRITE (program_unit, 1011) env_optical_permittivity
+            IF (this%ltddfpt) WRITE (io%unit, 1011) env_optical_permittivity
             !
-            WRITE (program_unit, 1012) TRIM(solvent_mode)
+            WRITE (io%unit, 1012) TRIM(solvent_mode)
         END IF
         !
         IF (this%surface_tension > 0.D0) &
-            WRITE (program_unit, 1013) env_surface_tension, this%surface_tension
+            WRITE (io%unit, 1013) env_surface_tension, this%surface_tension
         !
         IF (this%pressure /= 0.D0) &
-            WRITE (program_unit, 1014) env_pressure, this%pressure
+            WRITE (io%unit, 1014) env_pressure, this%pressure
         !
         !--------------------------------------------------------------------------------
         ! Electrostatic Summary
         !
         IF (this%lelectrostatic) THEN
-            WRITE (program_unit, 1015)
-            WRITE (program_unit, 1016) problem, solver
-            WRITE (program_unit, 1017) auxiliary
-            WRITE (program_unit, 1018) core
+            WRITE (io%unit, 1015)
+            WRITE (io%unit, 1016) problem, solver
+            WRITE (io%unit, 1017) auxiliary
+            WRITE (io%unit, 1018) core
             !
-            IF (this%need_pbc_correction) WRITE (program_unit, 1019) '1d-analytic'
+            IF (this%need_pbc_correction) WRITE (io%unit, 1019) '1d-analytic'
             !
             IF (derivatives == 'fd') THEN
                 !
                 IF (ifdtype == 1) THEN
-                    WRITE (program_unit, 1020) 'central diff.', nfdpoint
+                    WRITE (io%unit, 1020) 'central diff.', nfdpoint
                 ELSE IF (ifdtype == 2 .OR. ifdtype == 3) THEN
-                    WRITE (program_unit, 1020) 'lanczos diff.', nfdpoint
+                    WRITE (io%unit, 1020) 'lanczos diff.', nfdpoint
                 ELSE IF (ifdtype == 4 .OR. ifdtype == 5) THEN
-                    WRITE (program_unit, 1020) 'noise-robust diff.', nfdpoint
+                    WRITE (io%unit, 1020) 'noise-robust diff.', nfdpoint
                 END IF
                 !
             END IF
             !
         END IF
         !
-        WRITE (program_unit, 1021)
+        WRITE (io%unit, 1021)
         !
         !--------------------------------------------------------------------------------
         !

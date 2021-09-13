@@ -32,7 +32,7 @@
 MODULE class_solver_fixedpoint
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io
+    USE env_base_io, ONLY: io
     !
     USE environ_param, ONLY: DP, e2, K_BOLTZMANN_RY, fpi
     !
@@ -350,7 +350,7 @@ CONTAINS
         mix => this%mix
         tolrhoaux => this%tol
         !
-        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1000)
+        IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1000)
         !
         !--------------------------------------------------------------------------------
         ! Check that fields have the same defintion domain
@@ -383,7 +383,7 @@ CONTAINS
         totzero = rhozero%integrate()
         totiter = rhoiter%integrate()
         !
-        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1001) totiter
+        IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1001) totiter
         !
         !--------------------------------------------------------------------------------
         ! Create local variables
@@ -395,12 +395,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Write output table column headers
         !
-        IF (ionode) THEN
+        IF (io%lnode) THEN
             !
-            IF (global_verbose >= 3) THEN
-                WRITE (environ_unit, 1002)
-            ELSE IF (global_verbose >= 1) THEN
-                WRITE (environ_unit, 1003)
+            IF (io%verbosity >= 3) THEN
+                WRITE (io%debug_unit, 1002)
+            ELSE IF (io%verbosity >= 1) THEN
+                WRITE (io%debug_unit, 1003)
             END IF
             !
         END IF
@@ -427,16 +427,16 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Print iteration results
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 !
-                IF (global_verbose >= 3) THEN
+                IF (io%verbosity >= 3) THEN
                     !
-                    WRITE (environ_unit, 1004) &
+                    WRITE (io%debug_unit, 1004) &
                         iter, delta_qm, delta_en, tolrhoaux, totiter, totzero, totpol, &
                         total
                     !
-                ELSE IF (global_verbose >= 1) THEN
-                    WRITE (environ_unit, 1005) iter, delta_qm, delta_en, tolrhoaux
+                ELSE IF (io%verbosity >= 1) THEN
+                    WRITE (io%debug_unit, 1005) iter, delta_qm, delta_en, tolrhoaux
                 END IF
                 !
             END IF
@@ -446,17 +446,17 @@ CONTAINS
             !
             IF (delta_en < tolrhoaux .AND. iter > 0) THEN
                 !
-                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1006)
+                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1006)
                 !
                 EXIT
                 !
             ELSE IF (iter == maxiter) THEN
-                IF (ionode) WRITE (program_unit, 1007)
+                IF (io%lnode) WRITE (io%unit, 1007)
             END IF
             !
         END DO
         !
-        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1008) delta_en, iter
+        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1008) delta_en, iter
         !
         !--------------------------------------------------------------------------------
         ! Compute total electrostatic potential
@@ -533,7 +533,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1100)
+        IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1100)
         !
         IF (PRESENT(dielectric)) THEN
             !
@@ -578,12 +578,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Write output table column headers
         !
-        IF (ionode) THEN
+        IF (io%lnode) THEN
             !
-            IF (global_verbose >= 3) THEN
-                WRITE (environ_unit, 1101)
-            ELSE IF (global_verbose >= 1) THEN
-                WRITE (environ_unit, 1102)
+            IF (io%verbosity >= 3) THEN
+                WRITE (io%debug_unit, 1101)
+            ELSE IF (io%verbosity >= 1) THEN
+                WRITE (io%debug_unit, 1102)
             END IF
             !
         END IF
@@ -676,15 +676,15 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Print iteration results
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 !
-                IF (global_verbose >= 3) THEN
+                IF (io%verbosity >= 3) THEN
                     !
-                    WRITE (environ_unit, 1103) &
+                    WRITE (io%debug_unit, 1103) &
                         iter, delta_qm, delta_en, tolrhoaux, totaux
                     !
-                ELSE IF (global_verbose >= 1) THEN
-                    WRITE (environ_unit, 1104) iter, delta_qm, delta_en, tolrhoaux
+                ELSE IF (io%verbosity >= 1) THEN
+                    WRITE (io%debug_unit, 1104) iter, delta_qm, delta_en, tolrhoaux
                 END IF
                 !
             END IF
@@ -694,17 +694,17 @@ CONTAINS
             !
             IF (delta_en < tolrhoaux .AND. iter > 0) THEN
                 !
-                IF (global_verbose >= 1 .AND. ionode) WRITE (environ_unit, 1105)
+                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1105)
                 !
                 EXIT
                 !
             ELSE IF (iter == maxiter) THEN
-                IF (ionode) WRITE (program_unit, 1106)
+                IF (io%lnode) WRITE (io%unit, 1106)
             END IF
             !
         END DO
         !
-        IF (lstdout .AND. global_verbose >= 1) WRITE (program_unit, 1107) delta_en, iter
+        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1107) delta_en, iter
         !
         CALL denominator%destroy()
         !

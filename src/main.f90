@@ -33,8 +33,6 @@
 MODULE class_environ
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io
-    !
     USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
     !
     USE env_base_input

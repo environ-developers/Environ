@@ -31,7 +31,7 @@
 MODULE class_cell
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
+    USE env_base_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, tpi
@@ -125,7 +125,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: comm
         REAL(DP), INTENT(IN) :: gcutm, at(3, 3)
         INTEGER, INTENT(IN), OPTIONAL :: nr(3)
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label 
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !
@@ -773,7 +773,7 @@ CONTAINS
     !!
     !! @param verbose       : (INTEGER) adds verbosity to global verbose
     !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
-    !! @param unit          : (INTEGER) output target (default = environ_unit)
+    !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_cell(this, verbose, debug_verbose, unit)
@@ -790,7 +790,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ionode) RETURN
+        IF (.NOT. io%lnode) RETURN
         !
         IF (PRESENT(debug_verbose)) THEN
             base_verbose = debug_verbose
@@ -801,8 +801,8 @@ CONTAINS
                 local_verbose = debug_verbose
             END IF
             !
-        ELSE IF (global_verbose > 0) THEN
-            base_verbose = global_verbose
+        ELSE IF (io%verbosity > 0) THEN
+            base_verbose = io%verbosity
             !
             IF (PRESENT(verbose)) THEN
                 local_verbose = base_verbose + verbose
@@ -817,7 +817,7 @@ CONTAINS
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (local_verbose >= 1) THEN
@@ -826,7 +826,7 @@ CONTAINS
                 WRITE (local_unit, 1000)
             ELSE
                 !
-                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
+                CALL env_block_divider(local_verbose, base_verbose, local_unit)
                 !
                 WRITE (local_unit, 1001)
             END IF
@@ -841,7 +841,7 @@ CONTAINS
             END IF
             !
             IF (local_verbose < base_verbose) &
-                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
+                CALL env_block_divider(local_verbose, base_verbose, local_unit)
             !
         END IF
         !

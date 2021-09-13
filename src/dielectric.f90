@@ -43,7 +43,7 @@
 MODULE class_dielectric
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
+    USE env_base_io, ONLY: io
     !
     USE environ_param, ONLY: DP, e2, fpi
     !
@@ -877,7 +877,7 @@ CONTAINS
     !!
     !! @param verbose       : (INTEGER) adds verbosity to global verbose
     !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
-    !! @param unit          : (INTEGER) output target (default = environ_unit)
+    !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_dielectric(this, verbose, debug_verbose, unit)
@@ -905,8 +905,8 @@ CONTAINS
             !
             passed_verbose = verbose - 1
             !
-        ELSE IF (global_verbose > 0) THEN
-            base_verbose = global_verbose
+        ELSE IF (io%verbosity > 0) THEN
+            base_verbose = io%verbosity
             !
             IF (PRESENT(verbose)) THEN
                 local_verbose = base_verbose + verbose
@@ -923,17 +923,18 @@ CONTAINS
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (local_verbose >= 1) THEN
             !
-            IF (ionode) WRITE (local_unit, 1000)
+            IF (io%lnode) WRITE (local_unit, 1000)
             !
             IF (this%nregions == 0) THEN
-                IF (ionode) WRITE (local_unit, 1001) this%constant
+                IF (io%lnode) WRITE (local_unit, 1001) this%constant
             ELSE
-                IF (ionode) WRITE (local_unit, 1002) this%constant, this%nregions
+                !
+                IF (io%lnode) WRITE (local_unit, 1002) this%constant, this%nregions
                 !
                 CALL print_environ_functions(this%regions, this%nregions, &
                                              passed_verbose, debug_verbose, local_unit)
@@ -955,7 +956,7 @@ CONTAINS
             IF (local_verbose >= 5) &
                 CALL this%depsilon%printout(passed_verbose, debug_verbose, local_unit)
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 WRITE (local_unit, 1003) this%need_gradient, this%need_factsqrt
                 WRITE (local_unit, 1004) this%charge
             END IF

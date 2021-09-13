@@ -1,3 +1,4 @@
+base_io.o : char_ops.o
 base_mp.o : data_buffer.o
 base_mp.o : utils_param.o
 clocks.o : utils_param.o

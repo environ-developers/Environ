@@ -32,7 +32,7 @@
 MODULE class_density
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
+    USE env_base_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_base_scatter, ONLY: env_gather_grid
@@ -449,7 +449,7 @@ CONTAINS
     !!
     !! @param verbose       : (INTEGER) adds verbosity to global verbose
     !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
-    !! @param unit          : (INTEGER) output target (default = environ_unit)
+    !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_density(this, verbose, debug_verbose, unit, lcube)
@@ -479,8 +479,8 @@ CONTAINS
                 local_verbose = debug_verbose
             END IF
             !
-        ELSE IF (global_verbose > 0) THEN
-            base_verbose = global_verbose
+        ELSE IF (io%verbosity > 0) THEN
+            base_verbose = io%verbosity
             !
             IF (PRESENT(verbose)) THEN
                 local_verbose = base_verbose + verbose
@@ -495,21 +495,20 @@ CONTAINS
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (PRESENT(lcube)) print_cube = lcube
         !
         IF (local_verbose >= 1) THEN
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 !
                 IF (local_verbose >= base_verbose) THEN ! header
                     WRITE (local_unit, 1000)
                 ELSE
                     !
-                    CALL env_block_divider(ionode, local_verbose, base_verbose, &
-                                           local_unit)
+                    CALL env_block_divider(local_verbose, base_verbose, local_unit)
                     !
                     WRITE (local_unit, 1001)
                 END IF
@@ -519,14 +518,14 @@ CONTAINS
             !
             integral = this%integrate()
             !
-            IF (ionode) WRITE (local_unit, 1003) integral
+            IF (io%lnode) WRITE (local_unit, 1003) integral
             !
             ! #TODO ADD MAXVAL AND MINVAL
             !
             IF (local_verbose >= 3 .AND. print_cube) CALL this%write_cube_no_ions()
             !
             IF (local_verbose < base_verbose) &
-                CALL env_block_divider(ionode, local_verbose, base_verbose, local_unit)
+                CALL env_block_divider(local_verbose, base_verbose, local_unit)
             !
         END IF
         !

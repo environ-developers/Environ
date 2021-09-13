@@ -32,7 +32,7 @@
 MODULE class_electrons
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
+    USE env_base_io, ONLY: io
     !
     USE environ_param, ONLY: DP
     !
@@ -187,7 +187,7 @@ CONTAINS
     !!
     !! @param verbose       : (INTEGER) adds verbosity to global verbose
     !! @param debug_verbose : (INTEGER) replaces global verbose for debugging
-    !! @param unit          : (INTEGER) output target (default = environ_unit)
+    !! @param unit          : (INTEGER) output target (default = io%debug_unit)
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE print_environ_electrons(this, verbose, debug_verbose, unit)
@@ -215,8 +215,8 @@ CONTAINS
             !
             passed_verbose = verbose - 1
             !
-        ELSE IF (global_verbose > 0) THEN
-            base_verbose = global_verbose
+        ELSE IF (io%verbosity > 0) THEN
+            base_verbose = io%verbosity
             !
             IF (PRESENT(verbose)) THEN
                 local_verbose = base_verbose + verbose
@@ -233,12 +233,12 @@ CONTAINS
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (local_verbose >= 1) THEN
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 WRITE (local_unit, 1000)
                 WRITE (local_unit, 1001) this%number
                 WRITE (local_unit, 1002) this%charge

@@ -32,7 +32,7 @@
 MODULE env_write_cube
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, global_verbose, environ_unit
+    USE env_base_io, ONLY: io
     !
     USE class_density
     !
@@ -60,18 +60,18 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (global_verbose == 0) RETURN
+        IF (io%verbosity == 0) RETURN
         !
         IF (PRESENT(verbose)) THEN
-            local_verbose = global_verbose + verbose
+            local_verbose = io%verbosity + verbose
         ELSE
-            local_verbose = global_verbose
+            local_verbose = io%verbosity
         END IF
         !
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (PRESENT(idx)) THEN

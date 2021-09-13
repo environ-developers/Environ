@@ -32,7 +32,7 @@ MODULE env_io
     !
     USE env_utils_param
     !
-    USE env_base_io
+    USE env_base_io, ONLY: io
     !
     USE env_mp, ONLY: env_mp_bcast, env_mp_abort, env_mp_rank
     !
@@ -114,7 +114,7 @@ CONTAINS
         tend = .FALSE.
         terr = .FALSE.
         !
-        IF (ionode) THEN
+        IF (io%lnode) THEN
 30          READ (unit, fmt='(A256)', ERR=15, END=10) line
             line = TRIM(line)
             !
@@ -139,11 +139,11 @@ CONTAINS
 20          CONTINUE
         END IF
         !
-        CALL env_mp_bcast(tend, ionode_id, comm)
+        CALL env_mp_bcast(tend, io%node, io%comm)
         !
-        CALL env_mp_bcast(terr, ionode_id, comm)
+        CALL env_mp_bcast(terr, io%node, io%comm)
         !
-        CALL env_mp_bcast(line, ionode_id, comm)
+        CALL env_mp_bcast(line, io%node, io%comm)
         !
         IF (PRESENT(end_of_file)) THEN
             end_of_file = tend
@@ -355,7 +355,7 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     !------------------------------------------------------------------------------------
     !
     USE env_mp, ONLY: env_mp_abort, env_mp_rank
-    USE env_base_io, ONLY: ionode
+    USE env_base_io, ONLY: io
     USE env_io, ONLY: env_find_free_unit
     USE env_utils_param
     !
@@ -410,7 +410,7 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     !
     WRITE (*, '("     stopping ...")')
     !
-    FLUSH (stdout)
+    FLUSH (io%unit) ! #TODO why?
     !
 #if defined(__PTRACE)
 #if defined(__INTEL_COMPILER)
@@ -467,7 +467,7 @@ END SUBROUTINE env_errore
 SUBROUTINE env_write(message)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: stdout
+    USE env_base_io, ONLY: io
     !
     !------------------------------------------------------------------------------------
     !
@@ -477,7 +477,7 @@ SUBROUTINE env_write(message)
     !
     !------------------------------------------------------------------------------------
     !
-    WRITE (stdout, '(5X,A)') TRIM(message)
+    WRITE (io%unit, '(5X,A)') TRIM(message)
     !
     RETURN
     !
@@ -489,22 +489,22 @@ END SUBROUTINE env_write
 !! Optional blank line below
 !!
 !----------------------------------------------------------------------------------------
-SUBROUTINE env_divider(blank)
+SUBROUTINE env_divider(lblank)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: stdout
+    USE env_base_io, ONLY: io
     !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    LOGICAL, INTENT(IN) :: blank
+    LOGICAL, INTENT(IN) :: lblank
     !
     !------------------------------------------------------------------------------------
     !
-    WRITE (stdout, FMT=1)
+    WRITE (io%unit, FMT=1)
     !
-    IF (blank) WRITE (stdout, *) ! blank line
+    IF (lblank) WRITE (io%unit, *) ! blank line
     !
 1   FORMAT(/, 5X, 80('='))
     !
@@ -520,7 +520,7 @@ END SUBROUTINE env_divider
 SUBROUTINE env_header(message)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: stdout
+    USE env_base_io, ONLY: io
     !
     !------------------------------------------------------------------------------------
     !
@@ -530,7 +530,7 @@ SUBROUTINE env_header(message)
     !
     !------------------------------------------------------------------------------------
     !
-    WRITE (stdout, '(/,5X,A)') TRIM(message)
+    WRITE (io%unit, '(/,5X,A)') TRIM(message)
     !
     RETURN
     !
@@ -544,7 +544,7 @@ END SUBROUTINE env_header
 SUBROUTINE env_warning(message)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: stdout
+    USE env_base_io, ONLY: io
     !
     !------------------------------------------------------------------------------------
     !
@@ -554,7 +554,7 @@ SUBROUTINE env_warning(message)
     !
     !------------------------------------------------------------------------------------
     !
-    WRITE (stdout, '("Warning: ", A,/)') TRIM(message)
+    WRITE (io%unit, '("Warning: ", A,/)') TRIM(message)
     !
     RETURN
     !
@@ -568,7 +568,7 @@ END SUBROUTINE env_warning
 SUBROUTINE env_default(param, default, message)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: stdout
+    USE env_base_io, ONLY: io
     !
     !------------------------------------------------------------------------------------
     !
@@ -594,7 +594,7 @@ SUBROUTINE env_default(param, default, message)
     p = ADJUSTL(param)
     d = ADJUSTL(default)
     !
-    WRITE (stdout, '(5X,A," = ",A, A)') p, d, TRIM(ADJUSTL(comment))
+    WRITE (io%unit, '(5X,A," = ",A, A)') p, d, TRIM(ADJUSTL(comment))
     !
     RETURN
     !
@@ -606,10 +606,6 @@ END SUBROUTINE env_default
 !!
 !----------------------------------------------------------------------------------------
 SUBROUTINE env_invalid_opt(routine, param, input)
-    !------------------------------------------------------------------------------------
-    !
-    USE env_utils_param, ONLY: stdout
-    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
@@ -631,23 +627,25 @@ END SUBROUTINE env_invalid_opt
 !>
 !! Prints a block divider of variable length determnied by verbosity
 !!
-!! @param ionode       : (LOGICAL) if current processor is responsible for I/O
 !! @param verbose      : (INTEGER) local verbose of the calling printer
 !! @param base_verbose : (INTEGER) verbosity to be measured against
-!! @param unit         : (INTEGER) output target 
+!! @param unit         : (INTEGER) output target
 !!
 !----------------------------------------------------------------------------------------
-SUBROUTINE env_block_divider(ionode, verbose, base_verbose, unit)
+SUBROUTINE env_block_divider(verbose, base_verbose, unit)
+    !------------------------------------------------------------------------------------
+    !
+    USE env_base_io, ONLY: io
+    !
     !------------------------------------------------------------------------------------
     !
     IMPLICIT NONE
     !
-    LOGICAL, INTENT(IN) :: ionode
     INTEGER, INTENT(IN) :: verbose, base_verbose, unit
     !
     !------------------------------------------------------------------------------------
     !
-    IF (.NOT. ionode) RETURN
+    IF (.NOT. io%lnode) RETURN
     !
     SELECT CASE (base_verbose - verbose - 1)
         !

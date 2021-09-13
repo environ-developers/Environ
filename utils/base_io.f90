@@ -29,22 +29,77 @@
 MODULE env_base_io
     !------------------------------------------------------------------------------------
     !
+    USE env_char_ops, ONLY: env_uppercase
+    !
     IMPLICIT NONE
     !
-    SAVE
+    PRIVATE
     !
-    LOGICAL :: ionode = .TRUE.
-    INTEGER :: ionode_id
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    TYPE environ_io
+        !--------------------------------------------------------------------------------
+        !
+        LOGICAL :: lnode = .TRUE.
+        INTEGER :: node = 0
+        !
+        LOGICAL :: lstdout = .FALSE. ! whether environ can print on standard output
+        !
+        INTEGER :: comm ! WE MAY NEED A SECOND COMMUNICATOR FOR IMAGE PARALLELIZATION
+        !
+        INTEGER :: unit
+        INTEGER :: debug_unit
+        INTEGER :: verbosity
+        !
+        CHARACTER(LEN=2) :: prog ! the calling program
+        !
+        !--------------------------------------------------------------------------------
+    CONTAINS
+        !--------------------------------------------------------------------------------
+        !
+        PROCEDURE :: init => init_base_io
+        !
+        !--------------------------------------------------------------------------------
+    END TYPE environ_io
+    !------------------------------------------------------------------------------------
     !
-    LOGICAL :: lstdout ! whether environ can print on standard output
+    TYPE(environ_io), PUBLIC, SAVE :: io
     !
-    INTEGER :: comm ! WE MAY NEED A SECOND COMMUNICATOR FOR IMAGE PARALLELIZATION
-    !
-    INTEGER :: program_unit
-    INTEGER :: environ_unit
-    INTEGER :: global_verbose
-    !
-    CHARACTER(LEN=2) :: prog ! the calling program
+    !------------------------------------------------------------------------------------
+CONTAINS
+    !------------------------------------------------------------------------------------
+    !>
+    !! Set global I/O constants
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE init_base_io(this, can_write, id, comm, prog_unit, env_unit, lstdout)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_io), INTENT(INOUT) :: this
+        !
+        LOGICAL, INTENT(IN) :: can_write
+        INTEGER, INTENT(IN) :: id
+        INTEGER, INTENT(IN) :: comm
+        INTEGER, INTENT(IN) :: prog_unit
+        INTEGER, INTENT(IN) :: env_unit
+        LOGICAL, INTENT(IN) :: lstdout
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%lnode = can_write
+        this%node = id
+        this%comm = comm
+        this%unit = prog_unit
+        this%debug_unit = env_unit
+        this%lstdout = lstdout
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_base_io
+    !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
 END MODULE env_base_io

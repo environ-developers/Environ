@@ -217,7 +217,6 @@ ions.o : iontype.o
 iontype.o : ../utils/base_io.o
 iontype.o : ../utils/char_ops.o
 iontype.o : constants.o
-main.o : ../utils/base_io.o
 main.o : base_input.o
 main.o : boundary.o
 main.o : cell.o

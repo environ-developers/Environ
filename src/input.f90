@@ -29,7 +29,7 @@
 MODULE environ_input
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, ionode_id, comm, environ_unit
+    USE env_base_io, ONLY: io
     USE env_io
     USE env_mp, ONLY: env_mp_bcast
     USE env_char_ops, ONLY: env_uppercase, env_is_substring
@@ -90,12 +90,6 @@ CONTAINS
         CLOSE (environ_unit_input)
         !
         !--------------------------------------------------------------------------------
-        ! Set verbosity and open debug file
-        !
-        IF (verbose >= 1) &
-            OPEN (unit=environ_unit, file='environ.debug', status='unknown')
-        !
-        !--------------------------------------------------------------------------------
     END SUBROUTINE env_read_input
     !------------------------------------------------------------------------------------
     !>
@@ -130,9 +124,9 @@ CONTAINS
         !
         CALL env_header('Reading ENVIRON namelist')
         !
-        IF (ionode) READ (environ_unit_input, environ, iostat=ios)
+        IF (io%lnode) READ (environ_unit_input, environ, iostat=ios)
         !
-        CALL env_mp_bcast(ios, ionode_id, comm)
+        CALL env_mp_bcast(ios, io%node, io%comm)
         !
         IF (ios /= 0) CALL env_errore(sub_name, 'Missing ENVIRON namelist', ABS(ios))
         !
@@ -147,7 +141,7 @@ CONTAINS
         !
         ios = 0
         !
-        IF (ionode) THEN
+        IF (io%lnode) THEN
             !
             IF (lboundary) THEN
                 !
@@ -160,7 +154,7 @@ CONTAINS
             !
         END IF
         !
-        CALL env_mp_bcast(ios, ionode_id, comm)
+        CALL env_mp_bcast(ios, io%node, io%comm)
         !
         IF (ios /= 0) CALL env_errore(sub_name, 'Missing BOUNDARY namelist', ABS(ios))
         !
@@ -177,7 +171,7 @@ CONTAINS
         !
         ios = 0
         !
-        IF (ionode) THEN
+        IF (io%lnode) THEN
             !
             IF (lelectrostatic) THEN
                 !
@@ -190,7 +184,7 @@ CONTAINS
             !
         END IF
         !
-        CALL env_mp_bcast(ios, ionode_id, comm)
+        CALL env_mp_bcast(ios, io%node, io%comm)
         !
         IF (ios /= 0) &
             CALL env_errore(sub_name, 'Missing ELECTROSTATIC namelist', ABS(ios))
@@ -365,65 +359,65 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CALL env_mp_bcast(environ_debug, ionode_id, comm)
+        CALL env_mp_bcast(environ_debug, io%node, io%comm)
         !
-        CALL env_mp_bcast(environ_restart, ionode_id, comm)
+        CALL env_mp_bcast(environ_restart, io%node, io%comm)
         !
-        CALL env_mp_bcast(verbose, ionode_id, comm)
+        CALL env_mp_bcast(verbose, io%node, io%comm)
         !
-        CALL env_mp_bcast(environ_thr, ionode_id, comm)
+        CALL env_mp_bcast(environ_thr, io%node, io%comm)
         !
-        CALL env_mp_bcast(environ_nskip, ionode_id, comm)
+        CALL env_mp_bcast(environ_nskip, io%node, io%comm)
         !
-        CALL env_mp_bcast(environ_type, ionode_id, comm)
+        CALL env_mp_bcast(environ_type, io%node, io%comm)
         !
-        CALL env_mp_bcast(system_ntyp, ionode_id, comm)
+        CALL env_mp_bcast(system_ntyp, io%node, io%comm)
         !
-        CALL env_mp_bcast(system_dim, ionode_id, comm)
+        CALL env_mp_bcast(system_dim, io%node, io%comm)
         !
-        CALL env_mp_bcast(system_axis, ionode_id, comm)
+        CALL env_mp_bcast(system_axis, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_nrep, ionode_id, comm)
+        CALL env_mp_bcast(env_nrep, io%node, io%comm)
         !
-        CALL env_mp_bcast(mapping_pos, ionode_id, comm)
+        CALL env_mp_bcast(mapping_pos, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_electrostatic, ionode_id, comm)
+        CALL env_mp_bcast(env_electrostatic, io%node, io%comm)
         !
-        CALL env_mp_bcast(atomicspread, ionode_id, comm)
+        CALL env_mp_bcast(atomicspread, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_static_permittivity, ionode_id, comm)
+        CALL env_mp_bcast(env_static_permittivity, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_optical_permittivity, ionode_id, comm)
+        CALL env_mp_bcast(env_optical_permittivity, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_surface_tension, ionode_id, comm)
+        CALL env_mp_bcast(env_surface_tension, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_pressure, ionode_id, comm)
+        CALL env_mp_bcast(env_pressure, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_confine, ionode_id, comm)
+        CALL env_mp_bcast(env_confine, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_electrolyte_ntyp, ionode_id, comm)
+        CALL env_mp_bcast(env_electrolyte_ntyp, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_linearized, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_linearized, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_entropy, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_entropy, io%node, io%comm)
         !
-        CALL env_mp_bcast(cion, ionode_id, comm)
+        CALL env_mp_bcast(cion, io%node, io%comm)
         !
-        CALL env_mp_bcast(cionmax, ionode_id, comm)
+        CALL env_mp_bcast(cionmax, io%node, io%comm)
         !
-        CALL env_mp_bcast(rion, ionode_id, comm)
+        CALL env_mp_bcast(rion, io%node, io%comm)
         !
-        CALL env_mp_bcast(zion, ionode_id, comm)
+        CALL env_mp_bcast(zion, io%node, io%comm)
         !
-        CALL env_mp_bcast(temperature, ionode_id, comm)
+        CALL env_mp_bcast(temperature, io%node, io%comm)
         !
-        CALL env_mp_bcast(sc_permittivity, ionode_id, comm)
+        CALL env_mp_bcast(sc_permittivity, io%node, io%comm)
         !
-        CALL env_mp_bcast(sc_carrier_density, ionode_id, comm)
+        CALL env_mp_bcast(sc_carrier_density, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_external_charges, ionode_id, comm)
+        CALL env_mp_bcast(env_external_charges, io%node, io%comm)
         !
-        CALL env_mp_bcast(env_dielectric_regions, ionode_id, comm)
+        CALL env_mp_bcast(env_dielectric_regions, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_bcast
@@ -437,73 +431,73 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CALL env_mp_bcast(solvent_mode, ionode_id, comm)
+        CALL env_mp_bcast(solvent_mode, io%node, io%comm)
         !
-        CALL env_mp_bcast(stype, ionode_id, comm)
+        CALL env_mp_bcast(stype, io%node, io%comm)
         !
-        CALL env_mp_bcast(rhomax, ionode_id, comm)
+        CALL env_mp_bcast(rhomax, io%node, io%comm)
         !
-        CALL env_mp_bcast(rhomin, ionode_id, comm)
+        CALL env_mp_bcast(rhomin, io%node, io%comm)
         !
-        CALL env_mp_bcast(tbeta, ionode_id, comm)
+        CALL env_mp_bcast(tbeta, io%node, io%comm)
         !
-        CALL env_mp_bcast(radius_mode, ionode_id, comm)
+        CALL env_mp_bcast(radius_mode, io%node, io%comm)
         !
-        CALL env_mp_bcast(alpha, ionode_id, comm)
+        CALL env_mp_bcast(alpha, io%node, io%comm)
         !
-        CALL env_mp_bcast(softness, ionode_id, comm)
+        CALL env_mp_bcast(softness, io%node, io%comm)
         !
-        CALL env_mp_bcast(solvationrad, ionode_id, comm)
+        CALL env_mp_bcast(solvationrad, io%node, io%comm)
         !
-        CALL env_mp_bcast(corespread, ionode_id, comm)
+        CALL env_mp_bcast(corespread, io%node, io%comm)
         !
-        CALL env_mp_bcast(solvent_distance, ionode_id, comm)
+        CALL env_mp_bcast(solvent_distance, io%node, io%comm)
         !
-        CALL env_mp_bcast(solvent_spread, ionode_id, comm)
+        CALL env_mp_bcast(solvent_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(solvent_radius, ionode_id, comm)
+        CALL env_mp_bcast(solvent_radius, io%node, io%comm)
         !
-        CALL env_mp_bcast(radial_scale, ionode_id, comm)
+        CALL env_mp_bcast(radial_scale, io%node, io%comm)
         !
-        CALL env_mp_bcast(radial_spread, ionode_id, comm)
+        CALL env_mp_bcast(radial_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(filling_threshold, ionode_id, comm)
+        CALL env_mp_bcast(filling_threshold, io%node, io%comm)
         !
-        CALL env_mp_bcast(filling_spread, ionode_id, comm)
+        CALL env_mp_bcast(filling_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(field_awareness, ionode_id, comm)
+        CALL env_mp_bcast(field_awareness, io%node, io%comm)
         !
-        CALL env_mp_bcast(charge_asymmetry, ionode_id, comm)
+        CALL env_mp_bcast(charge_asymmetry, io%node, io%comm)
         !
-        CALL env_mp_bcast(field_max, ionode_id, comm)
+        CALL env_mp_bcast(field_max, io%node, io%comm)
         !
-        CALL env_mp_bcast(field_min, ionode_id, comm)
+        CALL env_mp_bcast(field_min, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_mode, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_mode, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_distance, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_distance, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_spread, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(sc_distance, ionode_id, comm)
+        CALL env_mp_bcast(sc_distance, io%node, io%comm)
         !
-        CALL env_mp_bcast(sc_spread, ionode_id, comm)
+        CALL env_mp_bcast(sc_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_rhomax, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_rhomax, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_rhomin, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_rhomin, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_tbeta, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_tbeta, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_alpha, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_alpha, io%node, io%comm)
         !
-        CALL env_mp_bcast(electrolyte_softness, ionode_id, comm)
+        CALL env_mp_bcast(electrolyte_softness, io%node, io%comm)
         !
-        CALL env_mp_bcast(derivatives, ionode_id, comm)
+        CALL env_mp_bcast(derivatives, io%node, io%comm)
         !
-        CALL env_mp_bcast(ifdtype, ionode_id, comm)
+        CALL env_mp_bcast(ifdtype, io%node, io%comm)
         !
-        CALL env_mp_bcast(nfdpoint, ionode_id, comm)
+        CALL env_mp_bcast(nfdpoint, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_bcast
@@ -517,47 +511,47 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CALL env_mp_bcast(problem, ionode_id, comm)
+        CALL env_mp_bcast(problem, io%node, io%comm)
         !
-        CALL env_mp_bcast(tol, ionode_id, comm)
+        CALL env_mp_bcast(tol, io%node, io%comm)
         !
-        CALL env_mp_bcast(solver, ionode_id, comm)
+        CALL env_mp_bcast(solver, io%node, io%comm)
         !
-        CALL env_mp_bcast(inner_solver, ionode_id, comm)
+        CALL env_mp_bcast(inner_solver, io%node, io%comm)
         !
-        CALL env_mp_bcast(inner_tol, ionode_id, comm)
+        CALL env_mp_bcast(inner_tol, io%node, io%comm)
         !
-        CALL env_mp_bcast(inner_maxstep, ionode_id, comm)
+        CALL env_mp_bcast(inner_maxstep, io%node, io%comm)
         !
-        CALL env_mp_bcast(inner_mix, ionode_id, comm)
+        CALL env_mp_bcast(inner_mix, io%node, io%comm)
         !
-        CALL env_mp_bcast(auxiliary, ionode_id, comm)
+        CALL env_mp_bcast(auxiliary, io%node, io%comm)
         !
-        CALL env_mp_bcast(step_type, ionode_id, comm)
+        CALL env_mp_bcast(step_type, io%node, io%comm)
         !
-        CALL env_mp_bcast(step, ionode_id, comm)
+        CALL env_mp_bcast(step, io%node, io%comm)
         !
-        CALL env_mp_bcast(maxstep, ionode_id, comm)
+        CALL env_mp_bcast(maxstep, io%node, io%comm)
         !
-        CALL env_mp_bcast(mix_type, ionode_id, comm)
+        CALL env_mp_bcast(mix_type, io%node, io%comm)
         !
-        CALL env_mp_bcast(mix, ionode_id, comm)
+        CALL env_mp_bcast(mix, io%node, io%comm)
         !
-        CALL env_mp_bcast(ndiis, ionode_id, comm)
+        CALL env_mp_bcast(ndiis, io%node, io%comm)
         !
-        CALL env_mp_bcast(preconditioner, ionode_id, comm)
+        CALL env_mp_bcast(preconditioner, io%node, io%comm)
         !
-        CALL env_mp_bcast(screening_type, ionode_id, comm)
+        CALL env_mp_bcast(screening_type, io%node, io%comm)
         !
-        CALL env_mp_bcast(screening, ionode_id, comm)
+        CALL env_mp_bcast(screening, io%node, io%comm)
         !
-        CALL env_mp_bcast(core, ionode_id, comm)
+        CALL env_mp_bcast(core, io%node, io%comm)
         !
-        CALL env_mp_bcast(pbc_dim, ionode_id, comm)
+        CALL env_mp_bcast(pbc_dim, io%node, io%comm)
         !
-        CALL env_mp_bcast(pbc_correction, ionode_id, comm)
+        CALL env_mp_bcast(pbc_correction, io%node, io%comm)
         !
-        CALL env_mp_bcast(pbc_axis, ionode_id, comm)
+        CALL env_mp_bcast(pbc_axis, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_bcast
@@ -1460,7 +1454,7 @@ CONTAINS
             CALL card_external_charges(local_unit, input_line)
         ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
             CALL card_dielectric_regions(local_unit, input_line)
-        ELSE IF (ionode) THEN
+        ELSE IF (io%lnode) THEN
             CALL env_warning('card '//TRIM(input_line)//' ignored')
         END IF
         !

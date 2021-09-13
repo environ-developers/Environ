@@ -34,7 +34,7 @@
 MODULE class_semiconductor
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: ionode, environ_unit, global_verbose
+    USE env_base_io, ONLY: io
     !
     USE environ_param, ONLY: DP, BOHR_RADIUS_CM
     !
@@ -221,8 +221,8 @@ CONTAINS
             !
             passed_verbose = verbose - 1
             !
-        ELSE IF (global_verbose > 0) THEN
-            base_verbose = global_verbose
+        ELSE IF (io%verbosity > 0) THEN
+            base_verbose = io%verbosity
             !
             IF (PRESENT(verbose)) THEN
                 local_verbose = base_verbose + verbose
@@ -239,12 +239,12 @@ CONTAINS
         IF (PRESENT(unit)) THEN
             local_unit = unit
         ELSE
-            local_unit = environ_unit
+            local_unit = io%debug_unit
         END IF
         !
         IF (local_verbose >= 1) THEN
             !
-            IF (ionode) THEN
+            IF (io%lnode) THEN
                 WRITE (local_unit, 1000)
                 !
                 WRITE (local_unit, 1001) &
@@ -266,11 +266,11 @@ CONTAINS
 1000    FORMAT(/, 4('%'), ' SEMICONDUCTOR ', 64('%'))
         !
 1001    FORMAT(/, ' Mott-Schottky:', /, &
-                ' dopant concent.    (cm^-3) = ', E14.4, /, &
+                ' dopant concent.    (cm^-3) = ', E18.4, /, &
                 ' semiconductor temp.    (K) = ', F14.1, /, &
                 ' dielectric constant        = ', F14.2)
         !
-1002    FORMAT(/, ' total semiconductor charge    = ', F14.7)
+1002    FORMAT(/, ' total semiconductor charge = ', F14.7)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE print_environ_semiconductor
