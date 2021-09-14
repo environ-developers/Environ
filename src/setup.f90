@@ -184,8 +184,6 @@ MODULE class_setup
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: read_input => environ_read_input
-        !
         PROCEDURE :: set_flags => set_environ_flags
         PROCEDURE :: set_numerical_base => set_environ_numerical_base
         !
@@ -235,42 +233,6 @@ CONTAINS
     !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !>
-    !! Read Environ input
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE environ_read_input(this, filename)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: filename
-        !
-        CLASS(environ_setup), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        !
-        CHARACTER(LEN=80) :: local_filename = 'environ.in'
-        !
-        CHARACTER(LEN=80) :: sub_name = 'environ_read_input'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (PRESENT(filename)) local_filename = filename
-        !
-        CALL env_read_input(local_filename)
-        !
-        !--------------------------------------------------------------------------------
-        ! Set verbosity and open debug file
-        !
-        io%verbosity = verbose ! set internal verbosity from input
-        !
-        IF (io%verbosity >= 1) &
-            OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE environ_read_input
     !------------------------------------------------------------------------------------
     !>
     !!
