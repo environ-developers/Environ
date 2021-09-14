@@ -150,7 +150,7 @@ CONTAINS
         LOGICAL :: physical
         INTEGER :: ir
         REAL(DP) :: r(3), r2, dist, arg
-        REAL(DP), ALLOCATABLE ::gradlocal(:, :)
+        REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
         CHARACTER(LEN=80) :: sub_name = 'gradient_of_function_exponential'
         !
@@ -184,7 +184,7 @@ CONTAINS
                 arg = (dist - width) / spread
                 !
                 ! compute exponentially decaying function
-                IF (r2 > tol .AND. ABS(arg) <= exp_tol) &
+                IF (r2 > func_tol .AND. ABS(arg) <= exp_tol) &
                     gradlocal(:, ir) = r / SQRT(r2) / spread * EXP(-arg)
                 !
             END DO

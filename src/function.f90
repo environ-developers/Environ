@@ -111,7 +111,7 @@ MODULE class_function
     !
     !------------------------------------------------------------------------------------
     !
-    REAL(DP), PUBLIC, PARAMETER :: tol = 1.D-10
+    REAL(DP), PUBLIC, PARAMETER :: func_tol = 1.D-10
     REAL(DP), PUBLIC, PARAMETER :: exp_tol = 4.D1
     !
     !------------------------------------------------------------------------------------

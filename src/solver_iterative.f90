@@ -78,14 +78,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_iterative(this, cores, maxiter, tol_in, auxiliary)
+    SUBROUTINE init_solver_iterative(this, cores, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
         INTEGER, INTENT(IN) :: maxiter
-        REAL(DP), INTENT(IN) :: tol_in
+        REAL(DP), INTENT(IN) :: tol
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
         !
         CLASS(solver_iterative), INTENT(INOUT) :: this
@@ -95,7 +95,7 @@ CONTAINS
         CALL this%init_cores(cores)
         !
         this%maxiter = maxiter
-        this%tol = tol_in
+        this%tol = tol
         !
         IF (PRESENT(auxiliary)) this%auxiliary = auxiliary
         !

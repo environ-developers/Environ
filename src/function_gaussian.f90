@@ -105,9 +105,9 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (ABS(charge) < tol) RETURN
+            IF (ABS(charge) < func_tol) RETURN
             !
-            IF (ABS(spread) < tol) &
+            IF (ABS(spread) < func_tol) &
                 CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
             !
             IF (axis < 1 .OR. axis > 3) &
@@ -190,9 +190,9 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (ABS(charge) < tol) RETURN
+            IF (ABS(charge) < func_tol) RETURN
             !
-            IF (ABS(spread) < tol) &
+            IF (ABS(spread) < func_tol) &
                 CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
             !
             IF (axis < 1 .OR. axis > 3) &

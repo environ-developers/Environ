@@ -110,7 +110,7 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE init_solver_gradient(this, lconjugate, step_type, step, preconditioner, &
-                                    screening_type, screening, cores, maxiter, tol_in, &
+                                    screening_type, screening, cores, maxiter, tol, &
                                     auxiliary)
         !--------------------------------------------------------------------------------
         !
@@ -119,7 +119,7 @@ CONTAINS
         TYPE(container_electrostatics), INTENT(IN) :: cores
         LOGICAL, INTENT(IN) :: lconjugate
         INTEGER, INTENT(IN) :: maxiter
-        REAL(DP), INTENT(IN) :: tol_in, step, screening
+        REAL(DP), INTENT(IN) :: tol, step, screening
         CHARACTER(LEN=80), INTENT(IN) :: step_type, preconditioner, screening_type
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary
         !
@@ -127,7 +127,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%init_iterative(cores, maxiter, tol_in, auxiliary)
+        CALL this%init_iterative(cores, maxiter, tol, auxiliary)
         !
         IF (lconjugate) THEN
             this%solver_type = 'cg'

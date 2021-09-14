@@ -197,6 +197,8 @@ MODULE class_boundary
     END TYPE environ_boundary
     !------------------------------------------------------------------------------------
     !
+    INTEGER :: bound_tol = 1.D-60
+    !
     !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
@@ -2615,7 +2617,7 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
-        INTEGER :: i, j, ipol, tol
+        INTEGER :: i, j, ipol
         TYPE(environ_cell), POINTER :: cell
         !
         !--------------------------------------------------------------------------------
@@ -2623,7 +2625,6 @@ CONTAINS
         cell => gradient%cell
         !
         gradient%of_r = 0.D0
-        tol = 1.D-60
         !
         !--------------------------------------------------------------------------------
         ! Temporary quotient
@@ -2632,7 +2633,7 @@ CONTAINS
             !
             DO j = 1, cell%nnr
                 !
-                IF (ABS(local(i)%of_r(j)) <= tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
                 !
                 DO ipol = 1, 3
                     gradient%of_r(ipol, j) = gradient%of_r(ipol, j) + &
@@ -2666,19 +2667,18 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
-        INTEGER :: i, j, k, ipol, tol
+        INTEGER :: i, j, k, ipol
         TYPE(environ_cell), POINTER :: cell
         !
         !--------------------------------------------------------------------------------
         !
         cell => laplacian%cell
-        tol = 1.D-60
         !
         DO i = 1, n
             !
             DO j = 1, cell%nnr
                 !
-                IF (ABS(local(i)%of_r(j)) <= tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
                 !
                 laplacian%of_r(j) = laplacian%of_r(j) + &
                                     (lapllocal(i)%of_r(j) / &
@@ -2724,19 +2724,18 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: dsurface
         TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
-        INTEGER :: i, j, k, ipol, jpol, tol
+        INTEGER :: i, j, k, ipol, jpol
         TYPE(environ_cell), POINTER :: cell
         !
         !--------------------------------------------------------------------------------
         !
         cell => laplacian%cell
-        tol = 1.D-60
         !
         DO i = 1, n
             !
             DO j = 1, cell%nnr
                 !
-                IF (ABS(local(i)%of_r(j)) <= tol) CYCLE
+                IF (ABS(local(i)%of_r(j)) <= bound_tol) CYCLE
                 !
                 DO ipol = 1, 3
                     !

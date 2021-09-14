@@ -219,7 +219,7 @@ CONTAINS
                 dist = SQRT(r2)
                 arg = (dist - width) / spread
                 !
-                IF (dist > tol) gradlocal(:, ir) = EXP(-arg**2) * r / dist
+                IF (dist > func_tol) gradlocal(:, ir) = EXP(-arg**2) * r / dist
                 ! compute gradient of error function
                 !
             END DO
@@ -295,13 +295,13 @@ CONTAINS
                     !
                 CASE (0)
                     !
-                    IF (dist > tol) &
+                    IF (dist > func_tol) &
                         lapllocal(ir) = -EXP(-arg**2) * &
                                         (1.D0 / dist - arg / spread) * 2.D0
                     !
                 CASE (1)
                     !
-                    IF (dist > tol) &
+                    IF (dist > func_tol) &
                         lapllocal(ir) = -EXP(-arg**2) * &
                                         (1.D0 / dist - 2.D0 * arg / spread)
                     !
@@ -379,7 +379,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Compute hessian of error function
                 !
-                IF (dist > tol) THEN
+                IF (dist > func_tol) THEN
                     !
                     DO ip = 1, 3
                         !
@@ -434,7 +434,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (spread < tol .OR. width < tol) &
+            IF (spread < func_tol .OR. width < func_tol) &
                 CALL env_errore(fun_name, 'Wrong parameters of erfc function', 1)
             !
             t = spread / width
