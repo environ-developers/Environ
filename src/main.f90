@@ -36,7 +36,7 @@ MODULE class_environ
     USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
     !
     USE env_base_input
-    USE env_setup
+    USE class_setup
     !
     USE class_cell
     USE class_density
