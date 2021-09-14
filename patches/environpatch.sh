@@ -123,7 +123,7 @@ patch_makefile() {
 		return
 	else
 		fill_with_dots "  - Patching $1Makefile"
-		mod1="MODFLAGS+=\$(MOD_FLAG)../../Environ/src"
+		mod1="MODFLAGS+=\$(MOD_FLAG)../../Environ/src \$(MOD_FLAG)../../Environ/utils"
 		mod2="QEMODS+=../../Environ/libs/*"
 
 		sed -i.tmp -e '/^TLDEPS/a \
@@ -174,7 +174,7 @@ patch_makedeps() {
 	# Environ patch\
 	case $DIR in\
 	'"$DEPS"')\
-		DEPENDS="$DEPENDS $LEVEL2/Environ/src"\
+		DEPENDS="$DEPENDS $LEVEL2/Environ/src $LEVEL2/Environ/utils"\
 		;;\
 	esac\
 	# end Environ patch' $file && rm $file.tmp

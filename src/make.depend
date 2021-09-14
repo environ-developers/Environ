@@ -1,8 +1,3 @@
-QE_interface.o : ../utils/base_io.o
-QE_interface.o : ../utils/char_ops.o
-QE_interface.o : ../utils/io.o
-QE_interface.o : constants.o
-QE_interface.o : global_objects.o
 base_input.o : constants.o
 boundary.o : ../utils/base_io.o
 boundary.o : ../utils/tools_math.o
@@ -35,6 +30,8 @@ charges.o : electrons.o
 charges.o : externals.o
 charges.o : ions.o
 charges.o : semiconductor.o
+clean.o : ../utils/base_io.o
+clean.o : global_objects.o
 constants.o : ../utils/kinds.o
 core_1da.o : cell.o
 core_1da.o : constants.o
@@ -217,6 +214,7 @@ ions.o : iontype.o
 iontype.o : ../utils/base_io.o
 iontype.o : ../utils/char_ops.o
 iontype.o : constants.o
+main.o : ../utils/io.o
 main.o : base_input.o
 main.o : boundary.o
 main.o : cell.o
@@ -258,7 +256,6 @@ setup.o : core_container_electrostatics.o
 setup.o : core_fd_derivatives.o
 setup.o : core_fft_derivatives.o
 setup.o : core_fft_electrostatics.o
-setup.o : input.o
 setup.o : mapping.o
 setup.o : solver.o
 setup.o : solver_direct.o

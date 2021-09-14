@@ -33,7 +33,9 @@
 MODULE class_environ
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
+    USE env_io, ONLY: env_find_free_unit
+    !
+    USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI, RYTOEV
     !
     USE env_base_input
     USE class_setup
@@ -135,6 +137,9 @@ MODULE class_environ
         PROCEDURE :: potential => calc_venviron
         PROCEDURE :: dpotential => calc_dvenviron
         !
+        PROCEDURE :: print_energies => print_environ_energies
+        PROCEDURE :: print_potential_shift => print_environ_potential_shift
+        !
         !--------------------------------------------------------------------------------
     END TYPE environ_obj
     !------------------------------------------------------------------------------------
@@ -191,6 +196,18 @@ CONTAINS
         CHARACTER(LEN=3), INTENT(IN) :: atom_label(:)
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        ! Set verbosity and open debug file
+        !
+        io%verbosity = verbose ! set internal verbosity from input
+        !
+        IF (io%verbosity >= 1) THEN
+            io%debug_unit = env_find_free_unit()
+            !
+            OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         !
@@ -306,7 +323,7 @@ CONTAINS
             IF (this%setup%ldoublecell) THEN
                 !
                 IF (environ_debug) THEN
-                    local_pos = mapping_pos ! debugging with finite-differences 
+                    local_pos = mapping_pos ! debugging with finite-differences
                 ELSE
                     local_pos = this%system_system%pos ! center of charge
                 END IF
@@ -1351,6 +1368,108 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_init_physical
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   OUTPUT METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !! Write out the different Environ contributions to the energy.
+    !! Called by electrons.f90
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_energies(this, prog)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CHARACTER(LEN=2), INTENT(IN) :: prog
+        !
+        CLASS(environ_obj), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (io%lnode) THEN
+            !
+            SELECT CASE (prog)
+                !
+            CASE ('PW')
+                !
+                IF (this%setup%lelectrostatic) WRITE (io%unit, 1000) this%eelectrostatic
+                !
+                IF (this%setup%lsurface) WRITE (io%unit, 1001) this%esurface
+                !
+                IF (this%setup%lvolume) WRITE (io%unit, 1002) this%evolume
+                !
+                IF (this%setup%lconfine) WRITE (io%unit, 1003) this%econfine
+                !
+                IF (this%setup%lelectrolyte) WRITE (io%unit, 1004) this%eelectrolyte
+                !
+                WRITE (io%unit, 1005) this%deenviron
+                !
+            CASE ('CP')
+                !
+                IF (this%setup%lelectrostatic) WRITE (io%unit, 1006) this%eelectrostatic
+                !
+                IF (this%setup%lsurface) WRITE (io%unit, 1007) this%esurface
+                !
+                IF (this%setup%lvolume) WRITE (io%unit, 1008) this%evolume
+                !
+                IF (this%setup%lconfine) WRITE (io%unit, 1009) this%econfine
+                !
+                IF (this%setup%lelectrolyte) WRITE (io%unit, 1010) this%eelectrolyte
+                !
+            CASE DEFAULT
+                CALL env_errore(sub_name, 'Wrong program calling Environ', 1)
+                !
+            END SELECT
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+1000    FORMAT('     electrostatic embedding   =', F17.8, ' Ry')
+1001    FORMAT('     cavitation energy         =', F17.8, ' Ry')
+1002    FORMAT('     PV energy                 =', F17.8, ' Ry')
+1003    FORMAT('     confinement energy        =', F17.8, ' Ry')
+1004    FORMAT('     electrolyte free energy   =', F17.8, ' Ry')
+1005    FORMAT('     correction to one-el term =', F17.8, ' Ry')
+        !
+1006    FORMAT('     electrostatic embedding = ', F14.5, ' Hartree a.u.')
+1007    FORMAT('           cavitation energy = ', F14.5, ' Hartree a.u.')
+1008    FORMAT('                   PV energy = ', F14.5, ' Hartree a.u.')
+1009    FORMAT('     electrolyte free energy = ', F14.5, ' Hartree a.u.')
+1010    FORMAT('          confinement energy = ', F14.5, ' Hartree a.u.')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_energies
+    !------------------------------------------------------------------------------------
+    !>
+    !! If Gaussian nuclei are used, write out the corresponding potential shift
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_potential_shift(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_obj), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (this%setup%lsmearedions) &
+            WRITE (io%unit, 1100) this%environment_ions%potential_shift * RYTOEV
+        !
+1100    FORMAT(/, 5(' '), &
+                'the potential shift due to the Gaussian-smeared nuclei is ', &
+                F10.4, ' ev')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_potential_shift
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

@@ -34,7 +34,6 @@ MODULE class_setup
     USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI
     !
     USE env_base_input
-    USE environ_input, ONLY: env_read_input
     !
     USE class_cell
     USE class_mapping
@@ -184,8 +183,7 @@ MODULE class_setup
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: set_flags => set_environ_flags
-        PROCEDURE :: set_numerical_base => set_environ_numerical_base
+        PROCEDURE :: init => init_environ_setup
         !
         PROCEDURE :: init_cell => environ_init_cell
         PROCEDURE :: update_cell => environ_update_cell
@@ -196,7 +194,8 @@ MODULE class_setup
         PROCEDURE :: init_cores => init_environ_numerical_cores
         PROCEDURE :: update_cores => update_environ_numerical_cores
         !
-        !
+        PROCEDURE, PRIVATE :: set_flags => set_environ_flags
+        PROCEDURE, PRIVATE :: set_numerical_base => set_environ_numerical_base
         !
         PROCEDURE, PRIVATE :: set_core_containers => set_environ_core_containers
         PROCEDURE, PRIVATE :: set_electrostatics => set_environ_electrostatic
@@ -207,7 +206,9 @@ MODULE class_setup
             set_dielectric_flags, &
             set_derived_flags
         !
-        PROCEDURE :: printout => environ_setup_summary
+        PROCEDURE :: print_summary => environ_setup_summary
+        PROCEDURE :: print_potential_warning => print_environ_potential_warning
+        PROCEDURE :: print_clocks => print_environ_clocks
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_setup
@@ -237,80 +238,23 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_flags(this)
+    SUBROUTINE init_environ_setup(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_environ_flags'
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (pbc_dim >= 0) THEN
-            !
-            SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
-                !
-            CASE ('none')
-                !
-            CASE ('parabolic')
-                this%need_pbc_correction = .TRUE.
-                !
-            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_electrolyte = .TRUE.
-                !
-            CASE ('ms', 'mott-schottky')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                !
-            CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
-                this%need_pbc_correction = .TRUE.
-                this%need_semiconductor = .TRUE.
-                this%need_outer_loop = .TRUE.
-                this%need_electrolyte = .TRUE.
-                !
-            CASE DEFAULT
-                CALL env_errore(sub_name, 'Option not yet implemented', 1)
-                !
-            END SELECT
-            !
-        END IF
+        CALL this%set_flags()
+        !
+        CALL this%set_numerical_base()
         !
         !--------------------------------------------------------------------------------
-        !
-        CALL this%set_execution_flags()
-        !
-        CALL this%set_environment_flags()
-        !
-        CALL this%set_dielectric_flags()
-        !
-        CALL this%set_derived_flags()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environ_flags
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE set_environ_numerical_base(this)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(environ_setup), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'init_environ_numerical_base'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        CALL this%set_core_containers()
-        !
-        CALL this%set_electrostatics()
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environ_numerical_base
+    END SUBROUTINE init_environ_setup
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -536,6 +480,84 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
+    SUBROUTINE set_environ_flags(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'set_environ_flags'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (pbc_dim >= 0) THEN
+            !
+            SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
+                !
+            CASE ('none')
+                !
+            CASE ('parabolic')
+                this%need_pbc_correction = .TRUE.
+                !
+            CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
+                this%need_pbc_correction = .TRUE.
+                this%need_electrolyte = .TRUE.
+                !
+            CASE ('ms', 'mott-schottky')
+                this%need_pbc_correction = .TRUE.
+                this%need_semiconductor = .TRUE.
+                !
+            CASE ('ms-gcs', 'mott-schottky-gouy-chapman-stern')
+                this%need_pbc_correction = .TRUE.
+                this%need_semiconductor = .TRUE.
+                this%need_outer_loop = .TRUE.
+                this%need_electrolyte = .TRUE.
+                !
+            CASE DEFAULT
+                CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                !
+            END SELECT
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%set_execution_flags()
+        !
+        CALL this%set_environment_flags()
+        !
+        CALL this%set_dielectric_flags()
+        !
+        CALL this%set_derived_flags()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_environ_flags
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_environ_numerical_base(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_numerical_base'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%set_core_containers()
+        !
+        CALL this%set_electrostatics()
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_environ_numerical_base
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
     SUBROUTINE set_execution_flags(this)
         !--------------------------------------------------------------------------------
         !
@@ -551,7 +573,6 @@ CONTAINS
         this%ldoublecell = SUM(env_nrep) > 0
         this%lperiodic = this%need_pbc_correction
         this%louterloop = this%need_outer_loop
-        this%ltddfpt = io%prog == 'TD'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_execution_flags
@@ -682,18 +703,10 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference core
         !
-        SELECT CASE (io%prog)
-            !
-        CASE ('PW', 'CP', 'TD', 'XS')
-            this%lfft_system = .TRUE.
-            local_type = 'fft'
-            !
-            CALL this%reference_cores%init(this%core_fft_sys, local_type)
-            !
-        CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
-            !
-        END SELECT
+        this%lfft_system = .TRUE.
+        local_type = 'fft'
+        !
+        CALL this%reference_cores%init(this%core_fft_sys, local_type)
         !
         !--------------------------------------------------------------------------------
         ! Outer/inner cores
@@ -799,15 +812,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference solver
         !
-        SELECT CASE (io%prog)
-            !
-        CASE ('PW', 'CP', 'TD', 'XS')
-            CALL this%reference_direct%init_direct(this%reference_cores)
-            !
-        CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
-            !
-        END SELECT
+        CALL this%reference_direct%init_direct(this%reference_cores)
         !
         !--------------------------------------------------------------------------------
         ! Outer solver
@@ -910,15 +915,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference setup
         !
-        SELECT CASE (io%prog)
-            !
-        CASE ('PW', 'CP', 'TD', 'XS')
-            local_problem = 'poisson'
-            !
-        CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected name of host code', 1)
-            !
-        END SELECT
+        local_problem = 'poisson'
         !
         CALL this%reference%init(local_problem, this%reference_direct)
         !
@@ -1095,6 +1092,83 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_setup_summary
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_potential_warning(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (this%need_pbc_correction) WRITE (io%unit, 1100)
+        !
+1100    FORMAT(/, &
+                5(' '), 'WARNING: you are using the parabolic pbc correction;', /, &
+                5(' '), '         the potential shift above must be added to ', /, &
+                5(' '), '         band and Fermi energies.')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_potential_warning
+    !------------------------------------------------------------------------------------
+    !>
+    !! Write out the time informations of the Environ dependent calculations.
+    !! Called by print_clock_pw.f90
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE print_environ_clocks(this, passed_unit)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        INTEGER, INTENT(IN), OPTIONAL :: passed_unit
+        !
+        INTEGER :: actual_unit
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(passed_unit)) THEN
+            actual_unit = passed_unit
+        ELSE
+            actual_unit = io%unit
+        END IF
+        !
+        WRITE (actual_unit, *)
+        WRITE (actual_unit, '(5X,"Environ routines")')
+        !
+        !--------------------------------------------------------------------------------
+        ! Dielectric subroutines
+        !
+        IF (this%lelectrostatic) THEN
+            !
+            CALL env_print_clock('calc_eelect')
+            !
+            CALL env_print_clock('calc_velect')
+            !
+            CALL env_print_clock('calc_vgcs')
+            !
+            CALL env_print_clock('dielectric')
+            !
+            CALL env_print_clock('electrolyte')
+            !
+            CALL env_print_clock('calc_felect')
+            !
+        END IF
+        !
+        IF (this%lsemiconductor) CALL env_print_clock('calc_vms')
+        !
+        !--------------------------------------------------------------------------------
+        ! TDDFT
+        !
+        IF (this%ltddfpt) CALL env_print_clock('calc_vsolvent_tddfpt')
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE print_environ_clocks
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

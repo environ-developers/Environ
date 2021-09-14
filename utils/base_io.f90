@@ -60,6 +60,7 @@ MODULE env_base_io
         !--------------------------------------------------------------------------------
         !
         PROCEDURE :: init => init_base_io
+        PROCEDURE :: update_unit => update_output_program_unit
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_io
@@ -74,7 +75,7 @@ CONTAINS
     !! Set global I/O constants
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_base_io(this, can_write, id, comm, prog_unit, env_unit, lstdout)
+    SUBROUTINE init_base_io(this, can_write, id, comm, prog_unit, lstdout)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -85,7 +86,6 @@ CONTAINS
         INTEGER, INTENT(IN) :: id
         INTEGER, INTENT(IN) :: comm
         INTEGER, INTENT(IN) :: prog_unit
-        INTEGER, INTENT(IN) :: env_unit
         LOGICAL, INTENT(IN) :: lstdout
         !
         !--------------------------------------------------------------------------------
@@ -94,11 +94,30 @@ CONTAINS
         this%node = id
         this%comm = comm
         this%unit = prog_unit
-        this%debug_unit = env_unit
         this%lstdout = lstdout
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_base_io
+    !------------------------------------------------------------------------------------
+    !>
+    !! Sets the output file target
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_output_program_unit(this, program_unit_in)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: program_unit_in
+        !
+        CLASS(environ_io), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%unit = program_unit_in
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_output_program_unit
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
