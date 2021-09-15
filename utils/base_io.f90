@@ -30,6 +30,12 @@ MODULE env_base_io
     !------------------------------------------------------------------------------------
     !
     USE env_char_ops, ONLY: env_uppercase
+    USE env_utils_param
+    USE env_mp, ONLY: env_mp_bcast, env_mp_abort, env_mp_rank
+    !
+#if defined(__PTRACE)&&defined(__INTEL_COMPILER)
+    USE ifcore, ONLY: tracebackqq
+#endif
     !
     IMPLICIT NONE
     !
@@ -61,6 +67,8 @@ MODULE env_base_io
         !
         PROCEDURE :: init => init_base_io
         PROCEDURE :: update_unit => update_output_program_unit
+        !
+        PROCEDURE, NOPASS :: find_free_unit => env_find_free_unit
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_io
@@ -119,6 +127,42 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_output_program_unit
     !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    INTEGER FUNCTION env_find_free_unit()
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER :: iunit
+        LOGICAL :: opnd
+        !
+        CHARACTER(LEN=80) :: fun_name = 'env_find_free_unit'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        env_find_free_unit = -1
+        !
+        unit_loop: DO iunit = 99, 1, -1
+            !
+            INQUIRE (UNIT=iunit, OPENED=opnd)
+            !
+            IF (.NOT. opnd) THEN
+                env_find_free_unit = iunit
+                !
+                RETURN
+                !
+            END IF
+            !
+        END DO unit_loop
+        !
+        CALL env_warning('free unit not found?!?')
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION env_find_free_unit
+    !------------------------------------------------------------------------------------
+
     !
     !------------------------------------------------------------------------------------
 END MODULE env_base_io

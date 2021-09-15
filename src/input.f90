@@ -30,7 +30,6 @@ MODULE environ_input
     !------------------------------------------------------------------------------------
     !
     USE env_base_io, ONLY: io
-    USE env_io
     USE env_mp, ONLY: env_mp_bcast
     USE env_char_ops, ONLY: env_uppercase, env_is_substring
     !
@@ -71,7 +70,7 @@ CONTAINS
         !
         IF (PRESENT(filename)) local_filename = filename
         !
-        environ_unit_input = env_find_free_unit()
+        environ_unit_input = io%find_free_unit()
         INQUIRE (file=TRIM(local_filename), exist=ext)
         !
         IF (.NOT. ext) CALL env_errore(sub_name, 'Missing input file', 1)
@@ -1974,6 +1973,240 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convert_length
+    !------------------------------------------------------------------------------------
+    !>
+    !! WE MAY WANT TO ADD A SECOND COMM ON IMAGES #TODO may be required for NEB
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_read_line(unit, line, nfield, field, end_of_file, error)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: unit
+        CHARACTER(LEN=*), OPTIONAL, INTENT(IN) :: field
+        INTEGER, OPTIONAL, INTENT(IN) :: nfield
+        !
+        CHARACTER(LEN=*), INTENT(OUT) :: line
+        LOGICAL, OPTIONAL, INTENT(OUT) :: end_of_file, error
+        !
+        LOGICAL :: tend, terr
+        !
+        CHARACTER(LEN=80) :: sub_name = 'env_read_line'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (LEN(line) < 256) &
+            CALL env_errore(sub_name, 'Input line too short', MAX(LEN(line), 1))
+        !
+        tend = .FALSE.
+        terr = .FALSE.
+        !
+        IF (io%lnode) THEN
+30          READ (unit, fmt='(A256)', ERR=15, END=10) line
+            line = TRIM(line)
+            !
+            IF (line == ' ' .OR. (line(1:1) == '#' .OR. &
+                                  line(1:1) == '!' .OR. &
+                                  line(1:1) == '/')) &
+                GOTO 30
+            !
+            IF (line(1:1) == '&') THEN ! consume unnecessary namelists
+                !
+                DO WHILE (line(1:1) /= '/')
+                    READ (unit, fmt='(A256)', ERR=15, END=10) line
+                END DO
+                !
+                GOTO 30
+            END IF
+            !
+            GOTO 20
+10          tend = .TRUE.
+            GOTO 20
+15          terr = .TRUE.
+20          CONTINUE
+        END IF
+        !
+        CALL env_mp_bcast(tend, io%node, io%comm)
+        !
+        CALL env_mp_bcast(terr, io%node, io%comm)
+        !
+        CALL env_mp_bcast(line, io%node, io%comm)
+        !
+        IF (PRESENT(end_of_file)) THEN
+            end_of_file = tend
+        ELSE IF (tend) THEN
+            CALL env_write('End of file')
+        END IF
+        !
+        IF (PRESENT(error)) THEN
+            error = terr
+        ELSE IF (terr) THEN
+            CALL env_write('Read error')
+        END IF
+        !
+        IF (PRESENT(field) .AND. .NOT. (tend .OR. terr)) &
+            CALL env_field_compare(line, nfield, field)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_read_line
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_field_count(num, line, car)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CHARACTER(LEN=*), INTENT(IN) :: line
+        CHARACTER(LEN=1), OPTIONAL, INTENT(IN) :: car
+        !
+        INTEGER, INTENT(OUT) :: num
+        !
+        CHARACTER(LEN=1) :: sep1, sep2
+        INTEGER :: j
+        !
+        !--------------------------------------------------------------------------------
+        !
+        num = 0
+        !
+        IF (.NOT. PRESENT(car)) THEN
+            sep1 = CHAR(32) ! blank character
+            sep2 = CHAR(9) ! tab character
+            !
+            DO j = 2, MAX(LEN(line), 256)
+                !
+                IF (line(j:j) == '!' .OR. line(j:j) == CHAR(0)) THEN
+                    !
+                    IF (line(j - 1:j - 1) /= sep1 .AND. line(j - 1:j - 1) /= sep2) &
+                        num = num + 1
+                    !
+                    EXIT
+                    !
+                END IF
+                !
+                IF ((line(j:j) == sep1 .OR. line(j:j) == sep2) .AND. &
+                    (line(j - 1:j - 1) /= sep1 .AND. line(j - 1:j - 1) /= sep2)) &
+                    num = num + 1
+                !
+            END DO
+            !
+        ELSE
+            !
+            sep1 = car
+            !
+            DO j = 2, MAX(LEN(line), 256)
+                !
+                IF (line(j:j) == '!' .OR. &
+                    line(j:j) == CHAR(0) .OR. line(j:j) == CHAR(32)) THEN
+                    !
+                    IF (line(j - 1:j - 1) /= sep1) num = num + 1
+                    !
+                    EXIT
+                    !
+                END IF
+                !
+                IF (line(j:j) == sep1 .AND. line(j - 1:j - 1) /= sep1) num = num + 1
+                !
+            END DO
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_field_count
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_field_compare(str, nf, var)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: nf
+        CHARACTER(LEN=*), INTENT(IN) :: str, var
+        !
+        INTEGER :: nc
+        !
+        CHARACTER(LEN=80) :: sub_name = 'env_field_compare'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL env_field_count(nc, str)
+        !
+        IF (nc < nf) CALL env_errore(sub_name, 'Wrong number of fields: '//TRIM(var), 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_field_compare
+    !------------------------------------------------------------------------------------
+    !>
+    !! Extract whitespace-separated nth block from string
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE env_get_field(n, field, str, sep)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: n
+        CHARACTER(LEN=*), INTENT(IN) :: str
+        CHARACTER(LEN=1), OPTIONAL, INTENT(IN) :: sep
+        !
+        CHARACTER(LEN=*), INTENT(OUT) :: field
+        !
+        INTEGER :: i, j, z ! block start and end
+        INTEGER :: k ! block counter
+        CHARACTER(LEN=1) :: sep1, sep2
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(sep)) THEN
+            sep1 = sep
+            sep2 = sep ! redundant, but easy
+        ELSE
+            sep1 = CHAR(32) ! blank character
+            sep2 = CHAR(9) ! tab char
+        END IF
+        !
+        k = 1 ! counter for the required block
+        !
+        DO i = 1, LEN(str)
+            !
+            z = MAX(i - 1, 1) ! look for the beginning of the required block
+            !
+            IF (k == n) EXIT
+            !
+            IF ((str(i:i) == sep1 .OR. str(i:i) == sep2) .AND. &
+                (str(z:z) /= sep1 .AND. str(z:z) /= sep2)) &
+                k = k + 1
+            !
+        END DO
+        !
+        DO j = i, LEN(str)
+            !
+            z = MAX(j - 1, 1) ! look for the beginning of the next block
+            !
+            IF ((str(j:j) == sep1 .OR. str(j:j) == sep2) .AND. &
+                (str(z:z) /= sep1 .AND. str(z:z) /= sep2)) &
+                k = k + 1
+            !
+            IF (k > n) EXIT
+            !
+        END DO
+        !
+        IF (j <= LEN(str)) THEN
+            field = TRIM(ADJUSTL(str(i:j - 1)))
+            ! if we are here, the reqired block was followed by a separator
+            ! and another field. We have to trash one char (a separator)
+        ELSE
+            field = TRIM(ADJUSTL(str(i:LEN(str))))
+            ! if we are here, it was the last block in str. We have to take
+            ! all the remaining chars
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE env_get_field
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

@@ -33,9 +33,7 @@
 MODULE class_environ
     !------------------------------------------------------------------------------------
     !
-    USE env_io, ONLY: env_find_free_unit
-    !
-    USE environ_param, ONLY: DP, BOHR_RADIUS_SI, RYDBERG_SI, RYTOEV
+    USE environ_param, ONLY: DP, RYTOEV
     !
     USE env_base_input
     USE class_setup
@@ -203,7 +201,7 @@ CONTAINS
         io%verbosity = verbose ! set internal verbosity from input
         !
         IF (io%verbosity >= 1) THEN
-            io%debug_unit = env_find_free_unit()
+            io%debug_unit = io%find_free_unit()
             !
             OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
             !

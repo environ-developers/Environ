@@ -30,8 +30,6 @@ charges.o : electrons.o
 charges.o : externals.o
 charges.o : ions.o
 charges.o : semiconductor.o
-clean.o : ../utils/base_io.o
-clean.o : global_objects.o
 constants.o : ../utils/kinds.o
 core_1da.o : cell.o
 core_1da.o : constants.o
@@ -117,6 +115,8 @@ density.o : ../utils/base_io.o
 density.o : ../utils/mp.o
 density.o : cell.o
 density.o : constants.o
+destructor.o : ../utils/base_io.o
+destructor.o : global_objects.o
 dielectric.o : ../utils/base_io.o
 dielectric.o : boundary.o
 dielectric.o : cell.o
@@ -195,7 +195,6 @@ hessian.o : density.o
 hessian.o : gradient.o
 input.o : ../utils/base_io.o
 input.o : ../utils/char_ops.o
-input.o : ../utils/io.o
 input.o : ../utils/mp.o
 input.o : base_input.o
 input.o : constants.o
@@ -214,7 +213,6 @@ ions.o : iontype.o
 iontype.o : ../utils/base_io.o
 iontype.o : ../utils/char_ops.o
 iontype.o : constants.o
-main.o : ../utils/io.o
 main.o : base_input.o
 main.o : boundary.o
 main.o : cell.o
