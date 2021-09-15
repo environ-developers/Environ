@@ -110,9 +110,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%large)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%large)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%small)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%small)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_mapping
@@ -253,9 +253,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%small)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%small)) CALL io%destroy_error(sub_name)
         !
-        IF (.NOT. ASSOCIATED(this%large)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%large)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -296,13 +296,13 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. this%initialized) &
-            CALL env_errore(sub_name, 'Mapping is not initialized', 1)
+            CALL io%error(sub_name, 'Mapping is not initialized', 1)
         !
         IF (nsmall /= this%small%nnr) &
-            CALL env_errore(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL env_errore(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -357,13 +357,13 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. this%initialized) &
-            CALL env_errore(sub_name, 'Mapping is not initialized', 1)
+            CALL io%error(sub_name, 'Mapping is not initialized', 1)
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL env_errore(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(sub_name, 'Mismatch of small cell', 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL env_errore(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(sub_name, 'Mismatch of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -419,13 +419,13 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. this%initialized) &
-            CALL env_errore(sub_name, 'Mapping is not initialized', 1)
+            CALL io%error(sub_name, 'Mapping is not initialized', 1)
         !
         IF (nsmall /= this%small%nnr) &
-            CALL env_errore(sub_name, 'Wrong dimension of small cell', 1)
+            CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
         !
         IF (nlarge /= this%large%nnr) &
-            CALL env_errore(sub_name, 'Wrong dimension of large cell', 1)
+            CALL io%error(sub_name, 'Wrong dimension of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy
@@ -481,13 +481,13 @@ CONTAINS
         ! Check if input/output dimensions match mapping cells
         !
         IF (.NOT. this%initialized) &
-            CALL env_errore(sub_name, 'Mapping is not initialized', 1)
+            CALL io%error(sub_name, 'Mapping is not initialized', 1)
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
-            CALL env_errore(sub_name, 'Mismatch of small cell', 1)
+            CALL io%error(sub_name, 'Mismatch of small cell', 1)
         !
         IF (.NOT. ASSOCIATED(flarge%cell, this%large)) &
-            CALL env_errore(sub_name, 'Mismatch of large cell', 1)
+            CALL io%error(sub_name, 'Mismatch of large cell', 1)
         !
         !--------------------------------------------------------------------------------
         ! If the cells are the same, just copy

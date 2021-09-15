@@ -152,15 +152,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%tau)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%tau)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%ityp)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%ityp)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%iontype)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%iontype)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%smeared_ions)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%smeared_ions)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%core_electrons)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%core_electrons)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_ions
@@ -304,8 +304,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%number /= nat) &
-            CALL env_errore(sub_name, 'Mismatch in number of atoms', 1)
+        IF (this%number /= nat) CALL io%error(sub_name, 'Mismatch in number of atoms', 1)
         !
         this%tau = tau ! update positions
         !
@@ -322,7 +321,7 @@ CONTAINS
         END DO
         !
         IF (ABS(this%charge) < 1.D-8) &
-            CALL env_errore(sub_name, 'Ionic charge equal to zero', 1)
+            CALL io%error(sub_name, 'Ionic charge equal to zero', 1)
         !
         this%center = this%center / this%charge
         !
@@ -412,11 +411,11 @@ CONTAINS
         !
         this%charge = 0.D0
         !
-        IF (.NOT. ALLOCATED(this%ityp)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%ityp)) CALL io%destroy_error(sub_name)
         !
-        IF (.NOT. ALLOCATED(this%iontype)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%iontype)) CALL io%destroy_error(sub_name)
         !
-        IF (.NOT. ASSOCIATED(this%tau)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%tau)) CALL io%destroy_error(sub_name)
         !
         DEALLOCATE (this%ityp)
         DEALLOCATE (this%iontype)

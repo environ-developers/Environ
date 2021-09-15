@@ -222,23 +222,23 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%electrons)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%electrons)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%ions)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%system)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%system)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%derivatives)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%soft_spheres)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%soft_spheres)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%ion_field)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%ion_field)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%local_spheres)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%local_spheres)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%dion_field_drho)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%dion_field_drho)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%partial_of_ion_field)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%partial_of_ion_field)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_boundary
@@ -324,8 +324,8 @@ CONTAINS
         this%deltarho = rhomax - rhomin
         !
         IF (const == 1.D0 .AND. this%need_electrons .AND. stype == 2) &
-            CALL env_errore(sub_name, &
-                            'stype=2 boundary requires dielectric constant > 1', 1)
+            CALL io%error(sub_name, &
+                          'stype=2 boundary requires dielectric constant > 1', 1)
         !
         this%const = const
         this%alpha = alpha
@@ -432,7 +432,7 @@ CONTAINS
         !
         IF (this%field_aware) THEN
             !
-            CALL env_errore(sub_name, 'field-aware not yet implimented', 1)
+            CALL io%error(sub_name, 'field-aware not yet implimented', 1)
             !
             IF (this%mode == 'fa-electronic' .OR. &
                 this%mode == 'fa-full') THEN
@@ -448,7 +448,7 @@ CONTAINS
                 END DO
                 !
             ELSE
-                CALL env_errore(sub_name, 'Boundary must be field-aware', 1)
+                CALL io%error(sub_name, 'Boundary must be field-aware', 1)
             END IF
             !
         END IF
@@ -687,9 +687,9 @@ CONTAINS
                 ! Check if the ionic part has been updated
                 !
                 IF (this%update_status == 0) &
-                    CALL env_errore(sub_name, &
-                                    'Wrong update status, possibly &
-                                    &missing ionic update', 1)
+                    CALL io%error(sub_name, &
+                                  'Wrong update status, possibly &
+                                  &missing ionic update', 1)
                 !
                 this%density%of_r = this%electrons%density%of_r + this%ions%core%of_r
                 !
@@ -767,7 +767,7 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL env_errore(sub_name, 'Unrecognized boundary mode', 1)
+            CALL io%error(sub_name, 'Unrecognized boundary mode', 1)
             !
         END SELECT
         !
@@ -840,7 +840,7 @@ CONTAINS
                 !
                 IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
                     !
-                    CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
                     !
                     DEALLOCATE (this%ion_field)
                     DEALLOCATE (this%partial_of_ion_field)
@@ -852,13 +852,13 @@ CONTAINS
                 !
             END IF
             !
-            IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
+            IF (.NOT. ASSOCIATED(this%ions)) CALL io%destroy_error(sub_name)
             !
             NULLIFY (this%ions)
         ELSE
             !
             IF (ASSOCIATED(this%ions)) &
-                CALL env_errore(sub_name, 'Found an unexpected associated object', 1)
+                CALL io%error(sub_name, 'Found an unexpected associated object', 1)
             !
         END IF
         !
@@ -1048,7 +1048,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%density%cell, this%scaled%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent domains', 1)
+            CALL io%error(sub_name, 'Inconsistent domains', 1)
         !
         ir_end => this%density%cell%ir_end
         rho => this%density%of_r
@@ -1573,24 +1573,24 @@ CONTAINS
         ELSE IF (this%need_system) THEN
             number => this%system%ions%number
         ELSE
-            CALL env_errore(sub_name, 'Missing details of ions', 1)
+            CALL io%error(sub_name, 'Missing details of ions', 1)
         END IF
         !
         IF (index > number) &
-            CALL env_errore(sub_name, 'Index greater than number of ions', 1)
+            CALL io%error(sub_name, 'Index greater than number of ions', 1)
         !
         IF (index <= 0) &
-            CALL env_errore(sub_name, 'Index of ion is zero or lower', 1)
+            CALL io%error(sub_name, 'Index of ion is zero or lower', 1)
         !
         IF (this%mode == 'ionic' .AND. &
             .NOT. ALLOCATED(this%soft_spheres)) &
-            CALL env_errore(sub_name, 'Missing details of ionic boundary', 1)
+            CALL io%error(sub_name, 'Missing details of ionic boundary', 1)
         !
         IF (this%mode == 'full' .AND. .NOT. ALLOCATED(this%ions%core_electrons)) &
-            CALL env_errore(sub_name, 'Missing details of core electrons', 1)
+            CALL io%error(sub_name, 'Missing details of core electrons', 1)
         !
         IF (this%mode == 'full' .AND. .NOT. ASSOCIATED(this%dscaled%cell, cell)) &
-            CALL env_errore(sub_name, 'Mismatch or unassociated boundary derivative', 1)
+            CALL io%error(sub_name, 'Mismatch or unassociated boundary derivative', 1)
         !
         IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
             !
@@ -2262,7 +2262,7 @@ CONTAINS
                 (const - 1.D0)
             !
         CASE DEFAULT
-            CALL env_errore(fun_name, 'Unknown boundary type', 1)
+            CALL io%error(fun_name, 'Unknown boundary type', 1)
             !
         END SELECT
         !
@@ -2319,7 +2319,7 @@ CONTAINS
                           dsfunct1(rho, rhomax, rhomin, tbeta)
             !
         CASE DEFAULT
-            CALL env_errore(fun_name, 'Unknown boundary type', 1)
+            CALL io%error(fun_name, 'Unknown boundary type', 1)
             !
         END SELECT
         !
@@ -2364,7 +2364,7 @@ CONTAINS
         SELECT CASE (ifunct)
             !
         CASE (0)
-            CALL env_errore(fun_name, 'Option not yet implemented', 1)
+            CALL io%error(fun_name, 'Option not yet implemented', 1)
             !
         CASE (1)
             d2boundfunct = -d2sfunct1(rho, rhomax, rhomin, tbeta)
@@ -2377,7 +2377,7 @@ CONTAINS
                             d2sfunct1(rho, rhomax, rhomin, tbeta))
             !
         CASE DEFAULT
-            CALL env_errore(fun_name, 'Unknown boundary type', 1)
+            CALL io%error(fun_name, 'Unknown boundary type', 1)
             !
         END SELECT
         !
@@ -2404,7 +2404,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (i > n) CALL env_errore(sub_name, 'Index out of bound', 1)
+        IF (i > n) CALL io%error(sub_name, 'Index out of bound', 1)
         !
         DO ipol = 1, 3
             partial%of_r(ipol, :) = gradlocal(i)%of_r(ipol, :)

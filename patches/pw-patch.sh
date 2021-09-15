@@ -208,6 +208,7 @@ USE cell_base,          ONLY : at, alat\
 USE ions_base,          ONLY : nat, nsp, ityp, atm, zv, tau\
 USE martyna_tuckerman,  ONLY : do_comp_mt\
 USE gvect,              ONLY : gcutm\
+USE env_base_io,        ONLY : io\
 USE env_global_objects, ONLY : env, setup\
 !Environ patch
 ' plugin_initbase.f90 >tmp.1
@@ -225,9 +226,9 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF (use_environ) THEN\
       !\
-      IF (alat < 1.D-8) CALL env_errore(sub_name, "Wrong alat", 1)\
+      IF (alat < 1.D-8) CALL io%error(sub_name, "Wrong alat", 1)\
       !\
-      IF (alat < 1.0_DP) CALL env_warning("strange lattice parameter")\
+      IF (alat < 1.0_DP) CALL io%warning("strange lattice parameter")\
       !\
       CALL env_allocate_mp_buffers()\
       !\

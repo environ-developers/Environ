@@ -99,7 +99,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_system
@@ -172,7 +172,7 @@ CONTAINS
             this%pos(:) = this%pos(:) + this%ions%tau(:, i) * zv
         END DO
         !
-        IF (ABS(charge) < 1.D-8) CALL env_errore(sub_name, 'System charge is zero', 1)
+        IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, 'System charge is zero', 1)
         !
         this%pos(:) = this%pos(:) / charge
         !
@@ -221,7 +221,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%ions)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%ions)) CALL io%destroy_error(sub_name)
         !
         NULLIFY (this%ions)
         !

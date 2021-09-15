@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -69,12 +69,11 @@
 MODULE env_fft_parallel
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE env_fft_param
-    !
     USE env_types_fft, ONLY: env_fft_type_descriptor
-    !
     USE env_fft_scalar, ONLY: env_cft_1z, env_cft_2xy
-    !
     USE env_fft_scatter
     !
     USE omp_lib
@@ -169,7 +168,7 @@ CONTAINS
         !
         DEALLOCATE (aux)
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 99      FORMAT(20('(', 2F12.9, ')'))
         !
@@ -227,7 +226,7 @@ CONTAINS
         CALL execute_using_threads()
 #endif
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 99      FORMAT(20('(', 2F12.9, ')'))
         !
@@ -249,9 +248,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             !
 #if defined(_OPENMP)&&defined(__FFT_SCALAR_THREAD_SAFE)
-            CALL env_errore(sub_name//'::execute_using_tasks', &
-                            'Needs thread-safe env_fft_scalar backend selected &
-                            &at compile time.', 1)
+            CALL io%error(sub_name//'::execute_using_tasks', &
+                          'Needs thread-safe env_fft_scalar backend selected &
+                          &at compile time.', 1)
 #endif
             !
             IF (isgn > 0) THEN ! G -> R
@@ -409,9 +408,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             !
 #if defined(_OPENMP)&&defined(__FFT_SCALAR_THREAD_SAFE)
-            CALL env_errore(sub_name//'::execute_using_threads', &
-                            'Needs thread-safe env_fft_scalar backend selected &
-                            &at compile time.', 1)
+            CALL io%error(sub_name//'::execute_using_threads', &
+                          'Needs thread-safe env_fft_scalar backend selected &
+                          &at compile time.', 1)
 #endif
             !
             IF (isgn > 0) THEN ! G -> R
@@ -580,7 +579,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (dfft%has_task_groups) &
-            CALL env_errore(sub_name, 'Task groups on large mesh not implemented', 1)
+            CALL io%error(sub_name, 'Task groups on large mesh not implemented', 1)
         !
         n1 = dfft%nr1
         n2 = dfft%nr2
@@ -630,8 +629,6 @@ CONTAINS
         END IF
         !
         DEALLOCATE (aux)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_tg_cft3s_2d

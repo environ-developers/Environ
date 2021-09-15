@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -30,6 +30,7 @@
 MODULE env_base_stick
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
     USE env_sorting, ONLY: env_hpsort
     !
     USE env_fft_param
@@ -154,16 +155,14 @@ CONTAINS
             smap%iproc2 = iproc2
             !
             IF (ALLOCATED(smap%indmap)) &
-                CALL env_errore(sub_name, 'indmap already allocated', 1)
+                CALL io%error(sub_name, 'indmap already allocated', 1)
             !
             IF (ALLOCATED(smap%stown)) &
-                CALL env_errore(sub_name, 'stown already allocated', 1)
+                CALL io%error(sub_name, 'stown already allocated', 1)
             !
-            IF (ALLOCATED(smap%idx)) &
-                CALL env_errore(sub_name, 'idx already allocated', 1)
+            IF (ALLOCATED(smap%idx)) CALL io%error(sub_name, 'idx already allocated', 1)
             !
-            IF (ALLOCATED(smap%ist)) &
-                CALL env_errore(sub_name, 'ist already allocated', 1)
+            IF (ALLOCATED(smap%ist)) CALL io%error(sub_name, 'ist already allocated', 1)
             !
             ALLOCATE (smap%indmap(lb(1):ub(1), lb(2):ub(2)))
             ALLOCATE (smap%stown(lb(1):ub(1), lb(2):ub(2)))
@@ -180,10 +179,10 @@ CONTAINS
             ! Change the size of the map, but keep the data already there
             !
             IF (smap%lgamma .NEQV. lgamma) &
-                CALL env_errore(sub_name, 'Changing gamma symmetry not allowed', 1)
+                CALL io%error(sub_name, 'Changing gamma symmetry not allowed', 1)
             !
             IF (smap%comm /= comm) &
-                CALL env_errore(sub_name, 'Changing communicator not allowed', 1)
+                CALL io%error(sub_name, 'Changing communicator not allowed', 1)
             !
             ALLOCATE (indmap(lb(1):ub(1), lb(2):ub(2)))
             ALLOCATE (stown(lb(1):ub(1), lb(2):ub(2)))
@@ -228,14 +227,12 @@ CONTAINS
         ELSE
             !
             IF (smap%lgamma .NEQV. lgamma) &
-                CALL env_errore(sub_name, 'Changing gamma symmetry not allowed', 2)
+                CALL io%error(sub_name, 'Changing gamma symmetry not allowed', 2)
             !
             IF (smap%comm /= comm) &
-                CALL env_errore(sub_name, 'Changing communicator not allowed', 1)
+                CALL io%error(sub_name, 'Changing communicator not allowed', 1)
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_sticks_map_allocate
@@ -363,8 +360,6 @@ CONTAINS
         END IF
 #endif
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_sticks_map_set
     !------------------------------------------------------------------------------------
@@ -419,7 +414,7 @@ CONTAINS
                     !
                     ind = index_map(i1, i2)
                     !
-                    IF (nct > min_size) CALL env_errore(sub_name, 'Too many sticks', nct)
+                    IF (nct > min_size) CALL io%error(sub_name, 'Too many sticks', nct)
                     !
                     in1(ind) = i1
                     in2(ind) = i2
@@ -429,8 +424,6 @@ CONTAINS
             END DO
             !
         END DO
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_sticks_map_index
@@ -481,7 +474,7 @@ CONTAINS
             DO mc = 2, nct
                 !
                 IF (idx(mc) /= 0) &
-                    CALL env_errore(sub_name, 'Non-contiguous indexes 1', nct)
+                    CALL io%error(sub_name, 'Non-contiguous indexes 1', nct)
                 !
             END DO
             !
@@ -498,7 +491,7 @@ CONTAINS
             DO mc = ic + 1, nct
                 !
                 IF (idx(mc) /= 0) &
-                    CALL env_errore(sub_name, 'Non-contiguous indexes 2', nct)
+                    CALL io%error(sub_name, 'Non-contiguous indexes 2', nct)
                 !
             END DO
             !
@@ -542,8 +535,6 @@ CONTAINS
         END IF
         !
         DEALLOCATE (iaux)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_sticks_sort_new
@@ -621,7 +612,7 @@ CONTAINS
                 IF (ygr(i1) == 0) ygr(i1) = gr
                 !
                 IF (ygr(i1) .NE. gr) &
-                    CALL env_errore(sub_name, 'ygroups are not compatible', 1)
+                    CALL io%error(sub_name, 'ygroups are not compatible', 1)
                 !
             END IF
             !
@@ -738,8 +729,6 @@ CONTAINS
         DEALLOCATE (ygrp, ygrc, ygrg)
         DEALLOCATE (yc, yg, ygr)
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_sticks_dist_new
     !------------------------------------------------------------------------------------
@@ -775,7 +764,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ALLOCATED(smap%stown)) &
-            CALL env_errore(sub_name, 'Sticks map not allocated', 1)
+            CALL io%error(sub_name, 'Sticks map not allocated', 1)
         !
         st = 0
         !
@@ -822,8 +811,6 @@ CONTAINS
         END DO
         !
         DEALLOCATE (ngc)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_get_sticks

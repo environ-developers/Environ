@@ -32,6 +32,8 @@
 MODULE class_solver_setup
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP, e2, tpi
     !
     USE class_cell
@@ -108,9 +110,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%solver)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%solver)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%inner)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%inner)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -152,9 +154,9 @@ CONTAINS
                 !
             TYPE IS (solver_direct)
                 !
-                CALL env_errore(sub_name, &
-                                'Cannot use a direct solver for &
-                                &the Generalized Poisson eq.', 1)
+                CALL io%error(sub_name, &
+                              'Cannot use a direct solver for &
+                              &the Generalized Poisson eq.', 1)
             END SELECT
             !
         CASE ('linpb', 'linmodpb', 'linearized-pb')
@@ -163,24 +165,24 @@ CONTAINS
                 !
             TYPE IS (solver_direct)
                 !
-                CALL env_errore(sub_name, &
-                                'Only gradient-based solver for &
-                                &the linearized Poisson-Boltzmann eq.', 1)
+                CALL io%error(sub_name, &
+                              'Only gradient-based solver for &
+                              &the linearized Poisson-Boltzmann eq.', 1)
                 !
             TYPE IS (solver_fixedpoint)
                 !
-                CALL env_errore(sub_name, &
-                                'Only gradient-based solver for &
-                                &the linearized Poisson-Boltzmann eq.', 1)
+                CALL io%error(sub_name, &
+                              'Only gradient-based solver for &
+                              &the linearized Poisson-Boltzmann eq.', 1)
                 !
             END SELECT
             !
             IF (ASSOCIATED(solver%cores%correction) .AND. &
                 solver%cores%correction%type_ /= '1da') THEN
                 !
-                CALL env_errore(sub_name, &
-                                'Linearized-PB problem requires &
-                                &parabolic pbc correction.', 1)
+                CALL io%error(sub_name, &
+                              'Linearized-PB problem requires &
+                              &parabolic pbc correction.', 1)
                 !
             END IF
             !
@@ -190,29 +192,28 @@ CONTAINS
                 !
             TYPE IS (solver_direct)
                 !
-                CALL env_errore(sub_name, &
-                                'No direct or gradient-based solver for &
-                                &the full Poisson-Boltzmann eq.', 1)
+                CALL io%error(sub_name, &
+                              'No direct or gradient-based solver for &
+                              &the full Poisson-Boltzmann eq.', 1)
                 !
             TYPE IS (solver_gradient)
                 !
-                CALL env_errore(sub_name, &
-                                'No direct or gradient-based solver for &
-                                &the full Poisson-Boltzmann eq.', 1)
+                CALL io%error(sub_name, &
+                              'No direct or gradient-based solver for &
+                              &the full Poisson-Boltzmann eq.', 1)
                 !
             END SELECT
             !
             IF (ASSOCIATED(solver%cores%correction) .AND. &
                 solver%cores%correction%type_ /= '1da') THEN
                 !
-                CALL env_errore(sub_name, &
-                                'Full-PB problem requires &
-                                &parabolic pbc correction.', 1)
+                CALL io%error(sub_name, &
+                              'Full-PB problem requires parabolic pbc correction.', 1)
                 !
             END IF
             !
         CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected keyword for electrostatic problem', 1)
+            CALL io%error(sub_name, 'Unexpected keyword for electrostatic problem', 1)
             !
         END SELECT
         !
@@ -288,7 +289,7 @@ CONTAINS
             !
         END SELECT
         !
-        IF (.NOT. ASSOCIATED(this%solver)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%solver)) CALL io%destroy_error(sub_name)
         !
         NULLIFY (this%solver)
         !
@@ -337,20 +338,20 @@ CONTAINS
                 CALL solver%poisson(charges, potential)
                 !
             CLASS DEFAULT
-                CALL env_errore(sub_name, 'Unexpected solver', 1)
+                CALL io%error(sub_name, 'Unexpected solver', 1)
                 !
             END SELECT
             !
         CASE ('generalized')
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL env_errore(sub_name, 'Missing details of dielectric medium', 1)
+                CALL io%error(sub_name, 'Missing details of dielectric medium', 1)
             !
             SELECT TYPE (solver => this%solver)
                 !
             TYPE IS (solver_direct)
                 !
-                CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL generalized_direct() #TODO future work
                 !
@@ -362,20 +363,20 @@ CONTAINS
                 CALL solver%generalized(charges, potential)
                 !
             CLASS DEFAULT
-                CALL env_errore(sub_name, 'Unexpected solver', 1)
+                CALL io%error(sub_name, 'Unexpected solver', 1)
                 !
             END SELECT
             !
         CASE ('linpb', 'linmodpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL env_errore(sub_name, 'Missing details of electrolyte ions', 1)
+                CALL io%error(sub_name, 'Missing details of electrolyte ions', 1)
             !
             SELECT TYPE (solver => this%solver)
                 !
             TYPE IS (solver_direct)
                 !
-                CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, 'Option not yet implemented', 1)
                 !
                 ! CALL linpb_direct() #TODO future work
                 !
@@ -383,28 +384,28 @@ CONTAINS
                 CALL solver%linearized_pb(charges, potential)
                 !
             CLASS DEFAULT
-                CALL env_errore(sub_name, 'Unexpected solver', 1)
+                CALL io%error(sub_name, 'Unexpected solver', 1)
                 !
             END SELECT
             !
         CASE ('pb', 'modpb')
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL env_errore(sub_name, 'Missing details of electrolyte ions', 1)
+                CALL io%error(sub_name, 'Missing details of electrolyte ions', 1)
             !
             SELECT TYPE (solver => this%solver)
                 !
             TYPE IS (solver_direct)
                 !
-                CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, 'Option not yet implemented', 1)
                 !
             TYPE IS (solver_fixedpoint)
                 !
                 IF (ASSOCIATED(this%inner)) THEN
                     !
                     IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                        CALL env_errore(sub_name, &
-                                        'Missing details of dielectric medium', 1)
+                        CALL io%error(sub_name, &
+                                      'Missing details of dielectric medium', 1)
                     !
                     CALL solver%pb_nested(charges, potential, this%inner%solver)
                     !
@@ -415,18 +416,18 @@ CONTAINS
             TYPE IS (solver_newton)
                 !
                 IF (.NOT. ASSOCIATED(this%inner)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing details of inner electrostatic setup', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing details of inner electrostatic setup', 1)
                 !
                 CALL solver%pb_nested(this%inner%solver, charges, potential)
                 !
             CLASS DEFAULT
-                CALL env_errore(sub_name, 'Unexpected solver', 1)
+                CALL io%error(sub_name, 'Unexpected solver', 1)
                 !
             END SELECT
             !
         CASE DEFAULT
-            CALL env_errore(sub_name, 'Unexpected problem keyword', 1)
+            CALL io%error(sub_name, 'Unexpected problem keyword', 1)
             !
         END SELECT
         !
@@ -459,7 +460,7 @@ CONTAINS
         CALL env_start_clock(sub_name)
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Mismatch in charges and potential domains', 1)
+            CALL io%error(sub_name, 'Mismatch in charges and potential domains', 1)
         !
         energy = 0.D0
         eself = 0.D0
@@ -558,7 +559,7 @@ CONTAINS
         ELSE IF (charges%include_externals) THEN
             !
             IF (.NOT. ASSOCIATED(charges%externals)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             aux%of_r = aux%of_r + charges%externals%density%of_r
         END IF
@@ -566,7 +567,7 @@ CONTAINS
         IF (charges%include_dielectric) THEN
             !
             IF (.NOT. ASSOCIATED(charges%dielectric)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             aux%of_r = aux%of_r + charges%dielectric%density%of_r
         END IF
@@ -574,7 +575,7 @@ CONTAINS
         IF (charges%include_electrolyte) THEN
             !
             IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             aux%of_r = aux%of_r + charges%electrolyte%density%of_r
         END IF

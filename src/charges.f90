@@ -134,17 +134,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%ions)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%ions)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%electrons)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%electrons)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%externals)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%externals)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%dielectric)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%dielectric)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%electrolyte)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%electrolyte)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%semiconductor)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%semiconductor)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_charges
@@ -195,7 +195,7 @@ CONTAINS
         IF (this%include_electrons) THEN
             !
             IF (.NOT. ASSOCIATED(this%electrons)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             this%number = this%number + this%electrons%number
             this%charge = this%charge + this%electrons%charge
@@ -205,7 +205,7 @@ CONTAINS
         IF (this%include_ions) THEN
             !
             IF (.NOT. ASSOCIATED(this%ions)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             this%number = this%number + this%ions%number
             this%charge = this%charge + this%ions%charge
@@ -215,7 +215,7 @@ CONTAINS
         IF (this%include_externals) THEN
             !
             IF (.NOT. ASSOCIATED(this%externals)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             this%number = this%number + this%externals%number
             this%charge = this%charge + this%externals%charge
@@ -225,7 +225,7 @@ CONTAINS
         local_charge = this%density%integrate()
         !
         IF (ABS(local_charge - this%charge) > 1.D-5) &
-            CALL env_errore(sub_name, 'Inconsistent integral of total charge', 1)
+            CALL io%error(sub_name, 'Inconsistent integral of total charge', 1)
         !
         !--------------------------------------------------------------------------------
         ! Output current state
@@ -352,7 +352,7 @@ CONTAINS
         IF (this%include_electrolyte) THEN
             !
             IF (.NOT. ASSOCIATED(this%electrolyte)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             CALL this%electrolyte%of_potential(potential)
             !
@@ -368,7 +368,7 @@ CONTAINS
         IF (this%include_dielectric) THEN
             !
             IF (.NOT. ASSOCIATED(this%dielectric)) &
-                CALL env_errore(sub_name, 'Missing expected charge component', 1)
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
             !
             CALL this%dielectric%of_potential(tot_charge_density, potential)
             !

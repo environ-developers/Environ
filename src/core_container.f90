@@ -31,6 +31,8 @@
 MODULE class_core_container
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE class_core_numerical
     !
     !------------------------------------------------------------------------------------
@@ -85,7 +87,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%core)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%core)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_core_container
@@ -129,7 +131,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%core)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%core)) CALL io%destroy_error(sub_name)
         !
         CALL this%core%destroy()
         !

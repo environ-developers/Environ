@@ -30,6 +30,7 @@
 MODULE class_function_erfc
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, sqrtpi, pi, fpi
@@ -114,8 +115,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -149,7 +149,7 @@ CONTAINS
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
             IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
-                CALL env_warning('wrong integral of erfc function')
+                CALL io%warning('wrong integral of erfc function')
             !
             !----------------------------------------------------------------------------
             !
@@ -196,8 +196,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -265,8 +264,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -353,8 +351,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             local_charge = this%get_charge(cell)
             chargeanalytic = this%erfcvolume(cell)
@@ -435,7 +432,7 @@ CONTAINS
                    axis => this%axis)
             !
             IF (spread < func_tol .OR. width < func_tol) &
-                CALL env_errore(fun_name, 'Wrong parameters of erfc function', 1)
+                CALL io%error(fun_name, 'Wrong parameters of erfc function', 1)
             !
             t = spread / width
             invt = width / spread

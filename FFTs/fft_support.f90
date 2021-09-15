@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -30,6 +30,8 @@
 !----------------------------------------------------------------------------------------
 MODULE env_fft_support
     !------------------------------------------------------------------------------------
+    !
+    USE env_base_io, ONLY: io
     !
     USE env_fft_param
     !
@@ -74,8 +76,6 @@ CONTAINS
         !
         env_good_fft_dimension = nx
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END FUNCTION env_good_fft_dimension
     !------------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ CONTAINS
         !
         IF (PRESENT(np)) THEN
             !
-            IF (np <= 0 .OR. np > nr) CALL env_errore(fun_name, 'Invalid np', 1)
+            IF (np <= 0 .OR. np > nr) CALL io%error(fun_name, 'Invalid np', 1)
             !
             DO WHILE (((.NOT. env_allowed(new)) .OR. (MOD(new, np) /= 0)) .AND. &
                       (new <= nfftx))
@@ -126,11 +126,9 @@ CONTAINS
             !
         END IF
         !
-        IF (new > nfftx) CALL env_errore(fun_name, 'FFT order too large', new)
+        IF (new > nfftx) CALL io%error(fun_name, 'FFT order too large', new)
         !
         env_good_fft_order = new
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION env_good_fft_order
@@ -176,7 +174,7 @@ CONTAINS
         END DO factors_loop
         !
         IF (nr /= (mr * 2**pwr(1) * 3**pwr(2) * 5**pwr(3) * 7**pwr(4) * 11**pwr(5))) &
-            CALL env_errore(fun_name, 'WHAT?!?', 1)
+            CALL io%error(fun_name, 'WHAT?!?', 1)
         !
         IF (mr /= 1) THEN
             !
@@ -205,8 +203,6 @@ CONTAINS
 #endif
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END FUNCTION env_allowed

@@ -32,6 +32,8 @@
 MODULE class_solver_direct
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_cell
@@ -125,7 +127,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cores)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cores)) CALL io%destroy_error(sub_name)
         !
         CALL this%cores%destroy()
         !
@@ -160,7 +162,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Mismatch in domains of charges and potential', 1)
+            CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
         cell => charges%density%cell
         !
@@ -179,9 +181,9 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for electrochemical &
+                                  &boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_v(charges%electrolyte, &
                                                   charges%density, potential)
@@ -189,9 +191,9 @@ CONTAINS
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for electrochemical &
+                                  &boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_v(charges%semiconductor, &
                                                   charges%density, potential)
@@ -199,22 +201,22 @@ CONTAINS
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for &electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for &electrochemical &
+                                  &boundary correction', 1)
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for electrochemical &
+                                  &boundary correction', 1)
                 !
-                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                CALL io%error(sub_name, 'ms-gcs in development', 1)
                 !
                 ! CALL calc_vms_gcs(this%core%correction%oned_analytic, charges%electrolyte, &
                 !                   charges%semiconductor, charges%density, potential)
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL io%error(sub_name, 'Unexpected option for pbc correction core', 1)
                 !
             END SELECT
             !
@@ -247,7 +249,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Mismatch in domains of charges and potential', 1)
+            CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -272,40 +274,40 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for electrochemical &
+                                  &boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_v(electrolyte, charges, local)
                 !
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for electrochemical &
+                                  &boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_v(semiconductor, charges, local)
                 !
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for electrochemical &
+                                  &boundary correction', 1)
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for electrochemical &
+                                  &boundary correction', 1)
                 !
-                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                CALL io%error(sub_name, 'ms-gcs in development', 1)
                 !
                 ! CALL calc_vms_gcs(this%core%correction%oned_analytic, electrolyte, &
                 !                   semiconductor, charges, local)
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL io%error(sub_name, 'Unexpected option for pbc correction core', 1)
                 !
             END SELECT
             !
@@ -350,9 +352,9 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for electrochemical &
+                                  &boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_gradv(charges%electrolyte, &
                                                       charges%density, gradient)
@@ -360,9 +362,9 @@ CONTAINS
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for electrochemical &
+                                  &boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_gradv(charges%semiconductor, &
                                                       charges%density, gradient)
@@ -370,23 +372,23 @@ CONTAINS
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for electrochemical &
+                                  &boundary correction', 1)
                 !
                 IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for electrochemical &
-                                    &boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for electrochemical &
+                                  &boundary correction', 1)
                 !
-                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                CALL io%error(sub_name, 'ms-gcs in development', 1)
                 !
                 ! CALL calc_gradvms_gcs(this%core%correction%oned_analytic, &
                 !                       charges%electrolyte, charges%semiconductor, &
                 !                       charges%density, gradient)
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL io%error(sub_name, 'Unexpected option for pbc correction core', 1)
                 !
             END SELECT
             !
@@ -430,40 +432,40 @@ CONTAINS
             CASE ('gcs', 'gouy-chapman', 'gouy-chapman-stern')
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for &
-                                    &electrochemical boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for &
+                                  &electrochemical boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_gradv(electrolyte, charges, gradient)
                 !
             CASE ('ms', 'mott-schottky')
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for &
-                                    &electrochemical boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for &
+                                  &electrochemical boundary correction', 1)
                 !
                 CALL this%cores%correction%calc_gradv(semiconductor, charges, gradient)
                 !
             CASE ('ms-gcs', 'mott-schottky-guoy-chapman-stern') ! #TODO fix when working
                 !
                 IF (.NOT. PRESENT(semiconductor)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing semiconductor for &
-                                    &electrochemical boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing semiconductor for &
+                                  &electrochemical boundary correction', 1)
                 !
                 IF (.NOT. PRESENT(electrolyte)) &
-                    CALL env_errore(sub_name, &
-                                    'Missing electrolyte for &
-                                    &electrochemical boundary correction', 1)
+                    CALL io%error(sub_name, &
+                                  'Missing electrolyte for &
+                                  &electrochemical boundary correction', 1)
                 !
-                CALL env_errore(sub_name, 'ms-gcs in development', 1)
+                CALL io%error(sub_name, 'ms-gcs in development', 1)
                 !
                 ! CALL calc_gradvms_gcs(this%core%correction%oned_analytic, electrolyte, &
                 !                       semiconductor, charges, gradient)
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Unexpected option for pbc correction core', 1)
+                CALL io%error(sub_name, 'Unexpected option for pbc correction core', 1)
                 !
             END SELECT
             !

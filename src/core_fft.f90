@@ -32,8 +32,9 @@
 MODULE class_core_fft
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
     USE env_sorting, ONLY: env_hpsort_eps
-    USE env_mp, ONLY: env_mp_sum, env_mp_rank, env_mp_size
+    USE env_mp, ONLY: env_mp_sum
     !
     USE env_types_fft, ONLY: env_fft_type_descriptor, env_fft_stick_index
     USE env_fft_ggen, ONLY: env_fft_set_nl
@@ -112,11 +113,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%g)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%g)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%gg)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%gg)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -193,7 +194,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -254,6 +255,8 @@ CONTAINS
         INTEGER :: mype, npe
         LOGICAL :: global_sort, is_local
         INTEGER, ALLOCATABLE :: ngmpe(:)
+        !
+        INTEGER, EXTERNAL :: env_mp_rank, env_mp_size
         !
         CHARACTER(LEN=80) :: sub_name = 'env_ggen'
         !
@@ -365,7 +368,7 @@ CONTAINS
                         ngm = ngm + 1
                         !
                         IF (ngm > ngm_max) &
-                            CALL env_errore(sub_name, 'Too many g-vectors', ngm)
+                            CALL io%error(sub_name, 'Too many g-vectors', ngm)
                         !
                         IF (tt(k - kstart + 1) > eps8) THEN
                             g2sort_g(ngm) = tt(k - kstart + 1)
@@ -390,7 +393,7 @@ CONTAINS
         END DO iloop
         !
         IF (ngm /= ngm_max) &
-            CALL env_errore(sub_name, 'G-vectors missing!', ABS(ngm - ngm_max))
+            CALL io%error(sub_name, 'G-vectors missing!', ABS(ngm - ngm_max))
         !
         igsrt(1) = 0
         !
@@ -454,7 +457,7 @@ CONTAINS
         DEALLOCATE (igsrt, g2l)
         !
         IF (ngm /= ngm_save) &
-            CALL env_errore(sub_name, 'G-vectors (ngm) missing!', ABS(ngm - ngm_save))
+            CALL io%error(sub_name, 'G-vectors (ngm) missing!', ABS(ngm - ngm_save))
         !
         !--------------------------------------------------------------------------------
         ! Determine first nonzero g vector

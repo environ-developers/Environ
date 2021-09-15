@@ -1,14 +1,12 @@
 base_io.o : char_ops.o
+base_io.o : parallel_include.o
+base_mp.o : base_io.o
 base_mp.o : data_buffer.o
 base_mp.o : kinds.o
 base_mp.o : parallel_include.o
 clocks.o : base_io.o
 clocks.o : kinds.o
 data_buffer.o : kinds.o
-io.o : base_io.o
-io.o : mp.o
-io.o : parallel_include.o
-mp.o : base_io.o
 mp.o : kinds.o
 mp.o : parallel_include.o
 sorting.o : kinds.o

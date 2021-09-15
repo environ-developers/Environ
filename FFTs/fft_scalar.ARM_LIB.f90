@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -41,6 +41,8 @@
 !----------------------------------------------------------------------------------------
 MODULE env_fft_scalar_arm
     !------------------------------------------------------------------------------------
+    !
+    USE env_base_io, ONLY: io
     !
     USE env_fft_param
     !
@@ -98,7 +100,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nsl < 0) CALL env_errore(sub_name, 'nsl out of range', nsl)
+        IF (nsl < 0) CALL io%error(sub_name, 'nsl out of range', nsl)
         !
         !--------------------------------------------------------------------------------
         ! Here initialize table only if necessary
@@ -131,8 +133,6 @@ CONTAINS
 #if defined(__FFT_CLOCKS)
         CALL env_stop_clock(sub_name)
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -225,7 +225,7 @@ CONTAINS
         IF (PRESENT(pl2ix)) THEN
             !
             IF (SIZE(pl2ix) < nx) &
-                CALL env_errore(sub_name, 'Wrong dimension for arg no. 8', 1)
+                CALL io%error(sub_name, 'Wrong dimension for arg no. 8', 1)
             !
             DO i = 1, nx
                 IF (pl2ix(i) < 1) dofft(i) = .FALSE.
@@ -331,8 +331,6 @@ CONTAINS
 #if defined(__FFT_CLOCKS)
         CALL env_stop_clock(sub_name)
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -453,15 +451,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (nx < 1) CALL env_errore(sub_name, 'nx is less than 1', 1)
+        IF (nx < 1) CALL io%error(sub_name, 'nx is less than 1', 1)
         !
-        IF (ny < 1) CALL env_errore(sub_name, 'ny is less than 1', 1)
+        IF (ny < 1) CALL io%error(sub_name, 'ny is less than 1', 1)
         !
-        IF (nz < 1) CALL env_errore(sub_name, 'nz is less than 1', 1)
+        IF (nz < 1) CALL io%error(sub_name, 'nz is less than 1', 1)
         !
         IF (howmany /= 1) &
-            CALL env_errore(sub_name, &
-                            'howmany different from 1 not yet implemented for ARM', 1)
+            CALL io%error(sub_name, &
+                          'howmany different from 1 not yet implemented for ARM', 1)
         !
         !--------------------------------------------------------------------------------
         ! Here initialize table only if necessary
@@ -502,8 +500,6 @@ CONTAINS
         END IF
 #endif
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
@@ -541,7 +537,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             !
             IF (nx /= ldx .OR. ny /= ldy .OR. nz /= ldz) &
-                CALL env_errore(sub_name, 'Not implemented', 1)
+                CALL io%error(sub_name, 'Not implemented', 1)
             !
 #if defined(__ARM_LIB_BUG)
             tscale = 1.0_DP / DBLE(nx * ny * nz)

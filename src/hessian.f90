@@ -104,9 +104,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%of_r)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_hessian
@@ -220,9 +220,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -263,10 +263,10 @@ CONTAINS
         gradout%of_r = 0.D0
         !
         IF (.NOT. ASSOCIATED(gradin%cell, this%cell)) &
-            CALL env_errore(sub_name, 'Mismatch in domain of input hessian/gradients', 1)
+            CALL io%error(sub_name, 'Mismatch in domain of input hessian/gradients', 1)
         !
         IF (.NOT. ASSOCIATED(gradin%cell, gradout%cell)) &
-            CALL env_errore(sub_name, 'Mismatch in domain of input and output', 1)
+            CALL io%error(sub_name, 'Mismatch in domain of input and output', 1)
         !
         DO ir = 1, this%cell%ir_end
             !
@@ -353,7 +353,7 @@ CONTAINS
                     WRITE (local_unit, 1000)
                 ELSE
                     !
-                    CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                    CALL io%block_divider(local_verbose, base_verbose, local_unit)
                     !
                     WRITE (local_unit, 1001)
                 END IF
@@ -405,7 +405,7 @@ CONTAINS
             END IF
             !
             IF (local_verbose < base_verbose) &
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
             !
         END IF
         !

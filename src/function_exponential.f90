@@ -30,6 +30,8 @@
 MODULE class_function_exponential
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_density
@@ -105,8 +107,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             ALLOCATE (local(cell%nnr))
             local = 0.D0
@@ -167,8 +168,7 @@ CONTAINS
                    dim => this%dim, &
                    axis => this%axis)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
@@ -214,7 +214,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_errore(sub_name, 'Options not yet implemented', 1)
+        CALL io%error(sub_name, 'Options not yet implemented', 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE laplacian_of_function_exponential
@@ -236,7 +236,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_errore(sub_name, 'Options not yet implemented', 1)
+        CALL io%error(sub_name, 'Options not yet implemented', 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function_exponential

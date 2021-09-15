@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -37,10 +37,11 @@
 MODULE env_fft_parallel_gpu
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE cudafor
     !
     USE env_fft_param
-    !
     USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     USE env_fft_buffers, ONLY: env_check_fft_buffers_size, &
@@ -51,7 +52,6 @@ MODULE env_fft_parallel_gpu
                                aux2_d => dev_space_scatter_dblbuffer
     !
     USE env_fft_scalar, ONLY: env_cft_1z_gpu, env_cft_2xy_gpu
-    !
     USE env_fft_scatter_gpu
     !
     !------------------------------------------------------------------------------------
@@ -144,7 +144,7 @@ CONTAINS
             !
         END IF
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 99      FORMAT(20('(', 2F12.9, ')'))
         !
@@ -300,7 +300,7 @@ CONTAINS
             !
         END IF
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 99      FORMAT(20('(', 2F12.9, ')'))
         !
@@ -340,8 +340,8 @@ CONTAINS
         nx3 = dfft%nr3x
         !
         IF (dfft%has_task_groups) &
-            CALL env_errore(sub_name, &
-                            'task groups in 2D + 1D decomposition not implemented', 1)
+            CALL io%error(sub_name, &
+                          'task groups in 2D + 1D decomposition not implemented', 1)
         !
         CALL env_check_fft_buffers_size(dfft)
         !
@@ -384,8 +384,6 @@ CONTAINS
             CALL env_cft_1z_gpu(aux_d, dfft%nsp(me_p), n3, nx3, isgn, f_d, stream)
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_tg_cft3s_2d_gpu
@@ -440,9 +438,9 @@ CONTAINS
         sticks = dfft%nsp
         !
         IF (dfft%nproc <= 1) &
-            CALL env_errore(sub_name, &
-                            'This subroutine should never be called with nproc=', &
-                            dfft%nproc)
+            CALL io%error(sub_name, &
+                          'This subroutine should never be called with nproc=', &
+                          dfft%nproc)
         !
         IF (isgn > 0) THEN
             DO j = 0, batchsize - 1, dfft%subbatchsize
@@ -571,8 +569,6 @@ CONTAINS
             END DO
             !
         END IF
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_many_cft3s_2d_gpu

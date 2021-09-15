@@ -32,6 +32,8 @@
 MODULE class_solver
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE class_core_container_electrostatics
     !
     !------------------------------------------------------------------------------------
@@ -85,7 +87,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cores)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%cores)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_electrostatic_cores

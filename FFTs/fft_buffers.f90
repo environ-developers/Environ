@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -30,8 +30,9 @@
 MODULE env_fft_buffers
     !------------------------------------------------------------------------------------
     !
-    USE env_fft_param, ONLY: DP
+    USE env_base_io, ONLY: io
     !
+    USE env_fft_param, ONLY: DP
     USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     !------------------------------------------------------------------------------------
@@ -100,15 +101,15 @@ CONTAINS
             !
             ALLOCATE (dev_space_fftparallel(current_size), STAT=info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 1)
+            IF (info /= 0) CALL io%error(sub_name, 'Allocation failed', 1)
             !
             ALLOCATE (pin_space_scatter_in(current_size), STAT=info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 2)
+            IF (info /= 0) CALL io%error(sub_name, 'Allocation failed', 2)
             !
             ALLOCATE (pin_space_scatter_out(current_size), STAT=info)
             !
-            IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 3)
+            IF (info /= 0) CALL io%error(sub_name, 'Allocation failed', 3)
             !
             !----------------------------------------------------------------------------
             ! Slab decomposition implements double buffering
@@ -123,11 +124,11 @@ CONTAINS
                 !
                 ALLOCATE (dev_space_scatter_dblbuffer(current_size), STAT=info)
                 !
-                IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 4)
+                IF (info /= 0) CALL io%error(sub_name, 'Allocation failed', 4)
                 !
                 ALLOCATE (pin_space_scatter_dblbuffer(current_size), STAT=info)
                 !
-                IF (info /= 0) CALL env_errore(sub_name, 'Allocation failed', 5)
+                IF (info /= 0) CALL io%error(sub_name, 'Allocation failed', 5)
                 !
             END IF
             !

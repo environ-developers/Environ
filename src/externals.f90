@@ -108,7 +108,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%functions)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%functions)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_externals

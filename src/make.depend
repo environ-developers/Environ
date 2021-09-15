@@ -31,6 +31,7 @@ charges.o : externals.o
 charges.o : ions.o
 charges.o : semiconductor.o
 constants.o : ../utils/kinds.o
+core_1da.o : ../utils/base_io.o
 core_1da.o : cell.o
 core_1da.o : constants.o
 core_1da.o : core_numerical.o
@@ -45,7 +46,9 @@ core_1da_electrostatics.o : electrolyte.o
 core_1da_electrostatics.o : gradient.o
 core_1da_electrostatics.o : ions.o
 core_1da_electrostatics.o : semiconductor.o
+core_container.o : ../utils/base_io.o
 core_container.o : core_numerical.o
+core_container_corrections.o : ../utils/base_io.o
 core_container_corrections.o : cell.o
 core_container_corrections.o : charges.o
 core_container_corrections.o : constants.o
@@ -56,12 +59,14 @@ core_container_corrections.o : electrolyte.o
 core_container_corrections.o : gradient.o
 core_container_corrections.o : ions.o
 core_container_corrections.o : semiconductor.o
+core_container_derivatives.o : ../utils/base_io.o
 core_container_derivatives.o : core_container.o
 core_container_derivatives.o : core_fd_derivatives.o
 core_container_derivatives.o : core_fft_derivatives.o
 core_container_derivatives.o : density.o
 core_container_derivatives.o : gradient.o
 core_container_derivatives.o : hessian.o
+core_container_electrostatics.o : ../utils/base_io.o
 core_container_electrostatics.o : constants.o
 core_container_electrostatics.o : core_container_corrections.o
 core_container_electrostatics.o : core_container_derivatives.o
@@ -69,6 +74,7 @@ core_container_electrostatics.o : core_fft_electrostatics.o
 core_container_electrostatics.o : density.o
 core_container_electrostatics.o : gradient.o
 core_container_electrostatics.o : ions.o
+core_fd.o : ../utils/base_io.o
 core_fd.o : cell.o
 core_fd.o : constants.o
 core_fd.o : core_numerical.o
@@ -82,6 +88,7 @@ core_fd_derivatives.o : density.o
 core_fd_derivatives.o : gradient.o
 core_fft.o : ../FFTs/fft_ggen.o
 core_fft.o : ../FFTs/types_fft.o
+core_fft.o : ../utils/base_io.o
 core_fft.o : ../utils/mp.o
 core_fft.o : ../utils/sorting.o
 core_fft.o : cell.o
@@ -97,6 +104,7 @@ core_fft_derivatives.o : gradient.o
 core_fft_derivatives.o : hessian.o
 core_fft_electrostatics.o : ../FFTs/fft_main.o
 core_fft_electrostatics.o : ../FFTs/types_fft.o
+core_fft_electrostatics.o : ../utils/base_io.o
 core_fft_electrostatics.o : ../utils/mp.o
 core_fft_electrostatics.o : ../utils/tools_math.o
 core_fft_electrostatics.o : cell.o
@@ -148,11 +156,13 @@ externals.o : density.o
 externals.o : function.o
 externals.o : function_gaussian.o
 externals.o : functions.o
+function.o : ../utils/base_io.o
 function.o : cell.o
 function.o : constants.o
 function.o : density.o
 function.o : gradient.o
 function.o : hessian.o
+function_erfc.o : ../utils/base_io.o
 function_erfc.o : ../utils/mp.o
 function_erfc.o : ../utils/tools_math.o
 function_erfc.o : cell.o
@@ -161,11 +171,13 @@ function_erfc.o : density.o
 function_erfc.o : function.o
 function_erfc.o : gradient.o
 function_erfc.o : hessian.o
+function_exponential.o : ../utils/base_io.o
 function_exponential.o : constants.o
 function_exponential.o : density.o
 function_exponential.o : function.o
 function_exponential.o : gradient.o
 function_exponential.o : hessian.o
+function_gaussian.o : ../utils/base_io.o
 function_gaussian.o : constants.o
 function_gaussian.o : density.o
 function_gaussian.o : function.o
@@ -213,6 +225,7 @@ ions.o : iontype.o
 iontype.o : ../utils/base_io.o
 iontype.o : ../utils/char_ops.o
 iontype.o : constants.o
+main.o : ../utils/base_io.o
 main.o : base_input.o
 main.o : boundary.o
 main.o : cell.o
@@ -262,7 +275,9 @@ setup.o : solver_gradient.o
 setup.o : solver_iterative.o
 setup.o : solver_newton.o
 setup.o : solver_setup.o
+solver.o : ../utils/base_io.o
 solver.o : core_container_electrostatics.o
+solver_direct.o : ../utils/base_io.o
 solver_direct.o : cell.o
 solver_direct.o : charges.o
 solver_direct.o : constants.o
@@ -314,6 +329,7 @@ solver_newton.o : electrolyte.o
 solver_newton.o : solver.o
 solver_newton.o : solver_gradient.o
 solver_newton.o : solver_iterative.o
+solver_setup.o : ../utils/base_io.o
 solver_setup.o : cell.o
 solver_setup.o : charges.o
 solver_setup.o : constants.o

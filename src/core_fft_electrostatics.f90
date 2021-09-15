@@ -32,6 +32,7 @@
 MODULE class_core_fft_electrostatics
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_types_fft, ONLY: env_fft_type_descriptor
@@ -115,7 +116,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%correction)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%correction)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -174,7 +175,7 @@ CONTAINS
         !
         IF (this%use_internal_pbc_corr) THEN
             !
-            IF (.NOT. ALLOCATED(this%correction)) CALL env_destroy_error(sub_name)
+            IF (.NOT. ALLOCATED(this%correction)) CALL io%destroy_error(sub_name)
             !
             DEALLOCATE (this%correction)
         END IF
@@ -673,7 +674,7 @@ CONTAINS
         DO WHILE (upperbound > 1.E-7_DP)
             alpha = alpha - 0.1_DP
             !
-            IF (alpha <= 0._DP) CALL env_errore(sub_name, 'Optimal alpha not found', 1)
+            IF (alpha <= 0._DP) CALL io%error(sub_name, 'Optimal alpha not found', 1)
             !
             upperbound = e2 * SQRT(2.D0 * alpha / tpi) * &
                          environ_erfc(SQRT(ecutrho / 4.D0 / alpha))

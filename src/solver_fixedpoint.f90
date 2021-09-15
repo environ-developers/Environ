@@ -164,7 +164,7 @@ CONTAINS
             !
         ELSE
             !
-            CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
             ! CALL generalized_iterative_velect(charges, dielectric, potential) #TODO future-work
             !
@@ -207,7 +207,7 @@ CONTAINS
             !
         ELSE
             !
-            CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
             ! CALL generalized_iterative_velect(charges, dielectric, potential) #TODO future-work
             !
@@ -243,7 +243,7 @@ CONTAINS
             IF (ASSOCIATED(charges%dielectric)) THEN
                 !
                 IF (.NOT. PRESENT(inner)) &
-                    CALL env_errore(sub_name, 'Missing inner solver', 1)
+                    CALL io%error(sub_name, 'Missing inner solver', 1)
                 !
                 CALL this%pb(potential, charges%density, charges%electrolyte, &
                              charges%dielectric, inner)
@@ -253,7 +253,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL env_errore(sub_name, 'Option not available', 1)
+            CALL io%error(sub_name, 'Option not available', 1)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -289,7 +289,7 @@ CONTAINS
             IF (PRESENT(dielectric)) THEN
                 !
                 IF (.NOT. PRESENT(inner)) &
-                    CALL env_errore(sub_name, 'Missing inner setup', 1)
+                    CALL io%error(sub_name, 'Missing inner setup', 1)
                 !
                 CALL this%pb(potential, charges, electrolyte, dielectric, inner)
                 !
@@ -298,7 +298,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL env_errore(sub_name, 'Option not available', 1)
+            CALL io%error(sub_name, 'Option not available', 1)
         END IF
         !
         CALL env_stop_clock(sub_name)
@@ -356,10 +356,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -538,18 +538,17 @@ CONTAINS
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
             !
-            IF (.NOT. PRESENT(inner)) &
-                CALL env_errore(sub_name, 'Missing inner solver', 1)
+            IF (.NOT. PRESENT(inner)) CALL io%error(sub_name, 'Missing inner solver', 1)
             !
         END IF
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         ir_end => cell%ir_end

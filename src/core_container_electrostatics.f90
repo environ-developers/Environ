@@ -29,6 +29,8 @@
 MODULE class_core_container_electrostatics
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_density
@@ -95,7 +97,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%correction)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%correction)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -120,7 +122,7 @@ CONTAINS
         !
         CALL this%core%destroy()
         !
-        IF (.NOT. ASSOCIATED(this%core)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%core)) CALL io%destroy_error(sub_name)
         !
         NULLIFY (this%core)
         !
@@ -128,7 +130,7 @@ CONTAINS
             !
             CALL this%correction%destroy()
             !
-            IF (.NOT. ASSOCIATED(this%correction)) CALL env_destroy_error(sub_name)
+            IF (.NOT. ASSOCIATED(this%correction)) CALL io%destroy_error(sub_name)
             !
             NULLIFY (this%correction)
         END IF
@@ -165,7 +167,7 @@ CONTAINS
             CALL core%poisson(density, potential)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -195,7 +197,7 @@ CONTAINS
             CALL core%gradpoisson(density, gradient)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -227,7 +229,7 @@ CONTAINS
             CALL core%force(natoms, density, ions, force)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !

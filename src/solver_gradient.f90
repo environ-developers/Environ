@@ -195,13 +195,13 @@ CONTAINS
                                            charges%semiconductor)
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
                 !
             END SELECT
             !
         ELSE
             !
-            CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
             ! CALL generalized_gradient_rhoaux(charges, dielectric, potential) #TODO future-work
             !
@@ -251,13 +251,13 @@ CONTAINS
                 CALL this%generalized_left(charges, dielectric, potential, electrolyte)
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
                 !
             END SELECT
             !
         ELSE
             !
-            CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, 'Option not yet implemented', 1)
             !
             ! CALL generalized_gradient_rhoaux(charges, dielectric, potential) #TODO future-work
             !
@@ -330,7 +330,7 @@ CONTAINS
                                                  potential, charges%dielectric)
                     !
                 CASE DEFAULT
-                    CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                    CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
                     !
                 END SELECT
                 !
@@ -342,7 +342,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, 'Option not yet implemented', 1)
         END IF
         !
         CALL local_screening%destroy()
@@ -412,7 +412,7 @@ CONTAINS
                                                  dielectric)
                     !
                 CASE DEFAULT
-                    CALL env_errore(sub_name, 'Unexpected preconditioner keyword', 1)
+                    CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
                     !
                 END SELECT
                 !
@@ -421,7 +421,7 @@ CONTAINS
             END IF
             !
         ELSE
-            CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, 'Option not yet implemented', 1)
         END IF
         !
         CALL local_screening%destroy()
@@ -481,10 +481,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -545,7 +545,7 @@ CONTAINS
             rznew = r%scalar_product(z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
@@ -704,10 +704,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -746,7 +746,7 @@ CONTAINS
             rzold = r%scalar_product(z)
             !
             IF (ABS(rzold) < 1.D-30) &
-                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
             !
             r%of_r = factsqrt%of_r * (x%of_r - z%of_r)
             delta_en = r%euclidean_norm()
@@ -805,7 +805,7 @@ CONTAINS
             rznew = r%scalar_product(z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
@@ -975,10 +975,10 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         !
@@ -1032,7 +1032,7 @@ CONTAINS
             rznew = r%scalar_product(z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input
@@ -1186,15 +1186,15 @@ CONTAINS
         ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, screening%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
             !
         END IF
         !
@@ -1251,7 +1251,7 @@ CONTAINS
             rzold = r%scalar_product(z)
             !
             IF (ABS(rzold) < 1.D-30) &
-                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
             !
             IF (PRESENT(dielectric)) THEN
                 r%of_r = (factsqrt%of_r + scr%of_r) * (x%of_r - z%of_r)
@@ -1320,7 +1320,7 @@ CONTAINS
             rznew = r%scalar_product(z)
             !
             IF (ABS(rznew) < 1.D-30) &
-                CALL env_errore(sub_name, 'Null step in gradient descent iteration', 1)
+                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
             !
             !----------------------------------------------------------------------------
             ! Conjugate gradient or steepest descent input

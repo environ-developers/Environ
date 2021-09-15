@@ -29,6 +29,8 @@
 MODULE class_core_container_derivatives
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE class_density
     USE class_gradient
     USE class_hessian
@@ -108,7 +110,7 @@ CONTAINS
             CALL core%gradient(density, gradient)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -138,7 +140,7 @@ CONTAINS
             CALL core%graddot(gradient, density)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -169,7 +171,7 @@ CONTAINS
             CALL core%hessian(density, gradient, hessian)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -199,7 +201,7 @@ CONTAINS
             CALL core%laplacian(density, laplacian)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -230,7 +232,7 @@ CONTAINS
             CALL core%convolution_density(fa, fb, fc)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -261,7 +263,7 @@ CONTAINS
             CALL core%convolution_gradient(fa, gb, gc)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -292,7 +294,7 @@ CONTAINS
             CALL core%convolution_hessian(fa, hb, hc)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !

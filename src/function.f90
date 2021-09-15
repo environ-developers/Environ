@@ -37,6 +37,8 @@
 MODULE class_function
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_cell
@@ -137,7 +139,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%pos)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%pos)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_function
@@ -214,7 +216,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%pos)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%pos)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !

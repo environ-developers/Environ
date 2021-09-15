@@ -134,7 +134,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%ioncctype)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%ioncctype)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_electrolyte
@@ -218,7 +218,7 @@ CONTAINS
         END DO
         !
         IF (neutral > 1.D-8) &
-            CALL env_errore(sub_name, 'Bulk electrolyte is not neutral', 1)
+            CALL io%error(sub_name, 'Bulk electrolyte is not neutral', 1)
         !
         kT = K_BOLTZMANN_RY * temperature
         !
@@ -238,8 +238,7 @@ CONTAINS
         sumcbulk = SUM(this%ioncctype(:)%cbulk)
         !
         IF (this%cionmax > 0.D0 .AND. this%cionmax <= sumcbulk) &
-            CALL env_errore(sub_name, &
-                            'cionmax should be larger than the sum of cbulks', 1)
+            CALL io%error(sub_name, 'cionmax should be larger than the sum of cbulks', 1)
         !
         !--------------------------------------------------------------------------------
         ! Densities
@@ -340,7 +339,7 @@ CONTAINS
         !
         IF (this%linearized) CALL this%de_dboundary_second_order%destroy()
         !
-        IF (.NOT. ALLOCATED(this%ioncctype)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%ioncctype)) CALL io%destroy_error(sub_name)
         !
         DEALLOCATE (this%ioncctype)
         !

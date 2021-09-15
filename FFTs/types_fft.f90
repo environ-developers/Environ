@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -280,13 +280,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ALLOCATED(desc%nsp)) &
-            CALL env_errore(sub_name, 'FFT arrays already allocated', 1)
+            CALL io%error(sub_name, 'FFT arrays already allocated', 1)
         !
         desc%comm = comm
         !
 #if defined(__MPI)
         IF (desc%comm == MPI_COMM_NULL) &
-            CALL env_errore(sub_name, 'FFT communicator is null', 1)
+            CALL io%error(sub_name, 'FFT communicator is null', 1)
 #endif
         !
         root = 0
@@ -306,7 +306,7 @@ CONTAINS
         IF (PRESENT(nyfft)) THEN
             !
             ! check on yfft group dimension
-            CALL env_errore(sub_name, 'MOD(nproc,nyfft) /= 0', MOD(nproc, nyfft))
+            CALL io%error(sub_name, 'MOD(nproc,nyfft) /= 0', MOD(nproc, nyfft))
             !
 #if defined(__MPI)
 #if defined(ZCOMPACT)
@@ -445,7 +445,7 @@ CONTAINS
         DO i = 1, desc%nstream_many
             ierr = cudaStreamCreate(desc%stream_many(i))
             !
-            IF (ierr /= 0) CALL env_errore(sub_name, 'Error creating stream', i)
+            IF (ierr /= 0) CALL io%error(sub_name, 'Error creating stream', i)
             !
         END DO
         !
@@ -684,10 +684,10 @@ CONTAINS
 #endif
 #endif
         IF (.NOT. ALLOCATED(desc%nsp)) &
-            CALL env_errore(sub_name, 'FFT arrays not yet allocated', 1)
+            CALL io%error(sub_name, 'FFT arrays not yet allocated', 1)
         !
         IF (desc%nr1 == 0 .OR. desc%nr2 == 0 .OR. desc%nr3 == 0) &
-            CALL env_errore(sub_name, 'FFT dimensions not yet set', 1)
+            CALL io%error(sub_name, 'FFT dimensions not yet set', 1)
         !
         !--------------------------------------------------------------------------------
         ! Set fft actual and leading dimensions to be used internally
@@ -700,18 +700,18 @@ CONTAINS
         nr3x = desc%nr3x
         !
         IF ((nr1 > nr1x) .OR. (nr2 > nr2x) .OR. (nr3 > nr3x)) &
-            CALL env_errore(sub_name, 'Wrong FFT dimensions', 1)
+            CALL io%error(sub_name, 'Wrong FFT dimensions', 1)
         !
         IF ((SIZE(desc%ngl) < desc%nproc) .OR. (SIZE(desc%iss) < desc%nproc) .OR. &
             (SIZE(desc%nr2p) < desc%nproc2) .OR. (SIZE(desc%i0r2p) < desc%nproc2) .OR. &
             (SIZE(desc%nr3p) < desc%nproc3) .OR. (SIZE(desc%i0r3p) < desc%nproc3)) &
-            CALL env_errore(sub_name, 'Wrong descriptor dimensions', 2)
+            CALL io%error(sub_name, 'Wrong descriptor dimensions', 2)
         !
         IF ((SIZE(idx) < nst) .OR. (SIZE(in1) < nst) .OR. (SIZE(in2) < nst)) &
-            CALL env_errore(sub_name, 'Wrong number of stick dimensions', 3)
+            CALL io%error(sub_name, 'Wrong number of stick dimensions', 3)
         !
         IF ((SIZE(ncp) < desc%nproc) .OR. (SIZE(ngp) < desc%nproc)) &
-            CALL env_errore(sub_name, 'Wrong stick dimensions', 4)
+            CALL io%error(sub_name, 'Wrong stick dimensions', 4)
         !
         !--------------------------------------------------------------------------------
         ! Set the number of "Y" values for each processor in the nproc2 group
@@ -804,13 +804,13 @@ CONTAINS
         ! local number of g vectors (rho) per processor
         !
         IF (SIZE(desc%isind) < (nr1x * nr2x)) &
-            CALL env_errore(sub_name, 'Wrong descriptor dimensions, isind', 5)
+            CALL io%error(sub_name, 'Wrong descriptor dimensions, isind', 5)
         !
         IF (SIZE(desc%iplp) < (nr1x)) &
-            CALL env_errore(sub_name, 'Wrong descriptor dimensions, ipl', 5)
+            CALL io%error(sub_name, 'Wrong descriptor dimensions, ipl', 5)
         !
         IF (desc%my_nr3p == 0 .AND. (.NOT. desc%use_pencil_decomposition)) &
-            CALL env_errore(sub_name, &
+            CALL io%error(sub_name, &
                             'There are processes with no planes. &
                             &Use pencil decomposition (-pd .true.)', 6)
         !
@@ -913,7 +913,7 @@ CONTAINS
         ! iss(1:nproc) is the index offset of the first column of a given processor
         !
         IF (SIZE(desc%ismap) < (nst)) &
-            CALL env_errore(sub_name, 'Wrong descriptor dimensions', 6)
+            CALL io%error(sub_name, 'Wrong descriptor dimensions', 6)
         !
         !--------------------------------------------------------------------------------
         !
@@ -958,7 +958,7 @@ CONTAINS
                 WRITE (io%unit, *) ' * ', ip, ' * ', nsp(ip), ' /= ', ncp(ip)
             END DO
             !
-            CALL env_errore(sub_name, 'Inconsistent number of sticks', 7)
+            CALL io%error(sub_name, 'Inconsistent number of sticks', 7)
             !
         END IF
         !
@@ -1051,7 +1051,7 @@ CONTAINS
         END IF
         !
         IF (desc%nr3x * desc%nsp(desc%mype + 1) > desc%nnr) &
-            CALL env_errore(sub_name, 'Inconsistent desc%nnr', 1)
+            CALL io%error(sub_name, 'Inconsistent desc%nnr', 1)
         !
         desc%tg_snd(1) = desc%nr3x * desc%nsp(desc%mype + 1)
         desc%tg_rcv(1) = desc%nr3x * desc%nsp(desc%iproc(1, desc%mype3 + 1))
@@ -1073,8 +1073,6 @@ CONTAINS
 #endif
         !
         IF (nmany > 1) ALLOCATE (desc%aux(nmany * desc%nnr))
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fft_type_set
@@ -1130,16 +1128,16 @@ CONTAINS
         ELSE
             !
             IF (dfft%comm /= comm) &
-                CALL env_errore(sub_name, &
-                                'FFT already allocated with a different communicator', 1)
+                CALL io%error(sub_name, &
+                              'FFT already allocated with a different communicator', 1)
             !
         END IF
         !
         IF (PRESENT(use_pd)) dfft%use_pencil_decomposition = use_pd
         !
         IF ((.NOT. dfft%use_pencil_decomposition) .AND. (nyfft > 1)) &
-            CALL env_errore(sub_name, &
-                            'Slab decomposition and task groups not implemented', 1)
+            CALL io%error(sub_name, &
+                          'Slab decomposition and task groups not implemented', 1)
         !
         dfft%lpara = lpara ! this descriptor can be either a descriptor for a
         ! parallel FFT or a serial FFT even in parallel build
@@ -1163,7 +1161,7 @@ CONTAINS
         !
         IF (dfft%lgamma) dfft%ngm = (dfft%ngm + 1) / 2
         !
-        IF (dfft%ngm /= ngm) CALL env_errore(sub_name, 'Wrong ngm', 1)
+        IF (dfft%ngm /= ngm) CALL io%error(sub_name, 'Wrong ngm', 1)
         !
         DEALLOCATE (st)
         DEALLOCATE (nstp)
@@ -1318,8 +1316,6 @@ CONTAINS
         nr1 = 2 * nb(1) + 1
         nr2 = 2 * nb(2) + 1
         nr3 = 2 * nb(3) + 1
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_grid_set

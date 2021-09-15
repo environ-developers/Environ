@@ -348,7 +348,7 @@ CONTAINS
         IF (this%omega < 0.0_DP) THEN
             this%omega = ABS(this%omega)
             !
-            CALL env_warning('axis vectors are left-handed')
+            CALL io%warning('axis vectors are left-handed')
             !
         END IF
         !
@@ -826,7 +826,7 @@ CONTAINS
                 WRITE (local_unit, 1000)
             ELSE
                 !
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
                 !
                 WRITE (local_unit, 1001)
             END IF
@@ -841,7 +841,7 @@ CONTAINS
             END IF
             !
             IF (local_verbose < base_verbose) &
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
             !
         END IF
         !

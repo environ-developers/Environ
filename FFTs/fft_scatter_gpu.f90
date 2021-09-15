@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -38,10 +38,11 @@
 MODULE env_fft_scatter_gpu
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE cudafor
     !
     USE env_fft_param
-    !
     USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     USE env_fft_buffers, ONLY: env_check_fft_buffers_size, &
@@ -207,7 +208,7 @@ CONTAINS
             CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
             ierr = cudaMemcpyAsync(f_in_d, f_in, nxx_, cudaMemcpyHostToDevice, stream)
 #endif
@@ -314,7 +315,7 @@ CONTAINS
             CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
 #endif
             !
             ! step one: store contiguously the columns
@@ -359,7 +360,7 @@ CONTAINS
         !
 #endif
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 99      FORMAT(20('(', 2F12.9, ')'))
         !
@@ -530,7 +531,7 @@ CONTAINS
             CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
             ierr = cudaMemcpy(f_in_d, f_in, nxx_, cudaMemcpyHostToDevice)
 #endif
@@ -669,7 +670,7 @@ CONTAINS
             CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
 #endif
             !
@@ -738,7 +739,7 @@ CONTAINS
         CALL env_stop_clock(sub_name)
 #endif
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 98      FORMAT(10('(', 2F12.9, ')'))
 99      FORMAT(20('(', 2F12.9, ')'))
@@ -851,7 +852,7 @@ CONTAINS
             CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
             ierr = cudaMemcpy(f_in_d, f_in, nxx_, cudaMemcpyHostToDevice)
             !
@@ -940,7 +941,7 @@ CONTAINS
             CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                               sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
             ! step one: store contiguously the columns
             !
@@ -985,7 +986,7 @@ CONTAINS
         CALL env_stop_clock(sub_name)
 #endif
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 98      FORMAT(10('(', 2F12.9, ')'))
 99      FORMAT(20('(', 2F12.9, ')'))
@@ -1069,7 +1070,7 @@ CONTAINS
                 istat = cudaMemcpy2D(f_aux(kdest + 1), nppx, f_in_d(kfrom + 1), nr3x, &
                                      npp_(gproc), ncp_(me), cudaMemcpyDeviceToHost)
                 !
-                IF (istat) CALL env_errore(sub_name, 'cudaMemcpy2D failed', istat)
+                IF (istat) CALL io%error(sub_name, 'cudaMemcpy2D failed', istat)
 #endif
                 !
                 offset = offset + npp_(gproc)
@@ -1125,7 +1126,7 @@ CONTAINS
             !
             CALL env_stop_clock(sub_name)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
 #ifndef __GPU_MPI
             f_in_d(1:sendsiz * dfft%nproc) = f_in(1:sendsiz * dfft%nproc)
@@ -1291,7 +1292,7 @@ CONTAINS
             !
             CALL env_stop_clock(sub_name)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
             ! step one: store contiguously the columns
             !
@@ -1328,8 +1329,6 @@ CONTAINS
         !
         istat = cudaDeviceSynchronize()
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fft_scatter_2d_gpu
@@ -1393,7 +1392,7 @@ CONTAINS
         nnr = dfft%nnr
         ierr = 0
         !
-        IF (isgn < 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
+        IF (isgn < 0) CALL io%error(sub_name, 'isign is wrong', isgn)
         !
         IF (nprocp == 1) GO TO 10
         !
@@ -1428,7 +1427,7 @@ CONTAINS
                                       cudaMemcpyDeviceToDevice, dfft%bstreams(batch_id))
             !
             IF (istat /= cudaSuccess) &
-                CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
+                CALL io%error(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #else
             !
 #ifdef __IPC
@@ -1440,7 +1439,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
+                    CALL io%error(sub_name, 'cudaMemcpy2DAsync failed', istat)
                 !
             ELSE
                 !
@@ -1450,7 +1449,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
+                    CALL io%error(sub_name, 'cudaMemcpy2DAsync failed', istat)
                 !
             END IF
 #else
@@ -1460,7 +1459,7 @@ CONTAINS
                                       cudaMemcpyDeviceToHost, dfft%bstreams(batch_id))
             !
             IF (istat /= cudaSuccess) &
-                CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
+                CALL io%error(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #endif
             !
 #endif
@@ -1472,8 +1471,6 @@ CONTAINS
 10      CONTINUE
         !
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fft_scatter_many_columns_to_planes_store
@@ -1536,7 +1533,7 @@ CONTAINS
         !
         ierr = 0
         !
-        IF (isgn < 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
+        IF (isgn < 0) CALL io%error(sub_name, 'isign is wrong', isgn)
         !
         IF (nprocp == 1) GO TO 10
         !
@@ -1631,7 +1628,7 @@ CONTAINS
                                   cudaMemcpyDeviceToDevice, dfft%bstreams(batch_id))
         !
         IF (istat /= cudaSuccess) &
-            CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
+            CALL io%error(sub_name, 'cudaMemcpy2DAsync failed : ', istat)
         !
         IF (req_cnt > 0) &
             CALL MPI_WAITALL(req_cnt, dfft%srh(1:req_cnt, batch_id), &
@@ -1645,7 +1642,7 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+        IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
         !
 #ifndef __GPU_MPI
         DO proc = 1, nprocp
@@ -1707,8 +1704,6 @@ CONTAINS
             !
         END DO
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fft_scatter_many_columns_to_planes_send
@@ -1773,7 +1768,7 @@ CONTAINS
         nnr = dfft%nnr
         ierr = 0
         !
-        IF (isgn > 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
+        IF (isgn > 0) CALL io%error(sub_name, 'isign is wrong', isgn)
         !
         !--------------------------------------------------------------------------------
         ! "backward" scatter from planes to columns
@@ -1845,8 +1840,6 @@ CONTAINS
 #endif
 #endif
         !
-        RETURN
-        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fft_scatter_many_planes_to_columns_store
     !------------------------------------------------------------------------------------
@@ -1910,7 +1903,7 @@ CONTAINS
         !
         ierr = 0
         !
-        IF (isgn > 0) CALL env_errore(sub_name, 'isign is wrong', isgn)
+        IF (isgn > 0) CALL io%error(sub_name, 'isign is wrong', isgn)
         !
         !--------------------------------------------------------------------------------
         ! "backward" scatter from planes to columns
@@ -2027,7 +2020,7 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
         !
-        IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+        IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
         !
         !--------------------------------------------------------------------------------
         ! Store contiguously the (remaining) columns (one already done above).
@@ -2047,7 +2040,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
+                    CALL io%error(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #else
                 !
 #ifdef __IPC
@@ -2070,7 +2063,7 @@ CONTAINS
                 END IF
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
+                    CALL io%error(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #else
                 !
                 istat = cudaMemcpy2DAsync(f_in_d(kfrom + 1), nr3x, f_aux(kdest + 1), &
@@ -2079,7 +2072,7 @@ CONTAINS
                                           dfft%bstreams(batch_id))
                 !
                 IF (istat /= cudaSuccess) &
-                    CALL env_errore(sub_name, 'cudaMemcpy2DAsync failed', istat)
+                    CALL io%error(sub_name, 'cudaMemcpy2DAsync failed', istat)
 #endif
 #endif
                 !
@@ -2090,8 +2083,6 @@ CONTAINS
         !
 20      CONTINUE
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fft_scatter_many_planes_to_columns_send

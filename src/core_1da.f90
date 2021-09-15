@@ -34,6 +34,8 @@
 MODULE class_core_1da
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_cell
@@ -100,9 +102,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%x)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%x)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -131,15 +133,15 @@ CONTAINS
         CALL this%create()
         !
         IF (dim == 3 .OR. dim < 0) &
-            CALL env_errore(sub_name, &
-                            'Wrong dimensions for analytic one dimensional core', 1)
+            CALL io%error(sub_name, &
+                          'Wrong dimensions for analytic one dimensional core', 1)
         !
         this%dim = dim
         this%pdim = 3 - dim
         !
         IF ((dim == 1 .OR. dim == 2) .AND. (axis > 3 .OR. axis < 1)) &
-            CALL env_errore(sub_name, &
-                            'Wrong choice of axis for analytic one dimensional core', 1)
+            CALL io%error(sub_name, &
+                          'Wrong choice of axis for analytic one dimensional core', 1)
         !
         this%axis = axis
         this%nnr = cell%nnr
@@ -211,7 +213,7 @@ CONTAINS
             END DO
             !
         ELSE IF (this%dim == 1) THEN
-            CALL env_errore(sub_name, 'Option not yet implemented', 1)
+            CALL io%error(sub_name, 'Option not yet implemented', 1)
         ELSE IF (this%dim == 2) THEN
             !
             DO ir = 1, this%cell%ir_end
@@ -243,9 +245,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(this%x)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%x)) CALL io%destroy_error(sub_name)
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !

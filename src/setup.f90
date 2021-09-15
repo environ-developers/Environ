@@ -515,7 +515,7 @@ CONTAINS
                 this%need_electrolyte = .TRUE.
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, 'Option not yet implemented', 1)
                 !
             END SELECT
             !
@@ -733,8 +733,8 @@ CONTAINS
             !
         CASE DEFAULT
             !
-            CALL env_errore(sub_name, &
-                            'Unexpected value for core container type keyword', 1)
+            CALL io%error(sub_name, &
+                          'Unexpected value for core container type keyword', 1)
             !
         END SELECT
         !
@@ -764,7 +764,7 @@ CONTAINS
                 local_type = 'ms-gcs'
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Option not yet implemented', 1)
+                CALL io%error(sub_name, 'Option not yet implemented', 1)
                 !
             END SELECT
             !
@@ -848,8 +848,8 @@ CONTAINS
             !
         CASE DEFAULT
             !
-            CALL env_errore(sub_name, &
-                            'Unexpected value for electrostatic solver keyword', 1)
+            CALL io%error(sub_name, &
+                          'Unexpected value for electrostatic solver keyword', 1)
             !
         END SELECT
         !
@@ -892,9 +892,9 @@ CONTAINS
                     !
                 ELSE
                     !
-                    CALL env_errore(sub_name, &
-                                    'Unexpected value for auxiliary charge &
-                                    &in nested solver', 1)
+                    CALL io%error(sub_name, &
+                                  'Unexpected value for auxiliary charge &
+                                  &in nested solver', 1)
                     !
                 END IF
                 !

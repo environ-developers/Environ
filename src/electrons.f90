@@ -131,7 +131,7 @@ CONTAINS
         !
         ! check on dimensions
         IF (nnr /= this%density%cell%nnr) &
-            CALL env_errore(sub_name, 'Mismatch in grid size', 1)
+            CALL io%error(sub_name, 'Mismatch in grid size', 1)
         !
         this%density%of_r = rho
         !
@@ -145,7 +145,7 @@ CONTAINS
         IF (PRESENT(nelec)) THEN
             !
             IF (ABS(this%charge - nelec) > tol) &
-                CALL env_errore(sub_name, 'Mismatch in integrated electronic charge', 1)
+                CALL io%error(sub_name, 'Mismatch in integrated electronic charge', 1)
             !
         END IF
         !

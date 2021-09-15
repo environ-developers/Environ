@@ -189,15 +189,15 @@ CONTAINS
         ! If cavity is defined exclusively on ions, check that radius is not zero
         !
         IF (.NOT. lsoftcavity .AND. (this%solvationrad == 0.D0)) &
-            CALL env_errore(sub_name, &
-                            'Missing solvation radius for one of the atom types', 1)
+            CALL io%error(sub_name, &
+                          'Missing solvation radius for one of the atom types', 1)
         !
         !--------------------------------------------------------------------------------
         ! If using smeared ions, check that spread is not zero
         !
         IF (lsmearedions .AND. (this%atomicspread == 0.D0)) &
-            CALL env_errore(sub_name, &
-                            'Missing atomic spread for one of the atom types', 1)
+            CALL io%error(sub_name, &
+                          'Missing atomic spread for one of the atom types', 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_iontype
@@ -231,9 +231,9 @@ CONTAINS
         this%atmnum = get_atmnum(label)
         !
         IF (this%atmnum == 0) &
-            CALL env_errore(sub_name, &
-                            'Cannot assign the atom type associated &
-                            &with input label', 1)
+            CALL io%error(sub_name, &
+                          'Cannot assign the atom type associated &
+                          &with input label', 1)
         !
         ! this%weight = weights(this%atmnum) ! #TODO future work
         !
@@ -255,7 +255,7 @@ CONTAINS
             this%solvationrad = MUFF_diameters(this%atmnum) * 0.5_DP
             !
         CASE DEFAULT
-            CALL env_errore(sub_name, 'Unknown radius_mode', 1)
+            CALL io%error(sub_name, 'Unknown radius_mode', 1)
             !
         END SELECT
         !
@@ -366,7 +366,7 @@ CONTAINS
                 WRITE (local_unit, 1000)
             ELSE
                 !
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
                 !
                 WRITE (local_unit, 1001)
             END IF
@@ -398,7 +398,7 @@ CONTAINS
             END IF
             !
             IF (local_verbose < base_verbose) &
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
             !
         END IF
         !

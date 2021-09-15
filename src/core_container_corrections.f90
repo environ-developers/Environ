@@ -29,6 +29,8 @@
 MODULE class_core_container_corrections
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_cell
@@ -104,7 +106,7 @@ CONTAINS
             CALL core%calc_1da_vperiodic(charges, gradv)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -134,7 +136,7 @@ CONTAINS
             CALL core%calc_1da_gradvperiodic(charges, gvtot)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -166,7 +168,7 @@ CONTAINS
             CALL core%calc_1da_fperiodic(natoms, charges, auxiliary, f)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -197,7 +199,7 @@ CONTAINS
             CALL core%calc_1da_vgcs(electrolyte, charges, potential)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -228,7 +230,7 @@ CONTAINS
             CALL core%calc_1da_gradvgcs(electrolyte, charges, gradv)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -259,7 +261,7 @@ CONTAINS
             CALL core%calc_1da_vms(semiconductor, charges, potential)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !
@@ -290,7 +292,7 @@ CONTAINS
             CALL core%calc_1da_gradvms(semiconductor, charges, gradv)
             !
         CLASS DEFAULT
-            CALL env_errore(sub_name, 'Unexpected core', 1)
+            CALL io%error(sub_name, 'Unexpected core', 1)
             !
         END SELECT
         !

@@ -122,9 +122,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%of_r)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%of_r)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_density
@@ -210,9 +210,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%cell)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%cell)) CALL io%destroy_error(sub_name)
         !
-        IF (.NOT. ALLOCATED(this%of_r)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%of_r)) CALL io%destroy_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -424,7 +424,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(this%cell, density2%cell)) &
-            CALL env_errore(fun_name, 'Operation on fields with inconsistent domains', 1)
+            CALL io%error(fun_name, 'Operation on fields with inconsistent domains', 1)
         !
         ir_end => this%cell%ir_end
         scalar_product = DOT_PRODUCT(this%of_r(1:ir_end), density2%of_r(1:ir_end))
@@ -508,7 +508,7 @@ CONTAINS
                     WRITE (local_unit, 1000)
                 ELSE
                     !
-                    CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                    CALL io%block_divider(local_verbose, base_verbose, local_unit)
                     !
                     WRITE (local_unit, 1001)
                 END IF
@@ -525,7 +525,7 @@ CONTAINS
             IF (local_verbose >= 3 .AND. print_cube) CALL this%write_cube_no_ions()
             !
             IF (local_verbose < base_verbose) &
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
             !
         END IF
         !

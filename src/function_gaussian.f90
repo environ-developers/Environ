@@ -30,6 +30,8 @@
 MODULE class_function_gaussian
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP, sqrtpi
     !
     USE class_density
@@ -108,10 +110,9 @@ CONTAINS
             IF (ABS(charge) < func_tol) RETURN
             !
             IF (ABS(spread) < func_tol) &
-                CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
+                CALL io%error(sub_name, 'Wrong spread for Gaussian function', 1)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             SELECT CASE (dim)
                 !
@@ -126,8 +127,8 @@ CONTAINS
                 length = ABS(cell%at(axis, axis))
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
-            CASE default
-                CALL env_errore(sub_name, 'Wrong value of dim', 1)
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Wrong value of dim', 1)
                 !
             END SELECT
             !
@@ -193,10 +194,9 @@ CONTAINS
             IF (ABS(charge) < func_tol) RETURN
             !
             IF (ABS(spread) < func_tol) &
-                CALL env_errore(sub_name, 'Wrong spread for Gaussian function', 1)
+                CALL io%error(sub_name, 'Wrong spread for Gaussian function', 1)
             !
-            IF (axis < 1 .OR. axis > 3) &
-                CALL env_errore(sub_name, 'Wrong value of axis', 1)
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
             !
             SELECT CASE (dim)
                 !
@@ -211,8 +211,8 @@ CONTAINS
                 length = ABS(cell%at(axis, axis))
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
-            CASE default
-                CALL env_errore(sub_name, 'Wrong value of dim', 1)
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Wrong value of dim', 1)
                 !
             END SELECT
             !
@@ -262,7 +262,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_errore(sub_name, 'Options not yet implemented', 1)
+        CALL io%error(sub_name, 'Options not yet implemented', 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE laplacian_of_function_gaussian
@@ -284,7 +284,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL env_errore(sub_name, 'Options not yet implemented', 1)
+        CALL io%error(sub_name, 'Options not yet implemented', 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function_gaussian

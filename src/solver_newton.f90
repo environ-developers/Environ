@@ -226,15 +226,15 @@ CONTAINS
         IF (PRESENT(dielectric)) THEN
             !
             IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
             !
         END IF
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells of input fields', 1)
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
         !
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL env_errore(sub_name, 'Inconsistent cells for charges and potential', 1)
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         cell => charges%cell
         ir_end => cell%ir_end
@@ -292,7 +292,7 @@ CONTAINS
                 CALL inner%linearized_pb(rhotot, electrolyte, x, dielectric, screening)
                 !
             CLASS DEFAULT
-                CALL env_errore(sub_name, 'Unexpected inner solver', 1)
+                CALL io%error(sub_name, 'Unexpected inner solver', 1)
                 !
             END SELECT
             !

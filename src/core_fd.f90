@@ -32,6 +32,8 @@
 MODULE class_core_fd
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP
     !
     USE class_cell
@@ -94,9 +96,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%cell)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%cell)) CALL io%create_error(sub_name)
         !
-        IF (ALLOCATED(this%icfd)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%icfd)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -150,7 +152,7 @@ CONTAINS
         !
         NULLIFY (this%cell)
         !
-        IF (.NOT. ALLOCATED(this%icfd)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(this%icfd)) CALL io%destroy_error(sub_name)
         !
         DEALLOCATE (this%icfd)
         !

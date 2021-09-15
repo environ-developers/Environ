@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -85,7 +85,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (SIZE(f_in) < dfft%nnr) &
-            CALL env_errore(sub_name, 'f_in too small', dfft%nnr - SIZE(f_in))
+            CALL io%error(sub_name, 'f_in too small', dfft%nnr - SIZE(f_in))
         !
         CALL env_start_clock(sub_name)
         !
@@ -113,7 +113,7 @@ CONTAINS
                              MPI_DOUBLE_PRECISION, f_aux(offset_aux), recvcount, &
                              displs, MPI_DOUBLE_PRECISION, dfft%root, dfft%comm2, info)
             !
-            CALL env_errore(sub_name, 'info<>0', info)
+            CALL io%error(sub_name, 'info<>0', info)
             !
             offset_in = offset_in + dfft%nr1x * dfft%my_nr2p
             offset_aux = offset_aux + dfft%nr1x * dfft%nr2
@@ -137,7 +137,7 @@ CONTAINS
                          f_out, recvcount, displs, MPI_DOUBLE_PRECISION, dfft%root, &
                          dfft%comm3, info)
         !
-        CALL env_errore(sub_name, 'info<>0', info)
+        CALL io%error(sub_name, 'info<>0', info)
         !
         !--------------------------------------------------------------------------------
         ! The following check should be performed only on processor dfft%root
@@ -145,17 +145,15 @@ CONTAINS
         !
         info = SIZE(f_out) - displs(dfft%nproc3 - 1) - recvcount(dfft%nproc3 - 1)
         !
-        IF (info < 0) CALL env_errore(sub_name, 'f_out too small', -info)
+        IF (info < 0) CALL io%error(sub_name, 'f_out too small', -info)
         !
         DEALLOCATE (f_aux)
         !
         CALL env_stop_clock(sub_name)
 #else
         !
-        CALL env_errore(sub_name, 'Do not use in serial execution', 1)
+        CALL io%error(sub_name, 'Do not use in serial execution', 1)
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_gather_real_grid
@@ -191,7 +189,7 @@ CONTAINS
         CALL env_start_clock(sub_name)
         !
         IF (2 * SIZE(f_in) < dfft%nnr) &
-            CALL env_errore(sub_name, 'f_in too small', dfft%nnr - SIZE(f_in))
+            CALL io%error(sub_name, 'f_in too small', dfft%nnr - SIZE(f_in))
         !
         ALLOCATE (f_aux(dfft%nr1x * dfft%nr2x * dfft%my_nr3p))
         !
@@ -217,7 +215,7 @@ CONTAINS
                              MPI_DOUBLE_PRECISION, f_aux(offset_aux), recvcount, &
                              displs, MPI_DOUBLE_PRECISION, dfft%root, dfft%comm2, info)
             !
-            CALL env_errore(sub_name, 'info<>0', info)
+            CALL io%error(sub_name, 'info<>0', info)
             !
             offset_in = offset_in + dfft%nr1x * dfft%my_nr2p
             offset_aux = offset_aux + dfft%nr1x * dfft%nr2
@@ -242,7 +240,7 @@ CONTAINS
         info = 2 * SIZE(f_out) - displs(dfft%nproc3 - 1) - recvcount(dfft%nproc3 - 1)
         FLUSH (io%unit)
         !
-        IF (info < 0) CALL env_errore(sub_name, 'f_out too small', -info)
+        IF (info < 0) CALL io%error(sub_name, 'f_out too small', -info)
         !
         info = 0
         !
@@ -250,17 +248,15 @@ CONTAINS
                          f_out, recvcount, displs, MPI_DOUBLE_PRECISION, dfft%root, &
                          dfft%comm3, info)
         !
-        CALL env_errore(sub_name, 'info<>0', info)
+        CALL io%error(sub_name, 'info<>0', info)
         !
         DEALLOCATE (f_aux)
         !
         CALL env_stop_clock(sub_name)
 #else
         !
-        CALL env_errore(sub_name, 'Do not use in serial execution', 1)
+        CALL io%error(sub_name, 'Do not use in serial execution', 1)
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_gather_complex_grid
@@ -311,7 +307,7 @@ CONTAINS
         !
         info = SIZE(f_in) - displs(dfft%nproc3 - 1) - sendcount(dfft%nproc3 - 1)
         !
-        IF (info < 0) CALL env_errore(sub_name, 'f_in too small', -info)
+        IF (info < 0) CALL io%error(sub_name, 'f_in too small', -info)
         !
         info = 0
         !
@@ -319,13 +315,13 @@ CONTAINS
                           f_aux, sendcount(dfft%mype3), MPI_DOUBLE_PRECISION, &
                           dfft%root, dfft%comm3, info)
         !
-        CALL env_errore(sub_name, 'info<>0', info)
+        CALL io%error(sub_name, 'info<>0', info)
         !
         !--------------------------------------------------------------------------------
         ! 2) scatter within the comm2 communicator
         !
         IF (SIZE(f_out) < dfft%nnr) &
-            CALL env_errore(sub_name, 'f_out too small', dfft%nnr - SIZE(f_out))
+            CALL io%error(sub_name, 'f_out too small', dfft%nnr - SIZE(f_out))
         !
         displs = 0
         f_out = 0.0D0
@@ -348,7 +344,7 @@ CONTAINS
                               sendcount(dfft%mype2), MPI_DOUBLE_PRECISION, &
                               dfft%root, dfft%comm2, info)
             !
-            CALL env_errore(sub_name, 'info<>0', info)
+            CALL io%error(sub_name, 'info<>0', info)
             !
             offset_in = offset_in + dfft%nr1x * dfft%my_nr2p
             offset_aux = offset_aux + dfft%nr1x * dfft%nr2
@@ -359,10 +355,8 @@ CONTAINS
         CALL env_stop_clock(sub_name)
 #else
         !
-        CALL env_errore(sub_name, 'Do not use in serial execution', 1)
+        CALL io%error(sub_name, 'Do not use in serial execution', 1)
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_scatter_real_grid
@@ -413,7 +407,7 @@ CONTAINS
         !
         info = 2 * SIZE(f_in) - displs(dfft%nproc3 - 1) - sendcount(dfft%nproc3 - 1)
         !
-        IF (info < 0) CALL env_errore(sub_name, 'f_in too small', -info)
+        IF (info < 0) CALL io%error(sub_name, 'f_in too small', -info)
         !
         info = 0
         !
@@ -421,13 +415,13 @@ CONTAINS
                           f_aux, sendcount(dfft%mype3), MPI_DOUBLE_PRECISION, &
                           dfft%root, dfft%comm3, info)
         !
-        CALL env_errore(sub_name, 'info<>0', info)
+        CALL io%error(sub_name, 'info<>0', info)
         !
         !--------------------------------------------------------------------------------
         ! 2) scatter within the comm2 communicator
         !
         IF (SIZE(f_out) < dfft%nnr) &
-            CALL env_errore(sub_name, 'f_out too small', dfft%nnr - SIZE(f_out))
+            CALL io%error(sub_name, 'f_out too small', dfft%nnr - SIZE(f_out))
         !
         displs = 0
         f_out = 0.0D0
@@ -450,7 +444,7 @@ CONTAINS
                               sendcount(dfft%mype2), MPI_DOUBLE_PRECISION, &
                               dfft%root, dfft%comm2, info)
             !
-            CALL env_errore(sub_name, 'info<>0', info)
+            CALL io%error(sub_name, 'info<>0', info)
             !
             offset_in = offset_in + dfft%nr1x * dfft%my_nr2p
             offset_aux = offset_aux + dfft%nr1x * dfft%nr2x
@@ -465,10 +459,8 @@ CONTAINS
         CALL env_stop_clock(sub_name)
 #else
         !
-        CALL env_errore(sub_name, 'Do not use in serial execution', 1)
+        CALL io%error(sub_name, 'Do not use in serial execution', 1)
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_scatter_complex_grid

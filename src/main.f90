@@ -33,6 +33,8 @@
 MODULE class_environ
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE environ_param, ONLY: DP, RYTOEV
     !
     USE env_base_input
@@ -166,7 +168,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (ASSOCIATED(this%setup)) &
-            CALL env_errore(sub_name, 'Trying to create an existing object', 1)
+            CALL io%error(sub_name, 'Trying to create an existing object', 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -241,7 +243,7 @@ CONTAINS
         IF (.NOT. ASSOCIATED(this%vzero%cell)) RETURN
         !
         IF (this%vzero%cell%nnr /= nnr) &
-            CALL env_errore(sub_name, 'Inconsistent size in input potential', 1)
+            CALL io%error(sub_name, 'Inconsistent size in input potential', 1)
         !
         this%vzero%of_r = vltot
         !
@@ -708,7 +710,7 @@ CONTAINS
                     CALL this%solvent%sa_de_dboundary(de_dboundary)
                 !
                 IF (this%solvent%field_aware) THEN
-                    CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
                 ELSE
                     !
                     this%vsoftcavity%of_r = de_dboundary%of_r * this%solvent%dscaled%of_r
@@ -729,7 +731,7 @@ CONTAINS
                     CALL this%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
                 IF (this%electrolyte%boundary%field_aware) THEN
-                    CALL env_errore(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
                 ELSE
                     !
                     ! multiply for the derivative of the boundary w.r.t electronic density
@@ -1422,7 +1424,7 @@ CONTAINS
                 IF (this%setup%lelectrolyte) WRITE (io%unit, 1010) this%eelectrolyte
                 !
             CASE DEFAULT
-                CALL env_errore(sub_name, 'Wrong program calling Environ', 1)
+                CALL io%error(sub_name, 'Wrong program calling Environ', 1)
                 !
             END SELECT
             !

@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!     
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -32,8 +32,9 @@
 MODULE env_fft_scatter
     !------------------------------------------------------------------------------------
     !
-    USE env_fft_param
+    USE env_base_io, ONLY: io
     !
+    USE env_fft_param
     USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     !------------------------------------------------------------------------------------
@@ -117,8 +118,6 @@ CONTAINS
         !$omp master
         CALL env_stop_clock(sub_name)
         !$omp end master
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -210,7 +209,7 @@ CONTAINS
                 CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, mpi_comm, ierr)
                 !
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
                 !
 #endif
                 !
@@ -309,7 +308,7 @@ CONTAINS
                 CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, mpi_comm, ierr)
                 !
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
 #else
                 !
                 DO iproc2 = 1, nproc2
@@ -505,7 +504,7 @@ CONTAINS
                 CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
                 !
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
                 !
                 !$omp parallel default(none) &
                 !$omp&         private(iproc2, i, j, k, ip, it, m1, m2, icompact, it0, i1)
@@ -644,7 +643,7 @@ CONTAINS
                 CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, desc%comm2, ierr)
 
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
                 !
                 ! step one: store contiguously the columns
                 !
@@ -707,7 +706,7 @@ CONTAINS
         !
 #endif
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 98      FORMAT(10('(', 2F12.9, ')'))
 99      FORMAT(20('(', 2F12.9, ')'))
@@ -771,8 +770,6 @@ CONTAINS
                      desc%nsp_offset)
         !
         CALL env_stop_clock(sub_name)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -883,7 +880,7 @@ CONTAINS
                 CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
                 !
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
 #endif
                 !
 10              CONTINUE
@@ -993,7 +990,7 @@ CONTAINS
                 CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
                 !
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
                 !
 #else
                 DO iproc3 = 1, desc%nproc3
@@ -1197,7 +1194,7 @@ CONTAINS
                 CALL mpi_alltoall(f_aux(1), sendsize, MPI_DOUBLE_COMPLEX, f_in(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
                 !
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
                 !$omp end single
                 !
                 !$omp do collapse(2)
@@ -1320,7 +1317,7 @@ CONTAINS
                 CALL mpi_alltoall(f_in(1), sendsize, MPI_DOUBLE_COMPLEX, f_aux(1), &
                                   sendsize, MPI_DOUBLE_COMPLEX, desc%comm3, ierr)
                 !
-                IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+                IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
                 !$omp end single
                 !
                 !  step one: store contiguously the columns
@@ -1379,7 +1376,7 @@ CONTAINS
         !
 #endif
         !
-        RETURN
+        !--------------------------------------------------------------------------------
         !
 98      FORMAT(10('(', 2F12.9, ')'))
 99      FORMAT(20('(', 2F12.9, ')'))
@@ -1490,7 +1487,7 @@ CONTAINS
             CALL mpi_alltoall(f_aux(1), sendsiz, MPI_DOUBLE_COMPLEX, f_in(1), &
                               sendsiz, MPI_DOUBLE_COMPLEX, dfft%comm, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
 10          CONTINUE
             !
@@ -1540,7 +1537,7 @@ CONTAINS
             CALL mpi_alltoall(f_in(1), sendsiz, MPI_DOUBLE_COMPLEX, f_aux(1), &
                               sendsiz, MPI_DOUBLE_COMPLEX, dfft%comm, ierr)
             !
-            IF (ABS(ierr) /= 0) CALL env_errore(sub_name, 'info<>0', ABS(ierr))
+            IF (ABS(ierr) /= 0) CALL io%error(sub_name, 'info<>0', ABS(ierr))
             !
             ! step one: store contiguously the columns
             !
@@ -1569,8 +1566,6 @@ CONTAINS
         !
         CALL env_stop_clock(sub_name)
 #endif
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fft_scatter_2d

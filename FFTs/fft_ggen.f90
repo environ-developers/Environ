@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -32,8 +32,9 @@
 MODULE env_fft_ggen
     !------------------------------------------------------------------------------------
     !
-    USE env_fft_param
+    USE env_base_io, ONLY: io
     !
+    USE env_fft_param
     USE env_types_fft, ONLY: env_fft_type_descriptor
     !
     !------------------------------------------------------------------------------------
@@ -101,7 +102,7 @@ CONTAINS
             IF (n3 < 0) n3 = n3 + dfft%nr3
             !
             IF (n1 >= dfft%nr1 .OR. n2 >= dfft%nr2 .OR. n3 >= dfft%nr3) &
-                CALL env_errore(sub_name, 'Mesh too small?', ng)
+                CALL io%error(sub_name, 'Mesh too small?', ng)
             !
             IF (dfft%lpara) THEN
                 !

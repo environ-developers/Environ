@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -30,8 +30,9 @@
 MODULE env_fft_main
     !------------------------------------------------------------------------------------
     !
-    USE env_fft_param
+    USE env_base_io, ONLY: io
     !
+    USE env_fft_param
     USE env_types_fft, ONLY: env_fft_type_descriptor
     !
 #if defined(__CUDA)
@@ -44,7 +45,6 @@ MODULE env_fft_main
 #else
     !
     USE env_fft_scalar, ONLY: env_cfft3d
-    !
     USE env_fft_parallel, ONLY: env_tg_cft3s, env_many_cft3s, env_tg_cft3s_2d
     !
 #endif
@@ -116,8 +116,8 @@ CONTAINS
             !
             IF (howmany_ /= 1) THEN
                 !
-                CALL env_errore(sub_name, &
-                                'howmany not yet implemented for parallel driver', 1)
+                CALL io%error(sub_name, &
+                              'howmany not yet implemented for parallel driver', 1)
                 !
             END IF
             !
@@ -131,8 +131,6 @@ CONTAINS
         END IF
         !
         CALL env_stop_clock(clock_label)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_invfft_y
@@ -179,8 +177,8 @@ CONTAINS
         ELSE IF (dfft%lpara) THEN
             !
             IF (howmany_ /= 1) THEN
-                CALL env_errore(sub_name, &
-                                'howmany not yet implemented for parallel driver', 1)
+                CALL io%error(sub_name, &
+                              'howmany not yet implemented for parallel driver', 1)
             END IF
             !
             CALL env_tg_cft3s_2d(f, dfft, -1)
@@ -192,8 +190,6 @@ CONTAINS
         END IF
         !
         CALL env_stop_clock(clock_label)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fwfft_y
@@ -243,8 +239,8 @@ CONTAINS
             !
             IF (stream_ /= 0) THEN
                 !
-                CALL env_errore(sub_name, &
-                                'Stream support not implemented for parallel driver', 1)
+                CALL io%error(sub_name, &
+                              'Stream support not implemented for parallel driver', 1)
                 !
             END IF
             !
@@ -270,8 +266,6 @@ CONTAINS
         END IF
         !
         CALL env_stop_clock_gpu(clock_label)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_invfft_y_gpu
@@ -320,8 +314,8 @@ CONTAINS
             !
             IF (stream_ /= 0) THEN
                 !
-                CALL env_errore(sub_name, &
-                                'Stream support not implemented for parallel driver', 1)
+                CALL io%error(sub_name, &
+                              'Stream support not implemented for parallel driver', 1)
                 !
             END IF
             !
@@ -347,8 +341,6 @@ CONTAINS
         END IF
         !
         CALL env_stop_clock_gpu(clock_label)
-        !
-        RETURN
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_fwfft_y_gpu

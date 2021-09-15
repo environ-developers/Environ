@@ -93,7 +93,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(f)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(f)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
@@ -177,10 +177,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ALLOCATED(f)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ALLOCATED(f)) CALL io%destroy_error(sub_name)
         !
         IF (SIZE(f) /= n) &
-            CALL env_errore(sub_name, 'Inconsistent size of allocated object', 1)
+            CALL io%error(sub_name, 'Inconsistent size of allocated object', 1)
         !
         !--------------------------------------------------------------------------------
         !
@@ -387,7 +387,7 @@ CONTAINS
                 WRITE (local_unit, 1000)
             ELSE
                 !
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
                 !
                 WRITE (local_unit, 1001)
             END IF
@@ -404,7 +404,7 @@ CONTAINS
             END DO
             !
             IF (local_verbose < base_verbose) &
-                CALL env_block_divider(local_verbose, base_verbose, local_unit)
+                CALL io%block_divider(local_verbose, base_verbose, local_unit)
             !
         END IF
         !

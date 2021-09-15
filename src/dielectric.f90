@@ -166,9 +166,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ALLOCATED(this%regions)) CALL env_create_error(sub_name)
+        IF (ALLOCATED(this%regions)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%boundary)) CALL env_create_error(sub_name)
+        IF (ASSOCIATED(this%boundary)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_dielectric
@@ -380,11 +380,11 @@ CONTAINS
         ELSE
             !
             IF (ALLOCATED(this%regions)) &
-                CALL env_errore(sub_name, 'Found unexpected allocated object', 1)
+                CALL io%error(sub_name, 'Found unexpected allocated object', 1)
             !
         END IF
         !
-        IF (.NOT. ASSOCIATED(this%boundary)) CALL env_destroy_error(sub_name)
+        IF (.NOT. ASSOCIATED(this%boundary)) CALL io%destroy_error(sub_name)
         !
         NULLIFY (this%boundary)
         !
@@ -460,7 +460,7 @@ CONTAINS
         scaled => this%boundary%scaled%of_r
         !
         IF (.NOT. ALLOCATED(this%boundary%gradient%of_r)) &
-            CALL env_errore(sub_name, 'Missing required gradient of boundary', 1)
+            CALL io%error(sub_name, 'Missing required gradient of boundary', 1)
         !
         gradscaled => this%boundary%gradient%of_r
         gradlogeps => this%gradlog%of_r
@@ -469,7 +469,7 @@ CONTAINS
         IF (this%need_gradient) THEN
             !
             IF (.NOT. ALLOCATED(this%boundary%gradient%of_r)) &
-                CALL env_errore(sub_name, 'Missing required gradient of boundary', 1)
+                CALL io%error(sub_name, 'Missing required gradient of boundary', 1)
             !
             gradscaled => this%boundary%gradient%of_r
             gradeps => this%gradient%of_r
@@ -478,12 +478,12 @@ CONTAINS
         IF (this%need_factsqrt) THEN
             !
             IF (.NOT. ALLOCATED(this%boundary%gradient%of_r)) &
-                CALL env_errore(sub_name, 'Missing required gradient of boundary', 1)
+                CALL io%error(sub_name, 'Missing required gradient of boundary', 1)
             !
             gradscaledmod => this%boundary%gradient%modulus%of_r
             !
             IF (.NOT. ALLOCATED(this%boundary%laplacian%of_r)) &
-                CALL env_errore(sub_name, 'Missing required laplacian of boundary', 1)
+                CALL io%error(sub_name, 'Missing required laplacian of boundary', 1)
             !
             laplscaled => this%boundary%laplacian%of_r
             factsqrteps => this%factsqrt%of_r
@@ -550,7 +550,7 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL env_errore(sub_name, 'Unkown boundary type', 1)
+            CALL io%error(sub_name, 'Unkown boundary type', 1)
             !
         END SELECT
         !
@@ -658,12 +658,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
-            CALL env_errore(sub_name, &
-                            'Mismatch in domains of potential and charges', 1)
+            CALL io%error(sub_name, &
+                          'Mismatch in domains of potential and charges', 1)
         !
         IF (.NOT. ASSOCIATED(potential%cell, this%density%cell)) &
-            CALL env_errore(sub_name, &
-                            'Mismatch in domains of potential and dielectric', 1)
+            CALL io%error(sub_name, &
+                          'Mismatch in domains of potential and dielectric', 1)
         !
         cell => charges%cell
         !
