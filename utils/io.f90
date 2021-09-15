@@ -46,7 +46,11 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     !
     USE env_base_io, ONLY: io
     USE env_mp, ONLY: env_mp_abort, env_mp_rank
-    USE env_utils_param
+    USE env_parallel_include, ONLY: MPI_COMM_WORLD
+    !
+#if defined(__PTRACE)&&defined(__INTEL_COMPILER)
+    USE ifcore, ONLY: tracebackqq
+#endif
     !
     !------------------------------------------------------------------------------------
     !
@@ -126,7 +130,7 @@ SUBROUTINE env_errore(calling_routine, message, ierr)
     ! Added by C.C.
     !
     crashunit = io%find_free_unit()
-    OPEN (UNIT=crashunit, FILE=crash_file, POSITION='APPEND', STATUS='UNKNOWN')
+    OPEN (UNIT=crashunit, FILE='CRASH', POSITION='APPEND', STATUS='UNKNOWN')
     !
     WRITE (UNIT=crashunit, FMT='(/,1X,78("%"))')
     WRITE (UNIT=crashunit, FMT='(5X,"task #",I10)') mpime

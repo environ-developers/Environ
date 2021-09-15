@@ -33,6 +33,8 @@
 MODULE env_base_scatter
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE env_fft_param
     !
     USE env_types_fft, ONLY: env_fft_type_descriptor
@@ -238,7 +240,7 @@ CONTAINS
         ! otherwise f_out must be allocated on all processors even if not used
         !
         info = 2 * SIZE(f_out) - displs(dfft%nproc3 - 1) - recvcount(dfft%nproc3 - 1)
-        FLUSH (stdout)
+        FLUSH (io%unit)
         !
         IF (info < 0) CALL env_errore(sub_name, 'f_out too small', -info)
         !

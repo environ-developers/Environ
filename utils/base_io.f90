@@ -30,12 +30,6 @@ MODULE env_base_io
     !------------------------------------------------------------------------------------
     !
     USE env_char_ops, ONLY: env_uppercase
-    USE env_utils_param
-    USE env_mp, ONLY: env_mp_bcast, env_mp_abort, env_mp_rank
-    !
-#if defined(__PTRACE)&&defined(__INTEL_COMPILER)
-    USE ifcore, ONLY: tracebackqq
-#endif
     !
     IMPLICIT NONE
     !

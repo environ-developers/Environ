@@ -38,6 +38,8 @@
 MODULE env_types_fft
     !------------------------------------------------------------------------------------
     !
+    USE env_base_io, ONLY: io
+    !
     USE env_fft_param
     !
     USE env_fft_support, ONLY: env_good_fft_order, env_good_fft_dimension
@@ -953,7 +955,7 @@ CONTAINS
         IF (ANY(nsp(1:desc%nproc) /= ncp(1:desc%nproc))) THEN
             !
             DO ip = 1, desc%nproc
-                WRITE (stdout, *) ' * ', ip, ' * ', nsp(ip), ' /= ', ncp(ip)
+                WRITE (io%unit, *) ' * ', ip, ' * ', nsp(ip), ' /= ', ncp(ip)
             END DO
             !
             CALL env_errore(sub_name, 'Inconsistent number of sticks', 7)
@@ -1229,7 +1231,7 @@ CONTAINS
             !
 #if defined(__DEBUG)
         ELSE
-            WRITE (stdout, '( /, 3X,"Info: using nr1, nr2, nr3 values from input" )')
+            WRITE (io%unit, '( /, 3X,"Info: using nr1, nr2, nr3 values from input" )')
 #endif
         END IF
         !

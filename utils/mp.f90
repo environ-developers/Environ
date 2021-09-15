@@ -50,7 +50,9 @@
 MODULE env_mp
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_base_io, ONLY: io
+    USE env_kinds
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE cudafor
@@ -216,8 +218,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        WRITE (stdout, fmt='( "*** error in Message Passing (mp) module ***")')
-        WRITE (stdout, fmt='( "*** error code: ",I5)') code
+        WRITE (io%unit, fmt='( "*** error in Message Passing (mp) module ***")')
+        WRITE (io%unit, fmt='( "*** error code: ",I5)') code
         !
 #if defined(__MPI)
         CALL mpi_abort(MPI_COMM_WORLD, code, ierr)

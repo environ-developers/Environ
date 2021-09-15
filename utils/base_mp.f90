@@ -110,7 +110,7 @@ END SUBROUTINE env_deallocate_mp_buffers
 SUBROUTINE env_mp_synchronize(gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -138,8 +138,6 @@ SUBROUTINE env_mp_synchronize(gid)
     IF (ierr /= 0) CALL env_errore(sub_name, 'Error in mpi_barrier', ierr)
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_mp_synchronize
 !----------------------------------------------------------------------------------------
@@ -155,7 +153,7 @@ END SUBROUTINE env_mp_synchronize
 SUBROUTINE env_bcast_integer(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -242,8 +240,6 @@ SUBROUTINE env_bcast_integer(array, n, root, gid)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_bcast_integer
 !----------------------------------------------------------------------------------------
@@ -253,7 +249,8 @@ END SUBROUTINE env_bcast_integer
 SUBROUTINE env_bcast_integer8(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_kinds, ONLY: i8b
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -340,8 +337,6 @@ SUBROUTINE env_bcast_integer8(array, n, root, gid)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_bcast_integer8
 !----------------------------------------------------------------------------------------
@@ -351,7 +346,8 @@ END SUBROUTINE env_bcast_integer8
 SUBROUTINE env_bcast_real(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_kinds, ONLY: DP
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -439,8 +435,6 @@ SUBROUTINE env_bcast_real(array, n, root, gid)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_bcast_real
 !----------------------------------------------------------------------------------------
@@ -450,7 +444,7 @@ END SUBROUTINE env_bcast_real
 SUBROUTINE env_bcast_logical(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -537,8 +531,6 @@ SUBROUTINE env_bcast_logical(array, n, root, gid)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_bcast_logical
 !----------------------------------------------------------------------------------------
@@ -557,7 +549,7 @@ END SUBROUTINE env_bcast_logical
 SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -645,8 +637,6 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_reduce_base_integer
 !----------------------------------------------------------------------------------------
@@ -658,7 +648,8 @@ END SUBROUTINE env_reduce_base_integer
 SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_kinds, ONLY: i8b
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -744,8 +735,6 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_reduce_base_integer8
 !----------------------------------------------------------------------------------------
@@ -757,7 +746,8 @@ END SUBROUTINE env_reduce_base_integer8
 SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_kinds, ONLY: DP
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -845,8 +835,6 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_reduce_base_real
 !----------------------------------------------------------------------------------------
@@ -859,7 +847,7 @@ END SUBROUTINE env_reduce_base_real
 SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -998,8 +986,6 @@ SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
 #endif
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_reduce_base_integer
 !----------------------------------------------------------------------------------------
@@ -1011,7 +997,8 @@ END SUBROUTINE env_reduce_base_integer
 SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_kinds, ONLY: i8b
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -1149,8 +1136,6 @@ SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     !
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_reduce_base_integer8
 !----------------------------------------------------------------------------------------
@@ -1162,7 +1147,8 @@ END SUBROUTINE env_reduce_base_integer8
 SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_kinds, ONLY: DP
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -1303,8 +1289,6 @@ SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     !
 #endif
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_reduce_base_real
 !----------------------------------------------------------------------------------------
@@ -1318,7 +1302,8 @@ END SUBROUTINE env_reduce_base_real
 SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param
+    USE env_kinds, ONLY: DP
+    USE env_parallel_include
     !
 #if defined(__CUDA)
     USE env_data_buffer, ONLY: buff_i => mp_buff_i_d, &
@@ -1439,8 +1424,6 @@ SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
     WRITE (*, *) TRIM(sub_name)//' OUT'
 #endif
 #endif
-    !
-    RETURN
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_reduce_base_real_to

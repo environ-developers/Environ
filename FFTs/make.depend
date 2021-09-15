@@ -1,3 +1,4 @@
+base_scatter.o : ../utils/base_io.o
 base_scatter.o : fft_param.o
 base_scatter.o : types_fft.o
 base_stick.o : ../utils/sorting.o
@@ -20,7 +21,8 @@ fft_parallel_gpu.o : fft_param.o
 fft_parallel_gpu.o : fft_scalar.o
 fft_parallel_gpu.o : fft_scatter_gpu.o
 fft_parallel_gpu.o : types_fft.o
-fft_param.o : ../utils/utils_param.o
+fft_param.o : ../utils/kinds.o
+fft_param.o : ../utils/parallel_include.o
 fft_scalar.ARM_LIB.o : fft_param.o
 fft_scalar.ARM_LIB.o : fftw_interfaces.o
 fft_scalar.DFTI.o : fft_param.o
@@ -43,6 +45,7 @@ fft_scatter_gpu.o : fft_buffers.o
 fft_scatter_gpu.o : fft_param.o
 fft_scatter_gpu.o : types_fft.o
 fft_support.o : fft_param.o
+types_fft.o : ../utils/base_io.o
 types_fft.o : base_stick.o
 types_fft.o : fft_param.o
 types_fft.o : fft_support.o

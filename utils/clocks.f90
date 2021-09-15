@@ -6,12 +6,12 @@
 !----------------------------------------------------------------------------------------
 !
 !     This file is part of Environ version 2.0
-!         
+!
 !     Environ 2.0 is free software: you can redistribute it and/or modify
 !     it under the terms of the GNU General Public License as published by
 !     the Free Software Foundation, either version 2 of the License, or
 !     (at your option) any later version.
-!     
+!
 !     Environ 2.0 is distributed in the hope that it will be useful,
 !     but WITHOUT ANY WARRANTY; without even the implied warranty of
 !     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -59,7 +59,8 @@
 MODULE env_clocks
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP, stdout
+    USE env_base_io, ONLY: io
+    USE env_kinds, ONLY: DP
     !
 #if defined(__CUDA)
     USE cudafor
@@ -149,98 +150,11 @@ END MODULE env_clocks
 !>
 !!
 !----------------------------------------------------------------------------------------
-SUBROUTINE env_init_clocks(go, max_print_depth_)
-    !------------------------------------------------------------------------------------
-    !
-    USE env_utils_param, ONLY: DP, stdout, MPI_COMM_WORLD
-    !
-    USE env_clocks, ONLY: called, t0cpu, cputime, no, notrunning, maxclock, &
-                          clock_label, walltime, t0wall, nclock, mpi_per_thread
-    !
-    USE env_clocks, ONLY: gpu_starts, gpu_stops, gpu_called, gputime
-    !
-#if defined(__TRACE)
-    USE env_clocks, ONLY: mpime, max_print_depth
-#endif
-    !
-#if defined(__CUDA)
-    USE cudafor
-#endif
-    !
-    !------------------------------------------------------------------------------------
-    !
-    IMPLICIT NONE
-    !
-    LOGICAL, INTENT(IN) :: go
-    INTEGER, INTENT(IN), OPTIONAL :: max_print_depth_
-    !
-    INTEGER :: n, ierr
-    !
-#if defined(_OPENMP)
-    INTEGER, EXTERNAL :: omp_get_max_threads
-    mpi_per_thread = 1.0_DP / omp_get_max_threads()
-#endif
-    !
-    !------------------------------------------------------------------------------------
-    !
-    no = .NOT. go
-    nclock = 0
-    !
-    DO n = 1, maxclock
-        called(n) = 0
-        gpu_called(n) = 0
-        cputime(n) = 0.0_DP
-        t0cpu(n) = notrunning
-        walltime(n) = 0.0_DP
-        t0wall(n) = notrunning
-        gputime(n) = 0.0_DP
-        clock_label(n) = ' '
-        !
-#if defined(__CUDA)
-        ierr = cudaEventCreate(gpu_starts(n))
-        ierr = cudaEventCreate(gpu_stops(n))
-#endif
-        !
-    END DO
-    !
-#if defined(__TRACE)
-    WRITE (stdout, *) '*** Code flow traced exploiting clocks calls ***'
-    !
-    IF (PRESENT(max_print_depth_)) THEN
-        max_print_depth = max_print_depth_
-        WRITE (stdout, *) '--- Code flow traced down to depth ', max_print_depth
-    END IF
-    !
-    mpime = 0
-    !
-#if defined(__MPI)
-    ierr = 0
-    !
-    CALL mpi_comm_rank(MPI_COMM_WORLD, mpime, ierr)
-    !
-    IF (ierr /= 0) THEN
-        WRITE (stdout, fmt='( "*** error in init_clocks call to mpi_comm_rank ***")')
-        WRITE (stdout, fmt='( "*** error code: ",I5)') ierr
-        !
-        CALL mpi_abort(MPI_COMM_WORLD, ierr, ierr)
-        ! abort with extreme prejudice across the entire MPI set of tasks
-        !
-    END IF
-#endif
-#endif
-    !
-    RETURN
-    !
-    !------------------------------------------------------------------------------------
-END SUBROUTINE env_init_clocks
-!----------------------------------------------------------------------------------------
-!>
-!!
-!----------------------------------------------------------------------------------------
 SUBROUTINE env_start_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP, stdout
+    USE env_base_io, ONLY: io
+    USE env_kinds, ONLY: DP
     !
     USE env_clocks, ONLY: nclock, clock_label, notrunning, no, maxclock, &
                           t0cpu, t0wall, env_f_wall, env_f_tcpu
@@ -264,10 +178,10 @@ SUBROUTINE env_start_clock(label)
 #if defined(__TRACE)
     IF (trace_depth <= max_print_depth) THEN
         !
-        WRITE (stdout, '(I3," depth=",I2," env_start_clock ",A )') &
+        WRITE (io%unit, '(I3," depth=",I2," env_start_clock ",A )') &
             mpime, trace_depth, label
         !
-        FLUSH (stdout)
+        FLUSH (io%unit)
     END IF
     !
     trace_depth = trace_depth + 1
@@ -287,7 +201,7 @@ SUBROUTINE env_start_clock(label)
             !
             IF (t0cpu(n) /= notrunning) THEN
                 !
-                WRITE (stdout, '("env_start_clock: clock # ",I2," for ",A12, &
+                WRITE (io%unit, '("env_start_clock: clock # ",I2," for ",A12, &
                                 &" already started")') n, label_
                 !
             ELSE
@@ -306,7 +220,7 @@ SUBROUTINE env_start_clock(label)
     !
     IF (nclock == maxclock) THEN
         !
-        WRITE (stdout, '("env_start_clock(",A,"): &
+        WRITE (io%unit, '("env_start_clock(",A,"): &
                         &Too many clocks! call ignored")') label
         !
     ELSE
@@ -315,8 +229,6 @@ SUBROUTINE env_start_clock(label)
         t0cpu(nclock) = env_f_tcpu()
         t0wall(nclock) = env_f_wall()
     END IF
-    !
-    RETURN
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_start_clock
@@ -327,7 +239,8 @@ END SUBROUTINE env_start_clock
 SUBROUTINE env_stop_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP, stdout
+    USE env_base_io, ONLY: io
+    USE env_kinds, ONLY: DP
     !
     USE env_clocks, ONLY: no, nclock, clock_label, cputime, walltime, &
                           notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
@@ -353,10 +266,10 @@ SUBROUTINE env_stop_clock(label)
     !
     IF (trace_depth <= max_print_depth) THEN
         !
-        WRITE (stdout, '(I3," depth=",I2," env_stop_clock ",A )') &
+        WRITE (io%unit, '(I3," depth=",I2," env_stop_clock ",A )') &
             mpime, trace_depth, label
         !
-        FLUSH (stdout)
+        FLUSH (io%unit)
     END IF
 #endif
     !
@@ -374,7 +287,7 @@ SUBROUTINE env_stop_clock(label)
             !
             IF (t0cpu(n) == notrunning) THEN
                 !
-                WRITE (stdout, '("env_stop_clock: clock # ",I2," for ",A12, &
+                WRITE (io%unit, '("env_stop_clock: clock # ",I2," for ",A12, &
                                 &" not running")') n, label
                 !
             ELSE
@@ -391,10 +304,8 @@ SUBROUTINE env_stop_clock(label)
         !
     END DO
     !
-    WRITE (stdout, '("env_stop_clock: no clock for ",A12," found !")') label
+    WRITE (io%unit, '("env_stop_clock: no clock for ",A12," found !")') label
     ! clock not found
-    !
-    RETURN
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_stop_clock
@@ -405,7 +316,8 @@ END SUBROUTINE env_stop_clock
 SUBROUTINE env_start_clock_gpu(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP, stdout
+    USE env_base_io, ONLY: io
+    USE env_kinds, ONLY: DP
     !
 #if defined(__TRACE)
     USE env_clocks, ONLY: trace_depth, mpime, max_print_depth
@@ -434,10 +346,10 @@ SUBROUTINE env_start_clock_gpu(label)
 #if defined(__TRACE)
     IF (trace_depth <= max_print_depth) THEN
         !
-        WRITE (stdout, '(I3," depth=",I2," env_start_clock ",A )') &
+        WRITE (io%unit, '(I3," depth=",I2," env_start_clock ",A )') &
             mpime, trace_depth, label
         !
-        FLUSH (stdout)
+        FLUSH (io%unit)
     END IF
     !
     trace_depth = trace_depth + 1
@@ -456,7 +368,7 @@ SUBROUTINE env_start_clock_gpu(label)
             ! store in t0cpu the starting time
             !
             IF (t0cpu(n) /= notrunning) THEN
-                WRITE (stdout, '("env_start_clock: clock # ",I2," for ",A12, &
+                WRITE (io%unit, '("env_start_clock: clock # ",I2," for ",A12, &
                                 & " already started")') n, label_
             ELSE
                 !
@@ -478,7 +390,7 @@ SUBROUTINE env_start_clock_gpu(label)
     ! Clock not found : add new clock for given label
     !
     IF (nclock == maxclock) THEN
-        WRITE (stdout, '("env_start_clock(",A,"): Too many clocks! call ignored")') label
+        WRITE (io%unit, '("env_start_clock(",A,"): Too many clocks! call ignored")') label
     ELSE
         !
         nclock = nclock + 1
@@ -491,8 +403,6 @@ SUBROUTINE env_start_clock_gpu(label)
         !
     END IF
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_start_clock_gpu
 !----------------------------------------------------------------------------------------
@@ -502,7 +412,8 @@ END SUBROUTINE env_start_clock_gpu
 SUBROUTINE env_stop_clock_gpu(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP, stdout
+    USE env_base_io, ONLY: io
+    USE env_kinds, ONLY: DP
     !
 #if defined(__TRACE)
     USE env_clocks, ONLY: trace_depth, mpime, max_print_depth
@@ -536,10 +447,10 @@ SUBROUTINE env_stop_clock_gpu(label)
     !
     IF (trace_depth <= max_print_depth) THEN
         !
-        WRITE (stdout, '(I3," depth=",I2," env_stop_clock ",A )') &
+        WRITE (io%unit, '(I3," depth=",I2," env_stop_clock ",A )') &
             mpime, trace_depth, label
         !
-        FLUSH (stdout)
+        FLUSH (io%unit)
     END IF
 #endif
     !
@@ -562,7 +473,7 @@ SUBROUTINE env_stop_clock_gpu(label)
             !
             IF (t0cpu(n) == notrunning) THEN
                 !
-                WRITE (stdout, &
+                WRITE (io%unit, &
                        '("env_stop_clock: clock # ",I2," for ",A12, " not running")') &
                     n, label
                 !
@@ -591,10 +502,8 @@ SUBROUTINE env_stop_clock_gpu(label)
         !
     END DO
     !
-    WRITE (stdout, '("env_stop_clock_gpu: no clock for ",A12," found !")') label
+    WRITE (io%unit, '("env_stop_clock_gpu: no clock for ",A12," found !")') label
     ! clock not found
-    !
-    RETURN
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_stop_clock_gpu
@@ -605,10 +514,10 @@ END SUBROUTINE env_stop_clock_gpu
 FUNCTION env_get_cpu_and_wall(n) RESULT(t)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP
+    USE env_kinds, ONLY: DP
     !
-    USE env_clocks, ONLY: clock_label, cputime, walltime, mpi_per_thread, &
-                          notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
+    USE env_clocks, ONLY: cputime, walltime, mpi_per_thread, notrunning, t0cpu, t0wall, &
+                          env_f_wall, env_f_tcpu
     !
     !------------------------------------------------------------------------------------
     !
@@ -640,7 +549,7 @@ END FUNCTION env_get_cpu_and_wall
 SUBROUTINE env_print_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: stdout
+    USE env_base_io, ONLY: io
     USE env_clocks, ONLY: nclock, clock_label, gpu_called
     !
     !------------------------------------------------------------------------------------
@@ -658,7 +567,7 @@ SUBROUTINE env_print_clock(label)
     print_gpu = ANY(gpu_called > 0)
     !
     IF (label == ' ') THEN
-        WRITE (stdout, *)
+        WRITE (io%unit, *)
         !
         DO n = 1, nclock
             !
@@ -687,8 +596,6 @@ SUBROUTINE env_print_clock(label)
         !
     END IF
     !
-    RETURN
-    !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_print_clock
 !----------------------------------------------------------------------------------------
@@ -698,7 +605,8 @@ END SUBROUTINE env_print_clock
 SUBROUTINE env_print_this_clock(n)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP, stdout
+    USE env_base_io, ONLY: io
+    USE env_kinds, ONLY: DP
     !
     USE env_clocks, ONLY: clock_label, cputime, walltime, mpi_per_thread, &
                           notrunning, called, t0cpu, t0wall, env_f_wall, env_f_tcpu
@@ -743,7 +651,7 @@ SUBROUTINE env_print_this_clock(n)
         ! The first clock is written as days/hour/min/sec
         !
 #if defined(__CLOCK_SECONDS)
-        WRITE (stdout, '(5X,A12," : ",F9.2,"s CPU ",F9.2,"s WALL"/)') &
+        WRITE (io%unit, '(5X,A12," : ",F9.2,"s CPU ",F9.2,"s WALL"/)') &
             clock_label(n), elapsed_cpu_time, elapsed_wall_time
 #else
         !
@@ -766,65 +674,63 @@ SUBROUTINE env_print_this_clock(n)
         !
         IF (nday > 0) THEN
             !
-            WRITE (stdout, ADVANCE='no', &
+            WRITE (io%unit, ADVANCE='no', &
                    FMT='(5X,A12," : ",1X,I2,"d",I2,"h",I2,"m CPU ")') &
                 clock_label(n), nday, nhour, nmin
             !
         ELSE IF (nhour > 0) THEN
             !
-            WRITE (stdout, ADVANCE='no', &
+            WRITE (io%unit, ADVANCE='no', &
                    FMT='(5X,A12," : ",4X,I2,"h",I2,"m CPU ")') &
                 clock_label(n), nhour, nmin
             !
         ELSE IF (nmin > 0) THEN
             !
-            WRITE (stdout, ADVANCE='no', &
+            WRITE (io%unit, ADVANCE='no', &
                    FMT='(5X,A12," : ",1X,I2,"m",F5.2,"s CPU ")') &
                 clock_label(n), nmin, nsec
             !
         ELSE
             !
-            WRITE (stdout, ADVANCE='no', &
+            WRITE (io%unit, ADVANCE='no', &
                    FMT='(5X,A12," : ",4X,F5.2,"s CPU ")') &
                 clock_label(n), nsec
             !
         END IF
         !
         IF (mday > 0) THEN
-            WRITE (stdout, '(1X,I2,"d",I2,"h",I2,"m WALL"/)') mday, mhour, mmin
+            WRITE (io%unit, '(1X,I2,"d",I2,"h",I2,"m WALL"/)') mday, mhour, mmin
         ELSE IF (mhour > 0) THEN
-            WRITE (stdout, '(4X,I2,"h",I2,"m WALL"/)') mhour, mmin
+            WRITE (io%unit, '(4X,I2,"h",I2,"m WALL"/)') mhour, mmin
         ELSE IF (mmin > 0) THEN
-            WRITE (stdout, '(1X,I2,"m",F5.2,"s WALL"/)') mmin, msec
+            WRITE (io%unit, '(1X,I2,"m",F5.2,"s WALL"/)') mmin, msec
         ELSE
-            WRITE (stdout, '(4X,F5.2,"s WALL"/)') msec
+            WRITE (io%unit, '(4X,F5.2,"s WALL"/)') msec
         END IF
 #endif
         !
     ELSE IF (nmax == 1 .OR. t0cpu(n) /= notrunning) THEN
         !
         ! for clocks that have been called only once
-        WRITE (stdout, &
+        WRITE (io%unit, &
                '(5X,A12," : ",F9.2,"s CPU ",F9.2,"s WALL (",I8," calls)")') &
             clock_label(n), elapsed_cpu_time, elapsed_wall_time, nmax
         !
     ELSE IF (nmax == 0) THEN
         !
         ! for clocks that have never been called
-        WRITE (stdout, &
+        WRITE (io%unit, &
                '("print_this: clock # ",I2," for ",A12," never called !"/)') &
             n, clock_label(n)
         !
     ELSE
         !
         ! for all other clocks
-        WRITE (stdout, &
+        WRITE (io%unit, &
                '(5X,A12," : ",F9.2,"s CPU ",F9.2,"s WALL (",I8," calls)")') &
             clock_label(n), elapsed_cpu_time, elapsed_wall_time, nmax
         !
     END IF
-    !
-    RETURN
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_print_this_clock
@@ -835,8 +741,9 @@ END SUBROUTINE env_print_this_clock
 SUBROUTINE env_print_this_clock_gpu(n)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP, stdout
-    USE env_clocks, ONLY: clock_label, gputime, called, gpu_called, mpi_per_thread
+    USE env_base_io, ONLY: io
+    USE env_kinds, ONLY: DP
+    USE env_clocks, ONLY: clock_label, gputime, gpu_called
     !
     !------------------------------------------------------------------------------------
     !
@@ -856,17 +763,15 @@ SUBROUTINE env_print_this_clock_gpu(n)
     IF (n == 1) THEN
         !
         ! the first clock is written as days/hour/min/sec
-        WRITE (stdout, '(5X,A12," : ",F9.2,"s GPU "/)') &
+        WRITE (io%unit, '(5X,A12," : ",F9.2,"s GPU "/)') &
             clock_label(n), elapsed_gpu_time
         !
     ELSE
         !
-        WRITE (stdout, '(35X,F9.2,"s GPU  (",I8," calls)")') elapsed_gpu_time, nmax
+        WRITE (io%unit, '(35X,F9.2,"s GPU  (",I8," calls)")') elapsed_gpu_time, nmax
         ! for all other clocks
         !
     END IF
-    !
-    RETURN
     !
     !------------------------------------------------------------------------------------
 END SUBROUTINE env_print_this_clock_gpu
@@ -877,7 +782,7 @@ END SUBROUTINE env_print_this_clock_gpu
 REAL(DP) FUNCTION env_get_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP
+    USE env_kinds, ONLY: DP
     !
     USE env_clocks, ONLY: no, nclock, clock_label, walltime, notrunning, &
                           t0wall, t0cpu, env_f_wall
@@ -920,8 +825,6 @@ REAL(DP) FUNCTION env_get_clock(label)
     END DO
     !
     env_get_clock = notrunning ! clock not found
-    !
-    RETURN
     !
     !------------------------------------------------------------------------------------
 END FUNCTION env_get_clock

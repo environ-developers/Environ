@@ -30,7 +30,7 @@
 MODULE env_data_buffer
     !------------------------------------------------------------------------------------
     !
-    USE env_utils_param, ONLY: DP
+    USE env_kinds, ONLY: DP
     !
 #if defined(__CUDA)
     USE cudafor
