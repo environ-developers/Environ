@@ -53,8 +53,6 @@ MODULE env_base_io
         INTEGER :: debug_unit
         INTEGER :: verbosity
         !
-        CHARACTER(LEN=2) :: prog ! the calling program
-        !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
