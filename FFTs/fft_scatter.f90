@@ -32,7 +32,7 @@
 MODULE env_fft_scatter
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE env_fft_param
     USE env_types_fft, ONLY: env_fft_type_descriptor

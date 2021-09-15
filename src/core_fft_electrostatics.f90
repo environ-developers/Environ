@@ -32,7 +32,7 @@
 MODULE class_core_fft_electrostatics
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_types_fft, ONLY: env_fft_type_descriptor

@@ -101,7 +101,7 @@ sed '/Environ MODULES BEGIN/ a\
   USE io_global,          ONLY : ionode, ionode_id, stdout\
   USE mp_images,          ONLY : intra_image_comm\
   USE martyna_tuckerman,  ONLY : do_comp_mt\
-  USE env_base_io,        ONLY : io\
+  USE class_io,           ONLY : io\
   USE env_global_objects, ONLY : setup\
   USE environ_input,      ONLY : read_environ_input\
 !Environ patch
@@ -185,7 +185,7 @@ sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE io_global,          ONLY : ionode, stdout \
 USE env_global_objects, ONLY : setup\
-USE env_base_io,        ONLY : io\
+USE class_io,           ONLY : io\
 !Environ patch
 ' plugin_summary.f90 >tmp.1
 
@@ -208,7 +208,7 @@ USE cell_base,          ONLY : at, alat\
 USE ions_base,          ONLY : nat, nsp, ityp, atm, zv, tau\
 USE martyna_tuckerman,  ONLY : do_comp_mt\
 USE gvect,              ONLY : gcutm\
-USE env_base_io,        ONLY : io\
+USE class_io,           ONLY : io\
 USE env_global_objects, ONLY : env, setup\
 !Environ patch
 ' plugin_initbase.f90 >tmp.1

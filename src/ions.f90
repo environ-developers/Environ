@@ -39,7 +39,7 @@
 MODULE class_ions
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_char_ops, ONLY: env_lowercase
 
     USE environ_param, ONLY: DP, e2, pi, tpi, BOHR_RADIUS_ANGS

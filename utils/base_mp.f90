@@ -110,7 +110,7 @@ END SUBROUTINE env_deallocate_mp_buffers
 SUBROUTINE env_mp_synchronize(gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_parallel_include
     !
 #if defined(__CUDA)
@@ -239,7 +239,7 @@ END SUBROUTINE env_mp_abort
 SUBROUTINE env_mp_stop(code)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_parallel_include
     !
     !------------------------------------------------------------------------------------
@@ -277,7 +277,7 @@ END SUBROUTINE env_mp_stop
 SUBROUTINE env_bcast_integer(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_parallel_include
     !
 #if defined(__CUDA)
@@ -374,7 +374,7 @@ END SUBROUTINE env_bcast_integer
 SUBROUTINE env_bcast_integer8(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: i8b
     USE env_parallel_include
     !
@@ -472,7 +472,7 @@ END SUBROUTINE env_bcast_integer8
 SUBROUTINE env_bcast_real(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     USE env_parallel_include
     !
@@ -571,7 +571,7 @@ END SUBROUTINE env_bcast_real
 SUBROUTINE env_bcast_logical(array, n, root, gid)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_parallel_include
     !
 #if defined(__CUDA)
@@ -776,7 +776,7 @@ END SUBROUTINE env_reduce_base_integer
 SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: i8b
     USE env_parallel_include
     !
@@ -875,7 +875,7 @@ END SUBROUTINE env_reduce_base_integer8
 SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     USE env_parallel_include
     !
@@ -977,7 +977,7 @@ END SUBROUTINE env_reduce_base_real
 SUBROUTINE env_reduce_base_integer(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_parallel_include
     !
 #if defined(__CUDA)
@@ -1128,7 +1128,7 @@ END SUBROUTINE env_reduce_base_integer
 SUBROUTINE env_reduce_base_integer8(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: i8b
     USE env_parallel_include
     !
@@ -1279,7 +1279,7 @@ END SUBROUTINE env_reduce_base_integer8
 SUBROUTINE env_reduce_base_real(dim, ps, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     USE env_parallel_include
     !
@@ -1435,7 +1435,7 @@ END SUBROUTINE env_reduce_base_real
 SUBROUTINE env_reduce_base_real_to(dim, ps, psout, comm, root)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     USE env_parallel_include
     !

@@ -59,7 +59,7 @@
 MODULE env_clocks
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     !
 #if defined(__CUDA)
@@ -153,7 +153,7 @@ END MODULE env_clocks
 SUBROUTINE env_start_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     !
     USE env_clocks, ONLY: nclock, clock_label, notrunning, no, maxclock, &
@@ -239,7 +239,7 @@ END SUBROUTINE env_start_clock
 SUBROUTINE env_stop_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     !
     USE env_clocks, ONLY: no, nclock, clock_label, cputime, walltime, &
@@ -316,7 +316,7 @@ END SUBROUTINE env_stop_clock
 SUBROUTINE env_start_clock_gpu(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     !
 #if defined(__TRACE)
@@ -412,7 +412,7 @@ END SUBROUTINE env_start_clock_gpu
 SUBROUTINE env_stop_clock_gpu(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     !
 #if defined(__TRACE)
@@ -549,7 +549,7 @@ END FUNCTION env_get_cpu_and_wall
 SUBROUTINE env_print_clock(label)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_clocks, ONLY: nclock, clock_label, gpu_called
     !
     !------------------------------------------------------------------------------------
@@ -605,7 +605,7 @@ END SUBROUTINE env_print_clock
 SUBROUTINE env_print_this_clock(n)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     !
     USE env_clocks, ONLY: clock_label, cputime, walltime, mpi_per_thread, &
@@ -741,7 +741,7 @@ END SUBROUTINE env_print_this_clock
 SUBROUTINE env_print_this_clock_gpu(n)
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_kinds, ONLY: DP
     USE env_clocks, ONLY: clock_label, gputime, gpu_called
     !

@@ -29,7 +29,7 @@
 MODULE env_destructor
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE env_global_objects, ONLY: setup, env
     !

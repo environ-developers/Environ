@@ -32,7 +32,7 @@
 MODULE class_solver
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE class_core_container_electrostatics
     !

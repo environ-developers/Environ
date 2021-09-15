@@ -34,7 +34,7 @@
 MODULE class_core_1da_electrostatics
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, e2, K_BOLTZMANN_RY, pi, tpi, fpi, madelung

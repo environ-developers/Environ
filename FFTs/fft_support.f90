@@ -31,7 +31,7 @@
 MODULE env_fft_support
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE env_fft_param
     !

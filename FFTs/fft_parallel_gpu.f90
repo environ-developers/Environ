@@ -37,7 +37,7 @@
 MODULE env_fft_parallel_gpu
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE cudafor
     !

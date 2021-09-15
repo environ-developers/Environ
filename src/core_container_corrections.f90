@@ -29,7 +29,7 @@
 MODULE class_core_container_corrections
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE environ_param, ONLY: DP
     !

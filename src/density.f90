@@ -32,7 +32,7 @@
 MODULE class_density
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE env_base_scatter, ONLY: env_gather_grid

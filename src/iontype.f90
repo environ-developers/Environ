@@ -30,7 +30,7 @@
 MODULE class_iontype
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_char_ops, ONLY: env_lowercase
 
     USE environ_param, ONLY: DP, BOHR_RADIUS_ANGS

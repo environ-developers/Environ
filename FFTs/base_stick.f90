@@ -30,7 +30,7 @@
 MODULE env_base_stick
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_sorting, ONLY: env_hpsort
     !
     USE env_fft_param

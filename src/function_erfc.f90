@@ -30,7 +30,7 @@
 MODULE class_function_erfc
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_mp, ONLY: env_mp_sum
     !
     USE environ_param, ONLY: DP, sqrtpi, pi, fpi

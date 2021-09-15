@@ -32,7 +32,7 @@
 MODULE class_core_fft
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     USE env_sorting, ONLY: env_hpsort_eps
     USE env_mp, ONLY: env_mp_sum
     !

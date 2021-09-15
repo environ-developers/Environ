@@ -32,7 +32,7 @@
 MODULE env_write_cube
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE class_density
     !

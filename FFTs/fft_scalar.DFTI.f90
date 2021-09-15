@@ -46,7 +46,7 @@
 MODULE env_fft_scalar_dfti
     !------------------------------------------------------------------------------------
     !
-    USE env_base_io, ONLY: io
+    USE class_io, ONLY: io
     !
     USE env_fft_param
     !
