@@ -137,7 +137,7 @@ mv tmp.1 plugin_read_input.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE env_destructor,     ONLY : clean\
+USE class_destructor,   ONLY : clean\
 USE env_global_objects, ONLY : setup\
 !Environ patch
 ' plugin_clean.f90 >tmp.1
@@ -215,7 +215,6 @@ USE env_global_objects, ONLY : env, setup\
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
-INTEGER :: ir_end, idx0, j0, k0\
 REAL(DP), ALLOCATABLE :: at_scaled(:, :)\
 REAL(DP) :: gcutm_scaled\
 CHARACTER(LEN=80) :: sub_name = "plugin_initbase"\
