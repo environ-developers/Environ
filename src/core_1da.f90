@@ -188,42 +188,47 @@ CONTAINS
         !
         REAL(DP), INTENT(IN) :: origin(3)
         !
-        CLASS(core_1da), INTENT(INOUT) :: this
+        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
         !
         LOGICAL :: physical
         INTEGER :: ir
         REAL(DP) :: r(3), r2
         !
+        INTEGER, POINTER :: dim, axis
+        TYPE(environ_cell), POINTER :: cell
+        !
         CHARACTER(LEN=80) :: sub_name = 'update_core_1da_origin'
         !
         !--------------------------------------------------------------------------------
         !
+        cell => this%cell
+        dim => this%dim
+        axis => this%axis
+        !
         this%origin = origin
         !
-        IF (this%dim == 0) THEN
+        IF (dim == 0) THEN
             !
-            DO ir = 1, this%cell%ir_end
+            DO ir = 1, cell%ir_end
                 !
-                CALL this%cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                CALL cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                this%x(:, ir) = -r
+                this%x(:, ir) = r
             END DO
             !
-        ELSE IF (this%dim == 1) THEN
+        ELSE IF (dim == 1) THEN
             CALL io%error(sub_name, 'Option not yet implemented', 1)
-        ELSE IF (this%dim == 2) THEN
+        ELSE IF (dim == 2) THEN
             !
-            DO ir = 1, this%cell%ir_end
+            DO ir = 1, cell%ir_end
                 !
-                CALL this%cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
-                ! compute minimum distance using minimum image convention
+                CALL cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                this%x(1, ir) = -r(this%axis)
+                this%x(1, ir) = r(axis)
             END DO
             !
         END IF

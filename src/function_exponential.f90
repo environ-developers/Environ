@@ -185,7 +185,7 @@ CONTAINS
                 !
                 ! compute exponentially decaying function
                 IF (r2 > func_tol .AND. ABS(arg) <= exp_tol) &
-                    gradlocal(:, ir) = r / SQRT(r2) / spread * EXP(-arg)
+                    gradlocal(:, ir) = -r / SQRT(r2) / spread * EXP(-arg)
                 !
             END DO
             !

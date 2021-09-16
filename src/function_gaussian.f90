@@ -232,7 +232,7 @@ CONTAINS
                 !
                 r2 = r2 / spr2
                 !
-                IF (r2 <= exp_tol) gradlocal(:, ir) = EXP(-r2) * r
+                IF (r2 <= exp_tol) gradlocal(:, ir) = -EXP(-r2) * r
                 ! compute gradient of Gaussian function
                 !
             END DO

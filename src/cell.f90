@@ -424,14 +424,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE get_min_distance(this, ir, dim, axis, pos, r, r2, physical)
+    SUBROUTINE get_min_distance(this, ir, dim, axis, origin, r, r2, physical)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_cell), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: ir, dim, axis
-        REAL(DP), INTENT(IN) :: pos(3)
+        REAL(DP), INTENT(IN) :: origin(3)
         !
         REAL(DP), INTENT(OUT) :: r(3), r2
         !
@@ -443,7 +443,7 @@ CONTAINS
         !
         IF (.NOT. physical) RETURN ! do not include points outside the physical range
         !
-        CALL displacement(dim, axis, pos, r, r) ! displacement from origin
+        CALL displacement(dim, axis, r, origin, r) ! displacement from origin
         !
         CALL this%minimum_image(r, r2) ! minimum image convention
         !

@@ -271,7 +271,7 @@ CONTAINS
             ! Multipoles
             !
             monopole = monopole + rhoir
-            dipole = dipole - rhoir * r
+            dipole = dipole + rhoir * r
             quadrupole = quadrupole + rhoir * r**2
             !
         END DO

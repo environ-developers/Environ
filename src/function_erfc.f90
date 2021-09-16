@@ -218,7 +218,7 @@ CONTAINS
                 dist = SQRT(r2)
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) gradlocal(:, ir) = EXP(-arg**2) * r / dist
+                IF (dist > func_tol) gradlocal(:, ir) = -EXP(-arg**2) * r / dist
                 ! compute gradient of error function
                 !
             END DO
