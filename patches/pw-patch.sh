@@ -52,6 +52,7 @@ echo "$ENVIRON_VERSION" >>Environ_PATCH
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
   USE env_global_objects, ONLY : env\
+  USE class_calculator,   ONLY : calc\
 !Environ patch
 ' plugin_int_forces.f90 >tmp.1
 
@@ -71,7 +72,7 @@ sed '/Environ CALLS BEGIN/ a\
     !\
     ! ... Add environment contributions\
     !\
-    CALL env%force( nat, force_environ )\
+    CALL calc%force( env, nat, force_environ )\
     !\
     IF ( iverbosity > 0 ) THEN\
       WRITE( stdout, 9001 )\
@@ -359,6 +360,7 @@ mv tmp.1 plugin_init_cell.f90
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
 USE env_global_objects, ONLY : env\
+USE class_calculator,   ONLY : calc\
 !Environ patch
 ' plugin_scf_energy.f90 >tmp.1
 
@@ -368,9 +370,9 @@ IF(use_environ) THEN \
    ! \
    ! compute environ contributions to total energy\
    ! \
-   CALL env%denergy(plugin_etot)\
+   CALL calc%denergy(env, plugin_etot)\
    ! \
-   CALL env%energy(plugin_etot)\
+   CALL calc%energy(env, plugin_etot)\
    ! \
 END IF \
 !Environ patch
@@ -404,6 +406,7 @@ USE klist,              ONLY : nelec\
 USE control_flags,      ONLY : lscf\
 USE lsda_mod,           ONLY : nspin\
 USE env_global_objects, ONLY : env, setup\
+USE class_calculator,   ONLY : calc\
 !Environ patch
 ' plugin_scf_potential.f90 >tmp.1
 
@@ -449,7 +452,7 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         IF ( update_venviron ) WRITE( stdout, 9200 )\
         !\
-        CALL env%potential(update_venviron, local_verbose)\
+        CALL calc%potential(env, update_venviron, local_verbose)\
         !\
         vltot = env%vzero%of_r + env%dvtot%of_r\
         !\

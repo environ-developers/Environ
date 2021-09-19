@@ -15,6 +15,14 @@ boundary.o : gradient.o
 boundary.o : hessian.o
 boundary.o : ions.o
 boundary.o : system.o
+calculator.o : ../utils/io.o
+calculator.o : cell.o
+calculator.o : constants.o
+calculator.o : cube.o
+calculator.o : density.o
+calculator.o : gradient.o
+calculator.o : main.o
+calculator.o : mapping.o
 cell.o : ../FFTs/base_stick.o
 cell.o : ../FFTs/types_fft.o
 cell.o : ../utils/io.o
