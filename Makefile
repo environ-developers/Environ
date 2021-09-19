@@ -34,6 +34,8 @@ ifndef VERBOSE
 .SILENT:
 endif
 
+.PHONY: install
+
 ENVIRON_VERSION=2.0
 
 ################################################################################
@@ -64,7 +66,7 @@ devs:
 	@ echo "Compilation"
 	@ echo "-----------"
 	@ echo
-	@ echo "* compile-Environ (requires Environ/make.inc)"
+	@ echo "* compile (requires Environ/make.inc)"
 	@ echo
 	@ echo "  - compiles Environ's utils, FFTs, and src"
 	@ echo "  - compilation generates Environ/install/Environ_comp.log"
@@ -81,33 +83,25 @@ devs:
 	@ echo "  * NOTE: If QE dependencies reflect an Environ-patched state,"
 	@ echo "          Environ must be pre-compiled before QE is (re)compiled."
 	@ echo
-	@ echo "* recompile-QE+Environ"
-	@ echo
-	@ echo "  - wrapper on compile-Environ and compile-QE"
-	@ echo "  - used when changes are made to Environ"
-	@ echo "  - updates Environ dependencies before compilation"
-	@ echo
-	@ echo "  * DO NOT use this if changing the patching scheme!"
-	@ echo
 	@ echo "Patching & Dependencies"
 	@ echo "-----------------------"
 	@ echo
-	@ echo "* patch-QE [prog=] (requires QE/make.inc)"
+	@ echo "* patch [prog=] (requires QE/make.inc)"
 	@ echo
 	@ echo "  - applies Environ patch to QE/install/makedeps.sh"
 	@ echo "  - patches plugin files and Makefile of QE/<prog>"
 	@ echo "  - prog = pw | cp | tddfpt | xspectra | all (default)"
 	@ echo "  - patches Makefiles of all pw.x-dependent QE packages"
 	@ echo
-	@ echo "* revert-QE-patches (requires QE/make.inc)"
+	@ echo "* revert (requires QE/make.inc)"
 	@ echo
-	@ echo "  - reverts patches applied during patch-QE"
+	@ echo "  - reverts patches applied during patch"
 	@ echo
-	@ echo "* update-Environ-dependencies"
+	@ echo "* depend"
 	@ echo
 	@ echo "  - updates dependencies in Environ's utils, FFTs, and src"
 	@ echo
-	@ echo "* update-QE-dependencies [prog=]"
+	@ echo "* depend-QE [prog=]"
 	@ echo
 	@ echo "  - updates dependencies in QE package (prog)"
 	@ echo "  - prog = pw | cp | tddfpt | xspectra | all (default)"
@@ -115,7 +109,7 @@ devs:
 	@ echo "Cleaning"
 	@ echo "--------"
 	@ echo
-	@ echo "* decompile-Environ"
+	@ echo "* decompile"
 	@ echo
 	@ echo "  - wrapper for 'make clean-Environ'"
 	@ echo
@@ -136,7 +130,7 @@ devs:
 # COMPILATION ROUTINES
 ################################################################################
 
-compile-Environ: check-Environ-makeinc
+compile: check-Environ-makeinc
 	@ printf "\nCompiling Environ $(ENVIRON_VERSION)...\n\n"
 	@ $(MAKE) compile-util
 	@ $(MAKE) compile-fft
@@ -155,25 +149,6 @@ compile-QE: check-QE-makeinc
 	  printf "\n$$title...\n\n" | tee install/QE_comp.log; \
 	  (cd ../ && $(MAKE) $$prog 2>&1 | tee -a Environ/install/QE_comp.log)
 	@ $(MAKE) check-for-errors prog=QE
-
-# used after changes made to Environ
-recompile-QE+Environ:
-	@ make print_menu; read c; \
-	\
-	case $$c in \
-	1) opt=pw;; \
-	2) opt=cp;; \
-	3) opt="pw tddfpt";; \
-	4) opt="pw xspectra";; \
-	5) opt=all;; \
-	*) exit;; \
-	esac; \
-	\
-	printf "\nUse # cores (default = 1) -> "; read cores; \
-	make update-Environ-dependencies; \
-	$(MAKE) compile-Environ; \
-	if [ $$? -ne 0 ]; then exit; fi; \
-	$(MAKE) compile-QE prog="$$opt"
 
 compile-util: check-Environ-makeinc
 	@ printf "\nCompiling utils...\n\n" 2>&1 | \
@@ -213,7 +188,12 @@ check-QE-makeinc:
 	  fi
 
 check-for-errors:
-	@ if grep -qE "[Ee]rror #?[0-9]+" install/$(prog)_comp.log; then \
+	@ if [ $$(grep "^F90" make.inc | grep -o ifort) ]; then \
+		pattern="[Ee]rror #?[0-9]+"; \
+	  else \
+	  	pattern="Error:"; \
+	  fi; \
+	  if grep -qE "$$pattern" install/$(prog)_comp.log; then \
 		  printf "\nErrors found. See install/$(prog)_comp.log\n\n"; \
 		  exit 1; \
 	  else \
@@ -225,20 +205,20 @@ check-for-errors:
 # PATCHING ROUTINES FOR QE+ENVIRON
 ################################################################################
 
-patch-QE: check-QE-makeinc
+patch: check-QE-makeinc
 	@ printf "\nApplying QE patches using Environ version ${ENVIRON_VERSION}\n"
 	@ if test $(prog); then prog=$(prog); else prog=all; fi; \
 	  ./patches/environpatch.sh -patch $$prog
 
-revert-QE-patches: check-QE-makeinc
+revert: check-QE-makeinc
 	@ printf "\nReverting QE patches using Environ version ${ENVIRON_VERSION}\n"
 	  ./patches/environpatch.sh -revert
 
-update-Environ-dependencies:
+depend:
 	@ printf "\nUpdating Environ dependencies...\n\n"
 	@ ./install/makedeps.sh
 
-update-QE-dependencies:
+depend-QE:
 	@ printf "\nUpdating QE dependencies...\n\n"
 	@ if test "$(prog)"; then prog="$(prog)"; else prog=all; fi; \
 	  case $$prog in \
@@ -264,7 +244,7 @@ print_menu:
 			 "   5 - ALL" \
 			 "-> "
 
-install-QE+Environ: check-Environ-makeinc check-QE-makeinc
+install: check-Environ-makeinc check-QE-makeinc
 	@ printf "\nPreparing to install QE + Environ $(ENVIRON_VERSION)...\n"
 	@ make print_menu; read c; \
 	\
@@ -283,10 +263,10 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 	if [ $$? -ne 0 ]; then exit; fi; \
 	(cd install && /bin/mv QE_comp.log QE_precomp.log); \
 	\
-	make -j$${cores:=1} compile-Environ; \
+	make -j$${cores:=1} compile; \
 	if [ $$? -ne 0 ]; then exit; fi; \
-	make patch-QE prog=$$patch; \
-	make update-QE-dependencies prog="$$patch"; \
+	make patch prog=$$patch; \
+	make depend-QE prog="$$patch"; \
 	\
 	title="Re-compiling QE with Environ $(ENVIRON_VERSION)"; \
 	make -j$${cores:=1} compile-QE prog="$$opt" title="$$title"; \
@@ -301,13 +281,13 @@ install-QE+Environ: check-Environ-makeinc check-QE-makeinc
 		/bin/rm temp QE_precomp.log; \
 	)
 
-uninstall-QE+Environ:
+uninstall:
 	@ printf "\nPreparing to uninstall QE + Environ $(ENVIRON_VERSION)...\n"
 	@ printf "\nDo you wish to proceed (y|n)? "; read c; \
 	if [ "$$c" = y ]; then \
-		make decompile-Environ; \
-		make revert-QE-patches; \
-		make update-QE-dependencies; \
+		make decompile; \
+		make revert; \
+		make depend-QE; \
 		printf "\nPreparing to decompile QE...\n"; \
 		printf "\nDo you wish to proceed (y|n)? "; read c; \
 		if [ "$$c" = y ]; then \
@@ -324,7 +304,7 @@ uninstall-QE+Environ:
 # CLEANING
 ################################################################################
 
-decompile-Environ:
+decompile:
 	@ printf "\nCleaning up Environ...\n\n"; $(MAKE) clean-Environ
 
 decompile-QE: check-QE-makeinc

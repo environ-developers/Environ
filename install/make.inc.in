@@ -23,7 +23,7 @@
 
 @SET_MAKE@
 
-# Top QE directory, useful for locating libraries,  linking QE with plugins
+# Top Environ directory, useful for locating libraries
 # The following syntax should always point to TOPDIR:
 TOPDIR = $(dir $(abspath $(filter %make.inc,$(MAKEFILE_LIST))))
 # if it doesn't work, uncomment the following line (edit if needed):
@@ -56,7 +56,7 @@ MOD_FLAG      = @imod@
 
 # BASEMOD_FLAGS points to directories containing basic modules,
 # while BASEMODS points to the corresponding module libraries
-# Each Makefile can add directories to MODFLAGS and libraries to QEMODS
+# Each Makefile can add directories to MODFLAGS and libraries to ENVMODS
 
 BASEMOD_FLAGS= $(MOD_FLAG)$(TOPDIR)/utils $(MOD_FLAG)$(TOPDIR)/FFTs $(MOD_FLAG)$(TOPDIR)/src
 
@@ -70,7 +70,7 @@ BASEMOD_FLAGS= $(MOD_FLAG)$(TOPDIR)/utils $(MOD_FLAG)$(TOPDIR)/FFTs $(MOD_FLAG)$
 # and to specify the location of MPI libraries in MPI_LIBS
 
 MPIF90         = @mpif90@
-F90           = @f90@
+F90            = @f90@
 CC             = @cc@
 
 # CUDA Toolkit path

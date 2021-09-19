@@ -74,7 +74,7 @@ From Environ root: (placed in the QE root directory)
 
 2. install QE + Environ 2.0 with
 
-   - `make install-QE+Environ`
+   - `make install`
 
      a) select QE package (pw, tddfpt, xspectra, or all)
 
@@ -102,7 +102,7 @@ From QE root:
 
 1. uninstall QE + Environ 2.0 with
 
-   - `make uninstall-QE+Environ`
+   - `make uninstall`
    - (optional) uninstall QE
 
 ---
