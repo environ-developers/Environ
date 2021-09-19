@@ -54,11 +54,11 @@ default :
 	@echo '  compare                              : compare last output with reference'
 	@echo '  clean                                : clean stdout/sderr of all tests'
 	@echo ' '
-	@echo 'Any target can take an optional dblcell=true for the doublecell test suite'
+	@echo 'Any target can take an optional dblcell=true to trigger the doublecell test suite'
 	@echo '- make clean by default cleans all tests including doublecell'
 	@echo '- see Makefile for finer cleaning options'
 	@echo ' '
-	@echo 'For additional advanced commands and settings please manually inspect'
+	@echo 'For additional advanced commands and settings, please manually inspect'
 	@echo 'ENVIRONMENT and Makefile files'
 
 prolog : check-version
@@ -76,9 +76,13 @@ check-version:
 		  echo " ## ### ##   ## # ##   #######   ##  # ##   ##   ##  # ##  ##  ### "; \
 		  echo "  ### ###   ##     ##  ##    ##  ##   ###  ####  ##   ###   #### ##"; \
 		  echo; \
-		  echo "* For QE < 6.6, some tests may fail with negligible errors. This is due to the following change in QE 6.6:"; \
+		  echo "* For QE < 6.6, some tests may fail with negligible errors."; \
 		  echo; \
-		  echo '  Default value of parameter "diago_david_ndim" changed to 2 (https://github.com/QEF/q-e/blob/master/Doc/release-notes)'; \
+		  echo "  This is due to the following change in QE 6.6:"; \
+		  echo; \
+		  echo '      Default value of parameter "diago_david_ndim" changed to 2'; \
+		  echo; \
+		  echo "  (https://github.com/QEF/q-e/blob/master/Doc/release-notes)"; \
 		  echo; \
 	  fi
 
@@ -100,14 +104,26 @@ run-custom-test : run-custom-test-serial
 
 run-custom-test-serial : prolog pseudo
 	@ if [ ${dblcell} ]; then if [ ${dblcell} = true ]; then cat=doublecell/; else cat=; fi; fi; \
-	  if test -d $(testdir); then \
-	    env QE_USE_MPI=0 ${TESTCODE_DIR}/bin/testcode.py --verbose --category=$${cat}$(testdir); \
+	  if [ $(testdir) ]; then \
+		  if test -d $(testdir); then \
+	    	  env QE_USE_MPI=0 ${TESTCODE_DIR}/bin/testcode.py --verbose --category=$${cat}$(testdir); \
+		  else \
+		      echo "${testdir} not found"; \
+		  fi; \
+	  else \
+		  echo "Missing testdir argument"; \
 	  fi
 
 run-custom-test-parallel : prolog pseudo
 	@ if [ ${dblcell} ]; then if [ ${dblcell} = true ]; then cat=doublecell/; else cat=; fi; fi; \
-	  if test -d $(testdir); then \
-	    env QE_USE_MPI=1 ${TESTCODE_DIR}/bin/testcode.py --verbose --category=$${cat}$(testdir); \
+	  if [ $(testdir) ]; then \
+		  if test -d $(testdir); then \
+	    	  env QE_USE_MPI=1 ${TESTCODE_DIR}/bin/testcode.py --verbose --category=$${cat}$(testdir); \
+		  else \
+		      echo "${testdir} not found"; \
+		  fi; \
+	  else \
+		  echo "Missing testdir argument"; \
 	  fi
 
 create-reference-pw : pseudo prolog
@@ -116,8 +132,14 @@ create-reference-pw : pseudo prolog
 
 create-custom-reference-pw : pseudo prolog
 	@ if [ ${dblcell} ]; then if [ ${dblcell} = true ]; then cat=doublecell/; else cat=; fi; fi; \
-	  if test -d $(testdir); then \
-		env QE_USE_MPI=0 ${TESTCODE_DIR}/bin/testcode.py --category=$${cat}$(testdir) make-benchmarks; \
+	  if [ $(testdir) ]; then \
+		  if test -d $(testdir); then \
+	    	  env QE_USE_MPI=0 ${TESTCODE_DIR}/bin/testcode.py --category=$${cat}$(testdir) make-benchmarks; \
+		  else \
+		      echo "${testdir} not found"; \
+		  fi; \
+	  else \
+		  echo "Missing testdir argument"; \
 	  fi
 
 compare : compare-pw
