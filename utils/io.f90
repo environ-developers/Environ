@@ -78,7 +78,7 @@ MODULE class_io
     END TYPE environ_io
     !------------------------------------------------------------------------------------
     !
-    TYPE(environ_io), PUBLIC, SAVE :: io
+    TYPE(environ_io), PUBLIC, TARGET, SAVE :: io
     !
     !------------------------------------------------------------------------------------
 CONTAINS

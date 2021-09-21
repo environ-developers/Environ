@@ -43,7 +43,6 @@ MODULE class_environ
     USE class_cell
     USE class_density
     USE class_gradient
-    USE class_mapping
     !
     USE class_boundary
     USE class_charges
@@ -254,21 +253,25 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        !
+        TYPE(environ_setup), POINTER :: setup
         !
         CHARACTER(LEN=80) :: sub_name = 'update_cell_dependent_quantities'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%setup%lstatic) CALL this%static%update()
+        setup => this%setup
         !
-        IF (this%setup%loptical) CALL this%optical%update()
+        IF (setup%lstatic) CALL this%static%update()
         !
-        IF (this%setup%lelectrolyte) CALL this%electrolyte%update()
+        IF (setup%loptical) CALL this%optical%update()
         !
-        IF (this%setup%lexternals) CALL this%externals%update()
+        IF (setup%lelectrolyte) CALL this%electrolyte%update()
         !
-        IF (this%setup%lsemiconductor) CALL this%semiconductor%update()
+        IF (setup%lexternals) CALL this%externals%update()
+        !
+        IF (setup%lsemiconductor) CALL this%semiconductor%update()
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_cell_dependent_quantities
@@ -288,11 +291,15 @@ CONTAINS
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         REAL(DP) :: local_pos(3)
         !
+        TYPE(environ_setup), POINTER :: setup
+        !
         !--------------------------------------------------------------------------------
+        !
+        setup => this%setup
         !
         this%system_ions%lupdate = .TRUE.
         this%environment_ions%lupdate = .TRUE.
@@ -312,9 +319,9 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update cell mapping
         !
-        IF (.NOT. this%setup%mapping%initialized) THEN
+        IF (.NOT. setup%mapping%initialized) THEN
             !
-            IF (this%setup%ldoublecell) THEN
+            IF (setup%ldoublecell) THEN
                 !
                 IF (environ_debug) THEN
                     local_pos = mapping_pos ! debugging with finite-differences
@@ -322,10 +329,10 @@ CONTAINS
                     local_pos = this%system_system%pos ! center of charge
                 END IF
                 !
-                CALL this%setup%update_mapping(local_pos)
+                CALL setup%update_mapping(local_pos)
                 !
             ELSE
-                this%setup%mapping%initialized = .TRUE. ! one-to-one mapping
+                setup%mapping%initialized = .TRUE. ! one-to-one mapping
             END IF
             !
         END IF
@@ -345,35 +352,35 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set soft-sphere parameters
         !
-        IF (this%setup%lsolvent) CALL this%solvent%set_soft_spheres()
+        IF (setup%lsolvent) CALL this%solvent%set_soft_spheres()
         !
-        IF (this%setup%lelectrolyte) CALL this%electrolyte%boundary%set_soft_spheres()
+        IF (setup%lelectrolyte) CALL this%electrolyte%boundary%set_soft_spheres()
         !
         !--------------------------------------------------------------------------------
         ! Update cores
         !
-        IF (this%setup%l1da) &
-            CALL this%setup%core_1da_elect%update_origin(this%environment_system%pos)
+        IF (setup%l1da) &
+            CALL setup%core_1da_elect%update_origin(this%environment_system%pos)
         !
         !--------------------------------------------------------------------------------
         ! Update rigid environ properties, defined on ions
         !
-        IF (this%setup%lrigidcavity) THEN
+        IF (setup%lrigidcavity) THEN
             !
-            IF (this%setup%lsolvent) THEN
+            IF (setup%lsolvent) THEN
                 !
                 CALL this%solvent%update()
                 !
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
                 !
-                IF (this%setup%lstatic) CALL this%static%update()
+                IF (setup%lstatic) CALL this%static%update()
                 !
-                IF (this%setup%loptical) CALL this%optical%update()
+                IF (setup%loptical) CALL this%optical%update()
                 !
             END IF
             !
-            IF (this%setup%lelectrolyte) THEN
+            IF (setup%lelectrolyte) THEN
                 !
                 CALL this%electrolyte%boundary%update()
                 !
@@ -387,9 +394,9 @@ CONTAINS
         ! External charges rely on the environment cell, which is defined
         ! with respect to the system origin
         !
-        IF (this%setup%lexternals) CALL this%externals%update()
+        IF (setup%lexternals) CALL this%externals%update()
         !
-        IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
+        IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
             CALL this%system_charges%update()
             !
@@ -424,11 +431,13 @@ CONTAINS
         !
         REAL(DP), ALLOCATABLE :: aux(:)
         !
+        TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: environment_cell
         !
         !--------------------------------------------------------------------------------
         !
-        environment_cell => this%setup%environment_cell
+        setup => this%setup
+        environment_cell => setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         !
@@ -442,10 +451,10 @@ CONTAINS
         !
         this%system_electrons%density%label = 'small_electrons'
         !
-        IF (this%setup%ldoublecell) THEN
+        IF (setup%ldoublecell) THEN
             ALLOCATE (aux(environment_cell%nnr))
             !
-            CALL this%setup%mapping%to_large(nnr, environment_cell%nnr, rho, aux)
+            CALL setup%mapping%to_large(nnr, environment_cell%nnr, rho, aux)
             !
             CALL this%environment_electrons%update(environment_cell%nnr, aux, nelec)
             !
@@ -455,7 +464,7 @@ CONTAINS
         !
         this%environment_electrons%density%label = 'large_electrons'
         !
-        IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
+        IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
             CALL this%system_charges%update()
             !
@@ -466,22 +475,22 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update soft environ properties, defined on electrons
         !
-        IF (this%setup%lsoftcavity) THEN
+        IF (setup%lsoftcavity) THEN
             !
-            IF (this%setup%lsoftsolvent) THEN
+            IF (setup%lsoftsolvent) THEN
                 !
                 CALL this%solvent%update()
                 !
                 !------------------------------------------------------------------------
                 ! Update quantities that depend on the solvent boundary
                 !
-                IF (this%setup%lstatic) CALL this%static%update()
+                IF (setup%lstatic) CALL this%static%update()
                 !
-                IF (this%setup%loptical) CALL this%optical%update()
+                IF (setup%loptical) CALL this%optical%update()
                 !
             END IF
             !
-            IF (this%setup%lsoftelectrolyte) THEN
+            IF (setup%lsoftelectrolyte) THEN
                 !
                 CALL this%electrolyte%boundary%update()
                 !
@@ -514,11 +523,13 @@ CONTAINS
         !
         REAL(DP), ALLOCATABLE :: aux(:)
         !
+        TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: environment_cell
         !
         !--------------------------------------------------------------------------------
         !
-        environment_cell => this%setup%environment_cell
+        setup => this%setup
+        environment_cell => setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         !
@@ -535,11 +546,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update response charges in environment cell
         !
-        IF (this%setup%ldoublecell) THEN
+        IF (setup%ldoublecell) THEN
             !
             ALLOCATE (aux(environment_cell%nnr))
             !
-            CALL this%setup%mapping%to_large(nnr, environment_cell%nnr, drho, aux)
+            CALL setup%mapping%to_large(nnr, environment_cell%nnr, drho, aux)
             !
             CALL this%environment_response_electrons%update(environment_cell%nnr, &
                                                             aux, 0.D0)
@@ -574,14 +585,16 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: local_label
         !
+        TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_potential'
         !
         !--------------------------------------------------------------------------------
         !
-        system_cell => this%setup%system_cell
-        environment_cell => this%setup%environment_cell
+        setup => this%setup
+        system_cell => setup%system_cell
+        environment_cell => setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         ! Create local storage for base potential, that needs to be modified
@@ -597,7 +610,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrostatic contribution
         !
-        IF (this%setup%lelectrostatic) THEN
+        IF (setup%lelectrostatic) THEN
             local_label = 'velectrostatic'
             !
             CALL this%velectrostatic%init(environment_cell, local_label)
@@ -611,7 +624,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Contribution to the potential due to boundary
         !
-        IF (this%setup%lsoftcavity) THEN
+        IF (setup%lsoftcavity) THEN
             local_label = 'vsoftcavity'
             !
             CALL this%vsoftcavity%init(environment_cell, local_label)
@@ -621,7 +634,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Confinement contribution
         !
-        IF (this%setup%lconfine) THEN
+        IF (setup%lconfine) THEN
             local_label = 'vconfine'
             !
             CALL this%vconfine%init(environment_cell, local_label)
@@ -648,19 +661,21 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: local_label
         !
+        TYPE(environ_setup), POINTER :: setup
         TYPE(environ_cell), POINTER :: system_cell, environment_cell
         !
         CHARACTER(LEN=80) :: sub_name = 'environ_init_physical'
         !
         !--------------------------------------------------------------------------------
         !
-        system_cell => this%setup%system_cell
-        environment_cell => this%setup%environment_cell
+        setup => this%setup
+        system_cell => setup%system_cell
+        environment_cell => setup%environment_cell
         !
         !--------------------------------------------------------------------------------
         ! Response
         !
-        IF (this%setup%loptical) THEN
+        IF (setup%loptical) THEN
             !
             CALL this%system_response_electrons%init(0, system_cell)
             !
@@ -684,13 +699,13 @@ CONTAINS
         !
         CALL this%system_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
                                    corespread, solvationrad, radius_mode, &
-                                   this%setup%lsoftcavity, this%setup%lsmearedions, &
-                                   this%setup%lcoredensity, system_cell)
+                                   setup%lsoftcavity, setup%lsmearedions, &
+                                   setup%lcoredensity, system_cell)
         !
         CALL this%environment_ions%init(nat, ntyp, atom_label, ityp, zv, atomicspread, &
                                         corespread, solvationrad, radius_mode, &
-                                        this%setup%lsoftcavity, this%setup%lsmearedions, &
-                                        this%setup%lcoredensity, environment_cell)
+                                        setup%lsoftcavity, setup%lsmearedions, &
+                                        setup%lcoredensity, environment_cell)
         !
         !--------------------------------------------------------------------------------
         ! Electrons
@@ -715,7 +730,7 @@ CONTAINS
         !
         CALL this%environment_charges%init(environment_cell)
         !
-        IF (this%setup%lelectrostatic .OR. this%setup%lconfine) THEN
+        IF (setup%lelectrostatic .OR. setup%lconfine) THEN
             !
             CALL this%system_charges%add(electrons=this%system_electrons)
             !
@@ -723,7 +738,7 @@ CONTAINS
             !
         END IF
         !
-        IF (this%setup%lelectrostatic) THEN
+        IF (setup%lelectrostatic) THEN
             !
             CALL this%system_charges%add(ions=this%system_ions)
             !
@@ -734,7 +749,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! External charges
         !
-        IF (this%setup%lexternals) THEN
+        IF (setup%lexternals) THEN
             !
             CALL this%externals%init(env_external_charges, extcharge_dim, &
                                      extcharge_axis, extcharge_pos, &
@@ -752,17 +767,17 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Solvent boundary
         !
-        IF (this%setup%lsolvent) THEN
+        IF (setup%lsolvent) THEN
             local_label = 'solvent'
             !
             CALL this%solvent%init( &
-                this%setup%lgradient, this%setup%need_factsqrt, this%setup%lsurface, &
+                setup%lgradient, setup%need_factsqrt, setup%lsurface, &
                 solvent_mode, stype, rhomax, rhomin, tbeta, env_static_permittivity, &
                 alpha, softness, solvent_distance, solvent_spread, solvent_radius, &
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_awareness, charge_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
-                this%environment_system, this%setup%derivatives, environment_cell, &
+                this%environment_system, setup%derivatives, environment_cell, &
                 local_label)
             !
         END IF
@@ -770,7 +785,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Electrolyte
         !
-        IF (this%setup%lelectrolyte) THEN
+        IF (setup%lelectrolyte) THEN
             !
             CALL this%electrolyte%init( &
                 env_electrolyte_ntyp, electrolyte_mode, stype, electrolyte_rhomax, &
@@ -779,7 +794,7 @@ CONTAINS
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
                 field_max, field_min, this%environment_electrons, this%environment_ions, &
-                this%environment_system, this%setup%derivatives, temperature, cion, &
+                this%environment_system, setup%derivatives, temperature, cion, &
                 cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
                 environment_cell)
             !
@@ -790,7 +805,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Semiconductor
         !
-        IF (this%setup%lsemiconductor) THEN
+        IF (setup%lsemiconductor) THEN
             !
             CALL this%semiconductor%init(temperature, sc_permittivity, &
                                          sc_carrier_density, sc_electrode_chg, &
@@ -804,11 +819,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Dielectric
         !
-        IF (this%setup%lstatic) THEN
+        IF (setup%lstatic) THEN
             !
             CALL this%static%init(env_static_permittivity, this%solvent, &
-                                  this%setup%need_gradient, this%setup%need_factsqrt, &
-                                  this%setup%need_auxiliary, env_dielectric_regions, &
+                                  setup%need_gradient, setup%need_factsqrt, &
+                                  setup%need_auxiliary, env_dielectric_regions, &
                                   environment_cell)
             !
             IF (this%static%nregions > 0) &
@@ -821,11 +836,11 @@ CONTAINS
             !
         END IF
         !
-        IF (this%setup%loptical) THEN
+        IF (setup%loptical) THEN
             !
             CALL this%optical%init(env_optical_permittivity, this%solvent, &
-                                   this%setup%need_gradient, this%setup%need_factsqrt, &
-                                   this%setup%need_auxiliary, env_dielectric_regions, &
+                                   setup%need_gradient, setup%need_factsqrt, &
+                                   setup%need_auxiliary, env_dielectric_regions, &
                                    environment_cell)
             !
             IF (this%optical%nregions > 0) &
@@ -867,11 +882,17 @@ CONTAINS
         !
         CHARACTER(LEN=2), INTENT(IN) :: prog
         !
-        CLASS(environ_obj), INTENT(INOUT) :: this
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        !
+        INTEGER, POINTER :: unit
+        TYPE(environ_setup), POINTER :: setup
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
         !
         !--------------------------------------------------------------------------------
+        !
+        unit => io%unit
+        setup => this%setup
         !
         IF (io%lnode) THEN
             !
@@ -879,29 +900,29 @@ CONTAINS
                 !
             CASE ('PW')
                 !
-                IF (this%setup%lelectrostatic) WRITE (io%unit, 1000) this%eelectrostatic
+                IF (setup%lelectrostatic) WRITE (unit, 1000) this%eelectrostatic
                 !
-                IF (this%setup%lsurface) WRITE (io%unit, 1001) this%esurface
+                IF (setup%lsurface) WRITE (unit, 1001) this%esurface
                 !
-                IF (this%setup%lvolume) WRITE (io%unit, 1002) this%evolume
+                IF (setup%lvolume) WRITE (unit, 1002) this%evolume
                 !
-                IF (this%setup%lconfine) WRITE (io%unit, 1003) this%econfine
+                IF (setup%lconfine) WRITE (unit, 1003) this%econfine
                 !
-                IF (this%setup%lelectrolyte) WRITE (io%unit, 1004) this%eelectrolyte
+                IF (setup%lelectrolyte) WRITE (unit, 1004) this%eelectrolyte
                 !
-                WRITE (io%unit, 1005) this%deenviron
+                WRITE (unit, 1005) this%deenviron
                 !
             CASE ('CP')
                 !
-                IF (this%setup%lelectrostatic) WRITE (io%unit, 1006) this%eelectrostatic
+                IF (setup%lelectrostatic) WRITE (unit, 1006) this%eelectrostatic
                 !
-                IF (this%setup%lsurface) WRITE (io%unit, 1007) this%esurface
+                IF (setup%lsurface) WRITE (unit, 1007) this%esurface
                 !
-                IF (this%setup%lvolume) WRITE (io%unit, 1008) this%evolume
+                IF (setup%lvolume) WRITE (unit, 1008) this%evolume
                 !
-                IF (this%setup%lconfine) WRITE (io%unit, 1009) this%econfine
+                IF (setup%lconfine) WRITE (unit, 1009) this%econfine
                 !
-                IF (this%setup%lelectrolyte) WRITE (io%unit, 1010) this%eelectrolyte
+                IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, 'Wrong program calling Environ', 1)

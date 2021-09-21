@@ -22,7 +22,7 @@ calculator.o : cube.o
 calculator.o : density.o
 calculator.o : gradient.o
 calculator.o : main.o
-calculator.o : mapping.o
+calculator.o : setup.o
 cell.o : ../FFTs/base_stick.o
 cell.o : ../FFTs/types_fft.o
 cell.o : ../utils/io.o
@@ -247,7 +247,6 @@ main.o : electrons.o
 main.o : externals.o
 main.o : gradient.o
 main.o : ions.o
-main.o : mapping.o
 main.o : semiconductor.o
 main.o : setup.o
 main.o : system.o
