@@ -164,7 +164,7 @@ CONTAINS
         TYPE(environ_charges), INTENT(INOUT) :: charges
         TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER*20 :: sub_name = 'generalized_gradient_charges'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_charges'
         !
         !--------------------------------------------------------------------------------
         !
@@ -229,7 +229,7 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: potential
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        CHARACTER*20 :: sub_name = 'generalized_gradient_density'
+        CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_density'
         !
         !--------------------------------------------------------------------------------
         !
@@ -284,7 +284,7 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=25) :: sub_name = 'linearized_pb_gradient_charges'
+        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_gradient_charges'
         !
         !--------------------------------------------------------------------------------
         !
@@ -371,7 +371,7 @@ CONTAINS
         !
         TYPE(environ_density) :: local_screening
         !
-        CHARACTER(LEN=25) :: sub_name = 'linearized_pb_gradient_density'
+        CHARACTER(LEN=80) :: sub_name = 'linearized_pb_gradient_density'
         !
         !--------------------------------------------------------------------------------
         !

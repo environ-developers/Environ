@@ -570,7 +570,7 @@ CONTAINS
         INTEGER :: i
         LOGICAL :: allowed = .FALSE.
         !
-        CHARACTER(LEN=20) :: sub_name = 'environ_checkin'
+        CHARACTER(LEN=80) :: sub_name = 'environ_checkin'
         !
         !--------------------------------------------------------------------------------
         ! General
@@ -685,7 +685,7 @@ CONTAINS
         INTEGER :: i
         LOGICAL :: allowed = .FALSE.
         !
-        CHARACTER(LEN=20) :: sub_name = 'boundary_checkin'
+        CHARACTER(LEN=80) :: sub_name = 'boundary_checkin'
         !
         !--------------------------------------------------------------------------------
         ! Solvent
@@ -867,7 +867,7 @@ CONTAINS
         INTEGER :: i
         LOGICAL :: allowed = .FALSE.
         !
-        CHARACTER(LEN=20) :: sub_name = 'electrostatic_checkin'
+        CHARACTER(LEN=80) :: sub_name = 'electrostatic_checkin'
         !
         !--------------------------------------------------------------------------------
         ! Problem
@@ -1045,7 +1045,7 @@ CONTAINS
         !
         LOGICAL, INTENT(OUT) :: lboundary
         !
-        CHARACTER(LEN=20) :: sub_name = 'fix_boundary'
+        CHARACTER(LEN=80) :: sub_name = 'fix_boundary'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1083,7 +1083,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=20) :: sub_name = 'set_environ_type'
+        CHARACTER(LEN=80) :: sub_name = 'set_environ_type'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1236,7 +1236,7 @@ CONTAINS
         !
         LOGICAL, INTENT(OUT) :: lelectrostatic
         !
-        CHARACTER(LEN=20) :: sub_name = 'fix_electrostatic'
+        CHARACTER(LEN=80) :: sub_name = 'fix_electrostatic'
         !
         !--------------------------------------------------------------------------------
         !

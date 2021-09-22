@@ -130,7 +130,7 @@ CONTAINS
         CLASS(solver_newton), INTENT(INOUT) :: this
         TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER(LEN=25) :: sub_name = 'pb_nested_charges'
+        CHARACTER(LEN=80) :: sub_name = 'pb_nested_charges'
         !
         !--------------------------------------------------------------------------------
         !
@@ -167,7 +167,7 @@ CONTAINS
         CLASS(solver_newton), INTENT(INOUT) :: this
         TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER(LEN=25) :: sub_name = 'pb_nested_density'
+        CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
         !
         !--------------------------------------------------------------------------------
         !
