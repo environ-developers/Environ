@@ -55,9 +55,9 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
 
   sed '/Environ MODULES BEGIN/ a\
       !Environ patch\
-      USE scf,                  ONLY : rho\
-      USE environ_QE_interface, ONLY : init_environ_response, &\
-                                       calc_environ_dpotential\
+      USE scf,                ONLY : rho\
+      USE env_global_objects, ONLY : env\
+      USE class_calculator,   ONLY : calc\
       !Environ patch
       ' plugin_tddfpt_potential.f90 > tmp.1
 
@@ -68,9 +68,9 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
       IF (.not.davidson) WRITE( stdout, 8200 )\
 8200  FORMAT(5x,"Calculate Environ contribution to response potential")\
       !\
-      CALL init_environ_response( dfftp%nnr, drho(:,1) )\
+      CALL env%update_response( dfftp%nnr, drho(:,1) )\
       !\
-      CALL calc_environ_dpotential( dfftp%nnr, dv(:,1) )\
+      CALL calc%dpotential( env, dfftp%nnr, dv(:,1) )\
       !\
       END IF\
       !Environ patch
