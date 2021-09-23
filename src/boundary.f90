@@ -924,7 +924,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        de_dboundary%of_r = de_dboundary%of_r - confine * rhoelec%of_r
+        de_dboundary%of_r = de_dboundary%of_r - confine * rhoelec%of_r * e2 / 2.D0
         ! the functional derivative of the confine term is - confine * rho^elec(r)
         !
         !--------------------------------------------------------------------------------
@@ -966,7 +966,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        de_dboundary%of_r = de_dboundary%of_r + pressure
+        de_dboundary%of_r = de_dboundary%of_r + pressure * e2 / 2.D0
         ! the functional derivative of the volume term is just unity
         !
         !--------------------------------------------------------------------------------
@@ -1010,7 +1010,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        de_dboundary%of_r = de_dboundary%of_r + surface_tension * this%dsurface%of_r
+        de_dboundary%of_r = de_dboundary%of_r + &
+                            surface_tension * this%dsurface%of_r * e2 / 2.D0
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE calc_desurface_dboundary
