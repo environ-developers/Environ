@@ -206,7 +206,7 @@ sed '/Environ MODULES BEGIN/ a\
 USE kinds,              ONLY : DP\
 USE mp_bands,           ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 USE cell_base,          ONLY : at, alat\
-USE ions_base,          ONLY : nat, nsp, ityp, atm, zv, tau\
+USE ions_base,          ONLY : nat, nsp, ityp, atm, zv\
 USE martyna_tuckerman,  ONLY : do_comp_mt\
 USE gvect,              ONLY : gcutm\
 USE class_io,           ONLY : io\
@@ -369,6 +369,8 @@ sed '/Environ CALLS BEGIN/ a\
 IF(use_environ) THEN \
    ! \
    ! compute environ contributions to total energy\
+   ! Note: plugin_etot is set to 0.0_dp right before \
+   !       this routine is called\
    ! \
    CALL calc%denergy(env, plugin_etot)\
    ! \

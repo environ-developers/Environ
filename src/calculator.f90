@@ -111,7 +111,7 @@ CONTAINS
         setup => env%setup
         !
         !--------------------------------------------------------------------------------
-        ! If not updating the potentials, add old potentials and exit
+        ! If not updating, add old potentials and exit
         !
         IF (.NOT. update) THEN
             !
@@ -140,6 +140,9 @@ CONTAINS
             RETURN
             !
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! If updating, calculate new potentials
         !
         env%dvtot%of_r = 0.D0
         !
@@ -312,11 +315,10 @@ CONTAINS
         !
         IF (setup%lelectrostatic) THEN
             !
-            CALL setup%reference%calc_e(env%system_charges, env%vreference, &
-                                            ereference)
+            CALL setup%reference%calc_e(env%system_charges, env%vreference, ereference)
             !
-            CALL setup%outer%calc_e(env%environment_charges, &
-                                        env%velectrostatic, env%eelectrostatic)
+            CALL setup%outer%calc_e(env%environment_charges, env%velectrostatic, &
+                                    env%eelectrostatic)
             !
             env%eelectrostatic = env%eelectrostatic - ereference
         END IF
@@ -385,12 +387,12 @@ CONTAINS
         IF (setup%lelectrostatic) THEN
             !
             CALL setup%outer%calc_f(nat, env%environment_charges, felectrostatic, &
-                                        setup%ldoublecell)
+                                    setup%ldoublecell)
             !
             IF (setup%ldoublecell) THEN
                 !
                 CALL setup%reference%calc_f(nat, env%system_charges, freference, &
-                                                setup%ldoublecell)
+                                            setup%ldoublecell)
                 !
             END IF
             !
@@ -529,8 +531,7 @@ CONTAINS
             !
             CALL dvelectrostatic%init(environment_cell)
             !
-            CALL setup%outer%calc_v(env%environment_response_charges, &
-                                        dvelectrostatic)
+            CALL setup%outer%calc_v(env%environment_response_charges, dvelectrostatic)
             !
             CALL setup%mapping%to_small(dvelectrostatic, aux)
             !

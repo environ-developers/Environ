@@ -912,17 +912,17 @@ CONTAINS
                 !
                 WRITE (unit, 1005) this%deenviron
                 !
-            CASE ('CP')
+            CASE ('CP') ! converted to Hartree
                 !
-                IF (setup%lelectrostatic) WRITE (unit, 1006) this%eelectrostatic
+                IF (setup%lelectrostatic) WRITE (unit, 1006) this%eelectrostatic * 0.5D0
                 !
-                IF (setup%lsurface) WRITE (unit, 1007) this%esurface
+                IF (setup%lsurface) WRITE (unit, 1007) this%esurface * 0.5D0
                 !
-                IF (setup%lvolume) WRITE (unit, 1008) this%evolume
+                IF (setup%lvolume) WRITE (unit, 1008) this%evolume * 0.5D0
                 !
-                IF (setup%lconfine) WRITE (unit, 1009) this%econfine
+                IF (setup%lconfine) WRITE (unit, 1009) this%econfine * 0.5D0
                 !
-                IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte
+                IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte * 0.5D0
                 !
             CASE DEFAULT
                 CALL io%error(sub_name, 'Wrong program calling Environ', 1)

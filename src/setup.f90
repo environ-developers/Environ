@@ -590,7 +590,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         this%surface_tension = &
-            env_surface_tension * 1.D-3 * BOHR_RADIUS_SI**2 / RYDBERG_SI
+            env_surface_tension * 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
         !
         this%lsurface = this%surface_tension > 0.D0
         !
