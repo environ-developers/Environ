@@ -126,7 +126,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL setup%init()\
       !\
-      IF (prog == "TD") setup%ltddfpt = .TRUE.\
+      IF (prog == "TD") CALL setup%set_tddfpt(.TRUE.)\
       !\
    ENDIF\
 !Environ patch
@@ -157,7 +157,7 @@ sed '/Environ CALLS BEGIN/ a\
          ! ones initialized while processing the input:\
          ! this allows NEB simulations\
          !\
-         IF (.NOT. setup%ltddfpt) CALL clean%all()\
+         IF (.NOT. setup%is_tddfpt()) CALL clean%all()\
          !\
       ELSE IF ( prog(1:2) == "TD" ) THEN\
          !\
@@ -369,6 +369,7 @@ sed '/Environ CALLS BEGIN/ a\
 IF(use_environ) THEN \
    ! \
    ! compute environ contributions to total energy\
+   ! \
    ! Note: plugin_etot is set to 0.0_dp right before \
    !       this routine is called\
    ! \
@@ -443,20 +444,20 @@ sed '/Environ CALLS BEGIN/ a\
         ! environ contribution to the local potential\
         !\
         IF ( dr2 .GT. 0.0_dp ) THEN\
-           update_venviron = .NOT. conv_elec .AND. dr2 .LT. setup%threshold\
+           update_venviron = .NOT. conv_elec .AND. dr2 .LT. setup%get_threshold()\
         !\
         ELSE\
-           update_venviron = setup%restart .OR. setup%ltddfpt\
+           update_venviron = setup%is_restart() .OR. setup%is_tddfpt()\
            ! for subsequent steps of optimization or dynamics, compute\
            ! environ contribution during initialization\
-           setup%restart = .TRUE.\
+           CALL setup%set_restart(.TRUE.)\
         ENDIF\
         !\
         IF ( update_venviron ) WRITE( stdout, 9200 )\
         !\
         CALL calc%potential(env, update_venviron, local_verbose)\
         !\
-        vltot = env%vzero%of_r + env%dvtot%of_r\
+        vltot = env%get_vzero(dfftp%nnr) + env%get_dvtot(dfftp%nnr)\
         !\
         IF ( .NOT. lscf .OR. conv_elec ) CALL env%print_potential_shift()\
         !\

@@ -121,14 +121,16 @@ MODULE class_environ
         PROCEDURE, PRIVATE :: create => create_environ_base
         PROCEDURE :: init => init_environ_base
         !
-        PROCEDURE, PRIVATE :: init_physical => environ_init_physical
-        PROCEDURE, PRIVATE :: init_potential => environ_init_potential
+        PROCEDURE :: get_vzero, get_dvtot
         !
         PROCEDURE :: update_electrons => environ_update_electrons
         PROCEDURE :: update_ions => environ_update_ions
         PROCEDURE :: update_potential => environ_update_potential
         PROCEDURE :: update_response => environ_update_response
         PROCEDURE :: update_cell_dependent_quantities
+        !
+        PROCEDURE, PRIVATE :: init_physical => environ_init_physical
+        PROCEDURE, PRIVATE :: init_potential => environ_init_potential
         !
         PROCEDURE :: print_energies => print_environ_energies
         PROCEDURE :: print_potential_shift => print_environ_potential_shift
@@ -566,6 +568,62 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_update_response
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                   ACCESS METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_vzero(this, nnr) RESULT(vzero)
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER, INTENT(IN) :: nnr
+        CLASS(environ_obj), TARGET, INTENT(IN) :: this
+        !
+        REAL(DP) :: vzero(nnr)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_vzero'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%vzero%cell%nnr) &
+            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        vzero = this%vzero%of_r
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_vzero
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION get_dvtot(this, nnr) RESULT(dvtot)
+        !--------------------------------------------------------------------------------
+        !
+        INTEGER, INTENT(IN) :: nnr
+        CLASS(environ_obj), TARGET, INTENT(IN) :: this
+        !
+        REAL(DP) :: dvtot(nnr)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'get_dvtot'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (nnr /= this%dvtot%cell%nnr) &
+            CALL io%error(sub_name, 'Mismatch in grid size', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        dvtot = this%dvtot%of_r
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION get_dvtot
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

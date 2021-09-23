@@ -65,7 +65,7 @@ sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
   IF (use_environ) THEN \
      ALLOCATE (dvtot(dfftp%nnr))\
-     dvtot = 0.5D0 * env%dvtot%of_r\
+     dvtot = 0.5D0 * env%get_dvtot(dfftp%nnr)\
      ! Rydberg to Hartree\
      !\
      IF (nspin.EQ.1) THEN \
@@ -188,7 +188,7 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         ! compute environ contribution to the local potential (dvtot)\
         !\
-        update_venviron = ( nfi .GT. setup%nskip ) .OR. setup%restart\
+        update_venviron = ( nfi .GT. setup%get_nskip() ) .OR. setup%is_restart()\
         !\
         IF ( update_venviron .AND. io%verbosity .GT. 1) WRITE( stdout, 9200 )\
         !\
