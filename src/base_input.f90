@@ -499,7 +499,7 @@ MODULE env_base_input
     CHARACTER(LEN=80) :: solver = 'none'
     CHARACTER(LEN=80) :: solver_allowed(7)
     !
-    DATA solver_allowed/'cg', 'sd', 'fp', 'lbfgs', 'newton', 'nested', 'direct'/
+    DATA solver_allowed/'cg', 'sd', 'fixed-point', 'lbfgs', 'newton', 'nested', 'direct'/
     !
     ! type of numerical solver
     !
@@ -557,7 +557,7 @@ MODULE env_base_input
     CHARACTER(LEN=80) :: inner_solver = 'none'
     CHARACTER(LEN=80) :: inner_solver_allowed(5)
     !
-    DATA inner_solver_allowed/'none', 'cg', 'sd', 'fp', 'direct'/
+    DATA inner_solver_allowed/'none', 'cg', 'sd', 'fixed-point', 'direct'/
     ! type of numerical solver for inner loop in nested algorithms
     !
     INTEGER :: inner_maxstep = 200

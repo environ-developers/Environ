@@ -14,7 +14,7 @@
  /
  &ELECTROSTATIC
    !
-   solver = 'fp'
+   solver = 'fixed-point'
    auxiliary = 'full'
    !
  /

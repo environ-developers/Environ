@@ -17,7 +17,7 @@
 /
  &ELECTROSTATIC
     problem = 'generalized'
-    solver = 'fp'
+    solver = 'fixed-point'
     auxiliary = 'full'
     pbc_correction = 'ms'
     pbc_dim = 2                 

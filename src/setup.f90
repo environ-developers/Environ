@@ -942,7 +942,7 @@ CONTAINS
             !
             local_outer_solver => this%gradient
             !
-        CASE ('fp')
+        CASE ('fixed-point')
             !
             CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_cores, maxstep, &
                                       tol, auxiliary)
@@ -969,7 +969,7 @@ CONTAINS
             !
             SELECT CASE (solver)
                 !
-            CASE ('fp')
+            CASE ('fixed-point')
                 !
                 IF (auxiliary == 'ioncc') THEN
                     inner_problem = 'generalized'
@@ -987,7 +987,7 @@ CONTAINS
                         !
                         local_inner_solver => this%inner_gradient
                         !
-                    CASE ('fp')
+                    CASE ('fixed-point')
                         local_auxiliary = 'full'
                         !
                         CALL this%inner_fixedpoint%init( &

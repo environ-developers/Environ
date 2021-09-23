@@ -1353,8 +1353,8 @@ CONTAINS
                 !
             ELSE
                 !
-                IF (solver /= 'fp') THEN
-                    solver = 'fp'
+                IF (solver /= 'fixed-point') THEN
+                    solver = 'fixed-point'
                     !
                     CALL io%default('solver', solver, &
                                     'gcs correction requires fixed-point solver')
@@ -1381,7 +1381,7 @@ CONTAINS
             !
         END IF
         !
-        IF (solver == 'fp') THEN
+        IF (solver == 'fixed-point') THEN
             !
             IF (auxiliary == 'none') THEN
                 auxiliary = 'full'

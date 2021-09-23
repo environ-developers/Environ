@@ -832,10 +832,9 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
 
             DEFAULT:
 
-            IF ((env_static_permittivity .GT. 1.D0 .OR. env_dielectric_regions .GT. 0) .AND.
-                 pbc_correction .EQ. 'gcs' .AND. solver .EQ. 'fp') THEN 
+            IF (solver .EQ. 'fixed-point') THEN
                 auxiliary = 'full'
-            ELSE 
+            ELSE
                 auxiliary = 'none'
             }
             status { OPTIONAL }
@@ -875,10 +874,10 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             Same as solver, but refers to the algorithm used to get the solution of the inner loop 
             in the electrostatic problem (nested schemes only).
 
-            'cg'        :
-            'sd'        :
-            'fp'        :
-            'direct'    :
+            'cg'          :
+            'sd'          :
+            'fixed-point' :
+            'direct'      :
 
             DEFAULT:
 
@@ -1059,14 +1058,14 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
             info {
             Type of numerical solver used to get the solution of the electrostatic problem.
 
-            'direct'    : Get the direct solution of the problem as provided by the adopted 
-                          numerical core. At this time, the FFT numerical core of Environ only 
-                          allows the 'poisson' problem to be solved directly
-            'fp'        : Use a fixed-point search algorithm (used to be the default for the 
-                          'generalized' problem in Environ v0.2)
-            'sd'        : Use a steepest-descent algorithm, possibly preconditioned
-            'cg'        : Use a conjugate-gradient algorithm, possibly preconditioned
-            'newton'    : Use Newton's root-finding method
+            'direct'      : Get the direct solution of the problem as provided by the adopted 
+                            numerical core. At this time, the FFT numerical core of Environ only 
+                            allows the 'poisson' problem to be solved directly
+            'fixed-point' : Use a fixed-point search algorithm (used to be the default for the 
+                            'generalized' problem in Environ v0.2)
+            'sd'          : Use a steepest-descent algorithm, possibly preconditioned
+            'cg'          : Use a conjugate-gradient algorithm, possibly preconditioned
+            'newton'      : Use Newton's root-finding method
 
             DEFAULT:
             
@@ -1079,7 +1078,7 @@ input_description -distribution {Quantum Espresso} -package Environ -program pw.
                 IF (pbc_correction .NE. 'gcs') THEN
                     solver = 'cg'
                 ELSE
-                    solver = 'fp'
+                    solver = 'fixed-point'
             ELSE
                 solver = 'direct'
 
