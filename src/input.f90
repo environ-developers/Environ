@@ -1361,13 +1361,6 @@ CONTAINS
                     !
                 END IF
                 !
-                IF (auxiliary == 'none') THEN
-                    auxiliary = 'full'
-                    !
-                    CALL io%default('auxiliary', auxiliary, '')
-                    !
-                END IF
-                !
             END IF
             !
         ELSE
@@ -1383,6 +1376,17 @@ CONTAINS
                 solver = 'direct'
                 !
                 CALL io%default('solver', solver, '')
+                !
+            END IF
+            !
+        END IF
+        !
+        IF (solver == 'fp') THEN
+            !
+            IF (auxiliary == 'none') THEN
+                auxiliary = 'full'
+                !
+                CALL io%default('auxiliary', auxiliary, '')
                 !
             END IF
             !
