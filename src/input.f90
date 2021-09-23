@@ -1010,6 +1010,8 @@ CONTAINS
         IF (pbc_dim < -3 .OR. pbc_dim > 3) &
             CALL io%error(sub_name, 'pbc_dim out of range', 1)
         !
+        IF (pbc_dim == 1) CALL io%error(sub_name, '1d pbc correction not implemented', 1)
+        !
         IF (pbc_axis < 1 .OR. pbc_axis > 3) &
             CALL io%error(sub_name, 'cell_axis out of range', 1)
         !
