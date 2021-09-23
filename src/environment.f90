@@ -352,13 +352,6 @@ CONTAINS
         CALL this%environment_system%update()
         !
         !--------------------------------------------------------------------------------
-        ! Set soft-sphere parameters
-        !
-        IF (setup%lsolvent) CALL this%solvent%set_soft_spheres()
-        !
-        IF (setup%lelectrolyte) CALL this%electrolyte%boundary%set_soft_spheres()
-        !
-        !--------------------------------------------------------------------------------
         ! Update cores
         !
         IF (setup%l1da) &

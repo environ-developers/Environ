@@ -169,7 +169,6 @@ MODULE class_boundary
         !
         PROCEDURE, PRIVATE :: create => create_environ_boundary
         PROCEDURE :: init => init_environ_boundary
-        PROCEDURE :: set_soft_spheres
         PROCEDURE :: copy => copy_environ_boundary
         PROCEDURE :: update => update_environ_boundary
         PROCEDURE :: destroy => destroy_environ_boundary
@@ -190,6 +189,8 @@ MODULE class_boundary
         PROCEDURE :: solvent_aware_boundary
         PROCEDURE :: calc_dsurface ! #TODO do we need this?
         PROCEDURE :: invert => invert_boundary
+        !
+        PROCEDURE, PRIVATE :: set_soft_spheres, update_soft_spheres
         !
         PROCEDURE :: printout => print_environ_boundary
         !
@@ -360,6 +361,12 @@ CONTAINS
         END IF
         !
         !--------------------------------------------------------------------------------
+        ! Soft spheres
+        !
+        IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') &
+            CALL this%set_soft_spheres()
+        !
+        !--------------------------------------------------------------------------------
         ! Densities
         !
         local_label = 'boundary_'//TRIM(ADJUSTL(label))
@@ -455,38 +462,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_boundary
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE set_soft_spheres(this, scale)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        LOGICAL, INTENT(IN), OPTIONAL :: scale
-        !
-        CLASS(environ_boundary), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
-        REAL(DP) :: radius
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. (this%mode == 'ionic' .OR. this%mode == 'fa-ionic')) RETURN
-        !
-        ALLOCATE (environ_function_erfc :: this%soft_spheres(this%ions%number))
-        !
-        DO i = 1, this%ions%number
-            radius = this%ions%iontype(this%ions%ityp(i))%solvationrad * this%alpha
-            !
-            CALL this%soft_spheres(i)%init(5, 1, 0, radius, this%softness, 1.D0, &
-                                           this%ions%tau(:, i))
-            !
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_soft_spheres
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -726,6 +701,8 @@ CONTAINS
                 !
                 !------------------------------------------------------------------------
                 ! Only ions are needed, fully update the boundary
+                !
+                CALL this%update_soft_spheres()
                 !
                 CALL this%boundary_of_functions()
                 !
@@ -1999,6 +1976,55 @@ CONTAINS
     !                               PRIVATE HELPER METHODS
     !
     !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_soft_spheres(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        !
+        INTEGER :: i
+        REAL(DP) :: radius
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ALLOCATE (environ_function_erfc :: this%soft_spheres(this%ions%number))
+        !
+        DO i = 1, this%ions%number
+            radius = this%ions%iontype(this%ions%ityp(i))%solvationrad * this%alpha
+            !
+            CALL this%soft_spheres(i)%init(5, 1, 0, radius, this%softness, 1.D0, &
+                                           this%ions%tau(:, i))
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_soft_spheres
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE update_soft_spheres(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        !
+        INTEGER :: i
+        !
+        !--------------------------------------------------------------------------------
+        !
+        DO i = 1, this%ions%number
+            this%soft_spheres(i)%pos = this%ions%tau(:, i)
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE update_soft_spheres
     !------------------------------------------------------------------------------------
     !>
     !! Switching function 0: goes from 1 to 0 when passing through the
