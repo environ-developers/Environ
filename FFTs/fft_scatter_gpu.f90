@@ -443,13 +443,14 @@ CONTAINS
         nr2x = desc%nr2x
         nr3 = desc%nr3
         nr3x = desc%nr3x
+        nnt = nr1x * nr2x * nr3x
         ! this mapping improves readability but, most importantly, it is needed
         ! in the cuf kernels (as of PGI 18.10) since otherwise, when variables from
         ! `desc` appear in the body of the do loops, the compiler generates incorrect
         ! GPU code.
         !
         ALLOCATE (ncp_(desc%nproc)) ! allocate auxiliary array for columns distribution
-
+        !
         me2_start = me2
         me2_end = me2
         !
@@ -791,6 +792,8 @@ CONTAINS
         nr3 = desc%nr3
         nr3x = desc%nr3x
         nnr = desc%nnr
+        nnt = nr1x * nr2x * nr3x
+        !
         ! this mapping improves readability but, most importantly, it is needed
         ! in the cuf kernels (as of PGI 18.10) since otherwise, when variables from
         ! `desc` appear in the body of the do loops, the compiler generates incorrect

@@ -33,6 +33,8 @@
 MODULE env_base_scatter
     !------------------------------------------------------------------------------------
     !
+    USE env_mp, ONLY: env_mp_bcast
+    !
     USE class_io, ONLY: io
     !
     USE env_fft_param
@@ -145,6 +147,8 @@ CONTAINS
         !
         info = SIZE(f_out) - displs(dfft%nproc3 - 1) - recvcount(dfft%nproc3 - 1)
         !
+        CALL env_mp_bcast(info, dfft%root, dfft%comm)
+        !
         IF (info < 0) CALL io%error(sub_name, 'f_out too small', -info)
         !
         DEALLOCATE (f_aux)
@@ -240,6 +244,8 @@ CONTAINS
         info = 2 * SIZE(f_out) - displs(dfft%nproc3 - 1) - recvcount(dfft%nproc3 - 1)
         FLUSH (io%unit)
         !
+        CALL env_mp_bcast(info, dfft%root, dfft%comm)
+        !
         IF (info < 0) CALL io%error(sub_name, 'f_out too small', -info)
         !
         info = 0
@@ -306,6 +312,8 @@ CONTAINS
         END DO
         !
         info = SIZE(f_in) - displs(dfft%nproc3 - 1) - sendcount(dfft%nproc3 - 1)
+        !
+        CALL env_mp_bcast(info, dfft%root, dfft%comm)
         !
         IF (info < 0) CALL io%error(sub_name, 'f_in too small', -info)
         !
@@ -406,6 +414,8 @@ CONTAINS
         END DO
         !
         info = 2 * SIZE(f_in) - displs(dfft%nproc3 - 1) - sendcount(dfft%nproc3 - 1)
+        !
+        CALL env_mp_bcast(info, dfft%root, dfft%comm)
         !
         IF (info < 0) CALL io%error(sub_name, 'f_in too small', -info)
         !
