@@ -55,8 +55,6 @@ MODULE class_mapping
     TYPE, PUBLIC :: environ_mapping
         !--------------------------------------------------------------------------------
         !
-        LOGICAL :: initialized = .FALSE.
-        !
         INTEGER :: nrep(3) = 0
         ! number of system cells in environment cell along a_i = 2 * nrep_i + 1
         !
@@ -229,8 +227,6 @@ CONTAINS
             !
         END DO
         !
-        this%initialized = .TRUE.
-        !
         !--------------------------------------------------------------------------------
         ! Output current state
         !
@@ -295,9 +291,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
-        IF (.NOT. this%initialized) &
-            CALL io%error(sub_name, 'Mapping is not initialized', 1)
-        !
         IF (nsmall /= this%small%nnr) &
             CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
         !
@@ -355,9 +348,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
-        !
-        IF (.NOT. this%initialized) &
-            CALL io%error(sub_name, 'Mapping is not initialized', 1)
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
             CALL io%error(sub_name, 'Mismatch of small cell', 1)
@@ -418,9 +408,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
         !
-        IF (.NOT. this%initialized) &
-            CALL io%error(sub_name, 'Mapping is not initialized', 1)
-        !
         IF (nsmall /= this%small%nnr) &
             CALL io%error(sub_name, 'Wrong dimension of small cell', 1)
         !
@@ -479,9 +466,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Check if input/output dimensions match mapping cells
-        !
-        IF (.NOT. this%initialized) &
-            CALL io%error(sub_name, 'Mapping is not initialized', 1)
         !
         IF (.NOT. ASSOCIATED(fsmall%cell, this%small)) &
             CALL io%error(sub_name, 'Mismatch of small cell', 1)

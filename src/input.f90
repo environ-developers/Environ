@@ -222,7 +222,7 @@ CONTAINS
         system_axis = 3
         !
         env_nrep = 0
-        mapping_pos = 0.D0
+        system_pos = 0.D0
         !
         env_electrostatic = .FALSE.
         atomicspread(:) = -0.5D0
@@ -381,7 +381,7 @@ CONTAINS
         !
         CALL env_mp_bcast(env_nrep, io%node, io%comm)
         !
-        CALL env_mp_bcast(mapping_pos, io%node, io%comm)
+        CALL env_mp_bcast(system_pos, io%node, io%comm)
         !
         CALL env_mp_bcast(env_electrostatic, io%node, io%comm)
         !

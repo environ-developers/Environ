@@ -136,8 +136,8 @@ MODULE env_base_input
     ! nrep = 1 means there is one more cell on the left and on the right of the cell
     ! the environment cell is (2*nrep+1) times the system cell along the three axis
     !
-    REAL(DP) :: mapping_pos(3) = 0.D0 ! specified for finite-difference debugging
-    ! if not specified, mapping will be fixed on the center of charge
+    REAL(DP) :: system_pos(3) = 0.D0 ! specified for finite-difference debugging
+    ! if not specified, system is fixed on center of charge
     !
     !------------------------------------------------------------------------------------
     ! Modification of electrostatic embedding (e.g. PBC correction)
@@ -232,7 +232,7 @@ MODULE env_base_input
     !
     NAMELIST /environ/ &
         environ_debug, environ_restart, verbose, environ_thr, environ_nskip, &
-        environ_type, system_ntyp, system_dim, system_axis, env_nrep, mapping_pos, &
+        environ_type, system_ntyp, system_dim, system_axis, env_nrep, system_pos, &
         env_electrostatic, atomicspread, env_static_permittivity, &
         env_optical_permittivity, env_surface_tension, env_pressure, env_confine, &
         env_electrolyte_ntyp, cion, cionmax, rion, zion, temperature, &

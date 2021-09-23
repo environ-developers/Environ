@@ -137,10 +137,12 @@ CONTAINS
     !! and width (maximum distance from centre) of the system.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_system(this)
+    SUBROUTINE update_environ_system(this, pos)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        REAL(DP), INTENT(IN), OPTIONAL :: pos(3)
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
@@ -160,21 +162,29 @@ CONTAINS
         !
         IF (this%ntyp == 0) max_ntyp = this%ions%ntyp
         !
-        charge = 0.D0
-        !
-        DO i = 1, this%ions%number
-            ityp => this%ions%ityp(i)
+        IF (PRESENT(pos)) THEN
+            this%pos = pos ! fixed position (debugging with finite-differences)
+        ELSE
             !
-            IF (ityp > max_ntyp) CYCLE
+            !----------------------------------------------------------------------------
+            ! Compute center of charge
             !
-            zv => this%ions%iontype(ityp)%zv
-            charge = charge + zv
-            this%pos(:) = this%pos(:) + this%ions%tau(:, i) * zv
-        END DO
-        !
-        IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, 'System charge is zero', 1)
-        !
-        this%pos(:) = this%pos(:) / charge
+            charge = 0.D0
+            !
+            DO i = 1, this%ions%number
+                ityp => this%ions%ityp(i)
+                !
+                IF (ityp > max_ntyp) CYCLE
+                !
+                zv => this%ions%iontype(ityp)%zv
+                charge = charge + zv
+                this%pos = this%pos + this%ions%tau(:, i) * zv
+            END DO
+            !
+            IF (ABS(charge) < 1.D-8) CALL io%error(sub_name, 'System charge is zero', 1)
+            !
+            this%pos = this%pos / charge
+        END IF
         !
         this%width = 0.D0
         !

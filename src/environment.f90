@@ -316,28 +316,19 @@ CONTAINS
         !
         this%system_system%lupdate = .TRUE.
         !
-        CALL this%system_system%update()
+        IF (environ_debug) THEN
+            !
+            CALL this%system_system%update(system_pos) 
+            ! using fixed system_pos from input for debugging with finite-differences
+            !
+        ELSE
+            CALL this%system_system%update()
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Update cell mapping
         !
-        IF (.NOT. setup%mapping%initialized) THEN
-            !
-            IF (setup%ldoublecell) THEN
-                !
-                IF (environ_debug) THEN
-                    local_pos = mapping_pos ! debugging with finite-differences
-                ELSE
-                    local_pos = this%system_system%pos ! center of charge
-                END IF
-                !
-                CALL setup%update_mapping(local_pos)
-                !
-            ELSE
-                setup%mapping%initialized = .TRUE. ! one-to-one mapping
-            END IF
-            !
-        END IF
+        CALL setup%update_mapping(this%system_system%pos)
         !
         !--------------------------------------------------------------------------------
         ! Update environment ions parameters
@@ -349,7 +340,14 @@ CONTAINS
         !
         this%environment_system%lupdate = .TRUE.
         !
-        CALL this%environment_system%update()
+        IF (environ_debug) THEN
+            !
+            CALL this%environment_system%update(system_pos)
+            ! using fixed system_pos from input for debugging with finite-differences
+            !
+        ELSE
+            CALL this%environment_system%update()
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Update cores
