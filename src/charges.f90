@@ -84,6 +84,9 @@ MODULE class_charges
         LOGICAL :: include_semiconductor = .FALSE.
         TYPE(environ_semiconductor), POINTER :: semiconductor => NULL()
         !
+        LOGICAL :: include_additional_charges = .FALSE.
+        TYPE(environ_density), POINTER :: additional_charges => NULL()
+        !
         !--------------------------------------------------------------------------------
         ! Total smooth free charge
         !
@@ -145,6 +148,8 @@ CONTAINS
         IF (ASSOCIATED(this%electrolyte)) CALL io%create_error(sub_name)
         !
         IF (ASSOCIATED(this%semiconductor)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%additional_charges)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE create_environ_charges
@@ -222,6 +227,15 @@ CONTAINS
             this%density%of_r = this%density%of_r + this%externals%density%of_r
         END IF
         !
+        IF (this%include_additional_charges) THEN
+            !
+            IF (.NOT. ASSOCIATED(this%additional_charges)) &
+                CALL io%error(sub_name, 'Missing expected charge component', 1)
+            !
+            this%charge = this%charge + this%additional_charges%charge
+            this%density%of_r = this%density%of_r + this%additional_charges%of_r
+        END IF
+        !
         local_charge = this%density%integrate()
         !
         IF (ABS(local_charge - this%charge) > 1.D-5) &
@@ -239,7 +253,8 @@ CONTAINS
     !!
     !------------------------------------------------------------------------------------
     SUBROUTINE add_environ_charges(this, electrons, ions, externals, &
-                                   dielectric, electrolyte, semiconductor)
+                                   dielectric, electrolyte, semiconductor, &
+                                   additional_charges)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -250,6 +265,7 @@ CONTAINS
         TYPE(environ_dielectric), OPTIONAL, TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), OPTIONAL, TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_semiconductor), OPTIONAL, TARGET, INTENT(IN) :: semiconductor
+        TYPE(environ_density), OPTIONAL, TARGET, INTENT(IN) :: additional_charges
         !
         CLASS(environ_charges), INTENT(INOUT) :: this
         !
@@ -287,6 +303,11 @@ CONTAINS
             this%semiconductor => semiconductor
         END IF
         !
+        IF (PRESENT(additional_charges)) THEN
+            this%include_additional_charges = .TRUE.
+            this%additional_charges => additional_charges
+        END IF
+        !
         !--------------------------------------------------------------------------------
     END SUBROUTINE add_environ_charges
     !------------------------------------------------------------------------------------
@@ -315,6 +336,8 @@ CONTAINS
         IF (ASSOCIATED(this%electrolyte)) NULLIFY (this%electrolyte)
         !
         IF (ASSOCIATED(this%semiconductor)) NULLIFY (this%semiconductor)
+        !
+        IF (ASSOCIATED(this%additional_charges)) NULLIFY (this%additional_charges)
         !
         CALL this%density%destroy()
         !

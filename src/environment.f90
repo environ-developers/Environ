@@ -115,11 +115,17 @@ MODULE class_environ
         REAL(DP) :: eelectrostatic = 0.0_DP
         !
         !--------------------------------------------------------------------------------
+        ! MBPOL charge density
+        !
+        TYPE(environ_density) :: additional_charges
+        !
+        !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: create => create_environ_base
         PROCEDURE :: init => init_environ_base
+        PROCEDURE :: add_charges => environ_add_charges
         !
         PROCEDURE :: get_vzero, get_dvtot
         !
@@ -214,6 +220,37 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_base
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE environ_add_charges(this, nnr, density, label)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        INTEGER, INTENT(IN) :: nnr
+        REAL(DP), INTENT(IN) :: density(nnr)
+        CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
+        !
+        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: local_label = 'additional_charges'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (PRESENT(label)) local_label = label
+        !
+        CALL this%additional_charges%init(this%setup%system_cell, local_label)
+        !
+        this%additional_charges%of_r = density
+        !
+        CALL this%system_charges%add(additional_charges=this%additional_charges)
+        !
+        this%setup%laddcharges = .TRUE.
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE environ_add_charges
     !------------------------------------------------------------------------------------
     !>
     !! Save local potential that will be overwritten by environ

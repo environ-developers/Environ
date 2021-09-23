@@ -102,6 +102,7 @@ MODULE class_setup
         LOGICAL :: ldoublecell = .FALSE.
         LOGICAL :: louterloop = .FALSE.
         LOGICAL :: ltddfpt = .FALSE.
+        LOGICAL :: laddcharges = .FALSE.
         !
         !--------------------------------------------------------------------------------
         ! Derived flags

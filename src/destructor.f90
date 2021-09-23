@@ -129,6 +129,8 @@ CONTAINS
         !
         IF (setup%lsemiconductor) CALL env%semiconductor%destroy()
         !
+        IF (setup%laddcharges) CALL env%additional_charges%destroy()
+        !
         CALL env%system_electrons%destroy()
         !
         CALL env%system_ions%destroy()
