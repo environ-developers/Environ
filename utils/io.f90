@@ -284,7 +284,7 @@ CONTAINS
         WRITE (UNIT=crashunit, FMT='(5X,"task #",I10)') mpime
         !
         WRITE (UNIT=crashunit, &
-               FMT='(5X,"from ",A," : error #",I10)') calling_routine, ierr
+               FMT='(5X,"from ",A," : error #",I10)') TRIM(calling_routine), ierr
         !
         WRITE (UNIT=crashunit, FMT='(5X,A)') message
         WRITE (UNIT=crashunit, FMT='(1X,78("%"),/)')

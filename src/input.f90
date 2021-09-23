@@ -1993,7 +1993,7 @@ CONTAINS
         !
         IF (io%lnode) THEN
 30          READ (unit, fmt='(A256)', ERR=15, END=10) line
-            line = TRIM(line)
+            line = TRIM(ADJUSTL(line))
             !
             IF (line == ' ' .OR. (line(1:1) == '#' .OR. &
                                   line(1:1) == '!' .OR. &
