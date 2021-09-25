@@ -1078,6 +1078,8 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: local_label
+        !
         !--------------------------------------------------------------------------------
         !
         WRITE (io%unit, *)
@@ -1132,7 +1134,9 @@ CONTAINS
             WRITE (io%unit, 1017) auxiliary
             WRITE (io%unit, 1018) core
             !
-            IF (this%need_pbc_correction) WRITE (io%unit, 1019) '1d-analytic'
+            local_label = '1d-analytic'
+            !
+            IF (this%need_pbc_correction) WRITE (io%unit, 1019) ADJUSTL(local_label)
             !
             IF (derivatives == 'fd') THEN
                 !
