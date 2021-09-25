@@ -129,6 +129,8 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(this%cores)) CALL io%destroy_error(sub_name)
         !
+        !--------------------------------------------------------------------------------
+        !
         CALL this%cores%destroy()
         !
         NULLIFY (this%cores)

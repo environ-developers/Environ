@@ -282,6 +282,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. ASSOCIATED(this%solver)) CALL io%destroy_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
         SELECT TYPE (solver => this%solver)
             !
         CLASS IS (solver_direct)
@@ -289,11 +293,14 @@ CONTAINS
             !
         END SELECT
         !
-        IF (.NOT. ASSOCIATED(this%solver)) CALL io%destroy_error(sub_name)
-        !
         NULLIFY (this%solver)
         !
-        IF (ASSOCIATED(this%inner)) CALL this%inner%destroy()
+        IF (ASSOCIATED(this%inner)) THEN
+            !
+            CALL this%inner%destroy()
+            !
+            NULLIFY (this%inner)
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_electrostatic_setup

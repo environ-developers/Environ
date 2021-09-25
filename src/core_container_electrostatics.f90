@@ -116,21 +116,15 @@ CONTAINS
         !
         CLASS(container_electrostatics), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_electrostatics_container'
-        !
         !--------------------------------------------------------------------------------
         !
-        CALL this%core%destroy()
-        !
-        IF (.NOT. ASSOCIATED(this%core)) CALL io%destroy_error(sub_name)
+        CALL this%container_derivatives%destroy()
         !
         NULLIFY (this%core)
         !
         IF (ASSOCIATED(this%correction)) THEN
             !
-            CALL this%correction%destroy()
-            !
-            IF (.NOT. ASSOCIATED(this%correction)) CALL io%destroy_error(sub_name)
+            IF (ASSOCIATED(this%correction%core)) CALL this%correction%destroy()
             !
             NULLIFY (this%correction)
         END IF

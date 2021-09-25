@@ -355,7 +355,7 @@ CONTAINS
         !
         IF (environ_debug) THEN
             !
-            CALL this%system_system%update(system_pos) 
+            CALL this%system_system%update(system_pos)
             ! using fixed system_pos from input for debugging with finite-differences
             !
         ELSE

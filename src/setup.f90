@@ -887,6 +887,9 @@ CONTAINS
         IF (inner_solver /= 'none' .AND. this%need_pbc_correction) &
             CALL this%inner_cores%add_correction(this%pbc_core)
         !
+        !--------------------------------------------------------------------------------
+        ! Derivative cores
+        !
         IF (this%lboundary) THEN
             this%lfft_environment = .TRUE.
             !

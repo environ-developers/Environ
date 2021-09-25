@@ -133,7 +133,9 @@ CONTAINS
         !
         IF (.NOT. ASSOCIATED(this%core)) CALL io%destroy_error(sub_name)
         !
-        CALL this%core%destroy()
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%core%cell)) CALL this%core%destroy()
         !
         NULLIFY (this%core)
         !
