@@ -387,19 +387,11 @@ USE environ_input,      ONLY : read_environ_input\
 !Environ patch
 ' plugin_read_input.f90 > tmp.1
 
-sed '/Environ VARIABLES BEGIN/ a\
-!Environ patch \
-LOGICAL :: lstdout = .FALSE.\
-!Environ patch
-' tmp.1 > tmp.2
-
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF ( use_environ ) THEN\
       !\
-      IF (ionode) lstdout = .TRUE.\
-      !\
-      CALL io%init(ionode, ionode_id, intra_image_comm, stdout, lstdout)\
+      CALL io%init(ionode, ionode_id, intra_image_comm, stdout, ionode)\
       !\
       CALL read_environ_input()\
       !\
@@ -407,11 +399,11 @@ sed '/Environ CALLS BEGIN/ a\
       !\
    ENDIF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.1 > tmp.2
 
-mv tmp.1 plugin_read_input.f90
+mv tmp.2 plugin_read_input.f90
 
-rm tmp.2
+rm tmp.1
 
 printf " done!\n"
 
