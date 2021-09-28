@@ -264,7 +264,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_init_cell(this, gcutm, comm_in, at)
+    SUBROUTINE environ_init_cell(this, gcutm, comm_in, at, nr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -272,6 +272,7 @@ CONTAINS
         INTEGER, INTENT(IN) :: comm_in
         REAL(DP), INTENT(IN) :: at(3, 3)
         REAL(DP), INTENT(IN) :: gcutm
+        INTEGER, INTENT(IN), OPTIONAL :: nr(3)
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
@@ -285,7 +286,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%system_cell%init(gcutm, comm_in, at)
+        CALL this%system_cell%init(gcutm, comm_in, at, nr)
         !
         !--------------------------------------------------------------------------------
         ! Double cell and mapping

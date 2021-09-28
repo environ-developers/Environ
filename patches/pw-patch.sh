@@ -210,6 +210,7 @@ sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
 REAL(DP), ALLOCATABLE :: at_scaled(:, :)\
 REAL(DP) :: gcutm_scaled\
+INTEGER :: nr(3)\
 CHARACTER(LEN=80) :: sub_name = "plugin_initbase"\
 !Environ patch
 ' tmp.1 >tmp.2
@@ -229,7 +230,11 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       gcutm_scaled = gcutm / alat**2\
       !\
-      CALL setup%init_cell(gcutm_scaled, intra_bgrp_comm, at_scaled)\
+      nr(1) = dfftp%nr1\
+      nr(2) = dfftp%nr2\
+      nr(3) = dfftp%nr3\
+      !\
+      CALL setup%init_cell(gcutm_scaled, intra_bgrp_comm, at_scaled, nr)\
       !\
       DEALLOCATE (at_scaled)\
       !\
