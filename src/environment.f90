@@ -377,14 +377,7 @@ CONTAINS
         !
         this%environment_system%lupdate = .TRUE.
         !
-        IF (environ_debug) THEN
-            !
-            CALL this%environment_system%update(system_pos)
-            ! using fixed system_pos from input for debugging with finite-differences
-            !
-        ELSE
-            CALL this%environment_system%update()
-        END IF
+        CALL this%environment_system%update(this%system_system%pos)
         !
         !--------------------------------------------------------------------------------
         ! Update cores
