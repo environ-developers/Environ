@@ -382,19 +382,20 @@ CONTAINS
         ! charge density of ions/electrons computed in the system cell (reference solver)
         !
         force_environ = 0.D0
-        freference = 0.D0
         !
         IF (setup%lelectrostatic) THEN
-            !
-            CALL setup%outer%calc_f(nat, env%environment_charges, felectrostatic, &
-                                    setup%ldoublecell)
             !
             IF (setup%ldoublecell) THEN
                 !
                 CALL setup%reference%calc_f(nat, env%system_charges, freference, &
                                             setup%ldoublecell)
                 !
+            ELSE
+                freference = 0.D0
             END IF
+            !
+            CALL setup%outer%calc_f(nat, env%environment_charges, felectrostatic, &
+                                    setup%ldoublecell)
             !
             force_environ = felectrostatic - freference
         END IF
