@@ -199,18 +199,6 @@ CONTAINS
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
-        ! Set verbosity and open debug file
-        !
-        io%verbosity = verbose ! set internal verbosity from input
-        !
-        IF (io%verbosity >= 1) THEN
-            io%debug_unit = io%find_free_unit()
-            !
-            OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
         !
         this%setup => setup
         !

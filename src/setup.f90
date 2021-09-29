@@ -253,6 +253,17 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
         !
         !--------------------------------------------------------------------------------
+        ! Open Environ ouput file 
+        !
+        io%verbosity = verbose ! set internal verbosity from input
+        !
+        IF (io%verbosity >= 1) THEN
+            io%debug_unit = io%find_free_unit()
+            !
+            OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
+            !
+        END IF
+        !--------------------------------------------------------------------------------
         !
         CALL this%set_flags()
         !
