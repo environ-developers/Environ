@@ -363,7 +363,6 @@ CONTAINS
                 ! CALL generalized_direct() #TODO future work
                 !
             TYPE IS (solver_gradient)
-                !
                 CALL solver%generalized(charges, potential)
                 !
             TYPE IS (solver_fixedpoint)

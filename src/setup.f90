@@ -1086,6 +1086,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. io%lnode) RETURN
+        !
+        !--------------------------------------------------------------------------------
+        ! Banner
+        !
         WRITE (io%unit, *)
         WRITE (io%unit, 1000)
         WRITE (io%unit, 1001) bibliography(1)
@@ -1222,6 +1227,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. io%lnode) RETURN
+        !
         IF (this%need_pbc_correction) WRITE (io%unit, 1100)
         !
 1100    FORMAT(/, &
@@ -1248,6 +1255,8 @@ CONTAINS
         INTEGER :: actual_unit
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. io%lnode) RETURN
         !
         IF (PRESENT(passed_unit)) THEN
             actual_unit = passed_unit
@@ -1276,6 +1285,8 @@ CONTAINS
             CALL env_print_clock('calc_felect')
             !
         END IF
+        !
+        !--------------------------------------------------------------------------------
         !
         IF (this%lsemiconductor) CALL env_print_clock('calc_vms')
         !

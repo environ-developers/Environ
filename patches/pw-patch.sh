@@ -176,7 +176,7 @@ mv tmp.2 plugin_clean.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE io_global,          ONLY : ionode, stdout \
+USE io_global,          ONLY : stdout \
 USE env_global_objects, ONLY : setup\
 USE class_io,           ONLY : io\
 !Environ patch
@@ -185,7 +185,7 @@ USE class_io,           ONLY : io\
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
    IF (use_environ) CALL io%update_unit( stdout )\
-   IF (use_environ .AND. ionode) CALL setup%print_summary()\
+   IF (use_environ) CALL setup%print_summary()\
 !Environ patch
 ' tmp.1 >tmp.2
 

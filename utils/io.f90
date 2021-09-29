@@ -311,6 +311,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. io%lnode) RETURN
+        !
         CALL io%error(routine, 'Trying to create an existing object', 1)
         !
         !--------------------------------------------------------------------------------
@@ -327,6 +329,8 @@ CONTAINS
         CHARACTER(LEN=80), INTENT(IN) :: routine
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. io%lnode) RETURN
         !
         CALL io%error(routine, 'Trying to destroy an empty object', 1)
         !
@@ -347,6 +351,8 @@ CONTAINS
         CHARACTER(LEN=*), INTENT(IN) :: input ! the actual input
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. io%lnode) RETURN
         !
         CALL io%error(routine, &
                       "'"//TRIM(input)//"' is not a valid option for "//TRIM(param), 1)
@@ -373,6 +379,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. io%lnode) RETURN
+        !
         WRITE (io%unit, '(5X,A)') TRIM(message)
         !
         !--------------------------------------------------------------------------------
@@ -391,6 +399,8 @@ CONTAINS
         LOGICAL, INTENT(IN) :: lblank
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. io%lnode) RETURN
         !
         WRITE (io%unit, FMT=1)
         !
@@ -414,6 +424,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. io%lnode) RETURN
+        !
         WRITE (io%unit, '(/,5X,A)') TRIM(message)
         !
         !--------------------------------------------------------------------------------
@@ -431,6 +443,8 @@ CONTAINS
         CHARACTER(LEN=*), INTENT(IN) :: message ! the output message
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. io%lnode) RETURN
         !
         WRITE (io%unit, '("Warning: ", A,/)') TRIM(message)
         !
@@ -456,6 +470,8 @@ CONTAINS
         CHARACTER(LEN=15) :: d
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. io%lnode) RETURN
         !
         IF (message /= '') THEN
             comment = '! '//message

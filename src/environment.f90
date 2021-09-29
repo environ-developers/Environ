@@ -970,45 +970,43 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        IF (.NOT. io%lnode) RETURN
+        !
         unit => io%unit
         setup => this%setup
         !
-        IF (io%lnode) THEN
+        SELECT CASE (prog)
             !
-            SELECT CASE (prog)
-                !
-            CASE ('PW')
-                !
-                IF (setup%lelectrostatic) WRITE (unit, 1000) this%eelectrostatic
-                !
-                IF (setup%lsurface) WRITE (unit, 1001) this%esurface
-                !
-                IF (setup%lvolume) WRITE (unit, 1002) this%evolume
-                !
-                IF (setup%lconfine) WRITE (unit, 1003) this%econfine
-                !
-                IF (setup%lelectrolyte) WRITE (unit, 1004) this%eelectrolyte
-                !
-                WRITE (unit, 1005) this%deenviron
-                !
-            CASE ('CP') ! converted to Hartree
-                !
-                IF (setup%lelectrostatic) WRITE (unit, 1006) this%eelectrostatic * 0.5D0
-                !
-                IF (setup%lsurface) WRITE (unit, 1007) this%esurface * 0.5D0
-                !
-                IF (setup%lvolume) WRITE (unit, 1008) this%evolume * 0.5D0
-                !
-                IF (setup%lconfine) WRITE (unit, 1009) this%econfine * 0.5D0
-                !
-                IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte * 0.5D0
-                !
-            CASE DEFAULT
-                CALL io%error(sub_name, 'Wrong program calling Environ', 1)
-                !
-            END SELECT
+        CASE ('PW')
             !
-        END IF
+            IF (setup%lelectrostatic) WRITE (unit, 1000) this%eelectrostatic
+            !
+            IF (setup%lsurface) WRITE (unit, 1001) this%esurface
+            !
+            IF (setup%lvolume) WRITE (unit, 1002) this%evolume
+            !
+            IF (setup%lconfine) WRITE (unit, 1003) this%econfine
+            !
+            IF (setup%lelectrolyte) WRITE (unit, 1004) this%eelectrolyte
+            !
+            WRITE (unit, 1005) this%deenviron
+            !
+        CASE ('CP') ! converted to Hartree
+            !
+            IF (setup%lelectrostatic) WRITE (unit, 1006) this%eelectrostatic * 0.5D0
+            !
+            IF (setup%lsurface) WRITE (unit, 1007) this%esurface * 0.5D0
+            !
+            IF (setup%lvolume) WRITE (unit, 1008) this%evolume * 0.5D0
+            !
+            IF (setup%lconfine) WRITE (unit, 1009) this%econfine * 0.5D0
+            !
+            IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte * 0.5D0
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, 'Wrong program calling Environ', 1)
+            !
+        END SELECT
         !
         !--------------------------------------------------------------------------------
         !
@@ -1040,6 +1038,8 @@ CONTAINS
         CLASS(environ_obj), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. io%lnode) RETURN
         !
         IF (this%setup%lsmearedions) &
             WRITE (io%unit, 1100) this%environment_ions%potential_shift * RYTOEV
