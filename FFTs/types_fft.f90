@@ -1262,7 +1262,7 @@ CONTAINS
         !
         INTEGER, INTENT(INOUT) :: nr1, nr2, nr3
         !
-        INTEGER :: i, j, k, nb(3)
+        INTEGER :: i, j, k, nb(3), nbtmp(3)
         REAL(DP) :: gsq, g(3)
         !
         !--------------------------------------------------------------------------------
@@ -1311,7 +1311,9 @@ CONTAINS
         END DO
         !
 #if defined(__MPI)
-        CALL MPI_ALLREDUCE(MPI_IN_PLACE, nb, 3, MPI_INTEGER, MPI_MAX, dfft%comm, i)
+        nbtmp = nb
+        !
+        CALL MPI_ALLREDUCE(nbtmp, nb, 3, MPI_INTEGER, MPI_MAX, dfft%comm, i)
 #endif
         !
         !--------------------------------------------------------------------------------

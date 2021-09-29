@@ -286,10 +286,11 @@ CONTAINS
         INTEGER, OPTIONAL, INTENT(IN) :: comm ! communicator of the g-vec group
         !
         INTEGER, INTENT(OUT) :: st(lb(1):ub(1), lb(2):ub(2))
+        INTEGER :: sttmp(lb(1):ub(1), lb(2):ub(2))
         ! stick map for wave functions, note that map is taken in YZ plane
         !
         REAL(DP), DIMENSION(3) :: b1, b2, b3
-        INTEGER :: i1, i2, i3, n1, n2, n3, mype, nproc, ierr, ngm
+        INTEGER :: i1, i2, i3, n1, n2, n3, mype, nproc, ierr, ngm, ngmtmp
         REAL(DP) :: amod
         !
         !--------------------------------------------------------------------------------
@@ -352,10 +353,13 @@ CONTAINS
 #if defined(__MPI)
         IF (PRESENT(comm)) THEN
             !
-            CALL MPI_ALLREDUCE(MPI_IN_PLACE, st, &
-                               SIZE(st), MPI_INTEGER, MPI_SUM, comm, ierr)
+            sttmp = st
             !
-            CALL MPI_ALLREDUCE(MPI_IN_PLACE, ngm, 1, MPI_INTEGER, MPI_SUM, comm, ierr)
+            CALL MPI_ALLREDUCE(sttmp, st, SIZE(st), MPI_INTEGER, MPI_SUM, comm, ierr)
+            !
+            ngmtmp = ngm
+            !
+            CALL MPI_ALLREDUCE(ngmtmp, ngm, 1, MPI_INTEGER, MPI_SUM, comm, ierr)
             !
         END IF
 #endif

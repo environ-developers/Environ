@@ -1,4 +1,5 @@
 base_scatter.o : ../utils/io.o
+base_scatter.o : ../utils/mp.o
 base_scatter.o : fft_param.o
 base_scatter.o : types_fft.o
 base_stick.o : ../utils/io.o
