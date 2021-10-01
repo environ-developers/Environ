@@ -1006,10 +1006,12 @@ CONTAINS
     !! volume and surface components.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE boundary_of_density(this)
+    SUBROUTINE boundary_of_density(this, density)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
+        !
+        TYPE(environ_density), TARGET, INTENT(IN), OPTIONAL :: density
         !
         CLASS(environ_boundary), TARGET, INTENT(INOUT) :: this
         !
@@ -1017,7 +1019,9 @@ CONTAINS
         REAL(DP), POINTER :: const, rhomax, rhomin, tbeta
         REAL(DP), DIMENSION(:), POINTER :: rho, eps, deps, d2eps, lapleps, dsurface
         REAL(DP), POINTER :: gradeps(:, :)
+        !
         TYPE(environ_hessian), POINTER :: hessian
+        TYPE(environ_density), POINTER :: local_density
         !
         INTEGER :: ir, ipol, jpol
         !
@@ -1025,11 +1029,17 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(this%density%cell, this%scaled%cell)) &
+        IF (PRESENT(density)) THEN
+            local_density => density
+        ELSE
+            local_density => this%density
+        END IF
+        !
+        IF (.NOT. ASSOCIATED(local_density%cell, this%scaled%cell)) &
             CALL io%error(sub_name, 'Inconsistent domains', 1)
         !
-        ir_end => this%density%cell%ir_end
-        rho => this%density%of_r
+        ir_end => local_density%cell%ir_end
+        rho => local_density%of_r
         !
         stype => this%b_type
         eps => this%scaled%of_r
@@ -1071,7 +1081,7 @@ CONTAINS
             ELSE
                 ALLOCATE (hessian)
                 !
-                CALL hessian%init(this%density%cell)
+                CALL hessian%init(local_density%cell)
                 !
             END IF
             !
@@ -1093,13 +1103,14 @@ CONTAINS
         CASE ('chain', 'fd')
             !
             IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%derivatives%gradient(this%density, this%gradient)
+                CALL this%derivatives%gradient(local_density, this%gradient)
             !
-            IF (deriv == 2) CALL this%derivatives%laplacian(this%density, this%laplacian)
+            IF (deriv == 2) &
+                CALL this%derivatives%laplacian(local_density, this%laplacian)
             !
             IF (deriv == 3) THEN
                 !
-                CALL this%calc_dsurface(this%density, this%gradient, this%laplacian, &
+                CALL this%calc_dsurface(local_density, this%gradient, this%laplacian, &
                                         hessian, this%dsurface)
                 !
                 IF (this%solvent_aware) THEN
