@@ -125,6 +125,16 @@ core_numerical.o : cell.o
 cube.o : ../utils/io.o
 cube.o : density.o
 cube.o : ions.o
+debugging.o : ../utils/io.o
+debugging.o : boundary.o
+debugging.o : cell.o
+debugging.o : constants.o
+debugging.o : density.o
+debugging.o : electrons.o
+debugging.o : function_gaussian.o
+debugging.o : functions.o
+debugging.o : gradient.o
+debugging.o : ions.o
 density.o : ../FFTs/base_scatter.o
 density.o : ../FFTs/types_fft.o
 density.o : ../utils/io.o
