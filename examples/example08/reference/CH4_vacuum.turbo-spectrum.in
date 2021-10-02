@@ -1,6 +1,6 @@
 &lr_input
   prefix = 'CH4_vacuum',
-  outdir = '/Users/oliviero/PWSCF/espresso-git/tempdir/',
+  outdir = '/home/simplogic86/Work/QE1/tempdir/',
   itermax0 = 3000,
   itermax =  20000,
   extrapolation="osc"

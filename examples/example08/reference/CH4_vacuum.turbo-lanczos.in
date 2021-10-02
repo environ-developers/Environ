@@ -1,6 +1,6 @@
 &lr_input
     prefix='CH4_vacuum'
-    outdir='/Users/oliviero/PWSCF/espresso-git/tempdir/'
+    outdir='/home/simplogic86/Work/QE1/tempdir/'
     restart_step = 250
     restart = .false.
 /

@@ -1,15 +1,14 @@
 #!/bin/sh
-EXEC="./run_example.sh"
-cd example01/
-$EXEC
-cd ../example02/
-$EXEC
-cd ../example04/
-$EXEC
-cd ../example05/
-$EXEC
-cd ../example06/
-$EXEC
-cd ../example07/
-$EXEC
-cd ../
+
+for i in $(seq 10); do
+
+    if [ "$i" -lt 10 ]; then
+        cd example0"$i" || exit
+    else
+        cd example"$i" || exit
+    fi
+
+    ./run_example.sh
+
+    cd ../
+done

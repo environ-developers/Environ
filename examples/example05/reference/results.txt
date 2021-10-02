@@ -1,0 +1,6 @@
+  Energy in vacuum                    = -734.62350832  Ry        
+  Energy in solution                  = -735.32740158  Ry        
+  Electrostatic Solvation Energy      = -220.7972377968 Kcal/mol  
+
+  Fermi energy in vacuum   = -26.0881 eV + -0.4600 eV = -26.5481 eV 
+  Fermi energy in solution = -6.4332 eV + -0.4600 eV = -6.8932 eV 

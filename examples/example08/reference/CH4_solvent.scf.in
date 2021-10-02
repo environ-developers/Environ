@@ -2,8 +2,8 @@
    !
    calculation = 'scf'
    restart_mode = 'from_scratch'
-   pseudo_dir = '/Users/oliviero/PWSCF/espresso-git/pseudo/'
-   outdir = '/Users/oliviero/PWSCF/espresso-git/tempdir/'
+   pseudo_dir = '/home/simplogic86/Work/QE1/pseudo/'
+   outdir = '/home/simplogic86/Work/QE1/tempdir/'
    prefix = 'CH4_solvent'
    verbosity = 'high'
    !
