@@ -366,7 +366,7 @@ MODULE env_base_input
     !         on atomic positions of width equal to corespread(ityp)
     !
     ! system = simplified regular dielectric defined to be outside a distance
-    !         solvent_distance from the specified system
+    !          solvent_distance from the specified system
     !
     ! fa-electrons = similar to electronic, but field-aware
     !

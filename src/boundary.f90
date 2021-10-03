@@ -1575,11 +1575,15 @@ CONTAINS
             .NOT. ALLOCATED(this%soft_spheres)) &
             CALL io%error(sub_name, 'Missing details of ionic boundary', 1)
         !
-        IF (this%mode == 'full' .AND. .NOT. ALLOCATED(this%ions%core_electrons)) &
-            CALL io%error(sub_name, 'Missing details of core electrons', 1)
-        !
-        IF (this%mode == 'full' .AND. .NOT. ASSOCIATED(this%dscaled%cell, cell)) &
-            CALL io%error(sub_name, 'Mismatch or unassociated boundary derivative', 1)
+        IF (this%mode == 'full') THEN
+            !
+            IF (.NOT. ALLOCATED(this%ions%core_electrons)) &
+                CALL io%error(sub_name, 'Missing details of core electrons', 1)
+            !
+            IF (.NOT. ASSOCIATED(this%dscaled%cell, cell)) &
+                CALL io%error(sub_name, 'Mismatch or unassociated boundary derivative', 1)
+            !
+        END IF
         !
         IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
             !
