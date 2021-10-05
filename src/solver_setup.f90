@@ -271,7 +271,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_electrostatic_setup(this)
+    RECURSIVE SUBROUTINE destroy_electrostatic_setup(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
