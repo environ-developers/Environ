@@ -13,3 +13,4 @@
   - Double-cell functionality
 
 - Updated benchmarks against QE 6.7
+- Added dblcell=true option to MakeFile targets
