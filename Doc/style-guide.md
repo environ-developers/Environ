@@ -201,7 +201,7 @@ code...
 ```
 TYPE1 :: name1, name2, name3 &
          name4, name5, name6...
-
+!
 TYPE2 :: name7 ! comment
 TYPE2 :: name8 ! comment
 TYPE3 :: name9, name10
@@ -260,7 +260,7 @@ sum_ = 1 + var1 + &
 
 # Imports
 
-- explicit imports ONLY (DO NOT rely on nested imports!!!)
+- unless importing a class, use explicit imports (DO NOT rely on nested imports!!!)
 - grouped at the top of the module, !-separated into subgroups (in order):
   - utils imports
   - FFTs imports
@@ -285,10 +285,10 @@ sum_ = 1 + var1 + &
 
 # Error/info/warning messages
 
-- use `env_errore` to raise an error
+- use `io%error` to raise an error
   - requires sub_name and error code
   - sentence-cased message
-- use `env_write` for indented messages
-- use `env_warning` for non-indented, non-terminating warning messages
+- use `io%write` for indented messages
+- use `io%warning` for non-indented, non-terminating warning messages
   - outputs `'Warning: '` + supplied message
   - lowercased message

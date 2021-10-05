@@ -1,10 +1,8 @@
 TO DO (OLIVIERO)
 * fix e2 and unit conversion
-* collect unit conversion factors into a module (to be dealt at the interface)
 * when fixing parallelization, remember to fix ionode and comm in environ_output.f90
 * fix input readin in parser, why is it using intra_image_comm?
 * recvec needs to be moved into a derived data type
-* simplify/make more modular environ initialization for coupling with other programs
 * add possibility to do environ martyna-tuckerman correction for pbc pw calculation
 * add a test on multiple pbc corrections at the same time
 * core_fft.f90: add tests for compatibility between inputs
@@ -16,10 +14,13 @@ LARGE_VS_SMALL CELL
 
 NON-PRESSING TASKS
 * profile core_fft routines
-* fix cp, neb, tddfpt, xspectra...
+* neb, tddfpt, xspectra...
 * add tests for cp, neb, tddfpt, xspectra
 
 DONE
+* fix cp
+* simplify/make more modular environ initialization for coupling with other programs
+* collect unit conversion factors into a module (to be dealt at the interface)
 * environ_output.f90: fix write_cube that depends on dfftp and parallelization (now methods of ions and density)
 * tools_generate_functions.f90: move away planar_average (now in the class_cell)
 * remove dependences on environ_base, electrostatic_base, and core_base (now attributes of class_environ)
