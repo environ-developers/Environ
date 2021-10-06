@@ -213,7 +213,7 @@ for model in PB MPB ; do
   #     is related to cionmax through: cionmax = p / (4/3*pi*rion**3),
   #     where p=0.64 is the volume fraction for random close packing.
 
-  if [ $model == "PB" ] ; then
+  if [ $model = "PB" ] ; then
       # standard PB model;
       # for high ionic strengths and low surface charge the linear-regime
       # approximation can be employed.
@@ -233,7 +233,7 @@ for model in PB MPB ; do
     # .true. : consider the linear-regime approximation of the PB model;
     # .false. : solve the full non-linear PB equation.
 
-    if [ $linear == "true" ]; then
+    if [ $linear = "true" ]; then
        $ECHO "$model model (linearized) " >> results.txt
     else 
        $ECHO "$model model " >> results.txt
@@ -302,7 +302,7 @@ EOF
       potshift=$(awk '/the potential shift due/ {en=$10}; END {print en}' $label.out )
       pot=$($ECHO "-($fermi+$potshift)" | bc -l)
 
-      if [ $pbc_correction == "parabolic" ]; then
+      if [ $pbc_correction = "parabolic" ]; then
          method="numerical solution   :"
       else :
          method="2D-analytic solution :"

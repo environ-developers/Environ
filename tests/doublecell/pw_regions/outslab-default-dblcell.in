@@ -1,0 +1,24 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_dielectric_regions = 1
+   env_nrep(1) = 1
+   env_nrep(2) = 1
+   env_nrep(3) = 1
+   !
+ /
+ &BOUNDARY
+   !
+   stype = 1
+   !
+ /
+ &ELECTROSTATIC
+   !
+   tol = 1.D-15
+   !
+ /
+ DIELECTRIC_REGIONS (bohr)
+100 1 0. 0.  6.  2.0 0.5 2 3
+
+

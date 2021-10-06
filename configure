@@ -1,0 +1,95 @@
+#!/bin/bash
+#----------------------------------------------------------------------------------------
+#
+# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
+# Copyright (C) 2001-2016 Quantum ESPRESSO (www.quantum-espresso.org)
+#
+#----------------------------------------------------------------------------------------
+#
+#     This file is part of Environ version 2.0
+#     
+#     Environ 2.0 is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 2 of the License, or
+#     (at your option) any later version.
+#     
+#     Environ 2.0 is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more detail, either the file
+#     `License' in the root directory of the present distribution, or
+#     online at <http://www.gnu.org/licenses/>.
+#
+#----------------------------------------------------------------------------------------
+#
+# Authors: Courtesy of A. Ferretti and G. Bussi
+#          Modified by F. Spiga and P. Giannozzi
+#
+#----------------------------------------------------------------------------------------
+#
+# This script is a simple wrapper calling the autoconf 
+# configuration script (configure) in install/
+#
+# Dependencies may be also directly generated
+#
+#----------------------------------------------------------------------------------------
+
+MANUAL=" Usage
+   configure [-h, --help] [--save] [<conf_flags>]
+
+ -h, --help           print this manual    
+     --save           do not make clean
+ <conf_flags>         these flags will be passed to 
+                      the autoconf configure
+
+ After configuration, the make.inc file will be created in the
+ QE home (current) directory
+ NOTE: CUDA Fortran code available only as a separate package
+ 
+ ---------------------------------------------------------------
+ Manual from autoconf configure : 
+ ---------------------------------------------------------------
+"
+#
+#================================================================
+#
+
+# run from directory where this script is
+auxdir=$(echo "$0" | sed 's/\(.*\)\/.*/\1/') # extract pathname
+if [ "$auxdir" != "configure" ]; then cd "$auxdir" || exit; fi
+
+#
+# detect the simplest cases
+#
+case $1 in
+"-h" | "--help")
+  echo "$MANUAL"
+  ./install/configure --help
+  exit 0
+  ;;
+esac
+
+# run the autoconf configure with the given cong_flags
+#
+test -e ./install/make.inc && rm ./install/make.inc
+test -e ./install/configure.msg && rm ./install/configure.msg
+
+# SAFEGUARD: if you run configure without clean everything first there
+#            are chances that something goes wrong. Forcing veryclean then.
+
+if [[ ($1 =~ "--save") ]]; then
+  shift
+elif [[ (-e make.inc) && (-e Makefile) ]]; then
+  make -f Makefile veryclean
+fi
+
+./install/configure "$@"
+
+# copy make.inc in the home dir and final clean up
+#
+test -e ./install/make.inc && mv ./install/make.inc .
+test -e config.log && mv config.log ./install/
+test -e config.status && mv config.status ./install/
+test -e configure.msg && mv configure.msg ./install/
+
+exit 0

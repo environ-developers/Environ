@@ -1,0 +1,98 @@
+TO DO (OLIVIERO)
+* fix e2 and unit conversion
+* when fixing parallelization, remember to fix ionode and comm in environ_output.f90
+* fix input readin in parser, why is it using intra_image_comm?
+* recvec needs to be moved into a derived data type
+* add possibility to do environ martyna-tuckerman correction for pbc pw calculation
+* add a test on multiple pbc corrections at the same time
+* core_fft.f90: add tests for compatibility between inputs
+* remove dependence on mp_sum and comm as much as possible
+
+LARGE_VS_SMALL CELL
+*** Fix felectrostatics force_fft (vloc is in system cell, environment_charges are in environment_cell)
+*** Fix felectrostatics calc_fperiodic (oned_analytic is in system_cell, environment_charges are in environment_cell)
+
+NON-PRESSING TASKS
+* profile core_fft routines
+* neb, tddfpt, xspectra...
+* add tests for cp, neb, tddfpt, xspectra
+
+DONE
+* fix cp
+* simplify/make more modular environ initialization for coupling with other programs
+* collect unit conversion factors into a module (to be dealt at the interface)
+* environ_output.f90: fix write_cube that depends on dfftp and parallelization (now methods of ions and density)
+* tools_generate_functions.f90: move away planar_average (now in the class_cell)
+* remove dependences on environ_base, electrostatic_base, and core_base (now attributes of class_environ)
+* move potential_shift somewhere else (Now in utils_ions.f90, where it is modified)
+* cleanup backward compatibility
+* move solvent_tddfpt into environ_main
+* create two subroutines that map a quantity in the small cell to the large cell and vice versa
+* remove oldenviron
+* remove addjellium
+* NOTE: vzero that is stored in environ_init_potential (environ_init.f90) and must be kept only on the small cell.
+* take care of mapping when passing quantities from environ to pw (calc_venviron in environ_main.f90)
+* take care of mapping when passing quantities from pw to environ (environ_init_ions, environ_init_electrons, in environ_init.f90)
+* be sure that the environ quantities are initialized with the large cell
+* vreference should probably work on the small cell (we may fix this afterward)
+* add the vector of integers as input keyword
+* add a test on cubic cell for pbc=parabolic and dim=0
+* create two cells, one with the same input as before, one with at multiplied by a vector of integers
+* create two dfft objects, corresponding to the two cells
+* create two fft cores, corresponding to the two cells
+* add and/or double check that the tests for compatilibty between quantities are present
+* env_compute_dipole moved to multipoles_environ_density inside environ_types.f90
+* remove gstart from environ_initbase
+* remove ibrav
+* fix an fft_core type that contains dfftp,  gvectors(ngm, gg, gstart, g), environ_cell(omega, alat, tpiba, tpiba2), gamma_only
+* move convolution_fft outside of tools_generate_functions.f90 and cleanup dependencies
+* remove feval from environ_input.f90, so that we don't need modules_wrappers.f90. Merge your changes into this branch
+* clean up/fix modules_parser.f90 move env_errore --> errore() stdout --> program_unit env_mp --> mp
+* UtilXLib and FFTXlib should only be compiled if Environ is not inside QE, otherwise Environ should use the QE libraries.
+* calc_fd_gradient.f90 cleanup dependencies from Modules, fix communicators for parallelization, moved into core_fd.f90
+* fix calls to v_h_of_rho_r, gradv_h_of_rho_r
+* created a set of new modules to deal with cores. Basic cores are now pointed to by either electrostatic_core or boundary_core objects.
+* fix to convolution_fft, external_gradient, external_laplacian, external_hessian
+* fix electrostatic forces by adding force_lc to core_fft
+* include Modules/sort.f90
+* ws_base.f90 (now tools_ws.f90) was only needed by Martyna-Tuckerman, but some Environ subroutines were doing the same job
+  removed tools_generate_ws.f90 and also modules_invmat.f90.
+* correction_mt.f90
+  fix correction_mt (only initial calculation and calc_vmt is needed)
+  fix communicators for parallelization
+
+DOUBTS
+  Do we need precompilation if _MPI?
+  Do we need to keep the stick_map?
+
+POSSIBLE STRATEGIES
+  We could store the mapping in every object that needs to be converted (electrons, ions, potentials)
+  We could create a basic charge type that can be specialized into electrons, ions and externals
+
+NOTES:
+  for ffts we need both the descriptor (dffte) and a stick_map (smape)
+  to initialize the fft descriptor we need the parallelization (communicator) and: gamma_only (true), lpara (either T or F),
+  at, bg, gcutm, fft_fact and nyfft
+       fft_fact(1:3) are determined inside symm_base according to this: factors that must be present in FFT grid dimensions
+       in order to ensure that fractional translations are commensurate with FFT grids. fractional translations are present
+       is we have supercells and we want to keep symmetry. we may want to give up symmetry and keep fft_fact(:) = 1
+       nyfft is related to the parallelization scheme, we may want ot keep nyfft=1 and don't push parallelization too much
+  to allocate gvect we only need the fft results (number of gvectors in each processor) and the parallelization
+  to initialize gvect we need to call ggen, which is in recvec_subs.f90, and we need: dfftp, gamma_only, at, bg, gcutm, ngm_g, ngm
+  we may want to rewrite ggen to simplify it a bit and avoid computing this that are not used by environ (mill).
+
+### Environ_base quantities defined in the system_cell
+system_cell, system_dfft, system_fft, system_charges,
+ions, electrons, system,
+vzero, vreference, dvelectrostatic, vsoftcavity, vconfine
+
+### Environ_base quantities defined in the environment_cell and require mapping
+environment_charges -->(electrons, ions) -->(externals, dielectric, electrolyte)
+solvent -->(electrons, ions, system) -->(derivatives)
+electrolyte --> (electrons, ions, system) -->(derivatives)
+
+### Environ_base quantities defined in the environment_cell not requiring mapping
+environment_cell, external_charges, environment_dfft, environment_fft, derivatives, static, optical, velectrostatic,
+
+system_charges and vreference are only needed because environ computes the correction to the potential.
+maybe we could pass vreference from qe instead, and have all quantities only defined in the environment cell.

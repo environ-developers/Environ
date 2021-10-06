@@ -11,6 +11,9 @@
    !
  /
  &ELECTROSTATIC
+   !
+   tol = 1.D-13
+   !
  /
  DIELECTRIC_REGIONS (bohr)
 100 1 11.79  12.05  11.50  6.0

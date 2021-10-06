@@ -1,0 +1,14 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   environ_type = 'water-anion'
+   env_nrep(1) = 1
+   env_nrep(2) = 1
+   env_nrep(3) = 1
+   !
+ /
+ &BOUNDARY
+ /
+ &ELECTROSTATIC
+ /

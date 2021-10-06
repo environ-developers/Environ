@@ -1,34 +1,46 @@
 #!/bin/bash
+#----------------------------------------------------------------------------------------
 #
-# Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 #
-#    This file is part of Environ version 1.0
+#----------------------------------------------------------------------------------------
 #
-#    Environ 1.0 is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 2 of the License, or
-#    (at your option) any later version.
+#     This file is part of Environ version 2.0
+#     
+#     Environ 2.0 is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 2 of the License, or
+#     (at your option) any later version.
+#     
+#     Environ 2.0 is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more detail, either the file
+#     `License' in the root directory of the present distribution, or
+#     online at <http://www.gnu.org/licenses/>.
 #
-#    Environ 1.0 is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more detail, either the file
-#    `License' in the root directory of the present distribution, or
-#    online at <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------------------------------
 #
-# PATCH REVERT script for plugin files in CPV/src
+# Authors: Oliviero Andreussi (Department of Physics, UNT)
+#          Edan Bainglass     (Department of Physics, UNT)
 #
+#----------------------------------------------------------------------------------------
+#
+# PATCH REVERT script for plugin files and Makefile in CPV/src
+#
+#----------------------------------------------------------------------------------------
 
 cd $CP_SRC
 
-if test ! -e Environ_PATCH ; then
-    echo "-- File Environ_PATCH is not there"
-    echo "-- I guess you never patched, so there is nothing to revert"
-    echo "* ABORT"
-    exit
+revert_makefile
+
+check_src_reverted
+if test "$REVERTED" == 1; then 
+   return
+else
+   message "Reverting"
 fi
 
-echo "* I will try to revert CPV/src with Environ version $ENVIRON_VERSION ..."
 rm "Environ_PATCH"
 
 # plugin_int_forces
@@ -109,6 +121,6 @@ sed '/Environ patch/,/Environ patch/d' plugin_utilities.f90 > tmp.1
 
 mv tmp.1 plugin_utilities.f90
 
-echo "* DONE!"
+printf " done!\n"
 
 cd $QE_DIR

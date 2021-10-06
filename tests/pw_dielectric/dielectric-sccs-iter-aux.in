@@ -9,7 +9,7 @@
  /
  &ELECTROSTATIC
    !
-   solver = 'iterative'
+   solver = 'fixed-point'
    auxiliary = 'full'
    !
  /

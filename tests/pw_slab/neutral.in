@@ -24,7 +24,7 @@
 /
  &ELECTRONS
    !
-   conv_thr = 5.D-3
+   conv_thr = 5.D-6
    !
  /
 K_POINTS gamma

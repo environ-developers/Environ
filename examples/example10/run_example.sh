@@ -117,7 +117,7 @@ for environ_type in vacuum water ; do
    restart_mode = 'from_scratch'
    pseudo_dir = '$PSEUDO_DIR'
    outdir = '$TMP_DIR/'
-   prefix = $prefix
+   prefix = '$prefix'
    tprnfor = .TRUE.
    dt              = 1
    nstep           = 2000

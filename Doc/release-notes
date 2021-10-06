@@ -1,4 +1,29 @@
-New in development version:
+New in version 2.0:
+
+  * doublecell functionality
+  * semiconductor embedding functionality (thanks to Dr. Quinn Campbell)
+  * F2003 OOP standards applied throughout the code
+  * uniform formatting
+  * calculation of the g-vectors was made internal to Environ, 
+    as well as the initialization of the dfftp variable type for 
+    the system and environment cells
+  * during input reading, Environ outputs a summary of default settings
+
+Problems fixed in version 2.0:
+
+  * CP energies now contain correct de_dboundary terms
+  * improved compatability with QE > 6.3
+
+Incompatible changes in version 2.0:
+
+  * Environ no longer uses QE's addsonpatch.sh script during installation
+
+Known problems in Environ 2.0 :
+
+  * double-cell scaling
+  * spurious forces with solvent_mode = 'system'
+    
+New in version 1.1:
 
   * confinement potential introduced
 
@@ -6,7 +31,7 @@ New in development version:
 
   * additional interactions in diffuse layer
 
-Problems fixed in development version:
+Problems fixed in version 1.1:
 
   * improved minimum image convention for generation of functions: it solves
     incorrect behavior for non-orthorombic cells
@@ -25,14 +50,14 @@ Problems fixed in development version:
     large automatic arrays written on the stack (segmentation fault on
     Mac with default compilation options, i.e. small stack) 
 
-Incompatible changes in development version:
+Incompatible changes in version 1.1:
 
   * from QE-6.4 Environ has no information on spin
 
   * from QE-6.3 it is no longer possible to speficy PBC correction 
     scheme of Environ using the assume_isolated keyword in the pw input file
 
-Known problems in Environ 1.0 :
+Known problems in Environ 1.1 :
 
   * testset is not fully consistent between parallel and serial execution,
     and with different compilers

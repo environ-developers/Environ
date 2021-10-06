@@ -1,6 +1,6 @@
  &ENVIRON
     verbose = 1,
-    environ_thr = 0.1,
+    environ_thr = 10.,
     system_axis = 3,
     system_dim = 2,
     env_electrolyte_ntyp = 2,

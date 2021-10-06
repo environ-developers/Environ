@@ -1,14 +1,17 @@
 
-     Program PWSCF v.6.1 (svn rev. 13369) starts on 29Jan2018 at 14:58:41 
+     Program PWSCF v.6.7MaX starts on 25Sep2021 at 14:45:52 
 
      This program is part of the open-source Quantum ESPRESSO suite
      for quantum simulation of materials; please cite
          "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
+         "P. Giannozzi et al., J. Phys.:Condens. Matter 29 465901 (2017);
           URL http://www.quantum-espresso.org", 
      in publications or presentations arising from this work. More details at
      http://www.quantum-espresso.org/quote
 
      Parallel version (MPI), running on     1 processors
+
+     MPI processes distributed on     1 nodes
      Waiting for input...
      Reading input from standard input
 
@@ -16,8 +19,37 @@
      Max number of different atomic species (ntypx) = 10
      Max number of k-points (npk) =  40000
      Max angular momentum in pseudopotentials (lmaxx) =  3
-               file H.pbe-rrkjus.UPF: wavefunction(s)  1S renormalized
-               file O.pbe-rrkjus.UPF: wavefunction(s)  2S renormalized
+
+     Reading input from environ.in
+
+     ================================================================================
+
+     Reading ENVIRON namelist
+
+     Reading BOUNDARY namelist
+
+     Checking boundary derivatives
+     derivatives               = chain          ! SCCS default
+
+     Setting up water environment (solvent mode = electronic)
+     env_static_permittivity   = 78.3D0         
+     env_optical_permittivity  = 1.D0           
+     env_surface_tension       = 50.D0          
+     env_pressure              = -0.35D0        
+     rhomax                    = 0.005          
+     rhomin                    = 0.0001         
+
+     Reading ELECTROSTATIC namelist
+
+     Setting up electrostatic problem
+     problem                   = generalized    
+
+     Checking PBC correction
+
+     ================================================================================
+ 
+     file H.pbe-rrkjus.UPF: wavefunction(s)  1S renormalized
+     file O.pbe-rrkjus.UPF: wavefunction(s)  2S renormalized
 
      Subspace diagonalization in iterative solution of the eigenvalue problem:
      a serial algorithm will be used
@@ -39,10 +71,13 @@
      number of Kohn-Sham states=            4
      kinetic-energy cutoff     =      30.0000  Ry
      charge density cutoff     =     300.0000  Ry
-     convergence threshold     =      5.0E-09
+     scf convergence threshold =      5.0E-09
      mixing beta               =       0.4000
      number of iterations used =            8  plain     mixing
-     Exchange-correlation      =  SLA  PW   PBE  PBE ( 1  4  3  4 0 0)
+     energy convergence thresh.=      1.0E-04
+     force convergence thresh. =      1.0E-03
+     Exchange-correlation= SLA  PW   PBE  PBE
+                           (   1   4   3   4   0   0   0)
      nstep                     =           50
 
  
@@ -50,25 +85,25 @@
      Environ Module
      ==============
 
-     Plese cite
+     Please cite
          O. Andreussi, I. Dabo and N. Marzari, J. Chem. Phys. 136, 064102 (2012)         
      in publications or presentations arising from this work.
 
-     compensation onset threshold      =               0.1000E+00 
-     static permittivity               =                    78.30 
-     epsilon calculation mode          =               electronic 
-     surface tension in input (dyn/cm) =                    50.00 
-     surface tension in internal units =               0.6423E-04 
-     external pressure in input (GPa)  =                    -0.35 
-     external pressure in inter. units =              -0.2379E-04 
+     compensation onset threshold      =               0.1000E+00
+     static permittivity               =                    78.30
+     epsilon calculation mode          =               electronic
+     surface tension in input (dyn/cm) =                    50.00
+     surface tension in internal units =               0.6423E-04
+     external pressure in input (GPa)  =                    -0.35
+     external pressure in inter. units =              -0.2379E-04
 
      Electrostatic Setup
      -------------------
-     electrostatic problem to solve    = generalized              
-     numerical solver adopted          = cg                       
-     type of auxiliary density adopted = none                     
-     type of core tool for poisson     = fft                      
-     type of core tool for s(r) deriv  = analytic                 
+     electrostatic problem to solve    = generalized             
+     numerical solver adopted          = cg                      
+     type of auxiliary density adopted = none                    
+     type of core tool for poisson     = fft                     
+     type of core tool for correction  = 1d-analytic             
 
 
 
@@ -87,8 +122,8 @@
 
 
      PseudoPot. # 1 for H  read from file:
-     /home/fnattino/Programs/qe-6.1/pseudo/H.pbe-rrkjus.UPF
-     MD5 check sum: 7cc9d459525c9a0585f487a71c3c9563
+     /home/simplogic86/Work/QE1/pseudo/H.pbe-rrkjus.UPF
+     MD5 check sum: 2d52a7f45632fd764c17cc6affed14c8
      Pseudo is Ultrasoft, Zval =  1.0
      Generated by new atomic code, or converted to UPF format
      Using radial grid of 1061 points,  2 beta functions with: 
@@ -98,8 +133,8 @@
 
 
      PseudoPot. # 2 for O  read from file:
-     /home/fnattino/Programs/qe-6.1/pseudo/O.pbe-rrkjus.UPF
-     MD5 check sum: 390ba29e75625707450f3bd3f0eb6be9
+     /home/simplogic86/Work/QE1/pseudo/O.pbe-rrkjus.UPF
+     MD5 check sum: fadcf19ee70a498d3030e2e79cf929a4
      Pseudo is Ultrasoft, Zval =  6.0
      Generated by new atomic code, or converted to UPF format
      Using radial grid of 1269 points,  4 beta functions with: 
@@ -167,183 +202,203 @@ A      1.00
 
      Smooth grid:   177509 G-vectors     FFT dimensions: (  72,  72,  72)
 
-     Estimated max dynamical RAM per process >     411.75MB
+     Dynamical RAM for                 wfc:       1.35 MB
+
+     Dynamical RAM for     wfc (w. buffer):       1.35 MB
+
+     Dynamical RAM for           str. fact:      21.41 MB
+
+     Dynamical RAM for           local pot:       0.00 MB
+
+     Dynamical RAM for          nlocal pot:       4.06 MB
+
+     Dynamical RAM for                qrad:       0.79 MB
+
+     Dynamical RAM for          rho,v,vnew:      71.66 MB
+
+     Dynamical RAM for               rhoin:      23.89 MB
+
+     Dynamical RAM for            rho*nmix:     171.26 MB
+
+     Dynamical RAM for           G-vectors:      41.49 MB
+
+     Dynamical RAM for          h,s,v(r/c):       0.00 MB
+
+     Dynamical RAM for          <psi|beta>:       0.00 MB
+
+     Dynamical RAM for      wfcinit/wfcrot:       4.07 MB
+
+     Dynamical RAM for           addusdens:     481.66 MB
+
+     Dynamical RAM for          addusforce:     508.43 MB
+
+     Estimated static dynamical RAM per process >     433.95 MB
+
+     Estimated max dynamical RAM per process >     942.38 MB
 
      Initial potential from superposition of free atoms
-     Check: negative starting charge=   -0.000775
 
      starting charge    7.80759, renormalised to    8.00000
 
      negative rho (up, down):  7.936E-04 0.000E+00
-     Starting wfc are    6 randomized atomic wfcs
+     Starting wfcs are    6 randomized atomic wfcs
 
-     total cpu time spent up to now is        3.2 secs
-
-     per-process dynamical memory:   696.5 Mb
+     total cpu time spent up to now is        3.7 secs
 
      Self-consistent Calculation
 
-     iteration #  1     ecut=    30.00 Ry     beta=0.40
+     iteration #  1     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  1.00E-02,  avg # of iterations =  3.0
 
-     negative rho (up, down):  4.642E-04 0.000E+00
+     negative rho (up, down):  4.640E-04 0.000E+00
 
-     total cpu time spent up to now is        5.5 secs
+     total cpu time spent up to now is        6.6 secs
 
-     total energy              =     -34.21342767 Ry
-     Harris-Foulkes estimate   =     -34.58548901 Ry
-     estimated scf accuracy    <       0.67771187 Ry
+     total energy              =     -34.21333115 Ry
+     estimated scf accuracy    <       0.67783981 Ry
      electrostatic embedding   =       0.00000000 Ry
      cavitation energy         =       0.02808377 Ry
      PV energy                 =      -0.02154747 Ry
      correction to one-el term =       0.00000000 Ry
 
-     iteration #  2     ecut=    30.00 Ry     beta=0.40
+     iteration #  2     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  8.47E-03,  avg # of iterations =  3.8
 
-     negative rho (up, down):  2.934E-04 0.000E+00
+     negative rho (up, down):  2.931E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       11.9 secs
+     total cpu time spent up to now is       16.0 secs
 
-     total energy              =     -34.27054087 Ry
-     Harris-Foulkes estimate   =     -34.31757621 Ry
-     estimated scf accuracy    <       0.09820248 Ry
+     total energy              =     -34.27056326 Ry
+     estimated scf accuracy    <       0.09826032 Ry
      electrostatic embedding   =       0.00000000 Ry
-     cavitation energy         =       0.01921142 Ry
-     PV energy                 =      -0.01199462 Ry
+     cavitation energy         =       0.01921106 Ry
+     PV energy                 =      -0.01199430 Ry
      correction to one-el term =       0.00000000 Ry
 
-     iteration #  3     ecut=    30.00 Ry     beta=0.40
+     iteration #  3     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  1.23E-03,  avg # of iterations =  3.5
 
-     negative rho (up, down):  7.484E-04 0.000E+00
+     negative rho (up, down):  7.485E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       19.0 secs
+     total cpu time spent up to now is       25.5 secs
 
-     total energy              =     -34.27916899 Ry
-     Harris-Foulkes estimate   =     -33.85193622 Ry
-     estimated scf accuracy    <       0.02803245 Ry
-     electrostatic embedding   =      -0.02800280 Ry
-     cavitation energy         =       0.01556425 Ry
-     PV energy                 =      -0.00852554 Ry
-     correction to one-el term =      -0.42224565 Ry
+     total energy              =     -34.27917899 Ry
+     estimated scf accuracy    <       0.02805476 Ry
+     electrostatic embedding   =      -0.02800926 Ry
+     cavitation energy         =       0.01556511 Ry
+     PV energy                 =      -0.00852629 Ry
+     correction to one-el term =      -0.42236214 Ry
 
-     iteration #  4     ecut=    30.00 Ry     beta=0.40
+     iteration #  4     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  3.50E-04,  avg # of iterations =  3.5
+     ethr =  3.51E-04,  avg # of iterations =  3.5
 
-     negative rho (up, down):  5.466E-04 0.000E+00
+     negative rho (up, down):  5.463E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       26.3 secs
+     total cpu time spent up to now is       36.0 secs
 
-     total energy              =     -34.28726671 Ry
-     Harris-Foulkes estimate   =     -34.16313691 Ry
-     estimated scf accuracy    <       0.00221044 Ry
-     electrostatic embedding   =      -0.02766183 Ry
-     cavitation energy         =       0.01365512 Ry
-     PV energy                 =      -0.00694405 Ry
-     correction to one-el term =      -0.10395472 Ry
+     total energy              =     -34.28727989 Ry
+     estimated scf accuracy    <       0.00220585 Ry
+     electrostatic embedding   =      -0.02766220 Ry
+     cavitation energy         =       0.01365498 Ry
+     PV energy                 =      -0.00694391 Ry
+     correction to one-el term =      -0.10391989 Ry
 
-     iteration #  5     ecut=    30.00 Ry     beta=0.40
+     iteration #  5     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  2.76E-05,  avg # of iterations =  4.0
 
-     negative rho (up, down):  1.119E-03 0.000E+00
+     negative rho (up, down):  1.122E-03 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       33.6 secs
+     total cpu time spent up to now is       44.6 secs
 
-     total energy              =     -34.28821282 Ry
-     Harris-Foulkes estimate   =     -34.20769307 Ry
-     estimated scf accuracy    <       0.00036822 Ry
-     electrostatic embedding   =      -0.03114223 Ry
-     cavitation energy         =       0.01376152 Ry
-     PV energy                 =      -0.00702827 Ry
-     correction to one-el term =      -0.05621023 Ry
+     total energy              =     -34.28822497 Ry
+     estimated scf accuracy    <       0.00036668 Ry
+     electrostatic embedding   =      -0.03114021 Ry
+     cavitation energy         =       0.01376129 Ry
+     PV energy                 =      -0.00702808 Ry
+     correction to one-el term =      -0.05622891 Ry
 
-     iteration #  6     ecut=    30.00 Ry     beta=0.40
+     iteration #  6     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  4.60E-06,  avg # of iterations =  4.0
+     ethr =  4.58E-06,  avg # of iterations =  4.0
 
-     negative rho (up, down):  5.611E-04 0.000E+00
+     negative rho (up, down):  5.601E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       40.9 secs
+     total cpu time spent up to now is       54.4 secs
 
-     total energy              =     -34.28841810 Ry
-     Harris-Foulkes estimate   =     -34.23748469 Ry
-     estimated scf accuracy    <       0.00002672 Ry
-     electrostatic embedding   =      -0.03311551 Ry
-     cavitation energy         =       0.01368302 Ry
-     PV energy                 =      -0.00696869 Ry
-     correction to one-el term =      -0.02454658 Ry
+     total energy              =     -34.28842987 Ry
+     estimated scf accuracy    <       0.00002662 Ry
+     electrostatic embedding   =      -0.03311728 Ry
+     cavitation energy         =       0.01368298 Ry
+     PV energy                 =      -0.00696866 Ry
+     correction to one-el term =      -0.02453309 Ry
 
-     iteration #  7     ecut=    30.00 Ry     beta=0.40
+     iteration #  7     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  3.34E-07,  avg # of iterations =  4.0
+     ethr =  3.33E-07,  avg # of iterations =  4.0
 
-     negative rho (up, down):  2.849E-04 0.000E+00
+     negative rho (up, down):  2.848E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       48.2 secs
+     total cpu time spent up to now is       63.3 secs
 
-     total energy              =     -34.28844394 Ry
-     Harris-Foulkes estimate   =     -34.23113546 Ry
-     estimated scf accuracy    <       0.00000551 Ry
-     electrostatic embedding   =      -0.03427305 Ry
-     cavitation energy         =       0.01373758 Ry
-     PV energy                 =      -0.00701285 Ry
-     correction to one-el term =      -0.02976484 Ry
+     total energy              =     -34.28845565 Ry
+     estimated scf accuracy    <       0.00000546 Ry
+     electrostatic embedding   =      -0.03427244 Ry
+     cavitation energy         =       0.01373752 Ry
+     PV energy                 =      -0.00701280 Ry
+     correction to one-el term =      -0.02976930 Ry
 
-     iteration #  8     ecut=    30.00 Ry     beta=0.40
+     iteration #  8     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  6.89E-08,  avg # of iterations =  4.0
+     ethr =  6.82E-08,  avg # of iterations =  4.0
 
-     negative rho (up, down):  2.411E-04 0.000E+00
+     negative rho (up, down):  2.412E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       55.5 secs
+     total cpu time spent up to now is       72.7 secs
 
-     total energy              =     -34.28844596 Ry
-     Harris-Foulkes estimate   =     -34.22987191 Ry
-     estimated scf accuracy    <       0.00000158 Ry
-     electrostatic embedding   =      -0.03408587 Ry
-     cavitation energy         =       0.01371464 Ry
-     PV energy                 =      -0.00699552 Ry
-     correction to one-el term =      -0.03120819 Ry
+     total energy              =     -34.28845768 Ry
+     estimated scf accuracy    <       0.00000155 Ry
+     electrostatic embedding   =      -0.03408729 Ry
+     cavitation energy         =       0.01371470 Ry
+     PV energy                 =      -0.00699557 Ry
+     correction to one-el term =      -0.03121509 Ry
 
-     iteration #  9     ecut=    30.00 Ry     beta=0.40
+     iteration #  9     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  1.97E-08,  avg # of iterations =  4.0
+     ethr =  1.94E-08,  avg # of iterations =  4.0
 
-     negative rho (up, down):  2.243E-04 0.000E+00
+     negative rho (up, down):  2.244E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       62.8 secs
+     total cpu time spent up to now is       82.6 secs
 
-     total energy              =     -34.28844776 Ry
-     Harris-Foulkes estimate   =     -34.22892521 Ry
+     total energy              =     -34.28845946 Ry
      estimated scf accuracy    <       0.00000026 Ry
-     electrostatic embedding   =      -0.03431351 Ry
-     cavitation energy         =       0.01372145 Ry
-     PV energy                 =      -0.00700118 Ry
-     correction to one-el term =      -0.03192950 Ry
+     electrostatic embedding   =      -0.03431393 Ry
+     cavitation energy         =       0.01372146 Ry
+     PV energy                 =      -0.00700119 Ry
+     correction to one-el term =      -0.03193053 Ry
 
-     iteration # 10     ecut=    30.00 Ry     beta=0.40
+     iteration # 10     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  3.21E-09,  avg # of iterations =  4.0
 
@@ -351,23 +406,24 @@ A      1.00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       70.1 secs
+     total cpu time spent up to now is       92.4 secs
 
-     total energy              =     -34.28844824 Ry
-     Harris-Foulkes estimate   =     -34.22837575 Ry
+     total energy              =     -34.28845994 Ry
      estimated scf accuracy    <       0.00000002 Ry
-     electrostatic embedding   =      -0.03443316 Ry
-     cavitation energy         =       0.01371888 Ry
+     electrostatic embedding   =      -0.03443333 Ry
+     cavitation energy         =       0.01371889 Ry
      PV energy                 =      -0.00699950 Ry
-     correction to one-el term =      -0.03235873 Ry
+     correction to one-el term =      -0.03235872 Ry
 
-     iteration # 11     ecut=    30.00 Ry     beta=0.40
+     iteration # 11     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  1.95E-10,  avg # of iterations =  4.2
+     ethr =  1.93E-10,  avg # of iterations =  4.2
 
      negative rho (up, down):  2.124E-04 0.000E+00
 
-     total cpu time spent up to now is       72.1 secs
+     the potential shift due to the Gaussian-smeared nuclei is    -0.0214 ev
+
+     total cpu time spent up to now is       94.6 secs
 
      End of self-consistent calculation
 
@@ -380,45 +436,47 @@ A      1.00
 
      highest occupied level (ev):    -6.9126
 
-!    total energy              =     -34.28844821 Ry
-     Harris-Foulkes estimate   =     -34.22821256 Ry
+!    total energy              =     -34.28845991 Ry
      estimated scf accuracy    <          4.9E-10 Ry
 
      The total energy is the sum of the following terms:
-
-     one-electron contribution =     -63.88225626 Ry
-     hartree contribution      =      33.50183725 Ry
-     xc contribution           =      -8.40515125 Ry
+     one-electron contribution =     -63.88226128 Ry
+     hartree contribution      =      33.50184291 Ry
+     xc contribution           =      -8.40516422 Ry
      ewald contribution        =       4.55735774 Ry
-     electrostatic embedding   =      -0.03445939 Ry
+     electrostatic embedding   =      -0.03445923 Ry
      cavitation energy         =       0.01371865 Ry
      PV energy                 =      -0.00699938 Ry
-     correction to one-el term =      -0.03249557 Ry
+     correction to one-el term =      -0.03249511 Ry
+
+     WARNING: you are using the parabolic pbc correction;
+              the potential shift above must be added to 
+              band and Fermi energies.
 
      convergence has been achieved in  11 iterations
      The global environment contribution to forces
-     atom    1 type  2   force =     0.04900457   -0.25376492    0.00000000
-     atom    2 type  1   force =     0.03951849   -0.03945135    0.00000001
-     atom    3 type  1   force =    -0.02199494   -0.05128508   -0.00000000
+     atom    1 type  2   force =     0.04900483   -0.25376641   -0.00000000
+     atom    2 type  1   force =     0.03951585   -0.03944995   -0.00000000
+     atom    3 type  1   force =    -0.02199222   -0.05128255   -0.00000000
  
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =     0.00226533   -0.01218353    0.00000001
-     atom    2 type  1   force =    -0.01035758    0.00427445   -0.00000000
-     atom    3 type  1   force =     0.00809225    0.00790908   -0.00000001
+     atom    1 type  2   force =     0.00226569   -0.01218651   -0.00000000
+     atom    2 type  1   force =    -0.01036055    0.00427533    0.00000000
+     atom    3 type  1   force =     0.00809486    0.00791118    0.00000000
      The non-local contrib.  to forces
-     atom    1 type  2   force =     0.43426589   -2.24095089    0.00000000
-     atom    2 type  1   force =    -0.18031324    0.08317091   -0.00000000
-     atom    3 type  1   force =     0.13617556    0.14446113    0.00000000
+     atom    1 type  2   force =     0.43426627   -2.24095229    0.00000001
+     atom    2 type  1   force =    -0.18031333    0.08317094    0.00000000
+     atom    3 type  1   force =     0.13617564    0.14446121    0.00000000
      The ionic contribution  to forces
-     atom    1 type  2   force =    -0.80474894    4.15284562   -0.00000000
+     atom    1 type  2   force =    -0.80474894    4.15284562    0.00000000
      atom    2 type  1   force =     3.32883149   -1.50955609    0.00000000
      atom    3 type  1   force =    -2.52408255   -2.64328953    0.00000000
      The local contribution  to forces
-     atom    1 type  2   force =     0.32373788   -1.67033361   -0.00000004
-     atom    2 type  1   force =    -3.19841529    1.47015484   -0.00000001
-     atom    3 type  1   force =     2.41797538    2.55806636   -0.00000000
+     atom    1 type  2   force =     0.32373745   -1.67033133    0.00000002
+     atom    2 type  1   force =    -3.19841533    1.47015497    0.00000000
+     atom    3 type  1   force =     2.41797545    2.55806655    0.00000000
      The core correction contribution to forces
      atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
      atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
@@ -428,82 +486,78 @@ A      1.00
      atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
      atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
      The SCF correction term to forces
-     atom    1 type  2   force =    -0.00001399    0.00006418    0.00000004
-     atom    2 type  1   force =     0.00000107    0.00000005    0.00000000
-     atom    3 type  1   force =    -0.00000111    0.00000010   -0.00000000
+     atom    1 type  2   force =    -0.00001358    0.00006242   -0.00000003
+     atom    2 type  1   force =     0.00000110   -0.00000002   -0.00000000
+     atom    3 type  1   force =    -0.00000111    0.00000002   -0.00000000
 
-     Total force =     0.020178     Total SCF correction =     0.000066
+     Total force =     0.020184     Total SCF correction =     0.000064
 
      BFGS Geometry Optimization
+     Energy error            =      0.0E+00
+     Gradient error          =      1.2E-02
 
      number of scf cycles    =   1
      number of bfgs steps    =   0
 
-     energy   new            =     -34.2884482091 Ry
+     energy   new            =     -34.2884599080 Ry
 
-     new trust radius        =       0.0123923380 bohr
+     new trust radius        =       0.0123953351 bohr
      new conv_thr            =       0.0000000050 Ry
 
 
 ATOMIC_POSITIONS (bohr)
-O       11.792265326  12.037816473  11.500000006
-H       13.439642419  11.224274449  11.500000000
-H       10.568092254  10.667909079  11.499999994
+O            11.7922656921       12.0378134922       11.4999999973
+H            13.4396394501       11.2242753288       11.5000000005
+H            10.5680948578       10.6679111789       11.5000000022
 
 
 
-     Writing output data file h2o_water_cg.save
-     Check: negative starting charge=   -0.000775
+     Writing output data file /home/simplogic86/Work/QE1/tempdir/h2o_water_cg.save/
      NEW-OLD atomic charge density approx. for the potential
-     Check: negative starting charge=   -0.000776
 
-     negative rho (up, down):  7.006E-04 0.000E+00
+     negative rho (up, down):  7.008E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       80.2 secs
-
-     per-process dynamical memory:   696.5 Mb
+     total cpu time spent up to now is      106.1 secs
 
      Self-consistent Calculation
 
-     iteration #  1     ecut=    30.00 Ry     beta=0.40
+     iteration #  1     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  1.00E-06,  avg # of iterations =  4.8
 
-     negative rho (up, down):  4.719E-04 0.000E+00
+     negative rho (up, down):  4.720E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       87.5 secs
+     total cpu time spent up to now is      115.6 secs
 
-     total energy              =     -34.28843592 Ry
-     Harris-Foulkes estimate   =     -34.22557653 Ry
-     estimated scf accuracy    <       0.00034432 Ry
-     electrostatic embedding   =      -0.03412847 Ry
-     cavitation energy         =       0.01368999 Ry
+     total energy              =     -34.28844752 Ry
+     estimated scf accuracy    <       0.00034448 Ry
+     electrostatic embedding   =      -0.03412834 Ry
+     cavitation energy         =       0.01368998 Ry
      PV energy                 =      -0.00697918 Ry
-     correction to one-el term =      -0.03561568 Ry
+     correction to one-el term =      -0.03561619 Ry
 
-     iteration #  2     ecut=    30.00 Ry     beta=0.40
+     iteration #  2     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  4.30E-06,  avg # of iterations =  4.0
+     ethr =  4.31E-06,  avg # of iterations =  4.0
 
-     negative rho (up, down):  3.574E-04 0.000E+00
+     negative rho (up, down):  3.575E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is       94.8 secs
+     total cpu time spent up to now is      125.4 secs
 
-     total energy              =     -34.28850323 Ry
-     Harris-Foulkes estimate   =     -34.22559300 Ry
-     estimated scf accuracy    <       0.00001859 Ry
-     electrostatic embedding   =      -0.03428620 Ry
-     cavitation energy         =       0.01365682 Ry
-     PV energy                 =      -0.00695347 Ry
-     correction to one-el term =      -0.03533373 Ry
+     total energy              =     -34.28851486 Ry
+     estimated scf accuracy    <       0.00001860 Ry
+     electrostatic embedding   =      -0.03428610 Ry
+     cavitation energy         =       0.01365681 Ry
+     PV energy                 =      -0.00695346 Ry
+     correction to one-el term =      -0.03533425 Ry
 
-     iteration #  3     ecut=    30.00 Ry     beta=0.40
+     iteration #  3     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  2.32E-07,  avg # of iterations =  4.0
 
@@ -511,35 +565,33 @@ H       10.568092254  10.667909079  11.499999994
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      102.1 secs
+     total cpu time spent up to now is      134.8 secs
 
-     total energy              =     -34.28850487 Ry
-     Harris-Foulkes estimate   =     -34.22517536 Ry
+     total energy              =     -34.28851651 Ry
      estimated scf accuracy    <       0.00000444 Ry
-     electrostatic embedding   =      -0.03420229 Ry
-     cavitation energy         =       0.01366354 Ry
-     PV energy                 =      -0.00695841 Ry
-     correction to one-el term =      -0.03583413 Ry
+     electrostatic embedding   =      -0.03420217 Ry
+     cavitation energy         =       0.01366353 Ry
+     PV energy                 =      -0.00695840 Ry
+     correction to one-el term =      -0.03583480 Ry
 
-     iteration #  4     ecut=    30.00 Ry     beta=0.40
+     iteration #  4     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  5.54E-08,  avg # of iterations =  4.0
+     ethr =  5.55E-08,  avg # of iterations =  4.0
 
      negative rho (up, down):  2.303E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      109.4 secs
+     total cpu time spent up to now is      144.8 secs
 
-     total energy              =     -34.28850563 Ry
-     Harris-Foulkes estimate   =     -34.22471126 Ry
+     total energy              =     -34.28851726 Ry
      estimated scf accuracy    <       0.00000027 Ry
-     electrostatic embedding   =      -0.03415005 Ry
-     cavitation energy         =       0.01366597 Ry
-     PV energy                 =      -0.00695995 Ry
-     correction to one-el term =      -0.03635038 Ry
+     electrostatic embedding   =      -0.03414992 Ry
+     cavitation energy         =       0.01366595 Ry
+     PV energy                 =      -0.00695994 Ry
+     correction to one-el term =      -0.03635122 Ry
 
-     iteration #  5     ecut=    30.00 Ry     beta=0.40
+     iteration #  5     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  3.38E-09,  avg # of iterations =  4.0
 
@@ -547,74 +599,77 @@ H       10.568092254  10.667909079  11.499999994
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      116.6 secs
+     total cpu time spent up to now is      153.8 secs
 
-     total energy              =     -34.28850569 Ry
-     Harris-Foulkes estimate   =     -34.22464253 Ry
+     total energy              =     -34.28851732 Ry
      estimated scf accuracy    <       0.00000003 Ry
-     electrostatic embedding   =      -0.03415944 Ry
-     cavitation energy         =       0.01366792 Ry
-     PV energy                 =      -0.00696140 Ry
-     correction to one-el term =      -0.03641022 Ry
+     electrostatic embedding   =      -0.03415932 Ry
+     cavitation energy         =       0.01366790 Ry
+     PV energy                 =      -0.00696139 Ry
+     correction to one-el term =      -0.03641108 Ry
 
-     iteration #  6     ecut=    30.00 Ry     beta=0.40
+     iteration #  6     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  3.36E-10,  avg # of iterations =  3.2
 
      negative rho (up, down):  2.136E-04 0.000E+00
 
-     total cpu time spent up to now is      118.6 secs
+     the potential shift due to the Gaussian-smeared nuclei is    -0.0214 ev
+
+     total cpu time spent up to now is      155.9 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 ( 22119 PWs)   bands (ev):
 
-   -24.7747 -12.5633  -8.8729  -6.9332
+   -24.7748 -12.5634  -8.8729  -6.9332
 
      occupation numbers 
      1.0000   1.0000   1.0000   1.0000
 
      highest occupied level (ev):    -6.9332
 
-!    total energy              =     -34.28850575 Ry
-     Harris-Foulkes estimate   =     -34.22457190 Ry
+!    total energy              =     -34.28851739 Ry
      estimated scf accuracy    <          2.9E-09 Ry
 
      The total energy is the sum of the following terms:
+     one-electron contribution =     -64.10040818 Ry
+     hartree contribution      =      33.60543639 Ry
+     xc contribution           =      -8.42289854 Ry
+     ewald contribution        =       4.69328749 Ry
+     electrostatic embedding   =      -0.03416412 Ry
+     cavitation energy         =       0.01366894 Ry
+     PV energy                 =      -0.00696212 Ry
+     correction to one-el term =      -0.03647725 Ry
 
-     one-electron contribution =     -64.10034627 Ry
-     hartree contribution      =      33.60540459 Ry
-     xc contribution           =      -8.42288112 Ry
-     ewald contribution        =       4.69325081 Ry
-     electrostatic embedding   =      -0.03416423 Ry
-     cavitation energy         =       0.01366895 Ry
-     PV energy                 =      -0.00696213 Ry
-     correction to one-el term =      -0.03647636 Ry
+     WARNING: you are using the parabolic pbc correction;
+              the potential shift above must be added to 
+              band and Fermi energies.
 
      convergence has been achieved in   6 iterations
      The global environment contribution to forces
-     atom    1 type  2   force =     0.04883409   -0.25339301   -0.00000000
-     atom    2 type  1   force =     0.03946847   -0.03920821   -0.00000000
-     atom    3 type  1   force =    -0.02208973   -0.05105372   -0.00000000
+     atom    1 type  2   force =     0.04883440   -0.25339420    0.00000000
+     atom    2 type  1   force =     0.03946603   -0.03920705    0.00000000
+     atom    3 type  1   force =    -0.02208722   -0.05105135    0.00000000
  
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =    -0.00190589    0.01034982    0.00000000
-     atom    2 type  1   force =     0.00595849   -0.00415433   -0.00000000
-     atom    3 type  1   force =    -0.00405260   -0.00619550   -0.00000000
+     atom    1 type  2   force =    -0.00190634    0.01035364    0.00000000
+     atom    2 type  1   force =     0.00596009   -0.00415591    0.00000000
+     atom    3 type  1   force =    -0.00405375   -0.00619773   -0.00000000
      The non-local contrib.  to forces
-     atom    1 type  2   force =     0.43341941   -2.23583923   -0.00000002
-     atom    2 type  1   force =    -0.18636772    0.08478144    0.00000000
-     atom    3 type  1   force =     0.14123756    0.14828967    0.00000000
+     atom    1 type  2   force =     0.43341950   -2.23583955    0.00000001
+     atom    2 type  1   force =    -0.18636936    0.08478193   -0.00000000
+     atom    3 type  1   force =     0.14123900    0.14829091   -0.00000000
      The ionic contribution  to forces
-     atom    1 type  2   force =    -0.81546636    4.21150100    0.00000004
-     atom    2 type  1   force =     3.40317764   -1.52511922   -0.00000001
-     atom    3 type  1   force =    -2.58771128   -2.68638178   -0.00000002
+     atom    1 type  2   force =    -0.81546828    4.21151868   -0.00000002
+     atom    2 type  1   force =     3.40319657   -1.52512369    0.00000001
+     atom    3 type  1   force =    -2.58772829   -2.68639499    0.00000001
      The local contribution  to forces
-     atom    1 type  2   force =     0.33125116   -1.71187358   -0.00000002
-     atom    2 type  1   force =    -3.25037422    1.47539300    0.00000001
-     atom    3 type  1   force =     2.46446830    2.58295404    0.00000002
+     atom    1 type  2   force =     0.33125236   -1.71188523    0.00000001
+     atom    2 type  1   force =    -3.25038735    1.47539494   -0.00000001
+     atom    3 type  1   force =     2.46448033    2.58296211   -0.00000001
      The core correction contribution to forces
      atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
      atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
@@ -624,47 +679,45 @@ H       10.568092254  10.667909079  11.499999994
      atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
      atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
      The SCF correction term to forces
-     atom    1 type  2   force =     0.00000877   -0.00005016   -0.00000000
-     atom    2 type  1   force =     0.00000728   -0.00000614    0.00000000
+     atom    1 type  2   force =     0.00000878   -0.00005017    0.00000000
+     atom    2 type  1   force =     0.00000729   -0.00000614    0.00000000
      atom    3 type  1   force =    -0.00000448   -0.00000851   -0.00000000
 
-     Total force =     0.014776     Total SCF correction =     0.000053
+     Total force =     0.014781     Total SCF correction =     0.000053
+     Energy error            =      5.7E-05
+     Gradient error          =      1.0E-02
 
      number of scf cycles    =   2
      number of bfgs steps    =   1
 
-     energy   old            =     -34.2884482091 Ry
-     energy   new            =     -34.2885057531 Ry
+     energy   old            =     -34.2884599080 Ry
+     energy   new            =     -34.2885173859 Ry
 
      CASE: energy  _new < energy  _old
 
-     new trust radius        =       0.0060346592 bohr
+     new trust radius        =       0.0060366438 bohr
      new conv_thr            =            5.0E-11 Ry
 
 
 ATOMIC_POSITIONS (bohr)
-O       11.791172600  12.043751375  11.500000006
-H       13.443033100  11.221887424  11.500000000
-H       10.565794300  10.664361201  11.499999994
+O            11.7911727512       12.0437503726       11.4999999973
+H            13.4430308916       11.2218874752       11.5000000005
+H            10.5657963571       10.6643621522       11.5000000022
 
 
 
-     Writing output data file h2o_water_cg.save
-     Check: negative starting charge=   -0.000776
+     Writing output data file /home/simplogic86/Work/QE1/tempdir/h2o_water_cg.save/
      NEW-OLD atomic charge density approx. for the potential
-     Check: negative starting charge=   -0.000775
 
      negative rho (up, down):  2.430E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      126.7 secs
-
-     per-process dynamical memory:   696.5 Mb
+     total cpu time spent up to now is      167.1 secs
 
      Self-consistent Calculation
 
-     iteration #  1     ecut=    30.00 Ry     beta=0.40
+     iteration #  1     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  1.00E-06,  avg # of iterations =  3.8
 
@@ -672,35 +725,33 @@ H       10.565794300  10.664361201  11.499999994
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      134.0 secs
+     total cpu time spent up to now is      176.6 secs
 
-     total energy              =     -34.28855631 Ry
-     Harris-Foulkes estimate   =     -34.22581516 Ry
-     estimated scf accuracy    <       0.00005996 Ry
-     electrostatic embedding   =      -0.03430325 Ry
-     cavitation energy         =       0.01367962 Ry
-     PV energy                 =      -0.00696959 Ry
-     correction to one-el term =      -0.03517785 Ry
+     total energy              =     -34.28856800 Ry
+     estimated scf accuracy    <       0.00006000 Ry
+     electrostatic embedding   =      -0.03430317 Ry
+     cavitation energy         =       0.01367961 Ry
+     PV energy                 =      -0.00696958 Ry
+     correction to one-el term =      -0.03517835 Ry
 
-     iteration #  2     ecut=    30.00 Ry     beta=0.40
+     iteration #  2     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
-     ethr =  7.49E-07,  avg # of iterations =  4.0
+     ethr =  7.50E-07,  avg # of iterations =  4.0
 
      negative rho (up, down):  2.075E-04 0.000E+00
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      141.2 secs
+     total cpu time spent up to now is      186.3 secs
 
-     total energy              =     -34.28856913 Ry
-     Harris-Foulkes estimate   =     -34.22579914 Ry
+     total energy              =     -34.28858084 Ry
      estimated scf accuracy    <       0.00000339 Ry
-     electrostatic embedding   =      -0.03423351 Ry
+     electrostatic embedding   =      -0.03423342 Ry
      cavitation energy         =       0.01369320 Ry
-     PV energy                 =      -0.00698014 Ry
-     correction to one-el term =      -0.03525061 Ry
+     PV energy                 =      -0.00698013 Ry
+     correction to one-el term =      -0.03525113 Ry
 
-     iteration #  3     ecut=    30.00 Ry     beta=0.40
+     iteration #  3     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  4.24E-08,  avg # of iterations =  4.0
 
@@ -708,17 +759,16 @@ H       10.565794300  10.664361201  11.499999994
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      148.5 secs
+     total cpu time spent up to now is      195.6 secs
 
-     total energy              =     -34.28856965 Ry
-     Harris-Foulkes estimate   =     -34.22595541 Ry
+     total energy              =     -34.28858136 Ry
      estimated scf accuracy    <       0.00000081 Ry
-     electrostatic embedding   =      -0.03427332 Ry
-     cavitation energy         =       0.01369066 Ry
-     PV energy                 =      -0.00697826 Ry
-     correction to one-el term =      -0.03505348 Ry
+     electrostatic embedding   =      -0.03427323 Ry
+     cavitation energy         =       0.01369065 Ry
+     PV energy                 =      -0.00697825 Ry
+     correction to one-el term =      -0.03505395 Ry
 
-     iteration #  4     ecut=    30.00 Ry     beta=0.40
+     iteration #  4     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  1.01E-08,  avg # of iterations =  4.0
 
@@ -726,17 +776,16 @@ H       10.565794300  10.664361201  11.499999994
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      155.8 secs
+     total cpu time spent up to now is      205.4 secs
 
-     total energy              =     -34.28856984 Ry
-     Harris-Foulkes estimate   =     -34.22614207 Ry
+     total energy              =     -34.28858155 Ry
      estimated scf accuracy    <       0.00000005 Ry
-     electrostatic embedding   =      -0.03430023 Ry
-     cavitation energy         =       0.01369007 Ry
-     PV energy                 =      -0.00697792 Ry
-     correction to one-el term =      -0.03483973 Ry
+     electrostatic embedding   =      -0.03430016 Ry
+     cavitation energy         =       0.01369006 Ry
+     PV energy                 =      -0.00697791 Ry
+     correction to one-el term =      -0.03484012 Ry
 
-     iteration #  5     ecut=    30.00 Ry     beta=0.40
+     iteration #  5     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  6.19E-10,  avg # of iterations =  4.0
 
@@ -744,17 +793,16 @@ H       10.565794300  10.664361201  11.499999994
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      163.1 secs
+     total cpu time spent up to now is      215.3 secs
 
-     total energy              =     -34.28856983 Ry
-     Harris-Foulkes estimate   =     -34.22616851 Ry
+     total energy              =     -34.28858154 Ry
      estimated scf accuracy    <          5.1E-09 Ry
-     electrostatic embedding   =      -0.03429537 Ry
-     cavitation energy         =       0.01368936 Ry
-     PV energy                 =      -0.00697739 Ry
-     correction to one-el term =      -0.03481792 Ry
+     electrostatic embedding   =      -0.03429529 Ry
+     cavitation energy         =       0.01368935 Ry
+     PV energy                 =      -0.00697738 Ry
+     correction to one-el term =      -0.03481831 Ry
 
-     iteration #  6     ecut=    30.00 Ry     beta=0.40
+     iteration #  6     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  6.40E-11,  avg # of iterations =  3.2
 
@@ -762,74 +810,77 @@ H       10.565794300  10.664361201  11.499999994
 
      add environment contribution to local potential
 
-     total cpu time spent up to now is      170.4 secs
+     total cpu time spent up to now is      223.9 secs
 
-     total energy              =     -34.28856980 Ry
-     Harris-Foulkes estimate   =     -34.22620734 Ry
+     total energy              =     -34.28858151 Ry
      estimated scf accuracy    <          5.1E-10 Ry
-     electrostatic embedding   =      -0.03429245 Ry
+     electrostatic embedding   =      -0.03429238 Ry
      cavitation energy         =       0.01368887 Ry
-     PV energy                 =      -0.00697704 Ry
-     correction to one-el term =      -0.03478185 Ry
+     PV energy                 =      -0.00697703 Ry
+     correction to one-el term =      -0.03478223 Ry
 
-     iteration #  7     ecut=    30.00 Ry     beta=0.40
+     iteration #  7     ecut=    30.00 Ry     beta= 0.40
      CG style diagonalization
      ethr =  6.42E-12,  avg # of iterations =  3.8
 
      negative rho (up, down):  2.132E-04 0.000E+00
 
-     total cpu time spent up to now is      172.4 secs
+     the potential shift due to the Gaussian-smeared nuclei is    -0.0214 ev
+
+     total cpu time spent up to now is      226.5 secs
 
      End of self-consistent calculation
 
           k = 0.0000 0.0000 0.0000 ( 22119 PWs)   bands (ev):
 
-   -24.7350 -12.5083  -8.8802  -6.9249
+   -24.7350 -12.5083  -8.8803  -6.9249
 
      occupation numbers 
      1.0000   1.0000   1.0000   1.0000
 
      highest occupied level (ev):    -6.9249
 
-!    total energy              =     -34.28856978 Ry
-     Harris-Foulkes estimate   =     -34.22620903 Ry
+!    total energy              =     -34.28858148 Ry
      estimated scf accuracy    <          3.7E-11 Ry
 
      The total energy is the sum of the following terms:
-
-     one-electron contribution =     -64.00978613 Ry
-     hartree contribution      =      33.56215917 Ry
-     xc contribution           =      -8.41547036 Ry
-     ewald contribution        =       4.63688831 Ry
-     electrostatic embedding   =      -0.03429125 Ry
-     cavitation energy         =       0.01368892 Ry
+     one-electron contribution =     -64.00982077 Ry
+     hartree contribution      =      33.56217794 Ry
+     xc contribution           =      -8.41548554 Ry
+     ewald contribution        =       4.63690796 Ry
+     electrostatic embedding   =      -0.03429117 Ry
+     cavitation energy         =       0.01368891 Ry
      PV energy                 =      -0.00697707 Ry
-     correction to one-el term =      -0.03478137 Ry
+     correction to one-el term =      -0.03478175 Ry
+
+     WARNING: you are using the parabolic pbc correction;
+              the potential shift above must be added to 
+              band and Fermi energies.
 
      convergence has been achieved in   7 iterations
      The global environment contribution to forces
-     atom    1 type  2   force =     0.04893201   -0.25378289   -0.00000000
-     atom    2 type  1   force =     0.03942137   -0.03938932   -0.00000000
-     atom    3 type  1   force =    -0.02196921   -0.05120471   -0.00000000
+     atom    1 type  2   force =     0.04893243   -0.25378462    0.00000000
+     atom    2 type  1   force =     0.03941880   -0.03938814    0.00000000
+     atom    3 type  1   force =    -0.02196651   -0.05120230    0.00000000
  
 
      Forces acting on atoms (cartesian axes, Ry/au):
 
-     atom    1 type  2   force =    -0.00014591    0.00049087    0.00000000
-     atom    2 type  1   force =    -0.00072892   -0.00040461   -0.00000000
-     atom    3 type  1   force =     0.00087482   -0.00008626   -0.00000000
+     atom    1 type  2   force =    -0.00014608    0.00049119    0.00000000
+     atom    2 type  1   force =    -0.00072934   -0.00040493   -0.00000000
+     atom    3 type  1   force =     0.00087542   -0.00008626   -0.00000000
      The non-local contrib.  to forces
-     atom    1 type  2   force =     0.43409657   -2.23964431   -0.00000002
-     atom    2 type  1   force =    -0.18374174    0.08431907    0.00000000
-     atom    3 type  1   force =     0.13894176    0.14683438    0.00000000
+     atom    1 type  2   force =     0.43409689   -2.23964618    0.00000001
+     atom    2 type  1   force =    -0.18374261    0.08431950   -0.00000000
+     atom    3 type  1   force =     0.13894243    0.14683514   -0.00000000
      The ionic contribution  to forces
-     atom    1 type  2   force =    -0.81213198    4.19191875    0.00000004
-     atom    2 type  1   force =     3.37099328   -1.52148322   -0.00000001
-     atom    3 type  1   force =    -2.55886130   -2.67043554   -0.00000002
+     atom    1 type  2   force =    -0.81213398    4.19193130   -0.00000002
+     atom    2 type  1   force =     3.37100272   -1.52148767    0.00000001
+     atom    3 type  1   force =    -2.55886873   -2.67044363    0.00000001
      The local contribution  to forces
-     atom    1 type  2   force =     0.32891129   -1.69798401   -0.00000002
-     atom    2 type  1   force =    -3.22744524    1.47615222    0.00000001
-     atom    3 type  1   force =     2.44271982    2.57472291    0.00000002
+     atom    1 type  2   force =     0.32891256   -1.69799201    0.00000001
+     atom    2 type  1   force =    -3.22745150    1.47615538   -0.00000001
+     atom    3 type  1   force =     2.44272465    2.57472846   -0.00000001
      The core correction contribution to forces
      atom    1 type  2   force =     0.00000000    0.00000000    0.00000000
      atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
@@ -839,92 +890,98 @@ H       10.565794300  10.664361201  11.499999994
      atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
      atom    3 type  1   force =     0.00000000    0.00000000    0.00000000
      The SCF correction term to forces
-     atom    1 type  2   force =     0.00000271   -0.00001345    0.00000000
-     atom    2 type  1   force =    -0.00000008   -0.00000014   -0.00000000
-     atom    3 type  1   force =     0.00000026   -0.00000009   -0.00000000
+     atom    1 type  2   force =     0.00000271   -0.00001346   -0.00000000
+     atom    2 type  1   force =    -0.00000008   -0.00000015    0.00000000
+     atom    3 type  1   force =     0.00000026   -0.00000009    0.00000000
 
-     Total force =     0.001315     Total SCF correction =     0.000014
+     Total force =     0.001316     Total SCF correction =     0.000014
+     Energy error            =      6.4E-05
+     Gradient error          =      8.8E-04
 
      bfgs converged in   3 scf cycles and   2 bfgs steps
      (criteria: energy <  1.0E-04 Ry, force <  1.0E-03 Ry/Bohr)
 
      End of BFGS Geometry Optimization
 
-     Final energy   =     -34.2885697760 Ry
+     Final energy   =     -34.2885814829 Ry
+
+     File /home/simplogic86/Work/QE1/tempdir/h2o_water_cg.bfgs deleted, as requested
 Begin final coordinates
 
 ATOMIC_POSITIONS (bohr)
-O       11.791172600  12.043751375  11.500000006
-H       13.443033100  11.221887424  11.500000000
-H       10.565794300  10.664361201  11.499999994
+O            11.7911727512       12.0437503726       11.4999999973
+H            13.4430308916       11.2218874752       11.5000000005
+H            10.5657963571       10.6643621522       11.5000000022
 End final coordinates
 
 
 
-     Writing output data file h2o_water_cg.save
+     Writing output data file /home/simplogic86/Work/QE1/tempdir/h2o_water_cg.save/
  
-     init_run     :      2.97s CPU      3.15s WALL (       1 calls)
-     electrons    :    145.10s CPU    153.19s WALL (       3 calls)
-     update_pot   :      1.36s CPU      1.42s WALL (       2 calls)
-     forces       :      1.91s CPU      2.12s WALL (       3 calls)
+     init_run     :      3.36s CPU      3.61s WALL (       1 calls)
+     electrons    :    191.12s CPU    200.23s WALL (       3 calls)
+     update_pot   :      1.09s CPU      1.19s WALL (       2 calls)
+     forces       :      2.44s CPU      2.84s WALL (       3 calls)
 
      Called by init_run:
      wfcinit      :      0.05s CPU      0.05s WALL (       1 calls)
      wfcinit:atom :      0.00s CPU      0.00s WALL (       1 calls)
-     wfcinit:wfcr :      0.04s CPU      0.04s WALL (       1 calls)
-     potinit      :      1.57s CPU      1.65s WALL (       1 calls)
+     wfcinit:wfcr :      0.04s CPU      0.05s WALL (       1 calls)
+     potinit      :      1.44s CPU      1.50s WALL (       1 calls)
+     hinit0       :      1.12s CPU      1.14s WALL (       1 calls)
 
      Called by electrons:
-     c_bands      :      3.15s CPU      3.16s WALL (      24 calls)
-     sum_band     :      9.54s CPU     10.53s WALL (      24 calls)
-     v_of_rho     :     11.81s CPU     12.32s WALL (      27 calls)
-     v_h          :     18.21s CPU     21.24s WALL (     593 calls)
-     v_xc         :     10.97s CPU     11.42s WALL (      27 calls)
-     newd         :      5.24s CPU      6.29s WALL (      27 calls)
-     mix_rho      :      1.62s CPU      1.62s WALL (      24 calls)
+     c_bands      :      3.23s CPU      3.96s WALL (      24 calls)
+     sum_band     :      8.27s CPU     10.01s WALL (      24 calls)
+     v_of_rho     :     10.88s CPU     12.28s WALL (      27 calls)
+     v_h          :      0.75s CPU      0.77s WALL (      27 calls)
+     v_xc         :     10.13s CPU     11.51s WALL (      27 calls)
+     newd         :      5.79s CPU      7.57s WALL (      27 calls)
+     mix_rho      :      1.48s CPU      1.65s WALL (      24 calls)
 
      Called by c_bands:
-     init_us_2    :      0.18s CPU      0.18s WALL (      49 calls)
-     ccgdiagg     :      2.45s CPU      2.44s WALL (      24 calls)
-     wfcrot       :      0.66s CPU      0.67s WALL (      22 calls)
+     init_us_2    :      0.13s CPU      0.14s WALL (      49 calls)
+     ccgdiagg     :      2.58s CPU      3.29s WALL (      24 calls)
+     wfcrot       :      0.63s CPU      0.65s WALL (      22 calls)
 
      Called by sum_band:
+     sum_band:wei :      0.00s CPU      0.00s WALL (      24 calls)
+     sum_band:loo :      0.46s CPU      0.46s WALL (      24 calls)
+     sum_band:buf :      0.00s CPU      0.00s WALL (      24 calls)
+     sum_band:ini :      0.07s CPU      0.07s WALL (      24 calls)
+     sum_band:cal :      0.01s CPU      0.01s WALL (      24 calls)
      sum_band:bec :      0.00s CPU      0.00s WALL (      24 calls)
-     addusdens    :      6.89s CPU      7.84s WALL (      24 calls)
+     addusdens    :      7.04s CPU      8.78s WALL (      24 calls)
+     addusd:skk   :      0.15s CPU      0.16s WALL (      48 calls)
+     addusd:dgemm :      1.03s CPU      2.36s WALL (      48 calls)
+     addusd:qvan2 :      4.41s CPU      4.43s WALL (      48 calls)
 
      Called by *cgdiagg:
-     h_psi        :      2.74s CPU      2.75s WALL (     309 calls)
-     s_psi        :      0.13s CPU      0.12s WALL (     596 calls)
-     cdiaghg      :      0.00s CPU      0.00s WALL (      22 calls)
+     h_psi        :      2.85s CPU      3.35s WALL (     309 calls)
+     s_psi        :      0.13s CPU      0.14s WALL (     596 calls)
 
      Called by h_psi:
-     h_psi:pot    :      2.72s CPU      2.73s WALL (     309 calls)
-     h_psi:calbec :      0.09s CPU      0.11s WALL (     309 calls)
-     vloc_psi     :      2.56s CPU      2.55s WALL (     309 calls)
-     add_vuspsi   :      0.06s CPU      0.07s WALL (     309 calls)
-     h_1psi       :      2.19s CPU      2.18s WALL (     287 calls)
+     h_psi:calbec :      0.11s CPU      0.11s WALL (     309 calls)
+     vloc_psi     :      2.64s CPU      3.08s WALL (     309 calls)
+     add_vuspsi   :      0.09s CPU      0.14s WALL (     309 calls)
+     hs_1psi      :      2.33s CPU      2.81s WALL (     287 calls)
+     s_1psi       :      0.13s CPU      0.19s WALL (     287 calls)
 
      General routines
-     calbec       :      0.16s CPU      0.18s WALL (     632 calls)
-     fft          :     41.54s CPU     44.20s WALL (    2009 calls)
-     ffts         :      0.18s CPU      0.17s WALL (      51 calls)
-     fftw         :      1.96s CPU      1.93s WALL (     850 calls)
-     interpolate  :      1.54s CPU      1.57s WALL (      51 calls)
-     davcio       :      0.00s CPU      0.00s WALL (       3 calls)
+     calbec       :      0.19s CPU      0.24s WALL (     632 calls)
+     fft          :      5.78s CPU      6.07s WALL (     353 calls)
+     ffts         :      0.15s CPU      0.15s WALL (      51 calls)
+     fftw         :      2.56s CPU      2.85s WALL (     850 calls)
+     interpolate  :      0.65s CPU      0.65s WALL (      27 calls)
  
      Parallel routines
-     fft_scatter  :     10.95s CPU     12.15s WALL (    2910 calls)
  
      Environ routines
-     calc_eelect  :      0.08s CPU      0.07s WALL (      48 calls)
-     calc_velect  :    100.88s CPU    106.38s WALL (      44 calls)
-     dielectric   :      1.49s CPU      1.51s WALL (      30 calls)
-     calc_felect  :      0.46s CPU      0.47s WALL (       3 calls)
  
-     PWSCF        :  2m44.01s CPU     2m53.22s WALL
+     PWSCF        :   3m37.13s CPU   3m47.71s WALL
 
  
-   This run was terminated on:  15: 1:34  29Jan2018            
+   This run was terminated on:  14:49:40  25Sep2021            
 
 =------------------------------------------------------------------------------=
    JOB DONE.
