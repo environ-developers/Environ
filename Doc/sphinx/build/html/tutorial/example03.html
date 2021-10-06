@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3. Example: Isolated Systems &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="4. Example: Two-Dimensional Systems" href="example04.html" />
+    <link rel="prev" title="2. Example: Solvation Energy (SSCS)" href="example02.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">User Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="example01.html">1. Example: Solvation Energy (SCCS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example02.html">2. Example: Solvation Energy (SSCS)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3. Example: Isolated Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example04.html">4. Example: Two-Dimensional Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example05.html">5. Example: Charge Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example06.html">6. Example: Electrolyte Solutions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interface_models.html">Interface Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interactions.html">Interactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">User Tutorial</a> &raquo;</li>
+      <li><span class="section-number">3. </span>Example: Isolated Systems</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorial/example03.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-isolated-systems">
+<h1><span class="section-number">3. </span>Example: Isolated Systems<a class="headerlink" href="#example-isolated-systems" title="Permalink to this headline"></a></h1>
+<p>This example shows how to use pw.x to simulate isolated charge systems in vacuum or immersed in a continuum
+dielectric constant. Note that this can be thought of as an alternative to Environ’s own periodic correction
+as seen in Example 1. Since this setting resides in the pw input file, both input files should be checked for
+consistence. In the first example we removed all periodicity from the system with a correction that results
+in a fairly good approximation.</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="n">ELECTROSTATIC</span>
+   <span class="n">pbc_correction</span> <span class="o">=</span> <span class="s1">&#39;parabolic&#39;</span>
+   <span class="n">pbc_dim</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>In this example, we demonstrate a system without periodicity, thus removing the parameters stated before and
+keeping to the defaults. We also demonstrate an alternative to the pbc correction, which is the
+martyna-tuckerman <a class="footnote-reference brackets" href="#id3" id="id1">1</a> correction. This correction is seen as a more accurate method, at the cost of a larger
+required cellsize. For reliable results, a cell length of twice the molecule length is recommended, in any
+direction. This can be added into the pw input file, under the SYSTEM keyword.</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="nb">SYSTEM</span>
+<span class="nb">   </span><span class="n">assume_isolated</span> <span class="o">=</span> <span class="s1">&#39;martyna-tuckerman&#39;</span>
+</pre></div>
+</div>
+<p>The tolerance is different from previous examples. This value is chosen to facilitate the self-consistent
+process and will directly affect the speed and accuracy of the convergence. One should set this according to
+the type of simulation being run, these values in the examples serving as guidelines for that decision.</p>
+<p>Clearly for larger systems, the parabolic correction is a more feasible choice for imposing isolation.
+This is a real-space quadratic correction of the electrostatic potential <a class="footnote-reference brackets" href="#id4" id="id2">2</a>, which has been shown to
+provide energy accuracy improvements of almost 1 order of magnitude in comparison with the alternative PCC
+and GCC schemes for large cell sizes. This correction scheme implemented in Environ is limited to 0D and 2D
+systems (which account for the majority of systems that Environ typically works with).</p>
+<dl class="footnote brackets">
+<dt class="label" id="id3"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><ol class="upperalpha simple" start="7">
+<li><ol class="upperalpha simple" start="10">
+<li><p>Martyna and M. E. Tuckerman, J. Chem. Phys. 110, 2810 (1999)</p></li>
+</ol>
+</li>
+</ol>
+</dd>
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>I. Dabo et al. Phys. Rev. B 77, 115139 (2008)</p>
+</dd>
+</dl>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="example02.html" class="btn btn-neutral float-left" title="2. Example: Solvation Energy (SSCS)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="example04.html" class="btn btn-neutral float-right" title="4. Example: Two-Dimensional Systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

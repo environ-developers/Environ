@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Output Files" href="output.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install/install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environ/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environ/continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environ/interface_models.html">Interface Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="environ/interactions.html">Interactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">Output Files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#converge-issues">Converge Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#harris-foulkes-estimate">Harris-Foulkes Estimate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environ-total-energy-sum">Environ Total-Energy Sum</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>FAQ</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/faq.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="faq">
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline"></a></h1>
+<p>This section attempts to address Frequently Asked Questions regarding Environ. If your query does not
+relate to any of these sections, check out the Q&amp;A section on the website, which has instructions on joining
+the mailing group where you can chat with one of the developers.</p>
+<section id="converge-issues">
+<h2>Converge Issues<a class="headerlink" href="#converge-issues" title="Permalink to this headline"></a></h2>
+<p>There are physical and/or numerical reasons for why a calculation may explode. The latter is easier to solve,
+by tuning some of the parameters in the input file. The former is a little more tricky to handle.</p>
+<p>Roughly speaking, in a calculation with Environ, one needs to include some extra terms to the Kohn-Sham
+potential of the system in vacuum. These terms depend on the electronic density itself, in particular due to
+the fact that the interface between the system and the environment is defined in terms of the electronic
+density. Moreover, to compute one of these terms (e.g. the electrostatic interaction with the dielectric
+continuum), Environ uses an iterative approach, so at every SCF step, there is an additional iterative procedure
+performed by Environ, let’s call this the polarization iteration, in contrast to the SCF iteration.</p>
+<p>There are two Environ parameters which are crucial to help convergence of the total SCF calculation,
+<code class="docutils literal notranslate"><span class="pre">tol</span></code>, which controls the convergence of the polarization iteration, and <code class="docutils literal notranslate"><span class="pre">environ_thr</span></code>, which determines
+when the polarization iteration starts.</p>
+<p>When you decrease <code class="docutils literal notranslate"><span class="pre">tol</span></code>, the extra term coming from the interaction with the dielectric will be computed more
+accurately, but it will require more time to be computed. On the other hand, if the parameter is not set to
+be sufficiently accurate, the SCF procedure may not convergence as quickly, thus slowing the simulation down
+noticeably. Furthermore, a low convergence speed in the SCF may leads to oscillation around the SCF threshold,
+leading to convergence failure. Due to the fact that in general, the polarization iteration is less expensive
+than the SCF iteration, it is recommended that the user opts for a decreased <code class="docutils literal notranslate"><span class="pre">tol</span></code> when encountering these
+issues. Hence if in doubt, start with a generic value for the tolerance, be it the default or some value taken
+from the examples (depending on what you’re trying to simulate), and decrease if necessary.</p>
+<p>The existence of <code class="docutils literal notranslate"><span class="pre">environ_thr</span></code> allows for better convergence in general, since it is advisable not to add
+polarization correction terms in the first few SCF steps, due to the fact the accuracy of these energy terms
+will still be poor (although if one is starting from a good set of input parameters, it is probably fine to
+enable the polarization correction from the start of the iteration, in which case the
+<code class="docutils literal notranslate"><span class="pre">environ_restart</span> <span class="pre">=</span> <span class="pre">.true.</span></code> will enable this). On the other hand, waiting too long to
+start adding Environ corrections can lead to poor convergence due to the fact that before the polarization
+iteration corrections kick in, the system is converging for vacuum, not a solution. Hence one can analyze the
+output file and see when the correction terms begin, in order to judge whether <code class="docutils literal notranslate"><span class="pre">environ_thr</span></code> is good or not.
+If the SCF accuracy explodes or converges poorly after the polarization iterations begin, it is recommended
+that one increases <code class="docutils literal notranslate"><span class="pre">environ_thr</span></code>. One rule of thumb to go by would be to make sure that Environ corrections
+skip only around 3-5 SCF steps.</p>
+<p>A further source of errors may arise due to the use of pseudopotentials for handling core electrons. This
+problem is more common in transition metals of halogens, and it comes from the neglect of these core
+electrons in the charge density used to build the interface with the environment. In some cases there appears
+to be a hole in the charge density on the nuclei, which is then filled with the environment (in fact, a
+couple of the examples in the tutorial address this fact and account for it in the input file). The solution
+is to use <code class="docutils literal notranslate"><span class="pre">solvent_mode</span> <span class="pre">=</span> <span class="pre">'full'</span></code>. This option adds additional gaussians centered on each atom, effectively
+describing the core electrons and thus not allowing the environment to permeate inside the atoms, while
+not compromising the definition of the interface.</p>
+<p>Another suggestion is to simplify the physics in the problem. In particular, since in most applications the
+most important effects of the environment are the electrostatic ones, you may want to switch off all the other
+non-electrostatic terms. This is possible by setting <code class="docutils literal notranslate"><span class="pre">environ_type</span> <span class="pre">=</span> <span class="pre">'input'</span></code> and manually setting the
+parameters that you want. By only setting <code class="docutils literal notranslate"><span class="pre">env_static_permittivity</span> <span class="pre">=</span> <span class="pre">78.3</span></code>, one only retains the dielectric
+continuum in the calculation, since all other contributions are off by default.</p>
+<p>When simulating a 2D system, convergence of the polarization potential is made more difficult by the artificial
+finite electric field coming from periodic boundary conditions. To avoid this, it would be better to use a PBC
+correction, in particular for slabs in Environ, a parabolic correction is implemented, and alternatively, one
+can utilize the Quantum ESPRESSO isolated options. See example 3 for a demonstration on isolated systems.
+Increasing the cellsize perpendicular to the slab will decrease periodic effects but increase convergence times
+due to the larger cell.</p>
+<p>One reason of poor convergence is simply a complex shape of the interface. New releases implement models
+designed to deal with some of these complex shapes.</p>
+</section>
+<section id="harris-foulkes-estimate">
+<h2>Harris-Foulkes Estimate<a class="headerlink" href="#harris-foulkes-estimate" title="Permalink to this headline"></a></h2>
+<p>The Harris-Foulkes estimate does not take into account the extra terms coming from Environ, as it would cost
+more than necessary for a quantity that is only used to have an estimate. As a matter of fact, also the SCF
+accuracy does not take into full account of the environment, but again it would need a secondary correction
+that would cost more than its utility.</p>
+</section>
+<section id="environ-total-energy-sum">
+<h2>Environ Total-Energy Sum<a class="headerlink" href="#environ-total-energy-sum" title="Permalink to this headline"></a></h2>
+<p>The energy output in an Environ calculation may be confusing in that the total energy is not the sum of the
+reported terms and it is not immediately clear what solvation energy means, but before going into the details
+of why, one point should be addressed. <code class="docutils literal notranslate"><span class="pre">dGsol</span></code>, and in particular <code class="docutils literal notranslate"><span class="pre">dGel</span></code>, are not quantities that you
+get from a single calculation in solution, but rather are obtained as the difference in energy from a
+calculation fully optimized (nuclei and electrons) in solution minus a calculation fully optimized (nuclei and
+electrons) in vacuum. This is explained in Example 1 of the Tutorial. In general, for these values, one needs
+two geometry optimization (relax) calculations for these energy values that are typically reported in our
+publications. Hence solvation energy requires two calculations.</p>
+<p>The different terms do not add to the same energy due to the fact that there is a spurious extra term which is
+subtracted from the one-electron contribution, but is not reported in the output. The reason is that total
+energy is computed in pw making use of the secular expression (see for example W. E. Pickett, Computer Physics
+Reports, 9(3), 115-198, 1989, equations 5.21-5.22 etc.), thus from the sum of occupied states eigenvalues
+(so called band structure energy, “eband” in pw.x), in which some contributions are included correctly (the
+kinetic and the electron-nuclei interaction), some are double counted (hartree), some need to be removed and
+added back with the correct expression (xc term), and some are missing (nuclei-nuclei interaction via ewald sum).
+What PW reports in the output as the one-electron contribution is in fact ebands minus the double counted
+hartree and minus the wrong xc term (these spurious terms are summed up in pw.x into a term named “deband”).</p>
+<p>Similarly, when performing the solvated calculation, there are some terms which are double counted (the
+electronic part of the solvation energy), some that are missing (the ionic part of the solvation energy), some
+that have the wrong expression (pressure and cavitation) and some that need to be removed (for example a term
+coming from the rho-dependence of the dielectric constant). All these spurious terms are collected in a term
+named “deenviron”, which has the same meaning as “deband” seen above. To get to the point, what is wrong in the
+output is the one-electron contribution, which is reported including the spurious deenviron term. As the Environ
+module was designed not to affect the standard printout of QE, this output was not modified, and consequently,
+the terms do not sum to the correct total energy. The correction deenviron and deband terms were not reported,
+due to their insignifance in anything alone. However, this may well change in future Environ releases.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="output.html" class="btn btn-neutral float-left" title="Output Files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

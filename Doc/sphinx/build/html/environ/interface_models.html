@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interface Models &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interactions" href="interactions.html" />
+    <link rel="prev" title="Continuum" href="continuum.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="continuum.html">Continuum</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Interface Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#self-consistent-sccs">Self-Consistent (SCCS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#soft-sphere-sscs">Soft-Sphere (SSCS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#non-local-interfaces">Non-local interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="interactions.html">Interactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Interface Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/environ/interface_models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="interface-models">
+<h1>Interface Models<a class="headerlink" href="#interface-models" title="Permalink to this headline"></a></h1>
+<p>This page presents a more in-depth description of the interface models implemented in Environ, along
+with all revelant input parameters. Much of this text is structured to mirror a tutorial review on
+Continuum Embeddings, <a class="footnote-reference brackets" href="#id6" id="id1">1</a>.</p>
+<p>In general the interface is a 3D continuous, differentiable scalar field with a range from 0 to 1.
+A value of 1 (or within some tolerance) refers to the system, and a value of 0 (or within some tolerance)
+refers to the environment. The boundary is a function of the ensemble of the positions of the environment
+molecule. The strategy taken by continuum embedding models is to define this boundary from the system
+information only. This avoids the need for statistical sampling and/or other computationally expensive
+approaches.</p>
+<p>The tutorial review summarizes the reasons for choosing a smooth boundary over a sharp one. Environ
+implements smooth boundaries since the QM simulation of the embedded system works in 3D (and reciprocal)
+space. The choice to retain 3D when working with the interface bypasses the possible issues encountered
+in discretization, where singularities and discontinuities are possible. We argue that from a computational
+standpoint, it is more reasonable to work with a set of vector and scalar fields that share the same
+numerical domain.</p>
+<section id="self-consistent-sccs">
+<h2>Self-Consistent (SCCS)<a class="headerlink" href="#self-consistent-sccs" title="Permalink to this headline"></a></h2>
+<p>The SCCS model is described comprehensively in the 2012 publication <a class="footnote-reference brackets" href="#id7" id="id2">2</a>, we present here a summary of the
+theory and methodology behind the model.</p>
+<p>This model chooses to base the definition of the interface on the electronic density, which is a scalar
+field that varies from a higher magnitude close to the ions, to a lower magnitude as we move into the
+environment. This approach is based on the original model proposed by Fattebert and Gygi <a class="footnote-reference brackets" href="#id8" id="id3">3</a>.</p>
+<div class="math notranslate nohighlight">
+\[s(\mathbf{r}) = \frac{1}{2}\left(1 - \frac{1 - (\rho^{\text{el}}(\mathbf{r})/\rho_0)^{2\beta}}{1 + (\rho^{\text{el}}(\mathbf{r})/\rho_0)^{2\beta}}\right)\]</div>
+<p>which has two parameters, <span class="math notranslate nohighlight">\(\rho_0\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span>. Instead it uses a piece-wise definition,</p>
+<div class="math notranslate nohighlight">
+\[s(\mathbf{r}) = t(\ln(\rho^{\text{el}}(\mathbf{r})))\]</div>
+<p>where <span class="math notranslate nohighlight">\(t(x)\)</span> is a smooth function, and the two parameters are <span class="math notranslate nohighlight">\(\rho_{\text{min}}\)</span> and
+<span class="math notranslate nohighlight">\(\rho_{\text{max}}\)</span> that bound the above function, the function returns 1 with an input above
+the max density bound and 0 with an input below the min density bound.</p>
+</section>
+<section id="soft-sphere-sscs">
+<h2>Soft-Sphere (SSCS)<a class="headerlink" href="#soft-sphere-sscs" title="Permalink to this headline"></a></h2>
+<p>The SSCS model is described comprehensively in the 2017 publication <a class="footnote-reference brackets" href="#id9" id="id4">4</a>, again, we present here a
+summary of the theory and methodology behind the model.</p>
+<p>This model choose to base the definition of the interface on the ionic positions, and takes a similar
+approach to the PCM model <a class="footnote-reference brackets" href="#id10" id="id5">5</a>. In the same vein as the SCCS model, rather than sticking with a 2D
+definition of the boundary, the model defines its smooth 3D interface function on interlocking smooth
+spheres centered on the ionic positions, and scaled depending on the atom, with an additional global
+scaling for parameterization.</p>
+</section>
+<section id="non-local-interfaces">
+<h2>Non-local interfaces<a class="headerlink" href="#non-local-interfaces" title="Permalink to this headline"></a></h2>
+<p>The SCCS model can be thought of as a local interface, the value of the interface function is solely
+dependent on the electronic density at that position. Likewise, the interface function of the soft-sphere
+is agnostic of the ‘bigger picture’. There are a number of limitations of this assumption. Firstly,
+it is easy to imagine that more complex system with artifacts such as cavities devoid of molecule
+where a solvent should
+not access, will be misrepresented by a local model, which will by design fill any cavities without
+regard for the physical implications. Secondly, in the SCCS, the net system charge will influence the size
+of the QM cavity. Physically this is desirable since for charged systems, a solvent such as water would
+interact more closely with the system, but only for positive charges, where the SCCS will shrink
+the QM cavity. For negative charges, the model scales the system in the wrong direction and therefore
+produces poor results without a reparameterization.</p>
+<p>There have been a number of recent techniques proposed in the literature that have been implemented
+(or still under development) in Environ. First is the solvent-aware model, which can be toggled in
+conjunction with either implemented interface model.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><ol class="upperalpha simple" start="15">
+<li><p>Andreussi and G. Fisicaro, Wiley DOI: 10.1002/qua.25725 (2018)</p></li>
+</ol>
+</dd>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><ol class="upperalpha simple" start="15">
+<li><p>Andreussi, I. Dabo, and N. Marzari, J. Chem. Phys. 136, 064102 (2012)</p></li>
+</ol>
+</dd>
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dd><ol class="upperalpha simple" start="10">
+<li><ol class="upperalpha simple" start="12">
+<li><p>Fattebert, F. Gygi, J. Comput. Chem., 2002, 23(6), 662</p></li>
+</ol>
+</li>
+</ol>
+</dd>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
+<dd><ol class="upperalpha simple" start="7">
+<li><p>Fisicaro et al., J. Comput. Chem., 2017 13(8), 3829</p></li>
+</ol>
+</dd>
+<dt class="label" id="id10"><span class="brackets"><a class="fn-backref" href="#id5">5</a></span></dt>
+<dd><ol class="upperalpha simple" start="19">
+<li><p>Miertus, E. Scrocco, J. Tomasi, J. Chem. Phys. 1981 2;55(1):117-129</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="continuum.html" class="btn btn-neutral float-left" title="Continuum" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="interactions.html" class="btn btn-neutral float-right" title="Interactions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

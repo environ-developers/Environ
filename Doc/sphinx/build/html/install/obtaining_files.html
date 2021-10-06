@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obtaining source files &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Configuration" href="configuring_install.html" />
+    <link rel="prev" title="Preliminary steps" href="preliminary_steps.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="install.html">Installation instructions</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="preliminary_steps.html">Preliminary steps</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Obtaining source files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#qe">QE</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#environ">Environ</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="configuring_install.html">Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="optional_QE_comp.html">Pre-compilation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Environ_install.html">Environ installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interface_models.html">Interface Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interactions.html">Interactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="install.html">Installation instructions</a> &raquo;</li>
+          <li><a href="preliminary_steps.html">Preliminary steps</a> &raquo;</li>
+      <li>Obtaining source files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/install/obtaining_files.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="obtaining-source-files">
+<h1>Obtaining source files<a class="headerlink" href="#obtaining-source-files" title="Permalink to this headline"></a></h1>
+<section id="qe">
+<h2>QE<a class="headerlink" href="#qe" title="Permalink to this headline"></a></h2>
+<ol class="arabic">
+<li><p>clone the repository and checkout <span class="guilabel">qe-6.3</span> (or later)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">gitlab</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">QEF</span><span class="o">/</span><span class="n">q</span><span class="o">-</span><span class="n">e</span>
+<span class="n">git</span> <span class="n">checkout</span> <span class="n">qe</span><span class="o">-</span><span class="mf">6.3</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>or</p>
+<ol class="arabic">
+<li><p>download a qe-6.3 archive (or later) from the <a class="reference external" href="https://github.com/QEF/q-e/releases">QE releases</a> page</p></li>
+<li><p>unpack the archive</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tar</span> <span class="n">zxvf</span> <span class="n">qe</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p>or, if your <strong class="command">tar</strong> doesn’t recognize the <span class="guilabel">z</span> flag</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gunzip</span> <span class="o">-</span><span class="n">c</span> <span class="n">qe</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span> <span class="o">|</span> <span class="n">tar</span> <span class="n">xvf</span> <span class="o">-</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="environ">
+<h2>Environ<a class="headerlink" href="#environ" title="Permalink to this headline"></a></h2>
+<ol class="arabic">
+<li><p>clone the Environ repository into the QE root directory</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">environ</span><span class="o">-</span><span class="n">developers</span><span class="o">/</span><span class="n">Environ</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>or</p>
+<ol class="arabic">
+<li><p>download an archive from the <a class="reference external" href="https://github.com/environ-developers/Environ/releases">Environ releases</a> page</p></li>
+<li><p>unpack the archive inside the QE root directory</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tar</span> <span class="n">zxvf</span> <span class="n">qe</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+<p>or, if your <strong class="command">tar</strong> doesn’t recognize the <span class="guilabel">z</span> flag</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gunzip</span> <span class="o">-</span><span class="n">c</span> <span class="n">qe</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span> <span class="o">|</span> <span class="n">tar</span> <span class="n">xvf</span> <span class="o">-</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="preliminary_steps.html" class="btn btn-neutral float-left" title="Preliminary steps" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="configuring_install.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

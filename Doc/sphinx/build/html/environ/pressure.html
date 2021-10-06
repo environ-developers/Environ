@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pressure &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tension" href="tension.html" />
+    <link rel="prev" title="Diffuse Layer Models" href="diffuse_layer_models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interface_models.html">Interface Models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="interactions.html">Interactions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dielectric_medium.html">Dielectric Medium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="diffuse_layer_models.html">Diffuse Layer Models</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Pressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tension.html">Tension</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="interactions.html">Interactions</a> &raquo;</li>
+      <li>Pressure</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/environ/pressure.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pressure">
+<h1>Pressure<a class="headerlink" href="#pressure" title="Permalink to this headline"></a></h1>
+<p>There is a pressure field caused by the embedding environment. We represent this pressure field in a continuum
+fashion, following the concept of electronic enthalpy introduced by Cococcioni et al <a class="footnote-reference brackets" href="#id2" id="id1">1</a>. The approach exploits
+the notion of quantum volume, which can be straightforwardly defined in terms of a continuum interface function
+as</p>
+<div class="math notranslate nohighlight">
+\[V \equiv V[s] = \int s(\mathbf{r})d^3\mathbf{r}.\]</div>
+<p>The contribution to the enthalpy of the system is expressed as</p>
+<div class="math notranslate nohighlight">
+\[G^{\text{PV}}[s] = P^{\text{ext}}V[s],\]</div>
+<p>with <span class="math notranslate nohighlight">\(P^{\text{ext}}\)</span> the external pressure of the environment. This approach is based on an electronic
+interface, but equivalent arguments may be adopted for ionic or mixed interfaces. The key ingredient for the
+derivation of the enthalpy contribution to the Kohn-Sham potential or the inter-atomic forces is the functional
+derivative of the additional energetic term with respect to the interface function, which for the equation
+defining the continuum interface function above, is simply</p>
+<div class="math notranslate nohighlight">
+\[\frac{\delta F^{\text{PV}}[s]}{\delta s}(\mathbf{r}) = 1.\]</div>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Cococcioni M, Mauri F, Ceder G, Marzari N, Phys. Rev. Lett. 2005 4;94(14):145501</p>
+</dd>
+</dl>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="diffuse_layer_models.html" class="btn btn-neutral float-left" title="Diffuse Layer Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tension.html" class="btn btn-neutral float-right" title="Tension" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

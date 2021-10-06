@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diffuse Layer Models &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pressure" href="pressure.html" />
+    <link rel="prev" title="Dielectric Medium" href="dielectric_medium.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/tutorial.html">User Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interface_models.html">Interface Models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="interactions.html">Interactions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dielectric_medium.html">Dielectric Medium</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Diffuse Layer Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#explicit-charge">Explicit Charge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#poisson-boltzmann-model">Poisson-Boltzmann model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#modified-poisson-boltzmann-model">Modified Poisson-Boltzmann model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#additional-interactions">Additional Interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#environ">Environ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pressure.html">Pressure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tension.html">Tension</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="interactions.html">Interactions</a> &raquo;</li>
+      <li>Diffuse Layer Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/environ/diffuse_layer_models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="diffuse-layer-models">
+<h1>Diffuse Layer Models<a class="headerlink" href="#diffuse-layer-models" title="Permalink to this headline"></a></h1>
+<p>This page presents a more in-depth description of the diffuse layer models implemented in Environ, along with
+all revelant input parameters.</p>
+<section id="explicit-charge">
+<span id="expq"></span><h2>Explicit Charge<a class="headerlink" href="#explicit-charge" title="Permalink to this headline"></a></h2>
+<p>Environ has the ability to represent external charges of various types. As with most of the examples on this
+page, we will assume a setup consisting of some noble metal slab (i.e. a two-dimensional system) that can
+possess some surface charge. To compensate we then consider the addition of countercharge, either explicitly or
+via an electrolyte solution. Explicit charges come in a variety of implemented forms depending on the specified
+dimensionality. Suppose we want a point charge electron at some arbitrary position. One could enter the
+following into the Environ input file,</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="n">EXTERNAL_CHARGES</span> <span class="p">(</span><span class="n">bohr</span><span class="p">)</span>
+<span class="o">-</span><span class="mi">1</span> <span class="mf">0.</span> <span class="mf">0.</span> <span class="mf">0.</span> <span class="mf">1.0</span> <span class="mi">0</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Remember to update the env_external_charges parameter appropriately (here we could have something like</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="n">ENVIRON</span>
+   <span class="n">env_external_charges</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>This places a point-charge (since the dimensionality is set to 0), at the origin. The charge is given a negative
+value whose magnitude equals that of an electron. The spread is set to 1.0. The dimensionality is given as 0,
+and the axis setting is irrelevent but set to 0 anyway. The definition of the spread is
+based off the following 1D definition for the gaussian,</p>
+<div class="math notranslate nohighlight">
+\[ae^{\frac{(x-b)^2}{c^2}}\]</div>
+<p>Note the lack of the factor of two that some definitions use. In three dimensions, the equation is effectively
+the same, only radial around the 3-dimensional point specified in the input. The gaussian is normalized to the
+specified charge. This convention has a lot of transferability, and by simply changing the dimensionality of the
+input, can be extended to line charges, and planar charges. For these objects, the axis is relevant. For a line
+charge, the chosen axis corresponds to a the axis parallel to the line charge, and for a plane, it corresponds
+to the axis normal to the plane. Note that this definition clearly does not account for all possible definitions
+of line and plane charge distributions, but this can be achieved instead by changing the atomic positions of
+the slab.</p>
+<p>For an example of plane countercharges, see <a class="reference internal" href="../tutorial/example05.html#ex05"><span class="std std-ref">Example: Charge Distributions</span></a>.</p>
+<p>For models with charge distribution, the free energy functional can be written as</p>
+<div class="math notranslate nohighlight">
+\[F^{\text{PC}}[\rho(\mathbf{r}), \phi(\mathbf{r}] = \int\left[-\frac{\epsilon(\mathbf{r})}{8\pi}\lvert\nabla\phi(\mathbf{r})\rvert^2 + \rho(\mathbf{r})\phi(\mathbf{r}) + \rho^{\text{ions}}(\mathbf{r})\phi(\mathbf{r})\right]d\mathbf{r}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\rho(\mathbf{r})\)</span> is the total charge density of the solute, <span class="math notranslate nohighlight">\(\phi(\mathbf{r})\)</span> is the
+electrostatic potential, and <span class="math notranslate nohighlight">\(\rho^{\text{ions}}(\mathbf{r})\)</span> is the external charge density that
+mimics the counterion accumulation.</p>
+</section>
+<section id="poisson-boltzmann-model">
+<h2>Poisson-Boltzmann model<a class="headerlink" href="#poisson-boltzmann-model" title="Permalink to this headline"></a></h2>
+<p>The Poisson-Boltzmann model accounts for the chemical potential and the entropy of the ions in solution.
+Adding these consequently explicit concentration-dependent terms results in a different free energy functional
+than before,</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}F^{\text{PC}}[\rho(\mathbf{r}), \phi(\mathbf{r}, \{c_i(\mathbf{r}\}] = \int\left[-\frac{\epsilon(\mathbf{r})}{8\pi}\lvert\nabla\phi(\mathbf{r})\rvert^2 + \rho(\mathbf{r})\phi(\mathbf{r}) + \rho^{\text{ions}}(\mathbf{r})\phi(\mathbf{r})\right.\\\left.-\sum^{\text{p}}_{i=1}\mu_i(c_i(\mathbf{r})-c_i^0)-T(s[\{c_i(\mathbf{r})\}]-s[\{c_i^0\}])\right]d\mathbf{r}.\end{aligned}\end{align} \]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mu_i\)</span> is the chemical potential of the ith electrolyte species and T is the temperature, that
+is included as part of the entropy term.</p>
+<p>We assume that these electrolytes have point-charge, and there is ideal mixing, leading us to the following
+entropy expression,</p>
+<div class="math notranslate nohighlight">
+\[s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{\gamma(\mathbf{r})}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\gamma(\mathbf{r})\)</span> is the exclusion function and sets the boundary between the electrolyte
+and solute regions.</p>
+<p>The functional above is
+minimized with respect to the concentrations in order to find the equilibrium for electrolyte concentrations.
+This leads to the well-known Poisson-Boltzmann equation, which can be numerically solved using Newton’s
+iterative algorithm and a preconditioned conjugate gradient algorithm, which works with linear equations.</p>
+<p>There are times when it is beneficial to approximate the Poisson-Boltzmann equation, which is non-linear and
+thus non-trivial to solve. For <span class="math notranslate nohighlight">\(z_i\phi(\mathbf{r}) \ll k_BT\)</span>, that is, when the electrostatic potential
+is low, or in the high-temperature limit, one can approximate the Poisson-Boltzmann by its linear form, which
+is derived by Taylor expanding the appropriate terms in the full Poisson-Boltzmann equation. The result is
+a less computationally expensive approach to representing the electrolyte, while still maintaining the same
+parameter set.</p>
+<p>In the case where we deal with linear slabs with two-dimensional periodicity, a different approximation can
+be used. The idea here is that the one-dimensional Poisson-Boltzmann equation can be analytically solved and
+thus this result can be applied as a PBC (periodic boundary condition) correction. This approach is also
+known as the Gouy-Chapman Stern model for an electrolyte, and compares well to the numerical approach for
+our examples.</p>
+</section>
+<section id="modified-poisson-boltzmann-model">
+<h2>Modified Poisson-Boltzmann model<a class="headerlink" href="#modified-poisson-boltzmann-model" title="Permalink to this headline"></a></h2>
+<p>The Poisson-Boltzmann can be improved by dropping the assumpion of point-like ions. This assumption leads to
+an overestimate of the electrolyte countercharge accumulation at electrode surfaces, and thus, by accounting
+for the steric repulsion between ions, which opposes the electrostatic attraction between the counterions and
+the electrode surface, one can improve on the full Poisson-Boltzmann model. The size-modified
+Poisson-Boltzmann (MPB) can be derived from the same free energy functional as before, only with a modified
+entropy expression</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}s[\{c_i\}] = -k_B\sum^{\text{p}}_{i=1}c_i(\mathbf{r})\ln\frac{c_i(\mathbf{r})}{c_{\text{max}}\gamma(\mathbf{r})}\\-k_B\left(c_{\text{max}}\gamma(\mathbf{r} - \sum^{\text{p}}_{i=1}c_i(\mathbf{r})\right)\ln\left(1 - \sum^{\text{p}}_{i=1}\frac{c_i(\mathbf{r})}{c_{\text{max}}\gamma(\mathbf{r})}\right).\end{aligned}\end{align} \]</div>
+<p>The idea is to essentially impose a space dependent maximum ionic concentration, and the result is a better
+representation of the electrolyte, verified by a comparison to experimental differential capacitance.</p>
+</section>
+<section id="additional-interactions">
+<h2>Additional Interactions<a class="headerlink" href="#additional-interactions" title="Permalink to this headline"></a></h2>
+</section>
+<section id="environ">
+<h2>Environ<a class="headerlink" href="#environ" title="Permalink to this headline"></a></h2>
+<p>Environ has implemented all of the above models in a modular way that allows one to mix and match models and
+correction methods where reasonable.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dielectric_medium.html" class="btn btn-neutral float-left" title="Dielectric Medium" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pressure.html" class="btn btn-neutral float-right" title="Pressure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

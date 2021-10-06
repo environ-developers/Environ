@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6. Example: Electrolyte Solutions &mdash; Environ  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Overview" href="../environ/overview.html" />
+    <link rel="prev" title="5. Example: Charge Distributions" href="example05.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Environ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install/install.html">Installation instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorial.html">User Tutorial</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="example01.html">1. Example: Solvation Energy (SCCS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example02.html">2. Example: Solvation Energy (SSCS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example03.html">3. Example: Isolated Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example04.html">4. Example: Two-Dimensional Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example05.html">5. Example: Charge Distributions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">6. Example: Electrolyte Solutions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/continuum.html">Continuum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interface_models.html">Interface Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../environ/interactions.html">Interactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/environ_input.html">Environ Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input/pw_input.html">QE PW Input File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Environ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="tutorial.html">User Tutorial</a> &raquo;</li>
+      <li><span class="section-number">6. </span>Example: Electrolyte Solutions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorial/example06.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-electrolyte-solutions">
+<h1><span class="section-number">6. </span>Example: Electrolyte Solutions<a class="headerlink" href="#example-electrolyte-solutions" title="Permalink to this headline"></a></h1>
+<p>This example, like the previous two, models a 2-D metallic structure, this time, an Ag (100) slab, in
+water solution. The
+slab is charged and an electrolyte solution is added. This solution can be thought of as a solvent (whose
+characteristics we have now implemented a number of times), and electrolyte ions, that are defined based off
+a set of parameters. The parameters describing the ions are placed in the ENVIRON keyword</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="n">ENVIRON</span>
+   <span class="n">env_electrolyte_ntyp</span> <span class="o">=</span> <span class="mi">2</span>
+   <span class="n">zion</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="mi">1</span>
+   <span class="n">zion</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+   <span class="n">cion</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="mf">1.0</span>
+   <span class="n">cion</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">=</span> <span class="mf">1.0</span>
+   <span class="n">cionmax</span> <span class="o">=</span> <span class="mi">1</span><span class="mf">0.0</span>
+</pre></div>
+</div>
+<p>The env_electrolyte_ntyp parameter sets the number of ionic species that are to be defined, and for each species
+the charge (zion) and the concentration (cion) are to be specified. Finally the maximum concentration can be
+set (respresenting the maximum concentration of ions at any point).</p>
+<p>A number of electrolyte models can be implemented in Environ. This example iterates through the models based
+the numerical method, which utilizes the Poisson-Boltzmann equation or some variant. It also includes some
+analytical analogues that, rather than solve the Poisson-Boltzmann equation, add a correction to the potential.
+By default, the Poisson-Boltzmann model is set. By specifying the parameter</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="n">ENVIRON</span>
+   <span class="n">electrolyte_linearized</span> <span class="o">=</span> <span class="p">.</span><span class="n">true</span><span class="p">.</span>
+</pre></div>
+</div>
+<p>the model is changed to the linear equivalent. Refer to the publications <a class="footnote-reference brackets" href="#id4" id="id1">1</a>, <a class="footnote-reference brackets" href="#id5" id="id2">2</a> for more details on these
+models. Some pbc correction (as explained in example 1) is necessary here, since calculations involving the
+electrolyte require open boundary conditions. In the example, this is set to
+parabolic, referring to the numerical approach, whereas a change to the gcs correction,</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="n">ELECTROSTATIC</span>
+   <span class="n">pbc_correction</span> <span class="o">=</span> <span class="s1">&#39;gcs&#39;</span>
+</pre></div>
+</div>
+<p>will switch to the analytic approach to solving the relevant Poisson-Boltzmann equation.
+Note that this does not include the size-modified equation. The page on diffuse-layer models will describe
+each of the models and how they differ in more detail. In particular, the required parameters for each models
+do vary slightly. For the linearized Poisson-Boltzmann model and the Poisson-Boltzmann model, the charge
+and concentrations need to be specified. The additional max concentration (cionmax) parameter should be
+included when choosing the modified Poisson-Boltzmann model. Notice that the model need not be specified
+explicitly and is instead inferred by the parameters supplied to the input. The physical models all require
+at least the concentrations and the charges of the ions. By setting the maximum concentration to be non-zero,
+Environ will assume the user wishes to use the modified Poisson-Boltzmann model.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The gcs correction (Gouy-Chapman Stern) is a 1-D analytical solution to the Poisson-Boltzmann equation
+and thus is only valid for 2 dimensional systems. The correction has been shown to produce close results
+to the numerical equivalents and should therefore be considered if the user is looking to save computational
+time. The parabolic correction (as seen in previous examples) is a general correction that works in any
+number of dimensions, however in order for the gcs correction to be valid, there should be no parabolic
+correction.</p>
+</div>
+<p>As in previous examples, the
+solvent_mode parameter is set to ‘full’, due to a hole close to the Ag ions. A solvent-accessible but ion-free
+region in the proximity of the surface (Stern layer) is modeled by introducing an ion-exclusion function as
+described here <a class="footnote-reference brackets" href="#id6" id="id3">3</a>.</p>
+<p>The interface function respresenting the boundary between the quantum mechanical region and the electrolyte
+embedding environment is set in the BOUNDARY keyword</p>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="p">&amp;</span><span class="n">BOUNDARY</span>
+   <span class="n">electrolyte_mode</span> <span class="o">=</span> <span class="s1">&#39;system&#39;</span>
+   <span class="n">electrolyte_distance</span> <span class="o">=</span> <span class="mi">1</span><span class="mf">0.0</span>
+   <span class="n">electrolyte_spread</span> <span class="o">=</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>Here, the electrolyte_mode parameter is set to system, corresponding to a simple analytical function.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><ol class="upperalpha simple" start="6">
+<li><p>Nattino et al., J. Chem. Phys. 150, 041722 (2019)</p></li>
+</ol>
+</dd>
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><ol class="upperalpha simple" start="7">
+<li><p>Fisicaro et al., J. Chem. Phys. 144, 014103 (2016)</p></li>
+</ol>
+</dd>
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dd><p>I. Dabo et al., arXiv 0901.0096 (2008)</p>
+</dd>
+</dl>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="example05.html" class="btn btn-neutral float-left" title="5. Example: Charge Distributions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../environ/overview.html" class="btn btn-neutral float-right" title="Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Environ Developers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
