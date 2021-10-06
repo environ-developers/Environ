@@ -8,6 +8,6 @@
  &BOUNDARY
    !
    solvent_mode = 'ionic'
-   boundary_core = 'fft'
+   derivatives = 'fft'
    !
  /

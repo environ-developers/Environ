@@ -1,57 +1,66 @@
 #!/bin/bash
+#----------------------------------------------------------------------------------------
 #
-# Copyright (C) 2018 ENVIRON (www.quantum-environment.org)
+# Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 #
-#    This file is part of Environ version 1.1
+#----------------------------------------------------------------------------------------
 #
-#    Environ 1.1 is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 2 of the License, or
-#    (at your option) any later version.
+#     This file is part of Environ version 2.0
+#     
+#     Environ 2.0 is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 2 of the License, or
+#     (at your option) any later version.
+#     
+#     Environ 2.0 is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more detail, either the file
+#     `License' in the root directory of the present distribution, or
+#     online at <http://www.gnu.org/licenses/>.
 #
-#    Environ 1.1 is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more detail, either the file
-#    `License' in the root directory of the present distribution, or
-#    online at <http://www.gnu.org/licenses/>.
+#----------------------------------------------------------------------------------------
 #
-# PATCH script for plugin files in PW/src
+# Authors: Oliviero Andreussi (Department of Physics, UNT)
+#          Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
+#          Ismaila Dabo       (DMSE, Penn State)
+#          Edan Bainglass     (Department of Physics, UNT)
 #
-# Authors: Oliviero Andreussi (Department of Physics, University of North Thexas)
-#          Francesco Nattino  (THEOS and NCCR-MARVEL, Ecole Polytechnique Federale de Lausanne)
-#          Ismaila Dabo       (Department of Materials Science and Engineering, Penn State)
+#----------------------------------------------------------------------------------------
 #
+# PATCH script for plugin files and Makefile in PW/src
+#
+#----------------------------------------------------------------------------------------
 
 cd $PW_SRC
 
-if test -e "Environ_PATCH" ; then
-    echo "-- File Environ_PATCH exists in PW/src directory"
-    echo "-- I guess you have already patched PW/src with Environ $(tail -1 Environ_PATCH)"
-    echo "-- Please unpatch it first, or start from a clean source tree"
-    echo "-- See you later..."
-    echo "* ABORT"
-    exit
+patch_makefile
+
+check_src_patched
+if test "$PATCHED" == 1; then 
+   return
+else
+   message "Patching"
 fi
 
-echo "* I will try to patch PW/src with Environ version $ENVIRON_VERSION ..."
-echo "#Please do not remove or modify this file"                          >  Environ_PATCH
-echo "#It keeps track of patched versions of the Environ addson package" >> Environ_PATCH
-echo "$ENVIRON_VERSION"                                                  >> Environ_PATCH
+echo "#Please do not remove or modify this file" >Environ_PATCH
+echo "#It keeps track of patched versions of the Environ addson package" >>Environ_PATCH
+echo "$ENVIRON_VERSION" >>Environ_PATCH
 
 # plugin_int_forces
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-  USE environ_main,  ONLY : calc_fenviron\
+  USE env_global_objects, ONLY : env\
+  USE class_calculator,   ONLY : calc\
 !Environ patch
-' plugin_int_forces.f90 > tmp.1
+' plugin_int_forces.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch \
   REAL(DP), ALLOCATABLE :: force_environ(:,:)\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
@@ -63,7 +72,7 @@ sed '/Environ CALLS BEGIN/ a\
     !\
     ! ... Add environment contributions\
     !\
-    CALL calc_fenviron( nat, force_environ )\
+    CALL calc%force( env, nat, force_environ )\
     !\
     IF ( iverbosity > 0 ) THEN\
       WRITE( stdout, 9001 )\
@@ -82,7 +91,7 @@ sed '/Environ CALLS BEGIN/ a\
 9001 FORMAT(5x,"The global environment contribution to forces")\
 9002 FORMAT(5X,"atom ",I4," type ",I2,"   force = ",3F14.8)\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_int_forces.f90
 
@@ -90,88 +99,47 @@ mv tmp.1 plugin_int_forces.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-  USE io_global,  ONLY : ionode, ionode_id, stdout\
-  USE mp_images,  ONLY : intra_image_comm\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!  USE input_parameters, ONLY : nspin\
-!  USE input_parameters, ONLY : nat, ntyp, atm => atom_label\
-!  USE input_parameters, ONLY : ibrav\
-! Compatible with QE-6.3.X\
-!  USE lsda_mod,   ONLY : nspin\
-!  USE ions_base,  ONLY : nat, ntyp => nsp, atm\
-!  USE cell_base,  ONLY : ibrav\
-! Compatible with QE-6.4.X QE-GIT\
-  USE ions_base,  ONLY : nat, ntyp => nsp, atm\
-  USE cell_base,  ONLY : ibrav\
-! END BACKWARD COMPATIBILITY\
-  USE martyna_tuckerman, ONLY : do_comp_mt\
-  USE environ_input,     ONLY : read_environ\
-  USE environ_output,    ONLY : set_environ_output\
+  USE io_global,          ONLY : ionode, ionode_id, stdout\
+  USE mp_images,          ONLY : intra_image_comm\
+  USE martyna_tuckerman,  ONLY : do_comp_mt\
+  USE class_io,           ONLY : io\
+  USE env_global_objects, ONLY : setup\
+  USE environ_input,      ONLY : read_environ_input\
 !Environ patch
-' plugin_read_input.f90 > tmp.1
-
-sed '/Environ VARIABLES BEGIN/ a\
-!Environ patch\
-! BACKWARD COMPATIBILITY \
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!  CHARACTER( LEN = 2 ) :: prog\
-! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY\
-!Environ patch
-' tmp.1 > tmp.2
-
-sed '/Environ CALLS BEGIN/ a\
-!Environ patch\
-   IF (use_environ) THEN\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X\
-!      prog = "PW"\
-! Compatible with QE-6.3.X QE-6.4.X QE-GIT\
-! END BACKWARD COMPATIBILITY\
-      CALL set_environ_output(prog, ionode, ionode_id, intra_image_comm, stdout)\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X QE-6.2.X QE-6.3.X\
-!      CALL read_environ(prog, 1, nspin, nat, ntyp, atm, do_comp_mt)\
-! Compatible with QE-6.4.X QE-GIT\
-      CALL read_environ(prog, 1, nat, ntyp, atm, do_comp_mt)\
-! END BACKWARD COMPATIBILITY\
-   ENDIF\
-!Environ patch
-' tmp.2 > tmp.1
-
-mv tmp.1 plugin_read_input.f90
-
-# plugin_clean
-
-sed '/Environ MODULES BEGIN/ a\
-!Environ patch\
-USE environ_base, ONLY : ltddfpt\
-USE environ_init, ONLY : environ_clean, environ_clean_pw, &\
-                         environ_clean_tddfpt\
-!Environ patch
-' plugin_clean.f90 > tmp.1
-
-sed '/Environ VARIABLES BEGIN/ a\
-!Environ patch\
-! BACKWARD COMPATIBILITY \
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!  CHARACTER( LEN = 2 ) :: prog\
-! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY\
-!Environ patch
-' tmp.1 > tmp.2
+' plugin_read_input.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
    IF (use_environ) THEN\
       !\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-5.X QE-6.1.X, QE-6.2.X\
-!       prog = "PW"\
-! Compatible with QE-6.3.X and QE-GIT\
-! END BACKWARD COMPATIBILITY\
-      IF ( prog(1:2) == "PW" ) THEN\
+      CALL io%init(ionode, ionode_id, intra_image_comm, stdout, ionode)\
+      !\
+      CALL read_environ_input()\
+      !\
+      CALL setup%init()\
+      !\
+      IF (prog == "TD") CALL setup%set_tddfpt(.TRUE.)\
+      !\
+   ENDIF\
+!Environ patch
+' tmp.1 >tmp.2
+
+mv tmp.2 plugin_read_input.f90
+
+# plugin_clean
+
+sed '/Environ MODULES BEGIN/ a\
+!Environ patch\
+USE class_destructor,   ONLY : clean\
+USE env_global_objects, ONLY : setup\
+!Environ patch
+' plugin_clean.f90 >tmp.1
+
+sed '/Environ CALLS BEGIN/ a\
+!Environ patch\
+   IF (use_environ) THEN\
+      !\
+      IF (prog(1:2) == "PW") THEN\
          !\
          ! When called by PW, but inside a TD calculation\
          ! do not clean environ variables, they have been\
@@ -181,7 +149,7 @@ sed '/Environ CALLS BEGIN/ a\
          ! ones initialized while processing the input:\
          ! this allows NEB simulations\
          !\
-         IF ( .NOT. ltddfpt ) CALL environ_clean(lflag)\
+         IF (.NOT. setup%is_tddfpt()) CALL clean%all()\
          !\
       ELSE IF ( prog(1:2) == "TD" ) THEN\
          !\
@@ -190,36 +158,36 @@ sed '/Environ CALLS BEGIN/ a\
          ! the TD variables. In both cases, the variables are\
          ! fully cleaned (no NEB with TD).\
          !\
-	 IF ( .NOT. lflag ) THEN\
-            CALL environ_clean_pw(.TRUE.)\
+         IF (.NOT. lflag) THEN\
+            CALL clean%first()\
          ELSE\
-            CALL environ_clean_tddfpt(.TRUE.)\
-	 END IF\
+            CALL clean%second()\
+         END IF\
          !\
       END IF\
       !\
    END IF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.1 >tmp.2
 
-mv tmp.1 plugin_clean.f90
+mv tmp.2 plugin_clean.f90
 
 # plugin_summary
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    io_global,      ONLY : stdout \
-USE    environ_output, ONLY : environ_summary, & \
-                              update_output_program_unit \
+USE io_global,          ONLY : stdout \
+USE env_global_objects, ONLY : setup\
+USE class_io,           ONLY : io\
 !Environ patch
-' plugin_summary.f90 > tmp.1
+' plugin_summary.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL update_output_program_unit( stdout ) \
-   if(use_environ) CALL environ_summary() \
+   IF (use_environ) CALL io%update_unit( stdout )\
+   IF (use_environ) CALL setup%print_summary()\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_summary.f90
 
@@ -227,34 +195,56 @@ mv tmp.2 plugin_summary.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    mp_bands,     ONLY : intra_bgrp_comm, me_bgrp, root_bgrp_id \
-USE    cell_base,    ONLY : at, alat, omega, ibrav \
-USE    environ_init, ONLY : environ_initbase \
+USE kinds,              ONLY : DP\
+USE mp_bands,           ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
+USE cell_base,          ONLY : at, alat\
+USE ions_base,          ONLY : nat, nsp, ityp, atm, zv\
+USE martyna_tuckerman,  ONLY : do_comp_mt\
+USE gvect,              ONLY : gcutm\
+USE class_io,           ONLY : io\
+USE env_global_objects, ONLY : env, setup\
 !Environ patch
-' plugin_initbase.f90 > tmp.1
+' plugin_initbase.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
-!Environ patch \
-INTEGER :: ir_end \
+!Environ patch\
+REAL(DP), ALLOCATABLE :: at_scaled(:, :)\
+REAL(DP) :: gcutm_scaled\
+INTEGER :: nr(3)\
+CHARACTER(LEN=80) :: sub_name = "plugin_initbase"\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-! BACKWARD COMPATIBILITY \
-! Compatible with QE-5.X QE-6.1.X \
-!  ir_end = dfftp%nr1x*dfftp%nr2x*dfftp%npl \
-! Compatible with QE-6.2.X, QE-6.3.X and QE-GIT \
-#if defined (__MPI) \
-    ir_end = MIN(dfftp%nnr,dfftp%nr1x*dfftp%my_nr2p*dfftp%my_nr3p) \
-#else \
-    ir_end = dfftp%nnr \
-#endif \
-! END BACKWARD COMPATIBILITY \
-  IF ( use_environ ) CALL environ_initbase( dfftp%nr1, dfftp%nr2, dfftp%nr3, ibrav, alat, omega, at, & \
-                                          & dfftp%nnr, ir_end, intra_bgrp_comm, me_bgrp, root_bgrp_id ) \
+  IF (use_environ) THEN\
+      !\
+      IF (alat < 1.D-8) CALL io%error(sub_name, "Wrong alat", 1)\
+      !\
+      IF (alat < 1.0_DP) CALL io%warning("strange lattice parameter")\
+      !\
+      CALL env_allocate_mp_buffers()\
+      !\
+      ALLOCATE (at_scaled(3, 3))\
+      at_scaled = at * alat\
+      !\
+      gcutm_scaled = gcutm / alat**2\
+      !\
+      nr(1) = dfftp%nr1\
+      nr(2) = dfftp%nr2\
+      nr(3) = dfftp%nr3\
+      !\
+      CALL setup%init_cell(gcutm_scaled, intra_bgrp_comm, at_scaled, nr)\
+      !\
+      DEALLOCATE (at_scaled)\
+      !\
+      CALL setup%init_cores(gcutm_scaled, do_comp_mt)\
+      !\
+      CALL env%init(setup, 1, nat, nsp, atm, ityp, zv)\
+      !\
+  END IF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_initbase.f90
 
@@ -262,15 +252,15 @@ mv tmp.1 plugin_initbase.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    environ_output, ONLY : environ_clock \
+USE env_global_objects, ONLY : setup\
 !Environ patch
-' plugin_clock.f90 > tmp.1
+' plugin_clock.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-   if(use_environ) CALL environ_clock() \
+   if(use_environ) CALL setup%print_clocks() \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_clock.f90
 
@@ -278,22 +268,21 @@ mv tmp.2 plugin_clock.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE    control_flags,  ONLY : conv_elec \
-USE    environ_output, ONLY : environ_print_energies, & \
-                              environ_print_potential_warning \
+USE control_flags,      ONLY : conv_elec\
+USE env_global_objects, ONLY : env, setup\
 !Environ patch
-' plugin_print_energies.f90 > tmp.1
+' plugin_print_energies.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
    if (use_environ) then \
-     CALL environ_print_energies() \
+     CALL env%print_energies("PW") \
      if (conv_elec) then \
-       CALL environ_print_potential_warning() \
+       CALL setup%print_potential_warning() \
      end if \
    end if \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_print_energies.f90
 
@@ -301,59 +290,93 @@ mv tmp.2 plugin_print_energies.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE ions_base,            ONLY : zv, nat, nsp, ityp, tau\
-USE environ_init,         ONLY : environ_initions\
+USE cell_base,          ONLY : alat\
+USE ions_base,          ONLY : nat, tau\
+USE env_global_objects, ONLY : env, setup\
 !Environ patch
-' plugin_init_ions.f90 > tmp.1
+' plugin_init_ions.f90 >tmp.1
+
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch\
+REAL(DP), ALLOCATABLE :: tau_scaled(:, :)\
+!Environ patch
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-  IF ( use_environ ) call environ_initions( dfftp%nnr, nat, nsp, ityp, zv, tau )\
+IF (use_environ) THEN\
+   ALLOCATE (tau_scaled(3, nat))\
+   tau_scaled = tau * alat\
+   !\
+   CALL env%update_ions(nat, tau_scaled)\
+   !\
+   DEALLOCATE (tau_scaled)\
+END IF\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.2 >tmp.1
 
-mv tmp.2 plugin_init_ions.f90
+mv tmp.1 plugin_init_ions.f90
 
 # plugin_init_cell
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE cell_base,            ONLY : at, omega\
-USE environ_init,         ONLY : environ_initcell\
+USE cell_base,          ONLY : at, alat\
+USE env_global_objects, ONLY : env, setup\
 !Environ patch
-' plugin_init_cell.f90 > tmp.1
+' plugin_init_cell.f90 >tmp.1
+
+sed '/Environ VARIABLES BEGIN/ a\
+!Environ patch\
+REAL(DP), ALLOCATABLE :: at_scaled(:, :)\
+!Environ patch
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
-  IF ( use_environ ) call environ_initcell( omega, at )\
+IF ( use_environ ) THEN\
+   ALLOCATE (at_scaled(3, 3))\
+   at_scaled = at * alat\
+   !\
+   CALL setup%update_cell(at_scaled)\
+   !\
+   CALL env%update_cell_dependent_quantities()\
+   !\
+   CALL setup%end_cell_update()\
+   !\
+   DEALLOCATE (at_scaled)\
+END IF\
+!\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.2 >tmp.1
 
-mv tmp.2 plugin_init_cell.f90
+mv tmp.1 plugin_init_cell.f90
 
 # plugin_scf_energy
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_base,          ONLY : deenviron, eelectrostatic, & \
-                                  esurface, evolume, econfine, eelectrolyte \
-USE environ_main,          ONLY : calc_eenviron \
+USE env_global_objects, ONLY : env\
+USE class_calculator,   ONLY : calc\
 !Environ patch
-' plugin_scf_energy.f90 > tmp.1
+' plugin_scf_energy.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  IF(use_environ) THEN \
-        ! \
-        ! compute environ contributions to total energy \
-        ! \
-        CALL calc_eenviron( deenviron, eelectrostatic, esurface, evolume, econfine, eelectrolyte ) \
-        ! \
-        plugin_etot = plugin_etot + deenviron + eelectrostatic + esurface + evolume + econfine + eelectrolyte \
-        ! \
-  END IF \
+IF(use_environ) THEN \
+   ! \
+   ! compute environ contributions to total energy\
+   ! \
+   ! Note: plugin_etot is set to 0.0_dp right before \
+   !       this routine is called\
+   ! \
+   CALL calc%denergy(env, plugin_etot)\
+   ! \
+   CALL calc%energy(env, plugin_etot)\
+   ! \
+END IF \
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_scf_energy.f90
 
@@ -361,15 +384,15 @@ mv tmp.2 plugin_scf_energy.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch \
-USE environ_init,         ONLY : environ_initpotential\
+USE env_global_objects, ONLY : env\
 !Environ patch
-' plugin_init_potential.f90 > tmp.1
+' plugin_init_potential.f90 >tmp.1
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch \
-  IF(use_environ) CALL environ_initpotential( dfftp%nnr, vltot )\
+  IF(use_environ) CALL env%update_potential( dfftp%nnr, vltot )\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 mv tmp.2 plugin_init_potential.f90
 
@@ -377,21 +400,23 @@ mv tmp.2 plugin_init_potential.f90
 
 sed '/Environ MODULES BEGIN/ a\
 !Environ patch\
-USE klist,                 ONLY : nelec\
-USE control_flags,         ONLY : lscf\
-USE environ_base,          ONLY : update_venviron, environ_thr, &\
-                                  environ_restart, ltddfpt\
-USE environ_init,          ONLY : environ_initelectrons\
-USE environ_main,          ONLY : calc_venviron\
-USE environ_output,        ONLY : environ_print_potential_shift\
+USE kinds,              ONLY : DP\
+USE global_version,     ONLY : version_number\
+USE klist,              ONLY : nelec\
+USE control_flags,      ONLY : lscf\
+USE lsda_mod,           ONLY : nspin\
+USE env_global_objects, ONLY : env, setup\
+USE class_calculator,   ONLY : calc\
 !Environ patch
-' plugin_scf_potential.f90 > tmp.1
+' plugin_scf_potential.f90 >tmp.1
 
 sed '/Environ VARIABLES BEGIN/ a\
 !Environ patch\
+LOGICAL :: update_venviron\
 INTEGER :: local_verbose\
+REAL(DP), ALLOCATABLE :: rhoaux(:)\
 !Environ patch
-' tmp.1 > tmp.2
+' tmp.1 >tmp.2
 
 sed '/Environ CALLS BEGIN/ a\
 !Environ patch\
@@ -404,36 +429,39 @@ sed '/Environ CALLS BEGIN/ a\
         !\
         ! update electrons-related quantities in environ\
         !\
-! BACKWARD COMPATIBILITY\
-! Compatible with QE-6.0 QE-6.1.X QE-6.2.X QE-6.3.X\
-!        CALL environ_initelectrons( nspin, dfftp%nnr, rhoin%of_r, nelec )\
-! Compatible with QE-6.4.X QE-GIT\
-        CALL environ_initelectrons( dfftp%nnr, rhoin%of_r(:,1), nelec )\
-! END BACKWARD COMPATIBILITY\
+        ALLOCATE ( rhoaux(dfftp%nnr) )\
+        rhoaux(:) = rhoin%of_r(:, 1)\
+        !\
+        IF ( version_number == "6.3" ) THEN\
+            IF ( nspin == 2 ) rhoaux(:) = rhoaux(:) + rhoin%of_r(:, 2)\
+        END IF\
+        !\
+        CALL env%update_electrons( dfftp%nnr, rhoaux, nelec )\
         !\
         ! environ contribution to the local potential\
         !\
         IF ( dr2 .GT. 0.0_dp ) THEN\
-           update_venviron = .NOT. conv_elec .AND. dr2 .LT. environ_thr\
+           update_venviron = .NOT. conv_elec .AND. dr2 .LT. setup%get_threshold()\
         !\
         ELSE\
-           update_venviron = environ_restart .OR. ltddfpt\
+           update_venviron = setup%is_restart() .OR. setup%is_tddfpt()\
            ! for subsequent steps of optimization or dynamics, compute\
            ! environ contribution during initialization\
-           IF ( .NOT. environ_restart ) environ_restart = .TRUE.\
+           CALL setup%set_restart(.TRUE.)\
         ENDIF\
         !\
         IF ( update_venviron ) WRITE( stdout, 9200 )\
-        CALL calc_venviron( update_venviron, dfftp%nnr, vltot, local_verbose )\
         !\
-        IF ( .NOT. lscf .OR. conv_elec ) THEN\
-          CALL environ_print_potential_shift()\
-        END IF\
+        CALL calc%potential(env, update_venviron, local_verbose)\
+        !\
+        vltot = env%get_vzero(dfftp%nnr) + env%get_dvtot(dfftp%nnr)\
+        !\
+        IF ( .NOT. lscf .OR. conv_elec ) CALL env%print_potential_shift()\
         !\
 9200 FORMAT(/"     add environment contribution to local potential")\
      ENDIF\
 !Environ patch
-' tmp.2 > tmp.1
+' tmp.2 >tmp.1
 
 mv tmp.1 plugin_scf_potential.f90
 
@@ -444,87 +472,12 @@ sed '/Environ CALLS BEGIN/ a\
 IF (use_environ) CALL errore( calling_subroutine, &\
    & "Calculation not compatible with Environ embedding", 1)\
 !Environ patch
-' plugin_check.f90 > tmp.1
+' plugin_check.f90 >tmp.1
 
 mv tmp.1 plugin_check.f90
 
-# makov_payne
+rm tmp.2
 
-# sed '/Environ MODULES BEGIN/ a\
-# !Environ patch \
-# USE environ_mp,  ONLY : environ_makov_payne \
-# !Environ patch
-# ' makov_payne.f90 > tmp.1
-# 
-# sed '/Environ CALLS BEGIN/ a\
-# !Environ patch \
-#      IF(use_environ) THEN \
-#        CALL environ_makov_payne( dfftp%nnr, nspin, rho%of_r, x0, etot ) \
-#      ENDIF \
-# !Environ patch
-# ' tmp.1 > tmp.2
-# 
-# mv tmp.2 makov_payne.f90
-
-# force_lc
-
-cat > tmp.1 <<EOF
-!Environ patch
-subroutine external_force_lc( rhor, force )
-
-  use kinds,            only : DP
-  use cell_base,        only : at, bg, alat, omega
-  use ions_base,        only : nat, ntyp => nsp, ityp, tau, zv, amass
-  use fft_base,         only : dfftp
-  use fft_interfaces,   only : fwfft
-  use gvect,            only : ngm, gstart, ngl, nl, igtongl, g, gg, gcutm
-  use lsda_mod,         only : nspin
-  use vlocal,           only : strf, vloc
-  use control_flags,    only : gamma_only
-  use martyna_tuckerman, only: do_comp_mt, wg_corr_force
-  implicit none
-
-  real( dp ), intent(in) ::  rhor (dfftp%nnr, nspin)
-  real( dp ), intent(out) :: force (3, nat)
-
-  real( dp ), allocatable :: force_tmp(:,:)
-  complex( dp ), allocatable :: auxg(:), auxr(:)
-
-  force = 0.0_dp
-
-  allocate(force_tmp(3,nat))
-
-  if ( do_comp_mt) then
-     force_tmp = 0.0_dp
-     allocate(auxr(dfftp%nnr))
-     allocate(auxg(ngm))
-     auxg = cmplx(0.0_dp,0.0_dp)
-     auxr = cmplx(rhor(:,1),0.0_dp)
-     if ( nspin .eq. 2 ) auxr = auxr + cmplx(rhor(:,2),0.0_dp)
-     call fwfft ("Dense", auxr, dfftp)
-     auxg(:)=auxr(nl(:))
-     call wg_corr_force(.false.,omega, nat, ntyp, ityp, ngm, g, tau, zv, strf, &
-                        1, auxg, force_tmp)
-     deallocate(auxr,auxg)
-     force = force + force_tmp
-  endif
-
-  force_tmp = 0.0_dp
-  call force_lc( nat, tau, ityp, alat, omega, ngm, ngl, igtongl, &
-       g, rhor, nl, nspin, gstart, gamma_only, vloc, force_tmp )
-  force = force + force_tmp
-
-  return
-end subroutine external_force_lc
-!Environ patch
-EOF
-# BACKWARD COMPATIBILITY
-# Compatible with QE-5.X QE-6.1.X, QE-6.2.X
-# cat tmp.1 >> force_lc.f90
-# Compatible with QE-6.3.X and QE-GIT
-# END BACKWARD COMPATIBILITY
-rm tmp.1
-
-echo "- DONE!"
+printf " done!\n"
 
 cd $QE_DIR

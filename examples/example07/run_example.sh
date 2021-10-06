@@ -250,3 +250,14 @@ rm environ.in
 $ECHO " done" ${prefix}
 
 done
+
+evac=$(awk '/^!/ {en=$5}; END {print en}' H2OCluster_standard.out)
+esol=$(awk '/^!/ {en=$5}; END {print en}' H2OCluster_fill_pockets.out)
+dgsol=$($ECHO "($esol+(-1)*$evac)*313.68" | bc -l)
+
+$ECHO "  Energy in vacuum                    = $evac  Ry        " >> results.txt
+$ECHO "  Energy in solution                  = $esol  Ry        " >> results.txt
+$ECHO "  Electrostatic Solvation Energy      = $dgsol Kcal/mol  " >> results.txt
+
+$ECHO
+$ECHO "$EXAMPLE_DIR : done"

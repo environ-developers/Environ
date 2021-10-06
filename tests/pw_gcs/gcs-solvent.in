@@ -18,7 +18,7 @@
     electrolyte_mode = 'system',
 /
  &ELECTROSTATIC
-    solver = 'iterative'
+    solver = 'fixed-point'
     auxiliary = 'full'
     pbc_correction = 'gcs'
     pbc_dim = 2                 

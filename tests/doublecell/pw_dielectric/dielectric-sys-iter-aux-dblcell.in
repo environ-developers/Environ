@@ -1,0 +1,23 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_static_permittivity = 100. 
+   env_nrep(1) = 1
+   env_nrep(2) = 1
+   env_nrep(3) = 1
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'system'
+   solvent_distance = 6.D0
+   solvent_spread = 0.5D0
+   !
+ /
+ &ELECTROSTATIC
+   !
+   solver = 'fixed-point'
+   auxiliary = 'full'
+   !
+ /

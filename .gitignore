@@ -1,3 +1,12 @@
+# Configuration files
+*.log
+*.status
+*.msg
+*.inc
+
+# Dependency files
+make.depend
+
 # Compiled Object files
 *.slo
 *.lo
@@ -27,6 +36,7 @@
 *.exe
 #*.out
 *.app
+*.x
 
 # Directories with results of examples
 results/
@@ -42,5 +52,16 @@ tests/*/*.out
 *.pyc
 
 # Documentation files
+Doc/html/
+Doc/latex/
+Doc/INPUT_Environ.html
+Doc/INPUT_Environ.xml
+Doc/INPUT_Environ.txt
 input_xx.xsl
+test.sh
+.DS_Store
+*.99
+CRASH
 
+# Development files/folders
+.vscode/

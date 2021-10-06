@@ -1,0 +1,18 @@
+ &ENVIRON
+   !
+   verbose = 1
+   environ_thr = 1.d2
+   env_surface_tension = 100. 
+   env_pressure = 0.5
+   env_nrep(1) = 1
+   env_nrep(2) = 1
+   env_nrep(3) = 1
+   !
+ /
+ &BOUNDARY
+   !
+   solvent_mode = 'ionic'
+   solvent_radius = 3.0
+   filling_threshold = 0.30
+   !
+ /

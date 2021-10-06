@@ -1,0 +1,3 @@
+  Energy in vacuum                    = -343.09598293  Ry        
+  Energy in solution                  = -343.09629304  Ry        
+  Electrostatic Solvation Energy      = -.0972753048 Kcal/mol  

@@ -117,29 +117,29 @@ pbc_dim=0                  # select the desired system dimensionality
                            #   the 1D direction or normal to the 2D plane
                            #   (pbc_axis = 1, 2 or 3 for x, y or z axis)
 ### SOLVER PARAMETERS #######################################################
-solver='iterative' # type of solver (cg is default with dielectric)
-                   # direct: direct poisson solver (only for vacuum)
-                   # cg: conjugate gradient with sqrt preconditioner
-                   # sd: steepest descent with sqrt preconditioner
-                   # iterative: iterative approach
-auxiliary='full'   # auxiliary charge in the solver
-                   # none: no charge, solve for the potential
-                   # full: solve for the polarization charge
-tol='1.d-11'       # tolerance of the solver
-mix='0.6'          # mixing for the solver
+solver='fixed-point'       # type of solver (cg is default with dielectric)
+                           # direct: direct poisson solver (only for vacuum)
+                           # cg: conjugate gradient with sqrt preconditioner
+                           # sd: steepest descent with sqrt preconditioner
+                           # fixed-point: iterative approach
+auxiliary='full'           # auxiliary charge in the solver
+                           # none: no charge, solve for the potential
+                           # full: solve for the polarization charge
+tol='1.d-11'               # tolerance of the solver
+mix='0.6'                  # mixing for the solver
 ############################################################################
 
 for environ_type in vacuum water ; do
 
     if   [ $environ_type = "water" ]; then
-      solvers="iterative cg"
+      solvers="fixed-point cg"
     else
       solvers="direct"
     fi
 
   for solver in $solvers ; do
 
-    if [ $solver = "iterative" ]; then
+    if [ $solver = "fixed-point" ]; then
       auxiliary='full'
     else
       auxiliary='none'
@@ -231,7 +231,7 @@ EOF
 
 done
 
-for solver in iterative cg ; do
+for solver in fixed-point cg ; do
 
 evac=$(awk '/^!/ {en=$5}; END {print en}' h2o_vacuum_direct.out)
 esol=$(awk '/^!/ {en=$5}; END {print en}' h2o_water_${solver}.out)
