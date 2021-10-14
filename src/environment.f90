@@ -542,6 +542,8 @@ CONTAINS
         setup => this%setup
         environment_cell => setup%environment_cell
         !
+        IF (setup%optical_permittivity == 1.D0) RETURN
+        !
         !--------------------------------------------------------------------------------
         !
         this%system_response_electrons%lupdate = .TRUE.

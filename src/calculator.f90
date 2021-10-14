@@ -513,6 +513,8 @@ CONTAINS
         system_cell => setup%system_cell
         environment_cell => setup%environment_cell
         !
+        IF (setup%optical_permittivity == 1.D0) RETURN
+        !
         !--------------------------------------------------------------------------------
         !
         CALL aux%init(system_cell)
