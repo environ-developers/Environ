@@ -64,15 +64,20 @@ if [ -e plugin_tddfpt_potential.f90 ]; then
   sed '/Environ CALLS BEGIN/ a\
       !Environ patch\
       IF ( use_environ ) THEN\
+          !\
+          IF (.NOT. davidson) WRITE(stdout, 8200)\
+          !\
+          IF (env%setup%optical_permittivity == 1.D0) WRITE (stdout, 8201)\
+          !\
+          CALL env%update_response(dfftp%nnr, drho(:,1))\
+          !\
+          CALL calc%dpotential(env, dfftp%nnr, dv(:,1))\
+          !\
+      END IF\
       !\
-      IF (.not.davidson) WRITE( stdout, 8200 )\
 8200  FORMAT(5x,"Calculate Environ contribution to response potential")\
       !\
-      CALL env%update_response( dfftp%nnr, drho(:,1) )\
-      !\
-      CALL calc%dpotential( env, dfftp%nnr, dv(:,1) )\
-      !\
-      END IF\
+8201  FORMAT("Warning: permittivity is set to 1.0 - no Environ contribution")\
       !Environ patch
       ' tmp.1 > tmp.2
 

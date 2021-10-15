@@ -1056,8 +1056,7 @@ CONTAINS
         IF (environ_type /= 'input' .AND. environ_type /= 'vacuum') &
             lboundary = .TRUE.
         !
-        IF (env_static_permittivity > 1.D0 .OR. &
-            env_optical_permittivity > 1.D0) &
+        IF (env_static_permittivity > 1.D0 .OR. env_optical_permittivity > 1.D0) &
             lboundary = .TRUE.
         !
         IF (env_surface_tension > 0.D0) lboundary = .TRUE.
@@ -1106,23 +1105,23 @@ CONTAINS
             env_surface_tension = 0.D0
             env_pressure = 0.D0
             !
-            CALL io%default('env_static_permittivity', '1.D0', '')
+            CALL io%default('env_static_permittivity', '1.0', '')
             !
-            CALL io%default('env_optical_permittivity', '1.D0', '')
+            CALL io%default('env_optical_permittivity', '1.0', '')
             !
-            CALL io%default('env_surface_tension', '0.D0', '')
+            CALL io%default('env_surface_tension', '0.0', '')
             !
-            CALL io%default('env_pressure', '0.D0', '')
+            CALL io%default('env_pressure', '0.0', '')
             !
             RETURN
             !
         CASE ('water', 'water-cation', 'water-anion') ! water experimental permittivities
             env_static_permittivity = 78.3D0
-            env_optical_permittivity = 1.D0 ! 1.776D0
+            env_optical_permittivity = 1.776D0
             !
-            CALL io%default('env_static_permittivity', '78.3D0', '')
+            CALL io%default('env_static_permittivity', '78.3', '')
             !
-            CALL io%default('env_optical_permittivity', '1.D0', '')
+            CALL io%default('env_optical_permittivity', '1.776', '')
             !
         CASE DEFAULT
             CALL io%error(sub_name, 'Unrecognized value for environ_type', 1)
@@ -1146,9 +1145,9 @@ CONTAINS
                 rhomax = 0.005
                 rhomin = 0.0001
                 !
-                CALL io%default('env_surface_tension', '50.D0', '')
+                CALL io%default('env_surface_tension', '50.0', '')
                 !
-                CALL io%default('env_pressure', '-0.35D0', '')
+                CALL io%default('env_pressure', '-0.35', '')
                 !
                 CALL io%default('rhomax', '0.005', '')
                 !
@@ -1160,9 +1159,9 @@ CONTAINS
                 rhomax = 0.0035
                 rhomin = 0.0002
                 !
-                CALL io%default('env_surface_tension', '5.D0', '')
+                CALL io%default('env_surface_tension', '5.0', '')
                 !
-                CALL io%default('env_pressure', '0.125D0', '')
+                CALL io%default('env_pressure', '0.125', '')
                 !
                 CALL io%default('rhomax', '0.0035', '')
                 !
@@ -1170,13 +1169,13 @@ CONTAINS
                 !
             CASE ('water-anion') ! SCCS for cations
                 env_surface_tension = 0.D0
-                env_pressure = 0.450D0
+                env_pressure = 0.45D0
                 rhomax = 0.0155
                 rhomin = 0.0024
                 !
-                CALL io%default('env_surface_tension', '0.D0', '')
+                CALL io%default('env_surface_tension', '0.0', '')
                 !
-                CALL io%default('env_pressure', '0.450D0', '')
+                CALL io%default('env_pressure', '0.45', '')
                 !
                 CALL io%default('rhomax', '0.0155', '')
                 !
@@ -1197,28 +1196,28 @@ CONTAINS
             !
             CALL io%default('radius_mode', radius_mode, '')
             !
-            CALL io%default('softness', '0.5D0', '')
+            CALL io%default('softness', '0.5', '')
             !
-            CALL io%default('env_surface_tension', '50.D0', '')
+            CALL io%default('env_surface_tension', '50.', '')
             !
-            CALL io%default('env_pressure', '-0.35D0', '')
+            CALL io%default('env_pressure', '-0.35', '')
             !
             SELECT CASE (TRIM(ADJUSTL(environ_type)))
                 !
             CASE ('water') ! SS for neutrals
                 alpha = 1.12D0
                 !
-                CALL io%default('alpha', '1.12D0', '')
+                CALL io%default('alpha', '1.12', '')
                 !
             CASE ('water-cation') ! SS for cations
-                alpha = 1.10D0
+                alpha = 1.1D0
                 !
-                CALL io%default('alpha', '1.10D0', '')
+                CALL io%default('alpha', '1.1', '')
                 !
             CASE ('water-anion') ! SS for anions
                 alpha = 0.98D0
                 !
-                CALL io%default('alpha', '0.98D0', '')
+                CALL io%default('alpha', '0.98', '')
                 !
             END SELECT
             !
