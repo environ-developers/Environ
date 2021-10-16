@@ -188,12 +188,7 @@ check-QE-makeinc:
 	  fi
 
 check-for-errors:
-	@ if [ $$(grep "^F90" make.inc | grep -o ifort) ]; then \
-		pattern="[Ee]rror #?[0-9]+"; \
-	  else \
-	  	pattern="Error:"; \
-	  fi; \
-	  if grep -qE "$$pattern" install/$(prog)_comp.log; then \
+	@ if grep -qE "^make.*Error [0-9]+" install/$(prog)_comp.log; then \
 		  printf "\nErrors found. See install/$(prog)_comp.log\n\n"; \
 		  exit 1; \
 	  else \
