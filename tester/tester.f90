@@ -166,7 +166,7 @@ PROGRAM tester
     ecutrho = 300
     apply_pbc_correction = .TRUE.
     !
-    CALL init_objects(setup1, env1, ecutrho)
+    CALL init(setup1, env1, ecutrho)
     !
     !------------------------------------------------------------------------------------
     !
@@ -212,7 +212,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_objects(setup, env, ecut)
+    SUBROUTINE init(setup, env, ecut)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -236,8 +236,16 @@ CONTAINS
         !
         CALL env%init(setup, 0, nat, ntyp, atom_label, ityp, zv)
         !
+        CALL env%update_ions(nat, tau)
+        !
+        CALL setup%update_cell(at)
+        !
+        CALL env%update_cell_dependent_quantities()
+        !
+        CALL setup%end_cell_update()
+        !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_objects
+    END SUBROUTINE init
     !------------------------------------------------------------------------------------
     !>
     !!
