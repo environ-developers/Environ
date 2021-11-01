@@ -944,23 +944,28 @@ CONTAINS
     !! Called by electrons.f90
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE print_environ_energies(this, prog)
+    SUBROUTINE print_environ_energies(this, prog, de_flag)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=2), INTENT(IN) :: prog
+        LOGICAL, INTENT(IN), OPTIONAL :: de_flag
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
         INTEGER, POINTER :: unit
         TYPE(environ_setup), POINTER :: setup
         !
+        LOGICAL :: print_de = .TRUE.
+        !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_energies'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
+        !
+        IF (PRESENT(de_flag)) print_de = de_flag
         !
         unit => io%unit
         setup => this%setup
@@ -979,7 +984,7 @@ CONTAINS
             !
             IF (setup%lelectrolyte) WRITE (unit, 1004) this%eelectrolyte
             !
-            WRITE (unit, 1005) this%deenviron
+            IF (print_de) WRITE (unit, 1005) this%deenviron
             !
         CASE ('CP') ! converted to Hartree
             !

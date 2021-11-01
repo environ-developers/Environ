@@ -267,6 +267,7 @@ CONTAINS
             OPEN (unit=io%debug_unit, file='environ.debug', status='unknown')
             !
         END IF
+        !
         !--------------------------------------------------------------------------------
         !
         CALL this%set_flags()
