@@ -1119,7 +1119,7 @@ CONTAINS
         IF (this%lsolvent) THEN
             !
             IF (stype == 0) THEN
-                WRITE (io%unit, 1003) 'Fatteber-Gygi'
+                WRITE (io%unit, 1003) 'Fattebert-Gygi'
                 WRITE (io%unit, 1004) (rhomax + rhomin) * 0.5_DP, tbeta
             ELSE IF (stype == 1) THEN
                 WRITE (io%unit, 1003) 'SCCS'
@@ -1128,9 +1128,9 @@ CONTAINS
             !
             IF (solvent_radius > 0.D0) WRITE (io%unit, 1006)
             !
-            IF (field_awareness > 0.D0) THEN
+            IF (field_aware) THEN
                 WRITE (io%unit, 1007)
-                WRITE (io%unit, 1008) field_awareness, charge_asymmetry
+                WRITE (io%unit, 1008) field_factor, field_asymmetry
                 WRITE (io%unit, 1009) field_min, field_max
             END IF
             !

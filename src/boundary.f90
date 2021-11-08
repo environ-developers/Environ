@@ -155,7 +155,7 @@ MODULE class_boundary
         ! Components needed for field-aware boundary
         !
         LOGICAL :: field_aware = .FALSE.
-        REAL(DP) :: field_factor, charge_asymmetry, field_max, field_min
+        REAL(DP) :: field_factor, field_asymmetry, field_max, field_min
 
         TYPE(environ_density) :: normal_field
         REAL(DP), ALLOCATABLE :: ion_field(:)
@@ -251,22 +251,22 @@ CONTAINS
                                      mode, stype, rhomax, rhomin, tbeta, const, alpha, &
                                      softness, system_distance, system_spread, &
                                      solvent_radius, radial_scale, radial_spread, &
-                                     filling_threshold, filling_spread, field_factor, &
-                                     charge_asymmetry, field_max, field_min, electrons, &
-                                     ions, system, derivatives, cell, label)
+                                     filling_threshold, filling_spread, field_aware, &
+                                     field_factor, field_asymmetry, field_max, field_min, & 
+                                     electrons, ions, system, derivatives, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: stype
         CHARACTER(LEN=80), INTENT(IN) :: mode
-        LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian
+        LOGICAL, INTENT(IN) :: need_gradient, need_laplacian, need_hessian, field_aware
         !
         REAL(DP), INTENT(IN) :: rhomax, rhomin, tbeta, const, alpha, softness, &
                                 system_distance, system_spread, solvent_radius, &
                                 radial_scale, radial_spread, filling_threshold, &
-                                filling_spread, field_factor, charge_asymmetry, &
-                                field_max, field_min
+                                filling_spread, field_factor, &
+                                field_asymmetry, field_max, field_min
         !
         TYPE(environ_electrons), TARGET, INTENT(IN) :: electrons
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
@@ -347,13 +347,13 @@ CONTAINS
         !
         this%derivatives => derivatives
         !
-        this%field_aware = field_factor > 0.D0
+        this%field_aware = field_aware
         this%field_factor = field_factor
-        this%charge_asymmetry = charge_asymmetry
+        this%field_asymmetry = field_asymmetry
         this%field_max = field_max
         this%field_min = field_min
         !
-        IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
+        IF (this%field_aware .AND. this%mode == 'ionic') THEN
             ALLOCATE (this%ion_field(this%ions%number))
             ALLOCATE (this%dion_field_drho(this%ions%number))
             ALLOCATE (this%partial_of_ion_field(3, this%ions%number, this%ions%number))
@@ -508,7 +508,7 @@ CONTAINS
         !
         copy%field_aware = this%field_aware
         copy%field_factor = this%field_factor
-        copy%charge_asymmetry = this%charge_asymmetry
+        copy%field_asymmetry = this%field_asymmetry
         copy%field_max = this%field_max
         copy%field_min = this%field_min
         !
@@ -811,11 +811,11 @@ CONTAINS
         END IF
         !
         IF (this%need_ions) THEN
-            IF (this%mode == 'ionic' .OR. this%mode == 'fa-ionic') THEN
+            IF (this%mode == 'ionic') THEN
                 !
                 CALL destroy_environ_functions(this%soft_spheres, this%ions%number)
                 !
-                IF (this%field_aware .AND. this%mode == 'fa-ionic') THEN
+                IF (this%field_aware) THEN
                     !
                     CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
                     !

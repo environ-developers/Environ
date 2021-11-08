@@ -286,10 +286,11 @@ CONTAINS
         filling_threshold = 0.825D0
         filling_spread = 0.02D0
         !
-        field_awareness = 0.D0
-        charge_asymmetry = -1.D0
-        field_max = 10.D0
-        field_min = 1.D0
+        field_aware = .FALSE.
+        field_factor = 0.08D0
+        field_asymmetry = -0.32D0
+        field_max = 6.D0
+        field_min = 2.D0
         !
         electrolyte_mode = 'electronic'
         !
@@ -467,9 +468,9 @@ CONTAINS
         !
         CALL env_mp_bcast(filling_spread, io%node, io%comm)
         !
-        CALL env_mp_bcast(field_awareness, io%node, io%comm)
+        CALL env_mp_bcast(field_factor, io%node, io%comm)
         !
-        CALL env_mp_bcast(charge_asymmetry, io%node, io%comm)
+        CALL env_mp_bcast(field_asymmetry, io%node, io%comm)
         !
         CALL env_mp_bcast(field_max, io%node, io%comm)
         !
@@ -738,11 +739,11 @@ CONTAINS
         IF (filling_spread <= 0.0_DP) &
             CALL io%error(sub_name, 'filling_spread out of range', 1)
         !
-        IF (field_awareness < 0.0_DP) &
-            CALL io%error(sub_name, 'field_awareness out of range', 1)
+        IF (field_factor < 0.0_DP) &
+            CALL io%error(sub_name, 'field_factor out of range', 1)
         !
-        IF (ABS(charge_asymmetry) > 1.0_DP) &
-            CALL io%error(sub_name, 'charge_asymmetry out of range', 1)
+        IF (ABS(field_asymmetry) > 1.0_DP) &
+            CALL io%error(sub_name, 'field_asymmetry out of range', 1)
         !
         IF (field_min < 0.0_DP) CALL io%error(sub_name, 'field_min out of range', 1)
         !
@@ -809,7 +810,7 @@ CONTAINS
         !
         SELECT CASE (TRIM(solvent_mode))
             !
-        CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
+        CASE ('electronic', 'full', 'system')
             !
             SELECT CASE (TRIM(derivatives))
                 !
@@ -826,7 +827,7 @@ CONTAINS
                 !
             END SELECT
             !
-        CASE ('ionic', 'fa-ionic')
+        CASE ('ionic')
             !
             SELECT CASE (TRIM(derivatives))
                 !
@@ -1183,8 +1184,7 @@ CONTAINS
                 !
             END SELECT
             !
-        ELSE IF (TRIM(ADJUSTL(solvent_mode)) == 'ionic' .OR. &
-                 TRIM(ADJUSTL(solvent_mode)) == 'fa-ionic') THEN
+        ELSE IF (TRIM(ADJUSTL(solvent_mode)) == 'ionic') THEN
             !
             !----------------------------------------------------------------------------
             ! Soft-sphere continuum solvation
