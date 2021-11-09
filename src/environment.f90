@@ -846,7 +846,7 @@ CONTAINS
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_aware, field_factor, field_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%derivatives, environment_cell, &
+                this%environment_system, setup%derivatives, setup%core_fft_elect, environment_cell, &
                 local_label)
             !
         END IF
@@ -863,7 +863,7 @@ CONTAINS
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_aware, field_factor, &
                 field_asymmetry, field_max, field_min, this%environment_electrons, &
-                this%environment_ions, this%environment_system, setup%derivatives, &
+                this%environment_ions, this%environment_system, setup%derivatives, setup%core_fft_elect, &
                 temperature, cion, cionmax, rion, zion, electrolyte_entropy, & 
                 electrolyte_linearized, environment_cell)
             !

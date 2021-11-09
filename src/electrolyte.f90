@@ -45,6 +45,7 @@ MODULE class_electrolyte
     USE class_functions
     !
     USE class_core_container_derivatives
+    USE class_core_fft_electrostatics
     !
     USE class_boundary
     USE class_electrons
@@ -148,7 +149,7 @@ CONTAINS
                                         radial_spread, filling_threshold, &
                                         filling_spread, field_aware, field_factor, &
                                         field_asymmetry, field_max, field_min, &
-                                        electrons, ions, system, derivatives, &
+                                        electrons, ions, system, derivatives, electrostatics, &
                                         temperature, cbulk, cionmax, radius, z, &
                                         electrolyte_entropy, linearized, cell)
         !--------------------------------------------------------------------------------
@@ -171,6 +172,7 @@ CONTAINS
         TYPE(environ_ions), INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
         TYPE(container_derivatives), TARGET, INTENT(IN) :: derivatives
+        TYPE(core_fft_electrostatics), TARGET, INTENT(IN) :: electrostatics
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
@@ -193,7 +195,7 @@ CONTAINS
                                 spread, solvent_radius, radial_scale, radial_spread, &
                                 filling_threshold, filling_spread, field_aware, &
                                 field_factor, field_asymmetry, field_max, field_min, & 
-                                electrons, ions, system, derivatives, cell, local_label)
+                                electrons, ions, system, derivatives, electrostatics, cell, local_label)
         !
         !--------------------------------------------------------------------------------
         ! Setup all electrolyte parameters (with checks)
