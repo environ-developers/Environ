@@ -409,10 +409,10 @@ MODULE env_base_input
     ! Stern boundary parameters
     !
     CHARACTER(LEN=80) :: electrolyte_mode = 'electronic'
-    CHARACTER(LEN=80) :: electrolyte_mode_allowed(8)
+    CHARACTER(LEN=80) :: electrolyte_mode_allowed(5)
     !
     DATA electrolyte_mode_allowed/'electronic', 'ionic', 'full', 'external', &
-        'system', 'fa-electronic', 'fa-ionic', 'fa-full'/
+        'system'/
     !
     ! electrolyte_mode method for calculating the density that sets the onset of
     ! ionic countercharge ( see solvent_mode above )
