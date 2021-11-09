@@ -33,7 +33,7 @@ MODULE environ_input
     USE env_mp, ONLY: env_mp_bcast
     USE env_char_ops, ONLY: env_uppercase, env_is_substring
     !
-    USE environ_param, ONLY: DP, BOHR_RADIUS_ANGS, nsx
+    USE environ_param, ONLY: DP, BOHR_RADIUS_ANGS
     !
     USE env_base_input
     !
@@ -44,6 +44,10 @@ MODULE environ_input
     PUBLIC :: read_environ_input
     !
     !------------------------------------------------------------------------------------
+    !
+    INTEGER :: local_nsx = 10 ! default maximum of ion types (used to allocate arrays)
+    !
+    !------------------------------------------------------------------------------------
 CONTAINS
     !------------------------------------------------------------------------------------
     !>
@@ -51,12 +55,13 @@ CONTAINS
     !! and derived routines for cards (external charges and dielectric regions)
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE read_environ_input(filename)
+    SUBROUTINE read_environ_input(nsx, filename)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: filename
+        INTEGER, INTENT(IN), OPTIONAL :: nsx
         !
         LOGICAL :: ext
         INTEGER :: environ_unit_input
@@ -69,6 +74,8 @@ CONTAINS
         ! Open environ input file: environ.in
         !
         IF (PRESENT(filename)) local_filename = filename
+        !
+        IF (PRESENT(nsx)) local_nsx = nsx
         !
         environ_unit_input = io%find_free_unit()
         INQUIRE (file=TRIM(local_filename), exist=ext)
@@ -113,6 +120,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         ! Set defaults
+        !
+        CALL allocate_registers()
         !
         CALL environ_defaults()
         !
@@ -1532,7 +1541,7 @@ CONTAINS
         !
         IF (taextchg) CALL io%error(sub_name, 'Two occurrences', 2)
         !
-        IF (env_external_charges > nsx) &
+        IF (env_external_charges > local_nsx) &
             CALL io%error(sub_name, 'nsx out of range', env_external_charges)
         !
         CALL allocate_input_extcharge(env_external_charges)
@@ -1748,7 +1757,7 @@ CONTAINS
         !
         IF (taepsreg) CALL io%error(sub_name, 'Two occurrences', 2)
         !
-        IF (env_dielectric_regions > nsx) &
+        IF (env_dielectric_regions > local_nsx) &
             CALL io%error(sub_name, 'nsx out of range', env_dielectric_regions)
         !
         CALL allocate_input_epsregion(env_dielectric_regions)
@@ -2201,6 +2210,23 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_get_field
+    !------------------------------------------------------------------------------------
+    !>
+    !! Allocate arrays depending on nsx
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE allocate_registers()
+        !--------------------------------------------------------------------------------
+        !
+        ALLOCATE(atomicspread(local_nsx))
+        ALLOCATE(solvationrad(local_nsx))
+        ALLOCATE(corespread(local_nsx))
+        !
+        ALLOCATE(cion(local_nsx))
+        ALLOCATE(zion(local_nsx))
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE allocate_registers
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
