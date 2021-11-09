@@ -285,13 +285,14 @@ CONTAINS
     !! Update ionic positions and compute derived quantities
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE update_environ_ions(this, nat, tau)
+    SUBROUTINE update_environ_ions(this, nat, tau, center)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
+        REAL(DP), INTENT(IN), OPTIONAL :: center(3)
         !
         CLASS(environ_ions), INTENT(INOUT) :: this
         !
@@ -311,19 +312,23 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Center of ionic charge used by three sub-modules
         !
-        this%center = 0.D0
-        !
-        DO i = 1, this%number
+        IF (PRESENT(center)) THEN
+            this%center = center
+        ELSE
+            this%center = 0.D0
             !
-            this%center(:) = this%center(:) + &
-                             this%tau(:, i) * this%iontype(this%ityp(i))%zv
+            DO i = 1, this%number
+                !
+                this%center(:) = this%center(:) + &
+                                 this%tau(:, i) * this%iontype(this%ityp(i))%zv
+                !
+            END DO
             !
-        END DO
-        !
-        IF (ABS(this%charge) < 1.D-8) &
-            CALL io%error(sub_name, 'Ionic charge equal to zero', 1)
-        !
-        this%center = this%center / this%charge
+            IF (ABS(this%charge) < 1.D-8) &
+                CALL io%error(sub_name, 'Ionic charge equal to zero', 1)
+            !
+            this%center = this%center / this%charge
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! If needed, generate a fictitious ion density using gaussians

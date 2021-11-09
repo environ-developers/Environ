@@ -310,13 +310,14 @@ CONTAINS
     !! be the most efficient choice, but it is a safe choice.
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE environ_update_ions(this, nat, tau)
+    SUBROUTINE environ_update_ions(this, nat, tau, center)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: nat
         REAL(DP), INTENT(IN) :: tau(3, nat)
+        REAL(DP), INTENT(IN), OPTIONAL :: center(3)
         !
         CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
         !
@@ -334,7 +335,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update system ions parameters
         !
-        CALL this%system_ions%update(nat, tau)
+        CALL this%system_ions%update(nat, tau, center)
         !
         !--------------------------------------------------------------------------------
         ! Update system system parameters
@@ -347,7 +348,7 @@ CONTAINS
             ! using fixed system_pos from input for debugging with finite-differences
             !
         ELSE
-            CALL this%system_system%update()
+            CALL this%system_system%update(center)
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -358,7 +359,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update environment ions parameters
         !
-        CALL this%environment_ions%update(nat, tau)
+        CALL this%environment_ions%update(nat, tau, center)
         !
         !--------------------------------------------------------------------------------
         ! Update environment system parameters

@@ -34,7 +34,7 @@
 MODULE env_base_input
     !------------------------------------------------------------------------------------
     !
-    USE environ_param, ONLY: DP, nsx
+    USE environ_param, ONLY: DP
     !
     !------------------------------------------------------------------------------------
     !
@@ -144,7 +144,8 @@ MODULE env_base_input
     !
     LOGICAL :: env_electrostatic = .FALSE. ! flag electrostatic namelist reading
     !
-    REAL(DP) :: atomicspread(nsx) = -0.5D0 ! atomic charge density gaussian spread (a.u.)
+    REAL(DP), ALLOCATABLE :: atomicspread(:)
+    ! atomic charge density gaussian spread (a.u.)
     !
     !------------------------------------------------------------------------------------
     ! Dielectric solvent parameters
@@ -196,10 +197,10 @@ MODULE env_base_input
     !
     ! full = all terms ( Dabo et al. arXiv 0901.0096 )
     !
-    REAL(DP) :: cion(nsx) = 1.D0 ! molar concentration of ionic countercharge (M=mol/L)
+    REAL(DP), ALLOCATABLE :: cion(:) ! molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: cionmax = 1.D3 ! maximum molar concentration of ionic countercharge (M=mol/L)
     REAL(DP) :: rion = 0.D0 ! mean atomic radius of ionic countercharge (a.u.)
-    REAL(DP) :: zion(nsx) = 1.D0 ! valence of ionic countercharge
+    REAL(DP), ALLOCATABLE :: zion(:) ! valence of ionic countercharge
     REAL(DP) :: temperature = 300.D0 ! temperature of the solution
     !
     !------------------------------------------------------------------------------------
@@ -270,14 +271,14 @@ MODULE env_base_input
     !
     ! muff    = uff with local modifications (Nitrogen, see Fisicaro JCTC (2017)
     !
-    REAL(DP) :: solvationrad(nsx) = -3.D0
+    REAL(DP), ALLOCATABLE :: solvationrad(:)
     ! solvationrad radius of the solvation shell for each species when the
     ! ionic dielectric function is adopted, in internal units (a.u.)
     !
     !------------------------------------------------------------------------------------
     ! Full boundary parameters
     !
-    REAL(DP) :: corespread(nsx) = -0.5D0
+    REAL(DP), ALLOCATABLE :: corespread(:)
     ! gaussian spreads of the core electrons, in internal units (a.u.), to
     ! be used when solvent_mode = 'full'
     !
