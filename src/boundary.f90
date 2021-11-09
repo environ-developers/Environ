@@ -2129,6 +2129,207 @@ CONTAINS
         !--------------------------------------------------------------------------------
     END SUBROUTINE compute_ion_field
     !------------------------------------------------------------------------------------
+        !> @brief Computes the derivative of the flux due to the ions wrt ionic position
+    !!
+    !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE compute_ion_field_partial(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        !
+        TYPE(environ_density) :: local(this%ions%number), aux, prod
+        TYPE(environ_gradient) :: localg(this%ions%number), auxg, field
+        TYPE(environ_hessian) :: localh, auxh
+        !
+        TYPE(environ_cell), POINTER :: cell
+        !
+        INTEGER :: i, j, k
+        REAL(DP), DIMENSION(this%ions%number) :: ion_field
+        REAL(DP), DIMENSION(3, this%ions%number, this%ions%number) :: partial_of_ion_field
+        !
+        cell => this%ions%density%cell
+        !
+        DO i = 1, this%ions%number
+            !
+            CALL local(i)%init(cell)
+            CALL this%soft_spheres%density(local(i), .FALSE.)
+            !
+            CALL localg(i)%init(cell)
+            CALL this%soft_spheres%gradient(localg(i), .FALSE.)
+            !
+        END DO
+        !
+        CALL localh%init(cell)
+        !
+        ! Compute field
+        !
+        CALL aux%init(cell)
+        aux%of_r = this%electrons%density%of_r + this%ions%density%of_r
+        !
+        CALL field%init(cell)
+        CALL this%electrostatics%gradv_h_of_rho_r(aux%of_r, field%of_r)
+        !
+        ! Compute field flux
+        !
+        ion_field = 0.D0
+        partial_of_ion_field = 0.D0
+        !
+        CALL prod%init(cell)
+        CALL auxg%init(cell)
+        CALL auxh%init(cell)
+        !
+        DO i = 1, this%ions%number
+            !
+            prod%of_r = 1.D0
+            !
+            DO j = 1, this%ions%number
+                !
+                IF (i == j) CYCLE
+                prod%of_r = prod%of_r * local(j)%of_r
+                !
+            END DO
+            !
+            CALL field%scalar_product(localg, aux) ! here aux is the normal field
+            aux%of_r = -aux%of_r * prod%of_r
+            ion_field(i) = aux%integrate()
+            !
+            DO j = 1, this%ions%number
+                !
+                ! This is pretty ugly, is there a faster way to implement this?
+                !
+                CALL this%ions%smeared_ions(j)%density(aux, .TRUE.)
+                CALL this%electrostatics%hessv_h_of_rho_r(aux%of_r, localh%of_r)
+                CALL localh%scalar_product(localg(i), auxg)
+                !
+                partial_of_ion_field(:, i, j) = partial_of_ion_field(:, i, j) - &
+                    auxg%scalar_product_density(prod)
+                !
+                IF (i == j) THEN
+                    !
+                    ! Hessian of soft-sphere times the field
+                    !
+                    CALL this%soft_spheres(i)%hessian(auxh, .TRUE.)
+                    CALL auxh%scalar_product(field, auxg)
+                    !
+                    partial_of_ion_field(:, i, j) = partial_of_ion_field(:, i, j) + &
+                        auxg%scalar_product_density(prod)
+                    !
+                ELSE
+                    !
+                    ! Ion field times gradient of differential soft-sphere
+                    !
+                    CALL localg(i)%scalar_product(field, aux)
+                    !
+                    DO k = 1, this%ions%number
+                        !
+                        IF (i == k) CYCLE
+                        IF (j == k) CYCLE
+                        aux%of_r = aux%of_r * local(k)%of_r
+                        !
+                    END DO
+                    !
+                    partial_of_ion_field(:, i, j) = partial_of_ion_field(:, i, j) + &
+                        localg%scalar_product_density(aux)
+                    !
+                END IF
+                !
+            END DO
+            !
+        END DO
+        !
+        CALL field%destroy
+        CALL prod%destroy
+        CALL aux%destroy
+        CALL auxg%destroy
+        CALL auxh%destroy
+        CALL localh%destroy
+        !
+        DO i = 1, this%ions%number
+            !
+            CALL localg(i)%destroy
+            CALL local(i)%destroy
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE compute_ion_field_partial
+    !------------------------------------------------------------------------------------
+    !> @brief Computes the functional derivative of the flux due to the ions wrt the
+    !! electronic density
+    !!
+    !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE compute_dion_field_drho(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        !
+        TYPE(environ_density) :: local(this%ions%number), prod
+        TYPE(environ_gradient) :: auxg
+        !
+        TYPE(environ_cell), POINTER :: cell
+        !
+        INTEGER :: i, j, ipol
+        !
+        cell => this%ions%density%cell
+        !
+        DO i = 1, this%ions%number
+            !
+            CALL local(i)%init(cell)
+            this%soft_spheres(i)%density(local(i), .FALSE.)
+            !
+        END DO
+        !
+        ! Compute field flux
+        !
+        CALL prod%init(cell)
+        CALL auxg%init(cell)
+        !
+        DO i = 1, this%ions%number
+            !
+            ! Compute product of other soft-spheres
+            !
+            prod%of_r = 1.D0
+            !
+            DO j = 1, this%ions%number
+                !
+                IF (i == j) CYCLE
+                prod%of_r = prod%of_r * local(j)%of_r
+                !
+            END DO
+            !
+            ! Compute functional derivative of field wrt electric density
+            !
+            CALL this%soft_spheres%gradient(auxg, .TRUE.)
+            !
+            DO ipol = 1, 3
+                ! 
+                auxg%of_r(ipol, :) = auxg%of_r(ipol, :) * prod%of_r(:)
+                !
+            END DO
+            !
+            CALL this%electrostatics%field_of_gradrho(auxg, this%dion_field_drho(i)%of_r)
+            !
+        END DO
+        !
+        CALL auxg%destroy()
+        !
+        DO i = 1, this%ions%number
+            !
+            CALL local(i)%destroy()
+            !
+        END DO
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE compute_dion_field_drho
+    !------------------------------------------------------------------------------------
     !> @brief Returns field-aware scaling function with given ion_field and field aware boundary
     !! parameters
     !!
