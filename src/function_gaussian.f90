@@ -60,6 +60,7 @@ MODULE class_function_gaussian
         PROCEDURE :: gradient => gradient_of_function_gaussian
         PROCEDURE :: laplacian => laplacian_of_function_gaussian
         PROCEDURE :: hessian => hessian_of_function_gaussian
+        PROCEDURE :: derivative => derivative_of_function_gaussian
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_gaussian
@@ -288,6 +289,28 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function_gaussian
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE derivative_of_function_gaussian(this, derivative, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_gaussian), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: derivative
+        !
+        CHARACTER(LEN=80) :: sub_name = 'derivative_of_function_gaussian'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, 'Options not yet implemented', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE derivative_of_function_gaussian
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

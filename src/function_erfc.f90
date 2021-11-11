@@ -64,6 +64,7 @@ MODULE class_function_erfc
         PROCEDURE :: gradient => gradient_of_function_erfc
         PROCEDURE :: laplacian => laplacian_of_function_erfc
         PROCEDURE :: hessian => hessian_of_function_erfc
+        PROCEDURE :: derivative => derivative_of_function_erfc
         !
         PROCEDURE, PRIVATE :: get_charge, erfcvolume
         !
@@ -401,6 +402,88 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function_erfc
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE derivative_of_function_erfc(this, derivative, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: derivative
+        !
+        LOGICAL :: physical
+        INTEGER :: ir
+        REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
+        REAL(DP), ALLOCATABLE :: derivlocal(:)
+        !
+        CHARACTER(LEN=80) :: sub_name = 'density_of_function_erfc'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (this%f_type == 5) THEN
+            derivative%of_r = this%volume
+        ELSE IF (PRESENT(zero)) THEN
+            IF (zero) derivative%of_r = 0.D0
+        END IF
+        !
+        ASSOCIATE (cell => derivative%cell, &
+                   pos => this%pos, &
+                   spread => this%spread, &
+                   width => this%width, &
+                   dim => this%dim, &
+                   axis => this%axis)
+            !
+            IF (axis < 1 .OR. axis > 3) CALL io%error(sub_name, 'Wrong value of axis', 1)
+            !
+            local_charge = this%get_charge(cell)
+            chargeanalytic = this%erfcvolume(cell)
+            !
+            scale = local_charge / chargeanalytic / sqrtpi / spread
+            ! scaling factor, take into account rescaling of generated density
+            ! to obtain the correct integrated total charge
+            !
+            ALLOCATE(derivlocal(cell%nnr))
+            derivlocal = 0.D0
+            integral = 0.D0
+            !
+            DO ir = 1, cell%ir_end
+                !
+                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                !
+                IF (.NOT. physical) CYCLE
+                !
+                dist = SQRT(r2)
+                arg = (dist - width) / spread
+                !
+                IF (dist > func_tol) derivlocal(ir) = -EXP(-arg**2)
+                integral = integral + environ_erfc(arg)
+                !
+            END DO
+            !
+            !----------------------------------------------------------------------------
+            ! Check integral of function is consistent with analytic one
+            !
+            CALL env_mp_sum(integral, cell%dfft%comm)
+            !
+            IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
+                CALL io%warning('wrong integral of erfc function')
+            !
+            !----------------------------------------------------------------------------
+            !
+            derivative%of_r = derivative%of_r + scale * derivlocal
+            ! rescale generated function to obtain the requested integral
+            !
+            DEALLOCATE (derivlocal)
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE derivative_of_function_erfc
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

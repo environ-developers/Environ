@@ -79,6 +79,7 @@ MODULE class_function
         PROCEDURE(get_gradient), DEFERRED :: gradient
         PROCEDURE(get_laplacian), DEFERRED :: laplacian
         PROCEDURE(get_hessian), DEFERRED :: hessian
+        PROCEDURE(get_derivative), DEFERRED :: derivative
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function
@@ -108,6 +109,12 @@ MODULE class_function
             CLASS(environ_function), TARGET, INTENT(IN) :: this
             LOGICAL, INTENT(IN), OPTIONAL :: zero
             TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
+        END SUBROUTINE
+        SUBROUTINE get_derivative(this, derivative, zero)
+            IMPORT environ_function, environ_density
+            CLASS(environ_function), TARGET, INTENT(IN) :: this
+            LOGICAL, INTENT(IN), OPTIONAL :: zero
+            TYPE(environ_density), TARGET, INTENT(INOUT) :: derivative
         END SUBROUTINE
     END INTERFACE
     !

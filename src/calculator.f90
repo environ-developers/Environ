@@ -227,8 +227,10 @@ CONTAINS
                 IF (env%solvent%solvent_aware) &
                     CALL env%solvent%sa_de_dboundary(de_dboundary)
                 !
+                ! if field-aware interface correct the potential
                 IF (env%solvent%field_aware) THEN
-                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL env%solvent%fa_de_drho(de_dboundary, env%vsoftcavity)
+                !
                 ELSE
                     !
                     env%vsoftcavity%of_r = de_dboundary%of_r * env%solvent%dscaled%of_r
@@ -248,8 +250,9 @@ CONTAINS
                 IF (env%electrolyte%boundary%solvent_aware) &
                     CALL env%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
+                ! if field-aware interface correct the potential
                 IF (env%electrolyte%boundary%field_aware) THEN
-                    CALL io%error(sub_name, 'field-aware not yet implimented ', 1)
+                    CALL env%electrolyte%boundary%fa_de_drho(de_dboundary, env%vsoftcavity)
                 ELSE
                     !
                     ! multiply for the derivative of the boundary w.r.t electronic density
@@ -436,12 +439,19 @@ CONTAINS
                 IF (env%solvent%solvent_aware) &
                     CALL env%solvent%sa_de_dboundary(de_dboundary)
                 !
+                ! if field-aware, compute partial derivatives of field fluxes w.r.t ionic positions
+                IF (env%solvent%field_aware) &
+                    CALL env%solvent%ion_field_partial()
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
                 !
                 DO i = 1, nat
                     !
                     CALL env%solvent%dboundary_dions(i, partial)
+                    !
+                    ! if field-aware, correct the derivative of the interface function
+                    IF (env%solvent%field_aware) &
+                        CALL env%solvent%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)
@@ -461,12 +471,20 @@ CONTAINS
                 IF (env%electrolyte%boundary%solvent_aware) &
                     CALL env%electrolyte%boundary%sa_de_dboundary(de_dboundary)
                 !
+                ! if field-aware, compute partial derivatives of field fluxes w.r.t ionic positions
+                IF (env%solvent%field_aware) &
+                    CALL env%solvent%ion_field_partial()
+                !
                 !------------------------------------------------------------------------
                 ! Multiply by derivative of the boundary w.r.t ionic positions
                 !
                 DO i = 1, nat
                     !
                     CALL env%electrolyte%boundary%dboundary_dions(i, partial)
+                    !
+                    ! if field-aware, correct the derivative of the interface function
+                    IF (env%solvent%field_aware) &
+                        CALL env%solvent%fa_dboundary_dions(i, partial)
                     !
                     force_environ(:, i) = force_environ(:, i) - &
                                           partial%scalar_product_density(de_dboundary)

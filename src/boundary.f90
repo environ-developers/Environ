@@ -184,6 +184,9 @@ MODULE class_boundary
         PROCEDURE :: desurface_dboundary => calc_desurface_dboundary
         PROCEDURE :: dboundary_dions => calc_dboundary_dions
         PROCEDURE :: sa_de_dboundary => calc_solvent_aware_de_dboundary
+        PROCEDURE :: fa_de_drho => calc_field_aware_de_drho
+        PROCEDURE :: fa_dboundary_dions => calc_field_aware_dboundary_dions
+        PROCEDURE :: ion_field_partial => calc_ion_field_partial
         !
         PROCEDURE :: boundary_of_density, boundary_of_functions, boundary_of_system
         !
@@ -192,8 +195,8 @@ MODULE class_boundary
         PROCEDURE :: calc_dsurface ! #TODO do we need this?
         PROCEDURE :: invert => invert_boundary
         !
-        PROCEDURE, PRIVATE :: set_soft_spheres, update_soft_spheres, compute_ion_field, &
-            field_aware_scale_ion
+        PROCEDURE, PRIVATE :: set_soft_spheres, update_soft_spheres, calc_ion_field, &
+            scaling_of_field, dscaling_of_field
         !
         PROCEDURE :: printout => print_environ_boundary
         !
@@ -692,7 +695,7 @@ CONTAINS
             !
             IF (this%field_aware .AND. this%electrons%lupdate) THEN
                 !
-                CALL this%compute_ion_field()
+                CALL this%calc_ion_field()
                 !
             END IF
             !
@@ -1897,7 +1900,7 @@ CONTAINS
         CALL local%init(this%scaled%cell)
         !
         !--------------------------------------------------------------------------------
-        ! Step 1: compute (1-s)*de_dboudary*dfilling
+        ! Step 1: compute (1-s)*de_dboundary*dfilling
         !
         local%of_r = (1.D0 - this%local%of_r) * de_dboundary%of_r * this%dfilling%of_r
         !
@@ -2037,7 +2040,7 @@ CONTAINS
             !
             ! field-aware scaling of soft-sphere radii
             IF (field_scaling .AND. this%field_aware) THEN
-                field_scale = this%field_aware_scale_ion(i)
+                field_scale = this%scaling_of_field(i)
             ELSE
                 field_scale = 1.D0
             END IF
@@ -2062,7 +2065,7 @@ CONTAINS
     !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE compute_ion_field(this)
+    SUBROUTINE calc_ion_field(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -2127,14 +2130,14 @@ CONTAINS
         CALL aux%destroy()        
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE compute_ion_field
+    END SUBROUTINE calc_ion_field
     !------------------------------------------------------------------------------------
         !> @brief Computes the derivative of the flux due to the ions wrt ionic position
     !!
     !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE compute_ion_field_partial(this)
+    SUBROUTINE calc_ion_field_partial(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -2156,10 +2159,10 @@ CONTAINS
         DO i = 1, this%ions%number
             !
             CALL local(i)%init(cell)
-            CALL this%soft_spheres%density(local(i), .FALSE.)
+            CALL this%soft_spheres(i)%density(local(i), .FALSE.)
             !
             CALL localg(i)%init(cell)
-            CALL this%soft_spheres%gradient(localg(i), .FALSE.)
+            CALL this%soft_spheres(i)%gradient(localg(i), .FALSE.)
             !
         END DO
         !
@@ -2193,7 +2196,7 @@ CONTAINS
                 !
             END DO
             !
-            CALL field%scalar_product(localg, aux) ! here aux is the normal field
+            CALL field%scalar_product(localg(i), aux) ! here aux is the normal field
             aux%of_r = -aux%of_r * prod%of_r
             ion_field(i) = aux%integrate()
             !
@@ -2233,7 +2236,7 @@ CONTAINS
                     END DO
                     !
                     partial_of_ion_field(:, i, j) = partial_of_ion_field(:, i, j) + &
-                        localg%scalar_product_density(aux)
+                        localg(j)%scalar_product_density(aux)
                     !
                 END IF
                 !
@@ -2256,7 +2259,7 @@ CONTAINS
         END DO
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE compute_ion_field_partial
+    END SUBROUTINE calc_ion_field_partial
     !------------------------------------------------------------------------------------
     !> @brief Computes the functional derivative of the flux due to the ions wrt the
     !! electronic density
@@ -2264,7 +2267,7 @@ CONTAINS
     !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE compute_dion_field_drho(this)
+    SUBROUTINE calc_dion_field_drho(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -2283,7 +2286,7 @@ CONTAINS
         DO i = 1, this%ions%number
             !
             CALL local(i)%init(cell)
-            this%soft_spheres(i)%density(local(i), .FALSE.)
+            CALL this%soft_spheres(i)%density(local(i), .FALSE.)
             !
         END DO
         !
@@ -2307,7 +2310,7 @@ CONTAINS
             !
             ! Compute functional derivative of field wrt electric density
             !
-            CALL this%soft_spheres%gradient(auxg, .TRUE.)
+            CALL this%soft_spheres(i)%gradient(auxg, .TRUE.)
             !
             DO ipol = 1, 3
                 ! 
@@ -2315,7 +2318,7 @@ CONTAINS
                 !
             END DO
             !
-            CALL this%electrostatics%field_of_gradrho(auxg, this%dion_field_drho(i)%of_r)
+            CALL this%electrostatics%field_of_gradrho(auxg%of_r, this%dion_field_drho(i)%of_r)
             !
         END DO
         !
@@ -2328,7 +2331,158 @@ CONTAINS
         END DO
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE compute_dion_field_drho
+    END SUBROUTINE calc_dion_field_drho
+    !------------------------------------------------------------------------------------
+    !> @brief Computes the functional derivative of the energy wrt the
+    !! electronic density
+    !!
+    !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_field_aware_de_drho(this, de_dboundary, de_drho)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(IN) :: de_dboundary
+        TYPE(environ_density), INTENT(INOUT) :: de_drho
+        !
+        TYPE(environ_cell), POINTER :: cell
+        TYPE(environ_density) :: local(this%ions%number), aux
+        INTEGER :: i, j
+        REAL(DP) :: df
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_de_drho'
+        !
+        cell => this%ions%density%cell
+        !
+        IF (this%mode == "ionic") THEN
+            !
+            DO i = 1, this%ions%number
+                !
+                CALL local(i)%init(cell)
+                CALL this%soft_spheres(i)%density(local(i), .FALSE.)
+                !
+            END DO
+            !
+            CALL aux%init(cell)
+            !
+            DO i = 1, this%ions%number
+                !
+                CALL this%soft_spheres(i)%derivative(aux, .TRUE.)
+                !
+                DO j = 1, this%ions%number
+                    !
+                    IF (i == j) CYCLE
+                    !
+                    aux%of_r = aux%of_r * local(j)%of_r
+                    !
+                END DO
+                !
+                df = this%dscaling_of_field(i) * this%ions%iontype(this%ions%ityp(i))%solvationrad * &
+                    this%alpha * aux%scalar_product(de_dboundary)
+                !
+                de_drho%of_r = de_drho%of_r + this%dion_field_drho(i)%of_r * df
+                !
+            END DO
+            !
+            CALL aux%destroy()
+            !
+            DO i = 1, this%ions%number
+                !
+                CALL local(i)%destroy()
+                !
+            END DO
+            !
+        ELSE
+            !
+            CALL io%error(sub_name, "boundary mode not implemented", 1)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_field_aware_de_drho
+    !------------------------------------------------------------------------------------
+    !> @brief Computes the functional derivative of the boundary wrt the
+    !! ionic positions
+    !!
+    !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_field_aware_dboundary_dions(this, idx, partial)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: partial
+        INTEGER, INTENT(IN) :: idx
+        !
+        TYPE(environ_cell), POINTER :: cell
+        TYPE(environ_density) :: local(this%ions%number), aux
+        TYPE(environ_gradient) :: auxg
+        INTEGER :: i, j, ipol
+        REAL(DP) :: df
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_field_aware_dboundary_dions'
+        !
+        cell => this%ions%density%cell
+        !
+        IF (this%mode == "ionic") THEN
+            !
+            DO i = 1, this%ions%number
+                !
+                CALL local(i)%init(cell)
+                CALL this%soft_spheres(i)%density(local(i), .FALSE.)
+                !
+            END DO
+            !
+            CALL aux%init(cell)
+            CALL auxg%init(cell)
+            !
+            DO i = 1, this%ions%number
+                !
+                CALL this%soft_spheres(i)%derivative(aux, .TRUE.)
+                !
+                DO j = 1, this%ions%number
+                    !
+                    IF (i == j) CYCLE
+                    aux%of_r = aux%of_r + local(j)%of_r
+                    !
+                END DO
+                !
+                df = this%dscaling_of_field(i) * this%ions%iontype(this%ions%ityp(i))%solvationrad * &
+                    this%alpha
+                !
+                aux%of_r = aux%of_r * df
+                !
+                DO ipol = 1, 3
+                    !
+                    auxg%of_r(ipol, :) = auxg%of_r(ipol, :) + aux%of_r(:) * this%partial_of_ion_field(ipol, i, idx)
+                    !
+                END DO
+                !
+            END DO
+            !
+            partial%of_r = partial%of_r * auxg%of_r
+            !
+            CALL auxg%destroy()
+            CALL aux%destroy()
+            !
+            DO i = 1, this%ions%number
+                !
+                CALL local(i)%destroy()
+                !
+            END DO
+        ELSE
+            !
+            CALL io%error(sub_name, "boundary mode not implemented", 1)
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE calc_field_aware_dboundary_dions
     !------------------------------------------------------------------------------------
     !> @brief Returns field-aware scaling function with given ion_field and field aware boundary
     !! parameters
@@ -2337,7 +2491,7 @@ CONTAINS
     !! @param[in] i     : INTEGER               index of ion to get scaling of
     !!
     !------------------------------------------------------------------------------------
-    FUNCTION field_aware_scale_ion(this, i) RESULT(scaling)
+    FUNCTION scaling_of_field(this, i) RESULT(scaling)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -2363,7 +2517,42 @@ CONTAINS
         scaling = 1.D0 - scaling * multiplier
         !
         !--------------------------------------------------------------------------------
-    END FUNCTION field_aware_scale_ion
+    END FUNCTION scaling_of_field
+    !------------------------------------------------------------------------------------
+    !> @brief Returns field-aware scaling function with given ion_field and field aware boundary
+    !! parameters
+    !!
+    !! @param[in] this  : ENVIRON_BOUNDARY      the boundary
+    !! @param[in] i     : INTEGER               index of ion to get scaling of
+    !!
+    !------------------------------------------------------------------------------------
+    FUNCTION dscaling_of_field(this, i) RESULT(dscaling)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_boundary), INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: i
+        !
+        REAL(DP) :: dscaling, multiplier, arg
+        !
+        multiplier = (this%field_asymmetry - this%field_factor * &
+            SIGN(1.D0, this%ion_field(i)) ** 2)
+        !
+        IF (ABS(this%ion_field(i)) < this%field_min) THEN
+            dscaling = 0.D0
+        ELSE IF (ABS(this%ion_field(i)) > this%field_max) THEN
+            dscaling = 0.D0
+        ELSE
+            arg = tpi * (ABS(this%ion_field(i)) - this%field_min) / &
+                (this%field_max - this%field_min)
+            dscaling = (1.D0 - COS(arg)) / (this%field_max - this%field_min)
+        END IF
+        !
+        dscaling = -dscaling * multiplier * SIGN(1.D0, this%ion_field(i))
+        !
+        !--------------------------------------------------------------------------------
+    END FUNCTION dscaling_of_field
     !------------------------------------------------------------------------------------
     !>
     !! Switching function 0: goes from 1 to 0 when passing through the
@@ -3356,7 +3545,7 @@ CONTAINS
                         WRITE (local_unit, 1113) &
                         this%ions%iontype(this%ions%ityp(i))%label, &
                         this%ions%iontype(this%ions%ityp(i))%solvationrad, &
-                        this%ion_field(i), this%field_aware_scale_ion(i)
+                        this%ion_field(i), this%scaling_of_field(i)
                     END DO
                 END IF
             END IF

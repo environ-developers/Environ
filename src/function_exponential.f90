@@ -60,6 +60,7 @@ MODULE class_function_exponential
         PROCEDURE :: gradient => gradient_of_function_exponential
         PROCEDURE :: laplacian => laplacian_of_function_exponential
         PROCEDURE :: hessian => hessian_of_function_exponential
+        PROCEDURE :: derivative => derivative_of_function_exponential
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_exponential
@@ -240,6 +241,28 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE hessian_of_function_exponential
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE derivative_of_function_exponential(this, derivative, zero)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(environ_function_exponential), TARGET, INTENT(IN) :: this
+        LOGICAL, INTENT(IN), OPTIONAL :: zero
+        !
+        TYPE(environ_density), TARGET, INTENT(INOUT) :: derivative
+        !
+        CHARACTER(LEN=80) :: sub_name = 'derivative_of_function_exponential'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL io%error(sub_name, 'Options not yet implemented', 1)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE derivative_of_function_exponential
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
