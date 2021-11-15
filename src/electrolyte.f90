@@ -44,7 +44,7 @@ MODULE class_electrolyte
     USE class_cell
     USE class_density
     !
-    USE class_core_container_derivatives
+    USE class_container
     !
     USE class_boundary
     USE class_electrons
@@ -122,7 +122,7 @@ CONTAINS
                                         radial_spread, filling_threshold, &
                                         filling_spread, field_awareness, &
                                         charge_asymmetry, field_max, field_min, &
-                                        electrons, ions, system, derivatives, &
+                                        electrons, ions, system, cores, &
                                         temperature, cbulk, cionmax, radius, z, &
                                         electrolyte_entropy, linearized, cell)
         !--------------------------------------------------------------------------------
@@ -144,7 +144,7 @@ CONTAINS
         TYPE(environ_electrons), INTENT(IN) :: electrons
         TYPE(environ_ions), INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(container_derivatives), TARGET, INTENT(IN) :: derivatives
+        TYPE(environ_container), TARGET, INTENT(IN) :: cores
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
@@ -163,7 +163,7 @@ CONTAINS
                                 spread, solvent_radius, radial_scale, radial_spread, &
                                 filling_threshold, filling_spread, field_awareness, &
                                 charge_asymmetry, field_max, field_min, electrons, &
-                                ions, system, derivatives, cell, local_label)
+                                ions, system, cores, cell, local_label)
         !
         !--------------------------------------------------------------------------------
         ! Densities

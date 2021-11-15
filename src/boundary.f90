@@ -50,7 +50,8 @@ MODULE class_boundary
     USE class_gradient
     USE class_hessian
     !
-    USE class_core_container_derivatives
+    USE class_container
+    !
     USE class_core_fd
     USE class_core_fft
     !
@@ -108,7 +109,7 @@ MODULE class_boundary
         TYPE(environ_hessian) :: hessian
         TYPE(environ_density) :: dsurface
         !
-        TYPE(container_derivatives), POINTER :: derivatives => NULL()
+        TYPE(environ_container), POINTER :: cores => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Global properties of the boundary
@@ -229,7 +230,7 @@ CONTAINS
         !
         IF (ASSOCIATED(this%system)) CALL io%create_error(sub_name)
         !
-        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%cores)) CALL io%create_error(sub_name)
         !
         IF (ALLOCATED(this%soft_spheres)) CALL io%create_error(sub_name)
         !
@@ -253,7 +254,7 @@ CONTAINS
                                      solvent_radius, radial_scale, radial_spread, &
                                      filling_threshold, filling_spread, field_factor, &
                                      charge_asymmetry, field_max, field_min, electrons, &
-                                     ions, system, derivatives, cell, label)
+                                     ions, system, cores, cell, label)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -271,7 +272,7 @@ CONTAINS
         TYPE(environ_electrons), TARGET, INTENT(IN) :: electrons
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(container_derivatives), TARGET, INTENT(IN) :: derivatives
+        TYPE(environ_container), TARGET, INTENT(IN) :: cores
         TYPE(environ_cell), INTENT(IN) :: cell
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
@@ -345,7 +346,7 @@ CONTAINS
         this%filling_threshold = filling_threshold
         this%filling_spread = filling_spread
         !
-        this%derivatives => derivatives
+        this%cores => cores
         !
         this%field_aware = field_factor > 0.D0
         this%field_factor = field_factor
@@ -482,7 +483,7 @@ CONTAINS
         copy%electrons => this%electrons
         copy%ions => this%ions
         copy%system => this%system
-        copy%derivatives => this%derivatives
+        copy%cores => this%cores
         !
         copy%mode = this%mode
         copy%update_status = this%update_status
@@ -1087,70 +1088,77 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%derivatives%method)
+        ASSOCIATE (derivatives => this%cores%derivatives)
             !
-        CASE ('fft')
-            !
-            IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%derivatives%gradient(this%scaled, this%gradient)
-            !
-            IF (deriv == 2) CALL this%derivatives%laplacian(this%scaled, this%laplacian)
-            !
-            IF (deriv == 3) &
-                CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
-                                        hessian, this%dsurface)
-            !
-        CASE ('chain', 'fd')
-            !
-            IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%derivatives%gradient(local_density, this%gradient)
-            !
-            IF (deriv == 2) &
-                CALL this%derivatives%laplacian(local_density, this%laplacian)
-            !
-            IF (deriv == 3) THEN
+            SELECT CASE (derivatives%method)
                 !
-                CALL this%calc_dsurface(local_density, this%gradient, this%laplacian, &
-                                        hessian, this%dsurface)
+            CASE ('fft')
                 !
-                IF (this%solvent_aware) THEN
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL derivatives%gradient(this%scaled, this%gradient)
+                !
+                IF (deriv == 2) CALL derivatives%laplacian(this%scaled, this%laplacian)
+                !
+                IF (deriv == 3) &
+                    CALL this%calc_dsurface(this%scaled, this%gradient, &
+                                            this%laplacian, hessian, this%dsurface)
+                !
+            CASE ('chain', 'fd')
+                !
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL derivatives%gradient(local_density, this%gradient)
+                !
+                IF (deriv == 2) &
+                    CALL derivatives%laplacian(local_density, this%laplacian)
+                !
+                IF (deriv == 3) THEN
                     !
-                    DO ipol = 1, 3
+                    CALL this%calc_dsurface(local_density, this%gradient, &
+                                            this%laplacian, hessian, this%dsurface)
+                    !
+                    IF (this%solvent_aware) THEN
                         !
-                        DO jpol = 1, 3
+                        DO ipol = 1, 3
                             !
-                            hessian%of_r(ipol, jpol, :) = &
-                                hessian%of_r(ipol, jpol, :) * deps(:) + &
-                                gradeps(ipol, :) * gradeps(jpol, :) * d2eps(:)
+                            DO jpol = 1, 3
+                                !
+                                hessian%of_r(ipol, jpol, :) = &
+                                    hessian%of_r(ipol, jpol, :) * deps(:) + &
+                                    gradeps(ipol, :) * gradeps(jpol, :) * d2eps(:)
+                                !
+                            END DO
                             !
                         END DO
                         !
-                    END DO
+                    END IF
                     !
                 END IF
                 !
-            END IF
-            !
-            IF (deriv > 1) &
-                lapleps(:) = lapleps(:) * deps(:) + &
-                             (gradeps(1, :)**2 + gradeps(2, :)**2 + &
-                              gradeps(3, :)**2) * d2eps(:)
-            !
-            IF (deriv >= 1) THEN
+                IF (deriv > 1) &
+                    lapleps(:) = lapleps(:) * deps(:) + &
+                                 (gradeps(1, :)**2 + gradeps(2, :)**2 + &
+                                  gradeps(3, :)**2) * d2eps(:)
                 !
-                IF (this%derivatives%method == 'chain') THEN
+                IF (deriv >= 1) THEN
                     !
-                    DO ipol = 1, 3
-                        gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
-                    END DO
+                    SELECT CASE (derivatives%method)
+                        !
+                    CASE ('chain')
+                        !
+                        DO ipol = 1, 3
+                            gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
+                        END DO
+                        !
+                    CASE ('fd')
+                        CALL derivatives%gradient(this%scaled, this%gradient)
+                        !
+                    END SELECT
                     !
-                    ! ELSE IF (this%derivatives%method == 'fd') THEN
-                    !     CALL this%derivatives%gradient(this%scaled, this%gradient)
                 END IF
                 !
-            END IF
+            END SELECT
             !
-        END SELECT
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         ! Final updates
@@ -1245,14 +1253,15 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%derivatives%method)
+        SELECT CASE (this%cores%derivatives%method)
             !
         CASE ('fft')
             !
             IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%derivatives%gradient(this%scaled, this%gradient)
+                CALL this%cores%derivatives%gradient(this%scaled, this%gradient)
             !
-            IF (deriv == 2) CALL this%derivatives%laplacian(this%scaled, this%laplacian)
+            IF (deriv == 2) &
+                CALL this%cores%derivatives%laplacian(this%scaled, this%laplacian)
             !
             IF (deriv == 3) &
                 CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
@@ -1473,14 +1482,15 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%derivatives%method)
+        SELECT CASE (this%cores%derivatives%method)
             !
         CASE ('fft')
             !
             IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%derivatives%gradient(this%scaled, this%gradient)
+                CALL this%cores%derivatives%gradient(this%scaled, this%gradient)
             !
-            IF (deriv == 2) CALL this%derivatives%laplacian(this%scaled, this%laplacian)
+            IF (deriv == 2) &
+                CALL this%cores%derivatives%laplacian(this%scaled, this%laplacian)
             !
             IF (deriv == 3) &
                 CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
@@ -1679,10 +1689,6 @@ CONTAINS
         !
         CLASS(environ_boundary), INTENT(INOUT), TARGET :: this
         !
-        INTEGER, POINTER :: ir_end, deriv
-        REAL(DP), POINTER :: thr, spr
-        TYPE(environ_cell), POINTER :: cell
-        !
         INTEGER :: ir, ipol, jpol
         TYPE(environ_density) :: filled_fraction
         TYPE(environ_density) :: d2filling
@@ -1698,180 +1704,190 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        cell => this%scaled%cell
-        ir_end => this%scaled%cell%ir_end
-        deriv => this%deriv
-        !
-        thr => this%filling_threshold
-        spr => this%filling_spread
-        !
-        CALL filled_fraction%init(cell)
-        !
-        IF (deriv >= 2 .AND. this%derivatives%method /= 'fft') CALL d2filling%init(cell)
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 0: save local interface function for later use
-        !
-        this%local%of_r = this%scaled%of_r
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 1: compute the convolution function, this may be made moved out of here
-        !
-        CALL this%solvent_probe%density(this%probe, .TRUE.)
-        !
-        this%probe%of_r = this%probe%of_r / this%probe%integrate()
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 2: compute filled fraction, i.e. convolution of local boundary with probe
-        !
-        CALL this%derivatives%convolution(this%local, this%probe, filled_fraction)
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 3: compute the filling function and its derivative
-        !
-        this%filling%of_r = 0.D0
-        this%dfilling%of_r = 0.D0
-        !
-        DO ir = 1, ir_end
-            this%filling%of_r(ir) = 1.D0 - sfunct2(filled_fraction%of_r(ir), thr, spr)
-            this%dfilling%of_r(ir) = -dsfunct2(filled_fraction%of_r(ir), thr, spr)
-            !
-            IF (deriv >= 2 .AND. this%derivatives%method /= 'fft') &
-                d2filling%of_r(ir) = -d2sfunct2(filled_fraction%of_r(ir), thr, spr)
-            !
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 4: compute solvent-aware interface
-        !
-        this%scaled%of_r = this%local%of_r + (1.D0 - this%local%of_r) * this%filling%of_r
-        !
-        !--------------------------------------------------------------------------------
-        ! Step 5: compute boundary derivatives, if needed
-        !
-        SELECT CASE (this%derivatives%method)
-            !
-        CASE ('fft')
-            !
-            IF (deriv == 1 .OR. deriv == 2) &
-                CALL this%derivatives%gradient(this%scaled, this%gradient)
-            !
-            IF (deriv == 2) CALL this%derivatives%laplacian(this%scaled, this%laplacian)
-
-            IF (deriv == 3) &
-                CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
-                                        this%hessian, this%dsurface)
-            !
-        CASE ('chain', 'highmem', 'lowmem')
+        ASSOCIATE (cell => this%scaled%cell, &
+                   derivatives => this%cores%derivatives, &
+                   ir_end => this%scaled%cell%ir_end, &
+                   deriv => this%deriv, &
+                   thr => this%filling_threshold, &
+                   spr => this%filling_spread)
             !
             !----------------------------------------------------------------------------
-            ! Allocate local fields for derivatives of convolution
             !
-            IF (deriv >= 1) CALL gradlocal%init(cell)
+            CALL filled_fraction%init(cell)
             !
-            IF (deriv >= 2) CALL lapllocal%init(cell)
-            !
-            IF (deriv >= 3) CALL hesslocal%init(cell)
+            IF (deriv >= 2 .AND. derivatives%method /= 'fft') CALL d2filling%init(cell)
             !
             !----------------------------------------------------------------------------
-            ! Compute derivative of convolution with probe
+            ! Step 0: save local interface function for later use
             !
-            IF (deriv > 1) &
-                CALL this%convolution_deriv(deriv, gradlocal, lapllocal, hesslocal)
+            this%local%of_r = this%scaled%of_r
             !
             !----------------------------------------------------------------------------
-            ! Update derivatives of interface function in reverse order
+            ! Step 1: compute the convolution function,
+            !         this may be made moved out of here
             !
-            IF (deriv >= 3) THEN
+            CALL this%solvent_probe%density(this%probe, .TRUE.)
+            !
+            this%probe%of_r = this%probe%of_r / this%probe%integrate()
+            !
+            !----------------------------------------------------------------------------
+            ! Step 2: compute filled fraction,
+            !         i.e. convolution of local boundary with probe
+            !
+            CALL derivatives%convolution(this%local, this%probe, filled_fraction)
+            !
+            !----------------------------------------------------------------------------
+            ! Step 3: compute the filling function and its derivative
+            !
+            this%filling%of_r = 0.D0
+            this%dfilling%of_r = 0.D0
+            !
+            DO ir = 1, ir_end
                 !
-                DO ipol = 1, 3
+                this%filling%of_r(ir) = 1.D0 - &
+                                        sfunct2(filled_fraction%of_r(ir), thr, spr)
+                !
+                this%dfilling%of_r(ir) = -dsfunct2(filled_fraction%of_r(ir), thr, spr)
+                !
+                IF (deriv >= 2 .AND. derivatives%method /= 'fft') &
+                    d2filling%of_r(ir) = -d2sfunct2(filled_fraction%of_r(ir), thr, spr)
+                !
+            END DO
+            !
+            !----------------------------------------------------------------------------
+            ! Step 4: compute solvent-aware interface
+            !
+            this%scaled%of_r = this%local%of_r + &
+                               (1.D0 - this%local%of_r) * this%filling%of_r
+            !
+            !----------------------------------------------------------------------------
+            ! Step 5: compute boundary derivatives, if needed
+            !
+            SELECT CASE (derivatives%method)
+                !
+            CASE ('fft')
+                !
+                IF (deriv == 1 .OR. deriv == 2) &
+                    CALL derivatives%gradient(this%scaled, this%gradient)
+                !
+                IF (deriv == 2) CALL derivatives%laplacian(this%scaled, this%laplacian)
+
+                IF (deriv == 3) &
+                    CALL this%calc_dsurface(this%scaled, this%gradient, this%laplacian, &
+                                            this%hessian, this%dsurface)
+                !
+            CASE ('chain', 'highmem', 'lowmem')
+                !
+                !------------------------------------------------------------------------
+                ! Allocate local fields for derivatives of convolution
+                !
+                IF (deriv >= 1) CALL gradlocal%init(cell)
+                !
+                IF (deriv >= 2) CALL lapllocal%init(cell)
+                !
+                IF (deriv >= 3) CALL hesslocal%init(cell)
+                !
+                !------------------------------------------------------------------------
+                ! Compute derivative of convolution with probe
+                !
+                IF (deriv > 1) &
+                    CALL this%convolution_deriv(deriv, gradlocal, lapllocal, hesslocal)
+                !
+                !------------------------------------------------------------------------
+                ! Update derivatives of interface function in reverse order
+                !
+                IF (deriv >= 3) THEN
                     !
-                    DO jpol = 1, 3
+                    DO ipol = 1, 3
                         !
-                        this%hessian%of_r(ipol, jpol, :) = &
-                            this%hessian%of_r(ipol, jpol, :) * &
-                            (1.D0 - this%filling%of_r) - this%dfilling%of_r * &
-                            (this%gradient%of_r(ipol, :) * &
-                             gradlocal%of_r(jpol, :) + &
-                             this%gradient%of_r(jpol, :) * &
-                             gradlocal%of_r(ipol, :)) + &
-                            (1.D0 - this%local%of_r) * &
-                            (d2filling%of_r * gradlocal%of_r(ipol, :) * &
-                             gradlocal%of_r(jpol, :) + &
-                             this%dfilling%of_r * hesslocal%of_r(ipol, jpol, :))
+                        DO jpol = 1, 3
+                            !
+                            this%hessian%of_r(ipol, jpol, :) = &
+                                this%hessian%of_r(ipol, jpol, :) * &
+                                (1.D0 - this%filling%of_r) - this%dfilling%of_r * &
+                                (this%gradient%of_r(ipol, :) * &
+                                 gradlocal%of_r(jpol, :) + &
+                                 this%gradient%of_r(jpol, :) * &
+                                 gradlocal%of_r(ipol, :)) + &
+                                (1.D0 - this%local%of_r) * &
+                                (d2filling%of_r * gradlocal%of_r(ipol, :) * &
+                                 gradlocal%of_r(jpol, :) + &
+                                 this%dfilling%of_r * hesslocal%of_r(ipol, jpol, :))
+                            !
+                        END DO
                         !
                     END DO
                     !
-                END DO
+                    CALL hesslocal%destroy()
+                    !
+                END IF
                 !
-                CALL hesslocal%destroy()
+                IF (deriv >= 2) THEN
+                    !
+                    CALL local%init(cell)
+                    !
+                    CALL this%gradient%scalar_product(gradlocal, local)
+                    !
+                    this%laplacian%of_r = &
+                        this%laplacian%of_r * (1.D0 - this%filling%of_r) - &
+                        2.D0 * local%of_r * this%dfilling%of_r + &
+                        (1.D0 - this%local%of_r) * &
+                        (d2filling%of_r * gradlocal%modulus%of_r**2 + &
+                         this%dfilling%of_r * lapllocal%of_r)
+                    !
+                    CALL local%destroy()
+                    !
+                    CALL lapllocal%destroy()
+                    !
+                    CALL d2filling%destroy()
+                    !
+                END IF
                 !
-            END IF
+                IF (deriv >= 1) THEN
+                    !
+                    DO ipol = 1, 3
+                        !
+                        this%gradient%of_r(ipol, :) = &
+                            this%gradient%of_r(ipol, :) * &
+                            (1.D0 - this%filling%of_r(:)) + &
+                            gradlocal%of_r(ipol, :) * &
+                            (1.D0 - this%local%of_r(:)) * &
+                            this%dfilling%of_r(:)
+                        !
+                    END DO
+                    !
+                    CALL gradlocal%destroy()
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! Recompute dsurface, if needed
+                !
+                IF (deriv >= 3) THEN
+                    !
+                    CALL calc_dsurface_no_pre(this%scaled%cell%nnr, ir_end, &
+                                              this%gradient%of_r, this%hessian%of_r, &
+                                              this%dsurface%of_r)
+                    !
+                END IF
+                !
+            END SELECT
             !
-            IF (deriv >= 2) THEN
-                !
-                CALL local%init(cell)
-                !
-                CALL this%gradient%scalar_product(gradlocal, local)
-                !
-                this%laplacian%of_r = &
-                    this%laplacian%of_r * (1.D0 - this%filling%of_r) - &
-                    2.D0 * local%of_r * this%dfilling%of_r + &
-                    (1.D0 - this%local%of_r) * &
-                    (d2filling%of_r * gradlocal%modulus%of_r**2 + &
-                     this%dfilling%of_r * lapllocal%of_r)
-                !
-                CALL local%destroy()
-                !
-                CALL lapllocal%destroy()
-                !
-                CALL d2filling%destroy()
-                !
-            END IF
+            !----------------------------------------------------------------------------
+            ! Final updates
+            !
+            this%volume = this%scaled%integrate()
             !
             IF (deriv >= 1) THEN
                 !
-                DO ipol = 1, 3
-                    !
-                    this%gradient%of_r(ipol, :) = &
-                        this%gradient%of_r(ipol, :) * &
-                        (1.D0 - this%filling%of_r(:)) + &
-                        gradlocal%of_r(ipol, :) * &
-                        (1.D0 - this%local%of_r(:)) * &
-                        this%dfilling%of_r(:)
-                    !
-                END DO
+                CALL this%gradient%update_modulus()
                 !
-                CALL gradlocal%destroy()
-                !
+                this%surface = this%gradient%modulus%integrate()
             END IF
             !
-            !----------------------------------------------------------------------------
-            ! Recompute dsurface, if needed
+            CALL filled_fraction%destroy()
             !
-            IF (deriv >= 3) THEN
-                !
-                CALL calc_dsurface_no_pre(this%scaled%cell%nnr, ir_end, &
-                                          this%gradient%of_r, this%hessian%of_r, &
-                                          this%dsurface%of_r)
-                !
-            END IF
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Final updates
-        !
-        this%volume = this%scaled%integrate()
-        !
-        IF (deriv >= 1) THEN
-            !
-            CALL this%gradient%update_modulus()
-            !
-            this%surface = this%gradient%modulus%integrate()
-        END IF
-        !
-        CALL filled_fraction%destroy()
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE solvent_aware_boundary
@@ -1907,7 +1923,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Step 2: compute convolution with the probe function
         !
-        CALL this%derivatives%convolution(this%probe, local, local)
+        CALL this%cores%derivatives%convolution(this%probe, local, local)
         !
         !--------------------------------------------------------------------------------
         ! Step 3: update the functional derivative of the energy wrt boundary
@@ -1940,18 +1956,22 @@ CONTAINS
         !
         IF (deriv <= 0) RETURN
         !
-        IF (deriv >= 1) THEN
+        ASSOCIATE (derivatives => this%cores%derivatives)
             !
-            CALL this%derivatives%convolution(this%probe, this%gradient, grad)
+            IF (deriv >= 1) THEN
+                !
+                CALL derivatives%convolution(this%probe, this%gradient, grad)
+                !
+                CALL grad%update_modulus()
+                !
+            END IF
             !
-            CALL grad%update_modulus()
+            IF (deriv >= 2) &
+                CALL derivatives%convolution(this%probe, this%laplacian, lapl)
             !
-        END IF
-        !
-        IF (deriv >= 2) &
-            CALL this%derivatives%convolution(this%probe, this%laplacian, lapl)
-        !
-        IF (deriv >= 3) CALL this%derivatives%convolution(this%probe, this%hessian, hess)
+            IF (deriv >= 3) CALL derivatives%convolution(this%probe, this%hessian, hess)
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE compute_convolution_deriv
@@ -1976,7 +1996,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%derivatives%hessian(dens, grad, hess)
+        CALL this%cores%derivatives%hessian(dens, grad, hess)
         !
         lapl%of_r(:) = hess%of_r(1, 1, :) + hess%of_r(2, 2, :) + hess%of_r(3, 3, :)
         !

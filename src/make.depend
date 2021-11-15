@@ -3,7 +3,7 @@ boundary.o : ../utils/io.o
 boundary.o : ../utils/tools_math.o
 boundary.o : cell.o
 boundary.o : constants.o
-boundary.o : container_derivatives.o
+boundary.o : container.o
 boundary.o : core_fd.o
 boundary.o : core_fft.o
 boundary.o : density.o
@@ -138,7 +138,7 @@ electrolyte.o : ../utils/io.o
 electrolyte.o : boundary.o
 electrolyte.o : cell.o
 electrolyte.o : constants.o
-electrolyte.o : container_derivatives.o
+electrolyte.o : container.o
 electrolyte.o : density.o
 electrolyte.o : electrolyte_base.o
 electrolyte.o : electrons.o

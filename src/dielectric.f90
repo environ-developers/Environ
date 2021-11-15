@@ -669,7 +669,7 @@ CONTAINS
         !
         CALL gradient%init(cell)
         !
-        CALL this%boundary%derivatives%gradient(potential, gradient)
+        CALL this%boundary%cores%derivatives%gradient(potential, gradient)
         !
         CALL this%gradlog%scalar_product(gradient, this%density)
         !
@@ -706,7 +706,7 @@ CONTAINS
         !
         CALL gradient%init(cell)
         !
-        CALL this%boundary%derivatives%gradient(velectrostatic, gradient)
+        CALL this%boundary%cores%derivatives%gradient(velectrostatic, gradient)
         !
         CALL gradient%update_modulus()
         !
@@ -744,11 +744,11 @@ CONTAINS
         !
         CALL gradient%init(cell)
         !
-        CALL this%boundary%derivatives%gradient(velectrostatic, gradient)
+        CALL this%boundary%cores%derivatives%gradient(velectrostatic, gradient)
         !
         CALL dgradient%init(cell)
         !
-        CALL this%boundary%derivatives%gradient(dvelectrostatic, dgradient)
+        CALL this%boundary%cores%derivatives%gradient(dvelectrostatic, dgradient)
         !
         CALL aux%init(cell)
         !
