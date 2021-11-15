@@ -704,6 +704,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Only ions are needed, fully update the boundary
                 !
+                PRINT *, 'about to update..'
                 CALL this%update_soft_spheres()
                 !
                 CALL this%boundary_of_functions()
@@ -2036,8 +2037,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        PRINT *, 'update_soft_spheres'
         DO i = 1, this%ions%number
             !
+            PRINT *, 'in loop', i
             ! field-aware scaling of soft-sphere radii
             IF (field_scaling .AND. this%field_aware) THEN
                 field_scale = this%scaling_of_field(i)
@@ -2092,7 +2095,7 @@ CONTAINS
         CALL aux%init(cell)
         aux%of_r = this%electrons%density%of_r + this%ions%density%of_r
         !
-        CALL init_environ_gradient(cell, field)
+        CALL field%init(cell)
         CALL this%electrostatics%gradv_h_of_rho_r(aux%of_r, field%of_r)
         !
         ! Compute ion flux
@@ -2115,7 +2118,7 @@ CONTAINS
             !
             CALL this%soft_spheres(i)%gradient(auxg, .TRUE.)
             !
-            CALL scalar_product_environ_gradient(field, auxg, aux)
+            CALL field%scalar_product(auxg, aux)
             !
             aux%of_r = -aux%of_r * prod%of_r
             !
@@ -3540,9 +3543,9 @@ CONTAINS
             ! //TODO: consider moving this out since it needs to loop
             IF (this%field_aware) THEN
                 !
-                IF (io%lnode .AND. local_verbose >= 2) THEN
+                IF (io%lnode .AND. local_verbose >= 1) THEN
                     DO i = 1, this%ions%number
-                        WRITE (local_unit, 1113) &
+                        WRITE (local_unit, 1113) i, &
                         this%ions%iontype(this%ions%ityp(i))%label, &
                         this%ions%iontype(this%ions%ityp(i))%solvationrad, &
                         this%ion_field(i), this%scaling_of_field(i)
