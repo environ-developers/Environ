@@ -317,33 +317,26 @@ CONTAINS
         IF (.NOT. ASSOCIATED(potential%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
+        IF (this%dim == 0 .AND. .NOT. potential%cell%cubic) &
+            CALL io%error(sub_name, &
+                          'Parabolic correction in 0D is only for cubic cells', 1)
+        !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (cell => potential%cell, &
-                   omega => potential%cell%omega, &
-                   env_periodicity => this%dim, &
+        ASSOCIATE (omega => potential%cell%omega, &
                    slab_axis => this%axis, &
-                   axis_length => this%size, &
-                   origin => this%origin, &
                    axis => this%x)
-            !
-            !----------------------------------------------------------------------------
-            ! Check correction availability
-            !
-            IF (env_periodicity == 0 .AND. .NOT. cell%cubic) &
-                CALL io%error(sub_name, &
-                              'Parabolic correction in 0D is only for cubic cells', 1)
             !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL local%init(cell)
+            CALL local%init(potential%cell)
             !
             vperiodic => local%of_r
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -351,7 +344,7 @@ CONTAINS
             !
             fact = e2 * tpi / omega
             !
-            SELECT CASE (env_periodicity)
+            SELECT CASE (this%dim)
                 !
             CASE (0)
                 !
@@ -374,7 +367,7 @@ CONTAINS
                 !
             CASE (2)
                 !
-                const = -pi / 3.D0 * charge / axis_length * e2 - &
+                const = -pi / 3.D0 * charge / this%size * e2 - &
                         fact * quadrupole(slab_axis)
                 !
                 vperiodic(:) = -charge * axis(1, :)**2 + &
@@ -445,31 +438,27 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (cell => gvtot%cell, &
-                   omega => gvtot%cell%omega, &
-                   env_periodicity => this%dim, &
-                   slab_axis => this%axis, &
-                   origin => this%origin, &
+        ASSOCIATE (slab_axis => this%axis, &
                    axis => this%x)
             !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL glocal%init(cell)
+            CALL glocal%init(gvtot%cell)
             !
             gvperiodic => glocal%of_r
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
             ! Compute gradient of periodic images correction
             !
-            fact = e2 * fpi / omega
+            fact = e2 * fpi / gvtot%cell%omega
             !
-            SELECT CASE (env_periodicity)
+            SELECT CASE (this%dim)
                 !
             CASE (0)
                 !
@@ -542,37 +531,32 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
+        SELECT TYPE (ions)
+            !
+        TYPE IS (environ_function_gaussian)
+            local_ions => ions
+            !
+        CLASS DEFAULT
+            CALL io%error(sub_name, "Unexpected function type", 1)
+            !
+        END SELECT
+        !
+        IF (natoms /= SIZE(local_ions)) &
+            CALL io%error(sub_name, &
+                          'Mismatch between input and stored number of ions', 1)
+        !
         IF (.NOT. ASSOCIATED(auxiliary%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and solver', 1)
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (cell => auxiliary%cell, &
-                   omega => auxiliary%cell%omega, &
-                   env_periodicity => this%dim, &
-                   slab_axis => this%axis, &
+        ASSOCIATE (slab_axis => this%axis, &
                    origin => this%origin)
-            !
-            !----------------------------------------------------------------------------
-            !
-            SELECT TYPE (ions)
-                !
-            TYPE IS (environ_function_gaussian)
-                local_ions => ions
-                !
-            CLASS DEFAULT
-                CALL io%error(sub_name, "Unexpected function type", 1)
-                !
-            END SELECT
-            !
-            IF (natoms /= SIZE(local_ions)) &
-                CALL io%error(sub_name, &
-                              'Mismatch between input and stored number of ions', 1)
             !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL local%init(cell)
+            CALL local%init(auxiliary%cell)
             !
             local%of_r = auxiliary%of_r
             !
@@ -585,14 +569,14 @@ CONTAINS
             ! Interatomic forces, quadrupole is not needed, thus the same
             ! expression holds for point-like and gaussian nuclei
             !
-            fact = e2 * fpi / omega
+            fact = e2 * fpi / auxiliary%cell%omega
             ftmp = 0.D0
             !
             DO i = 1, natoms
                 pos = local_ions(i)%pos - origin
                 Z => local_ions(i)%volume
                 !
-                SELECT CASE (env_periodicity)
+                SELECT CASE (this%dim)
                     !
                 CASE (0)
                     ftmp(:, i) = (charge * pos - dipole) / 3.D0
@@ -607,7 +591,7 @@ CONTAINS
                     ftmp = 0.D0
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected', 1)
+                    CALL io%error(sub_name, 'Unexpected system dimensions', 1)
                     !
                 END SELECT
                 !
@@ -672,29 +656,28 @@ CONTAINS
         IF (.NOT. ASSOCIATED(potential%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
+        IF (electrolyte%ntyp /= 2) &
+            CALL io%error(sub_name, &
+                          'Unexpected number of counterionic species, &
+                          &different from two', 1)
+        !
+        IF (this%dim /= 2) &
+            CALL io%error(sub_name, &
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                          &only for 2D systems', 1)
+        !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (cell => potential%cell, &
+        ASSOCIATE (comm => potential%cell%dfft%comm, &
                    nnr => potential%cell%nnr, &
                    omega => potential%cell%omega, &
-                   env_periodicity => this%dim, &
                    slab_axis => this%axis, &
                    axis_length => this%size, &
-                   origin => this%origin, &
                    axis => this%x, &
                    cion => electrolyte%ioncctype(1)%cbulk, &
+                   zion => ABS(electrolyte%ioncctype(1)%z), &
                    permittivity => electrolyte%permittivity, &
                    xstern => electrolyte%distance)
-            !
-            !----------------------------------------------------------------------------
-            ! Get parameters of electrolyte to compute analytic correction
-            !
-            IF (electrolyte%ntyp /= 2) &
-                CALL io%error(sub_name, &
-                              'Unexpected number of counterionic species, &
-                              &different from two', 1)
-            !
-            zion = ABS(electrolyte%ioncctype(1)%z)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -702,22 +685,17 @@ CONTAINS
             kbt = electrolyte%temperature * K_BOLTZMANN_RY
             invkbt = 1.D0 / kbt
             !
-            IF (env_periodicity /= 2) &
-                CALL io%error(sub_name, &
-                              'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                              &only for 2D systems', 1)
-            !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL local%init(cell)
+            CALL local%init(potential%cell)
             !
             v => local%of_r
             area = omega / axis_length
             !
             !----------------------------------------------------------------------------
 
-            CALL charges%multipoles(origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -781,9 +759,9 @@ CONTAINS
                 !
             END DO
             !
-            CALL env_mp_sum(icount, cell%dfft%comm)
+            CALL env_mp_sum(icount, comm)
             !
-            CALL env_mp_sum(vbound, cell%dfft%comm)
+            CALL env_mp_sum(vbound, comm)
             !
             vbound = vbound / DBLE(icount)
             v = v - vbound + vstern
@@ -918,29 +896,26 @@ CONTAINS
         IF (.NOT. ASSOCIATED(gradv%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
+        IF (electrolyte%ntyp /= 2) &
+            CALL io%error(sub_name, &
+                          'Unexpected number of counterionic species, &
+                          &different from two', 1)
+        !
+        IF (this%dim /= 2) &
+            CALL io%error(sub_name, &
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                          &only for 2D systems', 1)
+        !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (cell => gradv%cell, &
-                   nnr => gradv%cell%nnr, &
+        ASSOCIATE (nnr => gradv%cell%nnr, &
                    omega => gradv%cell%omega, &
-                   env_periodicity => this%dim, &
                    slab_axis => this%axis, &
-                   axis_length => this%size, &
-                   origin => this%origin, &
                    axis => this%x, &
                    cion => electrolyte%ioncctype(1)%cbulk, &
+                   zion => ABS(electrolyte%ioncctype(1)%z), &
                    permittivity => electrolyte%permittivity, &
                    xstern => electrolyte%distance)
-            !
-            !----------------------------------------------------------------------------
-            ! Get parameters of electrolyte to compute analytic correction
-            !
-            IF (electrolyte%ntyp /= 2) &
-                CALL io%error(sub_name, &
-                              'Unexpected number of counterionic species, &
-                              &different from two', 1)
-            !
-            zion = ABS(electrolyte%ioncctype(1)%z)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -948,22 +923,17 @@ CONTAINS
             kbt = electrolyte%temperature * K_BOLTZMANN_RY
             invkbt = 1.D0 / kbt
             !
-            IF (env_periodicity /= 2) &
-                CALL io%error(sub_name, &
-                              'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                              &only for 2D systems', 1)
-            !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL glocal%init(cell)
+            CALL glocal%init(gradv%cell)
             !
             gvstern => glocal%of_r
-            area = omega / axis_length
+            area = omega / this%size
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
             ! compute multipoles of the system with respect to the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -1124,18 +1094,19 @@ CONTAINS
         IF (potential%cell%nnr /= this%nnr) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
+        IF (this%dim /= 2) &
+            CALL io%error(sub_name, &
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                          &only for 2D systems', 1)
+        !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (cell => potential%cell, &
+        ASSOCIATE (comm => potential%cell%dfft%comm, &
                    nnr => potential%cell%nnr, &
                    omega => potential%cell%omega, &
-                   env_periodicity => this%dim, &
                    slab_axis => this%axis, &
                    axis_length => this%size, &
-                   origin => this%origin, &
                    axis => this%x, &
-                   permittivity => semiconductor%permittivity, &
-                   carrier_density => semiconductor%carrier_density, &
                    xstern => semiconductor%sc_distance)
             !
             !----------------------------------------------------------------------------
@@ -1144,22 +1115,17 @@ CONTAINS
             kbt = semiconductor%temperature * K_BOLTZMANN_RY
             invkbt = 1.D0 / kbt
             !
-            IF (env_periodicity /= 2) &
-                CALL io%error(sub_name, &
-                              'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                              &only for 2D systems', 1)
-            !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL local%init(cell)
+            CALL local%init(potential%cell)
             !
             v => local%of_r
             area = omega / axis_length
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
             ! compute multipoles of the system w.r.t the chosen origin
             !
             !----------------------------------------------------------------------------
@@ -1175,7 +1141,7 @@ CONTAINS
             ! Compute the physical properties of the interface
             !
             ez = -tpi * e2 * charge / area
-            fact = 1.D0 / tpi / e2 / 2.D0 / carrier_density
+            fact = 1.D0 / tpi / e2 / 2.D0 / semiconductor%carrier_density
             arg = fact * (ez**2.D0)
             vms = arg ! +kbt ! #TODO figure this out
             !
@@ -1204,9 +1170,9 @@ CONTAINS
                 !
             END DO
             !
-            CALL env_mp_sum(icount, cell%dfft%comm)
+            CALL env_mp_sum(icount, comm)
             !
-            CALL env_mp_sum(vbound, cell%dfft%comm)
+            CALL env_mp_sum(vbound, comm)
             !
             vbound = vbound / DBLE(icount)
             !
@@ -1293,18 +1259,15 @@ CONTAINS
         IF (gradv%cell%nnr /= this%nnr) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
+        IF (this%dim /= 2) &
+            CALL io%error(sub_name, &
+                          'Option not yet implemented: 1D Poisson-Boltzmann solver &
+                          &only for 2D systems', 1)
+        !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (cell => gradv%cell, &
-                   omega => gradv%cell%omega, &
-                   env_periodicity => this%dim, &
-                   slab_axis => this%axis, &
-                   axis_length => this%size, &
-                   origin => this%origin, &
-                   axis => this%x, &
-                   permittivity => semiconductor%permittivity, &
-                   carrier_density => semiconductor%carrier_density, &
-                   xstern => semiconductor%sc_distance)
+        ASSOCIATE (slab_axis => this%axis, &
+                   permittivity => semiconductor%permittivity)
             !
             !----------------------------------------------------------------------------
             ! Set Boltzmann factors
@@ -1312,28 +1275,23 @@ CONTAINS
             kbt = semiconductor%temperature * K_BOLTZMANN_RY
             invkbt = 1.D0 / kbt
             !
-            IF (env_periodicity /= 2) &
-                CALL io%error(sub_name, &
-                              'Option not yet implemented: 1D Poisson-Boltzmann solver &
-                              &only for 2D systems', 1)
-            !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL glocal%init(cell)
+            CALL glocal%init(gradv%cell)
             !
             gvms => glocal%of_r
             !
             !----------------------------------------------------------------------------
             !
-            CALL charges%multipoles(origin, charge, dipole, quadrupole)
+            CALL charges%multipoles(this%origin, charge, dipole, quadrupole)
             ! compute multipoles of the system w.r.t the chosen origin
             !
             !----------------------------------------------------------------------------
             ! First compute the gradient of parabolic correction
             !
-            fact = e2 * fpi / omega
-            gvms(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
+            fact = e2 * fpi / gradv%cell%omega
+            gvms(slab_axis, :) = dipole(slab_axis) - charge * this%x(1, :)
             gvms = gvms * fact
             !
             gradv%of_r = gradv%of_r + gvms

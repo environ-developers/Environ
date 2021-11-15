@@ -354,9 +354,7 @@ CONTAINS
                    rhoiter => dielectric%iterative, &
                    rhotot => dielectric%density, &
                    eps => dielectric%epsilon, &
-                   gradlogeps => dielectric%gradlog, &
                    maxiter => this%maxiter, &
-                   mix => this%mix, &
                    tolrhoaux => this%tol)
             !
             !----------------------------------------------------------------------------
@@ -401,10 +399,10 @@ CONTAINS
                 CALL this%poisson_gradient(rhotot, gradpoisson, electrolyte, &
                                            semiconductor)
                 !
-                CALL gradlogeps%scalar_product(gradpoisson, residual)
+                CALL dielectric%gradlog%scalar_product(gradpoisson, residual)
                 !
                 residual%of_r = residual%of_r / fpi / e2 - rhoiter%of_r
-                rhoiter%of_r = rhoiter%of_r + mix * residual%of_r
+                rhoiter%of_r = rhoiter%of_r + this%mix * residual%of_r
                 !
                 delta_en = residual%euclidean_norm()
                 delta_qm = residual%quadratic_mean()
@@ -539,9 +537,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => charges%cell, &
-                   ir_end => charges%cell%ir_end, &
                    maxiter => this%maxiter, &
-                   mix => this%mix, &
                    tolrhoaux => this%tol, &
                    x => potential, &
                    base => electrolyte%base, &
@@ -616,7 +612,7 @@ CONTAINS
                     !
                     cfactor%of_r = 1.D0
                     !
-                    DO ir = 1, ir_end
+                    DO ir = 1, cell%ir_end
                         arg = -z * x%of_r(ir) / kT
                         !
                         IF (arg > exp_arg_limit) THEN
@@ -660,7 +656,7 @@ CONTAINS
                 ! Residual is now the new electrolyte charge
                 !
                 residual%of_r = residual%of_r - rhoaux%of_r
-                rhoaux%of_r = rhoaux%of_r + mix * residual%of_r
+                rhoaux%of_r = rhoaux%of_r + this%mix * residual%of_r
                 !
                 delta_en = residual%euclidean_norm()
                 delta_qm = residual%quadratic_mean()

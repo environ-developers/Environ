@@ -478,11 +478,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => charges%cell, &
-                   b => charges, &
-                   eps => dielectric%epsilon, &
                    gradeps => dielectric%gradient, &
                    x => potential, &
-                   lconjugate => this%lconjugate, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
             !
@@ -511,7 +508,7 @@ CONTAINS
             IF (.NOT. x%lupdate) THEN
                 x%lupdate = .TRUE.
                 x%of_r = 0.D0
-                r = b
+                r = charges
                 rzold = 0.D0
             END IF
             !
@@ -546,7 +543,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
                 !
-                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                IF (this%lconjugate .AND. ABS(rzold) > 1.D-30) THEN
                     beta = rznew / rzold
                 ELSE
                     beta = 0.D0
@@ -564,7 +561,7 @@ CONTAINS
                 !
                 CALL this%cores%derivatives%laplacian(p, l)
                 !
-                Ap%of_r(:) = eps%of_r(:) * l%of_r(:) + &
+                Ap%of_r(:) = dielectric%epsilon%of_r(:) * l%of_r(:) + &
                              gradeps%of_r(1, :) * g%of_r(1, :) + &
                              gradeps%of_r(2, :) * g%of_r(2, :) + &
                              gradeps%of_r(3, :) * g%of_r(3, :)
@@ -702,10 +699,8 @@ CONTAINS
         !
         ASSOCIATE (cell => charges%cell, &
                    b => charges, &
-                   eps => dielectric%epsilon, &
                    factsqrt => dielectric%factsqrt, &
                    x => potential, &
-                   lconjugate => this%lconjugate, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
             !
@@ -714,7 +709,7 @@ CONTAINS
             !
             CALL invsqrt%init(cell)
             !
-            invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
+            invsqrt%of_r = 1.D0 / SQRT(dielectric%epsilon%of_r)
             !
             CALL r%init(cell)
             !
@@ -806,7 +801,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
                 !
-                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                IF (this%lconjugate .AND. ABS(rzold) > 1.D-30) THEN
                     beta = rznew / rzold
                 ELSE
                     beta = 0.D0
@@ -972,11 +967,8 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => charges%cell, &
-                   b => charges, &
-                   eps => dielectric%epsilon, &
                    gradeps => dielectric%gradient, &
                    x => potential, &
-                   lconjugate => this%lconjugate, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
             !
@@ -997,7 +989,7 @@ CONTAINS
             ! Starting guess from new input and previous solution(s)
             !
             x%of_r = 0.D0
-            r%of_r = b%of_r
+            r%of_r = charges%of_r
             rzold = 0.D0
             !
             !----------------------------------------------------------------------------
@@ -1021,7 +1013,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Apply preconditioner to new state
                 !
-                z%of_r = r%of_r / eps%of_r
+                z%of_r = r%of_r / dielectric%epsilon%of_r
                 !
                 CALL this%poisson(z, z, electrolyte, semiconductor)
                 !
@@ -1033,7 +1025,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
                 !
-                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                IF (this%lconjugate .AND. ABS(rzold) > 1.D-30) THEN
                     beta = rznew / rzold
                 ELSE
                     beta = 0.D0
@@ -1195,7 +1187,6 @@ CONTAINS
                    b => charges, &
                    x => potential, &
                    scr => screening, &
-                   lconjugate => this%lconjugate, &
                    maxiter => this%maxiter, &
                    tolvelect => this%tol)
             !
@@ -1325,7 +1316,7 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Conjugate gradient or steepest descent input
                 !
-                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                IF (this%lconjugate .AND. ABS(rzold) > 1.D-30) THEN
                     beta = rznew / rzold
                 ELSE
                     beta = 0.D0

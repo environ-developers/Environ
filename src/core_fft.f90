@@ -287,12 +287,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (dfft => this%cell%dfft, &
-                   g => this%g)
+                   nnr => this%cell%dfft%nnr, &
+                   nl => this%cell%dfft%nl)
             !
             !----------------------------------------------------------------------------
             !
-            ALLOCATE (aux(dfft%nnr))
-            ALLOCATE (gaux(dfft%nnr))
+            ALLOCATE (aux(nnr))
+            ALLOCATE (gaux(nnr))
             !
             aux = CMPLX(a%of_r(:), 0.0_DP, kind=DP)
             !
@@ -304,13 +305,13 @@ CONTAINS
             DO ipol = 1, 3
                 gaux(:) = (0.0_DP, 0.0_DP)
                 !
-                gaux(dfft%nl(:)) = g(ipol, :) * CMPLX(-AIMAG(aux(dfft%nl(:))), &
-                                                      REAL(aux(dfft%nl(:))), kind=DP)
+                gaux(nl(:)) = this%g(ipol, :) * &
+                              CMPLX(-AIMAG(aux(nl(:))), REAL(aux(nl(:))), kind=DP)
                 !
                 IF (dfft%lgamma) THEN
                     !
-                    gaux(dfft%nlm(:)) = CMPLX(REAL(gaux(dfft%nl(:))), &
-                                              -AIMAG(gaux(dfft%nl(:))), kind=DP)
+                    gaux(dfft%nlm(:)) = CMPLX(REAL(gaux(nl(:))), &
+                                              -AIMAG(gaux(nl(:))), kind=DP)
                     !
                 END IF
                 !
@@ -349,12 +350,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (dfft => this%cell%dfft, &
+                   nnr => this%cell%dfft%nnr, &
+                   nl => this%cell%dfft%nl, &
+                   nlm => this%cell%dfft%nlm, &
+                   ngm => this%ngm, &
                    g => this%g)
             !
             !----------------------------------------------------------------------------
             !
-            ALLOCATE (aux(dfft%nnr))
-            ALLOCATE (gaux(dfft%nnr))
+            ALLOCATE (aux(nnr))
+            ALLOCATE (gaux(nnr))
             !
             gaux(:) = (0.0_DP, 0.0_DP)
             !
@@ -373,14 +378,14 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Multiply by iG to get the gradient in G-space
                 !
-                DO n = 1, dfft%ngm
-                    fp = (aux(dfft%nl(n)) + aux(dfft%nlm(n))) * 0.5_DP
-                    fm = (aux(dfft%nl(n)) - aux(dfft%nlm(n))) * 0.5_DP
+                DO n = 1, ngm
+                    fp = (aux(nl(n)) + aux(nlm(n))) * 0.5_DP
+                    fm = (aux(nl(n)) - aux(nlm(n))) * 0.5_DP
                     aux1 = CMPLX(REAL(fp), AIMAG(fm), kind=DP)
                     aux2 = CMPLX(AIMAG(fp), -REAL(fm), kind=DP)
                     !
-                    gaux(dfft%nl(n)) = CMPLX(0.0_DP, g(ipol, n), kind=DP) * aux1 + &
-                                       CMPLX(0.0_DP, g(ipol + 1, n), kind=DP) * aux2
+                    gaux(nl(n)) = CMPLX(0.0_DP, g(ipol, n), kind=DP) * aux1 + &
+                                  CMPLX(0.0_DP, g(ipol + 1, n), kind=DP) * aux2
                     !
                 END DO
                 !
@@ -396,13 +401,13 @@ CONTAINS
                 ! Multiply by iG to get the gradient in G-space
                 ! Fill both gaux(G) and gaux(-G) = gaux*(G)
                 !
-                DO n = 1, dfft%ngm
+                DO n = 1, ngm
                     !
-                    gaux(dfft%nl(n)) = gaux(dfft%nl(n)) + &
-                                       g(ipol, n) * CMPLX(-AIMAG(aux(dfft%nl(n))), &
-                                                          REAL(aux(dfft%nl(n))), kind=DP)
+                    gaux(nl(n)) = gaux(nl(n)) + &
+                                  g(ipol, n) * &
+                                  CMPLX(-AIMAG(aux(nl(n))), REAL(aux(nl(n))), kind=DP)
                     !
-                    gaux(dfft%nlm(n)) = CONJG(gaux(dfft%nl(n)))
+                    gaux(nlm(n)) = CONJG(gaux(nl(n)))
                 END DO
                 !
             ELSE
@@ -415,12 +420,12 @@ CONTAINS
                     !--------------------------------------------------------------------
                     ! Multiply by iG to get the gradient in G-space
                     !
-                    DO n = 1, dfft%ngm
+                    DO n = 1, ngm
                         !
-                        gaux(dfft%nl(n)) = &
-                            gaux(dfft%nl(n)) + &
-                            g(ipol, n) * CMPLX(-AIMAG(aux(dfft%nl(n))), &
-                                               REAL(aux(dfft%nl(n))), kind=DP)
+                        gaux(nl(n)) = &
+                            gaux(nl(n)) + &
+                            g(ipol, n) * &
+                            CMPLX(-AIMAG(aux(nl(n))), REAL(aux(nl(n))), kind=DP)
                         !
                     END DO
                     !
@@ -459,12 +464,13 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (dfft => this%cell%dfft, &
-                   gg => this%gg)
+                   nnr => this%cell%dfft%nnr, &
+                   nl => this%cell%dfft%nl)
             !
             !----------------------------------------------------------------------------
             !
-            ALLOCATE (aux(dfft%nnr))
-            ALLOCATE (laux(dfft%nnr))
+            ALLOCATE (aux(nnr))
+            ALLOCATE (laux(nnr))
             !
             aux = CMPLX(a%of_r(:), 0.0_DP, kind=DP)
             !
@@ -475,14 +481,10 @@ CONTAINS
             !
             laux(:) = (0.0_DP, 0.0_DP)
             !
-            laux(dfft%nl(:)) = -gg(:) * aux(dfft%nl(:))
+            laux(nl(:)) = -this%gg(:) * aux(nl(:))
             !
-            IF (dfft%lgamma) THEN
-                !
-                laux(dfft%nlm(:)) = CMPLX(REAL(laux(dfft%nl(:))), &
-                                          -AIMAG(laux(dfft%nl(:))), kind=DP)
-                !
-            END IF
+            IF (dfft%lgamma) &
+                laux(dfft%nlm(:)) = CMPLX(REAL(laux(nl(:))), -AIMAG(laux(nl(:))), kind=DP)
             !
             CALL env_invfft(laux, dfft) ! bring back to R-space, (\lapl a)(r)
             !
@@ -517,13 +519,16 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (dfft => this%cell%dfft, &
+                   nnr => this%cell%dfft%nnr, &
+                   nl => this%cell%dfft%nl, &
+                   nlm => this%cell%dfft%nlm, &
                    g => this%g)
             !
             !----------------------------------------------------------------------------
             !
-            ALLOCATE (aux(dfft%nnr))
-            ALLOCATE (gaux(dfft%nnr))
-            ALLOCATE (haux(dfft%nnr))
+            ALLOCATE (aux(nnr))
+            ALLOCATE (gaux(nnr))
+            ALLOCATE (haux(nnr))
             !
             aux = CMPLX(a%of_r(:), 0.0_DP, kind=DP)
             !
@@ -535,15 +540,11 @@ CONTAINS
             DO ipol = 1, 3
                 gaux(:) = (0.0_DP, 0.0_DP)
                 !
-                gaux(dfft%nl(:)) = g(ipol, :) * CMPLX(-AIMAG(aux(dfft%nl(:))), &
-                                                      REAL(aux(dfft%nl(:))), kind=DP)
+                gaux(nl(:)) = g(ipol, :) * &
+                              CMPLX(-AIMAG(aux(nl(:))), REAL(aux(nl(:))), kind=DP)
                 !
-                IF (dfft%lgamma) THEN
-                    !
-                    gaux(dfft%nlm(:)) = CMPLX(REAL(gaux(dfft%nl(:))), &
-                                              -AIMAG(gaux(dfft%nl(:))), kind=DP)
-                    !
-                END IF
+                IF (dfft%lgamma) &
+                    gaux(nlm(:)) = CMPLX(REAL(gaux(nl(:))), -AIMAG(gaux(nl(:))), kind=DP)
                 !
                 CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
                 !
@@ -556,14 +557,13 @@ CONTAINS
                 DO jpol = 1, ipol
                     haux(:) = (0.0_DP, 0.0_DP)
                     !
-                    haux(dfft%nl(:)) = -g(ipol, :) * g(jpol, :) * &
-                                       CMPLX(REAL(aux(dfft%nl(:))), &
-                                             AIMAG(aux(dfft%nl(:))), kind=DP)
+                    haux(nl(:)) = -g(ipol, :) * g(jpol, :) * &
+                                  CMPLX(REAL(aux(nl(:))), AIMAG(aux(nl(:))), kind=DP)
                     !
                     IF (dfft%lgamma) THEN
                         !
-                        haux(dfft%nlm(:)) = CMPLX(REAL(haux(dfft%nl(:))), &
-                                                  -AIMAG(haux(dfft%nl(:))), kind=DP)
+                        haux(nlm(:)) = &
+                            CMPLX(REAL(haux(nl(:))), -AIMAG(haux(nl(:))), kind=DP)
                         !
                     END IF
                     !
@@ -602,20 +602,21 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (dfft => this%cell%dfft, &
-                   omega => this%cell%omega)
+                   nnr => this%cell%dfft%nnr, &
+                   nl => this%cell%dfft%nl)
             !
             !----------------------------------------------------------------------------
             ! Bring fa and fb to reciprocal space
             !
-            ALLOCATE (auxr(dfft%nnr))
+            ALLOCATE (auxr(nnr))
             auxr(:) = CMPLX(fa%of_r(:), 0.D0, kind=DP)
             !
             CALL env_fwfft(auxr, dfft)
             !
-            ALLOCATE (auxg(dfft%nnr))
+            ALLOCATE (auxg(nnr))
             auxg = 0.D0
             !
-            auxg(dfft%nl(:)) = auxr(dfft%nl(:))
+            auxg(nl(:)) = auxr(nl(:))
             !
             auxr(:) = CMPLX(fb%of_r(:), 0.D0, kind=DP)
             !
@@ -624,19 +625,19 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Multiply fa(g)*fb(g)
             !
-            auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
+            auxg(nl(:)) = auxg(nl(:)) * auxr(nl(:))
             !
             DEALLOCATE (auxr)
             !
-            IF (dfft%lgamma) auxg(dfft%nlm(:)) = &
-                CMPLX(REAL(auxg(dfft%nl(:))), -AIMAG(auxg(dfft%nl(:))), kind=DP)
+            IF (dfft%lgamma) &
+                auxg(dfft%nlm(:)) = CMPLX(REAL(auxg(nl(:))), -AIMAG(auxg(nl(:))), kind=DP)
             !
             !----------------------------------------------------------------------------
             ! Brings convolution back to real space
             !
             CALL env_invfft(auxg, dfft)
             !
-            fc%of_r(:) = REAL(auxg(:)) * omega
+            fc%of_r(:) = REAL(auxg(:)) * this%cell%omega
             !
         END ASSOCIATE
         !
@@ -679,17 +680,18 @@ CONTAINS
         ! #TODO check for performance
         !
         ! ASSOCIATE (dfft => this%cell%dfft, &
-        !            omega => this%cell%omega)
+        !            nnr => this%cell%dfft%nnr, &
+        !            nl => this%cell%dfft%nl)
         !     !
         !     !----------------------------------------------------------------------------
         !     ! Bring fa and fb to reciprocal space
         !     !
-        !     ALLOCATE (auxr(dfft%nnr))
+        !     ALLOCATE (auxr(nnr))
         !     auxr(:) = CMPLX(fa%of_r(:), 0.D0, kind=DP)
         !     !
         !     CALL env_fwfft(auxr, dfft)
         !     !
-        !     ALLOCATE (auxg(dfft%nnr))
+        !     ALLOCATE (auxg(nnr))
         !     !
         !     DO ipol = 1, 3
         !         auxg(:) = CMPLX(gb%of_r(ipol, :), 0.D0, kind=DP)
@@ -699,17 +701,18 @@ CONTAINS
         !         !------------------------------------------------------------------------
         !         ! Multiply fa(g)*fb(g)
         !         !
-        !         auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
+        !         auxg(nl(:)) = auxg(nl(:)) * auxr(nl(:))
         !         !
-        !         IF (dfft%lgamma) auxg(dfft%nlm(:)) = &
-        !             CMPLX(REAL(auxg(dfft%nl(:))), -AIMAG(auxg(dfft%nl(:))), kind=DP)
+        !         IF (dfft%lgamma) &
+        !             auxg(dfft%nlm(:)) = &
+        !             CMPLX(REAL(auxg(nl(:))), -AIMAG(auxg(nl(:))), kind=DP)
         !         !
         !         !------------------------------------------------------------------------
         !         ! Brings convolution back to real space
         !         !
         !         CALL env_invfft(auxg, dfft)
         !         !
-        !         gc%of_r(ipol, :) = REAL(auxg(:)) * omega
+        !         gc%of_r(ipol, :) = REAL(auxg(:)) * this%cell%omega
         !     END DO
         !     !
         ! END ASSOCIATE
@@ -758,17 +761,18 @@ CONTAINS
         ! #TODO check for performance
         !
         ! ASSOCIATE (dfft => this%cell%dfft, &
-        !            omega => this%cell%omega)
+        !            nnr => this%cell%dfft%nnr, &
+        !            nl => this%cell%dfft%nl)
         !     !
         !     !----------------------------------------------------------------------------
         !     ! Bring fa and fb to reciprocal space
         !     !
-        !     ALLOCATE (auxr(dfft%nnr))
+        !     ALLOCATE (auxr(nnr))
         !     auxr(:) = CMPLX(fa%of_r(:), 0.D0, kind=DP)
         !     !
         !     CALL env_fwfft(auxr, dfft)
         !     !
-        !     ALLOCATE (auxg(dfft%nnr))
+        !     ALLOCATE (auxg(nnr))
         !     !
         !     DO ipol = 1, 3
         !         !
@@ -781,17 +785,18 @@ CONTAINS
         !             !--------------------------------------------------------------------
         !             ! Multiply fa(g)*fb(g)
         !             !
-        !             auxg(dfft%nl(:)) = auxg(dfft%nl(:)) * auxr(dfft%nl(:))
+        !             auxg(nl(:)) = auxg(nl(:)) * auxr(nl(:))
         !             !
-        !             IF (dfft%lgamma) auxg(dfft%nlm(:)) = &
-        !                 CMPLX(REAL(auxg(dfft%nl(:))), -AIMAG(auxg(dfft%nl(:))), kind=DP)
+        !             IF (dfft%lgamma) &
+        !                 auxg(dfft%nlm(:)) = &
+        !                 CMPLX(REAL(auxg(nl(:))), -AIMAG(auxg(nl(:))), kind=DP)
         !             !
         !             !--------------------------------------------------------------------
         !             ! Brings convolution back to real space
         !             !
         !             CALL env_invfft(auxg, dfft)
         !             !
-        !             hc%of_r(ipol, jpol, :) = REAL(auxg(:)) * omega
+        !             hc%of_r(ipol, jpol, :) = REAL(auxg(:)) * this%cell%omega
         !         END DO
         !         !
         !     END DO
@@ -830,10 +835,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (gstart => this%gstart, &
-                   ngm => this%ngm, &
-                   gg => this%gg, &
-                   dfft => this%cell%dfft)
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   nl => this%cell%dfft%nl, &
+                   ngm => this%ngm)
             !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
@@ -844,23 +848,25 @@ CONTAINS
             CALL env_fwfft(auxr, dfft)
             !
             ALLOCATE (auxg(ngm))
-            auxg = auxr(dfft%nl)
+            auxg = auxr(nl)
             !
             auxr = CMPLX(0.D0, 0.D0, kind=DP)
             !
-            auxr(dfft%nl(1)) = auxg(1) * this%correction(1) * pi ! G = 0 term
+            auxr(nl(1)) = auxg(1) * this%correction(1) * pi ! G = 0 term
             !
 !$omp parallel do
-            DO ig = gstart, ngm
-                auxr(dfft%nl(ig)) = auxg(ig) * (1.D0 / gg(ig) + this%correction(ig) * pi)
+            DO ig = this%gstart, ngm
+                !
+                auxr(nl(ig)) = &
+                    auxg(ig) * (1.D0 / this%gg(ig) + this%correction(ig) * pi)
+                !
             END DO
 !$omp end parallel do
             !
             auxr = auxr * e2 / pi
             !
             IF (dfft%lgamma) &
-                auxr(dfft%nlm) = CMPLX(REAL(auxr(dfft%nl)), &
-                                       -AIMAG(auxr(dfft%nl)), kind=DP)
+                auxr(dfft%nlm) = CMPLX(REAL(auxr(nl)), -AIMAG(auxr(nl)), kind=DP)
             !
             !----------------------------------------------------------------------------
             ! Transform hartree potential to real space
@@ -898,11 +904,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (ngm => this%ngm, &
-                   gstart => this%gstart, &
-                   gg => this%gg, &
-                   g => this%g, &
-                   dfft => this%cell%dfft)
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   nl => this%cell%dfft%nl, &
+                   ngm => this%ngm)
             !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
@@ -913,7 +917,7 @@ CONTAINS
             CALL env_fwfft(auxr, dfft)
             !
             ALLOCATE (auxg(ngm))
-            auxg = auxr(dfft%nl)
+            auxg = auxr(nl)
             !
             !----------------------------------------------------------------------------
             ! Compute gradient of potential in G space one direction at a time
@@ -922,11 +926,12 @@ CONTAINS
                 auxr = CMPLX(0.0_DP, 0.0_DP)
                 !
 !$omp parallel do private(fac)
-                DO ig = gstart, ngm
+                DO ig = this%gstart, ngm
                     !
-                    auxr(dfft%nl(ig)) = g(ipol, ig) * &
-                                        (1.D0 / gg(ig) + this%correction(ig) * pi) * &
-                                        CMPLX(-AIMAG(auxg(ig)), REAL(auxg(ig), kind=DP))
+                    auxr(nl(ig)) = &
+                        this%g(ipol, ig) * &
+                        (1.D0 / this%gg(ig) + this%correction(ig) * pi) * &
+                        CMPLX(-AIMAG(auxg(ig)), REAL(auxg(ig), kind=DP))
                     !
                 END DO
 !$omp end parallel do
@@ -938,12 +943,8 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Assuming GAMMA ONLY
                 !
-                IF (dfft%lgamma) THEN
-                    !
-                    auxr(dfft%nlm) = &
-                        CMPLX(REAL(auxr(dfft%nl)), -AIMAG(auxr(dfft%nl)), kind=DP)
-                    !
-                END IF
+                IF (dfft%lgamma) &
+                    auxr(dfft%nlm) = CMPLX(REAL(auxr(nl)), -AIMAG(auxr(nl)), kind=DP)
                 !
                 !------------------------------------------------------------------------
                 ! Bring back to R-space, (\grad_ipol a)(r)
@@ -1018,11 +1019,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (ngm => this%ngm, &
-                   gstart => this%gstart, &
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   ngm => this%ngm, &
                    G => this%g, &
-                   G2 => this%gg, &
-                   dfft => this%cell%dfft)
+                   G2 => this%gg)
             !
             ALLOCATE (auxr(dfft%nnr))
             !
@@ -1056,7 +1056,7 @@ CONTAINS
                 D => local_ions(iat)%spread
                 R = local_ions(iat)%pos - this%cell%origin ! account for any origin shift
                 !
-                DO ig = gstart, ngm
+                DO ig = this%gstart, ngm
                     fpibg2 = fpi / (G2(ig) * tpi2)
                     !
                     t_arg = tpi * SUM(G(:, ig) * R)
@@ -1106,16 +1106,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (ngm => this%ngm, &
-                   gstart => this%gstart, &
-                   gg => this%gg, &
-                   g => this%g, &
-                   dfft => this%cell%dfft)
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   nnr => this%cell%dfft%nnr, &
+                   nl => this%cell%dfft%nl, &
+                   g => this%g)
             !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
             !
-            ALLOCATE (auxr(dfft%nnr))
+            ALLOCATE (auxr(nnr))
             auxr = CMPLX(rho, 0.D0, KIND=DP)
             !
             CALL env_fwfft(auxr, dfft)
@@ -1123,20 +1122,19 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute total potential in G space
             !
-            ALLOCATE (auxg(dfft%nnr))
+            ALLOCATE (auxg(nnr))
             !
             DO ipol = 1, 3
                 !
                 DO jpol = 1, 3
                     auxg = (0.0_DP, 0.0_DP)
                     !
-                    DO ig = gstart, ngm
+                    DO ig = this%gstart, this%ngm
                         !
-                        auxg(dfft%nl(ig)) = &
+                        auxg(nl(ig)) = &
                             g(ipol, ig) * g(jpol, ig) * &
-                            (1.D0 / gg(ig) + this%correction(ig) * tpi2) * &
-                            CMPLX(DBLE(auxr(dfft%nl(ig))), &
-                                  AIMAG(auxr(dfft%nl(ig))), kind=DP)
+                            (1.D0 / this%gg(ig) + this%correction(ig) * tpi2) * &
+                            CMPLX(DBLE(auxr(nl(ig))), AIMAG(auxr(nl(ig))), kind=DP)
                         !
                     END DO
                     !
@@ -1146,12 +1144,8 @@ CONTAINS
                     !
                     auxg = auxg * e2 * fpi
                     !
-                    IF (gamma_only) THEN
-                        !
-                        auxg(dfft%nlm) = &
-                            CMPLX(DBLE(auxg(dfft%nl)), -AIMAG(auxg(dfft%nl)), kind=DP)
-                        !
-                    END IF
+                    IF (gamma_only) &
+                        auxg(dfft%nlm) = CMPLX(DBLE(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
                     !
                     CALL env_invfft(auxg, dfft) ! bring back to R-space
                     !
@@ -1188,22 +1182,20 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (ngm => this%ngm, &
-                   gstart => this%gstart, &
-                   gg => this%gg, &
-                   g => this%g, &
-                   dfft => this%cell%dfft)
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   nnr => this%cell%dfft%nnr, &
+                   nl => this%cell%dfft%nl)
             !
             !----------------------------------------------------------------------------
             ! Bring gradrho to G space
             !
-            ALLOCATE (auxe(dfft%nnr))
+            ALLOCATE (auxe(nnr))
             auxe = CMPLX(0.D0, 0.D0, KIND=DP)
             !
-            ALLOCATE (auxr(dfft%nnr))
+            ALLOCATE (auxr(nnr))
             auxr = CMPLX(0.D0, 0.D0, KIND=DP)
             !
-            ALLOCATE (auxg(dfft%nnr))
+            ALLOCATE (auxg(nnr))
             !
             DO ipol = 1, 3
                 auxg = CMPLX(gradrho(ipol, :), 0.D0, KIND=DP)
@@ -1213,12 +1205,12 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! Compute total potential in G space
                 !
-                DO ig = gstart, ngm
+                DO ig = this%gstart, this%ngm
                     !
-                    auxr(dfft%nl(ig)) = &
-                        g(ipol, ig) * (1.D0 / gg(ig) + this%correction(ig) * pi) * &
-                        CMPLX(-AIMAG(auxg(dfft%nl(ig))), &
-                              REAL(auxg(dfft%nl(ig))), kind=DP)
+                    auxr(nl(ig)) = &
+                        this%g(ipol, ig) * &
+                        (1.D0 / this%gg(ig) + this%correction(ig) * pi) * &
+                        CMPLX(-AIMAG(auxg(nl(ig))), REAL(auxg(nl(ig))), kind=DP)
                     !
                 END DO
                 !
@@ -1233,8 +1225,7 @@ CONTAINS
             DEALLOCATE (auxr)
             !
             IF (gamma_only) &
-                auxe(dfft%nlm) = CMPLX(REAL(auxe(dfft%nl)), &
-                                       -AIMAG(auxe(dfft%nl)), kind=DP)
+                auxe(dfft%nlm) = CMPLX(REAL(auxe(nl)), -AIMAG(auxe(nl)), kind=DP)
             !
             CALL env_invfft(auxe, dfft)
             ! bring back to R-space (\grad_ipol a)(r)
@@ -1593,8 +1584,7 @@ CONTAINS
                    beta => this%beta, &
                    mt_corr => this%correction, &
                    cell => this%cell, &
-                   dfft => this%cell%dfft, &
-                   omega => this%cell%omega)
+                   dfft => this%cell%dfft)
             !
             !----------------------------------------------------------------------------
             !

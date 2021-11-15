@@ -235,7 +235,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (cell => charges%cell, &
-                   ir_end => charges%cell%ir_end, &
                    maxiter => this%maxiter, &
                    tol => this%tol, &
                    base => electrolyte%base, &
@@ -312,7 +311,7 @@ CONTAINS
                     !
                     cfactor%of_r = 1.D0
                     !
-                    DO ir = 1, ir_end
+                    DO ir = 1, cell%ir_end
                         arg = -zi * x%of_r(ir) / kT
                         !
                         IF (arg > exp_arg_limit) THEN
