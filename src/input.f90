@@ -316,8 +316,6 @@ CONTAINS
         electrolyte_softness = 0.5D0
         !
         derivatives = 'default'
-        ifdtype = 1
-        nfdpoint = 2
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_defaults
@@ -505,10 +503,6 @@ CONTAINS
         CALL env_mp_bcast(electrolyte_softness, io%node, io%comm)
         !
         CALL env_mp_bcast(derivatives, io%node, io%comm)
-        !
-        CALL env_mp_bcast(ifdtype, io%node, io%comm)
-        !
-        CALL env_mp_bcast(nfdpoint, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_bcast
@@ -830,7 +824,7 @@ CONTAINS
             CASE ('highmem', 'lowmem')
                 !
                 CALL io%error(sub_name, &
-                              "Only 'fd', 'fft', or 'chain' are allowed &
+                              "Only 'fft' or 'chain' are allowed &
                               &with electronic interfaces", 1)
                 !
             END SELECT
@@ -844,7 +838,7 @@ CONTAINS
                 !
                 CALL io%default('derivatives', derivatives, 'SSCS default')
                 !
-            CASE ('fd', 'chain')
+            CASE ('chain')
                 !
                 CALL io%error(sub_name, &
                               "Only 'highmem' or 'lowmem' are allowed &
@@ -853,13 +847,6 @@ CONTAINS
             END SELECT
             !
         END SELECT
-        !
-        !--------------------------------------------------------------------------------
-        ! Finite differentiation
-        !
-        IF (ifdtype < 1) CALL io%error(sub_name, 'ifdtype out of range', 1)
-        !
-        IF (nfdpoint < 1) CALL io%error(sub_name, 'nfdpoint out of range', 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_checkin

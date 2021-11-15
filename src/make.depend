@@ -4,7 +4,6 @@ boundary.o : ../utils/tools_math.o
 boundary.o : cell.o
 boundary.o : constants.o
 boundary.o : container.o
-boundary.o : core_fd.o
 boundary.o : core_fft.o
 boundary.o : density.o
 boundary.o : electrons.o
@@ -56,7 +55,6 @@ container_corrections.o : gradient.o
 container_corrections.o : semiconductor_base.o
 container_derivatives.o : ../utils/io.o
 container_derivatives.o : container_core.o
-container_derivatives.o : core_fd.o
 container_derivatives.o : core_fft.o
 container_derivatives.o : density.o
 container_derivatives.o : gradient.o
@@ -81,14 +79,6 @@ core_1da.o : function.o
 core_1da.o : function_gaussian.o
 core_1da.o : gradient.o
 core_1da.o : semiconductor_base.o
-core_fd.o : ../FFTs/base_scatter.o
-core_fd.o : ../utils/io.o
-core_fd.o : ../utils/mp.o
-core_fd.o : cell.o
-core_fd.o : constants.o
-core_fd.o : core.o
-core_fd.o : density.o
-core_fd.o : gradient.o
 core_fft.o : ../FFTs/fft_ggen.o
 core_fft.o : ../FFTs/fft_main.o
 core_fft.o : ../FFTs/types_fft.o
@@ -275,7 +265,6 @@ setup.o : container_derivatives.o
 setup.o : container_electrostatics.o
 setup.o : core.o
 setup.o : core_1da.o
-setup.o : core_fd.o
 setup.o : core_fft.o
 setup.o : mapping.o
 setup.o : solver.o

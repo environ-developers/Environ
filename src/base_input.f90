@@ -332,19 +332,6 @@ MODULE env_base_input
     ! lowmem    = more efficient analytic derivatives
     !
     !------------------------------------------------------------------------------------
-    ! Finite difference parameters
-    !
-    INTEGER :: ifdtype = 1 ! type of numerical differentiator
-    ! 1 = central difference
-    ! 2 = low-noise lanczos (m=2)
-    ! 3 = low-noise lanczos (m=4)
-    ! 4 = smooth noise-robust (n=2)
-    ! 5 = smooth noise-robust (n=4)
-    !
-    INTEGER :: nfdpoint = 2 ! number of points used in the numerical differentiator
-    ! N = 2 * nfdpoint + 1
-    !
-    !------------------------------------------------------------------------------------
     ! Solvent boundary parameters
     !
     CHARACTER(LEN=80) :: solvent_mode = 'electronic'
@@ -461,7 +448,7 @@ MODULE env_base_input
         field_awareness, charge_asymmetry, field_max, field_min, electrolyte_mode, &
         electrolyte_distance, electrolyte_spread, electrolyte_rhomax, &
         electrolyte_rhomin, electrolyte_tbeta, electrolyte_alpha, &
-        electrolyte_softness, derivatives, ifdtype, nfdpoint, sc_distance, sc_spread
+        electrolyte_softness, derivatives, sc_distance, sc_spread
     !
     !=---------------------------------------------------------------------------------=!
 !     ELECTROSTATIC Namelist Input Parameters

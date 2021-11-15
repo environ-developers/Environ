@@ -48,7 +48,6 @@ MODULE class_setup
     USE class_core_container_electrostatics
     !
     USE class_core
-    USE class_core_fd
     USE class_core_fft
     USE class_core_fft
     USE class_core_1da
@@ -130,7 +129,6 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Core flags
         !
-        LOGICAL :: lfd = .FALSE.
         LOGICAL :: l1da = .FALSE.
         LOGICAL :: lfft_system = .FALSE.
         LOGICAL :: lfft_environment = .FALSE.
@@ -180,7 +178,6 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Numerical cores
         !
-        TYPE(core_fd) :: env_fd
         TYPE(core_fft) :: env_fft, ref_fft
         TYPE(core_1da) :: env_1da
         !
@@ -350,8 +347,6 @@ CONTAINS
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
-        !
-        IF (this%lfd) CALL this%env_fd%init(ifdtype, nfdpoint, this%environment_cell)
         !
         IF (this%lfft_system) &
             CALL this%ref_fft%init(gcutm, this%system_cell, use_internal_pbc_corr)
@@ -1121,21 +1116,9 @@ CONTAINS
             !
             IF (this%lperiodic) WRITE (io%unit, 1019) ADJUSTL(local_label)
             !
-            IF (derivatives == 'fd') THEN
-                !
-                IF (ifdtype == 1) THEN
-                    WRITE (io%unit, 1020) 'central diff.', nfdpoint
-                ELSE IF (ifdtype == 2 .OR. ifdtype == 3) THEN
-                    WRITE (io%unit, 1020) 'lanczos diff.', nfdpoint
-                ELSE IF (ifdtype == 4 .OR. ifdtype == 5) THEN
-                    WRITE (io%unit, 1020) 'noise-robust diff.', nfdpoint
-                END IF
-                !
-            END IF
-            !
         END IF
         !
-        WRITE (io%unit, 1021)
+        WRITE (io%unit, 1020)
         !
         !--------------------------------------------------------------------------------
         !
@@ -1181,10 +1164,7 @@ CONTAINS
 1018    FORMAT('     type of core tool for poisson     = ', A24)
 1019    FORMAT('     type of core tool for correction  = ', A24)
         !
-1020    FORMAT('     type of numerical differentiator  = ', A24, /, &
-               '     number of points in num. diff.    = ', I24)
-        !
-1021    FORMAT(/)
+1020    FORMAT(/)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE environ_setup_summary

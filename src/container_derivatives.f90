@@ -37,7 +37,6 @@ MODULE class_core_container_derivatives
     !
     USE class_core_container
     !
-    USE class_core_fd
     USE class_core_fft
     !
     !------------------------------------------------------------------------------------
@@ -103,9 +102,6 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fd)
-            CALL core%gradient(density, gradient)
             !
         TYPE IS (core_fft)
             CALL core%gradient(density, gradient)

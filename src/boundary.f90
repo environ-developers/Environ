@@ -52,7 +52,6 @@ MODULE class_boundary
     !
     USE class_container
     !
-    USE class_core_fd
     USE class_core_fft
     !
     USE class_electrons
@@ -1103,7 +1102,7 @@ CONTAINS
                     CALL this%calc_dsurface(this%scaled, this%gradient, &
                                             this%laplacian, hessian, this%dsurface)
                 !
-            CASE ('chain', 'fd')
+            CASE ('chain')
                 !
                 IF (deriv == 1 .OR. deriv == 2) &
                     CALL derivatives%gradient(local_density, this%gradient)
@@ -1141,18 +1140,9 @@ CONTAINS
                 !
                 IF (deriv >= 1) THEN
                     !
-                    SELECT CASE (derivatives%method)
-                        !
-                    CASE ('chain')
-                        !
-                        DO ipol = 1, 3
-                            gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
-                        END DO
-                        !
-                    CASE ('fd')
-                        CALL derivatives%gradient(this%scaled, this%gradient)
-                        !
-                    END SELECT
+                    DO ipol = 1, 3
+                        gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
+                    END DO
                     !
                 END IF
                 !
