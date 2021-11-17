@@ -181,12 +181,6 @@ function_erfc.o : density.o
 function_erfc.o : function.o
 function_erfc.o : gradient.o
 function_erfc.o : hessian.o
-function_exponential.o : ../utils/io.o
-function_exponential.o : constants.o
-function_exponential.o : density.o
-function_exponential.o : function.o
-function_exponential.o : gradient.o
-function_exponential.o : hessian.o
 function_gaussian.o : ../utils/io.o
 function_gaussian.o : constants.o
 function_gaussian.o : density.o
@@ -199,7 +193,6 @@ functions.o : constants.o
 functions.o : density.o
 functions.o : function.o
 functions.o : function_erfc.o
-functions.o : function_exponential.o
 functions.o : function_gaussian.o
 functions.o : gradient.o
 functions.o : hessian.o

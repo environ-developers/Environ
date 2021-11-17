@@ -45,7 +45,6 @@ MODULE class_functions
     USE class_density
     USE class_function
     USE class_function_erfc
-    USE class_function_exponential
     USE class_function_gaussian
     USE class_gradient
     USE class_hessian
@@ -102,9 +101,6 @@ CONTAINS
         TYPE IS (environ_function_gaussian)
             ALLOCATE (environ_function_gaussian :: f(n))
             !
-        TYPE IS (environ_function_exponential)
-            ALLOCATE (environ_function_exponential :: f(n))
-            !
         TYPE IS (environ_function_erfc)
             ALLOCATE (environ_function_erfc :: f(n))
             !
@@ -143,9 +139,6 @@ CONTAINS
             !
         TYPE IS (environ_function_gaussian)
             ALLOCATE (environ_function_gaussian :: copy(n))
-            !
-        TYPE IS (environ_function_exponential)
-            ALLOCATE (environ_function_exponential :: copy(n))
             !
         TYPE IS (environ_function_erfc)
             ALLOCATE (environ_function_erfc :: copy(n))
