@@ -127,6 +127,11 @@ MODULE class_setup
         LOGICAL :: lgradient = .FALSE.
         !
         !--------------------------------------------------------------------------------
+        ! Correction flags
+        !
+        LOGICAL :: use_inter_corr = .FALSE.
+        !
+        !--------------------------------------------------------------------------------
         ! Core flags
         !
         LOGICAL :: l1da = .FALSE.
@@ -244,14 +249,21 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_setup(this)
+    SUBROUTINE init_environ_setup(this, use_internal_pbc_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
+        !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_setup'
+        !
+        !--------------------------------------------------------------------------------
+        ! Internal pbc correction applied directly to FFT cores
+        !
+        IF (PRESENT(use_internal_pbc_corr)) this%use_inter_corr = use_internal_pbc_corr
         !
         !--------------------------------------------------------------------------------
         !
@@ -336,23 +348,22 @@ CONTAINS
     !! Set up active numerical cores
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_environ_numerical_cores(this, gcutm, use_internal_pbc_corr)
+    SUBROUTINE init_environ_numerical_cores(this, gcutm)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         REAL(DP), INTENT(IN) :: gcutm
-        LOGICAL, INTENT(IN), OPTIONAL :: use_internal_pbc_corr
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
         IF (this%lfft_system) &
-            CALL this%ref_fft%init(gcutm, this%system_cell, use_internal_pbc_corr)
+            CALL this%ref_fft%init(gcutm, this%system_cell, this%use_inter_corr)
         !
         IF (this%lfft_environment) &
-            CALL this%env_fft%init(gcutm, this%environment_cell, use_internal_pbc_corr)
+            CALL this%env_fft%init(gcutm, this%environment_cell, this%use_inter_corr)
         !
         IF (this%l1da) CALL this%env_1da%init(pbc_dim, pbc_axis, this%environment_cell)
         !

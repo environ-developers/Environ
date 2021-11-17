@@ -116,7 +116,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       CALL read_environ_input()\
       !\
-      CALL setup%init()\
+      CALL setup%init(do_comp_mt)\
       !\
       IF (prog == "TD") CALL setup%set_tddfpt(.TRUE.)\
       !\
@@ -199,7 +199,6 @@ USE kinds,              ONLY : DP\
 USE mp_bands,           ONLY : intra_bgrp_comm, me_bgrp, root_bgrp\
 USE cell_base,          ONLY : at, alat\
 USE ions_base,          ONLY : nat, nsp, ityp, atm, zv\
-USE martyna_tuckerman,  ONLY : do_comp_mt\
 USE gvect,              ONLY : gcutm\
 USE class_io,           ONLY : io\
 USE env_global_objects, ONLY : env, setup\
@@ -238,7 +237,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       DEALLOCATE (at_scaled)\
       !\
-      CALL setup%init_cores(gcutm_scaled, do_comp_mt)\
+      CALL setup%init_cores(gcutm_scaled)\
       !\
       CALL env%init(setup, 1, nat, nsp, atm, ityp, zv)\
       !\
