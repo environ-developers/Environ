@@ -313,14 +313,14 @@ MODULE env_base_input
     REAL(DP) :: field_min = 1.D0
     !
     !------------------------------------------------------------------------------------
-    ! Numerical core's parameters
+    ! Derivative core's parameters
     !
-    CHARACTER(LEN=80) :: derivatives = 'default'
-    CHARACTER(LEN=80) :: derivatives_allowed(5)
+    CHARACTER(LEN=80) :: deriv_method = 'default'
+    CHARACTER(LEN=80) :: deriv_method_allowed(5)
     !
-    DATA derivatives_allowed/'default', 'fft', 'chain', 'highmem', 'lowmem'/
+    DATA deriv_method_allowed/'default', 'fft', 'chain', 'highmem', 'lowmem'/
     !
-    ! core numerical methods to be exploited for quantities derived from the dielectric
+    ! algorithms for computing derivatives
     !
     ! fft       = fast Fourier transforms
     !
@@ -330,6 +330,17 @@ MODULE env_base_input
     !             functions and derivatives
     !
     ! lowmem    = more efficient analytic derivatives
+    !
+    CHARACTER(LEN=80) :: deriv_core = 'fft'
+    CHARACTER(LEN=80) :: deriv_core_allowed(1)
+    !
+    DATA deriv_core_allowed/'fft'/
+    !
+    ! choice of the core numerical methods to be exploited for derivatives
+    !
+    ! fft = fast Fourier transforms (default)
+    !
+    ! to be implemented : wavelets (from big-DFT) and multigrid #TODO future work
     !
     !------------------------------------------------------------------------------------
     ! Solvent boundary parameters
@@ -448,7 +459,7 @@ MODULE env_base_input
         field_awareness, charge_asymmetry, field_max, field_min, electrolyte_mode, &
         electrolyte_distance, electrolyte_spread, electrolyte_rhomax, &
         electrolyte_rhomin, electrolyte_tbeta, electrolyte_alpha, &
-        electrolyte_softness, derivatives, sc_distance, sc_spread
+        electrolyte_softness, deriv_method, deriv_core, sc_distance, sc_spread
     !
     !=---------------------------------------------------------------------------------=!
 !     ELECTROSTATIC Namelist Input Parameters
@@ -614,6 +625,20 @@ MODULE env_base_input
     ! to be implemented : wavelets (from big-DFT) and multigrid #TODO future work
     !
     !------------------------------------------------------------------------------------
+    ! Inner numerical core's parameters
+    !
+    CHARACTER(LEN=80) :: inner_core = 'fft'
+    CHARACTER(LEN=80) :: inner_core_allowed(1)
+    !
+    DATA inner_core_allowed/'fft'/
+    !
+    ! choice of the core numerical methods to be exploited for nested electrostatics
+    !
+    ! fft = fast Fourier transforms (default)
+    !
+    ! to be implemented : wavelets (from big-DFT) and multigrid #TODO future work
+    !
+    !------------------------------------------------------------------------------------
     ! Periodic correction keywords
     !
     CHARACTER(LEN=80) :: pbc_correction = 'none'
@@ -651,7 +676,8 @@ MODULE env_base_input
     NAMELIST /electrostatic/ &
         problem, tol, solver, auxiliary, step_type, step, maxstep, mix_type, mix, &
         ndiis, preconditioner, screening_type, screening, core, pbc_dim, &
-        pbc_correction, pbc_axis, inner_tol, inner_solver, inner_maxstep, inner_mix
+        pbc_correction, pbc_axis, pbc_core, inner_tol, inner_solver, inner_maxstep, &
+        inner_mix, inner_core
     !
     !------------------------------------------------------------------------------------
     !

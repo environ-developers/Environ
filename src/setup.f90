@@ -790,7 +790,7 @@ CONTAINS
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
         CLASS(environ_core), POINTER :: &
-            local_outer_core, local_inner_core, local_pbc_core
+            local_outer_core, local_inner_core, local_pbc_core, local_deriv_core
         !
         CHARACTER(LEN=80) :: local_label
         !
@@ -821,7 +821,13 @@ CONTAINS
         CALL this%outer_electrostatics%init(local_outer_core)
         !
         IF (this%need_inner) THEN
-            local_inner_core => local_outer_core
+            !
+            SELECT CASE (inner_core)
+                !
+            CASE ('fft')
+                local_inner_core => this%env_fft
+                !
+            END SELECT
             !
             CALL this%inner_electrostatics%init(local_inner_core)
             !
@@ -867,9 +873,16 @@ CONTAINS
         ! Derivative cores
         !
         IF (this%lboundary) THEN
-            this%lfft_environment = .TRUE.
             !
-            CALL this%derivative_cores%init(this%env_fft, derivatives)
+            SELECT CASE (deriv_core)
+                !
+            CASE ('fft')
+                this%lfft_environment = .TRUE.
+                local_deriv_core => this%env_fft
+                !
+            END SELECT
+            !
+            CALL this%derivative_cores%init(this%env_fft, deriv_method)
             !
             this%outer_container%derivatives => this%derivative_cores
         END IF

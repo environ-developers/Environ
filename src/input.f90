@@ -315,7 +315,8 @@ CONTAINS
         electrolyte_alpha = 1.D0
         electrolyte_softness = 0.5D0
         !
-        derivatives = 'default'
+        deriv_method = 'default'
+        deriv_core = 'fft'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_defaults
@@ -351,10 +352,12 @@ CONTAINS
         screening = 0.D0
         !
         core = 'fft'
+        inner_core = 'fft'
         !
         pbc_dim = -3
         pbc_correction = 'none'
         pbc_axis = 3
+        pbc_core = '1da'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_defaults
@@ -502,7 +505,9 @@ CONTAINS
         !
         CALL env_mp_bcast(electrolyte_softness, io%node, io%comm)
         !
-        CALL env_mp_bcast(derivatives, io%node, io%comm)
+        CALL env_mp_bcast(deriv_method, io%node, io%comm)
+        !
+        CALL env_mp_bcast(deriv_core, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE boundary_bcast
@@ -552,11 +557,15 @@ CONTAINS
         !
         CALL env_mp_bcast(core, io%node, io%comm)
         !
+        CALL env_mp_bcast(inner_core, io%node, io%comm)
+        !
         CALL env_mp_bcast(pbc_dim, io%node, io%comm)
         !
         CALL env_mp_bcast(pbc_correction, io%node, io%comm)
         !
         CALL env_mp_bcast(pbc_axis, io%node, io%comm)
+        !
+        CALL env_mp_bcast(pbc_core, io%node, io%comm)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_bcast
@@ -802,11 +811,21 @@ CONTAINS
         !
         allowed = .FALSE.
         !
-        DO i = 1, SIZE(derivatives_allowed)
-            IF (TRIM(derivatives) == derivatives_allowed(i)) allowed = .TRUE.
+        DO i = 1, SIZE(deriv_method_allowed)
+            IF (TRIM(deriv_method) == deriv_method_allowed(i)) allowed = .TRUE.
         END DO
         !
-        IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'derivatives', derivatives)
+        IF (.NOT. allowed) &
+            CALL io%invalid_opt(sub_name, 'deriv_method', deriv_method)
+        !
+        allowed = .FALSE.
+        !
+        DO i = 1, SIZE(deriv_core_allowed)
+            IF (TRIM(deriv_core) == deriv_core_allowed(i)) allowed = .TRUE.
+        END DO
+        !
+        IF (.NOT. allowed) &
+            CALL io%invalid_opt(sub_name, 'deriv_core', deriv_method)
         !
         CALL io%header('Checking boundary derivatives')
         !
@@ -814,12 +833,12 @@ CONTAINS
             !
         CASE ('electronic', 'full', 'system', 'fa-electronic', 'fa-full')
             !
-            SELECT CASE (TRIM(derivatives))
+            SELECT CASE (TRIM(deriv_method))
                 !
             CASE ('default')
-                derivatives = 'chain'
+                deriv_method = 'chain'
                 !
-                CALL io%default('derivatives', derivatives, 'SCCS default')
+                CALL io%default('deriv_method', deriv_method, 'SCCS default')
                 !
             CASE ('highmem', 'lowmem')
                 !
@@ -831,18 +850,18 @@ CONTAINS
             !
         CASE ('ionic', 'fa-ionic')
             !
-            SELECT CASE (TRIM(derivatives))
+            SELECT CASE (TRIM(deriv_method))
                 !
             CASE ('default')
-                derivatives = 'lowmem'
+                deriv_method = 'lowmem'
                 !
-                CALL io%default('derivatives', derivatives, 'SSCS default')
+                CALL io%default('deriv_method', deriv_method, 'SSCS default')
                 !
             CASE ('chain')
                 !
                 CALL io%error(sub_name, &
-                              "Only 'highmem' or 'lowmem' are allowed &
-                              &with electronic interfaces", 1)
+                              "Only 'highmem', 'lowmem', and 'fft' are allowed &
+                              &with ionic interfaces", 1)
                 !
             END SELECT
             !
@@ -959,7 +978,7 @@ CONTAINS
         allowed = .FALSE.
         !
         !--------------------------------------------------------------------------------
-        ! Core
+        ! Outer core
         !
         DO i = 1, SIZE(core_allowed)
             IF (TRIM(core) == core_allowed(i)) allowed = .TRUE.
@@ -1016,6 +1035,17 @@ CONTAINS
             CALL io%error(sub_name, 'cell_axis out of range', 1)
         !
         !--------------------------------------------------------------------------------
+        ! PBC core
+        !
+        allowed = .FALSE.
+        !
+        DO i = 1, SIZE(pbc_core_allowed)
+            IF (TRIM(pbc_core) == pbc_core_allowed(i)) allowed = .TRUE.
+        END DO
+        !
+        IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'pbc_core', core)
+        !
+        !--------------------------------------------------------------------------------
         ! Inner solver
         !
         allowed = .FALSE.
@@ -1031,6 +1061,17 @@ CONTAINS
         IF (inner_tol <= 0.0_DP) CALL io%error(sub_name, 'inner_tol out of range', 1)
         !
         IF (inner_maxstep <= 1) CALL io%error(sub_name, 'inner_maxstep out of range', 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! Inner core
+        !
+        allowed = .FALSE.
+        !
+        DO i = 1, SIZE(inner_core_allowed)
+            IF (TRIM(inner_core) == inner_core_allowed(i)) allowed = .TRUE.
+        END DO
+        !
+        IF (.NOT. allowed) CALL io%invalid_opt(sub_name, 'inner_core', core)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE electrostatic_checkin
