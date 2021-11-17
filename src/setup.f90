@@ -208,8 +208,8 @@ MODULE class_setup
         !
         PROCEDURE, PRIVATE :: &
             set_execution_flags, &
+            set_simulation_flags, &
             set_environment_flags, &
-            set_dielectric_flags, &
             set_derived_flags
         !
         PROCEDURE :: print_summary => environ_setup_summary
@@ -599,6 +599,8 @@ CONTAINS
         !
         CALL this%set_execution_flags()
         !
+        CALL this%set_simulation_flags()
+        !
         CALL this%set_environment_flags()
         !
         CALL this%set_derived_flags()
@@ -642,8 +644,6 @@ CONTAINS
         this%restart = environ_restart
         this%threshold = environ_thr
         this%nskip = environ_nskip
-        this%ldoublecell = SUM(env_nrep) > 0
-        this%need_inner = inner_solver /= 'none'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_execution_flags
@@ -651,34 +651,19 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_environment_flags(this)
+    SUBROUTINE set_simulation_flags(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        REAL(DP) :: factor
-        !
         !--------------------------------------------------------------------------------
         !
-        factor = 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
-        this%surface_tension = env_surface_tension * factor
-        this%lsurface = this%surface_tension > 0.D0
-        !
-        factor = 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
-        this%pressure = env_pressure * factor
-        this%lvolume = this%pressure /= 0.D0
-        !
-        this%confine = env_confine
-        this%lconfine = this%confine /= 0.D0
-        !
-        this%lexternals = env_external_charges > 0
-        this%lelectrolyte = env_electrolyte_ntyp > 0
-        !
-        CALL this%set_dielectric_flags()
+        this%ldoublecell = SUM(env_nrep) > 0
         !
         !--------------------------------------------------------------------------------
+        ! Correction flags
         !
         SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
             !
@@ -698,12 +683,12 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_environment_flags
+    END SUBROUTINE set_simulation_flags
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE set_dielectric_flags(this)
+    SUBROUTINE set_environment_flags(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -711,8 +696,26 @@ CONTAINS
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
         INTEGER :: i
+        REAL(DP) :: factor
         !
         !--------------------------------------------------------------------------------
+        !
+        factor = 1.D-3 / RYDBERG_SI * BOHR_RADIUS_SI**2
+        this%surface_tension = env_surface_tension * factor
+        this%lsurface = this%surface_tension > 0.D0
+        !
+        factor = 1.D9 / RYDBERG_SI * BOHR_RADIUS_SI**3
+        this%pressure = env_pressure * factor
+        this%lvolume = this%pressure /= 0.D0
+        !
+        this%confine = env_confine
+        this%lconfine = this%confine /= 0.D0
+        !
+        this%lexternals = env_external_charges > 0
+        this%lelectrolyte = env_electrolyte_ntyp > 0
+        !
+        !--------------------------------------------------------------------------------
+        ! Dielectric flags
         !
         this%static_permittivity = env_static_permittivity
         this%optical_permittivity = env_optical_permittivity
@@ -731,7 +734,7 @@ CONTAINS
         this%ldielectric = this%lstatic .OR. this%loptical
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE set_dielectric_flags
+    END SUBROUTINE set_environment_flags
     !------------------------------------------------------------------------------------
     !>
     !!
@@ -742,8 +745,6 @@ CONTAINS
         IMPLICIT NONE
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
-        !
-        INTEGER :: i
         !
         !--------------------------------------------------------------------------------
         ! Derived flags
