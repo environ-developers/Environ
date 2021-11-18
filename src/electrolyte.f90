@@ -44,7 +44,7 @@ MODULE class_electrolyte
     USE class_cell
     USE class_density
     !
-    USE class_container
+    USE class_core_container
     !
     USE class_boundary
     USE class_electrons
@@ -144,7 +144,7 @@ CONTAINS
         TYPE(environ_electrons), INTENT(IN) :: electrons
         TYPE(environ_ions), INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(environ_container), TARGET, INTENT(IN) :: cores
+        TYPE(core_container), TARGET, INTENT(IN) :: cores
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this

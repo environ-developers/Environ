@@ -50,7 +50,7 @@ MODULE class_boundary
     USE class_gradient
     USE class_hessian
     !
-    USE class_container
+    USE class_core_container
     !
     USE class_core_fft
     !
@@ -108,7 +108,7 @@ MODULE class_boundary
         TYPE(environ_hessian) :: hessian
         TYPE(environ_density) :: dsurface
         !
-        TYPE(environ_container), POINTER :: cores => NULL()
+        TYPE(core_container), POINTER :: cores => NULL()
         !
         !--------------------------------------------------------------------------------
         ! Global properties of the boundary
@@ -271,7 +271,7 @@ CONTAINS
         TYPE(environ_electrons), TARGET, INTENT(IN) :: electrons
         TYPE(environ_ions), TARGET, INTENT(IN) :: ions
         TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(environ_container), TARGET, INTENT(IN) :: cores
+        TYPE(core_container), TARGET, INTENT(IN) :: cores
         TYPE(environ_cell), INTENT(IN) :: cell
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: label
         !
@@ -1089,7 +1089,7 @@ CONTAINS
         !
         ASSOCIATE (derivatives => this%cores%derivatives)
             !
-            SELECT CASE (derivatives%method)
+            SELECT CASE (this%cores%derivatives_method)
                 !
             CASE ('fft')
                 !
@@ -1243,7 +1243,7 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%cores%derivatives%method)
+        SELECT CASE (this%cores%derivatives_method)
             !
         CASE ('fft')
             !
@@ -1472,7 +1472,7 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%cores%derivatives%method)
+        SELECT CASE (this%cores%derivatives_method)
             !
         CASE ('fft')
             !
@@ -1696,6 +1696,7 @@ CONTAINS
         !
         ASSOCIATE (cell => this%scaled%cell, &
                    derivatives => this%cores%derivatives, &
+                   derivatives_method => this%cores%derivatives_method, &
                    ir_end => this%scaled%cell%ir_end, &
                    deriv => this%deriv, &
                    thr => this%filling_threshold, &
@@ -1705,7 +1706,7 @@ CONTAINS
             !
             CALL filled_fraction%init(cell)
             !
-            IF (deriv >= 2 .AND. derivatives%method /= 'fft') CALL d2filling%init(cell)
+            IF (deriv >= 2 .AND. derivatives_method /= 'fft') CALL d2filling%init(cell)
             !
             !----------------------------------------------------------------------------
             ! Step 0: save local interface function for later use
@@ -1739,7 +1740,7 @@ CONTAINS
                 !
                 this%dfilling%of_r(ir) = -dsfunct2(filled_fraction%of_r(ir), thr, spr)
                 !
-                IF (deriv >= 2 .AND. derivatives%method /= 'fft') &
+                IF (deriv >= 2 .AND. derivatives_method /= 'fft') &
                     d2filling%of_r(ir) = -d2sfunct2(filled_fraction%of_r(ir), thr, spr)
                 !
             END DO
@@ -1753,7 +1754,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Step 5: compute boundary derivatives, if needed
             !
-            SELECT CASE (derivatives%method)
+            SELECT CASE (derivatives_method)
                 !
             CASE ('fft')
                 !

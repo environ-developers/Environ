@@ -39,7 +39,7 @@ MODULE class_solver_direct
     USE class_density
     USE class_gradient
     !
-    USE class_container
+    USE class_core_container
     !
     USE class_solver
     !
@@ -97,7 +97,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_container), TARGET, INTENT(IN) :: cores
+        TYPE(core_container), TARGET, INTENT(IN) :: cores
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
@@ -168,14 +168,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        ASSOCIATE (correction => this%cores%electrostatics%correction, &
-                   density => charges%density, &
-                   electrolyte => charges%electrolyte, &
-                   semiconductor => charges%semiconductor)
+        IF (this%cores%has_corrections) THEN
             !
-            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
+            ASSOCIATE (correction => this%cores%corrections, &
+                       density => charges%density, &
+                       electrolyte => charges%electrolyte, &
+                       semiconductor => charges%semiconductor)
                 !
-                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                SELECT CASE (this%cores%corrections_method)
                     !
                 CASE ('parabolic')
                     CALL correction%potential(density, potential)
@@ -200,9 +200,9 @@ CONTAINS
                     !
                 END SELECT
                 !
-            END IF
+            END ASSOCIATE
             !
-        END ASSOCIATE
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_direct_charges
@@ -243,11 +243,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        ASSOCIATE (correction => this%cores%electrostatics%correction)
+        IF (this%cores%has_corrections) THEN
             !
-            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
+            ASSOCIATE (correction => this%cores%corrections)
                 !
-                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                SELECT CASE (this%cores%corrections_method)
                     !
                 CASE ('parabolic')
                     CALL correction%potential(charges, local)
@@ -272,9 +272,9 @@ CONTAINS
                     !
                 END SELECT
                 !
-            END IF
+            END ASSOCIATE
             !
-        END ASSOCIATE
+        END IF
         !
         potential%of_r = local%of_r ! only update the potential at the end
         !
@@ -305,22 +305,22 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%cores%electrostatics%gradpoisson(charges%density, gradient)
+        CALL this%cores%electrostatics%grad_poisson(charges%density, gradient)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        ASSOCIATE (correction => this%cores%electrostatics%correction, &
-                   density => charges%density, &
-                   electrolyte => charges%electrolyte, &
-                   semiconductor => charges%semiconductor)
+        IF (this%cores%has_corrections) THEN
             !
-            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
+            ASSOCIATE (correction => this%cores%corrections, &
+                       density => charges%density, &
+                       electrolyte => charges%electrolyte, &
+                       semiconductor => charges%semiconductor)
                 !
-                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                SELECT CASE (this%cores%corrections_method)
                     !
                 CASE ('parabolic')
-                    CALL correction%gradpotential(density, gradient)
+                    CALL correction%grad_potential(density, gradient)
                     !
                 CASE ('gcs') ! gouy-chapman-stern
                     !
@@ -329,7 +329,7 @@ CONTAINS
                                       'Missing electrolyte for electrochemical &
                                       &boundary correction', 1)
                     !
-                    CALL correction%gradpotential(electrolyte%base, density, gradient)
+                    CALL correction%grad_potential(electrolyte%base, density, gradient)
                     !
                 CASE ('ms') ! mott-schottky
                     !
@@ -338,13 +338,13 @@ CONTAINS
                                       'Missing semiconductor for electrochemical &
                                       &boundary correction', 1)
                     !
-                    CALL correction%gradpotential(semiconductor%base, density, gradient)
+                    CALL correction%grad_potential(semiconductor%base, density, gradient)
                     !
                 END SELECT
                 !
-            END IF
+            END ASSOCIATE
             !
-        END ASSOCIATE
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_gradient_direct_charges
@@ -374,19 +374,19 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%cores%electrostatics%gradpoisson(charges, gradient)
+        CALL this%cores%electrostatics%grad_poisson(charges, gradient)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        ASSOCIATE (correction => this%cores%electrostatics%correction)
+        IF (this%cores%has_corrections) THEN
             !
-            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
+            ASSOCIATE (correction => this%cores%corrections)
                 !
-                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                SELECT CASE (this%cores%corrections_method)
                     !
                 CASE ('parabolic')
-                    CALL correction%gradpotential(charges, gradient)
+                    CALL correction%grad_potential(charges, gradient)
                     !
                 CASE ('gcs') ! gouy-chapman-stern
                     !
@@ -395,7 +395,7 @@ CONTAINS
                                       'Missing electrolyte for &
                                       &electrochemical boundary correction', 1)
                     !
-                    CALL correction%gradpotential(electrolyte%base, charges, gradient)
+                    CALL correction%grad_potential(electrolyte%base, charges, gradient)
                     !
                 CASE ('ms') ! mott-schottky
                     !
@@ -404,13 +404,13 @@ CONTAINS
                                       'Missing semiconductor for &
                                       &electrochemical boundary correction', 1)
                     !
-                    CALL correction%gradpotential(semiconductor%base, charges, gradient)
+                    CALL correction%grad_potential(semiconductor%base, charges, gradient)
                     !
                 END SELECT
                 !
-            END IF
+            END ASSOCIATE
             !
-        END ASSOCIATE
+        END IF
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_gradient_direct_density

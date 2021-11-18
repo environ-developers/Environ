@@ -42,10 +42,7 @@ MODULE class_setup
     USE class_cell
     USE class_mapping
     !
-    USE class_container
-    USE class_core_container_corrections
-    USE class_core_container_derivatives
-    USE class_core_container_electrostatics
+    USE class_core_container
     !
     USE class_core
     USE class_core_fft
@@ -93,7 +90,7 @@ MODULE class_setup
         REAL(DP) :: confine = 0.0_DP
         !
         !--------------------------------------------------------------------------------
-        ! Set basic logical flags = .FALSE.
+        ! Set basic logical flags
         !
         LOGICAL :: lstatic = .FALSE.
         LOGICAL :: loptical = .FALSE.
@@ -161,16 +158,8 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Containers
         !
-        TYPE(environ_container) :: reference_container
-        TYPE(environ_container) :: outer_container, inner_container
-        !
-        TYPE(container_derivatives) :: derivative_cores
-        !
-        TYPE(container_electrostatics) :: ref_electrostatics, &
-                                          outer_electrostatics, &
-                                          inner_electrostatics
-        !
-        TYPE(container_corrections) :: pbc_cores
+        TYPE(core_container) :: reference_container
+        TYPE(core_container) :: outer_container, inner_container
         !
         !--------------------------------------------------------------------------------
         ! Numerical solvers
@@ -201,9 +190,12 @@ MODULE class_setup
         PROCEDURE :: init_cores => init_environ_numerical_cores
         PROCEDURE :: update_cores => update_environ_numerical_cores
         !
-        PROCEDURE :: set_tddfpt, set_restart
-        PROCEDURE :: get_threshold, get_nskip
-        PROCEDURE :: is_tddfpt, is_restart
+        PROCEDURE :: set_tddfpt
+        PROCEDURE :: set_restart
+        PROCEDURE :: get_threshold
+        PROCEDURE :: get_nskip
+        PROCEDURE :: is_tddfpt
+        PROCEDURE :: is_restart
         !
         PROCEDURE, PRIVATE :: set_flags => set_environ_flags
         PROCEDURE, PRIVATE :: set_numerical_base => set_environ_numerical_base
@@ -814,75 +806,26 @@ CONTAINS
         this%lfft_system = .TRUE.
         local_label = 'system'
         !
-        CALL this%ref_electrostatics%init(this%ref_fft)
-        !
         CALL this%reference_container%init(local_label, &
-                                           electrostatics=this%ref_electrostatics)
+                                           elect_core=this%ref_fft, &
+                                           inter_corr=this%use_inter_corr)
         !
         !--------------------------------------------------------------------------------
-        ! Outer/inner cores
-        !
-        SELECT CASE (core)
-            !
-        CASE ('fft')
-            this%lfft_environment = .TRUE.
-            local_outer_core => this%env_fft
-            !
-        END SELECT
-        !
-        CALL this%outer_electrostatics%init(local_outer_core)
-        !
-        IF (this%need_inner) THEN
-            !
-            SELECT CASE (inner_core)
-                !
-            CASE ('fft')
-                local_inner_core => this%env_fft
-                !
-            END SELECT
-            !
-            CALL this%inner_electrostatics%init(local_inner_core)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Correction cores
-        !
-        IF (this%lperiodic) THEN
-            !
-            SELECT CASE (pbc_core)
-                !
-            CASE ('1da')
-                this%l1da = .TRUE.
-                local_pbc_core => this%env_1da
-                !
-            END SELECT
-            !
-            CALL this%pbc_cores%init(local_pbc_core, pbc_correction)
-            !
-            CALL this%outer_electrostatics%add_correction(this%pbc_cores)
-            !
-            IF (this%need_inner) &
-                CALL this%inner_electrostatics%add_correction(this%pbc_cores)
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Outer/inner core containers
+        ! Environment core containers
         !
         local_label = 'environment'
         !
-        CALL this%outer_container%init(local_label, &
-                                       electrostatics=this%outer_electrostatics)
+        CALL this%outer_container%init(local_label, inter_corr=this%use_inter_corr)
         !
-        local_label = local_label//'_inner'
-        !
-        IF (this%need_inner) &
-            CALL this%inner_container%init(local_label, &
-                                           electrostatics=this%inner_electrostatics)
+        IF (this%need_inner) THEN
+            local_label = local_label//'_inner'
+            !
+            CALL this%inner_container%init(local_label, inter_corr=this%use_inter_corr)
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
-        ! Derivative cores
+        ! Derivatives core
         !
         IF (this%lboundary) THEN
             !
@@ -894,9 +837,67 @@ CONTAINS
                 !
             END SELECT
             !
-            CALL this%derivative_cores%init(this%env_fft, deriv_method)
+            CALL this%outer_container%set_derivatives(local_deriv_core, deriv_method)
             !
-            this%outer_container%derivatives => this%derivative_cores
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Electrostatic cores
+        !
+        this%need_inner = inner_solver /= 'none'
+        !
+        IF (this%lelectrostatic) THEN
+            !
+            !----------------------------------------------------------------------------
+            ! Outer core
+            !
+            SELECT CASE (core)
+                !
+            CASE ('fft')
+                this%lfft_environment = .TRUE.
+                local_outer_core => this%env_fft
+                !
+            END SELECT
+            !
+            CALL this%outer_container%set_electrostatics(local_outer_core)
+            !
+            !----------------------------------------------------------------------------
+            ! Inner core
+            !
+            IF (this%need_inner) THEN
+                !
+                SELECT CASE (inner_core)
+                    !
+                CASE ('fft')
+                    local_inner_core => this%env_fft
+                    !
+                END SELECT
+                !
+                CALL this%inner_container%set_electrostatics(local_inner_core)
+                !
+            END IF
+            !
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Corrections core
+        !
+        IF (this%lperiodic) THEN
+            !
+            SELECT CASE (pbc_core)
+                !
+            CASE ('1da')
+                this%l1da = .TRUE.
+                local_pbc_core => this%env_1da
+                !
+            END SELECT
+            !
+            CALL this%outer_container%set_corrections(local_pbc_core, pbc_correction)
+            !
+            IF (this%need_inner) &
+                CALL this%inner_container%set_corrections(local_pbc_core, &
+                                                          pbc_correction)
+            !
         END IF
         !
         !--------------------------------------------------------------------------------

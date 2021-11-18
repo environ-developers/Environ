@@ -38,7 +38,7 @@ MODULE class_solver_newton
     !
     USE class_density
     !
-    USE class_container
+    USE class_core_container
     !
     USE class_solver
     USE class_solver_gradient
@@ -93,7 +93,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_container), TARGET, INTENT(IN) :: cores
+        TYPE(core_container), TARGET, INTENT(IN) :: cores
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary

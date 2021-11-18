@@ -83,9 +83,15 @@ MODULE class_core_1da
         PROCEDURE :: update_origin => update_core_1da_origin
         PROCEDURE :: destroy => destroy_core_1da
         !
-        PROCEDURE :: calc_1da_vperiodic, calc_1da_vgcs, calc_1da_vms
-        PROCEDURE :: calc_1da_gradvperiodic, calc_1da_gradvgcs, calc_1da_gradvms
-        PROCEDURE :: calc_1da_fperiodic
+        PROCEDURE :: calc_vperiodic => calc_1da_vperiodic
+        PROCEDURE :: calc_grad_vperiodic => calc_1da_grad_vperiodic
+        PROCEDURE :: calc_fperiodic => calc_1da_fperiodic
+        !
+        PROCEDURE :: calc_vgcs => calc_1da_vgcs
+        PROCEDURE :: calc_grad_vgcs => calc_1da_grad_vgcs
+        !
+        PROCEDURE :: calc_vms => calc_1da_vms
+        PROCEDURE :: calc_grad_vms => calc_1da_grad_vms
         !
         !--------------------------------------------------------------------------------
     END TYPE core_1da
@@ -284,15 +290,15 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_vperiodic(this, charges, potential)
+    SUBROUTINE calc_1da_vperiodic(this, charges, v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CLASS(core_1da), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
         REAL(DP), POINTER :: vperiodic(:)
         !
@@ -311,26 +317,26 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
+        IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
-        IF (.NOT. ASSOCIATED(potential%cell, this%cell)) &
+        IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
-        IF (this%dim == 0 .AND. .NOT. potential%cell%cubic) &
+        IF (this%dim == 0 .AND. .NOT. v%cell%cubic) &
             CALL io%error(sub_name, &
                           'Parabolic correction in 0D is only for cubic cells', 1)
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (omega => potential%cell%omega, &
+        ASSOCIATE (omega => v%cell%omega, &
                    slab_axis => this%axis, &
                    axis => this%x)
             !
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL local%init(potential%cell)
+            CALL local%init(v%cell)
             !
             vperiodic => local%of_r
             !
@@ -386,7 +392,7 @@ CONTAINS
                 !
             END SELECT
             !
-            potential%of_r = potential%of_r + vperiodic
+            v%of_r = v%of_r + vperiodic
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -407,15 +413,15 @@ CONTAINS
     !! on the shape of the ionic density
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_gradvperiodic(this, charges, gvtot)
+    SUBROUTINE calc_1da_grad_vperiodic(this, charges, grad_v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CLASS(core_1da), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gvtot
+        TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
         REAL(DP), POINTER :: gvperiodic(:, :)
         !
@@ -426,14 +432,14 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET :: glocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_gradvperiodic'
+        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vperiodic'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(gvtot%cell, charges%cell)) &
+        IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of gradient and charges', 1)
         !
-        IF (.NOT. ASSOCIATED(gvtot%cell, this%cell)) &
+        IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of gradient and solver', 1)
         !
         !--------------------------------------------------------------------------------
@@ -444,7 +450,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL glocal%init(gvtot%cell)
+            CALL glocal%init(grad_v%cell)
             !
             gvperiodic => glocal%of_r
             !
@@ -456,7 +462,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute gradient of periodic images correction
             !
-            fact = e2 * fpi / gvtot%cell%omega
+            fact = e2 * fpi / grad_v%cell%omega
             !
             SELECT CASE (this%dim)
                 !
@@ -482,7 +488,7 @@ CONTAINS
             !
             gvperiodic = gvperiodic * fact
             !
-            gvtot%of_r = gvtot%of_r + gvperiodic
+            grad_v%of_r = grad_v%of_r + gvperiodic
             ! sum the periodic contribution to the total gradient of the potential
             !
             !----------------------------------------------------------------------------
@@ -493,23 +499,23 @@ CONTAINS
         END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_1da_gradvperiodic
+    END SUBROUTINE calc_1da_grad_vperiodic
     !------------------------------------------------------------------------------------
     !>
     !! Computes the contribution to the atomic forces
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_fperiodic(this, natoms, ions, auxiliary, f)
+    SUBROUTINE calc_1da_fperiodic(this, nat, ions, auxiliary, force)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: natoms
+        CLASS(core_1da), TARGET, INTENT(IN) :: this
+        INTEGER, INTENT(IN) :: nat
         CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
         TYPE(environ_density), INTENT(IN) :: auxiliary
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
-        REAL(DP), INTENT(INOUT) :: f(3, natoms)
+        REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
         REAL(DP), POINTER :: Z
         !
@@ -517,7 +523,7 @@ CONTAINS
         !
         REAL(DP) :: fact, pos(3)
         REAL(DP) :: charge, dipole(3), quadrupole(3)
-        REAL(DP) :: ftmp(3, natoms)
+        REAL(DP) :: ftmp(3, nat)
         !
         TYPE(environ_density) :: local
         !
@@ -541,7 +547,7 @@ CONTAINS
             !
         END SELECT
         !
-        IF (natoms /= SIZE(local_ions)) &
+        IF (nat /= SIZE(local_ions)) &
             CALL io%error(sub_name, &
                           'Mismatch between input and stored number of ions', 1)
         !
@@ -572,7 +578,7 @@ CONTAINS
             fact = e2 * fpi / auxiliary%cell%omega
             ftmp = 0.D0
             !
-            DO i = 1, natoms
+            DO i = 1, nat
                 pos = local_ions(i)%pos - origin
                 Z => local_ions(i)%volume
                 !
@@ -598,7 +604,7 @@ CONTAINS
                 ftmp(:, i) = ftmp(:, i) * fact * Z
             END DO
             !
-            f = f + ftmp
+            force = force + ftmp
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -616,18 +622,18 @@ CONTAINS
     !! Function that calculates the Gouy-Chapman correction and adds it to the potential
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_vgcs(this, electrolyte, charges, potential)
+    SUBROUTINE calc_1da_vgcs(this, electrolyte, charges, v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CLASS(core_1da), TARGET, INTENT(IN) :: this
         TYPE(environ_electrolyte_base), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
-        REAL(DP), POINTER :: v(:)
+        REAL(DP), POINTER :: vgcs(:)
         !
         INTEGER :: i, icount
         !
@@ -650,10 +656,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
+        IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
-        IF (.NOT. ASSOCIATED(potential%cell, this%cell)) &
+        IF (.NOT. ASSOCIATED(v%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         IF (electrolyte%ntyp /= 2) &
@@ -668,9 +674,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (comm => potential%cell%dfft%comm, &
-                   nnr => potential%cell%nnr, &
-                   omega => potential%cell%omega, &
+        ASSOCIATE (comm => v%cell%dfft%comm, &
+                   nnr => v%cell%nnr, &
+                   omega => v%cell%omega, &
                    slab_axis => this%axis, &
                    axis_length => this%size, &
                    axis => this%x, &
@@ -688,9 +694,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL local%init(potential%cell)
+            CALL local%init(v%cell)
             !
-            v => local%of_r
+            vgcs => local%of_r
             area = omega / axis_length
             !
             !----------------------------------------------------------------------------
@@ -703,8 +709,8 @@ CONTAINS
             !
             fact = e2 * tpi / omega
             const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
-            v(:) = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
-            v = fact * v + const
+            vgcs(:) = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
+            vgcs = fact * vgcs + const
             !
             !----------------------------------------------------------------------------
             ! Compute the physical properties of the interface
@@ -752,7 +758,7 @@ CONTAINS
                 IF (ABS(axis(1, i)) >= xstern) THEN
                     icount = icount + 1
                     !
-                    vbound = vbound + potential%of_r(i) + v(i) - &
+                    vbound = vbound + v%of_r(i) + vgcs(i) - &
                              ez * (ABS(axis(1, i)) - xstern)
                     !
                 END IF
@@ -764,7 +770,7 @@ CONTAINS
             CALL env_mp_sum(vbound, comm)
             !
             vbound = vbound / DBLE(icount)
-            v = v - vbound + vstern
+            vgcs = vgcs - vbound + vstern
             !
             !----------------------------------------------------------------------------
             ! Compute some constants needed for the calculation
@@ -784,7 +790,7 @@ CONTAINS
                         vtmp = lin_c * EXP(-1.D0 * lin_k * ABS(axis(1, i)) / lin_e)
                         ! linearized Gouy-Chapmann-Stern analytic solution on the outside
                         !
-                        v(i) = vtmp - potential%of_r(i)
+                        vgcs(i) = vtmp - v%of_r(i)
                         ! remove source potential and add analytic one
                         !
                     END IF
@@ -813,7 +819,7 @@ CONTAINS
                         !
                         vtmp = f2 * acoth
                         !
-                        v(i) = vtmp - potential%of_r(i)
+                        vgcs(i) = vtmp - v%of_r(i)
                         ! remove source potential and add analytic one
                         !
                     ELSE IF (axis(1, i) >= xstern) THEN
@@ -831,7 +837,7 @@ CONTAINS
                         !
                         vtmp = f2 * acoth
                         !
-                        v(i) = vtmp - potential%of_r(i)
+                        vgcs(i) = vtmp - v%of_r(i)
                         ! remove source potential and add analytic one
                         !
                     END IF
@@ -840,7 +846,7 @@ CONTAINS
                 !
             END IF
             !
-            potential%of_r = potential%of_r + v
+            v%of_r = v%of_r + vgcs
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -857,18 +863,18 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_gradvgcs(this, electrolyte, charges, gradv)
+    SUBROUTINE calc_1da_grad_vgcs(this, electrolyte, charges, grad_v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CLASS(core_1da), TARGET, INTENT(IN) :: this
         TYPE(environ_electrolyte_base), TARGET, INTENT(IN) :: electrolyte
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradv
+        TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        REAL(DP), POINTER :: gvstern(:, :)
+        REAL(DP), POINTER :: grad_vgcs(:, :)
         !
         INTEGER :: i
         !
@@ -882,7 +888,7 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET :: glocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_gradvgcs'
+        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vgcs'
         !
         !--------------------------------------------------------------------------------
         !
@@ -890,10 +896,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &
+        IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
-        IF (.NOT. ASSOCIATED(gradv%cell, this%cell)) &
+        IF (.NOT. ASSOCIATED(grad_v%cell, this%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         IF (electrolyte%ntyp /= 2) &
@@ -908,8 +914,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (nnr => gradv%cell%nnr, &
-                   omega => gradv%cell%omega, &
+        ASSOCIATE (nnr => grad_v%cell%nnr, &
+                   omega => grad_v%cell%omega, &
                    slab_axis => this%axis, &
                    axis => this%x, &
                    cion => electrolyte%ioncctype(1)%cbulk, &
@@ -926,9 +932,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL glocal%init(gradv%cell)
+            CALL glocal%init(grad_v%cell)
             !
-            gvstern => glocal%of_r
+            grad_vgcs => glocal%of_r
             area = omega / this%size
             !
             !----------------------------------------------------------------------------
@@ -940,8 +946,8 @@ CONTAINS
             ! First compute the gradient of parabolic correction
             !
             fact = e2 * fpi / omega
-            gvstern(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
-            gvstern = gvstern * fact
+            grad_vgcs(slab_axis, :) = dipole(slab_axis) - charge * axis(1, :)
+            grad_vgcs = grad_vgcs * fact
             !
             !----------------------------------------------------------------------------
             ! Compute the physical properties of the interface
@@ -990,8 +996,8 @@ CONTAINS
                         dvtmp_dx = lin_c * f1 * EXP(arg)
                         !
                         ! remove source potential and add analytic one
-                        gvstern(slab_axis, i) = &
-                            -gradv%of_r(slab_axis, i) + &
+                        grad_vgcs(slab_axis, i) = &
+                            -grad_v%of_r(slab_axis, i) + &
                             (dvtmp_dx - ez) * ABS(axis(1, i)) / axis(1, i)
                         !
                     END IF
@@ -1017,8 +1023,8 @@ CONTAINS
                         dvtmp_dx = f1 * f2 * arg / (1.D0 - arg**2)
                         !
                         ! remove source potential (linear) and add analytic one
-                        gvstern(slab_axis, i) = &
-                            -gradv%of_r(slab_axis, i) + &
+                        grad_vgcs(slab_axis, i) = &
+                            -grad_v%of_r(slab_axis, i) + &
                             (dvtmp_dx - ez) * ABS(axis(1, i)) / axis(1, i)
                         !
                     ELSE IF (axis(1, i) >= xstern) THEN
@@ -1030,8 +1036,8 @@ CONTAINS
                         dvtmp_dx = f1 * f2 * arg / (1.D0 - arg**2)
                         !
                         ! remove source potential (linear) and add analytic one
-                        gvstern(slab_axis, i) = &
-                            -gradv%of_r(slab_axis, i) + &
+                        grad_vgcs(slab_axis, i) = &
+                            -grad_v%of_r(slab_axis, i) + &
                             (dvtmp_dx - ez) * ABS(axis(1, i)) / axis(1, i)
                         !
                     END IF
@@ -1040,7 +1046,7 @@ CONTAINS
                 !
             END IF
             !
-            gradv%of_r = gradv%of_r + gvstern
+            grad_v%of_r = grad_v%of_r + grad_vgcs
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -1052,28 +1058,28 @@ CONTAINS
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_1da_gradvgcs
+    END SUBROUTINE calc_1da_grad_vgcs
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_vms(this, semiconductor, charges, potential)
+    SUBROUTINE calc_1da_vms(this, semiconductor, charges, v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CLASS(core_1da), TARGET, INTENT(IN) :: this
         TYPE(environ_semiconductor_base), TARGET, INTENT(IN) :: semiconductor
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
-        REAL(DP), POINTER :: v(:)
+        REAL(DP), POINTER :: vms(:)
         !
         INTEGER :: i, icount
         !
         REAL(DP) :: kbt, invkbt
-        REAL(DP) :: ez, fact, vms
+        REAL(DP) :: ez, fact, delta_vms
         REAL(DP) :: arg, const, depletion_length
         REAL(DP) :: area, vtmp, vbound, distance
         REAL(DP) :: charge, dipole(3), quadrupole(3)
@@ -1088,10 +1094,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(potential%cell, charges%cell)) &
+        IF (.NOT. ASSOCIATED(v%cell, charges%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
-        IF (potential%cell%nnr /= this%nnr) &
+        IF (v%cell%nnr /= this%nnr) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         IF (this%dim /= 2) &
@@ -1101,9 +1107,9 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        ASSOCIATE (comm => potential%cell%dfft%comm, &
-                   nnr => potential%cell%nnr, &
-                   omega => potential%cell%omega, &
+        ASSOCIATE (comm => v%cell%dfft%comm, &
+                   nnr => v%cell%nnr, &
+                   omega => v%cell%omega, &
                    slab_axis => this%axis, &
                    axis_length => this%size, &
                    axis => this%x, &
@@ -1118,9 +1124,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL local%init(potential%cell)
+            CALL local%init(v%cell)
             !
-            v => local%of_r
+            vms => local%of_r
             area = omega / axis_length
             !
             !----------------------------------------------------------------------------
@@ -1134,8 +1140,8 @@ CONTAINS
             fact = e2 * tpi / omega
             const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
             !
-            v = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
-            v = fact * v + const
+            vms = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
+            vms = fact * vms + const
             !
             !----------------------------------------------------------------------------
             ! Compute the physical properties of the interface
@@ -1143,7 +1149,7 @@ CONTAINS
             ez = -tpi * e2 * charge / area
             fact = 1.D0 / tpi / e2 / 2.D0 / semiconductor%carrier_density
             arg = fact * (ez**2.D0)
-            vms = arg ! +kbt ! #TODO figure this out
+            delta_vms = arg ! +kbt ! #TODO figure this out
             !
             !----------------------------------------------------------------------------
             ! Finds the total length of the depletion region
@@ -1152,7 +1158,7 @@ CONTAINS
             !
             IF (io%lnode .AND. io%verbosity > 0) THEN
                 WRITE (io%debug_unit, *) "depletion length: ", depletion_length
-                WRITE (io%debug_unit, *) "vms: ", vms
+                WRITE (io%debug_unit, *) "delta_vms: ", delta_vms
             END IF
             !
             vbound = 0.D0
@@ -1163,7 +1169,7 @@ CONTAINS
                 IF (ABS(axis(1, i)) >= xstern) THEN
                     icount = icount + 1
                     !
-                    vbound = vbound + potential%of_r(i) + v(i) - &
+                    vbound = vbound + v%of_r(i) + vms(i) - &
                              ez * (ABS(axis(1, i)) - xstern)
                     !
                 END IF
@@ -1179,7 +1185,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute the analytic potential and charge
             !
-            v = v - vbound - vms
+            vms = vms - vbound - delta_vms
             !
             DO i = 1, nnr
                 !
@@ -1198,14 +1204,14 @@ CONTAINS
                         vtmp = 0.D0
                     END IF
                     !
-                    v(i) = v(i) + vtmp - ez * distance
+                    vms(i) = vms(i) + vtmp - ez * distance
                     ! remove source potential (linear) and add analytic one
                     !
                 END IF
                 !
             END DO
             !
-            potential%of_r = potential%of_r + v
+            v%of_r = v%of_r + vms
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -1222,30 +1228,30 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_1da_gradvms(this, semiconductor, charges, gradv)
+    SUBROUTINE calc_1da_grad_vms(this, semiconductor, charges, grad_v)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
+        CLASS(core_1da), TARGET, INTENT(IN) :: this
         TYPE(environ_semiconductor_base), TARGET, INTENT(IN) :: semiconductor
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradv
+        TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        REAL(DP), POINTER :: gvms(:, :)
+        REAL(DP), POINTER :: grad_vms(:, :)
         !
         INTEGER :: i
         !
         REAL(DP) :: kbt, invkbt
-        REAL(DP) :: ez, fact, vms
+        REAL(DP) :: ez, fact, delta_vms
         REAL(DP) :: arg
         REAL(DP) :: area, dvtmp_dx
         REAL(DP) :: charge, dipole(3), quadrupole(3)
         !
         TYPE(environ_gradient), TARGET :: glocal
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_1da_gradvms'
+        CHARACTER(LEN=80) :: sub_name = 'calc_1da_grad_vms'
         !
         !--------------------------------------------------------------------------------
         !
@@ -1253,10 +1259,10 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (.NOT. ASSOCIATED(gradv%cell, charges%cell)) &
+        IF (.NOT. ASSOCIATED(grad_v%cell, charges%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and charges', 1)
         !
-        IF (gradv%cell%nnr /= this%nnr) &
+        IF (grad_v%cell%nnr /= this%nnr) &
             CALL io%error(sub_name, 'Mismatch in domains of potential and solver', 1)
         !
         IF (this%dim /= 2) &
@@ -1278,9 +1284,9 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Initialize local densities
             !
-            CALL glocal%init(gradv%cell)
+            CALL glocal%init(grad_v%cell)
             !
-            gvms => glocal%of_r
+            grad_vms => glocal%of_r
             !
             !----------------------------------------------------------------------------
             !
@@ -1290,11 +1296,11 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! First compute the gradient of parabolic correction
             !
-            fact = e2 * fpi / gradv%cell%omega
-            gvms(slab_axis, :) = dipole(slab_axis) - charge * this%x(1, :)
-            gvms = gvms * fact
+            fact = e2 * fpi / grad_v%cell%omega
+            grad_vms(slab_axis, :) = dipole(slab_axis) - charge * this%x(1, :)
+            grad_vms = grad_vms * fact
             !
-            gradv%of_r = gradv%of_r + gvms
+            grad_v%of_r = grad_v%of_r + grad_vms
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -1306,7 +1312,7 @@ CONTAINS
         CALL env_stop_clock(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_1da_gradvms
+    END SUBROUTINE calc_1da_grad_vms
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------

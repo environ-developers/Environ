@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------------
 !
-! Copyright (C) 2021 ENVIRON (www.quantum-environ.org)
+! Copyright (C) 2018-2021 ENVIRON (www.quantum-environ.org)
 !
 !----------------------------------------------------------------------------------------
 !
@@ -20,27 +20,19 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Edan Bainglass (Department of Physics, UNT)
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
+!          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_container_electrostatics
+MODULE class_core_container
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     !
-    USE environ_param, ONLY: DP
-    !
-    USE class_density
-    USE class_gradient
-    USE class_function
-    !
-    USE class_core_container
-    USE class_core_container_corrections
-    !
-    USE class_core_fft
+    USE class_core
     !
     !------------------------------------------------------------------------------------
     !
@@ -52,24 +44,38 @@ MODULE class_core_container_electrostatics
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(core_container), PUBLIC :: container_electrostatics
+    TYPE, PUBLIC :: core_container
         !--------------------------------------------------------------------------------
         !
-        CLASS(container_corrections), POINTER :: correction => NULL()
+        CHARACTER(LEN=80) :: label = ''
+        !
+        LOGICAL :: internal_correction = .FALSE.
+        !
+        LOGICAL :: has_derivatives = .FALSE.
+        CHARACTER(LEN=80) :: derivatives_method = 'default'
+        CLASS(environ_core), POINTER :: derivatives => NULL()
+        !
+        LOGICAL :: has_electrostatics = .FALSE.
+        CLASS(environ_core), POINTER :: electrostatics => NULL()
+        !
+        LOGICAL :: has_corrections = .FALSE.
+        CHARACTER(LEN=80) :: corrections_method = 'none'
+        CLASS(environ_core), POINTER :: corrections => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: add_correction
-        PROCEDURE :: destroy => destroy_electrostatics_container
+        PROCEDURE, PRIVATE :: create => create_core_container
+        PROCEDURE :: init => init_core_container
+        PROCEDURE :: destroy => destroy_core_container
         !
-        PROCEDURE :: poisson => calc_poisson
-        PROCEDURE :: gradpoisson => calc_gradpoisson
-        PROCEDURE :: force => calc_force
+        PROCEDURE :: set_derivatives
+        PROCEDURE :: set_electrostatics
+        PROCEDURE :: set_corrections
         !
         !--------------------------------------------------------------------------------
-    END TYPE container_electrostatics
+    END TYPE core_container
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -84,153 +90,187 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE add_correction(this, correction)
+    SUBROUTINE create_core_container(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(container_corrections), TARGET, INTENT(IN) :: correction
+        CLASS(core_container), INTENT(INOUT) :: this
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        !
-        CHARACTER(LEN=80) :: sub_name = 'add_correction'
+        CHARACTER(LEN=80) :: sub_name = 'create_core_container'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%correction)) CALL io%create_error(sub_name)
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%corrections)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
-        !
-        this%correction => correction
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE add_correction
+    END SUBROUTINE create_core_container
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_electrostatics_container(this)
+    SUBROUTINE init_core_container(this, label, deriv_core, deriv_method, &
+                                   elect_core, corr_core, corr_method, inter_corr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        CHARACTER(LEN=80), INTENT(IN) :: label
+        CLASS(environ_core), INTENT(IN), OPTIONAL :: deriv_core
+        CLASS(environ_core), INTENT(IN), OPTIONAL :: elect_core
+        CLASS(environ_core), INTENT(IN), OPTIONAL :: corr_core
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: deriv_method
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: corr_method
+        LOGICAL, INTENT(IN), OPTIONAL :: inter_corr
+        !
+        CLASS(core_container), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'init_core_container'
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%core_container%destroy()
+        CALL this%create()
         !
-        NULLIFY (this%core)
+        this%label = label
         !
-        IF (ASSOCIATED(this%correction)) THEN
+        IF (PRESENT(elect_core)) CALL this%set_electrostatics(elect_core)
+        !
+        IF (PRESENT(deriv_core)) CALL this%set_derivatives(deriv_core, deriv_method)
+        !
+        IF (PRESENT(corr_core)) CALL this%set_corrections(corr_core, corr_method)
+        !
+        IF (PRESENT(inter_corr)) this%internal_correction = inter_corr
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE init_core_container
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_core_container(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_container), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_core_container'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%derivatives)) THEN
             !
-            IF (ASSOCIATED(this%correction%core)) CALL this%correction%destroy()
+            CALL this%derivatives%destroy()
             !
-            NULLIFY (this%correction)
+            NULLIFY (this%derivatives)
+        END IF
+        !
+        IF (ASSOCIATED(this%electrostatics)) THEN
+            !
+            CALL this%electrostatics%destroy()
+            !
+            NULLIFY (this%electrostatics)
+        END IF
+        !
+        IF (ASSOCIATED(this%corrections)) THEN
+            !
+            CALL this%corrections%destroy()
+            !
+            NULLIFY (this%corrections)
         END IF
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_electrostatics_container
-    !------------------------------------------------------------------------------------
-    !------------------------------------------------------------------------------------
-    !
-    !                               ELECTROSTATIC METHODS
-    !
-    !------------------------------------------------------------------------------------
+    END SUBROUTINE destroy_core_container
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_poisson(this, density, potential)
+    SUBROUTINE set_derivatives(this, core, method)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        CLASS(environ_core), TARGET, INTENT(IN) :: core
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: method
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
+        CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_poisson'
+        CHARACTER(LEN=80) :: sub_name = 'set_derivatives'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft)
-            CALL core%poisson(density, potential)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        this%derivatives => core
+        this%has_derivatives = .TRUE.
+        !
+        IF (PRESENT(method)) this%derivatives_method = method
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_poisson
+    END SUBROUTINE set_derivatives
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradpoisson(this, density, gradient)
+    SUBROUTINE set_electrostatics(this, core)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        CLASS(environ_core), TARGET, INTENT(IN) :: core
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradpoisson'
+        CHARACTER(LEN=80) :: sub_name = 'set_electrostatics'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft)
-            CALL core%gradpoisson(density, gradient)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        this%electrostatics => core
+        this%has_electrostatics = .TRUE.
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradpoisson
+    END SUBROUTINE set_electrostatics
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_force(this, natoms, density, ions, force)
+    SUBROUTINE set_corrections(this, core, method)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: natoms
-        TYPE(environ_density), INTENT(IN) :: density
-        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
+        CLASS(environ_core), TARGET, INTENT(IN) :: core
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: method
         !
-        CLASS(container_electrostatics), INTENT(INOUT) :: this
-        REAL(DP), INTENT(INOUT) :: force(3, natoms)
+        CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_force'
+        CHARACTER(LEN=80) :: sub_name = 'set_corrections'
         !
         !--------------------------------------------------------------------------------
         !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_fft)
-            CALL core%force(natoms, density, ions, force)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
+        IF (ASSOCIATED(this%corrections)) CALL io%create_error(sub_name)
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_force
+        !
+        this%corrections => core
+        this%has_corrections = .TRUE.
+        !
+        IF (PRESENT(method)) this%corrections_method = method
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_corrections
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_container_electrostatics
+END MODULE class_core_container
 !----------------------------------------------------------------------------------------

@@ -428,21 +428,15 @@ CONTAINS
         !
         eself = charges%ions%selfenergy_correction * e2
         !
-        SELECT TYPE (core => this%solver%cores%electrostatics%core)
+        IF (this%solver%cores%internal_correction .OR. &
+            this%solver%cores%has_corrections) THEN
+            degauss = 0.D0
+        ELSE
             !
-        TYPE IS (core_fft)
+            degauss = -degauss * charges%ions%quadrupole_correction * &
+                      e2 * tpi / charges%density%cell%omega
             !
-            IF (core%use_internal_pbc_corr .OR. &
-                ASSOCIATED(this%solver%cores%electrostatics%correction)) THEN
-                degauss = 0.D0
-            ELSE
-                !
-                degauss = -degauss * charges%ions%quadrupole_correction * &
-                          e2 * tpi / charges%density%cell%omega
-                !
-            END IF
-            !
-        END SELECT
+        END IF
         !
         energy = energy + eself + degauss
         !
@@ -459,17 +453,17 @@ CONTAINS
     !! including any environment-specific contributions
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_felectrostatic(this, natoms, charges, force, ldoublecell)
+    SUBROUTINE calc_felectrostatic(this, nat, charges, force, ldoublecell)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        INTEGER, INTENT(IN) :: natoms
+        INTEGER, INTENT(IN) :: nat
         TYPE(environ_charges), INTENT(IN) :: charges
         LOGICAL, INTENT(IN) :: ldoublecell
         !
         CLASS(electrostatic_setup), INTENT(INOUT) :: this
-        REAL(DP), INTENT(INOUT) :: force(3, natoms)
+        REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
         TYPE(environ_density) :: aux
         !
@@ -512,21 +506,16 @@ CONTAINS
             aux%of_r = aux%of_r + charges%electrolyte%density%of_r
         END IF
         !
-        ASSOCIATE (electrostatics => this%solver%cores%electrostatics)
+        ASSOCIATE (cores => this%solver%cores)
             !
-            SELECT TYPE (core => electrostatics%core)
-                !
-            TYPE IS (core_fft)
-                CALL electrostatics%force(natoms, aux, charges%ions%smeared_ions, force)
-                !
-            END SELECT
+            CALL cores%electrostatics%force(nat, aux, charges%ions%smeared_ions, force)
             !
-            IF (ASSOCIATED(electrostatics%correction)) THEN
+            IF (cores%has_corrections) THEN
                 !
                 IF (.NOT. ldoublecell) aux%of_r = aux%of_r + charges%density%of_r
                 !
-                CALL electrostatics%correction%force(natoms, charges%ions%smeared_ions, &
-                                                     aux, force)
+                CALL cores%corrections%force_periodic(nat, charges%ions%smeared_ions, &
+                                                      aux, force)
                 !
             END IF
             !

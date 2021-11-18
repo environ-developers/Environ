@@ -39,7 +39,7 @@ MODULE class_solver_gradient
     USE class_density
     USE class_gradient
     !
-    USE class_container
+    USE class_core_container
     !
     USE class_core_fft
     !
@@ -116,7 +116,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_container), INTENT(IN) :: cores
+        TYPE(core_container), INTENT(IN) :: cores
         LOGICAL, INTENT(IN) :: lconjugate
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol, step, screening
@@ -867,15 +867,8 @@ CONTAINS
             !
             shift = 0.D0
             !
-            SELECT TYPE (core => this%cores%electrostatics%core)
-                !
-            TYPE IS (core_fft)
-                !
-                IF (.NOT. (core%use_internal_pbc_corr .OR. &
-                           ASSOCIATED(this%cores%electrostatics%correction))) &
-                    shift = -x%integrate() / cell%omega
-                !
-            END SELECT
+            IF (.NOT. (this%cores%internal_correction .OR. this%cores%has_corrections)) &
+                shift = -x%integrate() / cell%omega
             !
             x%of_r = x%of_r + shift
             !
@@ -1389,15 +1382,8 @@ CONTAINS
             !
             shift = 0.D0
             !
-            SELECT TYPE (core => this%cores%electrostatics%core)
-                !
-            TYPE IS (core_fft)
-                !
-                IF (.NOT. (core%use_internal_pbc_corr .OR. &
-                           ASSOCIATED(this%cores%electrostatics%correction))) &
-                    shift = -x%integrate() / cell%omega
-                !
-            END SELECT
+            IF (.NOT. (this%cores%internal_correction .OR. this%cores%has_corrections)) &
+                shift = -x%integrate() / cell%omega
             !
             x%of_r = x%of_r + shift
             !

@@ -39,7 +39,7 @@ MODULE class_solver_fixedpoint
     USE class_density
     USE class_gradient
     !
-    USE class_container
+    USE class_core_container
     !
     USE class_solver
     USE class_solver_gradient
@@ -107,7 +107,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_container), TARGET, INTENT(IN) :: cores
+        TYPE(core_container), TARGET, INTENT(IN) :: cores
         INTEGER, INTENT(IN) :: ndiis, maxiter
         REAL(DP), INTENT(IN) :: tol, mix
         CHARACTER(LEN=80), INTENT(IN) :: mix_type

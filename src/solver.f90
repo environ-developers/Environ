@@ -34,7 +34,7 @@ MODULE class_solver
     !
     USE class_io, ONLY: io
     !
-    USE class_container
+    USE class_core_container
     !
     !------------------------------------------------------------------------------------
     !
@@ -51,7 +51,7 @@ MODULE class_solver
         !
         CHARACTER(LEN=80) :: solver_type
         !
-        TYPE(environ_container), POINTER :: cores => NULL()
+        TYPE(core_container), POINTER :: cores => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -100,7 +100,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_container), TARGET, INTENT(IN) :: cores
+        TYPE(core_container), TARGET, INTENT(IN) :: cores
         !
         CLASS(electrostatic_solver), INTENT(INOUT) :: this
         !
