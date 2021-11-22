@@ -207,6 +207,7 @@ MODULE class_setup
         PROCEDURE, PRIVATE :: set_simulation_flags
         PROCEDURE, PRIVATE :: set_environment_flags
         PROCEDURE, PRIVATE :: set_derived_flags
+        PROCEDURE, PRIVATE :: set_electrostatic_flags
         !
         PROCEDURE :: print_summary => environ_setup_summary
         PROCEDURE :: print_potential_warning => print_environ_potential_warning
@@ -1044,18 +1045,61 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Set electrostatic flags
         !
-        CALL this%reference%set_flags(this%need_auxiliary, this%need_gradient, &
-                                      this%need_factsqrt)
+        CALL this%set_electrostatic_flags(this%reference)
         !
-        CALL this%outer%set_flags(this%need_auxiliary, this%need_gradient, &
-                                  this%need_factsqrt)
+        CALL this%set_electrostatic_flags(this%outer)
         !
-        IF (this%need_inner) &
-            CALL this%inner%set_flags(this%need_auxiliary, this%need_gradient, &
-                                      this%need_factsqrt)
+        IF (this%need_inner) CALL this%set_electrostatic_flags(this%inner)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_environ_electrostatic
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE set_electrostatic_flags(this, solver_setup)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(electrostatic_setup), INTENT(IN) :: solver_setup
+        !
+        CLASS(environ_setup), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        SELECT CASE (solver_setup%problem)
+            !
+        CASE ('generalized', 'linpb', 'linmodpb', 'pb', 'modpb')
+            !
+            SELECT TYPE (solver => solver_setup%solver)
+                !
+            TYPE IS (solver_gradient)
+                !
+                SELECT CASE (preconditioner)
+                    !
+                CASE ('sqrt')
+                    this%need_factsqrt = .TRUE.
+                    !
+                CASE ('left', 'none')
+                    this%need_gradient = .TRUE.
+                    !
+                END SELECT
+                !
+            END SELECT
+            !
+            SELECT TYPE (solver => solver_setup%solver)
+                !
+            CLASS IS (solver_iterative)
+                !
+                IF (solver%auxiliary /= 'none') this%need_auxiliary = .TRUE.
+                !
+            END SELECT
+            !
+        END SELECT
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE set_electrostatic_flags
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

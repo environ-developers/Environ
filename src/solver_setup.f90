@@ -76,7 +76,6 @@ MODULE class_solver_setup
         !
         PROCEDURE, PRIVATE :: create => create_electrostatic_setup
         PROCEDURE :: init => init_electrostatic_setup
-        PROCEDURE :: set_flags => set_electrostatic_flags
         PROCEDURE :: destroy => destroy_electrostatic_setup
         !
         PROCEDURE :: calc_v => calc_velectrostatic
@@ -145,54 +144,6 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_electrostatic_setup
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE set_electrostatic_flags(this, need_auxiliary, need_gradient, &
-                                       need_factsqrt)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        CLASS(electrostatic_setup), INTENT(INOUT) :: this
-        !
-        LOGICAL, INTENT(INOUT) :: need_auxiliary, need_gradient, need_factsqrt
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT CASE (this%problem)
-            !
-        CASE ('generalized', 'linpb', 'linmodpb', 'pb', 'modpb')
-            !
-            SELECT TYPE (solver => this%solver)
-                !
-            TYPE IS (solver_gradient)
-                !
-                SELECT CASE (solver%preconditioner)
-                    !
-                CASE ('sqrt')
-                    need_factsqrt = .TRUE.
-                    !
-                CASE ('left', 'none')
-                    need_gradient = .TRUE.
-                    !
-                END SELECT
-                !
-            END SELECT
-            !
-            SELECT TYPE (solver => this%solver)
-                !
-            CLASS IS (solver_iterative)
-                !
-                IF (solver%auxiliary /= 'none') need_auxiliary = .TRUE.
-                !
-            END SELECT
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE set_electrostatic_flags
     !------------------------------------------------------------------------------------
     !>
     !!
