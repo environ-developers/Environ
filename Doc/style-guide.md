@@ -191,6 +191,29 @@ code...
 
 <br>
 
+# SELECT TYPE/CASE
+
+- Use a default case to catch unintended behavior
+  - SELECT TYPE -> CLASS DEFAULT
+  - SELECT CASE -> CASE DEFAULT
+- Exception: omit default case if the code should simply proceed (ignore other cases)
+
+```
+SELECT CASE (deriv_method)
+!
+CASE IS ('fft')
+    ...
+    !
+CASE IS ('chain')
+    ...
+    !
+END SELECT
+```
+
+- In the above case, any other option is meant to be ignored
+
+<br>
+
 # VARIABLE DECLARATION
 
 - define same-type variables in a single (or continued) line using a single TYPE descriptor

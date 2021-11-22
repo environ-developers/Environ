@@ -502,6 +502,8 @@ CONTAINS
         !
         INTEGER, INTENT(IN) :: verbose, base_verbose, unit
         !
+        CHARACTER(LEN=80) :: sub_name = 'env_block_divider'
+        !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
@@ -522,6 +524,9 @@ CONTAINS
             !
         CASE (4)
             WRITE (unit, 14)
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected verbose value", 1)
             !
         END SELECT
         !

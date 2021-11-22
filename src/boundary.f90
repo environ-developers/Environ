@@ -1149,6 +1149,9 @@ CONTAINS
                     !
                 END IF
                 !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected derivatives method", 1)
+                !
             END SELECT
             !
         END ASSOCIATE
@@ -1382,6 +1385,9 @@ CONTAINS
             !
             IF (deriv == 3) DEALLOCATE (hesslocal)
             !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected derivatives method", 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -1503,6 +1509,9 @@ CONTAINS
                                           hesslocal%of_r, this%dsurface%of_r)
                 !
             END IF
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected derivatives method", 1)
             !
         END SELECT
         !
@@ -1864,6 +1873,9 @@ CONTAINS
                                               this%dsurface%of_r)
                     !
                 END IF
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, "Unexpected derivatives method", 1)
                 !
             END SELECT
             !
@@ -2962,6 +2974,9 @@ CONTAINS
                         !
                     CASE (2)
                         WRITE (local_unit, 1106) this%rhomax, this%rhomin
+                        !
+                    CASE DEFAULT
+                        CALL io%error(sub_name, 'Unexpected boundary type', 1)
                         !
                     END SELECT
                     !

@@ -661,6 +661,8 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'set_simulation_flags'
+        !
         !--------------------------------------------------------------------------------
         !
         this%ldoublecell = SUM(env_nrep) > 0
@@ -682,6 +684,9 @@ CONTAINS
         CASE ('ms') ! mott-schottky
             this%lperiodic = .TRUE.
             this%lsemiconductor = .TRUE.
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, 'Unexpected correction type', 1)
             !
         END SELECT
         !
@@ -835,6 +840,9 @@ CONTAINS
                 this%lfft_environment = .TRUE.
                 local_deriv_core => this%env_fft
                 !
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Unexpected derivatives core', 1)
+                !
             END SELECT
             !
             CALL this%outer_container%set_derivatives(local_deriv_core, deriv_method)
@@ -857,6 +865,9 @@ CONTAINS
                 this%lfft_environment = .TRUE.
                 local_outer_core => this%env_fft
                 !
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Unexpected outer core', 1)
+                !
             END SELECT
             !
             CALL this%outer_container%set_electrostatics(local_outer_core)
@@ -870,6 +881,9 @@ CONTAINS
                     !
                 CASE ('fft')
                     local_inner_core => this%env_fft
+                    !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected inner core', 1)
                     !
                 END SELECT
                 !
@@ -889,6 +903,9 @@ CONTAINS
             CASE ('1da')
                 this%l1da = .TRUE.
                 local_pbc_core => this%env_1da
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Unexpected corrections core', 1)
                 !
             END SELECT
             !
@@ -959,6 +976,9 @@ CONTAINS
             !
             local_outer_solver => this%newton
             !
+        CASE DEFAULT
+            CALL io%error(sub_name, 'Unexpected outer solver', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -1016,6 +1036,9 @@ CONTAINS
                 !
                 local_inner_solver => this%inner_gradient
                 !
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Unexpected inner solver', 1)
+                !
             END SELECT
             !
         END IF
@@ -1066,9 +1089,13 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
+        CHARACTER(LEN=80) :: sub_name = 'set_electrostatic_flags'
+        !
         !--------------------------------------------------------------------------------
         !
         SELECT CASE (solver_setup%problem)
+            !
+        CASE ('poisson')
             !
         CASE ('generalized', 'linpb', 'linmodpb', 'pb', 'modpb')
             !
@@ -1084,6 +1111,9 @@ CONTAINS
                 CASE ('left', 'none')
                     this%need_gradient = .TRUE.
                     !
+                CASE DEFAULT
+                    CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
+                    !
                 END SELECT
                 !
             END SELECT
@@ -1094,7 +1124,13 @@ CONTAINS
                 !
                 IF (solver%auxiliary /= 'none') this%need_auxiliary = .TRUE.
                 !
+            CLASS DEFAULT
+                CALL io%error(sub_name, "Unexpected solver", 1)
+                !
             END SELECT
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, "Unexpected 'problem'", 1)
             !
         END SELECT
         !

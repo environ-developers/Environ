@@ -128,7 +128,7 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Wrong value of dim', 1)
+                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
                 !
             END SELECT
             !
@@ -212,7 +212,7 @@ CONTAINS
                 scale = charge * length / cell%omega / (sqrtpi * spread)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Wrong value of dim', 1)
+                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
                 !
             END SELECT
             !

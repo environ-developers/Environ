@@ -307,6 +307,9 @@ CONTAINS
                 CASE (2)
                     lapllocal(ir) = EXP(-arg**2) * arg / spread * 2.D0
                     !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected system dimensions', 1)
+                    !
                 END SELECT
                 !
             END DO
@@ -468,6 +471,9 @@ CONTAINS
                 !
                 erfcvolume = 2.D0 * width * cell%omega / cell%at(axis, axis)
                 !
+            CASE DEFAULT
+                CALL io%error(fun_name, 'Unexpected system dimensions', 1)
+                !
             END SELECT
             !
         END ASSOCIATE
@@ -493,6 +499,8 @@ CONTAINS
         CLASS(environ_function_erfc), INTENT(IN) :: this
         TYPE(environ_cell), INTENT(IN) :: cell
         !
+        CHARACTER(LEN=80) :: sub_name = 'get_charge'
+        !
         !--------------------------------------------------------------------------------
         !
         ASSOCIATE (f_type => this%f_type, &
@@ -508,6 +516,9 @@ CONTAINS
                 !
             CASE (5)
                 get_charge = -this%erfcvolume(cell) * charge
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Unexpected function type', 1)
                 !
             END SELECT
             !

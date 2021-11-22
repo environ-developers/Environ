@@ -386,9 +386,7 @@ CONTAINS
                 vperiodic = 0.D0
                 !
             CASE DEFAULT
-                !
-                CALL io%error(sub_name, &
-                              'Unexpected option in dimensionality of PBC correction', 1)
+                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
                 !
             END SELECT
             !
@@ -482,7 +480,7 @@ CONTAINS
                 gvperiodic = 0.D0
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected option', 1)
+                CALL io%error(sub_name, 'Unexpected system dimensions', 1)
                 !
             END SELECT
             !

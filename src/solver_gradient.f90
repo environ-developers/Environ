@@ -196,7 +196,7 @@ CONTAINS
                                            charges%semiconductor)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
+                CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
                 !
             END SELECT
             !
@@ -252,7 +252,7 @@ CONTAINS
                 CALL this%generalized_left(charges, dielectric, potential, electrolyte)
                 !
             CASE DEFAULT
-                CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
+                CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
                 !
             END SELECT
             !
@@ -330,7 +330,7 @@ CONTAINS
                                                  potential, charges%dielectric)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
+                    CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
                     !
                 END SELECT
                 !
@@ -415,7 +415,7 @@ CONTAINS
                                                  dielectric)
                     !
                 CASE DEFAULT
-                    CALL io%error(sub_name, 'Unexpected preconditioner keyword', 1)
+                    CALL io%error(sub_name, "Unexpected 'preconditioner'", 1)
                     !
                 END SELECT
                 !

@@ -381,6 +381,9 @@ CONTAINS
                                 NULLIFY (cbulkj)
                             END DO
                             !
+                        CASE DEFAULT
+                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                            !
                         END SELECT
                         !
                     END IF

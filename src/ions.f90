@@ -495,6 +495,9 @@ CONTAINS
                 array(i) = this%iontype(this%ityp(i))%atmnum
             END DO
             !
+        CASE DEFAULT
+            CALL io%error(sub_name, 'Unexpected keyword', 1)
+            !
         END SELECT
         !
         !--------------------------------------------------------------------------------
@@ -546,6 +549,9 @@ CONTAINS
             DO i = 1, this%number
                 array(i) = this%iontype(this%ityp(i))%solvationrad
             END DO
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, 'Unexpected keyword', 1)
             !
         END SELECT
         !

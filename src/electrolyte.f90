@@ -378,6 +378,9 @@ CONTAINS
                         denominator%of_r = denominator%of_r - &
                                            factor * (1.D0 - gam * cfactor)
                         !
+                    CASE DEFAULT
+                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                        !
                     END SELECT
                     !
                 END IF
@@ -458,6 +461,8 @@ CONTAINS
         !
         TYPE(environ_density) :: arg, f
         !
+        CHARACTER(LEN=80) :: sub_name = 'calc_eelectrolyte'
+        !
         !--------------------------------------------------------------------------------
         !
         base => this%base
@@ -491,6 +496,9 @@ CONTAINS
                     f%of_r = LOG(arg%of_r)
                     integral = f%integrate()
                     energy = -kT * cionmax * integral
+                    !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
                     !
                 END SELECT
                 !
@@ -530,6 +538,9 @@ CONTAINS
                     integral = f%integrate()
                     energy = -kT * cionmax * integral
                     !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
+                    !
                 END SELECT
                 !
             END IF
@@ -563,6 +574,8 @@ CONTAINS
         !
         TYPE(environ_density) :: arg
         !
+        CHARACTER(LEN=80) :: sub_name = 'calc_deelectrolyte_dboundary'
+        !
         !--------------------------------------------------------------------------------
         !
         gam => this%gamma%of_r
@@ -591,6 +604,9 @@ CONTAINS
                     de_dboundary%of_r = de_dboundary%of_r - &
                                         this%dgamma%of_r * kT * sumcbulk / &
                                         (1.D0 - sumcbulk / cionmax * (1.D0 - gam))
+                    !
+                CASE DEFAULT
+                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
                     !
                 END SELECT
                 !
@@ -629,6 +645,9 @@ CONTAINS
                     de_dboundary%of_r = de_dboundary%of_r - &
                                         this%dgamma%of_r * kT * arg%of_r / &
                                         (1.D0 - (sumcbulk - arg%of_r * gam) / cionmax)
+                    !
+                CASE DEFAULT
+                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
                     !
                 END SELECT
                 !

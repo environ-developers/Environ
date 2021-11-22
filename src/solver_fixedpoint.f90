@@ -596,6 +596,9 @@ CONTAINS
                     TYPE IS (solver_fixedpoint)
                         CALL inner%generalized(rhotot, dielectric, x)
                         !
+                    CLASS DEFAULT
+                        CALL io%error(sub_name, "Unexpected inner solver", 1)
+                        !
                     END SELECT
                     !
                 ELSE
@@ -643,6 +646,9 @@ CONTAINS
                             !
                             denominator%of_r = denominator%of_r - &
                                                factor * (1.D0 - gam%of_r * cfactor%of_r)
+                            !
+                        CASE DEFAULT
+                            CALL io%error(sub_name, 'Unexpected electrolyte entropy', 1)
                             !
                         END SELECT
                         !

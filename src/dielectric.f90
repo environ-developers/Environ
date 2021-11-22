@@ -550,7 +550,7 @@ CONTAINS
             END IF
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unkown boundary type', 1)
+            CALL io%error(sub_name, 'Unexpected boundary type', 1)
             !
         END SELECT
         !

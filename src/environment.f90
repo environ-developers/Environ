@@ -1000,7 +1000,7 @@ CONTAINS
             IF (setup%lelectrolyte) WRITE (unit, 1010) this%eelectrolyte * 0.5D0
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Wrong program calling Environ', 1)
+            CALL io%error(sub_name, 'Unexpected calling program', 1)
             !
         END SELECT
         !

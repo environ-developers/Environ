@@ -104,6 +104,9 @@ CONTAINS
         TYPE IS (environ_function_erfc)
             ALLOCATE (environ_function_erfc :: f(n))
             !
+        CLASS DEFAULT
+            CALL io%error(sub_name, "Unexpected function type", 1)
+            !
         END SELECT
         !
         DO i = 1, n
@@ -142,6 +145,9 @@ CONTAINS
             !
         TYPE IS (environ_function_erfc)
             ALLOCATE (environ_function_erfc :: copy(n))
+            !
+        CLASS DEFAULT
+            CALL io%error(sub_name, "Unexpected function type", 1)
             !
         END SELECT
         !

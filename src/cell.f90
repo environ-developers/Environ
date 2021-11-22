@@ -516,6 +516,8 @@ CONTAINS
         INTEGER :: idx, narea
         LOGICAL :: physical
         !
+        CHARACTER(LEN=80) :: sub_name = 'planar_average'
+        !
         !--------------------------------------------------------------------------------
         !
         narea = this%ntot / naxis
@@ -542,6 +544,9 @@ CONTAINS
                 !
             CASE (3)
                 idx = k
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, 'Unexpected axis value', 1)
                 !
             END SELECT
             !
@@ -629,11 +634,15 @@ CONTAINS
         !
         INTEGER :: i
         !
+        CHARACTER(LEN=80) :: sub_name = 'displacement'
+        !
         !--------------------------------------------------------------------------------
         !
         dr = r1 - r2
         !
         SELECT CASE (dim)
+            !
+        CASE (0)
             !
         CASE (1)
             dr(axis) = 0.D0
@@ -643,6 +652,9 @@ CONTAINS
             DO i = 1, 3
                 IF (i /= axis) dr(i) = 0.D0
             END DO
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, 'Unexpected system dimensions', 1)
             !
         END SELECT
         !

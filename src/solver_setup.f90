@@ -168,6 +168,9 @@ CONTAINS
         CLASS IS (solver_direct)
             CALL solver%destroy()
             !
+        CLASS DEFAULT
+            CALL io%error(sub_name, "Unexpected solver", 1)
+            !
         END SELECT
         !
         NULLIFY (this%solver)
@@ -310,7 +313,7 @@ CONTAINS
             END SELECT
             !
         CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected problem keyword', 1)
+            CALL io%error(sub_name, "Unexpected 'problem'", 1)
             !
         END SELECT
         !

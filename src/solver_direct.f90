@@ -200,6 +200,9 @@ CONTAINS
                     !
                     CALL correction%potential(semiconductor%base, density, potential)
                     !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected correction method', 1)
+                    !
                 END SELECT
                 !
             END ASSOCIATE
@@ -272,6 +275,9 @@ CONTAINS
                     !
                     CALL correction%potential(semiconductor%base, charges, local)
                     !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected correction method', 1)
+                    !
                 END SELECT
                 !
             END ASSOCIATE
@@ -342,6 +348,9 @@ CONTAINS
                     !
                     CALL correction%grad_potential(semiconductor%base, density, gradient)
                     !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected correction method', 1)
+                    !
                 END SELECT
                 !
             END ASSOCIATE
@@ -407,6 +416,9 @@ CONTAINS
                                       &electrochemical boundary correction', 1)
                     !
                     CALL correction%grad_potential(semiconductor%base, charges, gradient)
+                    !
+                CASE DEFAULT
+                    CALL io%error(sub_name, 'Unexpected correction method', 1)
                     !
                 END SELECT
                 !
