@@ -65,7 +65,8 @@ MODULE class_function_erfc
         PROCEDURE :: laplacian => laplacian_of_function_erfc
         PROCEDURE :: hessian => hessian_of_function_erfc
         !
-        PROCEDURE, PRIVATE :: get_charge, erfcvolume
+        PROCEDURE, PRIVATE :: get_charge
+        PROCEDURE, PRIVATE :: erfcvolume
         !
         !--------------------------------------------------------------------------------
     END TYPE environ_function_erfc

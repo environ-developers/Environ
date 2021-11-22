@@ -93,10 +93,18 @@ MODULE class_cell
         PROCEDURE :: init => init_environ_cell
         PROCEDURE :: update => update_environ_cell
         PROCEDURE :: destroy => destroy_environ_cell
-        PROCEDURE, PRIVATE :: init_dfft, destroy_dfft
         !
-        PROCEDURE :: volume, get_min_distance, ir2ijk, planar_average
-        PROCEDURE, PRIVATE :: ir2r, minimum_image, is_cubic
+        PROCEDURE, PRIVATE :: init_dfft
+        PROCEDURE, PRIVATE :: destroy_dfft
+        !
+        PROCEDURE :: volume
+        PROCEDURE :: get_min_distance
+        PROCEDURE :: ir2ijk
+        PROCEDURE :: planar_average
+        !
+        PROCEDURE, PRIVATE :: ir2r
+        PROCEDURE, PRIVATE :: minimum_image
+        PROCEDURE, PRIVATE :: is_cubic
         !
         PROCEDURE :: printout => print_environ_cell
         PROCEDURE :: write_cube => write_cube_cell

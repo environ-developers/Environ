@@ -76,13 +76,14 @@ MODULE class_solver_gradient
         !
         PROCEDURE :: init => init_solver_gradient
         !
-        PROCEDURE, PRIVATE :: generalized_gradient_charges, generalized_gradient_density
+        PROCEDURE, PRIVATE :: generalized_gradient_charges
+        PROCEDURE, PRIVATE :: generalized_gradient_density
         !
         GENERIC :: generalized => &
             generalized_gradient_charges, generalized_gradient_density
         !
-        PROCEDURE, PRIVATE :: &
-            linearized_pb_gradient_charges, linearized_pb_gradient_density
+        PROCEDURE, PRIVATE :: linearized_pb_gradient_charges
+        PROCEDURE, PRIVATE :: linearized_pb_gradient_density
         !
         GENERIC :: linearized_pb => &
             linearized_pb_gradient_charges, linearized_pb_gradient_density

@@ -72,9 +72,10 @@ MODULE class_mapping
         PROCEDURE :: update => update_environ_mapping
         PROCEDURE :: destroy => destroy_environ_mapping
         !
-        PROCEDURE, PRIVATE :: &
-            map_small_to_large_real, map_small_to_large_density, &
-            map_large_to_small_real, map_large_to_small_density
+        PROCEDURE, PRIVATE :: map_small_to_large_real
+        PROCEDURE, PRIVATE :: map_small_to_large_density
+        PROCEDURE, PRIVATE :: map_large_to_small_real
+        PROCEDURE, PRIVATE :: map_large_to_small_density
         !
         GENERIC :: to_large => map_small_to_large_real, map_small_to_large_density
         GENERIC :: to_small => map_large_to_small_real, map_large_to_small_density

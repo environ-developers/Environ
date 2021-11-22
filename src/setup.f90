@@ -203,11 +203,10 @@ MODULE class_setup
         PROCEDURE, PRIVATE :: set_core_containers => set_environ_core_containers
         PROCEDURE, PRIVATE :: set_electrostatics => set_environ_electrostatic
         !
-        PROCEDURE, PRIVATE :: &
-            set_execution_flags, &
-            set_simulation_flags, &
-            set_environment_flags, &
-            set_derived_flags
+        PROCEDURE, PRIVATE :: set_execution_flags
+        PROCEDURE, PRIVATE :: set_simulation_flags
+        PROCEDURE, PRIVATE :: set_environment_flags
+        PROCEDURE, PRIVATE :: set_derived_flags
         !
         PROCEDURE :: print_summary => environ_setup_summary
         PROCEDURE :: print_potential_warning => print_environ_potential_warning

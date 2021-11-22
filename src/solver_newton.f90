@@ -67,7 +67,9 @@ MODULE class_solver_newton
         !
         PROCEDURE :: init => init_solver_newton
         !
-        PROCEDURE, PRIVATE :: pb_nested_charges, pb_nested_density
+        PROCEDURE, PRIVATE :: pb_nested_charges
+        PROCEDURE, PRIVATE :: pb_nested_density
+        !
         GENERIC :: pb_nested => pb_nested_charges, pb_nested_density
         !
         PROCEDURE, PRIVATE :: pb => pb_newton

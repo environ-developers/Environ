@@ -67,11 +67,13 @@ MODULE class_solver_direct
         PROCEDURE :: init_direct => init_solver_direct
         PROCEDURE :: destroy => destroy_solver_direct
         !
-        PROCEDURE, PRIVATE :: poisson_direct_charges, poisson_direct_density
+        PROCEDURE, PRIVATE :: poisson_direct_charges
+        PROCEDURE, PRIVATE :: poisson_direct_density
+        !
         GENERIC :: poisson => poisson_direct_charges, poisson_direct_density
         !
-        PROCEDURE, PRIVATE :: &
-            poisson_gradient_direct_charges, poisson_gradient_direct_density
+        PROCEDURE, PRIVATE :: poisson_gradient_direct_charges
+        PROCEDURE, PRIVATE :: poisson_gradient_direct_density
         !
         GENERIC :: poisson_gradient => &
             poisson_gradient_direct_charges, poisson_gradient_direct_density

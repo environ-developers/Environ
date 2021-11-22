@@ -127,7 +127,8 @@ MODULE class_environ
         PROCEDURE :: init => init_environ_base
         PROCEDURE :: add_charges => environ_add_charges
         !
-        PROCEDURE :: get_vzero, get_dvtot
+        PROCEDURE :: get_vzero
+        PROCEDURE :: get_dvtot
         !
         PROCEDURE :: update_electrons => environ_update_electrons
         PROCEDURE :: update_ions => environ_update_ions

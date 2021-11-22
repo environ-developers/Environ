@@ -112,10 +112,9 @@ MODULE class_ions
         PROCEDURE :: update => update_environ_ions
         PROCEDURE :: destroy => destroy_environ_ions
         !
-        PROCEDURE :: &
-            convert_iontype_to_ion_array_char, &
-            convert_iontype_to_ion_array_integer, &
-            convert_iontype_to_ion_array_real
+        PROCEDURE :: convert_iontype_to_ion_array_char
+        PROCEDURE :: convert_iontype_to_ion_array_integer
+        PROCEDURE :: convert_iontype_to_ion_array_real
         !
         GENERIC :: get_iontype_array => &
             convert_iontype_to_ion_array_char, &

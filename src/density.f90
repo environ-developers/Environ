@@ -88,7 +88,8 @@ MODULE class_density
         PROCEDURE :: quadratic_mean => quadratic_mean_environ_density
         PROCEDURE :: scalar_product => scalar_product_environ_density
         !
-        PROCEDURE :: dipole_of_origin, quadrupole_of_origin
+        PROCEDURE :: dipole_of_origin
+        PROCEDURE :: quadrupole_of_origin
         !
         PROCEDURE :: printout => print_environ_density
         PROCEDURE :: write_cube => write_cube_density

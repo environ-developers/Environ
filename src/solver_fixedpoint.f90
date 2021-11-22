@@ -73,13 +73,15 @@ MODULE class_solver_fixedpoint
         !
         PROCEDURE :: init => init_solver_fixedpoint
         !
-        PROCEDURE, PRIVATE :: &
-            generalized_fixedpoint_charges, generalized_fixedpoint_density
+        PROCEDURE, PRIVATE :: generalized_fixedpoint_charges
+        PROCEDURE, PRIVATE :: generalized_fixedpoint_density
         !
         GENERIC :: generalized => &
             generalized_fixedpoint_charges, generalized_fixedpoint_density
         !
-        PROCEDURE, PRIVATE :: pb_nested_charges, pb_nested_density
+        PROCEDURE, PRIVATE :: pb_nested_charges
+        PROCEDURE, PRIVATE :: pb_nested_density
+        !
         GENERIC :: pb_nested => pb_nested_charges, pb_nested_density
         !
         PROCEDURE, PRIVATE :: pb => pb_fixedpoint

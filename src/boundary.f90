@@ -183,14 +183,17 @@ MODULE class_boundary
         PROCEDURE :: dboundary_dions => calc_dboundary_dions
         PROCEDURE :: sa_de_dboundary => calc_solvent_aware_de_dboundary
         !
-        PROCEDURE :: boundary_of_density, boundary_of_functions, boundary_of_system
+        PROCEDURE :: boundary_of_density
+        PROCEDURE :: boundary_of_functions
+        PROCEDURE :: boundary_of_system
         !
         PROCEDURE :: convolution_deriv => compute_convolution_deriv
         PROCEDURE :: solvent_aware_boundary
         PROCEDURE :: calc_dsurface ! #TODO do we need this?
         PROCEDURE :: invert => invert_boundary
         !
-        PROCEDURE, PRIVATE :: set_soft_spheres, update_soft_spheres
+        PROCEDURE, PRIVATE :: set_soft_spheres
+        PROCEDURE, PRIVATE :: update_soft_spheres
         !
         PROCEDURE :: printout => print_environ_boundary
         !
