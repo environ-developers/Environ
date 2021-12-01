@@ -89,10 +89,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
+        CLASS(environ_function_erfc), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: density
+        TYPE(environ_density), INTENT(INOUT) :: density
         !
         INTEGER :: i
         LOGICAL :: physical
@@ -183,10 +183,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
+        CLASS(environ_function_erfc), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
         INTEGER :: i
         LOGICAL :: physical
@@ -262,10 +262,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
+        CLASS(environ_function_erfc), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
+        TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
         INTEGER :: i
         LOGICAL :: physical
@@ -363,10 +363,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function_erfc), TARGET, INTENT(IN) :: this
+        CLASS(environ_function_erfc), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
+        TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
         INTEGER :: i, j, k
         LOGICAL :: physical

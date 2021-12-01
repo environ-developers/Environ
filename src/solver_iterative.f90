@@ -108,7 +108,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), TARGET, INTENT(IN) :: cores
+        TYPE(core_container), INTENT(IN) :: cores
         TYPE(solver_direct), TARGET, INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol

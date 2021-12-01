@@ -94,8 +94,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), TARGET, INTENT(IN) :: cores
-        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
+        TYPE(core_container), INTENT(IN) :: cores
+        TYPE(solver_direct), INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
         CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: auxiliary
@@ -194,12 +194,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_newton), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
-        TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
+        CLASS(solver_newton), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
         CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
         INTEGER :: i, j, k, l

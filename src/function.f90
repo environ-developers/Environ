@@ -210,10 +210,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        CLASS(environ_function), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: density
+        TYPE(environ_density), INTENT(INOUT) :: density
         !
         CHARACTER(LEN=80) :: sub_name = 'density_of_function'
         !
@@ -232,10 +232,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        CLASS(environ_function), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
         CHARACTER(LEN=80) :: sub_name = 'gradient_of_function'
         !
@@ -254,10 +254,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        CLASS(environ_function), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
+        TYPE(environ_density), INTENT(INOUT) :: laplacian
         !
         CHARACTER(LEN=80) :: sub_name = 'laplacian_of_function'
         !
@@ -276,10 +276,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_function), TARGET, INTENT(IN) :: this
+        CLASS(environ_function), INTENT(IN) :: this
         LOGICAL, INTENT(IN), OPTIONAL :: zero
         !
-        TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
+        TYPE(environ_hessian), INTENT(INOUT) :: hessian
         !
         CHARACTER(LEN=80) :: sub_name = 'hessian_of_function'
         !

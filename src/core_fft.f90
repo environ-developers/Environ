@@ -235,7 +235,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: f
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
@@ -293,7 +293,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_gradient), INTENT(IN) :: grad
         !
         TYPE(environ_density), INTENT(INOUT) :: div
@@ -409,7 +409,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: f
         !
         TYPE(environ_density), INTENT(INOUT) :: lapla
@@ -462,7 +462,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: f
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
@@ -542,7 +542,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: f1, f2
         !
         TYPE(environ_density), INTENT(INOUT) :: f_out
@@ -602,7 +602,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: f
         TYPE(environ_gradient), INTENT(IN) :: grad
         !
@@ -677,7 +677,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: f
         TYPE(environ_hessian), INTENT(IN) :: hess
         !
@@ -773,7 +773,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: rho
         !
         TYPE(environ_density), INTENT(INOUT) :: v
@@ -838,7 +838,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: rho
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
@@ -918,10 +918,10 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nat
         TYPE(environ_density), INTENT(IN) :: rho
-        TYPE(environ_functions), TARGET, INTENT(IN) :: ions
+        TYPE(environ_functions), INTENT(IN) :: ions
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
@@ -1029,7 +1029,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: rho(nnr)
         !
@@ -1111,7 +1111,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(IN) :: this
+        CLASS(core_fft), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nnr
         REAL(DP), INTENT(IN) :: grad_rho(3, nnr)
         !
@@ -1198,7 +1198,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_fft), TARGET, INTENT(INOUT) :: this
+        CLASS(core_fft), INTENT(INOUT) :: this
         !
         INTEGER :: i
         LOGICAL :: physical

@@ -205,7 +205,7 @@ CONTAINS
         !
         REAL(DP), INTENT(IN) :: origin(3)
         !
-        CLASS(core_1da), TARGET, INTENT(INOUT) :: this
+        CLASS(core_1da), INTENT(INOUT) :: this
         !
         LOGICAL :: physical
         INTEGER :: i
@@ -292,8 +292,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_1da), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -413,8 +413,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_1da), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
@@ -505,9 +505,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_1da), TARGET, INTENT(IN) :: this
+        CLASS(core_1da), INTENT(IN) :: this
         INTEGER, INTENT(IN) :: nat
-        TYPE(environ_functions), TARGET, INTENT(IN) :: ions
+        TYPE(environ_functions), INTENT(IN) :: ions
         TYPE(environ_density), INTENT(IN) :: auxiliary
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
@@ -612,9 +612,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_1da), TARGET, INTENT(IN) :: this
-        TYPE(environ_electrolyte_base), TARGET, INTENT(IN) :: electrolyte
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
+        TYPE(environ_density), INTENT(IN) :: charges
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -851,9 +851,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_1da), TARGET, INTENT(IN) :: this
-        TYPE(environ_electrolyte_base), TARGET, INTENT(IN) :: electrolyte
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
+        TYPE(environ_density), INTENT(IN) :: charges
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
@@ -1049,9 +1049,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_1da), TARGET, INTENT(IN) :: this
-        TYPE(environ_semiconductor_base), TARGET, INTENT(IN) :: semiconductor
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_density), INTENT(IN) :: charges
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
@@ -1213,9 +1213,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(core_1da), TARGET, INTENT(IN) :: this
-        TYPE(environ_semiconductor_base), TARGET, INTENT(IN) :: semiconductor
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        CLASS(core_1da), INTENT(IN) :: this
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_density), INTENT(IN) :: charges
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !

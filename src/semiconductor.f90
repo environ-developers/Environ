@@ -111,7 +111,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: temperature, sc_permittivity, sc_electrode_chg, &
                                 sc_carrier_density, sc_distance, sc_spread, sc_chg_thr
         !
-        TYPE(environ_system), TARGET, INTENT(IN) :: system
+        TYPE(environ_system), INTENT(IN) :: system
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_semiconductor), INTENT(INOUT) :: this

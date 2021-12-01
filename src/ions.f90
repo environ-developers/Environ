@@ -708,7 +708,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_ions), TARGET, INTENT(IN) :: this
+        CLASS(environ_ions), INTENT(IN) :: this
         !
         INTEGER :: i
         !

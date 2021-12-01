@@ -197,7 +197,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: zv(ntyp)
         CHARACTER(LEN=*), INTENT(IN) :: atom_label(:)
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_obj), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !
@@ -222,7 +222,7 @@ CONTAINS
         REAL(DP), INTENT(IN) :: density(nnr)
         CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
         !
-        CLASS(environ_obj), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_obj), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: local_label = 'additional_charges'
         !
@@ -594,7 +594,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         INTEGER, INTENT(IN) :: nnr
-        CLASS(environ_obj), TARGET, INTENT(IN) :: this
+        CLASS(environ_obj), INTENT(IN) :: this
         !
         REAL(DP) :: vzero(nnr)
         !
@@ -619,7 +619,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         INTEGER, INTENT(IN) :: nnr
-        CLASS(environ_obj), TARGET, INTENT(IN) :: this
+        CLASS(environ_obj), INTENT(IN) :: this
         !
         REAL(DP) :: dvtot(nnr)
         !

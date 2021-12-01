@@ -407,7 +407,7 @@ CONTAINS
         !
         REAL(DP), DIMENSION(3), INTENT(IN) :: a1, a2, a3
         !
-        CLASS(environ_cell), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_cell), INTENT(INOUT) :: this
         !
         !--------------------------------------------------------------------------------
         !

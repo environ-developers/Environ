@@ -557,7 +557,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_density), TARGET, INTENT(IN) :: this
+        CLASS(environ_density), INTENT(IN) :: this
         INTEGER, INTENT(IN), OPTIONAL :: idx
         CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: label
         !

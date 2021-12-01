@@ -113,7 +113,7 @@ CONTAINS
         IMPLICIT NONE
         !
         TYPE(core_container), INTENT(IN) :: cores
-        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
+        TYPE(solver_direct), INTENT(IN) :: direct
         LOGICAL, INTENT(IN) :: lconjugate
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol, step, screening
@@ -440,13 +440,13 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_gradient), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
-        TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
+        CLASS(solver_gradient), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
         INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en
@@ -659,13 +659,13 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_gradient), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
-        TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
+        CLASS(solver_gradient), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
         INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
@@ -917,13 +917,13 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_gradient), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
-        TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
+        CLASS(solver_gradient), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
         INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_en, delta_qm
@@ -1126,12 +1126,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_gradient), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
-        TYPE(environ_density), TARGET, INTENT(IN) :: screening
+        CLASS(solver_gradient), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_density), INTENT(IN) :: screening
         TYPE(environ_dielectric), TARGET, INTENT(IN), OPTIONAL :: dielectric
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_density), INTENT(INOUT) :: v
         !
         TYPE(environ_density), POINTER :: eps, factsqrt
         !

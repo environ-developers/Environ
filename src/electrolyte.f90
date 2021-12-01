@@ -143,8 +143,8 @@ CONTAINS
         !
         TYPE(environ_electrons), INTENT(IN) :: electrons
         TYPE(environ_ions), INTENT(IN) :: ions
-        TYPE(environ_system), TARGET, INTENT(IN) :: system
-        TYPE(core_container), TARGET, INTENT(IN) :: cores
+        TYPE(environ_system), INTENT(IN) :: system
+        TYPE(core_container), INTENT(IN) :: cores
         TYPE(environ_cell), INTENT(IN) :: cell
         !
         CLASS(environ_electrolyte), INTENT(INOUT) :: this
@@ -269,7 +269,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_electrolyte), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
         CHARACTER(LEN=80) :: sub_name = 'electrolyte_of_boundary'
         !
@@ -290,9 +290,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), TARGET, INTENT(IN) :: potential
+        TYPE(environ_density), INTENT(IN) :: potential
         !
-        CLASS(environ_electrolyte), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_electrolyte), INTENT(INOUT) :: this
         !
         INTEGER :: i, j
         REAL(DP) :: fact, sumcbulk, arg
@@ -446,7 +446,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_electrolyte), TARGET, INTENT(IN) :: this
+        CLASS(environ_electrolyte), INTENT(IN) :: this
         !
         REAL(DP), INTENT(OUT) :: energy
         !
@@ -562,9 +562,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_electrolyte), TARGET, INTENT(IN) :: this
+        CLASS(environ_electrolyte), INTENT(IN) :: this
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: de_dboundary
+        TYPE(environ_density), INTENT(INOUT) :: de_dboundary
         !
         INTEGER :: i
         !

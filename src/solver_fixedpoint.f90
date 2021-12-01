@@ -105,8 +105,8 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(core_container), TARGET, INTENT(IN) :: cores
-        TYPE(solver_direct), TARGET, INTENT(IN) :: direct
+        TYPE(core_container), INTENT(IN) :: cores
+        TYPE(solver_direct), INTENT(IN) :: direct
         INTEGER, INTENT(IN) :: ndiis, maxiter
         REAL(DP), INTENT(IN) :: tol, mix
         CHARACTER(LEN=*), INTENT(IN) :: mix_type
@@ -317,13 +317,13 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_fixedpoint), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
+        CLASS(solver_fixedpoint), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         TYPE(environ_semiconductor), INTENT(IN), OPTIONAL :: semiconductor
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
-        TYPE(environ_dielectric), TARGET, INTENT(INOUT) :: dielectric
+        TYPE(environ_density), INTENT(INOUT) :: v
+        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
         !
         INTEGER :: i
         REAL(DP) :: total, totpol, totzero, totiter, delta_qm, delta_en
@@ -492,12 +492,12 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_fixedpoint), TARGET, INTENT(IN) :: this
-        TYPE(environ_density), TARGET, INTENT(IN) :: charges
-        TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
+        CLASS(solver_fixedpoint), INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
         CLASS(electrostatic_solver), INTENT(IN), OPTIONAL :: inner
         !
-        TYPE(environ_density), TARGET, INTENT(INOUT) :: v
+        TYPE(environ_density), INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
         INTEGER :: i, j, k

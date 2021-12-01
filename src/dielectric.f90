@@ -386,7 +386,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(environ_dielectric), TARGET, INTENT(INOUT) :: this
+        CLASS(environ_dielectric), INTENT(INOUT) :: this
         !
         INTEGER :: i
         !
