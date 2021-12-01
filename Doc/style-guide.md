@@ -369,3 +369,6 @@ ASSOCIATE (item1 => SUM(some_items))
   - `array(1, :) = ...` is necessary when operating on all members along specific dimensions
 
 - use `i`, `j`, `k`, `l`, `m`, `n` for loop indices whenever possible
+
+- do not use `TRIM(ADJUSTL())` for input parameter checks
+  - input parameters are pre-tested against set values in `checkin` routines

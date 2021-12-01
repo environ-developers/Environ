@@ -1216,7 +1216,7 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (TRIM(ADJUSTL(environ_type)) == 'input') RETURN
+        IF (environ_type == 'input') RETURN
         ! skip set up if read environ keywords from input
         !
         !--------------------------------------------------------------------------------
@@ -1224,7 +1224,7 @@ CONTAINS
         !
         CALL io%writer("* setting up "//TRIM(environ_type)//" environment")
         !
-        SELECT CASE (TRIM(ADJUSTL(environ_type)))
+        SELECT CASE (environ_type)
             !
         CASE ('vacuum') ! vacuum case is straightforward, all flags are off
             env_static_permittivity = 1.D0
@@ -1246,13 +1246,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Depending on the boundary mode, set fitted parameters
         !
-        IF (TRIM(ADJUSTL(solvent_mode)) == 'electronic' .OR. &
-            TRIM(ADJUSTL(solvent_mode)) == 'full') THEN
+        IF (solvent_mode == 'electronic' .OR. solvent_mode == 'full') THEN
             !
             !----------------------------------------------------------------------------
             ! Self-consistent continuum solvation (SCCS)
             !
-            SELECT CASE (TRIM(ADJUSTL(environ_type)))
+            SELECT CASE (environ_type)
                 !
             CASE ('water') ! SCCS for neutrals
                 env_surface_tension = 50.D0
@@ -1274,8 +1273,7 @@ CONTAINS
                 !
             END SELECT
             !
-        ELSE IF (TRIM(ADJUSTL(solvent_mode)) == 'ionic' .OR. &
-                 TRIM(ADJUSTL(solvent_mode)) == 'fa-ionic') THEN
+        ELSE IF (solvent_mode == 'ionic' .OR. solvent_mode == 'fa-ionic') THEN
             !
             !----------------------------------------------------------------------------
             ! Soft-sphere continuum solvation
@@ -1285,7 +1283,7 @@ CONTAINS
             env_surface_tension = 50.D0 ! NOTE THAT WE ARE USING THE
             env_pressure = -0.35D0 ! SET FOR CLUSTERS, AS IN SCCS
             !
-            SELECT CASE (TRIM(ADJUSTL(environ_type)))
+            SELECT CASE (environ_type)
                 !
             CASE ('water') ! SS for neutrals
                 alpha = 1.12D0

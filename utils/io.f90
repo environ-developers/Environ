@@ -354,7 +354,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        CALL io%error(routine, "'"//input//"' is not a valid option for "//param, 1)
+        CALL io%error(routine, "'"//TRIM(input)//"' is not a valid option for "//param, 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_invalid_opt

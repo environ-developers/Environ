@@ -666,7 +666,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Correction flags
         !
-        SELECT CASE (TRIM(ADJUSTL(pbc_correction)))
+        SELECT CASE (pbc_correction)
             !
         CASE ('none')
             !
@@ -942,7 +942,7 @@ CONTAINS
             !
         CASE ('cg', 'sd')
             !
-            IF (TRIM(ADJUSTL(solver)) == 'cg') lconjugate = .TRUE.
+            IF (solver == 'cg') lconjugate = .TRUE.
             !
             CALL this%gradient%init(lconjugate, step_type, step, preconditioner, &
                                     screening_type, screening, this%outer_container, &
@@ -985,7 +985,7 @@ CONTAINS
                         !
                     CASE ('cg', 'sd')
                         !
-                        IF (TRIM(ADJUSTL(inner_solver)) == 'cg') lconjugate = .TRUE.
+                        IF (inner_solver == 'cg') lconjugate = .TRUE.
                         !
                         CALL this%inner_gradient%init( &
                             lconjugate, step_type, step, preconditioner, &
