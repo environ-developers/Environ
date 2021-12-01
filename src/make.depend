@@ -1,6 +1,6 @@
 base_input.o : constants.o
 boundary.o : ../utils/io.o
-boundary.o : ../utils/tools_math.o
+boundary.o : boundary_tools.o
 boundary.o : cell.o
 boundary.o : constants.o
 boundary.o : core_container.o
@@ -14,6 +14,13 @@ boundary.o : gradient.o
 boundary.o : hessian.o
 boundary.o : ions.o
 boundary.o : system.o
+boundary_tools.o : ../utils/io.o
+boundary_tools.o : ../utils/tools_math.o
+boundary_tools.o : cell.o
+boundary_tools.o : constants.o
+boundary_tools.o : density.o
+boundary_tools.o : gradient.o
+boundary_tools.o : hessian.o
 calculator.o : ../utils/io.o
 calculator.o : cell.o
 calculator.o : constants.o
