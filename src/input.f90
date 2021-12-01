@@ -249,7 +249,7 @@ CONTAINS
         ELSE IF (TRIM(card) == 'DIELECTRIC_REGIONS') THEN
             CALL card_dielectric_regions(local_unit, input_line)
         ELSE IF (io%lnode) THEN
-            CALL io%warning('card '//TRIM(input_line)//' ignored')
+            CALL io%warning("card "//TRIM(input_line)//" ignored", 1001)
         END IF
         !
         !=-----------------------------------------------------------------------------=!

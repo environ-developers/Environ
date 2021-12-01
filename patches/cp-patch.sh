@@ -230,7 +230,7 @@ sed '/Environ CALLS BEGIN/ a\
       !\
       IF (alat < 1.D-8) CALL io%error(sub_name, "Wrong alat", 1)\
       !\
-      IF (alat < 1.0_DP) CALL io%warning("strange lattice parameter")\
+      IF (alat < 1.0_DP) CALL io%warning("strange lattice parameter", 3)\
       !\
       CALL env_allocate_mp_buffers()\
       !\

@@ -161,7 +161,7 @@ CONTAINS
             !
         END DO unit_loop
         !
-        CALL env_warning("free unit not found?!?")
+        CALL io%warning("free unit not found?!?", 1002)
         !
         !--------------------------------------------------------------------------------
     END FUNCTION env_find_free_unit
@@ -354,8 +354,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        CALL io%error(routine, &
-                      "'"//TRIM(input)//"' is not a valid option for "//TRIM(param), 1)
+        CALL io%error(routine, "'"//input//"' is not a valid option for "//param, 1)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_invalid_opt
@@ -381,7 +380,7 @@ CONTAINS
         !
         IF (.NOT. io%lnode) RETURN
         !
-        WRITE (io%unit, '(5X,A)') TRIM(message)
+        WRITE (io%unit, '(5X,A)') message
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_write
@@ -408,7 +407,7 @@ CONTAINS
         !
         WRITE (io%unit, FMT=1)
         !
-         IF (local_blank) WRITE (io%unit, *) ! blank line
+        IF (local_blank) WRITE (io%unit, *) ! blank line
         !
 1       FORMAT(/, 5X, 80('='))
         !
@@ -441,18 +440,25 @@ CONTAINS
     !! Writes a message message to output warning the user of a non-terminating issue
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE env_warning(message)
+    SUBROUTINE env_warning(message, ierr)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CHARACTER(LEN=*), INTENT(IN) :: message ! the output message
+        CHARACTER(LEN=*), INTENT(IN) :: message
+        INTEGER, INTENT(IN) :: ierr
+        !
+        CHARACTER(LEN=6) :: cerr
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
         !
-        WRITE (io%unit, '("Warning: ", A,/)') TRIM(message)
+        WRITE (cerr, '(I6)') ierr
+        !
+        WRITE (io%unit, 20) TRIM(ADJUSTL(cerr)), message
+        !
+20      FORMAT(/, "ENVIRON WARNING (", A, "): ", A,/)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_warning
@@ -472,9 +478,6 @@ CONTAINS
         !
         CHARACTER(LEN=80) :: comment
         !
-        CHARACTER(LEN=25) :: p
-        CHARACTER(LEN=15) :: d
-        !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. io%lnode) RETURN
@@ -485,10 +488,7 @@ CONTAINS
             comment = ''
         END IF
         !
-        p = ADJUSTL(param)
-        d = ADJUSTL(default)
-        !
-        WRITE (io%unit, '(5X,A," = ",A, A)') p, d, TRIM(ADJUSTL(comment))
+        WRITE (io%unit, '(5X,A," = ",A, A)') param, default, comment
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE env_default

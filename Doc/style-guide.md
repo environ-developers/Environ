@@ -313,5 +313,5 @@ sum_ = 1 + var1 + &
   - sentence-cased message
 - use `io%write` for indented messages
 - use `io%warning` for non-indented, non-terminating warning messages
-  - outputs `'Warning: '` + supplied message
+  - outputs `'ENVIRON WARNING (ierr): message'`
   - lowercased message

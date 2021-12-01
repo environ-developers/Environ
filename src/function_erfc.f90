@@ -161,7 +161,7 @@ CONTAINS
             CALL env_mp_sum(integral, cell%dfft%comm)
             !
             IF (ABS(integral - chargeanalytic) / chargeanalytic > 1.D-4) &
-                CALL io%warning('wrong integral of erfc function')
+                CALL io%warning("wrong integral of erfc function", 1005)
             !
             !----------------------------------------------------------------------------
             !
