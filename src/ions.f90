@@ -187,6 +187,16 @@ CONTAINS
         !
         INTEGER :: i
         !
+        INTEGER, DIMENSION(nat) :: axes, dims
+        REAL(DP) :: widths(nat)
+        !
+        CHARACTER(LEN=3), ALLOCATABLE :: labels(:)
+        REAL(DP), ALLOCATABLE :: atomic_spreads(:), core_spreads(:)
+        REAL(DP), ALLOCATABLE :: solvation_radii(:), ionic_charges(:)
+        !
+        TYPE(environ_function_gaussian) :: fsrc
+        !
+        CHARACTER(LEN=20) :: local_item
         CHARACTER(LEN=80) :: local_label
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ions'
@@ -218,6 +228,22 @@ CONTAINS
         END DO
         !
         !--------------------------------------------------------------------------------
+        !
+        IF (lsmearedions .OR. lcoredensity) THEN
+            local_item = 'label'
+            !
+            CALL this%get_iontype_array(labels, local_item)
+            !
+            local_item = 'zv'
+            !
+            CALL this%get_iontype_array(ionic_charges, local_item)
+            !
+            axes = 1
+            dims = 0
+            widths = 0.0_DP
+        END IF
+        !
+        !--------------------------------------------------------------------------------
         ! Total ionic charge
         !
         DO i = 1, this%number
@@ -235,16 +261,15 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Build smeared ions from iontype data
             !
-            ALLOCATE (environ_function_gaussian :: this%smeared_ions(this%number))
+            local_item = 'atomicspread'
             !
-            DO i = 1, this%number
-                !
-                CALL this%smeared_ions(i)%init( &
-                    1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%atomicspread, &
-                    this%iontype(this%ityp(i))%zv, this%tau(:, i))
-                !
-            END DO
+            CALL this%get_iontype_array(atomic_spreads, local_item)
             !
+            CALL init_environ_functions(this%smeared_ions, fsrc, this%number, 1, &
+                                        axes, dims, widths, atomic_spreads, &
+                                        ionic_charges, this%tau)
+            !
+            DEALLOCATE (atomic_spreads)
         END IF
         !
         this%use_smeared_ions = lsmearedions
@@ -260,16 +285,15 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Build core electrons from iontype data
             !
-            ALLOCATE (environ_function_gaussian :: this%core_electrons(this%number))
+            local_item = 'corespread'
             !
-            DO i = 1, this%number
-                !
-                CALL this%core_electrons(i)%init( &
-                    1, 1, 0, 0.0_DP, this%iontype(this%ityp(i))%corespread, &
-                    -this%iontype(this%ityp(i))%zv, this%tau(:, i))
-                !
-            END DO
+            CALL this%get_iontype_array(core_spreads, local_item)
             !
+            CALL init_environ_functions(this%core_electrons, fsrc, this%number, 1, &
+                                        axes, dims, widths, core_spreads, &
+                                        ionic_charges, this%tau)
+            !
+            DEALLOCATE (core_spreads)
         END IF
         !
         this%use_core_electrons = lcoredensity
@@ -434,12 +458,14 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE convert_iontype_to_ion_array_char(this, array)
+    SUBROUTINE convert_iontype_to_ion_array_char(this, array, item)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(environ_ions), INTENT(INOUT) :: this
+        CLASS(environ_ions), INTENT(IN) :: this
+        CHARACTER(LEN=20), INTENT(IN) :: item
+        !
         CHARACTER(LEN=3), ALLOCATABLE, INTENT(INOUT) :: array(:)
         !
         INTEGER :: i
@@ -450,9 +476,18 @@ CONTAINS
         !
         ALLOCATE (array(this%number))
         !
-        DO i = 1, this%number
-            array(i) = this%iontype(this%ityp(i))%label
-        END DO
+        SELECT CASE (TRIM(item))
+            !
+        CASE ('label')
+            !
+            DO i = 1, this%number
+                array(i) = this%iontype(this%ityp(i))%label
+            END DO
+            !
+        CASE DEFAULT
+            CALL io%error(sub_name, 'Unexpected keyword', 1)
+            !
+        END SELECT
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE convert_iontype_to_ion_array_char
@@ -465,9 +500,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
+        CLASS(environ_ions), INTENT(IN) :: this
         CHARACTER(LEN=20), INTENT(IN) :: item
         !
-        CLASS(environ_ions), INTENT(INOUT) :: this
         INTEGER, ALLOCATABLE, INTENT(INOUT) :: array(:)
         !
         INTEGER :: i
@@ -508,9 +543,9 @@ CONTAINS
         !
         IMPLICIT NONE
         !
+        CLASS(environ_ions), INTENT(IN) :: this
         CHARACTER(LEN=20), INTENT(IN) :: item
         !
-        CLASS(environ_ions), INTENT(INOUT) :: this
         REAL(DP), ALLOCATABLE, INTENT(INOUT) :: array(:)
         !
         INTEGER :: i
