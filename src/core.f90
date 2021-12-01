@@ -26,7 +26,7 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_numerical
+MODULE class_core
     !------------------------------------------------------------------------------------
     !
     USE class_cell
@@ -41,7 +41,7 @@ MODULE class_core_numerical
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, ABSTRACT, PUBLIC :: numerical_core
+    TYPE, ABSTRACT, PUBLIC :: environ_core
         !--------------------------------------------------------------------------------
         !
         CHARACTER(LEN=80) :: core_type
@@ -56,20 +56,20 @@ MODULE class_core_numerical
         PROCEDURE(destroy_core), DEFERRED :: destroy
         !
         !--------------------------------------------------------------------------------
-    END TYPE numerical_core
+    END TYPE environ_core
     !------------------------------------------------------------------------------------
     !
     ABSTRACT INTERFACE
         SUBROUTINE create_core(this)
-            IMPORT numerical_core
-            CLASS(numerical_core), INTENT(INOUT) :: this
+            IMPORT environ_core
+            CLASS(environ_core), INTENT(INOUT) :: this
         END SUBROUTINE
         SUBROUTINE destroy_core(this)
-            IMPORT numerical_core
-            CLASS(numerical_core), INTENT(INOUT) :: this
+            IMPORT environ_core
+            CLASS(environ_core), INTENT(INOUT) :: this
         END SUBROUTINE
     END INTERFACE
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_numerical
+END MODULE class_core
 !----------------------------------------------------------------------------------------

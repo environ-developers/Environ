@@ -39,7 +39,7 @@ MODULE class_solver_direct
     USE class_density
     USE class_gradient
     !
-    USE class_core_container_electrostatics
+    USE class_container
     !
     USE class_solver
     !
@@ -97,7 +97,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
+        TYPE(environ_container), TARGET, INTENT(IN) :: cores
         !
         CLASS(solver_direct), INTENT(INOUT) :: this
         !
@@ -149,7 +149,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_direct), INTENT(IN) :: this
+        CLASS(solver_direct), TARGET, INTENT(IN) :: this
         !
         TYPE(environ_charges), TARGET, INTENT(INOUT) :: charges
         TYPE(environ_density), INTENT(INOUT) :: potential
@@ -161,41 +161,48 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
-        CALL this%cores%poisson(charges%density, potential)
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%cores%electrostatics%poisson(charges%density, potential)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (ASSOCIATED(this%cores%correction)) THEN
+        ASSOCIATE (correction => this%cores%electrostatics%correction, &
+                   density => charges%density, &
+                   electrolyte => charges%electrolyte, &
+                   semiconductor => charges%semiconductor)
             !
-            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
+            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
                 !
-            CASE ('parabolic')
-                CALL this%cores%correction%potential(charges%density, potential)
+                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                    !
+                CASE ('parabolic')
+                    CALL correction%potential(density, potential)
+                    !
+                CASE ('gcs') ! gouy-chapman-stern
+                    !
+                    IF (.NOT. ASSOCIATED(charges%electrolyte)) &
+                        CALL io%error(sub_name, &
+                                      'Missing electrolyte for electrochemical &
+                                      &boundary correction', 1)
+                    !
+                    CALL correction%potential(electrolyte%base, density, potential)
+                    !
+                CASE ('ms') ! mott-schottky
+                    !
+                    IF (.NOT. ASSOCIATED(charges%semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      'Missing semiconductor for electrochemical &
+                                      &boundary correction', 1)
+                    !
+                    CALL correction%potential(semiconductor%base, density, potential)
+                    !
+                END SELECT
                 !
-            CASE ('gcs') ! gouy-chapman-stern
-                !
-                IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL io%error(sub_name, &
-                                  'Missing electrolyte for electrochemical &
-                                  &boundary correction', 1)
-                !
-                CALL this%cores%correction%potential(charges%electrolyte%base, &
-                                                     charges%density, potential)
-                !
-            CASE ('ms') ! mott-schottky
-                !
-                IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL io%error(sub_name, &
-                                  'Missing semiconductor for electrochemical &
-                                  &boundary correction', 1)
-                !
-                CALL this%cores%correction%potential(charges%semiconductor%base, &
-                                                     charges%density, potential)
-                !
-            END SELECT
+            END IF
             !
-        END IF
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_direct_charges
@@ -209,7 +216,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_direct), INTENT(IN) :: this
+        CLASS(solver_direct), TARGET, INTENT(IN) :: this
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), INTENT(INOUT) :: charges
@@ -231,39 +238,43 @@ CONTAINS
         !
         CALL local%init(charges%cell)
         !
-        CALL this%cores%poisson(charges, local)
+        CALL this%cores%electrostatics%poisson(charges, local)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (ASSOCIATED(this%cores%correction)) THEN
+        ASSOCIATE (correction => this%cores%electrostatics%correction)
             !
-            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
+            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
                 !
-            CASE ('parabolic')
-                CALL this%cores%correction%potential(charges, local)
+                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                    !
+                CASE ('parabolic')
+                    CALL correction%potential(charges, local)
+                    !
+                CASE ('gcs') ! gouy-chapman-stern
+                    !
+                    IF (.NOT. PRESENT(electrolyte)) &
+                        CALL io%error(sub_name, &
+                                      'Missing electrolyte for electrochemical &
+                                      &boundary correction', 1)
+                    !
+                    CALL correction%potential(electrolyte%base, charges, local)
+                    !
+                CASE ('ms') ! mott-schottky
+                    !
+                    IF (.NOT. PRESENT(semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      'Missing semiconductor for electrochemical &
+                                      &boundary correction', 1)
+                    !
+                    CALL correction%potential(semiconductor%base, charges, local)
+                    !
+                END SELECT
                 !
-            CASE ('gcs') ! gouy-chapman-stern
-                !
-                IF (.NOT. PRESENT(electrolyte)) &
-                    CALL io%error(sub_name, &
-                                  'Missing electrolyte for electrochemical &
-                                  &boundary correction', 1)
-                !
-                CALL this%cores%correction%potential(electrolyte%base, charges, local)
-                !
-            CASE ('ms') ! mott-schottky
-                !
-                IF (.NOT. PRESENT(semiconductor)) &
-                    CALL io%error(sub_name, &
-                                  'Missing semiconductor for electrochemical &
-                                  &boundary correction', 1)
-                !
-                CALL this%cores%correction%potential(semiconductor%base, charges, local)
-                !
-            END SELECT
+            END IF
             !
-        END IF
+        END ASSOCIATE
         !
         potential%of_r = local%of_r ! only update the potential at the end
         !
@@ -280,7 +291,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_direct), INTENT(IN) :: this
+        CLASS(solver_direct), TARGET, INTENT(IN) :: this
         !
         TYPE(environ_charges), TARGET, INTENT(INOUT) :: charges
         TYPE(environ_gradient), INTENT(INOUT) :: gradient
@@ -289,41 +300,51 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%cores%gradpoisson(charges%density, gradient)
+        IF (.NOT. ASSOCIATED(charges%density%cell, gradient%cell)) &
+            CALL io%error(sub_name, 'Mismatch in domains of charges and gradient', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%cores%electrostatics%gradpoisson(charges%density, gradient)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (ASSOCIATED(this%cores%correction)) THEN
+        ASSOCIATE (correction => this%cores%electrostatics%correction, &
+                   density => charges%density, &
+                   electrolyte => charges%electrolyte, &
+                   semiconductor => charges%semiconductor)
             !
-            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
+            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
                 !
-            CASE ('parabolic')
-                CALL this%cores%correction%gradpotential(charges%density, gradient)
+                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                    !
+                CASE ('parabolic')
+                    CALL correction%gradpotential(density, gradient)
+                    !
+                CASE ('gcs') ! gouy-chapman-stern
+                    !
+                    IF (.NOT. ASSOCIATED(charges%electrolyte)) &
+                        CALL io%error(sub_name, &
+                                      'Missing electrolyte for electrochemical &
+                                      &boundary correction', 1)
+                    !
+                    CALL correction%gradpotential(electrolyte%base, density, gradient)
+                    !
+                CASE ('ms') ! mott-schottky
+                    !
+                    IF (.NOT. ASSOCIATED(charges%semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      'Missing semiconductor for electrochemical &
+                                      &boundary correction', 1)
+                    !
+                    CALL correction%gradpotential(semiconductor%base, density, gradient)
+                    !
+                END SELECT
                 !
-            CASE ('gcs') ! gouy-chapman-stern
-                !
-                IF (.NOT. ASSOCIATED(charges%electrolyte)) &
-                    CALL io%error(sub_name, &
-                                  'Missing electrolyte for electrochemical &
-                                  &boundary correction', 1)
-                !
-                CALL this%cores%correction%gradpotential(charges%electrolyte%base, &
-                                                         charges%density, gradient)
-                !
-            CASE ('ms') ! mott-schottky
-                !
-                IF (.NOT. ASSOCIATED(charges%semiconductor)) &
-                    CALL io%error(sub_name, &
-                                  'Missing semiconductor for electrochemical &
-                                  &boundary correction', 1)
-                !
-                CALL this%cores%correction%gradpotential(charges%semiconductor%base, &
-                                                         charges%density, gradient)
-                !
-            END SELECT
+            END IF
             !
-        END IF
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_gradient_direct_charges
@@ -337,7 +358,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        CLASS(solver_direct), INTENT(IN) :: this
+        CLASS(solver_direct), TARGET, INTENT(IN) :: this
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), INTENT(INOUT) :: charges
@@ -348,41 +369,48 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        CALL this%cores%gradpoisson(charges, gradient)
+        IF (.NOT. ASSOCIATED(charges%cell, gradient%cell)) &
+            CALL io%error(sub_name, 'Mismatch in domains of charges and gradient', 1)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%cores%electrostatics%gradpoisson(charges, gradient)
         !
         !--------------------------------------------------------------------------------
         ! PBC corrections, if needed
         !
-        IF (ASSOCIATED(this%cores%correction)) THEN
+        ASSOCIATE (correction => this%cores%electrostatics%correction)
             !
-            SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
+            IF (ASSOCIATED(this%cores%electrostatics%correction)) THEN
                 !
-            CASE ('parabolic')
-                CALL this%cores%correction%gradpotential(charges, gradient)
+                SELECT CASE (TRIM(ADJUSTL(correction%method)))
+                    !
+                CASE ('parabolic')
+                    CALL correction%gradpotential(charges, gradient)
+                    !
+                CASE ('gcs') ! gouy-chapman-stern
+                    !
+                    IF (.NOT. PRESENT(electrolyte)) &
+                        CALL io%error(sub_name, &
+                                      'Missing electrolyte for &
+                                      &electrochemical boundary correction', 1)
+                    !
+                    CALL correction%gradpotential(electrolyte%base, charges, gradient)
+                    !
+                CASE ('ms') ! mott-schottky
+                    !
+                    IF (.NOT. PRESENT(semiconductor)) &
+                        CALL io%error(sub_name, &
+                                      'Missing semiconductor for &
+                                      &electrochemical boundary correction', 1)
+                    !
+                    CALL correction%gradpotential(semiconductor%base, charges, gradient)
+                    !
+                END SELECT
                 !
-            CASE ('gcs') ! gouy-chapman-stern
-                !
-                IF (.NOT. PRESENT(electrolyte)) &
-                    CALL io%error(sub_name, &
-                                  'Missing electrolyte for &
-                                  &electrochemical boundary correction', 1)
-                !
-                CALL this%cores%correction%gradpotential(electrolyte%base, charges, &
-                                                         gradient)
-                !
-            CASE ('ms') ! mott-schottky
-                !
-                IF (.NOT. PRESENT(semiconductor)) &
-                    CALL io%error(sub_name, &
-                                  'Missing semiconductor for &
-                                  &electrochemical boundary correction', 1)
-                !
-                CALL this%cores%correction%gradpotential(semiconductor%base, charges, &
-                                                         gradient)
-                !
-            END SELECT
+            END IF
             !
-        END IF
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE poisson_gradient_direct_density

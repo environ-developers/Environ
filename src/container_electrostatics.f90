@@ -26,7 +26,7 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_container_corrections
+MODULE class_core_container_electrostatics
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
@@ -38,10 +38,9 @@ MODULE class_core_container_corrections
     USE class_function
     !
     USE class_core_container
-    USE class_core_1da_electrostatics
+    USE class_core_container_corrections
     !
-    USE class_electrolyte_base
-    USE class_semiconductor_base
+    USE class_core_fft
     !
     !------------------------------------------------------------------------------------
     !
@@ -53,23 +52,24 @@ MODULE class_core_container_corrections
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(core_container), PUBLIC :: container_corrections
+    TYPE, EXTENDS(core_container), PUBLIC :: container_electrostatics
         !--------------------------------------------------------------------------------
+        !
+        CLASS(container_corrections), POINTER :: correction => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: calc_vperiodic, calc_vgcs, calc_vms
-        GENERIC :: potential => calc_vperiodic, calc_vgcs, calc_vms
+        PROCEDURE :: add_correction
+        PROCEDURE :: destroy => destroy_electrostatics_container
         !
-        PROCEDURE, PRIVATE :: calc_gradvperiodic, calc_gradvgcs, calc_gradvms
-        GENERIC :: gradpotential => calc_gradvperiodic, calc_gradvgcs, calc_gradvms
-        !
-        PROCEDURE :: force => calc_fperiodic
+        PROCEDURE :: poisson => calc_poisson
+        PROCEDURE :: gradpoisson => calc_gradpoisson
+        PROCEDURE :: force => calc_force
         !
         !--------------------------------------------------------------------------------
-    END TYPE container_corrections
+    END TYPE container_electrostatics
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -77,31 +77,88 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
-    !                                 CORRECTION METHODS
+    !                                   ADMIN METHODS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_vperiodic(this, charges, gradv)
+    SUBROUTINE add_correction(this, correction)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(container_corrections), TARGET, INTENT(IN) :: correction
         !
-        CLASS(container_corrections), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: gradv
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vperiodic'
+        CHARACTER(LEN=80) :: sub_name = 'add_correction'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%correction)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        this%correction => correction
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE add_correction
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_electrostatics_container(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        !
+        !--------------------------------------------------------------------------------
+        !
+        CALL this%core_container%destroy()
+        !
+        NULLIFY (this%core)
+        !
+        IF (ASSOCIATED(this%correction)) THEN
+            !
+            IF (ASSOCIATED(this%correction%core)) CALL this%correction%destroy()
+            !
+            NULLIFY (this%correction)
+        END IF
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_electrostatics_container
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                               ELECTROSTATIC METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE calc_poisson(this, density, potential)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        TYPE(environ_density), INTENT(IN) :: density
+        !
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: potential
+        !
+        CHARACTER(LEN=80) :: sub_name = 'calc_poisson'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_vperiodic(charges, gradv)
+        TYPE IS (core_fft)
+            CALL core%poisson(density, potential)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -109,29 +166,29 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_vperiodic
+    END SUBROUTINE calc_poisson
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradvperiodic(this, charges, gvtot)
+    SUBROUTINE calc_gradpoisson(this, density, gradient)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: charges
+        TYPE(environ_density), INTENT(IN) :: density
         !
-        CLASS(container_corrections), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gvtot
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: gradient
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradvperiodic'
+        CHARACTER(LEN=80) :: sub_name = 'calc_gradpoisson'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_gradvperiodic(charges, gvtot)
+        TYPE IS (core_fft)
+            CALL core%gradpoisson(density, gradient)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -139,31 +196,31 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradvperiodic
+    END SUBROUTINE calc_gradpoisson
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_fperiodic(this, natoms, ions, auxiliary, f)
+    SUBROUTINE calc_force(this, natoms, density, ions, force)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
         INTEGER, INTENT(IN) :: natoms
-        CLASS(environ_function), INTENT(IN) :: ions(:)
-        TYPE(environ_density), INTENT(IN) :: auxiliary
+        TYPE(environ_density), INTENT(IN) :: density
+        CLASS(environ_function), TARGET, INTENT(IN) :: ions(:)
         !
-        CLASS(container_corrections), INTENT(INOUT) :: this
-        REAL(DP), INTENT(INOUT) :: f(3, natoms)
+        CLASS(container_electrostatics), INTENT(INOUT) :: this
+        REAL(DP), INTENT(INOUT) :: force(3, natoms)
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_fperiodic'
+        CHARACTER(LEN=80) :: sub_name = 'calc_force'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_fperiodic(natoms, ions, auxiliary, f)
+        TYPE IS (core_fft)
+            CALL core%force(natoms, density, ions, force)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -171,133 +228,9 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_fperiodic
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_vgcs(this, electrolyte, charges, potential)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
-        TYPE(environ_density), INTENT(IN) :: charges
-        !
-        CLASS(container_corrections), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vgcs'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_vgcs(electrolyte, charges, potential)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_vgcs
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradvgcs(this, electrolyte, charges, gradv)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
-        TYPE(environ_density), INTENT(IN) :: charges
-        !
-        CLASS(container_corrections), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradv
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradvgcs'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_gradvgcs(electrolyte, charges, gradv)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradvgcs
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_vms(this, semiconductor, charges, potential)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
-        TYPE(environ_density), INTENT(IN) :: charges
-        !
-        CLASS(container_corrections), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: potential
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_vms'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_vms(semiconductor, charges, potential)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_vms
-    !------------------------------------------------------------------------------------
-    !>
-    !!
-    !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradvms(this, semiconductor, charges, gradv)
-        !--------------------------------------------------------------------------------
-        !
-        IMPLICIT NONE
-        !
-        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
-        TYPE(environ_density), INTENT(IN) :: charges
-        !
-        CLASS(container_corrections), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradv
-        !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradvms'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        SELECT TYPE (core => this%core)
-            !
-        TYPE IS (core_1da_electrostatics)
-            CALL core%calc_1da_gradvms(semiconductor, charges, gradv)
-            !
-        CLASS DEFAULT
-            CALL io%error(sub_name, 'Unexpected core', 1)
-            !
-        END SELECT
-        !
-        !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradvms
+    END SUBROUTINE calc_force
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_container_corrections
+END MODULE class_core_container_electrostatics
 !----------------------------------------------------------------------------------------

@@ -20,20 +20,20 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Oliviero Andreussi (Department of Physics, UNT)
-!          Edan Bainglass     (Department of Physics, UNT)
+! Authors: Edan Bainglass (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
-!! #TODO 1D_numeric, multigrid, bigdft
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_container
+MODULE class_container
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     !
-    USE class_core_numerical
+    USE class_core_container_derivatives
+    USE class_core_container_electrostatics
+    USE class_core_container_corrections
     !
     !------------------------------------------------------------------------------------
     !
@@ -45,23 +45,24 @@ MODULE class_core_container
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, ABSTRACT, PUBLIC :: core_container
+    TYPE, PUBLIC :: environ_container
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: type_
+        CHARACTER(LEN=80) :: label = ''
         !
-        CLASS(numerical_core), POINTER :: core => NULL()
+        TYPE(container_derivatives), POINTER :: derivatives => NULL()
+        TYPE(container_electrostatics), POINTER :: electrostatics => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create => create_core_container
-        PROCEDURE :: init => init_core_container
-        PROCEDURE :: destroy => destroy_core_container
+        PROCEDURE, PRIVATE :: create => create_environ_container
+        PROCEDURE :: init => init_environ_container
+        PROCEDURE :: destroy => destroy_environ_container
         !
         !--------------------------------------------------------------------------------
-    END TYPE core_container
+    END TYPE environ_container
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -76,73 +77,75 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_core_container(this)
+    SUBROUTINE create_environ_container(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(core_container), INTENT(INOUT) :: this
+        CLASS(environ_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_core_container'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ASSOCIATED(this%core)) CALL io%create_error(sub_name)
+        CHARACTER(LEN=80) :: sub_name = 'create_environ_container'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_core_container
+        !
+        IF (ASSOCIATED(this%derivatives)) CALL io%create_error(sub_name)
+        !
+        IF (ASSOCIATED(this%electrostatics)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_environ_container
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_core_container(this, core, type_in)
+    SUBROUTINE init_environ_container(this, label, derivatives, electrostatics)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(numerical_core), TARGET, INTENT(IN) :: core
-        CHARACTER(LEN=80), INTENT(IN) :: type_in
+        CHARACTER(LEN=80), INTENT(IN) :: label
+        TYPE(container_derivatives), TARGET, INTENT(IN), OPTIONAL :: derivatives
+        TYPE(container_electrostatics), TARGET, INTENT(IN), OPTIONAL :: electrostatics
         !
-        CLASS(core_container), INTENT(INOUT) :: this
+        CLASS(environ_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'init_core_container'
+        CHARACTER(LEN=80) :: sub_name = 'init_environ_container'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
         !
-        this%core => core
-        this%type_ = type_in
+        this%label = label
+        !
+        IF (PRESENT(derivatives)) this%derivatives => derivatives
+        !
+        IF (PRESENT(electrostatics)) this%electrostatics => electrostatics
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_core_container
+    END SUBROUTINE init_environ_container
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE destroy_core_container(this)
+    SUBROUTINE destroy_environ_container(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(core_container), INTENT(INOUT) :: this
+        CLASS(environ_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'destroy_core_container'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (.NOT. ASSOCIATED(this%core)) CALL io%destroy_error(sub_name)
+        CHARACTER(LEN=80) :: sub_name = 'destroy_environ_container'
         !
         !--------------------------------------------------------------------------------
         !
-        IF (ASSOCIATED(this%core%cell)) CALL this%core%destroy()
+        IF (ASSOCIATED(this%derivatives)) CALL this%derivatives%destroy()
         !
-        NULLIFY (this%core)
+        IF (ASSOCIATED(this%electrostatics)) CALL this%electrostatics%destroy()
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE destroy_core_container
+    END SUBROUTINE destroy_environ_container
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_container
+END MODULE class_container
 !----------------------------------------------------------------------------------------

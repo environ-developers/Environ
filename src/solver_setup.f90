@@ -39,7 +39,7 @@ MODULE class_solver_setup
     USE class_cell
     USE class_density
     !
-    USE class_core_fft_electrostatics
+    USE class_core_fft
     USE class_core_1da
     !
     USE class_solver
@@ -428,12 +428,12 @@ CONTAINS
         !
         eself = charges%ions%selfenergy_correction * e2
         !
-        SELECT TYPE (core => this%solver%cores%core)
+        SELECT TYPE (core => this%solver%cores%electrostatics%core)
             !
-        TYPE IS (core_fft_electrostatics)
+        TYPE IS (core_fft)
             !
             IF (core%use_internal_pbc_corr .OR. &
-                ASSOCIATED(this%solver%cores%correction)) THEN
+                ASSOCIATED(this%solver%cores%electrostatics%correction)) THEN
                 degauss = 0.D0
             ELSE
                 !
@@ -512,21 +512,25 @@ CONTAINS
             aux%of_r = aux%of_r + charges%electrolyte%density%of_r
         END IF
         !
-        SELECT TYPE (core => this%solver%cores%core)
+        ASSOCIATE (electrostatics => this%solver%cores%electrostatics)
             !
-        TYPE IS (core_fft_electrostatics)
-            CALL this%solver%cores%force(natoms, aux, charges%ions%smeared_ions, force)
+            SELECT TYPE (core => electrostatics%core)
+                !
+            TYPE IS (core_fft)
+                CALL electrostatics%force(natoms, aux, charges%ions%smeared_ions, force)
+                !
+            END SELECT
             !
-        END SELECT
-        !
-        IF (ASSOCIATED(this%solver%cores%correction)) THEN
+            IF (ASSOCIATED(electrostatics%correction)) THEN
+                !
+                IF (.NOT. ldoublecell) aux%of_r = aux%of_r + charges%density%of_r
+                !
+                CALL electrostatics%correction%force(natoms, charges%ions%smeared_ions, &
+                                                     aux, force)
+                !
+            END IF
             !
-            IF (.NOT. ldoublecell) aux%of_r = aux%of_r + charges%density%of_r
-            !
-            CALL this%solver%cores%correction%force(natoms, charges%ions%smeared_ions, &
-                                                    aux, force)
-            !
-        END IF
+        END ASSOCIATE
         !
         CALL aux%destroy()
         !

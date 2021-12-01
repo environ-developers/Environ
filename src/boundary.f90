@@ -1087,7 +1087,7 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%derivatives%type_)
+        SELECT CASE (this%derivatives%method)
             !
         CASE ('fft')
             !
@@ -1138,14 +1138,14 @@ CONTAINS
             !
             IF (deriv >= 1) THEN
                 !
-                IF (this%derivatives%type_ == 'chain') THEN
+                IF (this%derivatives%method == 'chain') THEN
                     !
                     DO ipol = 1, 3
                         gradeps(ipol, :) = gradeps(ipol, :) * deps(:)
                     END DO
                     !
-                    ! ELSE IF (this%derivatives%type_ == 'fd') THEN
-                    !     CALL fd%gradient(this%scaled, this%gradient)
+                    ! ELSE IF (this%derivatives%method == 'fd') THEN
+                    !     CALL this%derivatives%gradient(this%scaled, this%gradient)
                 END IF
                 !
             END IF
@@ -1245,7 +1245,7 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%derivatives%type_)
+        SELECT CASE (this%derivatives%method)
             !
         CASE ('fft')
             !
@@ -1473,7 +1473,7 @@ CONTAINS
             !
         END IF
         !
-        SELECT CASE (this%derivatives%type_)
+        SELECT CASE (this%derivatives%method)
             !
         CASE ('fft')
             !
@@ -1707,7 +1707,7 @@ CONTAINS
         !
         CALL filled_fraction%init(cell)
         !
-        IF (deriv >= 2 .AND. this%derivatives%type_ /= 'fft') CALL d2filling%init(cell)
+        IF (deriv >= 2 .AND. this%derivatives%method /= 'fft') CALL d2filling%init(cell)
         !
         !--------------------------------------------------------------------------------
         ! Step 0: save local interface function for later use
@@ -1736,7 +1736,7 @@ CONTAINS
             this%filling%of_r(ir) = 1.D0 - sfunct2(filled_fraction%of_r(ir), thr, spr)
             this%dfilling%of_r(ir) = -dsfunct2(filled_fraction%of_r(ir), thr, spr)
             !
-            IF (deriv >= 2 .AND. this%derivatives%type_ /= 'fft') &
+            IF (deriv >= 2 .AND. this%derivatives%method /= 'fft') &
                 d2filling%of_r(ir) = -d2sfunct2(filled_fraction%of_r(ir), thr, spr)
             !
         END DO
@@ -1749,7 +1749,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Step 5: compute boundary derivatives, if needed
         !
-        SELECT CASE (this%derivatives%type_)
+        SELECT CASE (this%derivatives%method)
             !
         CASE ('fft')
             !

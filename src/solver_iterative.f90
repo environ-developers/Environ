@@ -34,7 +34,7 @@ MODULE class_solver_iterative
     !
     USE environ_param, ONLY: DP
     !
-    USE class_core_container_electrostatics
+    USE class_container
     !
     USE class_solver
     USE class_solver_direct
@@ -83,7 +83,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(container_electrostatics), TARGET, INTENT(IN) :: cores
+        TYPE(environ_container), TARGET, INTENT(IN) :: cores
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol
         CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: auxiliary

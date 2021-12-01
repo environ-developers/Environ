@@ -371,8 +371,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Update cores
         !
-        IF (setup%l1da) &
-            CALL setup%core_1da_elect%update_origin(this%environment_system%pos)
+        IF (setup%l1da) CALL setup%env_1da%update_origin(this%environment_system%pos)
         !
         !--------------------------------------------------------------------------------
         ! Update rigid environ properties, defined on ions
@@ -847,7 +846,7 @@ CONTAINS
                 radial_scale, radial_spread, filling_threshold, filling_spread, &
                 field_awareness, charge_asymmetry, field_max, field_min, &
                 this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%derivatives, environment_cell, &
+                this%environment_system, setup%derivative_cores, environment_cell, &
                 local_label)
             !
         END IF
@@ -864,7 +863,7 @@ CONTAINS
                 electrolyte_spread, solvent_radius, radial_scale, radial_spread, &
                 filling_threshold, filling_spread, field_awareness, charge_asymmetry, &
                 field_max, field_min, this%environment_electrons, this%environment_ions, &
-                this%environment_system, setup%derivatives, temperature, cion, &
+                this%environment_system, setup%derivative_cores, temperature, cion, &
                 cionmax, rion, zion, electrolyte_entropy, electrolyte_linearized, &
                 environment_cell)
             !

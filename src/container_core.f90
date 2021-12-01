@@ -20,21 +20,19 @@
 !
 !----------------------------------------------------------------------------------------
 !
-! Authors: Francesco Nattino  (THEOS and NCCR-MARVEL, EPFL)
-!          Oliviero Andreussi (Department of Physics, UNT)
-!          Nicola Marzari     (THEOS and NCCR-MARVEL, EPFL)
+! Authors: Oliviero Andreussi (Department of Physics, UNT)
 !          Edan Bainglass     (Department of Physics, UNT)
 !
 !----------------------------------------------------------------------------------------
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_solver
+MODULE class_core_container
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     !
-    USE class_container
+    USE class_core
     !
     !------------------------------------------------------------------------------------
     !
@@ -46,22 +44,23 @@ MODULE class_solver
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, ABSTRACT, PUBLIC :: electrostatic_solver
+    TYPE, PUBLIC :: core_container
         !--------------------------------------------------------------------------------
         !
-        CHARACTER(LEN=80) :: solver_type
+        CHARACTER(LEN=80) :: method = ''
         !
-        TYPE(environ_container), POINTER :: cores => NULL()
+        CLASS(environ_core), POINTER :: core => NULL()
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE, PRIVATE :: create => create_electrostatic_cores
-        PROCEDURE :: init_cores => init_electrostatic_cores
+        PROCEDURE, PRIVATE :: create => create_core_container
+        PROCEDURE :: init => init_core_container
+        PROCEDURE :: destroy => destroy_core_container
         !
         !--------------------------------------------------------------------------------
-    END TYPE electrostatic_solver
+    END TYPE core_container
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -76,46 +75,74 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE create_electrostatic_cores(this)
+    SUBROUTINE create_core_container(this)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(electrostatic_solver), INTENT(INOUT) :: this
+        CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'create_electrostatic_cores'
-        !
-        !--------------------------------------------------------------------------------
-        !
-        IF (ASSOCIATED(this%cores)) CALL io%create_error(sub_name)
+        CHARACTER(LEN=80) :: sub_name = 'create_core_container'
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE create_electrostatic_cores
+        !
+        IF (ASSOCIATED(this%core)) CALL io%create_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE create_core_container
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_electrostatic_cores(this, cores)
+    SUBROUTINE init_core_container(this, core, method)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_container), TARGET, INTENT(IN) :: cores
+        CLASS(environ_core), TARGET, INTENT(IN) :: core
+        CHARACTER(LEN=80), INTENT(IN), OPTIONAL :: method
         !
-        CLASS(electrostatic_solver), INTENT(INOUT) :: this
+        CLASS(core_container), INTENT(INOUT) :: this
         !
-        CHARACTER(LEN=80) :: sub_name = 'set_electrostatic_cores'
+        CHARACTER(LEN=80) :: sub_name = 'init_core_container'
         !
         !--------------------------------------------------------------------------------
         !
         CALL this%create()
         !
-        this%cores => cores
+        this%core => core
+        !
+        IF (PRESENT(method)) this%method = method
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE init_electrostatic_cores
+    END SUBROUTINE init_core_container
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE destroy_core_container(this)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_container), INTENT(INOUT) :: this
+        !
+        CHARACTER(LEN=80) :: sub_name = 'destroy_core_container'
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(this%core)) CALL io%destroy_error(sub_name)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (ASSOCIATED(this%core%cell)) CALL this%core%destroy()
+        !
+        NULLIFY (this%core)
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE destroy_core_container
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_solver
+END MODULE class_core_container
 !----------------------------------------------------------------------------------------

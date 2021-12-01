@@ -26,18 +26,22 @@
 !>
 !!
 !----------------------------------------------------------------------------------------
-MODULE class_core_container_derivatives
+MODULE class_core_container_corrections
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
     !
+    USE environ_param, ONLY: DP
+    !
     USE class_density
     USE class_gradient
-    USE class_hessian
+    USE class_function
     !
     USE class_core_container
-    USE class_core_fd_derivatives
-    USE class_core_fft_derivatives
+    USE class_core_1da
+    !
+    USE class_electrolyte_base
+    USE class_semiconductor_base
     !
     !------------------------------------------------------------------------------------
     !
@@ -49,30 +53,23 @@ MODULE class_core_container_derivatives
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(core_container), PUBLIC :: container_derivatives
+    TYPE, EXTENDS(core_container), PUBLIC :: container_corrections
         !--------------------------------------------------------------------------------
         !
         !--------------------------------------------------------------------------------
     CONTAINS
         !--------------------------------------------------------------------------------
         !
-        PROCEDURE :: gradient => calc_gradient
-        PROCEDURE :: graddot => calc_graddot
-        PROCEDURE :: hessian => calc_hessian
-        PROCEDURE :: laplacian => calc_laplacian
+        PROCEDURE, PRIVATE :: calc_vperiodic, calc_vgcs, calc_vms
+        GENERIC :: potential => calc_vperiodic, calc_vgcs, calc_vms
         !
-        PROCEDURE, PRIVATE :: &
-            calc_convolution_density, &
-            calc_convolution_gradient, &
-            calc_convolution_hessian
+        PROCEDURE, PRIVATE :: calc_gradvperiodic, calc_gradvgcs, calc_gradvms
+        GENERIC :: gradpotential => calc_gradvperiodic, calc_gradvgcs, calc_gradvms
         !
-        GENERIC :: convolution => &
-            calc_convolution_density, &
-            calc_convolution_gradient, &
-            calc_convolution_hessian
+        PROCEDURE :: force => calc_fperiodic
         !
         !--------------------------------------------------------------------------------
-    END TYPE container_derivatives
+    END TYPE container_corrections
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
@@ -80,34 +77,31 @@ CONTAINS
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !
-    !                                 DERIVATIVE METHODS
+    !                                 CORRECTION METHODS
     !
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_gradient(this, density, gradient)
+    SUBROUTINE calc_vperiodic(this, charges, potential)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        TYPE(environ_density), INTENT(IN) :: charges
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
+        CLASS(container_corrections), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_gradient'
+        CHARACTER(LEN=80) :: sub_name = 'calc_vperiodic'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_fd_derivatives)
-            CALL core%gradient(density, gradient)
-            !
-        TYPE IS (core_fft_derivatives)
-            CALL core%gradient(density, gradient)
+        TYPE IS (core_1da)
+            CALL core%calc_1da_vperiodic(charges, potential)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -115,29 +109,29 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_gradient
+    END SUBROUTINE calc_vperiodic
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_graddot(this, gradient, density)
+    SUBROUTINE calc_gradvperiodic(this, charges, gvtot)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_gradient), INTENT(IN) :: gradient
+        TYPE(environ_density), INTENT(IN) :: charges
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: density
+        CLASS(container_corrections), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: gvtot
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_graddot'
+        CHARACTER(LEN=80) :: sub_name = 'calc_gradvperiodic'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_fft_derivatives)
-            CALL core%graddot(gradient, density)
+        TYPE IS (core_1da)
+            CALL core%calc_1da_gradvperiodic(charges, gvtot)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -145,30 +139,31 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_graddot
+    END SUBROUTINE calc_gradvperiodic
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_hessian(this, density, gradient, hessian)
+    SUBROUTINE calc_fperiodic(this, natoms, ions, auxiliary, f)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        INTEGER, INTENT(IN) :: natoms
+        CLASS(environ_function), INTENT(IN) :: ions(:)
+        TYPE(environ_density), INTENT(IN) :: auxiliary
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_gradient), INTENT(INOUT) :: gradient
-        TYPE(environ_hessian), INTENT(INOUT) :: hessian
+        CLASS(container_corrections), INTENT(INOUT) :: this
+        REAL(DP), INTENT(INOUT) :: f(3, natoms)
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_hessian'
+        CHARACTER(LEN=80) :: sub_name = 'calc_fperiodic'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_fft_derivatives)
-            CALL core%hessian(density, gradient, hessian)
+        TYPE IS (core_1da)
+            CALL core%calc_1da_fperiodic(natoms, ions, auxiliary, f)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -176,29 +171,30 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_hessian
+    END SUBROUTINE calc_fperiodic
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_laplacian(this, density, laplacian)
+    SUBROUTINE calc_vgcs(this, electrolyte, charges, potential)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        TYPE(environ_density), INTENT(IN) :: density
+        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
+        TYPE(environ_density), INTENT(IN) :: charges
         !
-        CLASS(container_derivatives), INTENT(INOUT) :: this
-        TYPE(environ_density), INTENT(INOUT) :: laplacian
+        CLASS(container_corrections), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_laplacian'
+        CHARACTER(LEN=80) :: sub_name = 'calc_vgcs'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_fft_derivatives)
-            CALL core%laplacian(density, laplacian)
+        TYPE IS (core_1da)
+            CALL core%calc_1da_vgcs(electrolyte, charges, potential)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -206,30 +202,30 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_laplacian
+    END SUBROUTINE calc_vgcs
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_convolution_density(this, fa, fb, fc)
+    SUBROUTINE calc_gradvgcs(this, electrolyte, charges, gradv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(container_derivatives), INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fa
-        TYPE(environ_density), INTENT(IN) :: fb
+        TYPE(environ_electrolyte_base), INTENT(IN) :: electrolyte
+        TYPE(environ_density), INTENT(IN) :: charges
         !
-        TYPE(environ_density), INTENT(INOUT) :: fc
+        CLASS(container_corrections), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: gradv
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_density'
+        CHARACTER(LEN=80) :: sub_name = 'calc_gradvgcs'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_fft_derivatives)
-            CALL core%convolution_density(fa, fb, fc)
+        TYPE IS (core_1da)
+            CALL core%calc_1da_gradvgcs(electrolyte, charges, gradv)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -237,30 +233,30 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_convolution_density
+    END SUBROUTINE calc_gradvgcs
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_convolution_gradient(this, fa, gb, gc)
+    SUBROUTINE calc_vms(this, semiconductor, charges, potential)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(container_derivatives), INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fa
-        TYPE(environ_gradient), INTENT(IN) :: gb
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_density), INTENT(IN) :: charges
         !
-        TYPE(environ_gradient), INTENT(INOUT) :: gc
+        CLASS(container_corrections), INTENT(INOUT) :: this
+        TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_gradient'
+        CHARACTER(LEN=80) :: sub_name = 'calc_vms'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_fft_derivatives)
-            CALL core%convolution_gradient(fa, gb, gc)
+        TYPE IS (core_1da)
+            CALL core%calc_1da_vms(semiconductor, charges, potential)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -268,30 +264,30 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_convolution_gradient
+    END SUBROUTINE calc_vms
     !------------------------------------------------------------------------------------
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE calc_convolution_hessian(this, fa, hb, hc)
+    SUBROUTINE calc_gradvms(this, semiconductor, charges, gradv)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
         !
-        CLASS(container_derivatives), INTENT(IN) :: this
-        TYPE(environ_density), INTENT(IN) :: fa
-        TYPE(environ_hessian), INTENT(IN) :: hb
+        TYPE(environ_semiconductor_base), INTENT(IN) :: semiconductor
+        TYPE(environ_density), INTENT(IN) :: charges
         !
-        TYPE(environ_hessian), INTENT(INOUT) :: hc
+        CLASS(container_corrections), INTENT(INOUT) :: this
+        TYPE(environ_gradient), INTENT(INOUT) :: gradv
         !
-        CHARACTER(LEN=80) :: sub_name = 'calc_convolution_hessian'
+        CHARACTER(LEN=80) :: sub_name = 'calc_gradvms'
         !
         !--------------------------------------------------------------------------------
         !
         SELECT TYPE (core => this%core)
             !
-        TYPE IS (core_fft_derivatives)
-            CALL core%convolution_hessian(fa, hb, hc)
+        TYPE IS (core_1da)
+            CALL core%calc_1da_gradvms(semiconductor, charges, gradv)
             !
         CLASS DEFAULT
             CALL io%error(sub_name, 'Unexpected core', 1)
@@ -299,9 +295,9 @@ CONTAINS
         END SELECT
         !
         !--------------------------------------------------------------------------------
-    END SUBROUTINE calc_convolution_hessian
+    END SUBROUTINE calc_gradvms
     !------------------------------------------------------------------------------------
     !
     !------------------------------------------------------------------------------------
-END MODULE class_core_container_derivatives
+END MODULE class_core_container_corrections
 !----------------------------------------------------------------------------------------

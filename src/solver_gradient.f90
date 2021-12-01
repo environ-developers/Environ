@@ -39,8 +39,9 @@ MODULE class_solver_gradient
     USE class_density
     USE class_gradient
     !
-    USE class_core_container_electrostatics
-    USE class_core_fft_electrostatics
+    USE class_container
+    !
+    USE class_core_fft
     !
     USE class_solver_iterative
     !
@@ -115,7 +116,7 @@ CONTAINS
         !
         IMPLICIT NONE
         !
-        TYPE(container_electrostatics), INTENT(IN) :: cores
+        TYPE(environ_container), INTENT(IN) :: cores
         LOGICAL, INTENT(IN) :: lconjugate
         INTEGER, INTENT(IN) :: maxiter
         REAL(DP), INTENT(IN) :: tol, step, screening
@@ -559,9 +560,9 @@ CONTAINS
                 ! NOTE: the following steps should be extended to account for
                 !       different cores
                 !
-                CALL this%cores%gradient(p, g)
+                CALL this%cores%derivatives%gradient(p, g)
                 !
-                CALL this%cores%laplacian(p, l)
+                CALL this%cores%derivatives%laplacian(p, l)
                 !
                 Ap%of_r(:) = eps%of_r(:) * l%of_r(:) + &
                              gradeps%of_r(1, :) * g%of_r(1, :) + &
@@ -871,12 +872,12 @@ CONTAINS
             !
             shift = 0.D0
             !
-            SELECT TYPE (core => this%cores%core)
+            SELECT TYPE (core => this%cores%electrostatics%core)
                 !
-            TYPE IS (core_fft_electrostatics)
+            TYPE IS (core_fft)
                 !
                 IF (.NOT. (core%use_internal_pbc_corr .OR. &
-                           ASSOCIATED(this%cores%correction))) &
+                           ASSOCIATED(this%cores%electrostatics%correction))) &
                     shift = -x%integrate() / cell%omega
                 !
             END SELECT
@@ -1046,7 +1047,7 @@ CONTAINS
                 ! NOTE: the following steps should be extended to account for
                 !       different cores
                 !
-                CALL this%cores%gradient(z, g)
+                CALL this%cores%derivatives%gradient(z, g)
                 !
                 g%of_r = g%of_r / fpi / e2
                 !
@@ -1397,14 +1398,13 @@ CONTAINS
             !
             shift = 0.D0
             !
-            SELECT TYPE (core => this%cores%core)
+            SELECT TYPE (core => this%cores%electrostatics%core)
                 !
-            TYPE IS (core_fft_electrostatics)
+            TYPE IS (core_fft)
                 !
                 IF (.NOT. (core%use_internal_pbc_corr .OR. &
-                           ASSOCIATED(this%cores%correction))) THEN
+                           ASSOCIATED(this%cores%electrostatics%correction))) &
                     shift = -x%integrate() / cell%omega
-                END IF
                 !
             END SELECT
             !

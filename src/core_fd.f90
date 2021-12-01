@@ -33,12 +33,17 @@ MODULE class_core_fd
     !------------------------------------------------------------------------------------
     !
     USE class_io, ONLY: io
+    USE env_mp, ONLY: env_mp_sum
+    !
+    USE env_base_scatter, ONLY: env_scatter_grid
     !
     USE environ_param, ONLY: DP
     !
     USE class_cell
+    USE class_density
+    USE class_gradient
     !
-    USE class_core_numerical
+    USE class_core
     !
     !------------------------------------------------------------------------------------
     !
@@ -50,7 +55,7 @@ MODULE class_core_fd
     !>
     !!
     !------------------------------------------------------------------------------------
-    TYPE, EXTENDS(numerical_core), PUBLIC :: core_fd
+    TYPE, EXTENDS(environ_core), PUBLIC :: core_fd
         !--------------------------------------------------------------------------------
         !
         INTEGER :: ifdtype = 0
@@ -67,7 +72,9 @@ MODULE class_core_fd
         PROCEDURE :: init => init_core_fd
         PROCEDURE :: destroy => destroy_core_fd
         !
-        PROCEDURE :: set_coefficients
+        PROCEDURE :: gradient => gradient_fd
+        !
+        PROCEDURE, PRIVATE :: set_coefficients
         !
         !--------------------------------------------------------------------------------
     END TYPE core_fd
@@ -158,6 +165,122 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE destroy_core_fd
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !
+    !                                 DERIVATIVE METHODS
+    !
+    !------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------------
+    !>
+    !!
+    !------------------------------------------------------------------------------------
+    SUBROUTINE gradient_fd(this, f, grad)
+        !--------------------------------------------------------------------------------
+        !
+        IMPLICIT NONE
+        !
+        CLASS(core_fd), TARGET, INTENT(IN) :: this
+        TYPE(environ_density), INTENT(IN) :: f
+        !
+        TYPE(environ_gradient), INTENT(INOUT) :: grad
+        !
+        INTEGER :: i, ir, ipol, in
+        INTEGER, DIMENSION(:), ALLOCATABLE :: ix, iy, iz
+        REAL(DP), DIMENSION(:, :), ALLOCATABLE :: gradtmp, gradaux
+        !
+        LOGICAL :: physical
+        !
+        !--------------------------------------------------------------------------------
+        !
+        ASSOCIATE (dfft => this%cell%dfft, &
+                   cell => this%cell, &
+                   nnr => this%cell%nnr, &
+                   nfdpoint => this%nfdpoint)
+            !
+            !----------------------------------------------------------------------------
+            !
+            ALLOCATE (ix(-nfdpoint:nfdpoint), iy(-nfdpoint:nfdpoint), &
+                      iz(-nfdpoint:nfdpoint))
+            !
+            ALLOCATE (gradtmp(dfft%nr1x * dfft%nr2x * dfft%nr3x, 3))
+            gradtmp = 0.D0
+            !
+            DO ir = 1, cell%ir_end
+                !
+                CALL cell%ir2ijk(ir, ix(0), iy(0), iz(0), physical)
+                !
+                IF (.NOT. physical) CYCLE ! do not include points outside physical range
+                !
+                DO in = 1, this%nfdpoint
+                    ix(in) = ix(in - 1) + 1
+                    !
+                    IF (ix(in) > dfft%nr1x - 1) ix(in) = 0
+                    !
+                    ix(-in) = ix(-in + 1) - 1
+                    !
+                    IF (ix(-in) < 0) ix(-in) = dfft%nr1x - 1
+                    !
+                    iy(in) = iy(in - 1) + 1
+                    !
+                    IF (iy(in) > dfft%nr2x - 1) iy(in) = 0
+                    !
+                    iy(-in) = iy(-in + 1) - 1
+                    !
+                    IF (iy(-in) < 0) iy(-in) = dfft%nr2x - 1
+                    !
+                    iz(in) = iz(in - 1) + 1
+                    !
+                    IF (iz(in) > dfft%nr3x - 1) iz(in) = 0
+                    !
+                    iz(-in) = iz(-in + 1) - 1
+                    !
+                    IF (iz(-in) < 0) iz(-in) = dfft%nr3x - 1
+                    !
+                END DO
+                !
+                DO in = -this%nfdpoint, this%nfdpoint
+                    i = ix(in) + iy(0) * dfft%nr1x + iz(0) * dfft%nr1x * dfft%nr2x + 1
+                    gradtmp(i, 1) = gradtmp(i, 1) - this%icfd(in) * f%of_r(ir) * dfft%nr1
+                    i = ix(0) + iy(in) * dfft%nr1x + iz(0) * dfft%nr1x * dfft%nr2x + 1
+                    gradtmp(i, 2) = gradtmp(i, 2) - this%icfd(in) * f%of_r(ir) * dfft%nr2
+                    i = ix(0) + iy(0) * dfft%nr1x + iz(in) * dfft%nr1x * dfft%nr2x + 1
+                    gradtmp(i, 3) = gradtmp(i, 3) - this%icfd(in) * f%of_r(ir) * dfft%nr3
+                END DO
+                !
+            END DO
+            !
+            DEALLOCATE (ix, iy, iz)
+            !
+            ALLOCATE (gradaux(nnr, 3))
+            !
+#if defined(__MPI)
+            DO ipol = 1, 3
+                !
+                CALL env_mp_sum(gradtmp(:, ipol), cell%dfft%comm)
+                !
+                CALL env_scatter_grid(dfft, gradtmp(:, ipol), gradaux(:, ipol))
+                !
+            END DO
+            !
+#else
+            gradaux(1:nnr, :) = gradtmp(1:nnr, :)
+#endif
+            !
+            DEALLOCATE (gradtmp)
+            !
+            DO ir = 1, nnr
+                grad%of_r(:, ir) = MATMUL(cell%bg, gradaux(ir, :))
+            END DO
+            !
+            DEALLOCATE (gradaux)
+            !
+            grad%of_r = grad%of_r / DBLE(this%ncfd)
+            !
+        END ASSOCIATE
+        !
+        !--------------------------------------------------------------------------------
+    END SUBROUTINE gradient_fd
     !------------------------------------------------------------------------------------
     !------------------------------------------------------------------------------------
     !

@@ -42,14 +42,16 @@ MODULE class_setup
     USE class_cell
     USE class_mapping
     !
+    USE class_container
     USE class_core_container_corrections
     USE class_core_container_derivatives
     USE class_core_container_electrostatics
-    USE class_core_numerical
-    USE class_core_fd_derivatives
-    USE class_core_fft_derivatives
-    USE class_core_fft_electrostatics
-    USE class_core_1da_electrostatics
+    !
+    USE class_core
+    USE class_core_fd
+    USE class_core_fft
+    USE class_core_fft
+    USE class_core_1da
     !
     USE class_solver_setup
     USE class_solver
@@ -136,6 +138,7 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Solver flags
         !
+        LOGICAL :: need_inner = .FALSE.
         LOGICAL :: need_gradient = .FALSE.
         LOGICAL :: need_factsqrt = .FALSE.
         LOGICAL :: need_auxiliary = .FALSE.
@@ -148,15 +151,22 @@ MODULE class_setup
         TYPE(environ_mapping) :: mapping
         !
         !--------------------------------------------------------------------------------
-        ! Derivatives
-        !
-        TYPE(container_derivatives) :: derivatives
-        !
-        !--------------------------------------------------------------------------------
         ! Electrostatic
         !
         TYPE(electrostatic_setup) :: reference, outer, inner
-        TYPE(container_electrostatics) :: reference_cores, outer_cores, inner_cores
+        !
+        !--------------------------------------------------------------------------------
+        ! Containers
+        !
+        TYPE(environ_container) :: reference_container
+        TYPE(environ_container) :: outer_container, inner_container
+        !
+        TYPE(container_derivatives) :: derivative_cores
+        !
+        TYPE(container_electrostatics) :: ref_electrostatics, &
+                                          outer_electrostatics, &
+                                          inner_electrostatics
+        !
         TYPE(container_corrections) :: pbc_cores
         !
         !--------------------------------------------------------------------------------
@@ -170,11 +180,9 @@ MODULE class_setup
         !--------------------------------------------------------------------------------
         ! Numerical cores
         !
-        TYPE(core_fd_derivatives) :: core_fd
-        TYPE(core_fft_electrostatics) :: core_fft_sys
-        TYPE(core_fft_derivatives) :: core_fft_deriv
-        TYPE(core_fft_electrostatics) :: core_fft_elect
-        TYPE(core_1da_electrostatics) :: core_1da_elect
+        TYPE(core_fd) :: env_fd
+        TYPE(core_fft) :: env_fft, ref_fft
+        TYPE(core_1da) :: env_1da
         !
         !--------------------------------------------------------------------------------
     CONTAINS
@@ -343,23 +351,15 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%lfd) CALL this%core_fd%init(ifdtype, nfdpoint, this%environment_cell)
+        IF (this%lfd) CALL this%env_fd%init(ifdtype, nfdpoint, this%environment_cell)
         !
         IF (this%lfft_system) &
-            CALL this%core_fft_sys%init(gcutm, this%system_cell, use_internal_pbc_corr)
+            CALL this%ref_fft%init(gcutm, this%system_cell, use_internal_pbc_corr)
         !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%init(gcutm, this%environment_cell)
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%init(gcutm, this%environment_cell, &
-                                              use_internal_pbc_corr)
-            !
-        END IF
+        IF (this%lfft_environment) &
+            CALL this%env_fft%init(gcutm, this%environment_cell, use_internal_pbc_corr)
         !
-        IF (this%l1da) CALL this%core_1da_elect%init(pbc_dim, pbc_axis, &
-                                                     this%environment_cell)
+        IF (this%l1da) CALL this%env_1da%init(pbc_dim, pbc_axis, this%environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_environ_numerical_cores
@@ -448,18 +448,11 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        IF (this%lfft_system) CALL this%core_fft_sys%update_cell(this%system_cell)
+        IF (this%lfft_system) CALL this%ref_fft%update_cell(this%system_cell)
         !
-        IF (this%lfft_environment) THEN
-            !
-            CALL this%core_fft_deriv%update_cell(this%environment_cell)
-            !
-            IF (this%lelectrostatic) &
-                CALL this%core_fft_elect%update_cell(this%environment_cell)
-            !
-        END IF
+        IF (this%lfft_environment) CALL this%env_fft%update_cell(this%environment_cell)
         !
-        IF (this%l1da) CALL this%core_1da_elect%update_cell(this%environment_cell)
+        IF (this%l1da) CALL this%env_1da%update_cell(this%environment_cell)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE update_environ_numerical_cores
@@ -655,6 +648,7 @@ CONTAINS
         this%threshold = environ_thr
         this%nskip = environ_nskip
         this%ldoublecell = SUM(env_nrep) > 0
+        this%need_inner = inner_solver /= 'none'
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_execution_flags
@@ -800,9 +794,10 @@ CONTAINS
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
-        CLASS(numerical_core), POINTER :: outer_core, inner_core, correction_core
+        CLASS(environ_core), POINTER :: &
+            local_outer_core, local_inner_core, local_pbc_core
         !
-        CHARACTER(LEN=80) :: local_type
+        CHARACTER(LEN=80) :: local_label
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_core_containers'
         !
@@ -810,9 +805,12 @@ CONTAINS
         ! Calling program reference core
         !
         this%lfft_system = .TRUE.
-        local_type = 'fft'
+        local_label = 'system'
         !
-        CALL this%reference_cores%init(this%core_fft_sys, local_type)
+        CALL this%ref_electrostatics%init(this%ref_fft)
+        !
+        CALL this%reference_container%init(local_label, &
+                                           electrostatics=this%ref_electrostatics)
         !
         !--------------------------------------------------------------------------------
         ! Outer/inner cores
@@ -821,16 +819,18 @@ CONTAINS
             !
         CASE ('fft')
             this%lfft_environment = .TRUE.
-            local_type = 'fft'
-            outer_core => this%core_fft_elect
-            !
-            IF (inner_solver /= 'none') inner_core => this%core_fft_elect
+            local_outer_core => this%env_fft
             !
         END SELECT
         !
-        CALL this%outer_cores%init(outer_core, local_type)
+        CALL this%outer_electrostatics%init(local_outer_core)
         !
-        IF (inner_solver /= 'none') CALL this%inner_cores%init(inner_core, local_type)
+        IF (this%need_inner) THEN
+            local_inner_core => local_outer_core
+            !
+            CALL this%inner_electrostatics%init(local_inner_core)
+            !
+        END IF
         !
         !--------------------------------------------------------------------------------
         ! Correction cores
@@ -841,18 +841,32 @@ CONTAINS
                 !
             CASE ('1da')
                 this%l1da = .TRUE.
-                correction_core => this%core_1da_elect
+                local_pbc_core => this%env_1da
                 !
             END SELECT
             !
-            CALL this%pbc_cores%init(correction_core, pbc_correction)
+            CALL this%pbc_cores%init(local_pbc_core, pbc_correction)
             !
-            CALL this%outer_cores%add_correction(this%pbc_cores)
+            CALL this%outer_electrostatics%add_correction(this%pbc_cores)
             !
-            IF (inner_solver /= 'none') &
-                CALL this%inner_cores%add_correction(this%pbc_cores)
+            IF (this%need_inner) &
+                CALL this%inner_electrostatics%add_correction(this%pbc_cores)
             !
         END IF
+        !
+        !--------------------------------------------------------------------------------
+        ! Outer/inner core containers
+        !
+        local_label = 'environment'
+        !
+        CALL this%outer_container%init(local_label, &
+                                       electrostatics=this%outer_electrostatics)
+        !
+        local_label = local_label//'_inner'
+        !
+        IF (this%need_inner) &
+            CALL this%inner_container%init(local_label, &
+                                           electrostatics=this%inner_electrostatics)
         !
         !--------------------------------------------------------------------------------
         ! Derivative cores
@@ -860,10 +874,9 @@ CONTAINS
         IF (this%lboundary) THEN
             this%lfft_environment = .TRUE.
             !
-            IF (derivatives == 'fd') this%lfd = .TRUE.
+            CALL this%derivative_cores%init(this%env_fft, derivatives)
             !
-            CALL this%derivatives%init(this%core_fft_deriv, derivatives)
-            !
+            this%outer_container%derivatives => this%derivative_cores
         END IF
         !
         !--------------------------------------------------------------------------------
@@ -891,7 +904,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calling program reference solver
         !
-        CALL this%reference_direct%init_direct(this%reference_cores)
+        CALL this%reference_direct%init_direct(this%reference_container)
         !
         !--------------------------------------------------------------------------------
         ! Outer solver
@@ -899,7 +912,7 @@ CONTAINS
         SELECT CASE (solver)
             !
         CASE ('direct')
-            CALL this%direct%init_direct(this%outer_cores)
+            CALL this%direct%init_direct(this%outer_container)
             !
             local_outer_solver => this%direct
             !
@@ -908,34 +921,29 @@ CONTAINS
             IF (TRIM(ADJUSTL(solver)) == 'cg') lconjugate = .TRUE.
             !
             CALL this%gradient%init(lconjugate, step_type, step, preconditioner, &
-                                    screening_type, screening, this%outer_cores, &
+                                    screening_type, screening, this%outer_container, &
                                     maxstep, tol, auxiliary)
             !
             local_outer_solver => this%gradient
             !
         CASE ('fixed-point')
             !
-            CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_cores, maxstep, &
-                                      tol, auxiliary)
+            CALL this%fixedpoint%init(mix_type, mix, ndiis, this%outer_container, &
+                                      maxstep, tol, auxiliary)
             !
             local_outer_solver => this%fixedpoint
             !
         CASE ('newton')
-            CALL this%newton%init(this%outer_cores, maxstep, tol, auxiliary)
+            CALL this%newton%init(this%outer_container, maxstep, tol, auxiliary)
             !
             local_outer_solver => this%newton
-            !
-        CASE DEFAULT
-            !
-            CALL io%error(sub_name, &
-                          'Unexpected value for electrostatic solver keyword', 1)
             !
         END SELECT
         !
         !--------------------------------------------------------------------------------
         ! Inner solver
         !
-        IF (inner_solver /= 'none') THEN
+        IF (this%need_inner) THEN
             lconjugate = .FALSE.
             !
             SELECT CASE (solver)
@@ -953,8 +961,8 @@ CONTAINS
                         !
                         CALL this%inner_gradient%init( &
                             lconjugate, step_type, step, preconditioner, &
-                            screening_type, screening, this%inner_cores, inner_maxstep, &
-                            inner_tol, auxiliary)
+                            screening_type, screening, this%inner_container, &
+                            inner_maxstep, inner_tol, auxiliary)
                         !
                         local_inner_solver => this%inner_gradient
                         !
@@ -962,7 +970,7 @@ CONTAINS
                         local_auxiliary = 'full'
                         !
                         CALL this%inner_fixedpoint%init( &
-                            mix_type, inner_mix, ndiis, this%inner_cores, &
+                            mix_type, inner_mix, ndiis, this%inner_container, &
                             inner_maxstep, inner_tol, local_auxiliary)
                         !
                         local_inner_solver => this%inner_fixedpoint
@@ -983,7 +991,7 @@ CONTAINS
                 !
                 CALL this%inner_gradient%init( &
                     lconjugate, step_type, step, preconditioner, screening_type, &
-                    screening, this%inner_cores, inner_maxstep, inner_tol, auxiliary)
+                    screening, this%inner_container, inner_maxstep, inner_tol, auxiliary)
                 !
                 local_inner_solver => this%inner_gradient
                 !
@@ -1006,7 +1014,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Inner setup
         !
-        IF (inner_solver /= 'none') THEN
+        IF (this%need_inner) THEN
             !
             CALL this%inner%init(inner_problem, local_inner_solver)
             !
@@ -1022,7 +1030,7 @@ CONTAINS
         CALL this%outer%set_flags(this%need_auxiliary, this%need_gradient, &
                                   this%need_factsqrt)
         !
-        IF (inner_solver /= 'none') &
+        IF (this%need_inner) &
             CALL this%inner%set_flags(this%need_auxiliary, this%need_gradient, &
                                       this%need_factsqrt)
         !

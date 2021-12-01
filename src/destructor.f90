@@ -196,8 +196,6 @@ CONTAINS
         !
         IF (setup%lsolvent) CALL env%solvent%destroy()
         !
-        IF (setup%lboundary) CALL setup%derivatives%destroy()
-        !
         IF (setup%ldoublecell) THEN
             !
             CALL setup%mapping%destroy()
