@@ -177,7 +177,7 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Check suitability of cionmax value
         !
-        sumcbulk = SUM(this%ioncctype(:)%cbulk)
+        sumcbulk = SUM(this%ioncctype%cbulk)
         !
         IF (this%cionmax > 0.D0 .AND. this%cionmax <= sumcbulk) &
             CALL io%error(sub_name, 'cionmax should be larger than the sum of cbulks', 1)

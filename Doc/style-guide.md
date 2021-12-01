@@ -315,3 +315,9 @@ sum_ = 1 + var1 + &
 - use `io%warning` for non-indented, non-terminating warning messages
   - outputs `'ENVIRON WARNING (ierr): message'`
   - lowercased message
+
+# GENERAL SYNTAX
+
+- use `array = ...` when operating on the entire array (no need for `array(:)`)
+
+  - `array(1, :) = ...` is necessary when operating on all members along specific dimensions

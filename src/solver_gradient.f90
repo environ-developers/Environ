@@ -300,7 +300,7 @@ CONTAINS
                     !
                     local_screening%of_r = &
                         base%k2 / e2 / fpi * electrolyte%gamma%of_r / &
-                        (1.D0 - SUM(base%ioncctype(:)%cbulk) / base%cionmax * &
+                        (1.D0 - SUM(base%ioncctype%cbulk) / base%cionmax * &
                          (1.D0 - electrolyte%gamma%of_r))
                     !
                 ELSE
@@ -384,7 +384,7 @@ CONTAINS
                     !
                     local_screening%of_r = &
                         base%k2 / e2 / fpi * electrolyte%gamma%of_r / &
-                        (1.D0 - SUM(base%ioncctype(:)%cbulk) / &
+                        (1.D0 - SUM(base%ioncctype%cbulk) / &
                          base%cionmax * (1.D0 - electrolyte%gamma%of_r))
                     !
                 ELSE
@@ -552,10 +552,10 @@ CONTAINS
                 !
                 CALL this%cores%derivatives%laplacian(p, l)
                 !
-                Ap%of_r(:) = dielectric%epsilon%of_r(:) * l%of_r(:) + &
-                             gradeps%of_r(1, :) * g%of_r(1, :) + &
-                             gradeps%of_r(2, :) * g%of_r(2, :) + &
-                             gradeps%of_r(3, :) * g%of_r(3, :)
+                Ap%of_r = dielectric%epsilon%of_r * l%of_r + &
+                          gradeps%of_r(1, :) * g%of_r(1, :) + &
+                          gradeps%of_r(2, :) * g%of_r(2, :) + &
+                          gradeps%of_r(3, :) * g%of_r(3, :)
                 !
                 Ap%of_r = -Ap%of_r / fpi / e2
                 !
@@ -1023,10 +1023,10 @@ CONTAINS
                 !
                 g%of_r = g%of_r / fpi / e2
                 !
-                Ap%of_r(:) = beta * Ap%of_r(:) - r%of_r(:) + &
-                             gradeps%of_r(1, :) * g%of_r(1, :) + &
-                             gradeps%of_r(2, :) * g%of_r(2, :) + &
-                             gradeps%of_r(3, :) * g%of_r(3, :)
+                Ap%of_r = beta * Ap%of_r - r%of_r + &
+                          gradeps%of_r(1, :) * g%of_r(1, :) + &
+                          gradeps%of_r(2, :) * g%of_r(2, :) + &
+                          gradeps%of_r(3, :) * g%of_r(3, :)
                 !
                 !------------------------------------------------------------------------
                 ! Step downhill

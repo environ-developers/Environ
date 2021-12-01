@@ -186,8 +186,8 @@ CONTAINS
         REAL(DP) :: widths(nat)
         !
         CHARACTER(LEN=3), ALLOCATABLE :: labels(:)
-        REAL(DP), ALLOCATABLE :: atomic_spreads(:), core_spreads(:)
-        REAL(DP), ALLOCATABLE :: solvation_radii(:), ionic_charges(:)
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: atomic_spreads, core_spreads
+        REAL(DP), DIMENSION(:), ALLOCATABLE :: solvation_radii, ionic_charges
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_ions'
         !
@@ -319,8 +319,8 @@ CONTAINS
             !
             DO i = 1, this%number
                 !
-                this%center(:) = this%center(:) + &
-                                 this%tau(:, i) * this%iontype(this%ityp(i))%zv
+                this%center = this%center + &
+                              this%tau(:, i) * this%iontype(this%ityp(i))%zv
                 !
             END DO
             !
@@ -345,9 +345,9 @@ CONTAINS
         !
         DO i = 1, this%number
             !
-            this%quadrupole_pc(:) = this%quadrupole_pc(:) + &
-                                    this%iontype(this%ityp(i))%zv * &
-                                    ((this%tau(:, i) - this%center(:)))**2
+            this%quadrupole_pc = this%quadrupole_pc + &
+                                 this%iontype(this%ityp(i))%zv * &
+                                 ((this%tau(:, i) - this%center))**2
             !
             IF (this%use_smeared_ions) THEN
                 !
@@ -371,7 +371,7 @@ CONTAINS
             this%potential_shift = this%quadrupole_correction * &
                                    tpi * e2 / this%density%cell%omega
             !
-            this%quadrupole_gauss(:) = this%quadrupole_pc(:) + this%quadrupole_correction
+            this%quadrupole_gauss = this%quadrupole_pc + this%quadrupole_correction
         END IF
         !
         !--------------------------------------------------------------------------------

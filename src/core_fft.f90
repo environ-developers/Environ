@@ -254,7 +254,7 @@ CONTAINS
             ALLOCATE (aux(nnr))
             ALLOCATE (gaux(nnr))
             !
-            aux = CMPLX(f%of_r(:), 0.0_DP, kind=DP)
+            aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
             !
             CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
             !
@@ -262,21 +262,17 @@ CONTAINS
             ! Multiply by (iG) to get (\grad_ipol a)(G)
             !
             DO ipol = 1, 3
-                gaux(:) = (0.0_DP, 0.0_DP)
+                gaux = (0.0_DP, 0.0_DP)
                 !
-                gaux(nl(:)) = this%cell%g(ipol, :) * &
-                              CMPLX(-AIMAG(aux(nl(:))), REAL(aux(nl(:))), kind=DP)
+                gaux(nl) = this%cell%g(ipol, :) * &
+                           CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP)
                 !
-                IF (dfft%lgamma) THEN
-                    !
-                    gaux(dfft%nlm(:)) = CMPLX(REAL(gaux(nl(:))), &
-                                              -AIMAG(gaux(nl(:))), kind=DP)
-                    !
-                END IF
+                IF (dfft%lgamma) &
+                    gaux(dfft%nlm) = CMPLX(REAL(gaux(nl)), -AIMAG(gaux(nl)), kind=DP)
                 !
                 CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
                 !
-                grad%of_r(ipol, :) = tpi * DBLE(gaux(:))
+                grad%of_r(ipol, :) = tpi * DBLE(gaux)
                 ! add the factor 2\pi/a missing in the definition of G
                 !
             END DO
@@ -320,7 +316,7 @@ CONTAINS
             ALLOCATE (aux(nnr))
             ALLOCATE (gaux(nnr))
             !
-            gaux(:) = (0.0_DP, 0.0_DP)
+            gaux = (0.0_DP, 0.0_DP)
             !
             IF (dfft%lgamma) THEN
                 !
@@ -330,7 +326,7 @@ CONTAINS
                 ! x and y
                 !
                 ipol = 1
-                aux(:) = CMPLX(grad%of_r(ipol, :), grad%of_r(ipol + 1, :), kind=DP)
+                aux = CMPLX(grad%of_r(ipol, :), grad%of_r(ipol + 1, :), kind=DP)
                 !
                 CALL env_fwfft(aux, dfft) ! bring a(ipol,r) to G-space, a(G)
                 !
@@ -352,7 +348,7 @@ CONTAINS
                 ! z
                 !
                 ipol = 3
-                aux(:) = CMPLX(grad%of_r(ipol, :), 0.0_DP, kind=DP)
+                aux = CMPLX(grad%of_r(ipol, :), 0.0_DP, kind=DP)
                 !
                 CALL env_fwfft(aux, dfft) ! bring a(ipol, r) to G-space, a(G)
                 !
@@ -394,7 +390,7 @@ CONTAINS
             !
             CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
             !
-            div%of_r(:) = tpi * REAL(gaux(:))
+            div%of_r = tpi * REAL(gaux)
             ! Add the factor 2\pi/a missing in the definition of G and sum
             !
         END ASSOCIATE
@@ -431,19 +427,19 @@ CONTAINS
             ALLOCATE (aux(nnr))
             ALLOCATE (laux(nnr))
             !
-            aux = CMPLX(f%of_r(:), 0.0_DP, kind=DP)
+            aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
             !
             CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
             !
             !----------------------------------------------------------------------------
             ! Compute the laplacian
             !
-            laux(:) = (0.0_DP, 0.0_DP)
+            laux = (0.0_DP, 0.0_DP)
             !
-            laux(nl(:)) = -this%cell%gg(:) * aux(nl(:))
+            laux(nl) = -this%cell%gg * aux(nl)
             !
             IF (dfft%lgamma) &
-                laux(dfft%nlm(:)) = CMPLX(REAL(laux(nl(:))), -AIMAG(laux(nl(:))), kind=DP)
+                laux(dfft%nlm) = CMPLX(REAL(laux(nl)), -AIMAG(laux(nl)), kind=DP)
             !
             CALL env_invfft(laux, dfft) ! bring back to R-space, (\lapl a)(r)
             !
@@ -489,7 +485,7 @@ CONTAINS
             ALLOCATE (gaux(nnr))
             ALLOCATE (haux(nnr))
             !
-            aux = CMPLX(f%of_r(:), 0.0_DP, kind=DP)
+            aux = CMPLX(f%of_r, 0.0_DP, kind=DP)
             !
             CALL env_fwfft(aux, dfft) ! bring a(r) to G-space, a(G)
             !
@@ -497,39 +493,34 @@ CONTAINS
             ! Multiply by (iG) to get (\grad_ipol a)(G)
             !
             DO ipol = 1, 3
-                gaux(:) = (0.0_DP, 0.0_DP)
+                gaux = (0.0_DP, 0.0_DP)
                 !
-                gaux(nl(:)) = g(ipol, :) * &
-                              CMPLX(-AIMAG(aux(nl(:))), REAL(aux(nl(:))), kind=DP)
+                gaux(nl) = g(ipol, :) * CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP)
                 !
                 IF (dfft%lgamma) &
-                    gaux(nlm(:)) = CMPLX(REAL(gaux(nl(:))), -AIMAG(gaux(nl(:))), kind=DP)
+                    gaux(nlm) = CMPLX(REAL(gaux(nl)), -AIMAG(gaux(nl)), kind=DP)
                 !
                 CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
                 !
-                grad%of_r(ipol, :) = tpi * REAL(gaux(:))
+                grad%of_r(ipol, :) = tpi * REAL(gaux)
                 ! add the factor 2\pi/a missing in the definition of G
                 !
                 !------------------------------------------------------------------------
                 ! Compute the second derivatives
                 !
                 DO jpol = 1, ipol
-                    haux(:) = (0.0_DP, 0.0_DP)
+                    haux = (0.0_DP, 0.0_DP)
                     !
-                    haux(nl(:)) = -g(ipol, :) * g(jpol, :) * &
-                                  CMPLX(REAL(aux(nl(:))), AIMAG(aux(nl(:))), kind=DP)
+                    haux(nl) = -g(ipol, :) * g(jpol, :) * &
+                               CMPLX(REAL(aux(nl)), AIMAG(aux(nl)), kind=DP)
                     !
-                    IF (dfft%lgamma) THEN
-                        !
-                        haux(nlm(:)) = &
-                            CMPLX(REAL(haux(nl(:))), -AIMAG(haux(nl(:))), kind=DP)
-                        !
-                    END IF
+                    IF (dfft%lgamma) &
+                        haux(nlm) = CMPLX(REAL(haux(nl)), -AIMAG(haux(nl)), kind=DP)
                     !
                     CALL env_invfft(haux, dfft)
                     ! bring back to R-space (\grad_ipol a)(r)
                     !
-                    hess%of_r(ipol, jpol, :) = tpi2 * REAL(haux(:))
+                    hess%of_r(ipol, jpol, :) = tpi2 * REAL(haux)
                     ! add the factor (2\pi)**2 missing in the definition of G
                     !
                     hess%of_r(jpol, ipol, :) = hess%of_r(ipol, jpol, :)
@@ -568,35 +559,35 @@ CONTAINS
             ! Bring fa and fb to reciprocal space
             !
             ALLOCATE (auxr(nnr))
-            auxr(:) = CMPLX(f1%of_r(:), 0.D0, kind=DP)
+            auxr = CMPLX(f1%of_r, 0.D0, kind=DP)
             !
             CALL env_fwfft(auxr, dfft)
             !
             ALLOCATE (auxg(nnr))
             auxg = 0.D0
             !
-            auxg(nl(:)) = auxr(nl(:))
+            auxg(nl) = auxr(nl)
             !
-            auxr(:) = CMPLX(f2%of_r(:), 0.D0, kind=DP)
+            auxr = CMPLX(f2%of_r, 0.D0, kind=DP)
             !
             CALL env_fwfft(auxr, dfft)
             !
             !----------------------------------------------------------------------------
             ! Multiply fa(g)*fb(g)
             !
-            auxg(nl(:)) = auxg(nl(:)) * auxr(nl(:))
+            auxg(nl) = auxg(nl) * auxr(nl)
             !
             DEALLOCATE (auxr)
             !
             IF (dfft%lgamma) &
-                auxg(dfft%nlm(:)) = CMPLX(REAL(auxg(nl(:))), -AIMAG(auxg(nl(:))), kind=DP)
+                auxg(dfft%nlm) = CMPLX(REAL(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
             !
             !----------------------------------------------------------------------------
             ! Brings convolution back to real space
             !
             CALL env_invfft(auxg, dfft)
             !
-            f_out%of_r(:) = REAL(auxg(:)) * this%cell%omega
+            f_out%of_r = REAL(auxg) * this%cell%omega
             !
         END ASSOCIATE
         !
@@ -627,11 +618,11 @@ CONTAINS
         CALL local%init(f%cell)
         !
         DO ipol = 1, 3
-            local%of_r(:) = grad%of_r(ipol, :)
+            local%of_r = grad%of_r(ipol, :)
             !
             CALL this%calc_convolution_density(f, local, local)
             !
-            grad_out%of_r(ipol, :) = local%of_r(:)
+            grad_out%of_r(ipol, :) = local%of_r
         END DO
         !
         CALL local%destroy()
@@ -646,32 +637,31 @@ CONTAINS
         !     ! Bring fa and fb to reciprocal space
         !     !
         !     ALLOCATE (auxr(nnr))
-        !     auxr(:) = CMPLX(f%of_r(:), 0.D0, kind=DP)
+        !     auxr = CMPLX(f%of_r, 0.D0, kind=DP)
         !     !
         !     CALL env_fwfft(auxr, dfft)
         !     !
         !     ALLOCATE (auxg(nnr))
         !     !
         !     DO ipol = 1, 3
-        !         auxg(:) = CMPLX(grad%of_r(ipol, :), 0.D0, kind=DP)
+        !         auxg = CMPLX(grad%of_r(ipol, :), 0.D0, kind=DP)
         !         !
         !         CALL env_fwfft(auxg, dfft)
         !         !
         !         !------------------------------------------------------------------------
         !         ! Multiply fa(g)*fb(g)
         !         !
-        !         auxg(nl(:)) = auxg(nl(:)) * auxr(nl(:))
+        !         auxg(nl) = auxg(nl) * auxr(nl)
         !         !
         !         IF (dfft%lgamma) &
-        !             auxg(dfft%nlm(:)) = &
-        !             CMPLX(REAL(auxg(nl(:))), -AIMAG(auxg(nl(:))), kind=DP)
+        !             auxg(dfft%nlm) = CMPLX(REAL(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
         !         !
         !         !------------------------------------------------------------------------
         !         ! Brings convolution back to real space
         !         !
         !         CALL env_invfft(auxg, dfft)
         !         !
-        !         grad_out%of_r(ipol, :) = REAL(auxg(:)) * this%cell%omega
+        !         grad_out%of_r(ipol, :) = REAL(auxg) * this%cell%omega
         !     END DO
         !     !
         ! END ASSOCIATE
@@ -706,11 +696,11 @@ CONTAINS
         DO ipol = 1, 3
             !
             DO jpol = 1, 3
-                local%of_r(:) = hess%of_r(ipol, jpol, :)
+                local%of_r = hess%of_r(ipol, jpol, :)
                 !
                 CALL this%calc_convolution_density(f, local, local)
                 !
-                hess_out%of_r(ipol, jpol, :) = local%of_r(:)
+                hess_out%of_r(ipol, jpol, :) = local%of_r
             END DO
             !
         END DO
@@ -727,7 +717,7 @@ CONTAINS
         !     ! Bring fa and fb to reciprocal space
         !     !
         !     ALLOCATE (auxr(nnr))
-        !     auxr(:) = CMPLX(f%of_r(:), 0.D0, kind=DP)
+        !     auxr = CMPLX(f%of_r, 0.D0, kind=DP)
         !     !
         !     CALL env_fwfft(auxr, dfft)
         !     !
@@ -737,25 +727,25 @@ CONTAINS
         !         !
         !         DO jpol = 1, 3
         !             !
-        !             auxg(:) = CMPLX(hess%of_r(ipol, jpol, :), 0.D0, kind=DP)
+        !             auxg = CMPLX(hess%of_r(ipol, jpol, :), 0.D0, kind=DP)
         !             !
         !             CALL env_fwfft(auxg, dfft)
         !             !
         !             !--------------------------------------------------------------------
         !             ! Multiply fa(g)*fb(g)
         !             !
-        !             auxg(nl(:)) = auxg(nl(:)) * auxr(nl(:))
+        !             auxg(nl) = auxg(nl) * auxr(nl)
         !             !
         !             IF (dfft%lgamma) &
-        !                 auxg(dfft%nlm(:)) = &
-        !                 CMPLX(REAL(auxg(nl(:))), -AIMAG(auxg(nl(:))), kind=DP)
+        !                 auxg(dfft%nlm) = &
+        !                 CMPLX(REAL(auxg(nl)), -AIMAG(auxg(nl)), kind=DP)
         !             !
         !             !--------------------------------------------------------------------
         !             ! Brings convolution back to real space
         !             !
         !             CALL env_invfft(auxg, dfft)
         !             !
-        !             hess_out%of_r(ipol, jpol, :) = REAL(auxg(:)) * this%cell%omega
+        !             hess_out%of_r(ipol, jpol, :) = REAL(auxg) * this%cell%omega
         !         END DO
         !         !
         !     END DO

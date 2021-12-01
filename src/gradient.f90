@@ -411,17 +411,17 @@ CONTAINS
                 CALL dens%init(this%cell)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_x'
-                dens%of_r(:) = this%of_r(1, :)
+                dens%of_r = this%of_r(1, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_y'
-                dens%of_r(:) = this%of_r(2, :)
+                dens%of_r = this%of_r(2, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_z'
-                dens%of_r(:) = this%of_r(3, :)
+                dens%of_r = this%of_r(3, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !

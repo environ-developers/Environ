@@ -303,7 +303,7 @@ CONTAINS
         system_pos = 0.D0
         !
         env_electrostatic = .FALSE.
-        atomicspread(:) = -0.5D0
+        atomicspread = -0.5D0
         !
         env_static_permittivity = 1.D0
         env_optical_permittivity = 1.D0
@@ -317,10 +317,10 @@ CONTAINS
         env_electrolyte_ntyp = 0
         electrolyte_linearized = .FALSE.
         electrolyte_entropy = 'full'
-        cion(:) = 1.0D0
+        cion = 1.0D0
         cionmax = 0.0D0 ! if remains zero, pb or linpb
         rion = 0.D0
-        zion(:) = 0.D0
+        zion = 0.D0
         temperature = 300.0D0
         !
         sc_permittivity = 1.D0
@@ -346,14 +346,14 @@ CONTAINS
         radius_mode = 'uff'
         alpha = 1.D0
         softness = 0.5D0
-        solvationrad(:) = -3.D0
+        solvationrad = -3.D0
         !
         stype = 2
         rhomax = 0.005
         rhomin = 0.0001
         tbeta = 4.8
         !
-        corespread(:) = -0.5D0
+        corespread = -0.5D0
         !
         solvent_distance = 1.D0
         solvent_spread = 0.5D0

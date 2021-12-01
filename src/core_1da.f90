@@ -354,14 +354,14 @@ CONTAINS
             CASE (0)
                 !
                 const = madelung(1) * charge * e2 / omega**(1 / 3.D0) - &
-                        fact * SUM(quadrupole(:)) / 3.D0
+                        fact * SUM(quadrupole) / 3.D0
                 !
                 vperiodic = 0.D0
                 !
                 DO icor = 1, 3
                     !
-                    vperiodic(:) = vperiodic(:) - charge * axis(icor, :)**2 + &
-                                   2.D0 * dipole(icor) * axis(icor, :)
+                    vperiodic = vperiodic - charge * axis(icor, :)**2 + &
+                                2.D0 * dipole(icor) * axis(icor, :)
                     !
                 END DO
                 !
@@ -375,8 +375,8 @@ CONTAINS
                 const = -pi / 3.D0 * charge / this%size * e2 - &
                         fact * quadrupole(slab_axis)
                 !
-                vperiodic(:) = -charge * axis(1, :)**2 + &
-                               2.D0 * dipole(slab_axis) * axis(1, :)
+                vperiodic = -charge * axis(1, :)**2 + &
+                            2.D0 * dipole(slab_axis) * axis(1, :)
                 !
                 vperiodic = fact * vperiodic + const
                 !
@@ -694,7 +694,7 @@ CONTAINS
             !
             fact = e2 * tpi / omega
             const = -pi / 3.D0 * charge / axis_length * e2 - fact * quadrupole(slab_axis)
-            vgcs(:) = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
+            vgcs = -charge * axis(1, :)**2 + 2.D0 * dipole(slab_axis) * axis(1, :)
             vgcs = fact * vgcs + const
             !
             !----------------------------------------------------------------------------

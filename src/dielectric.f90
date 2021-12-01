@@ -209,7 +209,7 @@ CONTAINS
         !
         CALL this%background%init(cell, 'background')
         !
-        this%background%of_r(:) = this%constant
+        this%background%of_r = this%constant
         !
         IF (nregions > 0) THEN
             !
@@ -515,11 +515,11 @@ CONTAINS
         ! If needed, compute derived quantites
         !
         DO ipol = 1, 3
-            gradlogeps(ipol, :) = dlogeps(:) * gradscaled(ipol, :)
+            gradlogeps(ipol, :) = dlogeps * gradscaled(ipol, :)
             !
             IF (this%nregions > 0) &
                 gradlogeps(ipol, :) = gradlogeps(ipol, :) + &
-                                      dlogeps_dback(:) * gradback(ipol, :)
+                                      dlogeps_dback * gradback(ipol, :)
             !
         END DO
         !
@@ -530,11 +530,10 @@ CONTAINS
         IF (this%need_gradient) THEN
             !
             DO ipol = 1, 3
-                gradeps(ipol, :) = deps(:) * gradscaled(ipol, :)
+                gradeps(ipol, :) = deps * gradscaled(ipol, :)
                 !
                 IF (this%nregions > 0) &
-                    gradeps(ipol, :) = gradeps(ipol, :) + &
-                                       deps_dback(:) * gradback(ipol, :)
+                    gradeps(ipol, :) = gradeps(ipol, :) + deps_dback * gradback(ipol, :)
                 !
             END DO
             !
@@ -561,9 +560,9 @@ CONTAINS
                     !
                     DO ipol = 1, 3
                         !
-                        gradepsmod2(:) = gradepsmod2(:) + &
-                                         (deps(:) * gradscaled(ipol, :) + &
-                                          deps_dback(:) * gradback(ipol, :))**2
+                        gradepsmod2 = gradepsmod2 + &
+                                      (deps * gradscaled(ipol, :) + &
+                                       deps_dback * gradback(ipol, :))**2
                         !
                     END DO
                     !
@@ -631,8 +630,7 @@ CONTAINS
         CALL this%gradlog%scalar_product(gradient, this%density)
         !
         this%density%of_r = this%density%of_r / fpi / e2 + charges%of_r * &
-                            (1.D0 - this%epsilon%of_r) / &
-                            this%epsilon%of_r
+                            (1.D0 - this%epsilon%of_r) / this%epsilon%of_r
         !
         CALL gradient%destroy()
         !
@@ -782,28 +780,27 @@ CONTAINS
                 CALL this%gradbackground%scalar_product(gradlocal, lapllocal)
                 !
                 this%laplbackground%of_r = &
-                    this%laplbackground%of_r(:) * (1.D0 - local%of_r(:) / vol) - &
+                    this%laplbackground%of_r * (1.D0 - local%of_r / vol) - &
                     2.D0 * lapllocal%of_r / vol
                 !
                 CALL region%laplacian(lapllocal, .TRUE.)
                 !
-                this%laplbackground%of_r(:) = &
-                    this%laplbackground%of_r(:) + &
-                    lapllocal%of_r(:) * (1.D0 - this%background%of_r(:) / vol)
+                this%laplbackground%of_r = &
+                    this%laplbackground%of_r + &
+                    lapllocal%of_r * (1.D0 - this%background%of_r / vol)
                 !
             END IF
             !
             DO ipol = 1, 3
                 !
                 this%gradbackground%of_r(ipol, :) = &
-                    this%gradbackground%of_r(ipol, :) * (1.D0 - local%of_r(:) / vol) + &
-                    gradlocal%of_r(ipol, :) * (1.D0 - this%background%of_r(:) / vol)
+                    this%gradbackground%of_r(ipol, :) * (1.D0 - local%of_r / vol) + &
+                    gradlocal%of_r(ipol, :) * (1.D0 - this%background%of_r / vol)
                 !
             END DO
             !
-            this%background%of_r(:) = &
-                this%background%of_r(:) + &
-                local%of_r(:) * (1.D0 - this%background%of_r(:) / vol)
+            this%background%of_r = &
+                this%background%of_r + local%of_r * (1.D0 - this%background%of_r / vol)
             !
         END DO
         !

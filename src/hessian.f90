@@ -371,32 +371,32 @@ CONTAINS
                 CALL dens%init(this%cell)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xx'
-                dens%of_r(:) = this%of_r(1, 1, :)
+                dens%of_r = this%of_r(1, 1, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xy'
-                dens%of_r(:) = this%of_r(1, 2, :)
+                dens%of_r = this%of_r(1, 2, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_xz'
-                dens%of_r(:) = this%of_r(1, 3, :)
+                dens%of_r = this%of_r(1, 3, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_yy'
-                dens%of_r(:) = this%of_r(2, 2, :)
+                dens%of_r = this%of_r(2, 2, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_yz'
-                dens%of_r(:) = this%of_r(2, 3, :)
+                dens%of_r = this%of_r(2, 3, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !
                 dens%label = TRIM(ADJUSTL(this%label))//'_zz'
-                dens%of_r(:) = this%of_r(3, 3, :)
+                dens%of_r = this%of_r(3, 3, :)
                 !
                 CALL dens%printout(passed_verbose, debug_verbose, local_unit)
                 !

@@ -415,7 +415,7 @@ CONTAINS
             !
             IF (base%electrolyte_entropy == 'ions' .AND. cionmax > 0.D0) THEN
                 !
-                sumcbulk = SUM(base%ioncctype(:)%cbulk)
+                sumcbulk = SUM(base%ioncctype%cbulk)
                 !
                 this%de_dboundary_second_order%of_r = &
                     -0.5D0 * base%k2 / e2 / fpi * (1.D0 - sumcbulk / cionmax) * &
@@ -465,7 +465,7 @@ CONTAINS
         energy = 0.D0
         !
         kT = K_BOLTZMANN_RY * base%temperature
-        sumcbulk = SUM(base%ioncctype(:)%cbulk)
+        sumcbulk = SUM(base%ioncctype%cbulk)
         !
         CALL arg%init(this%gamma%cell)
         !
@@ -577,7 +577,7 @@ CONTAINS
         cionmax => base%cionmax
         !
         kT = K_BOLTZMANN_RY * base%temperature
-        sumcbulk = SUM(base%ioncctype(:)%cbulk)
+        sumcbulk = SUM(base%ioncctype%cbulk)
         !
         IF (base%linearized) THEN
             !

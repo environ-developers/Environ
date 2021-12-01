@@ -538,7 +538,7 @@ CONTAINS
             !
             CALL setup%mapping%to_small(dvelectrostatic, aux)
             !
-            dv(:) = dv(:) + aux%of_r(:) - dvreference%of_r(:)
+            dv = dv + aux%of_r - dvreference%of_r
             !
             CALL dvreference%destroy()
             !
@@ -566,7 +566,7 @@ CONTAINS
             !
             CALL setup%mapping%to_small(dvsoftcavity, aux)
             !
-            dv(:) = dv(:) + aux%of_r(:)
+            dv = dv + aux%of_r
             !
             CALL dv_dboundary%destroy()
             !

@@ -259,7 +259,7 @@ CONTAINS
         !
         WRITE (io%debug_unit, '(a,f14.7,a,f14.7)') &
             'total_charge = ', rho%integrate(), &
-            ' total flux throught !soft-spheres = ', SUM(bound%ion_field(:))
+            ' total flux throught !soft-spheres = ', SUM(bound%ion_field)
         !
         CALL bound%gradient%scalar_product(field, rho)
 
@@ -408,7 +408,7 @@ CONTAINS
                         analytic_partial_of_ion_field(ipol, :, i)
                     !
                     WRITE (io%debug_unit, '(a,10f20.10)') 'finite-diff  = ', &
-                        fd_partial_of_ion_field(:)
+                        fd_partial_of_ion_field
                     !
                     WRITE (io%debug_unit, *) ' '
                     !

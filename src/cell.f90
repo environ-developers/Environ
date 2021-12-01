@@ -630,7 +630,7 @@ CONTAINS
         !
         IF (.NOT. reverse) THEN
             !
-            CALL env_mp_sum(f1d(:), this%dfft%comm)
+            CALL env_mp_sum(f1d, this%dfft%comm)
             !
             f1d = f1d / DBLE(narea)
         END IF
@@ -767,14 +767,14 @@ CONTAINS
         ! #TODO we may want to check if it is safer/more efficient
         !
         ! x = MATMUL(ws%b, r)
-        ! x(:) = x(:) - NINT(x(:))
+        ! x = x - NINT(x)
         ! c = SUM(x * MATMUL(ws%aa, x))
         ! m = 0
         ! !
-        ! lb(:) = NINT(x(:) - DSQRT(c) * ws%norm_b(:))
+        ! lb = NINT(x - DSQRT(c) * ws%norm_b)
         ! ! CEILING should be enough for lb but NINT might be safer
         ! !
-        ! ub(:) = NINT(x(:) + DSQRT(c) * ws%norm_b(:))
+        ! ub = NINT(x + DSQRT(c) * ws%norm_b)
         ! ! FLOOR should be enough for ub but NINT might be safer
         ! !
         ! DO i1 = lb(1), ub(1)
@@ -885,7 +885,7 @@ CONTAINS
         ! (replicated data). When no_global_sort is present and .true.,
         ! only g-vectors for the current processor are stored
         !
-        INTEGER, ALLOCATABLE :: igsrt(:), g2l(:)
+        INTEGER, DIMENSION(:), ALLOCATABLE :: igsrt, g2l
         !
         INTEGER :: ni, nj, nk, i, j, k, ipol, ng, igl, indsw
         INTEGER :: istart, jstart, kstart
@@ -914,7 +914,7 @@ CONTAINS
         ngm = 0
         ngm_local = 0
         !
-        gg(:) = gcutm + 1.D0
+        gg = gcutm + 1.D0
         ! set the total number of fft mesh points and and initial value of gg
         ! The choice of gcutm is due to the fact that we have to order the
         ! vectors after computing them.
@@ -927,7 +927,7 @@ CONTAINS
         ALLOCATE (g2l(ngm_max))
         ALLOCATE (g2sort_g(ngm_max))
         !
-        g2sort_g(:) = 1.0D20
+        g2sort_g = 1.0D20
         !
         !--------------------------------------------------------------------------------
         !
