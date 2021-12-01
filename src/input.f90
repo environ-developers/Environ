@@ -1286,6 +1286,9 @@ CONTAINS
         !
         CALL io%header('Setting up electrostatic problem')
         !
+        !--------------------------------------------------------------------------------
+        ! Electrolyte checks
+        !
         IF (env_electrolyte_ntyp > 0) THEN
             !
             IF (TRIM(pbc_correction) /= 'gcs') THEN
@@ -1345,6 +1348,9 @@ CONTAINS
             !
         END IF
         !
+        !--------------------------------------------------------------------------------
+        ! Dielectric checks
+        !
         IF (env_static_permittivity > 1.D0 .OR. env_dielectric_regions > 0) THEN
             !
             IF (problem == 'none') THEN
@@ -1393,6 +1399,9 @@ CONTAINS
             !
         END IF
         !
+        !--------------------------------------------------------------------------------
+        ! Ensure correct auxiliary is used for fixed-point
+        !
         IF (solver == 'fixed-point') THEN
             !
             IF (auxiliary == 'none') THEN
@@ -1404,11 +1413,82 @@ CONTAINS
             !
         END IF
         !
+        !--------------------------------------------------------------------------------
+        ! Validate use of inner solver
+        !
         IF (.NOT. (problem == 'pb' .OR. &
                    problem == 'modpb' .OR. &
                    problem == 'generalized') &
             .AND. (inner_solver /= 'none')) &
             CALL io%error(sub_name, 'Only pb or modpb problems allow inner solver', 1)
+        !
+        !--------------------------------------------------------------------------------
+        ! Validate problem/solver combination and check for PBC correction if needed
+        !
+        SELECT CASE (problem)
+            !
+        CASE ('generalized') ! generalized Poisson-Boltzmann
+            !
+            IF (solver == 'direct' .OR. inner_solver == 'direct') &
+                CALL io%error(sub_name, &
+                              'Cannot use a direct solver for &
+                              &the Generalized Poisson eq.', 1)
+            !
+        CASE ('linpb', 'linmodpb') ! linearized Poisson-Boltzmann
+            !
+            SELECT CASE (solver)
+                !
+            CASE ('none', 'cg', 'sd')
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, &
+                              'Only gradient-based solver for &
+                              &the linearized Poisson-Boltzmann eq.', 1)
+                !
+            END SELECT
+            !
+            SELECT CASE (inner_solver)
+                !
+            CASE ('none', 'cg', 'sd')
+                !
+            CASE DEFAULT
+                CALL io%error(sub_name, &
+                              'Only gradient-based solver for &
+                              &the linearized Poisson-Boltzmann eq.', 1)
+                !
+            END SELECT
+            !
+            IF (pbc_correction /= 'parabolic') &
+                CALL io%error(sub_name, &
+                              'Linearized-PB problem requires &
+                              &parabolic pbc correction', 1)
+            !
+        CASE ('pb', 'modpb') ! Poisson-Boltzmann
+            !
+            SELECT CASE (solver)
+                !
+            CASE ('direct', 'cg', 'sd')
+                CALL io%error(sub_name, &
+                              'No direct or gradient-based solver for &
+                              &the full Poisson-Boltzmann eq.', 1)
+                !
+            END SELECT
+            !
+            SELECT CASE (inner_solver)
+                !
+            CASE ('direct', 'cg', 'sd')
+                CALL io%error(sub_name, &
+                              'No direct or gradient-based solver for &
+                              &the full Poisson-Boltzmann eq.', 1)
+                !
+            END SELECT
+            !
+            IF (pbc_correction /= 'parabolic') &
+                CALL io%error(sub_name, &
+                              'Linearized-PB problem requires &
+                              &parabolic pbc correction', 1)
+            !
+        END SELECT
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE set_electrostatic_problem

@@ -137,85 +137,11 @@ CONTAINS
         CHARACTER(LEN=80) :: sub_name = 'init_electrostatic_setup'
         !
         !--------------------------------------------------------------------------------
-        ! Sanity check on the global setup
         !
         CALL this%create()
         !
         this%problem = problem
         this%solver => solver
-        !
-        SELECT CASE (TRIM(ADJUSTL(this%problem)))
-            !
-        CASE ('poisson')
-            !
-        CASE ('generalized') ! generalized Poisson-Boltzmann
-            !
-            SELECT TYPE (solver)
-                !
-            TYPE IS (solver_direct)
-                !
-                CALL io%error(sub_name, &
-                              'Cannot use a direct solver for &
-                              &the Generalized Poisson eq.', 1)
-            END SELECT
-            !
-        CASE ('linpb', 'linmodpb') ! linearized Poisson-Boltzmann
-            !
-            SELECT TYPE (solver)
-                !
-            TYPE IS (solver_direct)
-                !
-                CALL io%error(sub_name, &
-                              'Only gradient-based solver for &
-                              &the linearized Poisson-Boltzmann eq.', 1)
-                !
-            TYPE IS (solver_fixedpoint)
-                !
-                CALL io%error(sub_name, &
-                              'Only gradient-based solver for &
-                              &the linearized Poisson-Boltzmann eq.', 1)
-                !
-            END SELECT
-            !
-            IF (ASSOCIATED(solver%cores%correction) .AND. &
-                solver%cores%correction%type_ /= 'parabolic') THEN
-                !
-                CALL io%error(sub_name, &
-                              'Linearized-PB problem requires &
-                              &parabolic pbc correction', 1)
-                !
-            END IF
-            !
-        CASE ('pb', 'modpb') ! Poisson-Boltzmann
-            !
-            SELECT TYPE (solver)
-                !
-            TYPE IS (solver_direct)
-                !
-                CALL io%error(sub_name, &
-                              'No direct or gradient-based solver for &
-                              &the full Poisson-Boltzmann eq.', 1)
-                !
-            TYPE IS (solver_gradient)
-                !
-                CALL io%error(sub_name, &
-                              'No direct or gradient-based solver for &
-                              &the full Poisson-Boltzmann eq.', 1)
-                !
-            END SELECT
-            !
-            IF (ASSOCIATED(solver%cores%correction) .AND. &
-                solver%cores%correction%type_ /= 'parabolic') THEN
-                !
-                CALL io%error(sub_name, &
-                              'Full-PB problem requires parabolic pbc correction', 1)
-                !
-            END IF
-            !
-        CASE DEFAULT
-            CALL io%error(sub_name, 'Unexpected keyword for electrostatic problem', 1)
-            !
-        END SELECT
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE init_electrostatic_setup
