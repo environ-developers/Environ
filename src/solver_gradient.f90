@@ -36,7 +36,6 @@ MODULE class_solver_gradient
     !
     USE environ_param, ONLY: DP, e2, fpi
     !
-    USE class_cell
     USE class_density
     USE class_gradient
     !
@@ -454,31 +453,18 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density), POINTER :: x, b, eps
-        TYPE(environ_gradient), POINTER :: gradeps
-        !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en
         TYPE(environ_density) :: r, z, p, Ap, l
         TYPE(environ_gradient) :: g
         !
-        LOGICAL, POINTER :: lconjugate
-        INTEGER, POINTER :: maxiter
-        REAL(DP), POINTER :: tolvelect
-        !
         CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_none'
         !
         !--------------------------------------------------------------------------------
         !
-        lconjugate => this%lconjugate
-        maxiter => this%maxiter
-        tolvelect => this%tol
-        !
         IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1000)
         !
         !--------------------------------------------------------------------------------
-        ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
@@ -486,154 +472,167 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
-        cell => charges%cell
-        !
-        b => charges
-        eps => dielectric%epsilon
-        gradeps => dielectric%gradient
-        x => potential
-        !
-        CALL r%init(cell)
-        !
-        CALL z%init(cell)
-        !
-        CALL p%init(cell)
-        !
-        CALL Ap%init(cell)
-        !
-        CALL g%init(cell)
-        !
-        CALL l%init(cell)
-        !
         !--------------------------------------------------------------------------------
-        ! Starting guess from new input and previous solution(s)
         !
-        IF (x%lupdate) THEN
-            x%lupdate = .FALSE.
-        END IF
-        !
-        IF (.NOT. x%lupdate) THEN
-            x%lupdate = .TRUE.
-            x%of_r = 0.D0
-            r = b
-            rzold = 0.D0
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Write output table column headers
-        !
-        IF (io%lnode) THEN
+        ASSOCIATE (cell => charges%cell, &
+                   b => charges, &
+                   eps => dielectric%epsilon, &
+                   gradeps => dielectric%gradient, &
+                   x => potential, &
+                   lconjugate => this%lconjugate, &
+                   maxiter => this%maxiter, &
+                   tolvelect => this%tol)
             !
-            IF (io%verbosity >= 3) THEN
-                WRITE (io%debug_unit, 1001)
-            ELSE IF (io%verbosity >= 1) THEN
-                WRITE (io%debug_unit, 1002)
+            !----------------------------------------------------------------------------
+            ! Initialize local densities
+            !
+            CALL r%init(cell)
+            !
+            CALL z%init(cell)
+            !
+            CALL p%init(cell)
+            !
+            CALL Ap%init(cell)
+            !
+            CALL g%init(cell)
+            !
+            CALL l%init(cell)
+            !
+            !----------------------------------------------------------------------------
+            ! Starting guess from new input and previous solution(s)
+            !
+            IF (x%lupdate) THEN
+                x%lupdate = .FALSE.
             END IF
             !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Start gradient descent
-        !
-        DO iter = 1, maxiter
-            !
-            !----------------------------------------------------------------------------
-            ! Apply preconditioner to new state
-            !
-            z%of_r = r%of_r ! no preconditioner
-            !
-            rznew = r%scalar_product(z)
-            !
-            IF (ABS(rznew) < 1.D-30) &
-                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
-            !
-            !----------------------------------------------------------------------------
-            ! Conjugate gradient or steepest descent input
-            !
-            IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
-                beta = rznew / rzold
-            ELSE
-                beta = 0.D0
+            IF (.NOT. x%lupdate) THEN
+                x%lupdate = .TRUE.
+                x%of_r = 0.D0
+                r = b
+                rzold = 0.D0
             END IF
             !
-            rzold = rznew
-            p%of_r = z%of_r + beta * p%of_r
-            !
             !----------------------------------------------------------------------------
-            ! Apply operator to conjugate direction
-            ! NOTE: the following steps should be extended to account for different cores
-            !
-            CALL this%cores%gradient(p, g)
-            !
-            CALL this%cores%laplacian(p, l)
-            !
-            Ap%of_r(:) = eps%of_r(:) * l%of_r(:) + &
-                         gradeps%of_r(1, :) * g%of_r(1, :) + &
-                         gradeps%of_r(2, :) * g%of_r(2, :) + &
-                         gradeps%of_r(3, :) * g%of_r(3, :)
-            !
-            Ap%of_r = -Ap%of_r / fpi / e2
-            !
-            !----------------------------------------------------------------------------
-            ! Step downhill
-            !
-            pAp = p%scalar_product(Ap)
-            alpha = rzold / pAp
-            !
-            x%of_r = x%of_r + alpha * p%of_r
-            r%of_r = r%of_r - alpha * Ap%of_r
-            !
-            delta_en = r%euclidean_norm()
-            delta_qm = r%quadratic_mean()
-            !
-            !----------------------------------------------------------------------------
-            ! Print iteration results
+            ! Write output table column headers
             !
             IF (io%lnode) THEN
                 !
                 IF (io%verbosity >= 3) THEN
-                    !
-                    WRITE (io%debug_unit, 1003) &
-                        iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
-                        tolvelect
-                    !
+                    WRITE (io%debug_unit, 1001)
                 ELSE IF (io%verbosity >= 1) THEN
-                    !
-                    WRITE (io%debug_unit, 1004) &
-                        iter, alpha, beta, delta_qm, delta_en, tolvelect
-                    !
+                    WRITE (io%debug_unit, 1002)
                 END IF
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! If residual is small enough exit
+            ! Start gradient descent
             !
-            IF (delta_en < tolvelect .AND. iter > 0) THEN
+            DO iter = 1, maxiter
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1005)
+                !------------------------------------------------------------------------
+                ! Apply preconditioner to new state
                 !
-                EXIT
+                z%of_r = r%of_r ! no preconditioner
                 !
-            ELSE IF (iter == maxiter) THEN
-                IF (io%lnode) WRITE (io%unit, 1006)
-            END IF
+                rznew = r%scalar_product(z)
+                !
+                IF (ABS(rznew) < 1.D-30) &
+                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                !
+                !------------------------------------------------------------------------
+                ! Conjugate gradient or steepest descent input
+                !
+                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                    beta = rznew / rzold
+                ELSE
+                    beta = 0.D0
+                END IF
+                !
+                rzold = rznew
+                p%of_r = z%of_r + beta * p%of_r
+                !
+                !------------------------------------------------------------------------
+                ! Apply operator to conjugate direction
+                ! NOTE: the following steps should be extended to account for
+                !       different cores
+                !
+                CALL this%cores%gradient(p, g)
+                !
+                CALL this%cores%laplacian(p, l)
+                !
+                Ap%of_r(:) = eps%of_r(:) * l%of_r(:) + &
+                             gradeps%of_r(1, :) * g%of_r(1, :) + &
+                             gradeps%of_r(2, :) * g%of_r(2, :) + &
+                             gradeps%of_r(3, :) * g%of_r(3, :)
+                !
+                Ap%of_r = -Ap%of_r / fpi / e2
+                !
+                !------------------------------------------------------------------------
+                ! Step downhill
+                !
+                pAp = p%scalar_product(Ap)
+                alpha = rzold / pAp
+                !
+                x%of_r = x%of_r + alpha * p%of_r
+                r%of_r = r%of_r - alpha * Ap%of_r
+                !
+                delta_en = r%euclidean_norm()
+                delta_qm = r%quadratic_mean()
+                !
+                !------------------------------------------------------------------------
+                ! Print iteration results
+                !
+                IF (io%lnode) THEN
+                    !
+                    IF (io%verbosity >= 3) THEN
+                        !
+                        WRITE (io%debug_unit, 1003) &
+                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            tolvelect
+                        !
+                    ELSE IF (io%verbosity >= 1) THEN
+                        !
+                        WRITE (io%debug_unit, 1004) &
+                            iter, alpha, beta, delta_qm, delta_en, tolvelect
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! If residual is small enough exit
+                !
+                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1005)
+                    !
+                    EXIT
+                    !
+                ELSE IF (iter == maxiter) THEN
+                    IF (io%lnode) WRITE (io%unit, 1006)
+                END IF
+                !
+            END DO
             !
-        END DO
-        !
-        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, iter
-        !
-        CALL l%destroy()
-        !
-        CALL g%destroy()
-        !
-        CALL r%destroy()
-        !
-        CALL z%destroy()
-        !
-        CALL p%destroy()
-        !
-        CALL Ap%destroy()
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, iter
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up local densities
+            !
+            CALL l%destroy()
+            !
+            CALL g%destroy()
+            !
+            CALL r%destroy()
+            !
+            CALL z%destroy()
+            !
+            CALL p%destroy()
+            !
+            CALL Ap%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         !
@@ -678,30 +677,17 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density), POINTER :: x, b, eps, factsqrt
-        TYPE(environ_gradient), POINTER :: gradeps
-        !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
-        !
-        LOGICAL, POINTER :: lconjugate
-        INTEGER, POINTER :: maxiter
-        REAL(DP), POINTER :: tolvelect
         !
         CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_sqrt'
         !
         !--------------------------------------------------------------------------------
         !
-        lconjugate => this%lconjugate
-        maxiter => this%maxiter
-        tolvelect => this%tol
-        !
         IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1100)
         !
         !--------------------------------------------------------------------------------
-        ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
@@ -709,196 +695,208 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
-        cell => charges%cell
-        !
-        b => charges
-        eps => dielectric%epsilon
-        factsqrt => dielectric%factsqrt
-        x => potential
-        !
-        CALL invsqrt%init(cell)
-        !
-        invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
-        !
-        CALL r%init(cell)
-        !
-        CALL z%init(cell)
-        !
-        CALL p%init(cell)
-        !
-        CALL Ap%init(cell)
-        !
         !--------------------------------------------------------------------------------
-        ! Starting guess from new input and previous solution(s)
         !
-        IF (x%lupdate) THEN
-            r%of_r = b%of_r - factsqrt%of_r * x%of_r
+        ASSOCIATE (cell => charges%cell, &
+                   b => charges, &
+                   eps => dielectric%epsilon, &
+                   factsqrt => dielectric%factsqrt, &
+                   x => potential, &
+                   lconjugate => this%lconjugate, &
+                   maxiter => this%maxiter, &
+                   tolvelect => this%tol)
             !
             !----------------------------------------------------------------------------
-            ! Preconditioning step
+            ! Initialize local densities
             !
-            z%of_r = r%of_r * invsqrt%of_r
+            CALL invsqrt%init(cell)
             !
-            CALL this%poisson(z, z, electrolyte, semiconductor)
+            invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
             !
-            z%of_r = z%of_r * invsqrt%of_r
+            CALL r%init(cell)
             !
-            rzold = r%scalar_product(z)
+            CALL z%init(cell)
             !
-            IF (ABS(rzold) < 1.D-30) &
-                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+            CALL p%init(cell)
             !
-            r%of_r = factsqrt%of_r * (x%of_r - z%of_r)
-            delta_en = r%euclidean_norm()
-            delta_qm = r%quadratic_mean()
+            CALL Ap%init(cell)
             !
-            IF (delta_en < 1.D-02) THEN
+            !----------------------------------------------------------------------------
+            ! Starting guess from new input and previous solution(s)
+            !
+            IF (x%lupdate) THEN
+                r%of_r = b%of_r - factsqrt%of_r * x%of_r
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1101) delta_en
+                !------------------------------------------------------------------------
+                ! Preconditioning step
                 !
-                x%of_r = z%of_r
-            ELSE
+                z%of_r = r%of_r * invsqrt%of_r
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1102) delta_en
+                CALL this%poisson(z, z, electrolyte, semiconductor)
                 !
-                x%lupdate = .FALSE.
+                z%of_r = z%of_r * invsqrt%of_r
+                !
+                rzold = r%scalar_product(z)
+                !
+                IF (ABS(rzold) < 1.D-30) &
+                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                !
+                r%of_r = factsqrt%of_r * (x%of_r - z%of_r)
+                delta_en = r%euclidean_norm()
+                delta_qm = r%quadratic_mean()
+                !
+                IF (delta_en < 1.D-02) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) &
+                        WRITE (io%debug_unit, 1101) delta_en
+                    !
+                    x%of_r = z%of_r
+                ELSE
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) &
+                        WRITE (io%debug_unit, 1102) delta_en
+                    !
+                    x%lupdate = .FALSE.
+                END IF
+                !
             END IF
             !
-        END IF
-        !
-        IF (.NOT. x%lupdate) THEN
-            !
-            x%lupdate = .TRUE.
-            x%of_r = 0.D0
-            r%of_r = b%of_r
-            rzold = 0.D0
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Write output table column headers
-        !
-        IF (io%lnode) THEN
-            !
-            IF (io%verbosity >= 3) THEN
-                WRITE (io%debug_unit, 1103)
-            ELSE IF (io%verbosity >= 1) THEN
-                WRITE (io%debug_unit, 1104)
+            IF (.NOT. x%lupdate) THEN
+                x%lupdate = .TRUE.
+                x%of_r = 0.D0
+                r%of_r = b%of_r
+                rzold = 0.D0
             END IF
             !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Start gradient descent
-        !
-        DO iter = 1, maxiter
-            !
             !----------------------------------------------------------------------------
-            ! Apply preconditioner to new state
-            !
-            z%of_r = r%of_r * invsqrt%of_r
-            !
-            CALL this%poisson(z, z, electrolyte, semiconductor)
-            !
-            z%of_r = z%of_r * invsqrt%of_r
-            !
-            rznew = r%scalar_product(z)
-            !
-            IF (ABS(rznew) < 1.D-30) &
-                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
-            !
-            !----------------------------------------------------------------------------
-            ! Conjugate gradient or steepest descent input
-            !
-            IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
-                beta = rznew / rzold
-            ELSE
-                beta = 0.D0
-            END IF
-            !
-            rzold = rznew
-            p%of_r = z%of_r + beta * p%of_r
-            !
-            !----------------------------------------------------------------------------
-            !
-            Ap%of_r = factsqrt%of_r * z%of_r + r%of_r + beta * Ap%of_r
-            ! apply operator to conjugate direction
-            !
-            !----------------------------------------------------------------------------
-            ! Step downhill
-            !
-            pAp = p%scalar_product(Ap)
-            alpha = rzold / pAp
-            !
-            x%of_r = x%of_r + alpha * p%of_r
-            r%of_r = r%of_r - alpha * Ap%of_r
-            !
-            delta_en = r%euclidean_norm()
-            delta_qm = r%quadratic_mean()
-            !
-            !----------------------------------------------------------------------------
-            ! Print iteration results
+            ! Write output table column headers
             !
             IF (io%lnode) THEN
                 !
                 IF (io%verbosity >= 3) THEN
-                    !
-                    WRITE (io%debug_unit, 1105) &
-                        iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
-                        tolvelect
-                    !
+                    WRITE (io%debug_unit, 1103)
                 ELSE IF (io%verbosity >= 1) THEN
-                    !
-                    WRITE (io%debug_unit, 1106) &
-                        iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
-                    !
+                    WRITE (io%debug_unit, 1104)
                 END IF
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! If residual is small enough exit
+            ! Start gradient descent
             !
-            IF (delta_en < tolvelect .AND. iter > 0) THEN
+            DO iter = 1, maxiter
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1107)
+                !------------------------------------------------------------------------
+                ! Apply preconditioner to new state
                 !
-                EXIT
+                z%of_r = r%of_r * invsqrt%of_r
                 !
-            ELSE IF (iter == maxiter) THEN
-                IF (io%lnode) WRITE (io%unit, 1108)
-            END IF
+                CALL this%poisson(z, z, electrolyte, semiconductor)
+                !
+                z%of_r = z%of_r * invsqrt%of_r
+                !
+                rznew = r%scalar_product(z)
+                !
+                IF (ABS(rznew) < 1.D-30) &
+                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                !
+                !------------------------------------------------------------------------
+                ! Conjugate gradient or steepest descent input
+                !
+                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                    beta = rznew / rzold
+                ELSE
+                    beta = 0.D0
+                END IF
+                !
+                rzold = rznew
+                p%of_r = z%of_r + beta * p%of_r
+                !
+                !------------------------------------------------------------------------
+                !
+                Ap%of_r = factsqrt%of_r * z%of_r + r%of_r + beta * Ap%of_r
+                ! apply operator to conjugate direction
+                !
+                !------------------------------------------------------------------------
+                ! Step downhill
+                !
+                pAp = p%scalar_product(Ap)
+                alpha = rzold / pAp
+                !
+                x%of_r = x%of_r + alpha * p%of_r
+                r%of_r = r%of_r - alpha * Ap%of_r
+                !
+                delta_en = r%euclidean_norm()
+                delta_qm = r%quadratic_mean()
+                !
+                !------------------------------------------------------------------------
+                ! Print iteration results
+                !
+                IF (io%lnode) THEN
+                    !
+                    IF (io%verbosity >= 3) THEN
+                        !
+                        WRITE (io%debug_unit, 1105) &
+                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            tolvelect
+                        !
+                    ELSE IF (io%verbosity >= 1) THEN
+                        !
+                        WRITE (io%debug_unit, 1106) &
+                            iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! If residual is small enough exit
+                !
+                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1107)
+                    !
+                    EXIT
+                    !
+                ELSE IF (iter == maxiter) THEN
+                    IF (io%lnode) WRITE (io%unit, 1108)
+                END IF
+                !
+            END DO
             !
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! In PBC the potential need to have zero average
-        !
-        shift = 0.D0
-        !
-        SELECT TYPE (core => this%cores%core)
+            !----------------------------------------------------------------------------
+            ! In PBC the potential need to have zero average
             !
-        TYPE IS (core_fft_electrostatics)
+            shift = 0.D0
             !
-            IF (.NOT. (core%use_internal_pbc_corr .OR. &
-                       ASSOCIATED(this%cores%correction))) &
-                shift = -x%integrate() / cell%omega
+            SELECT TYPE (core => this%cores%core)
+                !
+            TYPE IS (core_fft_electrostatics)
+                !
+                IF (.NOT. (core%use_internal_pbc_corr .OR. &
+                           ASSOCIATED(this%cores%correction))) &
+                    shift = -x%integrate() / cell%omega
+                !
+            END SELECT
             !
-        END SELECT
-        !
-        x%of_r = x%of_r + shift
-        !
-        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1109) delta_en, iter
-        !
-        CALL r%destroy()
-        !
-        CALL z%destroy()
-        !
-        CALL p%destroy()
-        !
-        CALL Ap%destroy()
-        !
-        CALL invsqrt%destroy()
+            x%of_r = x%of_r + shift
+            !
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1109) delta_en, iter
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up local densities
+            !
+            CALL r%destroy()
+            !
+            CALL z%destroy()
+            !
+            CALL p%destroy()
+            !
+            CALL Ap%destroy()
+            !
+            CALL invsqrt%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         !
@@ -948,26 +946,14 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density), POINTER :: x, b, eps
-        TYPE(environ_gradient), POINTER :: gradeps
-        !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_en, delta_qm
         TYPE(environ_density) :: r, z, p, Ap
         TYPE(environ_gradient) :: g
         !
-        LOGICAL, POINTER :: lconjugate
-        INTEGER, POINTER :: maxiter
-        REAL(DP), POINTER :: tolvelect
-        !
         CHARACTER(LEN=80) :: sub_name = 'generalized_gradient_left'
         !
         !--------------------------------------------------------------------------------
-        !
-        lconjugate => this%lconjugate
-        maxiter => this%maxiter
-        tolvelect => this%tol
         !
         IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1200)
         !
@@ -980,143 +966,156 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
-        cell => charges%cell
-        !
-        b => charges
-        eps => dielectric%epsilon
-        gradeps => dielectric%gradient
-        x => potential
-        !
-        CALL r%init(cell)
-        !
-        CALL z%init(cell)
-        !
-        CALL p%init(cell)
-        !
-        CALL Ap%init(cell)
-        !
-        CALL g%init(cell)
-        !
         !--------------------------------------------------------------------------------
-        ! Starting guess from new input and previous solution(s)
         !
-        x%of_r = 0.D0
-        r%of_r = b%of_r
-        rzold = 0.D0
-        !
-        !--------------------------------------------------------------------------------
-        ! Write output table column headers
-        !
-        IF (io%lnode) THEN
-            !
-            IF (io%verbosity >= 3) THEN
-                WRITE (io%debug_unit, 1201)
-            ELSE IF (io%verbosity >= 1) THEN
-                WRITE (io%debug_unit, 1202)
-            END IF
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Start gradient descent
-        !
-        DO iter = 1, maxiter
+        ASSOCIATE (cell => charges%cell, &
+                   b => charges, &
+                   eps => dielectric%epsilon, &
+                   gradeps => dielectric%gradient, &
+                   x => potential, &
+                   lconjugate => this%lconjugate, &
+                   maxiter => this%maxiter, &
+                   tolvelect => this%tol)
             !
             !----------------------------------------------------------------------------
-            ! Apply preconditioner to new state
+            ! Initialize local densities
             !
-            z%of_r = r%of_r / eps%of_r
+            CALL r%init(cell)
             !
-            CALL this%poisson(z, z, electrolyte, semiconductor)
+            CALL z%init(cell)
             !
-            rznew = r%scalar_product(z)
+            CALL p%init(cell)
             !
-            IF (ABS(rznew) < 1.D-30) &
-                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+            CALL Ap%init(cell)
             !
-            !----------------------------------------------------------------------------
-            ! Conjugate gradient or steepest descent input
-            !
-            IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
-                beta = rznew / rzold
-            ELSE
-                beta = 0.D0
-            END IF
-            !
-            rzold = rznew
-            p%of_r = z%of_r + beta * p%of_r
+            CALL g%init(cell)
             !
             !----------------------------------------------------------------------------
-            ! Apply operator to conjugate direction
-            ! NOTE: the following steps should be extended to account for different cores
+            ! Starting guess from new input and previous solution(s)
             !
-            CALL this%cores%gradient(z, g)
-            !
-            g%of_r = g%of_r / fpi / e2
-            !
-            Ap%of_r(:) = beta * Ap%of_r(:) - r%of_r(:) + &
-                         gradeps%of_r(1, :) * g%of_r(1, :) + &
-                         gradeps%of_r(2, :) * g%of_r(2, :) + &
-                         gradeps%of_r(3, :) * g%of_r(3, :)
+            x%of_r = 0.D0
+            r%of_r = b%of_r
+            rzold = 0.D0
             !
             !----------------------------------------------------------------------------
-            ! Step downhill
-            !
-            pAp = p%scalar_product(Ap)
-            alpha = rzold / pAp
-            !
-            x%of_r = x%of_r + alpha * p%of_r
-            r%of_r = r%of_r - alpha * Ap%of_r
-            !
-            delta_en = r%euclidean_norm()
-            delta_qm = r%quadratic_mean()
-            !
-            !----------------------------------------------------------------------------
-            ! Print iteration results
+            ! Write output table column headers
             !
             IF (io%lnode) THEN
                 !
                 IF (io%verbosity >= 3) THEN
-                    !
-                    WRITE (io%debug_unit, 1203) &
-                        iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
-                        tolvelect
-                    !
+                    WRITE (io%debug_unit, 1201)
                 ELSE IF (io%verbosity >= 1) THEN
-                    !
-                    WRITE (io%debug_unit, 1204) &
-                        iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
-                    !
+                    WRITE (io%debug_unit, 1202)
                 END IF
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! If residual is small enough exit
+            ! Start gradient descent
             !
-            IF (delta_en < tolvelect .AND. iter > 0) THEN
+            DO iter = 1, maxiter
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1205)
+                !------------------------------------------------------------------------
+                ! Apply preconditioner to new state
                 !
-                EXIT
+                z%of_r = r%of_r / eps%of_r
                 !
-            ELSE IF (iter == maxiter) THEN
-                IF (io%lnode) WRITE (io%unit, 1206)
-            END IF
+                CALL this%poisson(z, z, electrolyte, semiconductor)
+                !
+                rznew = r%scalar_product(z)
+                !
+                IF (ABS(rznew) < 1.D-30) &
+                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                !
+                !------------------------------------------------------------------------
+                ! Conjugate gradient or steepest descent input
+                !
+                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                    beta = rznew / rzold
+                ELSE
+                    beta = 0.D0
+                END IF
+                !
+                rzold = rznew
+                p%of_r = z%of_r + beta * p%of_r
+                !
+                !------------------------------------------------------------------------
+                ! Apply operator to conjugate direction
+                ! NOTE: the following steps should be extended to account for
+                !       different cores
+                !
+                CALL this%cores%gradient(z, g)
+                !
+                g%of_r = g%of_r / fpi / e2
+                !
+                Ap%of_r(:) = beta * Ap%of_r(:) - r%of_r(:) + &
+                             gradeps%of_r(1, :) * g%of_r(1, :) + &
+                             gradeps%of_r(2, :) * g%of_r(2, :) + &
+                             gradeps%of_r(3, :) * g%of_r(3, :)
+                !
+                !------------------------------------------------------------------------
+                ! Step downhill
+                !
+                pAp = p%scalar_product(Ap)
+                alpha = rzold / pAp
+                !
+                x%of_r = x%of_r + alpha * p%of_r
+                r%of_r = r%of_r - alpha * Ap%of_r
+                !
+                delta_en = r%euclidean_norm()
+                delta_qm = r%quadratic_mean()
+                !
+                !------------------------------------------------------------------------
+                ! Print iteration results
+                !
+                IF (io%lnode) THEN
+                    !
+                    IF (io%verbosity >= 3) THEN
+                        !
+                        WRITE (io%debug_unit, 1203) &
+                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            tolvelect
+                        !
+                    ELSE IF (io%verbosity >= 1) THEN
+                        !
+                        WRITE (io%debug_unit, 1204) &
+                            iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! If residual is small enough exit
+                !
+                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1205)
+                    !
+                    EXIT
+                    !
+                ELSE IF (iter == maxiter) THEN
+                    IF (io%lnode) WRITE (io%unit, 1206)
+                END IF
+                !
+            END DO
             !
-        END DO
-        !
-        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1207) delta_en, iter
-        !
-        CALL g%destroy()
-        !
-        CALL r%destroy()
-        !
-        CALL z%destroy()
-        !
-        CALL p%destroy()
-        !
-        CALL Ap%destroy()
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1207) delta_en, iter
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up local densities
+            !
+            CALL g%destroy()
+            !
+            CALL r%destroy()
+            !
+            CALL z%destroy()
+            !
+            CALL p%destroy()
+            !
+            CALL Ap%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         !
@@ -1160,30 +1159,19 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
         !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density), POINTER :: x, b, eps, factsqrt, scr
-        TYPE(environ_gradient), POINTER :: gradeps
+        TYPE(environ_density), POINTER :: eps, factsqrt
         !
         INTEGER :: iter
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
         !
-        LOGICAL, POINTER :: lconjugate
-        INTEGER, POINTER :: maxiter
-        REAL(DP), POINTER :: tolvelect
-        !
         CHARACTER(LEN=80) :: sub_name = 'linearized_pb_gradient_sqrt'
         !
         !--------------------------------------------------------------------------------
         !
-        lconjugate => this%lconjugate
-        maxiter => this%maxiter
-        tolvelect => this%tol
-        !
         IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1300)
         !
         !--------------------------------------------------------------------------------
-        ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, screening%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
@@ -1198,227 +1186,244 @@ CONTAINS
             !
         END IF
         !
-        cell => charges%cell
-        !
-        b => charges
-        x => potential
-        scr => screening
-        !
-        IF (PRESENT(dielectric)) THEN
-            eps => dielectric%epsilon
-            factsqrt => dielectric%factsqrt
-            !
-            CALL invsqrt%init(cell)
-            !
-            invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
-        END IF
-        !
-        CALL r%init(cell)
-        !
-        CALL z%init(cell)
-        !
-        CALL p%init(cell)
-        !
-        CALL Ap%init(cell)
-        !
         !--------------------------------------------------------------------------------
-        ! Starting guess from new input and previous solution(s)
         !
-        IF (x%lupdate) THEN
+        ASSOCIATE (cell => charges%cell, &
+                   b => charges, &
+                   x => potential, &
+                   scr => screening, &
+                   lconjugate => this%lconjugate, &
+                   maxiter => this%maxiter, &
+                   tolvelect => this%tol)
+            !
+            !----------------------------------------------------------------------------
+            ! Initialize local densities
             !
             IF (PRESENT(dielectric)) THEN
-                r%of_r = b%of_r - (factsqrt%of_r + scr%of_r) * x%of_r
-            ELSE
-                r%of_r = b%of_r - scr%of_r * x%of_r
+                eps => dielectric%epsilon
+                factsqrt => dielectric%factsqrt
+                !
+                CALL invsqrt%init(cell)
+                !
+                invsqrt%of_r = 1.D0 / SQRT(eps%of_r)
+            END IF
+            !
+            CALL r%init(cell)
+            !
+            CALL z%init(cell)
+            !
+            CALL p%init(cell)
+            !
+            CALL Ap%init(cell)
+            !
+            !----------------------------------------------------------------------------
+            ! Starting guess from new input and previous solution(s)
+            !
+            IF (x%lupdate) THEN
+                !
+                IF (PRESENT(dielectric)) THEN
+                    r%of_r = b%of_r - (factsqrt%of_r + scr%of_r) * x%of_r
+                ELSE
+                    r%of_r = b%of_r - scr%of_r * x%of_r
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! Preconditioning step
+                !
+                IF (PRESENT(dielectric)) THEN
+                    z%of_r = r%of_r * invsqrt%of_r
+                    !
+                    CALL this%poisson(z, z)
+                    !
+                    z%of_r = z%of_r * invsqrt%of_r
+                ELSE
+                    z%of_r = r%of_r
+                    !
+                    CALL this%poisson(z, z)
+                    !
+                END IF
+                !
+                rzold = r%scalar_product(z)
+                !
+                IF (ABS(rzold) < 1.D-30) &
+                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                !
+                IF (PRESENT(dielectric)) THEN
+                    r%of_r = (factsqrt%of_r + scr%of_r) * (x%of_r - z%of_r)
+                ELSE
+                    r%of_r = scr%of_r * (x%of_r - z%of_r)
+                END IF
+                !
+                delta_en = r%euclidean_norm()
+                delta_qm = r%quadratic_mean()
+                !
+                IF (delta_en < 1.D-02) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) &
+                        WRITE (io%debug_unit, 1301) delta_en
+                    !
+                    x%of_r = z%of_r
+                ELSE
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) &
+                        WRITE (io%debug_unit, 1302) delta_en
+                    !
+                    x%lupdate = .FALSE.
+                END IF
+                !
+            END IF
+            !
+            IF (.NOT. x%lupdate) THEN
+                x%lupdate = .TRUE.
+                x%of_r = 0.D0
+                r%of_r = b%of_r
+                rzold = 0.D0
             END IF
             !
             !----------------------------------------------------------------------------
-            ! Preconditioning step
-            !
-            IF (PRESENT(dielectric)) THEN
-                z%of_r = r%of_r * invsqrt%of_r
-                !
-                CALL this%poisson(z, z)
-                !
-                z%of_r = z%of_r * invsqrt%of_r
-            ELSE
-                z%of_r = r%of_r
-                !
-                CALL this%poisson(z, z)
-                !
-            END IF
-            !
-            rzold = r%scalar_product(z)
-            !
-            IF (ABS(rzold) < 1.D-30) &
-                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
-            !
-            IF (PRESENT(dielectric)) THEN
-                r%of_r = (factsqrt%of_r + scr%of_r) * (x%of_r - z%of_r)
-            ELSE
-                r%of_r = scr%of_r * (x%of_r - z%of_r)
-            END IF
-            !
-            delta_en = r%euclidean_norm()
-            delta_qm = r%quadratic_mean()
-            !
-            IF (delta_en < 1.D-02) THEN
-                !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1301) delta_en
-                !
-                x%of_r = z%of_r
-            ELSE
-                !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1302) delta_en
-                !
-                x%lupdate = .FALSE.
-            END IF
-            !
-        END IF
-        !
-        IF (.NOT. x%lupdate) THEN
-            x%lupdate = .TRUE.
-            x%of_r = 0.D0
-            r%of_r = b%of_r
-            rzold = 0.D0
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Write output table column headers
-        !
-        IF (io%lnode) THEN
-            !
-            IF (io%verbosity >= 3) THEN
-                WRITE (io%debug_unit, 1303)
-            ELSE IF (io%verbosity >= 1) THEN
-                WRITE (io%debug_unit, 1304)
-            END IF
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Start gradient descent
-        !
-        DO iter = 1, maxiter
-            !
-            !----------------------------------------------------------------------------
-            ! Apply preconditioner to new state
-            !
-            IF (PRESENT(dielectric)) THEN
-                z%of_r = r%of_r * invsqrt%of_r
-                !
-                CALL this%poisson(z, z)
-                !
-                z%of_r = z%of_r * invsqrt%of_r
-            ELSE
-                z%of_r = r%of_r
-                !
-                CALL this%poisson(z, z)
-                !
-            END IF
-            !
-            rznew = r%scalar_product(z)
-            !
-            IF (ABS(rznew) < 1.D-30) &
-                CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
-            !
-            !----------------------------------------------------------------------------
-            ! Conjugate gradient or steepest descent input
-            !
-            IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
-                beta = rznew / rzold
-            ELSE
-                beta = 0.D0
-            END IF
-            !
-            rzold = rznew
-            p%of_r = z%of_r + beta * p%of_r
-            !
-            !----------------------------------------------------------------------------
-            ! Apply operator to conjugate direction
-            !
-            IF (PRESENT(dielectric)) THEN
-                Ap%of_r = (factsqrt%of_r + scr%of_r) * z%of_r + r%of_r + beta * Ap%of_r
-            ELSE
-                Ap%of_r = scr%of_r * z%of_r + r%of_r + beta * Ap%of_r
-            END IF
-            !
-            !----------------------------------------------------------------------------
-            ! Step downhill
-            !
-            pAp = p%scalar_product(Ap)
-            alpha = rzold / pAp
-            !
-            x%of_r = x%of_r + alpha * p%of_r
-            r%of_r = r%of_r - alpha * Ap%of_r
-            !
-            delta_en = r%euclidean_norm()
-            delta_qm = r%quadratic_mean()
-            !
-            !----------------------------------------------------------------------------
-            ! Print iteration results
+            ! Write output table column headers
             !
             IF (io%lnode) THEN
                 !
                 IF (io%verbosity >= 3) THEN
-                    !
-                    WRITE (io%debug_unit, 1305) &
-                        iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
-                        tolvelect
-                    !
+                    WRITE (io%debug_unit, 1303)
                 ELSE IF (io%verbosity >= 1) THEN
-                    !
-                    WRITE (io%debug_unit, 1306) &
-                        iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
-                    !
+                    WRITE (io%debug_unit, 1304)
                 END IF
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! If residual is small enough exit
+            ! Start gradient descent
             !
-            IF (delta_en < tolvelect .AND. iter > 0) THEN
+            DO iter = 1, maxiter
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1307)
+                !------------------------------------------------------------------------
+                ! Apply preconditioner to new state
                 !
-                EXIT
+                IF (PRESENT(dielectric)) THEN
+                    z%of_r = r%of_r * invsqrt%of_r
+                    !
+                    CALL this%poisson(z, z)
+                    !
+                    z%of_r = z%of_r * invsqrt%of_r
+                ELSE
+                    z%of_r = r%of_r
+                    !
+                    CALL this%poisson(z, z)
+                    !
+                END IF
                 !
-            ELSE IF (iter == maxiter) THEN
-                IF (io%lnode) WRITE (io%unit, 1308)
-            END IF
+                rznew = r%scalar_product(z)
+                !
+                IF (ABS(rznew) < 1.D-30) &
+                    CALL io%error(sub_name, 'Null step in gradient descent iteration', 1)
+                !
+                !------------------------------------------------------------------------
+                ! Conjugate gradient or steepest descent input
+                !
+                IF (lconjugate .AND. ABS(rzold) > 1.D-30) THEN
+                    beta = rznew / rzold
+                ELSE
+                    beta = 0.D0
+                END IF
+                !
+                rzold = rznew
+                p%of_r = z%of_r + beta * p%of_r
+                !
+                !------------------------------------------------------------------------
+                ! Apply operator to conjugate direction
+                !
+                IF (PRESENT(dielectric)) THEN
+                    !
+                    Ap%of_r = &
+                        (factsqrt%of_r + scr%of_r) * z%of_r + r%of_r + beta * Ap%of_r
+                    !
+                ELSE
+                    Ap%of_r = scr%of_r * z%of_r + r%of_r + beta * Ap%of_r
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! Step downhill
+                !
+                pAp = p%scalar_product(Ap)
+                alpha = rzold / pAp
+                !
+                x%of_r = x%of_r + alpha * p%of_r
+                r%of_r = r%of_r - alpha * Ap%of_r
+                !
+                delta_en = r%euclidean_norm()
+                delta_qm = r%quadratic_mean()
+                !
+                !------------------------------------------------------------------------
+                ! Print iteration results
+                !
+                IF (io%lnode) THEN
+                    !
+                    IF (io%verbosity >= 3) THEN
+                        !
+                        WRITE (io%debug_unit, 1305) &
+                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            tolvelect
+                        !
+                    ELSE IF (io%verbosity >= 1) THEN
+                        !
+                        WRITE (io%debug_unit, 1306) &
+                            iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
+                        !
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! If residual is small enough exit
+                !
+                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1307)
+                    !
+                    EXIT
+                    !
+                ELSE IF (iter == maxiter) THEN
+                    IF (io%lnode) WRITE (io%unit, 1308)
+                END IF
+                !
+            END DO
             !
-        END DO
-        !
-        !--------------------------------------------------------------------------------
-        ! In PBC the potential need to have zero average
-        !
-        shift = 0.D0
-        !
-        SELECT TYPE (core => this%cores%core)
+            !----------------------------------------------------------------------------
+            ! In PBC the potential need to have zero average
             !
-        TYPE IS (core_fft_electrostatics)
+            shift = 0.D0
             !
-            IF (.NOT. (core%use_internal_pbc_corr .OR. &
-                       ASSOCIATED(this%cores%correction))) THEN
-                shift = -x%integrate() / cell%omega
-            END IF
+            SELECT TYPE (core => this%cores%core)
+                !
+            TYPE IS (core_fft_electrostatics)
+                !
+                IF (.NOT. (core%use_internal_pbc_corr .OR. &
+                           ASSOCIATED(this%cores%correction))) THEN
+                    shift = -x%integrate() / cell%omega
+                END IF
+                !
+            END SELECT
             !
-        END SELECT
-        !
-        x%of_r = x%of_r + shift
-        !
-        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1309) delta_en, iter
-        !
-        CALL r%destroy()
-        !
-        CALL z%destroy()
-        !
-        CALL p%destroy()
-        !
-        CALL Ap%destroy()
-        !
-        IF (PRESENT(dielectric)) CALL invsqrt%destroy()
+            x%of_r = x%of_r + shift
+            !
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1309) delta_en, iter
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up local densities
+            !
+            CALL r%destroy()
+            !
+            CALL z%destroy()
+            !
+            CALL p%destroy()
+            !
+            CALL Ap%destroy()
+            !
+            IF (PRESENT(dielectric)) CALL invsqrt%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         !

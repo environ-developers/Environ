@@ -36,13 +36,10 @@ MODULE class_solver_direct
     !
     USE environ_param, ONLY: DP
     !
-    USE class_cell
     USE class_density
     USE class_gradient
     !
     USE class_core_container_electrostatics
-    USE class_core_fft_electrostatics
-    USE class_core_1da
     !
     USE class_solver
     !
@@ -157,16 +154,12 @@ CONTAINS
         TYPE(environ_charges), TARGET, INTENT(INOUT) :: charges
         TYPE(environ_density), INTENT(INOUT) :: potential
         !
-        TYPE(environ_cell), POINTER :: cell
-        !
         CHARACTER(LEN=80) :: sub_name = 'poisson_direct_charges'
         !
         !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%density%cell, potential%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
-        !
-        cell => charges%density%cell
         !
         CALL this%cores%poisson(charges%density, potential)
         !
@@ -243,7 +236,6 @@ CONTAINS
         TYPE(environ_density), INTENT(INOUT) :: potential
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
-        TYPE(environ_cell), POINTER :: cell
         TYPE(environ_density) :: local
         !
         CHARACTER(LEN=80) :: sub_name = 'poisson_direct_density'
@@ -253,13 +245,11 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
             CALL io%error(sub_name, 'Mismatch in domains of charges and potential', 1)
         !
-        cell => charges%cell
-        !
         !--------------------------------------------------------------------------------
         ! Using a local variable for the potential because the routine may be
         ! called with the same argument for charges and potential
         !
-        CALL local%init(cell)
+        CALL local%init(charges%cell)
         !
         CALL this%cores%poisson(charges, local)
         !

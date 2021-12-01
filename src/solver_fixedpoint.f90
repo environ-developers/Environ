@@ -36,7 +36,6 @@ MODULE class_solver_fixedpoint
     !
     USE environ_param, ONLY: DP, e2, K_BOLTZMANN_RY, fpi
     !
-    USE class_cell
     USE class_density
     USE class_gradient
     !
@@ -186,10 +185,10 @@ CONTAINS
         !
         CLASS(solver_fixedpoint), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
-        TYPE(environ_dielectric), INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_dielectric), INTENT(INOUT) :: dielectric
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
         !
         CHARACTER(LEN=80) :: sub_name = 'generalized_fixedpoint_density'
@@ -273,10 +272,10 @@ CONTAINS
         CLASS(solver_fixedpoint), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: charges
         TYPE(environ_electrolyte), INTENT(IN) :: electrolyte
-        TYPE(environ_dielectric), OPTIONAL, INTENT(IN) :: dielectric
         CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
         !
         TYPE(environ_density), INTENT(INOUT) :: potential
+        TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
         CHARACTER(LEN=80) :: sub_name = 'pb_nested_density'
         !
@@ -323,15 +322,11 @@ CONTAINS
         !
         CLASS(solver_fixedpoint), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
-        TYPE(environ_dielectric), TARGET, INTENT(IN) :: dielectric
         TYPE(environ_electrolyte), INTENT(IN), OPTIONAL :: electrolyte
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
+        TYPE(environ_dielectric), TARGET, INTENT(INOUT) :: dielectric
         TYPE(environ_semiconductor), INTENT(INOUT), OPTIONAL :: semiconductor
-        !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density), POINTER :: eps, rhoiter, rhotot
-        TYPE(environ_gradient), POINTER :: gradlogeps
         !
         INTEGER :: iter
         REAL(DP) :: total, totpol, totzero, totiter, delta_qm, delta_en
@@ -339,21 +334,13 @@ CONTAINS
         TYPE(environ_density) :: residual
         TYPE(environ_gradient) :: gradpoisson
         !
-        INTEGER, POINTER :: maxiter
-        REAL(DP), POINTER :: tolrhoaux, mix
-        !
         CHARACTER(LEN=80) :: sub_name = 'generalized_fixedpoint'
         !
         !--------------------------------------------------------------------------------
         !
-        maxiter => this%maxiter
-        mix => this%mix
-        tolrhoaux => this%tol
-        !
         IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1000)
         !
         !--------------------------------------------------------------------------------
-        ! Check that fields have the same defintion domain
         !
         IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
@@ -361,121 +348,122 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
-        cell => charges%cell
-        !
         !--------------------------------------------------------------------------------
-        ! If auxiliary charge is not passed, initialize it
         !
-        rhoiter => dielectric%iterative
-        rhotot => dielectric%density
-        !
-        CALL rhozero%init(cell)
-        !
-        eps => dielectric%epsilon
-        gradlogeps => dielectric%gradlog
-        !
-        !--------------------------------------------------------------------------------
-        ! Set up auxiliary charge
-        !
-        total = charges%integrate()
-        totpol = total * (1.D0 - dielectric%constant) / dielectric%constant
-        rhozero%of_r = charges%of_r * (1.D0 - eps%of_r) / eps%of_r
-        totzero = rhozero%integrate()
-        totiter = rhoiter%integrate()
-        !
-        IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1001) totiter
-        !
-        !--------------------------------------------------------------------------------
-        ! Create local variables
-        !
-        CALL residual%init(cell)
-        !
-        CALL gradpoisson%init(cell)
-        !
-        !--------------------------------------------------------------------------------
-        ! Write output table column headers
-        !
-        IF (io%lnode) THEN
+        ASSOCIATE (cell => charges%cell, &
+                   rhoiter => dielectric%iterative, &
+                   rhotot => dielectric%density, &
+                   eps => dielectric%epsilon, &
+                   gradlogeps => dielectric%gradlog, &
+                   maxiter => this%maxiter, &
+                   mix => this%mix, &
+                   tolrhoaux => this%tol)
             !
-            IF (io%verbosity >= 3) THEN
-                WRITE (io%debug_unit, 1002)
-            ELSE IF (io%verbosity >= 1) THEN
-                WRITE (io%debug_unit, 1003)
-            END IF
+            !----------------------------------------------------------------------------
+            ! Initialize local densities
             !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Start iterative algorithm
-        !
-        DO iter = 1, maxiter
+            CALL rhozero%init(cell)
+
+            CALL residual%init(cell)
             !
-            rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
+            CALL gradpoisson%init(cell)
             !
-            CALL this%poisson_gradient(rhotot, gradpoisson, electrolyte, semiconductor)
+            !----------------------------------------------------------------------------
+            ! Set up auxiliary charge
             !
-            CALL gradlogeps%scalar_product(gradpoisson, residual)
-            !
-            residual%of_r = residual%of_r / fpi / e2 - rhoiter%of_r
-            !
-            rhoiter%of_r = rhoiter%of_r + mix * residual%of_r
-            !
-            delta_en = residual%euclidean_norm()
-            delta_qm = residual%quadratic_mean()
+            total = charges%integrate()
+            totpol = total * (1.D0 - dielectric%constant) / dielectric%constant
+            rhozero%of_r = charges%of_r * (1.D0 - eps%of_r) / eps%of_r
+            totzero = rhozero%integrate()
             totiter = rhoiter%integrate()
             !
             !----------------------------------------------------------------------------
-            ! Print iteration results
+            ! Write output table column headers
+            !
+            IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1001) totiter
             !
             IF (io%lnode) THEN
                 !
                 IF (io%verbosity >= 3) THEN
-                    !
-                    WRITE (io%debug_unit, 1004) &
-                        iter, delta_qm, delta_en, tolrhoaux, totiter, totzero, totpol, &
-                        total
-                    !
+                    WRITE (io%debug_unit, 1002)
                 ELSE IF (io%verbosity >= 1) THEN
-                    WRITE (io%debug_unit, 1005) iter, delta_qm, delta_en, tolrhoaux
+                    WRITE (io%debug_unit, 1003)
                 END IF
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! If residual is small enough exit
+            ! Start iterative algorithm
             !
-            IF (delta_en < tolrhoaux .AND. iter > 0) THEN
+            DO iter = 1, maxiter
+                rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1006)
+                CALL this%poisson_gradient(rhotot, gradpoisson, electrolyte, &
+                                           semiconductor)
                 !
-                EXIT
+                CALL gradlogeps%scalar_product(gradpoisson, residual)
                 !
-            ELSE IF (iter == maxiter) THEN
-                IF (io%lnode) WRITE (io%unit, 1007)
-            END IF
+                residual%of_r = residual%of_r / fpi / e2 - rhoiter%of_r
+                rhoiter%of_r = rhoiter%of_r + mix * residual%of_r
+                !
+                delta_en = residual%euclidean_norm()
+                delta_qm = residual%quadratic_mean()
+                totiter = rhoiter%integrate()
+                !
+                !------------------------------------------------------------------------
+                ! Print iteration results
+                !
+                IF (io%lnode) THEN
+                    !
+                    IF (io%verbosity >= 3) THEN
+                        !
+                        WRITE (io%debug_unit, 1004) &
+                            iter, delta_qm, delta_en, tolrhoaux, totiter, totzero, &
+                            totpol, total
+                        !
+                    ELSE IF (io%verbosity >= 1) THEN
+                        WRITE (io%debug_unit, 1005) iter, delta_qm, delta_en, tolrhoaux
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! If residual is small enough exit
+                !
+                IF (delta_en < tolrhoaux .AND. iter > 0) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1006)
+                    !
+                    EXIT
+                    !
+                ELSE IF (iter == maxiter) THEN
+                    IF (io%lnode) WRITE (io%unit, 1007)
+                END IF
+                !
+            END DO
             !
-        END DO
-        !
-        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1008) delta_en, iter
-        !
-        !--------------------------------------------------------------------------------
-        ! Compute total electrostatic potential
-        !
-        rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
-        !
-        CALL this%poisson(rhotot, potential, electrolyte, semiconductor)
-        !
-        rhotot%of_r = rhozero%of_r + rhoiter%of_r
-        ! in rhotot store total polarization charge
-        !
-        !--------------------------------------------------------------------------------
-        ! Destroy local variables
-        !
-        CALL rhozero%destroy()
-        !
-        CALL residual%destroy()
-        !
-        CALL gradpoisson%destroy()
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1008) delta_en, iter
+            !
+            !----------------------------------------------------------------------------
+            ! Compute total electrostatic potential
+            !
+            rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
+            !
+            CALL this%poisson(rhotot, potential, electrolyte, semiconductor)
+            !
+            rhotot%of_r = rhozero%of_r + rhoiter%of_r
+            ! in rhotot store total polarization charge
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up local densities
+            !
+            CALL rhozero%destroy()
+            !
+            CALL residual%destroy()
+            !
+            CALL gradpoisson%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         !
@@ -512,20 +500,16 @@ CONTAINS
         CLASS(solver_fixedpoint), TARGET, INTENT(IN) :: this
         TYPE(environ_density), TARGET, INTENT(IN) :: charges
         TYPE(environ_electrolyte), TARGET, INTENT(IN) :: electrolyte
-        TYPE(environ_dielectric), OPTIONAL, INTENT(IN) :: dielectric
         CLASS(electrostatic_solver), OPTIONAL, INTENT(IN) :: inner
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
-        !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density), POINTER :: x, gam
+        TYPE(environ_dielectric), OPTIONAL, INTENT(INOUT) :: dielectric
         !
         INTEGER :: iter, ityp, ir
         REAL(DP) :: total, totaux, delta_qm, delta_en, kT, factor, arg
         TYPE(environ_density) :: residual, rhotot, denominator, rhoaux, cfactor
         !
-        INTEGER, POINTER :: maxiter, ir_end
-        REAL(DP), POINTER :: tolrhoaux, mix, cbulk, cionmax, z
+        REAL(DP), POINTER :: cbulk, z
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
@@ -534,6 +518,14 @@ CONTAINS
         !--------------------------------------------------------------------------------
         !
         IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1100)
+        !
+        !--------------------------------------------------------------------------------
+        !
+        IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
+            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
+        !
+        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
+            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
         IF (PRESENT(dielectric)) THEN
             !
@@ -544,176 +536,182 @@ CONTAINS
             !
         END IF
         !
-        IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
-        !
-        IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
-            CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
-        !
-        cell => charges%cell
-        ir_end => cell%ir_end
-        maxiter => this%maxiter
-        mix => this%mix
-        tolrhoaux => this%tol
-        x => potential
-        cionmax => electrolyte%cionmax
-        gam => electrolyte%gamma
-        !
-        kT = K_BOLTZMANN_RY * electrolyte%temperature
-        !
-        CALL denominator%init(cell)
-        !
-        CALL rhoaux%init(cell)
-        !
-        CALL rhotot%init(cell)
-        !
-        CALL residual%init(cell)
-        !
-        CALL cfactor%init(cell)
-        !
-        x%of_r = 0.D0
-        rhoaux%of_r = 0.D0
-        !
         !--------------------------------------------------------------------------------
-        ! Write output table column headers
         !
-        IF (io%lnode) THEN
-            !
-            IF (io%verbosity >= 3) THEN
-                WRITE (io%debug_unit, 1101)
-            ELSE IF (io%verbosity >= 1) THEN
-                WRITE (io%debug_unit, 1102)
-            END IF
-            !
-        END IF
-        !
-        !--------------------------------------------------------------------------------
-        ! Start iterative algorithm
-        !
-        DO iter = 1, maxiter
-            !
-            rhotot%of_r = charges%of_r + rhoaux%of_r
-            !
-            IF (PRESENT(dielectric)) THEN
-                !
-                SELECT TYPE (inner)
-                    !
-                TYPE IS (solver_gradient)
-                    CALL inner%generalized(rhotot, dielectric, x)
-                    !
-                TYPE IS (solver_fixedpoint)
-                    CALL inner%generalized(rhotot, dielectric, x)
-                    !
-                END SELECT
-                !
-            ELSE
-                CALL this%poisson(rhotot, x)
-            END IF
+        ASSOCIATE (cell => charges%cell, &
+                   ir_end => charges%cell%ir_end, &
+                   maxiter => this%maxiter, &
+                   mix => this%mix, &
+                   tolrhoaux => this%tol, &
+                   x => potential, &
+                   cionmax => electrolyte%cionmax, &
+                   gam => electrolyte%gamma)
             !
             !----------------------------------------------------------------------------
-            ! Calculate electrolyte charge
+            ! Initialize local densities
             !
-            residual%of_r = 0.D0
-            denominator%of_r = 1.D0
+            CALL denominator%init(cell)
             !
-            DO ityp = 1, electrolyte%ntyp
-                !
-                cbulk => electrolyte%ioncctype(ityp)%cbulk
-                z => electrolyte%ioncctype(ityp)%z
-                cfactor%of_r = 1.D0
-                !
-                DO ir = 1, ir_end
-                    arg = -z * x%of_r(ir) / kT
-                    !
-                    IF (arg > exp_arg_limit) THEN
-                        cfactor%of_r(ir) = EXP(exp_arg_limit)
-                    ELSE IF (arg < -exp_arg_limit) THEN
-                        cfactor%of_r(ir) = EXP(-exp_arg_limit)
-                    ELSE
-                        cfactor%of_r(ir) = EXP(arg)
-                    END IF
-                    !
-                END DO
-                !
-                residual%of_r = residual%of_r + z * cbulk * cfactor%of_r
-                !
-                IF (cionmax > 0.D0) THEN
-                    factor = cbulk / cionmax
-                    !
-                    SELECT CASE (electrolyte%electrolyte_entropy)
-                        !
-                    CASE ('full')
-                        !
-                        denominator%of_r = denominator%of_r - &
-                                           factor * (1.D0 - cfactor%of_r)
-                        !
-                    CASE ('ions')
-                        !
-                        denominator%of_r = denominator%of_r - &
-                                           factor * (1.D0 - gam%of_r * cfactor%of_r)
-                        !
-                    END SELECT
-                    !
-                END IF
-                !
-                NULLIFY (z)
-                NULLIFY (cbulk)
-            END DO
+            CALL rhoaux%init(cell)
             !
-            residual%of_r = gam%of_r * residual%of_r / denominator%of_r
+            CALL rhotot%init(cell)
+            !
+            CALL residual%init(cell)
+            !
+            CALL cfactor%init(cell)
             !
             !----------------------------------------------------------------------------
-            ! Residual is now the new electrolyte charge
             !
-            residual%of_r = residual%of_r - rhoaux%of_r
-            rhoaux%of_r = rhoaux%of_r + mix * residual%of_r
+            kT = K_BOLTZMANN_RY * electrolyte%temperature
             !
-            delta_en = residual%euclidean_norm()
-            delta_qm = residual%quadratic_mean()
-            totaux = rhoaux%integrate()
+            x%of_r = 0.D0
+            rhoaux%of_r = 0.D0
             !
             !----------------------------------------------------------------------------
-            ! Print iteration results
+            ! Write output table column headers
             !
             IF (io%lnode) THEN
                 !
                 IF (io%verbosity >= 3) THEN
-                    !
-                    WRITE (io%debug_unit, 1103) &
-                        iter, delta_qm, delta_en, tolrhoaux, totaux
-                    !
+                    WRITE (io%debug_unit, 1101)
                 ELSE IF (io%verbosity >= 1) THEN
-                    WRITE (io%debug_unit, 1104) iter, delta_qm, delta_en, tolrhoaux
+                    WRITE (io%debug_unit, 1102)
                 END IF
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! If residual is small enough exit
+            ! Start iterative algorithm
             !
-            IF (delta_en < tolrhoaux .AND. iter > 0) THEN
+            DO iter = 1, maxiter
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1105)
+                rhotot%of_r = charges%of_r + rhoaux%of_r
                 !
-                EXIT
+                IF (PRESENT(dielectric)) THEN
+                    !
+                    SELECT TYPE (inner)
+                        !
+                    TYPE IS (solver_gradient)
+                        CALL inner%generalized(rhotot, dielectric, x)
+                        !
+                    TYPE IS (solver_fixedpoint)
+                        CALL inner%generalized(rhotot, dielectric, x)
+                        !
+                    END SELECT
+                    !
+                ELSE
+                    CALL this%poisson(rhotot, x)
+                END IF
                 !
-            ELSE IF (iter == maxiter) THEN
-                IF (io%lnode) WRITE (io%unit, 1106)
-            END IF
+                !------------------------------------------------------------------------
+                ! Calculate electrolyte charge
+                !
+                residual%of_r = 0.D0
+                denominator%of_r = 1.D0
+                !
+                DO ityp = 1, electrolyte%ntyp
+                    cbulk => electrolyte%ioncctype(ityp)%cbulk
+                    z => electrolyte%ioncctype(ityp)%z
+                    !
+                    cfactor%of_r = 1.D0
+                    !
+                    DO ir = 1, ir_end
+                        arg = -z * x%of_r(ir) / kT
+                        !
+                        IF (arg > exp_arg_limit) THEN
+                            cfactor%of_r(ir) = EXP(exp_arg_limit)
+                        ELSE IF (arg < -exp_arg_limit) THEN
+                            cfactor%of_r(ir) = EXP(-exp_arg_limit)
+                        ELSE
+                            cfactor%of_r(ir) = EXP(arg)
+                        END IF
+                        !
+                    END DO
+                    !
+                    residual%of_r = residual%of_r + z * cbulk * cfactor%of_r
+                    !
+                    IF (cionmax > 0.D0) THEN
+                        factor = cbulk / cionmax
+                        !
+                        SELECT CASE (electrolyte%electrolyte_entropy)
+                            !
+                        CASE ('full')
+                            !
+                            denominator%of_r = denominator%of_r - &
+                                               factor * (1.D0 - cfactor%of_r)
+                            !
+                        CASE ('ions')
+                            !
+                            denominator%of_r = denominator%of_r - &
+                                               factor * (1.D0 - gam%of_r * cfactor%of_r)
+                            !
+                        END SELECT
+                        !
+                    END IF
+                    !
+                    NULLIFY (z)
+                    NULLIFY (cbulk)
+                END DO
+                !
+                residual%of_r = gam%of_r * residual%of_r / denominator%of_r
+                !
+                !------------------------------------------------------------------------
+                ! Residual is now the new electrolyte charge
+                !
+                residual%of_r = residual%of_r - rhoaux%of_r
+                rhoaux%of_r = rhoaux%of_r + mix * residual%of_r
+                !
+                delta_en = residual%euclidean_norm()
+                delta_qm = residual%quadratic_mean()
+                totaux = rhoaux%integrate()
+                !
+                !------------------------------------------------------------------------
+                ! Print iteration results
+                !
+                IF (io%lnode) THEN
+                    !
+                    IF (io%verbosity >= 3) THEN
+                        !
+                        WRITE (io%debug_unit, 1103) &
+                            iter, delta_qm, delta_en, tolrhoaux, totaux
+                        !
+                    ELSE IF (io%verbosity >= 1) THEN
+                        WRITE (io%debug_unit, 1104) iter, delta_qm, delta_en, tolrhoaux
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! If residual is small enough exit
+                !
+                IF (delta_en < tolrhoaux .AND. iter > 0) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1105)
+                    !
+                    EXIT
+                    !
+                ELSE IF (iter == maxiter) THEN
+                    IF (io%lnode) WRITE (io%unit, 1106)
+                END IF
+                !
+            END DO
             !
-        END DO
-        !
-        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1107) delta_en, iter
-        !
-        CALL denominator%destroy()
-        !
-        CALL rhoaux%destroy()
-        !
-        CALL rhotot%destroy()
-        !
-        CALL residual%destroy()
-        !
-        CALL cfactor%destroy()
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1107) delta_en, iter
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up local densities
+            !
+            CALL denominator%destroy()
+            !
+            CALL rhoaux%destroy()
+            !
+            CALL rhotot%destroy()
+            !
+            CALL residual%destroy()
+            !
+            CALL cfactor%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         !

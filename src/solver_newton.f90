@@ -36,7 +36,6 @@ MODULE class_solver_newton
     !
     USE environ_param, ONLY: DP, e2, K_BOLTZMANN_RY, fpi
     !
-    USE class_cell
     USE class_density
     !
     USE class_core_container_electrostatics
@@ -202,18 +201,13 @@ CONTAINS
         CLASS(solver_newton), TARGET, INTENT(INOUT) :: this
         TYPE(environ_density), TARGET, INTENT(INOUT) :: potential
         !
-        TYPE(environ_cell), POINTER :: cell
-        TYPE(environ_density), POINTER :: x, gam
-        !
         INTEGER :: iter, itypi, itypj, ir
         REAL(DP) :: totaux, delta_qm, delta_en, kT, z, arg
         !
         TYPE(environ_density) :: residual, rhotot, numerator, denominator, &
                                  cfactor, rhoaux, screening
         !
-        INTEGER, POINTER :: maxiter, ir_end
-        REAL(DP), POINTER :: tol, mix, cbulk, cbulki, cbulkj, cionmax, zi, zj
-        !
+        REAL(DP), POINTER :: cbulki, cbulkj, zi, zj
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
@@ -223,12 +217,7 @@ CONTAINS
         !
         IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1000)
         !
-        IF (PRESENT(dielectric)) THEN
-            !
-            IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
-                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
-            !
-        END IF
+        !--------------------------------------------------------------------------------
         !
         IF (.NOT. ASSOCIATED(charges%cell, electrolyte%gamma%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
@@ -236,216 +225,226 @@ CONTAINS
         IF (.NOT. ASSOCIATED(charges%cell, potential%cell)) &
             CALL io%error(sub_name, 'Inconsistent cells for charges and potential', 1)
         !
-        cell => charges%cell
-        ir_end => cell%ir_end
-        maxiter => this%maxiter
-        tol => this%tol
-        cionmax => electrolyte%cionmax
-        x => potential
-        gam => electrolyte%gamma
-        !
-        kT = K_BOLTZMANN_RY * electrolyte%temperature
-        !
-        CALL cfactor%init(cell)
-        !
-        CALL numerator%init(cell)
-        !
-        CALL denominator%init(cell)
-        !
-        CALL rhoaux%init(cell)
-        !
-        CALL rhotot%init(cell)
-        !
-        CALL residual%init(cell)
-        !
-        CALL screening%init(cell)
-        !
-        x%of_r = 0.D0
-        rhoaux%of_r = 0.D0
-        screening%of_r = electrolyte%k2 / e2 / fpi * gam%of_r
-        residual%of_r = 0.D0
-        !
-        !--------------------------------------------------------------------------------
-        ! Write output table column headers
-        !
-        IF (io%lnode) THEN
+        IF (PRESENT(dielectric)) THEN
             !
-            IF (io%verbosity >= 3) THEN
-                WRITE (io%debug_unit, 1001)
-            ELSE IF (io%verbosity >= 1) THEN
-                WRITE (io%debug_unit, 1002)
-            END IF
+            IF (.NOT. ASSOCIATED(charges%cell, dielectric%epsilon%cell)) &
+                CALL io%error(sub_name, 'Inconsistent cells of input fields', 1)
             !
         END IF
         !
         !--------------------------------------------------------------------------------
-        ! Start Newton's algorithm
         !
-        DO iter = 1, maxiter
+        ASSOCIATE (cell => charges%cell, &
+                   ir_end => charges%cell%ir_end, &
+                   maxiter => this%maxiter, &
+                   tol => this%tol, &
+                   cionmax => electrolyte%cionmax, &
+                   x => potential, &
+                   gam => electrolyte%gamma)
             !
-            rhotot%of_r = charges%of_r + rhoaux%of_r + screening%of_r * x%of_r
-            residual%of_r = x%of_r
+            !----------------------------------------------------------------------------
+            ! Initialize local densities
             !
-            SELECT TYPE (inner)
-                !
-            TYPE IS (solver_gradient)
-                CALL inner%linearized_pb(rhotot, electrolyte, x, dielectric, screening)
-                !
-            CLASS DEFAULT
-                CALL io%error(sub_name, 'Unexpected inner solver', 1)
-                !
-            END SELECT
+            CALL cfactor%init(cell)
             !
-            residual%of_r = x%of_r - residual%of_r
+            CALL numerator%init(cell)
             !
+            CALL denominator%init(cell)
+            !
+            CALL rhoaux%init(cell)
+            !
+            CALL rhotot%init(cell)
+            !
+            CALL residual%init(cell)
+            !
+            CALL screening%init(cell)
+            !
+            kT = K_BOLTZMANN_RY * electrolyte%temperature
+            !
+            x%of_r = 0.D0
             rhoaux%of_r = 0.D0
-            screening%of_r = 0.D0
-            denominator%of_r = 1.D0
+            screening%of_r = electrolyte%k2 / e2 / fpi * gam%of_r
+            residual%of_r = 0.D0
             !
             !----------------------------------------------------------------------------
-            ! General solution for symmetric & asymmetric electrolyte
-            !
-            DO itypi = 1, electrolyte%ntyp
-                !
-                cbulki => electrolyte%ioncctype(itypi)%cbulk
-                zi => electrolyte%ioncctype(itypi)%z
-                !
-                cfactor%of_r = 1.D0
-                !
-                DO ir = 1, ir_end
-                    arg = -zi * x%of_r(ir) / kT
-                    !
-                    IF (arg > exp_arg_limit) THEN
-                        cfactor%of_r(ir) = EXP(exp_arg_limit)
-                    ELSE IF (arg < -exp_arg_limit) THEN
-                        cfactor%of_r(ir) = EXP(-exp_arg_limit)
-                    ELSE
-                        cfactor%of_r(ir) = EXP(arg)
-                    END IF
-                    !
-                END DO
-                !
-                rhoaux%of_r = rhoaux%of_r + zi * cbulki * cfactor%of_r
-                !
-                numerator%of_r = 1.D0
-                !
-                IF (cionmax > 0.D0) THEN
-                    !
-                    SELECT CASE (electrolyte%electrolyte_entropy)
-                        !
-                    CASE ('full')
-                        !
-                        denominator%of_r = denominator%of_r - &
-                                           cbulki / cionmax * (1.D0 - cfactor%of_r)
-                        !
-                        DO itypj = 1, electrolyte%ntyp
-                            !
-                            zj => electrolyte%ioncctype(itypj)%z
-                            cbulkj => electrolyte%ioncctype(itypj)%cbulk
-                            !
-                            IF (itypj == itypi) THEN
-                                numerator%of_r = numerator%of_r - cbulkj / cionmax
-                            ELSE
-                                !
-                                numerator%of_r = &
-                                    numerator%of_r - cbulkj / cionmax * &
-                                    (1.D0 - (1.D0 - zj / zi) * cfactor%of_r**(zj / zi))
-                                !
-                            END IF
-                            !
-                            NULLIFY (zj)
-                            NULLIFY (cbulkj)
-                            !
-                        END DO
-                        !
-                    CASE ('ions')
-                        !
-                        denominator%of_r = denominator%of_r - cbulki / cionmax * &
-                                           (1.D0 - gam%of_r * cfactor%of_r)
-                        !
-                        DO itypj = 1, electrolyte%ntyp
-                            !
-                            zj => electrolyte%ioncctype(itypj)%z
-                            cbulkj => electrolyte%ioncctype(itypj)%cbulk
-                            !
-                            IF (itypj == itypi) THEN
-                                numerator%of_r = numerator%of_r - cbulkj / cionmax
-                            ELSE
-                                !
-                                numerator%of_r = &
-                                    numerator%of_r - cbulkj / cionmax * &
-                                    (1.D0 - (1.D0 - zj / zi) * gam%of_r * &
-                                     cfactor%of_r**(zj / zi))
-                                !
-                            END IF
-                            !
-                            NULLIFY (zj)
-                            NULLIFY (cbulkj)
-                            !
-                        END DO
-                        !
-                    END SELECT
-                    !
-                END IF
-                !
-                screening%of_r = screening%of_r + &
-                                 cbulki * zi**2 / kT * cfactor%of_r * numerator%of_r
-                !
-                NULLIFY (zi)
-                NULLIFY (cbulki)
-                !
-            END DO
-            !
-            rhoaux%of_r = gam%of_r * rhoaux%of_r / denominator%of_r
-            screening%of_r = screening%of_r * gam%of_r / denominator%of_r**2
-            !
-            delta_en = residual%euclidean_norm()
-            delta_qm = residual%quadratic_mean()
-            totaux = rhoaux%integrate()
-            !
-            !----------------------------------------------------------------------------
-            ! Print iteration results
+            ! Write output table column headers
             !
             IF (io%lnode) THEN
                 !
                 IF (io%verbosity >= 3) THEN
-                    WRITE (io%debug_unit, 1003) iter, delta_qm, delta_en, tol, totaux
+                    WRITE (io%debug_unit, 1001)
                 ELSE IF (io%verbosity >= 1) THEN
-                    WRITE (io%debug_unit, 1004) iter, delta_qm, delta_en, tol
+                    WRITE (io%debug_unit, 1002)
                 END IF
                 !
             END IF
             !
             !----------------------------------------------------------------------------
-            ! If residual is small enough exit
+            ! Start Newton's algorithm
             !
-            IF (delta_en < tol .AND. iter > 0) THEN
+            DO iter = 1, maxiter
+                rhotot%of_r = charges%of_r + rhoaux%of_r + screening%of_r * x%of_r
+                residual%of_r = x%of_r
                 !
-                IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1005)
+                SELECT TYPE (inner)
+                    !
+                TYPE IS (solver_gradient)
+                    CALL inner%linearized_pb(rhotot, electrolyte, x, dielectric, &
+                                             screening)
+                    !
+                CLASS DEFAULT
+                    CALL io%error(sub_name, 'Unexpected inner solver', 1)
+                    !
+                END SELECT
                 !
-                EXIT
+                residual%of_r = x%of_r - residual%of_r
+                rhoaux%of_r = 0.D0
+                screening%of_r = 0.D0
+                denominator%of_r = 1.D0
                 !
-            ELSE IF (iter == maxiter) THEN
-                IF (io%lnode) WRITE (io%unit, 1006)
-            END IF
+                !------------------------------------------------------------------------
+                ! General solution for symmetric & asymmetric electrolyte
+                !
+                DO itypi = 1, electrolyte%ntyp
+                    zi => electrolyte%ioncctype(itypi)%z
+                    cbulki => electrolyte%ioncctype(itypi)%cbulk
+                    !
+                    cfactor%of_r = 1.D0
+                    !
+                    DO ir = 1, ir_end
+                        arg = -zi * x%of_r(ir) / kT
+                        !
+                        IF (arg > exp_arg_limit) THEN
+                            cfactor%of_r(ir) = EXP(exp_arg_limit)
+                        ELSE IF (arg < -exp_arg_limit) THEN
+                            cfactor%of_r(ir) = EXP(-exp_arg_limit)
+                        ELSE
+                            cfactor%of_r(ir) = EXP(arg)
+                        END IF
+                        !
+                    END DO
+                    !
+                    rhoaux%of_r = rhoaux%of_r + zi * cbulki * cfactor%of_r
+                    numerator%of_r = 1.D0
+                    !
+                    IF (cionmax > 0.D0) THEN
+                        !
+                        SELECT CASE (electrolyte%electrolyte_entropy)
+                            !
+                        CASE ('full')
+                            !
+                            denominator%of_r = denominator%of_r - &
+                                               cbulki / cionmax * (1.D0 - cfactor%of_r)
+                            !
+                            DO itypj = 1, electrolyte%ntyp
+                                zj => electrolyte%ioncctype(itypj)%z
+                                cbulkj => electrolyte%ioncctype(itypj)%cbulk
+                                !
+                                IF (itypj == itypi) THEN
+                                    numerator%of_r = numerator%of_r - cbulkj / cionmax
+                                ELSE
+                                    !
+                                    numerator%of_r = &
+                                        numerator%of_r - cbulkj / cionmax * &
+                                        (1.D0 - (1.D0 - zj / zi) * &
+                                         cfactor%of_r**(zj / zi))
+                                    !
+                                END IF
+                                !
+                                NULLIFY (zj)
+                                NULLIFY (cbulkj)
+                            END DO
+                            !
+                        CASE ('ions')
+                            !
+                            denominator%of_r = denominator%of_r - cbulki / cionmax * &
+                                               (1.D0 - gam%of_r * cfactor%of_r)
+                            !
+                            DO itypj = 1, electrolyte%ntyp
+                                zj => electrolyte%ioncctype(itypj)%z
+                                cbulkj => electrolyte%ioncctype(itypj)%cbulk
+                                !
+                                IF (itypj == itypi) THEN
+                                    numerator%of_r = numerator%of_r - cbulkj / cionmax
+                                ELSE
+                                    !
+                                    numerator%of_r = &
+                                        numerator%of_r - cbulkj / cionmax * &
+                                        (1.D0 - (1.D0 - zj / zi) * gam%of_r * &
+                                         cfactor%of_r**(zj / zi))
+                                    !
+                                END IF
+                                !
+                                NULLIFY (zj)
+                                NULLIFY (cbulkj)
+                            END DO
+                            !
+                        END SELECT
+                        !
+                    END IF
+                    !
+                    screening%of_r = screening%of_r + &
+                                     cbulki * zi**2 / kT * cfactor%of_r * numerator%of_r
+                    !
+                    NULLIFY (zi)
+                    NULLIFY (cbulki)
+                END DO
+                !
+                rhoaux%of_r = gam%of_r * rhoaux%of_r / denominator%of_r
+                screening%of_r = screening%of_r * gam%of_r / denominator%of_r**2
+                !
+                delta_en = residual%euclidean_norm()
+                delta_qm = residual%quadratic_mean()
+                totaux = rhoaux%integrate()
+                !
+                !------------------------------------------------------------------------
+                ! Print iteration results
+                !
+                IF (io%lnode) THEN
+                    !
+                    IF (io%verbosity >= 3) THEN
+                        WRITE (io%debug_unit, 1003) iter, delta_qm, delta_en, tol, totaux
+                    ELSE IF (io%verbosity >= 1) THEN
+                        WRITE (io%debug_unit, 1004) iter, delta_qm, delta_en, tol
+                    END IF
+                    !
+                END IF
+                !
+                !------------------------------------------------------------------------
+                ! If residual is small enough exit
+                !
+                IF (delta_en < tol .AND. iter > 0) THEN
+                    !
+                    IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1005)
+                    !
+                    EXIT
+                    !
+                ELSE IF (iter == maxiter) THEN
+                    IF (io%lnode) WRITE (io%unit, 1006)
+                END IF
+                !
+            END DO
             !
-        END DO
-        !
-        IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, iter
-        !
-        CALL cfactor%destroy()
-        !
-        CALL numerator%destroy()
-        !
-        CALL denominator%destroy()
-        !
-        CALL rhoaux%destroy()
-        !
-        CALL rhotot%destroy()
-        !
-        CALL residual%destroy()
-        !
-        CALL screening%destroy()
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, iter
+            !
+            !----------------------------------------------------------------------------
+            ! Clean up local densities
+            !
+            CALL cfactor%destroy()
+            !
+            CALL numerator%destroy()
+            !
+            CALL denominator%destroy()
+            !
+            CALL rhoaux%destroy()
+            !
+            CALL rhotot%destroy()
+            !
+            CALL residual%destroy()
+            !
+            CALL screening%destroy()
+            !
+        END ASSOCIATE
         !
         !--------------------------------------------------------------------------------
         !
