@@ -171,7 +171,7 @@ CONTAINS
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('parabolic')
-                CALL this%cores%correction%calc_v(charges%density, potential)
+                CALL this%cores%correction%potential(charges%density, potential)
                 !
             CASE ('gcs') ! gouy-chapman-stern
                 !
@@ -180,8 +180,8 @@ CONTAINS
                                   'Missing electrolyte for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(charges%electrolyte%base, &
-                                                  charges%density, potential)
+                CALL this%cores%correction%potential(charges%electrolyte%base, &
+                                                     charges%density, potential)
                 !
             CASE ('ms') ! mott-schottky
                 !
@@ -190,8 +190,8 @@ CONTAINS
                                   'Missing semiconductor for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(charges%semiconductor%base, &
-                                                  charges%density, potential)
+                CALL this%cores%correction%potential(charges%semiconductor%base, &
+                                                     charges%density, potential)
                 !
             END SELECT
             !
@@ -241,7 +241,7 @@ CONTAINS
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('parabolic')
-                CALL this%cores%correction%calc_v(charges, local)
+                CALL this%cores%correction%potential(charges, local)
                 !
             CASE ('gcs') ! gouy-chapman-stern
                 !
@@ -250,7 +250,7 @@ CONTAINS
                                   'Missing electrolyte for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(electrolyte%base, charges, local)
+                CALL this%cores%correction%potential(electrolyte%base, charges, local)
                 !
             CASE ('ms') ! mott-schottky
                 !
@@ -259,7 +259,7 @@ CONTAINS
                                   'Missing semiconductor for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_v(semiconductor%base, charges, local)
+                CALL this%cores%correction%potential(semiconductor%base, charges, local)
                 !
             END SELECT
             !
@@ -299,7 +299,7 @@ CONTAINS
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('parabolic')
-                CALL this%cores%correction%calc_gradv(charges%density, gradient)
+                CALL this%cores%correction%gradpotential(charges%density, gradient)
                 !
             CASE ('gcs') ! gouy-chapman-stern
                 !
@@ -308,8 +308,8 @@ CONTAINS
                                   'Missing electrolyte for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(charges%electrolyte%base, &
-                                                      charges%density, gradient)
+                CALL this%cores%correction%gradpotential(charges%electrolyte%base, &
+                                                         charges%density, gradient)
                 !
             CASE ('ms') ! mott-schottky
                 !
@@ -318,8 +318,8 @@ CONTAINS
                                   'Missing semiconductor for electrochemical &
                                   &boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(charges%semiconductor%base, &
-                                                      charges%density, gradient)
+                CALL this%cores%correction%gradpotential(charges%semiconductor%base, &
+                                                         charges%density, gradient)
                 !
             END SELECT
             !
@@ -358,7 +358,7 @@ CONTAINS
             SELECT CASE (TRIM(ADJUSTL(this%cores%correction%type_)))
                 !
             CASE ('parabolic')
-                CALL this%cores%correction%calc_gradv(charges, gradient)
+                CALL this%cores%correction%gradpotential(charges, gradient)
                 !
             CASE ('gcs') ! gouy-chapman-stern
                 !
@@ -367,8 +367,8 @@ CONTAINS
                                   'Missing electrolyte for &
                                   &electrochemical boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(electrolyte%base, charges, &
-                                                      gradient)
+                CALL this%cores%correction%gradpotential(electrolyte%base, charges, &
+                                                         gradient)
                 !
             CASE ('ms') ! mott-schottky
                 !
@@ -377,8 +377,8 @@ CONTAINS
                                   'Missing semiconductor for &
                                   &electrochemical boundary correction', 1)
                 !
-                CALL this%cores%correction%calc_gradv(semiconductor%base, charges, &
-                                                      gradient)
+                CALL this%cores%correction%gradpotential(semiconductor%base, charges, &
+                                                         gradient)
                 !
             END SELECT
             !

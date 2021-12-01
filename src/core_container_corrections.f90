@@ -61,12 +61,12 @@ MODULE class_core_container_corrections
         !--------------------------------------------------------------------------------
         !
         PROCEDURE, PRIVATE :: calc_vperiodic, calc_vgcs, calc_vms
-        GENERIC :: calc_v => calc_vperiodic, calc_vgcs, calc_vms
+        GENERIC :: potential => calc_vperiodic, calc_vgcs, calc_vms
         !
         PROCEDURE, PRIVATE :: calc_gradvperiodic, calc_gradvgcs, calc_gradvms
-        GENERIC :: calc_gradv => calc_gradvperiodic, calc_gradvgcs, calc_gradvms
+        GENERIC :: gradpotential => calc_gradvperiodic, calc_gradvgcs, calc_gradvms
         !
-        PROCEDURE :: calc_f => calc_fperiodic
+        PROCEDURE :: force => calc_fperiodic
         !
         !--------------------------------------------------------------------------------
     END TYPE container_corrections
