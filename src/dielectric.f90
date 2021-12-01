@@ -388,7 +388,7 @@ CONTAINS
         !
         CLASS(environ_dielectric), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER :: ipol
+        INTEGER :: i
         INTEGER, POINTER :: nnr
         REAL(DP), DIMENSION(:), POINTER :: factsqrteps, eps, deps, const
         REAL(DP), DIMENSION(:), POINTER :: scaled, gradscaledmod, laplscaled
@@ -514,12 +514,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! If needed, compute derived quantites
         !
-        DO ipol = 1, 3
-            gradlogeps(ipol, :) = dlogeps * gradscaled(ipol, :)
+        DO i = 1, 3
+            gradlogeps(i, :) = dlogeps * gradscaled(i, :)
             !
             IF (this%nregions > 0) &
-                gradlogeps(ipol, :) = gradlogeps(ipol, :) + &
-                                      dlogeps_dback * gradback(ipol, :)
+                gradlogeps(i, :) = gradlogeps(i, :) + dlogeps_dback * gradback(i, :)
             !
         END DO
         !
@@ -529,11 +528,11 @@ CONTAINS
         !
         IF (this%need_gradient) THEN
             !
-            DO ipol = 1, 3
-                gradeps(ipol, :) = deps * gradscaled(ipol, :)
+            DO i = 1, 3
+                gradeps(i, :) = deps * gradscaled(i, :)
                 !
                 IF (this%nregions > 0) &
-                    gradeps(ipol, :) = gradeps(ipol, :) + deps_dback * gradback(ipol, :)
+                    gradeps(i, :) = gradeps(i, :) + deps_dback * gradback(i, :)
                 !
             END DO
             !
@@ -558,11 +557,11 @@ CONTAINS
                 ELSE
                     gradepsmod2 = 0.D0
                     !
-                    DO ipol = 1, 3
+                    DO i = 1, 3
                         !
                         gradepsmod2 = gradepsmod2 + &
-                                      (deps * gradscaled(ipol, :) + &
-                                       deps_dback * gradback(ipol, :))**2
+                                      (deps * gradscaled(i, :) + &
+                                       deps_dback * gradback(i, :))**2
                         !
                     END DO
                     !
@@ -737,7 +736,7 @@ CONTAINS
         !
         CLASS(environ_dielectric), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER :: i, ipol
+        INTEGER :: i, j
         TYPE(environ_density) :: local
         TYPE(environ_gradient) :: gradlocal
         TYPE(environ_density) :: lapllocal
@@ -791,11 +790,11 @@ CONTAINS
                 !
             END IF
             !
-            DO ipol = 1, 3
+            DO j = 1, 3
                 !
-                this%gradbackground%of_r(ipol, :) = &
-                    this%gradbackground%of_r(ipol, :) * (1.D0 - local%of_r / vol) + &
-                    gradlocal%of_r(ipol, :) * (1.D0 - this%background%of_r / vol)
+                this%gradbackground%of_r(j, :) = &
+                    this%gradbackground%of_r(j, :) * (1.D0 - local%of_r / vol) + &
+                    gradlocal%of_r(j, :) * (1.D0 - this%background%of_r / vol)
                 !
             END DO
             !

@@ -240,7 +240,7 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         !
-        INTEGER :: ipol
+        INTEGER :: i
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
         !
         !--------------------------------------------------------------------------------
@@ -261,10 +261,10 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Multiply by (iG) to get (\grad_ipol a)(G)
             !
-            DO ipol = 1, 3
+            DO i = 1, 3
                 gaux = (0.0_DP, 0.0_DP)
                 !
-                gaux(nl) = this%cell%g(ipol, :) * &
+                gaux(nl) = this%cell%g(i, :) * &
                            CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP)
                 !
                 IF (dfft%lgamma) &
@@ -272,7 +272,7 @@ CONTAINS
                 !
                 CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
                 !
-                grad%of_r(ipol, :) = tpi * DBLE(gaux)
+                grad%of_r(i, :) = tpi * DBLE(gaux)
                 ! add the factor 2\pi/a missing in the definition of G
                 !
             END DO
@@ -298,7 +298,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: div
         !
-        INTEGER :: n, ipol
+        INTEGER :: n, i
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux
         COMPLEX(DP) :: fp, fm, aux1, aux2
         !
@@ -325,10 +325,10 @@ CONTAINS
                 !
                 ! x and y
                 !
-                ipol = 1
-                aux = CMPLX(grad%of_r(ipol, :), grad%of_r(ipol + 1, :), kind=DP)
+                i = 1
+                aux = CMPLX(grad%of_r(i, :), grad%of_r(i + 1, :), kind=DP)
                 !
-                CALL env_fwfft(aux, dfft) ! bring a(ipol,r) to G-space, a(G)
+                CALL env_fwfft(aux, dfft) ! bring a(i,r) to G-space, a(G)
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by iG to get the gradient in G-space
@@ -339,18 +339,18 @@ CONTAINS
                     aux1 = CMPLX(REAL(fp), AIMAG(fm), kind=DP)
                     aux2 = CMPLX(AIMAG(fp), -REAL(fm), kind=DP)
                     !
-                    gaux(nl(n)) = CMPLX(0.0_DP, g(ipol, n), kind=DP) * aux1 + &
-                                  CMPLX(0.0_DP, g(ipol + 1, n), kind=DP) * aux2
+                    gaux(nl(n)) = CMPLX(0.0_DP, g(i, n), kind=DP) * aux1 + &
+                                  CMPLX(0.0_DP, g(i + 1, n), kind=DP) * aux2
                     !
                 END DO
                 !
                 !------------------------------------------------------------------------
                 ! z
                 !
-                ipol = 3
-                aux = CMPLX(grad%of_r(ipol, :), 0.0_DP, kind=DP)
+                i = 3
+                aux = CMPLX(grad%of_r(i, :), 0.0_DP, kind=DP)
                 !
-                CALL env_fwfft(aux, dfft) ! bring a(ipol, r) to G-space, a(G)
+                CALL env_fwfft(aux, dfft) ! bring a(i, r) to G-space, a(G)
                 !
                 !------------------------------------------------------------------------
                 ! Multiply by iG to get the gradient in G-space
@@ -359,7 +359,7 @@ CONTAINS
                 DO n = 1, ngm
                     !
                     gaux(nl(n)) = gaux(nl(n)) + &
-                                  g(ipol, n) * &
+                                  g(i, n) * &
                                   CMPLX(-AIMAG(aux(nl(n))), REAL(aux(nl(n))), kind=DP)
                     !
                     gaux(nlm(n)) = CONJG(gaux(nl(n)))
@@ -367,10 +367,10 @@ CONTAINS
                 !
             ELSE
                 !
-                DO ipol = 1, 3
-                    aux = CMPLX(grad%of_r(ipol, :), 0.0_DP, kind=DP)
+                DO i = 1, 3
+                    aux = CMPLX(grad%of_r(i, :), 0.0_DP, kind=DP)
                     !
-                    CALL env_fwfft(aux, dfft) ! bring a(ipol,r) to G-space, a(G)
+                    CALL env_fwfft(aux, dfft) ! bring a(i,r) to G-space, a(G)
                     !
                     !--------------------------------------------------------------------
                     ! Multiply by iG to get the gradient in G-space
@@ -379,7 +379,7 @@ CONTAINS
                         !
                         gaux(nl(n)) = &
                             gaux(nl(n)) + &
-                            g(ipol, n) * &
+                            g(i, n) * &
                             CMPLX(-AIMAG(aux(nl(n))), REAL(aux(nl(n))), kind=DP)
                         !
                     END DO
@@ -468,7 +468,7 @@ CONTAINS
         TYPE(environ_gradient), INTENT(INOUT) :: grad
         TYPE(environ_hessian), INTENT(INOUT) :: hess
         !
-        INTEGER :: ipol, jpol
+        INTEGER :: i, j
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: aux, gaux, haux
         !
         !--------------------------------------------------------------------------------
@@ -492,26 +492,26 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Multiply by (iG) to get (\grad_ipol a)(G)
             !
-            DO ipol = 1, 3
+            DO i = 1, 3
                 gaux = (0.0_DP, 0.0_DP)
                 !
-                gaux(nl) = g(ipol, :) * CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP)
+                gaux(nl) = g(i, :) * CMPLX(-AIMAG(aux(nl)), REAL(aux(nl)), kind=DP)
                 !
                 IF (dfft%lgamma) &
                     gaux(nlm) = CMPLX(REAL(gaux(nl)), -AIMAG(gaux(nl)), kind=DP)
                 !
                 CALL env_invfft(gaux, dfft) ! bring back to R-space, (\grad_ipol a)(r)
                 !
-                grad%of_r(ipol, :) = tpi * REAL(gaux)
+                grad%of_r(i, :) = tpi * REAL(gaux)
                 ! add the factor 2\pi/a missing in the definition of G
                 !
                 !------------------------------------------------------------------------
                 ! Compute the second derivatives
                 !
-                DO jpol = 1, ipol
+                DO j = 1, i
                     haux = (0.0_DP, 0.0_DP)
                     !
-                    haux(nl) = -g(ipol, :) * g(jpol, :) * &
+                    haux(nl) = -g(i, :) * g(j, :) * &
                                CMPLX(REAL(aux(nl)), AIMAG(aux(nl)), kind=DP)
                     !
                     IF (dfft%lgamma) &
@@ -520,10 +520,10 @@ CONTAINS
                     CALL env_invfft(haux, dfft)
                     ! bring back to R-space (\grad_ipol a)(r)
                     !
-                    hess%of_r(ipol, jpol, :) = tpi2 * REAL(haux)
+                    hess%of_r(i, j, :) = tpi2 * REAL(haux)
                     ! add the factor (2\pi)**2 missing in the definition of G
                     !
-                    hess%of_r(jpol, ipol, :) = hess%of_r(ipol, jpol, :)
+                    hess%of_r(j, i, :) = hess%of_r(i, j, :)
                     !
                 END DO
                 !
@@ -608,7 +608,7 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_out
         !
-        INTEGER :: ipol
+        INTEGER :: i
         !
         TYPE(environ_density) :: local
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
@@ -617,12 +617,12 @@ CONTAINS
         !
         CALL local%init(f%cell)
         !
-        DO ipol = 1, 3
-            local%of_r = grad%of_r(ipol, :)
+        DO i = 1, 3
+            local%of_r = grad%of_r(i, :)
             !
             CALL this%calc_convolution_density(f, local, local)
             !
-            grad_out%of_r(ipol, :) = local%of_r
+            grad_out%of_r(i, :) = local%of_r
         END DO
         !
         CALL local%destroy()
@@ -643,8 +643,8 @@ CONTAINS
         !     !
         !     ALLOCATE (auxg(nnr))
         !     !
-        !     DO ipol = 1, 3
-        !         auxg = CMPLX(grad%of_r(ipol, :), 0.D0, kind=DP)
+        !     DO i = 1, 3
+        !         auxg = CMPLX(grad%of_r(i, :), 0.D0, kind=DP)
         !         !
         !         CALL env_fwfft(auxg, dfft)
         !         !
@@ -661,7 +661,7 @@ CONTAINS
         !         !
         !         CALL env_invfft(auxg, dfft)
         !         !
-        !         grad_out%of_r(ipol, :) = REAL(auxg) * this%cell%omega
+        !         grad_out%of_r(i, :) = REAL(auxg) * this%cell%omega
         !     END DO
         !     !
         ! END ASSOCIATE
@@ -685,7 +685,7 @@ CONTAINS
         !
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
-        INTEGER :: ipol, jpol
+        INTEGER :: i, j
         !
         TYPE(environ_density) :: local
         !
@@ -693,14 +693,14 @@ CONTAINS
         !
         CALL local%init(f%cell)
         !
-        DO ipol = 1, 3
+        DO i = 1, 3
             !
-            DO jpol = 1, 3
-                local%of_r = hess%of_r(ipol, jpol, :)
+            DO j = 1, 3
+                local%of_r = hess%of_r(i, j, :)
                 !
                 CALL this%calc_convolution_density(f, local, local)
                 !
-                hess_out%of_r(ipol, jpol, :) = local%of_r
+                hess_out%of_r(i, j, :) = local%of_r
             END DO
             !
         END DO
@@ -723,11 +723,10 @@ CONTAINS
         !     !
         !     ALLOCATE (auxg(nnr))
         !     !
-        !     DO ipol = 1, 3
+        !     DO i = 1, 3
         !         !
-        !         DO jpol = 1, 3
-        !             !
-        !             auxg = CMPLX(hess%of_r(ipol, jpol, :), 0.D0, kind=DP)
+        !         DO j = 1, 3
+        !             auxg = CMPLX(hess%of_r(i, j, :), 0.D0, kind=DP)
         !             !
         !             CALL env_fwfft(auxg, dfft)
         !             !
@@ -745,7 +744,7 @@ CONTAINS
         !             !
         !             CALL env_invfft(auxg, dfft)
         !             !
-        !             hess_out%of_r(ipol, jpol, :) = REAL(auxg) * this%cell%omega
+        !             hess_out%of_r(i, j, :) = REAL(auxg) * this%cell%omega
         !         END DO
         !         !
         !     END DO
@@ -779,7 +778,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: v
         !
-        INTEGER :: ig
+        INTEGER :: i
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
         !--------------------------------------------------------------------------------
@@ -804,11 +803,8 @@ CONTAINS
             auxr(nl(1)) = auxg(1) * this%correction(1) * pi ! G = 0 term
             !
 !$omp parallel do
-            DO ig = this%cell%gstart, ngm
-                !
-                auxr(nl(ig)) = &
-                    auxg(ig) * (1.D0 / this%cell%gg(ig) + this%correction(ig) * pi)
-                !
+            DO i = this%cell%gstart, ngm
+                auxr(nl(i)) = auxg(i) * (1.D0 / this%cell%gg(i) + this%correction(i) * pi)
             END DO
 !$omp end parallel do
             !
@@ -847,7 +843,7 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: grad_v
         !
-        INTEGER :: ipol, ig
+        INTEGER :: i, j
         REAL(DP) :: fac
         COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, vaux
         !
@@ -871,16 +867,16 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Compute gradient of potential in G space one direction at a time
             !
-            DO ipol = 1, 3
+            DO i = 1, 3
                 auxr = CMPLX(0.0_DP, 0.0_DP)
                 !
 !$omp parallel do private(fac)
-                DO ig = this%cell%gstart, ngm
+                DO j = this%cell%gstart, ngm
                     !
-                    auxr(nl(ig)) = &
-                        this%cell%g(ipol, ig) * &
-                        (1.D0 / this%cell%gg(ig) + this%correction(ig) * pi) * &
-                        CMPLX(-AIMAG(auxg(ig)), REAL(auxg(ig), kind=DP))
+                    auxr(nl(j)) = &
+                        this%cell%g(i, j) * &
+                        (1.D0 / this%cell%gg(j) + this%correction(j) * pi) * &
+                        CMPLX(-AIMAG(auxg(j)), REAL(auxg(j), kind=DP))
                     !
                 END DO
 !$omp end parallel do
@@ -900,7 +896,7 @@ CONTAINS
                 !
                 CALL env_invfft(auxr, dfft)
                 !
-                grad_v%of_r(ipol, :) = REAL(auxr)
+                grad_v%of_r(i, :) = REAL(auxr)
             END DO
             !
         END ASSOCIATE
@@ -929,7 +925,7 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: force(3, nat)
         !
-        INTEGER :: iat, ig, ityp
+        INTEGER :: i, j
         !
         REAL(DP) :: fact ! symmetry factor
         REAL(DP) :: fpibg2 ! 4pi / G^2
@@ -961,10 +957,10 @@ CONTAINS
                    G => this%cell%g, &
                    G2 => this%cell%gg)
             !
-            ALLOCATE (auxr(dfft%nnr))
-            !
             !----------------------------------------------------------------------------
             ! Bring rho to G space
+            !
+            ALLOCATE (auxr(dfft%nnr))
             !
             auxr = CMPLX(rho%of_r, 0.D0, KIND=DP)
             !
@@ -988,28 +984,26 @@ CONTAINS
             !
             force = 0.D0
             !
-            DO iat = 1, nat
-                Z => ions%array(iat)%volume
-                D => ions%array(iat)%spread
-                R = ions%array(iat)%pos - this%cell%origin ! account for any origin shift
+            DO i = 1, nat
+                Z => ions%array(i)%volume
+                D => ions%array(i)%spread
+                R = ions%array(i)%pos - this%cell%origin ! account for any origin shift
                 !
-                DO ig = this%cell%gstart, ngm
-                    fpibg2 = fpi / (G2(ig) * tpi2)
+                DO j = this%cell%gstart, ngm
+                    fpibg2 = fpi / (G2(j) * tpi2)
                     !
-                    t_arg = tpi * SUM(G(:, ig) * R)
+                    t_arg = tpi * SUM(G(:, j) * R)
+                    euler_term = SIN(t_arg) * DBLE(auxg(j)) + COS(t_arg) * AIMAG(auxg(j))
                     !
-                    euler_term = SIN(t_arg) * DBLE(auxg(ig)) + &
-                                 COS(t_arg) * AIMAG(auxg(ig))
-                    !
-                    e_arg = -0.25D0 * D**2 * G2(ig) * tpi2
+                    e_arg = -0.25D0 * D**2 * G2(j) * tpi2
                     gauss_term = fpibg2 * EXP(e_arg)
                     !
-                    main_term = gauss_term + this%correction(ig)
+                    main_term = gauss_term + this%correction(j)
                     !
-                    force(:, iat) = force(:, iat) + G(:, ig) * euler_term * main_term
+                    force(:, i) = force(:, i) + G(:, j) * euler_term * main_term
                 END DO
                 !
-                force(:, iat) = force(:, iat) * Z
+                force(:, i) = force(:, i) * Z
             END DO
             !
             force = force * tpi * e2 * fact
@@ -1038,9 +1032,10 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: hess_v(3, 3, nnr)
         !
-        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
-        INTEGER :: ig, ipol, jpol
+        INTEGER :: i, j, k
         LOGICAL :: gamma_only = .TRUE.
+        !
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg
         !
         CHARACTER(LEN=80) :: sub_name = 'hess_v_h_of_rho_r'
         !
@@ -1067,17 +1062,17 @@ CONTAINS
             !
             ALLOCATE (auxg(nnr))
             !
-            DO ipol = 1, 3
+            DO i = 1, 3
                 !
-                DO jpol = 1, 3
+                DO j = 1, 3
                     auxg = (0.0_DP, 0.0_DP)
                     !
-                    DO ig = this%cell%gstart, this%cell%ngm
+                    DO k = this%cell%gstart, this%cell%ngm
                         !
-                        auxg(nl(ig)) = &
-                            g(ipol, ig) * g(jpol, ig) * &
-                            (1.D0 / this%cell%gg(ig) + this%correction(ig) * tpi2) * &
-                            CMPLX(DBLE(auxr(nl(ig))), AIMAG(auxr(nl(ig))), kind=DP)
+                        auxg(nl(k)) = &
+                            g(i, k) * g(j, k) * &
+                            (1.D0 / this%cell%gg(k) + this%correction(k) * tpi2) * &
+                            CMPLX(DBLE(auxr(nl(k))), AIMAG(auxr(nl(k))), kind=DP)
                         !
                     END DO
                     !
@@ -1092,7 +1087,7 @@ CONTAINS
                     !
                     CALL env_invfft(auxg, dfft) ! bring back to R-space
                     !
-                    hess_v(ipol, jpol, :) = REAL(auxg)
+                    hess_v(i, j, :) = REAL(auxg)
                     !
                 END DO
                 !
@@ -1119,10 +1114,10 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: field(nnr)
         !
-        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, auxe
-        !
-        INTEGER :: ig, ipol
+        INTEGER :: i, j
         LOGICAL :: gamma_only = .TRUE.
+        !
+        COMPLEX(DP), DIMENSION(:), ALLOCATABLE :: auxr, auxg, auxe
         !
         CHARACTER(LEN=80) :: sub_name = 'field_of_grad_rho'
         !
@@ -1146,20 +1141,20 @@ CONTAINS
             !
             ALLOCATE (auxg(nnr))
             !
-            DO ipol = 1, 3
-                auxg = CMPLX(grad_rho(ipol, :), 0.D0, KIND=DP)
+            DO i = 1, 3
+                auxg = CMPLX(grad_rho(i, :), 0.D0, KIND=DP)
                 !
                 CALL env_fwfft(auxg, dfft)
                 !
                 !------------------------------------------------------------------------
                 ! Compute total potential in G space
                 !
-                DO ig = this%cell%gstart, this%cell%ngm
+                DO j = this%cell%gstart, this%cell%ngm
                     !
-                    auxr(nl(ig)) = &
-                        this%cell%g(ipol, ig) * &
-                        (1.D0 / this%cell%gg(ig) + this%correction(ig) * pi) * &
-                        CMPLX(-AIMAG(auxg(nl(ig))), REAL(auxg(nl(ig))), kind=DP)
+                    auxr(nl(j)) = &
+                        this%cell%g(i, j) * &
+                        (1.D0 / this%cell%gg(j) + this%correction(j) * pi) * &
+                        CMPLX(-AIMAG(auxg(nl(j))), REAL(auxg(nl(j))), kind=DP)
                     !
                 END DO
                 !
@@ -1202,8 +1197,8 @@ CONTAINS
         !
         CLASS(core_fft), TARGET, INTENT(INOUT) :: this
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir, ig
         REAL(DP) :: r(3), rws, upperbound, ecutrho
         COMPLEX(DP), ALLOCATABLE :: aux(:)
         !
@@ -1243,24 +1238,24 @@ CONTAINS
             ALLOCATE (aux(dfft%nnr))
             aux = (0._DP, 0._DP)
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, 0, 0, cell%origin, r, rws, physical)
+                CALL cell%get_min_distance(i, 0, 0, cell%origin, r, rws, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                aux(ir) = smooth_coulomb_r(alpha, SQRT(rws))
+                aux(i) = smooth_coulomb_r(alpha, SQRT(rws))
                 !
             END DO
             !
             CALL env_fwfft(aux, dfft)
             !
 !$omp parallel do
-            DO ig = 1, cell%ngm
+            DO i = 1, cell%ngm
                 !
-                mt_corr(ig) = cell%omega * REAL(aux(dfft%nl(ig))) - &
-                              smooth_coulomb_g(alpha, beta, tpi2 * cell%gg(ig))
+                mt_corr(i) = cell%omega * REAL(aux(dfft%nl(i))) - &
+                             smooth_coulomb_g(alpha, beta, tpi2 * cell%gg(i))
                 !
             END DO
 !$omp end parallel do

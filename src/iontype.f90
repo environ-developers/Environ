@@ -328,7 +328,8 @@ CONTAINS
         TYPE(environ_iontype), INTENT(IN) :: this(ntyp)
         INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: base_verbose, local_verbose, local_unit, ityp
+        INTEGER :: i
+        INTEGER :: base_verbose, local_verbose, local_unit
         !
         CHARACTER(LEN=80) :: sub_name = 'print_environ_iontypes'
         !
@@ -378,24 +379,24 @@ CONTAINS
             IF (local_verbose < 3) THEN
                 WRITE (local_unit, 1002) ! table headers
                 !
-                DO ityp = 1, ntyp
+                DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1003) &
-                        this(ityp)%index, this(ityp)%label, &
-                        this(ityp)%atmnum, this(ityp)%zv
+                        this(i)%index, this(i)%label, &
+                        this(i)%atmnum, this(i)%zv
                     !
                 END DO
                 !
             ELSE
                 WRITE (local_unit, 1004) ! table headers
                 !
-                DO ityp = 1, ntyp
+                DO i = 1, ntyp
                     !
                     WRITE (local_unit, 1005) &
-                        this(ityp)%index, this(ityp)%label, &
-                        this(ityp)%atmnum, this(ityp)%zv, &
-                        this(ityp)%atomicspread, this(ityp)%corespread, &
-                        this(ityp)%solvationrad
+                        this(i)%index, this(i)%label, &
+                        this(i)%atmnum, this(i)%zv, &
+                        this(i)%atomicspread, this(i)%corespread, &
+                        this(i)%solvationrad
                     !
                 END DO
                 !

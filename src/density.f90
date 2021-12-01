@@ -246,8 +246,8 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), rhoir, r2
         INTEGER :: dim, axis
         !
@@ -259,14 +259,14 @@ CONTAINS
         dipole = 0.D0
         quadrupole = 0.D0
         !
-        DO ir = 1, cell%ir_end
+        DO i = 1, cell%ir_end
             !
-            CALL cell%get_min_distance(ir, 0, 3, origin, r, r2, physical)
+            CALL cell%get_min_distance(i, 0, 3, origin, r, r2, physical)
             ! compute minimum distance using minimum image convention
             !
             IF (.NOT. physical) CYCLE
             !
-            rhoir = this%of_r(ir)
+            rhoir = this%of_r(i)
             !
             !----------------------------------------------------------------------------
             ! Multipoles
@@ -601,7 +601,7 @@ CONTAINS
         !
         CLASS(environ_density), TARGET, INTENT(IN) :: this
         !
-        INTEGER :: ir, ir1, ir2, ir3
+        INTEGER :: i, j, k, l
         INTEGER :: count
         INTEGER :: nr1x, nr2x, nr3x
         INTEGER :: nr1, nr2, nr3
@@ -644,14 +644,14 @@ CONTAINS
         !
         count = 0
         !
-        DO ir1 = 1, nr1
+        DO i = 1, nr1
             !
-            DO ir2 = 1, nr2
+            DO j = 1, nr2
                 !
-                DO ir3 = 1, nr3
+                DO k = 1, nr3
                     count = count + 1
-                    ir = ir1 + (ir2 - 1) * nr1 + (ir3 - 1) * nr1 * nr2
-                    tmp = DBLE(flocal(ir))
+                    l = i + (j - 1) * nr1 + (k - 1) * nr1 * nr2
+                    tmp = DBLE(flocal(l))
                     !
                     IF (ABS(tmp) < 1.D-99) tmp = 0.D0
                     !

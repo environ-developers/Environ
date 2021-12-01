@@ -146,7 +146,8 @@ CONTAINS
         !
         CLASS(environ_system), INTENT(INOUT) :: this
         !
-        INTEGER :: i, icor, max_ntyp
+        INTEGER :: i, j
+        INTEGER :: max_ntyp
         REAL(DP) :: charge, dist
         INTEGER, POINTER :: ityp
         REAL(DP), POINTER :: zv
@@ -195,12 +196,12 @@ CONTAINS
             !
             dist = 0.D0
             !
-            DO icor = 1, 3
+            DO j = 1, 3
                 !
-                IF ((this%dim == 1 .AND. icor == this%axis) .OR. &
-                    (this%dim == 2 .AND. icor /= this%axis)) CYCLE
+                IF ((this%dim == 1 .AND. j == this%axis) .OR. &
+                    (this%dim == 2 .AND. j /= this%axis)) CYCLE
                 !
-                dist = dist + (this%ions%tau(icor, i) - this%pos(icor))**2
+                dist = dist + (this%ions%tau(j, i) - this%pos(j))**2
             END DO
             !
             ! need to modify it into a smooth maximum to compute derivatives

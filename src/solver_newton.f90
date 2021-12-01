@@ -89,7 +89,7 @@ CONTAINS
     !>
     !!
     !------------------------------------------------------------------------------------
-    SUBROUTINE init_solver_newton(this, cores, direct ,maxiter, tol, auxiliary)
+    SUBROUTINE init_solver_newton(this, cores, direct, maxiter, tol, auxiliary)
         !--------------------------------------------------------------------------------
         !
         IMPLICIT NONE
@@ -202,7 +202,7 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
-        INTEGER :: iter, itypi, itypj, ir
+        INTEGER :: i, j, k, l
         REAL(DP) :: totaux, delta_qm, delta_en, kT, z, arg
         !
         TYPE(environ_density) :: residual, rhotot, numerator, denominator, &
@@ -282,7 +282,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Start Newton's algorithm
             !
-            DO iter = 1, maxiter
+            DO i = 1, maxiter
                 rhotot%of_r = charges%of_r + rhoaux%of_r + screening%of_r * v%of_r
                 residual%of_r = v%of_r
                 !
@@ -296,21 +296,21 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! General solution for symmetric & asymmetric electrolyte
                 !
-                DO itypi = 1, base%ntyp
-                    zi => base%ioncctype(itypi)%z
-                    cbulki => base%ioncctype(itypi)%cbulk
+                DO j = 1, base%ntyp
+                    zi => base%ioncctype(j)%z
+                    cbulki => base%ioncctype(j)%cbulk
                     !
                     cfactor%of_r = 1.D0
                     !
-                    DO ir = 1, cell%ir_end
-                        arg = -zi * v%of_r(ir) / kT
+                    DO k = 1, cell%ir_end
+                        arg = -zi * v%of_r(k) / kT
                         !
                         IF (arg > exp_arg_limit) THEN
-                            cfactor%of_r(ir) = EXP(exp_arg_limit)
+                            cfactor%of_r(k) = EXP(exp_arg_limit)
                         ELSE IF (arg < -exp_arg_limit) THEN
-                            cfactor%of_r(ir) = EXP(-exp_arg_limit)
+                            cfactor%of_r(k) = EXP(-exp_arg_limit)
                         ELSE
-                            cfactor%of_r(ir) = EXP(arg)
+                            cfactor%of_r(k) = EXP(arg)
                         END IF
                         !
                     END DO
@@ -327,11 +327,11 @@ CONTAINS
                             denominator%of_r = denominator%of_r - &
                                                cbulki / cionmax * (1.D0 - cfactor%of_r)
                             !
-                            DO itypj = 1, base%ntyp
-                                zj => base%ioncctype(itypj)%z
-                                cbulkj => base%ioncctype(itypj)%cbulk
+                            DO l = 1, base%ntyp
+                                zj => base%ioncctype(l)%z
+                                cbulkj => base%ioncctype(l)%cbulk
                                 !
-                                IF (itypj == itypi) THEN
+                                IF (l == j) THEN
                                     numerator%of_r = numerator%of_r - cbulkj / cionmax
                                 ELSE
                                     !
@@ -351,11 +351,11 @@ CONTAINS
                             denominator%of_r = denominator%of_r - cbulki / cionmax * &
                                                (1.D0 - gam%of_r * cfactor%of_r)
                             !
-                            DO itypj = 1, base%ntyp
-                                zj => base%ioncctype(itypj)%z
-                                cbulkj => base%ioncctype(itypj)%cbulk
+                            DO l = 1, base%ntyp
+                                zj => base%ioncctype(l)%z
+                                cbulkj => base%ioncctype(l)%cbulk
                                 !
-                                IF (itypj == itypi) THEN
+                                IF (l == j) THEN
                                     numerator%of_r = numerator%of_r - cbulkj / cionmax
                                 ELSE
                                     !
@@ -397,9 +397,9 @@ CONTAINS
                 IF (io%lnode) THEN
                     !
                     IF (io%verbosity >= 3) THEN
-                        WRITE (io%debug_unit, 1003) iter, delta_qm, delta_en, tol, totaux
+                        WRITE (io%debug_unit, 1003) i, delta_qm, delta_en, tol, totaux
                     ELSE IF (io%verbosity >= 1) THEN
-                        WRITE (io%debug_unit, 1004) iter, delta_qm, delta_en, tol
+                        WRITE (io%debug_unit, 1004) i, delta_qm, delta_en, tol
                     END IF
                     !
                 END IF
@@ -407,19 +407,19 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! If residual is small enough exit
                 !
-                IF (delta_en < tol .AND. iter > 0) THEN
+                IF (delta_en < tol .AND. i > 0) THEN
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1005)
                     !
                     EXIT
                     !
-                ELSE IF (iter == maxiter) THEN
+                ELSE IF (i == maxiter) THEN
                     IF (io%lnode) WRITE (io%unit, 1006)
                 END IF
                 !
             END DO
             !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, iter
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, i
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities

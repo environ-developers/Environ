@@ -321,3 +321,5 @@ sum_ = 1 + var1 + &
 - use `array = ...` when operating on the entire array (no need for `array(:)`)
 
   - `array(1, :) = ...` is necessary when operating on all members along specific dimensions
+
+- use `i`, `j`, `k`, `l`, `m`, `n` for loop indices whenever possible

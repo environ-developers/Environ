@@ -85,8 +85,8 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: density
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, length
         REAL(DP), ALLOCATABLE :: local(:)
         !
@@ -141,16 +141,16 @@ CONTAINS
             ALLOCATE (local(cell%nnr))
             local = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
                 !
                 r2 = r2 / spread**2
                 !
-                IF (r2 <= exp_tol) local(ir) = EXP(-r2) ! compute Gaussian function
+                IF (r2 <= exp_tol) local(i) = EXP(-r2) ! compute Gaussian function
                 !
             END DO
             !
@@ -175,8 +175,8 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, length
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
@@ -236,16 +236,16 @@ CONTAINS
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
                 !
                 r2 = r2 / spread**2
                 !
-                IF (r2 <= exp_tol) gradlocal(:, ir) = -EXP(-r2) * r
+                IF (r2 <= exp_tol) gradlocal(:, i) = -EXP(-r2) * r
                 ! compute gradient of Gaussian function
                 !
             END DO

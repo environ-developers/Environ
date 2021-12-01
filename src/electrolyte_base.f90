@@ -126,7 +126,7 @@ CONTAINS
         !
         CLASS(environ_electrolyte_base), INTENT(INOUT) :: this
         !
-        INTEGER :: ityp
+        INTEGER :: i
         REAL(DP) :: neutral, sumcbulk, sum_cz2, arg, KT
         !
         CHARACTER(LEN=80) :: sub_name = 'init_environ_electrolyte_base'
@@ -151,12 +151,12 @@ CONTAINS
         neutral = 0.D0
         sum_cz2 = 0.D0
         !
-        DO ityp = 1, ntyp
+        DO i = 1, ntyp
             !
-            CALL this%ioncctype(ityp)%init(ityp, cbulk(ityp), z(ityp), cell)
+            CALL this%ioncctype(i)%init(i, cbulk(i), z(i), cell)
             !
-            neutral = neutral + cbulk(ityp) * z(ityp)
-            sum_cz2 = sum_cz2 + this%ioncctype(ityp)%cbulk * this%ioncctype(ityp)%z**2
+            neutral = neutral + cbulk(i) * z(i)
+            sum_cz2 = sum_cz2 + this%ioncctype(i)%cbulk * this%ioncctype(i)%z**2
         END DO
         !
         IF (neutral > 1.D-8) &
@@ -195,7 +195,7 @@ CONTAINS
         !
         CLASS(environ_electrolyte_base), INTENT(INOUT) :: this
         !
-        INTEGER :: ityp
+        INTEGER :: i
         !
         CHARACTER(LEN=80) :: sub_name = 'destroy_environ_electrolyte_base'
         !
@@ -205,8 +205,8 @@ CONTAINS
         !
         !--------------------------------------------------------------------------------
         !
-        DO ityp = 1, this%ntyp
-            CALL this%ioncctype(ityp)%destroy()
+        DO i = 1, this%ntyp
+            CALL this%ioncctype(i)%destroy()
         END DO
         !
         DEALLOCATE (this%ioncctype)

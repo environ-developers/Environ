@@ -448,7 +448,7 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         !
-        INTEGER :: iter
+        INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en
         TYPE(environ_density) :: r, z, p, Ap, l
         TYPE(environ_gradient) :: g
@@ -519,7 +519,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Start gradient descent
             !
-            DO iter = 1, maxiter
+            DO i = 1, maxiter
                 !
                 !------------------------------------------------------------------------
                 ! Apply preconditioner to new state
@@ -579,13 +579,13 @@ CONTAINS
                     IF (io%verbosity >= 3) THEN
                         !
                         WRITE (io%debug_unit, 1003) &
-                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            i, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                             tolvelect
                         !
                     ELSE IF (io%verbosity >= 1) THEN
                         !
                         WRITE (io%debug_unit, 1004) &
-                            iter, alpha, beta, delta_qm, delta_en, tolvelect
+                            i, alpha, beta, delta_qm, delta_en, tolvelect
                         !
                     END IF
                     !
@@ -594,19 +594,19 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! If residual is small enough exit
                 !
-                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                IF (delta_en < tolvelect .AND. i > 0) THEN
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1005)
                     !
                     EXIT
                     !
-                ELSE IF (iter == maxiter) THEN
+                ELSE IF (i == maxiter) THEN
                     IF (io%lnode) WRITE (io%unit, 1006)
                 END IF
                 !
             END DO
             !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, iter
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1007) delta_en, i
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -667,7 +667,7 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         !
-        INTEGER :: iter
+        INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
         !
@@ -771,7 +771,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Start gradient descent
             !
-            DO iter = 1, maxiter
+            DO i = 1, maxiter
                 !
                 !------------------------------------------------------------------------
                 ! Apply preconditioner to new state
@@ -824,13 +824,13 @@ CONTAINS
                     IF (io%verbosity >= 3) THEN
                         !
                         WRITE (io%debug_unit, 1105) &
-                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            i, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                             tolvelect
                         !
                     ELSE IF (io%verbosity >= 1) THEN
                         !
                         WRITE (io%debug_unit, 1106) &
-                            iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
+                            i, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
                         !
                     END IF
                     !
@@ -839,13 +839,13 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! If residual is small enough exit
                 !
-                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                IF (delta_en < tolvelect .AND. i > 0) THEN
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1107)
                     !
                     EXIT
                     !
-                ELSE IF (iter == maxiter) THEN
+                ELSE IF (i == maxiter) THEN
                     IF (io%lnode) WRITE (io%unit, 1108)
                 END IF
                 !
@@ -861,7 +861,7 @@ CONTAINS
             !
             v%of_r = v%of_r + shift
             !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1109) delta_en, iter
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1109) delta_en, i
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -925,7 +925,7 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         !
-        INTEGER :: iter
+        INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_en, delta_qm
         TYPE(environ_density) :: r, z, p, Ap
         TYPE(environ_gradient) :: g
@@ -988,7 +988,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Start gradient descent
             !
-            DO iter = 1, maxiter
+            DO i = 1, maxiter
                 !
                 !------------------------------------------------------------------------
                 ! Apply preconditioner to new state
@@ -1048,13 +1048,13 @@ CONTAINS
                     IF (io%verbosity >= 3) THEN
                         !
                         WRITE (io%debug_unit, 1203) &
-                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            i, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                             tolvelect
                         !
                     ELSE IF (io%verbosity >= 1) THEN
                         !
                         WRITE (io%debug_unit, 1204) &
-                            iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
+                            i, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
                         !
                     END IF
                     !
@@ -1063,19 +1063,19 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! If residual is small enough exit
                 !
-                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                IF (delta_en < tolvelect .AND. i > 0) THEN
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1205)
                     !
                     EXIT
                     !
-                ELSE IF (iter == maxiter) THEN
+                ELSE IF (i == maxiter) THEN
                     IF (io%lnode) WRITE (io%unit, 1206)
                 END IF
                 !
             END DO
             !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1207) delta_en, iter
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1207) delta_en, i
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities
@@ -1135,7 +1135,7 @@ CONTAINS
         !
         TYPE(environ_density), POINTER :: eps, factsqrt
         !
-        INTEGER :: iter
+        INTEGER :: i
         REAL(DP) :: rznew, rzold, alpha, beta, pAp, delta_qm, delta_en, shift
         TYPE(environ_density) :: r, z, p, Ap, invsqrt
         !
@@ -1268,7 +1268,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Start gradient descent
             !
-            DO iter = 1, maxiter
+            DO i = 1, maxiter
                 !
                 !------------------------------------------------------------------------
                 ! Apply preconditioner to new state
@@ -1335,13 +1335,13 @@ CONTAINS
                     IF (io%verbosity >= 3) THEN
                         !
                         WRITE (io%debug_unit, 1305) &
-                            iter, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
+                            i, alpha, beta, rznew, rzold, pAp, delta_qm, delta_en, &
                             tolvelect
                         !
                     ELSE IF (io%verbosity >= 1) THEN
                         !
                         WRITE (io%debug_unit, 1306) &
-                            iter, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
+                            i, alpha, pAp, rzold, delta_qm, delta_en, tolvelect
                         !
                     END IF
                     !
@@ -1350,13 +1350,13 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! If residual is small enough exit
                 !
-                IF (delta_en < tolvelect .AND. iter > 0) THEN
+                IF (delta_en < tolvelect .AND. i > 0) THEN
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1307)
                     !
                     EXIT
                     !
-                ELSE IF (iter == maxiter) THEN
+                ELSE IF (i == maxiter) THEN
                     IF (io%lnode) WRITE (io%unit, 1308)
                 END IF
                 !
@@ -1372,7 +1372,7 @@ CONTAINS
             !
             v%of_r = v%of_r + shift
             !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1309) delta_en, iter
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1309) delta_en, i
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities

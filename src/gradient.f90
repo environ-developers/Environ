@@ -258,7 +258,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: dens
         !
-        INTEGER :: ir
+        INTEGER :: i
         !
         CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_gradient'
         !
@@ -272,8 +272,8 @@ CONTAINS
         IF (.NOT. ASSOCIATED(this%cell, dens%cell)) &
             CALL io%error(sub_name, 'Mismatch in domain of input and output', 1)
         !
-        DO ir = 1, dens%cell%ir_end
-            dens%of_r(ir) = SUM(this%of_r(:, ir) * gradB%of_r(:, ir))
+        DO i = 1, dens%cell%ir_end
+            dens%of_r(i) = SUM(this%of_r(:, i) * gradB%of_r(:, i))
         END DO
         !
         !--------------------------------------------------------------------------------
@@ -290,12 +290,12 @@ CONTAINS
         CLASS(environ_gradient), INTENT(IN) :: this
         TYPE(environ_density), INTENT(IN) :: density
         !
+        INTEGER :: i
+        REAL(DP) :: scalar_product
+        !
         REAL(DP) :: res(3)
         !
         INTEGER, POINTER :: ir_end
-        !
-        INTEGER :: ipol
-        REAL(DP) :: scalar_product
         !
         CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_gradient_density'
         !
@@ -308,14 +308,12 @@ CONTAINS
         !
         ir_end => density%cell%ir_end
         !
-        DO ipol = 1, 3
-            !
-            scalar_product = DOT_PRODUCT(this%of_r(ipol, 1:ir_end), &
-                                         density%of_r(1:ir_end))
+        DO i = 1, 3
+            scalar_product = DOT_PRODUCT(this%of_r(i, 1:ir_end), density%of_r(1:ir_end))
             !
             CALL env_mp_sum(scalar_product, density%cell%dfft%comm)
             !
-            res(ipol) = scalar_product * density%cell%domega
+            res(i) = scalar_product * density%cell%domega
         END DO
         !
         !--------------------------------------------------------------------------------

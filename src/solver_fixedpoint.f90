@@ -325,7 +325,7 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         TYPE(environ_dielectric), TARGET, INTENT(INOUT) :: dielectric
         !
-        INTEGER :: iter
+        INTEGER :: i
         REAL(DP) :: total, totpol, totzero, totiter, delta_qm, delta_en
         TYPE(environ_density) :: rhozero
         TYPE(environ_density) :: residual
@@ -390,7 +390,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Start iterative algorithm
             !
-            DO iter = 1, maxiter
+            DO i = 1, maxiter
                 rhotot%of_r = charges%of_r + rhozero%of_r + rhoiter%of_r
                 !
                 CALL this%direct%grad_poisson(rhotot, gradpoisson, electrolyte, &
@@ -413,11 +413,11 @@ CONTAINS
                     IF (io%verbosity >= 3) THEN
                         !
                         WRITE (io%debug_unit, 1004) &
-                            iter, delta_qm, delta_en, tolrhoaux, totiter, totzero, &
+                            i, delta_qm, delta_en, tolrhoaux, totiter, totzero, &
                             totpol, total
                         !
                     ELSE IF (io%verbosity >= 1) THEN
-                        WRITE (io%debug_unit, 1005) iter, delta_qm, delta_en, tolrhoaux
+                        WRITE (io%debug_unit, 1005) i, delta_qm, delta_en, tolrhoaux
                     END IF
                     !
                 END IF
@@ -425,19 +425,19 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! If residual is small enough exit
                 !
-                IF (delta_en < tolrhoaux .AND. iter > 0) THEN
+                IF (delta_en < tolrhoaux .AND. i > 0) THEN
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1006)
                     !
                     EXIT
                     !
-                ELSE IF (iter == maxiter) THEN
+                ELSE IF (i == maxiter) THEN
                     IF (io%lnode) WRITE (io%unit, 1007)
                 END IF
                 !
             END DO
             !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1008) delta_en, iter
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1008) delta_en, i
             !
             !----------------------------------------------------------------------------
             ! Compute total electrostatic potential
@@ -500,7 +500,7 @@ CONTAINS
         TYPE(environ_density), TARGET, INTENT(INOUT) :: v
         TYPE(environ_dielectric), INTENT(INOUT), OPTIONAL :: dielectric
         !
-        INTEGER :: iter, ityp, ir
+        INTEGER :: i, j, k
         REAL(DP) :: total, totaux, delta_qm, delta_en, kT, factor, arg
         TYPE(environ_density) :: residual, rhotot, denominator, rhoaux, cfactor
         !
@@ -576,7 +576,7 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Start iterative algorithm
             !
-            DO iter = 1, maxiter
+            DO i = 1, maxiter
                 !
                 rhotot%of_r = charges%of_r + rhoaux%of_r
                 !
@@ -592,21 +592,21 @@ CONTAINS
                 residual%of_r = 0.D0
                 denominator%of_r = 1.D0
                 !
-                DO ityp = 1, base%ntyp
-                    cbulk => base%ioncctype(ityp)%cbulk
-                    z => base%ioncctype(ityp)%z
+                DO j = 1, base%ntyp
+                    cbulk => base%ioncctype(j)%cbulk
+                    z => base%ioncctype(j)%z
                     !
                     cfactor%of_r = 1.D0
                     !
-                    DO ir = 1, cell%ir_end
-                        arg = -z * v%of_r(ir) / kT
+                    DO k = 1, cell%ir_end
+                        arg = -z * v%of_r(k) / kT
                         !
                         IF (arg > exp_arg_limit) THEN
-                            cfactor%of_r(ir) = EXP(exp_arg_limit)
+                            cfactor%of_r(k) = EXP(exp_arg_limit)
                         ELSE IF (arg < -exp_arg_limit) THEN
-                            cfactor%of_r(ir) = EXP(-exp_arg_limit)
+                            cfactor%of_r(k) = EXP(-exp_arg_limit)
                         ELSE
-                            cfactor%of_r(ir) = EXP(arg)
+                            cfactor%of_r(k) = EXP(arg)
                         END IF
                         !
                     END DO
@@ -659,10 +659,10 @@ CONTAINS
                     IF (io%verbosity >= 3) THEN
                         !
                         WRITE (io%debug_unit, 1103) &
-                            iter, delta_qm, delta_en, tolrhoaux, totaux
+                            i, delta_qm, delta_en, tolrhoaux, totaux
                         !
                     ELSE IF (io%verbosity >= 1) THEN
-                        WRITE (io%debug_unit, 1104) iter, delta_qm, delta_en, tolrhoaux
+                        WRITE (io%debug_unit, 1104) i, delta_qm, delta_en, tolrhoaux
                     END IF
                     !
                 END IF
@@ -670,19 +670,19 @@ CONTAINS
                 !------------------------------------------------------------------------
                 ! If residual is small enough exit
                 !
-                IF (delta_en < tolrhoaux .AND. iter > 0) THEN
+                IF (delta_en < tolrhoaux .AND. i > 0) THEN
                     !
                     IF (io%verbosity >= 1 .AND. io%lnode) WRITE (io%debug_unit, 1105)
                     !
                     EXIT
                     !
-                ELSE IF (iter == maxiter) THEN
+                ELSE IF (i == maxiter) THEN
                     IF (io%lnode) WRITE (io%unit, 1106)
                 END IF
                 !
             END DO
             !
-            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1107) delta_en, iter
+            IF (io%lstdout .AND. io%verbosity >= 1) WRITE (io%unit, 1107) delta_en, i
             !
             !----------------------------------------------------------------------------
             ! Clean up local densities

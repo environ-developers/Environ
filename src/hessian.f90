@@ -254,7 +254,7 @@ CONTAINS
         !
         TYPE(environ_gradient), INTENT(INOUT) :: gradout
         !
-        INTEGER :: ir, ipol
+        INTEGER :: i, j
         !
         CHARACTER(LEN=80) :: sub_name = 'scalar_product_environ_hessian'
         !
@@ -268,10 +268,10 @@ CONTAINS
         IF (.NOT. ASSOCIATED(gradin%cell, gradout%cell)) &
             CALL io%error(sub_name, 'Mismatch in domain of input and output', 1)
         !
-        DO ir = 1, this%cell%ir_end
+        DO i = 1, this%cell%ir_end
             !
-            DO ipol = 1, 3
-                gradout%of_r(ipol, ir) = SUM(this%of_r(:, ipol, ir) * gradin%of_r(:, ir))
+            DO j = 1, 3
+                gradout%of_r(j, i) = SUM(this%of_r(:, j, i) * gradin%of_r(:, i))
             END DO
             !
         END DO

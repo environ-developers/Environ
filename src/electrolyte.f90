@@ -294,13 +294,13 @@ CONTAINS
         !
         CLASS(environ_electrolyte), TARGET, INTENT(INOUT) :: this
         !
+        INTEGER :: i, j
+        REAL(DP) :: kT, factor, sumcbulk, arg
+        TYPE(environ_density) :: denominator
+        !
         REAL(DP), POINTER :: z, cbulk, cionmax
         REAL(DP), DIMENSION(:), POINTER :: pot, rho, c, cfactor, gam
         TYPE(environ_electrolyte_base), POINTER :: base
-        !
-        REAL(DP) :: kT, factor, sumcbulk, arg
-        INTEGER :: ityp, ir
-        TYPE(environ_density) :: denominator
         !
         REAL(DP), PARAMETER :: exp_arg_limit = 40.D0
         !
@@ -321,10 +321,10 @@ CONTAINS
         !
         denominator%of_r = 1.D0
         !
-        DO ityp = 1, base%ntyp
-            cfactor => base%ioncctype(ityp)%cfactor%of_r
-            cbulk => base%ioncctype(ityp)%cbulk
-            z => base%ioncctype(ityp)%z
+        DO i = 1, base%ntyp
+            cfactor => base%ioncctype(i)%cfactor%of_r
+            cbulk => base%ioncctype(i)%cbulk
+            z => base%ioncctype(i)%z
             !
             cfactor = 1.D0
             !
@@ -341,20 +341,20 @@ CONTAINS
                 !
             ELSE ! full PB
                 !
-                DO ir = 1, potential%cell%ir_end
+                DO j = 1, potential%cell%ir_end
                     !
                     !--------------------------------------------------------------------
                     ! Numerical problems arise when computing exp( -z*pot/kT )
                     ! in regions close to the nuclei (exponent is too large).
                     !
-                    arg = -z * pot(ir) / kT
+                    arg = -z * pot(j) / kT
                     !
                     IF (arg > exp_arg_limit) THEN
-                        cfactor(ir) = EXP(exp_arg_limit)
+                        cfactor(j) = EXP(exp_arg_limit)
                     ELSE IF (arg < -exp_arg_limit) THEN
-                        cfactor(ir) = EXP(-exp_arg_limit)
+                        cfactor(j) = EXP(-exp_arg_limit)
                     ELSE
-                        cfactor(ir) = EXP(arg)
+                        cfactor(j) = EXP(arg)
                     END IF
                     !
                 END DO
@@ -386,11 +386,11 @@ CONTAINS
             NULLIFY (z)
         END DO
         !
-        DO ityp = 1, base%ntyp
-            c => base%ioncctype(ityp)%c%of_r
-            cfactor => base%ioncctype(ityp)%cfactor%of_r
-            cbulk => base%ioncctype(ityp)%cbulk
-            z => base%ioncctype(ityp)%z
+        DO i = 1, base%ntyp
+            c => base%ioncctype(i)%c%of_r
+            cfactor => base%ioncctype(i)%cfactor%of_r
+            cbulk => base%ioncctype(i)%cbulk
+            z => base%ioncctype(i)%z
             !
             c = gam * cbulk * cfactor / denominator%of_r
             rho = rho + c * z
@@ -447,7 +447,7 @@ CONTAINS
         !
         REAL(DP), INTENT(OUT) :: energy
         !
-        INTEGER :: ityp
+        INTEGER :: i
         REAL(DP) :: kT, sumcbulk, logterm, integral
 
         REAL(DP), POINTER :: cionmax
@@ -502,10 +502,10 @@ CONTAINS
         ELSE
             arg%of_r = 0.D0
             !
-            DO ityp = 1, base%ntyp
+            DO i = 1, base%ntyp
                 !
-                arg%of_r = arg%of_r + base%ioncctype(ityp)%cfactor%of_r * &
-                           base%ioncctype(ityp)%cbulk
+                arg%of_r = arg%of_r + base%ioncctype(i)%cfactor%of_r * &
+                           base%ioncctype(i)%cbulk
                 !
             END DO
             !
@@ -560,11 +560,11 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: de_dboundary
         !
+        INTEGER :: i
+        REAL(DP) :: kT, sumcbulk
+        !
         REAL(DP), POINTER :: gam(:), cionmax
         TYPE(environ_electrolyte_base), POINTER :: base
-        !
-        INTEGER :: ityp
-        REAL(DP) :: kT, sumcbulk
         !
         TYPE(environ_density) :: arg
         !
@@ -613,11 +613,11 @@ CONTAINS
             !
             arg%of_r = 0.D0
             !
-            DO ityp = 1, base%ntyp
+            DO i = 1, base%ntyp
                 !
                 arg%of_r = arg%of_r + &
-                           base%ioncctype(ityp)%cfactor%of_r * &
-                           base%ioncctype(ityp)%cbulk
+                           base%ioncctype(i)%cfactor%of_r * &
+                           base%ioncctype(i)%cbulk
                 !
             END DO
             !
@@ -678,7 +678,8 @@ CONTAINS
         CLASS(environ_electrolyte), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN), OPTIONAL :: verbose, debug_verbose, unit
         !
-        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit, ityp
+        INTEGER :: i
+        INTEGER :: base_verbose, local_verbose, passed_verbose, local_unit
         !
         TYPE(environ_electrolyte_base), POINTER :: base
         !
@@ -750,26 +751,25 @@ CONTAINS
                 WRITE (local_unit, 1006) ! header
             END IF
             !
-            DO ityp = 1, base%ntyp
+            DO i = 1, base%ntyp
                 !
                 IF (io%lnode) &
                     WRITE (local_unit, 1007) &
-                    base%ioncctype(ityp)%index, base%ioncctype(ityp)%cbulk, &
-                    base%ioncctype(ityp)%cbulk * AMU_SI / BOHR_RADIUS_SI**3, &
-                    base%ioncctype(ityp)%z
+                    base%ioncctype(i)%index, base%ioncctype(i)%cbulk, &
+                    base%ioncctype(i)%cbulk * AMU_SI / BOHR_RADIUS_SI**3, &
+                    base%ioncctype(i)%z
                 !
             END DO
             !
             IF (local_verbose >= 5) THEN
                 !
-                DO ityp = 1, base%ntyp
+                DO i = 1, base%ntyp
                     !
-                    CALL base%ioncctype(ityp)%c%printout(passed_verbose, debug_verbose, &
-                                                         local_unit)
+                    CALL base%ioncctype(i)%c%printout(passed_verbose, debug_verbose, &
+                                                      local_unit)
                     !
-                    CALL base%ioncctype(ityp)%cfactor%printout(passed_verbose, &
-                                                               debug_verbose, &
-                                                               local_unit)
+                    CALL base%ioncctype(i)%cfactor%printout(passed_verbose, &
+                                                            debug_verbose, local_unit)
                     !
                 END DO
                 !

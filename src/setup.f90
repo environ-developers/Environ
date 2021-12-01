@@ -289,7 +289,7 @@ CONTAINS
         !
         CLASS(environ_setup), TARGET, INTENT(INOUT) :: this
         !
-        INTEGER :: ipol
+        INTEGER :: i
         INTEGER :: environment_nr(3)
         REAL(DP) :: environment_at(3, 3)
         !
@@ -308,8 +308,8 @@ CONTAINS
             !----------------------------------------------------------------------------
             ! Scale environment lattice (and corresponding ffts) by 2 * nrep(i) + 1
             !
-            DO ipol = 1, 3
-                environment_at(:, ipol) = at(:, ipol) * (2.D0 * env_nrep(ipol) + 1.D0)
+            DO i = 1, 3
+                environment_at(:, i) = at(:, i) * (2.D0 * env_nrep(i) + 1.D0)
             END DO
             !
             environment_nr(1) = this%system_cell%dfft%nr1 * (2 * env_nrep(1) + 1)
@@ -375,7 +375,7 @@ CONTAINS
         !
         CLASS(environ_setup), INTENT(INOUT) :: this
         !
-        INTEGER :: ipol
+        INTEGER :: i
         REAL(DP) :: environment_at(3, 3)
         !
         !--------------------------------------------------------------------------------
@@ -387,10 +387,10 @@ CONTAINS
         IF (this%ldoublecell) THEN
             this%environment_cell%lupdate = .TRUE.
             !
-            DO ipol = 1, 3
+            DO i = 1, 3
                 !
-                environment_at(:, ipol) = at(:, ipol) * &
-                                          (2.D0 * this%mapping%nrep(ipol) + 1.D0)
+                environment_at(:, i) = at(:, i) * &
+                                          (2.D0 * this%mapping%nrep(i) + 1.D0)
                 !
             END DO
             !

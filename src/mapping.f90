@@ -161,8 +161,8 @@ CONTAINS
         !
         CLASS(environ_mapping), INTENT(INOUT) :: this
         !
+        INTEGER :: ir
         LOGICAL :: physical
-        INTEGER :: ir, ipol
         INTEGER, DIMENSION(3) :: small_n, large_n, center, origin, shift, ijk
         REAL(DP) :: tmp(3)
         !
@@ -284,7 +284,7 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: flarge(nlarge)
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_real'
@@ -311,8 +311,8 @@ CONTAINS
             ALLOCATE (auxlarge(this%large%ntot))
             auxlarge = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) auxlarge(this%map(ir)) = fsmall(ir)
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) auxlarge(this%map(i)) = fsmall(i)
             END DO
             !
 #if defined(__MPI)
@@ -342,7 +342,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: flarge
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_small_to_large_density'
@@ -369,8 +369,8 @@ CONTAINS
             ALLOCATE (auxlarge(this%large%ntot))
             auxlarge = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) auxlarge(this%map(ir)) = fsmall%of_r(ir)
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) auxlarge(this%map(i)) = fsmall%of_r(i)
             END DO
             !
 #if defined(__MPI)
@@ -401,7 +401,7 @@ CONTAINS
         !
         REAL(DP), INTENT(INOUT) :: fsmall(nsmall)
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_real'
@@ -437,8 +437,8 @@ CONTAINS
 #endif
             fsmall = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) fsmall(ir) = auxlarge(this%map(ir))
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) fsmall(i) = auxlarge(this%map(i))
             END DO
             !
             DEALLOCATE (auxlarge)
@@ -460,7 +460,7 @@ CONTAINS
         !
         TYPE(environ_density), INTENT(INOUT) :: fsmall
         !
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP), ALLOCATABLE :: auxlarge(:)
         !
         CHARACTER(LEN=80) :: sub_name = 'map_large_to_small_density'
@@ -497,8 +497,8 @@ CONTAINS
 #endif
             fsmall%of_r = 0.D0
             !
-            DO ir = 1, this%small%ir_end
-                IF (this%map(ir) > 0) fsmall%of_r(ir) = auxlarge(this%map(ir))
+            DO i = 1, this%small%ir_end
+                IF (this%map(i) > 0) fsmall%of_r(i) = auxlarge(this%map(i))
             END DO
             !
             DEALLOCATE (auxlarge)

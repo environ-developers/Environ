@@ -208,7 +208,7 @@ CONTAINS
         CLASS(core_1da), TARGET, INTENT(INOUT) :: this
         !
         LOGICAL :: physical
-        INTEGER :: ir
+        INTEGER :: i
         REAL(DP) :: r(3), r2
         !
         INTEGER, POINTER :: dim, axis
@@ -226,26 +226,26 @@ CONTAINS
         !
         IF (dim == 0) THEN
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
+                CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                this%x(:, ir) = r
+                this%x(:, i) = r
             END DO
             !
         ELSE IF (dim == 1) THEN
             CALL io%error(sub_name, 'Option not yet implemented', 1)
         ELSE IF (dim == 2) THEN
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, 0, 0, origin, r, r2, physical)
+                CALL cell%get_min_distance(i, 0, 0, origin, r, r2, physical)
                 !
                 IF (.NOT. physical) CYCLE
                 !
-                this%x(1, ir) = r(axis)
+                this%x(1, i) = r(axis)
             END DO
             !
         END IF
@@ -301,7 +301,7 @@ CONTAINS
         !
         REAL(DP), POINTER :: vperiodic(:)
         !
-        INTEGER :: icor
+        INTEGER :: i
         !
         REAL(DP) :: fact
         REAL(DP) :: const, charge, dipole(3), quadrupole(3)
@@ -358,10 +358,10 @@ CONTAINS
                 !
                 vperiodic = 0.D0
                 !
-                DO icor = 1, 3
+                DO i = 1, 3
                     !
-                    vperiodic = vperiodic - charge * axis(icor, :)**2 + &
-                                2.D0 * dipole(icor) * axis(icor, :)
+                    vperiodic = vperiodic - charge * axis(i, :)**2 + &
+                                2.D0 * dipole(i) * axis(i, :)
                     !
                 END DO
                 !
@@ -422,7 +422,7 @@ CONTAINS
         !
         REAL(DP), POINTER :: gvperiodic(:, :)
         !
-        INTEGER :: icor
+        INTEGER :: i
         !
         REAL(DP) :: fact
         REAL(DP) :: charge, dipole(3), quadrupole(3)
@@ -465,8 +465,8 @@ CONTAINS
                 !
             CASE (0)
                 !
-                DO icor = 1, 3
-                    gvperiodic(icor, :) = (dipole(icor) - charge * axis(icor, :)) / 3.D0
+                DO i = 1, 3
+                    gvperiodic(i, :) = (dipole(i) - charge * axis(i, :)) / 3.D0
                 END DO
                 !
             CASE (1)

@@ -216,7 +216,7 @@ CONTAINS
         TYPE(environ_density) :: rho
         TYPE(environ_gradient) :: field
         !
-        INTEGER :: i, ipol
+        INTEGER :: i
         REAL(DP) :: dx, x0, epsilon
         REAL(DP), ALLOCATABLE :: fd_partial_of_ion_field(:)
         REAL(DP), ALLOCATABLE :: analytic_partial_of_ion_field(:, :, :)
@@ -370,9 +370,9 @@ CONTAINS
             !
             DO i = 1, bound%ions%number
                 !
-                DO ipol = 1, 3
-                    x0 = bound%ions%tau(ipol, i)
-                    bound%ions%tau(ipol, i) = x0 - dx
+                DO j = 1, 3
+                    x0 = bound%ions%tau(j, i)
+                    bound%ions%tau(j, i) = x0 - dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -386,7 +386,7 @@ CONTAINS
                     !
                     fd_partial_of_ion_field = bound%ion_field
                     !
-                    bound%ions%tau(ipol, i) = x0 + dx
+                    bound%ions%tau(j, i) = x0 + dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -402,17 +402,17 @@ CONTAINS
                     !
                     fd_partial_of_ion_field = fd_partial_of_ion_field / 2.D0 / dx
                     !
-                    WRITE (io%debug_unit, *) ' i  = ', i, ' ipol = ', ipol
+                    WRITE (io%debug_unit, *) ' i  = ', i, ' j = ', j
                     !
                     WRITE (io%debug_unit, '(a,10f20.10)') 'analytic     = ', &
-                        analytic_partial_of_ion_field(ipol, :, i)
+                        analytic_partial_of_ion_field(j, :, i)
                     !
                     WRITE (io%debug_unit, '(a,10f20.10)') 'finite-diff  = ', &
                         fd_partial_of_ion_field
                     !
                     WRITE (io%debug_unit, *) ' '
                     !
-                    bound%ions%tau(ipol, i) = x0
+                    bound%ions%tau(j, i) = x0
                 END DO
                 !
             END DO
@@ -524,7 +524,7 @@ CONTAINS
         !
         TYPE(environ_cell), POINTER :: cell
         !
-        INTEGER :: i, ipol
+        INTEGER :: i, j
         REAL(DP) :: epsilon
         REAL(DP) :: localpressure, localsurface_tension
         REAL(DP) :: de_fd, de_analytic, etmp
@@ -721,12 +721,12 @@ CONTAINS
                 !
                 force = -partial%scalar_product_density(de_dboundary)
                 !
-                DO ipol = 1, 3
+                DO j = 1, 3
                     !
                     de_fd = 0.D0 ! FINITE DIFFERENCE VALUE STORED HERE
                     bound%ions%tau(:, :) = tau0(:, :) ! RESET IONS
                     !
-                    bound%ions%tau(ipol, i) = tau0(ipol, i) - dx ! MINUS dx
+                    bound%ions%tau(j, i) = tau0(j, i) - dx ! MINUS dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -740,7 +740,7 @@ CONTAINS
                     !
                     de_fd = de_fd - etmp
                     !
-                    bound%ions%tau(ipol, i) = tau0(ipol, i) + dx ! PLUS dx
+                    bound%ions%tau(j, i) = tau0(j, i) + dx ! PLUS dx
                     !
                     CALL bound%ions%update(bound%ions%number, bound%ions%tau)
                     !
@@ -761,14 +761,14 @@ CONTAINS
                         !
                         IF (io%lnode) &
                             WRITE (io%debug_unit, '(a,i3,a,i3,4f20.10)') ' i = ', i, &
-                            ' ipol != ', ipol, force(ipol), ssforce(ipol), de_fd, &
-                            force(ipol) - de_fd
+                            ' j != ', j, force(j), ssforce(j), de_fd, &
+                            force(j) - de_fd
                         !
                     ELSE
                         !
                         IF (io%lnode) &
                             WRITE (io%debug_unit, '(a,i3,a,i3,3f20.10)') ' i = ', i, &
-                            ' ipol != ', ipol, force(ipol), de_fd, force(ipol) - de_fd
+                            ' j != ', j, force(j), de_fd, force(j) - de_fd
                         !
                     END IF
                     !

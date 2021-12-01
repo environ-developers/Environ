@@ -1583,9 +1583,9 @@ CONTAINS
         !
         CHARACTER(LEN=*), INTENT(OUT) :: input_line
         !
-        INTEGER :: ie, ix, ierr, nfield
+        INTEGER :: i, j
+        INTEGER :: nfield
         LOGICAL :: tend
-        CHARACTER(LEN=4) :: lb_pos
         CHARACTER(LEN=256) :: field_str
         !
         CHARACTER(LEN=80) :: sub_name = 'card_external_charges'
@@ -1619,11 +1619,11 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Parse card input
         !
-        DO ie = 1, env_external_charges
+        DO i = 1, env_external_charges
             !
             CALL env_read_line(unit, input_line, end_of_file=tend)
             !
-            IF (tend) CALL io%error(sub_name, "End of file reading external charges", ie)
+            IF (tend) CALL io%error(sub_name, "End of file reading external charges", i)
             !
             CALL env_field_count(nfield, input_line)
             !
@@ -1632,22 +1632,22 @@ CONTAINS
             !
             CALL env_get_field(1, field_str, input_line)
             !
-            READ (field_str, *) extcharge_charge(ie)
+            READ (field_str, *) extcharge_charge(i)
             !
             !----------------------------------------------------------------------------
             ! Read fields 2-4 (x-y-z position of external density)
             !
             CALL env_get_field(2, field_str, input_line)
             !
-            READ (field_str, *) extcharge_pos(1, ie)
+            READ (field_str, *) extcharge_pos(1, i)
             !
             CALL env_get_field(3, field_str, input_line)
             !
-            READ (field_str, *) extcharge_pos(2, ie)
+            READ (field_str, *) extcharge_pos(2, i)
             !
             CALL env_get_field(4, field_str, input_line)
             !
-            READ (field_str, *) extcharge_pos(3, ie)
+            READ (field_str, *) extcharge_pos(3, i)
             !
             !----------------------------------------------------------------------------
             ! Optionally read field 5 (spread of the density)
@@ -1656,10 +1656,10 @@ CONTAINS
                 !
                 CALL env_get_field(5, field_str, input_line)
                 !
-                READ (field_str, *) extcharge_spread(ie)
+                READ (field_str, *) extcharge_spread(i)
                 !
-                IF (extcharge_spread(ie) < 0.D0) &
-                    CALL io%error(sub_name, "Spread must be positive", ie)
+                IF (extcharge_spread(i) < 0.D0) &
+                    CALL io%error(sub_name, "Spread must be positive", i)
                 !
             ELSE
                 CALL io%writer("* setting external charge spread to 0.5 (a.u.)")
@@ -1672,12 +1672,12 @@ CONTAINS
                 !
                 CALL env_get_field(6, field_str, input_line)
                 !
-                READ (field_str, *) extcharge_dim(ie)
+                READ (field_str, *) extcharge_dim(i)
                 !
-                IF (extcharge_dim(ie) < 0 .OR. extcharge_dim(ie) > 2) &
-                    CALL io%error(sub_name, "Wrong excharge dimension", ie)
+                IF (extcharge_dim(i) < 0 .OR. extcharge_dim(i) > 2) &
+                    CALL io%error(sub_name, "Wrong excharge dimension", i)
                 !
-                IF (extcharge_dim(ie) > 0) THEN
+                IF (extcharge_dim(i) > 0) THEN
                     !
                     IF (nfield == 6) THEN
                         CALL io%writer("* setting external charge axis to 3 (z-axis)")
@@ -1685,10 +1685,10 @@ CONTAINS
                         !
                         CALL env_get_field(7, field_str, input_line)
                         !
-                        READ (field_str, *) extcharge_axis(ie)
+                        READ (field_str, *) extcharge_axis(i)
                         !
-                        IF (extcharge_axis(ie) < 0 .OR. extcharge_axis(ie) > 3) &
-                            CALL io%error(sub_name, "Wrong excharge axis", ie)
+                        IF (extcharge_axis(i) < 0 .OR. extcharge_axis(i) > 3) &
+                            CALL io%error(sub_name, "Wrong excharge axis", i)
                         !
                     END IF
                     !
@@ -1705,13 +1705,13 @@ CONTAINS
         !
         taextchg = .TRUE.
         !
-        DO ie = 1, env_external_charges
+        DO i = 1, env_external_charges
             !
-            DO ix = 1, 3
-                CALL convert_length(extcharge_units, extcharge_pos(ix, ie))
+            DO j = 1, 3
+                CALL convert_length(extcharge_units, extcharge_pos(j, i))
             END DO
             !
-            CALL convert_length(extcharge_units, extcharge_spread(ie))
+            CALL convert_length(extcharge_units, extcharge_spread(i))
             !
         END DO
         !
@@ -1797,9 +1797,9 @@ CONTAINS
         !
         CHARACTER(LEN=*), INTENT(OUT) :: input_line
         !
-        INTEGER :: ie, ix, ierr, nfield
+        INTEGER :: i, j
+        INTEGER :: nfield
         LOGICAL :: tend
-        CHARACTER(LEN=4) :: lb_pos
         CHARACTER(LEN=256) :: field_str
         !
         CHARACTER(LEN=80) :: sub_name = 'card_dielectric_regions'
@@ -1833,12 +1833,12 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Parse card input
         !
-        DO ie = 1, env_dielectric_regions
+        DO i = 1, env_dielectric_regions
             !
             CALL env_read_line(unit, input_line, end_of_file=tend)
             !
             IF (tend) &
-                CALL io%error(sub_name, "End of file reading dielectric regions", ie)
+                CALL io%error(sub_name, "End of file reading dielectric regions", i)
             !
             CALL env_field_count(nfield, input_line)
             !
@@ -1847,42 +1847,42 @@ CONTAINS
             !
             CALL env_get_field(1, field_str, input_line)
             !
-            READ (field_str, *) epsregion_eps(1, ie)
+            READ (field_str, *) epsregion_eps(1, i)
             !
-            IF (epsregion_eps(1, ie) < 1.D0) &
-                CALL io%error(sub_name, "Static permittivity must be > 1", ie)
+            IF (epsregion_eps(1, i) < 1.D0) &
+                CALL io%error(sub_name, "Static permittivity must be > 1", i)
             !
             CALL env_get_field(2, field_str, input_line)
             !
-            READ (field_str, *) epsregion_eps(2, ie)
+            READ (field_str, *) epsregion_eps(2, i)
             !
-            IF (epsregion_eps(2, ie) < 1.D0) &
-                CALL io%error(sub_name, "Optical permittivity must be > 1", ie)
+            IF (epsregion_eps(2, i) < 1.D0) &
+                CALL io%error(sub_name, "Optical permittivity must be > 1", i)
             !
             !----------------------------------------------------------------------------
             ! Read fields 3-5 (x-y-z position of dielectric region)
             !
             CALL env_get_field(3, field_str, input_line)
             !
-            READ (field_str, *) epsregion_pos(1, ie)
+            READ (field_str, *) epsregion_pos(1, i)
             !
             CALL env_get_field(4, field_str, input_line)
             !
-            READ (field_str, *) epsregion_pos(2, ie)
+            READ (field_str, *) epsregion_pos(2, i)
             !
             CALL env_get_field(5, field_str, input_line)
             !
-            READ (field_str, *) epsregion_pos(3, ie)
+            READ (field_str, *) epsregion_pos(3, i)
             !
             !----------------------------------------------------------------------------
             ! Read field 6 (size/width of the dielectric region)
             !
             CALL env_get_field(6, field_str, input_line)
             !
-            READ (field_str, *) epsregion_width(ie)
+            READ (field_str, *) epsregion_width(i)
             !
-            IF (epsregion_width(ie) < 0.D0) &
-                CALL io%error(sub_name, "Width must be positive", ie)
+            IF (epsregion_width(i) < 0.D0) &
+                CALL io%error(sub_name, "Width must be positive", i)
             !
             !----------------------------------------------------------------------------
             ! Optionally read field 7 (spread of interface of the dielectric region)
@@ -1891,10 +1891,10 @@ CONTAINS
                 !
                 CALL env_get_field(7, field_str, input_line)
                 !
-                READ (field_str, *) epsregion_spread(ie)
+                READ (field_str, *) epsregion_spread(i)
                 !
-                IF (epsregion_spread(ie) < 0.D0) &
-                    CALL io%error(sub_name, "Spread must be positive", ie)
+                IF (epsregion_spread(i) < 0.D0) &
+                    CALL io%error(sub_name, "Spread must be positive", i)
                 !
             ELSE
                 CALL io%writer("* setting dielectric region spread to 0.5 (a.u.)")
@@ -1907,12 +1907,12 @@ CONTAINS
                 !
                 CALL env_get_field(8, field_str, input_line)
                 !
-                READ (field_str, *) epsregion_dim(ie)
+                READ (field_str, *) epsregion_dim(i)
                 !
-                IF (epsregion_dim(ie) < 0 .OR. epsregion_dim(ie) > 2) &
-                    CALL io%error(sub_name, "Wrong epsregion dimension", ie)
+                IF (epsregion_dim(i) < 0 .OR. epsregion_dim(i) > 2) &
+                    CALL io%error(sub_name, "Wrong epsregion dimension", i)
                 !
-                IF (epsregion_dim(ie) > 0) THEN
+                IF (epsregion_dim(i) > 0) THEN
                     !
                     IF (nfield == 8) THEN
                         CALL io%writer("* setting dielectric region axis to 3 (z-axis)")
@@ -1920,10 +1920,10 @@ CONTAINS
                         !
                         CALL env_get_field(9, field_str, input_line)
                         !
-                        READ (field_str, *) epsregion_axis(ie)
+                        READ (field_str, *) epsregion_axis(i)
                         !
-                        IF (epsregion_axis(ie) < 1 .OR. epsregion_axis(ie) > 3) &
-                            CALL io%error(sub_name, "Wrong epsregion axis", ie)
+                        IF (epsregion_axis(i) < 1 .OR. epsregion_axis(i) > 3) &
+                            CALL io%error(sub_name, "Wrong epsregion axis", i)
                         !
                     END IF
                     !
@@ -1940,15 +1940,15 @@ CONTAINS
         !
         taepsreg = .TRUE.
         !
-        DO ie = 1, env_dielectric_regions
+        DO i = 1, env_dielectric_regions
             !
-            DO ix = 1, 3
-                CALL convert_length(epsregion_units, epsregion_pos(ix, ie))
+            DO j = 1, 3
+                CALL convert_length(epsregion_units, epsregion_pos(j, i))
             END DO
             !
-            CALL convert_length(epsregion_units, epsregion_width(ie))
+            CALL convert_length(epsregion_units, epsregion_width(i))
             !
-            CALL convert_length(epsregion_units, epsregion_spread(ie))
+            CALL convert_length(epsregion_units, epsregion_spread(i))
             !
         END DO
         !

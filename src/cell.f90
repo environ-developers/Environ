@@ -255,7 +255,7 @@ CONTAINS
         !
         CLASS(environ_cell), INTENT(INOUT) :: this
         !
-        INTEGER :: ic, ix, iy, iz
+        INTEGER :: i, j, k, l
         REAL(DP) :: dx, dy, dz
         !
         CHARACTER(LEN=80) :: sub_name = 'update_environ_cell'
@@ -279,20 +279,20 @@ CONTAINS
         !--------------------------------------------------------------------------------
         ! Calculate corners for minimum image convention
         !
-        ic = 0
+        l = 0
         !
-        DO ix = 0, 1
-            dx = DBLE(-ix)
+        DO i = 0, 1
+            dx = DBLE(-i)
             !
-            DO iy = 0, 1
-                dy = DBLE(-iy)
+            DO j = 0, 1
+                dy = DBLE(-j)
                 !
-                DO iz = 0, 1
-                    dz = DBLE(-iz)
-                    ic = ic + 1
-                    this%corners(1, ic) = dx * at(1, 1) + dy * at(1, 2) + dz * at(1, 3)
-                    this%corners(2, ic) = dx * at(2, 1) + dy * at(2, 2) + dz * at(2, 3)
-                    this%corners(3, ic) = dx * at(3, 1) + dy * at(3, 2) + dz * at(3, 3)
+                DO k = 0, 1
+                    dz = DBLE(-k)
+                    l = l + 1
+                    this%corners(1, l) = dx * at(1, 1) + dy * at(1, 2) + dz * at(1, 3)
+                    this%corners(2, l) = dx * at(2, 1) + dy * at(2, 2) + dz * at(2, 3)
+                    this%corners(3, l) = dx * at(3, 1) + dy * at(3, 2) + dz * at(3, 3)
                 END DO
                 !
             END DO
@@ -439,25 +439,25 @@ CONTAINS
         !
         REAL(DP), DIMENSION(3), INTENT(OUT) :: b1, b2, b3
         !
-        REAL(DP) :: den ! the denominator
-        REAL(DP) :: s ! the sign of the permutations
-        !
-        INTEGER :: iperm ! counter on the permutations
         INTEGER :: i, j, k, l
         !
-        INTEGER :: ipol ! counter on the polarizations
+        INTEGER :: m ! counter on the permutations
+        INTEGER :: n ! counter on the polarizations
+        !
+        REAL(DP) :: denominator
+        REAL(DP) :: sign
         !
         !--------------------------------------------------------------------------------
         ! Compute the denominator
         !
-        den = 0
+        denominator = 0
         i = 1
         j = 2
         k = 3
-        s = 1.D0
+        sign = 1.D0
         !
-100     DO iperm = 1, 3
-            den = den + s * a1(i) * a2(j) * a3(k)
+100     DO m = 1, 3
+            denominator = denominator + sign * a1(i) * a2(j) * a3(k)
             l = i
             i = j
             j = k
@@ -467,9 +467,9 @@ CONTAINS
         i = 2
         j = 1
         k = 3
-        s = -s
+        sign = -sign
         !
-        IF (s < 0.D0) GOTO 100
+        IF (sign < 0.D0) GOTO 100
         !
         !--------------------------------------------------------------------------------
         ! Compute the reciprocal vectors
@@ -478,10 +478,10 @@ CONTAINS
         j = 2
         k = 3
         !
-        DO ipol = 1, 3
-            b1(ipol) = (a2(j) * a3(k) - a2(k) * a3(j)) / den
-            b2(ipol) = (a3(j) * a1(k) - a3(k) * a1(j)) / den
-            b3(ipol) = (a1(j) * a2(k) - a1(k) * a2(j)) / den
+        DO n = 1, 3
+            b1(n) = (a2(j) * a3(k) - a2(k) * a3(j)) / denominator
+            b2(n) = (a3(j) * a1(k) - a3(k) * a1(j)) / denominator
+            b3(n) = (a1(j) * a2(k) - a1(k) * a2(j)) / denominator
             l = i
             i = j
             j = k
@@ -658,7 +658,7 @@ CONTAINS
         REAL(DP), INTENT(OUT) :: r(3)
         LOGICAL, INTENT(OUT) :: physical
         !
-        INTEGER :: idx, i, j, k, ip
+        INTEGER :: i, j, k, l
         !
         !--------------------------------------------------------------------------------
         !
@@ -668,11 +668,11 @@ CONTAINS
         !
         IF (.NOT. physical) RETURN
         !
-        DO ip = 1, 3
+        DO l = 1, 3
             !
-            r(ip) = DBLE(i) * this%in1 * this%at(ip, 1) + &
-                    DBLE(j) * this%in2 * this%at(ip, 2) + &
-                    DBLE(k) * this%in3 * this%at(ip, 3)
+            r(l) = DBLE(i) * this%in1 * this%at(l, 1) + &
+                   DBLE(j) * this%in2 * this%at(l, 2) + &
+                   DBLE(k) * this%in3 * this%at(l, 3)
             !
         END DO
         !
@@ -736,7 +736,7 @@ CONTAINS
         REAL(DP), INTENT(INOUT) :: r(3)
         REAL(DP), INTENT(OUT) :: r2
         !
-        INTEGER :: ic
+        INTEGER :: i
         REAL(DP) :: s(3), rmin(3), r2min
         !
         !--------------------------------------------------------------------------------
@@ -748,8 +748,8 @@ CONTAINS
         rmin = r
         r2min = SUM(r * r)
         !
-        DO ic = 2, 8
-            s = r + this%corners(:, ic)
+        DO i = 2, 8
+            s = r + this%corners(:, i)
             r2 = SUM(s * s)
             !
             IF (r2 < r2min) THEN
@@ -814,7 +814,7 @@ CONTAINS
         !
         REAL(DP), PARAMETER :: tol = 1.D-8
         !
-        INTEGER :: ipol, jpol
+        INTEGER :: i, j
         REAL(DP) :: tmp
         !
         !--------------------------------------------------------------------------------
@@ -823,14 +823,14 @@ CONTAINS
         !
         tmp = 0.D0
         !
-        DO ipol = 1, 3
+        DO i = 1, 3
             !
-            DO jpol = 1, 3
+            DO j = 1, 3
                 !
-                IF (ipol == jpol) THEN
-                    tmp = tmp + ABS(this%at(ipol, ipol) - this%at(1, 1))
+                IF (i == j) THEN
+                    tmp = tmp + ABS(this%at(i, i) - this%at(1, 1))
                 ELSE
-                    tmp = tmp + ABS(this%at(ipol, jpol))
+                    tmp = tmp + ABS(this%at(i, j))
                 END IF
                 !
             END DO
@@ -887,7 +887,7 @@ CONTAINS
         !
         INTEGER, DIMENSION(:), ALLOCATABLE :: igsrt, g2l
         !
-        INTEGER :: ni, nj, nk, i, j, k, ipol, ng, igl, indsw
+        INTEGER :: ni, nj, nk, i, j, k, ng
         INTEGER :: istart, jstart, kstart
         INTEGER :: mype, npe
         LOGICAL :: global_sort, is_local
@@ -1286,7 +1286,7 @@ CONTAINS
         CLASS(environ_cell), TARGET, INTENT(IN) :: this
         INTEGER, INTENT(IN) :: natoms
         !
-        INTEGER :: ipol
+        INTEGER :: i
         INTEGER :: nr1, nr2, nr3
         !
         REAL(DP), POINTER :: at(:, :), origin(:)
@@ -1306,9 +1306,9 @@ CONTAINS
         WRITE (300, *) 'CUBE FILE GENERATED BY PW.X'
         WRITE (300, *) 'OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z'
         WRITE (300, '(i5,3f12.6)') natoms, origin
-        WRITE (300, '(i5,3f12.6)') nr1, (at(ipol, 1) / DBLE(nr1), ipol=1, 3)
-        WRITE (300, '(i5,3f12.6)') nr2, (at(ipol, 2) / DBLE(nr2), ipol=1, 3)
-        WRITE (300, '(i5,3f12.6)') nr3, (at(ipol, 3) / DBLE(nr3), ipol=1, 3)
+        WRITE (300, '(i5,3f12.6)') nr1, (at(i, 1) / DBLE(nr1), i=1, 3)
+        WRITE (300, '(i5,3f12.6)') nr2, (at(i, 2) / DBLE(nr2), i=1, 3)
+        WRITE (300, '(i5,3f12.6)') nr3, (at(i, 3) / DBLE(nr3), i=1, 3)
         !
         !--------------------------------------------------------------------------------
     END SUBROUTINE write_cube_cell

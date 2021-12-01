@@ -94,8 +94,8 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: density
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, integral, local_charge
         REAL(DP), ALLOCATABLE :: local(:)
         !
@@ -139,9 +139,9 @@ CONTAINS
             ALLOCATE (local(cell%nnr))
             local = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -149,7 +149,7 @@ CONTAINS
                 dist = SQRT(r2)
                 arg = (dist - width) / spread
                 !
-                local(ir) = environ_erfc(arg) ! compute error function
+                local(i) = environ_erfc(arg) ! compute error function
                 !
             END DO
             !
@@ -188,8 +188,8 @@ CONTAINS
         !
         TYPE(environ_gradient), TARGET, INTENT(INOUT) :: gradient
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: gradlocal(:, :)
         !
@@ -231,9 +231,9 @@ CONTAINS
             ALLOCATE (gradlocal(3, cell%nnr))
             gradlocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -241,7 +241,7 @@ CONTAINS
                 dist = SQRT(r2)
                 arg = (dist - width) / spread
                 !
-                IF (dist > func_tol) gradlocal(:, ir) = -EXP(-arg**2) * r / dist
+                IF (dist > func_tol) gradlocal(:, i) = -EXP(-arg**2) * r / dist
                 ! compute gradient of error function
                 !
             END DO
@@ -267,8 +267,8 @@ CONTAINS
         !
         TYPE(environ_density), TARGET, INTENT(INOUT) :: laplacian
         !
+        INTEGER :: i
         LOGICAL :: physical
-        INTEGER :: ir
         REAL(DP) :: r(3), r2, scale, dist, arg, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: lapllocal(:)
         !
@@ -310,9 +310,9 @@ CONTAINS
             ALLOCATE (lapllocal(cell%nnr))
             lapllocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -328,17 +328,17 @@ CONTAINS
                 CASE (0)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(ir) = -EXP(-arg**2) * &
-                                        (1.D0 / dist - arg / spread) * 2.D0
+                        lapllocal(i) = -EXP(-arg**2) * &
+                                       (1.D0 / dist - arg / spread) * 2.D0
                     !
                 CASE (1)
                     !
                     IF (dist > func_tol) &
-                        lapllocal(ir) = -EXP(-arg**2) * &
-                                        (1.D0 / dist - 2.D0 * arg / spread)
+                        lapllocal(i) = -EXP(-arg**2) * &
+                                       (1.D0 / dist - 2.D0 * arg / spread)
                     !
                 CASE (2)
-                    lapllocal(ir) = EXP(-arg**2) * arg / spread * 2.D0
+                    lapllocal(i) = EXP(-arg**2) * arg / spread * 2.D0
                     !
                 CASE DEFAULT
                     CALL io%error(sub_name, 'Unexpected system dimensions', 1)
@@ -368,8 +368,8 @@ CONTAINS
         !
         TYPE(environ_hessian), TARGET, INTENT(INOUT) :: hessian
         !
+        INTEGER :: i, j, k
         LOGICAL :: physical
-        INTEGER :: ir, ip, jp
         REAL(DP) :: r(3), r2, scale, dist, arg, tmp, chargeanalytic, local_charge
         REAL(DP), ALLOCATABLE :: hesslocal(:, :, :)
         !
@@ -411,9 +411,9 @@ CONTAINS
             ALLOCATE (hesslocal(3, 3, cell%nnr))
             hesslocal = 0.D0
             !
-            DO ir = 1, cell%ir_end
+            DO i = 1, cell%ir_end
                 !
-                CALL cell%get_min_distance(ir, dim, axis, pos, r, r2, physical)
+                CALL cell%get_min_distance(i, dim, axis, pos, r, r2, physical)
                 ! compute minimum distance using minimum image convention
                 !
                 IF (.NOT. physical) CYCLE
@@ -426,14 +426,14 @@ CONTAINS
                 !
                 IF (dist > func_tol) THEN
                     !
-                    DO ip = 1, 3
+                    DO j = 1, 3
                         !
-                        DO jp = 1, 3
-                            tmp = -r(ip) * r(jp) * (1.D0 / dist + 2.D0 * arg / spread)
+                        DO k = 1, 3
+                            tmp = -r(j) * r(k) * (1.D0 / dist + 2.D0 * arg / spread)
                             !
-                            IF (ip == jp) tmp = tmp + dist
+                            IF (j == k) tmp = tmp + dist
                             !
-                            hesslocal(ip, jp, ir) = -EXP(-arg**2) * tmp / dist**2
+                            hesslocal(j, k, i) = -EXP(-arg**2) * tmp / dist**2
                         END DO
                         !
                     END DO

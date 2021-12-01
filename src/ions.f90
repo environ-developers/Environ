@@ -710,16 +710,16 @@ CONTAINS
         !
         CLASS(environ_ions), TARGET, INTENT(IN) :: this
         !
-        INTEGER :: iat
+        INTEGER :: i
         !
         !--------------------------------------------------------------------------------
         ! Write cube cell data
         !
-        DO iat = 1, this%number
+        DO i = 1, this%number
             !
             WRITE (300, '(i5,4f12.6)') &
-                this%iontype(this%ityp(iat))%atmnum, 0.D0, &
-                this%tau(1, iat), this%tau(2, iat), this%tau(3, iat)
+                this%iontype(this%ityp(i))%atmnum, 0.D0, &
+                this%tau(1, i), this%tau(2, i), this%tau(3, i)
             !
         END DO
         !
