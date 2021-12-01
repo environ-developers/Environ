@@ -2067,6 +2067,8 @@ CONTAINS
                 !
                 IF (line(1:1) == '&') THEN
                     !
+                    CALL io%writer("* ignoring "//TRIM(line)//" namelist")
+                    !
                     DO WHILE (line(1:1) /= '/')
                         !
                         READ (unit, fmt='(A256)', iostat=ios) line
